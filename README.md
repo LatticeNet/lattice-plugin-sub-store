@@ -7,14 +7,14 @@ Official LatticeNet system plugin. Built from `lattice-plugin-template`.
 - Registered in [lattice-plugin-index](https://github.com/LatticeNet/lattice-plugin-index).
 
 The plugin artifact (`system-go/`) implements the Lattice system-plugin stdio
-contract (newline-JSON `{action,payload}` -> `{ok,plan,message,result,error}`);
-the Lattice system runner executes it for the verify/plan/health lifecycle. The
-heavy engine stays in `lattice-server` (ADR-001 D5/D6: engine in core, providers
-are officially-maintained registered plugins). See `manifest.json` for the
-declared capability set.
+contract (newline-JSON `{action,payload}` on stdin -> `{ok,plan,message,result,error}`
+on stdout). Broker host-call responses are returned on fd 3, advertised by
+`LATTICE_HOST_RESPONSE_FD`, so stdin can still close after the initial request.
+The Lattice system runner executes it for lifecycle and dashboard calls. See
+`manifest.json` for the declared capability set.
 
 ## Build
 
 ```sh
-cd system-go && CGO_ENABLED=0 go build -trimpath -o lattice-plugin-sub-store .
+cd system-go && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -o lattice-plugin-sub-store .
 ```

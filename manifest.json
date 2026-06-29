@@ -8,11 +8,11 @@
     "kv:read",
     "kv:write"
   ],
-  "version": "0.2.0",
+  "version": "0.3.0",
   "entrypoint": "system-go/lattice-plugin-sub-store",
   "publisher": "latticenet",
-  "digest_sha256": "d0c3dca5e34eeebf4ab23432e8c464afe49cf680907ecb5b579181ad2d2c12b9",
-  "signature_ed25519": "0B/Pacc4cAvhpLCGzYMXmeTlfo3BPZ6iM/SPXnKajWYfKMPMaZSRWQZA4cMBeYNyib4ZplPsiXZ9L6N36pBvDw==",
+  "digest_sha256": "102563cf81df0e575abad409dbec2da99ec0ec05e6c72f298fbe314f05d280b5",
+  "signature_ed25519": "ZNVXX/iMTUfOpdsC1fBn79B0G68KnuYuY3mECRsRDSFxedOdLQ/dTpGwBThUreBocUrP76O5BP/IjYBqPQ8DDQ==",
   "ui": {
     "nav": [
       {
@@ -34,5 +34,25 @@
         "component_key": "proxy.substore"
       }
     ]
-  }
+  },
+  "interfaces": [
+    {
+      "service": "latticenet.sub-store/import",
+      "methods": [
+        "status"
+      ],
+      "scopes": [
+        "proxy:read"
+      ]
+    },
+    {
+      "service": "latticenet.sub-store/import",
+      "methods": [
+        "import"
+      ],
+      "scopes": [
+        "proxy:admin"
+      ]
+    }
+  ]
 }
