@@ -23,7 +23,7 @@ import (
 const (
 	pluginID      = "latticenet.sub-store"
 	pluginName    = "Sub-Store companion"
-	pluginVersion = "0.1.0"
+	pluginVersion = "0.2.0"
 )
 
 // capabilities are the genuinely broker-available primitives this companion uses:
