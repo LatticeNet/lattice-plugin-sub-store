@@ -1,0 +1,16 @@
+{
+  "id": "latticenet.sub-store",
+  "name": "Sub-Store companion",
+  "type": "system",
+  "version": "0.1.0",
+  "publisher": "latticenet",
+  "entrypoint": "system-go/lattice-plugin-sub-store",
+  "capabilities": [
+    "rpc:call",
+    "http:egress",
+    "kv:read",
+    "kv:write"
+  ],
+  "digest_sha256": "61385ead08ebab5aa84aa3f0a5deb7984c9dbea7c86ce4db5ef66e237c51d76c",
+  "signature_ed25519": "dy/h0v1bhcpjKVacoFqfdBq+6knRLt0AofXRg1Lg8F2BKFmGGkvCiU0tLLCzLbAmbfZlZ6H75rQhmwvZbcBrBA=="
+}
