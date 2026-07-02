@@ -158,9 +158,9 @@ func (rt *runtime) handleCall(payload json.RawMessage) response {
 }
 
 func (rt *runtime) status(req subStoreRequest) json.RawMessage {
-	base := normalizeBaseURL(req.BaseURL)
-	if base == "" {
-		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": "base_url is required"})
+	base, err := validateBaseURL(req.BaseURL)
+	if err != nil {
+		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": err.Error()})
 	}
 	status, err := rt.httpDo("GET", base+"/api/utils/env", nil)
 	reachable := err == nil && status >= 200 && status < 500
@@ -172,9 +172,9 @@ func (rt *runtime) status(req subStoreRequest) json.RawMessage {
 }
 
 func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
-	base := normalizeBaseURL(req.BaseURL)
-	if base == "" {
-		return nil, fmt.Errorf("base_url is required")
+	base, err := validateBaseURL(req.BaseURL)
+	if err != nil {
+		return nil, err
 	}
 	subName := strings.TrimSpace(req.SubName)
 	if subName == "" {
@@ -310,8 +310,56 @@ func renderPlan(payload json.RawMessage) string {
 	return strings.Join(lines, "\n")
 }
 
-func normalizeBaseURL(value string) string {
-	return strings.TrimRight(strings.TrimSpace(value), "/")
+func validateBaseURL(value string) (string, error) {
+	raw := strings.TrimSpace(value)
+	if raw == "" {
+		return "", fmt.Errorf("base_url is required")
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme == "" {
+		return "", fmt.Errorf("base_url must be an absolute http(s) URL")
+	}
+	switch strings.ToLower(parsed.Scheme) {
+	case "http", "https":
+	default:
+		return "", fmt.Errorf("base_url must use http or https")
+	}
+	if parsed.Host == "" {
+		return "", fmt.Errorf("base_url must be an absolute http(s) URL")
+	}
+	if parsed.User != nil {
+		return "", fmt.Errorf("base_url must not include credentials")
+	}
+	if parsed.RawQuery != "" || parsed.Fragment != "" {
+		return "", fmt.Errorf("base_url must not include query or fragment")
+	}
+	if parsed.Path == "" || parsed.Path == "/" {
+		return "", fmt.Errorf("base_url must include the Sub-Store secret path")
+	}
+	hasSecretPathSegment := false
+	for _, segment := range strings.Split(parsed.Path, "/") {
+		switch segment {
+		case "":
+			continue
+		case ".", "..":
+			return "", fmt.Errorf("base_url path must not contain dot segments")
+		default:
+			hasSecretPathSegment = true
+		}
+	}
+	if !hasSecretPathSegment {
+		return "", fmt.Errorf("base_url must include the Sub-Store secret path")
+	}
+	if parsed.Hostname() == "" {
+		return "", fmt.Errorf("base_url must include a host")
+	}
+	if port := parsed.Port(); port != "" {
+		n, err := strconv.Atoi(port)
+		if err != nil || n < 1 || n > 65535 {
+			return "", fmt.Errorf("base_url port is invalid")
+		}
+	}
+	return strings.TrimRight(parsed.String(), "/"), nil
 }
 
 func mustJSON(v any) json.RawMessage {

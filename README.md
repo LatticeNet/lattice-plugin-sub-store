@@ -13,6 +13,18 @@ on stdout). Broker host-call responses are returned on fd 3, advertised by
 The Lattice system runner executes it for lifecycle and dashboard calls. See
 `manifest.json` for the declared capability set.
 
+## Backend URL safety
+
+The `base_url` supplied by the dashboard must be an absolute `http://` or
+`https://` URL that includes the Sub-Store secret path, for example
+`https://sub.example.com/<secret-path>`. The plugin rejects URLs with embedded
+credentials, query strings, fragments, invalid ports, missing secret paths, or
+path traversal segments before making a brokered `http.do` call.
+
+The dashboard keeps this secret URL out of server-side configuration. It is
+remembered only for the current browser session unless the operator explicitly
+chooses to persist it in local browser storage on a trusted device.
+
 ## Build
 
 ```sh
