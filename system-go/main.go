@@ -14,6 +14,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"sort"
@@ -330,6 +331,9 @@ func validateBaseURL(value string) (string, error) {
 	if parsed.User != nil {
 		return "", fmt.Errorf("base_url must not include credentials")
 	}
+	if strings.EqualFold(parsed.Scheme, "http") && !isLoopbackHost(parsed.Hostname()) {
+		return "", fmt.Errorf("base_url may use http only for localhost or loopback; use https for remote Sub-Store backends")
+	}
 	if parsed.RawQuery != "" || parsed.Fragment != "" {
 		return "", fmt.Errorf("base_url must not include query or fragment")
 	}
@@ -360,6 +364,15 @@ func validateBaseURL(value string) (string, error) {
 		}
 	}
 	return strings.TrimRight(parsed.String(), "/"), nil
+}
+
+func isLoopbackHost(host string) bool {
+	h := strings.TrimSpace(strings.ToLower(host))
+	if h == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(h)
+	return ip != nil && ip.IsLoopback()
 }
 
 func mustJSON(v any) json.RawMessage {

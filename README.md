@@ -15,11 +15,13 @@ The Lattice system runner executes it for lifecycle and dashboard calls. See
 
 ## Backend URL safety
 
-The `base_url` supplied by the dashboard must be an absolute `http://` or
-`https://` URL that includes the Sub-Store secret path, for example
-`https://sub.example.com/<secret-path>`. The plugin rejects URLs with embedded
-credentials, query strings, fragments, invalid ports, missing secret paths, or
-path traversal segments before making a brokered `http.do` call.
+The `base_url` supplied by the dashboard must be an absolute URL that includes
+the Sub-Store secret path, for example `https://sub.example.com/<secret-path>`.
+Remote backends must use `https://`. Cleartext `http://` is accepted only for
+`localhost` or loopback hosts such as `127.0.0.1` and `[::1]`. The plugin
+rejects URLs with embedded credentials, query strings, fragments, invalid ports,
+missing secret paths, remote cleartext HTTP, or path traversal segments before
+making a brokered `http.do` call.
 
 The dashboard keeps this secret URL out of server-side configuration. It is
 remembered only for the current browser session unless the operator explicitly

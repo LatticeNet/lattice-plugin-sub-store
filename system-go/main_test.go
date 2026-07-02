@@ -15,6 +15,29 @@ func TestValidateBaseURLAcceptsHTTPSWithSecretPath(t *testing.T) {
 	}
 }
 
+func TestValidateBaseURLAcceptsLoopbackHTTPWithSecretPath(t *testing.T) {
+	cases := []struct {
+		in   string
+		want string
+	}{
+		{in: "http://localhost/secret/", want: "http://localhost/secret"},
+		{in: "http://127.0.0.1:3000/secret", want: "http://127.0.0.1:3000/secret"},
+		{in: "http://127.7.8.9/secret", want: "http://127.7.8.9/secret"},
+		{in: "http://[::1]:3000/secret", want: "http://[::1]:3000/secret"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.in, func(t *testing.T) {
+			got, err := validateBaseURL(tc.in)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != tc.want {
+				t.Fatalf("base URL = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestValidateBaseURLRejectsUnsafeInputs(t *testing.T) {
 	cases := []struct {
 		name string
@@ -33,6 +56,9 @@ func TestValidateBaseURLRejectsUnsafeInputs(t *testing.T) {
 		{name: "traversal", in: "https://sub.example.com/../secret", want: "dot segments"},
 		{name: "encoded traversal", in: "https://sub.example.com/%2e%2e/secret", want: "dot segments"},
 		{name: "bad port", in: "https://sub.example.com:99999/secret", want: "invalid"},
+		{name: "remote http host", in: "http://sub.example.com/secret", want: "https"},
+		{name: "private lan http", in: "http://10.0.0.5/secret", want: "loopback"},
+		{name: "unspecified http", in: "http://0.0.0.0:3000/secret", want: "loopback"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
