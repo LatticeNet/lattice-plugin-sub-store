@@ -8,11 +8,11 @@
     "kv:read",
     "kv:write"
   ],
-  "version": "0.3.0",
+  "version": "0.3.1",
   "entrypoint": "system-go/lattice-plugin-sub-store",
   "publisher": "latticenet",
-  "digest_sha256": "102563cf81df0e575abad409dbec2da99ec0ec05e6c72f298fbe314f05d280b5",
-  "signature_ed25519": "ZNVXX/iMTUfOpdsC1fBn79B0G68KnuYuY3mECRsRDSFxedOdLQ/dTpGwBThUreBocUrP76O5BP/IjYBqPQ8DDQ==",
+  "digest_sha256": "938411858c968d3783cee37730f7de184277a925665fc22f082cd2e05eccad3f",
+  "signature_ed25519": "j2/MqJBER3ZZuTM66CGDRizX/HsNb0IjBmNLzKPBgZELk0F50EuisZjKWALWWvDFxL9bifjIEjIG/DyIBHpEDQ==",
   "ui": {
     "nav": [
       {

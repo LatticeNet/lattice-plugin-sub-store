@@ -25,7 +25,7 @@ import (
 const (
 	pluginID            = "latticenet.sub-store"
 	pluginName          = "Sub-Store companion"
-	pluginVersion       = "0.3.0"
+	pluginVersion       = "0.3.1"
 	defaultSubStoreName = "lattice-vpn-core"
 )
 
