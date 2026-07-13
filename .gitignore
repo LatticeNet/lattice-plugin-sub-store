@@ -1,2 +1,7 @@
 system-go/lattice-plugin-sub-store
+ui/node_modules/
+ui/dist/
+ui/*.tsbuildinfo
+ui/vite.config.js
+dist/
 .ace-tool/

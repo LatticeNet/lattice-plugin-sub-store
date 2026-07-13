@@ -1,23 +1,51 @@
 {
+  "schema": "lattice.plugin.manifest.v2",
   "id": "latticenet.sub-store",
   "name": "Sub-Store companion",
   "type": "system",
   "capabilities": [
     "rpc:call",
-    "http:egress",
-    "kv:read",
-    "kv:write"
+    "http:operator-target"
   ],
-  "version": "0.3.1",
-  "entrypoint": "system-go/lattice-plugin-sub-store",
+  "version": "0.3.2-alpha.1",
   "publisher": "latticenet",
-  "digest_sha256": "938411858c968d3783cee37730f7de184277a925665fc22f082cd2e05eccad3f",
-  "signature_ed25519": "j2/MqJBER3ZZuTM66CGDRizX/HsNb0IjBmNLzKPBgZELk0F50EuisZjKWALWWvDFxL9bifjIEjIG/DyIBHpEDQ==",
+  "signature_ed25519": "f/SZDZaq0lEF7uN36pqtMIwhDXFKRwmjyOW/YN92DDFFnLDtEwSV5P8lgOacU4p0uYfWL9jbyTqE68RpLuf4DQ==",
+  "bundle": {
+    "format": "tar+gzip",
+    "digest_sha256": "4c4a511718286b11320a03b3ae69217d528b6dc5d2b52b2ac34b743a1b835eda"
+  },
+  "runtime": {
+    "protocol": "stdio-json-v1",
+    "entrypoints": {
+      "linux/amd64": "bin/linux-amd64/plugin",
+      "linux/arm64": "bin/linux-arm64/plugin"
+    }
+  },
+  "ui_runtime": {
+    "mode": "sandbox",
+    "entrypoint": "ui/index.html",
+    "bridge_version": "1"
+  },
+  "compatibility": {
+    "server": "\u003e=0.2.1",
+    "dashboard_host": "\u003e=1",
+    "runtime_protocol": "\u003e=1"
+  },
+  "host_access": {
+    "rpc": [
+      {
+        "service": "latticenet.vpn-core/nodes",
+        "methods": [
+          "export"
+        ]
+      }
+    ]
+  },
   "ui": {
     "nav": [
       {
-        "section": "vpn-manage",
-        "section_title": "VPN Manage",
+        "section": "extensions",
+        "section_title": "Extensions",
         "title": "Sub-Store",
         "route": "sub-store",
         "icon": "Store",
@@ -30,8 +58,7 @@
       {
         "route": "sub-store",
         "title": "Sub-Store",
-        "kind": "builtin",
-        "component_key": "proxy.substore"
+        "kind": "sandbox"
       }
     ]
   },
@@ -39,19 +66,26 @@
     {
       "service": "latticenet.sub-store/import",
       "methods": [
-        "status"
-      ],
-      "scopes": [
-        "proxy:read"
-      ]
-    },
-    {
-      "service": "latticenet.sub-store/import",
-      "methods": [
-        "import"
-      ],
-      "scopes": [
-        "proxy:admin"
+        {
+          "name": "status",
+          "effect": "read",
+          "scopes": [
+            "proxy:read"
+          ],
+          "operator_target_fields": [
+            "base_url"
+          ]
+        },
+        {
+          "name": "import",
+          "effect": "write",
+          "scopes": [
+            "proxy:admin"
+          ],
+          "operator_target_fields": [
+            "base_url"
+          ]
+        }
       ]
     }
   ]

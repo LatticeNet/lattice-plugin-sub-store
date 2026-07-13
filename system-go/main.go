@@ -14,6 +14,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
 	"os"
@@ -25,14 +26,16 @@ import (
 const (
 	pluginID            = "latticenet.sub-store"
 	pluginName          = "Sub-Store companion"
-	pluginVersion       = "0.3.1"
+	pluginVersion       = "0.3.2-alpha.1"
 	defaultSubStoreName = "lattice-vpn-core"
+	maxExportLinks      = 10_000
+	maxExportBytes      = 1 << 20
+	maxLinkBytes        = 4 << 10
 )
 
-// capabilities are the broker primitives this companion uses: rpc:call to pull
-// nodes from vpn-core, http:egress to push to Sub-Store, and KV for future saved
-// backend presets.
-var capabilities = []string{"rpc:call", "http:egress", "kv:read", "kv:write"}
+// Private/loopback Sub-Store endpoints require the explicit system-only
+// operator-target primitive. Ordinary http:egress remains unable to reach them.
+var capabilities = []string{"rpc:call", "http:operator-target"}
 
 type request struct {
 	Action  string          `json:"action"`
@@ -85,7 +88,7 @@ func main() {
 	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
 	respScanner, closeResponses := hostResponseScanner()
 	defer closeResponses()
-	rt := &runtime{responses: respScanner}
+	rt := &runtime{host: &stdioHostCaller{responses: respScanner, output: os.Stdout}}
 	for scanner.Scan() {
 		var req request
 		if err := json.Unmarshal(scanner.Bytes(), &req); err != nil {
@@ -97,8 +100,17 @@ func main() {
 }
 
 type runtime struct {
+	host hostCaller
+}
+
+type hostCaller interface {
+	call(method string, params any) (json.RawMessage, error)
+}
+
+type stdioHostCaller struct {
 	responses *bufio.Scanner
 	nextID    int
+	output    io.Writer
 }
 
 func (rt *runtime) handle(req request) response {
@@ -115,7 +127,7 @@ func (rt *runtime) handle(req request) response {
 				"Sub-Store backend reachability checks",
 			},
 			"calls":  "latticenet.vpn-core/nodes export (inter-plugin RPC)",
-			"engine": "plugin artifact via brokered rpc.call + http.do",
+			"engine": "plugin artifact via brokered rpc.call + http.operator.do",
 		})
 		return response{OK: true, Result: body, Message: "sub-store companion capability surface"}
 	case "health":
@@ -147,7 +159,7 @@ func (rt *runtime) handleCall(payload json.RawMessage) response {
 	case "status":
 		result := rt.status(req)
 		return response{OK: true, Result: result}
-	case "import", "run":
+	case "import":
 		result, err := rt.importNodes(req)
 		if err != nil {
 			return response{OK: false, Error: err.Error()}
@@ -163,11 +175,15 @@ func (rt *runtime) status(req subStoreRequest) json.RawMessage {
 	if err != nil {
 		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": err.Error()})
 	}
+	subName, err := normalizeSubName(req.SubName)
+	if err != nil {
+		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": err.Error()})
+	}
 	status, err := rt.httpDo("GET", base+"/api/utils/env", nil)
 	reachable := err == nil && status >= 200 && status < 500
-	out := map[string]any{"reachable": reachable, "sub_name": defaultSubStoreName}
+	out := map[string]any{"reachable": reachable, "sub_name": subName}
 	if err != nil {
-		out["error"] = err.Error()
+		out["error"] = "Sub-Store endpoint is unreachable or denied by host policy"
 	}
 	return mustJSON(out)
 }
@@ -177,28 +193,47 @@ func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	subName := strings.TrimSpace(req.SubName)
-	if subName == "" {
-		subName = defaultSubStoreName
+	subName, err := normalizeSubName(req.SubName)
+	if err != nil {
+		return nil, err
 	}
 
 	rpcReq := map[string]string{}
 	if userID := strings.TrimSpace(req.UserID); userID != "" {
+		if len(userID) > 128 || hasControl(userID) {
+			return nil, fmt.Errorf("user_id must be printable and at most 128 characters")
+		}
 		rpcReq["user_id"] = userID
 	}
-	raw, err := rt.hostCall("rpc.call", map[string]any{
+	raw, err := rt.callHost("rpc.call", map[string]any{
 		"service": "latticenet.vpn-core/nodes",
 		"method":  "export",
 		"request": rpcReq,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("export vpn-core nodes: %w", err)
+		return nil, fmt.Errorf("export vpn-core nodes failed")
+	}
+	if len(raw) > maxExportBytes {
+		return nil, fmt.Errorf("vpn-core export exceeds %d bytes", maxExportBytes)
 	}
 	var exp struct {
 		Links []string `json:"links"`
 	}
 	if err := json.Unmarshal(raw, &exp); err != nil {
 		return nil, fmt.Errorf("decode vpn-core export: %w", err)
+	}
+	if len(exp.Links) > maxExportLinks {
+		return nil, fmt.Errorf("vpn-core export has too many links (max %d)", maxExportLinks)
+	}
+	totalBytes := 0
+	for _, link := range exp.Links {
+		if len(link) > maxLinkBytes {
+			return nil, fmt.Errorf("vpn-core export link exceeds %d bytes", maxLinkBytes)
+		}
+		totalBytes += len(link)
+		if totalBytes > maxExportBytes {
+			return nil, fmt.Errorf("vpn-core export content exceeds %d bytes", maxExportBytes)
+		}
 	}
 
 	sub := map[string]any{
@@ -210,14 +245,19 @@ func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
 	}
 	body, _ := json.Marshal(sub)
 	status, err := rt.httpDo("PATCH", base+"/api/sub/"+url.PathEscape(subName), body)
-	if err != nil || status < 200 || status >= 300 {
+	if err != nil {
+		return nil, fmt.Errorf("Sub-Store update failed")
+	}
+	if status == 404 || status == 405 {
 		status, err = rt.httpDo("POST", base+"/api/subs", body)
 		if err != nil {
-			return nil, fmt.Errorf("sub-store create: %w", err)
+			return nil, fmt.Errorf("Sub-Store create failed")
 		}
 		if status < 200 || status >= 300 {
-			return nil, fmt.Errorf("sub-store create returned status %d", status)
+			return nil, fmt.Errorf("Sub-Store create returned status %d", status)
 		}
+	} else if status < 200 || status >= 300 {
+		return nil, fmt.Errorf("Sub-Store update returned status %d", status)
 	}
 	return mustJSON(map[string]any{"ok": true, "sub_name": subName, "pushed": len(exp.Links)}), nil
 }
@@ -231,7 +271,7 @@ func (rt *runtime) httpDo(method, target string, body []byte) (int, error) {
 		params["header"] = map[string]string{"Content-Type": "application/json"}
 		params["body"] = string(body)
 	}
-	raw, err := rt.hostCall("http.do", params)
+	raw, err := rt.callHost("http.operator.do", params)
 	if err != nil {
 		return 0, err
 	}
@@ -244,25 +284,32 @@ func (rt *runtime) httpDo(method, target string, body []byte) (int, error) {
 	return out.StatusCode, nil
 }
 
-func (rt *runtime) hostCall(method string, params any) (json.RawMessage, error) {
-	if rt.responses == nil {
+func (rt *runtime) callHost(method string, params any) (json.RawMessage, error) {
+	if rt.host == nil {
 		return nil, fmt.Errorf("host response fd unavailable")
 	}
-	rt.nextID++
-	id := fmt.Sprintf("h%d", rt.nextID)
-	if err := json.NewEncoder(os.Stdout).Encode(hostCallEnvelope{
+	return rt.host.call(method, params)
+}
+
+func (host *stdioHostCaller) call(method string, params any) (json.RawMessage, error) {
+	if host == nil || host.responses == nil || host.output == nil {
+		return nil, fmt.Errorf("host response fd unavailable")
+	}
+	host.nextID++
+	id := fmt.Sprintf("h%d", host.nextID)
+	if err := json.NewEncoder(host.output).Encode(hostCallEnvelope{
 		HostCall: hostCall{ID: id, Method: method, Params: params},
 	}); err != nil {
 		return nil, fmt.Errorf("write host_call: %w", err)
 	}
-	if !rt.responses.Scan() {
-		if err := rt.responses.Err(); err != nil {
+	if !host.responses.Scan() {
+		if err := host.responses.Err(); err != nil {
 			return nil, fmt.Errorf("read host_response: %w", err)
 		}
 		return nil, fmt.Errorf("read host_response: eof")
 	}
 	var env hostResponseEnvelope
-	if err := json.Unmarshal(rt.responses.Bytes(), &env); err != nil {
+	if err := json.Unmarshal(host.responses.Bytes(), &env); err != nil {
 		return nil, fmt.Errorf("decode host_response: %w", err)
 	}
 	if env.HostResponse.ID != id {
@@ -305,7 +352,13 @@ func renderPlan(payload json.RawMessage) string {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		lines = append(lines, fmt.Sprintf("# %s = %v", k, values[k]))
+		value := fmt.Sprintf("%v", values[k])
+		lower := strings.ToLower(k)
+		if strings.Contains(lower, "url") || strings.Contains(lower, "secret") ||
+			strings.Contains(lower, "token") || strings.Contains(lower, "password") || strings.Contains(lower, "key") {
+			value = "<redacted>"
+		}
+		lines = append(lines, fmt.Sprintf("# %s = %s", k, value))
 	}
 	lines = append(lines, "# import: rpc pull from vpn-core -> upsert managed sub in Sub-Store.")
 	return strings.Join(lines, "\n")
@@ -315,6 +368,9 @@ func validateBaseURL(value string) (string, error) {
 	raw := strings.TrimSpace(value)
 	if raw == "" {
 		return "", fmt.Errorf("base_url is required")
+	}
+	if len(raw) > 2048 || hasControl(raw) {
+		return "", fmt.Errorf("base_url must be printable and at most 2048 characters")
 	}
 	parsed, err := url.Parse(raw)
 	if err != nil || parsed.Scheme == "" {
@@ -336,6 +392,9 @@ func validateBaseURL(value string) (string, error) {
 	}
 	if parsed.RawQuery != "" || parsed.Fragment != "" {
 		return "", fmt.Errorf("base_url must not include query or fragment")
+	}
+	if hasControl(parsed.Path) {
+		return "", fmt.Errorf("base_url path must not contain control characters")
 	}
 	if parsed.Path == "" || parsed.Path == "/" {
 		return "", fmt.Errorf("base_url must include the Sub-Store secret path")
@@ -364,6 +423,33 @@ func validateBaseURL(value string) (string, error) {
 		}
 	}
 	return strings.TrimRight(parsed.String(), "/"), nil
+}
+
+func normalizeSubName(value string) (string, error) {
+	name := strings.TrimSpace(value)
+	if name == "" {
+		return defaultSubStoreName, nil
+	}
+	if len(name) > 128 || hasControl(name) {
+		return "", fmt.Errorf("sub_name must be printable and at most 128 characters")
+	}
+	for index, char := range name {
+		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') || char == '.' || char == '_' || char == '-') ||
+			(index == 0 && (char == '.' || char == '_' || char == '-')) {
+			return "", fmt.Errorf("sub_name must start with an alphanumeric character and contain only letters, numbers, dot, underscore, or hyphen")
+		}
+	}
+	return name, nil
+}
+
+func hasControl(value string) bool {
+	for _, r := range value {
+		if r < 0x20 || r == 0x7f {
+			return true
+		}
+	}
+	return false
 }
 
 func isLoopbackHost(host string) bool {

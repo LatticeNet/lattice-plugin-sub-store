@@ -4,31 +4,88 @@ on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  go:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout lattice-plugin-sub-store
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+
       - uses: actions/setup-go@v6
         with:
-          go-version: "1.26.x"
+          go-version: '1.26.x'
           check-latest: true
-          cache-dependency-path: system-go/go.mod
-      - name: gofmt
-        run: test -z "$(gofmt -l system-go)"
-      - name: test
-        working-directory: system-go
-        run: go test -race -cover ./...
-      - name: build linux/amd64 artifact
-        working-directory: system-go
+          cache-dependency-path: |
+            system-go/go.mod
+            tools/pluginpack/go.mod
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: check formatting
+        run: test -z "$(gofmt -l system-go tools/pluginpack)"
+
+      - name: prepare temporary Go workspace
+        run: |
+          mkdir -p "$RUNNER_TEMP/gowork"
+          cd "$RUNNER_TEMP/gowork"
+          go work init "$GITHUB_WORKSPACE/system-go" "$GITHUB_WORKSPACE/tools/pluginpack"
+          echo "GOWORK=$RUNNER_TEMP/gowork/go.work" >> "$GITHUB_ENV"
+
+      - name: test system runtime
+        run: go test -race ./system-go/...
+
+      - name: test deterministic packer
+        run: go test -race ./tools/pluginpack/...
+
+      - name: install UI dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: test UI
+        working-directory: ui
+        run: npm test
+
+      - name: typecheck UI
+        working-directory: ui
+        run: npm run typecheck
+
+      - name: build and scan UI
+        working-directory: ui
+        run: |
+          npm run build
+          npm run verify:build
+
+      - name: build runtime binaries
         env:
-          GOOS: linux
-          GOARCH: amd64
           CGO_ENABLED: "0"
-        run: go build -trimpath -o /tmp/lattice-plugin-sub-store .
+        run: |
+          mkdir -p "$RUNNER_TEMP/bundle-src/bin/linux-amd64" "$RUNNER_TEMP/bundle-src/bin/linux-arm64"
+          GOOS=linux GOARCH=amd64 go build -trimpath -o "$RUNNER_TEMP/bundle-src/bin/linux-amd64/plugin" ./system-go
+          GOOS=linux GOARCH=arm64 go build -trimpath -o "$RUNNER_TEMP/bundle-src/bin/linux-arm64/plugin" ./system-go
+
+      - name: assemble UI bundle tree
+        run: |
+          mkdir -p "$RUNNER_TEMP/bundle-src/ui"
+          cp -R ui/dist/. "$RUNNER_TEMP/bundle-src/ui"
+          test -f "$RUNNER_TEMP/bundle-src/ui/index.html"
+          test -d "$RUNNER_TEMP/bundle-src/ui/assets"
+
+      - name: package twice and compare bytes
+        run: |
+          digest_one="$(go run ./tools/pluginpack/cmd/pluginpack -source "$RUNNER_TEMP/bundle-src" -output "$RUNNER_TEMP/sub-store-1.tar.gz")"
+          find "$RUNNER_TEMP/bundle-src" -exec touch -t 202601010101 {} +
+          digest_two="$(go run ./tools/pluginpack/cmd/pluginpack -source "$RUNNER_TEMP/bundle-src" -output "$RUNNER_TEMP/sub-store-2.tar.gz")"
+          expected="$(node -p "require('./manifest.json').bundle.digest_sha256")"
+          test "$digest_one" = "$digest_two"
+          test "$digest_one" = "$expected"
+          cmp -s "$RUNNER_TEMP/sub-store-1.tar.gz" "$RUNNER_TEMP/sub-store-2.tar.gz"
+
+      - name: git diff check
+        run: git diff --check
