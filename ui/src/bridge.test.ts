@@ -18,12 +18,15 @@ function harness() {
 
 describe("BridgeClient", () => {
   it("propagates the fragment nonce and accepts init only from the parent", async () => {
+    vi.useFakeTimers();
     const { win, parent, posted, dispatch } = harness();
     const client = new BridgeClient(win);
     expect(posted[0]).toEqual({ type: "lattice.plugin.ready", nonce: client.nonce });
+    await vi.advanceTimersByTimeAsync(500);
+    expect(posted.filter((message) => (message as { type?: string }).type === "lattice.plugin.ready")).toHaveLength(2);
     const init = {
       type: "lattice.host.init", nonce: client.nonce, version: "1",
-      pluginId: "latticenet.sub-store", pluginVersion: "0.3.2-alpha.1", pluginRoute: "sub-store",
+      pluginId: "latticenet.sub-store", pluginVersion: "0.3.2-alpha.2", pluginRoute: "sub-store",
       locale: "en", colorScheme: "dark", designTokens: {},
       interfaces: [{ service: "latticenet.sub-store/import", methods: ["status"] }],
     };
@@ -32,8 +35,12 @@ describe("BridgeClient", () => {
     dispatch({ ...init, pluginId: "other.plugin" }, parent);
     dispatch(init, parent);
     const resolved = await client.init;
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(posted.filter((message) => (message as { type?: string }).type === "lattice.plugin.ready")).toHaveLength(2);
     expect(canCall(resolved, "latticenet.sub-store/import", "status")).toBe(true);
     expect(canCall(resolved, "latticenet.sub-store/import", "import")).toBe(false);
+    client.dispose();
+    vi.useRealTimers();
   });
 
   it("routes exact service/method calls and resolves structured results", async () => {
@@ -45,6 +52,22 @@ describe("BridgeClient", () => {
     expect(call.method).toBe("status");
     dispatch({ type: "lattice.host.result", nonce: call.nonce, id: call.id, result: { reachable: true } });
     await expect(request.promise).resolves.toEqual({ reachable: true });
+  });
+
+  it("stops ready retries and rejects all work when host initialization fails", async () => {
+    vi.useFakeTimers();
+    const { win, posted, dispatch } = harness();
+    const client = new BridgeClient(win);
+    const request = client.call("latticenet.sub-store/import", "status", { base_url: "x" });
+
+    dispatch({ type: "lattice.host.error", nonce: client.nonce, code: "denied", message: "Initialization denied" });
+
+    await expect(client.init).rejects.toThrow("Initialization denied");
+    await expect(request.promise).rejects.toThrow("Initialization denied");
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(posted.filter((message) => (message as { type?: string }).type === "lattice.plugin.ready")).toHaveLength(1);
+    expect(() => client.call("latticenet.sub-store/import", "status", {})).toThrow("disposed");
+    vi.useRealTimers();
   });
 
   it("routes errors, cancellation, timeout and disposal exactly once", async () => {

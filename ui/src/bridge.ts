@@ -33,6 +33,8 @@ const TOKEN_NAMES = new Set([
 ]);
 const EXPECTED_PLUGIN_ID = "latticenet.sub-store";
 const EXPECTED_ROUTE = "sub-store";
+const READY_RETRY_MS = 500;
+const READY_ATTEMPT_LIMIT = 16;
 
 export class BridgeClient {
   readonly nonce: string;
@@ -44,6 +46,8 @@ export class BridgeClient {
   private initReject!: (reason: Error) => void;
   private sequence = 0;
   private disposed = false;
+  private readyAttempts = 0;
+  private readyTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(win: Window) {
     this.win = win;
@@ -55,7 +59,7 @@ export class BridgeClient {
     this.init.catch(() => {});
     this.onMessage = this.onMessage.bind(this);
     this.win.addEventListener("message", this.onMessage);
-    this.post({ type: "lattice.plugin.ready", nonce: this.nonce });
+    this.postReady();
   }
 
   call<T>(service: string, method: string, payload: unknown, timeoutMs = 15_000): { promise: Promise<T>; cancel: () => void } {
@@ -94,15 +98,7 @@ export class BridgeClient {
   }
 
   dispose(): void {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.win.removeEventListener("message", this.onMessage);
-    for (const pending of this.pending.values()) {
-      clearTimeout(pending.timer);
-      pending.reject(new Error("Plugin host disconnected"));
-    }
-    this.pending.clear();
-    this.initReject(new Error("Plugin host disconnected"));
+    this.failBridge(new Error("Plugin host disconnected"));
   }
 
   private onMessage(event: MessageEvent): void {
@@ -112,6 +108,7 @@ export class BridgeClient {
       case "lattice.host.init": {
         const init = parseInit(message);
         if (!init) return;
+        this.clearReadyTimer();
         applyTheme(init.colorScheme, init.designTokens);
         this.initResolve(init);
         return;
@@ -125,7 +122,11 @@ export class BridgeClient {
         this.finish(message.id, undefined, message.result);
         return;
       case "lattice.host.error":
-        this.finish(message.id, new Error(typeof message.message === "string" ? message.message : "Plugin call failed"));
+        if (typeof message.id === "string") {
+          this.finish(message.id, new Error(typeof message.message === "string" ? message.message : "Plugin call failed"));
+        } else {
+          this.failBridge(new Error(typeof message.message === "string" ? message.message : "Plugin host rejected initialization"));
+        }
         return;
       case "lattice.host.dispose":
         this.dispose();
@@ -144,6 +145,33 @@ export class BridgeClient {
 
   private post(message: PluginMessage): void {
     this.win.parent.postMessage(message, "*");
+  }
+
+  private postReady(): void {
+    if (this.disposed || this.readyAttempts >= READY_ATTEMPT_LIMIT) return;
+    this.readyAttempts += 1;
+    this.post({ type: "lattice.plugin.ready", nonce: this.nonce });
+    if (this.readyAttempts < READY_ATTEMPT_LIMIT) {
+      this.readyTimer = setTimeout(() => this.postReady(), READY_RETRY_MS);
+    }
+  }
+
+  private clearReadyTimer(): void {
+    if (this.readyTimer !== undefined) clearTimeout(this.readyTimer);
+    this.readyTimer = undefined;
+  }
+
+  private failBridge(error: Error): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.clearReadyTimer();
+    this.win.removeEventListener("message", this.onMessage);
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timer);
+      pending.reject(error);
+    }
+    this.pending.clear();
+    this.initReject(error);
   }
 }
 
