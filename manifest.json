@@ -7,12 +7,12 @@
     "rpc:call",
     "http:operator-target"
   ],
-  "version": "0.3.2-alpha.2",
+  "version": "0.3.2-alpha.3",
   "publisher": "latticenet",
-  "signature_ed25519": "19rGGxtgZW7k2mqzvSDO2+QuSJtlK7007IL/o3JziDXPSukttJtHeFXZnqdHhyO6IS+vRdjHMOVy+APaKm4pCg==",
+  "signature_ed25519": "cGr0AcT5LYLuaYxNIYfwL4jWZtYA04wgGjkhJGkbrk49uBDDqcKcIBT132BfJhhoNlKlb6+n8mokEDQJuAf5Cw==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "57f170a5c8c91725d704af785469b187def2635a02b60865e9b3ca3dd8c38538"
+    "digest_sha256": "8e6445836caf38fc7c58582601a98faf6b756587535c2c7e355e97a99de5756f"
   },
   "runtime": {
     "protocol": "stdio-json-v1",

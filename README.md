@@ -52,7 +52,9 @@ cd ../ui && npm ci && npm test && npm run typecheck && npm run build && npm run 
 cd ../tools/pluginpack && go test -race ./...
 ```
 
-Release automation must build both Linux runtime binaries with the pinned Go
-1.26.4 toolchain and `-trimpath -buildvcs=false`, build the UI, pack a deterministic artifact, set
-`bundle.digest_sha256`, sign the manifest with the trusted LatticeNet Ed25519
-publisher seed, and publish the alpha release without making it GitHub Latest.
+Release automation must build the UI with Node.js 22 and both Linux runtime
+binaries with Go 1.26.4 and `-trimpath -buildvcs=false`. Both pinned toolchains
+are part of the signed byte contract. It then packs a deterministic artifact,
+sets `bundle.digest_sha256`, signs the manifest with the trusted LatticeNet
+Ed25519 publisher seed, and publishes the alpha release without making it
+GitHub Latest.

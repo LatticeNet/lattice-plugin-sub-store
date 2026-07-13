@@ -26,7 +26,7 @@ describe("BridgeClient", () => {
     expect(posted.filter((message) => (message as { type?: string }).type === "lattice.plugin.ready")).toHaveLength(2);
     const init = {
       type: "lattice.host.init", nonce: client.nonce, version: "1",
-      pluginId: "latticenet.sub-store", pluginVersion: "0.3.2-alpha.2", pluginRoute: "sub-store",
+      pluginId: "latticenet.sub-store", pluginVersion: "0.3.2-alpha.3", pluginRoute: "sub-store",
       locale: "en", colorScheme: "dark", designTokens: {},
       interfaces: [{ service: "latticenet.sub-store/import", methods: ["status"] }],
     };
