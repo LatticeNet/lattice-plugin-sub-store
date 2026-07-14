@@ -9,7 +9,7 @@
   ],
   "version": "0.3.2-alpha.3",
   "publisher": "latticenet",
-  "signature_ed25519": "cGr0AcT5LYLuaYxNIYfwL4jWZtYA04wgGjkhJGkbrk49uBDDqcKcIBT132BfJhhoNlKlb6+n8mokEDQJuAf5Cw==",
+  "signature_ed25519": "YW8Lzw9MqK7M0PzM5viOuJP4BiujmMHqGOJrIPdDd549zjrG9qIF0UVOsBlTNnnmtPltdDCeE57LQs/3RDQtAA==",
   "bundle": {
     "format": "tar+gzip",
     "digest_sha256": "8e6445836caf38fc7c58582601a98faf6b756587535c2c7e355e97a99de5756f"
@@ -86,7 +86,8 @@
             "base_url"
           ]
         }
-      ]
+      ],
+      "backing": "runtime"
     }
   ]
 }
