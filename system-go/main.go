@@ -12,6 +12,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,16 +27,20 @@ import (
 const (
 	pluginID            = "latticenet.sub-store"
 	pluginName          = "Sub-Store companion"
-	pluginVersion       = "0.3.2-alpha.3"
+	pluginVersion       = "0.4.0-alpha.1"
 	defaultSubStoreName = "lattice-vpn-core"
 	maxExportLinks      = 10_000
 	maxExportBytes      = 1 << 20
 	maxLinkBytes        = 4 << 10
+	maxErrorExcerpt     = 4 << 10
 )
 
 // Private/loopback Sub-Store endpoints require the explicit system-only
 // operator-target primitive. Ordinary http:egress remains unable to reach them.
-var capabilities = []string{"rpc:call", "http:operator-target"}
+// secret:read/secret:write back the opt-in encrypted endpoint vault (design-15
+// §7): the server resolves secret:// references from this plugin's own
+// namespace, so a saved endpoint never re-crosses the browser.
+var capabilities = []string{"rpc:call", "http:operator-target", "secret:read", "secret:write"}
 
 type request struct {
 	Action  string          `json:"action"`
@@ -52,6 +57,9 @@ type subStoreRequest struct {
 	BaseURL string `json:"base_url"`
 	SubName string `json:"sub_name"`
 	UserID  string `json:"user_id"`
+	// Autosync is only honored by save_endpoint: it stores the design-15 §7
+	// server-side auto-sync flag alongside the endpoint in the encrypted vault.
+	Autosync *bool `json:"autosync,omitempty"`
 }
 
 type response struct {
@@ -159,12 +167,32 @@ func (rt *runtime) handleCall(payload json.RawMessage) response {
 	case "status":
 		result := rt.status(req)
 		return response{OK: true, Result: result}
+	case "preview":
+		result, err := rt.preview(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result, Message: "sub-store import preview"}
 	case "import":
 		result, err := rt.importNodes(req)
 		if err != nil {
 			return response{OK: false, Error: err.Error()}
 		}
 		return response{OK: true, Result: result, Message: "sub-store import complete"}
+	case "save_endpoint":
+		result, err := rt.saveEndpoint(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result, Message: "sub-store endpoint saved (encrypted)"}
+	case "clear_endpoint":
+		result, err := rt.clearEndpoint()
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result, Message: "sub-store endpoint cleared"}
+	case "endpoint_status":
+		return response{OK: true, Result: rt.endpointStatus()}
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}
@@ -179,7 +207,7 @@ func (rt *runtime) status(req subStoreRequest) json.RawMessage {
 	if err != nil {
 		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": err.Error()})
 	}
-	status, err := rt.httpDo("GET", base+"/api/utils/env", nil)
+	status, _, err := rt.httpDo("GET", base+"/api/utils/env", nil)
 	reachable := err == nil && status >= 200 && status < 500
 	out := map[string]any{"reachable": reachable, "sub_name": subName}
 	if err != nil {
@@ -188,16 +216,9 @@ func (rt *runtime) status(req subStoreRequest) json.RawMessage {
 	return mustJSON(out)
 }
 
-func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
-	base, err := validateBaseURL(req.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-	subName, err := normalizeSubName(req.SubName)
-	if err != nil {
-		return nil, err
-	}
-
+// fetchExport pulls the vpn-core node links, enforcing the export bounds before
+// any of it reaches the Sub-Store backend or a preview diff.
+func (rt *runtime) fetchExport(req subStoreRequest) ([]string, error) {
 	rpcReq := map[string]string{}
 	if userID := strings.TrimSpace(req.UserID); userID != "" {
 		if len(userID) > 128 || hasControl(userID) {
@@ -235,34 +256,233 @@ func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
 			return nil, fmt.Errorf("vpn-core export content exceeds %d bytes", maxExportBytes)
 		}
 	}
+	return exp.Links, nil
+}
+
+func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
+	base, err := validateBaseURL(req.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+	subName, err := normalizeSubName(req.SubName)
+	if err != nil {
+		return nil, err
+	}
+	links, err := rt.fetchExport(req)
+	if err != nil {
+		return nil, err
+	}
 
 	sub := map[string]any{
 		"name":        subName,
 		"source":      "local",
 		"displayName": "Lattice vpn-core",
-		"content":     strings.Join(exp.Links, "\n"),
+		"content":     strings.Join(links, "\n"),
 		"tag":         []string{"lattice", "vpn-core"},
 	}
 	body, _ := json.Marshal(sub)
-	status, err := rt.httpDo("PATCH", base+"/api/sub/"+url.PathEscape(subName), body)
+	status, respBody, err := rt.httpDo("PATCH", base+"/api/sub/"+url.PathEscape(subName), body)
 	if err != nil {
 		return nil, fmt.Errorf("Sub-Store update failed")
 	}
 	if status == 404 || status == 405 {
-		status, err = rt.httpDo("POST", base+"/api/subs", body)
+		status, respBody, err = rt.httpDo("POST", base+"/api/subs", body)
 		if err != nil {
 			return nil, fmt.Errorf("Sub-Store create failed")
 		}
 		if status < 200 || status >= 300 {
-			return nil, fmt.Errorf("Sub-Store create returned status %d", status)
+			return nil, fmt.Errorf("Sub-Store create returned status %d: %s", status, bodyExcerpt(respBody))
 		}
 	} else if status < 200 || status >= 300 {
-		return nil, fmt.Errorf("Sub-Store update returned status %d", status)
+		return nil, fmt.Errorf("Sub-Store update returned status %d: %s", status, bodyExcerpt(respBody))
 	}
-	return mustJSON(map[string]any{"ok": true, "sub_name": subName, "pushed": len(exp.Links)}), nil
+	return mustJSON(map[string]any{"ok": true, "sub_name": subName, "pushed": len(links)}), nil
 }
 
-func (rt *runtime) httpDo(method, target string, body []byte) (int, error) {
+// previewReports what an import WOULD change without writing anything: it
+// pulls the same vpn-core export, reads the remote managed sub, and diffs link
+// sets. Labels are best-effort display names (URL fragment, else host); the
+// full links never leave this method.
+func (rt *runtime) preview(req subStoreRequest) (json.RawMessage, error) {
+	base, err := validateBaseURL(req.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+	subName, err := normalizeSubName(req.SubName)
+	if err != nil {
+		return nil, err
+	}
+	links, err := rt.fetchExport(req)
+	if err != nil {
+		return nil, err
+	}
+	current := []string{}
+	exists := false
+	status, body, err := rt.httpDo("GET", base+"/api/sub/"+url.PathEscape(subName), nil)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("Sub-Store read failed")
+	case status == 404:
+		exists = false
+	case status >= 200 && status < 300:
+		exists = true
+		var sub struct {
+			Content string `json:"content"`
+		}
+		if err := json.Unmarshal(body, &sub); err != nil {
+			return nil, fmt.Errorf("decode remote sub: %w", err)
+		}
+		for _, line := range strings.Split(sub.Content, "\n") {
+			if trimmed := strings.TrimSpace(line); trimmed != "" {
+				current = append(current, trimmed)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("Sub-Store read returned status %d: %s", status, bodyExcerpt(body))
+	}
+	added, removed, unchanged := diffLinks(links, current)
+	addedLabels := make([]string, 0, len(added))
+	for _, link := range added {
+		addedLabels = append(addedLabels, linkLabel(link))
+	}
+	removedLabels := make([]string, 0, len(removed))
+	for _, link := range removed {
+		removedLabels = append(removedLabels, linkLabel(link))
+	}
+	return mustJSON(map[string]any{
+		"sub_name": subName, "exists": exists,
+		"added": addedLabels, "removed": removedLabels,
+		"added_count": len(added), "removed_count": len(removed), "unchanged_count": unchanged,
+		"total_after": len(links),
+	}), nil
+}
+
+// diffLinks compares the new export against the remote content by exact link
+// string, returning (added, removed, unchanged-count) with input order kept.
+func diffLinks(next, current []string) ([]string, []string, int) {
+	currentSet := map[string]bool{}
+	for _, link := range current {
+		currentSet[link] = true
+	}
+	nextSet := map[string]bool{}
+	added := []string{}
+	unchanged := 0
+	for _, link := range next {
+		nextSet[link] = true
+		if currentSet[link] {
+			unchanged++
+		} else {
+			added = append(added, link)
+		}
+	}
+	removed := []string{}
+	for _, link := range current {
+		if !nextSet[link] {
+			removed = append(removed, link)
+		}
+	}
+	return added, removed, unchanged
+}
+
+// linkLabel extracts a display label from a share link: the URL fragment when
+// present, else the host. It never fails — worst case it shortens the link.
+func linkLabel(link string) string {
+	if index := strings.LastIndex(link, "#"); index >= 0 && index+1 < len(link) {
+		if decoded, err := url.PathUnescape(link[index+1:]); err == nil && strings.TrimSpace(decoded) != "" {
+			return strings.TrimSpace(decoded)
+		}
+	}
+	if parsed, err := url.Parse(link); err == nil && parsed.Host != "" {
+		return parsed.Host
+	}
+	const max = 48
+	if len(link) > max {
+		return link[:max] + "…"
+	}
+	return link
+}
+
+// ── encrypted endpoint vault (design-15 §7) ──────────────────────────────────
+
+func (rt *runtime) saveEndpoint(req subStoreRequest) (json.RawMessage, error) {
+	base, err := validateBaseURL(req.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+	if err := rt.secretPut("endpoint", base); err != nil {
+		return nil, fmt.Errorf("save endpoint: %s", oneLine(err.Error()))
+	}
+	autosync := "0"
+	if req.Autosync != nil && *req.Autosync {
+		autosync = "1"
+	}
+	if err := rt.secretPut("autosync", autosync); err != nil {
+		return nil, fmt.Errorf("save autosync flag: %s", oneLine(err.Error()))
+	}
+	return mustJSON(map[string]any{"ok": true, "autosync": autosync == "1"}), nil
+}
+
+func (rt *runtime) clearEndpoint() (json.RawMessage, error) {
+	for _, key := range []string{"endpoint", "autosync"} {
+		if _, err := rt.callHost("secret.delete", map[string]any{"key": key}); err != nil {
+			return nil, fmt.Errorf("clear %s: %s", key, oneLine(err.Error()))
+		}
+	}
+	return mustJSON(map[string]any{"ok": true}), nil
+}
+
+// endpointStatus reports what the vault holds WITHOUT exposing the endpoint:
+// the hint is scheme://host only — the path carries the Sub-Store secret token.
+func (rt *runtime) endpointStatus() json.RawMessage {
+	endpoint, found := rt.secretGet("endpoint")
+	autosync, _ := rt.secretGet("autosync")
+	out := map[string]any{"has_saved_endpoint": found, "autosync": autosync == "1"}
+	if found {
+		out["endpoint_hint"] = endpointHint(endpoint)
+	}
+	return mustJSON(out)
+}
+
+func (rt *runtime) secretPut(key, value string) error {
+	_, err := rt.callHost("secret.put", map[string]any{
+		"key":          key,
+		"value_base64": base64.StdEncoding.EncodeToString([]byte(value)),
+	})
+	return err
+}
+
+func (rt *runtime) secretGet(key string) (string, bool) {
+	raw, err := rt.callHost("secret.get", map[string]any{"key": key})
+	if err != nil {
+		return "", false
+	}
+	var out struct {
+		OK          bool   `json:"ok"`
+		ValueBase64 string `json:"value_base64"`
+	}
+	if err := json.Unmarshal(raw, &out); err != nil || !out.OK {
+		return "", false
+	}
+	decoded, err := base64.StdEncoding.DecodeString(out.ValueBase64)
+	if err != nil {
+		return "", false
+	}
+	return string(decoded), true
+}
+
+// endpointHint renders scheme://host of a validated endpoint — never the path,
+// which carries the Sub-Store API token.
+func endpointHint(endpoint string) string {
+	parsed, err := url.Parse(endpoint)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return "(saved endpoint)"
+	}
+	return parsed.Scheme + "://" + parsed.Host
+}
+
+// ── shared helpers ────────────────────────────────────────────────────────────
+
+func (rt *runtime) httpDo(method, target string, body []byte) (int, []byte, error) {
 	params := map[string]any{
 		"method": method,
 		"url":    target,
@@ -273,15 +493,24 @@ func (rt *runtime) httpDo(method, target string, body []byte) (int, error) {
 	}
 	raw, err := rt.callHost("http.operator.do", params)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	var out struct {
-		StatusCode int `json:"status_code"`
+		StatusCode int    `json:"status_code"`
+		BodyBase64 string `json:"body_base64,omitempty"`
 	}
 	if err := json.Unmarshal(raw, &out); err != nil {
-		return 0, fmt.Errorf("decode http response: %w", err)
+		return 0, nil, fmt.Errorf("decode http response: %w", err)
 	}
-	return out.StatusCode, nil
+	var respBody []byte
+	if out.BodyBase64 != "" {
+		decoded, err := base64.StdEncoding.DecodeString(out.BodyBase64)
+		if err != nil {
+			return 0, nil, fmt.Errorf("decode http response body: %w", err)
+		}
+		respBody = decoded
+	}
+	return out.StatusCode, respBody, nil
 }
 
 func (rt *runtime) callHost(method string, params any) (json.RawMessage, error) {
@@ -450,6 +679,30 @@ func hasControl(value string) bool {
 		}
 	}
 	return false
+}
+
+// bodyExcerpt bounds and flattens a response body for error text, so Sub-Store
+// backend errors actually reach the operator (bounded at maxErrorExcerpt).
+func bodyExcerpt(body []byte) string {
+	text := oneLine(string(body))
+	if len(text) > maxErrorExcerpt {
+		text = text[:maxErrorExcerpt] + "…"
+	}
+	return text
+}
+
+// oneLine flattens text to a single printable line for error messages.
+func oneLine(value string) string {
+	mapped := strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\r' || r == '\t' {
+			return ' '
+		}
+		if r < 0x20 || r == 0x7f {
+			return -1
+		}
+		return r
+	}, value)
+	return strings.Join(strings.Fields(mapped), " ")
 }
 
 func isLoopbackHost(host string) bool {

@@ -5,14 +5,16 @@
   "type": "system",
   "capabilities": [
     "rpc:call",
-    "http:operator-target"
+    "http:operator-target",
+    "secret:read",
+    "secret:write"
   ],
-  "version": "0.3.2-alpha.3",
+  "version": "0.4.0-alpha.1",
   "publisher": "latticenet",
-  "signature_ed25519": "cGr0AcT5LYLuaYxNIYfwL4jWZtYA04wgGjkhJGkbrk49uBDDqcKcIBT132BfJhhoNlKlb6+n8mokEDQJuAf5Cw==",
+  "signature_ed25519": "h8gbeLYa2Fkzz5jHdwH1Fwzs8nOvc5iVJISTzmrF8vIJXfQ3ESBOwtH5kjTN1eFlJepjg/CKHTSF0qWAKWnHDg==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "8e6445836caf38fc7c58582601a98faf6b756587535c2c7e355e97a99de5756f"
+    "digest_sha256": "e6307ed895eb8741a7dc7c48464b4953bc5290225eb7909d377bec09a4cd7ee3"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -77,6 +79,16 @@
           ]
         },
         {
+          "name": "preview",
+          "effect": "read",
+          "scopes": [
+            "proxy:read"
+          ],
+          "operator_target_fields": [
+            "base_url"
+          ]
+        },
+        {
           "name": "import",
           "effect": "write",
           "scopes": [
@@ -85,8 +97,30 @@
           "operator_target_fields": [
             "base_url"
           ]
+        },
+        {
+          "name": "endpoint_status",
+          "effect": "read",
+          "scopes": [
+            "proxy:read"
+          ]
+        },
+        {
+          "name": "save_endpoint",
+          "effect": "write",
+          "scopes": [
+            "proxy:admin"
+          ]
+        },
+        {
+          "name": "clear_endpoint",
+          "effect": "write",
+          "scopes": [
+            "proxy:admin"
+          ]
         }
-      ]
+      ],
+      "backing": "runtime"
     }
   ]
 }

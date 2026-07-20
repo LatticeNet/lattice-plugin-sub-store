@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -220,5 +221,194 @@ func TestSubStorePlanRedactsSecretValues(t *testing.T) {
 	plan := renderPlan(json.RawMessage(`{"base_url":"https://sub.example/very-secret","user_id":"user-1","sub_name":"managed"}`))
 	if strings.Contains(plan, "very-secret") || !strings.Contains(plan, "base_url = <redacted>") {
 		t.Fatalf("plan leaked secret: %s", plan)
+	}
+}
+
+// ── design-15 §7: preview / endpoint vault ───────────────────────────────────
+
+func TestDiffLinks(t *testing.T) {
+	next := []string{"a", "b", "c"}
+	current := []string{"b", "d"}
+	added, removed, unchanged := diffLinks(next, current)
+	if len(added) != 2 || added[0] != "a" || added[1] != "c" {
+		t.Fatalf("added: %v", added)
+	}
+	if len(removed) != 1 || removed[0] != "d" {
+		t.Fatalf("removed: %v", removed)
+	}
+	if unchanged != 1 {
+		t.Fatalf("unchanged: %d", unchanged)
+	}
+}
+
+func TestLinkLabel(t *testing.T) {
+	if got := linkLabel("vless://uuid@1.2.3.4:443?security=reality#hk%20hub%2001"); got != "hk hub 01" {
+		t.Fatalf("fragment label: %q", got)
+	}
+	if got := linkLabel("trojan://pw@example.com:8443"); got != "example.com:8443" {
+		t.Fatalf("host label: %q", got)
+	}
+	long := strings.Repeat("x", 80)
+	if got := linkLabel(long); len([]rune(got)) > 49 || !strings.HasSuffix(got, "…") {
+		t.Fatalf("long label not bounded: %d runes", len([]rune(got)))
+	}
+}
+
+func TestPreviewDiffsAgainstRemote(t *testing.T) {
+	host := &fakeHostCaller{
+		responses: []json.RawMessage{
+			json.RawMessage(`{"links":["vless://a#n1","vless://b#n2","vless://c#n3"]}`),
+			json.RawMessage(`{"status_code":200,"body_base64":"eyJjb250ZW50Ijoidmxlc3M6Ly9iI24yXG52bGVzczovL2QjbjQifQ=="}`),
+		},
+		errors: []error{nil, nil},
+	}
+	rt := &runtime{host: host}
+	out, err := rt.preview(subStoreRequest{BaseURL: "https://sub.example.com/secret"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Exists         bool     `json:"exists"`
+		Added          []string `json:"added"`
+		Removed        []string `json:"removed"`
+		UnchangedCount int      `json:"unchanged_count"`
+		TotalAfter     int      `json:"total_after"`
+	}
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !got.Exists || got.UnchangedCount != 1 || got.TotalAfter != 3 {
+		t.Fatalf("preview: %+v", got)
+	}
+	if len(got.Added) != 2 || got.Added[0] != "n1" || got.Added[1] != "n3" {
+		t.Fatalf("added labels: %v", got.Added)
+	}
+	if len(got.Removed) != 1 || got.Removed[0] != "n4" {
+		t.Fatalf("removed labels: %v", got.Removed)
+	}
+	// The preview must issue exactly one read (GET) and no writes.
+	for _, call := range host.calls {
+		if call.method == "http.operator.do" && call.params["method"] != "GET" {
+			t.Fatalf("preview wrote to the backend: %v", call.params)
+		}
+	}
+}
+
+func TestPreviewMissingSubReportsNotExists(t *testing.T) {
+	host := &fakeHostCaller{
+		responses: []json.RawMessage{
+			json.RawMessage(`{"links":["vless://a#n1"]}`),
+			json.RawMessage(`{"status_code":404}`),
+		},
+		errors: []error{nil, nil},
+	}
+	rt := &runtime{host: host}
+	out, err := rt.preview(subStoreRequest{BaseURL: "https://sub.example.com/secret"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Exists     bool `json:"exists"`
+		AddedCount int  `json:"added_count"`
+	}
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Exists || got.AddedCount != 1 {
+		t.Fatalf("missing sub: %+v", got)
+	}
+}
+
+func TestSaveEndpointWritesEncryptedVault(t *testing.T) {
+	host := &fakeHostCaller{
+		responses: []json.RawMessage{json.RawMessage(`{}`), json.RawMessage(`{}`)},
+		errors:    []error{nil, nil},
+	}
+	rt := &runtime{host: host}
+	autosync := true
+	out, err := rt.saveEndpoint(subStoreRequest{BaseURL: " https://sub.example.com/secret/ ", Autosync: &autosync})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		OK       bool `json:"ok"`
+		Autosync bool `json:"autosync"`
+	}
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !got.OK || !got.Autosync {
+		t.Fatalf("save: %+v", got)
+	}
+	if len(host.calls) != 2 || host.calls[0].method != "secret.put" || host.calls[1].method != "secret.put" {
+		t.Fatalf("calls: %+v", host.calls)
+	}
+	if host.calls[0].params["key"] != "endpoint" || host.calls[1].params["key"] != "autosync" {
+		t.Fatalf("keys: %+v", host.calls)
+	}
+	// The stored endpoint is normalized (trailing slash/space stripped) and base64-wrapped.
+	value, _ := base64.StdEncoding.DecodeString(host.calls[0].params["value_base64"].(string))
+	if string(value) != "https://sub.example.com/secret" {
+		t.Fatalf("stored endpoint: %q", value)
+	}
+	flag, _ := base64.StdEncoding.DecodeString(host.calls[1].params["value_base64"].(string))
+	if string(flag) != "1" {
+		t.Fatalf("autosync flag: %q", flag)
+	}
+}
+
+func TestClearEndpointDeletesBothKeys(t *testing.T) {
+	host := &fakeHostCaller{
+		responses: []json.RawMessage{json.RawMessage(`{}`), json.RawMessage(`{}`)},
+		errors:    []error{nil, nil},
+	}
+	rt := &runtime{host: host}
+	if _, err := rt.clearEndpoint(); err != nil {
+		t.Fatal(err)
+	}
+	if len(host.calls) != 2 || host.calls[0].method != "secret.delete" || host.calls[0].params["key"] != "endpoint" ||
+		host.calls[1].params["key"] != "autosync" {
+		t.Fatalf("calls: %+v", host.calls)
+	}
+}
+
+func TestEndpointStatusHintsWithoutLeakingPath(t *testing.T) {
+	host := &fakeHostCaller{
+		responses: []json.RawMessage{
+			json.RawMessage(`{"ok":true,"value_base64":"aHR0cHM6Ly9zdWIuZXhhbXBsZS5jb20vc2VjcmV0LXRva2Vu"}`),
+			json.RawMessage(`{"ok":true,"value_base64":"MQ=="}`),
+		},
+		errors: []error{nil, nil},
+	}
+	rt := &runtime{host: host}
+	out := rt.endpointStatus()
+	var got struct {
+		HasSaved     bool   `json:"has_saved_endpoint"`
+		Autosync     bool   `json:"autosync"`
+		EndpointHint string `json:"endpoint_hint"`
+	}
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !got.HasSaved || !got.Autosync {
+		t.Fatalf("status: %+v", got)
+	}
+	if got.EndpointHint != "https://sub.example.com" || strings.Contains(got.EndpointHint, "secret") {
+		t.Fatalf("hint leaks path: %q", got.EndpointHint)
+	}
+}
+
+func TestImportErrorSurfacesBackendBody(t *testing.T) {
+	host := &fakeHostCaller{
+		responses: []json.RawMessage{
+			json.RawMessage(`{"links":[]}`),
+			json.RawMessage(`{"status_code":500,"body_base64":"eyJlcnJvcnI6InN1YiBuYW1lIGNvbmZsaWN0In0="}`),
+		},
+		errors: []error{nil, nil},
+	}
+	rt := &runtime{host: host}
+	_, err := rt.importNodes(subStoreRequest{BaseURL: "https://sub.example.com/secret"})
+	if err == nil || !strings.Contains(err.Error(), "sub name conflict") {
+		t.Fatalf("backend body not surfaced: %v", err)
 	}
 }
