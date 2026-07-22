@@ -9,12 +9,12 @@
     "secret:read",
     "secret:write"
   ],
-  "version": "0.4.0-alpha.1",
+  "version": "0.3.2-alpha.4",
   "publisher": "latticenet",
-  "signature_ed25519": "uRLugcsqap+myrCavPaIUCnOkxCFyTEj/c7J+zwJ+jDEfvMdMHAnfQ4ryUsC2AADAl5R/f+eL2Svcl12nxmAAA==",
+  "signature_ed25519": "ZQUeUAAbURhqqKdvrEwZZ5EgJ2jZt+BC3tMfOeJ5RY8Mh4fynLWxAyx0I7bDCZzZc+3QCgXdlDp9pN21ezoiAg==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "c2d6523dd3f5a74d42dcef9700280d87f449638b199d0c383091aa6a837c048c"
+    "digest_sha256": "913cfd76cd6c47a2ba62a2c9247b9786203f406200e0932a599c8c871779fd58"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -29,7 +29,7 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.1",
+    "server": "\u003e=0.2.2-alpha.2",
     "dashboard_host": "\u003e=1",
     "runtime_protocol": "\u003e=1"
   },
@@ -52,7 +52,7 @@
         "route": "sub-store",
         "icon": "Store",
         "scopes": [
-          "proxy:read"
+          "substore:read"
         ]
       }
     ],
@@ -72,7 +72,7 @@
           "name": "status",
           "effect": "read",
           "scopes": [
-            "proxy:read"
+            "substore:read"
           ],
           "operator_target_fields": [
             "base_url"
@@ -82,7 +82,7 @@
           "name": "preview",
           "effect": "read",
           "scopes": [
-            "proxy:read"
+            "substore:read"
           ],
           "operator_target_fields": [
             "base_url"
@@ -92,7 +92,7 @@
           "name": "import",
           "effect": "write",
           "scopes": [
-            "proxy:admin"
+            "substore:admin"
           ],
           "operator_target_fields": [
             "base_url"
@@ -102,21 +102,21 @@
           "name": "endpoint_status",
           "effect": "read",
           "scopes": [
-            "proxy:read"
+            "substore:read"
           ]
         },
         {
           "name": "save_endpoint",
           "effect": "write",
           "scopes": [
-            "proxy:admin"
+            "substore:admin"
           ]
         },
         {
           "name": "clear_endpoint",
           "effect": "write",
           "scopes": [
-            "proxy:admin"
+            "substore:admin"
           ]
         }
       ],

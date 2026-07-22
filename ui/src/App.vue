@@ -148,6 +148,12 @@ interface EndpointStatusResponse {
   has_saved_endpoint: boolean;
   autosync: boolean;
   endpoint_hint?: string;
+  autosync_status?: {
+    state: "running" | "success" | "error";
+    attempted_at?: string;
+    last_success_at?: string;
+    error?: string;
+  };
 }
 const endpointStatus = ref<EndpointStatusResponse>();
 const autosync = ref(false);
@@ -200,7 +206,7 @@ async function clearEndpoint(): Promise<void> {
 }
 
 function useSavedEndpoint(): void {
-  endpoint.value = "secret://endpoint";
+  endpoint.value = "secret://latticenet.sub-store/endpoint";
 }
 
 async function resize(): Promise<void> {
@@ -313,6 +319,16 @@ onBeforeUnmount(() => {
             <LoaderCircle v-if="savingEndpoint" class="spin" :size="13" aria-hidden="true" />
             Save endpoint (encrypted)
           </button>
+        </div>
+        <div v-if="endpointStatus?.autosync_status" class="vault-row" aria-live="polite">
+          <span class="vault-note">
+            Last auto-sync:
+            <span class="badge" :data-tone="endpointStatus.autosync_status.state === 'success' ? 'success' : endpointStatus.autosync_status.state === 'error' ? 'warning' : 'info'">
+              {{ endpointStatus.autosync_status.state }}
+            </span>
+            <span v-if="endpointStatus.autosync_status.attempted_at" class="mono">{{ endpointStatus.autosync_status.attempted_at }}</span>
+            <span v-if="endpointStatus.autosync_status.error">— {{ endpointStatus.autosync_status.error }}</span>
+          </span>
         </div>
       </div>
     </section>

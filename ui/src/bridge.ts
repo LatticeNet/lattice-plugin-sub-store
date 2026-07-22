@@ -41,11 +41,8 @@ export class BridgeClient {
   readonly init: Promise<HostInit>;
 
   private readonly win: Window;
-  // hostOrigin pins the expected host origin from the frame URL hash
-  // (host_origin param): inbound messages must carry that exact event.origin,
-  // and outbound calls target it instead of "*". Older hosts that do not send
-  // the param keep the legacy nonce-only behavior.
-  private readonly hostOrigin?: string;
+  // hostOrigin pins both inbound and outbound messages; absence fails closed.
+  private readonly hostOrigin: string;
   private readonly pending = new Map<string, Pending>();
   private initResolve!: (value: HostInit) => void;
   private initReject!: (reason: Error) => void;
@@ -110,7 +107,7 @@ export class BridgeClient {
 
   private onMessage(event: MessageEvent): void {
     if (this.disposed || event.source !== this.win.parent || !isRecord(event.data) || event.data.nonce !== this.nonce) return;
-    if (this.hostOrigin !== undefined && event.origin !== this.hostOrigin) return;
+    if (event.origin !== this.hostOrigin) return;
     const message = event.data;
     switch (message.type) {
       case "lattice.host.init": {
@@ -152,9 +149,7 @@ export class BridgeClient {
   }
 
   private post(message: PluginMessage): void {
-    // The parent frame is opaque-origin (sandboxed), so it cannot be targeted
-    // by origin — but OUR calls can and must target the declared host origin.
-    this.win.parent.postMessage(message, this.hostOrigin ?? "*");
+    this.win.parent.postMessage(message, this.hostOrigin);
   }
 
   private postReady(): void {
@@ -189,23 +184,22 @@ export function canCall(init: HostInit | undefined, service: string, method: str
   return init?.interfaces.some((contract) => contract.service === service && contract.methods.includes(method)) === true;
 }
 
-function readChannel(hash: string): { nonce: string; hostOrigin?: string } {
+function readChannel(hash: string): { nonce: string; hostOrigin: string } {
   const params = new URLSearchParams(hash.replace(/^#/, ""));
   const nonce = params.get("lattice_nonce");
   if (!nonce || nonce.length < 16 || nonce.length > 128) throw new Error("Missing plugin channel nonce");
-  const hostOrigin = params.get("host_origin")?.trim() || undefined;
-  if (hostOrigin !== undefined) {
-    // Must be an exact absolute http(s) origin — anything else is a host bug
-    // or a tampered frame URL, and neither is a reason to silently downgrade.
-    let parsed: URL;
-    try {
-      parsed = new URL(hostOrigin);
-    } catch {
-      throw new Error("Invalid plugin host origin");
-    }
-    if (parsed.origin !== hostOrigin || (parsed.protocol !== "https:" && parsed.protocol !== "http:")) {
-      throw new Error("Invalid plugin host origin");
-    }
+  const hostOrigin = params.get("host_origin")?.trim();
+  if (!hostOrigin) throw new Error("Missing plugin host origin");
+  // Must be an exact absolute http(s) origin — anything else is a host bug
+  // or a tampered frame URL, and neither is a reason to silently downgrade.
+  let parsed: URL;
+  try {
+    parsed = new URL(hostOrigin);
+  } catch {
+    throw new Error("Invalid plugin host origin");
+  }
+  if (parsed.origin !== hostOrigin || (parsed.protocol !== "https:" && parsed.protocol !== "http:")) {
+    throw new Error("Invalid plugin host origin");
   }
   return { nonce, hostOrigin };
 }

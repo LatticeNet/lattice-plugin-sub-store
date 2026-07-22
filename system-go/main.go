@@ -12,6 +12,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -27,7 +28,7 @@ import (
 const (
 	pluginID            = "latticenet.sub-store"
 	pluginName          = "Sub-Store companion"
-	pluginVersion       = "0.4.0-alpha.1"
+	pluginVersion       = "0.3.2-alpha.4"
 	defaultSubStoreName = "lattice-vpn-core"
 	maxExportLinks      = 10_000
 	maxExportBytes      = 1 << 20
@@ -60,6 +61,19 @@ type subStoreRequest struct {
 	// Autosync is only honored by save_endpoint: it stores the design-15 §7
 	// server-side auto-sync flag alongside the endpoint in the encrypted vault.
 	Autosync *bool `json:"autosync,omitempty"`
+}
+
+type endpointSecretDocument struct {
+	Version  int    `json:"version"`
+	BaseURL  string `json:"base_url"`
+	Autosync bool   `json:"autosync"`
+}
+
+type autoSyncStatusDocument struct {
+	State         string `json:"state"`
+	AttemptedAt   string `json:"attempted_at,omitempty"`
+	LastSuccessAt string `json:"last_success_at,omitempty"`
+	Error         string `json:"error,omitempty"`
 }
 
 type response struct {
@@ -192,7 +206,11 @@ func (rt *runtime) handleCall(payload json.RawMessage) response {
 		}
 		return response{OK: true, Result: result, Message: "sub-store endpoint cleared"}
 	case "endpoint_status":
-		return response{OK: true, Result: rt.endpointStatus()}
+		result, err := rt.endpointStatus()
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result}
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}
@@ -384,22 +402,14 @@ func diffLinks(next, current []string) ([]string, []string, int) {
 	return added, removed, unchanged
 }
 
-// linkLabel extracts a display label from a share link: the URL fragment when
-// present, else the host. It never fails — worst case it shortens the link.
+// linkLabel returns only the parsed host. Fragments, userinfo, paths, and raw
+// fallback text may contain credentials and must never reach a read-scoped
+// preview response.
 func linkLabel(link string) string {
-	if index := strings.LastIndex(link, "#"); index >= 0 && index+1 < len(link) {
-		if decoded, err := url.PathUnescape(link[index+1:]); err == nil && strings.TrimSpace(decoded) != "" {
-			return strings.TrimSpace(decoded)
-		}
-	}
 	if parsed, err := url.Parse(link); err == nil && parsed.Host != "" {
 		return parsed.Host
 	}
-	const max = 48
-	if len(link) > max {
-		return link[:max] + "…"
-	}
-	return link
+	return "unnamed link"
 }
 
 // ── encrypted endpoint vault (design-15 §7) ──────────────────────────────────
@@ -409,17 +419,17 @@ func (rt *runtime) saveEndpoint(req subStoreRequest) (json.RawMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := rt.secretPut("endpoint", base); err != nil {
+	doc := endpointSecretDocument{Version: 1, BaseURL: base, Autosync: req.Autosync != nil && *req.Autosync}
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		return nil, fmt.Errorf("encode endpoint settings: %w", err)
+	}
+	// One secret write commits the endpoint and auto-sync flag atomically. Older
+	// plain endpoint values remain readable through endpointSettings.
+	if err := rt.secretPut("endpoint", string(raw)); err != nil {
 		return nil, fmt.Errorf("save endpoint: %s", oneLine(err.Error()))
 	}
-	autosync := "0"
-	if req.Autosync != nil && *req.Autosync {
-		autosync = "1"
-	}
-	if err := rt.secretPut("autosync", autosync); err != nil {
-		return nil, fmt.Errorf("save autosync flag: %s", oneLine(err.Error()))
-	}
-	return mustJSON(map[string]any{"ok": true, "autosync": autosync == "1"}), nil
+	return mustJSON(map[string]any{"ok": true, "autosync": doc.Autosync}), nil
 }
 
 func (rt *runtime) clearEndpoint() (json.RawMessage, error) {
@@ -433,14 +443,53 @@ func (rt *runtime) clearEndpoint() (json.RawMessage, error) {
 
 // endpointStatus reports what the vault holds WITHOUT exposing the endpoint:
 // the hint is scheme://host only — the path carries the Sub-Store secret token.
-func (rt *runtime) endpointStatus() json.RawMessage {
-	endpoint, found := rt.secretGet("endpoint")
-	autosync, _ := rt.secretGet("autosync")
-	out := map[string]any{"has_saved_endpoint": found, "autosync": autosync == "1"}
+func (rt *runtime) endpointStatus() (json.RawMessage, error) {
+	endpoint, autosync, found, err := rt.endpointSettings()
+	if err != nil {
+		return nil, fmt.Errorf("read endpoint settings: %s", oneLine(err.Error()))
+	}
+	out := map[string]any{"has_saved_endpoint": found, "autosync": autosync}
 	if found {
 		out["endpoint_hint"] = endpointHint(endpoint)
 	}
-	return mustJSON(out)
+	statusValue, statusFound, err := rt.secretGet("autosync_status")
+	if err != nil {
+		return nil, fmt.Errorf("read auto-sync status: %s", oneLine(err.Error()))
+	}
+	if statusFound {
+		var status autoSyncStatusDocument
+		if err := json.Unmarshal([]byte(statusValue), &status); err != nil {
+			return nil, fmt.Errorf("saved auto-sync status is invalid")
+		}
+		out["autosync_status"] = status
+	}
+	return mustJSON(out), nil
+}
+
+// endpointSettings reads the versioned one-secret document and falls back to
+// the pre-v1 plain endpoint plus separate autosync flag for rolling upgrades.
+func (rt *runtime) endpointSettings() (string, bool, bool, error) {
+	value, found, err := rt.secretGet("endpoint")
+	if err != nil || !found {
+		return "", false, found, err
+	}
+	var doc endpointSecretDocument
+	if json.Unmarshal([]byte(value), &doc) == nil && doc.Version == 1 {
+		base, err := validateBaseURL(doc.BaseURL)
+		if err != nil {
+			return "", false, false, fmt.Errorf("saved endpoint document is invalid: %w", err)
+		}
+		return base, doc.Autosync, true, nil
+	}
+	base, err := validateBaseURL(value)
+	if err != nil {
+		return "", false, false, fmt.Errorf("saved endpoint is invalid: %w", err)
+	}
+	legacyFlag, legacyFound, err := rt.secretGet("autosync")
+	if err != nil {
+		return "", false, false, err
+	}
+	return base, legacyFound && legacyFlag == "1", true, nil
 }
 
 func (rt *runtime) secretPut(key, value string) error {
@@ -451,23 +500,26 @@ func (rt *runtime) secretPut(key, value string) error {
 	return err
 }
 
-func (rt *runtime) secretGet(key string) (string, bool) {
+func (rt *runtime) secretGet(key string) (string, bool, error) {
 	raw, err := rt.callHost("secret.get", map[string]any{"key": key})
 	if err != nil {
-		return "", false
+		return "", false, err
 	}
 	var out struct {
 		OK          bool   `json:"ok"`
 		ValueBase64 string `json:"value_base64"`
 	}
-	if err := json.Unmarshal(raw, &out); err != nil || !out.OK {
-		return "", false
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return "", false, err
+	}
+	if !out.OK {
+		return "", false, nil
 	}
 	decoded, err := base64.StdEncoding.DecodeString(out.ValueBase64)
 	if err != nil {
-		return "", false
+		return "", false, err
 	}
-	return string(decoded), true
+	return string(decoded), true, nil
 }
 
 // endpointHint renders scheme://host of a validated endpoint — never the path,
@@ -681,12 +733,17 @@ func hasControl(value string) bool {
 	return false
 }
 
-// bodyExcerpt bounds and flattens a response body for error text, so Sub-Store
-// backend errors actually reach the operator (bounded at maxErrorExcerpt).
+// bodyExcerpt returns bounded evidence without reflecting attacker-controlled
+// backend text. Response bodies can contain endpoint tokens, share links, and
+// credentials; arbitrary text cannot be reliably content-redacted.
 func bodyExcerpt(body []byte) string {
-	text := oneLine(string(body))
+	if len(body) == 0 {
+		return "empty response body"
+	}
+	sum := sha256.Sum256(body)
+	text := fmt.Sprintf("response body redacted (bytes=%d sha256=%x)", len(body), sum[:8])
 	if len(text) > maxErrorExcerpt {
-		text = text[:maxErrorExcerpt] + "…"
+		return text[:maxErrorExcerpt]
 	}
 	return text
 }

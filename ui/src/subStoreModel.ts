@@ -10,9 +10,8 @@ export function validateEndpoint(input: string): EndpointValidation {
   // endpoint from the plugin's encrypted vault — it is not a URL and is
   // validated server-side at resolution time.
   if (raw.startsWith("secret://")) {
-    const key = raw.slice("secret://".length);
-    if (!key || key.length > 128 || key.includes("/") || hasControl(key)) return { error: "Invalid secret reference" };
-    return { value: raw };
+    if (raw === "secret://latticenet.sub-store/endpoint" || raw === "secret://endpoint") return { value: raw };
+    return { error: "Invalid secret reference" };
   }
   if (raw.length > 2048 || hasControl(raw)) return { error: "Endpoint is too long or contains invalid characters" };
   if (hasUnsafePathSegment(raw)) return { error: "Endpoint path contains an unsafe segment" };

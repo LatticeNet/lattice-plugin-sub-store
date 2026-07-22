@@ -242,23 +242,22 @@ func TestDiffLinks(t *testing.T) {
 }
 
 func TestLinkLabel(t *testing.T) {
-	if got := linkLabel("vless://uuid@1.2.3.4:443?security=reality#hk%20hub%2001"); got != "hk hub 01" {
-		t.Fatalf("fragment label: %q", got)
+	if got := linkLabel("vless://uuid@1.2.3.4:443?security=reality#secret-label"); got != "1.2.3.4:443" {
+		t.Fatalf("host label: %q", got)
 	}
 	if got := linkLabel("trojan://pw@example.com:8443"); got != "example.com:8443" {
 		t.Fatalf("host label: %q", got)
 	}
-	long := strings.Repeat("x", 80)
-	if got := linkLabel(long); len([]rune(got)) > 49 || !strings.HasSuffix(got, "…") {
-		t.Fatalf("long label not bounded: %d runes", len([]rune(got)))
+	if got := linkLabel("not-a-url-secret-token"); got != "unnamed link" {
+		t.Fatalf("raw fallback leaked: %q", got)
 	}
 }
 
 func TestPreviewDiffsAgainstRemote(t *testing.T) {
 	host := &fakeHostCaller{
 		responses: []json.RawMessage{
-			json.RawMessage(`{"links":["vless://a#n1","vless://b#n2","vless://c#n3"]}`),
-			json.RawMessage(`{"status_code":200,"body_base64":"eyJjb250ZW50Ijoidmxlc3M6Ly9iI24yXG52bGVzczovL2QjbjQifQ=="}`),
+			json.RawMessage(`{"links":["vless://a@node-a.example:443#n1","vless://b@node-b.example:443#n2","vless://c@node-c.example:443#n3"]}`),
+			json.RawMessage(`{"status_code":200,"body_base64":"eyJjb250ZW50Ijoidmxlc3M6Ly9iQG5vZGUtYi5leGFtcGxlOjQ0MyNuMlxudmxlc3M6Ly9kQG5vZGUtZC5leGFtcGxlOjQ0MyNuNCJ9"}`),
 		},
 		errors: []error{nil, nil},
 	}
@@ -280,10 +279,10 @@ func TestPreviewDiffsAgainstRemote(t *testing.T) {
 	if !got.Exists || got.UnchangedCount != 1 || got.TotalAfter != 3 {
 		t.Fatalf("preview: %+v", got)
 	}
-	if len(got.Added) != 2 || got.Added[0] != "n1" || got.Added[1] != "n3" {
+	if len(got.Added) != 2 || got.Added[0] != "node-a.example:443" || got.Added[1] != "node-c.example:443" {
 		t.Fatalf("added labels: %v", got.Added)
 	}
-	if len(got.Removed) != 1 || got.Removed[0] != "n4" {
+	if len(got.Removed) != 1 || got.Removed[0] != "node-d.example:443" {
 		t.Fatalf("removed labels: %v", got.Removed)
 	}
 	// The preview must issue exactly one read (GET) and no writes.
@@ -321,8 +320,8 @@ func TestPreviewMissingSubReportsNotExists(t *testing.T) {
 
 func TestSaveEndpointWritesEncryptedVault(t *testing.T) {
 	host := &fakeHostCaller{
-		responses: []json.RawMessage{json.RawMessage(`{}`), json.RawMessage(`{}`)},
-		errors:    []error{nil, nil},
+		responses: []json.RawMessage{json.RawMessage(`{}`)},
+		errors:    []error{nil},
 	}
 	rt := &runtime{host: host}
 	autosync := true
@@ -340,20 +339,31 @@ func TestSaveEndpointWritesEncryptedVault(t *testing.T) {
 	if !got.OK || !got.Autosync {
 		t.Fatalf("save: %+v", got)
 	}
-	if len(host.calls) != 2 || host.calls[0].method != "secret.put" || host.calls[1].method != "secret.put" {
+	if len(host.calls) != 1 || host.calls[0].method != "secret.put" {
 		t.Fatalf("calls: %+v", host.calls)
 	}
-	if host.calls[0].params["key"] != "endpoint" || host.calls[1].params["key"] != "autosync" {
+	if host.calls[0].params["key"] != "endpoint" {
 		t.Fatalf("keys: %+v", host.calls)
 	}
-	// The stored endpoint is normalized (trailing slash/space stripped) and base64-wrapped.
+	// Endpoint and auto-sync are one versioned, atomically-written document.
 	value, _ := base64.StdEncoding.DecodeString(host.calls[0].params["value_base64"].(string))
-	if string(value) != "https://sub.example.com/secret" {
-		t.Fatalf("stored endpoint: %q", value)
+	var doc endpointSecretDocument
+	if err := json.Unmarshal(value, &doc); err != nil {
+		t.Fatalf("stored document: %v (%q)", err, value)
 	}
-	flag, _ := base64.StdEncoding.DecodeString(host.calls[1].params["value_base64"].(string))
-	if string(flag) != "1" {
-		t.Fatalf("autosync flag: %q", flag)
+	if doc.Version != 1 || doc.BaseURL != "https://sub.example.com/secret" || !doc.Autosync {
+		t.Fatalf("stored document: %+v", doc)
+	}
+}
+
+func TestSaveEndpointFailureCannotPartiallyEnableAutosync(t *testing.T) {
+	host := &fakeHostCaller{errors: []error{errors.New("vault unavailable")}}
+	autosync := true
+	_, err := (&runtime{host: host}).saveEndpoint(subStoreRequest{
+		BaseURL: "https://sub.example.com/secret", Autosync: &autosync,
+	})
+	if err == nil || len(host.calls) != 1 || host.calls[0].params["key"] != "endpoint" {
+		t.Fatalf("atomic save failure: err=%v calls=%+v", err, host.calls)
 	}
 }
 
@@ -377,11 +387,15 @@ func TestEndpointStatusHintsWithoutLeakingPath(t *testing.T) {
 		responses: []json.RawMessage{
 			json.RawMessage(`{"ok":true,"value_base64":"aHR0cHM6Ly9zdWIuZXhhbXBsZS5jb20vc2VjcmV0LXRva2Vu"}`),
 			json.RawMessage(`{"ok":true,"value_base64":"MQ=="}`),
+			json.RawMessage(`{"ok":false}`),
 		},
-		errors: []error{nil, nil},
+		errors: []error{nil, nil, nil},
 	}
 	rt := &runtime{host: host}
-	out := rt.endpointStatus()
+	out, err := rt.endpointStatus()
+	if err != nil {
+		t.Fatal(err)
+	}
 	var got struct {
 		HasSaved     bool   `json:"has_saved_endpoint"`
 		Autosync     bool   `json:"autosync"`
@@ -398,17 +412,58 @@ func TestEndpointStatusHintsWithoutLeakingPath(t *testing.T) {
 	}
 }
 
+func TestEndpointStatusReadsAtomicDocumentAndSyncHealth(t *testing.T) {
+	endpointDoc, _ := json.Marshal(endpointSecretDocument{
+		Version: 1, BaseURL: "https://sub.example.com/secret-token", Autosync: true,
+	})
+	syncDoc, _ := json.Marshal(autoSyncStatusDocument{
+		State: "error", AttemptedAt: "2026-07-22T12:00:00Z", Error: "import failed",
+	})
+	host := &fakeHostCaller{responses: []json.RawMessage{
+		json.RawMessage(fmt.Sprintf(`{"ok":true,"value_base64":%q}`, base64.StdEncoding.EncodeToString(endpointDoc))),
+		json.RawMessage(fmt.Sprintf(`{"ok":true,"value_base64":%q}`, base64.StdEncoding.EncodeToString(syncDoc))),
+	}}
+	out, err := (&runtime{host: host}).endpointStatus()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		HasSaved   bool                   `json:"has_saved_endpoint"`
+		Autosync   bool                   `json:"autosync"`
+		Endpoint   string                 `json:"endpoint_hint"`
+		SyncStatus autoSyncStatusDocument `json:"autosync_status"`
+	}
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !got.HasSaved || !got.Autosync || got.Endpoint != "https://sub.example.com" ||
+		got.SyncStatus.State != "error" || got.SyncStatus.Error != "import failed" {
+		t.Fatalf("status: %+v", got)
+	}
+	if strings.Contains(string(out), "secret-token") {
+		t.Fatalf("status leaked endpoint path: %s", out)
+	}
+}
+
 func TestImportErrorSurfacesBackendBody(t *testing.T) {
 	host := &fakeHostCaller{
 		responses: []json.RawMessage{
 			json.RawMessage(`{"links":[]}`),
-			json.RawMessage(`{"status_code":500,"body_base64":"eyJlcnJvcnI6InN1YiBuYW1lIGNvbmZsaWN0In0="}`),
+			json.RawMessage(`{"status_code":500,"body_base64":"eyJlcnJvciI6InBhc3N3b3JkPXN1cGVyLXNlY3JldCB2bGVzczovL3V1aWRAbm9kZSJ9"}`),
 		},
 		errors: []error{nil, nil},
 	}
 	rt := &runtime{host: host}
 	_, err := rt.importNodes(subStoreRequest{BaseURL: "https://sub.example.com/secret"})
-	if err == nil || !strings.Contains(err.Error(), "sub name conflict") {
-		t.Fatalf("backend body not surfaced: %v", err)
+	if err == nil || !strings.Contains(err.Error(), "response body redacted") ||
+		strings.Contains(err.Error(), "super-secret") || strings.Contains(err.Error(), "vless://") {
+		t.Fatalf("backend body was not safely redacted: %v", err)
+	}
+}
+
+func TestEndpointStatusSurfacesVaultFailure(t *testing.T) {
+	rt := &runtime{host: &fakeHostCaller{errors: []error{errors.New("vault unavailable")}}}
+	if _, err := rt.endpointStatus(); err == nil || !strings.Contains(err.Error(), "vault unavailable") {
+		t.Fatalf("vault failure hidden: %v", err)
 	}
 }

@@ -154,6 +154,7 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; border: 1px solid var(--border, #d7dce3); color: var(--muted-foreground, #656d76); background: var(--muted, #f3f4f6); }
 .badge[data-tone="info"] { color: #0b5cad; border-color: #9cc7ee; background: #eef6fe; }
+.badge[data-tone="success"] { color: #147a4b; border-color: #7dc5a3; background: #effaf4; }
 .badge[data-tone="warning"] { color: #9a5b00; border-color: #e8c07a; background: #fdf6e8; }
 .button-compact { padding: 3px 9px; font-size: 11.5px; }
 .button-compact.destructive { color: var(--destructive, #b52b2b); }
