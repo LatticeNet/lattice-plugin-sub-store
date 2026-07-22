@@ -7,6 +7,7 @@ describe("Sub-Store endpoint validation", () => {
     expect(validateEndpoint(" https://sub.example.com/secret/ ").value).toBe("https://sub.example.com/secret");
     expect(validateEndpoint("http://127.0.0.1:3000/secret").value).toBe("http://127.0.0.1:3000/secret");
     expect(validateEndpoint("http://[::1]:3000/secret").value).toBe("http://[::1]:3000/secret");
+    expect(validateEndpoint("secret://latticenet.sub-store/endpoint").value).toBe("secret://latticenet.sub-store/endpoint");
   });
 
   it("rejects remote cleartext, missing secret paths, credentials and traversal", () => {
@@ -16,6 +17,7 @@ describe("Sub-Store endpoint validation", () => {
     expect(validateEndpoint("https://sub.example.com/%2e%2e/secret").error).toMatch(/unsafe segment/);
     expect(validateEndpoint("https://sub.example.com/secret%0aheader").error).toMatch(/unsafe segment/);
     expect(validateEndpoint("https://sub.example.com/secret?token=x").error).toMatch(/query/);
+    expect(validateEndpoint("secret://other.plugin/endpoint").error).toMatch(/secret reference/);
   });
 });
 

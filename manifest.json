@@ -5,14 +5,16 @@
   "type": "system",
   "capabilities": [
     "rpc:call",
-    "http:operator-target"
+    "http:operator-target",
+    "secret:read",
+    "secret:write"
   ],
-  "version": "0.3.2-alpha.3",
+  "version": "0.3.2-alpha.4",
   "publisher": "latticenet",
-  "signature_ed25519": "cGr0AcT5LYLuaYxNIYfwL4jWZtYA04wgGjkhJGkbrk49uBDDqcKcIBT132BfJhhoNlKlb6+n8mokEDQJuAf5Cw==",
+  "signature_ed25519": "ZQUeUAAbURhqqKdvrEwZZ5EgJ2jZt+BC3tMfOeJ5RY8Mh4fynLWxAyx0I7bDCZzZc+3QCgXdlDp9pN21ezoiAg==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "8e6445836caf38fc7c58582601a98faf6b756587535c2c7e355e97a99de5756f"
+    "digest_sha256": "913cfd76cd6c47a2ba62a2c9247b9786203f406200e0932a599c8c871779fd58"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -27,7 +29,7 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.1",
+    "server": "\u003e=0.2.2-alpha.2",
     "dashboard_host": "\u003e=1",
     "runtime_protocol": "\u003e=1"
   },
@@ -50,7 +52,7 @@
         "route": "sub-store",
         "icon": "Store",
         "scopes": [
-          "proxy:read"
+          "substore:read"
         ]
       }
     ],
@@ -70,7 +72,17 @@
           "name": "status",
           "effect": "read",
           "scopes": [
-            "proxy:read"
+            "substore:read"
+          ],
+          "operator_target_fields": [
+            "base_url"
+          ]
+        },
+        {
+          "name": "preview",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
           ],
           "operator_target_fields": [
             "base_url"
@@ -80,13 +92,35 @@
           "name": "import",
           "effect": "write",
           "scopes": [
-            "proxy:admin"
+            "substore:admin"
           ],
           "operator_target_fields": [
             "base_url"
           ]
+        },
+        {
+          "name": "endpoint_status",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ]
+        },
+        {
+          "name": "save_endpoint",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ]
+        },
+        {
+          "name": "clear_endpoint",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ]
         }
-      ]
+      ],
+      "backing": "runtime"
     }
   ]
 }

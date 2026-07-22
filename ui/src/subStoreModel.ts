@@ -6,6 +6,13 @@ export interface EndpointValidation {
 export function validateEndpoint(input: string): EndpointValidation {
   const raw = input.trim();
   if (!raw) return { error: "Sub-Store endpoint is required" };
+  // design-15 §7: a secret:// reference asks the server to resolve the saved
+  // endpoint from the plugin's encrypted vault — it is not a URL and is
+  // validated server-side at resolution time.
+  if (raw.startsWith("secret://")) {
+    if (raw === "secret://latticenet.sub-store/endpoint" || raw === "secret://endpoint") return { value: raw };
+    return { error: "Invalid secret reference" };
+  }
   if (raw.length > 2048 || hasControl(raw)) return { error: "Endpoint is too long or contains invalid characters" };
   if (hasUnsafePathSegment(raw)) return { error: "Endpoint path contains an unsafe segment" };
   let url: URL;
