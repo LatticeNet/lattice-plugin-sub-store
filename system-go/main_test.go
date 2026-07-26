@@ -318,6 +318,71 @@ func TestPipelineRecordsDeleteRewritesDocument(t *testing.T) {
 	}
 }
 
+func TestPipelineRecordsRunSavedPipelineWithoutStoringRaw(t *testing.T) {
+	doc := pipelineRecordsDocument{Version: 1, Records: []pipelineRecord{{
+		ID:     "daily",
+		Name:   "Daily",
+		Target: "Clash",
+		Operators: []json.RawMessage{json.RawMessage(`{
+			"type": "Script Filter",
+			"args": {"mode": "script", "content": "return $server.name.includes('Keep');"}
+		}`)},
+	}}}
+	host := &fakeHostCaller{responses: []json.RawMessage{kvDocumentResponse(t, doc)}}
+	engine := newTestEmbeddedSubStoreEngine()
+	rt := &runtime{host: host, engine: &engine}
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "run_pipeline",
+		Payload: mustJSON(pipelineRunRequest{
+			ID: "daily",
+			Raw: strings.Join([]string{
+				"ss://YWVzLTEyOC1nY206c2VjcmV0@keep.example.com:8388#Keep",
+				"ss://YWVzLTEyOC1nY206c2VjcmV0@drop.example.com:8388#Drop",
+			}, "\n"),
+		}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if !resp.OK {
+		t.Fatalf("run pipeline failed: %+v", resp)
+	}
+	if len(host.calls) != 1 || host.calls[0].method != "kv.get" {
+		t.Fatalf("host calls: %+v", host.calls)
+	}
+	var got struct {
+		PipelineID string                   `json:"pipeline_id"`
+		Conversion subStoreConversionResult `json:"conversion"`
+	}
+	if err := json.Unmarshal(resp.Result, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.PipelineID != "daily" || got.Conversion.SourceNodeCount != 2 ||
+		got.Conversion.NodeCount != 1 || !strings.Contains(got.Conversion.Output, "Keep") ||
+		strings.Contains(got.Conversion.Output, "Drop") {
+		t.Fatalf("run pipeline result: %+v", got)
+	}
+}
+
+func TestPipelineRecordsRunMissingPipelineRedactsRaw(t *testing.T) {
+	host := &fakeHostCaller{responses: []json.RawMessage{kvDocumentResponse(t, pipelineRecordsDocument{Version: 1})}}
+	rt := &runtime{host: host}
+	secretRaw := "ss://password@secret-node.example:443#Secret"
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "run_pipeline",
+		Payload: mustJSON(pipelineRunRequest{ID: "missing", Raw: secretRaw}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if resp.OK || !strings.Contains(resp.Error, "not found") || strings.Contains(resp.Error, secretRaw) {
+		t.Fatalf("missing pipeline error: %+v", resp)
+	}
+	if len(host.calls) != 1 || host.calls[0].method != "kv.get" {
+		t.Fatalf("host calls: %+v", host.calls)
+	}
+}
+
 func TestPipelineRecordValidationStopsBeforeHostCall(t *testing.T) {
 	host := &fakeHostCaller{}
 	rt := &runtime{host: host}

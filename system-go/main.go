@@ -38,6 +38,7 @@ const (
 	maxPipelineRecords   = 256
 	maxPipelineOperators = 64
 	maxPipelineDocBytes  = 1 << 20
+	maxPipelineRawBytes  = 1 << 20
 )
 
 // Private/loopback Sub-Store endpoints require the explicit system-only
@@ -94,6 +95,11 @@ type pipelineRecord struct {
 
 type pipelineRecordRef struct {
 	ID string `json:"id"`
+}
+
+type pipelineRunRequest struct {
+	ID  string `json:"id"`
+	Raw string `json:"raw"`
 }
 
 type pipelineRecordListItem struct {
@@ -321,6 +327,18 @@ func (rt *runtime) handleEngineCall(call callPayload) response {
 			return response{OK: false, Error: err.Error()}
 		}
 		return response{OK: true, Result: result, Message: "sub-store pipeline deleted"}
+	case "run_pipeline":
+		var req pipelineRunRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return response{OK: false, Error: "invalid sub-store pipeline payload: " + err.Error()}
+			}
+		}
+		result, err := rt.runPipelineRecord(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result, Message: "sub-store pipeline conversion complete"}
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}
@@ -675,6 +693,38 @@ func (rt *runtime) deletePipelineRecord(ref pipelineRecordRef) (json.RawMessage,
 		return nil, fmt.Errorf("save pipeline records: %s", oneLine(err.Error()))
 	}
 	return mustJSON(map[string]any{"id": id, "deleted": true, "count": len(doc.Records)}), nil
+}
+
+func (rt *runtime) runPipelineRecord(req pipelineRunRequest) (json.RawMessage, error) {
+	id, err := normalizePipelineRecordID(req.ID)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(req.Raw) == "" {
+		return nil, fmt.Errorf("raw subscription is required")
+	}
+	if len([]byte(req.Raw)) > maxPipelineRawBytes {
+		return nil, fmt.Errorf("raw subscription exceeds %d bytes", maxPipelineRawBytes)
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	for _, record := range doc.Records {
+		if record.ID != id {
+			continue
+		}
+		result, err := rt.subStoreEngine().convert(subStoreConversionRequest{
+			Raw:       req.Raw,
+			Target:    record.Target,
+			Operators: record.Operators,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return mustJSON(map[string]any{"pipeline_id": id, "conversion": result}), nil
+	}
+	return nil, fmt.Errorf("pipeline %q was not found", id)
 }
 
 func (rt *runtime) loadPipelineRecords() (pipelineRecordsDocument, error) {
