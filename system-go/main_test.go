@@ -383,6 +383,43 @@ func TestPipelineRecordsRunMissingPipelineRedactsRaw(t *testing.T) {
 	}
 }
 
+func TestPipelineRecordsRunRejectsMissingRawBeforeHostCall(t *testing.T) {
+	host := &fakeHostCaller{}
+	rt := &runtime{host: host}
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "run_pipeline",
+		Payload: mustJSON(pipelineRunRequest{ID: "daily", Raw: " \n\t "}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if resp.OK || !strings.Contains(resp.Error, "raw subscription is required") {
+		t.Fatalf("missing raw accepted: %+v", resp)
+	}
+	if len(host.calls) != 0 {
+		t.Fatalf("missing raw reached host: %+v", host.calls)
+	}
+}
+
+func TestPipelineRecordsRunRejectsOversizedRawBeforeHostCall(t *testing.T) {
+	host := &fakeHostCaller{}
+	rt := &runtime{host: host}
+	raw := "ss://" + strings.Repeat("a", maxPipelineRawBytes+1)
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "run_pipeline",
+		Payload: mustJSON(pipelineRunRequest{ID: "daily", Raw: raw}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if resp.OK || !strings.Contains(resp.Error, "raw subscription exceeds") || strings.Contains(resp.Error, raw) {
+		t.Fatalf("oversized raw error: %+v", resp)
+	}
+	if len(host.calls) != 0 {
+		t.Fatalf("oversized raw reached host: %+v", host.calls)
+	}
+}
+
 func TestPipelineRecordValidationStopsBeforeHostCall(t *testing.T) {
 	host := &fakeHostCaller{}
 	rt := &runtime{host: host}
