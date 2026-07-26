@@ -44,6 +44,25 @@ The endpoint includes a secret path. It is kept only in the mounted plugin UI's
 memory and is never written to local storage, session storage, cookies, the
 Dashboard bundle, or server configuration.
 
+## Scope migration and rollback
+
+The `>=0.2.2-alpha.2` server floor provides directional runtime compatibility:
+
+| Existing grant | vpn-core | Sub-Store | Native proxy APIs |
+| --- | --- | --- | --- |
+| `proxy:read/admin` | matching read/admin allowed | matching read/admin allowed | allowed |
+| `vpncore:read/admin` | allowed | denied | matching read/admin allowed |
+| `substore:read/admin` | denied | allowed | denied |
+
+Read never implies admin, and `prefix:*` follows the same directions. Delegation
+is directed: legacy proxy grants may delegate equal-strength canonical scopes
+for migration; canonical scopes cannot delegate proxy scopes or each other.
+
+Roll out the compatible server first, then the matching Dashboard, then this
+canonical-scope manifest. Roll back in reverse: restore the plugin manifests to
+legacy `proxy:*` declarations first, then the Dashboard, and remove server
+compatibility last only after canonical grants have been migrated or removed.
+
 ## Local verification
 
 ```sh
