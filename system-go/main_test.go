@@ -200,7 +200,7 @@ func TestSubStoreImportFallsBackToCreateOnlyForMissingUpdate(t *testing.T) {
 func TestSubStoreRejectsUndeclaredAliasAndOversizedExports(t *testing.T) {
 	rt := &runtime{host: &fakeHostCaller{}}
 	call, _ := json.Marshal(callPayload{Service: pluginID + "/import", Method: "run", Payload: json.RawMessage(`{}`)})
-	resp := rt.handleCall(call)
+	resp := rt.handle(request{Action: "call", Payload: call})
 	if resp.OK || !strings.Contains(resp.Error, "unsupported method") {
 		t.Fatalf("undeclared run alias accepted: %+v", resp)
 	}

@@ -354,7 +354,7 @@ func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp := rt.handleCall(payload)
+	resp := rt.handle(request{Action: "call", Payload: payload})
 	if !resp.OK {
 		t.Fatalf("engine convert call failed: %+v", resp)
 	}
@@ -392,7 +392,7 @@ func TestSubStoreEngineResponseTransformCallDoesNotUseHost(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp := rt.handleCall(payload)
+	resp := rt.handle(request{Action: "call", Payload: payload})
 	if !resp.OK {
 		t.Fatalf("engine response transform call failed: %+v", resp)
 	}
