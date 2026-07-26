@@ -163,3 +163,53 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 .preview-summary { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 12.5px; }
 .preview-list { margin: 0; padding-left: 18px; font-size: 12px; max-height: 140px; overflow-y: auto; }
 .preview-removed { color: var(--destructive, #b52b2b); }
+
+/* TASK-0003: tabbed shell + shared empty states */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 18px;
+  border-bottom: 1px solid var(--border, #d9dde2);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--muted-foreground, #656d76);
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 620;
+}
+.tab:hover { color: var(--foreground, #17191c); }
+.tab[data-active="true"] {
+  color: var(--primary, #1769aa);
+  border-bottom-color: var(--primary, #1769aa);
+}
+.tab:focus-visible { outline: 2px solid var(--ring, #2c77b8); outline-offset: -2px; border-radius: 4px 4px 0 0; }
+
+.heading-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.panel-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px dashed var(--border, #cfd4da);
+  border-radius: 8px;
+  color: var(--muted-foreground, #656d76);
+  background: var(--card, #fff);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.panel-empty h3 { margin: 0 0 4px; color: var(--foreground, #17191c); font-size: 13.5px; font-weight: 650; }
+.panel-empty p { margin: 0; }
+
+@media (max-width: 760px) {
+  .tab-bar { overflow-x: auto; }
+  .heading-actions { width: 100%; justify-content: flex-start; }
+}
