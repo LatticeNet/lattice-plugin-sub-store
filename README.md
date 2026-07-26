@@ -15,6 +15,49 @@ The Dashboard contains no Sub-Store page, API fallback, secret persistence, or
 plugin-specific component. Disabling or removing this plugin removes its tab and
 runtime behavior without changing the base console.
 
+## Plugin UI
+
+The `ui/` frame is a tabbed Vue 3 app inside the single `sub-store` manifest
+view — **Import** (the shipped managed-import flow with the encrypted endpoint
+vault), **Subscriptions** and **Convert** (the embedded-engine surface). Every
+backend call is a `lattice.plugin.call` through the one bridge instance owned by
+`src/App.vue`; screens receive it via `src/host.ts` and never open their own
+handshake.
+
+All method names live in `src/client.ts` in two tiers:
+
+- **active** — declared by the signed manifest today (the six
+  `latticenet.sub-store/import` methods);
+- **pending** — the proposed engine surface (`…/subscriptions`, `…/convert`),
+  gated by `canCall` so those tabs render an "engine not available" panel until
+  the TASK-0002 contract lands and the bindings are flipped to active.
+
+`src/contract.test.ts` enforces both directions: active ⊆ manifest, and
+pending ∩ manifest = ∅ as a tripwire that fails the moment the engine methods
+become declared. No screen may call a method the signed manifest does not
+declare.
+
+Verification (`ui/`): `npm test`, `npm run typecheck`, `npm run build`,
+`npm run verify:build` — the scanner must keep rejecting inline script/style
+and any external URL in `dist`.
+
+### Manual browser test plan (post-gates)
+
+Automated verification stops at the bridge boundary; the live pass requires
+(a) the dashboard `host_origin` bridge fix merged and (b) an engine-capable
+plugin build. Once both exist, in a real browser:
+
+1. Console → Extensions → Sub-Store: frame loads, no console errors, theme
+   tokens applied (toggle light/dark in console settings and watch the frame).
+2. Import tab: check status against a real endpoint (reachable + unreachable),
+   save to the vault, reload the console, confirm the hint survives and
+   `secret://` reuse works; preview then import; confirm error text redacts URLs.
+3. Subscriptions tab: parse-check a provider URL, add it, refresh, two-step
+   delete; confirm the list survives a frame reload (server-side records).
+4. Convert tab: select sources + target, preview (estimate shown), convert,
+   select-all copy works despite the sandbox blocking programmatic clipboard.
+5. Resize: frame height follows content in every tab, no clipped buttons.
+
 ## Security boundary
 
 The UI runs in an opaque-origin iframe with scripts only. It has no direct API
