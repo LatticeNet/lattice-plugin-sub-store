@@ -149,7 +149,7 @@ func (rt *runtime) handle(req request) response {
 				"Sub-Store backend reachability checks",
 			},
 			"calls":  "latticenet.vpn-core/nodes export (inter-plugin RPC)",
-			"engine": "plugin artifact via brokered rpc.call + http.operator.do",
+			"engine": "embedded Sub-Store ProxyUtils on QuickJS/wazero; remote I/O only through host capabilities",
 		})
 		return response{OK: true, Result: body, Message: "sub-store companion capability surface"}
 	case "health":
@@ -168,9 +168,18 @@ func (rt *runtime) handleCall(payload json.RawMessage) response {
 	if err := json.Unmarshal(payload, &call); err != nil {
 		return response{OK: false, Error: "invalid call payload: " + err.Error()}
 	}
-	if call.Service != pluginID+"/import" {
+
+	switch call.Service {
+	case pluginID + "/import":
+		return rt.handleImportCall(call)
+	case pluginID + "/engine":
+		return rt.handleEngineCall(call)
+	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported service %q", call.Service)}
 	}
+}
+
+func (rt *runtime) handleImportCall(call callPayload) response {
 	var req subStoreRequest
 	if len(call.Payload) > 0 {
 		if err := json.Unmarshal(call.Payload, &req); err != nil {
@@ -211,6 +220,25 @@ func (rt *runtime) handleCall(payload json.RawMessage) response {
 			return response{OK: false, Error: err.Error()}
 		}
 		return response{OK: true, Result: result}
+	default:
+		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
+	}
+}
+
+func (rt *runtime) handleEngineCall(call callPayload) response {
+	switch call.Method {
+	case "convert":
+		var req subStoreConversionRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return response{OK: false, Error: "invalid sub-store engine payload: " + err.Error()}
+			}
+		}
+		result, err := newEmbeddedSubStoreEngine().convert(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: mustJSON(result), Message: "sub-store conversion complete"}
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}

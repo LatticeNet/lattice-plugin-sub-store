@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -136,6 +138,71 @@ func TestSubStoreEngineRejectsInvalidCoreContract(t *testing.T) {
 	})
 	if err == nil || !strings.Contains(err.Error(), "core bundle is empty") {
 		t.Fatalf("empty core error: %v", err)
+	}
+}
+
+func TestEmbeddedSubStoreCoreMatchesPinnedMetadata(t *testing.T) {
+	raw, err := os.ReadFile("../tools/substore-core/pin.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var pin struct {
+		OutputBytes  int    `json:"output_bytes"`
+		OutputSHA256 string `json:"output_sha256"`
+	}
+	if err := json.Unmarshal(raw, &pin); err != nil {
+		t.Fatal(err)
+	}
+	if len([]byte(embeddedSubStoreCoreJS)) != pin.OutputBytes {
+		t.Fatalf("embedded core bytes = %d, want %d", len([]byte(embeddedSubStoreCoreJS)), pin.OutputBytes)
+	}
+	sum := sha256.Sum256([]byte(embeddedSubStoreCoreJS))
+	if got := fmt.Sprintf("%x", sum[:]); got != pin.OutputSHA256 {
+		t.Fatalf("embedded core sha256 = %s, want %s", got, pin.OutputSHA256)
+	}
+}
+
+func TestEmbeddedSubStoreCoreConvertsRepresentativeSubscription(t *testing.T) {
+	result, err := newEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+		Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
+		Target: "Clash",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.NodeCount != 1 || result.OutputBytes == 0 || !strings.Contains(result.Output, "Node") {
+		t.Fatalf("embedded core conversion: %+v", result)
+	}
+}
+
+func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
+	host := &fakeHostCaller{}
+	rt := &runtime{host: host}
+	payload, err := json.Marshal(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "convert",
+		Payload: mustJSON(subStoreConversionRequest{
+			Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
+			Target: "Clash",
+		}),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := rt.handleCall(payload)
+	if !resp.OK {
+		t.Fatalf("engine convert call failed: %+v", resp)
+	}
+	if len(host.calls) != 0 {
+		t.Fatalf("engine conversion reached host: %+v", host.calls)
+	}
+	var result subStoreConversionResult
+	if err := json.Unmarshal(resp.Result, &result); err != nil {
+		t.Fatal(err)
+	}
+	if result.NodeCount != 1 || result.OutputBytes == 0 || !strings.Contains(result.Output, "Node") {
+		t.Fatalf("engine conversion result: %+v", result)
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/sha256"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +26,9 @@ var defaultSubStoreEngineLimits = subStoreEngineLimits{
 	GCThreshold:  subStoreQuickJSGCThreshold,
 }
 
+//go:embed lib/substore-core.js
+var embeddedSubStoreCoreJS string
+
 type subStoreEngine struct {
 	coreJS string
 	limits subStoreEngineLimits
@@ -38,8 +42,8 @@ type subStoreEngineLimits struct {
 }
 
 type subStoreConversionRequest struct {
-	Raw    string
-	Target string
+	Raw    string `json:"raw"`
+	Target string `json:"target"`
 }
 
 type subStoreConversionResult struct {
@@ -56,6 +60,10 @@ type subStoreCoreConversionResult struct {
 
 func newSubStoreEngine(coreJS string) subStoreEngine {
 	return subStoreEngine{coreJS: coreJS, limits: defaultSubStoreEngineLimits}
+}
+
+func newEmbeddedSubStoreEngine() subStoreEngine {
+	return newSubStoreEngine(embeddedSubStoreCoreJS)
 }
 
 func (engine subStoreEngine) convert(req subStoreConversionRequest) (result subStoreConversionResult, err error) {
