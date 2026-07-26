@@ -70,10 +70,17 @@ export function useConvert(host: HostContext) {
     actionError.value = "";
     preview.value = undefined;
     try {
-      preview.value = await callMethod<ConvertPreviewResponse>(host.bridge, BINDINGS.convertPreview, {
+      const response = await callMethod<ConvertPreviewResponse>(host.bridge, BINDINGS.convertPreview, {
         subscriptions: selected.value,
         target: targetId.value,
       }).promise;
+      // Sparse-wire normalization: the templates index these arrays directly.
+      preview.value = {
+        node_count: response?.node_count ?? 0,
+        groups: response?.groups ?? [],
+        warnings: response?.warnings ?? [],
+        size_estimate_bytes: response?.size_estimate_bytes ?? 0,
+      };
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Conversion preview failed");
@@ -90,12 +97,18 @@ export function useConvert(host: HostContext) {
     actionError.value = "";
     output.value = undefined;
     try {
-      output.value = await callMethod<ConvertRunResponse>(
+      const response = await callMethod<ConvertRunResponse>(
         host.bridge,
         BINDINGS.convertRun,
         { subscriptions: selected.value, target: targetId.value },
         60_000,
       ).promise;
+      output.value = {
+        content: response?.content ?? "",
+        content_type: response?.content_type ?? "text/plain",
+        file_name: response?.file_name ?? "sub-store-output.txt",
+        size_bytes: response?.size_bytes ?? 0,
+      };
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Conversion failed");

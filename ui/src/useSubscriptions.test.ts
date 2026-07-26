@@ -121,4 +121,29 @@ describe("useSubscriptions", () => {
     expect(await subs.create({ name: "x", sourceUrl: "https://a.example/b" })).toBe(false);
     expect(calls).toHaveLength(0);
   });
+
+  it("normalizes sparse wire responses so templates never index undefined", async () => {
+    const { host } = makeHost({
+      "latticenet.sub-store/subscriptions/preview": { node_count: 3 },
+    });
+    const subs = useSubscriptions(host);
+    const preview = await subs.previewSource("https://provider.example/sub");
+    expect(preview?.sample_names).toEqual([]);
+    expect(preview?.warnings).toEqual([]);
+    expect(preview?.node_types).toEqual({});
+    expect(preview?.node_count).toBe(3);
+  });
+
+  it("falls back to reloading the list when create answers without the record", async () => {
+    const { host, calls } = makeHost({
+      [CREATE_KEY]: { ok: true },
+      [LIST_KEY]: { subscriptions: [sample] },
+    });
+    const subs = useSubscriptions(host);
+    subs.state.value = "ready";
+    const ok = await subs.create({ name: "hk-main", sourceUrl: "https://provider.example/sub" });
+    expect(ok).toBe(true);
+    expect(calls.map((call) => call.method)).toEqual(["create", "list"]);
+    expect(subs.items.value[0].name).toBe("hk-main");
+  });
 });

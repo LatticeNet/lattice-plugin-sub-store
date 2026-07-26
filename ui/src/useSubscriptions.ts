@@ -74,7 +74,10 @@ export function useSubscriptions(host: HostContext) {
           source_url: input.sourceUrl,
         },
       ).promise;
-      upsert(response.subscription);
+      // Wire-reality guard: if the backend answers without the record, take
+      // the authoritative list instead of crashing the render.
+      if (response?.subscription) upsert(response.subscription);
+      else await load();
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Subscription could not be added");
@@ -127,11 +130,18 @@ export function useSubscriptions(host: HostContext) {
   async function previewSource(sourceUrl: string): Promise<SubscriptionPreviewResponse | undefined> {
     if (!host.bridge || !host.available(BINDINGS.subscriptionsPreview)) return undefined;
     try {
-      return await callMethod<SubscriptionPreviewResponse>(
+      const response = await callMethod<SubscriptionPreviewResponse>(
         host.bridge,
         BINDINGS.subscriptionsPreview,
         { source_url: sourceUrl },
       ).promise;
+      // Sparse-wire normalization: the templates index these arrays directly.
+      return {
+        node_count: response?.node_count ?? 0,
+        node_types: response?.node_types ?? {},
+        sample_names: response?.sample_names ?? [],
+        warnings: response?.warnings ?? [],
+      };
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Subscription source could not be parsed");
       return undefined;

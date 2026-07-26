@@ -112,4 +112,23 @@ describe("useConvert", () => {
     expect(await convert.produce()).toBe(false);
     expect(calls).toHaveLength(0);
   });
+
+  it("normalizes sparse preview and output responses", async () => {
+    const { host } = makeHost({
+      [TARGETS_KEY]: { targets },
+      [PREVIEW_KEY]: { node_count: 5 },
+      [RUN_KEY]: {},
+    });
+    const convert = useConvert(host);
+    await convert.loadTargets();
+    convert.toggle("a");
+    expect(await convert.runPreview()).toBe(true);
+    expect(convert.preview.value?.groups).toEqual([]);
+    expect(convert.preview.value?.warnings).toEqual([]);
+    expect(convert.preview.value?.size_estimate_bytes).toBe(0);
+    expect(convert.previewOverBudget.value).toBe(false);
+    expect(await convert.produce()).toBe(true);
+    expect(convert.output.value?.content).toBe("");
+    expect(convert.output.value?.file_name).toBe("sub-store-output.txt");
+  });
 });
