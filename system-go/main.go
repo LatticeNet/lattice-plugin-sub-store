@@ -26,14 +26,18 @@ import (
 )
 
 const (
-	pluginID            = "latticenet.sub-store"
-	pluginName          = "Sub-Store companion"
-	pluginVersion       = "0.3.2-alpha.4"
-	defaultSubStoreName = "lattice-vpn-core"
-	maxExportLinks      = 10_000
-	maxExportBytes      = 1 << 20
-	maxLinkBytes        = 4 << 10
-	maxErrorExcerpt     = 4 << 10
+	pluginID             = "latticenet.sub-store"
+	pluginName           = "Sub-Store companion"
+	pluginVersion        = "0.3.2-alpha.4"
+	defaultSubStoreName  = "lattice-vpn-core"
+	pipelineRecordsKey   = "engine-pipelines-v1"
+	maxExportLinks       = 10_000
+	maxExportBytes       = 1 << 20
+	maxLinkBytes         = 4 << 10
+	maxErrorExcerpt      = 4 << 10
+	maxPipelineRecords   = 256
+	maxPipelineOperators = 64
+	maxPipelineDocBytes  = 1 << 20
 )
 
 // Private/loopback Sub-Store endpoints require the explicit system-only
@@ -74,6 +78,29 @@ type autoSyncStatusDocument struct {
 	AttemptedAt   string `json:"attempted_at,omitempty"`
 	LastSuccessAt string `json:"last_success_at,omitempty"`
 	Error         string `json:"error,omitempty"`
+}
+
+type pipelineRecordsDocument struct {
+	Version int              `json:"version"`
+	Records []pipelineRecord `json:"records"`
+}
+
+type pipelineRecord struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Target    string            `json:"target"`
+	Operators []json.RawMessage `json:"operators,omitempty"`
+}
+
+type pipelineRecordRef struct {
+	ID string `json:"id"`
+}
+
+type pipelineRecordListItem struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Target        string `json:"target"`
+	OperatorCount int    `json:"operator_count"`
 }
 
 type response struct {
@@ -252,6 +279,48 @@ func (rt *runtime) handleEngineCall(call callPayload) response {
 			return response{OK: false, Error: err.Error()}
 		}
 		return response{OK: true, Result: mustJSON(result), Message: "sub-store response transform complete"}
+	case "save_pipeline":
+		var req pipelineRecord
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return response{OK: false, Error: "invalid sub-store pipeline payload: " + err.Error()}
+			}
+		}
+		result, err := rt.savePipelineRecord(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result, Message: "sub-store pipeline saved"}
+	case "get_pipeline":
+		var req pipelineRecordRef
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return response{OK: false, Error: "invalid sub-store pipeline payload: " + err.Error()}
+			}
+		}
+		result, err := rt.getPipelineRecord(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result}
+	case "list_pipelines":
+		result, err := rt.listPipelineRecords()
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result}
+	case "delete_pipeline":
+		var req pipelineRecordRef
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return response{OK: false, Error: "invalid sub-store pipeline payload: " + err.Error()}
+			}
+		}
+		result, err := rt.deletePipelineRecord(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: result, Message: "sub-store pipeline deleted"}
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}
@@ -514,6 +583,215 @@ func (rt *runtime) endpointStatus() (json.RawMessage, error) {
 	return mustJSON(out), nil
 }
 
+// ── embedded engine pipeline records (KV, no raw subscription bodies) ─────────
+
+func (rt *runtime) savePipelineRecord(record pipelineRecord) (json.RawMessage, error) {
+	normalized, err := normalizePipelineRecord(record)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	found := false
+	for index, existing := range doc.Records {
+		if existing.ID == normalized.ID {
+			doc.Records[index] = normalized
+			found = true
+			break
+		}
+	}
+	if !found {
+		if len(doc.Records) >= maxPipelineRecords {
+			return nil, fmt.Errorf("too many pipeline records: max %d", maxPipelineRecords)
+		}
+		doc.Records = append(doc.Records, normalized)
+	}
+	sortPipelineRecords(doc.Records)
+	if err := rt.storePipelineRecords(doc); err != nil {
+		return nil, fmt.Errorf("save pipeline records: %s", oneLine(err.Error()))
+	}
+	return mustJSON(map[string]any{"id": normalized.ID, "created": !found, "count": len(doc.Records)}), nil
+}
+
+func (rt *runtime) getPipelineRecord(ref pipelineRecordRef) (json.RawMessage, error) {
+	id, err := normalizePipelineRecordID(ref.ID)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	for _, record := range doc.Records {
+		if record.ID == id {
+			return mustJSON(map[string]any{"found": true, "record": record}), nil
+		}
+	}
+	return mustJSON(map[string]any{"found": false, "id": id}), nil
+}
+
+func (rt *runtime) listPipelineRecords() (json.RawMessage, error) {
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	items := make([]pipelineRecordListItem, 0, len(doc.Records))
+	for _, record := range doc.Records {
+		items = append(items, pipelineRecordListItem{
+			ID:            record.ID,
+			Name:          record.Name,
+			Target:        record.Target,
+			OperatorCount: len(record.Operators),
+		})
+	}
+	return mustJSON(map[string]any{"records": items, "count": len(items)}), nil
+}
+
+func (rt *runtime) deletePipelineRecord(ref pipelineRecordRef) (json.RawMessage, error) {
+	id, err := normalizePipelineRecordID(ref.ID)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	next := doc.Records[:0]
+	found := false
+	for _, record := range doc.Records {
+		if record.ID == id {
+			found = true
+			continue
+		}
+		next = append(next, record)
+	}
+	if !found {
+		return mustJSON(map[string]any{"id": id, "deleted": false, "count": len(doc.Records)}), nil
+	}
+	doc.Records = next
+	if err := rt.storePipelineRecords(doc); err != nil {
+		return nil, fmt.Errorf("save pipeline records: %s", oneLine(err.Error()))
+	}
+	return mustJSON(map[string]any{"id": id, "deleted": true, "count": len(doc.Records)}), nil
+}
+
+func (rt *runtime) loadPipelineRecords() (pipelineRecordsDocument, error) {
+	value, found, err := rt.kvGet(pipelineRecordsKey)
+	if err != nil || !found {
+		return pipelineRecordsDocument{Version: 1}, err
+	}
+	if len(value) > maxPipelineDocBytes {
+		return pipelineRecordsDocument{}, fmt.Errorf("pipeline records exceed %d bytes", maxPipelineDocBytes)
+	}
+	var doc pipelineRecordsDocument
+	if err := json.Unmarshal(value, &doc); err != nil {
+		return pipelineRecordsDocument{}, fmt.Errorf("decode pipeline records: %w", err)
+	}
+	if doc.Version != 1 {
+		return pipelineRecordsDocument{}, fmt.Errorf("unsupported pipeline records version %d", doc.Version)
+	}
+	if len(doc.Records) > maxPipelineRecords {
+		return pipelineRecordsDocument{}, fmt.Errorf("pipeline records exceed max %d", maxPipelineRecords)
+	}
+	for index, record := range doc.Records {
+		normalized, err := normalizePipelineRecord(record)
+		if err != nil {
+			return pipelineRecordsDocument{}, fmt.Errorf("pipeline record %d is invalid: %w", index, err)
+		}
+		doc.Records[index] = normalized
+	}
+	sortPipelineRecords(doc.Records)
+	return doc, nil
+}
+
+func (rt *runtime) storePipelineRecords(doc pipelineRecordsDocument) error {
+	doc.Version = 1
+	sortPipelineRecords(doc.Records)
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		return fmt.Errorf("encode pipeline records: %w", err)
+	}
+	if len(raw) > maxPipelineDocBytes {
+		return fmt.Errorf("pipeline records exceed %d bytes", maxPipelineDocBytes)
+	}
+	return rt.kvPut(pipelineRecordsKey, raw)
+}
+
+func normalizePipelineRecord(record pipelineRecord) (pipelineRecord, error) {
+	id, err := normalizePipelineRecordID(record.ID)
+	if err != nil {
+		return pipelineRecord{}, err
+	}
+	name := strings.TrimSpace(record.Name)
+	if name == "" {
+		name = id
+	}
+	if len(name) > 128 || hasControl(name) {
+		return pipelineRecord{}, fmt.Errorf("pipeline name must be printable and at most 128 characters")
+	}
+	target := strings.TrimSpace(record.Target)
+	if target == "" {
+		return pipelineRecord{}, fmt.Errorf("target is required")
+	}
+	if len(target) > 64 || hasControl(target) {
+		return pipelineRecord{}, fmt.Errorf("target must be printable and at most 64 characters")
+	}
+	operators, err := normalizePipelineOperators(record.Operators)
+	if err != nil {
+		return pipelineRecord{}, err
+	}
+	return pipelineRecord{ID: id, Name: name, Target: target, Operators: operators}, nil
+}
+
+func normalizePipelineRecordID(value string) (string, error) {
+	id := strings.TrimSpace(value)
+	if id == "" {
+		return "", fmt.Errorf("pipeline id is required")
+	}
+	if len(id) > 128 || hasControl(id) {
+		return "", fmt.Errorf("pipeline id must be printable and at most 128 characters")
+	}
+	for index, char := range id {
+		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') || char == '.' || char == '_' || char == '-') ||
+			(index == 0 && (char == '.' || char == '_' || char == '-')) {
+			return "", fmt.Errorf("pipeline id must start with an alphanumeric character and contain only letters, numbers, dot, underscore, or hyphen")
+		}
+	}
+	return id, nil
+}
+
+func normalizePipelineOperators(operators []json.RawMessage) ([]json.RawMessage, error) {
+	if len(operators) > maxPipelineOperators {
+		return nil, fmt.Errorf("too many pipeline operators: max %d", maxPipelineOperators)
+	}
+	out := make([]json.RawMessage, 0, len(operators))
+	for index, operator := range operators {
+		var object map[string]any
+		if err := json.Unmarshal(operator, &object); err != nil {
+			return nil, fmt.Errorf("operator %d must be a JSON object: %w", index, err)
+		}
+		operatorType, ok := object["type"].(string)
+		if !ok || strings.TrimSpace(operatorType) == "" {
+			return nil, fmt.Errorf("operator %d type is required", index)
+		}
+		encoded, err := json.Marshal(object)
+		if err != nil {
+			return nil, fmt.Errorf("encode operator %d: %w", index, err)
+		}
+		out = append(out, encoded)
+	}
+	return out, nil
+}
+
+func sortPipelineRecords(records []pipelineRecord) {
+	sort.Slice(records, func(i, j int) bool {
+		return records[i].ID < records[j].ID
+	})
+}
+
 // endpointSettings reads the versioned one-secret document and falls back to
 // the pre-v1 plain endpoint plus separate autosync flag for rolling upgrades.
 func (rt *runtime) endpointSettings() (string, bool, bool, error) {
@@ -568,6 +846,40 @@ func (rt *runtime) secretGet(key string) (string, bool, error) {
 		return "", false, err
 	}
 	return string(decoded), true, nil
+}
+
+func (rt *runtime) kvPut(key string, value []byte) error {
+	_, err := rt.callHost("kv.put", map[string]any{
+		"key":          key,
+		"value_base64": base64.StdEncoding.EncodeToString(value),
+	})
+	return err
+}
+
+func (rt *runtime) kvGet(key string) ([]byte, bool, error) {
+	raw, err := rt.callHost("kv.get", map[string]any{"key": key})
+	if err != nil {
+		return nil, false, err
+	}
+	var out struct {
+		OK          bool   `json:"ok"`
+		Value       string `json:"value,omitempty"`
+		ValueBase64 string `json:"value_base64,omitempty"`
+	}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, false, err
+	}
+	if !out.OK {
+		return nil, false, nil
+	}
+	if out.ValueBase64 != "" {
+		decoded, err := base64.StdEncoding.DecodeString(out.ValueBase64)
+		if err != nil {
+			return nil, false, err
+		}
+		return decoded, true, nil
+	}
+	return []byte(out.Value), true, nil
 }
 
 // endpointHint renders scheme://host of a validated endpoint — never the path,

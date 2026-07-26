@@ -217,6 +217,151 @@ func TestSubStoreRejectsUndeclaredAliasAndOversizedExports(t *testing.T) {
 	}
 }
 
+// ── embedded engine pipeline records (KV, no raw subscription bodies) ─────────
+
+func TestPipelineRecordsSaveUsesScopedKVDocument(t *testing.T) {
+	host := &fakeHostCaller{responses: []json.RawMessage{json.RawMessage(`{"ok":false}`), json.RawMessage(`{}`)}}
+	rt := &runtime{host: host}
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "save_pipeline",
+		Payload: mustJSON(pipelineRecord{
+			ID:     "daily",
+			Name:   "Daily export",
+			Target: "Clash",
+			Operators: []json.RawMessage{json.RawMessage(`{
+				"type": "Script Filter",
+				"args": {"mode": "script", "content": "function filter(proxies) { return proxies.map(() => true); }"}
+			}`)},
+		}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if !resp.OK {
+		t.Fatalf("save pipeline failed: %+v", resp)
+	}
+	if len(host.calls) != 2 || host.calls[0].method != "kv.get" || host.calls[1].method != "kv.put" {
+		t.Fatalf("host calls: %+v", host.calls)
+	}
+	if host.calls[0].params["key"] != pipelineRecordsKey || host.calls[1].params["key"] != pipelineRecordsKey {
+		t.Fatalf("kv keys: %+v", host.calls)
+	}
+	doc := decodePipelineDocumentFromKVPut(t, host.calls[1])
+	if doc.Version != 1 || len(doc.Records) != 1 || doc.Records[0].ID != "daily" ||
+		doc.Records[0].Name != "Daily export" || doc.Records[0].Target != "Clash" {
+		t.Fatalf("stored document: %+v", doc)
+	}
+	if len(doc.Records[0].Operators) != 1 || !strings.Contains(string(doc.Records[0].Operators[0]), "Script Filter") {
+		t.Fatalf("stored operators: %+v", doc.Records[0].Operators)
+	}
+}
+
+func TestPipelineRecordsListOmitsOperatorBodies(t *testing.T) {
+	doc := pipelineRecordsDocument{Version: 1, Records: []pipelineRecord{{
+		ID:     "daily",
+		Name:   "Daily export",
+		Target: "Clash",
+		Operators: []json.RawMessage{json.RawMessage(`{
+			"type": "Script Operator",
+			"args": {"mode": "script", "content": "secret-token-in-script"}
+		}`)},
+	}}}
+	host := &fakeHostCaller{responses: []json.RawMessage{kvDocumentResponse(t, doc)}}
+	rt := &runtime{host: host}
+	payload := mustJSON(callPayload{Service: pluginID + "/engine", Method: "list_pipelines"})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if !resp.OK {
+		t.Fatalf("list pipelines failed: %+v", resp)
+	}
+	if strings.Contains(string(resp.Result), "secret-token-in-script") {
+		t.Fatalf("list leaked operator body: %s", resp.Result)
+	}
+	var got struct {
+		Count   int `json:"count"`
+		Records []struct {
+			ID            string `json:"id"`
+			OperatorCount int    `json:"operator_count"`
+		} `json:"records"`
+	}
+	if err := json.Unmarshal(resp.Result, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Count != 1 || len(got.Records) != 1 || got.Records[0].ID != "daily" || got.Records[0].OperatorCount != 1 {
+		t.Fatalf("list result: %+v", got)
+	}
+}
+
+func TestPipelineRecordsDeleteRewritesDocument(t *testing.T) {
+	doc := pipelineRecordsDocument{Version: 1, Records: []pipelineRecord{
+		{ID: "daily", Name: "Daily", Target: "Clash"},
+		{ID: "weekly", Name: "Weekly", Target: "sing-box"},
+	}}
+	host := &fakeHostCaller{responses: []json.RawMessage{kvDocumentResponse(t, doc), json.RawMessage(`{}`)}}
+	rt := &runtime{host: host}
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "delete_pipeline",
+		Payload: mustJSON(pipelineRecordRef{ID: "daily"}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if !resp.OK {
+		t.Fatalf("delete pipeline failed: %+v", resp)
+	}
+	if len(host.calls) != 2 || host.calls[0].method != "kv.get" || host.calls[1].method != "kv.put" {
+		t.Fatalf("host calls: %+v", host.calls)
+	}
+	next := decodePipelineDocumentFromKVPut(t, host.calls[1])
+	if len(next.Records) != 1 || next.Records[0].ID != "weekly" {
+		t.Fatalf("rewritten document: %+v", next)
+	}
+}
+
+func TestPipelineRecordValidationStopsBeforeHostCall(t *testing.T) {
+	host := &fakeHostCaller{}
+	rt := &runtime{host: host}
+	payload := mustJSON(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "save_pipeline",
+		Payload: mustJSON(pipelineRecord{ID: "../bad", Target: "Clash"}),
+	})
+
+	resp := rt.handle(request{Action: "call", Payload: payload})
+	if resp.OK || !strings.Contains(resp.Error, "pipeline id") {
+		t.Fatalf("invalid pipeline accepted: %+v", resp)
+	}
+	if len(host.calls) != 0 {
+		t.Fatalf("invalid pipeline reached host: %+v", host.calls)
+	}
+}
+
+func kvDocumentResponse(t *testing.T, doc pipelineRecordsDocument) json.RawMessage {
+	t.Helper()
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return json.RawMessage(fmt.Sprintf(`{"ok":true,"value_base64":%q}`, base64.StdEncoding.EncodeToString(raw)))
+}
+
+func decodePipelineDocumentFromKVPut(t *testing.T, call recordedHostCall) pipelineRecordsDocument {
+	t.Helper()
+	value, ok := call.params["value_base64"].(string)
+	if !ok {
+		t.Fatalf("kv.put missing value_base64: %+v", call.params)
+	}
+	raw, err := base64.StdEncoding.DecodeString(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc pipelineRecordsDocument
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	return doc
+}
+
 func TestSubStorePlanRedactsSecretValues(t *testing.T) {
 	plan := renderPlan(json.RawMessage(`{"base_url":"https://sub.example/very-secret","user_id":"user-1","sub_name":"managed"}`))
 	if strings.Contains(plan, "very-secret") || !strings.Contains(plan, "base_url = <redacted>") {
