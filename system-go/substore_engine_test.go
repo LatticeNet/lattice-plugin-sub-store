@@ -253,6 +253,40 @@ func TestEmbeddedSubStoreCoreAppliesScriptPipeline(t *testing.T) {
 	}
 }
 
+func TestEmbeddedSubStoreCoreAppliesNodeShortcutPipeline(t *testing.T) {
+	operators := []json.RawMessage{
+		json.RawMessage(`{
+			"type": "Script Filter",
+			"args": {
+				"mode": "script",
+				"content": "return $server.name.includes('Keep');"
+			}
+		}`),
+		json.RawMessage(`{
+			"type": "Script Operator",
+			"args": {
+				"mode": "script",
+				"content": "$server.name = $server.name + '-NODE';"
+			}
+		}`),
+	}
+	result, err := newTestEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+		Raw: strings.Join([]string{
+			"ss://YWVzLTEyOC1nY206c2VjcmV0@keep.example.com:8388#Keep",
+			"ss://YWVzLTEyOC1nY206c2VjcmV0@drop.example.com:8388#Drop",
+		}, "\n"),
+		Target:    "Clash",
+		Operators: operators,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.SourceNodeCount != 2 || result.NodeCount != 1 ||
+		!strings.Contains(result.Output, "Keep-NODE") || strings.Contains(result.Output, "Drop") {
+		t.Fatalf("node shortcut pipeline result: %+v", result)
+	}
+}
+
 func TestEmbeddedSubStoreCoreAppliesResponseTransformerPipeline(t *testing.T) {
 	operators := []json.RawMessage{
 		json.RawMessage(`{
