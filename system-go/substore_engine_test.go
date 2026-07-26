@@ -253,6 +253,57 @@ func TestEmbeddedSubStoreCoreAppliesScriptPipeline(t *testing.T) {
 	}
 }
 
+func TestEmbeddedSubStoreCoreAppliesResponseTransformerPipeline(t *testing.T) {
+	operators := []json.RawMessage{
+		json.RawMessage(`{
+			"type": "Script Operator",
+			"args": {
+				"mode": "script",
+				"content": "function operator() { throw new Error('proxy operators must be skipped for responses'); }"
+			}
+		}`),
+		json.RawMessage(`{
+			"type": "Response Transformer",
+			"args": {
+				"mode": "script",
+				"content": "function transformFunction(res, context) { context.process = { type: 'disable', customNames: ['branch-b'] }; res.body += 'A'; res.headers['x-stage'] = 'a'; return res; }"
+			}
+		}`),
+		json.RawMessage(`{
+			"type": "Response Transformer",
+			"customName": "branch-b",
+			"args": {
+				"mode": "script",
+				"content": "function transformFunction(res) { res.body += 'B'; return res; }"
+			}
+		}`),
+		json.RawMessage(`{
+			"type": "Response Transformer",
+			"customName": "branch-c",
+			"args": {
+				"mode": "script",
+				"content": "function transformFunction(res) { res.body += 'C'; res.headers['x-finished'] = 'yes'; return res; }"
+			}
+		}`),
+	}
+	result, err := newTestEmbeddedSubStoreEngine().transformResponse(subStoreResponseTransformRequest{
+		Response:  json.RawMessage(`{"status":206,"headers":{"x-source":"fixture"},"body":""}`),
+		Target:    "Clash",
+		Operators: operators,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Target != "Clash" || result.Status != 206 || result.Body != "AC" ||
+		result.BodyBytes != len([]byte(result.Body)) {
+		t.Fatalf("response transform result: %+v", result)
+	}
+	if result.Headers["x-source"] != "fixture" || result.Headers["x-stage"] != "a" ||
+		result.Headers["x-finished"] != "yes" {
+		t.Fatalf("response transform headers: %+v", result.Headers)
+	}
+}
+
 func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 	host := &fakeHostCaller{}
 	engine := newTestEmbeddedSubStoreEngine()
@@ -282,6 +333,44 @@ func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 	}
 	if result.NodeCount != 1 || result.OutputBytes == 0 || !strings.Contains(result.Output, "Node") {
 		t.Fatalf("engine conversion result: %+v", result)
+	}
+}
+
+func TestSubStoreEngineResponseTransformCallDoesNotUseHost(t *testing.T) {
+	host := &fakeHostCaller{}
+	engine := newTestEmbeddedSubStoreEngine()
+	rt := &runtime{host: host, engine: &engine}
+	payload, err := json.Marshal(callPayload{
+		Service: pluginID + "/engine",
+		Method:  "transform_response",
+		Payload: mustJSON(subStoreResponseTransformRequest{
+			Response: json.RawMessage(`{"body":"seed"}`),
+			Operators: []json.RawMessage{json.RawMessage(`{
+				"type": "Response Transformer",
+				"args": {
+					"mode": "script",
+					"content": "function transformFunction(res) { res.body += '-done'; return res; }"
+				}
+			}`)},
+		}),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := rt.handleCall(payload)
+	if !resp.OK {
+		t.Fatalf("engine response transform call failed: %+v", resp)
+	}
+	if len(host.calls) != 0 {
+		t.Fatalf("engine response transform reached host: %+v", host.calls)
+	}
+	var result subStoreResponseTransformResult
+	if err := json.Unmarshal(resp.Result, &result); err != nil {
+		t.Fatal(err)
+	}
+	if result.Status != 200 || result.Body != "seed-done" || result.BodyBytes != len([]byte("seed-done")) {
+		t.Fatalf("engine response transform result: %+v", result)
 	}
 }
 

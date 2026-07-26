@@ -47,6 +47,12 @@ type subStoreConversionRequest struct {
 	Operators []json.RawMessage `json:"operators,omitempty"`
 }
 
+type subStoreResponseTransformRequest struct {
+	Response  json.RawMessage   `json:"response"`
+	Target    string            `json:"target,omitempty"`
+	Operators []json.RawMessage `json:"operators,omitempty"`
+}
+
 type subStoreConversionResult struct {
 	Target          string `json:"target"`
 	SourceNodeCount int    `json:"source_node_count"`
@@ -55,10 +61,24 @@ type subStoreConversionResult struct {
 	OutputBytes     int    `json:"output_bytes"`
 }
 
+type subStoreResponseTransformResult struct {
+	Target    string         `json:"target,omitempty"`
+	Status    int            `json:"status"`
+	Headers   map[string]any `json:"headers"`
+	Body      string         `json:"body"`
+	BodyBytes int            `json:"body_bytes"`
+}
+
 type subStoreCoreConversionResult struct {
 	SourceNodeCount int    `json:"source_node_count"`
 	NodeCount       int    `json:"node_count"`
 	Output          string `json:"output"`
+}
+
+type subStoreCoreResponseTransformResult struct {
+	Status  int            `json:"status"`
+	Headers map[string]any `json:"headers"`
+	Body    string         `json:"body"`
 }
 
 func newSubStoreEngine(coreJS string) subStoreEngine {
@@ -83,6 +103,63 @@ func (engine subStoreEngine) convert(req subStoreConversionRequest) (result subS
 		return subStoreConversionResult{}, fmt.Errorf("target is required")
 	}
 
+	script, err := subStoreConversionScript(req)
+	if err != nil {
+		return subStoreConversionResult{}, err
+	}
+	rawResult, err := engine.runCoreScript("convert", "lattice-substore-convert.js", script)
+	if err != nil {
+		return subStoreConversionResult{}, err
+	}
+	var coreResult subStoreCoreConversionResult
+	if err := json.Unmarshal([]byte(rawResult), &coreResult); err != nil {
+		return subStoreConversionResult{}, fmt.Errorf("decode Sub-Store conversion result: %w", err)
+	}
+	return subStoreConversionResult{
+		Target:          req.Target,
+		SourceNodeCount: coreResult.SourceNodeCount,
+		NodeCount:       coreResult.NodeCount,
+		Output:          coreResult.Output,
+		OutputBytes:     len([]byte(coreResult.Output)),
+	}, nil
+}
+
+func (engine subStoreEngine) transformResponse(req subStoreResponseTransformRequest) (result subStoreResponseTransformResult, err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = redactSubStoreEnginePanic(recovered)
+		}
+	}()
+
+	script, err := subStoreResponseTransformScript(req)
+	if err != nil {
+		return subStoreResponseTransformResult{}, err
+	}
+	rawResult, err := engine.runCoreScript("process response", "lattice-substore-process-response.js", script)
+	if err != nil {
+		return subStoreResponseTransformResult{}, err
+	}
+	var coreResult subStoreCoreResponseTransformResult
+	if err := json.Unmarshal([]byte(rawResult), &coreResult); err != nil {
+		return subStoreResponseTransformResult{}, fmt.Errorf("decode Sub-Store response transform result: %w", err)
+	}
+	if coreResult.Headers == nil {
+		coreResult.Headers = map[string]any{}
+	}
+	return subStoreResponseTransformResult{
+		Target:    req.Target,
+		Status:    coreResult.Status,
+		Headers:   coreResult.Headers,
+		Body:      coreResult.Body,
+		BodyBytes: len([]byte(coreResult.Body)),
+	}, nil
+}
+
+func (engine subStoreEngine) runCoreScript(stage, file, script string) (string, error) {
+	if strings.TrimSpace(engine.coreJS) == "" {
+		return "", fmt.Errorf("Sub-Store core bundle is empty")
+	}
+
 	limits := engine.limits.withDefaults()
 	ctx, cancel := context.WithTimeout(context.Background(), limits.Timeout)
 	defer cancel()
@@ -97,50 +174,34 @@ func (engine subStoreEngine) convert(req subStoreConversionRequest) (result subS
 		Stderr:             io.Discard,
 	})
 	if err != nil {
-		return subStoreConversionResult{}, fmt.Errorf("create Sub-Store JS runtime: %w", err)
+		return "", fmt.Errorf("create Sub-Store JS runtime: %w", err)
 	}
 	defer rt.Close()
 
 	qctx := rt.Context()
 	if err := evalQuickJSStep(qctx, "lattice-console-shim.js", subStoreConsoleShim); err != nil {
-		return subStoreConversionResult{}, fmt.Errorf("install Sub-Store console shim: %w", err)
+		return "", fmt.Errorf("install Sub-Store console shim: %w", err)
 	}
 	if err := evalQuickJSStep(qctx, "substore-core.js", engine.coreJS); err != nil {
-		return subStoreConversionResult{}, fmt.Errorf("load Sub-Store core: %w", err)
+		return "", fmt.Errorf("load Sub-Store core: %w", err)
 	}
-
-	script, err := subStoreConversionScript(req)
+	value, err := qctx.Eval(file, qjs.Code(script))
 	if err != nil {
-		return subStoreConversionResult{}, err
-	}
-	value, err := qctx.Eval("lattice-substore-convert.js", qjs.Code(script))
-	if err != nil {
-		return subStoreConversionResult{}, redactSubStoreJSError("convert", err)
+		return "", redactSubStoreJSError(stage, err)
 	}
 	if value.IsPromise() {
 		promise := value
 		value, err = promise.Await()
 		promise.Free()
 		if err != nil {
-			return subStoreConversionResult{}, redactSubStoreJSError("convert", err)
+			return "", redactSubStoreJSError(stage, err)
 		}
 	}
 	defer value.Free()
 	if !value.IsString() {
-		return subStoreConversionResult{}, fmt.Errorf("Sub-Store conversion returned %s, want stringified JSON", value.Type())
+		return "", fmt.Errorf("Sub-Store %s returned %s, want stringified JSON", stage, value.Type())
 	}
-
-	var coreResult subStoreCoreConversionResult
-	if err := json.Unmarshal([]byte(value.String()), &coreResult); err != nil {
-		return subStoreConversionResult{}, fmt.Errorf("decode Sub-Store conversion result: %w", err)
-	}
-	return subStoreConversionResult{
-		Target:          req.Target,
-		SourceNodeCount: coreResult.SourceNodeCount,
-		NodeCount:       coreResult.NodeCount,
-		Output:          coreResult.Output,
-		OutputBytes:     len([]byte(coreResult.Output)),
-	}, nil
+	return value.String(), nil
 }
 
 func (limits subStoreEngineLimits) withDefaults() subStoreEngineLimits {
@@ -218,6 +279,56 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   }
   return JSON.stringify({ source_node_count: sourceNodeCount, node_count: proxies.length, output });
 })()`, prefix, raw, target, operators, processBlock), nil
+}
+
+func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {
+	response := json.RawMessage(strings.TrimSpace(string(req.Response)))
+	if len(response) == 0 {
+		response = json.RawMessage(`{}`)
+	}
+	var responseObject map[string]any
+	if err := json.Unmarshal(response, &responseObject); err != nil {
+		return "", fmt.Errorf("response must be a JSON object: %w", err)
+	}
+	responseJSON, err := json.Marshal(responseObject)
+	if err != nil {
+		return "", fmt.Errorf("encode response: %w", err)
+	}
+	target, err := json.Marshal(req.Target)
+	if err != nil {
+		return "", fmt.Errorf("encode target: %w", err)
+	}
+	operators, err := json.Marshal(req.Operators)
+	if err != nil {
+		return "", fmt.Errorf("encode operators: %w", err)
+	}
+	return fmt.Sprintf(`(async function() {
+  const response = %s;
+  const target = %s;
+  const operators = %s || [];
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
+  if (!core || typeof core.processResponse !== "function") {
+    throw new Error("Sub-Store core must expose processResponse(response, operators)");
+  }
+  if (!Array.isArray(operators)) {
+    throw new Error("Sub-Store operators must be an array");
+  }
+  const output = await core.processResponse(response, operators, target, undefined, undefined);
+  if (!output || typeof output !== "object" || Array.isArray(output)) {
+    throw new Error("Sub-Store processResponse(response, operators) must return an object");
+  }
+  const status = Number(output.status || 200);
+  if (!Number.isFinite(status)) {
+    throw new Error("Sub-Store response status must be finite");
+  }
+  const headers = output.headers && typeof output.headers === "object" ? output.headers : {};
+  const body = Object.prototype.hasOwnProperty.call(output, "body") ? output.body : "";
+  if (typeof body !== "string") {
+    throw new Error("Sub-Store response body must be a string");
+  }
+  return JSON.stringify({ status, headers, body });
+})()`, responseJSON, target, operators), nil
 }
 
 func redactSubStoreJSError(stage string, err error) error {

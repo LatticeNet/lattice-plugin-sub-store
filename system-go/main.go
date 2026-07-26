@@ -240,6 +240,18 @@ func (rt *runtime) handleEngineCall(call callPayload) response {
 			return response{OK: false, Error: err.Error()}
 		}
 		return response{OK: true, Result: mustJSON(result), Message: "sub-store conversion complete"}
+	case "transform_response":
+		var req subStoreResponseTransformRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return response{OK: false, Error: "invalid sub-store response transform payload: " + err.Error()}
+			}
+		}
+		result, err := rt.subStoreEngine().transformResponse(req)
+		if err != nil {
+			return response{OK: false, Error: err.Error()}
+		}
+		return response{OK: true, Result: mustJSON(result), Message: "sub-store response transform complete"}
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}
