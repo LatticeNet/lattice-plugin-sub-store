@@ -9,14 +9,14 @@ const validPin = {
   backend_package: 'sub-store',
   backend_version: '2.36.22',
   package_manager: 'pnpm@11.0.9',
-  source_path: 'src/products/proxy-utils.esm.js',
+  source_path: 'src/core/proxy-utils/index.js',
   global_name: 'SubStoreProxyUtils',
   format: 'iife',
   platform: 'browser',
   minify: true,
   inject: ['core-js/actual/object/has-own'],
-  output_bytes: 1266414,
-  output_sha256: '9e77eb7b65dbe1e65a7c9eed7d618fbc786aab0b5d360945d65c2e8b84d8428c',
+  output_bytes: 1266359,
+  output_sha256: '994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b',
 };
 
 test('validatePin accepts the checked-in production pin shape', () => {
@@ -44,7 +44,7 @@ test('parseArgs requires explicit output and preserves source checkout option', 
 
 test('buildEsbuildArgs pins the QuickJS-loadable global without setting a target', () => {
   const args = buildEsbuildArgs(validPin, ['/upstream/node_modules/core-js/actual/object/has-own.js'], '/tmp/core.js');
-  assert.deepEqual(args.slice(0, 4), ['pnpm', 'exec', 'esbuild', 'src/products/proxy-utils.esm.js']);
+  assert.deepEqual(args.slice(0, 4), ['pnpm', 'exec', 'esbuild', 'src/core/proxy-utils/index.js']);
   assert(args.includes('--format=iife'));
   assert(args.includes('--global-name=SubStoreProxyUtils'));
   assert(args.includes('--platform=browser'));

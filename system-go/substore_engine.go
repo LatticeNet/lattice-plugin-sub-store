@@ -42,20 +42,23 @@ type subStoreEngineLimits struct {
 }
 
 type subStoreConversionRequest struct {
-	Raw    string `json:"raw"`
-	Target string `json:"target"`
+	Raw       string            `json:"raw"`
+	Target    string            `json:"target"`
+	Operators []json.RawMessage `json:"operators,omitempty"`
 }
 
 type subStoreConversionResult struct {
-	Target      string `json:"target"`
-	NodeCount   int    `json:"node_count"`
-	Output      string `json:"output"`
-	OutputBytes int    `json:"output_bytes"`
+	Target          string `json:"target"`
+	SourceNodeCount int    `json:"source_node_count"`
+	NodeCount       int    `json:"node_count"`
+	Output          string `json:"output"`
+	OutputBytes     int    `json:"output_bytes"`
 }
 
 type subStoreCoreConversionResult struct {
-	NodeCount int    `json:"node_count"`
-	Output    string `json:"output"`
+	SourceNodeCount int    `json:"source_node_count"`
+	NodeCount       int    `json:"node_count"`
+	Output          string `json:"output"`
 }
 
 func newSubStoreEngine(coreJS string) subStoreEngine {
@@ -114,6 +117,14 @@ func (engine subStoreEngine) convert(req subStoreConversionRequest) (result subS
 	if err != nil {
 		return subStoreConversionResult{}, redactSubStoreJSError("convert", err)
 	}
+	if value.IsPromise() {
+		promise := value
+		value, err = promise.Await()
+		promise.Free()
+		if err != nil {
+			return subStoreConversionResult{}, redactSubStoreJSError("convert", err)
+		}
+	}
 	defer value.Free()
 	if !value.IsString() {
 		return subStoreConversionResult{}, fmt.Errorf("Sub-Store conversion returned %s, want stringified JSON", value.Type())
@@ -124,10 +135,11 @@ func (engine subStoreEngine) convert(req subStoreConversionRequest) (result subS
 		return subStoreConversionResult{}, fmt.Errorf("decode Sub-Store conversion result: %w", err)
 	}
 	return subStoreConversionResult{
-		Target:      req.Target,
-		NodeCount:   coreResult.NodeCount,
-		Output:      coreResult.Output,
-		OutputBytes: len([]byte(coreResult.Output)),
+		Target:          req.Target,
+		SourceNodeCount: coreResult.SourceNodeCount,
+		NodeCount:       coreResult.NodeCount,
+		Output:          coreResult.Output,
+		OutputBytes:     len([]byte(coreResult.Output)),
 	}, nil
 }
 
@@ -165,23 +177,47 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode target: %w", err)
 	}
-	return fmt.Sprintf(`(function() {
+	operators, err := json.Marshal(req.Operators)
+	if err != nil {
+		return "", fmt.Errorf("encode operators: %w", err)
+	}
+	prefix := "(function() {"
+	processBlock := ""
+	if len(req.Operators) > 0 {
+		prefix = "(async function() {"
+		processBlock = `
+  if (typeof core.process !== "function") {
+    throw new Error("Sub-Store core must expose process(proxies, operators)");
+  }
+  proxies = await core.process(proxies, operators, target, undefined, undefined, raw);
+  if (!Array.isArray(proxies)) {
+    throw new Error("Sub-Store process(proxies, operators) must return an array");
+  }`
+	}
+	return fmt.Sprintf(`%s
   const raw = %s;
   const target = %s;
-  const core = globalThis.SubStoreProxyUtils;
+  const operators = %s || [];
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   if (!core || typeof core.parse !== "function" || typeof core.produce !== "function") {
     throw new Error("Sub-Store core must expose parse(raw) and produce(proxies, target, env)");
   }
-  const proxies = core.parse(raw);
+  let proxies = core.parse(raw);
   if (!Array.isArray(proxies)) {
     throw new Error("Sub-Store parse(raw) must return an array");
   }
+  const sourceNodeCount = proxies.length;
+  if (!Array.isArray(operators)) {
+    throw new Error("Sub-Store operators must be an array");
+  }
+%s
   const output = core.produce(proxies, target, "external");
   if (typeof output !== "string") {
     throw new Error("Sub-Store produce(proxies, target, env) must return a string");
   }
-  return JSON.stringify({ node_count: proxies.length, output });
-})()`, raw, target), nil
+  return JSON.stringify({ source_node_count: sourceNodeCount, node_count: proxies.length, output });
+})()`, prefix, raw, target, operators, processBlock), nil
 }
 
 func redactSubStoreJSError(stage string, err error) error {

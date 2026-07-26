@@ -4,9 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/fastschema/qjs"
 )
 
 func TestSubStoreEngineConvertsWithQuickJSCoreFixture(t *testing.T) {
@@ -44,7 +48,8 @@ globalThis.SubStoreProxyUtils = {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Target != "sing-box" || result.NodeCount != 2 || result.OutputBytes != len([]byte(result.Output)) {
+	if result.Target != "sing-box" || result.SourceNodeCount != 2 ||
+		result.NodeCount != 2 || result.OutputBytes != len([]byte(result.Output)) {
 		t.Fatalf("conversion metadata: %+v", result)
 	}
 
@@ -162,8 +167,47 @@ func TestEmbeddedSubStoreCoreMatchesPinnedMetadata(t *testing.T) {
 	}
 }
 
+func TestEmbeddedSubStoreCoreExposesWidenedProxyUtils(t *testing.T) {
+	rt, err := qjs.New(qjs.Option{Stdout: io.Discard, Stderr: io.Discard})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	ctx := rt.Context()
+	if err := evalQuickJSStep(ctx, "lattice-console-shim.js", subStoreConsoleShim); err != nil {
+		t.Fatal(err)
+	}
+	if err := evalQuickJSStep(ctx, "substore-core.js", embeddedSubStoreCoreJS); err != nil {
+		t.Fatal(err)
+	}
+	value, err := ctx.Eval("substore-core-capabilities.js", qjs.Code(`(function() {
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
+  return JSON.stringify({
+    parse: typeof core.parse,
+    process: typeof core.process,
+    processResponse: typeof core.processResponse,
+    produce: typeof core.produce
+  });
+})()`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer value.Free()
+
+	var got map[string]string
+	if err := json.Unmarshal([]byte(value.String()), &got); err != nil {
+		t.Fatal(err)
+	}
+	for name, kind := range got {
+		if kind != "function" {
+			t.Fatalf("ProxyUtils.%s is %s, want function", name, kind)
+		}
+	}
+}
+
 func TestEmbeddedSubStoreCoreConvertsRepresentativeSubscription(t *testing.T) {
-	result, err := newEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+	result, err := newTestEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
 		Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
 		Target: "Clash",
 	})
@@ -175,9 +219,44 @@ func TestEmbeddedSubStoreCoreConvertsRepresentativeSubscription(t *testing.T) {
 	}
 }
 
+func TestEmbeddedSubStoreCoreAppliesScriptPipeline(t *testing.T) {
+	operators := []json.RawMessage{
+		json.RawMessage(`{
+			"type": "Script Filter",
+			"args": {
+				"mode": "script",
+				"content": "function filter(proxies) { return proxies.map((proxy) => proxy.name.includes('Keep')); }"
+			}
+		}`),
+		json.RawMessage(`{
+			"type": "Script Operator",
+			"args": {
+				"mode": "script",
+				"content": "function operator(proxies) { return proxies.map((proxy) => ({ ...proxy, name: proxy.name + '-OK' })); }"
+			}
+		}`),
+	}
+	result, err := newTestEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+		Raw: strings.Join([]string{
+			"ss://YWVzLTEyOC1nY206c2VjcmV0@keep.example.com:8388#Keep",
+			"ss://YWVzLTEyOC1nY206c2VjcmV0@drop.example.com:8388#Drop",
+		}, "\n"),
+		Target:    "Clash",
+		Operators: operators,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.SourceNodeCount != 2 || result.NodeCount != 1 ||
+		!strings.Contains(result.Output, "Keep-OK") || strings.Contains(result.Output, "Drop") {
+		t.Fatalf("script pipeline result: %+v", result)
+	}
+}
+
 func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 	host := &fakeHostCaller{}
-	rt := &runtime{host: host}
+	engine := newTestEmbeddedSubStoreEngine()
+	rt := &runtime{host: host, engine: &engine}
 	payload, err := json.Marshal(callPayload{
 		Service: pluginID + "/engine",
 		Method:  "convert",
@@ -204,6 +283,12 @@ func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 	if result.NodeCount != 1 || result.OutputBytes == 0 || !strings.Contains(result.Output, "Node") {
 		t.Fatalf("engine conversion result: %+v", result)
 	}
+}
+
+func newTestEmbeddedSubStoreEngine() subStoreEngine {
+	engine := newEmbeddedSubStoreEngine()
+	engine.limits.Timeout = 30 * time.Second
+	return engine
 }
 
 func TestSubStoreEngineConvertsPinnedCoreWhenProvided(t *testing.T) {

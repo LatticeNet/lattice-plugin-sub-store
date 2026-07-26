@@ -122,7 +122,8 @@ func main() {
 }
 
 type runtime struct {
-	host hostCaller
+	host   hostCaller
+	engine *subStoreEngine
 }
 
 type hostCaller interface {
@@ -234,7 +235,7 @@ func (rt *runtime) handleEngineCall(call callPayload) response {
 				return response{OK: false, Error: "invalid sub-store engine payload: " + err.Error()}
 			}
 		}
-		result, err := newEmbeddedSubStoreEngine().convert(req)
+		result, err := rt.subStoreEngine().convert(req)
 		if err != nil {
 			return response{OK: false, Error: err.Error()}
 		}
@@ -242,6 +243,13 @@ func (rt *runtime) handleEngineCall(call callPayload) response {
 	default:
 		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
 	}
+}
+
+func (rt *runtime) subStoreEngine() subStoreEngine {
+	if rt != nil && rt.engine != nil {
+		return *rt.engine
+	}
+	return newEmbeddedSubStoreEngine()
 }
 
 func (rt *runtime) status(req subStoreRequest) json.RawMessage {
