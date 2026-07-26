@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	goruntime "runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -98,11 +99,16 @@ type engineInstance interface {
 func main() {
 	bundlePath := flag.String("bundle", "", "path to an IIFE bundle exposing global SubStoreProxyUtils")
 	iterations := flag.Int("iterations", 5, "cold conversion iterations for small and medium cases")
+	sweepTarget := flag.String("sweep-target", "", "target format for optional node-count sweep")
+	sweepNodes := flag.String("sweep-nodes", "", "comma-separated node counts for optional sweep cases")
 	jsonOut := flag.Bool("json", false, "emit JSON")
 	flag.Parse()
 
 	if *bundlePath == "" {
 		fail("missing -bundle")
+	}
+	if *iterations < 1 {
+		fail("-iterations must be positive")
 	}
 	bundle, err := os.ReadFile(*bundlePath)
 	if err != nil {
@@ -113,6 +119,27 @@ func main() {
 		{Name: "small-uri-2", Target: "Clash", InputNodes: 2, Raw: sampleLinks(2)},
 		{Name: "medium-uri-200", Target: "sing-box", InputNodes: 200, Raw: sampleLinks(200)},
 		{Name: "cap-check-uri-5000", Target: "sing-box", InputNodes: 5000, Raw: sampleLinks(5000)},
+	}
+	if *sweepTarget != "" && *sweepNodes == "" {
+		fail("missing -sweep-nodes with -sweep-target")
+	}
+	if *sweepNodes != "" {
+		target := *sweepTarget
+		if target == "" {
+			target = "sing-box"
+		}
+		nodes, err := parseNodeCounts(*sweepNodes)
+		if err != nil {
+			fail("parse -sweep-nodes: %v", err)
+		}
+		for _, count := range nodes {
+			cases = append(cases, sampleCase{
+				Name:       fmt.Sprintf("sweep-%s-%d", safeCaseName(target), count),
+				Target:     target,
+				InputNodes: count,
+				Raw:        sampleLinks(count),
+			})
+		}
 	}
 	probes := []engineProbe{
 		{name: "goja", load: loadGoja},
@@ -435,6 +462,56 @@ func sampleLinks(nodes int) string {
 		lines = append(lines, fmt.Sprintf("trojan://password@example-%04d.org:443?peer=sni-%04d.example.org&sni=sni-%04d.example.org#trojan-%04d", i, i, i, i))
 	}
 	return strings.Join(lines, "\n")
+}
+
+func parseNodeCounts(raw string) ([]int, error) {
+	parts := strings.Split(raw, ",")
+	counts := make([]int, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		count, err := strconv.Atoi(part)
+		if err != nil {
+			return nil, err
+		}
+		if count < 1 {
+			return nil, fmt.Errorf("node counts must be positive: %d", count)
+		}
+		counts = append(counts, count)
+	}
+	if len(counts) == 0 {
+		return nil, fmt.Errorf("no node counts")
+	}
+	return counts, nil
+}
+
+func safeCaseName(target string) string {
+	var b strings.Builder
+	lastDash := false
+	for i := 0; i < len(target); i++ {
+		ch := target[i]
+		if ('a' <= ch && ch <= 'z') || ('0' <= ch && ch <= '9') {
+			b.WriteByte(ch)
+			lastDash = false
+			continue
+		}
+		if 'A' <= ch && ch <= 'Z' {
+			b.WriteByte(ch + ('a' - 'A'))
+			lastDash = false
+			continue
+		}
+		if !lastDash {
+			b.WriteByte('-')
+			lastDash = true
+		}
+	}
+	name := strings.Trim(b.String(), "-")
+	if name == "" {
+		return "target"
+	}
+	return name
 }
 
 func measure(fn func() (string, error)) (value string, result measurement) {

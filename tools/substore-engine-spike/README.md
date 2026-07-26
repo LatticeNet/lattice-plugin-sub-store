@@ -11,6 +11,16 @@ repository during Phase 1:
 go run ./cmd/spike -bundle /tmp/hephaestus-substore-proxy-utils.iife.js -json
 ```
 
+Add output-budget sweep cases without changing the default representative set:
+
+```sh
+go run ./cmd/spike -bundle /tmp/hephaestus-substore-proxy-utils.iife.js \
+  -iterations 3 \
+  -sweep-target sing-box \
+  -sweep-nodes 1000,2500,4000,4300,4500 \
+  -json
+```
+
 Build-size probes:
 
 ```sh
