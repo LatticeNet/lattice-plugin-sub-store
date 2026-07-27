@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ref } from "vue";
 
 import type { BridgeClient } from "./bridge";
-import { OUTPUT_SIZE_BUDGET_BYTES } from "./client";
+import { CONVERT_OUTPUT_BUDGET_BYTES } from "./client";
 import type { HostContext } from "./host";
 import { useConvert } from "./useConvert";
 
@@ -25,110 +25,60 @@ function makeHost(
   };
 }
 
-const TARGETS_KEY = "latticenet.sub-store/convert/targets";
-const PREVIEW_KEY = "latticenet.sub-store/convert/preview";
-const RUN_KEY = "latticenet.sub-store/convert/convert";
+const CONVERT = "latticenet.sub-store/engine/convert";
 
-const targets = [
-  { id: "clash", label: "Clash", produces: "yaml" },
-  { id: "sing-box", label: "sing-box", produces: "json" },
-];
+const sample = {
+  target: "Clash",
+  source_node_count: 3,
+  node_count: 2,
+  output: "proxies: []",
+  output_bytes: 12,
+};
 
 describe("useConvert", () => {
-  it("loads targets and preselects the first", async () => {
-    const { host } = makeHost({ [TARGETS_KEY]: { targets } });
+  it("converts raw content with target and operators", async () => {
+    const { host, calls } = makeHost({ [CONVERT]: sample });
     const convert = useConvert(host);
-    await convert.loadTargets();
-    expect(convert.targetsState.value).toBe("ready");
-    expect(convert.targets.value).toHaveLength(2);
-    expect(convert.targetId.value).toBe("clash");
+    expect(await convert.produce("ss://a\nss://b", "Clash", [{ type: "quick-sort" }])).toBe(true);
+    expect(calls[0].payload).toEqual({ raw: "ss://a\nss://b", target: "Clash", operators: [{ type: "quick-sort" }] });
+    expect(convert.result.value?.node_count).toBe(2);
   });
 
-  it("reports target load failure without crashing selection", async () => {
-    const { host } = makeHost({}, { [TARGETS_KEY]: new Error("engine busy") });
+  it("refuses empty input without firing", async () => {
+    const { host, calls } = makeHost({ [CONVERT]: sample });
     const convert = useConvert(host);
-    await convert.loadTargets();
-    expect(convert.targetsState.value).toBe("error");
-    expect(convert.targetsError.value).toBe("engine busy");
-    expect(convert.canConvert.value).toBe(false);
-  });
-
-  it("requires a selection and a target before converting", async () => {
-    const { host } = makeHost({ [TARGETS_KEY]: { targets } });
-    const convert = useConvert(host);
-    await convert.loadTargets();
-    expect(convert.canConvert.value).toBe(false);
-    convert.toggle("hk-main");
-    expect(convert.canConvert.value).toBe(true);
-    convert.toggle("hk-main");
-    expect(convert.canConvert.value).toBe(false);
-  });
-
-  it("flags previews whose estimate crosses the output budget", async () => {
-    const { host } = makeHost({
-      [TARGETS_KEY]: { targets },
-      [PREVIEW_KEY]: { node_count: 320, groups: ["Auto"], warnings: [], size_estimate_bytes: OUTPUT_SIZE_BUDGET_BYTES + 1 },
-    });
-    const convert = useConvert(host);
-    await convert.loadTargets();
-    convert.toggle("hk-main");
-    expect(await convert.runPreview()).toBe(true);
-    expect(convert.previewOverBudget.value).toBe(true);
-  });
-
-  it("produces output content with the chosen subscriptions", async () => {
-    const { host, calls } = makeHost({
-      [TARGETS_KEY]: { targets },
-      [RUN_KEY]: { content: "proxies: []", content_type: "text/yaml", file_name: "lattice.yaml", size_bytes: 12 },
-    });
-    const convert = useConvert(host);
-    await convert.loadTargets();
-    convert.toggle("a");
-    convert.toggle("b");
-    expect(await convert.produce()).toBe(true);
-    expect(convert.output.value?.file_name).toBe("lattice.yaml");
-    expect(calls.at(-1)?.payload).toEqual({ subscriptions: ["a", "b"], target: "clash" });
-  });
-
-  it("clears stale results when the selection changes", async () => {
-    const { host } = makeHost({
-      [TARGETS_KEY]: { targets },
-      [RUN_KEY]: { content: "x", content_type: "text/yaml", file_name: "f", size_bytes: 1 },
-    });
-    const convert = useConvert(host);
-    await convert.loadTargets();
-    convert.toggle("a");
-    await convert.produce();
-    convert.toggle("b");
-    expect(convert.output.value).toBeUndefined();
-  });
-
-  it("stays inert when the convert service is not declared", async () => {
-    const { host, calls } = makeHost({});
-    host.available = () => false;
-    const convert = useConvert(host);
-    await convert.loadTargets();
-    convert.toggle("a");
-    expect(await convert.produce()).toBe(false);
+    expect(await convert.produce("   ", "Clash")).toBe(false);
+    expect(await convert.produce("ss://a", "")).toBe(false);
     expect(calls).toHaveLength(0);
   });
 
-  it("normalizes sparse preview and output responses", async () => {
-    const { host } = makeHost({
-      [TARGETS_KEY]: { targets },
-      [PREVIEW_KEY]: { node_count: 5 },
-      [RUN_KEY]: {},
-    });
+  it("flags results over the output budget", async () => {
+    const { host } = makeHost({ [CONVERT]: { ...sample, output_bytes: CONVERT_OUTPUT_BUDGET_BYTES + 1 } });
     const convert = useConvert(host);
-    await convert.loadTargets();
-    convert.toggle("a");
-    expect(await convert.runPreview()).toBe(true);
-    expect(convert.preview.value?.groups).toEqual([]);
-    expect(convert.preview.value?.warnings).toEqual([]);
-    expect(convert.preview.value?.size_estimate_bytes).toBe(0);
-    expect(convert.previewOverBudget.value).toBe(false);
-    expect(await convert.produce()).toBe(true);
-    expect(convert.output.value?.content).toBe("");
-    expect(convert.output.value?.file_name).toBe("sub-store-output.txt");
+    await convert.produce("ss://a", "Clash");
+    expect(convert.resultOverBudget.value).toBe(true);
+  });
+
+  it("surfaces a redacted error on failure", async () => {
+    const { host } = makeHost({}, { [CONVERT]: new Error("core panic at https://internal.example/x") });
+    const convert = useConvert(host);
+    expect(await convert.produce("ss://a", "Clash")).toBe(false);
+    expect(convert.actionError.value).not.toContain("https://internal.example");
+  });
+
+  it("resets stale results", async () => {
+    const { host } = makeHost({ [CONVERT]: sample });
+    const convert = useConvert(host);
+    await convert.produce("ss://a", "Clash");
+    convert.reset();
+    expect(convert.result.value).toBeUndefined();
+  });
+
+  it("stays inert when convert is not declared", async () => {
+    const { host, calls } = makeHost({});
+    host.available = () => false;
+    const convert = useConvert(host);
+    expect(await convert.produce("ss://a", "Clash")).toBe(false);
+    expect(calls).toHaveLength(0);
   });
 });

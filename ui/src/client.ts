@@ -2,24 +2,24 @@
  * client.ts — every backend method binding for this UI, isolated in one module.
  *
  * Two tiers:
- *  - "active":  methods declared by the currently signed manifest (the shipped
- *    `latticenet.sub-store/import` adapter). Safe to call in production today.
- *  - "pending": the embedded-engine surface proposed to hephaestus for TASK-0002
- *    (letter 20260726-0718Z-athena-substore-ui-contract-proposal.md). The
- *    manifest does not declare these yet, so `canCall` gates every screen that
- *    uses them and they render honest unavailable-states instead of failing.
+ *  - "active":  methods declared by the manifest on the integration line.
+ *    Today that is the shipped `import` adapter surface plus the embedded
+ *    `engine` surface (convert / transform_response / pipeline CRUD /
+ *    run_pipeline — hephaestus's PR6, per-method budgets included).
+ *  - "pending": proposed but not yet declared methods. Empty right now — the
+ *    engine contract landed and consumed the whole proposal tier. The tier
+ *    mechanism stays: a future wave (e.g. subscription records) enters here
+ *    first, and contract.test.ts trips when it becomes declared.
  *
- * When the TASK-0002 contract lands, flip bindings from "pending" to "active"
- * and adjust the response types here — nothing else in the UI references method
- * names directly. contract.test.ts trips if either tier drifts from the
- * manifest.
+ * Wire shapes mirror system-go's structs exactly (verified against the merged
+ * engine implementation 2026-07-27). When the backend changes a shape, this
+ * file is the only UI edit.
  */
 import type { BridgeClient } from "./bridge";
 
 export const SERVICES = {
   import: "latticenet.sub-store/import",
-  subscriptions: "latticenet.sub-store/subscriptions",
-  convert: "latticenet.sub-store/convert",
+  engine: "latticenet.sub-store/engine",
 } as const;
 
 export type BindingStatus = "active" | "pending";
@@ -42,20 +42,27 @@ export const BINDINGS = {
   endpointStatus: binding(SERVICES.import, "endpoint_status", "active"),
   endpointSave: binding(SERVICES.import, "save_endpoint", "active"),
   endpointClear: binding(SERVICES.import, "clear_endpoint", "active"),
-  // ── embedded engine (proposed; un-declared until TASK-0002 lands) ───────
-  subscriptionsList: binding(SERVICES.subscriptions, "list", "pending"),
-  subscriptionsPreview: binding(SERVICES.subscriptions, "preview", "pending"),
-  subscriptionsCreate: binding(SERVICES.subscriptions, "create", "pending"),
-  subscriptionsUpdate: binding(SERVICES.subscriptions, "update", "pending"),
-  subscriptionsDelete: binding(SERVICES.subscriptions, "delete", "pending"),
-  subscriptionsRefresh: binding(SERVICES.subscriptions, "refresh", "pending"),
-  convertTargets: binding(SERVICES.convert, "targets", "pending"),
-  convertPreview: binding(SERVICES.convert, "preview", "pending"),
-  convertRun: binding(SERVICES.convert, "convert", "pending"),
+  // ── embedded engine (manifest-declared since the PR6 merge) ──────────────
+  engineConvert: binding(SERVICES.engine, "convert", "active"),
+  engineTransformResponse: binding(SERVICES.engine, "transform_response", "active"),
+  engineSavePipeline: binding(SERVICES.engine, "save_pipeline", "active"),
+  engineGetPipeline: binding(SERVICES.engine, "get_pipeline", "active"),
+  engineListPipelines: binding(SERVICES.engine, "list_pipelines", "active"),
+  engineDeletePipeline: binding(SERVICES.engine, "delete_pipeline", "active"),
+  engineRunPipeline: binding(SERVICES.engine, "run_pipeline", "active"),
 } as const satisfies Record<string, MethodBinding>;
 
-/** Host output cap is 1 MiB per invocation; keep UI-side headroom for the envelope. */
-export const OUTPUT_SIZE_BUDGET_BYTES = 950_000;
+/**
+ * Client-side guards mirroring the backend's signed per-method budgets and
+ * record limits (system-go constants — keep in sync):
+ *  - convert/transform_response/run_pipeline stdout budget: 6 MiB
+ *  - run_pipeline raw input cap: 1 MiB
+ *  - pipeline records: ≤ 256 records, ≤ 64 operators per record
+ */
+export const CONVERT_OUTPUT_BUDGET_BYTES = 6_000_000;
+export const RAW_INPUT_LIMIT_BYTES = 1_000_000;
+export const MAX_PIPELINE_OPERATORS = 64;
+export const MAX_PIPELINE_RECORDS = 256;
 
 // ── shipped adapter shapes (manifest: latticenet.sub-store/import) ──────────
 
@@ -96,62 +103,90 @@ export interface EndpointStatusResponse {
   autosync_status?: AutosyncStatus;
 }
 
-// ── embedded-engine shapes (provisional — see module header) ───────────────
+// ── engine shapes (manifest: latticenet.sub-store/engine) ───────────────────
 
-export interface SubscriptionSummary {
-  name: string;
-  display_name: string;
-  source: string;
-  /** Redacted URL hint (e.g. host + trailing characters); never the full URL. */
-  url_hint: string;
-  node_count?: number;
-  last_refresh_at?: string;
-  last_error?: string;
+/** convert request: raw subscription content + target format + optional
+ *  operator chain. The engine never fetches — the UI supplies the content. */
+export interface ConversionRequest {
+  raw: string;
+  target: string;
+  operators?: unknown[];
 }
 
-export interface SubscriptionListResponse {
-  subscriptions: SubscriptionSummary[];
-}
-
-export interface SubscriptionPreviewResponse {
+export interface ConversionResult {
+  target: string;
+  source_node_count: number;
   node_count: number;
-  node_types: Record<string, number>;
-  sample_names: string[];
-  warnings: string[];
+  output: string;
+  output_bytes: number;
 }
 
-export interface SubscriptionMutationResponse {
-  subscription: SubscriptionSummary;
+/** transform_response: reshape an HTTP response object through the core. */
+export interface ResponseTransformRequest {
+  response: unknown;
+  target?: string;
+  operators?: unknown[];
 }
 
-export interface SubscriptionRefreshResponse {
-  node_count: number;
-  changed: boolean;
+export interface ResponseTransformResult {
+  target?: string;
+  status: number;
+  headers: Record<string, unknown>;
+  body: string;
+  body_bytes: number;
 }
 
-export interface ConvertTarget {
+export interface PipelineRecord {
   id: string;
-  label: string;
-  produces: string;
+  name: string;
+  target: string;
+  operators?: unknown[];
 }
 
-export interface ConvertTargetsResponse {
-  targets: ConvertTarget[];
+export interface PipelineListItem {
+  id: string;
+  name: string;
+  target: string;
+  operator_count: number;
 }
 
-export interface ConvertPreviewResponse {
-  node_count: number;
-  groups: string[];
-  warnings: string[];
-  size_estimate_bytes: number;
+export interface PipelineListResponse {
+  records: PipelineListItem[];
+  count: number;
 }
 
-export interface ConvertRunResponse {
-  content: string;
-  content_type: string;
-  file_name: string;
-  size_bytes: number;
+export interface PipelineSaveResponse {
+  id: string;
+  created: boolean;
+  count: number;
 }
+
+export interface PipelineGetResponse {
+  found: boolean;
+  record?: PipelineRecord;
+  id?: string;
+}
+
+export interface PipelineDeleteResponse {
+  id: string;
+  deleted: boolean;
+  count: number;
+}
+
+/** Curated produce targets accepted by the pinned upstream core (spellings
+ *  verified in the system-go engine tests: "Clash", "sing-box"). */
+export const CONVERT_TARGETS: readonly { id: string; label: string; produces: string }[] = [
+  { id: "Clash", label: "Clash", produces: "yaml" },
+  { id: "ClashMeta", label: "Clash Meta", produces: "yaml" },
+  { id: "sing-box", label: "sing-box", produces: "json" },
+  { id: "Surge", label: "Surge", produces: "conf" },
+  { id: "Loon", label: "Loon", produces: "conf" },
+  { id: "Stash", label: "Stash", produces: "yaml" },
+  { id: "QX", label: "Quantumult X", produces: "conf" },
+  { id: "Shadowrocket", label: "Shadowrocket", produces: "conf" },
+  { id: "URI", label: "URI list", produces: "text" },
+  { id: "V2Ray", label: "V2Ray", produces: "text" },
+];
 
 /** Typed call through the bridge; every UI data path funnels through here. */
 export function callMethod<T>(

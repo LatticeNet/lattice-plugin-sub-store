@@ -43,6 +43,11 @@ describe("UI ↔ manifest method contract", () => {
     expect([...declared].some((entry) => entry.startsWith(`${SERVICES.import}/`))).toBe(true);
   });
 
+  it("declares the embedded engine service in the manifest", () => {
+    const engineMethods = [...declared].filter((entry) => entry.startsWith(`${SERVICES.engine}/`));
+    expect(engineMethods.length).toBeGreaterThanOrEqual(7);
+  });
+
   it("every active binding is declared in the signed manifest", () => {
     expect(active.length).toBeGreaterThan(0);
     for (const target of active) {
@@ -50,8 +55,9 @@ describe("UI ↔ manifest method contract", () => {
     }
   });
 
-  it("pending bindings are not yet declared (tripwire for the TASK-0002 contract)", () => {
-    expect(pending.length).toBeGreaterThan(0);
+  it("pending bindings are not yet declared (tripwire for future contract waves)", () => {
+    // The tier may be empty between waves (it is now, post-PR6); when a future
+    // proposal tier exists, every entry must stay undeclared until it lands.
     for (const target of pending) {
       expect(
         declared.has(key(target)),

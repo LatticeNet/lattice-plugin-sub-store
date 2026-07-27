@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { ArrowLeftRight, CircleAlert, DownloadCloud, Rss, Store } from "@lucide/vue";
+import { ArrowLeftRight, CircleAlert, DownloadCloud, Store, Workflow } from "@lucide/vue";
 
 import { BridgeClient, type HostInit } from "./bridge";
 import type { MethodBinding } from "./client";
 import { provideHost } from "./host";
 import { safeErrorMessage } from "./subStoreModel";
 import ImportScreen from "./screens/ImportScreen.vue";
-import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
+import PipelinesScreen from "./screens/PipelinesScreen.vue";
 import ConvertScreen from "./screens/ConvertScreen.vue";
 
 const init = ref<HostInit>();
@@ -41,11 +41,11 @@ provideHost({
   resize,
 });
 
-type TabId = "import" | "subscriptions" | "convert";
+type TabId = "import" | "pipelines" | "convert";
 
 const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [
   { id: "import", label: "Import", icon: DownloadCloud, screen: ImportScreen },
-  { id: "subscriptions", label: "Subscriptions", icon: Rss, screen: SubscriptionsScreen },
+  { id: "pipelines", label: "Pipelines", icon: Workflow, screen: PipelinesScreen },
   { id: "convert", label: "Convert", icon: ArrowLeftRight, screen: ConvertScreen },
 ];
 
@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
       <div class="title-mark" aria-hidden="true"><Store :size="19" /></div>
       <div class="title-copy">
         <h1>Sub-Store</h1>
-        <p>Import vpn-core lines, manage subscriptions, and convert configurations.</p>
+        <p>Import vpn-core lines, run conversion pipelines, and produce client configs.</p>
       </div>
     </header>
 
