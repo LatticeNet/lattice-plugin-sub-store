@@ -38,10 +38,13 @@ bump_json "$root/manifest.json"
 bump_json "$root/ui/package.json"
 
 main_go=$root/system-go/main.go
-if [ -f "$main_go" ] && grep -q 'pluginVersion = "' "$main_go"; then
-    old=$(sed -n 's/.*pluginVersion = "\(.*\)".*/\1/p' "$main_go" | head -1)
+old=
+if [ -f "$main_go" ]; then
+    old=$(sed -n 's/.*pluginVersion[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$main_go" | head -1)
+fi
+if [ -n "$old" ]; then
     if [ "$old" != "$new" ]; then
-        sed -i.bak 's/pluginVersion = ".*"/pluginVersion = "'"$new"'"/' "$main_go" && rm -f "$main_go.bak"
+        sed -i.bak 's/\(pluginVersion[[:space:]]*=[[:space:]]*\)"[^"]*"/\1"'"$new"'"/' "$main_go" && rm -f "$main_go.bak"
         echo "bump: $main_go $old -> $new"
         changed=1
     else
