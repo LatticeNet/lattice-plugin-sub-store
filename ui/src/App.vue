@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { ArrowLeftRight, CircleAlert, DownloadCloud, Store, Workflow } from "@lucide/vue";
 
-import { BridgeClient, type HostInit } from "./bridge";
+import { BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
 import { provideHost } from "./host";
 import { safeErrorMessage } from "./subStoreModel";
@@ -15,7 +15,7 @@ const bootError = ref("");
 
 let bridge: BridgeClient | undefined;
 try {
-  bridge = new BridgeClient(window);
+  bridge = new BridgeClient({ window, expectedPluginId: "latticenet.sub-store", expectedRoutes: ["sub-store"], idPrefix: "substore" });
   bridge.init.then((value) => {
     init.value = value;
   }).catch((cause) => {

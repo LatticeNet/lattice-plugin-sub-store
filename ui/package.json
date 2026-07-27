@@ -10,6 +10,7 @@
     "verify:build": "node ./scripts/scan-build.mjs dist"
   },
   "dependencies": {
+    "@latticenet/plugin-bridge": "0.1.0-alpha.1",
     "@lucide/vue": "^1.24.0",
     "vue": "^3.5.22"
   },

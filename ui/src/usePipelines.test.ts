@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ref } from "vue";
 
-import type { BridgeClient } from "./bridge";
+import type { BridgeClient } from "@latticenet/plugin-bridge";
 import type { HostContext } from "./host";
 import { usePipelines } from "./usePipelines";
 

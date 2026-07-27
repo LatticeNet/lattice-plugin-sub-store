@@ -15,7 +15,7 @@
  * engine implementation 2026-07-27). When the backend changes a shape, this
  * file is the only UI edit.
  */
-import type { BridgeClient } from "./bridge";
+import type { BridgeClient } from "@latticenet/plugin-bridge";
 
 export const SERVICES = {
   import: "latticenet.sub-store/import",
