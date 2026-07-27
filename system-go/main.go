@@ -11,29 +11,34 @@
 package main
 
 import (
-	"bufio"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net"
 	"net/url"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
+
+	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
 const (
-	pluginID            = "latticenet.sub-store"
-	pluginName          = "Sub-Store companion"
-	pluginVersion       = "0.3.2-alpha.4"
-	defaultSubStoreName = "lattice-vpn-core"
-	maxExportLinks      = 10_000
-	maxExportBytes      = 1 << 20
-	maxLinkBytes        = 4 << 10
-	maxErrorExcerpt     = 4 << 10
+	pluginID             = "latticenet.sub-store"
+	pluginName           = "Sub-Store companion"
+	pluginVersion        = "0.3.2-alpha.4"
+	defaultSubStoreName  = "lattice-vpn-core"
+	pipelineRecordsKey   = "engine-pipelines-v1"
+	maxExportLinks       = 10_000
+	maxExportBytes       = 1 << 20
+	maxLinkBytes         = 4 << 10
+	maxErrorExcerpt      = 4 << 10
+	maxPipelineRecords   = 256
+	maxPipelineOperators = 64
+	maxPipelineDocBytes  = 1 << 20
+	maxPipelineRawBytes  = 1 << 20
 )
 
 // Private/loopback Sub-Store endpoints require the explicit system-only
@@ -43,16 +48,9 @@ const (
 // namespace, so a saved endpoint never re-crosses the browser.
 var capabilities = []string{"rpc:call", "http:operator-target", "secret:read", "secret:write"}
 
-type request struct {
-	Action  string          `json:"action"`
-	Payload json.RawMessage `json:"payload"`
-}
-
-type callPayload struct {
-	Service string          `json:"service"`
-	Method  string          `json:"method"`
-	Payload json.RawMessage `json:"payload"`
-}
+type request = latticeplugin.Request
+type callPayload = latticeplugin.CallPayload
+type response = latticeplugin.Response
 
 type subStoreRequest struct {
 	BaseURL string `json:"base_url"`
@@ -76,68 +74,65 @@ type autoSyncStatusDocument struct {
 	Error         string `json:"error,omitempty"`
 }
 
-type response struct {
-	OK      bool            `json:"ok"`
-	Plan    string          `json:"plan,omitempty"`
-	Message string          `json:"message,omitempty"`
-	Result  json.RawMessage `json:"result,omitempty"`
-	Error   string          `json:"error,omitempty"`
+type pipelineRecordsDocument struct {
+	Version int              `json:"version"`
+	Records []pipelineRecord `json:"records"`
 }
 
-type hostCallEnvelope struct {
-	HostCall hostCall `json:"host_call"`
+type pipelineRecord struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Target    string            `json:"target"`
+	Operators []json.RawMessage `json:"operators,omitempty"`
 }
 
-type hostCall struct {
-	ID     string `json:"id"`
-	Method string `json:"method"`
-	Params any    `json:"params,omitempty"`
+type pipelineRecordRef struct {
+	ID string `json:"id"`
 }
 
-type hostResponseEnvelope struct {
-	HostResponse hostResponse `json:"host_response"`
+type pipelineRunRequest struct {
+	ID  string `json:"id"`
+	Raw string `json:"raw"`
 }
 
-type hostResponse struct {
-	ID     string          `json:"id"`
-	OK     bool            `json:"ok"`
-	Result json.RawMessage `json:"result"`
-	Error  string          `json:"error"`
+type pipelineRecordListItem struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Target        string `json:"target"`
+	OperatorCount int    `json:"operator_count"`
 }
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
-	respScanner, closeResponses := hostResponseScanner()
-	defer closeResponses()
-	rt := &runtime{host: &stdioHostCaller{responses: respScanner, output: os.Stdout}}
-	for scanner.Scan() {
-		var req request
-		if err := json.Unmarshal(scanner.Bytes(), &req); err != nil {
-			write(response{OK: false, Error: "invalid request: " + err.Error()})
-			continue
-		}
-		write(rt.handle(req))
-	}
+	rt := &runtime{}
+	_ = latticeplugin.Serve(context.Background(), latticeplugin.HandlerFunc(
+		func(ctx context.Context, req latticeplugin.Request, host *latticeplugin.HostClient) latticeplugin.Response {
+			rt.host = sdkHostCaller{ctx: ctx, client: host}
+			return rt.handle(req)
+		},
+	))
 }
 
 type runtime struct {
-	host hostCaller
+	host   hostCaller
+	engine *subStoreEngine
 }
 
 type hostCaller interface {
 	call(method string, params any) (json.RawMessage, error)
 }
 
-type stdioHostCaller struct {
-	responses *bufio.Scanner
-	nextID    int
-	output    io.Writer
+type sdkHostCaller struct {
+	ctx    context.Context
+	client *latticeplugin.HostClient
+}
+
+func (host sdkHostCaller) call(method string, params any) (json.RawMessage, error) {
+	return host.client.Call(host.ctx, method, params)
 }
 
 func (rt *runtime) handle(req request) response {
 	switch req.Action {
-	case "describe":
+	case latticeplugin.ActionDescribe:
 		body, _ := json.Marshal(map[string]any{
 			"id":           pluginID,
 			"name":         pluginName,
@@ -149,71 +144,172 @@ func (rt *runtime) handle(req request) response {
 				"Sub-Store backend reachability checks",
 			},
 			"calls":  "latticenet.vpn-core/nodes export (inter-plugin RPC)",
-			"engine": "plugin artifact via brokered rpc.call + http.operator.do",
+			"engine": "embedded Sub-Store ProxyUtils on QuickJS/wazero; remote I/O only through host capabilities",
 		})
-		return response{OK: true, Result: body, Message: "sub-store companion capability surface"}
-	case "health":
-		return response{OK: true, Message: "sub-store companion healthy"}
-	case "plan":
-		return response{OK: true, Plan: renderPlan(req.Payload), Message: "sub-store import dry-run plan"}
-	case "call":
-		return rt.handleCall(req.Payload)
+		return latticeplugin.RawResultResponse(body, "sub-store companion capability surface")
+	case latticeplugin.ActionHealth:
+		return latticeplugin.MessageResponse("sub-store companion healthy")
+	case latticeplugin.ActionPlan:
+		return latticeplugin.PlanResponse(renderPlan(req.Payload), "sub-store import dry-run plan")
+	case latticeplugin.ActionCall:
+		return rt.handleCall(req)
 	default:
-		return response{OK: false, Error: fmt.Sprintf("unsupported action %q", req.Action)}
+		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported action %q", req.Action))
 	}
 }
 
-func (rt *runtime) handleCall(payload json.RawMessage) response {
-	var call callPayload
-	if err := json.Unmarshal(payload, &call); err != nil {
-		return response{OK: false, Error: "invalid call payload: " + err.Error()}
+func (rt *runtime) handleCall(req request) response {
+	call, err := req.CallPayload()
+	if err != nil {
+		return latticeplugin.ErrorResponse(fmt.Errorf("invalid call payload: %w", err))
 	}
-	if call.Service != pluginID+"/import" {
-		return response{OK: false, Error: fmt.Sprintf("unsupported service %q", call.Service)}
+
+	switch call.Service {
+	case pluginID + "/import":
+		return rt.handleImportCall(call)
+	case pluginID + "/engine":
+		return rt.handleEngineCall(call)
+	default:
+		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported service %q", call.Service))
 	}
+}
+
+func (rt *runtime) handleImportCall(call callPayload) response {
 	var req subStoreRequest
 	if len(call.Payload) > 0 {
 		if err := json.Unmarshal(call.Payload, &req); err != nil {
-			return response{OK: false, Error: "invalid sub-store payload: " + err.Error()}
+			return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store payload: %w", err))
 		}
 	}
 	switch call.Method {
 	case "status":
 		result := rt.status(req)
-		return response{OK: true, Result: result}
+		return latticeplugin.RawResultResponse(result, "")
 	case "preview":
 		result, err := rt.preview(req)
 		if err != nil {
-			return response{OK: false, Error: err.Error()}
+			return latticeplugin.ErrorResponse(err)
 		}
-		return response{OK: true, Result: result, Message: "sub-store import preview"}
+		return latticeplugin.RawResultResponse(result, "sub-store import preview")
 	case "import":
 		result, err := rt.importNodes(req)
 		if err != nil {
-			return response{OK: false, Error: err.Error()}
+			return latticeplugin.ErrorResponse(err)
 		}
-		return response{OK: true, Result: result, Message: "sub-store import complete"}
+		return latticeplugin.RawResultResponse(result, "sub-store import complete")
 	case "save_endpoint":
 		result, err := rt.saveEndpoint(req)
 		if err != nil {
-			return response{OK: false, Error: err.Error()}
+			return latticeplugin.ErrorResponse(err)
 		}
-		return response{OK: true, Result: result, Message: "sub-store endpoint saved (encrypted)"}
+		return latticeplugin.RawResultResponse(result, "sub-store endpoint saved (encrypted)")
 	case "clear_endpoint":
 		result, err := rt.clearEndpoint()
 		if err != nil {
-			return response{OK: false, Error: err.Error()}
+			return latticeplugin.ErrorResponse(err)
 		}
-		return response{OK: true, Result: result, Message: "sub-store endpoint cleared"}
+		return latticeplugin.RawResultResponse(result, "sub-store endpoint cleared")
 	case "endpoint_status":
 		result, err := rt.endpointStatus()
 		if err != nil {
-			return response{OK: false, Error: err.Error()}
+			return latticeplugin.ErrorResponse(err)
 		}
-		return response{OK: true, Result: result}
+		return latticeplugin.RawResultResponse(result, "")
 	default:
-		return response{OK: false, Error: fmt.Sprintf("unsupported method %q", call.Method)}
+		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported method %q", call.Method))
 	}
+}
+
+func (rt *runtime) handleEngineCall(call callPayload) response {
+	switch call.Method {
+	case "convert":
+		var req subStoreConversionRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store engine payload: %w", err))
+			}
+		}
+		result, err := rt.subStoreEngine().convert(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(result), "sub-store conversion complete")
+	case "transform_response":
+		var req subStoreResponseTransformRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store response transform payload: %w", err))
+			}
+		}
+		result, err := rt.subStoreEngine().transformResponse(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(result), "sub-store response transform complete")
+	case "save_pipeline":
+		var req pipelineRecord
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store pipeline payload: %w", err))
+			}
+		}
+		result, err := rt.savePipelineRecord(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(result, "sub-store pipeline saved")
+	case "get_pipeline":
+		var req pipelineRecordRef
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store pipeline payload: %w", err))
+			}
+		}
+		result, err := rt.getPipelineRecord(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(result, "")
+	case "list_pipelines":
+		result, err := rt.listPipelineRecords()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(result, "")
+	case "delete_pipeline":
+		var req pipelineRecordRef
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store pipeline payload: %w", err))
+			}
+		}
+		result, err := rt.deletePipelineRecord(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(result, "sub-store pipeline deleted")
+	case "run_pipeline":
+		var req pipelineRunRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store pipeline payload: %w", err))
+			}
+		}
+		result, err := rt.runPipelineRecord(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(result, "sub-store pipeline conversion complete")
+	default:
+		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported method %q", call.Method))
+	}
+}
+
+func (rt *runtime) subStoreEngine() subStoreEngine {
+	if rt != nil && rt.engine != nil {
+		return *rt.engine
+	}
+	return newEmbeddedSubStoreEngine()
 }
 
 func (rt *runtime) status(req subStoreRequest) json.RawMessage {
@@ -244,7 +340,7 @@ func (rt *runtime) fetchExport(req subStoreRequest) ([]string, error) {
 		}
 		rpcReq["user_id"] = userID
 	}
-	raw, err := rt.callHost("rpc.call", map[string]any{
+	raw, err := rt.callHost(latticeplugin.HostMethodRPCCall, map[string]any{
 		"service": "latticenet.vpn-core/nodes",
 		"method":  "export",
 		"request": rpcReq,
@@ -434,7 +530,7 @@ func (rt *runtime) saveEndpoint(req subStoreRequest) (json.RawMessage, error) {
 
 func (rt *runtime) clearEndpoint() (json.RawMessage, error) {
 	for _, key := range []string{"endpoint", "autosync"} {
-		if _, err := rt.callHost("secret.delete", map[string]any{"key": key}); err != nil {
+		if _, err := rt.callHost(latticeplugin.HostMethodSecretDelete, map[string]any{"key": key}); err != nil {
 			return nil, fmt.Errorf("clear %s: %s", key, oneLine(err.Error()))
 		}
 	}
@@ -466,6 +562,247 @@ func (rt *runtime) endpointStatus() (json.RawMessage, error) {
 	return mustJSON(out), nil
 }
 
+// ── embedded engine pipeline records (KV, no raw subscription bodies) ─────────
+
+func (rt *runtime) savePipelineRecord(record pipelineRecord) (json.RawMessage, error) {
+	normalized, err := normalizePipelineRecord(record)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	found := false
+	for index, existing := range doc.Records {
+		if existing.ID == normalized.ID {
+			doc.Records[index] = normalized
+			found = true
+			break
+		}
+	}
+	if !found {
+		if len(doc.Records) >= maxPipelineRecords {
+			return nil, fmt.Errorf("too many pipeline records: max %d", maxPipelineRecords)
+		}
+		doc.Records = append(doc.Records, normalized)
+	}
+	sortPipelineRecords(doc.Records)
+	if err := rt.storePipelineRecords(doc); err != nil {
+		return nil, fmt.Errorf("save pipeline records: %s", oneLine(err.Error()))
+	}
+	return mustJSON(map[string]any{"id": normalized.ID, "created": !found, "count": len(doc.Records)}), nil
+}
+
+func (rt *runtime) getPipelineRecord(ref pipelineRecordRef) (json.RawMessage, error) {
+	id, err := normalizePipelineRecordID(ref.ID)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	for _, record := range doc.Records {
+		if record.ID == id {
+			return mustJSON(map[string]any{"found": true, "record": record}), nil
+		}
+	}
+	return mustJSON(map[string]any{"found": false, "id": id}), nil
+}
+
+func (rt *runtime) listPipelineRecords() (json.RawMessage, error) {
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	items := make([]pipelineRecordListItem, 0, len(doc.Records))
+	for _, record := range doc.Records {
+		items = append(items, pipelineRecordListItem{
+			ID:            record.ID,
+			Name:          record.Name,
+			Target:        record.Target,
+			OperatorCount: len(record.Operators),
+		})
+	}
+	return mustJSON(map[string]any{"records": items, "count": len(items)}), nil
+}
+
+func (rt *runtime) deletePipelineRecord(ref pipelineRecordRef) (json.RawMessage, error) {
+	id, err := normalizePipelineRecordID(ref.ID)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	next := doc.Records[:0]
+	found := false
+	for _, record := range doc.Records {
+		if record.ID == id {
+			found = true
+			continue
+		}
+		next = append(next, record)
+	}
+	if !found {
+		return mustJSON(map[string]any{"id": id, "deleted": false, "count": len(doc.Records)}), nil
+	}
+	doc.Records = next
+	if err := rt.storePipelineRecords(doc); err != nil {
+		return nil, fmt.Errorf("save pipeline records: %s", oneLine(err.Error()))
+	}
+	return mustJSON(map[string]any{"id": id, "deleted": true, "count": len(doc.Records)}), nil
+}
+
+func (rt *runtime) runPipelineRecord(req pipelineRunRequest) (json.RawMessage, error) {
+	id, err := normalizePipelineRecordID(req.ID)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(req.Raw) == "" {
+		return nil, fmt.Errorf("raw subscription is required")
+	}
+	if len([]byte(req.Raw)) > maxPipelineRawBytes {
+		return nil, fmt.Errorf("raw subscription exceeds %d bytes", maxPipelineRawBytes)
+	}
+	doc, err := rt.loadPipelineRecords()
+	if err != nil {
+		return nil, fmt.Errorf("read pipeline records: %s", oneLine(err.Error()))
+	}
+	for _, record := range doc.Records {
+		if record.ID != id {
+			continue
+		}
+		result, err := rt.subStoreEngine().convert(subStoreConversionRequest{
+			Raw:       req.Raw,
+			Target:    record.Target,
+			Operators: record.Operators,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return mustJSON(map[string]any{"pipeline_id": id, "conversion": result}), nil
+	}
+	return nil, fmt.Errorf("pipeline %q was not found", id)
+}
+
+func (rt *runtime) loadPipelineRecords() (pipelineRecordsDocument, error) {
+	value, found, err := rt.kvGet(pipelineRecordsKey)
+	if err != nil || !found {
+		return pipelineRecordsDocument{Version: 1}, err
+	}
+	if len(value) > maxPipelineDocBytes {
+		return pipelineRecordsDocument{}, fmt.Errorf("pipeline records exceed %d bytes", maxPipelineDocBytes)
+	}
+	var doc pipelineRecordsDocument
+	if err := json.Unmarshal(value, &doc); err != nil {
+		return pipelineRecordsDocument{}, fmt.Errorf("decode pipeline records: %w", err)
+	}
+	if doc.Version != 1 {
+		return pipelineRecordsDocument{}, fmt.Errorf("unsupported pipeline records version %d", doc.Version)
+	}
+	if len(doc.Records) > maxPipelineRecords {
+		return pipelineRecordsDocument{}, fmt.Errorf("pipeline records exceed max %d", maxPipelineRecords)
+	}
+	for index, record := range doc.Records {
+		normalized, err := normalizePipelineRecord(record)
+		if err != nil {
+			return pipelineRecordsDocument{}, fmt.Errorf("pipeline record %d is invalid: %w", index, err)
+		}
+		doc.Records[index] = normalized
+	}
+	sortPipelineRecords(doc.Records)
+	return doc, nil
+}
+
+func (rt *runtime) storePipelineRecords(doc pipelineRecordsDocument) error {
+	doc.Version = 1
+	sortPipelineRecords(doc.Records)
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		return fmt.Errorf("encode pipeline records: %w", err)
+	}
+	if len(raw) > maxPipelineDocBytes {
+		return fmt.Errorf("pipeline records exceed %d bytes", maxPipelineDocBytes)
+	}
+	return rt.kvPut(pipelineRecordsKey, raw)
+}
+
+func normalizePipelineRecord(record pipelineRecord) (pipelineRecord, error) {
+	id, err := normalizePipelineRecordID(record.ID)
+	if err != nil {
+		return pipelineRecord{}, err
+	}
+	name := strings.TrimSpace(record.Name)
+	if name == "" {
+		name = id
+	}
+	if len(name) > 128 || hasControl(name) {
+		return pipelineRecord{}, fmt.Errorf("pipeline name must be printable and at most 128 characters")
+	}
+	target := strings.TrimSpace(record.Target)
+	if target == "" {
+		return pipelineRecord{}, fmt.Errorf("target is required")
+	}
+	if len(target) > 64 || hasControl(target) {
+		return pipelineRecord{}, fmt.Errorf("target must be printable and at most 64 characters")
+	}
+	operators, err := normalizePipelineOperators(record.Operators)
+	if err != nil {
+		return pipelineRecord{}, err
+	}
+	return pipelineRecord{ID: id, Name: name, Target: target, Operators: operators}, nil
+}
+
+func normalizePipelineRecordID(value string) (string, error) {
+	id := strings.TrimSpace(value)
+	if id == "" {
+		return "", fmt.Errorf("pipeline id is required")
+	}
+	if len(id) > 128 || hasControl(id) {
+		return "", fmt.Errorf("pipeline id must be printable and at most 128 characters")
+	}
+	for index, char := range id {
+		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') || char == '.' || char == '_' || char == '-') ||
+			(index == 0 && (char == '.' || char == '_' || char == '-')) {
+			return "", fmt.Errorf("pipeline id must start with an alphanumeric character and contain only letters, numbers, dot, underscore, or hyphen")
+		}
+	}
+	return id, nil
+}
+
+func normalizePipelineOperators(operators []json.RawMessage) ([]json.RawMessage, error) {
+	if len(operators) > maxPipelineOperators {
+		return nil, fmt.Errorf("too many pipeline operators: max %d", maxPipelineOperators)
+	}
+	out := make([]json.RawMessage, 0, len(operators))
+	for index, operator := range operators {
+		var object map[string]any
+		if err := json.Unmarshal(operator, &object); err != nil {
+			return nil, fmt.Errorf("operator %d must be a JSON object: %w", index, err)
+		}
+		operatorType, ok := object["type"].(string)
+		if !ok || strings.TrimSpace(operatorType) == "" {
+			return nil, fmt.Errorf("operator %d type is required", index)
+		}
+		encoded, err := json.Marshal(object)
+		if err != nil {
+			return nil, fmt.Errorf("encode operator %d: %w", index, err)
+		}
+		out = append(out, encoded)
+	}
+	return out, nil
+}
+
+func sortPipelineRecords(records []pipelineRecord) {
+	sort.Slice(records, func(i, j int) bool {
+		return records[i].ID < records[j].ID
+	})
+}
+
 // endpointSettings reads the versioned one-secret document and falls back to
 // the pre-v1 plain endpoint plus separate autosync flag for rolling upgrades.
 func (rt *runtime) endpointSettings() (string, bool, bool, error) {
@@ -493,7 +830,7 @@ func (rt *runtime) endpointSettings() (string, bool, bool, error) {
 }
 
 func (rt *runtime) secretPut(key, value string) error {
-	_, err := rt.callHost("secret.put", map[string]any{
+	_, err := rt.callHost(latticeplugin.HostMethodSecretPut, map[string]any{
 		"key":          key,
 		"value_base64": base64.StdEncoding.EncodeToString([]byte(value)),
 	})
@@ -501,7 +838,7 @@ func (rt *runtime) secretPut(key, value string) error {
 }
 
 func (rt *runtime) secretGet(key string) (string, bool, error) {
-	raw, err := rt.callHost("secret.get", map[string]any{"key": key})
+	raw, err := rt.callHost(latticeplugin.HostMethodSecretGet, map[string]any{"key": key})
 	if err != nil {
 		return "", false, err
 	}
@@ -520,6 +857,40 @@ func (rt *runtime) secretGet(key string) (string, bool, error) {
 		return "", false, err
 	}
 	return string(decoded), true, nil
+}
+
+func (rt *runtime) kvPut(key string, value []byte) error {
+	_, err := rt.callHost(latticeplugin.HostMethodKVPut, map[string]any{
+		"key":          key,
+		"value_base64": base64.StdEncoding.EncodeToString(value),
+	})
+	return err
+}
+
+func (rt *runtime) kvGet(key string) ([]byte, bool, error) {
+	raw, err := rt.callHost(latticeplugin.HostMethodKVGet, map[string]any{"key": key})
+	if err != nil {
+		return nil, false, err
+	}
+	var out struct {
+		OK          bool   `json:"ok"`
+		Value       string `json:"value,omitempty"`
+		ValueBase64 string `json:"value_base64,omitempty"`
+	}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, false, err
+	}
+	if !out.OK {
+		return nil, false, nil
+	}
+	if out.ValueBase64 != "" {
+		decoded, err := base64.StdEncoding.DecodeString(out.ValueBase64)
+		if err != nil {
+			return nil, false, err
+		}
+		return decoded, true, nil
+	}
+	return []byte(out.Value), true, nil
 }
 
 // endpointHint renders scheme://host of a validated endpoint — never the path,
@@ -543,7 +914,7 @@ func (rt *runtime) httpDo(method, target string, body []byte) (int, []byte, erro
 		params["header"] = map[string]string{"Content-Type": "application/json"}
 		params["body"] = string(body)
 	}
-	raw, err := rt.callHost("http.operator.do", params)
+	raw, err := rt.callHost(latticeplugin.HostMethodHTTPOperatorDo, params)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -570,57 +941,6 @@ func (rt *runtime) callHost(method string, params any) (json.RawMessage, error) 
 		return nil, fmt.Errorf("host response fd unavailable")
 	}
 	return rt.host.call(method, params)
-}
-
-func (host *stdioHostCaller) call(method string, params any) (json.RawMessage, error) {
-	if host == nil || host.responses == nil || host.output == nil {
-		return nil, fmt.Errorf("host response fd unavailable")
-	}
-	host.nextID++
-	id := fmt.Sprintf("h%d", host.nextID)
-	if err := json.NewEncoder(host.output).Encode(hostCallEnvelope{
-		HostCall: hostCall{ID: id, Method: method, Params: params},
-	}); err != nil {
-		return nil, fmt.Errorf("write host_call: %w", err)
-	}
-	if !host.responses.Scan() {
-		if err := host.responses.Err(); err != nil {
-			return nil, fmt.Errorf("read host_response: %w", err)
-		}
-		return nil, fmt.Errorf("read host_response: eof")
-	}
-	var env hostResponseEnvelope
-	if err := json.Unmarshal(host.responses.Bytes(), &env); err != nil {
-		return nil, fmt.Errorf("decode host_response: %w", err)
-	}
-	if env.HostResponse.ID != id {
-		return nil, fmt.Errorf("host_response id mismatch: got %q want %q", env.HostResponse.ID, id)
-	}
-	if !env.HostResponse.OK {
-		if env.HostResponse.Error == "" {
-			env.HostResponse.Error = "host call failed"
-		}
-		return nil, fmt.Errorf("%s: %s", method, env.HostResponse.Error)
-	}
-	return env.HostResponse.Result, nil
-}
-
-func hostResponseScanner() (*bufio.Scanner, func()) {
-	fd := 3
-	if raw := strings.TrimSpace(os.Getenv("LATTICE_HOST_RESPONSE_FD")); raw != "" {
-		parsed, err := strconv.Atoi(raw)
-		if err != nil || parsed < 3 {
-			return nil, func() {}
-		}
-		fd = parsed
-	}
-	file := os.NewFile(uintptr(fd), "lattice-host-response")
-	if file == nil {
-		return nil, func() {}
-	}
-	scanner := bufio.NewScanner(file)
-	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
-	return scanner, func() { _ = file.Close() }
 }
 
 func renderPlan(payload json.RawMessage) string {
@@ -775,5 +1095,3 @@ func mustJSON(v any) json.RawMessage {
 	raw, _ := json.Marshal(v)
 	return raw
 }
-
-func write(resp response) { _ = json.NewEncoder(os.Stdout).Encode(resp) }

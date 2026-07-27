@@ -65,6 +65,36 @@ func TestManifestInterfacesAreServedAsDeclared(t *testing.T) {
 	}
 }
 
+func TestManifestRuntimeMethodsCarryAckedBudgets(t *testing.T) {
+	seen := map[string]bool{}
+	for _, iface := range loadManifestInterfaces(t) {
+		if iface.Backing != "runtime" {
+			continue
+		}
+		for _, method := range iface.Methods {
+			key := iface.Service + "/" + method.Name
+			want, ok := ackedRuntimeBudgets()[key]
+			if !ok {
+				t.Errorf("%s is runtime-backed but has no acked budget table entry", key)
+				continue
+			}
+			seen[key] = true
+			if method.Budget == nil {
+				t.Errorf("%s is runtime-backed but declares no budget", key)
+				continue
+			}
+			if *method.Budget != want {
+				t.Errorf("%s budget drifted from acked table: got %+v want %+v", key, *method.Budget, want)
+			}
+		}
+	}
+	for key := range ackedRuntimeBudgets() {
+		if !seen[key] {
+			t.Errorf("acked budget table entry %s is not declared as a runtime-backed manifest method", key)
+		}
+	}
+}
+
 // denyHostCalls refuses every brokered call without reaching a real host. The
 // resulting method-specific error still proves the dispatcher recognised the
 // manifest method; only "unsupported service/method" means the artifact lied.
@@ -90,8 +120,34 @@ type manifestInterface struct {
 	Service string `json:"service"`
 	Backing string `json:"backing"`
 	Methods []struct {
-		Name string `json:"name"`
+		Name   string            `json:"name"`
+		Budget *invokeBudgetSpec `json:"budget,omitempty"`
 	} `json:"methods"`
+}
+
+type invokeBudgetSpec struct {
+	TimeoutMS   int `json:"timeout_ms"`
+	StdoutBytes int `json:"stdout_bytes"`
+	StderrBytes int `json:"stderr_bytes"`
+	HostCalls   int `json:"host_calls"`
+}
+
+func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
+	return map[string]invokeBudgetSpec{
+		pluginID + "/import/status":             {TimeoutMS: 3_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/import/preview":            {TimeoutMS: 5_000, StdoutBytes: 256 << 10, StderrBytes: 32 << 10, HostCalls: 2},
+		pluginID + "/import/import":             {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},
+		pluginID + "/import/endpoint_status":    {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/import/save_endpoint":      {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/import/clear_endpoint":     {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/convert":            {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
+		pluginID + "/engine/transform_response": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
+		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/get_pipeline":       {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 32 << 10, HostCalls: 1},
+		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/run_pipeline":       {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+	}
 }
 
 func loadManifestInterfaces(t *testing.T) []manifestInterface {
