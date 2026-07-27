@@ -44,6 +44,31 @@ The endpoint includes a secret path. It is kept only in the mounted plugin UI's
 memory and is never written to local storage, session storage, cookies, the
 Dashboard bundle, or server configuration.
 
+## Embedded Sub-Store core
+
+The embedded conversion engine uses QuickJS-on-wazero with a pinned upstream
+Sub-Store `ProxyUtils` bundle. The pin is recorded in
+`tools/substore-core/pin.json`; the checked-in runtime payload is
+`system-go/lib/substore-core.js`. The current pin uses upstream commit
+`48d83214ffe3e1de86a03d80247f2d8202885948`, backend package `sub-store`
+`2.36.22`, and bundle SHA-256
+`994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b`.
+
+Rebuild the pinned bundle with:
+
+```sh
+node tools/substore-core/build.mjs --output system-go/lib/substore-core.js
+node --test tools/substore-core/build.test.mjs
+```
+
+When bumping upstream, update `tools/substore-core/pin.json` and
+`system-go/lib/substore-core.js` together, then rerun the system runtime tests
+and the deterministic packer. Any checked-in byte change changes the signed
+bundle digest and requires the LatticeNet manifest signing path before release.
+Do not replace the embedded engine with a Node sidecar or reverse proxy; remote
+fetches must remain host-brokered capabilities rather than runtime-owned
+network access.
+
 ## Scope migration and rollback
 
 The `>=0.2.2-alpha.2` server floor provides directional runtime compatibility:
@@ -66,6 +91,7 @@ compatibility last only after canonical grants have been migrated or removed.
 ## Local verification
 
 ```sh
+node --test tools/substore-core/build.test.mjs
 cd system-go && go test -race ./...
 cd ../ui && npm ci && npm test && npm run typecheck && npm run build && npm run verify:build
 cd ../tools/pluginpack && go test -race ./...

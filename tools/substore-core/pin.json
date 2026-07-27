@@ -1,0 +1,17 @@
+{
+  "upstream": "https://github.com/sub-store-org/Sub-Store.git",
+  "commit": "48d83214ffe3e1de86a03d80247f2d8202885948",
+  "backend_package": "sub-store",
+  "backend_version": "2.36.22",
+  "package_manager": "pnpm@11.0.9",
+  "source_path": "src/core/proxy-utils/index.js",
+  "global_name": "SubStoreProxyUtils",
+  "format": "iife",
+  "platform": "browser",
+  "minify": true,
+  "inject": [
+    "core-js/actual/object/has-own"
+  ],
+  "output_bytes": 1266359,
+  "output_sha256": "994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b"
+}

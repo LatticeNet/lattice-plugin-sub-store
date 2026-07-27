@@ -6,6 +6,8 @@
   "capabilities": [
     "rpc:call",
     "http:operator-target",
+    "kv:read",
+    "kv:write",
     "secret:read",
     "secret:write"
   ],
@@ -76,7 +78,13 @@
           ],
           "operator_target_fields": [
             "base_url"
-          ]
+          ],
+          "budget": {
+            "timeout_ms": 3000,
+            "stdout_bytes": 32768,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
         },
         {
           "name": "preview",
@@ -86,7 +94,13 @@
           ],
           "operator_target_fields": [
             "base_url"
-          ]
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 32768,
+            "host_calls": 2
+          }
         },
         {
           "name": "import",
@@ -96,28 +110,149 @@
           ],
           "operator_target_fields": [
             "base_url"
-          ]
+          ],
+          "budget": {
+            "timeout_ms": 10000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 65536,
+            "host_calls": 4
+          }
         },
         {
           "name": "endpoint_status",
           "effect": "read",
           "scopes": [
             "substore:read"
-          ]
+          ],
+          "budget": {
+            "timeout_ms": 1000,
+            "stdout_bytes": 16384,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
         },
         {
           "name": "save_endpoint",
           "effect": "write",
           "scopes": [
             "substore:admin"
-          ]
+          ],
+          "budget": {
+            "timeout_ms": 1000,
+            "stdout_bytes": 16384,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
         },
         {
           "name": "clear_endpoint",
           "effect": "write",
           "scopes": [
             "substore:admin"
-          ]
+          ],
+          "budget": {
+            "timeout_ms": 1000,
+            "stdout_bytes": 16384,
+            "stderr_bytes": 16384,
+            "host_calls": 2
+          }
+        }
+      ],
+      "backing": "runtime"
+    },
+    {
+      "service": "latticenet.sub-store/engine",
+      "methods": [
+        {
+          "name": "convert",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 10000,
+            "stdout_bytes": 6291456,
+            "stderr_bytes": 65536,
+            "host_calls": 0
+          }
+        },
+        {
+          "name": "transform_response",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 10000,
+            "stdout_bytes": 6291456,
+            "stderr_bytes": 65536,
+            "host_calls": 0
+          }
+        },
+        {
+          "name": "save_pipeline",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 32768,
+            "stderr_bytes": 16384,
+            "host_calls": 2
+          }
+        },
+        {
+          "name": "get_pipeline",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 32768,
+            "host_calls": 1
+          }
+        },
+        {
+          "name": "list_pipelines",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 1000,
+            "stdout_bytes": 131072,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
+        },
+        {
+          "name": "delete_pipeline",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 32768,
+            "stderr_bytes": 16384,
+            "host_calls": 2
+          }
+        },
+        {
+          "name": "run_pipeline",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 10000,
+            "stdout_bytes": 6291456,
+            "stderr_bytes": 65536,
+            "host_calls": 1
+          }
         }
       ],
       "backing": "runtime"
