@@ -54,13 +54,13 @@ export const BINDINGS = {
 
 /**
  * Client-side guards mirroring the backend's signed per-method budgets and
- * record limits (system-go constants — keep in sync):
- *  - convert/transform_response/run_pipeline stdout budget: 6 MiB
- *  - run_pipeline raw input cap: 1 MiB
+ * record limits (system-go constants — keep in sync, BINARY units):
+ *  - convert/transform_response/run_pipeline stdout budget: 6 << 20
+ *  - run_pipeline raw input cap: 1 << 20
  *  - pipeline records: ≤ 256 records, ≤ 64 operators per record
  */
-export const CONVERT_OUTPUT_BUDGET_BYTES = 6_000_000;
-export const RAW_INPUT_LIMIT_BYTES = 1_000_000;
+export const CONVERT_OUTPUT_BUDGET_BYTES = 6 * 1024 * 1024;
+export const RAW_INPUT_LIMIT_BYTES = 1024 * 1024;
 export const MAX_PIPELINE_OPERATORS = 64;
 export const MAX_PIPELINE_RECORDS = 256;
 
@@ -173,8 +173,10 @@ export interface PipelineDeleteResponse {
   count: number;
 }
 
-/** Curated produce targets accepted by the pinned upstream core (spellings
- *  verified in the system-go engine tests: "Clash", "sing-box"). */
+/** Curated produce targets for the pinned upstream core. "Clash" and
+ *  "sing-box" are pinned by the system-go engine tests; the rest are
+ *  upstream-canonical spellings, not backend-test-pinned (hephaestus's
+ *  2026-07-27 caveat). */
 export const CONVERT_TARGETS: readonly { id: string; label: string; produces: string }[] = [
   { id: "Clash", label: "Clash", produces: "yaml" },
   { id: "ClashMeta", label: "Clash Meta", produces: "yaml" },
