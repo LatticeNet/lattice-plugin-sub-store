@@ -1,6 +1,6 @@
 import { inject, provide, type InjectionKey, type Ref } from "vue";
 
-import { canCall, type BridgeClient, type HostInit } from "./bridge";
+import { canCall, type BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
 
 /**
