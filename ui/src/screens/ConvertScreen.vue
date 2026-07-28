@@ -129,11 +129,11 @@ const resultFileName = computed(() => {
           >
             from {{ convert.result.value.source_node_count }}
           </span>
-          <span class="badge" :data-tone="convert.resultOverBudget.value ? 'warning' : 'neutral'">
+          <span class="badge" :data-tone="convert.resultNearBudget.value ? 'warning' : 'neutral'">
             {{ convert.result.value.output_bytes.toLocaleString() }} bytes
           </span>
-          <span v-if="convert.resultOverBudget.value" class="badge" data-tone="warning">
-            over the engine's 6 MiB output budget — output may be truncated
+          <span v-if="convert.resultNearBudget.value" class="badge" data-tone="warning">
+            near the engine's 6 MiB output limit — larger conversions fail loudly, never truncate
           </span>
         </div>
         <OutputPanel
