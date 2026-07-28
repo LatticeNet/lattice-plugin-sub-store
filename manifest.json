@@ -11,12 +11,12 @@
     "secret:read",
     "secret:write"
   ],
-  "version": "0.4.0-alpha.1",
+  "version": "0.4.0-alpha.2",
   "publisher": "latticenet",
-  "signature_ed25519": "AJSoil5jSbKu4akZpToIZriV0otUSVtrhcMhC8PyhKxD2cK9cRd3tCvn6UUfEUDsF9Iufrg7I9GJEMTF8NvJAA==",
+  "signature_ed25519": "tA8daD3XlKSjbfl40gHmIsZreXBYKNqc2yfRcYxeZ9UYsZb2G9S31jBIMr43CYxP7VC/ZncsdRplci+dufsoAQ==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "e0524e358d2a4c65c11e78405e90956e12712ba7e3fd91a181d88eb918403300"
+    "digest_sha256": "9cc706518834d6934329556437eca89b6b3b213eabdf8878b9dd019f50fe9b6a"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
