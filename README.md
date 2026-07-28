@@ -15,6 +15,51 @@ The Dashboard contains no Sub-Store page, API fallback, secret persistence, or
 plugin-specific component. Disabling or removing this plugin removes its tab and
 runtime behavior without changing the base console.
 
+## Plugin UI
+
+The `ui/` frame is a tabbed Vue 3 app inside the single `sub-store` manifest
+view — **Import** (the shipped managed-import flow with the encrypted endpoint
+vault), **Pipelines** (saved conversion recipes: target + operator chain, run
+over pasted content), and **Convert** (one-shot conversion of pasted
+subscription content by the embedded engine). Every backend call is a
+`lattice.plugin.call` through the one bridge instance owned by `src/App.vue`;
+screens receive it via `src/host.ts` and never open their own handshake.
+
+All method names live in `src/client.ts` in two tiers:
+
+- **active** — declared by the manifest on the integration line (the six
+  `…/import` methods plus the seven `…/engine` methods);
+- **pending** — proposed but undeclared methods (empty between contract waves;
+  the subset test trips the moment a pending method becomes declared).
+
+`src/contract.test.ts` enforces: active ⊆ manifest, pending ∩ manifest = ∅, and
+the engine service fully wired. No screen may call a method the signed manifest
+does not declare — engine tabs gate on `canCall` and render an honest
+"engine not available" panel against pre-engine manifests.
+
+Verification (`ui/`): `npm test`, `npm run typecheck`, `npm run build`,
+`npm run verify:build` — the scanner must keep rejecting inline script/style
+and any external URL in `dist`.
+
+### Manual browser test plan (post-gates)
+
+Automated verification stops at the bridge boundary; the live pass requires
+(a) the dashboard `host_origin` bridge fix merged and (b) an engine-capable
+plugin build. Once both exist, in a real browser:
+
+1. Console → Extensions → Sub-Store: frame loads, no console errors, theme
+   tokens applied (toggle light/dark in console settings and watch the frame).
+2. Import tab: check status against a real endpoint (reachable + unreachable),
+   save to the vault, reload the console, confirm the hint survives and
+   `secret://` reuse works; preview then import; confirm error text redacts URLs.
+3. Pipelines tab: create a pipeline (id, target, operators JSON), edit it, run
+   it over pasted raw content, two-step delete; confirm the list survives a
+   frame reload (server-side records).
+4. Convert tab: paste subscription content, pick a target, convert; node counts
+   and byte size render, select-all copy works despite the sandbox blocking
+   programmatic clipboard.
+5. Resize: frame height follows content in every tab, no clipped buttons.
+
 ## Security boundary
 
 The UI runs in an opaque-origin iframe with scripts only. It has no direct API
