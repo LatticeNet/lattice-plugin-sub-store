@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ref } from "vue";
 
 import type { BridgeClient } from "./bridge";
-import { CONVERT_OUTPUT_BUDGET_BYTES } from "./client";
+import { CONVERT_OUTPUT_WARN_BYTES } from "./client";
 import type { HostContext } from "./host";
 import { useConvert } from "./useConvert";
 
@@ -52,11 +52,18 @@ describe("useConvert", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("flags results over the output budget", async () => {
-    const { host } = makeHost({ [CONVERT]: { ...sample, output_bytes: CONVERT_OUTPUT_BUDGET_BYTES + 1 } });
+  it("warns when a result approaches the output ceiling", async () => {
+    const { host } = makeHost({ [CONVERT]: { ...sample, output_bytes: CONVERT_OUTPUT_WARN_BYTES } });
     const convert = useConvert(host);
     await convert.produce("ss://a", "Clash");
-    expect(convert.resultOverBudget.value).toBe(true);
+    expect(convert.resultNearBudget.value).toBe(true);
+  });
+
+  it("does not warn on an ordinary result (a rendered result was never truncated)", async () => {
+    const { host } = makeHost({ [CONVERT]: sample });
+    const convert = useConvert(host);
+    await convert.produce("ss://a", "Clash");
+    expect(convert.resultNearBudget.value).toBe(false);
   });
 
   it("surfaces a redacted error on failure", async () => {

@@ -58,8 +58,15 @@ export const BINDINGS = {
  *  - convert/transform_response/run_pipeline stdout budget: 6 << 20
  *  - run_pipeline raw input cap: 1 << 20
  *  - pipeline records: ≤ 256 records, ≤ 64 operators per record
+ *
+ * The stdout budget is enforced by ABORT, not truncation: the runner returns
+ * `plugin stdout exceeded budget N bytes` and no result at all
+ * (system_runner.go:475). So a result the UI can render was never truncated —
+ * the only useful warning is proximity to the ceiling, which is why
+ * CONVERT_OUTPUT_WARN_BYTES exists alongside the budget itself.
  */
 export const CONVERT_OUTPUT_BUDGET_BYTES = 6 * 1024 * 1024;
+export const CONVERT_OUTPUT_WARN_BYTES = Math.floor(CONVERT_OUTPUT_BUDGET_BYTES * 0.8);
 export const RAW_INPUT_LIMIT_BYTES = 1024 * 1024;
 export const MAX_PIPELINE_OPERATORS = 64;
 export const MAX_PIPELINE_RECORDS = 256;

@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import {
   BINDINGS,
   callMethod,
-  CONVERT_OUTPUT_BUDGET_BYTES,
+  CONVERT_OUTPUT_WARN_BYTES,
   type ConversionResult,
 } from "./client";
 import type { HostContext } from "./host";
@@ -22,8 +22,10 @@ export function useConvert(host: HostContext) {
   const actionError = ref("");
 
   const available = computed(() => host.available(BINDINGS.engineConvert));
-  const resultOverBudget = computed(
-    () => (result.value?.output_bytes ?? 0) > CONVERT_OUTPUT_BUDGET_BYTES,
+  // A rendered result cannot have been truncated — the runner aborts instead of
+  // truncating — so this flags PROXIMITY to the ceiling, not an overrun.
+  const resultNearBudget = computed(
+    () => (result.value?.output_bytes ?? 0) >= CONVERT_OUTPUT_WARN_BYTES,
   );
 
   async function produce(raw: string, target: string, operators?: unknown[]): Promise<boolean> {
@@ -58,7 +60,7 @@ export function useConvert(host: HostContext) {
     producing,
     actionError,
     available,
-    resultOverBudget,
+    resultNearBudget,
     produce,
     reset,
   };
