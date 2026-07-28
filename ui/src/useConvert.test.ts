@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ref } from "vue";
 
 import type { BridgeClient } from "./bridge";
-import { CONVERT_OUTPUT_WARN_BYTES } from "./client";
+
 import type { HostContext } from "./host";
 import { useConvert } from "./useConvert";
 
@@ -52,15 +52,18 @@ describe("useConvert", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("warns when a result approaches the output ceiling", async () => {
-    const { host } = makeHost({ [CONVERT]: { ...sample, output_bytes: CONVERT_OUTPUT_WARN_BYTES } });
+  // Literal sizes on purpose: deriving the input from the threshold makes the
+  // assertion hold for ANY threshold — including 1.0, which would make the badge
+  // unreachable again, the exact defect this warning replaced.
+  it("warns when a result approaches the output ceiling (5.5 MiB of a 6 MiB ceiling)", async () => {
+    const { host } = makeHost({ [CONVERT]: { ...sample, output_bytes: 5.5 * 1024 * 1024 } });
     const convert = useConvert(host);
     await convert.produce("ss://a", "Clash");
     expect(convert.resultNearBudget.value).toBe(true);
   });
 
-  it("does not warn on an ordinary result (a rendered result was never truncated)", async () => {
-    const { host } = makeHost({ [CONVERT]: sample });
+  it("does not warn on an ordinary result of 1 MiB (a rendered result was never truncated)", async () => {
+    const { host } = makeHost({ [CONVERT]: { ...sample, output_bytes: 1024 * 1024 } });
     const convert = useConvert(host);
     await convert.produce("ss://a", "Clash");
     expect(convert.resultNearBudget.value).toBe(false);
