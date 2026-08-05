@@ -13,12 +13,12 @@
     "secret:write",
     "subscription:serve"
   ],
-  "version": "0.4.0-alpha.2",
+  "version": "0.5.0-alpha.1",
   "publisher": "latticenet",
-  "signature_ed25519": "tA8daD3XlKSjbfl40gHmIsZreXBYKNqc2yfRcYxeZ9UYsZb2G9S31jBIMr43CYxP7VC/ZncsdRplci+dufsoAQ==",
+  "signature_ed25519": "Iik20TwEEpwPGO9Cd9cY9L+Kr6eEHOpFtbYBXtwmIYJmxmgg+fXlEoCQWwkgdWMH+nY3kEdf/46DhATqlc4DCQ==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "9cc706518834d6934329556437eca89b6b3b213eabdf8878b9dd019f50fe9b6a"
+    "digest_sha256": "ca82b389d0e53c991409bfa4a838539097f453c749f13caed33f3806352983f1"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -33,9 +33,9 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": ">=0.2.2-alpha.2",
-    "dashboard_host": ">=1",
-    "runtime_protocol": ">=1"
+    "server": "\u003e=0.2.2-alpha.2",
+    "dashboard_host": "\u003e=1",
+    "runtime_protocol": "\u003e=1"
   },
   "host_access": {
     "rpc": [
@@ -261,11 +261,13 @@
     },
     {
       "service": "latticenet.sub-store/subscription",
-      "backing": "runtime",
       "methods": [
         {
           "name": "fetch",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 20000,
             "stdout_bytes": 8388608,
@@ -276,6 +278,9 @@
         {
           "name": "render",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 10000,
             "stdout_bytes": 6291456,
@@ -286,6 +291,9 @@
         {
           "name": "operators",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 2000,
             "stdout_bytes": 65536,
@@ -296,6 +304,9 @@
         {
           "name": "preview",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 15000,
             "stdout_bytes": 1048576,
@@ -306,6 +317,9 @@
         {
           "name": "list",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 2000,
             "stdout_bytes": 262144,
@@ -316,6 +330,12 @@
         {
           "name": "migrate",
           "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "operator_target_fields": [
+            "base_url"
+          ],
           "budget": {
             "timeout_ms": 30000,
             "stdout_bytes": 262144,
@@ -326,6 +346,9 @@
         {
           "name": "export",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
@@ -336,6 +359,9 @@
         {
           "name": "import",
           "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
           "budget": {
             "timeout_ms": 10000,
             "stdout_bytes": 262144,
@@ -346,6 +372,9 @@
         {
           "name": "get_settings",
           "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
           "budget": {
             "timeout_ms": 1000,
             "stdout_bytes": 16384,
@@ -356,6 +385,9 @@
         {
           "name": "save_settings",
           "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
           "budget": {
             "timeout_ms": 1000,
             "stdout_bytes": 16384,
@@ -366,6 +398,12 @@
         {
           "name": "publish",
           "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "operator_target_fields": [
+            "destination"
+          ],
           "budget": {
             "timeout_ms": 20000,
             "stdout_bytes": 65536,
@@ -373,7 +411,8 @@
             "host_calls": 2
           }
         }
-      ]
+      ],
+      "backing": "runtime"
     }
   ]
 }
