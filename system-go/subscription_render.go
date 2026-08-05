@@ -129,6 +129,51 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "export":
+		body, err := rt.exportBackup()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(map[string]any{"backup": string(body)}), "")
+	case "import":
+		var req struct {
+			Backup string `json:"backup"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid import payload: %w", err))
+			}
+		}
+		out, err := rt.importBackup([]byte(req.Backup))
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(out)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "get_settings":
+		settings, err := rt.loadSettings()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(settings), "")
+	case "save_settings":
+		var req pluginSettings
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid settings payload: %w", err))
+			}
+		}
+		if err := rt.saveSettings(req); err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		saved, err := rt.loadSettings()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(saved), "")
 	case "migrate":
 		var req subStoreRequest
 		if len(call.Payload) > 0 {

@@ -322,6 +322,46 @@
             "stderr_bytes": 65536,
             "host_calls": 4
           }
+        },
+        {
+          "name": "export",
+          "effect": "read",
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 4194304,
+            "stderr_bytes": 32768,
+            "host_calls": 2
+          }
+        },
+        {
+          "name": "import",
+          "effect": "write",
+          "budget": {
+            "timeout_ms": 10000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 65536,
+            "host_calls": 3
+          }
+        },
+        {
+          "name": "get_settings",
+          "effect": "read",
+          "budget": {
+            "timeout_ms": 1000,
+            "stdout_bytes": 16384,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
+        },
+        {
+          "name": "save_settings",
+          "effect": "write",
+          "budget": {
+            "timeout_ms": 1000,
+            "stdout_bytes": 16384,
+            "stderr_bytes": 16384,
+            "host_calls": 2
+          }
         }
       ]
     }
