@@ -22,7 +22,7 @@ type httpKVHost struct {
 }
 
 func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
-	if method != latticeplugin.HostMethodHTTPDo {
+	if method != latticeplugin.HostMethodHTTPDo && method != latticeplugin.HostMethodHTTPOperatorDo {
 		return h.kvHostCaller.call(method, params)
 	}
 	encoded, _ := json.Marshal(params)

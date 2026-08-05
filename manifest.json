@@ -302,6 +302,26 @@
             "stderr_bytes": 65536,
             "host_calls": 1
           }
+        },
+        {
+          "name": "list",
+          "effect": "read",
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
+        },
+        {
+          "name": "migrate",
+          "effect": "write",
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 65536,
+            "host_calls": 4
+          }
         }
       ]
     }

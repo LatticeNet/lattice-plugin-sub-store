@@ -129,6 +129,52 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "migrate":
+		var req subStoreRequest
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid migrate payload: %w", err))
+			}
+		}
+		report, err := rt.migrateFromSubStore(req)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(report)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "list":
+		records, err := rt.listSubscriptions()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		// The list is a management view, so it reports what a subscription IS
+		// without its stored content: a definition list must not double as a
+		// dump of every provider payload.
+		type view struct {
+			ID        string `json:"id"`
+			Name      string `json:"name"`
+			HasURL    bool   `json:"has_url"`
+			HasInline bool   `json:"has_inline_content"`
+			Target    string `json:"target,omitempty"`
+			Operators int    `json:"operator_count"`
+			Imported  bool   `json:"imported"`
+		}
+		views := make([]view, 0, len(records))
+		for _, rec := range records {
+			views = append(views, view{
+				ID: rec.ID, Name: rec.Name,
+				HasURL: strings.TrimSpace(rec.URL) != "", HasInline: strings.TrimSpace(rec.Content) != "",
+				Target: rec.Target, Operators: len(rec.Operators), Imported: rec.Origin != nil,
+			})
+		}
+		body, err := json.Marshal(map[string]any{"subscriptions": views})
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
 	case "operators":
 		body, err := json.Marshal(map[string]any{"operators": operatorCatalogInfo()})
 		if err != nil {

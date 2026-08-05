@@ -42,6 +42,9 @@ type subscriptionRecord struct {
 	UA            string            `json:"ua,omitempty"`
 	Target        string            `json:"target,omitempty"`
 	Operators     []json.RawMessage `json:"operators,omitempty"`
+	// Origin is set on an imported record and holds the source object verbatim,
+	// so a migration cannot lose a field this plugin does not yet understand.
+	Origin *migratedOrigin `json:"origin,omitempty"`
 }
 
 func (rt *runtime) loadSubscriptionRecords() (subscriptionRecordsDocument, error) {

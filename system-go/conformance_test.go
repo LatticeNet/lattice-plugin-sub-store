@@ -162,6 +162,11 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// preview runs the pipeline but returns only names and types, so its
 		// stdout is far smaller than a conversion's even for a large subscription.
 		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+		// list returns definitions without their content, so it stays small.
+		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		// migrate is the only write here and it talks to a second server, so it
+		// gets the longest timeout and the largest host-call allowance.
+		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
@@ -52,7 +53,21 @@ func (k *kvHostCaller) call(method string, params any) (json.RawMessage, error) 
 func newKVRuntime(t *testing.T) (*runtime, *kvHostCaller) {
 	t.Helper()
 	host := newKVHostCaller()
-	return &runtime{host: host}, host
+	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
+}
+
+// testEngineWithHeadroom is the embedded engine with a timeout wide enough to
+// survive race instrumentation.
+//
+// The production timeout is 10s and wazero under -race exceeds it on this
+// machine, so a test that kept it would be measuring the instrumented runtime
+// against a production limit and failing for a reason unrelated to what it
+// asserts. Every other limit stays at its production value, so a test still
+// cannot pass by exceeding a bound production would enforce.
+func testEngineWithHeadroom() *subStoreEngine {
+	engine := newEmbeddedSubStoreEngine()
+	engine.limits.Timeout = 2 * time.Minute
+	return &engine
 }
 
 func TestSubscriptionRecordRoundTrip(t *testing.T) {
