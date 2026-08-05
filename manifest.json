@@ -5,6 +5,7 @@
   "type": "system",
   "capabilities": [
     "rpc:call",
+    "http:egress",
     "http:operator-target",
     "kv:read",
     "kv:write",
@@ -262,6 +263,16 @@
       "service": "latticenet.sub-store/subscription",
       "backing": "runtime",
       "methods": [
+        {
+          "name": "fetch",
+          "effect": "read",
+          "budget": {
+            "timeout_ms": 20000,
+            "stdout_bytes": 8388608,
+            "stderr_bytes": 65536,
+            "host_calls": 2
+          }
+        },
         {
           "name": "render",
           "effect": "read",

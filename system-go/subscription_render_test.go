@@ -15,14 +15,14 @@ func TestRenderRefusesToProduceEmptyContent(t *testing.T) {
 	if err := rt.saveSubscription(subscriptionRecord{ID: "empty", Name: "empty", Content: "   "}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("empty", "base64", "surge"); err == nil {
+	if _, err := rt.renderSubscription("empty", "base64", "surge", ""); err == nil {
 		t.Fatal("render returned success for a subscription with no content")
 	}
 }
 
 func TestRenderUnknownSubscriptionIsAnError(t *testing.T) {
 	rt, _ := newKVRuntime(t)
-	if _, err := rt.renderSubscription("missing", "base64", "surge"); err == nil {
+	if _, err := rt.renderSubscription("missing", "base64", "surge", ""); err == nil {
 		t.Fatal("unknown subscription rendered successfully")
 	}
 }

@@ -50,13 +50,18 @@ func subscriptionTarget(rec subscriptionRecord, uaClass string) string {
 // both refusals exist deliberately: a proxy client that receives an empty but
 // successful subscription deletes every node it had, so the failure is worth
 // stopping twice rather than relying on either layer alone.
-func (rt *runtime) renderSubscription(subscriptionID, format, uaClass string) (renderResult, error) {
+func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw string) (renderResult, error) {
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return renderResult{}, err
 	}
 
-	source := rec.Content
+	// The core hands back the snapshot it holds for this subscription. Inline
+	// content is the fallback for a record that has no remote source at all.
+	source := raw
+	if strings.TrimSpace(source) == "" {
+		source = rec.Content
+	}
 	if strings.TrimSpace(source) == "" {
 		// Remote fetch arrives with sub-project 2. Until then a record without
 		// inline content has nothing to render, and saying so is better than
@@ -103,18 +108,37 @@ func encodeSubscriptionOutput(output, format string) (string, string, error) {
 // only thing it returns is content plus a content type.
 func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 	switch call.Method {
+	case "fetch":
+		var req struct {
+			SubscriptionID string `json:"subscription_id"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid fetch payload: %w", err))
+			}
+		}
+		out, err := rt.fetchSubscription(req.SubscriptionID)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(out)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
 	case "render":
 		var req struct {
 			SubscriptionID string `json:"subscription_id"`
 			Format         string `json:"format"`
 			UAClass        string `json:"ua_class"`
+			Raw            string `json:"raw"`
 		}
 		if len(call.Payload) > 0 {
 			if err := json.Unmarshal(call.Payload, &req); err != nil {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid render payload: %w", err))
 			}
 		}
-		out, err := rt.renderSubscription(req.SubscriptionID, req.Format, req.UAClass)
+		out, err := rt.renderSubscription(req.SubscriptionID, req.Format, req.UAClass, req.Raw)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}

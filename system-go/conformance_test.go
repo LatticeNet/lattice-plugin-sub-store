@@ -152,6 +152,10 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// than arrive truncated at a client. host_calls is 2 rather than 0 because a
 		// remote-backed subscription will read its stored snapshot through the host.
 		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		// fetch carries a provider's whole response, so its stdout budget is the
+		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
+		// third-party provider is slower than local conversion.
+		pluginID + "/subscription/fetch": {TimeoutMS: 20_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 2},
 	}
 }
 
