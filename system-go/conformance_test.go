@@ -147,6 +147,11 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		pluginID + "/engine/run_pipeline":       {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+		// render feeds a public subscription endpoint, so its stdout budget matches
+		// the other conversion methods: a large subscription must fail loudly rather
+		// than arrive truncated at a client. host_calls is 2 rather than 0 because a
+		// remote-backed subscription will read its stored snapshot through the host.
+		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 2},
 	}
 }
 
