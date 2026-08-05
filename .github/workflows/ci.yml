@@ -66,8 +66,10 @@ jobs:
 
       - name: validate manifest against released server
         env:
-          # alpha-0.2.2a4 release commit c9c67107 — move ONLY to another released tag's commit
-          LATTICE_CHECK_REF: v0.2.2-0.20260727095611-c9c671079ab6
+          # alpha-0.2.2a6 release commit 4e41f141 — move ONLY to another released tag's commit.
+          # a6 is the first release whose validator knows `subscription:serve`; pinning an
+          # older one here would reject this manifest for naming a capability that shipped.
+          LATTICE_CHECK_REF: v0.2.2-0.20260805145356-4e41f1410201
         run: go run "github.com/LatticeNet/lattice-server/cmd/lattice-plugin-manifest-check@${LATTICE_CHECK_REF}" manifest.json
 
       - name: build runtime binaries

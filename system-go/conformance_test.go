@@ -147,6 +147,35 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		pluginID + "/engine/run_pipeline":       {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+		// render feeds a public subscription endpoint, so its stdout budget matches
+		// the other conversion methods: a large subscription must fail loudly rather
+		// than arrive truncated at a client. host_calls is 2 rather than 0 because a
+		// remote-backed subscription will read its stored snapshot through the host.
+		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		// fetch carries a provider's whole response, so its stdout budget is the
+		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
+		// third-party provider is slower than local conversion.
+		pluginID + "/subscription/fetch": {TimeoutMS: 20_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		// operators returns a fixed catalog and touches nothing, so it gets the
+		// smallest budget in the file and zero host calls.
+		pluginID + "/subscription/operators": {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
+		// preview runs the pipeline but returns only names and types, so its
+		// stdout is far smaller than a conversion's even for a large subscription.
+		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+		// list returns definitions without their content, so it stays small.
+		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		// migrate is the only write here and it talks to a second server, so it
+		// gets the longest timeout and the largest host-call allowance.
+		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},
+		// export carries every record including inline content, so it gets the
+		// largest read budget here; import is bounded by what it accepts.
+		// publish renders and sends; its stdout is only a small result object
+		// because the rendered body goes out over the network, not back up stdout.
+		pluginID + "/subscription/publish":       {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
+		pluginID + "/subscription/export":        {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 2},
+		pluginID + "/subscription/import":        {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 3},
+		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 	}
 }
 

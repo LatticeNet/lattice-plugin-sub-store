@@ -28,7 +28,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.4.0-alpha.2"
+	pluginVersion        = "0.5.0-alpha.1"
 	defaultSubStoreName  = "lattice-vpn-core"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
@@ -169,6 +169,8 @@ func (rt *runtime) handleCall(req request) response {
 		return rt.handleImportCall(call)
 	case pluginID + "/engine":
 		return rt.handleEngineCall(call)
+	case pluginID + "/subscription":
+		return rt.handleSubscriptionCall(call)
 	default:
 		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported service %q", call.Service))
 	}
