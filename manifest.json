@@ -282,6 +282,26 @@
             "stderr_bytes": 65536,
             "host_calls": 2
           }
+        },
+        {
+          "name": "operators",
+          "effect": "read",
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 16384,
+            "host_calls": 0
+          }
+        },
+        {
+          "name": "preview",
+          "effect": "read",
+          "budget": {
+            "timeout_ms": 15000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 65536,
+            "host_calls": 1
+          }
         }
       ]
     }

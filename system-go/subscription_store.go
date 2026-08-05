@@ -85,6 +85,9 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	if len(rec.Content) > maxSubscriptionInlineBytes {
 		return fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
 	}
+	if err := validateOperators(rec.Operators); err != nil {
+		return fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1
 	}

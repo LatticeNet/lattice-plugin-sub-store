@@ -69,6 +69,9 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 		return renderResult{}, fmt.Errorf("subscription %q has no content to render", subscriptionID)
 	}
 
+	if err := validateOperators(rec.Operators); err != nil {
+		return renderResult{}, fmt.Errorf("subscription %q: %w", subscriptionID, err)
+	}
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       source,
 		Target:    subscriptionTarget(rec, uaClass),
@@ -118,6 +121,49 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			}
 		}
 		out, err := rt.fetchSubscription(req.SubscriptionID)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(out)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "operators":
+		body, err := json.Marshal(map[string]any{"operators": operatorCatalogInfo()})
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "preview":
+		var req struct {
+			SubscriptionID string            `json:"subscription_id"`
+			Raw            string            `json:"raw"`
+			Target         string            `json:"target"`
+			Operators      []json.RawMessage `json:"operators"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid preview payload: %w", err))
+			}
+		}
+		raw := req.Raw
+		operators := req.Operators
+		target := req.Target
+		if strings.TrimSpace(raw) == "" && strings.TrimSpace(req.SubscriptionID) != "" {
+			rec, err := rt.getSubscription(req.SubscriptionID)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			raw = rec.Content
+			if operators == nil {
+				operators = rec.Operators
+			}
+			if strings.TrimSpace(target) == "" {
+				target = rec.Target
+			}
+		}
+		out, err := rt.previewSubscription(raw, operators, target)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}

@@ -156,6 +156,12 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
 		// third-party provider is slower than local conversion.
 		pluginID + "/subscription/fetch": {TimeoutMS: 20_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		// operators returns a fixed catalog and touches nothing, so it gets the
+		// smallest budget in the file and zero host calls.
+		pluginID + "/subscription/operators": {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
+		// preview runs the pipeline but returns only names and types, so its
+		// stdout is far smaller than a conversion's even for a large subscription.
+		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 1},
 	}
 }
 
