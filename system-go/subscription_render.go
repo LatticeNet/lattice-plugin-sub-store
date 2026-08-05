@@ -129,6 +129,12 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "publish":
+		body, err := rt.handlePublishCall(call.Payload)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
 	case "export":
 		body, err := rt.exportBackup()
 		if err != nil {

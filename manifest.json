@@ -362,6 +362,16 @@
             "stderr_bytes": 16384,
             "host_calls": 2
           }
+        },
+        {
+          "name": "publish",
+          "effect": "write",
+          "budget": {
+            "timeout_ms": 20000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 65536,
+            "host_calls": 2
+          }
         }
       ]
     }
