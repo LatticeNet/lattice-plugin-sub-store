@@ -20,6 +20,7 @@ import type { BridgeClient } from "@latticenet/plugin-bridge";
 export const SERVICES = {
   import: "latticenet.sub-store/import",
   engine: "latticenet.sub-store/engine",
+  subscription: "latticenet.sub-store/subscription",
 } as const;
 
 export type BindingStatus = "active" | "pending";
@@ -50,6 +51,24 @@ export const BINDINGS = {
   engineListPipelines: binding(SERVICES.engine, "list_pipelines", "active"),
   engineDeletePipeline: binding(SERVICES.engine, "delete_pipeline", "active"),
   engineRunPipeline: binding(SERVICES.engine, "run_pipeline", "active"),
+  // ── subscription platform (design-16) ────────────────────────────────────
+  // The backend for these shipped and was signed before any of them had a
+  // caller, so the whole feature was unreachable from the UI. `get`, `save`
+  // and `delete` did not exist at all: a subscription could only enter the
+  // store by migrating from a standalone Sub-Store or restoring a backup.
+  subList: binding(SERVICES.subscription, "list", "active"),
+  subGet: binding(SERVICES.subscription, "get", "active"),
+  subSave: binding(SERVICES.subscription, "save", "active"),
+  subDelete: binding(SERVICES.subscription, "delete", "active"),
+  subFetch: binding(SERVICES.subscription, "fetch", "active"),
+  subPreview: binding(SERVICES.subscription, "preview", "active"),
+  subOperators: binding(SERVICES.subscription, "operators", "active"),
+  subMigrate: binding(SERVICES.subscription, "migrate", "active"),
+  subExport: binding(SERVICES.subscription, "export", "active"),
+  subImport: binding(SERVICES.subscription, "import", "active"),
+  subGetSettings: binding(SERVICES.subscription, "get_settings", "active"),
+  subSaveSettings: binding(SERVICES.subscription, "save_settings", "active"),
+  subPublish: binding(SERVICES.subscription, "publish", "active"),
 } as const satisfies Record<string, MethodBinding>;
 
 /**
@@ -179,6 +198,108 @@ export interface PipelineDeleteResponse {
   deleted: boolean;
   count: number;
 }
+
+// ── subscription shapes (manifest: latticenet.sub-store/subscription) ───────
+
+/** One stored subscription. Mirrors system-go's `subscriptionRecord`. */
+export interface SubscriptionRecord {
+  schema_version?: number;
+  id: string;
+  name: string;
+  url?: string;
+  content?: string;
+  ua?: string;
+  target?: string;
+  operators?: unknown[];
+  /** Set by migration only. The backend refuses to take this from a caller. */
+  origin?: { source: string; kind: string; raw?: unknown };
+}
+
+/**
+ * The list view deliberately omits `content` and `operators`: a management
+ * list must not double as a dump of every provider payload. Editing one record
+ * calls `get`, which returns the whole thing.
+ */
+export interface SubscriptionListItem {
+  id: string;
+  name: string;
+  has_url: boolean;
+  has_inline_content: boolean;
+  target?: string;
+  operator_count: number;
+  imported: boolean;
+}
+
+export interface SubscriptionListResponse {
+  subscriptions: SubscriptionListItem[];
+}
+
+export interface SubscriptionGetResponse {
+  subscription: SubscriptionRecord;
+}
+
+export interface SubscriptionSaveResponse {
+  subscription: SubscriptionRecord;
+  saved: boolean;
+}
+
+export interface SubscriptionDeleteResponse {
+  id: string;
+  deleted: boolean;
+}
+
+export interface SubscriptionFetchResponse {
+  subscription_id: string;
+  bytes: number;
+  fetched_at?: string;
+  userinfo?: string;
+  error?: string;
+}
+
+/** preview reduces nodes to name/type on the engine side, so a preview of a
+ *  large subscription cannot blow the stdout budget. */
+export interface SubscriptionPreviewNode {
+  name: string;
+  type: string;
+}
+
+export interface SubscriptionPreviewResponse {
+  nodes: SubscriptionPreviewNode[];
+  count: number;
+  truncated?: boolean;
+}
+
+export interface OperatorInfo {
+  type: string;
+  summary?: string;
+  scripting?: boolean;
+}
+
+export interface OperatorCatalogResponse {
+  operators: OperatorInfo[];
+}
+
+export interface SubscriptionSettings {
+  default_target?: string;
+  default_ua?: string;
+  refresh_minutes?: number;
+  [key: string]: unknown;
+}
+
+export interface MigrationReport {
+  imported: string[];
+  skipped: Record<string, string>;
+  [key: string]: unknown;
+}
+
+export interface BackupExportResponse {
+  backup: string;
+}
+
+/** Mirrors system-go's `maxSubscriptionInlineBytes`. Enforced by the backend;
+ *  checked here so a paste that cannot be saved says so before a round trip. */
+export const MAX_SUBSCRIPTION_INLINE_BYTES = 256 * 1024;
+export const MAX_SUBSCRIPTION_RECORDS = 256;
 
 /** Curated produce targets for the pinned upstream core. "Clash" and
  *  "sing-box" are pinned by the system-go engine tests; the rest are

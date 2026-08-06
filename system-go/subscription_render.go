@@ -226,6 +226,90 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "get":
+		// `list` deliberately omits content and operators so a management view
+		// cannot double as a dump of every provider payload. Editing one record
+		// still needs them, so `get` returns the whole thing for exactly one id.
+		var req struct {
+			SubscriptionID string `json:"subscription_id"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid get payload: %w", err))
+			}
+		}
+		if strings.TrimSpace(req.SubscriptionID) == "" {
+			return latticeplugin.ErrorResponse(fmt.Errorf("subscription_id is required"))
+		}
+		rec, err := rt.getSubscription(req.SubscriptionID)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(map[string]any{"subscription": rec})
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "save":
+		// Until this existed a subscription could only enter the store by
+		// migrating from a standalone Sub-Store or restoring a backup: the
+		// record type, its validation and its storage were all reachable, but
+		// nothing let an operator create or edit one.
+		var req struct {
+			Subscription subscriptionRecord `json:"subscription"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid save payload: %w", err))
+			}
+		}
+		rec := req.Subscription
+		if strings.TrimSpace(rec.ID) == "" {
+			return latticeplugin.ErrorResponse(fmt.Errorf("subscription id is required"))
+		}
+		// Origin records where a record came from during migration. A caller
+		// must not be able to forge it, so it is preserved from the stored
+		// record rather than taken from the request.
+		if existing, err := rt.getSubscription(rec.ID); err == nil {
+			rec.Origin = existing.Origin
+		} else {
+			rec.Origin = nil
+		}
+		if err := rt.saveSubscription(rec); err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		saved, err := rt.getSubscription(rec.ID)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(map[string]any{"subscription": saved, "saved": true})
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "delete":
+		var req struct {
+			SubscriptionID string `json:"subscription_id"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid delete payload: %w", err))
+			}
+		}
+		if strings.TrimSpace(req.SubscriptionID) == "" {
+			return latticeplugin.ErrorResponse(fmt.Errorf("subscription_id is required"))
+		}
+		if err := rt.deleteSubscription(req.SubscriptionID); err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		// Deleting the definition does not retract anything already published:
+		// the share lives in the core, and removing it is a separate decision
+		// the operator makes there.
+		body, err := json.Marshal(map[string]any{"id": req.SubscriptionID, "deleted": true})
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
 	case "operators":
 		body, err := json.Marshal(map[string]any{"operators": operatorCatalogInfo()})
 		if err != nil {

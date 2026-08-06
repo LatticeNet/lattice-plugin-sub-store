@@ -164,6 +164,12 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 1},
 		// list returns definitions without their content, so it stays small.
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		// get returns one whole record including inline content, so its ceiling
+		// is the per-record inline cap plus room for the rest of the record —
+		// not the small `list` ceiling, which carries no content at all.
+		pluginID + "/subscription/get":    {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 512 << 10, StderrBytes: 64 << 10, HostCalls: 3},
+		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		// migrate is the only write here and it talks to a second server, so it
 		// gets the longest timeout and the largest host-call allowance.
 		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},

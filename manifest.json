@@ -33,9 +33,9 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.2-alpha.2",
-    "dashboard_host": "\u003e=1",
-    "runtime_protocol": "\u003e=1"
+    "server": ">=0.2.2-alpha.2",
+    "dashboard_host": ">=1",
+    "runtime_protocol": ">=1"
   },
   "host_access": {
     "rpc": [
@@ -325,6 +325,45 @@
             "stdout_bytes": 262144,
             "stderr_bytes": 16384,
             "host_calls": 1
+          }
+        },
+        {
+          "name": "get",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 524288,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
+        },
+        {
+          "name": "save",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 524288,
+            "stderr_bytes": 65536,
+            "host_calls": 3
+          }
+        },
+        {
+          "name": "delete",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 16384,
+            "host_calls": 2
           }
         },
         {
