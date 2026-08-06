@@ -13,12 +13,12 @@
     "secret:write",
     "subscription:serve"
   ],
-  "version": "0.5.0-alpha.1",
+  "version": "0.6.0-alpha.1",
   "publisher": "latticenet",
-  "signature_ed25519": "Iik20TwEEpwPGO9Cd9cY9L+Kr6eEHOpFtbYBXtwmIYJmxmgg+fXlEoCQWwkgdWMH+nY3kEdf/46DhATqlc4DCQ==",
+  "signature_ed25519": "MYJHdQD7sit5PrpewtoCWhAnwx1dVZ8OhQ+hWHTw/uhlMhEe5EjSsL/uQNyD2KKkyQFDbn/dhRXqrl3JnwbHAw==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "ca82b389d0e53c991409bfa4a838539097f453c749f13caed33f3806352983f1"
+    "digest_sha256": "44652f96fdc60739b8e34f447bcd5e0632d20af0bce20a4ef3c1517d548977c8"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -33,9 +33,9 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": ">=0.2.2-alpha.2",
-    "dashboard_host": ">=1",
-    "runtime_protocol": ">=1"
+    "server": "\u003e=0.2.2-alpha.2",
+    "dashboard_host": "\u003e=1",
+    "runtime_protocol": "\u003e=1"
   },
   "host_access": {
     "rpc": [
