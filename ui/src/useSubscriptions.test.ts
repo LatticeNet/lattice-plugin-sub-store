@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { MAX_SUBSCRIPTION_INLINE_BYTES, SOURCE_VPN_CORE } from "./client";
-import { draftFromRecord, emptyDraft, validateDraft } from "./useSubscriptions";
+import { draftFromRecord, emptyDraft, enabledSteps, validateDraft } from "./useSubscriptions";
 
 describe("subscription draft validation", () => {
   it("requires an id", () => {
@@ -64,14 +64,29 @@ describe("draftFromRecord", () => {
       content: "",
       ua: "",
       target: "",
-      operators: [],
+      kind: "sub",
+      remark: "",
+      tags: [],
+      members: [],
+      memberTags: [],
+      process: [],
     });
   });
 
-  it("copies the operator chain rather than aliasing it", () => {
-    const record = { id: "s1", name: "n", operators: [{ type: "Flag Operator" }] };
+  it("copies the process chain rather than aliasing it", () => {
+    const record = { id: "s1", name: "n", process: [{ type: "Flag Operator" }] };
     const draft = draftFromRecord(record);
-    draft.operators.push({ type: "another" });
-    expect(record.operators).toHaveLength(1);
+    draft.process.push({ type: "another" });
+    expect(record.process).toHaveLength(1);
+  });
+
+  // A disabled step is stored and shown, but must never reach the engine — a
+  // preview that ran it would describe a pipeline the operator switched off.
+  it("drops disabled steps from what would run", () => {
+    const draft = {
+      ...emptyDraft(),
+      process: [{ type: "Useless Filter" }, { type: "Flag Operator", disabled: true }],
+    };
+    expect(enabledSteps(draft)).toHaveLength(1);
   });
 });
