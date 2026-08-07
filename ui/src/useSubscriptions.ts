@@ -5,6 +5,7 @@ import {
   callMethod,
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
+  SOURCE_VPN_CORE,
   type OperatorCatalogResponse,
   type OperatorInfo,
   type SubscriptionDeleteResponse,
@@ -24,6 +25,9 @@ export type LoadState = "idle" | "loading" | "ready" | "error";
 export interface SubscriptionDraft {
   id: string;
   name: string;
+  /** "" for url/content, or SOURCE_VPN_CORE for the live node export. */
+  source: string;
+  vpnIdentity: string;
   url: string;
   content: string;
   ua: string;
@@ -32,13 +36,15 @@ export interface SubscriptionDraft {
 }
 
 export function emptyDraft(): SubscriptionDraft {
-  return { id: "", name: "", url: "", content: "", ua: "", target: "", operators: [] };
+  return { id: "", name: "", source: "", vpnIdentity: "", url: "", content: "", ua: "", target: "", operators: [] };
 }
 
 export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
   return {
     id: record.id,
     name: record.name ?? "",
+    source: record.source ?? "",
+    vpnIdentity: record.vpn_identity ?? "",
     url: record.url ?? "",
     content: record.content ?? "",
     ua: record.ua ?? "",
@@ -58,7 +64,10 @@ export function validateDraft(draft: SubscriptionDraft): string {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(draft.id.trim())) {
     return "Ids may use letters, digits, dot, dash and underscore, and must start with a letter or digit.";
   }
-  if (!draft.url.trim() && !draft.content.trim()) {
+  // A vpn-core subscription brings its own content, so demanding a URL here
+  // would make the source unusable — that requirement is exactly what kept the
+  // native platform from serving a fleet whose nodes live in vpn-core.
+  if (draft.source !== SOURCE_VPN_CORE && !draft.url.trim() && !draft.content.trim()) {
     return "Give the subscription a provider URL or some inline content — otherwise it has nothing to serve.";
   }
   // Byte length, not character count: the backend limit is bytes and a
@@ -163,6 +172,8 @@ export function useSubscriptions(host: HostContext) {
       const record: SubscriptionRecord = {
         id: draft.id.trim(),
         name: draft.name.trim() || draft.id.trim(),
+        source: draft.source || undefined,
+        vpn_identity: draft.source === SOURCE_VPN_CORE ? draft.vpnIdentity.trim() || undefined : undefined,
         url: draft.url.trim() || undefined,
         content: draft.content || undefined,
         ua: draft.ua.trim() || undefined,

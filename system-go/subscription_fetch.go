@@ -36,6 +36,24 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	if err != nil {
 		return fetchResult{}, err
 	}
+
+	// A vpn-core subscription has no provider to reach: its content is the
+	// current node export, read over rpc:call. It is handled before the URL
+	// checks because there is no URL involved and none should be required.
+	if rec.Source == subscriptionSourceVPNCore {
+		links, err := rt.fetchExport(subStoreRequest{UserID: rec.VPNIdentity})
+		if err != nil {
+			return fetchResult{}, err
+		}
+		if len(links) == 0 {
+			// Serving nothing would reach a client as "you have no nodes" and
+			// wipe its configuration, so an empty export is an error here
+			// rather than empty content passed downstream.
+			return fetchResult{}, fmt.Errorf("subscription %q: vpn-core returned no nodes", subscriptionID)
+		}
+		return fetchResult{Raw: strings.Join(links, "\n")}, nil
+	}
+
 	target := strings.TrimSpace(rec.URL)
 	if target == "" {
 		return fetchResult{}, fmt.Errorf("subscription %q has no URL to fetch", subscriptionID)

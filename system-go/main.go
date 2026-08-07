@@ -1,7 +1,11 @@
-// Command lattice-plugin-sub-store is the official LatticeNet Sub-Store companion
-// system plugin: it imports node connection info from the vpn-core plugin into
-// the operator's existing Sub-Store backend (a managed local subscription) and
-// reports reachability while preserving all native Sub-Store features.
+// Command lattice-plugin-sub-store is the official LatticeNet subscription
+// plugin: it stores subscription definitions, renders them through the embedded
+// Sub-Store engine, and answers the core when a public share is fetched.
+//
+// It no longer pushes anything to an external Sub-Store. That direction existed
+// while Lattice integrated with a standalone instance; now that Lattice serves
+// subscriptions itself, an outbound push was the opposite of the point and sat
+// in the UI next to a migration that pulled the other way.
 //
 // It implements the Lattice system-plugin stdio contract:
 //   - runner -> plugin stdin: {"action":"call","payload":{...}} then EOF
@@ -28,8 +32,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.6.0-alpha.1"
-	defaultSubStoreName  = "lattice-vpn-core"
+	pluginVersion        = "0.7.0-alpha.1"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
 	maxExportBytes       = 1 << 20
@@ -41,12 +44,18 @@ const (
 	maxPipelineRawBytes  = 1 << 20
 )
 
-// Private/loopback Sub-Store endpoints require the explicit system-only
-// operator-target primitive. Ordinary http:egress remains unable to reach them.
-// secret:read/secret:write back the opt-in encrypted endpoint vault (design-15
-// §7): the server resolves secret:// references from this plugin's own
-// namespace, so a saved endpoint never re-crosses the browser.
-var capabilities = []string{"rpc:call", "http:operator-target", "secret:read", "secret:write"}
+// Reported by the describe action. It must agree with the signed manifest:
+// this list is what the plugin claims, the manifest is what the host grants,
+// and a disagreement means one of them is lying to whoever reads it.
+//
+// http:egress fetches a remote provider under the broker's SSRF checks;
+// http:operator-target reaches an address the operator explicitly designated,
+// for migration and publishing. secret:read/secret:write were dropped with the
+// endpoint vault, which existed only to hold an external Sub-Store URL.
+var capabilities = []string{
+	"rpc:call", "http:egress", "http:operator-target",
+	"kv:read", "kv:write", "subscription:serve",
+}
 
 type request = latticeplugin.Request
 type callPayload = latticeplugin.CallPayload
@@ -59,19 +68,6 @@ type subStoreRequest struct {
 	// Autosync is only honored by save_endpoint: it stores the design-15 §7
 	// server-side auto-sync flag alongside the endpoint in the encrypted vault.
 	Autosync *bool `json:"autosync,omitempty"`
-}
-
-type endpointSecretDocument struct {
-	Version  int    `json:"version"`
-	BaseURL  string `json:"base_url"`
-	Autosync bool   `json:"autosync"`
-}
-
-type autoSyncStatusDocument struct {
-	State         string `json:"state"`
-	AttemptedAt   string `json:"attempted_at,omitempty"`
-	LastSuccessAt string `json:"last_success_at,omitempty"`
-	Error         string `json:"error,omitempty"`
 }
 
 type pipelineRecordsDocument struct {
@@ -165,60 +161,12 @@ func (rt *runtime) handleCall(req request) response {
 	}
 
 	switch call.Service {
-	case pluginID + "/import":
-		return rt.handleImportCall(call)
 	case pluginID + "/engine":
 		return rt.handleEngineCall(call)
 	case pluginID + "/subscription":
 		return rt.handleSubscriptionCall(call)
 	default:
 		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported service %q", call.Service))
-	}
-}
-
-func (rt *runtime) handleImportCall(call callPayload) response {
-	var req subStoreRequest
-	if len(call.Payload) > 0 {
-		if err := json.Unmarshal(call.Payload, &req); err != nil {
-			return latticeplugin.ErrorResponse(fmt.Errorf("invalid sub-store payload: %w", err))
-		}
-	}
-	switch call.Method {
-	case "status":
-		result := rt.status(req)
-		return latticeplugin.RawResultResponse(result, "")
-	case "preview":
-		result, err := rt.preview(req)
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		return latticeplugin.RawResultResponse(result, "sub-store import preview")
-	case "import":
-		result, err := rt.importNodes(req)
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		return latticeplugin.RawResultResponse(result, "sub-store import complete")
-	case "save_endpoint":
-		result, err := rt.saveEndpoint(req)
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		return latticeplugin.RawResultResponse(result, "sub-store endpoint saved (encrypted)")
-	case "clear_endpoint":
-		result, err := rt.clearEndpoint()
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		return latticeplugin.RawResultResponse(result, "sub-store endpoint cleared")
-	case "endpoint_status":
-		result, err := rt.endpointStatus()
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		return latticeplugin.RawResultResponse(result, "")
-	default:
-		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported method %q", call.Method))
 	}
 }
 
@@ -314,24 +262,6 @@ func (rt *runtime) subStoreEngine() subStoreEngine {
 	return newEmbeddedSubStoreEngine()
 }
 
-func (rt *runtime) status(req subStoreRequest) json.RawMessage {
-	base, err := validateBaseURL(req.BaseURL)
-	if err != nil {
-		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": err.Error()})
-	}
-	subName, err := normalizeSubName(req.SubName)
-	if err != nil {
-		return mustJSON(map[string]any{"reachable": false, "sub_name": defaultSubStoreName, "error": err.Error()})
-	}
-	status, _, err := rt.httpDo("GET", base+"/api/utils/env", nil)
-	reachable := err == nil && status >= 200 && status < 500
-	out := map[string]any{"reachable": reachable, "sub_name": subName}
-	if err != nil {
-		out["error"] = "Sub-Store endpoint is unreachable or denied by host policy"
-	}
-	return mustJSON(out)
-}
-
 // fetchExport pulls the vpn-core node links, enforcing the export bounds before
 // any of it reaches the Sub-Store backend or a preview diff.
 func (rt *runtime) fetchExport(req subStoreRequest) ([]string, error) {
@@ -375,104 +305,6 @@ func (rt *runtime) fetchExport(req subStoreRequest) ([]string, error) {
 	return exp.Links, nil
 }
 
-func (rt *runtime) importNodes(req subStoreRequest) (json.RawMessage, error) {
-	base, err := validateBaseURL(req.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-	subName, err := normalizeSubName(req.SubName)
-	if err != nil {
-		return nil, err
-	}
-	links, err := rt.fetchExport(req)
-	if err != nil {
-		return nil, err
-	}
-
-	sub := map[string]any{
-		"name":        subName,
-		"source":      "local",
-		"displayName": "Lattice vpn-core",
-		"content":     strings.Join(links, "\n"),
-		"tag":         []string{"lattice", "vpn-core"},
-	}
-	body, _ := json.Marshal(sub)
-	status, respBody, err := rt.httpDo("PATCH", base+"/api/sub/"+url.PathEscape(subName), body)
-	if err != nil {
-		return nil, fmt.Errorf("Sub-Store update failed")
-	}
-	if status == 404 || status == 405 {
-		status, respBody, err = rt.httpDo("POST", base+"/api/subs", body)
-		if err != nil {
-			return nil, fmt.Errorf("Sub-Store create failed")
-		}
-		if status < 200 || status >= 300 {
-			return nil, fmt.Errorf("Sub-Store create returned status %d: %s", status, bodyExcerpt(respBody))
-		}
-	} else if status < 200 || status >= 300 {
-		return nil, fmt.Errorf("Sub-Store update returned status %d: %s", status, bodyExcerpt(respBody))
-	}
-	return mustJSON(map[string]any{"ok": true, "sub_name": subName, "pushed": len(links)}), nil
-}
-
-// previewReports what an import WOULD change without writing anything: it
-// pulls the same vpn-core export, reads the remote managed sub, and diffs link
-// sets. Labels are best-effort display names (URL fragment, else host); the
-// full links never leave this method.
-func (rt *runtime) preview(req subStoreRequest) (json.RawMessage, error) {
-	base, err := validateBaseURL(req.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-	subName, err := normalizeSubName(req.SubName)
-	if err != nil {
-		return nil, err
-	}
-	links, err := rt.fetchExport(req)
-	if err != nil {
-		return nil, err
-	}
-	current := []string{}
-	exists := false
-	status, body, err := rt.httpDo("GET", base+"/api/sub/"+url.PathEscape(subName), nil)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("Sub-Store read failed")
-	case status == 404:
-		exists = false
-	case status >= 200 && status < 300:
-		exists = true
-		var sub struct {
-			Content string `json:"content"`
-		}
-		if err := json.Unmarshal(body, &sub); err != nil {
-			return nil, fmt.Errorf("decode remote sub: %w", err)
-		}
-		for _, line := range strings.Split(sub.Content, "\n") {
-			if trimmed := strings.TrimSpace(line); trimmed != "" {
-				current = append(current, trimmed)
-			}
-		}
-	default:
-		return nil, fmt.Errorf("Sub-Store read returned status %d: %s", status, bodyExcerpt(body))
-	}
-	added, removed, unchanged := diffLinks(links, current)
-	addedLabels := make([]string, 0, len(added))
-	for _, link := range added {
-		addedLabels = append(addedLabels, linkLabel(link))
-	}
-	removedLabels := make([]string, 0, len(removed))
-	for _, link := range removed {
-		removedLabels = append(removedLabels, linkLabel(link))
-	}
-	return mustJSON(map[string]any{
-		"sub_name": subName, "exists": exists,
-		"added": addedLabels, "removed": removedLabels,
-		"added_count": len(added), "removed_count": len(removed), "unchanged_count": unchanged,
-		"total_after": len(links),
-	}), nil
-}
-
 // diffLinks compares the new export against the remote content by exact link
 // string, returning (added, removed, unchanged-count) with input order kept.
 func diffLinks(next, current []string) ([]string, []string, int) {
@@ -511,58 +343,6 @@ func linkLabel(link string) string {
 }
 
 // ── encrypted endpoint vault (design-15 §7) ──────────────────────────────────
-
-func (rt *runtime) saveEndpoint(req subStoreRequest) (json.RawMessage, error) {
-	base, err := validateBaseURL(req.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-	doc := endpointSecretDocument{Version: 1, BaseURL: base, Autosync: req.Autosync != nil && *req.Autosync}
-	raw, err := json.Marshal(doc)
-	if err != nil {
-		return nil, fmt.Errorf("encode endpoint settings: %w", err)
-	}
-	// One secret write commits the endpoint and auto-sync flag atomically. Older
-	// plain endpoint values remain readable through endpointSettings.
-	if err := rt.secretPut("endpoint", string(raw)); err != nil {
-		return nil, fmt.Errorf("save endpoint: %s", oneLine(err.Error()))
-	}
-	return mustJSON(map[string]any{"ok": true, "autosync": doc.Autosync}), nil
-}
-
-func (rt *runtime) clearEndpoint() (json.RawMessage, error) {
-	for _, key := range []string{"endpoint", "autosync"} {
-		if _, err := rt.callHost(latticeplugin.HostMethodSecretDelete, map[string]any{"key": key}); err != nil {
-			return nil, fmt.Errorf("clear %s: %s", key, oneLine(err.Error()))
-		}
-	}
-	return mustJSON(map[string]any{"ok": true}), nil
-}
-
-// endpointStatus reports what the vault holds WITHOUT exposing the endpoint:
-// the hint is scheme://host only — the path carries the Sub-Store secret token.
-func (rt *runtime) endpointStatus() (json.RawMessage, error) {
-	endpoint, autosync, found, err := rt.endpointSettings()
-	if err != nil {
-		return nil, fmt.Errorf("read endpoint settings: %s", oneLine(err.Error()))
-	}
-	out := map[string]any{"has_saved_endpoint": found, "autosync": autosync}
-	if found {
-		out["endpoint_hint"] = endpointHint(endpoint)
-	}
-	statusValue, statusFound, err := rt.secretGet("autosync_status")
-	if err != nil {
-		return nil, fmt.Errorf("read auto-sync status: %s", oneLine(err.Error()))
-	}
-	if statusFound {
-		var status autoSyncStatusDocument
-		if err := json.Unmarshal([]byte(statusValue), &status); err != nil {
-			return nil, fmt.Errorf("saved auto-sync status is invalid")
-		}
-		out["autosync_status"] = status
-	}
-	return mustJSON(out), nil
-}
 
 // ── embedded engine pipeline records (KV, no raw subscription bodies) ─────────
 
@@ -805,62 +585,6 @@ func sortPipelineRecords(records []pipelineRecord) {
 	})
 }
 
-// endpointSettings reads the versioned one-secret document and falls back to
-// the pre-v1 plain endpoint plus separate autosync flag for rolling upgrades.
-func (rt *runtime) endpointSettings() (string, bool, bool, error) {
-	value, found, err := rt.secretGet("endpoint")
-	if err != nil || !found {
-		return "", false, found, err
-	}
-	var doc endpointSecretDocument
-	if json.Unmarshal([]byte(value), &doc) == nil && doc.Version == 1 {
-		base, err := validateBaseURL(doc.BaseURL)
-		if err != nil {
-			return "", false, false, fmt.Errorf("saved endpoint document is invalid: %w", err)
-		}
-		return base, doc.Autosync, true, nil
-	}
-	base, err := validateBaseURL(value)
-	if err != nil {
-		return "", false, false, fmt.Errorf("saved endpoint is invalid: %w", err)
-	}
-	legacyFlag, legacyFound, err := rt.secretGet("autosync")
-	if err != nil {
-		return "", false, false, err
-	}
-	return base, legacyFound && legacyFlag == "1", true, nil
-}
-
-func (rt *runtime) secretPut(key, value string) error {
-	_, err := rt.callHost(latticeplugin.HostMethodSecretPut, map[string]any{
-		"key":          key,
-		"value_base64": base64.StdEncoding.EncodeToString([]byte(value)),
-	})
-	return err
-}
-
-func (rt *runtime) secretGet(key string) (string, bool, error) {
-	raw, err := rt.callHost(latticeplugin.HostMethodSecretGet, map[string]any{"key": key})
-	if err != nil {
-		return "", false, err
-	}
-	var out struct {
-		OK          bool   `json:"ok"`
-		ValueBase64 string `json:"value_base64"`
-	}
-	if err := json.Unmarshal(raw, &out); err != nil {
-		return "", false, err
-	}
-	if !out.OK {
-		return "", false, nil
-	}
-	decoded, err := base64.StdEncoding.DecodeString(out.ValueBase64)
-	if err != nil {
-		return "", false, err
-	}
-	return string(decoded), true, nil
-}
-
 func (rt *runtime) kvPut(key string, value []byte) error {
 	_, err := rt.callHost(latticeplugin.HostMethodKVPut, map[string]any{
 		"key":          key,
@@ -1026,24 +750,6 @@ func validateBaseURL(value string) (string, error) {
 		}
 	}
 	return strings.TrimRight(parsed.String(), "/"), nil
-}
-
-func normalizeSubName(value string) (string, error) {
-	name := strings.TrimSpace(value)
-	if name == "" {
-		return defaultSubStoreName, nil
-	}
-	if len(name) > 128 || hasControl(name) {
-		return "", fmt.Errorf("sub_name must be printable and at most 128 characters")
-	}
-	for index, char := range name {
-		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
-			(char >= '0' && char <= '9') || char == '.' || char == '_' || char == '-') ||
-			(index == 0 && (char == '.' || char == '_' || char == '-')) {
-			return "", fmt.Errorf("sub_name must start with an alphanumeric character and contain only letters, numbers, dot, underscore, or hyphen")
-		}
-	}
-	return name, nil
 }
 
 func hasControl(value string) bool {

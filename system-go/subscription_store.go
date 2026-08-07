@@ -23,6 +23,11 @@ const (
 	// maxSubscriptionInlineBytes bounds inline content on one record. Remote
 	// content does not live here; it arrives with the fetch work.
 	maxSubscriptionInlineBytes = 256 << 10
+	// subscriptionSourceVPNCore marks a subscription whose content is the live
+	// vpn-core node export rather than a provider URL or pasted text. Refreshing
+	// one re-reads the export, so nodes added or removed in vpn-core reach
+	// clients without anyone re-pasting anything.
+	subscriptionSourceVPNCore = "vpn-core"
 )
 
 type subscriptionRecordsDocument struct {
@@ -34,14 +39,26 @@ type subscriptionRecordsDocument struct {
 // the engine produces for; the core's format only decides how that output is
 // encoded, so the two are independent and both are needed.
 type subscriptionRecord struct {
-	SchemaVersion int               `json:"schema_version"`
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	URL           string            `json:"url,omitempty"`
-	Content       string            `json:"content,omitempty"`
-	UA            string            `json:"ua,omitempty"`
-	Target        string            `json:"target,omitempty"`
-	Operators     []json.RawMessage `json:"operators,omitempty"`
+	SchemaVersion int    `json:"schema_version"`
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	URL           string `json:"url,omitempty"`
+	Content       string `json:"content,omitempty"`
+	// Source names where content comes from when it is neither a provider URL
+	// nor pasted inline. Empty keeps the original two-source behaviour.
+	//
+	// This exists because a deployment whose nodes live in vpn-core previously
+	// could not serve them natively at all: the export was reachable, but only
+	// by the outbound push to an external Sub-Store. The subscription platform
+	// had no path to it, which made the native platform useless for exactly the
+	// setup it was built to replace.
+	Source string `json:"source,omitempty"`
+	// VPNIdentity narrows a vpn-core export to one identity. Empty means every
+	// eligible identity, which is what the export returns by default.
+	VPNIdentity string            `json:"vpn_identity,omitempty"`
+	UA          string            `json:"ua,omitempty"`
+	Target      string            `json:"target,omitempty"`
+	Operators   []json.RawMessage `json:"operators,omitempty"`
 	// Origin is set on an imported record and holds the source object verbatim,
 	// so a migration cannot lose a field this plugin does not yet understand.
 	Origin *migratedOrigin `json:"origin,omitempty"`

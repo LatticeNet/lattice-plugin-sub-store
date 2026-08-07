@@ -62,10 +62,20 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	if strings.TrimSpace(source) == "" {
 		source = rec.Content
 	}
+	// A vpn-core record carries no inline content, so on the very first request
+	// — before the core holds a snapshot — there is nothing to fall back to.
+	// Reading the export here means such a subscription serves correctly the
+	// first time it is fetched rather than failing until something warms it.
+	if strings.TrimSpace(source) == "" && rec.Source == subscriptionSourceVPNCore {
+		fetched, err := rt.fetchSubscription(subscriptionID)
+		if err != nil {
+			return renderResult{}, err
+		}
+		source = fetched.Raw
+	}
 	if strings.TrimSpace(source) == "" {
-		// Remote fetch arrives with sub-project 2. Until then a record without
-		// inline content has nothing to render, and saying so is better than
-		// serving an empty subscription.
+		// Saying so beats serving an empty subscription: a client that receives
+		// an empty success deletes every node it had.
 		return renderResult{}, fmt.Errorf("subscription %q has no content to render", subscriptionID)
 	}
 
@@ -207,6 +217,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		type view struct {
 			ID        string `json:"id"`
 			Name      string `json:"name"`
+			Source    string `json:"source,omitempty"`
 			HasURL    bool   `json:"has_url"`
 			HasInline bool   `json:"has_inline_content"`
 			Target    string `json:"target,omitempty"`
@@ -216,7 +227,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		views := make([]view, 0, len(records))
 		for _, rec := range records {
 			views = append(views, view{
-				ID: rec.ID, Name: rec.Name,
+				ID: rec.ID, Name: rec.Name, Source: rec.Source,
 				HasURL: strings.TrimSpace(rec.URL) != "", HasInline: strings.TrimSpace(rec.Content) != "",
 				Target: rec.Target, Operators: len(rec.Operators), Imported: rec.Origin != nil,
 			})
@@ -337,6 +348,16 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(err)
 			}
 			raw = rec.Content
+			// Same reason as render: a vpn-core record has no inline content,
+			// and a preview that showed nothing would look like a broken
+			// subscription rather than one sourced from somewhere else.
+			if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
+				fetched, err := rt.fetchSubscription(req.SubscriptionID)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				raw = fetched.Raw
+			}
 			if operators == nil {
 				operators = rec.Operators
 			}
