@@ -8,6 +8,7 @@ import {
   SOURCE_VPN_CORE,
   SOURCE_REMOTE,
   SOURCE_LOCAL,
+  FAILURE_STRICT,
   KIND_SUB,
   KIND_COLLECTION,
   type OperatorCatalogResponse,
@@ -43,6 +44,8 @@ export interface SubscriptionDraft {
   /** Collection inputs. */
   members: string[];
   memberTags: string[];
+  /** Collections only. */
+  failureMode: string;
   /** The ordered chain, including disabled steps. */
   process: unknown[];
 }
@@ -99,6 +102,7 @@ export function emptyDraft(): SubscriptionDraft {
     target: "",
     members: [],
     memberTags: [],
+    failureMode: FAILURE_STRICT,
     process: [],
   };
 }
@@ -118,6 +122,7 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     target: record.target ?? "",
     members: Array.isArray(record.members) ? [...record.members] : [],
     memberTags: Array.isArray(record.member_tags) ? [...record.member_tags] : [],
+    failureMode: record.failure_mode || FAILURE_STRICT,
     process: Array.isArray(record.process) ? [...record.process] : [],
   };
 }
@@ -269,6 +274,7 @@ export function useSubscriptions(host: HostContext) {
         ua: collection ? undefined : draft.ua.trim() || undefined,
         members: collection && draft.members.length ? draft.members : undefined,
         member_tags: collection && draft.memberTags.length ? draft.memberTags : undefined,
+        failure_mode: collection ? draft.failureMode : undefined,
         target: draft.target.trim() || undefined,
         process: draft.process.length ? draft.process : undefined,
       };

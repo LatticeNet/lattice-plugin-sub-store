@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChevronDown, GripVertical, Plus, Trash2 } from "@lucide/vue";
+import { ChevronRight, Copy, GripVertical, Trash2 } from "@lucide/vue";
 
-import { OPERATOR_SCHEMAS, defaultArgs, schemaFor } from "../operatorSchema";
+import { defaultArgs, schemaFor } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
 
 /**
- * The ordered operator chain, following the Sub-Store front end's model.
+ * The ordered operator chain.
  *
  * Three properties are load-bearing and easy to lose:
  *  - order matters, because each step sees the previous step's output;
  *  - a step can be DISABLED rather than deleted, so trying the chain without it
  *    does not destroy its arguments;
- *  - a step can be renamed, because "Regex Rename Operator" three times in a row
- *    tells the reader nothing about which is which.
+ *  - a step can be renamed, because three "Regex Rename" rows in a row tell the
+ *    reader nothing about which is which.
  *
- * Steps are held as plain objects and round-tripped whole, so fields this editor
- * does not understand — an `id` from an import, whatever upstream adds next —
- * survive an edit instead of being dropped on save.
+ * Steps round-trip whole, so fields this editor does not understand — an `id`
+ * from an import, whatever upstream adds next — survive an edit.
  */
 
 export interface ChainStep {
@@ -30,8 +29,14 @@ export interface ChainStep {
 
 const props = defineProps<{
   steps: ChainStep[];
-  /** Operator types the backend actually accepts, from the catalogue call. */
+  /** Operator types the backend accepts, from the catalogue call. */
   catalog: readonly { type: string; scripting?: boolean }[];
+  /**
+   * Types edited by the common-settings block above. They stay in the chain —
+   * they are ordinary operators — but listing them here too would give one
+   * setting two controls that can disagree.
+   */
+  managedTypes?: readonly string[];
 }>();
 
 const emit = defineEmits<{
@@ -39,35 +44,33 @@ const emit = defineEmits<{
 }>();
 
 const expanded = ref<number | null>(null);
-const adding = ref(false);
 const dragIndex = ref<number | null>(null);
 
-/** Catalogue entries grouped for the picker; unknown types still appear. */
-const grouped = computed(() => {
-  const groups: Record<string, { type: string; summary: string; scripting: boolean }[]> = {
-    filter: [],
-    rewrite: [],
-    script: [],
-    other: [],
-  };
-  for (const entry of props.catalog) {
-    const schema = schemaFor(entry.type);
-    const group = schema?.group ?? "other";
-    groups[group].push({
-      type: entry.type,
-      summary: schema?.summary ?? "No description yet; arguments are edited as JSON.",
-      scripting: Boolean(entry.scripting),
-    });
-  }
-  return groups;
-});
+const managed = computed(() => new Set(props.managedTypes ?? []));
 
-const GROUP_LABELS: Record<string, string> = {
-  filter: "Keep or drop nodes",
-  rewrite: "Change nodes",
-  script: "Run JavaScript",
-  other: "Not described yet",
-};
+/** Index pairs so the visible list can act on the real array positions. */
+const visible = computed(() =>
+  props.steps
+    .map((step, index) => ({ step, index }))
+    .filter((entry) => !managed.value.has(entry.step.type)),
+);
+
+/** Every operator, in one flat grid — one click to add, nothing hidden. */
+const addable = computed(() =>
+  props.catalog
+    .filter((entry) => !managed.value.has(entry.type))
+    .map((entry) => ({
+      type: entry.type,
+      label: schemaFor(entry.type)?.label ?? entry.type,
+      scripting: Boolean(entry.scripting),
+    })),
+);
+
+function label(step: ChainStep, position: number): string {
+  const name = step.customName?.trim();
+  if (name) return name;
+  return `${position}. ${schemaFor(step.type)?.label ?? step.type}`;
+}
 
 function commit(next: ChainStep[]): void {
   emit("update:steps", next);
@@ -76,7 +79,6 @@ function commit(next: ChainStep[]): void {
 function add(type: string): void {
   commit([...props.steps, { type, args: defaultArgs(type) }]);
   expanded.value = props.steps.length;
-  adding.value = false;
 }
 
 function remove(index: number): void {
@@ -84,23 +86,31 @@ function remove(index: number): void {
   if (expanded.value === index) expanded.value = null;
 }
 
-function toggleDisabled(index: number): void {
-  const next = props.steps.map((step, i) =>
-    i === index ? { ...step, disabled: !step.disabled } : step,
-  );
+/** Duplicating a tuned step is how you make a variant without retyping it. */
+function duplicate(index: number): void {
+  const source = props.steps[index];
+  const copy: ChainStep = {
+    ...source,
+    args: source.args ? { ...source.args } : undefined,
+    customName: source.customName ? `${source.customName} copy` : undefined,
+  };
+  const next = [...props.steps];
+  next.splice(index + 1, 0, copy);
   commit(next);
+}
+
+function toggleDisabled(index: number): void {
+  commit(props.steps.map((step, i) => (i === index ? { ...step, disabled: !step.disabled } : step)));
 }
 
 function rename(index: number, name: string): void {
-  const next = props.steps.map((step, i) =>
-    i === index ? { ...step, customName: name || undefined } : step,
+  commit(
+    props.steps.map((step, i) => (i === index ? { ...step, customName: name || undefined } : step)),
   );
-  commit(next);
 }
 
 function setArgs(index: number, args: Record<string, unknown>): void {
-  const next = props.steps.map((step, i) => (i === index ? { ...step, args } : step));
-  commit(next);
+  commit(props.steps.map((step, i) => (i === index ? { ...step, args } : step)));
 }
 
 function move(from: number, to: number): void {
@@ -112,253 +122,171 @@ function move(from: number, to: number): void {
   if (expanded.value === from) expanded.value = to;
 }
 
-// Drag to reorder, with keyboard arrows as the equivalent that does not require
-// a pointer — a chain is ordered data, and reordering must not be mouse-only.
 function onDrop(index: number): void {
   if (dragIndex.value === null) return;
   move(dragIndex.value, index);
   dragIndex.value = null;
 }
 
-function label(step: ChainStep, index: number): string {
-  return step.customName?.trim() || `${index + 1}. ${step.type}`;
-}
+const activeCount = computed(() => visible.value.filter((entry) => !entry.step.disabled).length);
 </script>
 
 <template>
-  <div class="chain">
+  <section class="chain">
     <div class="chain-head">
-      <div>
-        <h3>Processing</h3>
-        <p>
-          Steps run top to bottom; each one sees what the previous produced.
-          <template v-if="steps.length">
-            {{ steps.filter((s) => !s.disabled).length }} of {{ steps.length }} active.
-          </template>
-        </p>
-      </div>
-      <button type="button" class="chain-add" @click="adding = !adding">
-        <Plus :size="15" aria-hidden="true" /> Add step
-      </button>
+      <h3>Node operations</h3>
+      <span v-if="visible.length" class="chain-count">
+        {{ activeCount }} of {{ visible.length }} active
+      </span>
     </div>
 
-    <div v-if="adding" class="picker">
-      <template v-for="(entries, group) in grouped" :key="group">
-        <template v-if="entries.length">
-          <p class="picker-group">{{ GROUP_LABELS[group] }}</p>
-          <button
-            v-for="entry in entries"
-            :key="entry.type"
-            type="button"
-            class="picker-item"
-            @click="add(entry.type)"
-          >
-            <span class="picker-name">
-              {{ entry.type }}
-              <span v-if="entry.scripting" class="picker-tag">runs JS</span>
-            </span>
-            <span class="picker-summary">{{ entry.summary }}</span>
-          </button>
-        </template>
-      </template>
-    </div>
-
-    <p v-if="!steps.length" class="chain-empty">
-      No processing. The nodes are served exactly as the source provides them.
-    </p>
-
-    <ol v-else class="chain-list">
+    <ol v-if="visible.length" class="chain-list">
       <li
-        v-for="(step, index) in steps"
-        :key="index"
-        :class="['chain-step', { 'is-off': step.disabled }]"
+        v-for="(entry, position) in visible"
+        :key="entry.index"
+        :class="['chain-step', { 'is-off': entry.step.disabled }]"
         draggable="true"
-        @dragstart="dragIndex = index"
+        @dragstart="dragIndex = entry.index"
         @dragover.prevent
-        @drop="onDrop(index)"
+        @drop="onDrop(entry.index)"
       >
         <div class="step-bar">
           <span class="step-grip" aria-hidden="true"><GripVertical :size="15" /></span>
 
-          <button type="button" class="step-title" @click="expanded = expanded === index ? null : index">
-            <ChevronDown :size="14" :class="['step-caret', { 'is-open': expanded === index }]" />
-            {{ label(step, index) }}
+          <button
+            type="button"
+            class="step-title"
+            @click="expanded = expanded === entry.index ? null : entry.index"
+          >
+            <ChevronRight
+              :size="14"
+              :class="['step-caret', { 'is-open': expanded === entry.index }]"
+            />
+            {{ label(entry.step, position + 1) }}
           </button>
 
           <div class="step-actions">
+            <label class="step-toggle">
+              <input
+                type="checkbox"
+                :checked="!entry.step.disabled"
+                @change="toggleDisabled(entry.index)"
+              />
+              <span>Enabled</span>
+            </label>
             <button
               type="button"
-              class="step-move"
-              :disabled="index === 0"
+              class="step-icon"
+              :disabled="position === 0"
               aria-label="Move up"
-              @click="move(index, index - 1)"
+              @click="move(entry.index, entry.index - 1)"
             >
               ↑
             </button>
             <button
               type="button"
-              class="step-move"
-              :disabled="index === steps.length - 1"
+              class="step-icon"
+              :disabled="position === visible.length - 1"
               aria-label="Move down"
-              @click="move(index, index + 1)"
+              @click="move(entry.index, entry.index + 1)"
             >
               ↓
             </button>
-            <label class="step-toggle">
-              <input type="checkbox" :checked="!step.disabled" @change="toggleDisabled(index)" />
-              <span>{{ step.disabled ? "Off" : "On" }}</span>
-            </label>
-            <button type="button" class="step-drop" aria-label="Remove step" @click="remove(index)">
-              <Trash2 :size="15" />
+            <button
+              type="button"
+              class="step-icon"
+              aria-label="Duplicate step"
+              @click="duplicate(entry.index)"
+            >
+              <Copy :size="14" />
+            </button>
+            <button
+              type="button"
+              class="step-icon is-danger"
+              aria-label="Remove step"
+              @click="remove(entry.index)"
+            >
+              <Trash2 :size="14" />
             </button>
           </div>
         </div>
 
-        <div v-if="expanded === index" class="step-body">
+        <div v-if="expanded === entry.index" class="step-body">
           <label class="step-name">
             <span>Label</span>
             <input
               type="text"
               autocomplete="off"
-              :placeholder="step.type"
-              :value="step.customName ?? ''"
-              @input="rename(index, ($event.target as HTMLInputElement).value)"
+              :placeholder="schemaFor(entry.step.type)?.label ?? entry.step.type"
+              :value="entry.step.customName ?? ''"
+              @input="rename(entry.index, ($event.target as HTMLInputElement).value)"
             />
           </label>
 
           <OperatorArgs
-            :type="step.type"
-            :args="(step.args as Record<string, unknown>) ?? {}"
-            @update:args="setArgs(index, $event)"
+            :type="entry.step.type"
+            :args="(entry.step.args as Record<string, unknown>) ?? {}"
+            @update:args="setArgs(entry.index, $event)"
           />
         </div>
       </li>
     </ol>
-  </div>
+
+    <p v-else class="chain-empty">
+      No operations. Nodes are served exactly as the source provides them.
+    </p>
+
+    <!-- Every operator visible at once. A picker that has to be opened turns
+         "what can this do" into a question you have to go and ask. -->
+    <div class="add-block">
+      <p class="add-label">Add an operation</p>
+      <div class="add-grid">
+        <button
+          v-for="entry in addable"
+          :key="entry.type"
+          type="button"
+          class="add-button"
+          :title="schemaFor(entry.type)?.summary ?? entry.type"
+          @click="add(entry.type)"
+        >
+          {{ entry.label }}
+          <span v-if="entry.scripting" class="add-tag">JS</span>
+        </button>
+      </div>
+      <p v-if="!addable.length" class="add-waiting">Loading the operator catalogue…</p>
+    </div>
+  </section>
 </template>
 
 <style scoped>
 .chain {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .chain-head {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
 .chain-head h3 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 15px;
   font-weight: 700;
 }
 
-.chain-head p {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--text-3, #7c8896);
-}
-
-.chain-add,
-.picker-item,
-.step-move,
-.step-drop,
-.step-title {
-  border: 1px solid var(--border, #242d3a);
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
-.chain-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: 12.5px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.picker {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-  border: 1px solid var(--border, #242d3a);
-  border-radius: 10px;
-  background: var(--surface-2, #0d1117);
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.picker-group {
-  margin: 8px 0 2px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-3, #7c8896);
-}
-
-.picker-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 8px 10px;
-  text-align: left;
-  border-color: transparent;
-}
-
-.picker-item:hover {
-  border-color: var(--border, #242d3a);
-  background: var(--surface, #161c26);
-}
-
-.picker-name {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.picker-tag {
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 18%, transparent);
-  color: var(--accent, #2dd4bf);
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.picker-summary {
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--text-3, #7c8896);
-}
-
-.chain-empty {
-  margin: 0;
-  padding: 14px;
-  border: 1px dashed var(--border, #242d3a);
-  border-radius: 10px;
-  font-size: 12.5px;
+.chain-count {
+  font-size: 12px;
   color: var(--text-3, #7c8896);
 }
 
 .chain-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -371,9 +299,9 @@ function label(step: ChainStep, index: number): string {
 }
 
 /* A disabled step stays legible — it is kept precisely so it can be read and
-   switched back on, so fading it to near-invisible would defeat the point. */
+   switched back on, so fading it out would defeat the point. */
 .chain-step.is-off {
-  opacity: 0.62;
+  opacity: 0.6;
   border-style: dashed;
 }
 
@@ -381,7 +309,7 @@ function label(step: ChainStep, index: number): string {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 7px 10px;
 }
 
 .step-grip {
@@ -394,11 +322,15 @@ function label(step: ChainStep, index: number): string {
   align-items: center;
   gap: 7px;
   flex: 1;
-  padding: 5px 8px;
-  border-color: transparent;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
   font-size: 13px;
   font-weight: 600;
   text-align: left;
+  cursor: pointer;
 }
 
 .step-caret {
@@ -406,32 +338,46 @@ function label(step: ChainStep, index: number): string {
 }
 
 .step-caret.is-open {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 
 .step-actions {
   display: flex;
   align-items: center;
-  gap: 5px;
-}
-
-.step-move,
-.step-drop {
-  padding: 4px 8px;
-  font-size: 12px;
-}
-
-.step-move:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  gap: 4px;
 }
 
 .step-toggle {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  margin-right: 4px;
   font-size: 11.5px;
   color: var(--text-3, #7c8896);
+  white-space: nowrap;
+}
+
+.step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  padding: 4px 6px;
+  border: 1px solid var(--border, #242d3a);
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.step-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.step-icon.is-danger {
+  color: #f87171;
 }
 
 .step-body {
@@ -449,5 +395,72 @@ function label(step: ChainStep, index: number): string {
   font-size: 12px;
   font-weight: 650;
   color: var(--text-2, #adb8c6);
+}
+
+.chain-empty {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--border, #242d3a);
+  border-radius: 10px;
+  font-size: 12.5px;
+  color: var(--text-3, #7c8896);
+}
+
+.add-block {
+  padding: 12px 14px 14px;
+  border: 1px solid var(--border, #242d3a);
+  border-radius: 10px;
+  background: var(--surface-2, #0d1117);
+}
+
+.add-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3, #7c8896);
+}
+
+.add-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 7px;
+}
+
+.add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #242d3a);
+  border-radius: 8px;
+  background: var(--surface, #161c26);
+  color: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.add-button:hover {
+  border-color: var(--accent, #2dd4bf);
+  color: var(--accent, #2dd4bf);
+}
+
+.add-tag {
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent, #2dd4bf) 20%, transparent);
+  color: var(--accent, #2dd4bf);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.add-waiting {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-3, #7c8896);
 }
 </style>

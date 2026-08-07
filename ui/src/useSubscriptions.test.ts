@@ -100,6 +100,7 @@ describe("draftFromRecord", () => {
       tags: [],
       members: [],
       memberTags: [],
+      failureMode: "strict",
       process: [],
     });
   });

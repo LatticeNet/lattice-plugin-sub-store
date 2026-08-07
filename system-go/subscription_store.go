@@ -34,6 +34,13 @@ const (
 	// source and still resolves url-then-content, which is what it always did.
 	subscriptionSourceRemote = "remote"
 	subscriptionSourceLocal  = "local"
+	// How a collection reacts when one of its members cannot be fetched.
+	// Upstream makes this a choice rather than a rule, and it genuinely is one:
+	// strict protects a client from silently losing nodes, while skipping keeps
+	// the rest of a large collection serving when one provider is down. The
+	// default is strict, because the failure it prevents is destructive.
+	failureModeStrict = "strict"
+	failureModeSkip   = "skip-failed"
 )
 
 type subscriptionRecordsDocument struct {
@@ -82,6 +89,8 @@ type subscriptionRecord struct {
 	Members    []string `json:"members,omitempty"`
 	MemberTags []string `json:"member_tags,omitempty"`
 	Target     string   `json:"target,omitempty"`
+	// FailureMode applies to collections. Empty means strict.
+	FailureMode string `json:"failure_mode,omitempty"`
 	// Process is the ordered operator chain. Entries are kept as raw JSON for
 	// the same reason Origin is: an entry carries fields this plugin does not
 	// interpret (customName, id, and whatever upstream adds next), and a

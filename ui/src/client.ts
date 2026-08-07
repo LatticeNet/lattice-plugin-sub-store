@@ -167,6 +167,8 @@ export interface SubscriptionRecord {
   /** Collection inputs: explicit sub ids, plus every sub carrying these tags. */
   members?: string[];
   member_tags?: string[];
+  /** Collections only: "strict" (default) or "skip-failed". */
+  failure_mode?: string;
   url?: string;
   content?: string;
   /** "vpn-core" reads the live node export; empty uses url/content. */
@@ -284,6 +286,10 @@ export const SOURCE_VPN_CORE = "vpn-core";
 export const SOURCE_REMOTE = "remote";
 /** Nodes pasted by hand. The engine accepts every format it recognises. */
 export const SOURCE_LOCAL = "local";
+
+/** How a combination reacts when a member cannot be fetched. */
+export const FAILURE_STRICT = "strict";
+export const FAILURE_SKIP = "skip-failed";
 
 /** Curated produce targets for the pinned upstream core. "Clash" and
  *  "sing-box" are pinned by the system-go engine tests; the rest are
