@@ -6,6 +6,8 @@ import {
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
   SOURCE_VPN_CORE,
+  SOURCE_REMOTE,
+  SOURCE_LOCAL,
   KIND_SUB,
   KIND_COLLECTION,
   type OperatorCatalogResponse,
@@ -43,6 +45,36 @@ export interface SubscriptionDraft {
   memberTags: string[];
   /** The ordered chain, including disabled steps. */
   process: unknown[];
+}
+
+/**
+ * A storage key derived from the name.
+ *
+ * Upstream Sub-Store keys everything by name, which is why renaming a
+ * subscription there breaks the URL that points at it. Keeping a derived,
+ * immutable id gives the same "you only type a name" experience without that
+ * consequence: a share published against a subscription survives a rename.
+ */
+export function slugify(name: string): string {
+  const base = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return base || "subscription";
+}
+
+/** The derived id, suffixed until it does not collide with an existing one. */
+export function uniqueId(name: string, taken: readonly string[]): string {
+  const base = slugify(name);
+  const used = new Set(taken);
+  if (!used.has(base)) return base;
+  for (let n = 2; n < 1000; n += 1) {
+    const candidate = `${base}-${n}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  return `${base}-${used.size + 1}`;
 }
 
 /** The chain minus its disabled steps: what the engine would actually run. */
@@ -97,10 +129,9 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
  * core turns into a bodiless 404, giving the operator no clue why.
  */
 export function validateDraft(draft: SubscriptionDraft): string {
-  if (!draft.id.trim()) return "An id is required.";
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(draft.id.trim())) {
-    return "Ids may use letters, digits, dot, dash and underscore, and must start with a letter or digit.";
-  }
+  // The name is what the operator types; the id is derived from it. Asking for
+  // both was asking for a detail with no decision attached to it.
+  if (!draft.name.trim()) return "Give it a name.";
   // A collection is defined by what it gathers, not by a source of its own.
   if (draft.kind === KIND_COLLECTION) {
     if (draft.members.length === 0 && draft.memberTags.length === 0) {
@@ -108,11 +139,11 @@ export function validateDraft(draft: SubscriptionDraft): string {
     }
     return "";
   }
-  // A vpn-core subscription brings its own content, so demanding a URL here
-  // would make the source unusable — that requirement is exactly what kept the
-  // native platform from serving a fleet whose nodes live in vpn-core.
-  if (draft.source !== SOURCE_VPN_CORE && !draft.url.trim() && !draft.content.trim()) {
-    return "Give the subscription a provider URL or some inline content — otherwise it has nothing to serve.";
+  if (draft.source === SOURCE_REMOTE && !draft.url.trim()) {
+    return "Paste the provider's subscription link.";
+  }
+  if (draft.source === SOURCE_LOCAL && !draft.content.trim()) {
+    return "Paste the nodes you want served.";
   }
   // Byte length, not character count: the backend limit is bytes and a
   // subscription full of non-ASCII names would otherwise pass here and fail
@@ -214,8 +245,13 @@ export function useSubscriptions(host: HostContext) {
       // migration, and the backend preserves or clears it rather than trusting
       // a caller. Sending it would be ignored anyway; omitting it says so.
       const collection = draft.kind === KIND_COLLECTION;
+      // On create the id is derived here rather than typed; on edit it is
+      // carried through untouched, because a share already points at it.
+      const id =
+        draft.id.trim() ||
+        uniqueId(draft.name, items.value.map((item) => item.id));
       const record: SubscriptionRecord = {
-        id: draft.id.trim(),
+        id,
         kind: collection ? KIND_COLLECTION : undefined,
         name: draft.name.trim() || draft.id.trim(),
         remark: draft.remark.trim() || undefined,
@@ -228,8 +264,8 @@ export function useSubscriptions(host: HostContext) {
           !collection && draft.source === SOURCE_VPN_CORE
             ? draft.vpnIdentity.trim() || undefined
             : undefined,
-        url: collection ? undefined : draft.url.trim() || undefined,
-        content: collection ? undefined : draft.content || undefined,
+        url: collection || draft.source === SOURCE_LOCAL ? undefined : draft.url.trim() || undefined,
+        content: collection || draft.source === SOURCE_REMOTE ? undefined : draft.content || undefined,
         ua: collection ? undefined : draft.ua.trim() || undefined,
         members: collection && draft.members.length ? draft.members : undefined,
         member_tags: collection && draft.memberTags.length ? draft.memberTags : undefined,
@@ -243,7 +279,7 @@ export function useSubscriptions(host: HostContext) {
         actionError.value = "The backend did not confirm the save.";
         return false;
       }
-      notice.value = `Saved ${record.id}.`;
+      notice.value = `Saved ${record.name}.`;
       await load();
       return true;
     } catch (cause) {
