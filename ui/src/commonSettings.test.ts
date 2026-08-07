@@ -79,14 +79,34 @@ describe("writing settings back into a chain", () => {
   // A hand-edited Quick Setting step can carry keys these toggles do not cover.
   // Replacing the step wholesale would silently drop them.
   it("preserves arguments the toggles do not manage", () => {
-    const before: ChainStep[] = [{ type: QUICK, args: { udp: true, "something else": 42 } }];
+    const before: ChainStep[] = [{ type: QUICK, args: { udp: "ENABLED", "something else": 42 } }];
     const after = applyCommonSettings(before, { ...emptyCommonSettings(), udp: "off" });
     const quick = after.find((s) => s.type === QUICK);
-    expect(quick?.args).toMatchObject({ udp: false, "something else": 42 });
+    expect(quick?.args).toMatchObject({ udp: "DISABLED", "something else": 42 });
+  });
+
+  // The engine switches on "ENABLED"/"DISABLED" and returns the node's existing
+  // value for anything else, so a boolean here is a switch that does nothing.
+  it("writes the engine's own spelling, not booleans", () => {
+    const after = applyCommonSettings([], {
+      ...emptyCommonSettings(),
+      udp: "on",
+      skipCertVerify: "off",
+    });
+    const quick = after.find((s) => s.type === QUICK);
+    expect(quick?.args).toMatchObject({ udp: "ENABLED", scert: "DISABLED" });
+  });
+
+  // Records written before that was understood still open with their switches
+  // in the right position.
+  it("still reads a boolean written by an older build", () => {
+    const settings = readCommonSettings([{ type: QUICK, args: { udp: true, scert: false } }]);
+    expect(settings.udp).toBe("on");
+    expect(settings.skipCertVerify).toBe("off");
   });
 
   it("keeps a step that still has unmanaged arguments after the toggles clear", () => {
-    const before: ChainStep[] = [{ type: QUICK, args: { udp: true, "something else": 42 } }];
+    const before: ChainStep[] = [{ type: QUICK, args: { udp: "ENABLED", "something else": 42 } }];
     const after = applyCommonSettings(before, emptyCommonSettings());
     const quick = after.find((s) => s.type === QUICK);
     expect(quick, "a step carrying other arguments must not be deleted").toBeDefined();

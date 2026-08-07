@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { ChevronRight, Copy, GripVertical, Trash2 } from "@lucide/vue";
 
-import { defaultArgs, schemaFor } from "../operatorSchema";
+import { defaultArgs, fromWireArgs, schemaFor, toWireArgs } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
 
 /**
@@ -94,7 +94,7 @@ function commit(next: ChainStep[]): void {
 }
 
 function add(type: string): void {
-  commit([...props.steps, { type, args: defaultArgs(type) }]);
+  commit([...props.steps, { type, args: toWireArgs(type, defaultArgs(type)) as ChainStep["args"] }]);
   expanded.value = props.steps.length;
 }
 
@@ -127,7 +127,14 @@ function rename(index: number, name: string): void {
 }
 
 function setArgs(index: number, args: Record<string, unknown>): void {
-  commit(props.steps.map((step, i) => (i === index ? { ...step, args } : step)));
+  // The editor works in named fields; the engine takes each operator's own
+  // shape. Converting here means every write leaves the store in the shape the
+  // engine reads, including for records saved before this was understood.
+  commit(
+    props.steps.map((step, i) =>
+      i === index ? { ...step, args: toWireArgs(step.type, args) as ChainStep["args"] } : step,
+    ),
+  );
 }
 
 function move(from: number, to: number): void {
@@ -242,7 +249,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
           <OperatorArgs
             :type="entry.step.type"
-            :args="(entry.step.args as Record<string, unknown>) ?? {}"
+            :args="fromWireArgs(entry.step.type, entry.step.args)"
             @update:args="setArgs(entry.index, $event)"
           />
         </div>

@@ -91,7 +91,11 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 		if err != nil {
 			return renderResult{}, err
 		}
-		return renderResult{Content: body, ContentType: contentType}, nil
+		body, headers, err := rt.applyResponseChain(rec, body, contentType)
+		if err != nil {
+			return renderResult{}, err
+		}
+		return renderResult{Content: body, ContentType: contentType, Headers: headers}, nil
 	}
 
 	// The core hands back the snapshot it holds for this subscription. Inline
@@ -137,7 +141,63 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	if err != nil {
 		return renderResult{}, err
 	}
-	return renderResult{Content: body, ContentType: contentType}, nil
+	body, headers, err := rt.applyResponseChain(rec, body, contentType)
+	if err != nil {
+		return renderResult{}, err
+	}
+	return renderResult{Content: body, ContentType: contentType, Headers: headers}, nil
+}
+
+// applyResponseChain runs the record's chain a second time, over what it is
+// about to serve.
+//
+// One chain, two stages — that is how the engine is built. `process` walks the
+// chain over the nodes and skips response transformers outright; `processResponse`
+// walks the same chain over the finished body and runs only those. Treating the
+// two vocabularies as alternatives, which this plugin did, meant a subscription
+// could not rewrite its own output at all even though the operator had a step
+// saying it should.
+//
+// A chain with no response transformer costs nothing: the engine is not started.
+func (rt *runtime) applyResponseChain(rec subscriptionRecord, body, contentType string) (string, map[string]string, error) {
+	operators, err := enabledOperators(rec)
+	if err != nil {
+		return "", nil, fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	staged := make([]json.RawMessage, 0, len(operators))
+	for _, raw := range operators {
+		if meta, err := decodeStep(raw); err == nil && responseOperators[meta.Type] {
+			staged = append(staged, raw)
+		}
+	}
+	if len(staged) == 0 {
+		return body, nil, nil
+	}
+	out, err := rt.subStoreEngine().transformResponse(subStoreResponseTransformRequest{
+		Response: mustJSON(map[string]any{
+			"status":  200,
+			"headers": map[string]any{"content-type": contentType},
+			"body":    body,
+		}),
+		Operators: staged,
+	})
+	if err != nil {
+		return "", nil, fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	if strings.TrimSpace(out.Body) == "" {
+		// The same rule the empty render has: a client that receives an empty
+		// success deletes every node it had.
+		return "", nil, fmt.Errorf("subscription %q: its response chain produced nothing", rec.ID)
+	}
+	// The engine's header map is untyped; the wire carries strings. A header
+	// whose value is not one is dropped rather than rendered as Go's %v.
+	headers := map[string]string{}
+	for key, value := range out.Headers {
+		if text, ok := value.(string); ok {
+			headers[key] = text
+		}
+	}
+	return out.Body, headers, nil
 }
 
 // encodeSubscriptionOutput applies the core's transport format to the engine's

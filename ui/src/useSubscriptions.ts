@@ -36,6 +36,13 @@ export interface SubscriptionDraft {
   /** KIND_SUB, KIND_COLLECTION or KIND_FILE. */
   kind: string;
   name: string;
+  /**
+   * What the lists show instead of the name.
+   *
+   * Every list already preferred it and nothing could set it, so a record
+   * imported from Sub-Store displayed a name its operator had no way to change.
+   */
+  displayName: string;
   remark: string;
   tags: string[];
   /** "" for url/content, or SOURCE_VPN_CORE for the live node export. */
@@ -144,6 +151,7 @@ export function emptyDraft(): SubscriptionDraft {
     id: "",
     kind: KIND_SUB,
     name: "",
+    displayName: "",
     remark: "",
     tags: [],
     source: "",
@@ -168,6 +176,7 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     id: record.id,
     kind: knownKind(record.kind),
     name: record.name ?? "",
+    displayName: record.display_name ?? "",
     remark: record.remark ?? "",
     tags: Array.isArray(record.tags) ? [...record.tags] : [],
     source: record.source ?? "",
@@ -342,6 +351,7 @@ export function useSubscriptions(host: HostContext) {
         id,
         kind: collection ? KIND_COLLECTION : file ? KIND_FILE : undefined,
         name: draft.name.trim() || draft.id.trim(),
+        display_name: draft.displayName.trim() || undefined,
         remark: draft.remark.trim() || undefined,
         tags: draft.tags.length ? draft.tags : undefined,
         // Source and membership are mutually exclusive; the backend clears the

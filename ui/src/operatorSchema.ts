@@ -52,6 +52,17 @@ export interface OperatorSchema {
   summary: string;
   /** "filter" keeps or drops nodes; "rewrite" changes them; "script" runs JS. */
   group: "filter" | "rewrite" | "script";
+  /**
+   * How `args` is shaped on the wire.
+   *
+   * Most operators take an object keyed by field. Several take the value
+   * directly — `Regex Delete Operator` is handed `["cn"]`, `Sort Operator` is
+   * handed `"asc"` — and wrapping those in `{value: …}` produces an operator
+   * the engine either ignores or throws on. Every entry here was read out of
+   * the bundled engine's constructor, not inferred from the name; inferring is
+   * how they came to be wrong in the first place.
+   */
+  wire?: "object" | "bare";
   fields: readonly OperatorField[];
 }
 
@@ -117,7 +128,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     group: "filter",
     fields: [
       {
-        key: "value",
+        key: "regex",
         label: "Patterns",
         kind: "textarea",
         placeholder: "One regular expression per line",
@@ -133,7 +144,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     group: "filter",
     fields: [
       {
-        key: "value",
+        key: "rule",
         label: "Expression",
         kind: "textarea",
         placeholder: "type=vless AND port=443",
@@ -156,6 +167,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Regex Rename Operator",
+    wire: "bare",
     label: "Regex rename",
     summary: "Rewrite node names by pattern.",
     group: "rewrite",
@@ -171,6 +183,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Regex Delete Operator",
+    wire: "bare",
     label: "Regex delete",
     summary: "Strip matching text out of node names.",
     group: "rewrite",
@@ -190,7 +203,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     group: "rewrite",
     fields: [
       {
-        key: "value",
+        key: "mode",
         label: "Action",
         kind: "select",
         default: "add",
@@ -203,6 +216,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Sort Operator",
+    wire: "bare",
     label: "Sort",
     summary: "Order the node list.",
     group: "rewrite",
@@ -222,6 +236,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Regex Sort Operator",
+    wire: "bare",
     label: "Regex sort",
     summary: "Order nodes by which pattern they match first.",
     group: "rewrite",
@@ -288,7 +303,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
         ],
       },
       {
-        key: "mode",
+        key: "type",
         label: "Mode",
         kind: "select",
         default: "auto",
@@ -407,4 +422,44 @@ export function defaultArgs(type: string): Record<string, unknown> {
     if (field.default !== undefined) args[field.key] = field.default;
   }
   return args;
+}
+
+/**
+ * Convert an operator's editor arguments to what the engine reads.
+ *
+ * `wire: "bare"` operators are handed their value directly — `Sort Operator`
+ * receives `"asc"`, `Regex Delete Operator` receives `["cn"]`. Wrapping those in
+ * `{value: …}` gave the constructor an object where it expected a string or an
+ * array, so the operator sat in the chain doing nothing or threw at serve time.
+ */
+export function toWireArgs(type: string, args: Record<string, unknown>): unknown {
+  const schema = schemaFor(type);
+  if (!schema || schema.wire !== "bare") return args;
+  const field = schema.fields[0];
+  return field ? args[field.key] : args;
+}
+
+/**
+ * The inverse, for loading a stored step into the editor.
+ *
+ * Both shapes are accepted: a record written before this was understood still
+ * opens, and saving it writes the shape the engine wants.
+ */
+export function fromWireArgs(type: string, raw: unknown): Record<string, unknown> {
+  const schema = schemaFor(type);
+  if (raw && typeof raw === "object" && !Array.isArray(raw) && (!schema || schema.wire !== "bare")) {
+    return raw as Record<string, unknown>;
+  }
+  if (!schema) return {};
+  const field = schema.fields[0];
+  if (!field) return {};
+  if (raw === undefined || raw === null) return {};
+  // A bare operator whose stored args are still `{value: …}` — the old, wrong
+  // shape — reads its value back out rather than losing it.
+  if (!Array.isArray(raw) && typeof raw === "object") {
+    const wrapped = raw as Record<string, unknown>;
+    if ("value" in wrapped) return { [field.key]: wrapped.value };
+    return wrapped;
+  }
+  return { [field.key]: raw };
 }

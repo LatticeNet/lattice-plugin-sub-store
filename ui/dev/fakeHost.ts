@@ -71,7 +71,7 @@ const records: StoredRecord[] = [
     process: [
       { type: "Useless Filter" },
       { type: "Quick Setting Operator", args: { udp: true } },
-      { type: "Regex Rename Operator", args: { value: [["^HK", "🇭🇰 Hong Kong"]] } },
+      { type: "Regex Rename Operator", args: { value: [{ expr: "^HK", now: "🇭🇰 Hong Kong" }] } },
     ],
   },
   {

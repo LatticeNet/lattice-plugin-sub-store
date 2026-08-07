@@ -19,6 +19,10 @@ type httpKVHost struct {
 	body    []byte
 	httpErr error
 	ua      string
+	// byPath answers per URL suffix. A migration reads three endpoints, and one
+	// canned body for all of them would let a test pass while importing the same
+	// list three times.
+	byPath map[string][]byte
 }
 
 func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
@@ -28,18 +32,35 @@ func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
 	encoded, _ := json.Marshal(params)
 	var p struct {
 		Header map[string]string `json:"header"`
+		URL    string            `json:"url"`
 	}
 	_ = json.Unmarshal(encoded, &p)
 	h.ua = p.Header["User-Agent"]
 	if h.httpErr != nil {
 		return nil, h.httpErr
 	}
-	reply := map[string]any{"status_code": h.status}
+	body := h.body
+	status := h.status
+	if h.byPath != nil {
+		matched := false
+		for suffix, canned := range h.byPath {
+			if strings.HasSuffix(p.URL, suffix) {
+				body, matched = canned, true
+				break
+			}
+		}
+		if !matched {
+			// A 404 rather than an empty list: an endpoint this host was not
+			// told about is one the source does not serve.
+			status, body = 404, nil
+		}
+	}
+	reply := map[string]any{"status_code": status}
 	if h.header != nil {
 		reply["header"] = h.header
 	}
-	if h.body != nil {
-		reply["body_base64"] = base64.StdEncoding.EncodeToString(h.body)
+	if body != nil {
+		reply["body_base64"] = base64.StdEncoding.EncodeToString(body)
 	}
 	raw, _ := json.Marshal(reply)
 	return raw, nil

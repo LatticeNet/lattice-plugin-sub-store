@@ -231,6 +231,12 @@ watch(host.init, (value) => {
             </label>
 
             <label class="field">
+              <span class="field-label">Display name <span class="field-optional">(optional)</span></span>
+              <input v-model="draft.displayName" type="text" autocomplete="off" placeholder="Phone" />
+              <span class="field-optional">Shown in the list instead of the name.</span>
+            </label>
+
+            <label class="field">
               <span class="field-label">Tags</span>
               <input v-model="tagText" type="text" autocomplete="off" spellcheck="false" placeholder="phone, laptop" />
             </label>

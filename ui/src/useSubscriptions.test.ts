@@ -89,12 +89,26 @@ describe("derived identity", () => {
   });
 });
 
+describe("display name", () => {
+  // Every list already preferred display_name and nothing could set it, so an
+  // imported record showed a name its operator could not change.
+  it("round-trips through the draft", () => {
+    const draft = draftFromRecord({ id: "s1", name: "long-technical-name", display_name: "Home" });
+    expect(draft.displayName).toBe("Home");
+  });
+
+  it("defaults to empty rather than to the name", () => {
+    expect(draftFromRecord({ id: "s1", name: "n" }).displayName).toBe("");
+  });
+});
+
 describe("draftFromRecord", () => {
   it("fills every editable field and never leaves undefined in the form", () => {
     const draft = draftFromRecord({ id: "s1", name: "n" });
     expect(draft).toEqual({
       id: "s1",
       name: "n",
+      displayName: "",
       source: "",
       vpnIdentity: "",
       url: "",

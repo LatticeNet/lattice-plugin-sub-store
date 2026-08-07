@@ -84,32 +84,51 @@ function setTri(field: OperatorField, value: "unset" | "on" | "off"): void {
   else set(field.key, value === "on");
 }
 
-/** Pairs store [[from, to], …]; the editor shows one row per pair. */
+/**
+ * Pairs are stored as `{expr, now}` objects, which is what the engine reads:
+ * `for (const {expr, now} of value)`. They were written as `[from, to]` tuples,
+ * so every rename configured here destructured to undefined and renamed
+ * nothing — the operator was in the chain, the preview showed it running, and
+ * the names came out unchanged.
+ *
+ * Tuples are still READ, because records written under the old shape exist.
+ */
 function pairs(field: OperatorField): [string, string][] {
   const raw = props.args[field.key];
   if (!Array.isArray(raw)) return [["", ""]];
   const rows = raw
-    .map((entry) => (Array.isArray(entry) ? [String(entry[0] ?? ""), String(entry[1] ?? "")] : ["", ""]))
-    .map((entry) => entry as [string, string]);
+    .map((entry): [string, string] => {
+      if (Array.isArray(entry)) return [String(entry[0] ?? ""), String(entry[1] ?? "")];
+      if (entry && typeof entry === "object") {
+        const pair = entry as { expr?: unknown; now?: unknown };
+        return [String(pair.expr ?? ""), String(pair.now ?? "")];
+      }
+      return ["", ""];
+    });
   return rows.length ? rows : [["", ""]];
+}
+
+/** The wire shape. Written on every change so nothing can save a tuple again. */
+function toWirePairs(rows: [string, string][]): { expr: string; now: string }[] {
+  return rows.map(([expr, now]) => ({ expr, now }));
 }
 
 function setPair(field: OperatorField, index: number, slot: 0 | 1, value: string): void {
   const rows = pairs(field).map((row) => [...row] as [string, string]);
   rows[index][slot] = value;
   const kept = rows.filter((row) => row[0].trim() !== "");
-  set(field.key, kept.length ? kept : undefined);
+  set(field.key, kept.length ? toWirePairs(kept) : undefined);
 }
 
 function addPair(field: OperatorField): void {
   const rows = pairs(field).map((row) => [...row] as [string, string]);
   rows.push(["", ""]);
-  set(field.key, rows);
+  set(field.key, toWirePairs(rows));
 }
 
 function removePair(field: OperatorField, index: number): void {
   const rows = pairs(field).filter((_, i) => i !== index);
-  set(field.key, rows.length ? rows : undefined);
+  set(field.key, rows.length ? toWirePairs(rows) : undefined);
 }
 
 // ── raw JSON fallback ──────────────────────────────────────────────────────

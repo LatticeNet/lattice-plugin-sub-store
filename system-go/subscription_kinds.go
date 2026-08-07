@@ -86,13 +86,24 @@ func enabledOperators(rec subscriptionRecord) ([]json.RawMessage, error) {
 // A disabled step is still stored and will run the moment someone re-enables it,
 // so accepting an unknown type here would only move the failure to whenever that
 // happens — which is exactly when nobody is looking at this screen.
+// validateProcess checks one chain against both vocabularies.
+//
+// A record has ONE chain and the engine runs it TWICE: `process` over the nodes,
+// skipping response transformers, then `processResponse` over the produced body,
+// running only those. Splitting the vocabularies and validating against one of
+// them — which this did — refused a legitimate chain and cost subscriptions and
+// combinations the ability to rewrite what they serve at all.
 func validateProcess(steps []json.RawMessage) error {
-	return validateProcessAgainst(steps, operatorCatalogSet())
+	return validateProcessAgainst(steps, processVocabulary())
 }
 
-// validateResponseProcess checks a chain that runs over a served document.
-func validateResponseProcess(steps []json.RawMessage) error {
-	return validateProcessAgainst(steps, responseOperators)
+// processVocabulary is every operator a stored chain may contain.
+func processVocabulary() map[string]bool {
+	known := operatorCatalogSet()
+	for name := range responseOperators {
+		known[name] = true
+	}
+	return known
 }
 
 func validateProcessAgainst(steps []json.RawMessage, known map[string]bool) error {

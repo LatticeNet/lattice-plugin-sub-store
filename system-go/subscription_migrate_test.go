@@ -6,9 +6,17 @@ import (
 	"testing"
 )
 
+// migrationHost serves a subscription list and nothing else, which is what a
+// source with no combinations or files looks like. Answering the same body for
+// every endpoint would import the list three times over.
 func migrationHost(t *testing.T, listBody string, status int) (*runtime, *httpKVHost) {
 	t.Helper()
-	host := &httpKVHost{kvHostCaller: newKVHostCaller(), status: status, body: []byte(listBody)}
+	host := &httpKVHost{
+		kvHostCaller: newKVHostCaller(),
+		status:       status,
+		body:         []byte(listBody),
+		byPath:       map[string][]byte{"/api/subs": []byte(listBody)},
+	}
 	return &runtime{host: host}, host
 }
 

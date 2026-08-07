@@ -46,14 +46,34 @@ const QUICK_KEYS: Record<Exclude<keyof CommonSettings, "dropUseless">, string> =
   vmessAead: "vmess aead",
 };
 
+/**
+ * The engine reads these as STRINGS, not booleans:
+ *
+ *   function t(value, fallback) {
+ *     switch (value) {
+ *       case "ENABLED":  return true
+ *       case "DISABLED": return false
+ *       default:         return fallback
+ *     }
+ *   }
+ *
+ * A boolean lands in `default` and the node keeps whatever it already had, so
+ * every switch in this block was a no-op — the step was written, the editor
+ * showed it set, and nothing changed. Booleans are still READ, because records
+ * saved under the old shape exist.
+ */
 function triFrom(value: unknown): TriState {
-  if (value === undefined || value === null) return "default";
-  return value ? "on" : "off";
+  if (value === "ENABLED") return "on";
+  if (value === "DISABLED") return "off";
+  if (value === undefined || value === null || value === "" || value === "DEFAULT") return "default";
+  if (typeof value === "boolean") return value ? "on" : "off";
+  return "default";
 }
 
-function triTo(state: TriState): boolean | undefined {
-  if (state === "default") return undefined;
-  return state === "on";
+function triTo(state: TriState): string | undefined {
+  if (state === "on") return "ENABLED";
+  if (state === "off") return "DISABLED";
+  return undefined;
 }
 
 /**

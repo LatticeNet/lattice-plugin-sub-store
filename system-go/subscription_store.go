@@ -179,14 +179,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		rec.Process = rec.Operators
 	}
 	rec.Operators = nil
-	// A plain file's chain runs over the served document, where the proxy
-	// operators are skipped. Validating it against the node vocabulary would
-	// accept a step that does nothing.
-	validate := validateProcess
-	if recordKind(rec) == kindFile && fileType(rec) == fileTypePlain {
-		validate = validateResponseProcess
-	}
-	if err := validate(rec.Process); err != nil {
+	if err := validateProcess(rec.Process); err != nil {
 		return fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
 	switch recordKind(rec) {
