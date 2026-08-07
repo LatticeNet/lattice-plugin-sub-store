@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "@lucide/vue";
 
-import { CONVERT_TARGETS, MAX_SUBSCRIPTION_RECORDS } from "../client";
+import { CONVERT_TARGETS, MAX_SUBSCRIPTION_RECORDS, SOURCE_VPN_CORE } from "../client";
 import { useHost } from "../host";
 import {
   draftFromRecord,
@@ -40,6 +40,9 @@ const canSave = computed(() => !draftError.value && !operatorsError.value && !su
 function startCreate(): void {
   subs.clearMessages();
   draft.value = emptyDraft();
+  // Default to the fleet's own nodes: that is what a Lattice deployment has,
+  // and the alternative requires the operator to supply something first.
+  draft.value.source = SOURCE_VPN_CORE;
   operatorsText.value = "";
   operatorsError.value = "";
   editingId.value = null;
@@ -177,6 +180,29 @@ onMounted(async () => {
         </label>
 
         <label class="field field-wide">
+          <span class="field-label">Content comes from</span>
+          <select v-model="draft.source" class="select">
+            <option :value="SOURCE_VPN_CORE">This fleet's vpn-core nodes</option>
+            <option value="">A provider URL or pasted content</option>
+          </select>
+          <span v-if="draft.source === SOURCE_VPN_CORE" class="field-optional">
+            Reads the live node export. Nodes added or removed in vpn-core reach clients on the
+            next refresh — nothing has to be re-pasted.
+          </span>
+        </label>
+
+        <label v-if="draft.source === SOURCE_VPN_CORE" class="field">
+          <span class="field-label">VPN identity</span>
+          <input
+            v-model="draft.vpnIdentity"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="All eligible identities"
+          />
+        </label>
+
+        <label v-if="draft.source !== SOURCE_VPN_CORE" class="field field-wide">
           <span class="field-label">Provider URL</span>
           <input
             v-model="draft.url"
@@ -203,7 +229,7 @@ onMounted(async () => {
           </select>
         </label>
 
-        <label class="field field-wide">
+        <label v-if="draft.source !== SOURCE_VPN_CORE" class="field field-wide">
           <span class="field-label">Inline content</span>
           <textarea
             v-model="draft.content"
@@ -290,7 +316,7 @@ onMounted(async () => {
               <span class="sub-title">{{ item.name }}</span>
               <span class="sub-meta mono">
                 {{ item.id }}
-                · {{ item.has_url ? "provider" : "inline" }}
+                · {{ item.source === SOURCE_VPN_CORE ? "vpn-core" : item.has_url ? "provider" : "inline" }}
                 <template v-if="item.target"> · {{ item.target }}</template>
                 <template v-if="item.operator_count"> · {{ item.operator_count }} operator(s)</template>
               </span>

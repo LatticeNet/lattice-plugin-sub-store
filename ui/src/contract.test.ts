@@ -39,8 +39,11 @@ const active = all.filter((target) => target.status === "active");
 const pending = all.filter((target) => target.status === "pending");
 
 describe("UI ↔ manifest method contract", () => {
-  it("declares the shipped adapter service in the manifest", () => {
-    expect([...declared].some((entry) => entry.startsWith(`${SERVICES.import}/`))).toBe(true);
+  it("no longer declares the outbound import service", () => {
+    // It pushed nodes to an external Sub-Store — the direction this plugin
+    // exists to remove. Re-declaring it should be a deliberate act, not a
+    // silent reappearance.
+    expect([...declared].some((entry) => entry.startsWith("latticenet.sub-store/import/"))).toBe(false);
   });
 
   it("declares the embedded engine service in the manifest", () => {

@@ -18,7 +18,6 @@
 import type { BridgeClient } from "@latticenet/plugin-bridge";
 
 export const SERVICES = {
-  import: "latticenet.sub-store/import",
   engine: "latticenet.sub-store/engine",
   subscription: "latticenet.sub-store/subscription",
 } as const;
@@ -36,13 +35,6 @@ function binding(service: string, method: string, status: BindingStatus): Method
 }
 
 export const BINDINGS = {
-  // ── shipped adapter (manifest-declared) ──────────────────────────────────
-  importStatus: binding(SERVICES.import, "status", "active"),
-  importPreview: binding(SERVICES.import, "preview", "active"),
-  importRun: binding(SERVICES.import, "import", "active"),
-  endpointStatus: binding(SERVICES.import, "endpoint_status", "active"),
-  endpointSave: binding(SERVICES.import, "save_endpoint", "active"),
-  endpointClear: binding(SERVICES.import, "clear_endpoint", "active"),
   // ── embedded engine (manifest-declared since the PR6 merge) ──────────────
   engineConvert: binding(SERVICES.engine, "convert", "active"),
   engineTransformResponse: binding(SERVICES.engine, "transform_response", "active"),
@@ -89,45 +81,6 @@ export const CONVERT_OUTPUT_WARN_BYTES = Math.floor(CONVERT_OUTPUT_BUDGET_BYTES 
 export const RAW_INPUT_LIMIT_BYTES = 1024 * 1024;
 export const MAX_PIPELINE_OPERATORS = 64;
 export const MAX_PIPELINE_RECORDS = 256;
-
-// ── shipped adapter shapes (manifest: latticenet.sub-store/import) ──────────
-
-export interface StatusResponse {
-  reachable: boolean;
-  sub_name: string;
-  error?: string;
-}
-
-export interface ImportResponse {
-  ok: boolean;
-  sub_name: string;
-  pushed: number;
-}
-
-export interface ImportPreviewResponse {
-  sub_name: string;
-  exists: boolean;
-  added: string[];
-  removed: string[];
-  added_count: number;
-  removed_count: number;
-  unchanged_count: number;
-  total_after: number;
-}
-
-export interface AutosyncStatus {
-  state: "running" | "success" | "error";
-  attempted_at?: string;
-  last_success_at?: string;
-  error?: string;
-}
-
-export interface EndpointStatusResponse {
-  has_saved_endpoint: boolean;
-  autosync: boolean;
-  endpoint_hint?: string;
-  autosync_status?: AutosyncStatus;
-}
 
 // ── engine shapes (manifest: latticenet.sub-store/engine) ───────────────────
 
@@ -208,6 +161,10 @@ export interface SubscriptionRecord {
   name: string;
   url?: string;
   content?: string;
+  /** "vpn-core" reads the live node export; empty uses url/content. */
+  source?: string;
+  /** Narrows a vpn-core export to one identity. Empty means all of them. */
+  vpn_identity?: string;
   ua?: string;
   target?: string;
   operators?: unknown[];
@@ -223,6 +180,7 @@ export interface SubscriptionRecord {
 export interface SubscriptionListItem {
   id: string;
   name: string;
+  source?: string;
   has_url: boolean;
   has_inline_content: boolean;
   target?: string;
@@ -300,6 +258,9 @@ export interface BackupExportResponse {
  *  checked here so a paste that cannot be saved says so before a round trip. */
 export const MAX_SUBSCRIPTION_INLINE_BYTES = 256 * 1024;
 export const MAX_SUBSCRIPTION_RECORDS = 256;
+
+/** Mirrors system-go's `subscriptionSourceVPNCore`. */
+export const SOURCE_VPN_CORE = "vpn-core";
 
 /** Curated produce targets for the pinned upstream core. "Clash" and
  *  "sing-box" are pinned by the system-go engine tests; the rest are

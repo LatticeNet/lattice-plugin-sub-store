@@ -134,12 +134,6 @@ type invokeBudgetSpec struct {
 
 func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 	return map[string]invokeBudgetSpec{
-		pluginID + "/import/status":             {TimeoutMS: 3_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/import/preview":            {TimeoutMS: 5_000, StdoutBytes: 256 << 10, StderrBytes: 32 << 10, HostCalls: 2},
-		pluginID + "/import/import":             {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},
-		pluginID + "/import/endpoint_status":    {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/import/save_endpoint":      {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/import/clear_endpoint":     {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		pluginID + "/engine/convert":            {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
 		pluginID + "/engine/transform_response": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
 		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},

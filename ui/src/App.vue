@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { ArrowLeftRight, CircleAlert, DownloadCloud, Library, Settings, Store, Workflow } from "@lucide/vue";
+import { ArrowLeftRight, CircleAlert, Library, Settings, Store, Workflow } from "@lucide/vue";
 
 import { BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
 import { provideHost } from "./host";
 import { safeErrorMessage } from "./subStoreModel";
-import ImportScreen from "./screens/ImportScreen.vue";
 import PipelinesScreen from "./screens/PipelinesScreen.vue";
 import ConvertScreen from "./screens/ConvertScreen.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
@@ -43,14 +42,14 @@ provideHost({
   resize,
 });
 
-type TabId = "subscriptions" | "import" | "pipelines" | "convert" | "settings";
+type TabId = "subscriptions" | "pipelines" | "convert" | "settings";
 
-// Subscriptions leads: it is what this plugin is for. Import/Pipelines/Convert
-// are the tools that feed it, and used to be the whole surface only because the
-// subscription backend shipped without a caller.
+// Subscriptions leads: it is what this plugin is for. The outbound Import tab
+// is gone — it pushed nodes OUT to an external Sub-Store, the opposite of what
+// this plugin now does, and sat next to a Settings action that pulled the other
+// way with nothing to tell the two apart.
 const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [
   { id: "subscriptions", label: "Subscriptions", icon: Library, screen: SubscriptionsScreen },
-  { id: "import", label: "Import", icon: DownloadCloud, screen: ImportScreen },
   { id: "pipelines", label: "Pipelines", icon: Workflow, screen: PipelinesScreen },
   { id: "convert", label: "Convert", icon: ArrowLeftRight, screen: ConvertScreen },
   { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },

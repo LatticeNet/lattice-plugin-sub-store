@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_SUBSCRIPTION_INLINE_BYTES } from "./client";
+import { MAX_SUBSCRIPTION_INLINE_BYTES, SOURCE_VPN_CORE } from "./client";
 import { draftFromRecord, emptyDraft, validateDraft } from "./useSubscriptions";
 
 describe("subscription draft validation", () => {
@@ -25,6 +25,13 @@ describe("subscription draft validation", () => {
    * render of nothing into a bodiless 404. Caught here, the operator gets a
    * sentence; caught there, they get a URL that silently does not work.
    */
+  // A vpn-core subscription supplies its own content, so demanding a URL would
+  // make the source unusable — which is exactly what blocked a fleet whose
+  // nodes live in vpn-core from being served natively.
+  it("does not demand a URL when the content comes from vpn-core", () => {
+    expect(validateDraft({ ...emptyDraft(), id: "fleet", source: SOURCE_VPN_CORE })).toBe("");
+  });
+
   it("requires either a provider URL or inline content", () => {
     expect(validateDraft({ ...emptyDraft(), id: "s1" })).toMatch(/provider URL or some inline content/i);
     expect(validateDraft({ ...emptyDraft(), id: "s1", url: "https://example.invalid" })).toBe("");
@@ -48,7 +55,17 @@ describe("subscription draft validation", () => {
 describe("draftFromRecord", () => {
   it("fills every editable field and never leaves undefined in the form", () => {
     const draft = draftFromRecord({ id: "s1", name: "n" });
-    expect(draft).toEqual({ id: "s1", name: "n", url: "", content: "", ua: "", target: "", operators: [] });
+    expect(draft).toEqual({
+      id: "s1",
+      name: "n",
+      source: "",
+      vpnIdentity: "",
+      url: "",
+      content: "",
+      ua: "",
+      target: "",
+      operators: [],
+    });
   });
 
   it("copies the operator chain rather than aliasing it", () => {

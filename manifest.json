@@ -9,16 +9,14 @@
     "http:operator-target",
     "kv:read",
     "kv:write",
-    "secret:read",
-    "secret:write",
     "subscription:serve"
   ],
-  "version": "0.6.0-alpha.1",
+  "version": "0.7.0-alpha.1",
   "publisher": "latticenet",
-  "signature_ed25519": "MYJHdQD7sit5PrpewtoCWhAnwx1dVZ8OhQ+hWHTw/uhlMhEe5EjSsL/uQNyD2KKkyQFDbn/dhRXqrl3JnwbHAw==",
+  "signature_ed25519": "LkiU2sWknvdrFaR4yG9gQk1MLvUZkiyuO35I5zUk0j9Gm5meHaOF6mUlHVETP00K8IkAQ+cka2lZkT+4/EoyAA==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "44652f96fdc60739b8e34f447bcd5e0632d20af0bce20a4ef3c1517d548977c8"
+    "digest_sha256": "67ec6f4def0b9e53a7eebaf1174033e1f86666ad0f853e8aa4b44731f74f480b"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -69,99 +67,6 @@
     ]
   },
   "interfaces": [
-    {
-      "service": "latticenet.sub-store/import",
-      "methods": [
-        {
-          "name": "status",
-          "effect": "read",
-          "scopes": [
-            "substore:read"
-          ],
-          "operator_target_fields": [
-            "base_url"
-          ],
-          "budget": {
-            "timeout_ms": 3000,
-            "stdout_bytes": 32768,
-            "stderr_bytes": 16384,
-            "host_calls": 1
-          }
-        },
-        {
-          "name": "preview",
-          "effect": "read",
-          "scopes": [
-            "substore:read"
-          ],
-          "operator_target_fields": [
-            "base_url"
-          ],
-          "budget": {
-            "timeout_ms": 5000,
-            "stdout_bytes": 262144,
-            "stderr_bytes": 32768,
-            "host_calls": 2
-          }
-        },
-        {
-          "name": "import",
-          "effect": "write",
-          "scopes": [
-            "substore:admin"
-          ],
-          "operator_target_fields": [
-            "base_url"
-          ],
-          "budget": {
-            "timeout_ms": 10000,
-            "stdout_bytes": 262144,
-            "stderr_bytes": 65536,
-            "host_calls": 4
-          }
-        },
-        {
-          "name": "endpoint_status",
-          "effect": "read",
-          "scopes": [
-            "substore:read"
-          ],
-          "budget": {
-            "timeout_ms": 1000,
-            "stdout_bytes": 16384,
-            "stderr_bytes": 16384,
-            "host_calls": 1
-          }
-        },
-        {
-          "name": "save_endpoint",
-          "effect": "write",
-          "scopes": [
-            "substore:admin"
-          ],
-          "budget": {
-            "timeout_ms": 1000,
-            "stdout_bytes": 16384,
-            "stderr_bytes": 16384,
-            "host_calls": 1
-          }
-        },
-        {
-          "name": "clear_endpoint",
-          "effect": "write",
-          "scopes": [
-            "substore:admin"
-          ],
-          "budget": {
-            "timeout_ms": 1000,
-            "stdout_bytes": 16384,
-            "stderr_bytes": 16384,
-            "host_calls": 2
-          }
-        }
-      ],
-      "backing": "runtime"
-    },
     {
       "service": "latticenet.sub-store/engine",
       "methods": [
