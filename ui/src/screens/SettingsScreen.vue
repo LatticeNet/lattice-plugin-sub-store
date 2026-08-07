@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { CircleAlert, CircleCheck, Download, LoaderCircle, Upload } from "@lucide/vue";
 
 import { CONVERT_TARGETS } from "../client";
@@ -45,10 +45,25 @@ async function copyExported(): Promise<void> {
   }
 }
 
-onMounted(async () => {
+/**
+ * Load after the bridge handshake, not on mount.
+ *
+ * `available()` reads the interfaces the host declared for this frame, and on
+ * first paint that has not arrived — so loading in `onMounted` alone silently
+ * no-ops and never retries, leaving the screen looking empty and permissionless.
+ */
+async function loadAll(): Promise<void> {
   await ops.loadSettings();
   defaultTarget.value = (ops.settings.value.default_target as string) ?? "";
   defaultUa.value = (ops.settings.value.default_ua as string) ?? "";
+}
+
+onMounted(() => {
+  if (host.init.value) void loadAll();
+});
+
+watch(host.init, (value) => {
+  if (value) void loadAll();
 });
 </script>
 

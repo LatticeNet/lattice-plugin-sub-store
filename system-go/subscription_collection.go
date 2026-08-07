@@ -20,7 +20,24 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 			return "", fmt.Errorf("subscription %q: vpn-core returned no nodes", rec.ID)
 		}
 		return strings.Join(links, "\n"), nil
+	case subscriptionSourceLocal:
+		// Explicitly manual: the pasted content is the answer even if a stale
+		// URL is still sitting in the record from an earlier edit.
+		if strings.TrimSpace(rec.Content) == "" {
+			return "", fmt.Errorf("subscription %q has no pasted content", rec.ID)
+		}
+		return rec.Content, nil
+	case subscriptionSourceRemote:
+		if strings.TrimSpace(rec.URL) == "" {
+			return "", fmt.Errorf("subscription %q has no provider URL", rec.ID)
+		}
+		fetched, err := rt.fetchSubscription(rec.ID)
+		if err != nil {
+			return "", err
+		}
+		return fetched.Raw, nil
 	default:
+		// Records written before the source was named: whichever field is set.
 		if strings.TrimSpace(rec.URL) != "" {
 			fetched, err := rt.fetchSubscription(rec.ID)
 			if err != nil {

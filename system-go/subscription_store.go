@@ -28,6 +28,12 @@ const (
 	// one re-reads the export, so nodes added or removed in vpn-core reach
 	// clients without anyone re-pasting anything.
 	subscriptionSourceVPNCore = "vpn-core"
+	// The other two sources, named explicitly so a record says where its content
+	// comes from instead of leaving it to be inferred from which field happens
+	// to be populated. A record written before these existed has an empty
+	// source and still resolves url-then-content, which is what it always did.
+	subscriptionSourceRemote = "remote"
+	subscriptionSourceLocal  = "local"
 )
 
 type subscriptionRecordsDocument struct {

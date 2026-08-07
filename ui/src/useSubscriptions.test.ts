@@ -1,54 +1,85 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_SUBSCRIPTION_INLINE_BYTES, SOURCE_VPN_CORE } from "./client";
-import { draftFromRecord, emptyDraft, enabledSteps, validateDraft } from "./useSubscriptions";
+import {
+  KIND_COLLECTION,
+  MAX_SUBSCRIPTION_INLINE_BYTES,
+  SOURCE_LOCAL,
+  SOURCE_REMOTE,
+  SOURCE_VPN_CORE,
+} from "./client";
+import {
+  draftFromRecord,
+  emptyDraft,
+  enabledSteps,
+  slugify,
+  uniqueId,
+  validateDraft,
+} from "./useSubscriptions";
 
 describe("subscription draft validation", () => {
-  it("requires an id", () => {
-    expect(validateDraft({ ...emptyDraft(), url: "https://example.invalid" })).toMatch(/id is required/i);
+  // The operator types a name; the id is derived from it. Asking for both was
+  // asking for a detail with no decision attached.
+  it("requires a name rather than an id", () => {
+    expect(validateDraft({ ...emptyDraft(), source: SOURCE_VPN_CORE })).toMatch(/name/i);
+    expect(validateDraft({ ...emptyDraft(), name: "Home", source: SOURCE_VPN_CORE })).toBe("");
   });
 
-  it("rejects ids that would not survive a URL or a key", () => {
-    for (const id of ["has space", "../escape", "sl/ash", "#hash"]) {
-      expect(validateDraft({ ...emptyDraft(), id, url: "https://example.invalid" }), id).not.toBe("");
-    }
+  // The fleet's own nodes need nothing supplied, which is the whole point of
+  // that source: it is the one every Lattice deployment can use immediately.
+  it("asks for nothing else when the source is this fleet", () => {
+    expect(validateDraft({ ...emptyDraft(), name: "Fleet", source: SOURCE_VPN_CORE })).toBe("");
   });
 
-  it("accepts ordinary ids", () => {
-    for (const id of ["home", "home-nodes", "home_nodes", "home.nodes", "a1"]) {
-      expect(validateDraft({ ...emptyDraft(), id, url: "https://example.invalid" }), id).toBe("");
-    }
+  it("asks for a link when the source is a provider", () => {
+    const draft = { ...emptyDraft(), name: "P", source: SOURCE_REMOTE };
+    expect(validateDraft(draft)).toMatch(/link/i);
+    expect(validateDraft({ ...draft, url: "https://example.invalid/sub" })).toBe("");
   });
 
-  /**
-   * A subscription with neither source renders nothing, and the core turns a
-   * render of nothing into a bodiless 404. Caught here, the operator gets a
-   * sentence; caught there, they get a URL that silently does not work.
-   */
-  // A vpn-core subscription supplies its own content, so demanding a URL would
-  // make the source unusable — which is exactly what blocked a fleet whose
-  // nodes live in vpn-core from being served natively.
-  it("does not demand a URL when the content comes from vpn-core", () => {
-    expect(validateDraft({ ...emptyDraft(), id: "fleet", source: SOURCE_VPN_CORE })).toBe("");
+  it("asks for nodes when the source is a paste", () => {
+    const draft = { ...emptyDraft(), name: "M", source: SOURCE_LOCAL };
+    expect(validateDraft(draft)).toMatch(/nodes/i);
+    expect(validateDraft({ ...draft, content: "vless://x" })).toBe("");
   });
 
-  it("requires either a provider URL or inline content", () => {
-    expect(validateDraft({ ...emptyDraft(), id: "s1" })).toMatch(/provider URL or some inline content/i);
-    expect(validateDraft({ ...emptyDraft(), id: "s1", url: "https://example.invalid" })).toBe("");
-    expect(validateDraft({ ...emptyDraft(), id: "s1", content: "vless://x" })).toBe("");
+  it("asks a combination for members", () => {
+    const draft = { ...emptyDraft(), name: "All", kind: KIND_COLLECTION };
+    expect(validateDraft(draft)).toMatch(/at least one|subscription|tag/i);
+    expect(validateDraft({ ...draft, members: ["a"] })).toBe("");
+    expect(validateDraft({ ...draft, memberTags: ["home"] })).toBe("");
   });
 
   /** The backend limit is bytes. Measuring characters would let a subscription
    *  of non-ASCII names pass here and fail there. */
-  it("measures the inline cap in bytes, not characters", () => {
-    const multibyte = "節".repeat(MAX_SUBSCRIPTION_INLINE_BYTES / 3 + 1); // 3 bytes each
+  it("measures the paste cap in bytes, not characters", () => {
+    const multibyte = "\u7bc0".repeat(MAX_SUBSCRIPTION_INLINE_BYTES / 3 + 1);
     expect(multibyte.length).toBeLessThan(MAX_SUBSCRIPTION_INLINE_BYTES);
-    expect(validateDraft({ ...emptyDraft(), id: "s1", content: multibyte })).toMatch(/limit/i);
+    expect(
+      validateDraft({ ...emptyDraft(), name: "M", source: SOURCE_LOCAL, content: multibyte }),
+    ).toMatch(/limit/i);
   });
 
-  it("accepts inline content at the cap", () => {
+  it("accepts a paste at the cap", () => {
     const atCap = "x".repeat(MAX_SUBSCRIPTION_INLINE_BYTES);
-    expect(validateDraft({ ...emptyDraft(), id: "s1", content: atCap })).toBe("");
+    expect(
+      validateDraft({ ...emptyDraft(), name: "M", source: SOURCE_LOCAL, content: atCap }),
+    ).toBe("");
+  });
+});
+
+describe("derived identity", () => {
+  it("slugifies a name into a usable key", () => {
+    expect(slugify("Home nodes")).toBe("home-nodes");
+    expect(slugify("  Tokyo / 東京  ")).toBe("tokyo");
+    expect(slugify("!!!")).toBe("subscription");
+  });
+
+  // Renaming must not collide with an existing record, and must not silently
+  // overwrite one — two subscriptions sharing a key would lose data.
+  it("suffixes until the key is free", () => {
+    expect(uniqueId("Home", [])).toBe("home");
+    expect(uniqueId("Home", ["home"])).toBe("home-2");
+    expect(uniqueId("Home", ["home", "home-2"])).toBe("home-3");
   });
 });
 

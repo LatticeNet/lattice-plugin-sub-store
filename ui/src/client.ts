@@ -280,6 +280,10 @@ export const MAX_SUBSCRIPTION_RECORDS = 256;
 
 /** Mirrors system-go's `subscriptionSourceVPNCore`. */
 export const SOURCE_VPN_CORE = "vpn-core";
+/** A provider that is fetched over HTTP. */
+export const SOURCE_REMOTE = "remote";
+/** Nodes pasted by hand. The engine accepts every format it recognises. */
+export const SOURCE_LOCAL = "local";
 
 /** Curated produce targets for the pinned upstream core. "Clash" and
  *  "sing-box" are pinned by the system-go engine tests; the rest are

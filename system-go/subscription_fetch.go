@@ -54,6 +54,16 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		return fetchResult{Raw: strings.Join(links, "\n")}, nil
 	}
 
+	// A manual subscription has nothing to fetch; its content is what was
+	// pasted. Returning it here means "refresh" is harmless rather than an
+	// error the operator has to learn to ignore.
+	if rec.Source == subscriptionSourceLocal {
+		if strings.TrimSpace(rec.Content) == "" {
+			return fetchResult{}, fmt.Errorf("subscription %q has no pasted content", subscriptionID)
+		}
+		return fetchResult{Raw: rec.Content}, nil
+	}
+
 	target := strings.TrimSpace(rec.URL)
 	if target == "" {
 		return fetchResult{}, fmt.Errorf("subscription %q has no URL to fetch", subscriptionID)
