@@ -93,18 +93,29 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass string) (str
 	}
 
 	parts := make([]string, 0, len(members))
+	skipped := make([]string, 0)
 	for _, member := range members {
-		// A member that cannot be fetched fails the whole render rather than
-		// dropping out of it. Serving the survivors would reach a client as
-		// "those nodes were removed", which is a lie the client acts on by
-		// deleting them.
 		nodes, err := rt.renderMemberNodes(member)
 		if err != nil {
-			return "", fmt.Errorf("collection %q: %w", rec.ID, err)
+			// Strict is the default because serving only the survivors reaches
+			// a client as "those nodes were removed", and the client acts on
+			// that by deleting them. Skipping is available because one dead
+			// provider should not take down a large collection — but it is a
+			// choice the operator makes, not one made for them.
+			if rec.FailureMode != failureModeSkip {
+				return "", fmt.Errorf("collection %q: %w", rec.ID, err)
+			}
+			skipped = append(skipped, member.ID)
+			continue
 		}
 		if trimmed := strings.TrimSpace(nodes); trimmed != "" {
 			parts = append(parts, trimmed)
 		}
+	}
+	// Every member failing is not "skip the failures" — it is a collection with
+	// nothing in it, and that must never be served as a success.
+	if len(parts) == 0 && len(skipped) > 0 {
+		return "", fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
 	}
 	merged := strings.Join(parts, "\n")
 	if strings.TrimSpace(merged) == "" {

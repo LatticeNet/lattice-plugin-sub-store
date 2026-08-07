@@ -40,6 +40,14 @@ export interface OperatorField {
 export interface OperatorSchema {
   /** Operator type exactly as the engine spells it. */
   type: string;
+  /**
+   * The short name shown on a button and in the chain.
+   *
+   * The engine's type strings are wire identifiers — "Add Proxies From
+   * Subscription Operator" is not a label anyone wants to read on a button,
+   * and a row of them reads as noise rather than as a list of choices.
+   */
+  label: string;
   /** Short sentence: what it does to the node list. */
   summary: string;
   /** "filter" keeps or drops nodes; "rewrite" changes them; "script" runs JS. */
@@ -78,6 +86,7 @@ const NODE_TYPES = [
 export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   {
     type: "Region Filter",
+    label: "Region filter",
     summary: "Keep only nodes whose name matches the chosen regions.",
     group: "filter",
     fields: [
@@ -93,6 +102,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Type Filter",
+    label: "Protocol filter",
     summary: "Keep only nodes of the chosen protocols.",
     group: "filter",
     fields: [
@@ -102,6 +112,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Regex Filter",
+    label: "Regex filter",
     summary: "Keep or drop nodes whose name matches a pattern.",
     group: "filter",
     fields: [
@@ -117,6 +128,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Conditional Filter",
+    label: "Conditional filter",
     summary: "Keep nodes satisfying an expression over their fields.",
     group: "filter",
     fields: [
@@ -130,18 +142,21 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Useless Filter",
+    label: "Drop junk nodes",
     summary: "Drop nodes that carry traffic or expiry notices rather than a server.",
     group: "filter",
     fields: [],
   },
   {
     type: "Remove Duplicate Filter",
+    label: "Drop duplicates",
     summary: "Drop nodes that repeat an earlier one.",
     group: "filter",
     fields: [],
   },
   {
     type: "Regex Rename Operator",
+    label: "Regex rename",
     summary: "Rewrite node names by pattern.",
     group: "rewrite",
     fields: [
@@ -156,6 +171,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Regex Delete Operator",
+    label: "Regex delete",
     summary: "Strip matching text out of node names.",
     group: "rewrite",
     fields: [
@@ -169,6 +185,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Flag Operator",
+    label: "Country flags",
     summary: "Add or remove the country flag in front of a node name.",
     group: "rewrite",
     fields: [
@@ -186,6 +203,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Sort Operator",
+    label: "Sort",
     summary: "Order the node list.",
     group: "rewrite",
     fields: [
@@ -204,6 +222,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Regex Sort Operator",
+    label: "Regex sort",
     summary: "Order nodes by which pattern they match first.",
     group: "rewrite",
     fields: [
@@ -218,6 +237,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Handle Duplicate Operator",
+    label: "Handle duplicates",
     summary: "Decide what happens to nodes that share a name.",
     group: "rewrite",
     fields: [
@@ -239,6 +259,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Quick Setting Operator",
+    label: "Quick settings",
     summary: "Force protocol switches on every node.",
     group: "rewrite",
     fields: [
@@ -250,6 +271,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Resolve Domain Operator",
+    label: "Resolve domains",
     summary: "Replace hostnames with resolved addresses.",
     group: "rewrite",
     fields: [
@@ -281,6 +303,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Add Proxies From Subscription Operator",
+    label: "Append another subscription",
     summary: "Append nodes from another subscription into this one.",
     group: "rewrite",
     fields: [
@@ -294,6 +317,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Script Operator",
+    label: "Script",
     summary: "Run JavaScript over the whole node list.",
     group: "script",
     fields: [
@@ -317,6 +341,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     type: "Script Filter",
+    label: "Script filter",
     summary: "Run JavaScript that decides which nodes to keep.",
     group: "script",
     fields: [
