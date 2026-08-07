@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
+  Copy,
   CircleAlert,
   CircleCheck,
   ClipboardPaste,
@@ -86,9 +87,23 @@ const allTags = computed(() => {
   return [...seen].sort();
 });
 
+/**
+ * "Untagged" is its own filter rather than an absence of one.
+ *
+ * Once most records carry tags, the few that do not are exactly the ones an
+ * operator is looking for — and no combination of the tag buttons can select
+ * them.
+ */
+const UNTAGGED = "\u0000untagged";
+
 function matchesFilter(item: SubscriptionListItem): boolean {
-  return !tagFilter.value || (item.tags ?? []).includes(tagFilter.value);
+  if (!tagFilter.value) return true;
+  if (tagFilter.value === UNTAGGED) return (item.tags ?? []).length === 0;
+  return (item.tags ?? []).includes(tagFilter.value);
 }
+
+/** Offered only when there is something it would select. */
+const hasUntagged = computed(() => onThisTab.value.some((i) => (i.tags ?? []).length === 0));
 
 const singles = computed(() =>
   onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && matchesFilter(i)),
@@ -508,7 +523,7 @@ watch(host.init, (value) => {
         <CircleCheck :size="16" aria-hidden="true" /> {{ subs.notice.value }}
       </div>
 
-      <div v-if="allTags.length" class="tag-row">
+      <div v-if="allTags.length || hasUntagged" class="tag-row">
         <button type="button" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">
           All
         </button>
@@ -520,6 +535,14 @@ watch(host.init, (value) => {
           @click="tagFilter = tag"
         >
           {{ tag }}
+        </button>
+        <button
+          v-if="hasUntagged"
+          type="button"
+          :class="{ 'is-active': tagFilter === UNTAGGED }"
+          @click="tagFilter = UNTAGGED"
+        >
+          Untagged
         </button>
       </div>
 
@@ -592,6 +615,15 @@ watch(host.init, (value) => {
                   class="icon-button"
                   type="button"
                   :disabled="!subs.canMutate.value"
+                  :aria-label="`Copy ${item.name}`"
+                  @click="subs.duplicate(item.id)"
+                >
+                  <Copy :size="16" aria-hidden="true" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  :disabled="!subs.canMutate.value || subs.saving.value"
                   :aria-label="`Edit ${item.name}`"
                   @click="startEdit(item.id)"
                 >
@@ -672,6 +704,15 @@ watch(host.init, (value) => {
                   class="icon-button"
                   type="button"
                   :disabled="!subs.canMutate.value"
+                  :aria-label="`Copy ${item.name}`"
+                  @click="subs.duplicate(item.id)"
+                >
+                  <Copy :size="16" aria-hidden="true" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  :disabled="!subs.canMutate.value || subs.saving.value"
                   :aria-label="`Edit ${item.name}`"
                   @click="startEdit(item.id)"
                 >

@@ -99,6 +99,17 @@ export function uniqueId(name: string, taken: readonly string[]): string {
   return `${base}-${used.size + 1}`;
 }
 
+/** A display name that no other record is using, suffixed until it is free. */
+export function uniqueName(base: string, taken: readonly string[]): string {
+  const used = new Set(taken);
+  if (!used.has(base)) return base;
+  for (let n = 2; n < 1000; n += 1) {
+    const candidate = `${base} ${n}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  return `${base} ${used.size + 1}`;
+}
+
 /** The chain minus its disabled steps: what the engine would actually run. */
 export function enabledSteps(draft: SubscriptionDraft): unknown[] {
   return draft.process.filter(
@@ -485,6 +496,54 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
+  /**
+   * Copy a record under a new name.
+   *
+   * Fifteen files that are variations of one another is the normal shape of a
+   * real deployment, and building each from scratch means re-pasting a 60 KB
+   * generator every time. The copy is a full read-then-write rather than a
+   * shallow clone of the list row, because the list deliberately omits content
+   * and a copy made from it would be empty.
+   */
+  async function duplicate(id: string): Promise<string | null> {
+    if (!host.bridge || !canMutate.value) return null;
+    const record = await get(id);
+    if (!record) return null;
+    // The NAME has to be unique too, not only the id. Copying twice produced
+    // two rows reading "Home nodes copy", which is a list an operator cannot
+    // act on — the id that distinguishes them is not shown.
+    const name = uniqueName(`${record.name || id} copy`, items.value.map((item) => item.name));
+    const copy: SubscriptionRecord = {
+      ...record,
+      id: uniqueId(name, items.value.map((item) => item.id)),
+      name,
+      // A copy has not been imported from anywhere; carrying the origin would
+      // claim a provenance it does not have.
+      origin: undefined,
+    };
+    saving.value = true;
+    actionError.value = "";
+    notice.value = "";
+    try {
+      const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {
+        subscription: copy,
+      }).promise;
+      if (!response.saved) {
+        actionError.value = "The backend did not confirm the copy.";
+        return null;
+      }
+      notice.value = `Copied to ${name}.`;
+      await load();
+      return copy.id;
+    } catch (cause) {
+      actionError.value = safeErrorMessage(cause, "Record could not be copied");
+      return null;
+    } finally {
+      saving.value = false;
+      await host.resize();
+    }
+  }
+
   function clearMessages(): void {
     actionError.value = "";
     notice.value = "";
@@ -511,6 +570,7 @@ export function useSubscriptions(host: HostContext) {
     get,
     save,
     remove,
+    duplicate,
     refresh,
     runPreview,
     clearMessages,

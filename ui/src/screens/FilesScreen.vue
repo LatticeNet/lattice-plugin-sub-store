@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import {
   CircleAlert,
+  Copy,
   CircleCheck,
   ClipboardPaste,
   Eye,
@@ -528,6 +529,15 @@ watch(host.init, (value) => {
                 class="icon-button"
                 type="button"
                 :disabled="!subs.canMutate.value"
+                :aria-label="`Copy ${item.name}`"
+                @click="subs.duplicate(item.id)"
+              >
+                <Copy :size="16" aria-hidden="true" />
+              </button>
+              <button
+                class="icon-button"
+                type="button"
+                :disabled="!subs.canMutate.value || subs.saving.value"
                 :aria-label="`Edit ${item.name}`"
                 @click="startEdit(item.id)"
               >

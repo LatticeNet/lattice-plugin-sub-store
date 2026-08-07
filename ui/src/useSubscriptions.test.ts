@@ -19,6 +19,7 @@ import {
   parseArguments,
   slugify,
   uniqueId,
+  uniqueName,
   validateDraft,
 } from "./useSubscriptions";
 
@@ -239,5 +240,19 @@ describe("script files", () => {
   // An unknown type from an older or newer bundle must still render.
   it("falls back to a config for a type it does not know", () => {
     expect(knownFileType("something-new")).toBe("config");
+  });
+});
+
+describe("copying a record", () => {
+  // Copying twice produced two rows reading "Home nodes copy". The id that
+  // distinguishes them is not shown anywhere, so the list becomes unusable.
+  it("gives each copy a name no other record is using", () => {
+    expect(uniqueName("Home copy", [])).toBe("Home copy");
+    expect(uniqueName("Home copy", ["Home copy"])).toBe("Home copy 2");
+    expect(uniqueName("Home copy", ["Home copy", "Home copy 2"])).toBe("Home copy 3");
+  });
+
+  it("leaves an unrelated name alone", () => {
+    expect(uniqueName("Office", ["Home copy"])).toBe("Office");
   });
 });

@@ -77,6 +77,19 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   font-size: 13px;
 }
 
+/* Three screens rendered their confirmations as `alert alert-ok` and this class
+   did not exist, so "Saved", "Copied" and "Deleted" all arrived in the failure
+   styling — red border, pink background — while claiming success. Built from the
+   host's own tokens rather than a hardcoded green, because the frame has no
+   colours of its own and a fixed one would fight whatever theme it lands in. */
+.alert-ok {
+  border-color: color-mix(in srgb, var(--primary, #1769aa) 45%, transparent);
+  color: var(--foreground, #17191c);
+  background: color-mix(in srgb, var(--primary, #1769aa) 10%, var(--card, #fff));
+}
+
+.alert-ok > svg { color: var(--primary, #1769aa); }
+
 .configuration { padding: 24px 0 28px; border-bottom: 1px solid var(--border, #d9dde2); }
 .section-heading {
   display: flex;
