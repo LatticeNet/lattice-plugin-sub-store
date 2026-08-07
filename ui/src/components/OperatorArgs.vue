@@ -280,19 +280,19 @@ function setRaw(text: string): void {
 .op-label {
   font-size: 12px;
   font-weight: 650;
-  color: var(--text-2, #adb8c6);
+  color: var(--foreground, #17191c);
 }
 
 .op-hint {
   font-size: 11.5px;
   line-height: 1.5;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .op-none {
   margin: 0;
   font-size: 12.5px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .op-chips,
@@ -305,7 +305,7 @@ function setRaw(text: string): void {
 .op-chips button,
 .op-tri button {
   padding: 4px 10px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 999px;
   background: transparent;
   color: inherit;
@@ -315,9 +315,9 @@ function setRaw(text: string): void {
 
 .op-chips button.is-active,
 .op-tri button.is-active {
-  border-color: var(--accent, #2dd4bf);
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 16%, transparent);
-  color: var(--accent, #2dd4bf);
+  border-color: var(--primary, #1769aa);
+  background: color-mix(in srgb, var(--primary, #1769aa) 16%, transparent);
+  color: var(--primary, #1769aa);
 }
 
 .op-switch {
@@ -343,13 +343,13 @@ function setRaw(text: string): void {
 
 .op-pair-head span {
   font-size: 11px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .op-pair-drop,
 .op-pair-add {
   padding: 4px 8px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 7px;
   background: transparent;
   color: inherit;

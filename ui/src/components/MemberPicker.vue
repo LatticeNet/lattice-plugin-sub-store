@@ -182,9 +182,9 @@ function describe(item: SubscriptionListItem): string {
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 11px;
-  background: var(--surface-2, #0d1117);
+  background: var(--background, #f7f8f9);
 }
 
 .picker-bar {
@@ -208,18 +208,18 @@ function describe(item: SubscriptionListItem): string {
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
   font-size: 11.5px;
   cursor: pointer;
 }
 
 .picker-tags button.is-active {
-  border-color: var(--accent, #2dd4bf);
-  color: var(--accent, #2dd4bf);
+  border-color: var(--primary, #1769aa);
+  color: var(--primary, #1769aa);
 }
 
 .picker-bulk button {
-  border-color: var(--border, #242d3a);
+  border-color: var(--border, #d9dde2);
 }
 
 .picker-bulk button:disabled {
@@ -247,23 +247,23 @@ function describe(item: SubscriptionListItem): string {
 }
 
 .row.is-chosen {
-  border-color: color-mix(in srgb, var(--accent, #2dd4bf) 35%, var(--border, #242d3a));
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 7%, transparent);
+  border-color: color-mix(in srgb, var(--primary, #1769aa) 35%, var(--border, #d9dde2));
+  background: color-mix(in srgb, var(--primary, #1769aa) 7%, transparent);
 }
 
 .row:hover {
-  background: var(--surface, #161c26);
+  background: var(--card, #fff);
 }
 
 .row-grip {
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
   cursor: grab;
 }
 
 .row-order {
   min-width: 18px;
   font-size: 11px;
-  color: var(--accent, #2dd4bf);
+  color: var(--primary, #1769aa);
 }
 
 .row-main {
@@ -285,7 +285,7 @@ function describe(item: SubscriptionListItem): string {
 
 .row-meta {
   font-size: 11px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
   white-space: nowrap;
 }
 
@@ -298,9 +298,9 @@ function describe(item: SubscriptionListItem): string {
 .row-tag {
   padding: 1px 6px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--text-3, #7c8896) 18%, transparent);
+  background: color-mix(in srgb, var(--muted-foreground, #656d76) 18%, transparent);
   font-size: 10px;
-  color: var(--text-2, #adb8c6);
+  color: var(--foreground, #17191c);
 }
 
 .row-move {
@@ -310,7 +310,7 @@ function describe(item: SubscriptionListItem): string {
 
 .row-move button {
   padding: 2px 6px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 6px;
   background: transparent;
   color: inherit;
@@ -326,6 +326,6 @@ function describe(item: SubscriptionListItem): string {
 .picker-note {
   margin: 0;
   font-size: 11.5px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 </style>

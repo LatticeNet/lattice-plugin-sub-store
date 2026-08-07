@@ -280,7 +280,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
 .chain-count {
   font-size: 12px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .chain-list {
@@ -293,9 +293,9 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 }
 
 .chain-step {
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 10px;
-  background: var(--surface-2, #0d1117);
+  background: var(--background, #f7f8f9);
 }
 
 /* A disabled step stays legible — it is kept precisely so it can be read and
@@ -313,7 +313,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 }
 
 .step-grip {
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
   cursor: grab;
 }
 
@@ -353,7 +353,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   gap: 5px;
   margin-right: 4px;
   font-size: 11.5px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
   white-space: nowrap;
 }
 
@@ -363,7 +363,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   justify-content: center;
   min-width: 26px;
   padding: 4px 6px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 7px;
   background: transparent;
   color: inherit;
@@ -385,7 +385,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   flex-direction: column;
   gap: 12px;
   padding: 4px 12px 14px;
-  border-top: 1px solid var(--border, #242d3a);
+  border-top: 1px solid var(--border, #d9dde2);
 }
 
 .step-name {
@@ -394,23 +394,23 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   gap: 6px;
   font-size: 12px;
   font-weight: 650;
-  color: var(--text-2, #adb8c6);
+  color: var(--foreground, #17191c);
 }
 
 .chain-empty {
   margin: 0;
   padding: 12px 14px;
-  border: 1px dashed var(--border, #242d3a);
+  border: 1px dashed var(--border, #d9dde2);
   border-radius: 10px;
   font-size: 12.5px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .add-block {
   padding: 12px 14px 14px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 10px;
-  background: var(--surface-2, #0d1117);
+  background: var(--background, #f7f8f9);
 }
 
 .add-label {
@@ -419,12 +419,12 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .add-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
   gap: 7px;
 }
 
@@ -433,27 +433,32 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 10px;
-  border: 1px solid var(--border, #242d3a);
+  /* Fixed height so a two-word label does not make its whole row taller than
+     the others — the grid reads as a set of equals or it reads as a mess. */
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 8px;
-  background: var(--surface, #161c26);
+  background: var(--card, #fff);
   color: inherit;
   font-size: 12.5px;
   font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .add-button:hover {
-  border-color: var(--accent, #2dd4bf);
-  color: var(--accent, #2dd4bf);
+  border-color: var(--primary, #1769aa);
+  color: var(--primary, #1769aa);
 }
 
 .add-tag {
   padding: 1px 5px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 20%, transparent);
-  color: var(--accent, #2dd4bf);
+  background: color-mix(in srgb, var(--primary, #1769aa) 20%, transparent);
+  color: var(--primary, #1769aa);
   font-size: 9px;
   font-weight: 700;
 }
@@ -461,6 +466,6 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 .add-waiting {
   margin: 0;
   font-size: 12px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 </style>

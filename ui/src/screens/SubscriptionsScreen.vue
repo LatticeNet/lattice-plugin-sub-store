@@ -233,7 +233,10 @@ watch(host.init, (value) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
       </div>
 
-      <form class="form-grid" @submit.prevent="submit">
+      <form @submit.prevent="submit">
+      <fieldset class="editor-group">
+        <legend>Basics</legend>
+        <div class="form-grid">
         <label class="field field-wide">
           <span class="field-label">Name</span>
           <input
@@ -251,9 +254,30 @@ watch(host.init, (value) => {
           </span>
         </label>
 
+        <label class="field">
+          <span class="field-label">Tags</span>
+          <input
+            v-model="tagText"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="home, backup"
+          />
+          <span class="field-optional">Used to group, filter, and gather by.</span>
+        </label>
+
+        <label class="field field-wide">
+          <span class="field-label">Note</span>
+          <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
+        </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="editor-group">
+        <legend>{{ isCollection ? "What it gathers" : "Where the nodes come from" }}</legend>
+        <div class="form-grid">
         <!-- ── sub: where the nodes come from ─────────────────────────── -->
         <div v-if="!isCollection" class="field field-wide">
-          <span class="field-label">Where the nodes come from</span>
           <div class="source-grid">
             <button
               v-for="option in SOURCES"
@@ -321,7 +345,7 @@ watch(host.init, (value) => {
         <!-- ── collection: what it gathers ────────────────────────────── -->
         <template v-if="isCollection">
           <div class="field field-wide">
-            <span class="field-label">Subscriptions to combine</span>
+            <span class="field-label">Choose subscriptions</span>
             <MemberPicker
               :candidates="memberCandidates"
               :selected="draft.members"
@@ -370,17 +394,12 @@ watch(host.init, (value) => {
           </div>
         </template>
 
-        <label class="field">
-          <span class="field-label">Tags</span>
-          <input
-            v-model="tagText"
-            type="text"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="home, backup"
-          />
-        </label>
+        </div>
+      </fieldset>
 
+      <fieldset class="editor-group">
+        <legend>Output</legend>
+        <div class="form-grid">
         <label class="field">
           <span class="field-label">Client format</span>
           <select v-model="draft.target" class="select">
@@ -394,16 +413,14 @@ watch(host.init, (value) => {
           </span>
         </label>
 
-        <label class="field field-wide">
-          <span class="field-label">Note</span>
-          <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
-        </label>
-
-        <div class="field field-wide">
-          <CommonSettingsBlock :model-value="common" @update:model-value="onCommonChange" />
         </div>
+      </fieldset>
 
-        <div class="field field-wide">
+      <div class="editor-block">
+        <CommonSettingsBlock :model-value="common" @update:model-value="onCommonChange" />
+      </div>
+
+      <div class="editor-block">
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
@@ -413,9 +430,11 @@ watch(host.init, (value) => {
           <span v-if="isCollection" class="field-optional">
             Each member runs its own operations first; these run over everything merged.
           </span>
-        </div>
+      </div>
 
-        <div class="form-actions">
+        <!-- Sticky: on a form this long, a save button at the bottom is a
+             button you have to go and look for. -->
+        <div class="editor-actions">
           <span v-if="draftError" class="field-error">{{ draftError }}</span>
           <button
             class="button button-secondary"
@@ -680,6 +699,90 @@ watch(host.init, (value) => {
 </template>
 
 <style scoped>
+/* ── editor grouping ─────────────────────────────────────────────────────
+   The form was one undifferentiated column: name, source, output, settings
+   and the operator chain all at the same level, so nothing told the reader
+   where one decision ended and the next began. */
+.editor-group {
+  margin: 0 0 16px;
+  padding: 16px 18px 6px;
+  border: 1px solid var(--border, #d9dde2);
+  border-radius: 12px;
+  background: var(--card, #fff);
+}
+
+.editor-group > legend {
+  padding: 0 8px;
+  margin-left: -8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground, #656d76);
+}
+
+.editor-block {
+  margin: 0 0 16px;
+}
+
+/* The sticky bar floats over the form, so the last block needs room to scroll
+   out from under it rather than ending beneath it. */
+form {
+  padding-bottom: 8px;
+}
+
+/* The action bar follows the reader down. A save button that has to be
+   scrolled to is a save button people lose. */
+.editor-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px -4px 0;
+  padding: 12px 4px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--background, #f7f8f9) 60%, transparent),
+    var(--background, #f7f8f9) 45%
+  );
+  border-top: 1px solid var(--border, #d9dde2);
+}
+
+.editor-actions .field-error {
+  margin-right: auto;
+}
+
+/* ── list density ────────────────────────────────────────────────────────
+   Rows were 40px with 11px meta text: technically legible, and tiring to
+   scan. */
+:deep(.sub-card) {
+  padding: 12px 14px;
+}
+
+:deep(.sub-title) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+:deep(.sub-meta) {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+:deep(.badge) {
+  padding: 2px 8px;
+  font-size: 10.5px;
+}
+
 .tag-row {
   display: flex;
   flex-wrap: wrap;
@@ -693,16 +796,16 @@ watch(host.init, (value) => {
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
   font-size: 12px;
   cursor: pointer;
 }
 
 .tag-row button.is-active,
 .choice-row button.is-active {
-  border-color: var(--accent, #2dd4bf);
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 12%, transparent);
-  color: var(--accent, #2dd4bf);
+  border-color: var(--primary, #1769aa);
+  background: color-mix(in srgb, var(--primary, #1769aa) 12%, transparent);
+  color: var(--primary, #1769aa);
 }
 
 .choice-row {
@@ -713,7 +816,7 @@ watch(host.init, (value) => {
 }
 
 .choice-row button {
-  border-color: var(--border, #242d3a);
+  border-color: var(--border, #d9dde2);
 }
 
 .group-head {
@@ -760,7 +863,7 @@ watch(host.init, (value) => {
   gap: 2px 10px;
   align-items: start;
   padding: 13px 14px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 11px;
   background: transparent;
   color: inherit;
@@ -772,16 +875,16 @@ watch(host.init, (value) => {
 .source > svg {
   grid-area: icon;
   margin-top: 2px;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 .source.is-active {
-  border-color: var(--accent, #2dd4bf);
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 9%, transparent);
+  border-color: var(--primary, #1769aa);
+  background: color-mix(in srgb, var(--primary, #1769aa) 9%, transparent);
 }
 
 .source.is-active > svg {
-  color: var(--accent, #2dd4bf);
+  color: var(--primary, #1769aa);
 }
 
 .source-title {
@@ -794,6 +897,6 @@ watch(host.init, (value) => {
   grid-area: detail;
   font-size: 11.5px;
   line-height: 1.5;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 </style>
