@@ -6,6 +6,8 @@ import {
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
   SOURCE_VPN_CORE,
+  KIND_SUB,
+  KIND_COLLECTION,
   type OperatorCatalogResponse,
   type OperatorInfo,
   type SubscriptionDeleteResponse,
@@ -24,7 +26,11 @@ export type LoadState = "idle" | "loading" | "ready" | "error";
 
 export interface SubscriptionDraft {
   id: string;
+  /** KIND_SUB or KIND_COLLECTION. */
+  kind: string;
   name: string;
+  remark: string;
+  tags: string[];
   /** "" for url/content, or SOURCE_VPN_CORE for the live node export. */
   source: string;
   vpnIdentity: string;
@@ -32,24 +38,55 @@ export interface SubscriptionDraft {
   content: string;
   ua: string;
   target: string;
-  operators: unknown[];
+  /** Collection inputs. */
+  members: string[];
+  memberTags: string[];
+  /** The ordered chain, including disabled steps. */
+  process: unknown[];
+}
+
+/** The chain minus its disabled steps: what the engine would actually run. */
+export function enabledSteps(draft: SubscriptionDraft): unknown[] {
+  return draft.process.filter(
+    (step) => !(step && typeof step === "object" && (step as { disabled?: boolean }).disabled),
+  );
 }
 
 export function emptyDraft(): SubscriptionDraft {
-  return { id: "", name: "", source: "", vpnIdentity: "", url: "", content: "", ua: "", target: "", operators: [] };
+  return {
+    id: "",
+    kind: KIND_SUB,
+    name: "",
+    remark: "",
+    tags: [],
+    source: "",
+    vpnIdentity: "",
+    url: "",
+    content: "",
+    ua: "",
+    target: "",
+    members: [],
+    memberTags: [],
+    process: [],
+  };
 }
 
 export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
   return {
     id: record.id,
+    kind: record.kind === KIND_COLLECTION ? KIND_COLLECTION : KIND_SUB,
     name: record.name ?? "",
+    remark: record.remark ?? "",
+    tags: Array.isArray(record.tags) ? [...record.tags] : [],
     source: record.source ?? "",
     vpnIdentity: record.vpn_identity ?? "",
     url: record.url ?? "",
     content: record.content ?? "",
     ua: record.ua ?? "",
     target: record.target ?? "",
-    operators: Array.isArray(record.operators) ? [...record.operators] : [],
+    members: Array.isArray(record.members) ? [...record.members] : [],
+    memberTags: Array.isArray(record.member_tags) ? [...record.member_tags] : [],
+    process: Array.isArray(record.process) ? [...record.process] : [],
   };
 }
 
@@ -63,6 +100,13 @@ export function validateDraft(draft: SubscriptionDraft): string {
   if (!draft.id.trim()) return "An id is required.";
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(draft.id.trim())) {
     return "Ids may use letters, digits, dot, dash and underscore, and must start with a letter or digit.";
+  }
+  // A collection is defined by what it gathers, not by a source of its own.
+  if (draft.kind === KIND_COLLECTION) {
+    if (draft.members.length === 0 && draft.memberTags.length === 0) {
+      return "Choose at least one subscription, or a tag to gather by.";
+    }
+    return "";
   }
   // A vpn-core subscription brings its own content, so demanding a URL here
   // would make the source unusable — that requirement is exactly what kept the
@@ -169,16 +213,28 @@ export function useSubscriptions(host: HostContext) {
       // `origin` is deliberately not sent: it records that a record came from a
       // migration, and the backend preserves or clears it rather than trusting
       // a caller. Sending it would be ignored anyway; omitting it says so.
+      const collection = draft.kind === KIND_COLLECTION;
       const record: SubscriptionRecord = {
         id: draft.id.trim(),
+        kind: collection ? KIND_COLLECTION : undefined,
         name: draft.name.trim() || draft.id.trim(),
-        source: draft.source || undefined,
-        vpn_identity: draft.source === SOURCE_VPN_CORE ? draft.vpnIdentity.trim() || undefined : undefined,
-        url: draft.url.trim() || undefined,
-        content: draft.content || undefined,
-        ua: draft.ua.trim() || undefined,
+        remark: draft.remark.trim() || undefined,
+        tags: draft.tags.length ? draft.tags : undefined,
+        // Source and membership are mutually exclusive; the backend clears the
+        // wrong set anyway, but sending them would state two answers to "where
+        // does this get its content".
+        source: collection ? undefined : draft.source || undefined,
+        vpn_identity:
+          !collection && draft.source === SOURCE_VPN_CORE
+            ? draft.vpnIdentity.trim() || undefined
+            : undefined,
+        url: collection ? undefined : draft.url.trim() || undefined,
+        content: collection ? undefined : draft.content || undefined,
+        ua: collection ? undefined : draft.ua.trim() || undefined,
+        members: collection && draft.members.length ? draft.members : undefined,
+        member_tags: collection && draft.memberTags.length ? draft.memberTags : undefined,
         target: draft.target.trim() || undefined,
-        operators: draft.operators.length ? draft.operators : undefined,
+        process: draft.process.length ? draft.process : undefined,
       };
       const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {
         subscription: record,
@@ -263,7 +319,10 @@ export function useSubscriptions(host: HostContext) {
         subscription_id: draft.id.trim(),
         raw: draft.content,
         target: draft.target.trim(),
-        operators: draft.operators.length ? draft.operators : undefined,
+        // The wire field is still `operators` — it is what the engine takes.
+        // Disabled steps are dropped here so the preview shows what would
+        // actually run, not what the chain would do if everything were on.
+        operators: enabledSteps(draft).length ? enabledSteps(draft) : undefined,
       }).promise;
       preview.value = response;
     } catch (cause) {

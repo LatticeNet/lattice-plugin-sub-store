@@ -56,6 +56,20 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 		return renderResult{}, err
 	}
 
+	// A collection has no content of its own — it is defined entirely by the
+	// subs it gathers, so the core's snapshot is not an input here.
+	if recordKind(rec) == kindCollection {
+		output, err := rt.renderCollection(rec, uaClass)
+		if err != nil {
+			return renderResult{}, err
+		}
+		body, contentType, err := encodeSubscriptionOutput(output, format)
+		if err != nil {
+			return renderResult{}, err
+		}
+		return renderResult{Content: body, ContentType: contentType}, nil
+	}
+
 	// The core hands back the snapshot it holds for this subscription. Inline
 	// content is the fallback for a record that has no remote source at all.
 	source := raw
@@ -79,13 +93,14 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 		return renderResult{}, fmt.Errorf("subscription %q has no content to render", subscriptionID)
 	}
 
-	if err := validateOperators(rec.Operators); err != nil {
+	operators, err := enabledOperators(rec)
+	if err != nil {
 		return renderResult{}, fmt.Errorf("subscription %q: %w", subscriptionID, err)
 	}
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       source,
 		Target:    subscriptionTarget(rec, uaClass),
-		Operators: rec.Operators,
+		Operators: operators,
 	})
 	if err != nil {
 		return renderResult{}, err
@@ -215,21 +230,38 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		// without its stored content: a definition list must not double as a
 		// dump of every provider payload.
 		type view struct {
-			ID        string `json:"id"`
-			Name      string `json:"name"`
-			Source    string `json:"source,omitempty"`
-			HasURL    bool   `json:"has_url"`
-			HasInline bool   `json:"has_inline_content"`
-			Target    string `json:"target,omitempty"`
-			Operators int    `json:"operator_count"`
-			Imported  bool   `json:"imported"`
+			ID          string   `json:"id"`
+			Kind        string   `json:"kind"`
+			Name        string   `json:"name"`
+			DisplayName string   `json:"display_name,omitempty"`
+			Remark      string   `json:"remark,omitempty"`
+			Tags        []string `json:"tags,omitempty"`
+			Source      string   `json:"source,omitempty"`
+			HasURL      bool     `json:"has_url"`
+			HasInline   bool     `json:"has_inline_content"`
+			Members     []string `json:"members,omitempty"`
+			MemberTags  []string `json:"member_tags,omitempty"`
+			Target      string   `json:"target,omitempty"`
+			Steps       int      `json:"step_count"`
+			StepsOff    int      `json:"disabled_step_count"`
+			Imported    bool     `json:"imported"`
 		}
 		views := make([]view, 0, len(records))
 		for _, rec := range records {
+			steps := processSteps(rec)
+			off := 0
+			for _, raw := range steps {
+				if meta, err := decodeStep(raw); err == nil && meta.Disabled {
+					off++
+				}
+			}
 			views = append(views, view{
-				ID: rec.ID, Name: rec.Name, Source: rec.Source,
+				ID: rec.ID, Kind: recordKind(rec), Name: rec.Name,
+				DisplayName: rec.DisplayName, Remark: rec.Remark, Tags: rec.Tags,
+				Source: rec.Source,
 				HasURL: strings.TrimSpace(rec.URL) != "", HasInline: strings.TrimSpace(rec.Content) != "",
-				Target: rec.Target, Operators: len(rec.Operators), Imported: rec.Origin != nil,
+				Members: rec.Members, MemberTags: rec.MemberTags,
+				Target: rec.Target, Steps: len(steps), StepsOff: off, Imported: rec.Origin != nil,
 			})
 		}
 		body, err := json.Marshal(map[string]any{"subscriptions": views})

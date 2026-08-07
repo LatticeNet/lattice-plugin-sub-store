@@ -35,15 +35,28 @@ type subscriptionRecordsDocument struct {
 	Records []subscriptionRecord `json:"records"`
 }
 
-// subscriptionRecord is one subscription definition. Target is the client family
-// the engine produces for; the core's format only decides how that output is
-// encoded, so the two are independent and both are needed.
+// subscriptionRecord is one definition. Target is the client family the engine
+// produces for; the core's format only decides how that output is encoded, so
+// the two are independent and both are needed.
+//
+// Two kinds share this type, following the model the Sub-Store front end uses:
+// a SUB is one source of nodes, and a COLLECTION combines several subs. They
+// live in one document with a discriminator rather than in two stores, because
+// every consumer — list, render, share — wants them together and the shapes
+// differ by only a few fields.
 type subscriptionRecord struct {
 	SchemaVersion int    `json:"schema_version"`
 	ID            string `json:"id"`
-	Name          string `json:"name"`
-	URL           string `json:"url,omitempty"`
-	Content       string `json:"content,omitempty"`
+	// Kind is "sub" or "collection". Empty means "sub": records written before
+	// collections existed are subs, and rewriting them to say so would be a
+	// migration with nothing to gain.
+	Kind        string   `json:"kind,omitempty"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name,omitempty"`
+	Remark      string   `json:"remark,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	URL         string   `json:"url,omitempty"`
+	Content     string   `json:"content,omitempty"`
 	// Source names where content comes from when it is neither a provider URL
 	// nor pasted inline. Empty keeps the original two-source behaviour.
 	//
@@ -55,10 +68,27 @@ type subscriptionRecord struct {
 	Source string `json:"source,omitempty"`
 	// VPNIdentity narrows a vpn-core export to one identity. Empty means every
 	// eligible identity, which is what the export returns by default.
-	VPNIdentity string            `json:"vpn_identity,omitempty"`
-	UA          string            `json:"ua,omitempty"`
-	Target      string            `json:"target,omitempty"`
-	Operators   []json.RawMessage `json:"operators,omitempty"`
+	VPNIdentity string `json:"vpn_identity,omitempty"`
+	UA          string `json:"ua,omitempty"`
+	// Members and MemberTags are the collection's inputs: explicit sub ids, plus
+	// every sub carrying one of these tags. Tags exist so a collection can be
+	// "everything tagged home" and pick up a new sub without being edited.
+	Members    []string `json:"members,omitempty"`
+	MemberTags []string `json:"member_tags,omitempty"`
+	Target     string   `json:"target,omitempty"`
+	// Process is the ordered operator chain. Entries are kept as raw JSON for
+	// the same reason Origin is: an entry carries fields this plugin does not
+	// interpret (customName, id, and whatever upstream adds next), and a
+	// round trip through a typed struct would drop them silently.
+	//
+	// A step may be `disabled`, which is why this is not simply the operator
+	// list. Disabled steps are stored, shown, and filtered out before the
+	// engine sees them — deleting a step to turn it off loses the work.
+	Process []json.RawMessage `json:"process,omitempty"`
+	// Operators is the pre-collections field name. It is read on load and
+	// written back as Process; the accessor below is the only place that
+	// knows both spellings.
+	Operators []json.RawMessage `json:"operators,omitempty"`
 	// Origin is set on an imported record and holds the source object verbatim,
 	// so a migration cannot lose a field this plugin does not yet understand.
 	Origin *migratedOrigin `json:"origin,omitempty"`
@@ -105,8 +135,33 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	if len(rec.Content) > maxSubscriptionInlineBytes {
 		return fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
 	}
-	if err := validateOperators(rec.Operators); err != nil {
+	// Records written before collections existed spell the chain `operators`.
+	// Normalise on the way in so exactly one field is authoritative in storage.
+	if len(rec.Process) == 0 && len(rec.Operators) > 0 {
+		rec.Process = rec.Operators
+	}
+	rec.Operators = nil
+	if err := validateProcess(rec.Process); err != nil {
 		return fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	switch recordKind(rec) {
+	case kindCollection:
+		// A collection with neither members nor tags gathers nothing, and would
+		// fail only when someone fetched its URL.
+		if len(rec.Members) == 0 && len(rec.MemberTags) == 0 {
+			return fmt.Errorf("collection %q must name at least one subscription or tag", rec.ID)
+		}
+		rec.Kind = kindCollection
+		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA = "", "", "", "", ""
+	default:
+		// A sub with no source is allowed to exist. Requiring one here would
+		// reject legitimate intermediate states — a record arriving mid-import,
+		// or one an operator is still filling in — and render already refuses to
+		// serve a subscription with nothing in it, which is where the failure
+		// actually matters. The editor asks for a source; the store does not
+		// insist on one.
+		rec.Kind = ""
+		rec.Members, rec.MemberTags = nil, nil
 	}
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1

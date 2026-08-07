@@ -158,7 +158,15 @@ export interface PipelineDeleteResponse {
 export interface SubscriptionRecord {
   schema_version?: number;
   id: string;
+  /** "collection" combines other subs; empty or "sub" is one source of nodes. */
+  kind?: string;
   name: string;
+  display_name?: string;
+  remark?: string;
+  tags?: string[];
+  /** Collection inputs: explicit sub ids, plus every sub carrying these tags. */
+  members?: string[];
+  member_tags?: string[];
   url?: string;
   content?: string;
   /** "vpn-core" reads the live node export; empty uses url/content. */
@@ -167,7 +175,8 @@ export interface SubscriptionRecord {
   vpn_identity?: string;
   ua?: string;
   target?: string;
-  operators?: unknown[];
+  /** The ordered operator chain. Entries may be disabled without deletion. */
+  process?: unknown[];
   /** Set by migration only. The backend refuses to take this from a caller. */
   origin?: { source: string; kind: string; raw?: unknown };
 }
@@ -179,14 +188,24 @@ export interface SubscriptionRecord {
  */
 export interface SubscriptionListItem {
   id: string;
+  kind: string;
   name: string;
+  display_name?: string;
+  remark?: string;
+  tags?: string[];
   source?: string;
   has_url: boolean;
   has_inline_content: boolean;
+  members?: string[];
+  member_tags?: string[];
   target?: string;
-  operator_count: number;
+  step_count: number;
+  disabled_step_count: number;
   imported: boolean;
 }
+
+export const KIND_SUB = "sub";
+export const KIND_COLLECTION = "collection";
 
 export interface SubscriptionListResponse {
   subscriptions: SubscriptionListItem[];
