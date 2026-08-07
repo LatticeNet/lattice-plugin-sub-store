@@ -28,7 +28,7 @@ func TestCollectionStrictModeFailsWhenAMemberFails(t *testing.T) {
 		t.Fatalf("save collection: %v", err)
 	}
 
-	if _, err := rt.renderSubscription("c", "plain", "", ""); err == nil {
+	if _, err := rt.renderSubscription("c", "plain", "", "", nil); err == nil {
 		t.Fatal("strict mode served a collection with a failed member")
 	}
 }
@@ -48,7 +48,7 @@ func TestCollectionSkipModeServesTheRest(t *testing.T) {
 		t.Fatalf("save collection: %v", err)
 	}
 
-	out, err := rt.renderSubscription("c", "plain", "", "")
+	out, err := rt.renderSubscription("c", "plain", "", "", nil)
 	if err != nil {
 		t.Fatalf("skip mode failed anyway: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestCollectionSkipModeStillRefusesWhenEveryMemberFails(t *testing.T) {
 		t.Fatalf("save collection: %v", err)
 	}
 
-	_, err := rt.renderSubscription("c", "plain", "", "")
+	_, err := rt.renderSubscription("c", "plain", "", "", nil)
 	if err == nil {
 		t.Fatal("a collection whose every member failed was served as a success")
 	}

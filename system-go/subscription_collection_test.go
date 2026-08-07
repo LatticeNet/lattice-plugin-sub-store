@@ -225,7 +225,7 @@ func TestCollectionMergesMembersAndConverts(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("c", "plain", "", "")
+	out, err := rt.renderSubscription("c", "plain", "", "", nil)
 	if err != nil {
 		t.Fatalf("render collection: %v", err)
 	}

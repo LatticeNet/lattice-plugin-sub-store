@@ -32,6 +32,8 @@ interface StoredRecord {
   target?: string;
   file_type?: string;
   node_source?: string;
+  query_params?: string[];
+  arguments?: Record<string, string>;
   process?: unknown[];
   origin?: unknown;
 }
@@ -131,6 +133,35 @@ const records: StoredRecord[] = [
     content: "DOMAIN-SUFFIX,example.invalid,DIRECT\n",
     process: [],
   },
+  {
+    id: "generated-config",
+    kind: "file",
+    name: "Generated config",
+    tags: ["phone"],
+    source: "local",
+    file_type: "script",
+    node_source: "everything",
+    query_params: ["enhanced-mode"],
+    arguments: { "enhanced-mode": "fake-ip" },
+    content: [
+      "// Builds the whole document from the node source.",
+      "const proxies = await produceArtifact({",
+      '  type: "collection", name: "everything",',
+      '  platform: "ClashMeta", produceType: "internal",',
+      "});",
+      "const mode = ($options && $options[\"enhanced-mode\"]) || $arguments[\"enhanced-mode\"];",
+      "$content = ProxyUtils.yaml.safeDump({",
+      "  mode: \"rule\",",
+      "  dns: { \"enhanced-mode\": mode },",
+      "  proxies,",
+      "  \"proxy-groups\": [{ name: \"PROXY\", type: \"select\", \"include-all\": true }],",
+      "  rules: [\"MATCH,PROXY\"],",
+      "});",
+      "$options._res = { headers: { \"content-type\": \"text/yaml; charset=utf-8\" } };",
+      "",
+    ].join("\n"),
+    process: [],
+  },
 ];
 
 let settings: Record<string, unknown> = { default_target: "", default_ua: "" };
@@ -152,6 +183,8 @@ function listView(rec: StoredRecord) {
     target: rec.target,
     file_type: rec.file_type,
     node_source: rec.node_source,
+    query_params: rec.query_params,
+    arguments: rec.arguments,
     step_count: steps.length,
     disabled_step_count: steps.filter((s) => s.disabled).length,
     imported: Boolean(rec.origin),

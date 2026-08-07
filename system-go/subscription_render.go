@@ -15,6 +15,10 @@ import (
 type renderResult struct {
 	Content     string `json:"content"`
 	ContentType string `json:"content_type"`
+	// Headers a script file asked for through `$options._res.headers`. The core
+	// decides which of them it is willing to send; the plugin only reports what
+	// the document said it wanted.
+	Headers map[string]string `json:"headers,omitempty"`
 }
 
 // uaClassTargets maps the core's bounded client classification onto the engine's
@@ -50,7 +54,7 @@ func subscriptionTarget(rec subscriptionRecord, uaClass string) string {
 // both refusals exist deliberately: a proxy client that receives an empty but
 // successful subscription deletes every node it had, so the failure is worth
 // stopping twice rather than relying on either layer alone.
-func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw string) (renderResult, error) {
+func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw string, query map[string]string) (renderResult, error) {
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return renderResult{}, err
@@ -60,11 +64,20 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// target. The core's format only decides how a NODE LIST is carried, and a
 	// configuration is not a node list.
 	if recordKind(rec) == kindFile {
-		output, err := rt.renderFile(rec, uaClass)
+		output, headers, err := rt.renderFile(rec, uaClass, query)
 		if err != nil {
 			return renderResult{}, err
 		}
-		return renderResult{Content: output, ContentType: fileContentType(rec)}, nil
+		contentType := fileContentType(rec)
+		// A program says what it produced. Its own content-type wins over the
+		// type guessed from the file kind, which is the whole reason it can set
+		// headers at all.
+		for key, value := range headers {
+			if strings.EqualFold(key, "content-type") && strings.TrimSpace(value) != "" {
+				contentType = value
+			}
+		}
+		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
 	// A collection has no content of its own — it is defined entirely by the
@@ -437,13 +450,16 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Format         string `json:"format"`
 			UAClass        string `json:"ua_class"`
 			Raw            string `json:"raw"`
+			// Only the parameters the core decided to forward reach here, and the
+			// record narrows them again to the names it declared.
+			Query map[string]string `json:"query"`
 		}
 		if len(call.Payload) > 0 {
 			if err := json.Unmarshal(call.Payload, &req); err != nil {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid render payload: %w", err))
 			}
 		}
-		out, err := rt.renderSubscription(req.SubscriptionID, req.Format, req.UAClass, req.Raw)
+		out, err := rt.renderSubscription(req.SubscriptionID, req.Format, req.UAClass, req.Raw, req.Query)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}

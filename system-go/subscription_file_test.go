@@ -35,7 +35,7 @@ func TestFileConfigInjectsNodesAndKeepsTheRest(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("clash", "", "", "")
+	out, err := rt.renderSubscription("clash", "", "", "", nil)
 	if err != nil {
 		t.Fatalf("render file: %v", err)
 	}
@@ -104,7 +104,7 @@ rules:
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("ruled", "", "", "")
+	out, err := rt.renderSubscription("ruled", "", "", "", nil)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -142,7 +142,7 @@ rules:
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("chain", "", "", "")
+	out, err := rt.renderSubscription("chain", "", "", "", nil)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -205,7 +205,7 @@ func TestFileWithoutANodeSourceServesItsTemplate(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("rules", "", "", "")
+	out, err := rt.renderSubscription("rules", "", "", "", nil)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -222,7 +222,7 @@ func TestPlainFileIsServedAsText(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("notes", "", "", "")
+	out, err := rt.renderSubscription("notes", "", "", "", nil)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -258,7 +258,7 @@ func TestPlainFileRunsItsScriptOverTheDocument(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("rules", "", "", "")
+	out, err := rt.renderSubscription("rules", "", "", "", nil)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -281,7 +281,7 @@ func TestFileCannotSourceAnotherFile(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save b: %v", err)
 	}
-	if _, err := rt.renderSubscription("b", "", "", ""); err == nil {
+	if _, err := rt.renderSubscription("b", "", "", "", nil); err == nil {
 		t.Fatal("a file was allowed to source another file")
 	}
 }
@@ -293,7 +293,7 @@ func TestFileCannotSourceItself(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("self", "", "", ""); err == nil {
+	if _, err := rt.renderSubscription("self", "", "", "", nil); err == nil {
 		t.Fatal("a file was allowed to source itself")
 	}
 }
@@ -355,7 +355,7 @@ func TestFileRefusesATemplateThatIsNotAMapping(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("bad", "", "", ""); err == nil {
+	if _, err := rt.renderSubscription("bad", "", "", "", nil); err == nil {
 		t.Fatal("a YAML sequence was accepted as a configuration template")
 	}
 }

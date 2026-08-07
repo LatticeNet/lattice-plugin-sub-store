@@ -184,6 +184,10 @@ export interface SubscriptionRecord {
   file_type?: string;
   /** Files only: the id of the sub or collection whose nodes get injected. */
   node_source?: string;
+  /** Script files only: URL parameters the program is allowed to see. */
+  query_params?: string[];
+  /** Script files only: `$arguments`, stored with the file rather than on the URL. */
+  arguments?: Record<string, string>;
   /** The ordered operator chain. Entries may be disabled without deletion. */
   process?: unknown[];
   /** Set by migration only. The backend refuses to take this from a caller. */
@@ -225,6 +229,12 @@ export const KIND_FILE = "file";
  */
 export const FILE_TYPE_CONFIG = "config";
 export const FILE_TYPE_PLAIN = "plain";
+/**
+ * The document is built by a JavaScript program rather than stored as text.
+ * The program asks for the file's node source through `produceArtifact()` and
+ * assigns what it built to `$content`.
+ */
+export const FILE_TYPE_SCRIPT = "script";
 
 export interface SubscriptionListResponse {
   subscriptions: SubscriptionListItem[];

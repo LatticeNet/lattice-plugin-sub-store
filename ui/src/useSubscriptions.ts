@@ -14,6 +14,7 @@ import {
   KIND_FILE,
   FILE_TYPE_CONFIG,
   FILE_TYPE_PLAIN,
+  FILE_TYPE_SCRIPT,
   type OperatorCatalogResponse,
   type OperatorInfo,
   type SubscriptionDeleteResponse,
@@ -49,8 +50,12 @@ export interface SubscriptionDraft {
   memberTags: string[];
   /** Collections only. */
   failureMode: string;
-  /** Files only: FILE_TYPE_CONFIG or FILE_TYPE_PLAIN. */
+  /** Files only: FILE_TYPE_CONFIG, FILE_TYPE_PLAIN or FILE_TYPE_SCRIPT. */
   fileType: string;
+  /** Script files only: URL parameters the program may read. */
+  queryParams: string[];
+  /** Script files only: `$arguments`. */
+  argumentsText: string;
   /** Files only: the sub or collection whose nodes fill the document. */
   nodeSource: string;
   /** The ordered chain, including disabled steps. */
@@ -94,6 +99,39 @@ export function enabledSteps(draft: SubscriptionDraft): unknown[] {
   );
 }
 
+/** A stored file type the editor knows how to render. */
+export function knownFileType(fileType: string | undefined): string {
+  if (fileType === FILE_TYPE_PLAIN) return FILE_TYPE_PLAIN;
+  if (fileType === FILE_TYPE_SCRIPT) return FILE_TYPE_SCRIPT;
+  return FILE_TYPE_CONFIG;
+}
+
+/**
+ * `$arguments` as one editable block, `name = value` per line.
+ *
+ * A key/value grid would be more clicks for something operators paste in and out
+ * of a script's own comments, where it already looks like this.
+ */
+export function argumentsToText(args: Record<string, string> | undefined): string {
+  if (!args) return "";
+  return Object.entries(args)
+    .map(([key, value]) => `${key} = ${value}`)
+    .join("\n");
+}
+
+export function parseArguments(text: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const split = trimmed.indexOf("=");
+    if (split <= 0) continue;
+    const key = trimmed.slice(0, split).trim();
+    if (key) out[key] = trimmed.slice(split + 1).trim();
+  }
+  return out;
+}
+
 /** A stored kind the editor knows how to render, defaulting to a plain sub. */
 export function knownKind(kind: string | undefined): string {
   if (kind === KIND_COLLECTION) return KIND_COLLECTION;
@@ -119,6 +157,8 @@ export function emptyDraft(): SubscriptionDraft {
     failureMode: FAILURE_STRICT,
     fileType: FILE_TYPE_CONFIG,
     nodeSource: "",
+    queryParams: [],
+    argumentsText: "",
     process: [],
   };
 }
@@ -139,8 +179,10 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     members: Array.isArray(record.members) ? [...record.members] : [],
     memberTags: Array.isArray(record.member_tags) ? [...record.member_tags] : [],
     failureMode: record.failure_mode || FAILURE_STRICT,
-    fileType: record.file_type === FILE_TYPE_PLAIN ? FILE_TYPE_PLAIN : FILE_TYPE_CONFIG,
+    fileType: knownFileType(record.file_type),
     nodeSource: record.node_source ?? "",
+    queryParams: Array.isArray(record.query_params) ? [...record.query_params] : [],
+    argumentsText: argumentsToText(record.arguments),
     process: Array.isArray(record.process) ? [...record.process] : [],
   };
 }
@@ -171,9 +213,16 @@ export function validateDraft(draft: SubscriptionDraft): string {
       return "";
     }
     if (!draft.content.trim()) {
-      return draft.fileType === FILE_TYPE_PLAIN
-        ? "Write the text you want served."
-        : "Paste the client configuration this file is built from.";
+      if (draft.fileType === FILE_TYPE_PLAIN) return "Write the text you want served.";
+      if (draft.fileType === FILE_TYPE_SCRIPT) return "Paste the script that builds this file.";
+      return "Paste the client configuration this file is built from.";
+    }
+    // A program that calls produceArtifact with nothing declared fails at
+    // request time with an error only the operator's logs would show.
+    if (draft.fileType === FILE_TYPE_SCRIPT && !draft.nodeSource.trim()) {
+      if (/produceArtifact\s*\(/.test(draft.content)) {
+        return "This script asks for nodes — choose the subscription or combination it should get them from.";
+      }
     }
     return "";
   }
@@ -317,6 +366,16 @@ export function useSubscriptions(host: HostContext) {
         // a stored setting with no effect.
         node_source:
           file && draft.fileType !== FILE_TYPE_PLAIN ? draft.nodeSource.trim() || undefined : undefined,
+        // Only a program reads these, and only a program can be confused by
+        // them surviving a type change.
+        query_params:
+          file && draft.fileType === FILE_TYPE_SCRIPT && draft.queryParams.length
+            ? draft.queryParams
+            : undefined,
+        arguments:
+          file && draft.fileType === FILE_TYPE_SCRIPT && draft.argumentsText.trim()
+            ? parseArguments(draft.argumentsText)
+            : undefined,
         process: draft.process.length ? draft.process : undefined,
       };
       const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {

@@ -8,6 +8,7 @@ import {
   FileCode,
   FileText,
   Globe,
+  Braces,
   LoaderCircle,
   Pencil,
   Plus,
@@ -17,6 +18,7 @@ import {
 import {
   FILE_TYPE_CONFIG,
   FILE_TYPE_PLAIN,
+  FILE_TYPE_SCRIPT,
   KIND_COLLECTION,
   KIND_FILE,
   KIND_SUB,
@@ -56,6 +58,8 @@ const confirmingDelete = ref<string | null>(null);
 const tagText = ref("");
 
 const isPlain = computed(() => draft.value.fileType === FILE_TYPE_PLAIN);
+const isScript = computed(() => draft.value.fileType === FILE_TYPE_SCRIPT);
+const queryParamText = ref("");
 const isRemote = computed(() => draft.value.source === SOURCE_REMOTE);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
 const canSave = computed(() => !draftError.value && !subs.saving.value);
@@ -83,6 +87,12 @@ const FILE_TYPES = [
     detail: "A rule list, a fragment, anything else. Served exactly as written.",
     icon: FileText,
   },
+  {
+    id: FILE_TYPE_SCRIPT,
+    title: "Built by a script",
+    detail: "A JavaScript program assembles the whole document from your nodes.",
+    icon: Braces,
+  },
 ] as const;
 
 const TEMPLATE_SOURCES = [
@@ -107,8 +117,8 @@ function sourceName(id: string | undefined): string {
 }
 
 function describe(item: SubscriptionListItem): string {
-  const kind = item.file_type === FILE_TYPE_PLAIN ? "Plain text" : "Client configuration";
-  if (item.file_type === FILE_TYPE_PLAIN) return kind;
+  if (item.file_type === FILE_TYPE_PLAIN) return "Plain text";
+  const kind = item.file_type === FILE_TYPE_SCRIPT ? "Built by a script" : "Client configuration";
   return item.node_source ? `${kind} · nodes from ${sourceName(item.node_source)}` : `${kind} · no node source`;
 }
 
@@ -134,6 +144,7 @@ async function startEdit(id: string): Promise<void> {
   draft.value = draftFromRecord(record);
   if (!draft.value.source) draft.value.source = draft.value.url ? SOURCE_REMOTE : SOURCE_LOCAL;
   tagText.value = draft.value.tags.join(", ");
+  queryParamText.value = draft.value.queryParams.join(", ");
   editingId.value = id;
   editing.value = true;
   await host.resize();
@@ -146,11 +157,16 @@ function cancelEdit(): void {
   subs.preview.value = null;
 }
 
-async function submit(): Promise<void> {
-  draft.value.tags = tagText.value
+function splitList(text: string): string[] {
+  return text
     .split(/[,\n]/)
-    .map((tag) => tag.trim())
+    .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+async function submit(): Promise<void> {
+  draft.value.tags = splitList(tagText.value);
+  draft.value.queryParams = splitList(queryParamText.value);
   const ok = await subs.save(draft.value);
   if (ok) cancelEdit();
 }
@@ -248,9 +264,9 @@ watch(host.init, (value) => {
         </fieldset>
 
         <fieldset class="editor-group">
-          <legend>{{ isPlain ? "The text" : "The template" }}</legend>
+          <legend>{{ isScript ? "The program" : isPlain ? "The text" : "The template" }}</legend>
           <div class="form-grid">
-            <div class="field field-wide">
+            <div v-if="!isScript" class="field field-wide">
               <div class="source-grid">
                 <button
                   v-for="option in TEMPLATE_SOURCES"
@@ -266,7 +282,7 @@ watch(host.init, (value) => {
               </div>
             </div>
 
-            <template v-if="isRemote">
+            <template v-if="isRemote && !isScript">
               <label class="field field-wide">
                 <span class="field-label">Link</span>
                 <input
@@ -283,20 +299,30 @@ watch(host.init, (value) => {
               </label>
             </template>
 
-            <label v-else class="field field-wide">
-              <span class="field-label">{{ isPlain ? "Text" : "Configuration" }}</span>
+            <label v-if="isScript || !isRemote" class="field field-wide">
+              <span class="field-label">
+                {{ isScript ? "Script" : isPlain ? "Text" : "Configuration" }}
+              </span>
               <textarea
                 v-model="draft.content"
                 class="code-area"
-                rows="16"
+                :rows="isScript ? 22 : 16"
                 spellcheck="false"
                 :placeholder="
-                  isPlain
-                    ? 'Anything you want served verbatim'
-                    : 'Paste the Mihomo or Clash config you already run'
+                  isScript
+                    ? 'Paste the generator. Call produceArtifact({name, produceType: \'internal\'}) for your nodes and assign the result to $content.'
+                    : isPlain
+                      ? 'Anything you want served verbatim'
+                      : 'Paste the Mihomo or Clash config you already run'
                 "
               ></textarea>
-              <span v-if="!isPlain" class="field-optional">
+              <span v-if="isScript" class="field-optional">
+                Runs in the engine's sandbox — no filesystem, no network, no host calls. It reaches
+                <code>ProxyUtils</code>, <code>produceArtifact()</code>, <code>$arguments</code> and
+                <code>$options</code>, and returns its document by assigning <code>$content</code>.
+                Response headers go in <code>$options._res.headers</code>.
+              </span>
+              <span v-else-if="!isPlain" class="field-optional">
                 Keep your own rules, DNS and groups. Only <code>proxies</code> is replaced — and any
                 group left pointing at a node that is gone gets the new ones instead.
               </span>
@@ -321,6 +347,10 @@ watch(host.init, (value) => {
                   There is nothing to point at yet — create a subscription on the Subscriptions tab
                   first.
                 </template>
+                <template v-else-if="isScript">
+                  This is what <code>produceArtifact()</code> hands back. Each node keeps the name of
+                  the subscription it came from, so a script can filter or rename by source.
+                </template>
                 <template v-else>
                   Whatever this resolves to at request time becomes the file's proxy list.
                 </template>
@@ -329,7 +359,42 @@ watch(host.init, (value) => {
           </div>
         </fieldset>
 
-        <fieldset class="editor-group">
+        <fieldset v-if="isScript" class="editor-group">
+          <legend>What the script can read</legend>
+          <div class="form-grid">
+            <label class="field field-wide">
+              <span class="field-label">Settings <span class="field-optional">($arguments)</span></span>
+              <textarea
+                v-model="draft.argumentsText"
+                class="code-area"
+                rows="4"
+                spellcheck="false"
+                placeholder="enhanced-mode = fake-ip"
+              ></textarea>
+              <span class="field-optional">One <code>name = value</code> per line.</span>
+            </label>
+
+            <label class="field field-wide">
+              <span class="field-label">URL parameters the script may read</span>
+              <input
+                v-model="queryParamText"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="enhanced-mode"
+              />
+              <span class="field-optional">
+                A share link is public, so anything in its query is input from whoever holds the
+                link. Only the names listed here reach the script; everything else is dropped before
+                it runs. Leave empty and the script sees no query at all.
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- A program does the whole job, including anything an operator chain
+             would have done. Offering one as well would ask which runs first. -->
+        <fieldset v-if="!isScript" class="editor-group">
           <legend>Operations</legend>
           <ProcessChain
             :steps="(draft.process as ChainStep[])"

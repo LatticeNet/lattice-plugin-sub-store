@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   FILE_TYPE_PLAIN,
+  FILE_TYPE_SCRIPT,
   KIND_COLLECTION,
   KIND_FILE,
   MAX_SUBSCRIPTION_INLINE_BYTES,
@@ -10,9 +11,12 @@ import {
   SOURCE_VPN_CORE,
 } from "./client";
 import {
+  argumentsToText,
   draftFromRecord,
   emptyDraft,
   enabledSteps,
+  knownFileType,
+  parseArguments,
   slugify,
   uniqueId,
   validateDraft,
@@ -105,6 +109,8 @@ describe("draftFromRecord", () => {
       failureMode: "strict",
       fileType: "config",
       nodeSource: "",
+      queryParams: [],
+      argumentsText: "",
       process: [],
     });
   });
@@ -173,5 +179,51 @@ describe("file drafts", () => {
   // something, and a sub is the only kind whose editor works for any record.
   it("falls back to a sub for a kind it does not know", () => {
     expect(draftFromRecord({ id: "x", name: "x", kind: "something-new" }).kind).toBe("sub");
+  });
+});
+
+describe("script files", () => {
+  function scriptDraft(over: Partial<ReturnType<typeof emptyDraft>> = {}) {
+    return { ...emptyDraft(), kind: KIND_FILE, fileType: FILE_TYPE_SCRIPT, name: "Generated", ...over };
+  }
+
+  it("asks for the program", () => {
+    expect(validateDraft(scriptDraft())).toContain("script");
+  });
+
+  // A script that calls produceArtifact with nothing declared fails at request
+  // time, in a log the operator is not reading.
+  it("insists on a node source when the script asks for one", () => {
+    const asks = scriptDraft({ content: "const p = await produceArtifact({name: 'x'}); $content = '';" });
+    expect(validateDraft(asks)).toContain("nodes");
+    expect(validateDraft({ ...asks, nodeSource: "everything" })).toBe("");
+  });
+
+  it("lets a script that needs no nodes save without a source", () => {
+    expect(validateDraft(scriptDraft({ content: "$content = 'MATCH,DIRECT';" }))).toBe("");
+  });
+
+  it("reads the script type and its settings back", () => {
+    const draft = draftFromRecord({
+      id: "gen",
+      kind: KIND_FILE,
+      name: "Generated",
+      file_type: FILE_TYPE_SCRIPT,
+      query_params: ["enhanced-mode"],
+      arguments: { "enhanced-mode": "fake-ip" },
+    });
+    expect(draft.fileType).toBe(FILE_TYPE_SCRIPT);
+    expect(draft.queryParams).toEqual(["enhanced-mode"]);
+    expect(draft.argumentsText).toBe("enhanced-mode = fake-ip");
+  });
+
+  it("round-trips settings through the text block", () => {
+    expect(parseArguments("a = 1\n# comment\n\nb=2")).toEqual({ a: "1", b: "2" });
+    expect(parseArguments(argumentsToText({ x: "y" }))).toEqual({ x: "y" });
+  });
+
+  // An unknown type from an older or newer bundle must still render.
+  it("falls back to a config for a type it does not know", () => {
+    expect(knownFileType("something-new")).toBe("config");
   });
 });

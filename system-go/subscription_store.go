@@ -97,8 +97,15 @@ type subscriptionRecord struct {
 	// FailureMode applies to collections. Empty means strict.
 	FailureMode string `json:"failure_mode,omitempty"`
 	// ── file-only ─────────────────────────────────────────────────────────
-	// FileType is "config" or "plain". Empty means config.
+	// FileType is "config", "plain" or "script". Empty means config.
 	FileType string `json:"file_type,omitempty"`
+	// QueryParams are the URL parameters a script file lets reach `$options`.
+	// A share URL is public, so its query is attacker-controlled: only the names
+	// the operator listed here get through, and everything else is dropped.
+	QueryParams []string `json:"query_params,omitempty"`
+	// Arguments is `$arguments` — settings the operator stores with the file
+	// rather than passing on the URL.
+	Arguments map[string]string `json:"arguments,omitempty"`
 	// NodeSource names the subscription or combination whose nodes fill the
 	// template's `proxies`. Empty serves the template untouched, which is how
 	// a file holding rules or a script is expressed.
@@ -164,6 +171,8 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	if len(rec.Content) > maxSubscriptionInlineBytes {
 		return fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
 	}
+	script := ""
+	splitScript := false
 	// Records written before collections existed spell the chain `operators`.
 	// Normalise on the way in so exactly one field is authoritative in storage.
 	if len(rec.Process) == 0 && len(rec.Operators) > 0 {
@@ -191,10 +200,22 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		rec.Kind = kindFile
 		rec.Members, rec.MemberTags = nil, nil
 		rec.VPNIdentity, rec.Target, rec.FailureMode = "", "", ""
-		if fileType(rec) == fileTypePlain {
+		switch fileType(rec) {
+		case fileTypePlain:
 			// Plain text has no proxy list to fill, so a node source on it would
 			// be a stored setting that silently does nothing.
 			rec.NodeSource = ""
+			rec.QueryParams, rec.Arguments = nil, nil
+		case fileTypeScript:
+			// The program is the file, and it is large. It goes to its own key so
+			// the record document does not carry it; the record keeps a marker
+			// that says the content lives elsewhere rather than an empty string
+			// that would read as "this file has nothing in it".
+			script = rec.Content
+			rec.Content = ""
+			splitScript = true
+		default:
+			rec.QueryParams, rec.Arguments = nil, nil
 		}
 	case kindCollection:
 		// A collection with neither members nor tags gathers nothing, and would
@@ -234,6 +255,14 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	if !replaced {
 		doc.Records = append(doc.Records, rec)
 	}
+	// The program is written first. If the record write then fails the script is
+	// an orphan under a key nothing reads, which costs a bounded amount of space;
+	// the other order would leave a saved script file whose program is missing.
+	if splitScript {
+		if err := rt.putFileScript(rec.ID, script); err != nil {
+			return err
+		}
+	}
 	return rt.saveSubscriptionRecords(doc)
 }
 
@@ -244,6 +273,18 @@ func (rt *runtime) getSubscription(id string) (subscriptionRecord, error) {
 	}
 	for _, rec := range doc.Records {
 		if rec.ID == id {
+			// A script file's program is stored separately. Reattaching it here
+			// keeps the split invisible to every caller: edit, render and preview
+			// all see one record with its content in it, the same as any other
+			// kind. `list` deliberately does not go through this path — a
+			// management view must not drag a dozen programs with it.
+			if isScriptFile(rec) {
+				script, err := rt.getFileScript(id)
+				if err != nil {
+					return subscriptionRecord{}, err
+				}
+				rec.Content = script
+			}
 			return rec, nil
 		}
 	}
@@ -276,5 +317,12 @@ func (rt *runtime) deleteSubscription(id string) error {
 		return fmt.Errorf("subscription %q was not found", id)
 	}
 	doc.Records = kept
-	return rt.saveSubscriptionRecords(doc)
+	if err := rt.saveSubscriptionRecords(doc); err != nil {
+		return err
+	}
+	// Best effort: the record is already gone, so failing here would report a
+	// deletion that did happen as an error. The cost of the miss is one empty
+	// key.
+	_ = rt.clearFileScript(id)
+	return nil
 }

@@ -23,10 +23,14 @@ import (
 const kindFile = "file"
 
 func fileType(rec subscriptionRecord) string {
-	if rec.FileType == fileTypePlain {
+	switch rec.FileType {
+	case fileTypePlain:
 		return fileTypePlain
+	case fileTypeScript:
+		return fileTypeScript
+	default:
+		return fileTypeConfig
 	}
-	return fileTypeConfig
 }
 
 // resolveFileTemplate returns the document before nodes are injected.
@@ -50,34 +54,40 @@ func (rt *runtime) resolveFileTemplate(rec subscriptionRecord) (string, error) {
 }
 
 // renderFile produces the document the core will serve.
-func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string) (string, error) {
+func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[string]string) (string, map[string]string, error) {
+	// A script file has no template to resolve: the program is the document, and
+	// it decides for itself what the nodes turn into.
+	if isScriptFile(rec) {
+		return rt.renderScriptFile(rec, query)
+	}
+
 	template, err := rt.resolveFileTemplate(rec)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	operators, err := enabledOperators(rec)
 	if err != nil {
-		return "", fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
 	}
 
 	// Plain text has no node list to fill: its operations run over the document
 	// through the response-transform path, and what comes out is served.
 	if fileType(rec) == fileTypePlain {
 		if len(operators) == 0 {
-			return template, nil
+			return template, nil, nil
 		}
 		out, err := rt.subStoreEngine().transformResponse(subStoreResponseTransformRequest{
 			Response:  mustJSON(map[string]any{"status": 200, "headers": map[string]any{}, "body": template}),
 			Operators: operators,
 		})
 		if err != nil {
-			return "", fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
 		if strings.TrimSpace(out.Body) == "" {
-			return "", fmt.Errorf("file %q produced no content", rec.ID)
+			return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
 		}
-		return out.Body, nil
+		return out.Body, nil, nil
 	}
 
 	// A config with no node source is a document the operator maintains
@@ -86,21 +96,21 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string) (string, e
 	nodes := ""
 	if source := strings.TrimSpace(rec.NodeSource); source != "" {
 		if source == rec.ID {
-			return "", fmt.Errorf("file %q names itself as its node source", rec.ID)
+			return "", nil, fmt.Errorf("file %q names itself as its node source", rec.ID)
 		}
 		nodeRecord, err := rt.getSubscription(source)
 		if err != nil {
-			return "", fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
 		if recordKind(nodeRecord) == kindFile {
 			// A file sourcing a file would let two of them reference each
 			// other and render forever, the same reason a collection cannot
 			// contain a collection.
-			return "", fmt.Errorf("file %q names another file as its node source", rec.ID)
+			return "", nil, fmt.Errorf("file %q names another file as its node source", rec.ID)
 		}
 		nodes, err = rt.resolveNodesFor(nodeRecord)
 		if err != nil {
-			return "", fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
 	}
 
@@ -110,12 +120,108 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string) (string, e
 		Operators: operators,
 	})
 	if err != nil {
-		return "", fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
 	}
 	if strings.TrimSpace(merged.Output) == "" {
-		return "", fmt.Errorf("file %q produced no content", rec.ID)
+		return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
 	}
-	return merged.Output, nil
+	return merged.Output, nil, nil
+}
+
+// resolveScriptArtifacts gathers what `produceArtifact` can hand back.
+//
+// The record's node source is resolved to one artifact whose members are
+// rendered individually, because a proxy has to keep the name of the
+// subscription it came from: scripts filter on `_subName`, and a merged blob
+// cannot say which member produced which node.
+//
+// The artifact is registered under both the source's id and its name, since a
+// ported script names it the way upstream did while the record refers to it by
+// id, and making the operator reconcile the two by hand is a trap.
+func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptArtifact, error) {
+	source := strings.TrimSpace(rec.NodeSource)
+	if source == "" {
+		return nil, nil
+	}
+	if source == rec.ID {
+		return nil, fmt.Errorf("file %q names itself as its node source", rec.ID)
+	}
+	sourceRecord, err := rt.getSubscription(source)
+	if err != nil {
+		return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+	}
+	if recordKind(sourceRecord) == kindFile {
+		return nil, fmt.Errorf("file %q names another file as its node source", rec.ID)
+	}
+
+	var members []fileScriptMember
+	kind := recordKind(sourceRecord)
+	if kind == kindCollection {
+		gathered, err := rt.collectionMembers(sourceRecord)
+		if err != nil {
+			return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		}
+		for _, member := range gathered {
+			raw, err := rt.renderMemberNodes(member)
+			if err != nil {
+				// A collection's own failure mode decides this: strict refuses so
+				// a client never silently loses nodes, skip-failed keeps serving.
+				if sourceRecord.FailureMode != failureModeSkip {
+					return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+				}
+				continue
+			}
+			members = append(members, fileScriptMember{SubName: memberSubName(member), Raw: raw})
+		}
+		if len(members) == 0 {
+			return nil, fmt.Errorf("file %q: collection %q produced no members", rec.ID, sourceRecord.ID)
+		}
+	} else {
+		raw, err := rt.renderMemberNodes(sourceRecord)
+		if err != nil {
+			return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		}
+		members = []fileScriptMember{{SubName: memberSubName(sourceRecord), Raw: raw}}
+	}
+
+	artifact := fileScriptArtifact{Name: sourceRecord.ID, Kind: kind, Members: members}
+	artifacts := []fileScriptArtifact{artifact}
+	if name := strings.TrimSpace(sourceRecord.Name); name != "" && name != sourceRecord.ID {
+		alias := artifact
+		alias.Name = name
+		artifacts = append(artifacts, alias)
+	}
+	return artifacts, nil
+}
+
+// memberSubName is the name a script sees on `proxy._subName`. Upstream tags
+// with the subscription's name, so a ported script's lookup tables match.
+func memberSubName(member subscriptionRecord) string {
+	if name := strings.TrimSpace(member.Name); name != "" {
+		return name
+	}
+	return member.ID
+}
+
+// renderScriptFile runs the file's program and returns what it produced.
+func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]string) (string, map[string]string, error) {
+	artifacts, err := rt.resolveScriptArtifacts(rec)
+	if err != nil {
+		return "", nil, err
+	}
+	out, err := rt.subStoreEngine().runFileScript(fileScriptRequest{
+		Script:    rec.Content,
+		Artifacts: artifacts,
+		Arguments: rec.Arguments,
+		Query:     filterQuery(rec, query),
+	})
+	if err != nil {
+		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+	}
+	if strings.TrimSpace(out.Content) == "" {
+		return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
+	}
+	return out.Content, out.Headers, nil
 }
 
 // previewFileResponse renders a file and returns the document itself.
@@ -124,7 +230,9 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string) (string, e
 // preview cannot: it would parse the template and report the example proxies a
 // config ships with as though they were the result.
 func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Response {
-	document, err := rt.renderFile(rec, "")
+	// A preview has no request behind it, so a script sees an empty query and
+	// falls back to whatever defaults it declares.
+	document, _, err := rt.renderFile(rec, "", nil)
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
@@ -158,8 +266,16 @@ func (rt *runtime) resolveNodesFor(rec subscriptionRecord) (string, error) {
 // stays plain, because a file holding a rule list is not a document any client
 // should be told to parse as something else.
 func fileContentType(rec subscriptionRecord) string {
-	if fileType(rec) == fileTypePlain {
+	switch fileType(rec) {
+	case fileTypePlain:
 		return "text/plain; charset=utf-8"
+	case fileTypeScript:
+		// A program can emit YAML, JSON or a rule list, and it says which through
+		// `$options._res.headers`. Guessing YAML for all of them would label a
+		// JSON document as something no client should parse it as, so the default
+		// claims nothing and the script's own header replaces it.
+		return "text/plain; charset=utf-8"
+	default:
+		return "text/yaml; charset=utf-8"
 	}
-	return "text/yaml; charset=utf-8"
 }
