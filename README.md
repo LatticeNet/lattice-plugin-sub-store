@@ -148,3 +148,23 @@ are part of the signed byte contract. It then packs a deterministic artifact,
 sets `bundle.digest_sha256`, signs the manifest with the trusted LatticeNet
 Ed25519 publisher seed, and publishes the alpha release without making it
 GitHub Latest.
+
+## Looking at the UI
+
+`cd ui && npm run dev` opens a harness at `/dev.html` that mounts the real
+screens against a fake host with canned records: a fleet-sourced subscription, a
+provider link, a pasted one, and a combination that gathers them.
+
+It exists because the plugin UI is otherwise unviewable outside a dashboard —
+and while it was unviewable, an operator picker that rendered empty and a data
+load that never ran both reached production. The harness delays its handshake on
+purpose, so a screen that loads before the host is ready and never retries shows
+the same empty state it would in production rather than looking fine.
+
+It applies the host's design tokens itself, with a light/dark toggle, because
+the shipped bundle has no colours of its own — polishing against the fallbacks
+would mean polishing colours nobody sees.
+
+Nothing under `dev/` can reach the signed bundle: the production build has
+`index.html` as its only entry, and `verify:build` fails if a dev marker appears
+in `dist` anyway.

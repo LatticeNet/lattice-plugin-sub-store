@@ -26,6 +26,29 @@ const allowlistedUrls = new Set([
 ])
 const allowlistedPrefixes = ['https://vuejs.org/error-reference/']
 
+/**
+ * The dev harness must never reach the bundle.
+ *
+ * It mounts the real screens against a FAKE host with canned records. Shipping
+ * it would put a second, lying data source inside a signed artifact — and the
+ * one thing a reviewer of a signed bundle should not have to do is work out
+ * which of two hosts a screen is talking to.
+ *
+ * Vite builds from index.html alone, so this cannot happen today. It is
+ * asserted because "cannot happen today" is a property of the build config,
+ * and build configs change.
+ */
+const DEV_MARKERS = ['fakeHost', 'DevApp', 'dev harness', 'canned records']
+for (const filePath of await listFiles(distRoot)) {
+  const contents = await readFile(filePath, 'utf8')
+  const found = DEV_MARKERS.find((marker) => contents.includes(marker))
+  if (found) {
+    throw new Error(
+      `dev harness leaked into ${path.relative(distRoot, filePath)}: ${found}`
+    )
+  }
+}
+
 for (const filePath of await listFiles(distRoot)) {
   const contents = await readFile(filePath, 'utf8')
   const matches = contents.match(/https?:\/\/[^"')\s]+/g) ?? []

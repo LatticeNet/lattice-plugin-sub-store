@@ -88,9 +88,9 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 12px;
-  background: var(--surface-2, #0d1117);
+  background: var(--background, #f7f8f9);
 }
 
 .common h3 {
@@ -122,7 +122,7 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
 
 .common-choices button {
   padding: 5px 12px;
-  border: 1px solid var(--border, #242d3a);
+  border: 1px solid var(--border, #d9dde2);
   border-radius: 999px;
   background: transparent;
   color: inherit;
@@ -131,16 +131,16 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
 }
 
 .common-choices button.is-active {
-  border-color: var(--accent, #2dd4bf);
-  background: color-mix(in srgb, var(--accent, #2dd4bf) 14%, transparent);
-  color: var(--accent, #2dd4bf);
+  border-color: var(--primary, #1769aa);
+  background: color-mix(in srgb, var(--primary, #1769aa) 14%, transparent);
+  color: var(--primary, #1769aa);
 }
 
 .common-hint {
   grid-area: hint;
   font-size: 11.5px;
   line-height: 1.5;
-  color: var(--text-3, #7c8896);
+  color: var(--muted-foreground, #656d76);
 }
 
 @media (max-width: 620px) {
