@@ -48,6 +48,22 @@ describe("operator arguments match the engine's contract", () => {
   });
 
   // Region and Type filters accept `e?.value || e`, so the wrapper is fine.
+  // OW({sourceType, sourceName, position}) — `value` matched nothing, so the
+  // operator resolved no source at all.
+  it("names the appended source the way the engine reads it", () => {
+    const keys = keysOf("Add Proxies From Subscription Operator");
+    expect(keys).toEqual(["sourceType", "sourceName", "position"]);
+  });
+
+  // IW({action, template, link, position, field}) — `field` defaults to
+  // ["name"], so omitting it from the form is a choice rather than a gap.
+  it("covers the duplicate handler's arguments", () => {
+    const keys = keysOf("Handle Duplicate Operator");
+    for (const key of ["action", "template", "link", "position"]) {
+      expect(keys).toContain(key);
+    }
+  });
+
   it("keeps the wrapper where the engine accepts one", () => {
     expect(keysOf("Region Filter")).toEqual(["value", "keep"]);
     expect(keysOf("Type Filter")).toEqual(["value", "keep"]);

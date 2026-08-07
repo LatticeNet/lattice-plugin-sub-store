@@ -246,6 +246,17 @@ watch(host.init, (value) => {
               <span class="field-label">Note</span>
               <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
             </label>
+
+            <label class="field field-wide checkbox-field">
+              <input v-model="draft.download" type="checkbox" />
+              <span>
+                <span class="field-label">Save rather than show</span>
+                <span class="field-optional">
+                  Served with a filename, so a browser downloads it instead of rendering it in a
+                  tab. Clients that fetch the URL directly are unaffected.
+                </span>
+              </span>
+            </label>
           </div>
         </fieldset>
 

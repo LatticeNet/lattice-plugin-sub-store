@@ -184,6 +184,8 @@ export interface SubscriptionRecord {
   file_type?: string;
   /** Files only: the id of the sub or collection whose nodes get injected. */
   node_source?: string;
+  /** Files only: served with a filename so a client saves rather than shows it. */
+  download?: boolean;
   /** Script files only: URL parameters the program is allowed to see. */
   query_params?: string[];
   /** Script files only: `$arguments`, stored with the file rather than on the URL. */

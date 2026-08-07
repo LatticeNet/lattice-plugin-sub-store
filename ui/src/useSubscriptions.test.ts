@@ -124,6 +124,7 @@ describe("draftFromRecord", () => {
       failureMode: "strict",
       fileType: "config",
       nodeSource: "",
+      download: false,
       queryParams: [],
       argumentsText: "",
       process: [],

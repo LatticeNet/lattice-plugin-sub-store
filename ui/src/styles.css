@@ -82,6 +82,16 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
    styling — red border, pink background — while claiming success. Built from the
    host's own tokens rather than a hardcoded green, because the frame has no
    colours of its own and a fixed one would fight whatever theme it lands in. */
+/* A checkbox reads as one control with its label, not as a box floating above
+   a paragraph. */
+.checkbox-field {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+}
+.checkbox-field > input { margin-top: 3px; }
+.checkbox-field > span { display: flex; flex-direction: column; gap: 3px; }
+
 .alert-ok {
   border-color: color-mix(in srgb, var(--primary, #1769aa) 45%, transparent);
   color: var(--foreground, #17191c);

@@ -77,6 +77,19 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 				contentType = value
 			}
 		}
+		// A file marked for download is meant to arrive as a file rather than be
+		// rendered in a browser tab. The record has carried this flag since files
+		// existed and nothing ever read it; it takes effect once the core applies
+		// the headers a render returns (TASK-0025), and until then it is stored
+		// and reported rather than silently dropped.
+		if rec.Download {
+			if headers == nil {
+				headers = map[string]string{}
+			}
+			if _, set := headers["content-disposition"]; !set {
+				headers["content-disposition"] = `attachment; filename="` + downloadFilename(rec) + `"`
+			}
+		}
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 

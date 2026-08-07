@@ -59,6 +59,8 @@ export interface SubscriptionDraft {
   failureMode: string;
   /** Files only: FILE_TYPE_CONFIG, FILE_TYPE_PLAIN or FILE_TYPE_SCRIPT. */
   fileType: string;
+  /** Files only: serve with a filename so a client saves it. */
+  download: boolean;
   /** Script files only: URL parameters the program may read. */
   queryParams: string[];
   /** Script files only: `$arguments`. */
@@ -176,6 +178,7 @@ export function emptyDraft(): SubscriptionDraft {
     failureMode: FAILURE_STRICT,
     fileType: FILE_TYPE_CONFIG,
     nodeSource: "",
+    download: false,
     queryParams: [],
     argumentsText: "",
     process: [],
@@ -201,6 +204,7 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     failureMode: record.failure_mode || FAILURE_STRICT,
     fileType: knownFileType(record.file_type),
     nodeSource: record.node_source ?? "",
+    download: Boolean(record.download),
     queryParams: Array.isArray(record.query_params) ? [...record.query_params] : [],
     argumentsText: argumentsToText(record.arguments),
     process: Array.isArray(record.process) ? [...record.process] : [],
@@ -383,6 +387,7 @@ export function useSubscriptions(host: HostContext) {
         // second answer to what shape it comes out in.
         target: file ? undefined : draft.target.trim() || undefined,
         file_type: file ? draft.fileType : undefined,
+        download: file && draft.download ? true : undefined,
         // Plain text has no proxy list to fill, so a node source on it would be
         // a stored setting with no effect.
         node_source:

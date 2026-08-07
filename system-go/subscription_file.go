@@ -279,3 +279,36 @@ func fileContentType(rec subscriptionRecord) string {
 		return "text/yaml; charset=utf-8"
 	}
 }
+
+// downloadFilename is what a browser saves a file as.
+//
+// The display name is preferred because that is the name the operator gave it
+// and the one they will look for on disk; the id is the fallback. Characters a
+// filesystem or a header cannot carry are replaced rather than escaped, since a
+// quoted filename containing a quote is a header-injection shape.
+func downloadFilename(rec subscriptionRecord) string {
+	name := strings.TrimSpace(rec.DisplayName)
+	if name == "" {
+		name = strings.TrimSpace(rec.Name)
+	}
+	if name == "" {
+		name = rec.ID
+	}
+	var b strings.Builder
+	for _, r := range name {
+		switch {
+		case r < 0x20, r == '"', r == '\\', r == '/', r == 0x7f:
+			b.WriteByte('-')
+		default:
+			b.WriteRune(r)
+		}
+	}
+	cleaned := strings.TrimSpace(b.String())
+	if cleaned == "" {
+		return "subscription"
+	}
+	if fileType(rec) == fileTypeConfig && !strings.Contains(cleaned, ".") {
+		return cleaned + ".yaml"
+	}
+	return cleaned
+}

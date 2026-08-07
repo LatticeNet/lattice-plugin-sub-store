@@ -317,16 +317,45 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     ],
   },
   {
+    // The engine destructures {sourceType, sourceName, position} and resolves
+    // the named source through produceArtifact. `value` — what this used to
+    // write — matched nothing, so the operator resolved no source at all.
+    //
+    // It also acts only when the pipeline carries a $file, which this plugin's
+    // file rendering does not yet set, so the step is inert here. The arguments
+    // are correct now regardless; a control that writes the wrong shape is a
+    // second bug waiting behind the first.
     type: "Add Proxies From Subscription Operator",
     label: "Append another subscription",
-    summary: "Append nodes from another subscription into this one.",
+    summary: "Append nodes from another subscription. Needs the file pipeline.",
     group: "rewrite",
     fields: [
       {
-        key: "value",
-        label: "Subscription names",
-        kind: "textarea",
-        placeholder: "One name per line",
+        key: "sourceType",
+        label: "Kind",
+        kind: "select",
+        default: "subscription",
+        options: [
+          { value: "subscription", label: "Subscription" },
+          { value: "collection", label: "Combination" },
+        ],
+      },
+      {
+        key: "sourceName",
+        label: "Name",
+        kind: "text",
+        placeholder: "The name it is stored under",
+      },
+      {
+        key: "position",
+        label: "Where",
+        kind: "select",
+        default: "replace",
+        options: [
+          { value: "replace", label: "Replace" },
+          { value: "before", label: "Before" },
+          { value: "after", label: "After" },
+        ],
       },
     ],
   },

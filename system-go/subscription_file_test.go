@@ -359,3 +359,75 @@ func TestFileRefusesATemplateThatIsNotAMapping(t *testing.T) {
 		t.Fatal("a YAML sequence was accepted as a configuration template")
 	}
 }
+
+// A file marked for download arrives as a file. The flag has been on the record
+// since files existed and nothing read it.
+func TestADownloadFileAsksToBeSaved(t *testing.T) {
+	rt, _ := newKVRuntime(t)
+	if err := rt.saveSubscription(subscriptionRecord{
+		ID: "rules", Kind: kindFile, Name: "Rules", DisplayName: "My Rules",
+		FileType: fileTypePlain, Content: "DOMAIN,example.invalid,DIRECT\n", Download: true,
+	}); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	out, err := rt.renderSubscription("rules", "", "", "", nil)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	if got := out.Headers["content-disposition"]; got != `attachment; filename="My Rules"` {
+		t.Fatalf("content-disposition is %q", got)
+	}
+}
+
+func TestAFileNotMarkedForDownloadAsksForNothing(t *testing.T) {
+	rt, _ := newKVRuntime(t)
+	if err := rt.saveSubscription(subscriptionRecord{
+		ID: "rules", Kind: kindFile, Name: "Rules", FileType: fileTypePlain, Content: "x",
+	}); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	out, err := rt.renderSubscription("rules", "", "", "", nil)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	if _, set := out.Headers["content-disposition"]; set {
+		t.Fatalf("an ordinary file asked to be downloaded: %+v", out.Headers)
+	}
+}
+
+// A quoted filename containing a quote is a header-injection shape, and a
+// slash would let a name escape the directory a client saves into.
+func TestADownloadFilenameCannotBreakOutOfItsHeader(t *testing.T) {
+	got := downloadFilename(subscriptionRecord{
+		ID: "x", DisplayName: "evil\"; drop=1; a=\"/../../etc/passwd",
+	})
+	if strings.ContainsAny(got, "\"\\/") {
+		t.Fatalf("the filename kept a character that breaks the header: %q", got)
+	}
+	if strings.ContainsAny(got, "\n\r") {
+		t.Fatalf("the filename kept a newline: %q", got)
+	}
+}
+
+// A configuration saved without an extension is one a client will not know what
+// to do with.
+func TestADownloadedConfigGetsAnExtension(t *testing.T) {
+	got := downloadFilename(subscriptionRecord{ID: "c", Name: "phone", FileType: fileTypeConfig})
+	if got != "phone.yaml" {
+		t.Fatalf("filename is %q", got)
+	}
+	// One the operator already named keeps their extension.
+	kept := downloadFilename(subscriptionRecord{ID: "c", Name: "phone.yml", FileType: fileTypeConfig})
+	if kept != "phone.yml" {
+		t.Fatalf("an explicit extension was changed to %q", kept)
+	}
+}
+
+func TestADownloadFilenameFallsBackRatherThanBeingEmpty(t *testing.T) {
+	if got := downloadFilename(subscriptionRecord{ID: "only-an-id"}); got != "only-an-id.yaml" {
+		t.Fatalf("filename is %q", got)
+	}
+	if got := downloadFilename(subscriptionRecord{ID: "", DisplayName: "///"}); got == "" {
+		t.Fatal("a name of only illegal characters produced an empty filename")
+	}
+}
