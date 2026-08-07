@@ -21,7 +21,16 @@ type previewResult struct {
 	NodeCount       int           `json:"node_count"`
 	Nodes           []nodeSummary `json:"nodes"`
 	Truncated       bool          `json:"truncated"`
+	// Document is set instead of Nodes when the record is a file. A file is a
+	// document, so the question its preview answers is "what will a client
+	// receive", not "which nodes survived the filter".
+	Document string `json:"document,omitempty"`
 }
+
+// maxPreviewDocumentBytes bounds what a file preview returns. The reply travels
+// through a budgeted stdout pipe, and a config long enough to overrun it is
+// still readable from its first pages.
+const maxPreviewDocumentBytes = 64 << 10
 
 // maxPreviewNodes bounds what a preview returns. A 5000-node subscription does
 // not need 5000 rows to show whether a pipeline works, and the reply travels

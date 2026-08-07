@@ -56,6 +56,17 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 		return renderResult{}, err
 	}
 
+	// A file is served as the document it is: no base64 envelope, no client
+	// target. The core's format only decides how a NODE LIST is carried, and a
+	// configuration is not a node list.
+	if recordKind(rec) == kindFile {
+		output, err := rt.renderFile(rec, uaClass)
+		if err != nil {
+			return renderResult{}, err
+		}
+		return renderResult{Content: output, ContentType: fileContentType(rec)}, nil
+	}
+
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
@@ -242,6 +253,8 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Members     []string `json:"members,omitempty"`
 			MemberTags  []string `json:"member_tags,omitempty"`
 			Target      string   `json:"target,omitempty"`
+			FileType    string   `json:"file_type,omitempty"`
+			NodeSource  string   `json:"node_source,omitempty"`
 			Steps       int      `json:"step_count"`
 			StepsOff    int      `json:"disabled_step_count"`
 			Imported    bool     `json:"imported"`
@@ -261,7 +274,8 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				Source: rec.Source,
 				HasURL: strings.TrimSpace(rec.URL) != "", HasInline: strings.TrimSpace(rec.Content) != "",
 				Members: rec.Members, MemberTags: rec.MemberTags,
-				Target: rec.Target, Steps: len(steps), StepsOff: off, Imported: rec.Origin != nil,
+				Target: rec.Target, FileType: rec.FileType, NodeSource: rec.NodeSource,
+				Steps: len(steps), StepsOff: off, Imported: rec.Origin != nil,
 			})
 		}
 		body, err := json.Marshal(map[string]any{"subscriptions": views})
@@ -354,7 +368,10 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		}
 		return latticeplugin.RawResultResponse(body, "")
 	case "operators":
-		body, err := json.Marshal(map[string]any{"operators": operatorCatalogInfo()})
+		// Both vocabularies, each flagged. A file editing a document needs the
+		// response steps; a subscription's chain needs the proxy operators.
+		catalog := append(operatorCatalogInfo(), responseOperatorInfo()...)
+		body, err := json.Marshal(map[string]any{"operators": catalog})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -374,27 +391,35 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		raw := req.Raw
 		operators := req.Operators
 		target := req.Target
-		if strings.TrimSpace(raw) == "" && strings.TrimSpace(req.SubscriptionID) != "" {
+		if strings.TrimSpace(req.SubscriptionID) != "" {
 			rec, err := rt.getSubscription(req.SubscriptionID)
 			if err != nil {
 				return latticeplugin.ErrorResponse(err)
 			}
-			raw = rec.Content
-			// Same reason as render: a vpn-core record has no inline content,
-			// and a preview that showed nothing would look like a broken
-			// subscription rather than one sourced from somewhere else.
-			if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
-				fetched, err := rt.fetchSubscription(req.SubscriptionID)
-				if err != nil {
-					return latticeplugin.ErrorResponse(err)
+			// A file's content is a document, not a node list. Parsing it as
+			// nodes would show the example proxies its template ships with and
+			// call them the result, which is worse than showing nothing.
+			if recordKind(rec) == kindFile {
+				return previewFileResponse(rt, rec)
+			}
+			if strings.TrimSpace(raw) == "" {
+				raw = rec.Content
+				// Same reason as render: a vpn-core record has no inline content,
+				// and a preview that showed nothing would look like a broken
+				// subscription rather than one sourced from somewhere else.
+				if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
+					fetched, err := rt.fetchSubscription(req.SubscriptionID)
+					if err != nil {
+						return latticeplugin.ErrorResponse(err)
+					}
+					raw = fetched.Raw
 				}
-				raw = fetched.Raw
-			}
-			if operators == nil {
-				operators = rec.Operators
-			}
-			if strings.TrimSpace(target) == "" {
-				target = rec.Target
+				if operators == nil {
+					operators = rec.Operators
+				}
+				if strings.TrimSpace(target) == "" {
+					target = rec.Target
+				}
 			}
 		}
 		out, err := rt.previewSubscription(raw, operators, target)

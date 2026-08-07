@@ -11,6 +11,9 @@ import {
   FAILURE_STRICT,
   KIND_SUB,
   KIND_COLLECTION,
+  KIND_FILE,
+  FILE_TYPE_CONFIG,
+  FILE_TYPE_PLAIN,
   type OperatorCatalogResponse,
   type OperatorInfo,
   type SubscriptionDeleteResponse,
@@ -29,7 +32,7 @@ export type LoadState = "idle" | "loading" | "ready" | "error";
 
 export interface SubscriptionDraft {
   id: string;
-  /** KIND_SUB or KIND_COLLECTION. */
+  /** KIND_SUB, KIND_COLLECTION or KIND_FILE. */
   kind: string;
   name: string;
   remark: string;
@@ -46,6 +49,10 @@ export interface SubscriptionDraft {
   memberTags: string[];
   /** Collections only. */
   failureMode: string;
+  /** Files only: FILE_TYPE_CONFIG or FILE_TYPE_PLAIN. */
+  fileType: string;
+  /** Files only: the sub or collection whose nodes fill the document. */
+  nodeSource: string;
   /** The ordered chain, including disabled steps. */
   process: unknown[];
 }
@@ -87,6 +94,13 @@ export function enabledSteps(draft: SubscriptionDraft): unknown[] {
   );
 }
 
+/** A stored kind the editor knows how to render, defaulting to a plain sub. */
+export function knownKind(kind: string | undefined): string {
+  if (kind === KIND_COLLECTION) return KIND_COLLECTION;
+  if (kind === KIND_FILE) return KIND_FILE;
+  return KIND_SUB;
+}
+
 export function emptyDraft(): SubscriptionDraft {
   return {
     id: "",
@@ -103,6 +117,8 @@ export function emptyDraft(): SubscriptionDraft {
     members: [],
     memberTags: [],
     failureMode: FAILURE_STRICT,
+    fileType: FILE_TYPE_CONFIG,
+    nodeSource: "",
     process: [],
   };
 }
@@ -110,7 +126,7 @@ export function emptyDraft(): SubscriptionDraft {
 export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
   return {
     id: record.id,
-    kind: record.kind === KIND_COLLECTION ? KIND_COLLECTION : KIND_SUB,
+    kind: knownKind(record.kind),
     name: record.name ?? "",
     remark: record.remark ?? "",
     tags: Array.isArray(record.tags) ? [...record.tags] : [],
@@ -123,6 +139,8 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     members: Array.isArray(record.members) ? [...record.members] : [],
     memberTags: Array.isArray(record.member_tags) ? [...record.member_tags] : [],
     failureMode: record.failure_mode || FAILURE_STRICT,
+    fileType: record.file_type === FILE_TYPE_PLAIN ? FILE_TYPE_PLAIN : FILE_TYPE_CONFIG,
+    nodeSource: record.node_source ?? "",
     process: Array.isArray(record.process) ? [...record.process] : [],
   };
 }
@@ -137,6 +155,28 @@ export function validateDraft(draft: SubscriptionDraft): string {
   // The name is what the operator types; the id is derived from it. Asking for
   // both was asking for a detail with no decision attached to it.
   if (!draft.name.trim()) return "Give it a name.";
+  // Byte length, not character count: the backend limit is bytes and content
+  // full of non-ASCII names would otherwise pass here and fail there. A client
+  // configuration is the likeliest thing to reach the cap, so this runs for
+  // every kind rather than only for pasted nodes.
+  const bytes = new TextEncoder().encode(draft.content).length;
+  if (bytes > MAX_SUBSCRIPTION_INLINE_BYTES) {
+    return `Inline content is ${Math.round(bytes / 1024)} KB; the limit is ${MAX_SUBSCRIPTION_INLINE_BYTES / 1024} KB.`;
+  }
+  // A file is the document itself. Without one there is nothing to serve, and
+  // a node source alone produces a proxy list with no config around it.
+  if (draft.kind === KIND_FILE) {
+    if (draft.source === SOURCE_REMOTE) {
+      if (!draft.url.trim()) return "Paste the link the template is fetched from.";
+      return "";
+    }
+    if (!draft.content.trim()) {
+      return draft.fileType === FILE_TYPE_PLAIN
+        ? "Write the text you want served."
+        : "Paste the client configuration this file is built from.";
+    }
+    return "";
+  }
   // A collection is defined by what it gathers, not by a source of its own.
   if (draft.kind === KIND_COLLECTION) {
     if (draft.members.length === 0 && draft.memberTags.length === 0) {
@@ -149,13 +189,6 @@ export function validateDraft(draft: SubscriptionDraft): string {
   }
   if (draft.source === SOURCE_LOCAL && !draft.content.trim()) {
     return "Paste the nodes you want served.";
-  }
-  // Byte length, not character count: the backend limit is bytes and a
-  // subscription full of non-ASCII names would otherwise pass here and fail
-  // there.
-  const bytes = new TextEncoder().encode(draft.content).length;
-  if (bytes > MAX_SUBSCRIPTION_INLINE_BYTES) {
-    return `Inline content is ${Math.round(bytes / 1024)} KB; the limit is ${MAX_SUBSCRIPTION_INLINE_BYTES / 1024} KB.`;
   }
   return "";
 }
@@ -250,6 +283,7 @@ export function useSubscriptions(host: HostContext) {
       // migration, and the backend preserves or clears it rather than trusting
       // a caller. Sending it would be ignored anyway; omitting it says so.
       const collection = draft.kind === KIND_COLLECTION;
+      const file = draft.kind === KIND_FILE;
       // On create the id is derived here rather than typed; on edit it is
       // carried through untouched, because a share already points at it.
       const id =
@@ -257,7 +291,7 @@ export function useSubscriptions(host: HostContext) {
         uniqueId(draft.name, items.value.map((item) => item.id));
       const record: SubscriptionRecord = {
         id,
-        kind: collection ? KIND_COLLECTION : undefined,
+        kind: collection ? KIND_COLLECTION : file ? KIND_FILE : undefined,
         name: draft.name.trim() || draft.id.trim(),
         remark: draft.remark.trim() || undefined,
         tags: draft.tags.length ? draft.tags : undefined,
@@ -266,7 +300,7 @@ export function useSubscriptions(host: HostContext) {
         // does this get its content".
         source: collection ? undefined : draft.source || undefined,
         vpn_identity:
-          !collection && draft.source === SOURCE_VPN_CORE
+          !collection && !file && draft.source === SOURCE_VPN_CORE
             ? draft.vpnIdentity.trim() || undefined
             : undefined,
         url: collection || draft.source === SOURCE_LOCAL ? undefined : draft.url.trim() || undefined,
@@ -275,7 +309,14 @@ export function useSubscriptions(host: HostContext) {
         members: collection && draft.members.length ? draft.members : undefined,
         member_tags: collection && draft.memberTags.length ? draft.memberTags : undefined,
         failure_mode: collection ? draft.failureMode : undefined,
-        target: draft.target.trim() || undefined,
+        // A file is served as its own document, so a client target would be a
+        // second answer to what shape it comes out in.
+        target: file ? undefined : draft.target.trim() || undefined,
+        file_type: file ? draft.fileType : undefined,
+        // Plain text has no proxy list to fill, so a node source on it would be
+        // a stored setting with no effect.
+        node_source:
+          file && draft.fileType !== FILE_TYPE_PLAIN ? draft.nodeSource.trim() || undefined : undefined,
         process: draft.process.length ? draft.process : undefined,
       };
       const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {

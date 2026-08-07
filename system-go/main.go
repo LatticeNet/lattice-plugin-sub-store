@@ -32,7 +32,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.9.1-alpha.1"
+	pluginVersion        = "0.10.0-alpha.1"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
 	maxExportBytes       = 1 << 20

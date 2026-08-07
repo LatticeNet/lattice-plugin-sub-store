@@ -30,13 +30,27 @@ export interface ChainStep {
 const props = defineProps<{
   steps: ChainStep[];
   /** Operator types the backend accepts, from the catalogue call. */
-  catalog: readonly { type: string; scripting?: boolean }[];
+  catalog: readonly { type: string; scripting?: boolean; response?: boolean }[];
   /**
    * Types edited by the common-settings block above. They stay in the chain —
    * they are ordinary operators — but listing them here too would give one
    * setting two controls that can disagree.
    */
   managedTypes?: readonly string[];
+  /**
+   * Restricts the palette to the operators that make sense here. A plain-text
+   * file runs its chain over the document, where a region filter or a rename
+   * has nothing to act on — offering them invites a chain that cannot work.
+   */
+  /**
+   * Which chain this is. A response chain edits a served document; a node chain
+   * processes proxies. The engine skips the wrong kind silently, so the palette
+   * only ever offers one of them.
+   */
+  chain?: "nodes" | "response";
+  /** Wording for a chain that does not process nodes. */
+  heading?: string;
+  emptyCopy?: string;
 }>();
 
 const emit = defineEmits<{
@@ -56,9 +70,12 @@ const visible = computed(() =>
 );
 
 /** Every operator, in one flat grid — one click to add, nothing hidden. */
+const wantsResponse = computed(() => props.chain === "response");
+
 const addable = computed(() =>
   props.catalog
     .filter((entry) => !managed.value.has(entry.type))
+    .filter((entry) => Boolean(entry.response) === wantsResponse.value)
     .map((entry) => ({
       type: entry.type,
       label: schemaFor(entry.type)?.label ?? entry.type,
@@ -134,7 +151,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 <template>
   <section class="chain">
     <div class="chain-head">
-      <h3>Node operations</h3>
+      <h3>{{ heading ?? "Node operations" }}</h3>
       <span v-if="visible.length" class="chain-count">
         {{ activeCount }} of {{ visible.length }} active
       </span>
@@ -233,7 +250,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
     </ol>
 
     <p v-else class="chain-empty">
-      No operations. Nodes are served exactly as the source provides them.
+      {{ emptyCopy ?? "No operations. Nodes are served exactly as the source provides them." }}
     </p>
 
     <!-- Every operator visible at once. A picker that has to be opened turns

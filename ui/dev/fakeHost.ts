@@ -30,6 +30,8 @@ interface StoredRecord {
   member_tags?: string[];
   failure_mode?: string;
   target?: string;
+  file_type?: string;
+  node_source?: string;
   process?: unknown[];
   origin?: unknown;
 }
@@ -98,6 +100,37 @@ const records: StoredRecord[] = [
     target: "Clash",
     process: [{ type: "Remove Duplicate Filter" }, { type: "Sort Operator", args: { value: "asc" } }],
   },
+  {
+    id: "phone-config",
+    kind: "file",
+    name: "Phone config",
+    tags: ["phone"],
+    source: "local",
+    file_type: "config",
+    node_source: "everything",
+    content: [
+      "mixed-port: 7890",
+      "mode: rule",
+      "proxies: []",
+      "proxy-groups:",
+      "  - name: PROXY",
+      "    type: select",
+      "    include-all: true",
+      "rules:",
+      "  - MATCH,PROXY",
+      "",
+    ].join("\n"),
+    process: [],
+  },
+  {
+    id: "extra-rules",
+    kind: "file",
+    name: "Extra rules",
+    source: "local",
+    file_type: "plain",
+    content: "DOMAIN-SUFFIX,example.invalid,DIRECT\n",
+    process: [],
+  },
 ];
 
 let settings: Record<string, unknown> = { default_target: "", default_ua: "" };
@@ -117,6 +150,8 @@ function listView(rec: StoredRecord) {
     members: rec.members,
     member_tags: rec.member_tags,
     target: rec.target,
+    file_type: rec.file_type,
+    node_source: rec.node_source,
     step_count: steps.length,
     disabled_step_count: steps.filter((s) => s.disabled).length,
     imported: Boolean(rec.origin),
@@ -126,7 +161,12 @@ function listView(rec: StoredRecord) {
 const HANDLERS: Record<string, (payload: any) => unknown> = {
   "subscription/list": () => ({ subscriptions: records.map(listView) }),
   "subscription/operators": () => ({
-    operators: OPERATORS.map((type) => ({ type, scripting: SCRIPTING.has(type) })),
+    operators: [
+      ...OPERATORS.map((type) => ({ type, scripting: SCRIPTING.has(type) })),
+      // The response chain's only step. Flagged the way the plugin flags it, so
+      // the harness exercises the same palette split the real host does.
+      { type: "Response Transformer", scripting: true, response: true },
+    ],
   }),
   "subscription/get": ({ subscription_id }) => {
     const found = records.find((r) => r.id === subscription_id);
@@ -146,7 +186,18 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     return { id: subscription_id, deleted: true };
   },
   "subscription/fetch": ({ subscription_id }) => ({ subscription_id, bytes: 4096 }),
-  "subscription/preview": () => ({
+  "subscription/preview": ({ subscription_id }) => {
+    const found = records.find((r) => r.id === subscription_id);
+    if (found?.kind === "file") {
+      // The plugin returns the rendered document for a file. Returning nodes
+      // here instead would hide the branch the screen actually takes.
+      const injected = (found.content ?? "").replace(
+        "proxies: []",
+        "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}",
+      );
+      return { document: injected, count: 0, nodes: [] };
+    }
+    return {
     nodes: [
       { name: "🇭🇰 Hong Kong 01", type: "vless" },
       { name: "🇭🇰 Hong Kong 02", type: "vless" },
@@ -154,7 +205,8 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       { name: "🇸🇬 Singapore 01", type: "vmess" },
     ],
     count: 4,
-  }),
+    };
+  },
   "subscription/get_settings": () => settings,
   "subscription/save_settings": (payload) => {
     settings = { ...settings, ...payload };

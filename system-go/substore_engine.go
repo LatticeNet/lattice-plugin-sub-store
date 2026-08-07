@@ -331,12 +331,27 @@ func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (stri
 })()`, responseJSON, target, operators), nil
 }
 
+// substoreEngineRawErrors lets a failure carry its original text.
+//
+// A JS error can quote the document that produced it — a subscription body, a
+// token inside a URL — which is why every caller normally sees a hash instead.
+// That protection also makes a failure impossible to diagnose, so tests turn it
+// off around a single call. No production path assigns this: the only writer is
+// the helper in the test files, which restores it on cleanup.
+var substoreEngineRawErrors = false
+
 func redactSubStoreJSError(stage string, err error) error {
+	if substoreEngineRawErrors {
+		return fmt.Errorf("Sub-Store JS %s failed: %w", stage, err)
+	}
 	sum := sha256.Sum256([]byte(err.Error()))
 	return fmt.Errorf("Sub-Store JS %s failed (error_sha256=%x)", stage, sum[:8])
 }
 
 func redactSubStoreEnginePanic(recovered any) error {
+	if substoreEngineRawErrors {
+		return fmt.Errorf("Sub-Store engine panicked: %v", recovered)
+	}
 	sum := sha256.Sum256([]byte(fmt.Sprint(recovered)))
 	return fmt.Errorf("Sub-Store engine panicked (panic_sha256=%x)", sum[:8])
 }

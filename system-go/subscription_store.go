@@ -41,6 +41,11 @@ const (
 	// default is strict, because the failure it prevents is destructive.
 	failureModeStrict = "strict"
 	failureModeSkip   = "skip-failed"
+	// A file's two shapes. A config carries a client configuration whose
+	// `proxies` key is filled from a node source; plain text is served as it
+	// is, after its script operations run.
+	fileTypeConfig = "config"
+	fileTypePlain  = "plain"
 )
 
 type subscriptionRecordsDocument struct {
@@ -91,6 +96,15 @@ type subscriptionRecord struct {
 	Target     string   `json:"target,omitempty"`
 	// FailureMode applies to collections. Empty means strict.
 	FailureMode string `json:"failure_mode,omitempty"`
+	// ── file-only ─────────────────────────────────────────────────────────
+	// FileType is "config" or "plain". Empty means config.
+	FileType string `json:"file_type,omitempty"`
+	// NodeSource names the subscription or combination whose nodes fill the
+	// template's `proxies`. Empty serves the template untouched, which is how
+	// a file holding rules or a script is expressed.
+	NodeSource string `json:"node_source,omitempty"`
+	// Download asks the core to serve this with a filename rather than inline.
+	Download bool `json:"download,omitempty"`
 	// Process is the ordered operator chain. Entries are kept as raw JSON for
 	// the same reason Origin is: an entry carries fields this plugin does not
 	// interpret (customName, id, and whatever upstream adds next), and a
@@ -156,10 +170,32 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		rec.Process = rec.Operators
 	}
 	rec.Operators = nil
-	if err := validateProcess(rec.Process); err != nil {
+	// A plain file's chain runs over the served document, where the proxy
+	// operators are skipped. Validating it against the node vocabulary would
+	// accept a step that does nothing.
+	validate := validateProcess
+	if recordKind(rec) == kindFile && fileType(rec) == fileTypePlain {
+		validate = validateResponseProcess
+	}
+	if err := validate(rec.Process); err != nil {
 		return fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
 	switch recordKind(rec) {
+	case kindFile:
+		// A file has a template and, optionally, a node source. Membership and
+		// the vpn-core identity belong to other kinds; storing them would leave
+		// two answers to "where does this get its content".
+		if strings.TrimSpace(rec.URL) == "" && strings.TrimSpace(rec.Content) == "" {
+			return fmt.Errorf("file %q needs a template: a URL to fetch, or content", rec.ID)
+		}
+		rec.Kind = kindFile
+		rec.Members, rec.MemberTags = nil, nil
+		rec.VPNIdentity, rec.Target, rec.FailureMode = "", "", ""
+		if fileType(rec) == fileTypePlain {
+			// Plain text has no proxy list to fill, so a node source on it would
+			// be a stored setting that silently does nothing.
+			rec.NodeSource = ""
+		}
 	case kindCollection:
 		// A collection with neither members nor tags gathers nothing, and would
 		// fail only when someone fetched its URL.
@@ -168,6 +204,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		}
 		rec.Kind = kindCollection
 		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA = "", "", "", "", ""
+		rec.FileType, rec.NodeSource, rec.Download = "", "", false
 	default:
 		// A sub with no source is allowed to exist. Requiring one here would
 		// reject legitimate intermediate states — a record arriving mid-import,
@@ -177,6 +214,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		// insist on one.
 		rec.Kind = ""
 		rec.Members, rec.MemberTags = nil, nil
+		rec.FileType, rec.NodeSource, rec.Download = "", "", false
 	}
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1

@@ -23,10 +23,14 @@ const maxCollectionMembers = 64
 // recordKind normalises the discriminator. Records written before collections
 // existed carry no kind and are subs.
 func recordKind(rec subscriptionRecord) string {
-	if rec.Kind == kindCollection {
+	switch rec.Kind {
+	case kindCollection:
 		return kindCollection
+	case kindFile:
+		return kindFile
+	default:
+		return kindSub
 	}
-	return kindSub
 }
 
 // processSteps returns the chain in storage order, tolerating the pre-collections
@@ -83,10 +87,18 @@ func enabledOperators(rec subscriptionRecord) ([]json.RawMessage, error) {
 // so accepting an unknown type here would only move the failure to whenever that
 // happens — which is exactly when nobody is looking at this screen.
 func validateProcess(steps []json.RawMessage) error {
+	return validateProcessAgainst(steps, operatorCatalogSet())
+}
+
+// validateResponseProcess checks a chain that runs over a served document.
+func validateResponseProcess(steps []json.RawMessage) error {
+	return validateProcessAgainst(steps, responseOperators)
+}
+
+func validateProcessAgainst(steps []json.RawMessage, known map[string]bool) error {
 	if len(steps) > maxPipelineOperators {
 		return fmt.Errorf("process has %d steps, limit %d", len(steps), maxPipelineOperators)
 	}
-	known := operatorCatalogSet()
 	for index, raw := range steps {
 		meta, err := decodeStep(raw)
 		if err != nil {
@@ -127,8 +139,9 @@ func (rt *runtime) collectionMembers(rec subscriptionRecord) ([]subscriptionReco
 		}
 		if recordKind(member) != kindSub {
 			// Nesting a collection inside a collection would let two of them
-			// reference each other and render forever.
-			return nil, fmt.Errorf("collection %q names %q, which is itself a collection", rec.ID, id)
+			// reference each other and render forever; a file is a document,
+			// not a node source for a collection.
+			return nil, fmt.Errorf("collection %q names %q, which is not a subscription", rec.ID, id)
 		}
 		if seen[id] {
 			continue

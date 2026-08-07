@@ -316,6 +316,33 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     ],
   },
   {
+    // The response path is where a document is edited. A proxy operator is
+    // skipped there by design, so this is the only step that can change a
+    // plain-text file.
+    type: "Response Transformer",
+    label: "Rewrite document",
+    summary: "Run JavaScript over the served document.",
+    group: "script",
+    fields: [
+      {
+        key: "mode",
+        label: "Source",
+        kind: "select",
+        default: "script",
+        options: [
+          { value: "script", label: "Inline script" },
+          { value: "link", label: "Remote script URL" },
+        ],
+      },
+      {
+        key: "content",
+        label: "Script",
+        kind: "script",
+        hint: "Define transformFunction(res) — it receives {status, headers, body} and returns it. Runs inside the engine's sandbox — no filesystem, no network, no host calls.",
+      },
+    ],
+  },
+  {
     type: "Script Operator",
     label: "Script",
     summary: "Run JavaScript over the whole node list.",

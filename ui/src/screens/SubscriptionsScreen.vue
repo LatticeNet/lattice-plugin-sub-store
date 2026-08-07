@@ -22,6 +22,7 @@ import {
   FAILURE_SKIP,
   FAILURE_STRICT,
   KIND_COLLECTION,
+  KIND_FILE,
   KIND_SUB,
   MAX_SUBSCRIPTION_RECORDS,
   SOURCE_LOCAL,
@@ -51,6 +52,7 @@ import MemberPicker from "../components/MemberPicker.vue";
 /** Types the common-settings block owns; the chain list hides them. */
 const MANAGED_TYPES = ["Quick Setting Operator", "Useless Filter"] as const;
 
+
 const host = useHost();
 const subs = useSubscriptions(host);
 
@@ -72,9 +74,15 @@ const canPreviewNow = computed(
   () => subs.canPreview.value && !subs.previewing.value && !draftError.value,
 );
 
+// Files live in the same store but on their own tab. Offering their tags here
+// would put a filter in front of the operator that selects nothing.
+const onThisTab = computed(() =>
+  subs.items.value.filter((i) => (i.kind || KIND_SUB) !== KIND_FILE),
+);
+
 const allTags = computed(() => {
   const seen = new Set<string>();
-  for (const item of subs.items.value) for (const tag of item.tags ?? []) seen.add(tag);
+  for (const item of onThisTab.value) for (const tag of item.tags ?? []) seen.add(tag);
   return [...seen].sort();
 });
 
@@ -83,10 +91,10 @@ function matchesFilter(item: SubscriptionListItem): boolean {
 }
 
 const singles = computed(() =>
-  subs.items.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && matchesFilter(i)),
+  onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && matchesFilter(i)),
 );
 const collections = computed(() =>
-  subs.items.value.filter((i) => (i.kind || KIND_SUB) === KIND_COLLECTION && matchesFilter(i)),
+  onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_COLLECTION && matchesFilter(i)),
 );
 /** Only subs can be members; a collection inside a collection would recurse. */
 const memberCandidates = computed(() =>
@@ -703,23 +711,6 @@ watch(host.init, (value) => {
    The form was one undifferentiated column: name, source, output, settings
    and the operator chain all at the same level, so nothing told the reader
    where one decision ended and the next began. */
-.editor-group {
-  margin: 0 0 16px;
-  padding: 16px 18px 6px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 12px;
-  background: var(--card, #fff);
-}
-
-.editor-group > legend {
-  padding: 0 8px;
-  margin-left: -8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted-foreground, #656d76);
-}
 
 .editor-block {
   margin: 0 0 16px;
@@ -727,61 +718,13 @@ watch(host.init, (value) => {
 
 /* The sticky bar floats over the form, so the last block needs room to scroll
    out from under it rather than ending beneath it. */
-form {
-  padding-bottom: 8px;
-}
 
 /* The action bar follows the reader down. A save button that has to be
    scrolled to is a save button people lose. */
-.editor-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 4px -4px 0;
-  padding: 12px 4px;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--background, #f7f8f9) 60%, transparent),
-    var(--background, #f7f8f9) 45%
-  );
-  border-top: 1px solid var(--border, #d9dde2);
-}
-
-.editor-actions .field-error {
-  margin-right: auto;
-}
 
 /* ── list density ────────────────────────────────────────────────────────
    Rows were 40px with 11px meta text: technically legible, and tiring to
    scan. */
-:deep(.sub-card) {
-  padding: 12px 14px;
-}
-
-:deep(.sub-title) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 14.5px;
-  font-weight: 650;
-}
-
-:deep(.sub-meta) {
-  margin-top: 3px;
-  font-size: 12.5px;
-  line-height: 1.5;
-}
-
-:deep(.badge) {
-  padding: 2px 8px;
-  font-size: 10.5px;
-}
 
 .tag-row {
   display: flex;
@@ -849,54 +792,4 @@ form {
   transform: rotate(0deg);
 }
 
-.source-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.source {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: "icon title" "icon detail";
-  gap: 2px 10px;
-  align-items: start;
-  padding: 13px 14px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 11px;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.source > svg {
-  grid-area: icon;
-  margin-top: 2px;
-  color: var(--muted-foreground, #656d76);
-}
-
-.source.is-active {
-  border-color: var(--primary, #1769aa);
-  background: color-mix(in srgb, var(--primary, #1769aa) 9%, transparent);
-}
-
-.source.is-active > svg {
-  color: var(--primary, #1769aa);
-}
-
-.source-title {
-  grid-area: title;
-  font-size: 13.5px;
-  font-weight: 650;
-}
-
-.source-detail {
-  grid-area: detail;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--muted-foreground, #656d76);
-}
 </style>

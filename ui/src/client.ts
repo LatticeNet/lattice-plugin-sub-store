@@ -158,7 +158,10 @@ export interface PipelineDeleteResponse {
 export interface SubscriptionRecord {
   schema_version?: number;
   id: string;
-  /** "collection" combines other subs; empty or "sub" is one source of nodes. */
+  /**
+   * "collection" combines other subs, "file" is a served document, empty or
+   * "sub" is one source of nodes.
+   */
   kind?: string;
   name: string;
   display_name?: string;
@@ -177,6 +180,10 @@ export interface SubscriptionRecord {
   vpn_identity?: string;
   ua?: string;
   target?: string;
+  /** Files only: "config" is a client configuration, "plain" is served as-is. */
+  file_type?: string;
+  /** Files only: the id of the sub or collection whose nodes get injected. */
+  node_source?: string;
   /** The ordered operator chain. Entries may be disabled without deletion. */
   process?: unknown[];
   /** Set by migration only. The backend refuses to take this from a caller. */
@@ -201,6 +208,8 @@ export interface SubscriptionListItem {
   members?: string[];
   member_tags?: string[];
   target?: string;
+  file_type?: string;
+  node_source?: string;
   step_count: number;
   disabled_step_count: number;
   imported: boolean;
@@ -208,6 +217,14 @@ export interface SubscriptionListItem {
 
 export const KIND_SUB = "sub";
 export const KIND_COLLECTION = "collection";
+export const KIND_FILE = "file";
+
+/**
+ * A config is a client configuration whose `proxies` get replaced from a node
+ * source; plain text is served exactly as stored, after its chain runs.
+ */
+export const FILE_TYPE_CONFIG = "config";
+export const FILE_TYPE_PLAIN = "plain";
 
 export interface SubscriptionListResponse {
   subscriptions: SubscriptionListItem[];
@@ -246,12 +263,23 @@ export interface SubscriptionPreviewResponse {
   nodes: SubscriptionPreviewNode[];
   count: number;
   truncated?: boolean;
+  /**
+   * Set instead of `nodes` when the record is a file. A file is a document, so
+   * its preview answers "what will a client receive" rather than "which nodes
+   * survived the filter".
+   */
+  document?: string;
 }
 
 export interface OperatorInfo {
   type: string;
   summary?: string;
   scripting?: boolean;
+  /**
+   * Runs over a served document rather than a node list. The two chains do not
+   * mix: the engine skips proxy operators for responses and these for nodes.
+   */
+  response?: boolean;
 }
 
 export interface OperatorCatalogResponse {

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FILE_TYPE_PLAIN,
   KIND_COLLECTION,
+  KIND_FILE,
   MAX_SUBSCRIPTION_INLINE_BYTES,
   SOURCE_LOCAL,
   SOURCE_REMOTE,
@@ -101,6 +103,8 @@ describe("draftFromRecord", () => {
       members: [],
       memberTags: [],
       failureMode: "strict",
+      fileType: "config",
+      nodeSource: "",
       process: [],
     });
   });
@@ -120,5 +124,54 @@ describe("draftFromRecord", () => {
       process: [{ type: "Useless Filter" }, { type: "Flag Operator", disabled: true }],
     };
     expect(enabledSteps(draft)).toHaveLength(1);
+  });
+});
+
+describe("file drafts", () => {
+  function fileDraft(over: Partial<ReturnType<typeof emptyDraft>> = {}) {
+    return { ...emptyDraft(), kind: KIND_FILE, name: "Phone config", ...over };
+  }
+
+  // A file with no document has nothing to serve, and the failure would only
+  // surface as an empty response with no clue why.
+  it("insists on a document, naming which kind is missing", () => {
+    expect(validateDraft(fileDraft())).toContain("configuration");
+    expect(validateDraft(fileDraft({ fileType: FILE_TYPE_PLAIN }))).toContain("text");
+  });
+
+  it("accepts a config with a template and no node source", () => {
+    // A rules fragment the operator maintains by hand is a legitimate file.
+    expect(validateDraft(fileDraft({ content: "rules:\n  - MATCH,DIRECT\n" }))).toBe("");
+  });
+
+  it("asks for the link when the template is fetched", () => {
+    expect(validateDraft(fileDraft({ source: SOURCE_REMOTE }))).toContain("link");
+    expect(validateDraft(fileDraft({ source: SOURCE_REMOTE, url: "https://e.invalid/t" }))).toBe("");
+  });
+
+  // The backend limit is bytes, and a client configuration is the likeliest
+  // thing in this plugin to reach it.
+  it("applies the size limit to a file, not only to pasted nodes", () => {
+    const tooBig = "x".repeat(MAX_SUBSCRIPTION_INLINE_BYTES + 1);
+    expect(validateDraft(fileDraft({ content: tooBig }))).toContain("limit");
+  });
+
+  it("reads the stored kind and type back into the draft", () => {
+    const draft = draftFromRecord({
+      id: "f1",
+      kind: KIND_FILE,
+      name: "Notes",
+      file_type: FILE_TYPE_PLAIN,
+      node_source: "everything",
+    });
+    expect(draft.kind).toBe(KIND_FILE);
+    expect(draft.fileType).toBe(FILE_TYPE_PLAIN);
+    expect(draft.nodeSource).toBe("everything");
+  });
+
+  // An unknown kind arriving from an older or newer bundle must render as
+  // something, and a sub is the only kind whose editor works for any record.
+  it("falls back to a sub for a kind it does not know", () => {
+    expect(draftFromRecord({ id: "x", name: "x", kind: "something-new" }).kind).toBe("sub");
   });
 });

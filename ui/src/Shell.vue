@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowLeftRight, CircleAlert, Library, Settings, Store, Workflow } from "@lucide/vue";
+import { ArrowLeftRight, CircleAlert, FileCode, Library, Settings, Store, Workflow } from "@lucide/vue";
 
 import { useHost } from "./host";
 import PipelinesScreen from "./screens/PipelinesScreen.vue";
 import ConvertScreen from "./screens/ConvertScreen.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
+import FilesScreen from "./screens/FilesScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
 
 /**
@@ -20,11 +21,12 @@ import SettingsScreen from "./screens/SettingsScreen.vue";
 
 const host = useHost();
 
-type TabId = "subscriptions" | "pipelines" | "convert" | "settings";
+type TabId = "subscriptions" | "files" | "pipelines" | "convert" | "settings";
 
 // Subscriptions leads: it is what this plugin is for.
 const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [
   { id: "subscriptions", label: "Subscriptions", icon: Library, screen: SubscriptionsScreen },
+  { id: "files", label: "Files", icon: FileCode, screen: FilesScreen },
   { id: "pipelines", label: "Pipelines", icon: Workflow, screen: PipelinesScreen },
   { id: "convert", label: "Convert", icon: ArrowLeftRight, screen: ConvertScreen },
   { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },

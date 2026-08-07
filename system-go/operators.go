@@ -46,6 +46,26 @@ var scriptingOperators = map[string]bool{
 	"Script Filter":   true,
 }
 
+// responseOperators run on the response path, where a step receives the whole
+// response rather than a node list.
+//
+// They are deliberately NOT in operatorCatalog: that list is pinned to the proxy
+// operators the bundled engine exposes, and the engine skips proxy operators for
+// responses just as it skips these for nodes. Two chains, two vocabularies —
+// merging them would let either kind be accepted where it does nothing.
+var responseOperators = map[string]bool{
+	"Response Transformer": true,
+}
+
+func responseOperatorInfo() []operatorInfo {
+	out := make([]operatorInfo, 0, len(responseOperators))
+	for name := range responseOperators {
+		out = append(out, operatorInfo{Type: name, Scripting: true, Response: true})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Type < out[j].Type })
+	return out
+}
+
 func operatorCatalogSet() map[string]bool {
 	set := make(map[string]bool, len(operatorCatalog))
 	for _, name := range operatorCatalog {
@@ -57,6 +77,10 @@ func operatorCatalogSet() map[string]bool {
 type operatorInfo struct {
 	Type      string `json:"type"`
 	Scripting bool   `json:"scripting"`
+	// Response marks a step that runs over a served document rather than a node
+	// list. The two chains do not mix, and the UI needs to know which is which
+	// to avoid offering a step the engine would skip.
+	Response bool `json:"response,omitempty"`
 }
 
 // operatorCatalogInfo is what the UI lists so an operator can be chosen rather
