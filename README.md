@@ -18,17 +18,31 @@ runtime behavior without changing the base console.
 ## Plugin UI
 
 The `ui/` frame is a tabbed Vue 3 app inside the single `sub-store` manifest
-view — **Import** (the shipped managed-import flow with the encrypted endpoint
-vault), **Pipelines** (saved conversion recipes: target + operator chain, run
-over pasted content), and **Convert** (one-shot conversion of pasted
-subscription content by the embedded engine). Every backend call is a
-`lattice.plugin.call` through the one bridge instance owned by `src/App.vue`;
-screens receive it via `src/host.ts` and never open their own handshake.
+view:
+
+- **Subscriptions** — one source of nodes (this fleet's vpn-core export, a
+  provider link, or a paste) and **combinations** that merge several of them.
+- **Files** — a document the core serves whose proxy list is filled in from a
+  subscription or a combination, so a client configuration stays current
+  without anyone editing it. Plain text is served as written.
+- **Pipelines** — saved conversion recipes: target + operator chain, run over
+  pasted content.
+- **Convert** — one-shot conversion of pasted content by the embedded engine.
+- **Settings** — defaults, backup export and restore.
+
+Subscriptions, combinations and files are one store behind a `kind`
+discriminator, so they share `list`/`get`/`save`/`delete` and adding a kind
+needs no new signed method.
+
+Every backend call is a `lattice.plugin.call` through the one bridge instance
+owned by `src/App.vue`; screens receive it via `src/host.ts` and never open
+their own handshake. `src/Shell.vue` holds the tabs and knows nothing about the
+bridge, which is what lets `dev/` mount the same screens against a fake host.
 
 All method names live in `src/client.ts` in two tiers:
 
-- **active** — declared by the manifest on the integration line (the six
-  `…/import` methods plus the seven `…/engine` methods);
+- **active** — declared by the manifest on the integration line (thirteen
+  `…/subscription` methods plus seven `…/engine` methods);
 - **pending** — proposed but undeclared methods (empty between contract waves;
   the subset test trips the moment a pending method becomes declared).
 
@@ -41,24 +55,27 @@ Verification (`ui/`): `npm test`, `npm run typecheck`, `npm run build`,
 `npm run verify:build` — the scanner must keep rejecting inline script/style
 and any external URL in `dist`.
 
-### Manual browser test plan (post-gates)
+### Manual browser test plan
 
-Automated verification stops at the bridge boundary; the live pass requires
-(a) the dashboard `host_origin` bridge fix merged and (b) an engine-capable
-plugin build. Once both exist, in a real browser:
+The dev harness under `dev/` covers everything short of the real bridge. What
+it cannot answer is whether the host declares the interfaces this build calls,
+so the live pass is about the boundary, not the screens:
 
 1. Console → Extensions → Sub-Store: frame loads, no console errors, theme
    tokens applied (toggle light/dark in console settings and watch the frame).
-2. Import tab: check status against a real endpoint (reachable + unreachable),
-   save to the vault, reload the console, confirm the hint survives and
-   `secret://` reuse works; preview then import; confirm error text redacts URLs.
-3. Pipelines tab: create a pipeline (id, target, operators JSON), edit it, run
+2. Subscriptions tab: create one from this fleet's nodes, preview it, save;
+   build a combination over it; confirm both survive a frame reload.
+3. Files tab: paste a Mihomo config, point it at that combination, preview —
+   the served document must keep your rules and groups and carry the fleet's
+   nodes. Switch the type to plain text and confirm the palette narrows to the
+   document rewrite step.
+4. Pipelines tab: create a pipeline (id, target, operators JSON), edit it, run
    it over pasted raw content, two-step delete; confirm the list survives a
    frame reload (server-side records).
-4. Convert tab: paste subscription content, pick a target, convert; node counts
+5. Convert tab: paste subscription content, pick a target, convert; node counts
    and byte size render, select-all copy works despite the sandbox blocking
    programmatic clipboard.
-5. Resize: frame height follows content in every tab, no clipped buttons.
+6. Resize: frame height follows content in every tab, no clipped buttons.
 
 ## Security boundary
 
@@ -153,7 +170,8 @@ GitHub Latest.
 
 `cd ui && npm run dev` opens a harness at `/dev.html` that mounts the real
 screens against a fake host with canned records: a fleet-sourced subscription, a
-provider link, a pasted one, and a combination that gathers them.
+provider link, a pasted one, a combination that gathers them, and two files — a
+Mihomo config drawing its nodes from the combination, and a plain rule list.
 
 It exists because the plugin UI is otherwise unviewable outside a dashboard —
 and while it was unviewable, an operator picker that rendered empty and a data
