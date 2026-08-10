@@ -476,9 +476,15 @@ export function useSubscriptions(host: HostContext) {
     } finally {
       busyId.value = null;
       // A refresh rewrites the record's fetch bookkeeping either way — reload
-      // so the row shows the new status rather than what it said before.
-      await load();
-      await host.resize();
+      // so the row shows the new status rather than what it said before. The
+      // reload is best-effort here: its failure must not replace the refresh's
+      // own (already reported) outcome with an unhandled rejection.
+      try {
+        await load();
+        await host.resize();
+      } catch {
+        /* the list keeps its last data; the next load retries */
+      }
     }
   }
 
