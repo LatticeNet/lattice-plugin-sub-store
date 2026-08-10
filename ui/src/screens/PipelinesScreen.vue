@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import {
   CircleAlert,
   LoaderCircle,
@@ -8,12 +8,20 @@ import {
   Play,
   Plus,
   Trash2,
-  Workflow,
 } from "@lucide/vue";
 
-import { CONVERT_TARGETS, type ConversionResult, RAW_INPUT_LIMIT_BYTES } from "../client";
+import {
+  BINDINGS,
+  callMethod,
+  CONVERT_TARGETS,
+  type ConversionResult,
+  type OperatorCatalogResponse,
+  type OperatorInfo,
+  RAW_INPUT_LIMIT_BYTES,
+} from "../client";
 import { useHost } from "../host";
 import { usePipelines } from "../usePipelines";
+import { safeErrorMessage } from "../subStoreModel";
 import {
   validateOperatorsJson,
   validatePipelineId,
@@ -32,6 +40,7 @@ const formId = ref("");
 const formName = ref("");
 const formTarget = ref(CONVERT_TARGETS[0]?.id ?? "Clash");
 const formOperators = ref("");
+const idInput = ref<HTMLInputElement | null>(null);
 
 const idState = computed(() => validatePipelineId(formId.value));
 const nameState = computed(() => validatePipelineName(formName.value));
@@ -103,6 +112,50 @@ async function deletePipeline(id: string): Promise<void> {
   if (ok && confirmingDelete.value === id) confirmingDelete.value = null;
 }
 
+// ── empty state guidance ────────────────────────────────────────────────────
+
+/** The editor is always on this screen above the list, so "create" is a
+ *  pointer at it, not another form. */
+async function focusEditor(): Promise<void> {
+  idInput.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+  idInput.value?.focus();
+}
+
+/**
+ * The pipeline editor takes operators as raw JSON, which asks the operator to
+ * already know the vocabulary. The catalog is the answer to "what can I even
+ * write here" — loaded on first ask, not on mount, because a screen that
+ * manages pipelines does not always need it.
+ */
+const showCatalog = ref(false);
+const catalog = ref<OperatorInfo[]>([]);
+const catalogError = ref("");
+const catalogLoading = ref(false);
+const catalogPanel = ref<HTMLElement | null>(null);
+
+async function browseOperators(): Promise<void> {
+  showCatalog.value = !showCatalog.value;
+  if (!showCatalog.value) return;
+  if (!catalog.value.length && host.bridge && host.available(BINDINGS.subOperators)) {
+    catalogLoading.value = true;
+    catalogError.value = "";
+    try {
+      const response = await callMethod<OperatorCatalogResponse>(
+        host.bridge,
+        BINDINGS.subOperators,
+        {},
+      ).promise;
+      catalog.value = response.operators ?? [];
+    } catch (cause) {
+      catalogError.value = safeErrorMessage(cause, "The operator catalog could not be loaded");
+    } finally {
+      catalogLoading.value = false;
+    }
+  }
+  await nextTick();
+  catalogPanel.value?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
 // ── lifecycle ───────────────────────────────────────────────────────────────
 onMounted(() => {
   void pipes.load();
@@ -131,7 +184,7 @@ watch(host.init, (value) => {
         <div class="form-grid">
           <label class="field">
             <span class="field-label">Id</span>
-            <input v-model="formId" type="text" autocomplete="off" spellcheck="false" placeholder="hk-daily" :disabled="!!editingId" />
+            <input ref="idInput" v-model="formId" type="text" autocomplete="off" spellcheck="false" placeholder="hk-daily" :disabled="!!editingId" />
             <small v-if="formId && idState.error" class="field-error">{{ idState.error }}</small>
           </label>
           <label class="field">
@@ -204,11 +257,35 @@ watch(host.init, (value) => {
           <button class="button button-secondary button-compact" type="button" @click="pipes.load">Retry</button>
         </div>
 
-        <div v-else-if="!pipes.items.value.length" class="panel-empty">
-          <Workflow :size="22" aria-hidden="true" />
+        <div v-else-if="!pipes.items.value.length" class="panel-empty panel-empty-stack">
           <div class="panel-empty-copy">
             <h3>No pipelines yet</h3>
-            <p>Create one above, then run it over raw subscription content whenever you need a fresh config.</p>
+            <p>A pipeline is a saved conversion recipe: run it over raw subscription content whenever you need a fresh config.</p>
+          </div>
+          <div class="empty-actions">
+            <button
+              class="button button-primary"
+              type="button"
+              :disabled="!pipes.canMutate.value"
+              @click="focusEditor"
+            >
+              <Plus :size="15" aria-hidden="true" /> Create a pipeline
+            </button>
+            <button class="button button-secondary" type="button" @click="browseOperators">
+              {{ showCatalog ? "Hide the operator catalog" : "Browse the operators" }}
+            </button>
+          </div>
+          <div v-if="showCatalog" ref="catalogPanel" class="empty-secondary">
+            <p v-if="catalogLoading" class="row-popover-note">
+              <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
+            </p>
+            <p v-else-if="catalogError" class="row-popover-error" role="alert">{{ catalogError }}</p>
+            <ul v-else class="row-popover-list">
+              <li v-for="op in catalog" :key="op.type">
+                <span class="mono">{{ op.type }}</span>
+                <span v-if="op.summary" class="row-popover-note"> — {{ op.summary }}</span>
+              </li>
+            </ul>
           </div>
         </div>
 

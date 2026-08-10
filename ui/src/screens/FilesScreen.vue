@@ -123,16 +123,18 @@ function describe(item: SubscriptionListItem): string {
   return item.node_source ? `${kind} · nodes from ${sourceName(item.node_source)}` : `${kind} · no node source`;
 }
 
-function startCreate(): void {
+function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
   subs.clearMessages();
   draft.value = emptyDraft();
   draft.value.kind = KIND_FILE;
-  draft.value.fileType = FILE_TYPE_CONFIG;
+  draft.value.fileType = fileType;
   draft.value.source = SOURCE_LOCAL;
   // Most deployments have exactly one thing worth pointing at, and picking it
   // by default is the difference between a form that works and one that saves
-  // a config serving no nodes.
-  draft.value.nodeSource = nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
+  // a config serving no nodes. Plain text has no proxy list to fill, so the
+  // default would be a stored setting with no effect.
+  draft.value.nodeSource =
+    fileType !== FILE_TYPE_PLAIN && nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
   tagText.value = "";
   editingId.value = null;
   editing.value = true;
@@ -501,20 +503,30 @@ watch(host.init, (value) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.loadError.value }}
       </div>
 
-      <div v-else-if="!files.length" class="panel-empty">
+      <div v-else-if="!files.length" class="panel-empty panel-empty-stack">
         <p class="panel-empty-copy">
           Paste the Mihomo config you already run. Lattice keeps your rules and groups and replaces
           only the proxy list, from whichever subscription you point it at — so nodes can change
           without you editing anything.
         </p>
-        <button
-          class="button button-primary"
-          type="button"
-          :disabled="!subs.canMutate.value"
-          @click="startCreate()"
-        >
-          <FileCode :size="16" aria-hidden="true" /> Add a configuration
-        </button>
+        <div class="empty-actions">
+          <button
+            class="button button-primary"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="startCreate()"
+          >
+            <FileCode :size="16" aria-hidden="true" /> Add a configuration
+          </button>
+          <button
+            class="button button-secondary"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="startCreate(FILE_TYPE_PLAIN)"
+          >
+            <FileText :size="16" aria-hidden="true" /> New plain-text file
+          </button>
+        </div>
       </div>
 
       <ul v-else class="sub-list">

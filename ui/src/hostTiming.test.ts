@@ -42,3 +42,17 @@ describe("screens wait for the bridge handshake", () => {
     });
   }
 });
+
+/**
+ * The other half of the timing contract: when the handshake never comes at
+ * all (the frame opened standalone), the shell must say so instead of leaving
+ * every screen on "Loading…" forever. Structural for the same reason as
+ * above — what matters is that the shell is wired to the timeout at all.
+ */
+describe("the shell degrades a missing handshake", () => {
+  it("replaces the perpetual loading state with the standalone notice", () => {
+    const shell = readFileSync(join(new URL(".", import.meta.url).pathname, "Shell.vue"), "utf8");
+    expect(shell.includes("useHandshakeTimeout")).toBe(true);
+    expect(shell.includes("StandaloneNotice")).toBe(true);
+  });
+});

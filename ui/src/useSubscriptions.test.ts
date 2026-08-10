@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ref } from "vue";
 
 import {
   FILE_TYPE_PLAIN,
@@ -10,6 +11,7 @@ import {
   SOURCE_REMOTE,
   SOURCE_VPN_CORE,
 } from "./client";
+import type { HostContext } from "./host";
 import {
   argumentsToText,
   draftFromRecord,
@@ -20,6 +22,7 @@ import {
   slugify,
   uniqueId,
   uniqueName,
+  useSubscriptions,
   validateDraft,
 } from "./useSubscriptions";
 
@@ -255,5 +258,155 @@ describe("copying a record", () => {
 
   it("leaves an unrelated name alone", () => {
     expect(uniqueName("Office", ["Home copy"])).toBe("Office");
+  });
+});
+
+/**
+ * The composable against a stubbed host. The screens bind these refs directly,
+ * so what matters is the state transitions: what loads, what closes, and what
+ * a late answer may not overwrite.
+ */
+function stubHost(handlers: Record<string, (payload: any) => unknown>): HostContext {
+  return {
+    bridge: {
+      call<T>(_service: string, method: string, payload: unknown) {
+        const handler = handlers[method];
+        return {
+          promise: handler
+            ? Promise.resolve().then(() => handler(payload) as T)
+            : Promise.reject(new Error(`no stub for ${method}`)),
+          cancel: () => {},
+        };
+      },
+    } as unknown as HostContext["bridge"],
+    init: ref(undefined),
+    bootError: ref(""),
+    available: () => true,
+    resize: async () => {},
+  };
+}
+
+function tick(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+describe("row quick preview", () => {
+  it("shows the first five produced nodes and the full count", async () => {
+    const host = stubHost({
+      preview: () => ({
+        nodes: [1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `n${n}`, type: "vless" })),
+        node_count: 7,
+      }),
+    });
+    const subs = useSubscriptions(host);
+    await subs.toggleRowPreview("s1");
+    expect(subs.rowPreview.value?.loading).toBe(false);
+    expect(subs.rowPreview.value?.nodes).toHaveLength(5);
+    expect(subs.rowPreview.value?.count).toBe(7);
+  });
+
+  it("closes on a second toggle of the same row", async () => {
+    const host = stubHost({ preview: () => ({ nodes: [], node_count: 0 }) });
+    const subs = useSubscriptions(host);
+    await subs.toggleRowPreview("s1");
+    expect(subs.rowPreview.value?.id).toBe("s1");
+    await subs.toggleRowPreview("s1");
+    expect(subs.rowPreview.value).toBeNull();
+  });
+
+  it("puts a preview failure on the row, not on the banner", async () => {
+    const host = stubHost({
+      preview: () => {
+        throw new Error("engine exploded");
+      },
+    });
+    const subs = useSubscriptions(host);
+    await subs.toggleRowPreview("s1");
+    expect(subs.rowPreview.value?.error).toContain("engine exploded");
+    expect(subs.actionError.value).toBe("");
+  });
+
+  it("ignores an answer for a row the operator has left", async () => {
+    const pending = new Map<string, (value: unknown) => void>();
+    const host = stubHost({
+      preview: (payload: any) =>
+        new Promise((resolve) => pending.set(payload.subscription_id, resolve)),
+    });
+    const subs = useSubscriptions(host);
+    void subs.toggleRowPreview("a");
+    void subs.toggleRowPreview("b");
+    // The stub answers in a microtask, so the requests only exist after a tick.
+    await tick();
+    pending.get("b")!({ nodes: [], node_count: 0 });
+    await tick();
+    expect(subs.rowPreview.value?.id).toBe("b");
+    // a's answer lands last; it must not relabel the open panel.
+    pending.get("a")!({ nodes: [{ name: "stale", type: "vless" }], node_count: 1 });
+    await tick();
+    expect(subs.rowPreview.value?.id).toBe("b");
+    expect(subs.rowPreview.value?.nodes).toHaveLength(0);
+  });
+});
+
+describe("refresh", () => {
+  function listedRow(lists: number) {
+    return {
+      id: "s1",
+      kind: "sub",
+      name: "S",
+      has_url: true,
+      has_inline_content: false,
+      step_count: 0,
+      disabled_step_count: 0,
+      imported: false,
+      // The second listing is the post-refresh one: the bookkeeping has moved.
+      ...(lists > 1
+        ? { last_fetch_at: "2026-08-10T09:00:00Z", last_fetch_ok: true }
+        : {}),
+    };
+  }
+
+  it("reloads the list afterwards, so the row status moves", async () => {
+    let lists = 0;
+    let fetches = 0;
+    const host = stubHost({
+      list: () => {
+        lists += 1;
+        return { subscriptions: [listedRow(lists)] };
+      },
+      fetch: () => {
+        fetches += 1;
+        return { subscription_id: "s1", bytes: 42, fetched_at: "2026-08-10T09:00:00Z" };
+      },
+    });
+    const subs = useSubscriptions(host);
+    await subs.load();
+    expect(subs.items.value[0]?.last_fetch_at).toBeUndefined();
+
+    await subs.refresh("s1");
+    expect(fetches).toBe(1);
+    expect(lists).toBe(2);
+    expect(subs.items.value[0]?.last_fetch_ok).toBe(true);
+    expect(subs.notice.value).toContain("42 bytes");
+  });
+
+  // A failed refresh still reloads: the failure badge on the row is the whole
+  // point of recording the outcome.
+  it("reloads even when the fetch fails", async () => {
+    let lists = 0;
+    const host = stubHost({
+      list: () => {
+        lists += 1;
+        return { subscriptions: [listedRow(lists)] };
+      },
+      fetch: () => {
+        throw new Error("provider returned status 503");
+      },
+    });
+    const subs = useSubscriptions(host);
+    await subs.load();
+    await subs.refresh("s1");
+    expect(lists).toBe(2);
+    expect(subs.actionError.value).toContain("503");
   });
 });

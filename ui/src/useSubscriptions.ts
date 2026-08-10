@@ -22,6 +22,7 @@ import {
   type SubscriptionGetResponse,
   type SubscriptionListItem,
   type SubscriptionListResponse,
+  type SubscriptionPreviewNode,
   type SubscriptionPreviewResponse,
   type SubscriptionRecord,
   type SubscriptionSaveResponse,
@@ -464,13 +465,79 @@ export function useSubscriptions(host: HostContext) {
         actionError.value = `Provider fetch failed: ${response.error}. The last good snapshot is still being served.`;
         return false;
       }
-      notice.value = `Fetched ${response.bytes} bytes for ${id}.`;
+      notice.value =
+        typeof response.bytes === "number"
+          ? `Fetched ${response.bytes} bytes for ${id}.`
+          : `Refreshed ${id}.`;
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Subscription could not be refreshed");
       return false;
     } finally {
       busyId.value = null;
+      // A refresh rewrites the record's fetch bookkeeping either way — reload
+      // so the row shows the new status rather than what it said before.
+      await load();
+      await host.resize();
+    }
+  }
+
+  /**
+   * The row-level glance: the first few node names a record produces, without
+   * opening the editor.
+   *
+   * One open popover at a time, tracked here rather than per row, because the
+   * state is genuinely singular — two rows never need comparing, and two open
+   * panels would each need their own loading and error handling for no gain.
+   */
+  interface RowPreview {
+    id: string;
+    loading: boolean;
+    error: string;
+    nodes: SubscriptionPreviewNode[];
+    count: number;
+  }
+
+  const rowPreview = ref<RowPreview | null>(null);
+
+  async function toggleRowPreview(id: string): Promise<void> {
+    if (rowPreview.value?.id === id) {
+      rowPreview.value = null;
+      await host.resize();
+      return;
+    }
+    if (!host.bridge || !canPreview.value) return;
+    rowPreview.value = { id, loading: true, error: "", nodes: [], count: 0 };
+    await host.resize();
+    try {
+      // No raw and no operators: the backend previews the stored record with
+      // its own chain, fetching first when the record has no inline content.
+      const response = await callMethod<SubscriptionPreviewResponse>(
+        host.bridge,
+        BINDINGS.subPreview,
+        { subscription_id: id },
+      ).promise;
+      // The operator may have moved to another row while this was in flight;
+      // landing the answer now would label it with the wrong record.
+      if (rowPreview.value?.id !== id) return;
+      const nodes = response.nodes ?? [];
+      rowPreview.value = {
+        id,
+        loading: false,
+        error: "",
+        nodes: nodes.slice(0, 5),
+        count: response.node_count ?? nodes.length,
+      };
+    } catch (cause) {
+      if (rowPreview.value?.id !== id) return;
+      rowPreview.value = {
+        id,
+        loading: false,
+        error: safeErrorMessage(cause, "Preview failed"),
+        nodes: [],
+        count: 0,
+      };
+    } finally {
       await host.resize();
     }
   }
@@ -525,6 +592,12 @@ export function useSubscriptions(host: HostContext) {
       // A copy has not been imported from anywhere; carrying the origin would
       // claim a provenance it does not have.
       origin: undefined,
+      // Nor has it ever been fetched: the source's refresh bookkeeping would
+      // claim a freshness the copy has not earned.
+      last_fetch_at: undefined,
+      last_fetch_ok: undefined,
+      last_error: undefined,
+      userinfo: undefined,
     };
     saving.value = true;
     actionError.value = "";
@@ -565,6 +638,7 @@ export function useSubscriptions(host: HostContext) {
     operators,
     preview,
     previewing,
+    rowPreview,
     available,
     canMutate,
     canFetch,
@@ -578,6 +652,7 @@ export function useSubscriptions(host: HostContext) {
     duplicate,
     refresh,
     runPreview,
+    toggleRowPreview,
     clearMessages,
   };
 }

@@ -192,6 +192,15 @@ export interface SubscriptionRecord {
   arguments?: Record<string, string>;
   /** The ordered operator chain. Entries may be disabled without deletion. */
   process?: unknown[];
+  /**
+   * Fetch bookkeeping, written by the refresh path rather than by a caller.
+   * RFC3339 time, how that fetch went, the trimmed reason when it failed, and
+   * the provider's subscription-userinfo header verbatim.
+   */
+  last_fetch_at?: string;
+  last_fetch_ok?: boolean;
+  last_error?: string;
+  userinfo?: string;
   /** Set by migration only. The backend refuses to take this from a caller. */
   origin?: { source: string; kind: string; raw?: unknown };
 }
@@ -219,6 +228,14 @@ export interface SubscriptionListItem {
   step_count: number;
   disabled_step_count: number;
   imported: boolean;
+  /**
+   * Fetch bookkeeping, present only once the record has been refreshed at all.
+   * Absent means "never fetched" — not "failed".
+   */
+  last_fetch_at?: string;
+  last_fetch_ok?: boolean;
+  last_error?: string;
+  userinfo?: string;
 }
 
 export const KIND_SUB = "sub";
@@ -273,7 +290,14 @@ export interface SubscriptionPreviewNode {
 
 export interface SubscriptionPreviewResponse {
   nodes: SubscriptionPreviewNode[];
-  count: number;
+  /**
+   * Nodes before and after the chain runs. The wire names are `node_count` /
+   * `source_node_count` (system-go's previewResult) — an earlier reading of
+   * this type called the count `count`, a field the backend never sends, so
+   * the editor's preview header rendered "undefined node(s)" in production.
+   */
+  node_count: number;
+  source_node_count?: number;
   truncated?: boolean;
   /**
    * Set instead of `nodes` when the record is a file. A file is a document, so
