@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 const (
@@ -128,6 +129,18 @@ type subscriptionRecord struct {
 	// Origin is set on an imported record and holds the source object verbatim,
 	// so a migration cannot lose a field this plugin does not yet understand.
 	Origin *migratedOrigin `json:"origin,omitempty"`
+	// ── fetch bookkeeping ───────────────────────────────────────────────────
+	// Written by the fetch path and preserved across edits (an edit replaces the
+	// record wholesale, so without preservation every save would claim a fetched
+	// record was never refreshed). LastFetchAt is RFC3339, LastFetchOK says how
+	// that fetch went, LastError is the trimmed reason when it failed, and
+	// Userinfo is the provider's subscription-userinfo header verbatim — the
+	// traffic figures a client shows as remaining quota. All four are absent on
+	// records written before this existed, which reads as "never fetched".
+	LastFetchAt string `json:"last_fetch_at,omitempty"`
+	LastFetchOK bool   `json:"last_fetch_ok,omitempty"`
+	LastError   string `json:"last_error,omitempty"`
+	Userinfo    string `json:"userinfo,omitempty"`
 }
 
 func (rt *runtime) loadSubscriptionRecords() (subscriptionRecordsDocument, error) {
@@ -318,4 +331,55 @@ func (rt *runtime) deleteSubscription(id string) error {
 	// key.
 	_ = rt.clearFileScript(id)
 	return nil
+}
+
+// maxFetchErrorBytes bounds the failure reason stored on a record. A provider
+// can answer with a whole error page, and the records document is rewritten in
+// full on every save — an unbounded reason would tax every unrelated write.
+const maxFetchErrorBytes = 240
+
+// noteFetchOutcome records when a fetch ran and how it went. It is called from
+// the fetch method — which the core invokes for every refresh, scheduled or
+// manual — and deliberately NOT from fetchSubscription itself: render and
+// preview fetch too, and a write per read would rewrite the records document
+// on every public request. A preview fetch is also not a refresh — recording
+// it would tell the operator the served snapshot is fresher than it is.
+//
+// A failed bookkeeping write is swallowed on purpose: the fetch's own result is
+// already being reported, and losing the note must not turn a good refresh into
+// an error.
+func (rt *runtime) noteFetchOutcome(subscriptionID string, fetchedAt time.Time, userinfo string, fetchErr error) {
+	doc, err := rt.loadSubscriptionRecords()
+	if err != nil {
+		return
+	}
+	for i := range doc.Records {
+		if doc.Records[i].ID != subscriptionID {
+			continue
+		}
+		doc.Records[i].LastFetchAt = fetchedAt.UTC().Format(time.RFC3339)
+		if fetchErr != nil {
+			doc.Records[i].LastFetchOK = false
+			doc.Records[i].LastError = trimFetchError(fetchErr)
+		} else {
+			doc.Records[i].LastFetchOK = true
+			doc.Records[i].LastError = ""
+			// A failure keeps the previous userinfo: it is the provider's quota
+			// figures, and a stale figure next to a "refresh failed" badge beats
+			// none at all.
+			if userinfo != "" {
+				doc.Records[i].Userinfo = userinfo
+			}
+		}
+		_ = rt.saveSubscriptionRecords(doc)
+		return
+	}
+}
+
+func trimFetchError(err error) string {
+	text := strings.TrimSpace(err.Error())
+	if len(text) > maxFetchErrorBytes {
+		text = strings.TrimSpace(text[:maxFetchErrorBytes]) + "…"
+	}
+	return text
 }

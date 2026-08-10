@@ -36,6 +36,10 @@ interface StoredRecord {
   arguments?: Record<string, string>;
   process?: unknown[];
   origin?: unknown;
+  last_fetch_at?: string;
+  last_fetch_ok?: boolean;
+  last_error?: string;
+  userinfo?: string;
 }
 
 const OPERATORS = [
@@ -60,7 +64,10 @@ const OPERATORS = [
 
 const SCRIPTING = new Set(["Script Operator", "Script Filter"]);
 
-/** Shaped like a real deployment: a fleet source, a provider, and a paste. */
+/** Shaped like a real deployment: a fleet source, a provider, and a paste.
+ *  The fetch bookkeeping spans its three states too — one sub with traffic,
+ *  one whose last refresh failed, one never fetched — so the row status has
+ *  something to say in the harness. */
 const records: StoredRecord[] = [
   {
     id: "home-nodes",
@@ -82,6 +89,21 @@ const records: StoredRecord[] = [
     url: "https://example.invalid/subscribe",
     ua: "Surge",
     process: [{ type: "Region Filter", args: { value: ["HK", "JP"], keep: true } }],
+    last_fetch_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    last_fetch_ok: true,
+    userinfo: "upload=3221225472; download=25769803776; total=536870912000; expire=1893456000",
+  },
+  {
+    id: "provider-b",
+    name: "Provider B (failing)",
+    tags: ["paid"],
+    source: "remote",
+    url: "https://example.invalid/broken",
+    process: [],
+    last_fetch_at: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
+    last_fetch_ok: false,
+    last_error: 'subscription "provider-b" provider returned status 503',
+    userinfo: "upload=1073741824; download=10737418240; total=107374182400",
   },
   {
     id: "pasted-backup",
@@ -188,6 +210,15 @@ function listView(rec: StoredRecord) {
     step_count: steps.length,
     disabled_step_count: steps.filter((s) => s.disabled).length,
     imported: Boolean(rec.origin),
+    // Only once fetched, like the backend: absent reads as "never fetched".
+    ...(rec.last_fetch_at
+      ? {
+          last_fetch_at: rec.last_fetch_at,
+          last_fetch_ok: rec.last_fetch_ok ?? false,
+          last_error: rec.last_error,
+          userinfo: rec.userinfo,
+        }
+      : {}),
   };
 }
 
@@ -218,7 +249,31 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     records.splice(index, 1);
     return { id: subscription_id, deleted: true };
   },
-  "subscription/fetch": ({ subscription_id }) => ({ subscription_id, bytes: 4096 }),
+  "subscription/fetch": ({ subscription_id }) => {
+    const found = records.find((r) => r.id === subscription_id);
+    if (!found) throw new Error(`subscription "${subscription_id}" was not found`);
+    // The harness records the outcome the way the backend does, so a refresh
+    // moves the row's status instead of only flashing a banner.
+    found.last_fetch_at = new Date().toISOString();
+    if (found.id === "provider-b") {
+      found.last_fetch_ok = false;
+      found.last_error = 'subscription "provider-b" provider returned status 503';
+      throw new Error(found.last_error);
+    }
+    found.last_fetch_ok = true;
+    found.last_error = undefined;
+    const raw = "vless://11111111-1111-1111-1111-111111111111@a.example:443#node-a";
+    if (found.source === "remote" && !found.userinfo) {
+      found.userinfo = "upload=0; download=1073741824; total=536870912000";
+    }
+    return {
+      raw,
+      userinfo: found.userinfo ?? "",
+      subscription_id,
+      bytes: raw.length,
+      fetched_at: found.last_fetch_at,
+    };
+  },
   "subscription/preview": ({ subscription_id }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (found?.kind === "file") {
@@ -228,16 +283,21 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         "proxies: []",
         "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}",
       );
-      return { document: injected, count: 0, nodes: [] };
+      return { document: injected, node_count: 0, nodes: [] };
     }
     return {
-    nodes: [
-      { name: "🇭🇰 Hong Kong 01", type: "vless" },
-      { name: "🇭🇰 Hong Kong 02", type: "vless" },
-      { name: "🇯🇵 Tokyo 01", type: "trojan" },
-      { name: "🇸🇬 Singapore 01", type: "vmess" },
-    ],
-    count: 4,
+      nodes: [
+        { name: "🇭🇰 Hong Kong 01", type: "vless" },
+        { name: "🇭🇰 Hong Kong 02", type: "vless" },
+        { name: "🇯🇵 Tokyo 01", type: "trojan" },
+        { name: "🇸🇬 Singapore 01", type: "vmess" },
+        { name: "🇺🇸 Portland 01", type: "vless" },
+        { name: "🇩🇪 Frankfurt 01", type: "trojan" },
+      ],
+      // The real shape: node_count, not count — the UI once read `count`, a
+      // field the backend never sent, and printed "undefined node(s)".
+      node_count: 6,
+      source_node_count: 8,
     };
   },
   "subscription/get_settings": () => settings,

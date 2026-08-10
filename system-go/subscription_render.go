@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
@@ -242,11 +243,25 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid fetch payload: %w", err))
 			}
 		}
+		fetchedAt := time.Now().UTC()
 		out, err := rt.fetchSubscription(req.SubscriptionID)
+		// Bookkeeping whether the fetch worked or not: this method is the
+		// refresh path — the core calls it on a schedule and the UI on a click —
+		// so it is the one place that knows when the served snapshot last moved.
+		rt.noteFetchOutcome(req.SubscriptionID, fetchedAt, out.Userinfo, err)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
-		body, err := json.Marshal(out)
+		// `raw` is what the core stores as its snapshot and must stay first
+		// class; the rest is the management view's answer to "when did this last
+		// move, and what did the provider say about quota".
+		body, err := json.Marshal(map[string]any{
+			"raw":             out.Raw,
+			"userinfo":        out.Userinfo,
+			"subscription_id": req.SubscriptionID,
+			"bytes":           len(out.Raw),
+			"fetched_at":      fetchedAt.Format(time.RFC3339),
+		})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -344,6 +359,14 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Steps       int      `json:"step_count"`
 			StepsOff    int      `json:"disabled_step_count"`
 			Imported    bool     `json:"imported"`
+			// Fetch bookkeeping, emitted only once the record has been fetched at
+			// all: before that there is no status to report, and emitting zero
+			// values would read as "refresh failed" rather than "never fetched".
+			// LastFetchOK is a pointer so a real false survives encoding.
+			LastFetchAt string `json:"last_fetch_at,omitempty"`
+			LastFetchOK *bool  `json:"last_fetch_ok,omitempty"`
+			LastError   string `json:"last_error,omitempty"`
+			Userinfo    string `json:"userinfo,omitempty"`
 		}
 		views := make([]view, 0, len(records))
 		for _, rec := range records {
@@ -354,7 +377,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 					off++
 				}
 			}
-			views = append(views, view{
+			entry := view{
 				ID: rec.ID, Kind: recordKind(rec), Name: rec.Name,
 				DisplayName: rec.DisplayName, Remark: rec.Remark, Tags: rec.Tags,
 				Source: rec.Source,
@@ -362,7 +385,13 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				Members: rec.Members, MemberTags: rec.MemberTags,
 				Target: rec.Target, FileType: rec.FileType, NodeSource: rec.NodeSource,
 				Steps: len(steps), StepsOff: off, Imported: rec.Origin != nil,
-			})
+			}
+			if rec.LastFetchAt != "" {
+				ok := rec.LastFetchOK
+				entry.LastFetchAt, entry.LastFetchOK = rec.LastFetchAt, &ok
+				entry.LastError, entry.Userinfo = rec.LastError, rec.Userinfo
+			}
+			views = append(views, entry)
 		}
 		body, err := json.Marshal(map[string]any{"subscriptions": views})
 		if err != nil {
@@ -415,6 +444,11 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		// record rather than taken from the request.
 		if existing, err := rt.getSubscription(rec.ID); err == nil {
 			rec.Origin = existing.Origin
+			// Fetch bookkeeping belongs to the record's life, not to this edit:
+			// a save that zeroed it would tell the operator a fetched record was
+			// never refreshed.
+			rec.LastFetchAt, rec.LastFetchOK = existing.LastFetchAt, existing.LastFetchOK
+			rec.LastError, rec.Userinfo = existing.LastError, existing.Userinfo
 		} else {
 			rec.Origin = nil
 		}
@@ -490,10 +524,14 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			}
 			if strings.TrimSpace(raw) == "" {
 				raw = rec.Content
-				// Same reason as render: a vpn-core record has no inline content,
-				// and a preview that showed nothing would look like a broken
-				// subscription rather than one sourced from somewhere else.
-				if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
+				// Same reason as render: a vpn-core or provider record has no
+				// inline content, and a preview that showed nothing would look
+				// like a broken subscription rather than one sourced from
+				// somewhere else. The fetch here is a read for the preview only —
+				// it is not recorded as a refresh, because the served snapshot
+				// does not move.
+				if strings.TrimSpace(raw) == "" &&
+					(rec.Source == subscriptionSourceVPNCore || strings.TrimSpace(rec.URL) != "") {
 					fetched, err := rt.fetchSubscription(req.SubscriptionID)
 					if err != nil {
 						return latticeplugin.ErrorResponse(err)
