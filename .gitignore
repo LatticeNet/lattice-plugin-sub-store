@@ -17,3 +17,7 @@ seed
 seed.*
 *_seed
 *.bin
+
+# built plugin binary + local agent state
+system-go/system-go
+.omc/
