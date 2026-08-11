@@ -261,26 +261,61 @@ func mergeRecordIntoDoc(doc *subscriptionRecordsDocument, rec subscriptionRecord
 	doc.Records = append(doc.Records, rec)
 }
 
+// saveSubscriptionInDoc merges one record into an already-loaded document and
+// persists it. The caller loads the document, so a dispatch that needs the
+// record's previous state — provenance, fetch bookkeeping — reads it from the
+// same copy instead of paying a second host round trip. The runner bills every
+// round trip against the signed host_calls budget, and the save path's
+// read-modify-readback used to cost up to seven for one record.
+//
+// The program is written before the document. If the document write then fails
+// the script is an orphan under a key nothing reads, which costs a bounded
+// amount of space; the other order would leave a saved script file whose
+// program is missing. The returned record carries its content again, so the
+// caller can answer with what was written without a read-back.
+func (rt *runtime) saveSubscriptionInDoc(doc *subscriptionRecordsDocument, rec subscriptionRecord, wasScript bool) (subscriptionRecord, error) {
+	nrec, script, err := normalizeSubscriptionForStore(rec)
+	if err != nil {
+		return rec, err
+	}
+	mergeRecordIntoDoc(doc, nrec)
+	if script != "" {
+		if err := rt.putFileScript(nrec.ID, script); err != nil {
+			return rec, err
+		}
+	}
+	if err := rt.saveSubscriptionRecords(*doc); err != nil {
+		return rec, err
+	}
+	// A record that used to be a script and is now anything else leaves its
+	// program key behind unless it is cleared here. The key is bounded, but the
+	// host serialises KV into the state file on every write, so an orphan taxes
+	// every unrelated write forever. Best effort: the record is already saved,
+	// and a missed clear is the leak this used to have, not a new failure.
+	if wasScript && script == "" {
+		_ = rt.clearFileScript(nrec.ID)
+	}
+	if script != "" {
+		nrec.Content = script
+	}
+	return nrec, nil
+}
+
 // saveSubscription inserts or replaces one definition.
 func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
-	rec, script, err := normalizeSubscriptionForStore(rec)
-	if err != nil {
-		return err
-	}
 	doc, err := rt.loadSubscriptionRecords()
 	if err != nil {
 		return err
 	}
-	mergeRecordIntoDoc(&doc, rec)
-	// The program is written first. If the record write then fails the script is
-	// an orphan under a key nothing reads, which costs a bounded amount of space;
-	// the other order would leave a saved script file whose program is missing.
-	if script != "" {
-		if err := rt.putFileScript(rec.ID, script); err != nil {
-			return err
+	wasScript := false
+	for _, existing := range doc.Records {
+		if existing.ID == rec.ID {
+			wasScript = isScriptFile(existing)
+			break
 		}
 	}
-	return rt.saveSubscriptionRecords(doc)
+	_, err = rt.saveSubscriptionInDoc(&doc, rec, wasScript)
+	return err
 }
 
 // saveSubscriptionBatch persists many definitions with ONE document write.
@@ -316,6 +351,13 @@ func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (map[string]
 		if script != "" {
 			programs = append(programs, program{nrec.ID, script})
 		}
+	}
+	// Reject before spending any program write: an oversize merge fails the
+	// document write below regardless, and paying 2+N host calls first would
+	// blow the import budget on a batch that cannot land, leaving N orphan
+	// program keys behind the exact 502 this path exists to prevent.
+	if len(doc.Records) > maxSubscriptionRecords {
+		return skipped, fmt.Errorf("too many subscriptions: %d, limit %d", len(doc.Records), maxSubscriptionRecords)
 	}
 	for _, p := range programs {
 		if err := rt.putFileScript(p.id, p.body); err != nil {
@@ -365,9 +407,11 @@ func (rt *runtime) deleteSubscription(id string) error {
 	}
 	kept := doc.Records[:0]
 	found := false
+	wasScript := false
 	for _, rec := range doc.Records {
 		if rec.ID == id {
 			found = true
+			wasScript = isScriptFile(rec)
 			continue
 		}
 		kept = append(kept, rec)
@@ -379,10 +423,14 @@ func (rt *runtime) deleteSubscription(id string) error {
 	if err := rt.saveSubscriptionRecords(doc); err != nil {
 		return err
 	}
-	// Best effort: the record is already gone, so failing here would report a
-	// deletion that did happen as an error. The cost of the miss is one empty
-	// key.
-	_ = rt.clearFileScript(id)
+	// Only a script file has a program key to clear. Clearing unconditionally
+	// billed every delete a third host round trip against a budget sized for
+	// two, so deleting a plain subscription 502'd in production. Best effort:
+	// the record is already gone, so failing here would report a deletion that
+	// did happen as an error; the cost of the miss is one empty key.
+	if wasScript {
+		_ = rt.clearFileScript(id)
+	}
 	return nil
 }
 

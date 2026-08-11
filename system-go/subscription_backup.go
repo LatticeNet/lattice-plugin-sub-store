@@ -29,6 +29,12 @@ type importOutcome struct {
 // Records are sorted by id so two exports of the same data are byte-identical:
 // an export that depended on map order would diff against itself and be useless
 // for comparing a backup against what is live.
+//
+// A script file's program lives under its own key, so a plain record list
+// carries the file's name but not the program that IS the file — a backup
+// shaped like that restores every script file as a skip ("needs a template"),
+// which is a backup in name only. Each program is reattached here: one extra
+// host read per script file, billed against export's host_calls budget.
 func (rt *runtime) exportBackup() ([]byte, error) {
 	records, err := rt.listSubscriptions()
 	if err != nil {
@@ -37,6 +43,22 @@ func (rt *runtime) exportBackup() ([]byte, error) {
 	settings, err := rt.loadSettings()
 	if err != nil {
 		return nil, err
+	}
+	for i := range records {
+		if !isScriptFile(records[i]) {
+			continue
+		}
+		script, err := rt.getFileScript(records[i].ID)
+		if err != nil {
+			return nil, fmt.Errorf("export reads the program of %q: %w", records[i].ID, err)
+		}
+		if script == "" {
+			// A script file without its program cannot be restored from this
+			// backup — the import would skip it as "needs a template". Failing
+			// loudly beats writing a backup that looks complete and is not.
+			return nil, fmt.Errorf("script file %q has no stored program; the backup cannot restore it", records[i].ID)
+		}
+		records[i].Content = script
 	}
 	sort.Slice(records, func(i, j int) bool { return records[i].ID < records[j].ID })
 	if records == nil {
@@ -65,6 +87,11 @@ func (rt *runtime) importBackup(data []byte) (importOutcome, error) {
 			return importOutcome{}, fmt.Errorf("backup has no format")
 		}
 		return importOutcome{}, fmt.Errorf("unsupported backup format %q", doc.Format)
+	}
+	// The store can never hold more than this, so a larger backup can only fail
+	// downstream — after its program keys are already written. Refuse it here.
+	if len(doc.Records) > maxSubscriptionRecords {
+		return importOutcome{}, fmt.Errorf("backup carries %d records, limit %d", len(doc.Records), maxSubscriptionRecords)
 	}
 
 	existing := map[string]bool{}

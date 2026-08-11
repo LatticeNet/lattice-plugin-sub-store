@@ -279,6 +279,24 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 .row-popover-copy { margin: 0; }
 .row-popover-error { margin: 0; color: var(--destructive, #b52b2b); font-size: 12px; }
 .row-popover-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.row-popover-list li { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.row-node-endpoint { color: var(--muted-foreground, #656d76); font-size: 11px; }
+/* A file's row preview is the document a client would receive; cap and scroll
+   it so a 60 KB config does not take over the list. */
+.row-popover-document {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #e2e5ea);
+  border-radius: 6px;
+  background: var(--muted, #f7f8fa);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.preview-type-chips { margin: 0; display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* Opened on its own the frame has no host at all; this is what it says. */
 .standalone-notice {

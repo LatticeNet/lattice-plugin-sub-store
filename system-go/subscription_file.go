@@ -40,7 +40,9 @@ func (rt *runtime) resolveFileTemplate(rec subscriptionRecord) (string, error) {
 		if strings.TrimSpace(rec.URL) == "" {
 			return "", fmt.Errorf("file %q has no template URL", rec.ID)
 		}
-		fetched, err := rt.fetchSubscription(rec.ID)
+		// The record is in hand; fetching by id would re-read the whole records
+		// document to find it again, one wasted host call per render.
+		fetched, err := rt.fetchRecordContent(rec)
 		if err != nil {
 			return "", err
 		}

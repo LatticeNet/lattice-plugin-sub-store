@@ -177,7 +177,7 @@
             "timeout_ms": 20000,
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 4
           }
         },
         {
@@ -190,7 +190,7 @@
             "timeout_ms": 10000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 68
           }
         },
         {
@@ -216,7 +216,7 @@
             "timeout_ms": 15000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 1
+            "host_calls": 68
           }
         },
         {
@@ -242,7 +242,7 @@
             "timeout_ms": 2000,
             "stdout_bytes": 524288,
             "stderr_bytes": 16384,
-            "host_calls": 1
+            "host_calls": 2
           }
         },
         {
@@ -268,7 +268,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 16384,
-            "host_calls": 2
+            "host_calls": 3
           }
         },
         {
@@ -284,7 +284,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 48
+            "host_calls": 263
           }
         },
         {
@@ -297,7 +297,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 32768,
-            "host_calls": 2
+            "host_calls": 258
           }
         },
         {
@@ -310,7 +310,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 48
+            "host_calls": 260
           }
         },
         {
@@ -352,7 +352,7 @@
             "timeout_ms": 20000,
             "stdout_bytes": 65536,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 69
           }
         }
       ],
