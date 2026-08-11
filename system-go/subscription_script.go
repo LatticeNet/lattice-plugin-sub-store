@@ -27,8 +27,15 @@ const maxFileScriptBytes = 512 << 10
 
 // fileScriptKey is where one file's program lives. Versioned like the record
 // document so a future format change does not have to guess what it is reading.
+//
+// The separator is a dash, not a slash: the server's plugin KV validates keys
+// with validateStorageName and refuses slashes outright (a slash would let one
+// record masquerade as another in composite paths). The slash spelling of this
+// key never survived contact with a real host — every test host accepted it,
+// and production answered "plugin kv key must not contain a slash" on the first
+// script save (2026-08-11).
 func fileScriptKey(id string) string {
-	return "subscription-script-v1/" + id
+	return "subscription-script-v1-" + id
 }
 
 // putFileScript stores a program under its own key.

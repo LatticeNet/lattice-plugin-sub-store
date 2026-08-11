@@ -180,7 +180,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// import shares migrate's shape without the upstream fetches: one
 		// document write plus one key per script program. 48 covers a full 256
 		// record store restore where every file is a script.
-		pluginID + "/subscription/import":        {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 48},
+		pluginID + "/subscription/import":        {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 48},
 		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 	}

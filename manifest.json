@@ -31,9 +31,9 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.2-alpha.2",
-    "dashboard_host": "\u003e=1",
-    "runtime_protocol": "\u003e=1"
+    "server": ">=0.2.2-alpha.2",
+    "dashboard_host": ">=1",
+    "runtime_protocol": ">=1"
   },
   "host_access": {
     "rpc": [
@@ -307,7 +307,7 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 30000,
             "stdout_bytes": 262144,
             "stderr_bytes": 65536,
             "host_calls": 48
