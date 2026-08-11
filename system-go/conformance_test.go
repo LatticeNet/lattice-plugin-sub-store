@@ -175,8 +175,8 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// largest read budget here; import is bounded by what it accepts.
 		// publish renders and sends; its stdout is only a small result object
 		// because the rendered body goes out over the network, not back up stdout.
-		pluginID + "/subscription/publish":       {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
-		pluginID + "/subscription/export":        {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 2},
+		pluginID + "/subscription/publish": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
+		pluginID + "/subscription/export":  {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 2},
 		// import shares migrate's shape without the upstream fetches: one
 		// document write plus one key per script program. 48 covers a full 256
 		// record store restore where every file is a script.
