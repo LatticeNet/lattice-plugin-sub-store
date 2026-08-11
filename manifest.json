@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.12.1-alpha.6",
+  "version": "0.12.1-alpha.7",
   "publisher": "latticenet",
-  "signature_ed25519": "E/qtvdrCMogpfZ3kPXyeIhZaNfq13sHmWVwy5EPD54YFKQlOHIKSvG6o3vQhD/eHi72hsLQIWw6XO4iQOolLDQ==",
+  "signature_ed25519": "8L1iAii4OqSyIX7wsAMY/zfK57POt+0qNbFn1qpIPeV6UvAZ5uM1IAZ+q9DyJkx0o+JXv6oSLf0T7g91C4uGCg==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "5f20d16eb16cf0ccbddca62005f1ccc4ecf5b0d6605ab5a9a2a05b80027ab16d"
+    "digest_sha256": "c5e8433767ead4abeed60cb52c606cc911a7687287612d9992915beddc3c27a1"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -187,7 +187,7 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 20000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
             "host_calls": 68
@@ -213,7 +213,7 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 15000,
+            "timeout_ms": 20000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
             "host_calls": 68

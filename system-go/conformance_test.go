@@ -149,7 +149,11 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// — one provider fetch each, and maxCollectionMembers caps that at 64.
 		// 2026-08-11: the old allowance of 2 priced a real script-file render out —
 		// the public share for one would have 502'd on its first request.
-		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
+		// timeout is 20s because the runner spawns the plugin per invocation and a
+		// cold QuickJS/wazero boot costs ~13.5s on the production box (measured
+		// 2026-08-11); 10s timed out every script-file render. The warm-engine
+		// follow-up should let this come back down.
+		pluginID + "/subscription/render": {TimeoutMS: 20_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
 		// fetch carries a provider's whole response, so its stdout budget is the
 		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
 		// third-party provider is slower than local conversion. host_calls is 4:
@@ -163,8 +167,10 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// preview runs the pipeline but returns only names and types, so its
 		// stdout is far smaller than a conversion's even for a large subscription.
 		// Its host_calls match render's: a file preview renders the file, node
-		// source and all.
-		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 68},
+		// source and all. Its timeout matches render's for the same cold-engine
+		// reason — 15s still timed out a script file on production (~13.5s boot
+		// plus the work itself).
+		pluginID + "/subscription/preview": {TimeoutMS: 20_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 68},
 		// list returns definitions without their content, so it stays small.
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		// get returns one whole record including inline content, so its ceiling
