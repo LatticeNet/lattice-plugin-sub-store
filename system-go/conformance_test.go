@@ -161,16 +161,22 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// get returns one whole record including inline content, so its ceiling
 		// is the per-record inline cap plus room for the rest of the record —
 		// not the small `list` ceiling, which carries no content at all.
-		pluginID + "/subscription/get":    {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 512 << 10, StderrBytes: 64 << 10, HostCalls: 3},
-		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/subscription/get": {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		// save/delete write the whole records document back through one stdout
+		// frame, and the runner caps a frame at stdout_bytes — with a populated
+		// store the write frame is the document, base64'd. 4 MiB covers the 1 MiB
+		// store cap with envelope headroom; a smaller number makes saves start
+		// failing exactly when the store gets valuable. (2026-08-11: first
+		// production import died here — 512 KiB fit one record, not twenty.)
+		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 3},
+		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 2},
 		// migrate is the only write here and it talks to a second server, so it
 		// gets the longest timeout. host_calls is 48: records persist as ONE
 		// document write, but every script file's program is its own key — the
 		// operator's real migration carried sixteen — plus three upstream
 		// fetches and the doc reads. 2026-08-11: the per-record path priced a
 		// real migration past the old allowance of 4 and died mid-flight.
-		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 48},
+		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 48},
 		// export carries every record including inline content, so it gets the
 		// largest read budget here; import is bounded by what it accepts.
 		// publish renders and sends; its stdout is only a small result object
@@ -180,7 +186,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// import shares migrate's shape without the upstream fetches: one
 		// document write plus one key per script program. 48 covers a full 256
 		// record store restore where every file is a script.
-		pluginID + "/subscription/import":        {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 48},
+		pluginID + "/subscription/import":        {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 48},
 		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 	}
