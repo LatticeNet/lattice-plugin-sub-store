@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -98,9 +99,42 @@ type pipelineRecordListItem struct {
 	OperatorCount int    `json:"operator_count"`
 }
 
+// hostFrameCap is how big one host-channel frame may get here. The SDK
+// defaults to 1 MiB (DefaultMaxHostResponseBytes / DefaultMaxRequestBytes),
+// and that was fine until the record store grew: one kv.get of the store
+// document base64's to 1.4× its size, so past ~770 KiB of store every call
+// answered "bufio.Scanner: token too long" and the plugin died mid-invocation
+// (2026-08-11, production). 4 MiB covers the 1 MiB store cap as base64 with
+// envelope headroom, and the same width is given to the request side so a big
+// backup import fits too.
+const hostFrameCap = 4 << 20
+
 func main() {
 	rt := &runtime{}
-	_ = latticeplugin.Serve(context.Background(), latticeplugin.HandlerFunc(
+	// The host channel rides the fd the runner names in the environment;
+	// duplicated here only so the frame cap is wider than the SDK default.
+	fd := 3
+	if raw := strings.TrimSpace(os.Getenv("LATTICE_HOST_RESPONSE_FD")); raw != "" {
+		if parsed, err := strconv.Atoi(raw); err == nil && parsed >= 3 {
+			fd = parsed
+		}
+	}
+	hostFile := os.NewFile(uintptr(fd), "lattice-host-response")
+	var host *latticeplugin.HostClient
+	if hostFile != nil {
+		host = latticeplugin.NewHostClient(latticeplugin.HostClientOptions{
+			Output:           os.Stdout,
+			Responses:        hostFile,
+			MaxResponseBytes: hostFrameCap,
+		})
+		defer hostFile.Close()
+	}
+	sdkRt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{
+		Host:            host,
+		MaxRequestBytes: hostFrameCap,
+	})
+	defer sdkRt.Close()
+	_ = sdkRt.Serve(context.Background(), latticeplugin.HandlerFunc(
 		func(ctx context.Context, req latticeplugin.Request, host *latticeplugin.HostClient) latticeplugin.Response {
 			rt.host = sdkHostCaller{ctx: ctx, client: host}
 			return rt.handle(req)
