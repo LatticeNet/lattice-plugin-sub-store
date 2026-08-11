@@ -167,3 +167,29 @@ func errAsHostFailure() error { return &hostFailure{} }
 type hostFailure struct{}
 
 func (*hostFailure) Error() string { return "vpn-core unreachable" }
+
+func TestPreviewResolvesAnUnsavedFleetDraft(t *testing.T) {
+	// A draft that reads the fleet has no pasted content and no stored record —
+	// the preview must resolve the live export, not report "no content".
+	rt, host := newVPNCoreRuntime(t,
+		"vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a",
+		"vless://22222222-2222-2222-2222-222222222222@example.net:443?security=reality&sni=b.com&fp=chrome&pbk=y#node-b")
+	raw, err := json.Marshal(map[string]any{"source": "vpn-core"})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	res := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: raw})
+	if !res.OK {
+		t.Fatalf("preview of an unsaved fleet draft failed: %s", res.Error)
+	}
+	var out previewResult
+	if err := json.Unmarshal(res.Result, &out); err != nil {
+		t.Fatalf("decode preview: %v", err)
+	}
+	if out.NodeCount != 2 {
+		t.Fatalf("expected the export's 2 nodes, got %d", out.NodeCount)
+	}
+	if len(host.rpcCalls) != 1 {
+		t.Fatalf("expected exactly one export rpc, got %d", len(host.rpcCalls))
+	}
+}

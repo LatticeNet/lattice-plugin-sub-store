@@ -555,11 +555,18 @@ export function useSubscriptions(host: HostContext) {
     preview.value = null;
     try {
       // Sending the draft rather than the id previews unsaved edits; the
-      // backend falls back to the stored record when raw is empty.
+      // backend falls back to the stored record when raw is empty. A draft
+      // whose source is the fleet or a provider link has no pasted content at
+      // all, so its source goes along — the engine resolves it live (read
+      // only; nothing is persisted as a refresh).
       const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
         subscription_id: draft.id.trim(),
         raw: draft.content,
         target: draft.target.trim(),
+        source: draft.source || undefined,
+        url: draft.url.trim() || undefined,
+        ua: draft.ua.trim() || undefined,
+        vpn_identity: draft.vpnIdentity.trim() || undefined,
         // The wire field is still `operators` — it is what the engine takes.
         // Disabled steps are dropped here so the preview shows what would
         // actually run, not what the chain would do if everything were on.

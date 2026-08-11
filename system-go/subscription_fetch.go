@@ -36,7 +36,20 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	if err != nil {
 		return fetchResult{}, err
 	}
+	return rt.fetchRecordContent(rec)
+}
 
+// fetchRecordContent resolves where a record's current content lives and reads
+// it: the live vpn-core export over rpc:call, pasted text, or a provider URL
+// behind guarded egress. It backs both the refresh path (a stored record) and
+// the preview path (an unsaved draft — the engine otherwise never sees the
+// draft's source, and a fleet-sourced preview would report "no content" while
+// the nodes are right there).
+func (rt *runtime) fetchRecordContent(rec subscriptionRecord) (fetchResult, error) {
+	label := rec.ID
+	if label == "" {
+		label = "the unsaved draft"
+	}
 	// A vpn-core subscription has no provider to reach: its content is the
 	// current node export, read over rpc:call. It is handled before the URL
 	// checks because there is no URL involved and none should be required.
@@ -49,7 +62,7 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 			// Serving nothing would reach a client as "you have no nodes" and
 			// wipe its configuration, so an empty export is an error here
 			// rather than empty content passed downstream.
-			return fetchResult{}, fmt.Errorf("subscription %q: vpn-core returned no nodes", subscriptionID)
+			return fetchResult{}, fmt.Errorf("subscription %s: vpn-core returned no nodes", label)
 		}
 		return fetchResult{Raw: strings.Join(links, "\n")}, nil
 	}
@@ -59,24 +72,24 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	// error the operator has to learn to ignore.
 	if rec.Source == subscriptionSourceLocal {
 		if strings.TrimSpace(rec.Content) == "" {
-			return fetchResult{}, fmt.Errorf("subscription %q has no pasted content", subscriptionID)
+			return fetchResult{}, fmt.Errorf("subscription %q has no pasted content", label)
 		}
 		return fetchResult{Raw: rec.Content}, nil
 	}
 
 	target := strings.TrimSpace(rec.URL)
 	if target == "" {
-		return fetchResult{}, fmt.Errorf("subscription %q has no URL to fetch", subscriptionID)
+		return fetchResult{}, fmt.Errorf("subscription %q has no URL to fetch", label)
 	}
 	parsed, err := url.Parse(target)
 	if err != nil {
-		return fetchResult{}, fmt.Errorf("subscription %q has an unparseable URL", subscriptionID)
+		return fetchResult{}, fmt.Errorf("subscription %q has an unparseable URL", label)
 	}
 	// The scheme is checked here as well as by the broker. A provider URL that is
 	// not http(s) is a configuration mistake worth naming at its source, rather
 	// than a broker rejection the operator has to trace back.
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return fetchResult{}, fmt.Errorf("subscription %q URL must be http or https", subscriptionID)
+		return fetchResult{}, fmt.Errorf("subscription %q URL must be http or https", label)
 	}
 
 	ua := strings.TrimSpace(rec.UA)
@@ -89,7 +102,7 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		"header": map[string]string{"User-Agent": ua},
 	})
 	if err != nil {
-		return fetchResult{}, redactProviderError(subscriptionID, err)
+		return fetchResult{}, redactProviderError(label, err)
 	}
 	var out struct {
 		StatusCode int               `json:"status_code"`
@@ -100,7 +113,7 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		return fetchResult{}, fmt.Errorf("decode provider response: %w", err)
 	}
 	if out.StatusCode < 200 || out.StatusCode >= 300 {
-		return fetchResult{}, fmt.Errorf("subscription %q provider returned status %d", subscriptionID, out.StatusCode)
+		return fetchResult{}, fmt.Errorf("subscription %q provider returned status %d", label, out.StatusCode)
 	}
 	body, err := base64.StdEncoding.DecodeString(out.BodyBase64)
 	if err != nil {
@@ -109,10 +122,10 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	if len(body) == 0 {
 		// An empty body is a failed fetch, not a subscription with no nodes.
 		// Returning it as success would overwrite a good snapshot with nothing.
-		return fetchResult{}, fmt.Errorf("subscription %q provider returned an empty body", subscriptionID)
+		return fetchResult{}, fmt.Errorf("subscription %q provider returned an empty body", label)
 	}
 	if len(body) > maxProviderResponseBytes {
-		return fetchResult{}, fmt.Errorf("subscription %q provider returned %d bytes, limit %d", subscriptionID, len(body), maxProviderResponseBytes)
+		return fetchResult{}, fmt.Errorf("subscription %q provider returned %d bytes, limit %d", label, len(body), maxProviderResponseBytes)
 	}
 
 	return fetchResult{Raw: string(body), Userinfo: userinfoHeader(out.Header)}, nil
@@ -133,8 +146,8 @@ func userinfoHeader(header map[string]string) string {
 // redactProviderError keeps a failing URL out of the error text. A provider URL
 // is frequently a bearer credential in path form, and this error travels into
 // the core's audit log and the operator's screen.
-func redactProviderError(subscriptionID string, err error) error {
-	return fmt.Errorf("subscription %q provider request failed: %s", subscriptionID, redactURLs(err.Error()))
+func redactProviderError(label string, err error) error {
+	return fmt.Errorf("subscription %q provider request failed: %s", label, redactURLs(err.Error()))
 }
 
 func redactURLs(text string) string {

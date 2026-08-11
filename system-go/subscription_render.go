@@ -502,6 +502,13 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Raw            string            `json:"raw"`
 			Target         string            `json:"target"`
 			Operators      []json.RawMessage `json:"operators"`
+			// Source fields let an UNSAVED draft say where its nodes come from;
+			// without them a fleet- or provider-sourced draft previewed as
+			// "no content" while the nodes were right there.
+			Source      string `json:"source,omitempty"`
+			URL         string `json:"url,omitempty"`
+			UA          string `json:"ua,omitempty"`
+			VPNIdentity string `json:"vpn_identity,omitempty"`
 		}
 		if len(call.Payload) > 0 {
 			if err := json.Unmarshal(call.Payload, &req); err != nil {
@@ -545,6 +552,21 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 					target = rec.Target
 				}
 			}
+		} else if strings.TrimSpace(raw) == "" && req.Source != "" && req.Source != subscriptionSourceLocal {
+			// An unsaved draft carries its source but no content. Resolve the
+			// source live — the same guarded path a saved record's refresh
+			// takes — so the preview shows the nodes the draft would produce.
+			// A preview fetch is a read, not a refresh: nothing is persisted.
+			fetched, err := rt.fetchRecordContent(subscriptionRecord{
+				Source:      req.Source,
+				URL:         req.URL,
+				UA:          req.UA,
+				VPNIdentity: req.VPNIdentity,
+			})
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			raw = fetched.Raw
 		}
 		out, err := rt.previewSubscription(raw, operators, target)
 		if err != nil {
