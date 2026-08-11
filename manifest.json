@@ -187,7 +187,7 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 20000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
             "host_calls": 68
@@ -213,7 +213,7 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 15000,
+            "timeout_ms": 20000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
             "host_calls": 68
