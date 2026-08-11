@@ -31,7 +31,12 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 		if strings.TrimSpace(rec.URL) == "" {
 			return "", fmt.Errorf("subscription %q has no provider URL", rec.ID)
 		}
-		fetched, err := rt.fetchSubscription(rec.ID)
+		// The record is already in hand: fetch its content directly. Going back
+		// through fetchSubscription would re-read the whole records document to
+		// find the record the caller just had, one extra host round trip per
+		// collection member — the N+1 that priced a real collection render past
+		// its host_calls budget.
+		fetched, err := rt.fetchRecordContent(rec)
 		if err != nil {
 			return "", err
 		}
@@ -39,7 +44,7 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 	default:
 		// Records written before the source was named: whichever field is set.
 		if strings.TrimSpace(rec.URL) != "" {
-			fetched, err := rt.fetchSubscription(rec.ID)
+			fetched, err := rt.fetchRecordContent(rec)
 			if err != nil {
 				return "", err
 			}

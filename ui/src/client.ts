@@ -281,11 +281,22 @@ export interface SubscriptionFetchResponse {
   error?: string;
 }
 
-/** preview reduces nodes to name/type on the engine side, so a preview of a
- *  large subscription cannot blow the stdout budget. */
+/** preview reduces nodes to a summary on the engine side, so a preview of a
+ *  large subscription cannot blow the stdout budget. The summary carries the
+ *  endpoint and the transport flags — the detail an operator needs to recognise
+ *  a node, at the level upstream's preview shows — and never credentials: no
+ *  uuid, password, key or SNI crosses the process boundary. */
 export interface SubscriptionPreviewNode {
   name: string;
   type: string;
+  server?: string;
+  port?: string;
+  network?: string;
+  security?: string;
+  udp?: boolean;
+  tfo?: boolean;
+  skip_cert_verify?: boolean;
+  aead?: boolean;
 }
 
 export interface SubscriptionPreviewResponse {

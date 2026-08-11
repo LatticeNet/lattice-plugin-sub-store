@@ -502,6 +502,9 @@ export function useSubscriptions(host: HostContext) {
     error: string;
     nodes: SubscriptionPreviewNode[];
     count: number;
+    /** Set for a file record: its preview is the served document, not nodes. */
+    document?: string;
+    truncated?: boolean;
   }
 
   const rowPreview = ref<RowPreview | null>(null);
@@ -533,6 +536,8 @@ export function useSubscriptions(host: HostContext) {
         error: "",
         nodes: nodes.slice(0, 5),
         count: response.node_count ?? nodes.length,
+        document: response.document,
+        truncated: response.truncated,
       };
     } catch (cause) {
       if (rowPreview.value?.id !== id) return;

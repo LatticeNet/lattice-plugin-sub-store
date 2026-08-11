@@ -123,7 +123,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// Reading the export here means such a subscription serves correctly the
 	// first time it is fetched rather than failing until something warms it.
 	if strings.TrimSpace(source) == "" && rec.Source == subscriptionSourceVPNCore {
-		fetched, err := rt.fetchSubscription(subscriptionID)
+		fetched, err := rt.fetchRecordContent(rec)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -439,23 +439,41 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		if strings.TrimSpace(rec.ID) == "" {
 			return latticeplugin.ErrorResponse(fmt.Errorf("subscription id is required"))
 		}
-		// Origin records where a record came from during migration. A caller
-		// must not be able to forge it, so it is preserved from the stored
-		// record rather than taken from the request.
-		if existing, err := rt.getSubscription(rec.ID); err == nil {
+		// The document is loaded once and serves both reads this dispatch used
+		// to make: provenance and fetch bookkeeping are preserved from the
+		// in-memory copy, and the response is built from what was written. The
+		// old shape — get, save, get again — billed up to seven host round trips
+		// for one save against a budget of three, so every UI save 502'd once
+		// the store held a script file.
+		doc, err := rt.loadSubscriptionRecords()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		wasScript := false
+		found := false
+		for _, existing := range doc.Records {
+			if existing.ID != rec.ID {
+				continue
+			}
+			// Origin records where a record came from during migration. A caller
+			// must not be able to forge it, so it is preserved from the stored
+			// record rather than taken from the request.
 			rec.Origin = existing.Origin
 			// Fetch bookkeeping belongs to the record's life, not to this edit:
 			// a save that zeroed it would tell the operator a fetched record was
 			// never refreshed.
 			rec.LastFetchAt, rec.LastFetchOK = existing.LastFetchAt, existing.LastFetchOK
 			rec.LastError, rec.Userinfo = existing.LastError, existing.Userinfo
-		} else {
+			wasScript = isScriptFile(existing)
+			found = true
+			break
+		}
+		if !found {
 			rec.Origin = nil
+			rec.LastFetchAt, rec.LastFetchOK = "", false
+			rec.LastError, rec.Userinfo = "", ""
 		}
-		if err := rt.saveSubscription(rec); err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		saved, err := rt.getSubscription(rec.ID)
+		saved, err := rt.saveSubscriptionInDoc(&doc, rec, wasScript)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -529,6 +547,31 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			if recordKind(rec) == kindFile {
 				return previewFileResponse(rt, rec)
 			}
+			// A combination has no content of its own either: its nodes are its
+			// members', merged with each member's chain and then its own already
+			// run. Previewing that merged list is what the row's eye means on a
+			// combination — asking previewSubscription to fetch it again would
+			// report "no content" for a combination that serves fifty nodes.
+			if recordKind(rec) == kindCollection {
+				// The merged list is parsed back below, so it renders in URI —
+				// the one target that round-trips through a parse — whatever the
+				// record's serving target is.
+				previewRec := rec
+				previewRec.Target = ""
+				merged, err := rt.renderCollection(previewRec, "")
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				out, err := rt.previewSubscription(merged, nil, "URI")
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				body, err := json.Marshal(out)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				return latticeplugin.RawResultResponse(body, "")
+			}
 			if strings.TrimSpace(raw) == "" {
 				raw = rec.Content
 				// Same reason as render: a vpn-core or provider record has no
@@ -539,7 +582,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				// does not move.
 				if strings.TrimSpace(raw) == "" &&
 					(rec.Source == subscriptionSourceVPNCore || strings.TrimSpace(rec.URL) != "") {
-					fetched, err := rt.fetchSubscription(req.SubscriptionID)
+					fetched, err := rt.fetchRecordContent(rec)
 					if err != nil {
 						return latticeplugin.ErrorResponse(err)
 					}

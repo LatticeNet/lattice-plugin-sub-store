@@ -2,10 +2,10 @@
 import { computed, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
-  Copy,
   CircleAlert,
   CircleCheck,
   ClipboardPaste,
+  CopyPlus,
   Eye,
   Globe,
   Layers,
@@ -85,6 +85,27 @@ const canSave = computed(() => !draftError.value && !subs.saving.value);
 const canPreviewNow = computed(
   () => subs.canPreview.value && !subs.previewing.value && !draftError.value,
 );
+
+/** "kept 41 of 52 nodes" when a filter ran, "52 nodes" when nothing was dropped. */
+const previewHeadline = computed(() => {
+  const preview = subs.preview.value;
+  if (!preview) return "";
+  const kept = preview.node_count;
+  const source = preview.source_node_count ?? kept;
+  return source > kept ? `kept ${kept} of ${source} nodes` : `${kept} node(s)`;
+});
+
+/** Protocol breakdown of the previewed set, most common first. */
+const previewTypeCounts = computed(() => {
+  const counts = new Map<string, number>();
+  for (const node of subs.preview.value?.nodes ?? []) {
+    const type = node.type || "unknown";
+    counts.set(type, (counts.get(type) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
+});
 
 // Files live in the same store but on their own tab. Offering their tags here
 // would put a filter in front of the operator that selects nothing.
@@ -553,16 +574,30 @@ watch(host.init, (value) => {
 
       <div v-if="subs.preview.value" class="preview-summary">
         <p class="mono">
-          {{ subs.preview.value.node_count }} node(s)<span v-if="subs.preview.value.truncated"> — truncated</span>
+          {{ previewHeadline }}<span v-if="subs.preview.value.truncated"> — truncated</span>
+        </p>
+        <p v-if="previewTypeCounts.length" class="preview-type-chips">
+          <span v-for="entry in previewTypeCounts" :key="entry.type" class="badge">
+            {{ entry.type }} × {{ entry.count }}
+          </span>
         </p>
         <ul class="sub-list">
           <li
             v-for="(node, index) in subs.preview.value.nodes"
             :key="`${node.name}-${index}`"
-            class="sub-card"
+            class="sub-card sub-card-column"
           >
-            <span class="sub-title">{{ node.name }}</span>
-            <span class="sub-meta mono">{{ node.type }}</span>
+            <span class="sub-title">
+              {{ node.name }}
+              <span class="badge">{{ node.type }}</span>
+              <span v-if="node.network" class="badge">{{ node.network }}</span>
+              <span v-if="node.security" class="badge">{{ node.security }}</span>
+              <span v-if="node.udp" class="badge" title="UDP relay">UDP</span>
+              <span v-if="node.tfo" class="badge" title="TCP Fast Open">TFO</span>
+              <span v-if="node.skip_cert_verify" class="badge" title="Skips TLS certificate verification">skip-cert</span>
+              <span v-if="node.aead" class="badge" title="VMess AEAD">AEAD</span>
+            </span>
+            <span v-if="node.server" class="sub-meta mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
           </li>
         </ul>
       </div>
@@ -752,10 +787,11 @@ watch(host.init, (value) => {
                   class="icon-button"
                   type="button"
                   :disabled="!subs.canMutate.value"
-                  :aria-label="`Copy ${item.name}`"
+                  title="Make an independent copy of this record"
+                  :aria-label="`Duplicate ${item.name}`"
                   @click="subs.duplicate(item.id)"
                 >
-                  <Copy :size="16" aria-hidden="true" />
+                  <CopyPlus :size="16" aria-hidden="true" />
                 </button>
                 <button
                   class="icon-button"
@@ -791,7 +827,10 @@ watch(host.init, (value) => {
                 </p>
                 <ul class="row-popover-list">
                   <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`">
-                    {{ node.name }}
+                    <span>{{ node.name }}</span>
+                    <span class="badge">{{ node.type }}</span>
+                    <span v-if="node.security" class="badge">{{ node.security }}</span>
+                    <span v-if="node.server" class="row-node-endpoint mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
                   </li>
                 </ul>
                 <p
@@ -913,10 +952,11 @@ watch(host.init, (value) => {
                   class="icon-button"
                   type="button"
                   :disabled="!subs.canMutate.value"
-                  :aria-label="`Copy ${item.name}`"
+                  title="Make an independent copy of this record"
+                  :aria-label="`Duplicate ${item.name}`"
                   @click="subs.duplicate(item.id)"
                 >
-                  <Copy :size="16" aria-hidden="true" />
+                  <CopyPlus :size="16" aria-hidden="true" />
                 </button>
                 <button
                   class="icon-button"

@@ -20,9 +20,11 @@ func TestPreviewReportsNodesWithoutCredentials(t *testing.T) {
 		t.Fatalf("counts = %d/%d, want 2/2", out.SourceNodeCount, out.NodeCount)
 	}
 
-	// A preview answers "did my filter keep the right nodes". It must not double
-	// as a credential dump, so the reduction happens inside the engine and the
-	// fields that identify a server never cross the process boundary.
+	// A preview answers "did my filter keep the right nodes, and are they the
+	// shape I expect" — so endpoint and transport flags cross the boundary (the
+	// operator asked for upstream's level of detail, 2026-08-11), while anything
+	// that would make the preview a credential dump still does not: the
+	// reduction happens inside the engine, and uuid, keys and SNI never leave it.
 	encoded, err := json.Marshal(out)
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
@@ -30,15 +32,21 @@ func TestPreviewReportsNodesWithoutCredentials(t *testing.T) {
 	for _, leak := range []string{
 		"11111111-1111-1111-1111-111111111111",
 		"22222222-2222-2222-2222-222222222222",
-		"example.com", "example.net", "443", "pbk", "sni",
+		"pbk", "sni", "a.com", "b.com",
 	} {
 		if strings.Contains(string(encoded), leak) {
 			t.Fatalf("preview leaked %q: %s", leak, encoded)
 		}
 	}
-	names := []string{out.Nodes[0].Name, out.Nodes[1].Name}
-	if names[0] != "node-a" || names[1] != "node-b" {
-		t.Fatalf("names = %v, want node-a/node-b", names)
+	first := out.Nodes[0]
+	if first.Name != "node-a" || out.Nodes[1].Name != "node-b" {
+		t.Fatalf("names = %q/%q, want node-a/node-b", first.Name, out.Nodes[1].Name)
+	}
+	if first.Type != "vless" || first.Server != "example.com" || first.Port != "443" {
+		t.Fatalf("endpoint summary = %s %s:%s, want vless example.com:443", first.Type, first.Server, first.Port)
+	}
+	if first.Security != "reality" {
+		t.Fatalf("security = %q, want reality", first.Security)
 	}
 }
 
