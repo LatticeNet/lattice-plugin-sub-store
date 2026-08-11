@@ -126,7 +126,7 @@ func upstreamFailureMode(ignoreFailed bool) string {
 // Members are rewritten through the same id derivation the subscriptions used,
 // so a combination points at the records this run created rather than at names
 // that mean nothing here.
-func (rt *runtime) importUpstreamCollections(items []json.RawMessage, report *migrationReport) {
+func (rt *runtime) importUpstreamCollections(items []json.RawMessage, report *migrationReport, pending *[]subscriptionRecord) {
 	for i, raw := range items {
 		var col upstreamCollection
 		if err := json.Unmarshal(raw, &col); err != nil {
@@ -161,17 +161,18 @@ func (rt *runtime) importUpstreamCollections(items []json.RawMessage, report *mi
 			Process:     col.Process,
 			Origin:      &migratedOrigin{Source: "sub-store", Kind: "collection", Raw: raw},
 		}
-		if err := rt.saveSubscription(rec); err != nil {
+		if err := validateProcess(rec.Process); err != nil {
 			report.Skipped[name] = err.Error()
 			continue
 		}
+		*pending = append(*pending, rec)
 		report.Imported = append(report.Imported, rec.ID)
 	}
 }
 
 // importUpstreamFiles maps files onto records, lifting a generator out of the
 // chain into the record's own content.
-func (rt *runtime) importUpstreamFiles(items []json.RawMessage, report *migrationReport) {
+func (rt *runtime) importUpstreamFiles(items []json.RawMessage, report *migrationReport, pending *[]subscriptionRecord) {
 	for i, raw := range items {
 		var file upstreamFile
 		if err := json.Unmarshal(raw, &file); err != nil {
@@ -226,10 +227,7 @@ func (rt *runtime) importUpstreamFiles(items []json.RawMessage, report *migratio
 			report.Skipped[name] = err.Error()
 			continue
 		}
-		if err := rt.saveSubscription(rec); err != nil {
-			report.Skipped[name] = err.Error()
-			continue
-		}
+		*pending = append(*pending, rec)
 		report.Imported = append(report.Imported, rec.ID)
 	}
 }

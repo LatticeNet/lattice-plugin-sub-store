@@ -176,16 +176,18 @@ func (rt *runtime) saveSubscriptionRecords(doc subscriptionRecordsDocument) erro
 	return rt.kvPut(subscriptionRecordsKey, raw)
 }
 
-// saveSubscription inserts or replaces one definition.
-func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
+// normalizeSubscriptionForStore validates one record and returns its stored
+// shape, plus the program lifted out of a script file ("" for everything
+// else). Pure: no reads, no writes — so the batch import path can normalize N
+// records and pay one document write for all of them.
+func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, string, error) {
 	if strings.TrimSpace(rec.ID) == "" {
-		return fmt.Errorf("subscription id is required")
+		return rec, "", fmt.Errorf("subscription id is required")
 	}
 	if len(rec.Content) > maxSubscriptionInlineBytes {
-		return fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
+		return rec, "", fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
 	}
 	script := ""
-	splitScript := false
 	// Records written before collections existed spell the chain `operators`.
 	// Normalise on the way in so exactly one field is authoritative in storage.
 	if len(rec.Process) == 0 && len(rec.Operators) > 0 {
@@ -193,7 +195,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	}
 	rec.Operators = nil
 	if err := validateProcess(rec.Process); err != nil {
-		return fmt.Errorf("subscription %q: %w", rec.ID, err)
+		return rec, "", fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
 	switch recordKind(rec) {
 	case kindFile:
@@ -201,7 +203,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		// the vpn-core identity belong to other kinds; storing them would leave
 		// two answers to "where does this get its content".
 		if strings.TrimSpace(rec.URL) == "" && strings.TrimSpace(rec.Content) == "" {
-			return fmt.Errorf("file %q needs a template: a URL to fetch, or content", rec.ID)
+			return rec, "", fmt.Errorf("file %q needs a template: a URL to fetch, or content", rec.ID)
 		}
 		rec.Kind = kindFile
 		rec.Members, rec.MemberTags = nil, nil
@@ -219,7 +221,6 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 			// that would read as "this file has nothing in it".
 			script = rec.Content
 			rec.Content = ""
-			splitScript = true
 		default:
 			rec.QueryParams, rec.Arguments = nil, nil
 		}
@@ -227,7 +228,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		// A collection with neither members nor tags gathers nothing, and would
 		// fail only when someone fetched its URL.
 		if len(rec.Members) == 0 && len(rec.MemberTags) == 0 {
-			return fmt.Errorf("collection %q must name at least one subscription or tag", rec.ID)
+			return rec, "", fmt.Errorf("collection %q must name at least one subscription or tag", rec.ID)
 		}
 		rec.Kind = kindCollection
 		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA = "", "", "", "", ""
@@ -246,30 +247,82 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1
 	}
+	return rec, script, nil
+}
+
+// mergeRecordIntoDoc inserts or replaces one record by id.
+func mergeRecordIntoDoc(doc *subscriptionRecordsDocument, rec subscriptionRecord) {
+	for i := range doc.Records {
+		if doc.Records[i].ID == rec.ID {
+			doc.Records[i] = rec
+			return
+		}
+	}
+	doc.Records = append(doc.Records, rec)
+}
+
+// saveSubscription inserts or replaces one definition.
+func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
+	rec, script, err := normalizeSubscriptionForStore(rec)
+	if err != nil {
+		return err
+	}
 	doc, err := rt.loadSubscriptionRecords()
 	if err != nil {
 		return err
 	}
-	replaced := false
-	for i := range doc.Records {
-		if doc.Records[i].ID == rec.ID {
-			doc.Records[i] = rec
-			replaced = true
-			break
-		}
-	}
-	if !replaced {
-		doc.Records = append(doc.Records, rec)
-	}
+	mergeRecordIntoDoc(&doc, rec)
 	// The program is written first. If the record write then fails the script is
 	// an orphan under a key nothing reads, which costs a bounded amount of space;
 	// the other order would leave a saved script file whose program is missing.
-	if splitScript {
+	if script != "" {
 		if err := rt.putFileScript(rec.ID, script); err != nil {
 			return err
 		}
 	}
 	return rt.saveSubscriptionRecords(doc)
+}
+
+// saveSubscriptionBatch persists many definitions with ONE document write.
+//
+// The plugin-call budget charges every host round trip: a per-record save
+// costs a read and a write each, so importing twenty records (sixteen of them
+// script files, each with its own program key) blew the signed host_calls
+// budget and the import died mid-way with a 502. Here the document is loaded
+// once, every record is normalized and merged in memory, the program keys go
+// out together, and one document write finishes the batch.
+//
+// Records are normalized exactly once, inside. A record that fails validation
+// is reported in the skipped map and does not fail the batch; a store-level
+// failure (oversize document, KV error) fails it.
+func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (map[string]string, error) {
+	skipped := map[string]string{}
+	if len(recs) == 0 {
+		return skipped, nil
+	}
+	doc, err := rt.loadSubscriptionRecords()
+	if err != nil {
+		return skipped, err
+	}
+	type program struct{ id, body string }
+	var programs []program
+	for _, rec := range recs {
+		nrec, script, err := normalizeSubscriptionForStore(rec)
+		if err != nil {
+			skipped[rec.ID] = err.Error()
+			continue
+		}
+		mergeRecordIntoDoc(&doc, nrec)
+		if script != "" {
+			programs = append(programs, program{nrec.ID, script})
+		}
+	}
+	for _, p := range programs {
+		if err := rt.putFileScript(p.id, p.body); err != nil {
+			return skipped, err
+		}
+	}
+	return skipped, rt.saveSubscriptionRecords(doc)
 }
 
 func (rt *runtime) getSubscription(id string) (subscriptionRecord, error) {

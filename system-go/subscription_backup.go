@@ -75,13 +75,21 @@ func (rt *runtime) importBackup(data []byte) (importOutcome, error) {
 	}
 
 	out := importOutcome{Skipped: map[string]string{}}
+	// Persist everything in one document write. The plugin call budget charges
+	// per host round trip, and per-record saves priced a twenty-record import
+	// out of its own host_calls allowance. Normalisation happens once inside
+	// the batch; per-record failures come back as skips.
+	batchSkipped, err := rt.saveSubscriptionBatch(doc.Records)
+	if err != nil {
+		return importOutcome{}, err
+	}
 	for _, rec := range doc.Records {
 		if strings.TrimSpace(rec.ID) == "" {
 			out.Skipped["(unnamed)"] = "record has no id"
 			continue
 		}
-		if err := rt.saveSubscription(rec); err != nil {
-			out.Skipped[rec.ID] = err.Error()
+		if why, bad := batchSkipped[rec.ID]; bad {
+			out.Skipped[rec.ID] = why
 			continue
 		}
 		if existing[rec.ID] {

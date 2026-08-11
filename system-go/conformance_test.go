@@ -165,15 +165,22 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 512 << 10, StderrBytes: 64 << 10, HostCalls: 3},
 		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		// migrate is the only write here and it talks to a second server, so it
-		// gets the longest timeout and the largest host-call allowance.
-		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},
+		// gets the longest timeout. host_calls is 48: records persist as ONE
+		// document write, but every script file's program is its own key — the
+		// operator's real migration carried sixteen — plus three upstream
+		// fetches and the doc reads. 2026-08-11: the per-record path priced a
+		// real migration past the old allowance of 4 and died mid-flight.
+		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 48},
 		// export carries every record including inline content, so it gets the
 		// largest read budget here; import is bounded by what it accepts.
 		// publish renders and sends; its stdout is only a small result object
 		// because the rendered body goes out over the network, not back up stdout.
 		pluginID + "/subscription/publish":       {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
 		pluginID + "/subscription/export":        {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 2},
-		pluginID + "/subscription/import":        {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 3},
+		// import shares migrate's shape without the upstream fetches: one
+		// document write plus one key per script program. 48 covers a full 256
+		// record store restore where every file is a script.
+		pluginID + "/subscription/import":        {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 48},
 		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 	}
