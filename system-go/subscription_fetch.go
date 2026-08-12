@@ -25,18 +25,154 @@ type fetchResult struct {
 	Userinfo string `json:"userinfo,omitempty"`
 }
 
-// fetchSubscription retrieves the provider's current content.
+// fetchSubscription retrieves the record's current content.
 //
-// It runs under guarded egress rather than the operator-target primitive: a
-// provider URL is an ordinary public address, so it belongs behind the broker's
-// SSRF checks rather than behind the escape hatch reserved for the operator's own
-// private endpoints.
+// Every record kind resolves to its variable content here, because the core
+// stores the answer as the snapshot a share renders from: without it a share
+// of a collection or a file failed at the snapshot step before render ever
+// ran. What each kind stores:
+//
+//   - sub: the provider body, the vpn-core export, or the pasted content.
+//   - collection: a snapshotArtifacts envelope — every member's nodes after
+//     its own chain, with the name a later stage filters on. Merging members
+//     into one blob here would lose that name and the per-member chains at
+//     render would have nothing to apply to.
+//   - config file: its node source resolved the same way (chained, merged).
+//   - script file: the same envelope as its node source — scripts read
+//     per-member provenance, so the members travel whole.
+//   - plain file / anything without a node source: the stored template, which
+//     is constant until edited — edits invalidate the render cache directly.
 func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error) {
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return fetchResult{}, err
 	}
-	return rt.fetchRecordContent(rec)
+	switch recordKind(rec) {
+	case kindCollection:
+		return rt.fetchCollectionSnapshot(rec)
+	case kindFile:
+		return rt.fetchFileSnapshot(rec)
+	default:
+		return rt.fetchRecordContent(rec)
+	}
+}
+
+// snapshotArtifacts is the serialized variable content of a collection or a
+// script-sourced file. The plugin writes it in fetch and reads it in render —
+// the two never disagree, because both ends are this plugin.
+type snapshotArtifacts struct {
+	SourceID   string             `json:"source_id,omitempty"`
+	SourceName string             `json:"source_name,omitempty"`
+	SourceKind string             `json:"source_kind,omitempty"`
+	Members    []fileScriptMember `json:"members"`
+}
+
+// fetchCollectionSnapshot resolves a collection's members to their chained
+// node text. Member content moves at provider cadence; resolving it at refresh
+// time is what lets a render skip the network entirely.
+func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) (fetchResult, error) {
+	members, err := rt.collectionMembers(rec)
+	if err != nil {
+		return fetchResult{}, err
+	}
+	out, err := rt.chainMembers(rec, members)
+	if err != nil {
+		return fetchResult{}, err
+	}
+	envelope, err := json.Marshal(snapshotArtifacts{Members: out})
+	if err != nil {
+		return fetchResult{}, err
+	}
+	return fetchResult{Raw: string(envelope)}, nil
+}
+
+// chainMembers renders each member through its own chain, honoring the
+// collection's failure mode. Shared by the collection snapshot and the live
+// render paths so the two can never drift apart.
+func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, error) {
+	out := make([]fileScriptMember, 0, len(members))
+	skipped := make([]string, 0)
+	for _, member := range members {
+		raw, err := rt.renderMemberNodes(member)
+		if err != nil {
+			// Strict is the default because serving only the survivors reaches a
+			// client as "those nodes were removed", and the client acts on that
+			// by deleting them. Skipping is available because one dead provider
+			// should not take down a large collection — but it is a choice the
+			// operator makes, not one made for them.
+			if rec.FailureMode != failureModeSkip {
+				return nil, fmt.Errorf("collection %q: %w", rec.ID, err)
+			}
+			skipped = append(skipped, member.ID)
+			continue
+		}
+		if strings.TrimSpace(raw) != "" {
+			out = append(out, fileScriptMember{SubName: memberSubName(member), Raw: raw})
+		}
+	}
+	// Every member failing is not "skip the failures" — it is a collection with
+	// nothing in it, and that must never be served as a success.
+	if len(out) == 0 && len(members) > 0 {
+		return nil, fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("collection %q produced no nodes", rec.ID)
+	}
+	return out, nil
+}
+
+// fetchFileSnapshot resolves what a file's render varies by: its node source,
+// or nothing at all (the template is the answer until someone edits it).
+func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (fetchResult, error) {
+	source := strings.TrimSpace(rec.NodeSource)
+	if source == "" {
+		// A file without a node source is static until edited; the template is
+		// the honest content, and an edit changes its hash.
+		return fetchResult{Raw: rec.Content}, nil
+	}
+	sourceRecord, err := rt.getSubscription(source)
+	if err != nil {
+		return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+	}
+	if recordKind(sourceRecord) == kindFile {
+		return fetchResult{}, fmt.Errorf("file %q names another file as its node source", rec.ID)
+	}
+	if fileType(rec) == fileTypeConfig {
+		nodes, err := rt.resolveNodesFor(sourceRecord)
+		if err != nil {
+			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+		}
+		return fetchResult{Raw: nodes}, nil
+	}
+	// A script file reads per-member provenance, so its snapshot carries the
+	// members whole rather than a merged blob.
+	var members []fileScriptMember
+	if recordKind(sourceRecord) == kindCollection {
+		gathered, err := rt.collectionMembers(sourceRecord)
+		if err != nil {
+			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+		}
+		members, err = rt.chainMembers(sourceRecord, gathered)
+		if err != nil {
+			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+		}
+	} else {
+		raw, err := rt.renderMemberNodes(sourceRecord)
+		if err != nil {
+			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+		}
+		members = []fileScriptMember{{SubName: memberSubName(sourceRecord), Raw: raw}}
+	}
+	envelope, err := json.Marshal(snapshotArtifacts{
+		SourceID:   sourceRecord.ID,
+		SourceName: sourceRecord.Name,
+		SourceKind: recordKind(sourceRecord),
+		Members:    members,
+	})
+	if err != nil {
+		return fetchResult{}, err
+	}
+	return fetchResult{Raw: string(envelope)}, nil
 }
 
 // fetchRecordContent resolves where a record's current content lives and reads

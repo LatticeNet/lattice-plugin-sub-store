@@ -65,7 +65,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// target. The core's format only decides how a NODE LIST is carried, and a
 	// configuration is not a node list.
 	if recordKind(rec) == kindFile {
-		output, headers, err := rt.renderFile(rec, uaClass, query)
+		output, headers, err := rt.renderFile(rec, uaClass, query, raw)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -97,7 +97,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		output, err := rt.renderCollection(rec, uaClass)
+		output, err := rt.renderCollection(rec, uaClass, raw)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -558,7 +558,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				// record's serving target is.
 				previewRec := rec
 				previewRec.Target = ""
-				merged, err := rt.renderCollection(previewRec, "")
+				merged, err := rt.renderCollection(previewRec, "", "")
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}
