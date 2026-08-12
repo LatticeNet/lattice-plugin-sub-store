@@ -174,10 +174,10 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 20000,
+            "timeout_ms": 30000,
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
-            "host_calls": 4
+            "host_calls": 70
           }
         },
         {

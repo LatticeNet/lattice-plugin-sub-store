@@ -155,12 +155,13 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// follow-up should let this come back down.
 		pluginID + "/subscription/render": {TimeoutMS: 20_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
 		// fetch carries a provider's whole response, so its stdout budget is the
-		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
-		// third-party provider is slower than local conversion. host_calls is 4:
-		// read the record, one network read, then the refresh bookkeeping is its
-		// own document read and write. (The old 2 let the read happen and killed
-		// the bookkeeping, so every refresh 502'd after succeeding.)
-		pluginID + "/subscription/fetch": {TimeoutMS: 20_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 4},
+		// 8 MiB the fetch path itself caps at. host_calls is 70: every record kind
+		// resolves its variable content at refresh — a script file's read (2), the
+		// source record and member list (2), one provider fetch per collection
+		// member (maxCollectionMembers is 64), and the refresh bookkeeping's own
+		// read and write (2). The timeout is the host maximum: 64 sequential
+		// provider fetches cannot promise less.
+		pluginID + "/subscription/fetch": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 70},
 		// operators returns a fixed catalog and touches nothing, so it gets the
 		// smallest budget in the file and zero host calls.
 		pluginID + "/subscription/operators": {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},

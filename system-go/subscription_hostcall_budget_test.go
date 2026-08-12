@@ -128,6 +128,12 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// is its own document read and write.
 		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 4},
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 4},
+		// A collection's refresh resolves every member: record, member list, one
+		// fetch per remote member, bookkeeping.
+		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 6},
+		// A script file's refresh resolves its node source the same way, plus the
+		// program key on the initial read.
+		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 8},
 		// Renders. A plain local sub is one read; the engine runs in-process.
 		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 1},
 		// A collection render reads the record, lists its members, then pays one
@@ -137,6 +143,17 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// remote subs. Document + program, the source record, the collection's
 		// member list, then one provider fetch per member.
 		{name: "render a script file over a remote collection", method: "render", payload: map[string]any{"subscription_id": "scripty", "format": "plain"}, want: 6},
+		// With the refresh path's snapshot in hand, the same renders pay no
+		// network at all: the document read (plus the program key) is the whole
+		// cost. This pair is the serve path's steady state.
+		{name: "render a script file from its snapshot", method: "render", payload: map[string]any{
+			"subscription_id": "scripty", "format": "plain",
+			"raw": `{"source_id":"coll","source_name":"coll","source_kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
+		}, want: 2},
+		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
+			"subscription_id": "coll", "format": "plain",
+			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
+		}, want: 1},
 		{name: "preview a script file over a remote collection", method: "preview", payload: map[string]any{"subscription_id": "scripty"}, want: 6},
 		// A combination preview renders its members: record, member list, one
 		// fetch per remote member.
