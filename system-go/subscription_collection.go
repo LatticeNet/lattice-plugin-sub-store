@@ -20,6 +20,12 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 			return "", fmt.Errorf("subscription %q: vpn-core returned no nodes", rec.ID)
 		}
 		return strings.Join(links, "\n"), nil
+	case subscriptionSourceVPNCoreGraph:
+		composed, err := rt.fetchVPNCoreGraph(rec)
+		if err != nil {
+			return "", err
+		}
+		return composed.Raw, nil
 	case subscriptionSourceLocal:
 		// Explicitly manual: the pasted content is the answer even if a stale
 		// URL is still sitting in the record from an earlier edit.

@@ -53,6 +53,13 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		}
 		return fetchResult{Raw: strings.Join(links, "\n")}, nil
 	}
+	if rec.Source == subscriptionSourceVPNCoreGraph {
+		composed, err := rt.fetchVPNCoreGraph(rec)
+		if err != nil {
+			return fetchResult{}, err
+		}
+		return fetchResult{Raw: composed.Raw}, nil
+	}
 
 	// A manual subscription has nothing to fetch; its content is what was
 	// pasted. Returning it here means "refresh" is harmless rather than an

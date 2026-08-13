@@ -28,6 +28,10 @@ const (
 	// one re-reads the export, so nodes added or removed in vpn-core reach
 	// clients without anyone re-pasting anything.
 	subscriptionSourceVPNCore = "vpn-core"
+	// subscriptionSourceVPNCoreGraph composes one identity through ordered,
+	// committed line-chain roots. It is deliberately distinct from vpn-core:
+	// the legacy source exports every eligible node and remains compatible.
+	subscriptionSourceVPNCoreGraph = "vpn-core-graph"
 	// The other two sources, named explicitly so a record says where its content
 	// comes from instead of leaving it to be inferred from which field happens
 	// to be populated. A record written before these existed has an empty
@@ -87,7 +91,10 @@ type subscriptionRecord struct {
 	// VPNIdentity narrows a vpn-core export to one identity. Empty means every
 	// eligible identity, which is what the export returns by default.
 	VPNIdentity string `json:"vpn_identity,omitempty"`
-	UA          string `json:"ua,omitempty"`
+	// EntryRoots is the authoritative order for a graph subscription. It is
+	// accepted only for vpn-core-graph records; there is no free-text fallback.
+	EntryRoots []string `json:"entry_roots,omitempty"`
+	UA         string   `json:"ua,omitempty"`
 	// Members and MemberTags are the collection's inputs: explicit sub ids, plus
 	// every sub carrying one of these tags. Tags exist so a collection can be
 	// "everything tagged home" and pick up a new sub without being edited.
@@ -218,6 +225,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		}
 		rec.Kind = kindCollection
 		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA = "", "", "", "", ""
+		rec.EntryRoots = nil
 		rec.FileType, rec.NodeSource, rec.Download = "", "", false
 	default:
 		// A sub with no source is allowed to exist. Requiring one here would
@@ -229,6 +237,14 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		rec.Kind = ""
 		rec.Members, rec.MemberTags = nil, nil
 		rec.FileType, rec.NodeSource, rec.Download = "", "", false
+		if rec.Source == subscriptionSourceVPNCoreGraph {
+			if err := validateVPNCoreGraphConfig(rec.VPNIdentity, rec.EntryRoots); err != nil {
+				return fmt.Errorf("subscription %q: %w", rec.ID, err)
+			}
+			rec.URL, rec.Content, rec.UA = "", "", ""
+		} else {
+			rec.EntryRoots = nil
+		}
 	}
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1

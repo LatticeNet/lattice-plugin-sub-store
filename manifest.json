@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.11.0-alpha.1",
+  "version": "0.11.0-alpha.2",
   "publisher": "latticenet",
-  "signature_ed25519": "OEep4edUatpPUXezyyMoQXi63i5aA7WGV40whYFuzRBS7XKKYV4DKeuMDEubiiOmvLedNd5AwexTx/JPtXfoBw==",
+  "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "950e39fc8593760824963434a3ea75b4db1de6601e1f8f476160005447982455"
+    "digest_sha256": "3c2b236ae5eeb11111866293353814eda9c24593f0871dc71383984f09a30c6c"
   },
   "runtime": {
     "protocol": "stdio-json-v1",
@@ -31,7 +31,7 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.2-alpha.2",
+    "server": "\u003e=0.2.2-alpha.20",
     "dashboard_host": "\u003e=1",
     "runtime_protocol": "\u003e=1"
   },
@@ -42,9 +42,21 @@
         "methods": [
           "export"
         ]
+      },
+      {
+        "service": "latticenet.vpn-core/subscription-sources",
+        "methods": [
+          "compose"
+        ]
       }
     ]
   },
+  "dependencies": [
+    {
+      "id": "latticenet.vpn-core",
+      "version": "\u003e=0.8.0-alpha.10"
+    }
+  ],
   "ui": {
     "nav": [
       {
