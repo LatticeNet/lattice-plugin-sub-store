@@ -21,8 +21,14 @@ const maxProviderResponseBytes = 8 << 20
 const defaultProviderUA = "Lattice/1.0"
 
 type fetchResult struct {
-	Raw      string `json:"raw"`
-	Userinfo string `json:"userinfo,omitempty"`
+	Raw            string          `json:"raw"`
+	Userinfo       string          `json:"userinfo,omitempty"`
+	SourceVersion  string          `json:"source_version,omitempty"`
+	SourceManifest json.RawMessage `json:"source_manifest,omitempty"`
+}
+
+func isVPNCoreSource(source string) bool {
+	return source == subscriptionSourceVPNCore || source == subscriptionSourceVPNCoreGraph
 }
 
 // fetchSubscription retrieves the provider's current content.
@@ -58,7 +64,11 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		if err != nil {
 			return fetchResult{}, err
 		}
-		return fetchResult{Raw: composed.Raw}, nil
+		return fetchResult{
+			Raw:            composed.Raw,
+			SourceVersion:  composed.SourceVersion,
+			SourceManifest: append(json.RawMessage(nil), composed.SourceManifest...),
+		}, nil
 	}
 
 	// A manual subscription has nothing to fetch; its content is what was

@@ -166,7 +166,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 			if err != nil {
 				// A collection's own failure mode decides this: strict refuses so
 				// a client never silently loses nodes, skip-failed keeps serving.
-				if sourceRecord.FailureMode != failureModeSkip {
+				if !collectionMemberFailureIsSkippable(sourceRecord, member) {
 					return nil, fmt.Errorf("file %q: %w", rec.ID, err)
 				}
 				continue

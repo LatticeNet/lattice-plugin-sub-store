@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
+	"net/url"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/LatticeNet/lattice-sdk/model"
@@ -98,7 +101,7 @@ func validateVPNCoreGraphResponse(response vpnCoreGraphComposeResponse, request 
 	}
 	total := 0
 	for i, entry := range response.Entries {
-		if entry == "" || len(entry) > model.MaxSubscriptionURIBytes || manifest.Entries[i].Root != request.EntryRoots[i] {
+		if len(entry) > model.MaxSubscriptionURIBytes || manifest.Entries[i].Root != request.EntryRoots[i] || !canonicalVPNCoreGraphEntry(entry, manifest.Entries[i].Endpoint) {
 			return errors.New("compose response entry mismatch")
 		}
 		total += len(entry)
@@ -113,6 +116,42 @@ func validateVPNCoreGraphResponse(response vpnCoreGraphComposeResponse, request 
 		return errors.New("compose response raw does not match entries")
 	}
 	return nil
+}
+
+func canonicalVPNCoreGraphEntry(entry string, endpoint model.SubscriptionSourceManifestEndpoint) bool {
+	if entry == "" || strings.ContainsAny(entry, "\r\n") {
+		return false
+	}
+	parsed, err := url.Parse(entry)
+	if err != nil || parsed.Scheme != "vless" || parsed.User == nil || parsed.User.Username() == "" || parsed.User.Username() != strings.ToLower(parsed.User.Username()) || !vpnCoreGraphUUIDv4.MatchString(parsed.User.Username()) || parsed.User.String() != parsed.User.Username() || parsed.Hostname() != endpoint.Host {
+		return false
+	}
+	port, err := strconv.Atoi(parsed.Port())
+	if err != nil || port != endpoint.Port {
+		return false
+	}
+	query, err := url.ParseQuery(parsed.RawQuery)
+	if err != nil {
+		return false
+	}
+	expected := url.Values{
+		"type":       []string{"tcp"},
+		"encryption": []string{"none"},
+		"security":   []string{"reality"},
+		"flow":       []string{endpoint.Flow},
+		"pbk":        []string{endpoint.PublicKey},
+		"sid":        []string{endpoint.ShortID},
+		"sni":        []string{endpoint.SNI},
+		"fp":         []string{endpoint.Fingerprint},
+	}
+	if len(endpoint.ALPN) > 0 {
+		expected.Set("alpn", strings.Join(endpoint.ALPN, ","))
+	}
+	if !reflect.DeepEqual(query, expected) || parsed.RawQuery != expected.Encode() {
+		return false
+	}
+	expectedURI := "vless://" + parsed.User.Username() + "@" + net.JoinHostPort(endpoint.Host, strconv.Itoa(endpoint.Port)) + "?" + expected.Encode() + "#" + url.PathEscape(endpoint.Label)
+	return entry == expectedURI
 }
 
 func decodeStrictVPNCoreGraphJSON(raw []byte, out any) error {

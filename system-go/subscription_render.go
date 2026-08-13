@@ -121,7 +121,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// — before the core holds a snapshot — there is nothing to fall back to.
 	// Reading the export here means such a subscription serves correctly the
 	// first time it is fetched rather than failing until something warms it.
-	if strings.TrimSpace(source) == "" && rec.Source == subscriptionSourceVPNCore {
+	if strings.TrimSpace(source) == "" && isVPNCoreSource(rec.Source) {
 		fetched, err := rt.fetchSubscription(subscriptionID)
 		if err != nil {
 			return renderResult{}, err
@@ -493,7 +493,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				// Same reason as render: a vpn-core record has no inline content,
 				// and a preview that showed nothing would look like a broken
 				// subscription rather than one sourced from somewhere else.
-				if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
+				if strings.TrimSpace(raw) == "" && isVPNCoreSource(rec.Source) {
 					fetched, err := rt.fetchSubscription(req.SubscriptionID)
 					if err != nil {
 						return latticeplugin.ErrorResponse(err)

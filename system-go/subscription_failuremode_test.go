@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -30,6 +31,61 @@ func TestCollectionStrictModeFailsWhenAMemberFails(t *testing.T) {
 
 	if _, err := rt.renderSubscription("c", "plain", "", "", nil); err == nil {
 		t.Fatal("strict mode served a collection with a failed member")
+	}
+}
+
+func TestCollectionNeverSkipsFailedGraphMembers(t *testing.T) {
+	failure := json.RawMessage(`{"schema_version":1,"ok":false,"error":{"code":"unavailable","message":"unavailable"}}`)
+	for name, setup := range map[string]func(*runtime, *vpnCoreGraphHost){
+		"mixed legacy and graph": func(rt *runtime, host *vpnCoreGraphHost) {
+			host.legacyLinks = []string{realNodeA}
+			if err := rt.saveSubscription(subscriptionRecord{ID: "legacy", Source: subscriptionSourceVPNCore}); err != nil {
+				t.Fatal(err)
+			}
+			if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}}); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"two graph members": func(rt *runtime, host *vpnCoreGraphHost) {
+			host.graphResponses = []json.RawMessage{canonicalGraphResponse(t, []string{graphRootA}), failure}
+			for _, pair := range []struct{ id, root string }{{"graph-a", graphRootA}, {"graph-b", graphRootB}} {
+				if err := rt.saveSubscription(subscriptionRecord{ID: pair.id, Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{pair.root}}); err != nil {
+					t.Fatal(err)
+				}
+			}
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			host := &vpnCoreGraphHost{kvHostCaller: newKVHostCaller(), response: failure}
+			rt := &runtime{host: host, engine: testEngineWithHeadroom()}
+			setup(rt, host)
+			members := []string{"legacy", "graph"}
+			if name == "two graph members" {
+				members = []string{"graph-a", "graph-b"}
+			}
+			if err := rt.saveSubscription(subscriptionRecord{ID: "collection", Kind: kindCollection, Members: members, Target: "URI", FailureMode: failureModeSkip}); err != nil {
+				t.Fatal(err)
+			}
+			if output, err := rt.renderSubscription("collection", "plain", "", "", nil); err == nil || output.Content != "" {
+				t.Fatalf("failed graph member produced partial collection: output=%+v err=%v", output, err)
+			}
+		})
+	}
+}
+
+func TestScriptArtifactCollectionNeverSkipsFailedGraphMembers(t *testing.T) {
+	failure := json.RawMessage(`{"schema_version":1,"ok":false,"error":{"code":"unavailable","message":"unavailable"}}`)
+	host := &vpnCoreGraphHost{kvHostCaller: newKVHostCaller(), response: failure}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
+	seedSub(t, rt, "good", nil, realNodeA)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := rt.saveSubscription(subscriptionRecord{ID: "collection", Kind: kindCollection, Members: []string{"good", "graph"}, FailureMode: failureModeSkip}); err != nil {
+		t.Fatal(err)
+	}
+	if artifacts, err := rt.resolveScriptArtifacts(subscriptionRecord{ID: "file", Kind: kindFile, NodeSource: "collection"}); err == nil || len(artifacts) != 0 {
+		t.Fatalf("failed graph member produced partial script artifacts: artifacts=%+v err=%v", artifacts, err)
 	}
 }
 

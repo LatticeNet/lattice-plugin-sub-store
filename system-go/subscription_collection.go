@@ -21,11 +21,11 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 		}
 		return strings.Join(links, "\n"), nil
 	case subscriptionSourceVPNCoreGraph:
-		composed, err := rt.fetchVPNCoreGraph(rec)
+		fetched, err := rt.fetchSubscription(rec.ID)
 		if err != nil {
 			return "", err
 		}
-		return composed.Raw, nil
+		return fetched.Raw, nil
 	case subscriptionSourceLocal:
 		// Explicitly manual: the pasted content is the answer even if a stale
 		// URL is still sitting in the record from an earlier edit.
@@ -90,6 +90,10 @@ func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) 
 	return converted.Output, nil
 }
 
+func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) bool {
+	return collection.FailureMode == failureModeSkip && member.Source != subscriptionSourceVPNCoreGraph
+}
+
 // renderCollection merges every member's processed nodes, then runs the
 // collection's own chain over the whole set.
 func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass string) (string, error) {
@@ -108,7 +112,7 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass string) (str
 			// that by deleting them. Skipping is available because one dead
 			// provider should not take down a large collection — but it is a
 			// choice the operator makes, not one made for them.
-			if rec.FailureMode != failureModeSkip {
+			if !collectionMemberFailureIsSkippable(rec, member) {
 				return "", fmt.Errorf("collection %q: %w", rec.ID, err)
 			}
 			skipped = append(skipped, member.ID)
