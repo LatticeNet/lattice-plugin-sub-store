@@ -493,7 +493,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				// Same reason as render: a vpn-core record has no inline content,
 				// and a preview that showed nothing would look like a broken
 				// subscription rather than one sourced from somewhere else.
-				if strings.TrimSpace(raw) == "" && isVPNCoreSource(rec.Source) {
+				if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
 					fetched, err := rt.fetchSubscription(req.SubscriptionID)
 					if err != nil {
 						return latticeplugin.ErrorResponse(err)
@@ -506,6 +506,16 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				if strings.TrimSpace(target) == "" {
 					target = rec.Target
 				}
+			}
+			// A stored graph source is authoritative. Caller-supplied preview bytes
+			// must never replace the exact composition bound to its identity and
+			// ordered roots.
+			if rec.Source == subscriptionSourceVPNCoreGraph {
+				fetched, err := rt.fetchSubscription(req.SubscriptionID)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				raw = fetched.Raw
 			}
 		}
 		out, err := rt.previewSubscription(raw, operators, target)

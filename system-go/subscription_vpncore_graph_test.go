@@ -193,7 +193,8 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 	if len(host.published) != 1 || host.published[0] != rendered.Content {
 		t.Fatalf("published bytes = %q, want exact cold-render bytes %q", host.published, rendered.Content)
 	}
-	if strings.Index(rendered.Content, graphRootB) < 0 || strings.Index(rendered.Content, graphRootB) >= strings.Index(rendered.Content, graphRootA) {
+	rootBIndex, rootAIndex := strings.Index(rendered.Content, graphRootB), strings.Index(rendered.Content, graphRootA)
+	if !strings.Contains(rendered.Content, graphRootB) || rootBIndex >= rootAIndex {
 		t.Fatalf("rendered root order changed: %q", rendered.Content)
 	}
 	if len(host.calls) != 3 {
@@ -204,6 +205,26 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 		if !reflect.DeepEqual(request["entry_roots"], []any{graphRootB, graphRootA}) {
 			t.Fatalf("compose root order = %+v", request["entry_roots"])
 		}
+	}
+}
+
+func TestVPNCoreGraphPreviewRejectsCallerRawAsAuthority(t *testing.T) {
+	rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponse(t, []string{graphRootA}))
+	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}, Target: "URI"}); err != nil {
+		t.Fatal(err)
+	}
+	response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]string{
+		"subscription_id": "graph", "raw": "vless://99999999-9999-4999-8999-999999999999@hostile.example:443#hostile",
+	})})
+	if !response.OK || len(host.calls) != 1 {
+		t.Fatalf("authoritative preview = %+v calls=%d", response, len(host.calls))
+	}
+	var preview previewResult
+	if err := json.Unmarshal(response.Result, &preview); err != nil {
+		t.Fatal(err)
+	}
+	if len(preview.Nodes) != 1 || preview.Nodes[0].Name != "entry-1" {
+		t.Fatalf("preview used caller bytes: %+v", preview.Nodes)
 	}
 }
 
