@@ -348,6 +348,26 @@ func TestVPNCoreGraphRejectsEntriesOutsideCanonicalManifestBinding(t *testing.T)
 	}
 }
 
+func TestVPNCoreGraphAcceptsCanonicalNonV4CredentialUUID(t *testing.T) {
+	response := canonicalGraphResponse(t, []string{graphRootA})
+	nonV4 := "aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa"
+	var decoded vpnCoreGraphComposeResponse
+	if err := json.Unmarshal(response, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	decoded.Entries[0] = strings.Replace(decoded.Entries[0], graphRootA+"@entry.example.com", nonV4+"@entry.example.com", 1)
+	decoded.Raw = decoded.Entries[0]
+	response, _ = json.Marshal(decoded)
+	rt, _ := newVPNCoreGraphRuntime(t, response)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}}); err != nil {
+		t.Fatal(err)
+	}
+	result, err := rt.fetchSubscription("graph")
+	if err != nil || !strings.Contains(result.Raw, nonV4) {
+		t.Fatalf("canonical non-v4 credential rejected: result=%+v err=%v", result, err)
+	}
+}
+
 func TestVPNCoreGraphRejectsManifestIdentityAndRootOrderMismatch(t *testing.T) {
 	for name, responseRoots := range map[string][]string{
 		"root order": {graphRootA, graphRootB},

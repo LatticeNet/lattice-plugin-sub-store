@@ -20,6 +20,7 @@ import (
 const vpnCoreGraphService = "latticenet.vpn-core/subscription-sources"
 
 var vpnCoreGraphUUIDv4 = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+var vpnCoreGraphCredentialUUID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 type vpnCoreGraphComposeRequest struct {
 	SchemaVersion int      `json:"schema_version"`
@@ -46,7 +47,7 @@ func validateVPNCoreGraphConfig(identityID string, roots []string) error {
 	if identityID == "" || identityID != strings.TrimSpace(identityID) {
 		return errors.New("vpn-core-graph requires an enabled identity")
 	}
-	if roots == nil || len(roots) == 0 || len(roots) > model.MaxSubscriptionSourceRoots {
+	if len(roots) == 0 || len(roots) > model.MaxSubscriptionSourceRoots {
 		return errors.New("vpn-core-graph requires bounded ordered entry roots")
 	}
 	seen := make(map[string]struct{}, len(roots))
@@ -123,7 +124,7 @@ func canonicalVPNCoreGraphEntry(entry string, endpoint model.SubscriptionSourceM
 		return false
 	}
 	parsed, err := url.Parse(entry)
-	if err != nil || parsed.Scheme != "vless" || parsed.User == nil || parsed.User.Username() == "" || parsed.User.Username() != strings.ToLower(parsed.User.Username()) || !vpnCoreGraphUUIDv4.MatchString(parsed.User.Username()) || parsed.User.String() != parsed.User.Username() || parsed.Hostname() != endpoint.Host {
+	if err != nil || parsed.Scheme != "vless" || parsed.User == nil || parsed.User.Username() == "" || parsed.User.Username() != strings.ToLower(parsed.User.Username()) || !vpnCoreGraphCredentialUUID.MatchString(parsed.User.Username()) || parsed.User.String() != parsed.User.Username() || parsed.Hostname() != endpoint.Host {
 		return false
 	}
 	port, err := strconv.Atoi(parsed.Port())
