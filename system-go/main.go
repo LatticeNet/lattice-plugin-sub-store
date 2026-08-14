@@ -7,11 +7,11 @@
 // subscriptions itself, an outbound push was the opposite of the point and sat
 // in the UI next to a migration that pulled the other way.
 //
-// It implements the Lattice system-plugin stdio contract:
-//   - runner -> plugin stdin: {"action":"call","payload":{...}} then EOF
-//   - plugin -> runner: {"host_call":{...}} for brokered rpc/http/kv calls
-//   - runner -> plugin fd 3: {"host_response":{...}}
-//   - plugin -> runner: {"ok":true,"result":...}
+// It implements the persistent Lattice stdio-json-v2 lifecycle: one runtime
+// advertises its generation, then serves correlated invocations and host calls
+// over the framed stdout protocol. Host responses are invocation-scoped through
+// the configured response channel; runtime-ready and invoke-ready delimit the
+// lifecycle instead of the legacy one-shot stdin/EOF exchange.
 package main
 
 import (

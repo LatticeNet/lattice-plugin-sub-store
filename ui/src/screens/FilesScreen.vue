@@ -65,7 +65,15 @@ const isRemote = computed(() => draft.value.source === SOURCE_REMOTE);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
 const canSave = computed(() => !draftError.value && !subs.saving.value);
 const canPreviewNow = computed(
-  () => subs.canPreview.value && !subs.previewing.value && !draftError.value && !!editingId.value,
+  () =>
+    subs.canPreview.value &&
+    !subs.previewing.value &&
+    !draftError.value &&
+    !!editingId.value &&
+    draft.value.source === SOURCE_LOCAL &&
+    !isScript.value &&
+    !draft.value.nodeSource.trim() &&
+    draft.value.process.length === 0,
 );
 
 const files = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
@@ -441,7 +449,7 @@ watch(host.init, (value) => {
             :disabled="!canPreviewNow"
             :title="
               editingId
-                ? draftError || 'Render this file and show what a client would receive'
+                ? draftError || (!canPreviewNow ? 'Preview requires a self-contained local config or plain-text file with no node source or operations' : 'Render this file and show what a client would receive')
                 : 'Save it once, then preview'
             "
             @click="subs.runPreview(draft)"
