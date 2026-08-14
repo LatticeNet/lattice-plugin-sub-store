@@ -200,28 +200,41 @@ func TestPreviewOfSelfContainedFileReturnsDocument(t *testing.T) {
 }
 
 func TestPreviewOfRemoteFileFailsBeforeHostFetch(t *testing.T) {
-	rt, host := newFetchRuntime(t)
-	host.body = []byte("remote-secret-canary")
-	if err := rt.saveSubscription(subscriptionRecord{
-		ID: "remote-file", Kind: kindFile, Name: "Remote", Source: subscriptionSourceRemote,
-		URL: "https://provider.invalid/file", Content: "local fallback",
-	}); err != nil {
-		t.Fatalf("save: %v", err)
+	cases := []struct {
+		name   string
+		record subscriptionRecord
+		want   string
+	}{
+		{name: "remote", record: subscriptionRecord{Source: subscriptionSourceRemote, URL: "https://provider.invalid/file"}, want: "file preview requires a self-contained local document"},
+		{name: "url-only", record: subscriptionRecord{Source: subscriptionSourceLocal, URL: "https://provider.invalid/file"}, want: "file preview requires a self-contained local document"},
+		{name: "script", record: subscriptionRecord{FileType: fileTypeScript, Content: `return "secret";`}, want: "file preview requires a self-contained local document"},
+		{name: "process", record: subscriptionRecord{Process: []json.RawMessage{json.RawMessage(`{"type":"Regex Filter","args":{}}`)}, Content: "rules:\n  - MATCH,DIRECT"}, want: "file preview requires a self-contained local document"},
+		{name: "legacy-process", record: subscriptionRecord{Operators: []json.RawMessage{json.RawMessage(`{"type":"Regex Filter","args":{}}`)}, Content: "rules:\n  - MATCH,DIRECT"}, want: "file preview requires a self-contained local document"},
 	}
-	host.calls = 0
-	res := callSubscription(t, rt, "preview", map[string]any{"subscription_id": "remote-file"})
-	if res.OK || res.Error != "file preview requires a self-contained local document" {
-		t.Fatalf("remote preview did not fail closed: %+v", res)
-	}
-	if host.calls != 0 {
-		t.Fatalf("remote preview made %d host calls", host.calls)
-	}
-	encoded, err := json.Marshal(res)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.Contains(string(encoded), "remote-secret-canary") {
-		t.Fatal("remote preview leaked fetched content")
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			rt, host := newFetchRuntime(t)
+			host.body = []byte("remote-secret-canary")
+			test.record.ID, test.record.Kind, test.record.Name = "file-"+test.name, kindFile, test.name
+			if err := rt.saveSubscription(test.record); err != nil {
+				t.Fatalf("save: %v", err)
+			}
+			host.calls = 0
+			res := callSubscription(t, rt, "preview", map[string]any{"subscription_id": test.record.ID})
+			if res.OK || res.Error != test.want {
+				t.Fatalf("preview did not fail closed: %+v", res)
+			}
+			if host.calls != 0 {
+				t.Fatalf("preview made %d provider HTTP calls", host.calls)
+			}
+			encoded, err := json.Marshal(res)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(string(encoded), "remote-secret-canary") {
+				t.Fatal("preview leaked fetched content")
+			}
+		})
 	}
 }
 
