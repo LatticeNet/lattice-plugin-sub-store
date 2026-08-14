@@ -197,6 +197,8 @@ export interface SubscriptionRecord {
   arguments?: Record<string, string>;
   /** The ordered operator chain. Entries may be disabled without deletion. */
   process?: unknown[];
+  /** Legacy operator-chain spelling retained for migrated records. */
+  operators?: unknown[];
   /** Set by migration only. The backend refuses to take this from a caller. */
   origin?: { source: string; kind: string; raw?: unknown };
 }

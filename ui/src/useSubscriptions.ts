@@ -216,7 +216,11 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     download: Boolean(record.download),
     queryParams: Array.isArray(record.query_params) ? [...record.query_params] : [],
     argumentsText: argumentsToText(record.arguments),
-    process: Array.isArray(record.process) ? [...record.process] : [],
+    process: Array.isArray(record.process)
+      ? [...record.process]
+      : Array.isArray(record.operators)
+        ? [...record.operators]
+        : [],
   };
 }
 

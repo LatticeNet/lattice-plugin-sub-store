@@ -71,6 +71,7 @@ const canPreviewNow = computed(
     !draftError.value &&
     !!editingId.value &&
     draft.value.source === SOURCE_LOCAL &&
+    !draft.value.url.trim() &&
     !isScript.value &&
     !draft.value.nodeSource.trim() &&
     draft.value.process.length === 0,
