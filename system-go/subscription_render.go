@@ -63,6 +63,26 @@ func subscriptionTarget(rec subscriptionRecord, uaClass string) string {
 	return "URI"
 }
 
+// storedPreviewOperators validates the whole stored chain before a graph host
+// call, then returns only the enabled node-stage operators a preview can run.
+// Response transformers remain part of the canonical process, but they operate
+// on a rendered document rather than the node list a preview summarizes.
+func storedPreviewOperators(rec subscriptionRecord) ([]json.RawMessage, error) {
+	steps := processSteps(rec)
+	if err := validateProcess(steps); err != nil {
+		return nil, err
+	}
+	out := make([]json.RawMessage, 0, len(steps))
+	for _, raw := range steps {
+		meta, _ := decodeStep(raw)
+		if meta.Disabled || responseOperators[meta.Type] {
+			continue
+		}
+		out = append(out, raw)
+	}
+	return out, nil
+}
+
 // renderSubscription produces the body the core will serve.
 //
 // It refuses to return empty content. The core refuses an empty body too, and
@@ -573,7 +593,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				}
 				selectedRecord = &rec
 				if operators == nil {
-					storedOperators, err := enabledOperators(rec)
+					storedOperators, err := storedPreviewOperators(rec)
 					if err != nil {
 						return latticeplugin.ErrorResponse(err)
 					}
@@ -611,7 +631,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return previewFileResponse(rt, rec)
 			}
 			if operators == nil {
-				storedOperators, err := enabledOperators(rec)
+				storedOperators, err := storedPreviewOperators(rec)
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}

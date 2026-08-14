@@ -16,7 +16,7 @@
   "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "562d3975544463a6dc0ec404f56c612528ec1a896dd93fd26a4c8518d276d433"
+    "digest_sha256": "37dd5530ba3bb945b30da1cfa488964c8f1eb1f7abaff58d1a124778ea436c76"
   },
   "runtime": {
     "protocol": "stdio-json-v2",

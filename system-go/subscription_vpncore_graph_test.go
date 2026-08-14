@@ -810,6 +810,8 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 		"disabled": true,
 		"args":     map[string]any{"regex": []string{"does-not-match"}, "keep": true},
 	})
+	responseStage := responseTransformerStep(t,
+		`function transformFunction(res) { res.body = res.body + "\n# stored-preview-stage-proof"; return res; }`)
 	legacy := step(t, map[string]any{
 		"type": "Regex Filter",
 		"args": map[string]any{"regex": []string{"entry-2"}, "keep": true},
@@ -817,7 +819,7 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 	record := subscriptionRecord{
 		ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: roots,
 		GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI",
-		Process: []json.RawMessage{enabled, disabled}, Operators: []json.RawMessage{legacy},
+		Process: []json.RawMessage{enabled, responseStage, disabled}, Operators: []json.RawMessage{legacy},
 	}
 	if err := rt.saveSubscription(record); err != nil {
 		t.Fatal(err)
@@ -828,6 +830,16 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 	}
 	if !reflect.DeepEqual(stored.Process, record.Process) || len(stored.Operators) != 0 {
 		t.Fatalf("stored process was not canonical: process=%s operators=%s", stored.Process, stored.Operators)
+	}
+	rendered, err := rt.renderSubscription("graph", "plain", "", "", nil)
+	if err != nil {
+		t.Fatalf("stored process render failed: %v", err)
+	}
+	if !strings.Contains(rendered.Content, "entry-1") || strings.Contains(rendered.Content, "entry-2") {
+		t.Fatalf("stored process node stage did not filter render: %q", rendered.Content)
+	}
+	if !strings.Contains(rendered.Content, "# stored-preview-stage-proof") {
+		t.Fatalf("stored process response stage did not transform render: %q", rendered.Content)
 	}
 
 	selection := vpnCoreGraphSelection{
@@ -866,46 +878,121 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 			}
 		})
 	}
-	if len(host.calls) != 3 || host.calls[0]["method"] != "compose" || host.calls[1]["method"] != "graph_options" || host.calls[2]["method"] != "compose" {
+	if len(host.calls) != 4 || host.calls[0]["method"] != "compose" || host.calls[1]["method"] != "compose" || host.calls[2]["method"] != "graph_options" || host.calls[3]["method"] != "compose" {
 		t.Fatalf("stored preview host calls=%+v", host.calls)
 	}
 }
 
 func TestVPNCoreGraphStoredPreviewPropagatesCanonicalProcessErrors(t *testing.T) {
+	for _, invalid := range []struct {
+		name string
+		step json.RawMessage
+	}{
+		{name: "missing type", step: json.RawMessage(`{}`)},
+		{name: "unknown type", step: json.RawMessage(`{"type":"Definitely Not An Operator"}`)},
+		{name: "disabled missing type", step: json.RawMessage(`{"disabled":true}`)},
+		{name: "disabled unknown type", step: json.RawMessage(`{"type":"Definitely Not An Operator","disabled":true}`)},
+	} {
+		t.Run(invalid.name, func(t *testing.T) {
+			record := subscriptionRecord{
+				ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: []string{graphRootA},
+				GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Process: []json.RawMessage{invalid.step},
+			}
+			selection := vpnCoreGraphSelection{
+				SchemaVersion: 1, OptionsVersion: record.GraphOptionsVersion, IdentityID: record.VPNIdentity, EntryRoots: record.EntryRoots,
+			}
+			for _, test := range []struct {
+				name    string
+				payload map[string]any
+			}{
+				{name: "subscription id", payload: map[string]any{"subscription_id": "graph"}},
+				{name: "selected record", payload: map[string]any{"subscription_id": "graph", "graph_selection": selection}},
+			} {
+				t.Run(test.name, func(t *testing.T) {
+					rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponseForIdentity(t, record.VPNIdentity, record.EntryRoots))
+					host.optionsResponse = canonicalGraphOptionsResponse(t)
+					if err := rt.saveSubscriptionRecords(subscriptionRecordsDocument{Version: 1, Records: []subscriptionRecord{record}}); err != nil {
+						t.Fatal(err)
+					}
+					response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(test.payload)})
+					if response.OK || !strings.Contains(response.Error, "process step 1") || len(host.calls) != 0 {
+						t.Fatalf("stored process error was not bounded before composition: response=%+v calls=%+v", response, host.calls)
+					}
+					encoded, err := json.Marshal(response)
+					if err != nil {
+						t.Fatal(err)
+					}
+					for _, canary := range []string{graphCredentialA, "vless://", "PRIVATE KEY"} {
+						if strings.Contains(string(encoded), canary) {
+							t.Fatalf("stored process error leaked %q: %s", canary, encoded)
+						}
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestVPNCoreGraphPreviewCallerOperatorsRemainAuthoritative(t *testing.T) {
+	roots := []string{graphRootA, graphRootB}
+	stored := step(t, map[string]any{
+		"type": "Regex Filter",
+		"args": map[string]any{"regex": []string{"entry-1"}, "keep": true},
+	})
+	caller := step(t, map[string]any{
+		"type": "Regex Filter",
+		"args": map[string]any{"regex": []string{"entry-2"}, "keep": true},
+	})
 	record := subscriptionRecord{
-		ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: []string{graphRootA},
-		GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Process: []json.RawMessage{json.RawMessage(`42`)},
+		ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: roots,
+		GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI", Process: []json.RawMessage{stored},
 	}
 	selection := vpnCoreGraphSelection{
-		SchemaVersion: 1, OptionsVersion: record.GraphOptionsVersion, IdentityID: record.VPNIdentity, EntryRoots: record.EntryRoots,
+		SchemaVersion: 1, OptionsVersion: record.GraphOptionsVersion, IdentityID: record.VPNIdentity, EntryRoots: roots,
 	}
-	for _, test := range []struct {
+	for _, path := range []struct {
 		name    string
 		payload map[string]any
 	}{
 		{name: "subscription id", payload: map[string]any{"subscription_id": "graph"}},
 		{name: "selected record", payload: map[string]any{"subscription_id": "graph", "graph_selection": selection}},
 	} {
-		t.Run(test.name, func(t *testing.T) {
-			rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponseForIdentity(t, record.VPNIdentity, record.EntryRoots))
-			host.optionsResponse = canonicalGraphOptionsResponse(t)
-			if err := rt.saveSubscriptionRecords(subscriptionRecordsDocument{Version: 1, Records: []subscriptionRecord{record}}); err != nil {
-				t.Fatal(err)
-			}
-			response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(test.payload)})
-			if response.OK || !strings.Contains(response.Error, "process step 1") || len(host.calls) != 0 {
-				t.Fatalf("stored process error was not bounded before composition: response=%+v calls=%+v", response, host.calls)
-			}
-			encoded, err := json.Marshal(response)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, canary := range []string{graphCredentialA, "vless://", "PRIVATE KEY"} {
-				if strings.Contains(string(encoded), canary) {
-					t.Fatalf("stored process error leaked %q: %s", canary, encoded)
+		for _, operators := range []struct {
+			name      string
+			value     []json.RawMessage
+			wantNames []string
+		}{
+			{name: "explicit empty", value: []json.RawMessage{}, wantNames: []string{"entry-1", "entry-2"}},
+			{name: "explicit nonempty", value: []json.RawMessage{caller}, wantNames: []string{"entry-2"}},
+		} {
+			t.Run(path.name+"/"+operators.name, func(t *testing.T) {
+				rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponseForIdentity(t, record.VPNIdentity, record.EntryRoots))
+				host.optionsResponse = canonicalGraphOptionsResponse(t)
+				if err := rt.saveSubscription(record); err != nil {
+					t.Fatal(err)
 				}
-			}
-		})
+				payload := make(map[string]any, len(path.payload)+1)
+				for key, value := range path.payload {
+					payload[key] = value
+				}
+				payload["operators"] = operators.value
+				response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(payload)})
+				if !response.OK {
+					t.Fatalf("authoritative caller preview failed: %+v calls=%+v", response, host.calls)
+				}
+				var summary previewResult
+				if err := json.Unmarshal(response.Result, &summary); err != nil {
+					t.Fatal(err)
+				}
+				gotNames := make([]string, 0, len(summary.Nodes))
+				for _, node := range summary.Nodes {
+					gotNames = append(gotNames, node.Name)
+				}
+				if !reflect.DeepEqual(gotNames, operators.wantNames) {
+					t.Fatalf("caller operators lost authority: nodes=%v want=%v", gotNames, operators.wantNames)
+				}
+			})
+		}
 	}
 }
 
