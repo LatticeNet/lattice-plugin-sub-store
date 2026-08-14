@@ -230,6 +230,15 @@ func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]str
 // preview cannot: it would parse the template and report the example proxies a
 // config ships with as though they were the result.
 func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Response {
+	// Preview is a read-only view of an operator-owned document.  It must never
+	// turn into a provider fetch or execute a stored program/transform: those
+	// paths are host-capable and belong to render/publish, not preview.
+	if rec.Source == subscriptionSourceRemote || strings.TrimSpace(rec.URL) != "" {
+		return latticeplugin.ErrorResponse(fmt.Errorf("file preview requires a self-contained local document"))
+	}
+	if isScriptFile(rec) || len(processSteps(rec)) != 0 {
+		return latticeplugin.ErrorResponse(fmt.Errorf("file preview requires a self-contained local document"))
+	}
 	if strings.TrimSpace(rec.NodeSource) != "" {
 		return latticeplugin.ErrorResponse(fmt.Errorf("file preview does not expose node-source content"))
 	}

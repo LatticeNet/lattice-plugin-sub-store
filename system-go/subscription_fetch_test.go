@@ -14,6 +14,7 @@ import (
 // can be exercised end to end without a real host.
 type httpKVHost struct {
 	*kvHostCaller
+	calls   int
 	status  int
 	header  map[string]string
 	body    []byte
@@ -26,6 +27,7 @@ type httpKVHost struct {
 }
 
 func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
+	h.calls++
 	if method != latticeplugin.HostMethodHTTPDo && method != latticeplugin.HostMethodHTTPOperatorDo {
 		return h.kvHostCaller.call(method, params)
 	}

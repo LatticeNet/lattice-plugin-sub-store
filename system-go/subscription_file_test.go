@@ -199,6 +199,31 @@ func TestPreviewOfSelfContainedFileReturnsDocument(t *testing.T) {
 	}
 }
 
+func TestPreviewOfRemoteFileFailsBeforeHostFetch(t *testing.T) {
+	rt, host := newFetchRuntime(t)
+	host.body = []byte("remote-secret-canary")
+	if err := rt.saveSubscription(subscriptionRecord{
+		ID: "remote-file", Kind: kindFile, Name: "Remote", Source: subscriptionSourceRemote,
+		URL: "https://provider.invalid/file", Content: "local fallback",
+	}); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	res := callSubscription(t, rt, "preview", map[string]any{"subscription_id": "remote-file"})
+	if res.OK || res.Error != "file preview requires a self-contained local document" {
+		t.Fatalf("remote preview did not fail closed: %+v", res)
+	}
+	if host.calls != 0 {
+		t.Fatalf("remote preview made %d host calls", host.calls)
+	}
+	encoded, err := json.Marshal(res)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "remote-secret-canary") {
+		t.Fatal("remote preview leaked fetched content")
+	}
+}
+
 // A config with no node source is a document maintained entirely by hand —
 // rules, a fragment. Serving it unchanged is correct, not an error.
 func TestFileWithoutANodeSourceServesItsTemplate(t *testing.T) {
