@@ -200,6 +200,11 @@ describe("draftFromRecord", () => {
     expect(draft.process).toEqual([{ type: "Flag Operator" }]);
   });
 
+  it("falls back to legacy operators when process is present but empty", () => {
+    const draft = draftFromRecord({ id: "legacy-empty", name: "Legacy", process: [], operators: [{ type: "Flag Operator" }] });
+    expect(draft.process).toEqual([{ type: "Flag Operator" }]);
+  });
+
   // A disabled step is stored and shown, but must never reach the engine — a
   // preview that ran it would describe a pipeline the operator switched off.
   it("drops disabled steps from what would run", () => {
