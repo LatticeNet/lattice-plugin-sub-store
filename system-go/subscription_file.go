@@ -233,14 +233,14 @@ func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Resp
 	// Preview is a read-only view of an operator-owned document.  It must never
 	// turn into a provider fetch or execute a stored program/transform: those
 	// paths are host-capable and belong to render/publish, not preview.
+	if strings.TrimSpace(rec.NodeSource) != "" {
+		return latticeplugin.ErrorResponse(fmt.Errorf("file preview does not expose node-source content"))
+	}
 	if rec.Source == subscriptionSourceRemote || strings.TrimSpace(rec.URL) != "" {
 		return latticeplugin.ErrorResponse(fmt.Errorf("file preview requires a self-contained local document"))
 	}
 	if isScriptFile(rec) || len(processSteps(rec)) != 0 {
 		return latticeplugin.ErrorResponse(fmt.Errorf("file preview requires a self-contained local document"))
-	}
-	if strings.TrimSpace(rec.NodeSource) != "" {
-		return latticeplugin.ErrorResponse(fmt.Errorf("file preview does not expose node-source content"))
 	}
 	// A preview has no request behind it, so a script sees an empty query and
 	// falls back to whatever defaults it declares.

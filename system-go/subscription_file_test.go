@@ -208,6 +208,7 @@ func TestPreviewOfRemoteFileFailsBeforeHostFetch(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
+	host.calls = 0
 	res := callSubscription(t, rt, "preview", map[string]any{"subscription_id": "remote-file"})
 	if res.OK || res.Error != "file preview requires a self-contained local document" {
 		t.Fatalf("remote preview did not fail closed: %+v", res)

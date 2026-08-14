@@ -27,10 +27,10 @@ type httpKVHost struct {
 }
 
 func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
-	h.calls++
 	if method != latticeplugin.HostMethodHTTPDo && method != latticeplugin.HostMethodHTTPOperatorDo {
 		return h.kvHostCaller.call(method, params)
 	}
+	h.calls++
 	encoded, _ := json.Marshal(params)
 	var p struct {
 		Header map[string]string `json:"header"`
