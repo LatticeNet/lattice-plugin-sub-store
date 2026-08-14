@@ -94,7 +94,11 @@ type subscriptionRecord struct {
 	// EntryRoots is the authoritative order for a graph subscription. It is
 	// accepted only for vpn-core-graph records; there is no free-text fallback.
 	EntryRoots []string `json:"entry_roots,omitempty"`
-	UA         string   `json:"ua,omitempty"`
+	// GraphOptionsVersion proves the UI selected the identity and roots from one
+	// authoritative options projection. The mutation handler revalidates it
+	// immediately before storage; compose remains authoritative at use time.
+	GraphOptionsVersion string `json:"graph_options_version,omitempty"`
+	UA                  string `json:"ua,omitempty"`
 	// Members and MemberTags are the collection's inputs: explicit sub ids, plus
 	// every sub carrying one of these tags. Tags exist so a collection can be
 	// "everything tagged home" and pick up a new sub without being edited.
@@ -199,7 +203,8 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		}
 		rec.Kind = kindFile
 		rec.Members, rec.MemberTags = nil, nil
-		rec.VPNIdentity, rec.Target, rec.FailureMode = "", "", ""
+		rec.VPNIdentity, rec.Target, rec.FailureMode, rec.GraphOptionsVersion = "", "", "", ""
+		rec.EntryRoots = nil
 		switch fileType(rec) {
 		case fileTypePlain:
 			// Plain text has no proxy list to fill, so a node source on it would
@@ -224,7 +229,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 			return fmt.Errorf("collection %q must name at least one subscription or tag", rec.ID)
 		}
 		rec.Kind = kindCollection
-		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA = "", "", "", "", ""
+		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA, rec.GraphOptionsVersion = "", "", "", "", "", ""
 		rec.EntryRoots = nil
 		rec.FileType, rec.NodeSource, rec.Download = "", "", false
 	default:
@@ -241,9 +246,13 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 			if err := validateVPNCoreGraphConfig(rec.VPNIdentity, rec.EntryRoots); err != nil {
 				return fmt.Errorf("subscription %q: %w", rec.ID, err)
 			}
+			if !validVPNCoreGraphOptionsVersion(rec.GraphOptionsVersion) {
+				return fmt.Errorf("subscription %q: graph options version is invalid", rec.ID)
+			}
 			rec.URL, rec.Content, rec.UA = "", "", ""
 		} else {
 			rec.EntryRoots = nil
+			rec.GraphOptionsVersion = ""
 		}
 	}
 	if rec.SchemaVersion == 0 {

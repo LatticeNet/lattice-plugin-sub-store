@@ -92,7 +92,8 @@ func TestBackupImportReportsUnusableRecords(t *testing.T) {
 	body := `{"format":"` + subscriptionBackupFormat + `","records":[
 	  {"id":"ok","name":"fine"},
 	  {"name":"no id"},
-	  {"id":"bad-op","operators":[{"type":"Nonexistent Operator"}]}
+	  {"id":"bad-op","operators":[{"type":"Nonexistent Operator"}]},
+	  {"id":"bad-graph","source":"vpn-core-graph","vpn_identity":"identity","entry_roots":["11111111-1111-4111-8111-111111111111"]}
 	]}`
 	out, err := rt.importBackup([]byte(body))
 	if err != nil {
@@ -101,11 +102,14 @@ func TestBackupImportReportsUnusableRecords(t *testing.T) {
 	if len(out.Imported) != 1 {
 		t.Fatalf("imported %v, want just the usable one", out.Imported)
 	}
-	if len(out.Skipped) != 2 {
-		t.Fatalf("skipped = %+v, want two entries", out.Skipped)
+	if len(out.Skipped) != 3 {
+		t.Fatalf("skipped = %+v, want three entries", out.Skipped)
 	}
 	if _, ok := out.Skipped["bad-op"]; !ok {
 		t.Fatalf("the unknown-operator record was not named: %+v", out.Skipped)
+	}
+	if _, ok := out.Skipped["bad-graph"]; !ok {
+		t.Fatalf("the graph without canonical options authority was not named: %+v", out.Skipped)
 	}
 }
 

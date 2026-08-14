@@ -23,6 +23,8 @@ interface StoredRecord {
   tags?: string[];
   source?: string;
   vpn_identity?: string;
+  entry_roots?: string[];
+  graph_options_version?: string;
   url?: string;
   content?: string;
   ua?: string;
@@ -201,6 +203,20 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       { type: "Response Transformer", scripting: true, response: true },
     ],
   }),
+  "subscription/graph_options": () => ({
+    schema_version: 1,
+    ok: true,
+    options_version: `ov1:${"a".repeat(64)}`,
+    identities: [
+      { id: "identity-a", label: "Primary", status: "eligible", selectable: true },
+      { id: "identity-b", label: "Secondary", status: "eligible", selectable: true },
+    ],
+    roots: [
+      { line_uuid: "11111111-1111-4111-8111-111111111111", label: "Home entry", source_node_id: "node-home", source: "managed", target_label: "Exit", status: "converged", path_summary: "Home entry → Exit (1 hop)", eligible_identity_ids: ["identity-a"], selectable: true },
+      { line_uuid: "22222222-2222-4222-8222-222222222222", label: "Secondary entry", source_node_id: "node-edge", source: "managed", status: "converged", path_summary: "Secondary entry", eligible_identity_ids: ["identity-b"], selectable: true },
+      { line_uuid: "33333333-3333-4333-8333-333333333333", label: "Drifted entry", source_node_id: "node-drift", source: "managed", status: "drifted", path_summary: "Drifted entry", reason: "graph_drifted", eligible_identity_ids: [], selectable: false },
+    ],
+  }),
   "subscription/get": ({ subscription_id }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (!found) throw new Error(`subscription "${subscription_id}" was not found`);
@@ -218,7 +234,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     records.splice(index, 1);
     return { id: subscription_id, deleted: true };
   },
-  "subscription/fetch": ({ subscription_id }) => ({ subscription_id, bytes: 4096 }),
+  "subscription/probe": ({ subscription_id }) => ({ subscription_id, bytes: 4096, stale: false, ok: true }),
   "subscription/preview": ({ subscription_id }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (found?.kind === "file") {
@@ -270,7 +286,7 @@ export function createFakeHost(): HostContext {
         {
           service: "latticenet.sub-store/subscription",
           methods: [
-            "fetch", "render", "operators", "preview", "list", "get", "save", "delete",
+            "fetch", "render", "operators", "graph_options", "preview", "list", "get", "save", "delete",
             "migrate", "export", "import", "get_settings", "save_settings", "publish",
           ],
         },

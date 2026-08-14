@@ -52,9 +52,10 @@ export const BINDINGS = {
   subGet: binding(SERVICES.subscription, "get", "active"),
   subSave: binding(SERVICES.subscription, "save", "active"),
   subDelete: binding(SERVICES.subscription, "delete", "active"),
-  subFetch: binding(SERVICES.subscription, "fetch", "active"),
+  subProbe: binding(SERVICES.subscription, "probe", "active"),
   subPreview: binding(SERVICES.subscription, "preview", "active"),
   subOperators: binding(SERVICES.subscription, "operators", "active"),
+  subGraphOptions: binding(SERVICES.subscription, "graph_options", "active"),
   subMigrate: binding(SERVICES.subscription, "migrate", "active"),
   subExport: binding(SERVICES.subscription, "export", "active"),
   subImport: binding(SERVICES.subscription, "import", "active"),
@@ -178,6 +179,10 @@ export interface SubscriptionRecord {
   source?: string;
   /** Narrows a vpn-core export to one identity. Empty means all of them. */
   vpn_identity?: string;
+  /** Ordered canonical line UUIDs selected from graph_options. */
+  entry_roots?: string[];
+  /** Exact graph_options projection used for the selection. */
+  graph_options_version?: string;
   ua?: string;
   target?: string;
   /** Files only: "config" is a client configuration, "plain" is served as-is. */
@@ -259,9 +264,16 @@ export interface SubscriptionDeleteResponse {
 export interface SubscriptionFetchResponse {
   subscription_id: string;
   bytes: number;
-  fetched_at?: string;
-  userinfo?: string;
-  error?: string;
+  source_version?: string;
+  stale: boolean;
+  ok: boolean;
+  error_code?: string;
+}
+
+export interface SubscriptionPublishResponse {
+  subscription_id: string;
+  bytes: number;
+  status_code: number;
 }
 
 /** preview reduces nodes to name/type on the engine side, so a preview of a
@@ -273,14 +285,46 @@ export interface SubscriptionPreviewNode {
 
 export interface SubscriptionPreviewResponse {
   nodes: SubscriptionPreviewNode[];
-  count: number;
+  source_node_count: number;
+  node_count: number;
   truncated?: boolean;
+  source_version?: string;
+  stale?: boolean;
   /**
    * Set instead of `nodes` when the record is a file. A file is a document, so
    * its preview answers "what will a client receive" rather than "which nodes
    * survived the filter".
    */
   document?: string;
+}
+
+export interface GraphIdentityOption {
+  id: string;
+  label: string;
+  status: string;
+  reason?: string;
+  selectable: boolean;
+}
+
+export interface GraphRootOption {
+  line_uuid: string;
+  label: string;
+  source_node_id: string;
+  source: string;
+  target_label?: string;
+  status: string;
+  path_summary: string;
+  reason?: string;
+  eligible_identity_ids: string[];
+  selectable: boolean;
+}
+
+export interface GraphOptionsResponse {
+  schema_version: 1;
+  ok: boolean;
+  options_version: string;
+  identities: GraphIdentityOption[];
+  roots: GraphRootOption[];
 }
 
 export interface OperatorInfo {
@@ -322,6 +366,8 @@ export const MAX_SUBSCRIPTION_RECORDS = 256;
 
 /** Mirrors system-go's `subscriptionSourceVPNCore`. */
 export const SOURCE_VPN_CORE = "vpn-core";
+/** A committed, converged vpn-core line graph composed in exact root order. */
+export const SOURCE_VPN_CORE_GRAPH = "vpn-core-graph";
 /** A provider that is fetched over HTTP. */
 export const SOURCE_REMOTE = "remote";
 /** Nodes pasted by hand. The engine accepts every format it recognises. */

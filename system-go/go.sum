@@ -1,5 +1,5 @@
-github.com/LatticeNet/lattice-sdk v0.2.19-0.20260813221107-c151b2e11168 h1:+Sy2Uz61rCei+NFySVHW7AyBIEL5AMvrlKCViN2+CDM=
-github.com/LatticeNet/lattice-sdk v0.2.19-0.20260813221107-c151b2e11168/go.mod h1:7ENUQ4EoS/TSW/eNomCGfZGliUPJZ46uAvp7dVcEXoE=
+github.com/LatticeNet/lattice-sdk v0.2.19-0.20260814044213-cf595fb04b7b h1:F3ldjkpn9MuQAlERGcJxk+kLnL36OdiVOrVJlWvM1cU=
+github.com/LatticeNet/lattice-sdk v0.2.19-0.20260814044213-cf595fb04b7b/go.mod h1:7ENUQ4EoS/TSW/eNomCGfZGliUPJZ46uAvp7dVcEXoE=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fastschema/qjs v0.0.6 h1:C45KMmQMd21UwsUAmQHxUxiWOfzwTg1GJW0DA0AbFEE=

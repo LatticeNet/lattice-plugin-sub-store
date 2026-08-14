@@ -186,6 +186,21 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 .preview-summary { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 12.5px; }
 .preview-list { margin: 0; padding-left: 18px; font-size: 12px; max-height: 140px; overflow-y: auto; }
 .preview-removed { color: var(--destructive, #b52b2b); }
+.graph-options { display: grid; gap: 12px; }
+.field-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.graph-root-order { display: grid; gap: 8px; margin: 8px 0 12px; padding: 0; list-style: none; }
+.graph-root-order li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--border, #e2e5ea); border-radius: 8px; padding: 9px 10px; }
+.graph-root-order small, .graph-root-candidates span { display: block; color: var(--muted-foreground, #68707d); }
+.graph-root-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.graph-root-candidates { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.graph-root-candidates button { text-align: left; border: 1px solid var(--border, #e2e5ea); border-radius: 8px; padding: 9px 10px; background: var(--card, #fff); color: inherit; }
+.graph-root-candidates button:disabled { opacity: .55; }
+@media (max-width: 560px) {
+  .graph-root-order li { align-items: flex-start; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .graph-options *, .graph-options *::before, .graph-options *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
 
 /* TASK-0003: tabbed shell + shared empty states */
 .tab-bar {

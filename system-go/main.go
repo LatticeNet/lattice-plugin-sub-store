@@ -20,8 +20,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -99,13 +101,40 @@ type pipelineRecordListItem struct {
 }
 
 func main() {
-	rt := &runtime{}
-	_ = latticeplugin.Serve(context.Background(), latticeplugin.HandlerFunc(
-		func(ctx context.Context, req latticeplugin.Request, host *latticeplugin.HostClient) latticeplugin.Response {
-			rt.host = sdkHostCaller{ctx: ctx, client: host}
-			return rt.handle(req)
-		},
-	))
+	if err := servePluginV2(context.Background(), os.Stdin, os.Stdout, os.Getenv); err != nil {
+		os.Exit(1)
+	}
+}
+
+func servePluginV2(ctx context.Context, in io.Reader, out io.Writer, getenv func(string) string) error {
+	generation, err := parseRuntimeV2Environment(getenv)
+	if err != nil {
+		return err
+	}
+	engine := newEmbeddedSubStoreEngine()
+	base := &runtime{engine: &engine}
+	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{In: in, Out: out, OpenHostFromEnv: true})
+	defer rt.Close()
+	return rt.ServeV2(ctx, invocationHandler(base), generation)
+}
+
+func parseRuntimeV2Environment(getenv func(string) string) (uint64, error) {
+	if getenv == nil || getenv("LATTICE_RUNTIME_PROTOCOL") != latticeplugin.RuntimeProtocolStdioJSONV2 {
+		return 0, fmt.Errorf("LATTICE_RUNTIME_PROTOCOL must be %s", latticeplugin.RuntimeProtocolStdioJSONV2)
+	}
+	raw := getenv("LATTICE_RUNTIME_GENERATION")
+	generation, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil || generation == 0 || strconv.FormatUint(generation, 10) != raw {
+		return 0, fmt.Errorf("LATTICE_RUNTIME_GENERATION must be a canonical positive integer")
+	}
+	return generation, nil
+}
+
+func invocationHandler(base *runtime) latticeplugin.Handler {
+	return latticeplugin.HandlerFunc(func(ctx context.Context, req latticeplugin.Request, host *latticeplugin.HostClient) latticeplugin.Response {
+		invocation := &runtime{engine: base.engine, host: sdkHostCaller{ctx: ctx, client: host}}
+		return invocation.handle(req)
+	})
 }
 
 type runtime struct {

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { ref } from "vue";
+import type { BridgeClient } from "@latticenet/plugin-bridge";
 
 import {
   FILE_TYPE_PLAIN,
@@ -9,6 +11,8 @@ import {
   SOURCE_LOCAL,
   SOURCE_REMOTE,
   SOURCE_VPN_CORE,
+  SOURCE_VPN_CORE_GRAPH,
+  BINDINGS,
 } from "./client";
 import {
   argumentsToText,
@@ -17,11 +21,49 @@ import {
   enabledSteps,
   knownFileType,
   parseArguments,
+  reconcileGraphDraftOptions,
   slugify,
   uniqueId,
   uniqueName,
   validateDraft,
+  useSubscriptions,
 } from "./useSubscriptions";
+import type { HostContext } from "./host";
+
+function subscriptionHost(responses: Record<string, unknown>, available: (method: string) => boolean = () => true) {
+  const calls: { service: string; method: string; payload: unknown }[] = [];
+  const bridge = {
+    call(service: string, method: string, payload: unknown) {
+      calls.push({ service, method, payload });
+      const key = `${service}/${method}`;
+      return { promise: Promise.resolve(responses[key]), cancel: () => {} };
+    },
+  } as unknown as BridgeClient;
+  const host: HostContext = {
+    bridge,
+    init: ref(undefined),
+    bootError: ref(""),
+    available: (binding) => available(binding.method),
+    resize: async () => {},
+  };
+  return { host, calls };
+}
+
+const GRAPH_OPTIONS = {
+  schema_version: 1 as const,
+  ok: true,
+  options_version: `ov1:${"a".repeat(64)}`,
+  identities: [
+    { id: "identity-a", label: "Primary", status: "eligible", selectable: true },
+    { id: "identity-b", label: "Secondary", status: "eligible", selectable: true },
+  ],
+  roots: [
+    { line_uuid: "11111111-1111-4111-8111-111111111111", label: "Source A", source_node_id: "node-a", source: "managed", target_label: "Exit", status: "converged", path_summary: "Source A → Exit", eligible_identity_ids: ["identity-a"], selectable: true },
+    { line_uuid: "22222222-2222-4222-8222-222222222222", label: "Source B", source_node_id: "node-b", source: "managed", status: "converged", path_summary: "Source B", eligible_identity_ids: ["identity-a", "identity-b"], selectable: true },
+    { line_uuid: "33333333-3333-4333-8333-333333333333", label: "Secondary only", source_node_id: "node-c", source: "managed", status: "converged", path_summary: "Secondary only", eligible_identity_ids: ["identity-b"], selectable: true },
+    { line_uuid: "44444444-4444-4444-8444-444444444444", label: "Drifted", source_node_id: "node-d", source: "managed", status: "drifted", path_summary: "Drifted", reason: "graph_drifted", eligible_identity_ids: [], selectable: false },
+  ],
+};
 
 describe("subscription draft validation", () => {
   // The operator types a name; the id is derived from it. Asking for both was
@@ -35,6 +77,19 @@ describe("subscription draft validation", () => {
   // that source: it is the one every Lattice deployment can use immediately.
   it("asks for nothing else when the source is this fleet", () => {
     expect(validateDraft({ ...emptyDraft(), name: "Fleet", source: SOURCE_VPN_CORE })).toBe("");
+  });
+
+  it("requires an authoritative identity and ordered roots for a graph source", () => {
+    const draft = { ...emptyDraft(), name: "Graph", source: SOURCE_VPN_CORE_GRAPH };
+    expect(validateDraft(draft)).toMatch(/identity/i);
+    draft.vpnIdentity = "identity-a";
+    expect(validateDraft(draft)).toMatch(/root/i);
+    draft.entryRoots = ["11111111-1111-4111-8111-111111111111"];
+    expect(validateDraft(draft)).toMatch(/reload/i);
+    draft.optionsVersion = "ov1:" + "a".repeat(64);
+    expect(validateDraft(draft)).toBe("");
+    draft.entryRoots.push(draft.entryRoots[0]);
+    expect(validateDraft(draft)).toMatch(/unique/i);
   });
 
   it("asks for a link when the source is a provider", () => {
@@ -112,6 +167,8 @@ describe("draftFromRecord", () => {
       displayName: "",
       source: "",
       vpnIdentity: "",
+      entryRoots: [],
+      optionsVersion: "",
       url: "",
       content: "",
       ua: "",
@@ -255,5 +312,142 @@ describe("copying a record", () => {
 
   it("leaves an unrelated name alone", () => {
     expect(uniqueName("Office", ["Home copy"])).toBe("Office");
+  });
+});
+
+describe("vpn-core graph workflow", () => {
+  it("keeps a stored stale selection unchanged until the operator explicitly adopts options", () => {
+    const draft = { ...emptyDraft(), source: SOURCE_VPN_CORE_GRAPH, vpnIdentity: "identity-a", entryRoots: [GRAPH_OPTIONS.roots[0].line_uuid], optionsVersion: `ov1:${"b".repeat(64)}` };
+    const original = structuredClone(draft);
+    expect(reconcileGraphDraftOptions(draft, GRAPH_OPTIONS, false)).toEqual({ stale: true, removedRoots: 0 });
+    expect(draft).toEqual(original);
+    expect(reconcileGraphDraftOptions(draft, GRAPH_OPTIONS, true)).toEqual({ stale: true, removedRoots: 0 });
+    expect(draft.optionsVersion).toBe(GRAPH_OPTIONS.options_version);
+  });
+  it("loads and clones secret-free authoritative options", async () => {
+    const key = `${BINDINGS.subGraphOptions.service}/${BINDINGS.subGraphOptions.method}`;
+    const { host, calls } = subscriptionHost({ [key]: GRAPH_OPTIONS });
+    const subs = useSubscriptions(host);
+    expect(await subs.loadGraphOptions()).toBe(true);
+    expect(calls).toEqual([{ service: BINDINGS.subGraphOptions.service, method: "graph_options", payload: {} }]);
+    expect(subs.graphOptions.value?.roots[3].reason).toBe("graph_drifted");
+    GRAPH_OPTIONS.roots[0].label = "mutated after response";
+    expect(subs.graphOptions.value?.roots[0].label).toBe("Source A");
+    GRAPH_OPTIONS.roots[0].label = "Source A";
+  });
+
+  it("saves the same explicit root order and options version", async () => {
+    const saveKey = `${BINDINGS.subSave.service}/${BINDINGS.subSave.method}`;
+    const listKey = `${BINDINGS.subList.service}/${BINDINGS.subList.method}`;
+    const optionsKey = `${BINDINGS.subGraphOptions.service}/${BINDINGS.subGraphOptions.method}`;
+    const { host, calls } = subscriptionHost({
+      [optionsKey]: GRAPH_OPTIONS,
+      [saveKey]: { saved: true, subscription: {} },
+      [listKey]: { subscriptions: [] },
+    });
+    const subs = useSubscriptions(host);
+    expect(await subs.loadGraphOptions()).toBe(true);
+    const draft = {
+      ...emptyDraft(),
+      id: "graph",
+      name: "Graph",
+      source: SOURCE_VPN_CORE_GRAPH,
+      vpnIdentity: "identity-a",
+      entryRoots: [GRAPH_OPTIONS.roots[1].line_uuid, GRAPH_OPTIONS.roots[0].line_uuid],
+      optionsVersion: GRAPH_OPTIONS.options_version,
+    };
+    expect(await subs.save(draft)).toBe(true);
+    const saved = (calls[1].payload as { subscription: Record<string, unknown> }).subscription;
+    expect(saved.vpn_identity).toBe("identity-a");
+    expect(saved.entry_roots).toEqual([GRAPH_OPTIONS.roots[1].line_uuid, GRAPH_OPTIONS.roots[0].line_uuid]);
+    expect(saved.graph_options_version).toBe(GRAPH_OPTIONS.options_version);
+  });
+
+  it("previews an unsaved graph from the exact draft selection without raw credentials", async () => {
+    const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
+    const sourceVersion = `sv1:${"c".repeat(64)}`;
+    const { host, calls } = subscriptionHost({ [previewKey]: { source_node_count: 2, node_count: 2, nodes: [{ name: "B" }, { name: "A" }], source_version: sourceVersion, stale: false } });
+    const subs = useSubscriptions(host);
+    const draft = {
+      ...emptyDraft(),
+      name: "Graph",
+      source: SOURCE_VPN_CORE_GRAPH,
+      vpnIdentity: "identity-a",
+      entryRoots: [GRAPH_OPTIONS.roots[1].line_uuid, GRAPH_OPTIONS.roots[0].line_uuid],
+      optionsVersion: GRAPH_OPTIONS.options_version,
+      content: "vless://must-not-be-sent",
+    };
+    await subs.runPreview(draft);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].payload).toEqual({
+      subscription_id: "",
+      raw: undefined,
+      target: "",
+      operators: undefined,
+      graph_selection: {
+        schema_version: 1,
+        options_version: GRAPH_OPTIONS.options_version,
+        identity_id: "identity-a",
+        entry_roots: [GRAPH_OPTIONS.roots[1].line_uuid, GRAPH_OPTIONS.roots[0].line_uuid],
+      },
+    });
+    expect(JSON.stringify(calls[0].payload)).not.toContain("must-not-be-sent");
+    expect(subs.preview.value?.nodes.map((node) => node.name)).toEqual(["B", "A"]);
+    expect(subs.preview.value).toMatchObject({ source_node_count: 2, node_count: 2, source_version: sourceVersion, stale: false });
+  });
+
+  it("cannot save a root bound only to another identity", async () => {
+    const optionsKey = `${BINDINGS.subGraphOptions.service}/${BINDINGS.subGraphOptions.method}`;
+    const { host, calls } = subscriptionHost({ [optionsKey]: GRAPH_OPTIONS });
+    const subs = useSubscriptions(host);
+    expect(await subs.loadGraphOptions()).toBe(true);
+    const saved = await subs.save({ ...emptyDraft(), id: "graph", name: "Graph", source: SOURCE_VPN_CORE_GRAPH,
+      vpnIdentity: "identity-a", entryRoots: [GRAPH_OPTIONS.roots[2].line_uuid], optionsVersion: GRAPH_OPTIONS.options_version });
+    expect(saved).toBe(false);
+    expect(subs.actionError.value).toMatch(/changed|reload/i);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("lets read-only operators load options but not save", async () => {
+    const key = `${BINDINGS.subGraphOptions.service}/${BINDINGS.subGraphOptions.method}`;
+    const { host, calls } = subscriptionHost({ [key]: GRAPH_OPTIONS }, (method) => method !== "save" && method !== "delete");
+    const subs = useSubscriptions(host);
+    expect(await subs.loadGraphOptions()).toBe(true);
+    expect(subs.canMutate.value).toBe(false);
+    expect(await subs.save({ ...emptyDraft(), name: "Graph", source: SOURCE_VPN_CORE_GRAPH, vpnIdentity: "identity-a", entryRoots: [GRAPH_OPTIONS.roots[0].line_uuid], optionsVersion: GRAPH_OPTIONS.options_version })).toBe(false);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("publishes only a saved id with the explicit reviewed target", async () => {
+    const key = `${BINDINGS.subPublish.service}/${BINDINGS.subPublish.method}`;
+    const { host, calls } = subscriptionHost({ [key]: { subscription_id: "graph", bytes: 321, status_code: 204 } });
+    const subs = useSubscriptions(host);
+    expect(await subs.publish("", "https://destination.invalid/graph", "PUT", "plain")).toBe(false);
+    expect(calls).toHaveLength(0);
+    expect(await subs.publish("graph", "https://destination.invalid/graph", "patch", "sing-box")).toBe(true);
+    expect(calls).toEqual([{ service: BINDINGS.subPublish.service, method: "publish", payload: {
+      subscription_id: "graph", destination: "https://destination.invalid/graph", method: "PATCH", format: "sing-box",
+    } }]);
+    expect(subs.notice.value).toContain("321 bytes");
+  });
+
+  it("surfaces publish failure without mutating the saved definition or target", async () => {
+    const key = `${BINDINGS.subPublish.service}/${BINDINGS.subPublish.method}`;
+    const { host, calls } = subscriptionHost({ [key]: Promise.reject(new Error("HTTP 502 vless://credential")) });
+    const subs = useSubscriptions(host);
+    const before = structuredClone(GRAPH_OPTIONS);
+    expect(await subs.publish("graph", "https://destination.invalid/graph", "PUT", "plain")).toBe(false);
+    expect(calls).toHaveLength(1);
+    expect(subs.actionError.value).toMatch(/publish failed/i);
+    expect(subs.actionError.value).not.toContain("vless://");
+    expect(GRAPH_OPTIONS).toEqual(before);
+  });
+
+  it("does not expose publish to a read-only bridge", async () => {
+    const { host, calls } = subscriptionHost({}, (method) => method !== "publish");
+    const subs = useSubscriptions(host);
+    expect(subs.canPublish.value).toBe(false);
+    expect(await subs.publish("graph", "https://destination.invalid/graph", "PUT", "plain")).toBe(false);
+    expect(calls).toHaveLength(0);
   });
 });

@@ -16,10 +16,10 @@
   "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "f0bf808fabb9152e40ba8aeafbada9f200cde68940dc8ffdc2791a9868694cf5"
+    "digest_sha256": "b6197fa8cef560faab464c03b0c245eb95afaea30a1ae047947ad61a3da206b0"
   },
   "runtime": {
-    "protocol": "stdio-json-v1",
+    "protocol": "stdio-json-v2",
     "entrypoints": {
       "linux/amd64": "bin/linux-amd64/plugin",
       "linux/arm64": "bin/linux-arm64/plugin"
@@ -33,7 +33,7 @@
   "compatibility": {
     "server": "\u003e=0.2.2-alpha.20",
     "dashboard_host": "\u003e=1",
-    "runtime_protocol": "\u003e=1"
+    "runtime_protocol": "\u003e=2"
   },
   "host_access": {
     "rpc": [
@@ -46,7 +46,8 @@
       {
         "service": "latticenet.vpn-core/subscription-sources",
         "methods": [
-          "compose"
+          "compose",
+          "graph_options"
         ]
       }
     ]
@@ -183,7 +184,7 @@
           "name": "fetch",
           "effect": "read",
           "scopes": [
-            "substore:read"
+            "substore:admin"
           ],
           "budget": {
             "timeout_ms": 20000,
@@ -193,16 +194,29 @@
           }
         },
         {
-          "name": "render",
+          "name": "probe",
           "effect": "read",
           "scopes": [
             "substore:read"
           ],
           "budget": {
+            "timeout_ms": 20000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 65536,
+            "host_calls": 2
+          }
+        },
+        {
+          "name": "render",
+          "effect": "read",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
             "timeout_ms": 10000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 68
           }
         },
         {
@@ -219,6 +233,19 @@
           }
         },
         {
+          "name": "graph_options",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 6291456,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
+        },
+        {
           "name": "preview",
           "effect": "read",
           "scopes": [
@@ -228,7 +255,7 @@
             "timeout_ms": 15000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 1
+            "host_calls": 2
           }
         },
         {
@@ -267,7 +294,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 524288,
             "stderr_bytes": 65536,
-            "host_calls": 3
+            "host_calls": 5
           }
         },
         {
@@ -364,7 +391,7 @@
             "timeout_ms": 20000,
             "stdout_bytes": 65536,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 69
           }
         }
       ],

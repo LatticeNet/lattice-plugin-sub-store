@@ -1,11 +1,18 @@
 package main
 
 import (
+	"bufio"
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"strings"
+	"sync"
 	"testing"
+
+	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
 type recordedHostCall struct {
@@ -17,6 +24,131 @@ type fakeHostCaller struct {
 	calls     []recordedHostCall
 	responses []json.RawMessage
 	errors    []error
+}
+
+func TestParseRuntimeV2EnvironmentStrict(t *testing.T) {
+	valid := map[string]string{"LATTICE_RUNTIME_PROTOCOL": latticeplugin.RuntimeProtocolStdioJSONV2, "LATTICE_RUNTIME_GENERATION": "42"}
+	getenv := func(key string) string { return valid[key] }
+	if got, err := parseRuntimeV2Environment(getenv); err != nil || got != 42 {
+		t.Fatalf("generation=%d error=%v", got, err)
+	}
+	for name, values := range map[string]map[string]string{
+		"nil environment":  nil,
+		"wrong protocol":   {"LATTICE_RUNTIME_PROTOCOL": "stdio-json-v1", "LATTICE_RUNTIME_GENERATION": "42"},
+		"empty generation": {"LATTICE_RUNTIME_PROTOCOL": latticeplugin.RuntimeProtocolStdioJSONV2},
+		"zero generation":  {"LATTICE_RUNTIME_PROTOCOL": latticeplugin.RuntimeProtocolStdioJSONV2, "LATTICE_RUNTIME_GENERATION": "0"},
+		"leading zero":     {"LATTICE_RUNTIME_PROTOCOL": latticeplugin.RuntimeProtocolStdioJSONV2, "LATTICE_RUNTIME_GENERATION": "042"},
+		"signed":           {"LATTICE_RUNTIME_PROTOCOL": latticeplugin.RuntimeProtocolStdioJSONV2, "LATTICE_RUNTIME_GENERATION": "+42"},
+		"overflow":         {"LATTICE_RUNTIME_PROTOCOL": latticeplugin.RuntimeProtocolStdioJSONV2, "LATTICE_RUNTIME_GENERATION": "18446744073709551616"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var lookup func(string) string
+			if values != nil {
+				lookup = func(key string) string { return values[key] }
+			}
+			if _, err := parseRuntimeV2Environment(lookup); err == nil {
+				t.Fatal("hostile runtime environment accepted")
+			}
+		})
+	}
+}
+
+func TestInvocationHandlerServesTwoCorrelatedV2CallsWithoutHostLeakage(t *testing.T) {
+	inReader, inWriter := io.Pipe()
+	outReader, outWriter := io.Pipe()
+	hostReader, hostWriter := io.Pipe()
+	host := latticeplugin.NewHostClient(latticeplugin.HostClientOptions{Output: outWriter, Responses: hostReader})
+	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{In: inReader, Out: outWriter, Host: host})
+	engine := newTestEmbeddedSubStoreEngine()
+	base := &runtime{engine: &engine}
+	production := invocationHandler(base)
+	var capturedMu sync.Mutex
+	var captured []*latticeplugin.HostClient
+	handler := latticeplugin.HandlerFunc(func(ctx context.Context, req latticeplugin.Request, facade *latticeplugin.HostClient) latticeplugin.Response {
+		capturedMu.Lock()
+		captured = append(captured, facade)
+		capturedMu.Unlock()
+		return production.HandlePluginRequest(ctx, req, facade)
+	})
+	done := make(chan error, 1)
+	go func() { done <- rt.ServeV2(context.Background(), handler, 7) }()
+
+	type wireFrame struct {
+		Protocol     int                    `json:"protocol"`
+		Kind         string                 `json:"kind"`
+		Generation   uint64                 `json:"generation"`
+		InvocationID string                 `json:"invocation_id"`
+		HostCallID   string                 `json:"host_call_id"`
+		Response     latticeplugin.Response `json:"response"`
+	}
+	scanner := bufio.NewScanner(outReader)
+	scanner.Buffer(make([]byte, 64<<10), latticeplugin.DefaultMaxHostResponseFrameBytes+1)
+	readFrame := func() wireFrame {
+		t.Helper()
+		if !scanner.Scan() {
+			t.Fatalf("read v2 frame: %v", scanner.Err())
+		}
+		var frame wireFrame
+		if err := json.Unmarshal(scanner.Bytes(), &frame); err != nil {
+			t.Fatalf("decode v2 frame: %v: %s", err, scanner.Bytes())
+		}
+		return frame
+	}
+	assertFrame := func(frame wireFrame, kind, invocation string) {
+		t.Helper()
+		if frame.Protocol != 2 || frame.Kind != kind || frame.Generation != 7 || frame.InvocationID != invocation {
+			t.Fatalf("frame=%+v want kind=%s invocation=%s", frame, kind, invocation)
+		}
+	}
+	assertFrame(readFrame(), "runtime_ready", "runtime")
+
+	requestPayload := mustJSON(callPayload{Service: pluginID + "/engine", Method: "list_pipelines"})
+	for invocation := 1; invocation <= 2; invocation++ {
+		invocationID := fmt.Sprintf("%d", invocation)
+		invoke := map[string]any{"protocol": 2, "kind": "invoke", "generation": 7, "invocation_id": invocationID, "request": request{Action: latticeplugin.ActionCall, Payload: requestPayload}}
+		if err := json.NewEncoder(inWriter).Encode(invoke); err != nil {
+			t.Fatal(err)
+		}
+		hostCall := readFrame()
+		assertFrame(hostCall, "host_call", invocationID)
+		wantHostCallID := fmt.Sprintf("h%d", invocation)
+		if hostCall.HostCallID != wantHostCallID {
+			t.Fatalf("host_call_id=%q want=%q", hostCall.HostCallID, wantHostCallID)
+		}
+		hostResult := kvDocumentResponse(t, pipelineRecordsDocument{Version: 1})
+		hostResponse := map[string]any{
+			"protocol": 2, "kind": "host_response", "generation": 7, "invocation_id": invocationID, "host_call_id": wantHostCallID,
+			"host_response": map[string]any{"id": wantHostCallID, "ok": true, "result": json.RawMessage(hostResult)},
+		}
+		if err := json.NewEncoder(hostWriter).Encode(hostResponse); err != nil {
+			t.Fatal(err)
+		}
+		result := readFrame()
+		assertFrame(result, "invoke_result", invocationID)
+		if !result.Response.OK {
+			t.Fatalf("invoke result=%+v", result.Response)
+		}
+		assertFrame(readFrame(), "stderr_complete", invocationID)
+		assertFrame(readFrame(), "invoke_ready", invocationID)
+
+		capturedMu.Lock()
+		facade := captured[invocation-1]
+		capturedMu.Unlock()
+		if _, _, err := facade.KVGet(context.Background(), "late"); !errors.Is(err, latticeplugin.ErrHostClientExpired) {
+			t.Fatalf("invocation %s retained callable host facade: %v", invocationID, err)
+		}
+		if base.host != nil {
+			t.Fatal("base runtime retained invocation host facade")
+		}
+	}
+	if err := inWriter.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	_ = hostWriter.Close()
+	_ = outReader.Close()
 }
 
 func (f *fakeHostCaller) call(method string, params any) (json.RawMessage, error) {

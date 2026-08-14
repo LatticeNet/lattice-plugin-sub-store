@@ -6,6 +6,7 @@ import {
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
   SOURCE_VPN_CORE,
+  SOURCE_VPN_CORE_GRAPH,
   SOURCE_REMOTE,
   SOURCE_LOCAL,
   FAILURE_STRICT,
@@ -17,8 +18,10 @@ import {
   FILE_TYPE_SCRIPT,
   type OperatorCatalogResponse,
   type OperatorInfo,
+  type GraphOptionsResponse,
   type SubscriptionDeleteResponse,
   type SubscriptionFetchResponse,
+  type SubscriptionPublishResponse,
   type SubscriptionGetResponse,
   type SubscriptionListItem,
   type SubscriptionListResponse,
@@ -48,6 +51,8 @@ export interface SubscriptionDraft {
   /** "" for url/content, or SOURCE_VPN_CORE for the live node export. */
   source: string;
   vpnIdentity: string;
+  entryRoots: string[];
+  optionsVersion: string;
   url: string;
   content: string;
   ua: string;
@@ -169,6 +174,8 @@ export function emptyDraft(): SubscriptionDraft {
     tags: [],
     source: "",
     vpnIdentity: "",
+    entryRoots: [],
+    optionsVersion: "",
     url: "",
     content: "",
     ua: "",
@@ -195,6 +202,8 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
     tags: Array.isArray(record.tags) ? [...record.tags] : [],
     source: record.source ?? "",
     vpnIdentity: record.vpn_identity ?? "",
+    entryRoots: Array.isArray(record.entry_roots) ? [...record.entry_roots] : [],
+    optionsVersion: record.graph_options_version ?? "",
     url: record.url ?? "",
     content: record.content ?? "",
     ua: record.ua ?? "",
@@ -263,7 +272,32 @@ export function validateDraft(draft: SubscriptionDraft): string {
   if (draft.source === SOURCE_LOCAL && !draft.content.trim()) {
     return "Paste the nodes you want served.";
   }
+  if (draft.source === SOURCE_VPN_CORE_GRAPH) {
+    if (!draft.vpnIdentity.trim()) return "Choose an eligible VPN identity.";
+    if (draft.entryRoots.length === 0) return "Choose at least one eligible graph root.";
+    if (new Set(draft.entryRoots).size !== draft.entryRoots.length) return "Graph roots must be unique.";
+    if (!draft.optionsVersion) return "Reload graph options before saving.";
+  }
   return "";
+}
+
+export function reconcileGraphDraftOptions(
+  draft: SubscriptionDraft,
+  options: GraphOptionsResponse,
+  adopt: boolean,
+): { stale: boolean; removedRoots: number } {
+  const stale = draft.optionsVersion !== options.options_version;
+  if (!adopt) return { stale, removedRoots: 0 };
+  draft.optionsVersion = options.options_version;
+  if (!options.identities.some((item) => item.selectable && item.id === draft.vpnIdentity)) {
+    draft.vpnIdentity = "";
+  }
+  const allowed = new Set(options.roots
+    .filter((item) => item.selectable && item.eligible_identity_ids.includes(draft.vpnIdentity))
+    .map((item) => item.line_uuid));
+  const before = draft.entryRoots.length;
+  draft.entryRoots = draft.entryRoots.filter((root) => allowed.has(root));
+  return { stale, removedRoots: before - draft.entryRoots.length };
 }
 
 /**
@@ -286,11 +320,15 @@ export function useSubscriptions(host: HostContext) {
   const operators = ref<OperatorInfo[]>([]);
   const preview = ref<SubscriptionPreviewResponse | null>(null);
   const previewing = ref(false);
+  const graphOptions = ref<GraphOptionsResponse | null>(null);
+  const graphOptionsLoading = ref(false);
 
   const available = computed(() => host.available(BINDINGS.subList));
   const canMutate = computed(() => host.available(BINDINGS.subSave) && host.available(BINDINGS.subDelete));
-  const canFetch = computed(() => host.available(BINDINGS.subFetch));
+  const canFetch = computed(() => host.available(BINDINGS.subProbe));
   const canPreview = computed(() => host.available(BINDINGS.subPreview));
+  const canPublish = computed(() => host.available(BINDINGS.subPublish));
+  const canLoadGraphOptions = computed(() => host.available(BINDINGS.subGraphOptions));
   const atRecordLimit = computed(() => items.value.length >= MAX_SUBSCRIPTION_RECORDS);
 
   async function load(): Promise<void> {
@@ -322,6 +360,31 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
+  async function loadGraphOptions(): Promise<boolean> {
+    if (!host.bridge || !canLoadGraphOptions.value || graphOptionsLoading.value) return false;
+    graphOptionsLoading.value = true;
+    actionError.value = "";
+    try {
+      const response = await callMethod<GraphOptionsResponse>(host.bridge, BINDINGS.subGraphOptions, {}).promise;
+      if (!response.ok || response.schema_version !== 1 || !response.options_version) {
+        throw new Error("Graph options were not authoritative");
+      }
+      graphOptions.value = {
+        ...response,
+        identities: response.identities.map((item) => ({ ...item })),
+        roots: response.roots.map((item) => ({ ...item, eligible_identity_ids: [...item.eligible_identity_ids] })),
+      };
+      return true;
+    } catch (cause) {
+      graphOptions.value = null;
+      actionError.value = safeErrorMessage(cause, "Graph options could not be loaded");
+      return false;
+    } finally {
+      graphOptionsLoading.value = false;
+      await host.resize();
+    }
+  }
+
   /** Full record including content and operators — `list` omits both. */
   async function get(id: string): Promise<SubscriptionRecord | null> {
     if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
@@ -347,6 +410,15 @@ export function useSubscriptions(host: HostContext) {
     if (invalid) {
       actionError.value = invalid;
       return false;
+    }
+    if (draft.source === SOURCE_VPN_CORE_GRAPH) {
+      const options = graphOptions.value;
+      const identity = options?.identities.find((item) => item.id === draft.vpnIdentity && item.selectable);
+      const eligible = new Set(options?.roots.filter((item) => item.selectable && item.eligible_identity_ids.includes(draft.vpnIdentity)).map((item) => item.line_uuid));
+      if (!options || options.options_version !== draft.optionsVersion || !identity || draft.entryRoots.some((root) => !eligible.has(root))) {
+        actionError.value = "Graph options changed. Reload and review the identity and roots before saving.";
+        return false;
+      }
     }
     saving.value = true;
     actionError.value = "";
@@ -374,8 +446,16 @@ export function useSubscriptions(host: HostContext) {
         // does this get its content".
         source: collection ? undefined : draft.source || undefined,
         vpn_identity:
-          !collection && !file && draft.source === SOURCE_VPN_CORE
+          !collection && !file && (draft.source === SOURCE_VPN_CORE || draft.source === SOURCE_VPN_CORE_GRAPH)
             ? draft.vpnIdentity.trim() || undefined
+            : undefined,
+        entry_roots:
+          !collection && !file && draft.source === SOURCE_VPN_CORE_GRAPH
+            ? [...draft.entryRoots]
+            : undefined,
+        graph_options_version:
+          !collection && !file && draft.source === SOURCE_VPN_CORE_GRAPH
+            ? draft.optionsVersion
             : undefined,
         url: collection || draft.source === SOURCE_LOCAL ? undefined : draft.url.trim() || undefined,
         content: collection || draft.source === SOURCE_REMOTE ? undefined : draft.content || undefined,
@@ -455,19 +535,47 @@ export function useSubscriptions(host: HostContext) {
     notice.value = "";
     busyId.value = id;
     try {
-      const response = await callMethod<SubscriptionFetchResponse>(host.bridge, BINDINGS.subFetch, {
+      const response = await callMethod<SubscriptionFetchResponse>(host.bridge, BINDINGS.subProbe, {
         subscription_id: id,
       }).promise;
-      if (response.error) {
+      if (!response.ok) {
         // A failed fetch is not a failed subscription: the server keeps the
         // last good snapshot and clients stay working. Say both things.
-        actionError.value = `Provider fetch failed: ${response.error}. The last good snapshot is still being served.`;
+        actionError.value = "Provider refresh failed. The last good snapshot is still being served.";
         return false;
       }
-      notice.value = `Fetched ${response.bytes} bytes for ${id}.`;
+      notice.value = `Checked ${response.bytes} bytes for ${id}${response.source_version ? ` at ${response.source_version}` : ""}.`;
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Subscription could not be refreshed");
+      void cause;
+      actionError.value = "Subscription could not be refreshed; the last good snapshot remains authoritative.";
+      return false;
+    } finally {
+      busyId.value = null;
+      await host.resize();
+    }
+  }
+
+  async function publish(id: string, destination: string, method: string, format: string): Promise<boolean> {
+    if (!host.bridge || !canPublish.value || !id.trim()) return false;
+    actionError.value = "";
+    notice.value = "";
+    busyId.value = id;
+    try {
+      const response = await callMethod<SubscriptionPublishResponse>(host.bridge, BINDINGS.subPublish, {
+        subscription_id: id,
+        destination: destination.trim(),
+        method: method.trim().toUpperCase() || "PUT",
+        format: format.trim() || "plain",
+      }).promise;
+      if (response.subscription_id !== id || response.status_code < 200 || response.status_code >= 300) {
+        throw new Error("Publish was not confirmed");
+      }
+      notice.value = `Published ${response.bytes} bytes for ${id}.`;
+      return true;
+    } catch (cause) {
+      void cause;
+      actionError.value = "Publish failed; the saved definition and destination were not changed.";
       return false;
     } finally {
       busyId.value = null;
@@ -485,12 +593,18 @@ export function useSubscriptions(host: HostContext) {
       // backend falls back to the stored record when raw is empty.
       const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
         subscription_id: draft.id.trim(),
-        raw: draft.content,
+        raw: draft.source === SOURCE_VPN_CORE_GRAPH ? undefined : draft.content,
         target: draft.target.trim(),
         // The wire field is still `operators` — it is what the engine takes.
         // Disabled steps are dropped here so the preview shows what would
         // actually run, not what the chain would do if everything were on.
         operators: enabledSteps(draft).length ? enabledSteps(draft) : undefined,
+        graph_selection: draft.source === SOURCE_VPN_CORE_GRAPH ? {
+          schema_version: 1,
+          options_version: draft.optionsVersion,
+          identity_id: draft.vpnIdentity,
+          entry_roots: [...draft.entryRoots],
+        } : undefined,
       }).promise;
       preview.value = response;
     } catch (cause) {
@@ -565,18 +679,24 @@ export function useSubscriptions(host: HostContext) {
     operators,
     preview,
     previewing,
+    graphOptions,
+    graphOptionsLoading,
     available,
     canMutate,
     canFetch,
     canPreview,
+    canPublish,
+    canLoadGraphOptions,
     atRecordLimit,
     load,
     loadOperators,
+    loadGraphOptions,
     get,
     save,
     remove,
     duplicate,
     refresh,
+    publish,
     runPreview,
     clearMessages,
   };

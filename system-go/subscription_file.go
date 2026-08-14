@@ -230,6 +230,9 @@ func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]str
 // preview cannot: it would parse the template and report the example proxies a
 // config ships with as though they were the result.
 func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Response {
+	if strings.TrimSpace(rec.NodeSource) != "" {
+		return latticeplugin.ErrorResponse(fmt.Errorf("file preview does not expose node-source content"))
+	}
 	// A preview has no request behind it, so a script sees an empty query and
 	// falls back to whatever defaults it declares.
 	document, _, err := rt.renderFile(rec, "", nil)

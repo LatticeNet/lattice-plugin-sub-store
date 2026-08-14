@@ -21,7 +21,7 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 		}
 		return strings.Join(links, "\n"), nil
 	case subscriptionSourceVPNCoreGraph:
-		fetched, err := rt.fetchSubscription(rec.ID)
+		fetched, err := rt.fetchVPNCoreGraph(rec)
 		if err != nil {
 			return "", err
 		}

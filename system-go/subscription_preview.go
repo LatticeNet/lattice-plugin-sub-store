@@ -21,6 +21,8 @@ type previewResult struct {
 	NodeCount       int           `json:"node_count"`
 	Nodes           []nodeSummary `json:"nodes"`
 	Truncated       bool          `json:"truncated"`
+	SourceVersion   string        `json:"source_version,omitempty"`
+	Stale           bool          `json:"stale"`
 	// Document is set instead of Nodes when the record is a file. A file is a
 	// document, so the question its preview answers is "what will a client
 	// receive", not "which nodes survived the filter".

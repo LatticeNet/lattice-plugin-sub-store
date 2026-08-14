@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -121,8 +122,29 @@ type manifestInterface struct {
 	Backing string `json:"backing"`
 	Methods []struct {
 		Name   string            `json:"name"`
+		Scopes []string          `json:"scopes"`
 		Budget *invokeBudgetSpec `json:"budget,omitempty"`
 	} `json:"methods"`
+}
+
+func TestManifestKeepsCredentialBearingSubscriptionMethodsOnAdminScope(t *testing.T) {
+	want := map[string][]string{
+		"fetch":   {"substore:admin"},
+		"render":  {"substore:admin"},
+		"probe":   {"substore:read"},
+		"preview": {"substore:read"},
+	}
+	for _, iface := range loadManifestInterfaces(t) {
+		if iface.Service != pluginID+"/subscription" {
+			continue
+		}
+		for _, method := range iface.Methods {
+			expected, ok := want[method.Name]
+			if ok && !reflect.DeepEqual(method.Scopes, expected) {
+				t.Errorf("%s scopes=%v want=%v", method.Name, method.Scopes, expected)
+			}
+		}
+	}
 }
 
 type invokeBudgetSpec struct {
@@ -145,24 +167,26 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// the other conversion methods: a large subscription must fail loudly rather
 		// than arrive truncated at a client. host_calls is 2 rather than 0 because a
 		// remote-backed subscription will read its stored snapshot through the host.
-		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
 		// fetch carries a provider's whole response, so its stdout budget is the
 		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
 		// third-party provider is slower than local conversion.
 		pluginID + "/subscription/fetch": {TimeoutMS: 20_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		pluginID + "/subscription/probe": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
 		// operators returns a fixed catalog and touches nothing, so it gets the
 		// smallest budget in the file and zero host calls.
-		pluginID + "/subscription/operators": {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
-		// preview runs the pipeline but returns only names and types, so its
-		// stdout is far smaller than a conversion's even for a large subscription.
-		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+		pluginID + "/subscription/operators":     {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
+		pluginID + "/subscription/graph_options": {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 16 << 10, HostCalls: 1},
+		// A saved graph preview reads its record, reloads eligibility, and composes
+		// exactly once. Its stdout remains smaller than a full conversion.
+		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 2},
 		// list returns definitions without their content, so it stays small.
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		// get returns one whole record including inline content, so its ceiling
 		// is the per-record inline cap plus room for the rest of the record —
 		// not the small `list` ceiling, which carries no content at all.
 		pluginID + "/subscription/get":    {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 512 << 10, StderrBytes: 64 << 10, HostCalls: 3},
+		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 512 << 10, StderrBytes: 64 << 10, HostCalls: 5},
 		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		// migrate is the only write here and it talks to a second server, so it
 		// gets the longest timeout and the largest host-call allowance.
@@ -171,7 +195,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// largest read budget here; import is bounded by what it accepts.
 		// publish renders and sends; its stdout is only a small result object
 		// because the rendered body goes out over the network, not back up stdout.
-		pluginID + "/subscription/publish":       {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
+		pluginID + "/subscription/publish":       {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 69},
 		pluginID + "/subscription/export":        {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 2},
 		pluginID + "/subscription/import":        {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 3},
 		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},

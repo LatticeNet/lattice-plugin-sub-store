@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -19,6 +22,18 @@ type renderResult struct {
 	// decides which of them it is willing to send; the plugin only reports what
 	// the document said it wanted.
 	Headers map[string]string `json:"headers,omitempty"`
+}
+
+// subscriptionProbeResult is the browser-safe refresh view. Provider bytes,
+// manifests, URIs, and credentials remain confined to the internal fetch
+// method used by the server's subscription:serve path.
+type subscriptionProbeResult struct {
+	SubscriptionID string `json:"subscription_id"`
+	Bytes          int    `json:"bytes"`
+	SourceVersion  string `json:"source_version,omitempty"`
+	Stale          bool   `json:"stale"`
+	OK             bool   `json:"ok"`
+	ErrorCode      string `json:"error_code,omitempty"`
 }
 
 // uaClassTargets maps the core's bounded client classification onto the engine's
@@ -122,11 +137,19 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// Reading the export here means such a subscription serves correctly the
 	// first time it is fetched rather than failing until something warms it.
 	if strings.TrimSpace(source) == "" && isVPNCoreSource(rec.Source) {
-		fetched, err := rt.fetchSubscription(subscriptionID)
-		if err != nil {
-			return renderResult{}, err
+		if rec.Source == subscriptionSourceVPNCoreGraph {
+			composed, err := rt.fetchVPNCoreGraph(rec)
+			if err != nil {
+				return renderResult{}, err
+			}
+			source = composed.Raw
+		} else {
+			fetched, err := rt.fetchSubscription(subscriptionID)
+			if err != nil {
+				return renderResult{}, err
+			}
+			source = fetched.Raw
 		}
-		source = fetched.Raw
 	}
 	if strings.TrimSpace(source) == "" {
 		// Saying so beats serving an empty subscription: a client that receives
@@ -251,6 +274,22 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "probe":
+		var req struct {
+			SubscriptionID string `json:"subscription_id"`
+		}
+		if err := decodeStrictVPNCoreGraphJSON(call.Payload, &req); err != nil || strings.TrimSpace(req.SubscriptionID) == "" {
+			return latticeplugin.ErrorResponse(errors.New("invalid probe payload"))
+		}
+		out, err := rt.fetchSubscription(req.SubscriptionID)
+		result := subscriptionProbeResult{SubscriptionID: req.SubscriptionID, Stale: false, OK: err == nil}
+		if err != nil {
+			result.ErrorCode = "source_unavailable"
+		} else {
+			result.Bytes = len(out.Raw)
+			result.SourceVersion = out.SourceVersion
+		}
+		return latticeplugin.RawResultResponse(mustJSON(result), "")
 	case "publish":
 		body, err := rt.handlePublishCall(call.Payload)
 		if err != nil {
@@ -410,6 +449,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		if strings.TrimSpace(rec.ID) == "" {
 			return latticeplugin.ErrorResponse(fmt.Errorf("subscription id is required"))
 		}
+		if rec.Source == subscriptionSourceVPNCoreGraph {
+			options, err := rt.fetchVPNCoreGraphOptions()
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			if err := validateVPNCoreGraphSelection(rec, options); err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+		}
 		// Origin records where a record came from during migration. A caller
 		// must not be able to forge it, so it is preserved from the stored
 		// record rather than taken from the request.
@@ -462,31 +510,115 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "graph_options":
+		if len(bytes.TrimSpace(call.Payload)) == 0 {
+			return latticeplugin.ErrorResponse(errors.New("graph_options requires an empty object"))
+		}
+		var request map[string]json.RawMessage
+		if err := decodeStrictVPNCoreGraphJSON(call.Payload, &request); err != nil || request == nil || len(request) != 0 {
+			return latticeplugin.ErrorResponse(errors.New("invalid graph_options payload"))
+		}
+		options, err := rt.fetchVPNCoreGraphOptions()
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		body, err := json.Marshal(options)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
 	case "preview":
 		var req struct {
 			SubscriptionID string            `json:"subscription_id"`
 			Raw            string            `json:"raw"`
 			Target         string            `json:"target"`
 			Operators      []json.RawMessage `json:"operators"`
+			GraphSelection json.RawMessage   `json:"graph_selection"`
 		}
 		if len(call.Payload) > 0 {
-			if err := json.Unmarshal(call.Payload, &req); err != nil {
+			if len(call.Payload) > model.MaxSubscriptionResponseBytes {
+				return latticeplugin.ErrorResponse(errors.New("preview payload exceeds bounds"))
+			}
+			if err := decodeStrictVPNCoreGraphJSON(call.Payload, &req); err != nil {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid preview payload: %w", err))
 			}
+		}
+		var graphSelection *vpnCoreGraphSelection
+		if len(req.GraphSelection) > 0 {
+			if bytes.Equal(bytes.TrimSpace(req.GraphSelection), []byte("null")) {
+				return latticeplugin.ErrorResponse(errors.New("graph_selection must be an object"))
+			}
+			var selection vpnCoreGraphSelection
+			if err := decodeStrictVPNCoreGraphJSON(req.GraphSelection, &selection); err != nil {
+				return latticeplugin.ErrorResponse(errors.New("invalid graph_selection payload"))
+			}
+			graphSelection = &selection
 		}
 		raw := req.Raw
 		operators := req.Operators
 		target := req.Target
-		if strings.TrimSpace(req.SubscriptionID) != "" {
-			rec, err := rt.getSubscription(req.SubscriptionID)
+		previewSourceVersion := ""
+		var selectedRecord *subscriptionRecord
+		if graphSelection != nil {
+			if strings.TrimSpace(req.Raw) != "" {
+				return latticeplugin.ErrorResponse(errors.New("graph preview does not accept caller raw content"))
+			}
+			if strings.TrimSpace(req.SubscriptionID) != "" {
+				rec, err := rt.getSubscription(req.SubscriptionID)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				if rec.Source != subscriptionSourceVPNCoreGraph {
+					return latticeplugin.ErrorResponse(errors.New("graph selection is only valid for vpn-core-graph records"))
+				}
+				selectedRecord = &rec
+				if operators == nil {
+					operators = rec.Operators
+				}
+				if strings.TrimSpace(target) == "" {
+					target = rec.Target
+				}
+			}
+			composed, err := rt.previewVPNCoreGraph(*graphSelection)
 			if err != nil {
 				return latticeplugin.ErrorResponse(err)
+			}
+			raw, err = redactVPNCoreGraphPreviewEntries(composed.Entries, graphSelection.EntryRoots)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			previewSourceVersion = composed.SourceVersion
+		}
+		if strings.TrimSpace(req.SubscriptionID) != "" {
+			var rec subscriptionRecord
+			if selectedRecord != nil {
+				rec = *selectedRecord
+			} else {
+				var err error
+				rec, err = rt.getSubscription(req.SubscriptionID)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
 			}
 			// A file's content is a document, not a node list. Parsing it as
 			// nodes would show the example proxies its template ships with and
 			// call them the result, which is worse than showing nothing.
 			if recordKind(rec) == kindFile {
 				return previewFileResponse(rt, rec)
+			}
+			if operators == nil {
+				operators = rec.Operators
+			}
+			if strings.TrimSpace(target) == "" {
+				target = rec.Target
+			}
+			if rec.Source == subscriptionSourceVPNCore {
+				if err := validateOperators(operators); err != nil {
+					return latticeplugin.ErrorResponse(errors.New("legacy vpn-core preview operators are invalid"))
+				}
+				if containsScriptingOperator(operators) {
+					return latticeplugin.ErrorResponse(errors.New("legacy vpn-core preview does not allow scripting operators"))
+				}
 			}
 			if strings.TrimSpace(raw) == "" {
 				raw = rec.Content
@@ -500,28 +632,28 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 					}
 					raw = fetched.Raw
 				}
-				if operators == nil {
-					operators = rec.Operators
-				}
-				if strings.TrimSpace(target) == "" {
-					target = rec.Target
-				}
 			}
 			// A stored graph source is authoritative. Caller-supplied preview bytes
 			// must never replace the exact composition bound to its identity and
 			// ordered roots.
-			if rec.Source == subscriptionSourceVPNCoreGraph {
-				fetched, err := rt.fetchSubscription(req.SubscriptionID)
+			if rec.Source == subscriptionSourceVPNCoreGraph && graphSelection == nil {
+				composed, err := rt.fetchVPNCoreGraph(rec)
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}
-				raw = fetched.Raw
+				raw, err = redactVPNCoreGraphPreviewEntries(composed.Entries, rec.EntryRoots)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				previewSourceVersion = composed.SourceVersion
 			}
 		}
 		out, err := rt.previewSubscription(raw, operators, target)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
+		out.SourceVersion = previewSourceVersion
+		out.Stale = false
 		body, err := json.Marshal(out)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)

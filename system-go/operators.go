@@ -118,3 +118,15 @@ func validateOperators(operators []json.RawMessage) error {
 	}
 	return nil
 }
+
+func containsScriptingOperator(operators []json.RawMessage) bool {
+	for _, raw := range operators {
+		var operator struct {
+			Type string `json:"type"`
+		}
+		if json.Unmarshal(raw, &operator) == nil && scriptingOperators[operator.Type] {
+			return true
+		}
+	}
+	return false
+}

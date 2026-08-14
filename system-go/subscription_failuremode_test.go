@@ -42,14 +42,14 @@ func TestCollectionNeverSkipsFailedGraphMembers(t *testing.T) {
 			if err := rt.saveSubscription(subscriptionRecord{ID: "legacy", Source: subscriptionSourceVPNCore}); err != nil {
 				t.Fatal(err)
 			}
-			if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}}); err != nil {
+			if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}); err != nil {
 				t.Fatal(err)
 			}
 		},
 		"two graph members": func(rt *runtime, host *vpnCoreGraphHost) {
 			host.graphResponses = []json.RawMessage{canonicalGraphResponse(t, []string{graphRootA}), failure}
 			for _, pair := range []struct{ id, root string }{{"graph-a", graphRootA}, {"graph-b", graphRootB}} {
-				if err := rt.saveSubscription(subscriptionRecord{ID: pair.id, Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{pair.root}}); err != nil {
+				if err := rt.saveSubscription(subscriptionRecord{ID: pair.id, Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{pair.root}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -78,7 +78,7 @@ func TestScriptArtifactCollectionNeverSkipsFailedGraphMembers(t *testing.T) {
 	host := &vpnCoreGraphHost{kvHostCaller: newKVHostCaller(), response: failure}
 	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedSub(t, rt, "good", nil, realNodeA)
-	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}}); err != nil {
+	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "collection", Kind: kindCollection, Members: []string{"good", "graph"}, FailureMode: failureModeSkip}); err != nil {

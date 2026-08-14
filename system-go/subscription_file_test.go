@@ -170,10 +170,7 @@ rules:
 	}
 }
 
-// The node-list preview would parse a config template and report the example
-// proxies it ships with as the result. For a file the honest preview is the
-// document a client would actually receive.
-func TestPreviewOfAFileReturnsTheDocument(t *testing.T) {
+func TestPreviewOfAFileWithNodeSourceFailsClosed(t *testing.T) {
 	rt, _ := newVPNCoreRuntime(t)
 	seedSub(t, rt, "nodes", nil, realNodeA)
 	if err := rt.saveSubscription(subscriptionRecord{
@@ -184,15 +181,21 @@ func TestPreviewOfAFileReturnsTheDocument(t *testing.T) {
 	}
 
 	res := callSubscription(t, rt, "preview", map[string]any{"subscription_id": "clash"})
+	if res.OK || res.Error != "file preview does not expose node-source content" || len(res.Result) != 0 {
+		t.Fatalf("node-source file preview did not fail closed: %+v", res)
+	}
+}
+
+func TestPreviewOfSelfContainedFileReturnsDocument(t *testing.T) {
+	rt, _ := newKVRuntime(t)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "rules", Kind: kindFile, Name: "Rules", Content: "rules:\n  - MATCH,DIRECT\n"}); err != nil {
+		t.Fatal(err)
+	}
+	res := callSubscription(t, rt, "preview", map[string]any{"subscription_id": "rules"})
 	var out previewResult
 	decodeResult(t, res, &out)
-	if !strings.Contains(out.Document, "mixed-port") || !strings.Contains(out.Document, "node-a") {
-		t.Fatalf("preview did not return the rendered document:\n%s", out.Document)
-	}
-	// Reporting the template's example proxy as a node would be the exact
-	// misreading this branch exists to prevent.
-	if len(out.Nodes) != 0 {
-		t.Fatalf("a file preview returned a node list: %+v", out.Nodes)
+	if !strings.Contains(out.Document, "MATCH,DIRECT") || len(out.Nodes) != 0 {
+		t.Fatalf("self-contained preview=%+v", out)
 	}
 }
 

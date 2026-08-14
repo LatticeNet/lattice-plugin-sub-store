@@ -13,6 +13,7 @@ import {
   LoaderCircle,
   Pencil,
   Plus,
+  Send,
   RefreshCw,
   Server,
   Trash2,
@@ -29,12 +30,14 @@ import {
   SOURCE_LOCAL,
   SOURCE_REMOTE,
   SOURCE_VPN_CORE,
+  SOURCE_VPN_CORE_GRAPH,
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
 import {
   draftFromRecord,
   emptyDraft,
+  reconcileGraphDraftOptions,
   useSubscriptions,
   validateDraft,
   type SubscriptionDraft,
@@ -49,6 +52,9 @@ import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 import CommonSettingsBlock from "../components/CommonSettings.vue";
 import MemberPicker from "../components/MemberPicker.vue";
+import GraphSubscriptionEditor from "../components/GraphSubscriptionEditor.vue";
+import SubscriptionPreviewSummary from "../components/SubscriptionPreviewSummary.vue";
+import SubscriptionPublishControl from "../components/SubscriptionPublishControl";
 
 /** Types the common-settings block owns; the chain list hides them. */
 const MANAGED_TYPES = ["Quick Setting Operator", "Useless Filter"] as const;
@@ -67,6 +73,10 @@ const memberTagText = ref("");
 const tagFilter = ref("");
 const showSubs = ref(true);
 const showCollections = ref(true);
+const publishingId = ref<string | null>(null);
+const publishDestination = ref("");
+const publishMethod = ref("PUT");
+const publishFormat = ref("plain");
 
 const isCollection = computed(() => draft.value.kind === KIND_COLLECTION);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
@@ -124,6 +134,12 @@ const SOURCES = [
     icon: Server,
   },
   {
+    id: SOURCE_VPN_CORE_GRAPH,
+    title: "A converged path",
+    detail: "Composes selected applied line-chain roots in the exact order shown.",
+    icon: Layers,
+  },
+  {
     id: SOURCE_REMOTE,
     title: "A provider link",
     detail: "Fetches an external subscription URL and re-serves it through this pipeline.",
@@ -163,7 +179,53 @@ async function startEdit(id: string): Promise<void> {
   memberTagText.value = draft.value.memberTags.join(", ");
   editingId.value = id;
   editing.value = true;
+  if (draft.value.source === SOURCE_VPN_CORE_GRAPH) await loadGraphOptionsForDraft(false);
   await host.resize();
+}
+
+async function selectSource(source: string): Promise<void> {
+  draft.value.source = source;
+  subs.preview.value = null;
+  if (source === SOURCE_VPN_CORE_GRAPH) await reloadGraphOptions();
+}
+
+async function reloadGraphOptions(): Promise<void> {
+  await loadGraphOptionsForDraft(true);
+}
+
+async function loadGraphOptionsForDraft(adopt: boolean): Promise<void> {
+  const loaded = await subs.loadGraphOptions();
+  if (!loaded || !subs.graphOptions.value) {
+    draft.value.optionsVersion = "";
+    return;
+  }
+  const options = subs.graphOptions.value;
+  const result = reconcileGraphDraftOptions(draft.value, options, adopt);
+  if (!adopt) {
+    if (result.stale) {
+      subs.actionError.value = "Graph options changed. Reload and review the identity and roots before saving.";
+    }
+    return;
+  }
+}
+
+function addGraphRoot(root: string): void {
+  if (!draft.value.entryRoots.includes(root)) draft.value.entryRoots.push(root);
+}
+
+function removeGraphRoot(index: number): void {
+  draft.value.entryRoots.splice(index, 1);
+}
+
+function moveGraphRoot(index: number, offset: number): void {
+  const next = index + offset;
+  if (next < 0 || next >= draft.value.entryRoots.length) return;
+  const [root] = draft.value.entryRoots.splice(index, 1);
+  draft.value.entryRoots.splice(next, 0, root);
+}
+
+function setGraphIdentity(identity: string): void {
+  draft.value.vpnIdentity = identity;
 }
 
 function cancelEdit(): void {
@@ -198,6 +260,12 @@ async function confirmDelete(id: string): Promise<void> {
   if (ok) confirmingDelete.value = null;
 }
 
+async function publishSaved(id: string, destination = publishDestination.value, method = publishMethod.value, format = publishFormat.value): Promise<void> {
+  if (await subs.publish(id, destination, method, format)) {
+    publishingId.value = null;
+  }
+}
+
 function describe(item: SubscriptionListItem): string {
   if ((item.kind || KIND_SUB) === KIND_COLLECTION) {
     const byId = item.members?.length ?? 0;
@@ -208,6 +276,7 @@ function describe(item: SubscriptionListItem): string {
     return parts.length ? `Combines ${parts.join(" + ")}` : "Combines nothing yet";
   }
   if (item.source === SOURCE_VPN_CORE) return "This fleet's nodes";
+  if (item.source === SOURCE_VPN_CORE_GRAPH) return "Converged graph path";
   if (item.source === SOURCE_LOCAL) return "Pasted nodes";
   return item.has_url ? "Provider link" : "Pasted nodes";
 }
@@ -230,6 +299,16 @@ onMounted(() => {
 
 watch(host.init, (value) => {
   if (value) void loadAll();
+});
+
+watch(() => draft.value.vpnIdentity, (identity, previous) => {
+  if (draft.value.source !== SOURCE_VPN_CORE_GRAPH || identity === previous || !subs.graphOptions.value) return;
+  const allowed = new Set(subs.graphOptions.value.roots.filter((root) => root.selectable && root.eligible_identity_ids.includes(identity)).map((root) => root.line_uuid));
+  const before = draft.value.entryRoots.length;
+  draft.value.entryRoots = draft.value.entryRoots.filter((root) => allowed.has(root));
+  if (before !== draft.value.entryRoots.length) {
+    subs.actionError.value = "Some selected roots were removed because they are not eligible for this identity.";
+  }
 });
 </script>
 
@@ -313,7 +392,7 @@ watch(host.init, (value) => {
               :key="option.id"
               type="button"
               :class="['source', { 'is-active': draft.source === option.id }]"
-              @click="draft.source = option.id"
+              @click="selectSource(option.id)"
             >
               <component :is="option.icon" :size="17" aria-hidden="true" />
               <span class="source-title">{{ option.title }}</span>
@@ -336,6 +415,19 @@ watch(host.init, (value) => {
             theirs — useful when one share is meant for one person.
           </span>
         </label>
+
+        <GraphSubscriptionEditor
+          v-if="!isCollection && draft.source === SOURCE_VPN_CORE_GRAPH"
+          :draft="draft"
+          :options="subs.graphOptions.value"
+          :loading="subs.graphOptionsLoading.value"
+          :read-only="!subs.canMutate.value"
+          @reload="reloadGraphOptions"
+          @identity="setGraphIdentity"
+          @add="addGraphRoot"
+          @remove="removeGraphRoot"
+          @move="moveGraphRoot"
+        />
 
         <template v-if="!isCollection && draft.source === SOURCE_REMOTE">
           <label class="field field-wide">
@@ -477,28 +569,14 @@ watch(host.init, (value) => {
             Preview
           </button>
           <button class="button button-secondary" type="button" @click="cancelEdit">Cancel</button>
-          <button class="button button-primary" type="submit" :disabled="!canSave">
+          <button class="button button-primary" type="submit" :disabled="!canSave || !subs.canMutate.value">
             <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
             Save
           </button>
         </div>
       </form>
 
-      <div v-if="subs.preview.value" class="preview-summary">
-        <p class="mono">
-          {{ subs.preview.value.count }} node(s)<span v-if="subs.preview.value.truncated"> — truncated</span>
-        </p>
-        <ul class="sub-list">
-          <li
-            v-for="(node, index) in subs.preview.value.nodes"
-            :key="`${node.name}-${index}`"
-            class="sub-card"
-          >
-            <span class="sub-title">{{ node.name }}</span>
-            <span class="sub-meta mono">{{ node.type }}</span>
-          </li>
-        </ul>
-      </div>
+      <SubscriptionPreviewSummary v-if="subs.preview.value" :preview="subs.preview.value" />
     </section>
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
@@ -604,6 +682,15 @@ watch(host.init, (value) => {
                 <button
                   class="icon-button"
                   type="button"
+                  :disabled="!subs.canPublish.value || !subs.canMutate.value || subs.busyId.value === item.id"
+                  :aria-label="`Publish ${item.name}`"
+                  @click="publishingId = publishingId === item.id ? null : item.id"
+                >
+                  <Send :size="16" aria-hidden="true" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
                   :disabled="!subs.canFetch.value || subs.busyId.value === item.id"
                   :aria-label="`Refresh ${item.name}`"
                   @click="subs.refresh(item.id)"
@@ -640,6 +727,8 @@ watch(host.init, (value) => {
                 </button>
               </div>
             </div>
+
+            <SubscriptionPublishControl v-if="publishingId === item.id" :saved="true" :read-only="!subs.canMutate.value" :busy="subs.busyId.value === item.id" :error="subs.actionError.value" @publish="(destination, method, format) => publishSaved(item.id, destination, method, format)" />
 
             <div v-if="confirmingDelete === item.id" class="alert" role="alert">
               <span>
