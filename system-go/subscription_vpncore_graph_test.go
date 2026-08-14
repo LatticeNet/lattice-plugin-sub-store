@@ -796,6 +796,119 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 	}
 }
 
+func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
+	roots := []string{graphRootA, graphRootB}
+	composeResponse := canonicalGraphResponseForIdentity(t, "identity-a", roots)
+	rt, host := newVPNCoreGraphRuntime(t, composeResponse)
+	host.optionsResponse = canonicalGraphOptionsResponse(t)
+	enabled := step(t, map[string]any{
+		"type": "Regex Filter",
+		"args": map[string]any{"regex": []string{"entry-1"}, "keep": true},
+	})
+	disabled := step(t, map[string]any{
+		"type":     "Regex Filter",
+		"disabled": true,
+		"args":     map[string]any{"regex": []string{"does-not-match"}, "keep": true},
+	})
+	legacy := step(t, map[string]any{
+		"type": "Regex Filter",
+		"args": map[string]any{"regex": []string{"entry-2"}, "keep": true},
+	})
+	record := subscriptionRecord{
+		ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: roots,
+		GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI",
+		Process: []json.RawMessage{enabled, disabled}, Operators: []json.RawMessage{legacy},
+	}
+	if err := rt.saveSubscription(record); err != nil {
+		t.Fatal(err)
+	}
+	stored, err := rt.getSubscription("graph")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(stored.Process, record.Process) || len(stored.Operators) != 0 {
+		t.Fatalf("stored process was not canonical: process=%s operators=%s", stored.Process, stored.Operators)
+	}
+
+	selection := vpnCoreGraphSelection{
+		SchemaVersion: 1, OptionsVersion: record.GraphOptionsVersion, IdentityID: record.VPNIdentity, EntryRoots: roots,
+	}
+	for _, test := range []struct {
+		name    string
+		payload map[string]any
+	}{
+		{name: "subscription id", payload: map[string]any{"subscription_id": "graph"}},
+		{name: "selected record", payload: map[string]any{"subscription_id": "graph", "graph_selection": selection}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(test.payload)})
+			encoded, err := json.Marshal(response)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, canary := range []string{graphCredentialA, graphCredentialB, "vless://", "PRIVATE KEY"} {
+				if strings.Contains(string(encoded), canary) {
+					t.Fatalf("stored preview leaked %q: %s", canary, encoded)
+				}
+			}
+			if !response.OK {
+				t.Fatalf("stored preview failed: %+v", response)
+			}
+			var summary previewResult
+			if err := json.Unmarshal(response.Result, &summary); err != nil {
+				t.Fatal(err)
+			}
+			if summary.SourceNodeCount != 2 || summary.NodeCount != 1 || len(summary.Nodes) != 1 || summary.Nodes[0].Name != "entry-1" {
+				t.Fatalf("stored process did not filter the authoritative composition: %+v", summary)
+			}
+			if summary.SourceVersion == "" || summary.Stale {
+				t.Fatalf("stored preview lost composition authority: %+v", summary)
+			}
+		})
+	}
+	if len(host.calls) != 3 || host.calls[0]["method"] != "compose" || host.calls[1]["method"] != "graph_options" || host.calls[2]["method"] != "compose" {
+		t.Fatalf("stored preview host calls=%+v", host.calls)
+	}
+}
+
+func TestVPNCoreGraphStoredPreviewPropagatesCanonicalProcessErrors(t *testing.T) {
+	record := subscriptionRecord{
+		ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: []string{graphRootA},
+		GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Process: []json.RawMessage{json.RawMessage(`42`)},
+	}
+	selection := vpnCoreGraphSelection{
+		SchemaVersion: 1, OptionsVersion: record.GraphOptionsVersion, IdentityID: record.VPNIdentity, EntryRoots: record.EntryRoots,
+	}
+	for _, test := range []struct {
+		name    string
+		payload map[string]any
+	}{
+		{name: "subscription id", payload: map[string]any{"subscription_id": "graph"}},
+		{name: "selected record", payload: map[string]any{"subscription_id": "graph", "graph_selection": selection}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponseForIdentity(t, record.VPNIdentity, record.EntryRoots))
+			host.optionsResponse = canonicalGraphOptionsResponse(t)
+			if err := rt.saveSubscriptionRecords(subscriptionRecordsDocument{Version: 1, Records: []subscriptionRecord{record}}); err != nil {
+				t.Fatal(err)
+			}
+			response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(test.payload)})
+			if response.OK || !strings.Contains(response.Error, "process step 1") || len(host.calls) != 0 {
+				t.Fatalf("stored process error was not bounded before composition: response=%+v calls=%+v", response, host.calls)
+			}
+			encoded, err := json.Marshal(response)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, canary := range []string{graphCredentialA, "vless://", "PRIVATE KEY"} {
+				if strings.Contains(string(encoded), canary) {
+					t.Fatalf("stored process error leaked %q: %s", canary, encoded)
+				}
+			}
+		})
+	}
+}
+
 func TestVPNCoreGraphPreviewRejectsCallerRawAsAuthority(t *testing.T) {
 	rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponse(t, []string{graphRootA}))
 	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI"}); err != nil {

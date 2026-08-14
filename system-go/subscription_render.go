@@ -573,7 +573,11 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				}
 				selectedRecord = &rec
 				if operators == nil {
-					operators = rec.Operators
+					storedOperators, err := enabledOperators(rec)
+					if err != nil {
+						return latticeplugin.ErrorResponse(err)
+					}
+					operators = storedOperators
 				}
 				if strings.TrimSpace(target) == "" {
 					target = rec.Target
@@ -607,7 +611,11 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return previewFileResponse(rt, rec)
 			}
 			if operators == nil {
-				operators = rec.Operators
+				storedOperators, err := enabledOperators(rec)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				operators = storedOperators
 			}
 			if strings.TrimSpace(target) == "" {
 				target = rec.Target
