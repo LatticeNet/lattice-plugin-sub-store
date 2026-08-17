@@ -171,7 +171,7 @@ func orEmptyStringMap(in map[string]string) map[string]string {
 	return in
 }
 
-func (engine subStoreEngine) runFileScript(req fileScriptRequest) (fileScriptResult, error) {
+func (engine *subStoreEngine) runFileScript(req fileScriptRequest) (fileScriptResult, error) {
 	if strings.TrimSpace(req.Script) == "" {
 		return fileScriptResult{}, fmt.Errorf("the file has no script")
 	}
@@ -179,7 +179,8 @@ func (engine subStoreEngine) runFileScript(req fileScriptRequest) (fileScriptRes
 	if err != nil {
 		return fileScriptResult{}, err
 	}
-	out, err := engine.runCoreScript("file script", "file-script.js", source)
+	// A script file is user JavaScript; it never touches the warm runtime.
+	out, err := engine.runIsolatedScript("file script", "file-script.js", source)
 	if err != nil {
 		return fileScriptResult{}, err
 	}

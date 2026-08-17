@@ -67,7 +67,7 @@ func newKVRuntime(t *testing.T) (*runtime, *kvHostCaller) {
 func testEngineWithHeadroom() *subStoreEngine {
 	engine := newEmbeddedSubStoreEngine()
 	engine.limits.Timeout = 2 * time.Minute
-	return &engine
+	return engine
 }
 
 func TestSubscriptionRecordRoundTrip(t *testing.T) {

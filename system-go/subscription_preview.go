@@ -69,7 +69,13 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 		target = "URI"
 	}
 
-	out, err := rt.subStoreEngine().runCoreScript("preview", "preview.js", previewScript(raw, operators, target))
+	engine := rt.subStoreEngine()
+	run := engine.runCoreScript
+	if containsScriptingOperator(operators) {
+		// User JavaScript never touches the warm runtime.
+		run = engine.runIsolatedScript
+	}
+	out, err := run("preview", "preview.js", previewScript(raw, operators, target))
 	if err != nil {
 		return previewResult{}, err
 	}

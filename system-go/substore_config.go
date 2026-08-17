@@ -144,7 +144,7 @@ func subStoreConfigMergeScript(req subStoreConfigMergeRequest) (string, error) {
 })()`, template, raw, operators), nil
 }
 
-func (engine subStoreEngine) mergeConfig(req subStoreConfigMergeRequest) (subStoreConfigMergeResult, error) {
+func (engine *subStoreEngine) mergeConfig(req subStoreConfigMergeRequest) (subStoreConfigMergeResult, error) {
 	if strings.TrimSpace(req.Template) == "" {
 		return subStoreConfigMergeResult{}, fmt.Errorf("the configuration template is empty")
 	}
@@ -152,7 +152,12 @@ func (engine subStoreEngine) mergeConfig(req subStoreConfigMergeRequest) (subSto
 	if err != nil {
 		return subStoreConfigMergeResult{}, err
 	}
-	out, err := engine.runCoreScript("config merge", "config-merge.js", script)
+	run := engine.runCoreScript
+	if containsScriptingOperator(req.Operators) {
+		// User JavaScript never touches the warm runtime.
+		run = engine.runIsolatedScript
+	}
+	out, err := run("config merge", "config-merge.js", script)
 	if err != nil {
 		return subStoreConfigMergeResult{}, err
 	}

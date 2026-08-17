@@ -60,7 +60,7 @@ func TestInvocationHandlerServesTwoCorrelatedV2CallsWithoutHostLeakage(t *testin
 	host := latticeplugin.NewHostClient(latticeplugin.HostClientOptions{Output: outWriter, Responses: hostReader})
 	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{In: inReader, Out: outWriter, Host: host})
 	engine := newTestEmbeddedSubStoreEngine()
-	base := &runtime{engine: &engine}
+	base := &runtime{engine: engine}
 	production := invocationHandler(base)
 	var capturedMu sync.Mutex
 	var captured []*latticeplugin.HostClient
@@ -348,7 +348,7 @@ func TestPipelineRecordsRunSavedPipelineWithoutStoringRaw(t *testing.T) {
 	}}}
 	host := &fakeHostCaller{responses: []json.RawMessage{kvDocumentResponse(t, doc)}}
 	engine := newTestEmbeddedSubStoreEngine()
-	rt := &runtime{host: host, engine: &engine}
+	rt := &runtime{host: host, engine: engine}
 	payload := mustJSON(callPayload{
 		Service: pluginID + "/engine",
 		Method:  "run_pipeline",

@@ -75,19 +75,17 @@ globalThis.SubStoreProxyUtils = {
 	}
 }
 
-func TestSubStoreEngineUsesFreshRuntimePerConversion(t *testing.T) {
-	engine := newSubStoreEngine(`
-globalThis.SubStoreProxyUtils = {
-  parse() {
-    globalThis.__calls = (globalThis.__calls || 0) + 1;
-    return [{ name: "node" }];
-  },
-  produce() {
-    return String(globalThis.__calls);
-  }
-};
-`)
-
+// The engine's isolation contract is per-path, not per-call. Scriptless
+// conversions deliberately share the warm runtime — that reuse is what
+// removed the ~13.5 s per-invocation boot — so core-held state persists
+// across them. Anything carrying user JavaScript still gets a fresh runtime
+// every time, so nothing user-written can read or poison state a later call
+// would inherit.
+func TestSubStoreEngineIsolatesUserScriptRunsNotWarmOnes(t *testing.T) {
+	engine := newSubStoreEngine(statefulTestCore)
+	if err := engine.prewarm(); err != nil {
+		t.Fatalf("prewarm: %v", err)
+	}
 	first, err := engine.convert(subStoreConversionRequest{Raw: "ss://one", Target: "Clash"})
 	if err != nil {
 		t.Fatal(err)
@@ -96,8 +94,26 @@ globalThis.SubStoreProxyUtils = {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if first.Output != "1" || second.Output != "1" {
-		t.Fatalf("runtime state leaked across conversions: first=%q second=%q", first.Output, second.Output)
+	if first.Output != "1" || second.Output != "2" {
+		t.Fatalf("warm conversions did not share the runtime: first=%q second=%q", first.Output, second.Output)
+	}
+
+	// A scripting chain must see a fresh runtime with none of that state.
+	scriptOp := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
+	isolated, err := engine.convert(subStoreConversionRequest{Raw: "ss://three", Target: "Clash", Operators: []json.RawMessage{scriptOp}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if isolated.Output != "1" {
+		t.Fatalf("user-script run inherited warm state: output=%q, want fresh count 1", isolated.Output)
+	}
+	// And it must not have poisoned the warm runtime either.
+	third, err := engine.convert(subStoreConversionRequest{Raw: "ss://four", Target: "Clash"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if third.Output != "3" {
+		t.Fatalf("warm runtime state disturbed by isolated run: output=%q, want 3", third.Output)
 	}
 }
 
@@ -341,7 +357,7 @@ func TestEmbeddedSubStoreCoreAppliesResponseTransformerPipeline(t *testing.T) {
 func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 	host := &fakeHostCaller{}
 	engine := newTestEmbeddedSubStoreEngine()
-	rt := &runtime{host: host, engine: &engine}
+	rt := &runtime{host: host, engine: engine}
 	payload, err := json.Marshal(callPayload{
 		Service: pluginID + "/engine",
 		Method:  "convert",
@@ -373,7 +389,7 @@ func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
 func TestSubStoreEngineResponseTransformCallDoesNotUseHost(t *testing.T) {
 	host := &fakeHostCaller{}
 	engine := newTestEmbeddedSubStoreEngine()
-	rt := &runtime{host: host, engine: &engine}
+	rt := &runtime{host: host, engine: engine}
 	payload, err := json.Marshal(callPayload{
 		Service: pluginID + "/engine",
 		Method:  "transform_response",
@@ -408,7 +424,7 @@ func TestSubStoreEngineResponseTransformCallDoesNotUseHost(t *testing.T) {
 	}
 }
 
-func newTestEmbeddedSubStoreEngine() subStoreEngine {
+func newTestEmbeddedSubStoreEngine() *subStoreEngine {
 	engine := newEmbeddedSubStoreEngine()
 	engine.limits.Timeout = 30 * time.Second
 	return engine

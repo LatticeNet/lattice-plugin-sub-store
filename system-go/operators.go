@@ -124,7 +124,9 @@ func containsScriptingOperator(operators []json.RawMessage) bool {
 		var operator struct {
 			Type string `json:"type"`
 		}
-		if json.Unmarshal(raw, &operator) == nil && scriptingOperators[operator.Type] {
+		// Trim exactly as validateOperators does, so classification can never
+		// disagree with validation about whether a chain carries user script.
+		if json.Unmarshal(raw, &operator) == nil && scriptingOperators[strings.TrimSpace(operator.Type)] {
 			return true
 		}
 	}

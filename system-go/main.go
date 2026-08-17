@@ -34,7 +34,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.13.0-alpha.1"
+	pluginVersion        = "0.13.0-alpha.2"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
 	maxExportBytes       = 1 << 20
@@ -122,7 +122,12 @@ func servePluginV2(ctx context.Context, in io.Reader, out io.Writer, getenv func
 		return err
 	}
 	engine := newEmbeddedSubStoreEngine()
-	base := &runtime{engine: &engine}
+	// Warm the engine in the background: readiness never waits for it. A
+	// scriptless call that arrives mid-warm-up waits for the one shared boot
+	// (the pool pre-starts workers, so in practice warm-up finishes long
+	// before traffic); after it, every scriptless call answers warm.
+	go func() { _ = engine.prewarm() }()
+	base := &runtime{engine: engine}
 	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{
 		In:              in,
 		Out:             out,
@@ -299,9 +304,9 @@ func (rt *runtime) handleEngineCall(call callPayload) response {
 	}
 }
 
-func (rt *runtime) subStoreEngine() subStoreEngine {
+func (rt *runtime) subStoreEngine() *subStoreEngine {
 	if rt != nil && rt.engine != nil {
-		return *rt.engine
+		return rt.engine
 	}
 	return newEmbeddedSubStoreEngine()
 }
