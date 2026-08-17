@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 const (
@@ -139,6 +140,18 @@ type subscriptionRecord struct {
 	// Origin is set on an imported record and holds the source object verbatim,
 	// so a migration cannot lose a field this plugin does not yet understand.
 	Origin *migratedOrigin `json:"origin,omitempty"`
+	// ── fetch bookkeeping ───────────────────────────────────────────────────
+	// Written by the fetch path and preserved across edits (an edit replaces the
+	// record wholesale, so without preservation every save would claim a fetched
+	// record was never refreshed). LastFetchAt is RFC3339, LastFetchOK says how
+	// that fetch went, LastError is the trimmed reason when it failed, and
+	// Userinfo is the provider's subscription-userinfo header verbatim — the
+	// traffic figures a client shows as remaining quota. All four are absent on
+	// records written before this existed, which reads as "never fetched".
+	LastFetchAt string `json:"last_fetch_at,omitempty"`
+	LastFetchOK bool   `json:"last_fetch_ok,omitempty"`
+	LastError   string `json:"last_error,omitempty"`
+	Userinfo    string `json:"userinfo,omitempty"`
 }
 
 func (rt *runtime) loadSubscriptionRecords() (subscriptionRecordsDocument, error) {
@@ -174,16 +187,18 @@ func (rt *runtime) saveSubscriptionRecords(doc subscriptionRecordsDocument) erro
 	return rt.kvPut(subscriptionRecordsKey, raw)
 }
 
-// saveSubscription inserts or replaces one definition.
-func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
+// normalizeSubscriptionForStore validates one record and returns its stored
+// shape, plus the program lifted out of a script file ("" for everything
+// else). Pure: no reads, no writes — so the batch import path can normalize N
+// records and pay one document write for all of them.
+func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, string, error) {
 	if strings.TrimSpace(rec.ID) == "" {
-		return fmt.Errorf("subscription id is required")
+		return rec, "", fmt.Errorf("subscription id is required")
 	}
 	if len(rec.Content) > maxSubscriptionInlineBytes {
-		return fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
+		return rec, "", fmt.Errorf("subscription %q inline content is too large: %d bytes, limit %d", rec.ID, len(rec.Content), maxSubscriptionInlineBytes)
 	}
 	script := ""
-	splitScript := false
 	// Records written before collections existed spell the chain `operators`.
 	// Normalise on the way in so exactly one field is authoritative in storage.
 	if len(rec.Process) == 0 && len(rec.Operators) > 0 {
@@ -191,7 +206,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	}
 	rec.Operators = nil
 	if err := validateProcess(rec.Process); err != nil {
-		return fmt.Errorf("subscription %q: %w", rec.ID, err)
+		return rec, "", fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
 	switch recordKind(rec) {
 	case kindFile:
@@ -199,7 +214,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		// the vpn-core identity belong to other kinds; storing them would leave
 		// two answers to "where does this get its content".
 		if strings.TrimSpace(rec.URL) == "" && strings.TrimSpace(rec.Content) == "" {
-			return fmt.Errorf("file %q needs a template: a URL to fetch, or content", rec.ID)
+			return rec, "", fmt.Errorf("file %q needs a template: a URL to fetch, or content", rec.ID)
 		}
 		rec.Kind = kindFile
 		rec.Members, rec.MemberTags = nil, nil
@@ -218,7 +233,6 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 			// that would read as "this file has nothing in it".
 			script = rec.Content
 			rec.Content = ""
-			splitScript = true
 		default:
 			rec.QueryParams, rec.Arguments = nil, nil
 		}
@@ -226,7 +240,7 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		// A collection with neither members nor tags gathers nothing, and would
 		// fail only when someone fetched its URL.
 		if len(rec.Members) == 0 && len(rec.MemberTags) == 0 {
-			return fmt.Errorf("collection %q must name at least one subscription or tag", rec.ID)
+			return rec, "", fmt.Errorf("collection %q must name at least one subscription or tag", rec.ID)
 		}
 		rec.Kind = kindCollection
 		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA, rec.GraphOptionsVersion = "", "", "", "", "", ""
@@ -244,10 +258,10 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 		rec.FileType, rec.NodeSource, rec.Download = "", "", false
 		if rec.Source == subscriptionSourceVPNCoreGraph {
 			if err := validateVPNCoreGraphConfig(rec.VPNIdentity, rec.EntryRoots); err != nil {
-				return fmt.Errorf("subscription %q: %w", rec.ID, err)
+				return rec, "", fmt.Errorf("subscription %q: %w", rec.ID, err)
 			}
 			if !validVPNCoreGraphOptionsVersion(rec.GraphOptionsVersion) {
-				return fmt.Errorf("subscription %q: graph options version is invalid", rec.ID)
+				return rec, "", fmt.Errorf("subscription %q: graph options version is invalid", rec.ID)
 			}
 			rec.URL, rec.Content, rec.UA = "", "", ""
 		} else {
@@ -258,30 +272,124 @@ func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1
 	}
+	return rec, script, nil
+}
+
+// mergeRecordIntoDoc inserts or replaces one record by id.
+func mergeRecordIntoDoc(doc *subscriptionRecordsDocument, rec subscriptionRecord) {
+	for i := range doc.Records {
+		if doc.Records[i].ID == rec.ID {
+			doc.Records[i] = rec
+			return
+		}
+	}
+	doc.Records = append(doc.Records, rec)
+}
+
+// saveSubscriptionInDoc merges one record into an already-loaded document and
+// persists it. The caller loads the document, so a dispatch that needs the
+// record's previous state — provenance, fetch bookkeeping — reads it from the
+// same copy instead of paying a second host round trip. The runner bills every
+// round trip against the signed host_calls budget, and the save path's
+// read-modify-readback used to cost up to seven for one record.
+//
+// The program is written before the document. If the document write then fails
+// the script is an orphan under a key nothing reads, which costs a bounded
+// amount of space; the other order would leave a saved script file whose
+// program is missing. The returned record carries its content again, so the
+// caller can answer with what was written without a read-back.
+func (rt *runtime) saveSubscriptionInDoc(doc *subscriptionRecordsDocument, rec subscriptionRecord, wasScript bool) (subscriptionRecord, error) {
+	nrec, script, err := normalizeSubscriptionForStore(rec)
+	if err != nil {
+		return rec, err
+	}
+	mergeRecordIntoDoc(doc, nrec)
+	if script != "" {
+		if err := rt.putFileScript(nrec.ID, script); err != nil {
+			return rec, err
+		}
+	}
+	if err := rt.saveSubscriptionRecords(*doc); err != nil {
+		return rec, err
+	}
+	// A record that used to be a script and is now anything else leaves its
+	// program key behind unless it is cleared here. The key is bounded, but the
+	// host serialises KV into the state file on every write, so an orphan taxes
+	// every unrelated write forever. Best effort: the record is already saved,
+	// and a missed clear is the leak this used to have, not a new failure.
+	if wasScript && script == "" {
+		_ = rt.clearFileScript(nrec.ID)
+	}
+	if script != "" {
+		nrec.Content = script
+	}
+	return nrec, nil
+}
+
+// saveSubscription inserts or replaces one definition.
+func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
 	doc, err := rt.loadSubscriptionRecords()
 	if err != nil {
 		return err
 	}
-	replaced := false
-	for i := range doc.Records {
-		if doc.Records[i].ID == rec.ID {
-			doc.Records[i] = rec
-			replaced = true
+	wasScript := false
+	for _, existing := range doc.Records {
+		if existing.ID == rec.ID {
+			wasScript = isScriptFile(existing)
 			break
 		}
 	}
-	if !replaced {
-		doc.Records = append(doc.Records, rec)
+	_, err = rt.saveSubscriptionInDoc(&doc, rec, wasScript)
+	return err
+}
+
+// saveSubscriptionBatch persists many definitions with ONE document write.
+//
+// The plugin-call budget charges every host round trip: a per-record save
+// costs a read and a write each, so importing twenty records (sixteen of them
+// script files, each with its own program key) blew the signed host_calls
+// budget and the import died mid-way with a 502. Here the document is loaded
+// once, every record is normalized and merged in memory, the program keys go
+// out together, and one document write finishes the batch.
+//
+// Records are normalized exactly once, inside. A record that fails validation
+// is reported in the skipped map and does not fail the batch; a store-level
+// failure (oversize document, KV error) fails it.
+func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (map[string]string, error) {
+	skipped := map[string]string{}
+	if len(recs) == 0 {
+		return skipped, nil
 	}
-	// The program is written first. If the record write then fails the script is
-	// an orphan under a key nothing reads, which costs a bounded amount of space;
-	// the other order would leave a saved script file whose program is missing.
-	if splitScript {
-		if err := rt.putFileScript(rec.ID, script); err != nil {
-			return err
+	doc, err := rt.loadSubscriptionRecords()
+	if err != nil {
+		return skipped, err
+	}
+	type program struct{ id, body string }
+	var programs []program
+	for _, rec := range recs {
+		nrec, script, err := normalizeSubscriptionForStore(rec)
+		if err != nil {
+			skipped[rec.ID] = err.Error()
+			continue
+		}
+		mergeRecordIntoDoc(&doc, nrec)
+		if script != "" {
+			programs = append(programs, program{nrec.ID, script})
 		}
 	}
-	return rt.saveSubscriptionRecords(doc)
+	// Reject before spending any program write: an oversize merge fails the
+	// document write below regardless, and paying 2+N host calls first would
+	// blow the import budget on a batch that cannot land, leaving N orphan
+	// program keys behind the exact 502 this path exists to prevent.
+	if len(doc.Records) > maxSubscriptionRecords {
+		return skipped, fmt.Errorf("too many subscriptions: %d, limit %d", len(doc.Records), maxSubscriptionRecords)
+	}
+	for _, p := range programs {
+		if err := rt.putFileScript(p.id, p.body); err != nil {
+			return skipped, err
+		}
+	}
+	return skipped, rt.saveSubscriptionRecords(doc)
 }
 
 func (rt *runtime) getSubscription(id string) (subscriptionRecord, error) {
@@ -324,9 +432,11 @@ func (rt *runtime) deleteSubscription(id string) error {
 	}
 	kept := doc.Records[:0]
 	found := false
+	wasScript := false
 	for _, rec := range doc.Records {
 		if rec.ID == id {
 			found = true
+			wasScript = isScriptFile(rec)
 			continue
 		}
 		kept = append(kept, rec)
@@ -338,9 +448,64 @@ func (rt *runtime) deleteSubscription(id string) error {
 	if err := rt.saveSubscriptionRecords(doc); err != nil {
 		return err
 	}
-	// Best effort: the record is already gone, so failing here would report a
-	// deletion that did happen as an error. The cost of the miss is one empty
-	// key.
-	_ = rt.clearFileScript(id)
+	// Only a script file has a program key to clear. Clearing unconditionally
+	// billed every delete a third host round trip against a budget sized for
+	// two, so deleting a plain subscription 502'd in production. Best effort:
+	// the record is already gone, so failing here would report a deletion that
+	// did happen as an error; the cost of the miss is one empty key.
+	if wasScript {
+		_ = rt.clearFileScript(id)
+	}
 	return nil
+}
+
+// maxFetchErrorBytes bounds the failure reason stored on a record. A provider
+// can answer with a whole error page, and the records document is rewritten in
+// full on every save — an unbounded reason would tax every unrelated write.
+const maxFetchErrorBytes = 240
+
+// noteFetchOutcome records when a fetch ran and how it went. It is called from
+// the fetch method — which the core invokes for every refresh, scheduled or
+// manual — and deliberately NOT from fetchSubscription itself: render and
+// preview fetch too, and a write per read would rewrite the records document
+// on every public request. A preview fetch is also not a refresh — recording
+// it would tell the operator the served snapshot is fresher than it is.
+//
+// A failed bookkeeping write is swallowed on purpose: the fetch's own result is
+// already being reported, and losing the note must not turn a good refresh into
+// an error.
+func (rt *runtime) noteFetchOutcome(subscriptionID string, fetchedAt time.Time, userinfo string, fetchErr error) {
+	doc, err := rt.loadSubscriptionRecords()
+	if err != nil {
+		return
+	}
+	for i := range doc.Records {
+		if doc.Records[i].ID != subscriptionID {
+			continue
+		}
+		doc.Records[i].LastFetchAt = fetchedAt.UTC().Format(time.RFC3339)
+		if fetchErr != nil {
+			doc.Records[i].LastFetchOK = false
+			doc.Records[i].LastError = trimFetchError(fetchErr)
+		} else {
+			doc.Records[i].LastFetchOK = true
+			doc.Records[i].LastError = ""
+			// A failure keeps the previous userinfo: it is the provider's quota
+			// figures, and a stale figure next to a "refresh failed" badge beats
+			// none at all.
+			if userinfo != "" {
+				doc.Records[i].Userinfo = userinfo
+			}
+		}
+		_ = rt.saveSubscriptionRecords(doc)
+		return
+	}
+}
+
+func trimFetchError(err error) string {
+	text := strings.TrimSpace(err.Error())
+	if len(text) > maxFetchErrorBytes {
+		text = strings.TrimSpace(text[:maxFetchErrorBytes]) + "…"
+	}
+	return text
 }

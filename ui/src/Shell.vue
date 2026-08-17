@@ -2,7 +2,9 @@
 import { computed, ref } from "vue";
 import { ArrowLeftRight, CircleAlert, FileCode, Library, Settings, Store, Workflow } from "@lucide/vue";
 
+import { useHandshakeTimeout } from "./handshakeTimeout";
 import { useHost } from "./host";
+import StandaloneNotice from "./components/StandaloneNotice.vue";
 import PipelinesScreen from "./screens/PipelinesScreen.vue";
 import ConvertScreen from "./screens/ConvertScreen.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
@@ -20,6 +22,16 @@ import SettingsScreen from "./screens/SettingsScreen.vue";
  */
 
 const host = useHost();
+
+/**
+ * The handshake failed or never came. Outside the console that is permanent,
+ * so the tabs — each of which would show "Loading…" forever — are replaced by
+ * one honest notice. A handshake that lands late flips this back off.
+ */
+const handshakeExpired = useHandshakeTimeout(host.init);
+const standalone = computed(
+  () => !host.init.value && (handshakeExpired.value || !!host.bootError.value),
+);
 
 type TabId = "subscriptions" | "files" | "pipelines" | "convert" | "settings";
 
@@ -48,36 +60,40 @@ const activeScreen = computed(
       </div>
     </header>
 
-    <div v-if="host.bootError.value" class="alert" role="alert">
-      <CircleAlert :size="17" aria-hidden="true" />
-      <span>{{ host.bootError.value }}</span>
-    </div>
+    <StandaloneNotice v-if="standalone" :detail="host.bootError.value" />
 
-    <nav class="tab-bar" role="tablist" aria-label="Sub-Store sections">
-      <button
-        v-for="tab in tabs"
-        :id="`tab-${tab.id}`"
-        :key="tab.id"
-        class="tab"
-        type="button"
-        role="tab"
-        :aria-selected="activeTab === tab.id"
-        :aria-controls="`panel-${tab.id}`"
-        :data-active="activeTab === tab.id"
-        @click="activeTab = tab.id"
-      >
-        <component :is="tab.icon" :size="15" aria-hidden="true" />
-        {{ tab.label }}
-      </button>
-    </nav>
+    <template v-else>
+      <div v-if="host.bootError.value" class="alert" role="alert">
+        <CircleAlert :size="17" aria-hidden="true" />
+        <span>{{ host.bootError.value }}</span>
+      </div>
 
-    <KeepAlive>
-      <component
-        :is="activeScreen"
-        :id="`panel-${activeTab}`"
-        role="tabpanel"
-        :aria-labelledby="`tab-${activeTab}`"
-      />
-    </KeepAlive>
+      <nav class="tab-bar" role="tablist" aria-label="Sub-Store sections">
+        <button
+          v-for="tab in tabs"
+          :id="`tab-${tab.id}`"
+          :key="tab.id"
+          class="tab"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === tab.id"
+          :aria-controls="`panel-${tab.id}`"
+          :data-active="activeTab === tab.id"
+          @click="activeTab = tab.id"
+        >
+          <component :is="tab.icon" :size="15" aria-hidden="true" />
+          {{ tab.label }}
+        </button>
+      </nav>
+
+      <KeepAlive>
+        <component
+          :is="activeScreen"
+          :id="`panel-${activeTab}`"
+          role="tabpanel"
+          :aria-labelledby="`tab-${activeTab}`"
+        />
+      </KeepAlive>
+    </template>
   </main>
 </template>

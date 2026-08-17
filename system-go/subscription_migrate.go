@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -94,6 +95,11 @@ func (rt *runtime) migrateFromSubStore(req subStoreRequest) (migrationReport, er
 	files, budget = takeWithinBudget(files, budget)
 	report.Truncated = budget == 0 && report.Total > maxMigrationRecords
 
+	// Collected, not saved per record: the signed host_calls budget prices
+	// every store round trip, and a real migration (subs + combinations +
+	// script files, each program its own key) priced itself past it. One flush
+	// at the end pays one document write for everything.
+	var pending []subscriptionRecord
 	for i, raw := range items {
 		var sub upstreamSub
 		if err := json.Unmarshal(raw, &sub); err != nil {
@@ -121,19 +127,27 @@ func (rt *runtime) migrateFromSubStore(req subStoreRequest) (migrationReport, er
 			Operators: sub.Process,
 			Origin:    &migratedOrigin{Source: "sub-store", Kind: "subscription", Raw: raw},
 		}
-		if err := rt.saveSubscription(rec); err != nil {
-			report.Skipped[name] = err.Error()
-			continue
-		}
+		pending = append(pending, rec)
 		report.Imported = append(report.Imported, id)
 	}
 
 	// Order matters. A combination names its members and a file names its node
 	// source, so both must be written after the records they point at exist —
 	// otherwise the first render is the thing that discovers the reference is
-	// dangling.
-	rt.importUpstreamCollections(collections, &report)
-	rt.importUpstreamFiles(files, &report)
+	// dangling. One flush at the end makes even that moot: everything lands in
+	// a single document write, so members exist the same instant the reference
+	// does.
+	rt.importUpstreamCollections(collections, &report, &pending)
+	rt.importUpstreamFiles(files, &report, &pending)
+	batchSkipped, err := rt.saveSubscriptionBatch(pending)
+	if err != nil {
+		return migrationReport{}, fmt.Errorf("persist migrated records: %w", err)
+	}
+	// Reconcile the eager Imported marks with what the batch actually stored.
+	for id, why := range batchSkipped {
+		report.Skipped[id] = why
+		report.Imported = slices.DeleteFunc(report.Imported, func(x string) bool { return x == id })
+	}
 	return report, nil
 }
 

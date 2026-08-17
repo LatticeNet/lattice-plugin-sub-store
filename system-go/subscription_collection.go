@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -37,7 +38,12 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 		if strings.TrimSpace(rec.URL) == "" {
 			return "", fmt.Errorf("subscription %q has no provider URL", rec.ID)
 		}
-		fetched, err := rt.fetchSubscription(rec.ID)
+		// The record is already in hand: fetch its content directly. Going back
+		// through fetchSubscription would re-read the whole records document to
+		// find the record the caller just had, one extra host round trip per
+		// collection member — the N+1 that priced a real collection render past
+		// its host_calls budget.
+		fetched, err := rt.fetchRecordContent(rec)
 		if err != nil {
 			return "", err
 		}
@@ -45,7 +51,7 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 	default:
 		// Records written before the source was named: whichever field is set.
 		if strings.TrimSpace(rec.URL) != "" {
-			fetched, err := rt.fetchSubscription(rec.ID)
+			fetched, err := rt.fetchRecordContent(rec)
 			if err != nil {
 				return "", err
 			}
@@ -96,40 +102,42 @@ func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) b
 
 // renderCollection merges every member's processed nodes, then runs the
 // collection's own chain over the whole set.
-func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass string) (string, error) {
-	members, err := rt.collectionMembers(rec)
-	if err != nil {
-		return "", err
-	}
-
-	parts := make([]string, 0, len(members))
-	skipped := make([]string, 0)
-	for _, member := range members {
-		nodes, err := rt.renderMemberNodes(member)
-		if err != nil {
-			// Strict is the default because serving only the survivors reaches
-			// a client as "those nodes were removed", and the client acts on
-			// that by deleting them. Skipping is available because one dead
-			// provider should not take down a large collection — but it is a
-			// choice the operator makes, not one made for them.
-			if !collectionMemberFailureIsSkippable(rec, member) {
-				return "", fmt.Errorf("collection %q: %w", rec.ID, err)
+//
+// A non-empty snapshotRaw is the refresh path's answer: members already
+// resolved and chained at fetch time, so the render pays no network and no
+// per-member work — only the collection's own chain. An empty one renders
+// live, which is how previews and unsaved drafts work.
+func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass, snapshotRaw string) (string, error) {
+	merged := ""
+	if strings.TrimSpace(snapshotRaw) != "" {
+		var snap snapshotArtifacts
+		if err := json.Unmarshal([]byte(snapshotRaw), &snap); err == nil {
+			parts := make([]string, 0, len(snap.Members))
+			for _, member := range snap.Members {
+				if trimmed := strings.TrimSpace(member.Raw); trimmed != "" {
+					parts = append(parts, trimmed)
+				}
 			}
-			skipped = append(skipped, member.ID)
-			continue
+			merged = strings.Join(parts, "\n")
 		}
-		if trimmed := strings.TrimSpace(nodes); trimmed != "" {
-			parts = append(parts, trimmed)
+		// A snapshot that does not decode or carries nothing is not a reason to
+		// fail the serve: fall through to the live path rather than deny a
+		// client its nodes.
+	}
+	if merged == "" {
+		members, err := rt.collectionMembers(rec)
+		if err != nil {
+			return "", err
 		}
-	}
-	// Every member failing is not "skip the failures" — it is a collection with
-	// nothing in it, and that must never be served as a success.
-	if len(parts) == 0 && len(skipped) > 0 {
-		return "", fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
-	}
-	merged := strings.Join(parts, "\n")
-	if strings.TrimSpace(merged) == "" {
-		return "", fmt.Errorf("collection %q produced no nodes", rec.ID)
+		chained, err := rt.chainMembers(rec, members)
+		if err != nil {
+			return "", err
+		}
+		parts := make([]string, 0, len(chained))
+		for _, member := range chained {
+			parts = append(parts, member.Raw)
+		}
+		merged = strings.Join(parts, "\n")
 	}
 
 	operators, err := enabledOperators(rec)

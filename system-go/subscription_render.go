@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
@@ -99,7 +100,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// target. The core's format only decides how a NODE LIST is carried, and a
 	// configuration is not a node list.
 	if recordKind(rec) == kindFile {
-		output, headers, err := rt.renderFile(rec, uaClass, query)
+		output, headers, err := rt.renderFile(rec, uaClass, query, raw)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -131,7 +132,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		output, err := rt.renderCollection(rec, uaClass)
+		output, err := rt.renderCollection(rec, uaClass, raw)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -157,19 +158,14 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// Reading the export here means such a subscription serves correctly the
 	// first time it is fetched rather than failing until something warms it.
 	if strings.TrimSpace(source) == "" && isVPNCoreSource(rec.Source) {
-		if rec.Source == subscriptionSourceVPNCoreGraph {
-			composed, err := rt.fetchVPNCoreGraph(rec)
-			if err != nil {
-				return renderResult{}, err
-			}
-			source = composed.Raw
-		} else {
-			fetched, err := rt.fetchSubscription(subscriptionID)
-			if err != nil {
-				return renderResult{}, err
-			}
-			source = fetched.Raw
+		// fetchRecordContent dispatches on the source: the plain vpn-core
+		// export over rpc:call, or the composed graph subscription. Both are
+		// resolved from the record itself so an unsaved draft is honest too.
+		fetched, err := rt.fetchRecordContent(rec)
+		if err != nil {
+			return renderResult{}, err
 		}
+		source = fetched.Raw
 	}
 	if strings.TrimSpace(source) == "" {
 		// Saying so beats serving an empty subscription: a client that receives
@@ -285,11 +281,35 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid fetch payload: %w", err))
 			}
 		}
+		fetchedAt := time.Now().UTC()
 		out, err := rt.fetchSubscription(req.SubscriptionID)
+		// Bookkeeping whether the fetch worked or not: this method is the
+		// refresh path — the core calls it on a schedule and the UI on a click —
+		// so it is the one place that knows when the served snapshot last moved.
+		rt.noteFetchOutcome(req.SubscriptionID, fetchedAt, out.Userinfo, err)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
-		body, err := json.Marshal(out)
+		// `raw` is what the core stores as its snapshot and must stay first
+		// class; the rest is the management view's answer to "when did this last
+		// move, and what did the provider say about quota".
+		payload := map[string]any{
+			"raw":             out.Raw,
+			"userinfo":        out.Userinfo,
+			"subscription_id": req.SubscriptionID,
+			"bytes":           len(out.Raw),
+			"fetched_at":      fetchedAt.Format(time.RFC3339),
+		}
+		// Graph authority travels with the fetch: the core stores the exact
+		// composed source version and manifest alongside the snapshot, so a
+		// share can say which composition it serves.
+		if out.SourceVersion != "" {
+			payload["source_version"] = out.SourceVersion
+		}
+		if len(out.SourceManifest) > 0 {
+			payload["source_manifest"] = json.RawMessage(out.SourceManifest)
+		}
+		body, err := json.Marshal(payload)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -403,6 +423,14 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Steps       int      `json:"step_count"`
 			StepsOff    int      `json:"disabled_step_count"`
 			Imported    bool     `json:"imported"`
+			// Fetch bookkeeping, emitted only once the record has been fetched at
+			// all: before that there is no status to report, and emitting zero
+			// values would read as "refresh failed" rather than "never fetched".
+			// LastFetchOK is a pointer so a real false survives encoding.
+			LastFetchAt string `json:"last_fetch_at,omitempty"`
+			LastFetchOK *bool  `json:"last_fetch_ok,omitempty"`
+			LastError   string `json:"last_error,omitempty"`
+			Userinfo    string `json:"userinfo,omitempty"`
 		}
 		views := make([]view, 0, len(records))
 		for _, rec := range records {
@@ -413,7 +441,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 					off++
 				}
 			}
-			views = append(views, view{
+			entry := view{
 				ID: rec.ID, Kind: recordKind(rec), Name: rec.Name,
 				DisplayName: rec.DisplayName, Remark: rec.Remark, Tags: rec.Tags,
 				Source: rec.Source,
@@ -421,7 +449,13 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				Members: rec.Members, MemberTags: rec.MemberTags,
 				Target: rec.Target, FileType: rec.FileType, NodeSource: rec.NodeSource,
 				Steps: len(steps), StepsOff: off, Imported: rec.Origin != nil,
-			})
+			}
+			if rec.LastFetchAt != "" {
+				ok := rec.LastFetchOK
+				entry.LastFetchAt, entry.LastFetchOK = rec.LastFetchAt, &ok
+				entry.LastError, entry.Userinfo = rec.LastError, rec.Userinfo
+			}
+			views = append(views, entry)
 		}
 		body, err := json.Marshal(map[string]any{"subscriptions": views})
 		if err != nil {
@@ -469,6 +503,9 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		if strings.TrimSpace(rec.ID) == "" {
 			return latticeplugin.ErrorResponse(fmt.Errorf("subscription id is required"))
 		}
+		// A graph subscription's selection is validated against what vpn-core
+		// actually offers before anything is written: a selection that names a
+		// line or chain that does not exist must fail the save, not the render.
 		if rec.Source == subscriptionSourceVPNCoreGraph {
 			options, err := rt.fetchVPNCoreGraphOptions()
 			if err != nil {
@@ -478,18 +515,41 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(err)
 			}
 		}
-		// Origin records where a record came from during migration. A caller
-		// must not be able to forge it, so it is preserved from the stored
-		// record rather than taken from the request.
-		if existing, err := rt.getSubscription(rec.ID); err == nil {
-			rec.Origin = existing.Origin
-		} else {
-			rec.Origin = nil
-		}
-		if err := rt.saveSubscription(rec); err != nil {
+		// The document is loaded once and serves both reads this dispatch used
+		// to make: provenance and fetch bookkeeping are preserved from the
+		// in-memory copy, and the response is built from what was written. The
+		// old shape — get, save, get again — billed up to seven host round trips
+		// for one save against a budget of three, so every UI save 502'd once
+		// the store held a script file.
+		doc, err := rt.loadSubscriptionRecords()
+		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
-		saved, err := rt.getSubscription(rec.ID)
+		wasScript := false
+		found := false
+		for _, existing := range doc.Records {
+			if existing.ID != rec.ID {
+				continue
+			}
+			// Origin records where a record came from during migration. A caller
+			// must not be able to forge it, so it is preserved from the stored
+			// record rather than taken from the request.
+			rec.Origin = existing.Origin
+			// Fetch bookkeeping belongs to the record's life, not to this edit:
+			// a save that zeroed it would tell the operator a fetched record was
+			// never refreshed.
+			rec.LastFetchAt, rec.LastFetchOK = existing.LastFetchAt, existing.LastFetchOK
+			rec.LastError, rec.Userinfo = existing.LastError, existing.Userinfo
+			wasScript = isScriptFile(existing)
+			found = true
+			break
+		}
+		if !found {
+			rec.Origin = nil
+			rec.LastFetchAt, rec.LastFetchOK = "", false
+			rec.LastError, rec.Userinfo = "", ""
+		}
+		saved, err := rt.saveSubscriptionInDoc(&doc, rec, wasScript)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -554,6 +614,13 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Target         string            `json:"target"`
 			Operators      []json.RawMessage `json:"operators"`
 			GraphSelection json.RawMessage   `json:"graph_selection"`
+			// Source fields let an UNSAVED draft say where its nodes come from;
+			// without them a fleet- or provider-sourced draft previewed as
+			// "no content" while the nodes were right there.
+			Source      string `json:"source,omitempty"`
+			URL         string `json:"url,omitempty"`
+			UA          string `json:"ua,omitempty"`
+			VPNIdentity string `json:"vpn_identity,omitempty"`
 		}
 		if len(call.Payload) > 0 {
 			if len(call.Payload) > model.MaxSubscriptionResponseBytes {
@@ -630,6 +697,31 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			if recordKind(rec) == kindFile {
 				return previewFileResponse(rt, rec)
 			}
+			// A combination has no content of its own either: its nodes are its
+			// members', merged with each member's chain and then its own already
+			// run. Previewing that merged list is what the row's eye means on a
+			// combination — asking previewSubscription to fetch it again would
+			// report "no content" for a combination that serves fifty nodes.
+			if recordKind(rec) == kindCollection {
+				// The merged list is parsed back below, so it renders in URI —
+				// the one target that round-trips through a parse — whatever the
+				// record's serving target is.
+				previewRec := rec
+				previewRec.Target = ""
+				merged, err := rt.renderCollection(previewRec, "", "")
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				out, err := rt.previewSubscription(merged, nil, "URI")
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				body, err := json.Marshal(out)
+				if err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+				return latticeplugin.RawResultResponse(body, "")
+			}
 			if operators == nil {
 				storedOperators, err := storedPreviewOperators(rec)
 				if err != nil {
@@ -650,11 +742,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			}
 			if strings.TrimSpace(raw) == "" {
 				raw = rec.Content
-				// Same reason as render: a vpn-core record has no inline content,
-				// and a preview that showed nothing would look like a broken
-				// subscription rather than one sourced from somewhere else.
-				if strings.TrimSpace(raw) == "" && rec.Source == subscriptionSourceVPNCore {
-					fetched, err := rt.fetchSubscription(req.SubscriptionID)
+				// Same reason as render: a vpn-core or provider record has no
+				// inline content, and a preview that showed nothing would look
+				// like a broken subscription rather than one sourced from
+				// somewhere else. The fetch here is a read for the preview only —
+				// it is not recorded as a refresh, because the served snapshot
+				// does not move.
+				if strings.TrimSpace(raw) == "" &&
+					(rec.Source == subscriptionSourceVPNCore || strings.TrimSpace(rec.URL) != "") {
+					fetched, err := rt.fetchRecordContent(rec)
 					if err != nil {
 						return latticeplugin.ErrorResponse(err)
 					}
@@ -675,6 +771,21 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				}
 				previewSourceVersion = composed.SourceVersion
 			}
+		} else if strings.TrimSpace(raw) == "" && req.Source != "" && req.Source != subscriptionSourceLocal {
+			// An unsaved draft carries its source but no content. Resolve the
+			// source live — the same guarded path a saved record's refresh
+			// takes — so the preview shows the nodes the draft would produce.
+			// A preview fetch is a read, not a refresh: nothing is persisted.
+			fetched, err := rt.fetchRecordContent(subscriptionRecord{
+				Source:      req.Source,
+				URL:         req.URL,
+				UA:          req.UA,
+				VPNIdentity: req.VPNIdentity,
+			})
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			raw = fetched.Raw
 		}
 		out, err := rt.previewSubscription(raw, operators, target)
 		if err != nil {

@@ -8,12 +8,28 @@ import (
 
 // nodeSummary is one node reduced to what an operator needs to judge a pipeline.
 //
-// It deliberately carries no address, port, password, uuid or any other field
-// that would let the preview double as a credential dump. A preview exists to
-// answer "did my filter keep the right nodes", and name plus type answers that.
+// The line drawn here is credentials, not endpoints: name, type, server, port
+// and the transport flags answer "did my filter keep the right nodes, and are
+// they the shape I expect" — the question a preview exists for. What still
+// never crosses the boundary is anything that would let the preview double as
+// a credential dump: no password, uuid, key or SNI. The operator asked for the
+// upstream Sub-Store preview's level of detail (2026-08-11); this matches its
+// indicator set (udp / tfo / skip-cert-verify / aead) without its node-detail
+// modal, which shows secrets.
 type nodeSummary struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Server   string `json:"server,omitempty"`
+	Port     string `json:"port,omitempty"`
+	Network  string `json:"network,omitempty"`
+	Security string `json:"security,omitempty"`
+	// The four capability flags upstream surfaces as indicators. omitempty keeps
+	// a flag that was never set indistinguishable from one explicitly off —
+	// either way there is nothing to show.
+	UDP            bool `json:"udp,omitempty"`
+	TFO            bool `json:"tfo,omitempty"`
+	SkipCertVerify bool `json:"skip_cert_verify,omitempty"`
+	AEAD           bool `json:"aead,omitempty"`
 }
 
 type previewResult struct {
@@ -76,7 +92,7 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 	return result, nil
 }
 
-// previewScript reduces each node to name and type inside the engine, so the
+// previewScript reduces each node to its summary inside the engine, so the
 // fields a preview must not expose never cross the process boundary at all.
 func previewScript(raw string, operators []json.RawMessage, target string) string {
 	rawJSON, _ := json.Marshal(raw)
@@ -95,8 +111,21 @@ func previewScript(raw string, operators []json.RawMessage, target string) strin
     proxies = await core.process(proxies, operators, target, undefined, undefined, raw);
     if (!Array.isArray(proxies)) { throw new Error("process(...) must return an array"); }
   }
+  const text = function (v) { return v == null ? "" : String(v); };
   const nodes = proxies.map(function (p) {
-    return { name: String(p && p.name != null ? p.name : ""), type: String(p && p.type != null ? p.type : "") };
+    p = p || {};
+    return {
+      name: text(p.name),
+      type: text(p.type),
+      server: text(p.server),
+      port: text(p.port),
+      network: text(p.network),
+      security: text(p.security != null ? p.security : (p["reality-opts"] != null ? "reality" : (p.tls === true ? "tls" : ""))),
+      udp: p.udp === true,
+      tfo: p.tfo === true,
+      skip_cert_verify: p["skip-cert-verify"] === true,
+      aead: p.aead === true
+    };
   });
   return JSON.stringify({ source_node_count: sourceNodeCount, nodes: nodes });
 })()`, rawJSON, opsJSON, targetJSON)

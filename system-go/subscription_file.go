@@ -40,7 +40,9 @@ func (rt *runtime) resolveFileTemplate(rec subscriptionRecord) (string, error) {
 		if strings.TrimSpace(rec.URL) == "" {
 			return "", fmt.Errorf("file %q has no template URL", rec.ID)
 		}
-		fetched, err := rt.fetchSubscription(rec.ID)
+		// The record is in hand; fetching by id would re-read the whole records
+		// document to find it again, one wasted host call per render.
+		fetched, err := rt.fetchRecordContent(rec)
 		if err != nil {
 			return "", err
 		}
@@ -53,12 +55,14 @@ func (rt *runtime) resolveFileTemplate(rec subscriptionRecord) (string, error) {
 	}
 }
 
-// renderFile produces the document the core will serve.
-func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[string]string) (string, map[string]string, error) {
+// renderFile produces the document the core will serve. A non-empty
+// snapshotRaw is the refresh path's resolved node content: the render spends
+// nothing reaching it again. Empty renders live, which is how previews work.
+func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[string]string, snapshotRaw string) (string, map[string]string, error) {
 	// A script file has no template to resolve: the program is the document, and
 	// it decides for itself what the nodes turn into.
 	if isScriptFile(rec) {
-		return rt.renderScriptFile(rec, query)
+		return rt.renderScriptFile(rec, query, snapshotRaw)
 	}
 
 	template, err := rt.resolveFileTemplate(rec)
@@ -93,8 +97,8 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 	// A config with no node source is a document the operator maintains
 	// entirely by hand — rules, a script, a fragment. Serving it unchanged is
 	// the correct answer, not an error.
-	nodes := ""
-	if source := strings.TrimSpace(rec.NodeSource); source != "" {
+	nodes := strings.TrimSpace(snapshotRaw)
+	if source := strings.TrimSpace(rec.NodeSource); source != "" && nodes == "" {
 		if source == rec.ID {
 			return "", nil, fmt.Errorf("file %q names itself as its node source", rec.ID)
 		}
@@ -194,6 +198,35 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 	return artifacts, nil
 }
 
+// scriptArtifactsFor returns the artifacts a script runs against: the
+// snapshot's when the refresh path resolved them, resolved live otherwise. The
+// snapshot envelope carries the source's identity so the alias registration a
+// ported script relies on — artifact named both the id and the display name —
+// is identical either way.
+func (rt *runtime) scriptArtifactsFor(rec subscriptionRecord, snapshotRaw string) ([]fileScriptArtifact, error) {
+	if strings.TrimSpace(snapshotRaw) == "" {
+		return rt.resolveScriptArtifacts(rec)
+	}
+	var snap snapshotArtifacts
+	if err := json.Unmarshal([]byte(snapshotRaw), &snap); err != nil || len(snap.Members) == 0 || snap.SourceID == "" {
+		// An unreadable snapshot falls back to live resolution rather than
+		// failing the serve.
+		return rt.resolveScriptArtifacts(rec)
+	}
+	kind := snap.SourceKind
+	if kind == "" {
+		kind = kindSub
+	}
+	artifact := fileScriptArtifact{Name: snap.SourceID, Kind: kind, Members: snap.Members}
+	artifacts := []fileScriptArtifact{artifact}
+	if name := strings.TrimSpace(snap.SourceName); name != "" && name != snap.SourceID {
+		alias := artifact
+		alias.Name = name
+		artifacts = append(artifacts, alias)
+	}
+	return artifacts, nil
+}
+
 // memberSubName is the name a script sees on `proxy._subName`. Upstream tags
 // with the subscription's name, so a ported script's lookup tables match.
 func memberSubName(member subscriptionRecord) string {
@@ -204,8 +237,8 @@ func memberSubName(member subscriptionRecord) string {
 }
 
 // renderScriptFile runs the file's program and returns what it produced.
-func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]string) (string, map[string]string, error) {
-	artifacts, err := rt.resolveScriptArtifacts(rec)
+func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]string, snapshotRaw string) (string, map[string]string, error) {
+	artifacts, err := rt.scriptArtifactsFor(rec, snapshotRaw)
 	if err != nil {
 		return "", nil, err
 	}
@@ -244,7 +277,7 @@ func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Resp
 	}
 	// A preview has no request behind it, so a script sees an empty query and
 	// falls back to whatever defaults it declares.
-	document, _, err := rt.renderFile(rec, "", nil)
+	document, _, err := rt.renderFile(rec, "", nil, "")
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
@@ -269,7 +302,7 @@ func (rt *runtime) resolveNodesFor(rec subscriptionRecord) (string, error) {
 	if recordKind(rec) == kindCollection {
 		// URI is the interchange format: it round-trips through a second parse,
 		// which is what handing the result to another stage requires.
-		return rt.renderCollection(rec, "")
+		return rt.renderCollection(rec, "", "")
 	}
 	return rt.renderMemberNodes(rec)
 }

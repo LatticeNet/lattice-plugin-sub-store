@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.11.0-alpha.2",
+  "version": "0.13.0-alpha.1",
   "publisher": "latticenet",
   "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "2684d40cd4aa5d4671448fca880966568bc60984b93672fa67a3616003f9d415"
+    "digest_sha256": "9837ad0806d0b89734f7182432246608dcdae5747e73214515e00aa7966158d8"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
@@ -187,10 +187,10 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 20000,
+            "timeout_ms": 30000,
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 70
           }
         },
         {
@@ -213,7 +213,7 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 20000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
             "host_calls": 68
@@ -252,10 +252,10 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 15000,
+            "timeout_ms": 20000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 68
           }
         },
         {
@@ -281,7 +281,7 @@
             "timeout_ms": 2000,
             "stdout_bytes": 524288,
             "stderr_bytes": 16384,
-            "host_calls": 1
+            "host_calls": 2
           }
         },
         {
@@ -292,9 +292,9 @@
           ],
           "budget": {
             "timeout_ms": 5000,
-            "stdout_bytes": 524288,
+            "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 5
+            "host_calls": 3
           }
         },
         {
@@ -305,9 +305,9 @@
           ],
           "budget": {
             "timeout_ms": 5000,
-            "stdout_bytes": 65536,
+            "stdout_bytes": 4194304,
             "stderr_bytes": 16384,
-            "host_calls": 2
+            "host_calls": 3
           }
         },
         {
@@ -321,9 +321,9 @@
           ],
           "budget": {
             "timeout_ms": 30000,
-            "stdout_bytes": 262144,
+            "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 4
+            "host_calls": 263
           }
         },
         {
@@ -336,7 +336,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 32768,
-            "host_calls": 2
+            "host_calls": 258
           }
         },
         {
@@ -346,10 +346,10 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 10000,
-            "stdout_bytes": 262144,
+            "timeout_ms": 30000,
+            "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 3
+            "host_calls": 260
           }
         },
         {

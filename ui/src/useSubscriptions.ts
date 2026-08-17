@@ -25,6 +25,7 @@ import {
   type SubscriptionGetResponse,
   type SubscriptionListItem,
   type SubscriptionListResponse,
+  type SubscriptionPreviewNode,
   type SubscriptionPreviewResponse,
   type SubscriptionRecord,
   type SubscriptionSaveResponse,
@@ -555,15 +556,26 @@ export function useSubscriptions(host: HostContext) {
         actionError.value = "Provider refresh failed. The last good snapshot is still being served.";
         return false;
       }
-      notice.value = `Checked ${response.bytes} bytes for ${id}${response.source_version ? ` at ${response.source_version}` : ""}.`;
+      notice.value =
+        typeof response.bytes === "number"
+          ? `Checked ${response.bytes} bytes for ${id}${response.source_version ? ` at ${response.source_version}` : ""}.`
+          : `Refreshed ${id}.`;
       return true;
     } catch (cause) {
-      void cause;
-      actionError.value = "Subscription could not be refreshed; the last good snapshot remains authoritative.";
+      actionError.value = `${safeErrorMessage(cause, "Subscription could not be refreshed")}. The last good snapshot is still being served.`;
       return false;
     } finally {
       busyId.value = null;
-      await host.resize();
+      // The core may have moved a record's bookkeeping since the list was
+      // read — reload so the row shows the current status rather than what it
+      // said before. Best-effort: a reload failure must not replace the
+      // check's own (already reported) outcome with an unhandled rejection.
+      try {
+        await load();
+        await host.resize();
+      } catch {
+        /* the list keeps its last data; the next load retries */
+      }
     }
   }
 
@@ -594,6 +606,71 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
+  /**
+   * The row-level glance: the first few node names a record produces, without
+   * opening the editor.
+   *
+   * One open popover at a time, tracked here rather than per row, because the
+   * state is genuinely singular — two rows never need comparing, and two open
+   * panels would each need their own loading and error handling for no gain.
+   */
+  interface RowPreview {
+    id: string;
+    loading: boolean;
+    error: string;
+    nodes: SubscriptionPreviewNode[];
+    count: number;
+    /** Set for a file record: its preview is the served document, not nodes. */
+    document?: string;
+    truncated?: boolean;
+  }
+
+  const rowPreview = ref<RowPreview | null>(null);
+
+  async function toggleRowPreview(id: string): Promise<void> {
+    if (rowPreview.value?.id === id) {
+      rowPreview.value = null;
+      await host.resize();
+      return;
+    }
+    if (!host.bridge || !canPreview.value) return;
+    rowPreview.value = { id, loading: true, error: "", nodes: [], count: 0 };
+    await host.resize();
+    try {
+      // No raw and no operators: the backend previews the stored record with
+      // its own chain, fetching first when the record has no inline content.
+      const response = await callMethod<SubscriptionPreviewResponse>(
+        host.bridge,
+        BINDINGS.subPreview,
+        { subscription_id: id },
+      ).promise;
+      // The operator may have moved to another row while this was in flight;
+      // landing the answer now would label it with the wrong record.
+      if (rowPreview.value?.id !== id) return;
+      const nodes = response.nodes ?? [];
+      rowPreview.value = {
+        id,
+        loading: false,
+        error: "",
+        nodes: nodes.slice(0, 5),
+        count: response.node_count ?? nodes.length,
+        document: response.document,
+        truncated: response.truncated,
+      };
+    } catch (cause) {
+      if (rowPreview.value?.id !== id) return;
+      rowPreview.value = {
+        id,
+        loading: false,
+        error: safeErrorMessage(cause, "Preview failed"),
+        nodes: [],
+        count: 0,
+      };
+    } finally {
+      await host.resize();
+    }
+  }
+
   async function runPreview(draft: SubscriptionDraft): Promise<void> {
     if (!host.bridge || !canPreview.value || previewing.value) return;
     previewing.value = true;
@@ -602,7 +679,10 @@ export function useSubscriptions(host: HostContext) {
     try {
       const operators = previewOperators(draft);
       // Sending the draft rather than the id previews unsaved edits; the
-      // backend falls back to the stored record when raw is empty.
+      // backend falls back to the stored record when raw is empty. A draft
+      // whose source is the fleet or a provider link has no pasted content at
+      // all, so its source goes along — the engine resolves it live (read
+      // only; nothing is persisted as a refresh).
       const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
         subscription_id: draft.id.trim(),
         raw: draft.source === SOURCE_VPN_CORE_GRAPH ? undefined : draft.content,
@@ -616,6 +696,18 @@ export function useSubscriptions(host: HostContext) {
           identity_id: draft.vpnIdentity,
           entry_roots: [...draft.entryRoots],
         } : undefined,
+        // An unsaved draft's source rides along so the engine can resolve a
+        // fleet- or provider-sourced draft live (read only; not a refresh). A
+        // graph draft's authority is its selection alone, so nothing else is
+        // sent for it.
+        ...(draft.source === SOURCE_VPN_CORE_GRAPH
+          ? {}
+          : {
+              source: draft.source || undefined,
+              url: draft.url.trim() || undefined,
+              ua: draft.ua.trim() || undefined,
+              vpn_identity: draft.vpnIdentity.trim() || undefined,
+            }),
       }).promise;
       preview.value = response;
     } catch (cause) {
@@ -650,6 +742,12 @@ export function useSubscriptions(host: HostContext) {
       // A copy has not been imported from anywhere; carrying the origin would
       // claim a provenance it does not have.
       origin: undefined,
+      // Nor has it ever been fetched: the source's refresh bookkeeping would
+      // claim a freshness the copy has not earned.
+      last_fetch_at: undefined,
+      last_fetch_ok: undefined,
+      last_error: undefined,
+      userinfo: undefined,
     };
     saving.value = true;
     actionError.value = "";
@@ -692,6 +790,7 @@ export function useSubscriptions(host: HostContext) {
     previewing,
     graphOptions,
     graphOptionsLoading,
+    rowPreview,
     available,
     canMutate,
     canFetch,
@@ -709,6 +808,7 @@ export function useSubscriptions(host: HostContext) {
     refresh,
     publish,
     runPreview,
+    toggleRowPreview,
     clearMessages,
   };
 }

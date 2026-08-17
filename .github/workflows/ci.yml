@@ -39,7 +39,10 @@ jobs:
           echo "GOWORK=$RUNNER_TEMP/gowork/go.work" >> "$GITHUB_ENV"
 
       - name: test system runtime
-        run: go test -race ./system-go/...
+        # The union of the snapshot-render and graph suites pushes system-go
+        # past go test's 10m default under -race; the overrun is aggregate
+        # engine-boot cost, not a hang.
+        run: go test -race -timeout 25m ./system-go/...
 
       - name: test deterministic packer
         run: go test -race ./tools/pluginpack/...

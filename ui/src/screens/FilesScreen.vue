@@ -2,9 +2,9 @@
 import { computed, onMounted, ref, watch } from "vue";
 import {
   CircleAlert,
-  Copy,
   CircleCheck,
   ClipboardPaste,
+  CopyPlus,
   Eye,
   FileCode,
   FileText,
@@ -13,6 +13,8 @@ import {
   LoaderCircle,
   Pencil,
   Plus,
+  Share2,
+  SquareArrowOutUpRight,
   Trash2,
 } from "@lucide/vue";
 
@@ -29,6 +31,7 @@ import {
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
+import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import {
   draftFromRecord,
   emptyDraft,
@@ -57,6 +60,25 @@ const editingId = ref<string | null>(null);
 const draft = ref<SubscriptionDraft>(emptyDraft());
 const confirmingDelete = ref<string | null>(null);
 const tagText = ref("");
+const sharingId = ref<string | null>(null);
+
+/**
+ * Shares are published by the dashboard, not by this frame: the frame can only
+ * ask the console to navigate there. The origin is the one the bridge pinned
+ * from the frame URL — re-read here rather than trusted from a second source.
+ */
+const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
+
+function toggleShare(id: string): void {
+  sharingId.value = sharingId.value === id ? null : id;
+}
+
+function openShares(recordName: string): void {
+  if (!shareOrigin.value) return;
+  postNavigate(window, sharesRoute(recordName), shareOrigin.value);
+  sharingId.value = null;
+  subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+}
 
 const isPlain = computed(() => draft.value.fileType === FILE_TYPE_PLAIN);
 const isScript = computed(() => draft.value.fileType === FILE_TYPE_SCRIPT);
@@ -132,16 +154,18 @@ function describe(item: SubscriptionListItem): string {
   return item.node_source ? `${kind} · nodes from ${sourceName(item.node_source)}` : `${kind} · no node source`;
 }
 
-function startCreate(): void {
+function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
   subs.clearMessages();
   draft.value = emptyDraft();
   draft.value.kind = KIND_FILE;
-  draft.value.fileType = FILE_TYPE_CONFIG;
+  draft.value.fileType = fileType;
   draft.value.source = SOURCE_LOCAL;
   // Most deployments have exactly one thing worth pointing at, and picking it
   // by default is the difference between a form that works and one that saves
-  // a config serving no nodes.
-  draft.value.nodeSource = nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
+  // a config serving no nodes. Plain text has no proxy list to fill, so the
+  // default would be a stored setting with no effect.
+  draft.value.nodeSource =
+    fileType !== FILE_TYPE_PLAIN && nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
   tagText.value = "";
   editingId.value = null;
   editing.value = true;
@@ -510,20 +534,30 @@ watch(host.init, (value) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.loadError.value }}
       </div>
 
-      <div v-else-if="!files.length" class="panel-empty">
+      <div v-else-if="!files.length" class="panel-empty panel-empty-stack">
         <p class="panel-empty-copy">
           Paste the Mihomo config you already run. Lattice keeps your rules and groups and replaces
           only the proxy list, from whichever subscription you point it at — so nodes can change
           without you editing anything.
         </p>
-        <button
-          class="button button-primary"
-          type="button"
-          :disabled="!subs.canMutate.value"
-          @click="startCreate()"
-        >
-          <FileCode :size="16" aria-hidden="true" /> Add a configuration
-        </button>
+        <div class="empty-actions">
+          <button
+            class="button button-primary"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="startCreate()"
+          >
+            <FileCode :size="16" aria-hidden="true" /> Add a configuration
+          </button>
+          <button
+            class="button button-secondary"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="startCreate(FILE_TYPE_PLAIN)"
+          >
+            <FileText :size="16" aria-hidden="true" /> New plain-text file
+          </button>
+        </div>
       </div>
 
       <ul v-else class="sub-list">
@@ -548,11 +582,38 @@ watch(host.init, (value) => {
               <button
                 class="icon-button"
                 type="button"
+                :disabled="!subs.canPreview.value"
+                title="Show what a client would receive"
+                :aria-label="`Preview ${item.name}`"
+                :aria-expanded="subs.rowPreview.value?.id === item.id"
+                @click="subs.toggleRowPreview(item.id)"
+              >
+                <Eye :size="16" aria-hidden="true" />
+              </button>
+              <button
+                class="icon-button"
+                type="button"
+                :disabled="!host.init.value"
+                :title="
+                  host.init.value
+                    ? `Share ${item.name}`
+                    : 'Shares are published from the Lattice console — this frame is running standalone'
+                "
+                :aria-label="`Share ${item.name}`"
+                :aria-expanded="sharingId === item.id"
+                @click="toggleShare(item.id)"
+              >
+                <Share2 :size="16" aria-hidden="true" />
+              </button>
+              <button
+                class="icon-button"
+                type="button"
                 :disabled="!subs.canMutate.value"
-                :aria-label="`Copy ${item.name}`"
+                title="Make an independent copy of this record"
+                :aria-label="`Duplicate ${item.name}`"
                 @click="subs.duplicate(item.id)"
               >
-                <Copy :size="16" aria-hidden="true" />
+                <CopyPlus :size="16" aria-hidden="true" />
               </button>
               <button
                 class="icon-button"
@@ -573,6 +634,42 @@ watch(host.init, (value) => {
                 <Trash2 :size="16" aria-hidden="true" />
               </button>
             </div>
+          </div>
+
+          <div v-if="subs.rowPreview.value?.id === item.id" class="row-popover">
+            <p v-if="subs.rowPreview.value.loading" class="row-popover-note">
+              <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Rendering…
+            </p>
+            <p v-else-if="subs.rowPreview.value.error" class="row-popover-error" role="alert">
+              {{ subs.rowPreview.value.error }}
+            </p>
+            <template v-else>
+              <p class="row-popover-note">
+                What a client receives<span v-if="subs.rowPreview.value.truncated"> — truncated</span>
+              </p>
+              <pre class="row-popover-document mono" tabindex="0">{{ subs.rowPreview.value.document }}</pre>
+            </template>
+          </div>
+
+          <div v-if="sharingId === item.id" class="row-popover">
+            <p class="row-popover-copy">
+              Nothing here is reachable until a share is published for it. Shares live in the
+              dashboard, under <strong>Networking → Subscription Shares</strong>.
+            </p>
+            <p class="row-popover-note">Already published? The Shares view shows its link.</p>
+            <div v-if="shareOrigin" class="empty-actions">
+              <button
+                class="button button-primary button-compact"
+                type="button"
+                @click="openShares(item.name)"
+              >
+                <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
+              </button>
+            </div>
+            <p v-else class="row-popover-note">
+              This frame cannot ask the console to navigate — open Networking → Subscription
+              Shares yourself.
+            </p>
           </div>
 
           <div v-if="confirmingDelete === item.id" class="alert" role="alert">

@@ -34,7 +34,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.11.0-alpha.2"
+	pluginVersion        = "0.13.0-alpha.1"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
 	maxExportBytes       = 1 << 20
@@ -100,6 +100,16 @@ type pipelineRecordListItem struct {
 	OperatorCount int    `json:"operator_count"`
 }
 
+// hostFrameCap is how big one host-channel frame may get here. The SDK's
+// host-response default is 4 MiB since the v2 runtime, but the request side
+// still defaults to 1 MiB (DefaultMaxRequestBytes), and that was fine until
+// the record store grew: one kv.get of the store document base64's to 1.4×
+// its size, so past ~770 KiB of store every call answered "bufio.Scanner:
+// token too long" and the plugin died mid-invocation (2026-08-11,
+// production). 4 MiB covers the 1 MiB store cap as base64 with envelope
+// headroom so a big backup import fits too.
+const hostFrameCap = 4 << 20
+
 func main() {
 	if err := servePluginV2(context.Background(), os.Stdin, os.Stdout, os.Getenv); err != nil {
 		os.Exit(1)
@@ -113,7 +123,12 @@ func servePluginV2(ctx context.Context, in io.Reader, out io.Writer, getenv func
 	}
 	engine := newEmbeddedSubStoreEngine()
 	base := &runtime{engine: &engine}
-	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{In: in, Out: out, OpenHostFromEnv: true})
+	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{
+		In:              in,
+		Out:             out,
+		OpenHostFromEnv: true,
+		MaxRequestBytes: hostFrameCap,
+	})
 	defer rt.Close()
 	return rt.ServeV2(ctx, invocationHandler(base), generation)
 }

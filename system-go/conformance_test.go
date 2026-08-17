@@ -165,39 +165,85 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		pluginID + "/engine/run_pipeline":       {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 1},
 		// render feeds a public subscription endpoint, so its stdout budget matches
 		// the other conversion methods: a large subscription must fail loudly rather
-		// than arrive truncated at a client. host_calls is 2 rather than 0 because a
-		// remote-backed subscription will read its stored snapshot through the host.
-		pluginID + "/subscription/render": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
+		// than arrive truncated at a client. host_calls covers the heaviest shape the
+		// store can express: a script file (document + program key = 2) drawing from
+		// a collection (source record + member list = 2) whose members are all remote
+		// — one provider fetch each, and maxCollectionMembers caps that at 64.
+		// 2026-08-11: the old allowance of 2 priced a real script-file render out —
+		// the public share for one would have 502'd on its first request.
+		// timeout is 20s because the runner spawns the plugin per invocation and a
+		// cold QuickJS/wazero boot costs ~13.5s on the production box (measured
+		// 2026-08-11); 10s timed out every script-file render. The warm-engine
+		// follow-up should let this come back down.
+		pluginID + "/subscription/render": {TimeoutMS: 20_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
 		// fetch carries a provider's whole response, so its stdout budget is the
-		// 8 MiB the fetch path itself caps at, and its timeout is longer because a
-		// third-party provider is slower than local conversion.
-		pluginID + "/subscription/fetch": {TimeoutMS: 20_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		// 8 MiB the fetch path itself caps at. host_calls is 70: every record kind
+		// resolves its variable content at refresh — a script file's read (2), the
+		// source record and member list (2), one provider fetch per collection
+		// member (maxCollectionMembers is 64), and the refresh bookkeeping's own
+		// read and write (2). The timeout is the host maximum: 64 sequential
+		// provider fetches cannot promise less.
+		pluginID + "/subscription/fetch": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 70},
 		pluginID + "/subscription/probe": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
 		// operators returns a fixed catalog and touches nothing, so it gets the
 		// smallest budget in the file and zero host calls.
 		pluginID + "/subscription/operators":     {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
 		pluginID + "/subscription/graph_options": {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 16 << 10, HostCalls: 1},
-		// A saved graph preview reads its record, reloads eligibility, and composes
-		// exactly once. Its stdout remains smaller than a full conversion.
-		pluginID + "/subscription/preview": {TimeoutMS: 15_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 2},
+		// preview runs the pipeline but returns only names and types, so its
+		// stdout is far smaller than a conversion's even for a large subscription.
+		// Its host_calls match render's: a combination preview renders its
+		// members live, one provider fetch each up to maxCollectionMembers — a
+		// graph preview's record read, eligibility reload and single compose
+		// fit well inside the same allowance, and a file preview refuses
+		// node-source work outright. Its timeout matches render's for the same
+		// cold-engine reason — 15s still timed out a script file on production
+		// (~13.5s boot plus the work itself).
+		pluginID + "/subscription/preview": {TimeoutMS: 20_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 68},
 		// list returns definitions without their content, so it stays small.
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		// get returns one whole record including inline content, so its ceiling
 		// is the per-record inline cap plus room for the rest of the record —
 		// not the small `list` ceiling, which carries no content at all.
-		pluginID + "/subscription/get":    {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 512 << 10, StderrBytes: 64 << 10, HostCalls: 5},
-		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		// host_calls is 2: a script file's program lives under its own key, so
+		// the document read alone is not the whole record. 2026-08-11: duplicating
+		// a script file in the UI 502'd here — get is duplicate's first step.
+		pluginID + "/subscription/get": {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		// save/delete write the whole records document back through one stdout
+		// frame, and the runner caps a frame at stdout_bytes — with a populated
+		// store the write frame is the document, base64'd. 4 MiB covers the 1 MiB
+		// store cap with envelope headroom; a smaller number makes saves start
+		// failing exactly when the store gets valuable. (2026-08-11: first
+		// production import died here — 512 KiB fit one record, not twenty.)
+		// host_calls is 3 for save: one document load, then either the program
+		// key (script records) or the options reload that validates a graph
+		// selection, then one document write — the dispatch reads provenance
+		// from the document it already loaded rather than re-reading the
+		// record twice more. delete is the same shape minus the program write
+		// on plain records.
+		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 3},
+		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 3},
 		// migrate is the only write here and it talks to a second server, so it
-		// gets the longest timeout and the largest host-call allowance.
-		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 4},
+		// gets the longest timeout. host_calls is import's 260 plus three upstream
+		// fetches. 2026-08-11: the per-record path priced a real migration past
+		// the old allowance of 4 and died mid-flight; the batch path then carried
+		// the operator's real sixteen-script migration under 48, and this number
+		// extends the same cover to a full store.
+		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 263},
 		// export carries every record including inline content, so it gets the
-		// largest read budget here; import is bounded by what it accepts.
-		// publish renders and sends; its stdout is only a small result object
-		// because the rendered body goes out over the network, not back up stdout.
-		pluginID + "/subscription/publish":       {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 69},
-		pluginID + "/subscription/export":        {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 2},
-		pluginID + "/subscription/import":        {TimeoutMS: 10_000, StdoutBytes: 256 << 10, StderrBytes: 64 << 10, HostCalls: 3},
+		// largest read budget here. host_calls is 258: the document, the settings
+		// key, and one read per script program — a backup that leaves programs
+		// behind cannot be restored, so they are reattached at export time.
+		// publish renders (render's 68) and sends once; its stdout is only a
+		// small result object because the rendered body goes out over the
+		// network, not back up stdout.
+		pluginID + "/subscription/publish": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 69},
+		pluginID + "/subscription/export":  {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 258},
+		// import shares migrate's shape without the upstream fetches: the
+		// existing-records read, the batch's document load, one key per script
+		// program, one document write, one settings write. 260 covers a full
+		// 256-record restore where every file is a script — the 48 it replaced
+		// covered sixteen, not the 256 its comment claimed.
+		pluginID + "/subscription/import":        {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 260},
 		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 	}

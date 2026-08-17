@@ -2,10 +2,10 @@
 import { computed, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
-  Copy,
   CircleAlert,
   CircleCheck,
   ClipboardPaste,
+  CopyPlus,
   Eye,
   Globe,
   Layers,
@@ -16,6 +16,8 @@ import {
   Send,
   RefreshCw,
   Server,
+  Share2,
+  SquareArrowOutUpRight,
   Trash2,
 } from "@lucide/vue";
 
@@ -34,6 +36,8 @@ import {
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
+import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
 import {
   draftFromRecord,
   emptyDraft,
@@ -42,6 +46,7 @@ import {
   validateDraft,
   type SubscriptionDraft,
 } from "../useSubscriptions";
+import { useSubscriptionOps } from "../useSubscriptionOps";
 import {
   applyCommonSettings,
   emptyCommonSettings,
@@ -62,6 +67,9 @@ const MANAGED_TYPES = ["Quick Setting Operator", "Useless Filter"] as const;
 
 const host = useHost();
 const subs = useSubscriptions(host);
+// The whole-store surface is here only for the empty state's migrate form: an
+// empty store is exactly when importing an existing Sub-Store is the next step.
+const ops = useSubscriptionOps(host);
 
 const editing = ref(false);
 const editingId = ref<string | null>(null);
@@ -77,6 +85,9 @@ const publishingId = ref<string | null>(null);
 const publishDestination = ref("");
 const publishMethod = ref("PUT");
 const publishFormat = ref("plain");
+const sharingId = ref<string | null>(null);
+const migrateUrl = ref("");
+const migrateSummary = ref("");
 
 const isCollection = computed(() => draft.value.kind === KIND_COLLECTION);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
@@ -279,6 +290,62 @@ function describe(item: SubscriptionListItem): string {
   if (item.source === SOURCE_VPN_CORE_GRAPH) return "Converged graph path";
   if (item.source === SOURCE_LOCAL) return "Pasted nodes";
   return item.has_url ? "Provider link" : "Pasted nodes";
+}
+
+// ── empty state: guidance, not a dead end ───────────────────────────────────
+
+/** Nothing on this tab at all — the moment to offer migration alongside
+ *  creation. A filter that merely hides everything is not this moment. */
+const storeEmpty = computed(() => onThisTab.value.length === 0);
+
+async function runMigrate(): Promise<void> {
+  migrateSummary.value = "";
+  const ok = await ops.migrate(migrateUrl.value);
+  if (!ok) return;
+  await subs.load();
+  // The report names what was imported by id; counting those ids by kind is
+  // what makes the summary true rather than approximated.
+  const imported = new Set(ops.report.value?.imported ?? []);
+  const landed = subs.items.value.filter((item) => imported.has(item.id));
+  const combos = landed.filter((item) => item.kind === KIND_COLLECTION).length;
+  migrateSummary.value =
+    `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s). ` +
+    "Nothing is published yet — publish a share in Networking → Subscription Shares to make them reachable.";
+  migrateUrl.value = "";
+}
+
+// ── row status ──────────────────────────────────────────────────────────────
+
+/** "refreshed 3h ago", or "" when the record has never been fetched. */
+function refreshedLabel(item: SubscriptionListItem): string {
+  if (!item.last_fetch_at) return "";
+  const relative = formatRelativeTime(item.last_fetch_at);
+  return relative ? `refreshed ${relative}` : "";
+}
+
+/** The provider's quota line, compact; "" when there is nothing honest to say. */
+function trafficOf(item: SubscriptionListItem): string {
+  return formatTraffic(parseUserinfo(item.userinfo));
+}
+
+// ── sharing ─────────────────────────────────────────────────────────────────
+
+/**
+ * Shares are published by the dashboard, not by this frame: the frame can only
+ * ask the console to navigate there. The origin is the one the bridge pinned
+ * from the frame URL — re-read here rather than trusted from a second source.
+ */
+const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
+
+function toggleShare(id: string): void {
+  sharingId.value = sharingId.value === id ? null : id;
+}
+
+function openShares(recordName: string): void {
+  if (!shareOrigin.value) return;
+  postNavigate(window, sharesRoute(recordName), shareOrigin.value);
+  sharingId.value = null;
+  subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
 }
 
 /**
@@ -600,6 +667,9 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <div v-else-if="subs.notice.value" class="alert alert-ok" role="status">
         <CircleCheck :size="16" aria-hidden="true" /> {{ subs.notice.value }}
       </div>
+      <div v-if="migrateSummary" class="alert alert-ok" role="status">
+        <CircleCheck :size="16" aria-hidden="true" /> {{ migrateSummary }}
+      </div>
 
       <div v-if="allTags.length || hasUntagged" class="tag-row">
         <button type="button" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">
@@ -646,18 +716,49 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </button>
         </div>
 
-        <div v-if="showSubs && !singles.length" class="panel-empty">
+        <!-- Truly empty is a different moment from "the filter hides
+             everything": the first deserves guidance, the second an answer. -->
+        <div v-if="showSubs && !singles.length && !storeEmpty" class="panel-empty">
+          <p class="panel-empty-copy">No subscriptions carry this tag.</p>
+        </div>
+
+        <div v-else-if="showSubs && !singles.length" class="panel-empty panel-empty-stack">
           <p class="panel-empty-copy">
             Start with your own fleet: one subscription reading this deployment's vpn-core nodes.
           </p>
-          <button
-            class="button button-primary"
-            type="button"
-            :disabled="!subs.canMutate.value"
-            @click="startCreate(KIND_SUB)"
-          >
-            <Server :size="16" aria-hidden="true" /> Add this fleet's nodes
-          </button>
+          <div class="empty-actions">
+            <button
+              class="button button-primary"
+              type="button"
+              :disabled="!subs.canMutate.value"
+              @click="startCreate(KIND_SUB)"
+            >
+              <Server :size="16" aria-hidden="true" /> Add this fleet's nodes
+            </button>
+          </div>
+
+          <div v-if="ops.canMigrate.value" class="empty-secondary">
+            <span class="field-label">Already running a standalone Sub-Store?</span>
+            <form class="empty-inline-form" @submit.prevent="runMigrate">
+              <input
+                v-model="migrateUrl"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Its base URL"
+              />
+              <button class="button button-secondary" type="submit" :disabled="ops.busy.value">
+                <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
+                Import from it
+              </button>
+            </form>
+            <p class="row-popover-note">
+              Importing publishes nothing — each subscription stays unserved until you share it.
+            </p>
+            <p v-if="ops.actionError.value" class="row-popover-error" role="alert">
+              {{ ops.actionError.value }}
+            </p>
+          </div>
         </div>
 
         <ul v-else-if="showSubs" class="sub-list">
@@ -674,6 +775,17 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   <template v-if="item.step_count">
                     · {{ item.step_count }} operation(s)<template v-if="item.disabled_step_count">
                       , {{ item.disabled_step_count }} off</template>
+                  </template>
+                  <template v-if="item.last_fetch_at">
+                    ·
+                    <span
+                      v-if="item.last_fetch_ok === false"
+                      class="badge"
+                      data-tone="danger"
+                      :title="item.last_error || 'The last refresh failed'"
+                    >refresh failed</span>
+                    <template v-else>{{ refreshedLabel(item) }}</template>
+                    <template v-if="trafficOf(item)"> · {{ trafficOf(item) }}</template>
                   </template>
                 </span>
               </div>
@@ -701,11 +813,37 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <button
                   class="icon-button"
                   type="button"
+                  :disabled="!subs.canPreview.value"
+                  :aria-label="`Preview ${item.name}`"
+                  :aria-expanded="subs.rowPreview.value?.id === item.id"
+                  @click="subs.toggleRowPreview(item.id)"
+                >
+                  <Eye :size="16" aria-hidden="true" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  :disabled="!host.init.value"
+                  :title="
+                    host.init.value
+                      ? `Share ${item.name}`
+                      : 'Shares are published from the Lattice console — this frame is running standalone'
+                  "
+                  :aria-label="`Share ${item.name}`"
+                  :aria-expanded="sharingId === item.id"
+                  @click="toggleShare(item.id)"
+                >
+                  <Share2 :size="16" aria-hidden="true" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
                   :disabled="!subs.canMutate.value"
-                  :aria-label="`Copy ${item.name}`"
+                  title="Make an independent copy of this record"
+                  :aria-label="`Duplicate ${item.name}`"
                   @click="subs.duplicate(item.id)"
                 >
-                  <Copy :size="16" aria-hidden="true" />
+                  <CopyPlus :size="16" aria-hidden="true" />
                 </button>
                 <button
                   class="icon-button"
@@ -729,6 +867,54 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </div>
 
             <SubscriptionPublishControl v-if="publishingId === item.id" :saved="true" :read-only="!subs.canMutate.value" :busy="subs.busyId.value === item.id" :error="subs.actionError.value" @publish="(destination, method, format) => publishSaved(item.id, destination, method, format)" />
+            <div v-if="subs.rowPreview.value?.id === item.id" class="row-popover">
+              <p v-if="subs.rowPreview.value.loading" class="row-popover-note">
+                <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
+              </p>
+              <p v-else-if="subs.rowPreview.value.error" class="row-popover-error" role="alert">
+                {{ subs.rowPreview.value.error }}
+              </p>
+              <template v-else>
+                <p class="row-popover-note">
+                  {{ subs.rowPreview.value.count }} node(s) once its operations run
+                </p>
+                <ul class="row-popover-list">
+                  <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`">
+                    <span>{{ node.name }}</span>
+                    <span class="badge">{{ node.type }}</span>
+                    <span v-if="node.security" class="badge">{{ node.security }}</span>
+                    <span v-if="node.server" class="row-node-endpoint mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+                  </li>
+                </ul>
+                <p
+                  v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length"
+                  class="row-popover-note"
+                >
+                  …and {{ subs.rowPreview.value.count - subs.rowPreview.value.nodes.length }} more
+                </p>
+              </template>
+            </div>
+
+            <div v-if="sharingId === item.id" class="row-popover">
+              <p class="row-popover-copy">
+                Nothing here is reachable until a share is published for it. Shares live in the
+                dashboard, under <strong>Networking → Subscription Shares</strong>.
+              </p>
+              <p class="row-popover-note">Already published? The Shares view shows its link.</p>
+              <div v-if="shareOrigin" class="empty-actions">
+                <button
+                  class="button button-primary button-compact"
+                  type="button"
+                  @click="openShares(item.name)"
+                >
+                  <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
+                </button>
+              </div>
+              <p v-else class="row-popover-note">
+                This frame cannot ask the console to navigate — open Networking → Subscription
+                Shares yourself.
+              </p>
+            </div>
 
             <div v-if="confirmingDelete === item.id" class="alert" role="alert">
               <span>
@@ -766,11 +952,22 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </button>
         </div>
 
-        <div v-if="showCollections && !collections.length" class="panel-empty">
+        <div v-if="showCollections && !collections.length" class="panel-empty panel-empty-stack">
           <p class="panel-empty-copy">
             A combination merges several subscriptions into one URL — your own nodes plus a
             provider's, deduplicated and renamed however you like.
           </p>
+          <div class="empty-actions">
+            <button
+              class="button button-primary"
+              type="button"
+              :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
+              :title="!singles.length ? 'Create a subscription first — there is nothing to combine' : ''"
+              @click="startCreate(KIND_COLLECTION)"
+            >
+              <Layers :size="16" aria-hidden="true" /> New combination
+            </button>
+          </div>
         </div>
 
         <ul v-else-if="showCollections" class="sub-list">
@@ -792,11 +989,27 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <button
                   class="icon-button"
                   type="button"
+                  :disabled="!host.init.value"
+                  :title="
+                    host.init.value
+                      ? `Share ${item.name}`
+                      : 'Shares are published from the Lattice console — this frame is running standalone'
+                  "
+                  :aria-label="`Share ${item.name}`"
+                  :aria-expanded="sharingId === item.id"
+                  @click="toggleShare(item.id)"
+                >
+                  <Share2 :size="16" aria-hidden="true" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
                   :disabled="!subs.canMutate.value"
-                  :aria-label="`Copy ${item.name}`"
+                  title="Make an independent copy of this record"
+                  :aria-label="`Duplicate ${item.name}`"
                   @click="subs.duplicate(item.id)"
                 >
-                  <Copy :size="16" aria-hidden="true" />
+                  <CopyPlus :size="16" aria-hidden="true" />
                 </button>
                 <button
                   class="icon-button"
@@ -817,6 +1030,27 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   <Trash2 :size="16" aria-hidden="true" />
                 </button>
               </div>
+            </div>
+
+            <div v-if="sharingId === item.id" class="row-popover">
+              <p class="row-popover-copy">
+                Nothing here is reachable until a share is published for it. Shares live in the
+                dashboard, under <strong>Networking → Subscription Shares</strong>.
+              </p>
+              <p class="row-popover-note">Already published? The Shares view shows its link.</p>
+              <div v-if="shareOrigin" class="empty-actions">
+                <button
+                  class="button button-primary button-compact"
+                  type="button"
+                  @click="openShares(item.name)"
+                >
+                  <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
+                </button>
+              </div>
+              <p v-else class="row-popover-note">
+                This frame cannot ask the console to navigate — open Networking → Subscription
+                Shares yourself.
+              </p>
             </div>
 
             <div v-if="confirmingDelete === item.id" class="alert" role="alert">

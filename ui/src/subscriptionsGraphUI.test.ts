@@ -103,7 +103,7 @@ describe("vpn-core graph editor component contract", () => {
   it("SSR consumes the exact Go preview wire names and exposes fresh graph authority", async () => {
     const wire = JSON.parse(`{"source_node_count":2,"node_count":1,"nodes":[{"name":"A","type":"vless"}],"truncated":false,"source_version":"sv1:${"c".repeat(64)}","stale":false}`);
     const html = await renderToString(createSSRApp({ render: () => h(SubscriptionPreviewSummary, { preview: wire }) }));
-    expect(html).toContain("1 node(s)<span> from 2</span>");
+    expect(html).toContain("kept 1 of 2 nodes");
     expect(html).toContain(`Source sv1:${"c".repeat(64)} · fresh composition`);
     expect(html).not.toContain("undefined node");
   });
