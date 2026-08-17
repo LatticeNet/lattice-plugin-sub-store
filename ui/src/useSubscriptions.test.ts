@@ -393,7 +393,7 @@ describe("vpn-core graph workflow", () => {
       subscription_id: "",
       raw: undefined,
       target: "",
-      operators: undefined,
+      operators: [],
       graph_selection: {
         schema_version: 1,
         options_version: GRAPH_OPTIONS.options_version,
@@ -404,6 +404,60 @@ describe("vpn-core graph workflow", () => {
     expect(JSON.stringify(calls[0].payload)).not.toContain("must-not-be-sent");
     expect(subs.preview.value?.nodes.map((node) => node.name)).toEqual(["B", "A"]);
     expect(subs.preview.value).toMatchObject({ source_node_count: 2, node_count: 2, source_version: sourceVersion, stale: false });
+  });
+
+  it("sends an explicitly empty draft operator chain when previewing a saved graph", async () => {
+    const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
+    const { host, calls } = subscriptionHost({
+      [previewKey]: { source_node_count: 1, node_count: 1, nodes: [{ name: "A" }] },
+    });
+    const subs = useSubscriptions(host);
+    await subs.runPreview({
+      ...emptyDraft(),
+      id: "saved-graph",
+      name: "Saved graph",
+      source: SOURCE_VPN_CORE_GRAPH,
+      vpnIdentity: "identity-a",
+      entryRoots: [GRAPH_OPTIONS.roots[0].line_uuid],
+      optionsVersion: GRAPH_OPTIONS.options_version,
+      process: [],
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].payload).toMatchObject({
+      subscription_id: "saved-graph",
+      operators: [],
+    });
+  });
+
+  it("sends only enabled node-stage operators when previewing a saved mixed-stage graph", async () => {
+    const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
+    const { host, calls } = subscriptionHost({
+      [previewKey]: { source_node_count: 1, node_count: 1, nodes: [{ name: "A" }] },
+    });
+    const subs = useSubscriptions(host);
+    const enabledNode = { type: "Regex Filter", args: { regex: "keep" } };
+    const disabledNode = { type: "Regex Rename", args: { regex: "old", replace: "new" }, disabled: true };
+    const responseTransformer = {
+      type: "Response Transformer",
+      args: { mode: "script", content: "function transformFunction(res) { return res; }" },
+    };
+    await subs.runPreview({
+      ...emptyDraft(),
+      id: "saved-mixed-graph",
+      name: "Saved mixed graph",
+      source: SOURCE_VPN_CORE_GRAPH,
+      vpnIdentity: "identity-a",
+      entryRoots: [GRAPH_OPTIONS.roots[0].line_uuid],
+      optionsVersion: GRAPH_OPTIONS.options_version,
+      process: [enabledNode, disabledNode, responseTransformer],
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].payload).toMatchObject({
+      subscription_id: "saved-mixed-graph",
+      operators: [enabledNode],
+    });
   });
 
   it("cannot save a root bound only to another identity", async () => {

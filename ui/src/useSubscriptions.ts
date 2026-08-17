@@ -124,6 +124,13 @@ export function enabledSteps(draft: SubscriptionDraft): unknown[] {
   );
 }
 
+/** The enabled node-stage chain for a draft preview, including an explicit empty chain. */
+function previewOperators(draft: SubscriptionDraft): unknown[] {
+  return enabledSteps(draft).filter(
+    (step) => !(step && typeof step === "object" && (step as { type?: string }).type === "Response Transformer"),
+  );
+}
+
 /** A stored file type the editor knows how to render. */
 export function knownFileType(fileType: string | undefined): string {
   if (fileType === FILE_TYPE_PLAIN) return FILE_TYPE_PLAIN;
@@ -593,16 +600,16 @@ export function useSubscriptions(host: HostContext) {
     actionError.value = "";
     preview.value = null;
     try {
+      const operators = previewOperators(draft);
       // Sending the draft rather than the id previews unsaved edits; the
       // backend falls back to the stored record when raw is empty.
       const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
         subscription_id: draft.id.trim(),
         raw: draft.source === SOURCE_VPN_CORE_GRAPH ? undefined : draft.content,
         target: draft.target.trim(),
-        // The wire field is still `operators` — it is what the engine takes.
-        // Disabled steps are dropped here so the preview shows what would
-        // actually run, not what the chain would do if everything were on.
-        operators: enabledSteps(draft).length ? enabledSteps(draft) : undefined,
+        // Explicit draft authority must not fall back to the stored process.
+        // Node preview excludes both disabled and response-stage steps.
+        operators,
         graph_selection: draft.source === SOURCE_VPN_CORE_GRAPH ? {
           schema_version: 1,
           options_version: draft.optionsVersion,
