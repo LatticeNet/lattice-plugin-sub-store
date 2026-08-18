@@ -69,7 +69,7 @@ func TestGeneratorScriptProducesAConfig(t *testing.T) {
 		t.Fatalf("save file: %v", err)
 	}
 
-	out, err := rt.renderSubscription("cd-self", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "cd-self", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render script file: %v", err)
 	}
@@ -114,7 +114,7 @@ func TestGeneratorScriptSeesOnlyDeclaredQueryParameters(t *testing.T) {
 		t.Fatalf("save file: %v", err)
 	}
 
-	fakeIP, err := rt.renderSubscription("cd-self", "", "", "", nil)
+	fakeIP, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "cd-self", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render default: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestGeneratorScriptSeesOnlyDeclaredQueryParameters(t *testing.T) {
 		t.Fatalf("the default enhanced-mode is not fake-ip:\n%s", head(fakeIP.Content, 800))
 	}
 
-	redir, err := rt.renderSubscription("cd-self", "", "", "", map[string]string{"enhanced-mode": "redir-host"})
+	redir, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "cd-self", Format: "", UAClass: "", Query: map[string]string{"enhanced-mode": "redir-host"}})
 	if err != nil {
 		t.Fatalf("render with query: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestGeneratorScriptSeesOnlyDeclaredQueryParameters(t *testing.T) {
 
 	// An undeclared parameter is dropped before the script can read it, so the
 	// output is the default one.
-	blocked, err := rt.renderSubscription("cd-self", "", "", "", map[string]string{"enhanced-mode-x": "redir-host"})
+	blocked, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "cd-self", Format: "", UAClass: "", Query: map[string]string{"enhanced-mode-x": "redir-host"}})
 	if err != nil {
 		t.Fatalf("render with undeclared query: %v", err)
 	}
@@ -155,7 +155,7 @@ $content = JSON.stringify(nodes);`,
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	_, err := rt.renderSubscription("wrong", "", "", "", nil)
+	_, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "wrong", Format: "", UAClass: ""})
 	if err == nil {
 		t.Fatal("a script resolved a source the file never declared")
 	}

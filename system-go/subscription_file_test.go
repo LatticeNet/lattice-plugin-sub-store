@@ -35,7 +35,7 @@ func TestFileConfigInjectsNodesAndKeepsTheRest(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("clash", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "clash", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render file: %v", err)
 	}
@@ -104,7 +104,7 @@ rules:
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("ruled", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "ruled", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -142,7 +142,7 @@ rules:
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("chain", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "chain", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -247,7 +247,7 @@ func TestFileWithoutANodeSourceServesItsTemplate(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("rules", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "rules", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -264,7 +264,7 @@ func TestPlainFileIsServedAsText(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("notes", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "notes", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -300,7 +300,7 @@ func TestPlainFileRunsItsScriptOverTheDocument(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("rules", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "rules", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -323,7 +323,7 @@ func TestFileCannotSourceAnotherFile(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save b: %v", err)
 	}
-	if _, err := rt.renderSubscription("b", "", "", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "b", Format: "", UAClass: ""}); err == nil {
 		t.Fatal("a file was allowed to source another file")
 	}
 }
@@ -335,7 +335,7 @@ func TestFileCannotSourceItself(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("self", "", "", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "self", Format: "", UAClass: ""}); err == nil {
 		t.Fatal("a file was allowed to source itself")
 	}
 }
@@ -397,7 +397,7 @@ func TestFileRefusesATemplateThatIsNotAMapping(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("bad", "", "", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "bad", Format: "", UAClass: ""}); err == nil {
 		t.Fatal("a YAML sequence was accepted as a configuration template")
 	}
 }
@@ -412,7 +412,7 @@ func TestADownloadFileAsksToBeSaved(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("rules", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "rules", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -428,7 +428,7 @@ func TestAFileNotMarkedForDownloadAsksForNothing(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("rules", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "rules", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}

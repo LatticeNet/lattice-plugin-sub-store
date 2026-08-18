@@ -62,11 +62,11 @@ watch(
 
 const pinned = computed(() => (props.pinnedTarget ?? "").trim());
 
-function renderable(target: ConvertTarget): boolean {
-  // A pinned record renders as its own target whatever the client asks for.
-  if (pinned.value) return target.id === pinned.value;
-  return !!target.uaClass;
-}
+/**
+ * The produce() flags, mirroring Sub-Store's preview sheet toggles. They ride
+ * on both preview and copy so what you see is what a client would get.
+ */
+const includeUnsupported = ref(false);
 
 async function runPreview(target: ConvertTarget): Promise<void> {
   if (!host.bridge || busyTarget.value) return;
@@ -74,6 +74,9 @@ async function runPreview(target: ConvertTarget): Promise<void> {
   error.value = "";
   rendered.value = null;
   try {
+    // No options here on purpose: preview summarizes the node list after the
+    // chain, before produce() runs, so produce flags cannot change what it
+    // shows. Sending them anyway would imply they do.
     const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
       subscription_id: props.recordId,
       target: target.id,
@@ -96,7 +99,10 @@ async function copyDocument(target: ConvertTarget): Promise<void> {
     const response = await callMethod<SubscriptionRenderResponse>(host.bridge, BINDINGS.subRender, {
       subscription_id: props.recordId,
       format: "plain",
-      ua_class: pinned.value ? "" : (target.uaClass ?? ""),
+      // Explicit target: the caller who names a client means that client,
+      // record pin or not — the same contract as Sub-Store's ?target= URLs.
+      target: target.id,
+      options: { "include-unsupported-proxy": includeUnsupported.value },
     }).promise;
     const content = response?.content ?? "";
     if (!content) throw new Error("The render returned no document");
@@ -147,9 +153,14 @@ function close(): void {
         </button>
       </header>
 
+      <label class="sheet-toggle">
+        <input v-model="includeUnsupported" type="checkbox" />
+        Include protocols the client does not support
+      </label>
+
       <p v-if="pinned" class="sheet-note">
-        This record pins its target to <strong>{{ pinned }}</strong
-        >, so every client receives that format. Clear the target on the record to let the client decide.
+        Served URLs for this record always produce <strong>{{ pinned }}</strong> (its pinned target).
+        The copies below override that for a one-off grab.
       </p>
 
       <p v-if="error" class="sheet-error" role="alert">{{ error }}</p>
@@ -175,12 +186,8 @@ function close(): void {
             <button
               type="button"
               class="target-action"
-              :disabled="!!busyTarget || !renderable(target)"
-              :title="
-                renderable(target)
-                  ? `Copy the ${target.label} configuration`
-                  : `The core cannot select ${target.label} on render; preview it instead`
-              "
+              :disabled="!!busyTarget"
+              :title="`Copy the ${target.label} configuration`"
               :aria-label="`Copy ${target.label} configuration`"
               @click="copyDocument(target)"
             >

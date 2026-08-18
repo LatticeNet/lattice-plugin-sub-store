@@ -323,16 +323,19 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
    * summary, so the harness has to answer it or that action can only ever be
    * checked in production.
    */
-  "subscription/render": ({ subscription_id, ua_class }) => {
+  "subscription/render": ({ subscription_id, target, ua_class, options }) => {
     const found = records.find((r) => r.id === subscription_id);
-    const target = String(ua_class || "uri");
+    // Explicit target wins, mirroring resolveRenderTarget in system-go.
+    const client = String(target || ua_class || "URI");
+    const flags = (options ?? {}) as Record<string, boolean>;
     const body =
-      target === "stash" || target === "clash"
+      client === "Stash" || client === "Clash"
         ? "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}\n"
         : "vless://canned@a.example:443#%F0%9F%87%AD%F0%9F%87%B0%20Hong%20Kong%2001\n";
+    const note = flags["include-unsupported-proxy"] ? "# include-unsupported-proxy: on\n" : "";
     return {
-      content: `# ${found?.name ?? subscription_id} rendered for ${target}\n${body}`,
-      content_type: target === "singbox" ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
+      content: `# ${found?.name ?? subscription_id} rendered for ${client}\n${note}${body}`,
+      content_type: client === "sing-box" ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
     };
   },
   "subscription/get_settings": () => settings,

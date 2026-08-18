@@ -759,7 +759,7 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: roots, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI"}); err != nil {
 		t.Fatal(err)
 	}
-	rendered, err := rt.renderSubscription("graph", "plain", "", "", nil)
+	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: ""})
 	if err != nil {
 		t.Fatalf("cold render failed: %v", err)
 	}
@@ -831,7 +831,7 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 	if !reflect.DeepEqual(stored.Process, record.Process) || len(stored.Operators) != 0 {
 		t.Fatalf("stored process was not canonical: process=%s operators=%s", stored.Process, stored.Operators)
 	}
-	rendered, err := rt.renderSubscription("graph", "plain", "", "", nil)
+	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: ""})
 	if err != nil {
 		t.Fatalf("stored process render failed: %v", err)
 	}

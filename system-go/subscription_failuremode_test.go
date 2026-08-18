@@ -29,7 +29,7 @@ func TestCollectionStrictModeFailsWhenAMemberFails(t *testing.T) {
 		t.Fatalf("save collection: %v", err)
 	}
 
-	if _, err := rt.renderSubscription("c", "plain", "", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "c", Format: "plain", UAClass: ""}); err == nil {
 		t.Fatal("strict mode served a collection with a failed member")
 	}
 }
@@ -66,7 +66,7 @@ func TestCollectionNeverSkipsFailedGraphMembers(t *testing.T) {
 			if err := rt.saveSubscription(subscriptionRecord{ID: "collection", Kind: kindCollection, Members: members, Target: "URI", FailureMode: failureModeSkip}); err != nil {
 				t.Fatal(err)
 			}
-			if output, err := rt.renderSubscription("collection", "plain", "", "", nil); err == nil || output.Content != "" {
+			if output, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "collection", Format: "plain", UAClass: ""}); err == nil || output.Content != "" {
 				t.Fatalf("failed graph member produced partial collection: output=%+v err=%v", output, err)
 			}
 		})
@@ -104,7 +104,7 @@ func TestCollectionSkipModeServesTheRest(t *testing.T) {
 		t.Fatalf("save collection: %v", err)
 	}
 
-	out, err := rt.renderSubscription("c", "plain", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "c", Format: "plain", UAClass: ""})
 	if err != nil {
 		t.Fatalf("skip mode failed anyway: %v", err)
 	}
@@ -131,7 +131,7 @@ func TestCollectionSkipModeStillRefusesWhenEveryMemberFails(t *testing.T) {
 		t.Fatalf("save collection: %v", err)
 	}
 
-	_, err := rt.renderSubscription("c", "plain", "", "", nil)
+	_, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "c", Format: "plain", UAClass: ""})
 	if err == nil {
 		t.Fatal("a collection whose every member failed was served as a success")
 	}

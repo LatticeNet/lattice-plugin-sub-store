@@ -69,11 +69,11 @@ func TestCollectionRenderFromSnapshotMatchesLive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetch snapshot: %v", err)
 	}
-	fromSnapshot, err := rt.renderCollection(rec, "", snap.Raw)
+	fromSnapshot, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, snap.Raw)
 	if err != nil {
 		t.Fatalf("render from snapshot: %v", err)
 	}
-	live, err := rt.renderCollection(rec, "", "")
+	live, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "")
 	if err != nil {
 		t.Fatalf("render live: %v", err)
 	}
@@ -117,7 +117,7 @@ func TestRenderFallsBackWhenSnapshotUndecodable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out, err := rt.renderCollection(rec, "", "this is not the envelope")
+	out, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "this is not the envelope")
 	if err != nil {
 		t.Fatalf("undecodable snapshot failed the render: %v", err)
 	}

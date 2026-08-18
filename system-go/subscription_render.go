@@ -84,13 +84,38 @@ func storedPreviewOperators(rec subscriptionRecord) ([]json.RawMessage, error) {
 	return out, nil
 }
 
+// subscriptionRenderRequest carries one render's full contract. Target and
+// Options are the Sub-Store URL-parity additions: ?target= names the client
+// explicitly and produce flags ride under upstream's own names.
+type subscriptionRenderRequest struct {
+	SubscriptionID string
+	Format         string
+	UAClass        string
+	Target         string
+	Options        map[string]bool
+	Raw            string
+	Query          map[string]string
+}
+
+// resolveRenderTarget picks the client for one render. Priority is explicit
+// caller target, then the record's pin, then the UA classification, then the
+// universally accepted URI list — an operator or URL that names a client is
+// never overridden by a header.
+func resolveRenderTarget(rec subscriptionRecord, explicit, uaClass string) string {
+	if t := strings.TrimSpace(explicit); t != "" {
+		return t
+	}
+	return subscriptionTarget(rec, uaClass)
+}
+
 // renderSubscription produces the body the core will serve.
 //
 // It refuses to return empty content. The core refuses an empty body too, and
 // both refusals exist deliberately: a proxy client that receives an empty but
 // successful subscription deletes every node it had, so the failure is worth
 // stopping twice rather than relying on either layer alone.
-func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw string, query map[string]string) (renderResult, error) {
+func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResult, error) {
+	subscriptionID, format, uaClass, raw, query := req.SubscriptionID, req.Format, req.UAClass, req.Raw, req.Query
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return renderResult{}, err
@@ -132,7 +157,7 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		output, err := rt.renderCollection(rec, uaClass, raw)
+		output, err := rt.renderCollection(rec, resolveRenderTarget(rec, req.Target, uaClass), req.Options, raw)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -179,8 +204,9 @@ func (rt *runtime) renderSubscription(subscriptionID, format, uaClass, raw strin
 	}
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       source,
-		Target:    subscriptionTarget(rec, uaClass),
+		Target:    resolveRenderTarget(rec, req.Target, uaClass),
 		Operators: operators,
+		Options:   req.Options,
 	})
 	if err != nil {
 		return renderResult{}, err
@@ -708,7 +734,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				// record's serving target is.
 				previewRec := rec
 				previewRec.Target = ""
-				merged, err := rt.renderCollection(previewRec, "", "")
+				merged, err := rt.renderCollection(previewRec, "URI", nil, "")
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}
@@ -803,7 +829,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			SubscriptionID string `json:"subscription_id"`
 			Format         string `json:"format"`
 			UAClass        string `json:"ua_class"`
-			Raw            string `json:"raw"`
+			// Target names the client explicitly — the parity contract with
+			// Sub-Store, whose subscription URLs carry ?target=. An explicit
+			// target outranks both the record's pin and the UA class: the
+			// caller who spells out a client means that client.
+			Target string `json:"target"`
+			// Options are produce() flags under Sub-Store's own names
+			// (include-unsupported-proxy, ...). Booleans only.
+			Options map[string]bool `json:"options"`
+			Raw     string          `json:"raw"`
 			// Only the parameters the core decided to forward reach here, and the
 			// record narrows them again to the names it declared.
 			Query map[string]string `json:"query"`
@@ -813,7 +847,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid render payload: %w", err))
 			}
 		}
-		out, err := rt.renderSubscription(req.SubscriptionID, req.Format, req.UAClass, req.Raw, req.Query)
+		out, err := rt.renderSubscription(subscriptionRenderRequest{
+			SubscriptionID: req.SubscriptionID,
+			Format:         req.Format,
+			UAClass:        req.UAClass,
+			Target:         req.Target,
+			Options:        req.Options,
+			Raw:            req.Raw,
+			Query:          req.Query,
+		})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}

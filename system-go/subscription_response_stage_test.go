@@ -38,7 +38,7 @@ func TestSubscriptionResponseChainRewritesWhatIsServed(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("s1", "plain", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "s1", Format: "plain", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -64,7 +64,7 @@ func TestCollectionResponseChainRewritesWhatIsServed(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("c1", "plain", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "c1", Format: "plain", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestOneChainCarriesBothKindsOfStep(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	out, err := rt.renderSubscription("both", "plain", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "both", Format: "plain", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestAResponseChainThatEmptiesTheBodyIsRefused(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("empty", "plain", "", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "empty", Format: "plain", UAClass: ""}); err == nil {
 		t.Fatal("a chain that emptied the body was served")
 	}
 }
