@@ -125,11 +125,25 @@ export function enabledSteps(draft: SubscriptionDraft): unknown[] {
   );
 }
 
-/** The enabled node-stage chain for a draft preview, including an explicit empty chain. */
-function previewOperators(draft: SubscriptionDraft): unknown[] {
-  return enabledSteps(draft).filter(
-    (step) => !(step && typeof step === "object" && (step as { type?: string }).type === "Response Transformer"),
-  );
+/**
+ * The enabled node-stage chain for a draft preview, including an explicit
+ * empty chain.
+ *
+ * `upTo` cuts the chain after one step, which is how the editor answers the
+ * question a long chain always raises: which step dropped my nodes? Upstream
+ * can only preview the whole chain, so this is ours — the engine already
+ * accepts an arbitrary operator array, so the cut costs nothing but the
+ * slice. The index counts positions in the FULL chain (what the operator
+ * sees in the list), and disabled and response-stage steps are removed after
+ * the cut so the count on screen keeps matching the list.
+ */
+function previewOperators(draft: SubscriptionDraft, upTo?: number): unknown[] {
+  const chain = typeof upTo === "number" ? draft.process.slice(0, upTo + 1) : draft.process;
+  return chain
+    .filter((step) => !(step && typeof step === "object" && (step as { disabled?: boolean }).disabled))
+    .filter(
+      (step) => !(step && typeof step === "object" && (step as { type?: string }).type === "Response Transformer"),
+    );
 }
 
 /** A stored file type the editor knows how to render. */
@@ -332,6 +346,8 @@ export function useSubscriptions(host: HostContext) {
   const operators = ref<OperatorInfo[]>([]);
   const preview = ref<SubscriptionPreviewResponse | null>(null);
   const previewing = ref(false);
+  /** Which step the current preview stopped after, or null for the whole chain. */
+  const previewStep = ref<number | null>(null);
   const graphOptions = ref<GraphOptionsResponse | null>(null);
   const graphOptionsLoading = ref(false);
 
@@ -671,13 +687,14 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
-  async function runPreview(draft: SubscriptionDraft): Promise<void> {
+  async function runPreview(draft: SubscriptionDraft, upTo?: number): Promise<void> {
     if (!host.bridge || !canPreview.value || previewing.value) return;
     previewing.value = true;
     actionError.value = "";
     preview.value = null;
+    previewStep.value = typeof upTo === "number" ? upTo : null;
     try {
-      const operators = previewOperators(draft);
+      const operators = previewOperators(draft, upTo);
       // Sending the draft rather than the id previews unsaved edits; the
       // backend falls back to the stored record when raw is empty. A draft
       // whose source is the fleet or a provider link has no pasted content at
@@ -788,6 +805,7 @@ export function useSubscriptions(host: HostContext) {
     operators,
     preview,
     previewing,
+    previewStep,
     graphOptions,
     graphOptionsLoading,
     rowPreview,

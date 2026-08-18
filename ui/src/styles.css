@@ -1094,3 +1094,13 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   font-size: 12px;
   cursor: pointer;
 }
+
+/* A cut preview must not be mistaken for the record's real output. */
+.preview-cut {
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border-left: 2px solid var(--lt-warn);
+  background: var(--lt-surface-2);
+  color: var(--lt-fg);
+  font-size: 12px;
+}

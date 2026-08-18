@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChevronRight, Copy, GripVertical, Trash2 } from "@lucide/vue";
+import { ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
 
 import { defaultArgs, fromWireArgs, schemaFor, toWireArgs } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
@@ -51,10 +51,19 @@ const props = defineProps<{
   /** Wording for a chain that does not process nodes. */
   heading?: string;
   emptyCopy?: string;
+  /**
+   * Whether the parent can run a preview cut off after one step. Off by
+   * default so a chain rendered where no preview exists shows no dead
+   * control.
+   */
+  canPreviewStep?: boolean;
+  /** The step a preview is currently running for, so its control can spin. */
+  previewingStep?: number | null;
 }>();
 
 const emit = defineEmits<{
   (e: "update:steps", value: ChainStep[]): void;
+  (e: "preview-step", index: number, label: string): void;
 }>();
 
 const expanded = ref<number | null>(null);
@@ -215,6 +224,18 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               @click="move(entry.index, entry.index + 1)"
             >
               ↓
+            </button>
+            <button
+              v-if="canPreviewStep"
+              type="button"
+              class="step-icon"
+              :disabled="entry.step.disabled || previewingStep !== null"
+              :title="`Preview the nodes as they leave this step`"
+              :aria-label="`Preview up to step ${position + 1}`"
+              @click="emit('preview-step', entry.index, label(entry.step, position + 1))"
+            >
+              <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" />
+              <Eye v-else :size="14" />
             </button>
             <button
               type="button"
