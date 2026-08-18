@@ -2,7 +2,11 @@
 import { computed } from "vue";
 import type { SubscriptionPreviewResponse } from "../client";
 
-const props = defineProps<{ preview: SubscriptionPreviewResponse }>();
+const props = defineProps<{
+  preview: SubscriptionPreviewResponse;
+  /** Set when the preview was cut off partway down the chain. */
+  stepLabel?: string;
+}>();
 
 /** "kept 41 of 52 nodes" when a filter ran, "52 node(s)" when nothing was dropped. */
 const headline = computed(() => {
@@ -26,6 +30,9 @@ const typeCounts = computed(() => {
 
 <template>
   <div class="preview-summary">
+    <p v-if="stepLabel" class="preview-cut" role="status">
+      Partial run — stopped after “{{ stepLabel }}”. Steps below it did not run.
+    </p>
     <p v-if="preview.source_version" class="mono" role="status">
       Source {{ preview.source_version }} · {{ preview.stale ? "stale last-good" : "fresh composition" }}
     </p>

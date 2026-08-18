@@ -115,6 +115,21 @@ const canPreviewNow = computed(
   () => subs.canPreview.value && !subs.previewing.value && !draftError.value,
 );
 
+/**
+ * What the current preview covers. A cut preview has to say so on the result,
+ * or the operator reads a partial node list as the record's real output. The
+ * chain hands over the label it shows in the list, because chain indices and
+ * list positions differ — settings-managed steps live in the same array but
+ * are edited above, so a computed position would name a different step than
+ * the one that was clicked.
+ */
+const previewStepLabel = ref("");
+
+function previewUpToStep(index: number, label: string): void {
+  previewStepLabel.value = label;
+  void subs.runPreview(draft.value, index);
+}
+
 // Files live in the same store but on their own tab. Offering their tags here
 // would put a filter in front of the operator that selects nothing.
 const onThisTab = computed(() =>
@@ -824,7 +839,10 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
             :managed-types="MANAGED_TYPES"
+            :can-preview-step="canPreviewNow"
+            :previewing-step="subs.previewing.value ? subs.previewStep.value : null"
             @update:steps="draft.process = $event"
+            @preview-step="previewUpToStep"
           />
           <span v-if="isCollection" class="field-optional">
             Each member runs its own operations first; these run over everything merged.
@@ -854,7 +872,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </div>
       </form>
 
-      <SubscriptionPreviewSummary v-if="subs.preview.value" :preview="subs.preview.value" />
+      <SubscriptionPreviewSummary
+        v-if="subs.preview.value"
+        :preview="subs.preview.value"
+        :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
+      />
     </section>
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
