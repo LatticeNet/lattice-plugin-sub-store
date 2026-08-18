@@ -199,6 +199,7 @@ function startCreate(kind: string): void {
   tagText.value = "";
   memberTagText.value = "";
   editingId.value = null;
+  editorTab.value = "display";
   editing.value = true;
 }
 
@@ -216,6 +217,7 @@ async function startEdit(id: string): Promise<void> {
   tagText.value = draft.value.tags.join(", ");
   memberTagText.value = draft.value.memberTags.join(", ");
   editingId.value = id;
+  editorTab.value = "display";
   editing.value = true;
   if (draft.value.source === SOURCE_VPN_CORE_GRAPH) await loadGraphOptionsForDraft(false);
   await host.resize();
@@ -402,6 +404,24 @@ function toggleMenu(id: string): void {
   openMenuId.value = openMenuId.value === id ? "" : id;
 }
 
+/**
+ * The editor's sections, split the way Sub-Store splits them: what the record
+ * is called, what it is made of, and what is done to it. A single scroll of
+ * eight fieldsets made the operator hunt for the one field they came to change
+ * and buried the operator chain — the thing this plugin exists for — below
+ * everything else.
+ */
+type EditorTab = "display" | "content" | "operations";
+const editorTab = ref<EditorTab>("display");
+const EDITOR_TABS: { id: EditorTab; label: string }[] = [
+  { id: "display", label: "Display" },
+  { id: "content", label: "Content" },
+  { id: "operations", label: "Operations" },
+];
+
+/** The chain's size, shown on the tab so it is visible without opening it. */
+const chainCount = computed(() => (draft.value.process as unknown[]).length);
+
 /** The preview/copy sheet: the one-click path to a client configuration. */
 const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
 function openTargetSheet(row: SubscriptionListItem): void {
@@ -577,8 +597,24 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
       </div>
 
+      <nav class="editor-tabs" role="tablist" aria-label="Editor sections">
+        <button
+          v-for="tab in EDITOR_TABS"
+          :key="tab.id"
+          type="button"
+          role="tab"
+          class="editor-tab"
+          :aria-selected="editorTab === tab.id"
+          :data-active="editorTab === tab.id"
+          @click="editorTab = tab.id"
+        >
+          {{ tab.label }}
+          <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
+        </button>
+      </nav>
+
       <form @submit.prevent="submit">
-      <fieldset class="editor-group">
+      <fieldset v-show="editorTab === 'display'" class="editor-group">
         <legend>Basics</legend>
         <div class="form-grid">
         <label class="field field-wide">
@@ -623,7 +659,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </div>
       </fieldset>
 
-      <fieldset class="editor-group">
+      <fieldset v-show="editorTab === 'content'" class="editor-group">
         <legend>{{ isCollection ? "What it gathers" : "Where the nodes come from" }}</legend>
         <div class="form-grid">
         <!-- ── sub: where the nodes come from ─────────────────────────── -->
@@ -760,7 +796,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </div>
       </fieldset>
 
-      <fieldset class="editor-group">
+      <fieldset v-show="editorTab === 'content'" class="editor-group">
         <legend>Output</legend>
         <div class="form-grid">
         <label class="field">
@@ -779,11 +815,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </div>
       </fieldset>
 
-      <div class="editor-block">
+      <div v-show="editorTab === 'operations'" class="editor-block">
         <CommonSettingsBlock :model-value="common" @update:model-value="onCommonChange" />
       </div>
 
-      <div class="editor-block">
+      <div v-show="editorTab === 'operations'" class="editor-block">
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
