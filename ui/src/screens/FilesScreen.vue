@@ -5,6 +5,7 @@ import {
   CircleCheck,
   ClipboardPaste,
   CopyPlus,
+  Ellipsis,
   Eye,
   FileCode,
   FileText,
@@ -39,6 +40,7 @@ import {
   validateDraft,
   type SubscriptionDraft,
 } from "../useSubscriptions";
+import LtIconButton from "../components/lt/LtIconButton.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 
@@ -61,6 +63,11 @@ const draft = ref<SubscriptionDraft>(emptyDraft());
 const confirmingDelete = ref<string | null>(null);
 const tagText = ref("");
 const sharingId = ref<string | null>(null);
+/** Which file's overflow menu is open; only ever one, mirroring the list. */
+const openFileMenuId = ref("");
+function toggleFileMenu(id: string): void {
+  openFileMenuId.value = openFileMenuId.value === id ? "" : id;
+}
 
 /**
  * Shares are published by the dashboard, not by this frame: the frame can only
@@ -578,61 +585,57 @@ watch(host.init, (value) => {
                 </template>
               </span>
             </div>
-            <div class="sub-actions">
-              <button
-                class="icon-button"
-                type="button"
+            <div class="rec-actions" @click.stop>
+              <LtIconButton
+                :label="`Preview ${item.name}`"
                 :disabled="!subs.canPreview.value"
-                title="Show what a client would receive"
-                :aria-label="`Preview ${item.name}`"
-                :aria-expanded="subs.rowPreview.value?.id === item.id"
                 @click="subs.toggleRowPreview(item.id)"
               >
-                <Eye :size="16" aria-hidden="true" />
-              </button>
-              <button
-                class="icon-button"
-                type="button"
+                <Eye :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Edit ${item.name}`"
+                :disabled="!subs.canMutate.value || subs.saving.value"
+                @click="startEdit(item.id)"
+              >
+                <Pencil :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Share ${item.name}`"
                 :disabled="!host.init.value"
                 :title="
                   host.init.value
                     ? `Share ${item.name}`
                     : 'Shares are published from the Lattice console — this frame is running standalone'
                 "
-                :aria-label="`Share ${item.name}`"
-                :aria-expanded="sharingId === item.id"
                 @click="toggleShare(item.id)"
               >
-                <Share2 :size="16" aria-hidden="true" />
-              </button>
-              <button
-                class="icon-button"
-                type="button"
-                :disabled="!subs.canMutate.value"
-                title="Make an independent copy of this record"
-                :aria-label="`Duplicate ${item.name}`"
-                @click="subs.duplicate(item.id)"
-              >
-                <CopyPlus :size="16" aria-hidden="true" />
-              </button>
-              <button
-                class="icon-button"
-                type="button"
-                :disabled="!subs.canMutate.value || subs.saving.value"
-                :aria-label="`Edit ${item.name}`"
-                @click="startEdit(item.id)"
-              >
-                <Pencil :size="16" aria-hidden="true" />
-              </button>
-              <button
-                class="icon-button destructive"
-                type="button"
-                :disabled="!subs.canMutate.value"
-                :aria-label="`Delete ${item.name}`"
-                @click="confirmingDelete = confirmingDelete === item.id ? null : item.id"
-              >
-                <Trash2 :size="16" aria-hidden="true" />
-              </button>
+                <Share2 :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <div class="rec-menu-wrap">
+                <LtIconButton :label="`More actions for ${item.name}`" @click="toggleFileMenu(item.id)">
+                  <Ellipsis :size="15" aria-hidden="true" />
+                </LtIconButton>
+                <div v-if="openFileMenuId === item.id" class="rec-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    :disabled="!subs.canMutate.value"
+                    @click="openFileMenuId = ''; subs.duplicate(item.id)"
+                  >
+                    <CopyPlus :size="14" aria-hidden="true" /> Duplicate
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    class="is-danger"
+                    :disabled="!subs.canMutate.value"
+                    @click="openFileMenuId = ''; confirmingDelete = item.id"
+                  >
+                    <Trash2 :size="14" aria-hidden="true" /> Delete
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
