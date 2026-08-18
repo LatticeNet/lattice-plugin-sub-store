@@ -181,7 +181,7 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 40000,
+            "timeout_ms": 30000,
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
             "host_calls": 78

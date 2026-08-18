@@ -192,9 +192,12 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// member (maxCollectionMembers is 64), and the refresh bookkeeping's own
 		// read and write (2). The timeout is the host maximum: 64 sequential
 		// provider fetches cannot promise less.
-		// 2026-08-18: +8 host calls and +10s on every script-capable path, for the
-		// script HTTP budget described above.
-		pluginID + "/subscription/fetch": {TimeoutMS: 40_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 78},
+		// 2026-08-18: +8 host calls on every script-capable path for the script
+		// HTTP budget described above. fetch keeps 30s because that is the host
+		// maximum — it was already at the ceiling, so its script allowance has
+		// to fit inside the time the provider fetches leave rather than extend
+		// the call.
+		pluginID + "/subscription/fetch": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 78},
 		pluginID + "/subscription/probe": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
 		// operators returns a fixed catalog and touches nothing, so it gets the
 		// smallest budget in the file and zero host calls.
