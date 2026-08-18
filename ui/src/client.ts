@@ -20,6 +20,9 @@ import type { BridgeClient } from "@latticenet/plugin-bridge";
 export const SERVICES = {
   engine: "latticenet.sub-store/engine",
   subscription: "latticenet.sub-store/subscription",
+  /** Core-backed (manifest `backing: "core"`): share tokens never enter the
+   * sandbox store, so the link a client subscribes to can only come from core. */
+  shares: "latticenet.sub-store/shares",
 } as const;
 
 export type BindingStatus = "active" | "pending";
@@ -60,6 +63,8 @@ export const BINDINGS = {
    * "copy the config for Stash" possible without publishing a share first.
    */
   subRender: binding(SERVICES.subscription, "render", "active"),
+  // ── core-backed (dispatched to the host, never to the runtime) ────────────
+  sharesList: binding(SERVICES.shares, "list", "active"),
   subPreview: binding(SERVICES.subscription, "preview", "active"),
   subOperators: binding(SERVICES.subscription, "operators", "active"),
   subGraphOptions: binding(SERVICES.subscription, "graph_options", "active"),
@@ -466,6 +471,36 @@ export interface SubscriptionRenderResponse {
   content: string;
   content_type: string;
   headers?: Record<string, string>;
+}
+
+/**
+ * One share URL core holds for a sub-store subscription record. `url` is
+ * present only when the server knows its public base; `path` always is.
+ */
+export interface SubStoreShareRow {
+  subscription_id: string;
+  share_id: string;
+  slug: string;
+  enabled: boolean;
+  default_format?: string;
+  expires_at?: string;
+  path: string;
+  url?: string;
+}
+
+export interface SubStoreSharesResponse {
+  shares: SubStoreShareRow[];
+}
+
+/**
+ * The link a client actually subscribes to: the share URL plus the explicit
+ * ?target= contract the serve path honors (P-1). Flags ride along only when
+ * set, so the plain link stays byte-identical to what core hands out.
+ */
+export function buildShareLink(base: string, targetId: string, includeUnsupported: boolean): string {
+  const params = new URLSearchParams({ target: targetId });
+  if (includeUnsupported) params.set("includeUnsupportedProxy", "1");
+  return `${base}${base.includes("?") ? "&" : "?"}${params.toString()}`;
 }
 
 /** Typed call through the bridge; every UI data path funnels through here. */

@@ -68,6 +68,7 @@ import {
 } from "../commonSettings";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
+import CodeEditor from "../components/CodeEditor.vue";
 import CommonSettingsBlock from "../components/CommonSettings.vue";
 import MemberPicker from "../components/MemberPicker.vue";
 import GraphSubscriptionEditor from "../components/GraphSubscriptionEditor.vue";
@@ -727,19 +728,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </label>
         </template>
 
-        <label v-if="!isCollection && draft.source === SOURCE_LOCAL" class="field field-wide">
+        <div v-if="!isCollection && draft.source === SOURCE_LOCAL" class="field field-wide">
           <span class="field-label">Nodes</span>
-          <textarea
+          <CodeEditor
             v-model="draft.content"
-            class="code-area"
-            rows="12"
-            spellcheck="false"
+            language="plain"
+            :rows="12"
             placeholder="Paste node links, a base64 blob, Clash YAML, or sing-box JSON"
-          ></textarea>
+          />
           <span class="field-optional">
             Mixed lists work. One node per line for link formats.
           </span>
-        </label>
+        </div>
 
         <!-- ── collection: what it gathers ────────────────────────────── -->
         <template v-if="isCollection">
