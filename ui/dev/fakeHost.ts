@@ -317,6 +317,24 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       source_node_count: 8,
     };
   },
+  /**
+   * The document a client would actually receive. The sheet's copy action is
+   * the only path that produces a whole configuration rather than a node
+   * summary, so the harness has to answer it or that action can only ever be
+   * checked in production.
+   */
+  "subscription/render": ({ subscription_id, ua_class }) => {
+    const found = records.find((r) => r.id === subscription_id);
+    const target = String(ua_class || "uri");
+    const body =
+      target === "stash" || target === "clash"
+        ? "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}\n"
+        : "vless://canned@a.example:443#%F0%9F%87%AD%F0%9F%87%B0%20Hong%20Kong%2001\n";
+    return {
+      content: `# ${found?.name ?? subscription_id} rendered for ${target}\n${body}`,
+      content_type: target === "singbox" ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
+    };
+  },
   "subscription/get_settings": () => settings,
   "subscription/save_settings": (payload) => {
     settings = { ...settings, ...payload };

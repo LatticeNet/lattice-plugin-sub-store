@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import manifest from "../../manifest.json";
-import { BINDINGS, SERVICES, type MethodBinding } from "./client";
+import { BINDINGS, CONVERT_TARGETS, SERVICES, type MethodBinding } from "./client";
 
 /**
  * DoD gate: every UI data path must resolve to a manifest-declared method.
@@ -72,5 +72,50 @@ describe("UI ↔ manifest method contract", () => {
   it("keeps binding names unique across services", () => {
     const keys = all.map(key);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+});
+
+/**
+ * The client sheet's capability split has to match the backend, not a wish.
+ *
+ * `render` picks the client from the core's bounded UA classification
+ * (uaClassTargets in system-go/subscription_render.go). A target the UI marks
+ * renderable but the core cannot select would offer a copy action that always
+ * fails; a target the core CAN select but the UI leaves unmarked hides a
+ * working path. Both directions are pinned here, so adding a client to one
+ * side without the other fails the suite instead of production.
+ */
+describe("client target catalog", () => {
+  // Mirrors uaClassTargets; keep in step with the Go map.
+  const CORE_UA_CLASSES: Record<string, string> = {
+    surge: "Surge",
+    loon: "Loon",
+    quantumultx: "QX",
+    stash: "Stash",
+    shadowrocket: "Shadowrocket",
+    clash: "Clash",
+    singbox: "sing-box",
+    egern: "Egern",
+  };
+
+  it("declares unique target ids", () => {
+    const ids = CONVERT_TARGETS.map((t) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("only marks a target renderable when the core can select it", () => {
+    for (const target of CONVERT_TARGETS) {
+      if (!target.uaClass) continue;
+      expect(CORE_UA_CLASSES[target.uaClass]).toBe(target.id);
+    }
+  });
+
+  it("exposes every client the core can select", () => {
+    const covered = new Set(
+      CONVERT_TARGETS.filter((t) => t.uaClass).map((t) => t.uaClass as string),
+    );
+    for (const uaClass of Object.keys(CORE_UA_CLASSES)) {
+      expect(covered.has(uaClass)).toBe(true);
+    }
   });
 });

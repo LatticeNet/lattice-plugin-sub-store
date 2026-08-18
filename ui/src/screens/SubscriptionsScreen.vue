@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import {
+  ChevronDown,
   ChevronLeft,
+  ChevronsRight,
   CircleAlert,
   CircleCheck,
   ClipboardPaste,
-  Columns3,
   CopyPlus,
+  Ellipsis,
   Eye,
   Globe,
   Layers,
   Library,
   LoaderCircle,
+  Pencil,
   Plus,
-  Rows3,
   Send,
   RefreshCw,
   Server,
@@ -23,16 +25,14 @@ import {
 } from "@lucide/vue";
 
 import LtBadge from "../components/lt/LtBadge.vue";
-import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtButton from "../components/lt/LtButton.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtDrawer from "../components/lt/LtDrawer.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
-import LtTable from "../components/lt/LtTable.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
-import { useLtTable, type LtColumn } from "../components/lt/ltTable";
+import TargetSheet from "../components/TargetSheet.vue";
 
 import {
   CONVERT_TARGETS,
@@ -106,7 +106,6 @@ const deleting = ref<string[]>([]);
 const deleteBusy = ref(false);
 // Rows currently mid-operation (refresh or delete) render pending.
 const pendingIds = ref<Set<string>>(new Set());
-const columnsOpen = ref(false);
 
 const isCollection = computed(() => draft.value.kind === KIND_COLLECTION);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
@@ -188,7 +187,6 @@ function clearTransientListState(): void {
   // reappear when the operator comes back to the list.
   deleting.value = [];
   drawer.value = null;
-  columnsOpen.value = false;
 }
 
 function startCreate(kind: string): void {
@@ -370,23 +368,46 @@ function statusRank(item: SubscriptionListItem): number {
   return 2;
 }
 
-const tableColumns: LtColumn<SubscriptionListItem>[] = [
-  { id: "name", label: "Name", sort: (r) => (r.display_name || r.name).toLowerCase() },
-  { id: "source", label: "Source", width: "150px" },
-  { id: "target", label: "Target", width: "120px", optional: true },
-  { id: "status", label: "Status", width: "170px", sort: (r) => `${statusRank(r)}:${r.last_fetch_at ?? ""}` },
-  { id: "quota", label: "Quota", width: "150px", optional: true },
-  { id: "actions", label: "", width: "150px", align: "right" },
-];
-
-const table = useLtTable<SubscriptionListItem>({
-  rows: filteredRows,
-  columns: tableColumns,
-  rowKey: (r) => r.id,
-  storageKey: "lt.subscriptions.table",
+/**
+ * Records are shown as a grouped list, the way Sub-Store shows them: one
+ * section for single subscriptions and one for combinations, each collapsible
+ * and carrying its own count.
+ *
+ * This replaced a dense table whose fixed column widths could not hold real
+ * data: inside the console's frame a name like "merge-cd-openjobs" wrapped
+ * onto three lines, its tags spilled into the neighbouring column, and two
+ * columns (Status, Quota) were "Never refreshed" and "—" for every row. A
+ * table earns its columns by having values in them; this data does not.
+ */
+const groups = computed(() => {
+  const singles = filteredRows.value.filter((row) => (row.kind || KIND_SUB) !== KIND_COLLECTION);
+  const collections = filteredRows.value.filter((row) => (row.kind || KIND_SUB) === KIND_COLLECTION);
+  return [
+    { id: "subs", label: "Subscriptions", rows: singles },
+    { id: "collections", label: "Combinations", rows: collections },
+  ].filter((group) => group.rows.length > 0);
 });
 
-watch(filteredRows, () => table.pruneSelection());
+const collapsedGroups = ref<Set<string>>(new Set());
+function toggleGroup(id: string): void {
+  const next = new Set(collapsedGroups.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  collapsedGroups.value = next;
+}
+
+/** Which record's per-row menu is open; only ever one. */
+const openMenuId = ref("");
+function toggleMenu(id: string): void {
+  openMenuId.value = openMenuId.value === id ? "" : id;
+}
+
+/** The preview/copy sheet: the one-click path to a client configuration. */
+const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
+function openTargetSheet(row: SubscriptionListItem): void {
+  openMenuId.value = "";
+  targetSheet.value = { id: row.id, name: row.display_name || row.name, target: row.target ?? "" };
+}
 
 function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
   return item.source === SOURCE_VPN_CORE || item.source === SOURCE_VPN_CORE_GRAPH ? "accent" : "neutral";
@@ -419,16 +440,6 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-async function batchRefresh(): Promise<void> {
-  const ids = [...table.selected.value];
-  for (const id of ids) {
-    // Serial on purpose: each refresh is a provider fetch, and the plugin
-    // worker handles one invocation at a time anyway.
-    await refreshRow(id);
-  }
-  table.clearSelection();
-}
-
 function requestDelete(ids: string[]): void {
   deleting.value = ids;
 }
@@ -452,7 +463,6 @@ async function runDelete(): Promise<void> {
   } finally {
     deleteBusy.value = false;
     deleting.value = [];
-    table.clearSelection();
   }
 }
 
@@ -912,29 +922,6 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               Untagged
             </button>
           </template>
-          <template #controls>
-            <div class="lt-columns">
-              <LtIconButton label="Choose columns" @click="columnsOpen = !columnsOpen">
-                <Columns3 :size="15" aria-hidden="true" />
-              </LtIconButton>
-              <div v-if="columnsOpen" class="lt-columns-menu" role="menu">
-                <label v-for="column in tableColumns.filter((c) => c.optional)" :key="column.id" class="lt-columns-item">
-                  <input
-                    type="checkbox"
-                    :checked="!table.hidden.value.has(column.id)"
-                    @change="table.toggleColumn(column.id)"
-                  />
-                  {{ column.label }}
-                </label>
-              </div>
-            </div>
-            <LtIconButton
-              :label="table.compact.value ? 'Comfortable rows' : 'Compact rows'"
-              @click="table.setCompact(!table.compact.value)"
-            >
-              <Rows3 :size="15" aria-hidden="true" />
-            </LtIconButton>
-          </template>
         </LtToolbar>
 
         <LtEmptyState
@@ -946,94 +933,127 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <LtButton @click="searchText = ''; tagFilter = ''; kindFilter = ''">Clear filters</LtButton>
         </LtEmptyState>
 
-        <LtTable
-          v-else
-          :columns="table.visibleColumns.value"
-          :rows="table.sortedRows.value"
-          :row-key="(r: SubscriptionListItem) => r.id"
-          :sort="table.sort.value"
-          :compact="table.compact.value"
-          selectable
-          :selected="table.selected.value"
-          :all-selected="table.allSelected.value"
-          :pending="pendingIds"
-          @sort="table.toggleSort"
-          @toggle-row="table.toggleRow"
-          @toggle-all="table.toggleAll"
-          @row-click="(r: SubscriptionListItem) => subs.canMutate.value && startEdit(r.id)"
-        >
-          <template #cell-name="{ row }">
-            <div class="cell-name">
-              <span class="cell-name-title">
-                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="13" aria-hidden="true" />
-                {{ row.display_name || row.name }}
-                <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
-                <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
+        <section v-for="group in groups" v-else :key="group.id" class="rec-group">
+          <button
+            type="button"
+            class="rec-group-head"
+            :aria-expanded="!collapsedGroups.has(group.id)"
+            @click="toggleGroup(group.id)"
+          >
+            <ChevronDown
+              :size="14"
+              class="rec-group-caret"
+              :class="{ 'is-collapsed': collapsedGroups.has(group.id) }"
+              aria-hidden="true"
+            />
+            <Layers v-if="group.id === 'collections'" :size="14" aria-hidden="true" />
+            <span>{{ group.label }}</span>
+            <span class="rec-group-count">{{ group.rows.length }}</span>
+          </button>
+
+          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list">
+            <li
+              v-for="row in group.rows"
+              :key="row.id"
+              class="rec"
+              :class="{ 'is-pending': pendingIds.has(row.id) }"
+            >
+              <span class="rec-icon" aria-hidden="true">
+                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="18" />
+                <Library v-else :size="18" />
               </span>
-              <span class="cell-name-sub mono">{{ row.id }}<template v-if="row.step_count"> · {{ row.step_count }} op(s)<template v-if="row.disabled_step_count">, {{ row.disabled_step_count }} off</template></template></span>
-            </div>
-          </template>
-          <template #cell-source="{ row }">
-            <LtBadge :tone="sourceTone(row)">{{ describe(row) }}</LtBadge>
-          </template>
-          <template #cell-target="{ row }">
-            <span class="mono">{{ row.target || "Auto (UA)" }}</span>
-          </template>
-          <template #cell-status="{ row }">
-            <LtBadge dot :tone="statusOf(row).tone" :title="statusOf(row).title">{{ statusOf(row).label }}</LtBadge>
-          </template>
-          <template #cell-quota="{ row }">
-            <span v-if="trafficOf(row)" class="mono">{{ trafficOf(row) }}</span>
-            <span v-else class="cell-dim">—</span>
-          </template>
-          <template #cell-actions="{ row }">
-            <div class="cell-actions" @click.stop>
-              <LtIconButton
-                :label="`Preview ${row.name}`"
-                :disabled="!subs.canPreview.value"
-                @click="openDrawer('preview', row.id)"
-              >
-                <Eye :size="15" aria-hidden="true" />
-              </LtIconButton>
-              <LtIconButton
-                :label="`Refresh ${row.name}`"
-                :disabled="!subs.canFetch.value"
-                @click="refreshRow(row.id)"
-              >
-                <RefreshCw :size="15" aria-hidden="true" />
-              </LtIconButton>
-              <LtIconButton
-                :label="`Publish ${row.name}`"
-                :disabled="!subs.canPublish.value || !subs.canMutate.value"
-                @click="openDrawer('publish', row.id)"
-              >
-                <Send :size="15" aria-hidden="true" />
-              </LtIconButton>
-              <LtIconButton
-                :label="`Share ${row.name}`"
-                :disabled="!host.init.value"
-                @click="openDrawer('share', row.id)"
-              >
-                <Share2 :size="15" aria-hidden="true" />
-              </LtIconButton>
-              <LtIconButton
-                :label="`Duplicate ${row.name}`"
-                :disabled="!subs.canMutate.value"
-                @click="subs.duplicate(row.id)"
-              >
-                <CopyPlus :size="15" aria-hidden="true" />
-              </LtIconButton>
-              <LtIconButton
-                :label="`Delete ${row.name}`"
-                danger
-                :disabled="!subs.canMutate.value"
-                @click="requestDelete([row.id])"
-              >
-                <Trash2 :size="15" aria-hidden="true" />
-              </LtIconButton>
-            </div>
-          </template>
-        </LtTable>
+
+              <div class="rec-body">
+                <!-- The name opens the client sheet: the daily path is "give me
+                     the config for my client", so it is the primary click. -->
+                <button
+                  type="button"
+                  class="rec-name"
+                  :title="`Preview or copy ${row.display_name || row.name} for a client`"
+                  @click="openTargetSheet(row)"
+                >
+                  {{ row.display_name || row.name }}
+                </button>
+                <span class="rec-tags">
+                  <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
+                  <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
+                </span>
+                <p class="rec-summary">
+                  {{ describe(row) }}
+                  <template v-if="row.step_count">
+                    · {{ row.step_count }} operation(s)<template v-if="row.disabled_step_count">, {{ row.disabled_step_count }} off</template>
+                  </template>
+                  <template v-if="row.target"> · always {{ row.target }}</template>
+                </p>
+                <p class="rec-meta mono">
+                  {{ row.id }}
+                  <template v-if="statusOf(row).label !== 'Never refreshed'">
+                    · <span :class="`rec-status is-${statusOf(row).tone}`">{{ statusOf(row).label }}</span>
+                  </template>
+                  <template v-if="trafficOf(row)"> · {{ trafficOf(row) }}</template>
+                </p>
+              </div>
+
+              <div class="rec-actions" @click.stop>
+                <LtIconButton
+                  :label="`Refresh ${row.name}`"
+                  :disabled="!subs.canFetch.value"
+                  @click="refreshRow(row.id)"
+                >
+                  <RefreshCw :size="15" aria-hidden="true" />
+                </LtIconButton>
+                <LtIconButton
+                  :label="`Edit ${row.name}`"
+                  :disabled="!subs.canMutate.value"
+                  @click="startEdit(row.id)"
+                >
+                  <Pencil :size="15" aria-hidden="true" />
+                </LtIconButton>
+                <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row)">
+                  <ChevronsRight :size="15" aria-hidden="true" />
+                </LtIconButton>
+                <div class="rec-menu-wrap">
+                  <LtIconButton :label="`More actions for ${row.name}`" @click="toggleMenu(row.id)">
+                    <Ellipsis :size="15" aria-hidden="true" />
+                  </LtIconButton>
+                  <div v-if="openMenuId === row.id" class="rec-menu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      :disabled="!subs.canPreview.value"
+                      @click="openMenuId = ''; openDrawer('preview', row.id)"
+                    >
+                      <Eye :size="14" aria-hidden="true" /> Preview nodes
+                    </button>
+                    <button type="button" role="menuitem" :disabled="!host.init.value" @click="openMenuId = ''; openDrawer('share', row.id)">
+                      <Share2 :size="14" aria-hidden="true" /> Share…
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      :disabled="!subs.canPublish.value || !subs.canMutate.value"
+                      @click="openMenuId = ''; openDrawer('publish', row.id)"
+                    >
+                      <Send :size="14" aria-hidden="true" /> Publish…
+                    </button>
+                    <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="openMenuId = ''; subs.duplicate(row.id)">
+                      <CopyPlus :size="14" aria-hidden="true" /> Duplicate
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="is-danger"
+                      :disabled="!subs.canMutate.value"
+                      @click="openMenuId = ''; requestDelete([row.id])"
+                    >
+                      <Trash2 :size="14" aria-hidden="true" /> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </section>
 
         <div v-if="storeEmpty === false && ops.canMigrate.value && !subs.items.value.length" />
         <div v-if="ops.canMigrate.value && storeEmpty" class="empty-secondary">
@@ -1051,15 +1071,15 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
         </div>
 
-        <LtBatchBar :count="table.selected.value.size" @clear="table.clearSelection()">
-          <LtButton size="sm" :disabled="!subs.canFetch.value" @click="batchRefresh()">
-            <RefreshCw :size="13" aria-hidden="true" /> Refresh {{ table.selected.value.size }}
-          </LtButton>
-          <LtButton size="sm" variant="danger" :disabled="!subs.canMutate.value" @click="requestDelete([...table.selected.value])">
-            <Trash2 :size="13" aria-hidden="true" /> Delete {{ table.selected.value.size }}
-          </LtButton>
-        </LtBatchBar>
       </template>
+
+      <TargetSheet
+        :open="!!targetSheet"
+        :record-id="targetSheet?.id ?? ''"
+        :record-name="targetSheet?.name ?? ''"
+        :pinned-target="targetSheet?.target"
+        @close="targetSheet = null"
+      />
 
       <LtDrawer :open="!!drawer" :title="drawerTitle" @close="closeDrawer()">
         <template v-if="drawer?.mode === 'preview'">
