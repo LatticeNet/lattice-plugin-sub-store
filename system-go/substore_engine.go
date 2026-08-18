@@ -21,8 +21,16 @@ const (
 	subStoreQuickJSGCThreshold = 32 << 20
 )
 
+// Timeout bounds one script's wall clock inside the engine. It went from 10s
+// to 25s when scripts gained a network: a chain that resolves domains over
+// DoH or downloads a ruleset spends most of its budget waiting on someone
+// else's server, and 10s made an ordinary fetch-and-filter script fail on a
+// slow provider rather than on its own logic. The declared per-method
+// invocation timeout (30s for the script-capable methods) still bounds the
+// whole call, and the request budget bounds how many waits a script can
+// stack up.
 var defaultSubStoreEngineLimits = subStoreEngineLimits{
-	Timeout:      10 * time.Second,
+	Timeout:      25 * time.Second,
 	MemoryLimit:  subStoreQuickJSMemoryLimit,
 	MaxStackSize: subStoreQuickJSStackLimit,
 	GCThreshold:  subStoreQuickJSGCThreshold,
@@ -88,6 +96,45 @@ type subStoreEngine struct {
 	// anyway); isolatedServes is atomic so the isolated path stays lock-free.
 	warmServes     int
 	isolatedServes atomic.Int64
+
+	// scriptHTTP is the network arm for the invocation currently in flight,
+	// or nil when none is. A v2 worker handles one invocation at a time, so
+	// this is a single slot rather than a map; it is a pointer swap so the
+	// isolated path (which never takes mu) can read it without locking.
+	scriptHTTP atomic.Pointer[scriptHTTPGateway]
+}
+
+// attachScriptHTTP gives the engine's JavaScript the invocation's network for
+// as long as the returned release function has not been called. Detaching is
+// what makes an expired host lease unreachable: a script that outlives its
+// invocation finds no network rather than a stale client.
+func (engine *subStoreEngine) attachScriptHTTP(gateway *scriptHTTPGateway) func() {
+	if engine == nil {
+		return func() {}
+	}
+	engine.scriptHTTP.Store(gateway)
+	return func() { engine.scriptHTTP.Store(nil) }
+}
+
+// installScriptHTTPBinding exposes the single host function the environment
+// shim calls. It is the only I/O primitive any JavaScript in this process can
+// reach, and it holds no client of its own: it borrows the invocation's.
+func (engine *subStoreEngine) installScriptHTTPBinding(qctx *qjs.Context) {
+	qctx.SetFunc("__lattice_host_http", func(this *qjs.This) (*qjs.Value, error) {
+		args := this.Args()
+		if len(args) == 0 {
+			return nil, fmt.Errorf("script http: no request")
+		}
+		gateway := engine.scriptHTTP.Load()
+		if gateway == nil {
+			return nil, fmt.Errorf("script http: the network is not available for this call")
+		}
+		answer, err := gateway.do(args[0].String())
+		if err != nil {
+			return nil, err
+		}
+		return this.Context().NewString(answer), nil
+	})
 }
 
 type subStoreEngineLimits struct {
@@ -289,6 +336,15 @@ func (engine *subStoreEngine) bootWarm() (err error) {
 		closeQuickJSRuntime(rt)
 		return fmt.Errorf("install Sub-Store console shim: %w", shimErr)
 	}
+	// Before the core, always: the core decides which client it is running
+	// inside while it loads. The warm path needs this too — Resolve Domain
+	// speaks DoH and carries no user JavaScript, so it runs here.
+	engine.installScriptHTTPBinding(qctx)
+	if shimErr := evalQuickJSStep(qctx, "lattice-script-env.js", subStoreScriptEnvShim); shimErr != nil {
+		cancel()
+		closeQuickJSRuntime(rt)
+		return fmt.Errorf("install Sub-Store script environment: %w", shimErr)
+	}
 	// Compile first, evaluate the bytecode: one parse serves both the warm
 	// boot and every later isolated seed.
 	bytecode := engine.ensureCoreBytecode(qctx)
@@ -463,6 +519,10 @@ func (engine *subStoreEngine) runIsolatedScript(stage, file, script string) (str
 	qctx := rt.Context()
 	if err := evalQuickJSStep(qctx, "lattice-console-shim.js", subStoreConsoleShim); err != nil {
 		return "", fmt.Errorf("install Sub-Store console shim: %w", err)
+	}
+	engine.installScriptHTTPBinding(qctx)
+	if err := evalQuickJSStep(qctx, "lattice-script-env.js", subStoreScriptEnvShim); err != nil {
+		return "", fmt.Errorf("install Sub-Store script environment: %w", err)
 	}
 	if err := engine.loadCoreInto(qctx); err != nil {
 		return "", err

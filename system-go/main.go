@@ -153,6 +153,12 @@ func parseRuntimeV2Environment(getenv func(string) string) (uint64, error) {
 func invocationHandler(base *runtime) latticeplugin.Handler {
 	return latticeplugin.HandlerFunc(func(ctx context.Context, req latticeplugin.Request, host *latticeplugin.HostClient) latticeplugin.Response {
 		invocation := &runtime{engine: base.engine, host: sdkHostCaller{ctx: ctx, client: host}}
+		// Scripts get the network for exactly this invocation. Attaching here
+		// rather than per method means every script-running path (convert,
+		// render, preview, file scripts, response transformers) is covered by
+		// one rule, and the release runs even when a handler panics.
+		release := base.engine.attachScriptHTTP(newScriptHTTPGateway(invocation.host))
+		defer release()
 		return invocation.handle(req)
 	})
 }
