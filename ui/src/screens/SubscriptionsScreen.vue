@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import {
-  ChevronDown,
+  ChevronLeft,
   CircleAlert,
   CircleCheck,
   ClipboardPaste,
+  Columns3,
   CopyPlus,
   Eye,
   Globe,
   Layers,
-  Link2,
+  Library,
   LoaderCircle,
-  Pencil,
   Plus,
+  Rows3,
   Send,
   RefreshCw,
   Server,
@@ -20,6 +21,18 @@ import {
   SquareArrowOutUpRight,
   Trash2,
 } from "@lucide/vue";
+
+import LtBadge from "../components/lt/LtBadge.vue";
+import LtBatchBar from "../components/lt/LtBatchBar.vue";
+import LtButton from "../components/lt/LtButton.vue";
+import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import LtDrawer from "../components/lt/LtDrawer.vue";
+import LtEmptyState from "../components/lt/LtEmptyState.vue";
+import LtIconButton from "../components/lt/LtIconButton.vue";
+import LtSkeleton from "../components/lt/LtSkeleton.vue";
+import LtTable from "../components/lt/LtTable.vue";
+import LtToolbar from "../components/lt/LtToolbar.vue";
+import { useLtTable, type LtColumn } from "../components/lt/ltTable";
 
 import {
   CONVERT_TARGETS,
@@ -75,19 +88,25 @@ const editing = ref(false);
 const editingId = ref<string | null>(null);
 const draft = ref<SubscriptionDraft>(emptyDraft());
 const common = ref<CommonSettingsShape>(emptyCommonSettings());
-const confirmingDelete = ref<string | null>(null);
 const tagText = ref("");
 const memberTagText = ref("");
 const tagFilter = ref("");
-const showSubs = ref(true);
-const showCollections = ref(true);
-const publishingId = ref<string | null>(null);
+const searchText = ref("");
+const kindFilter = ref<"" | "sub" | "collection">("");
 const publishDestination = ref("");
 const publishMethod = ref("PUT");
 const publishFormat = ref("plain");
-const sharingId = ref<string | null>(null);
 const migrateUrl = ref("");
 const migrateSummary = ref("");
+
+// One drawer at a time carries all row-scoped work; one dialog carries every
+// destructive confirmation, single or batch.
+const drawer = ref<{ mode: "preview" | "publish" | "share"; id: string } | null>(null);
+const deleting = ref<string[]>([]);
+const deleteBusy = ref(false);
+// Rows currently mid-operation (refresh or delete) render pending.
+const pendingIds = ref<Set<string>>(new Set());
+const columnsOpen = ref(false);
 
 const isCollection = computed(() => draft.value.kind === KIND_COLLECTION);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
@@ -164,7 +183,16 @@ const SOURCES = [
   },
 ] as const;
 
+function clearTransientListState(): void {
+  // A pending confirm or an open drawer must not survive into the editor and
+  // reappear when the operator comes back to the list.
+  deleting.value = [];
+  drawer.value = null;
+  columnsOpen.value = false;
+}
+
 function startCreate(kind: string): void {
+  clearTransientListState();
   subs.clearMessages();
   draft.value = emptyDraft();
   draft.value.kind = kind;
@@ -177,6 +205,7 @@ function startCreate(kind: string): void {
 }
 
 async function startEdit(id: string): Promise<void> {
+  clearTransientListState();
   subs.clearMessages();
   const record = await subs.get(id);
   if (!record) return;
@@ -266,17 +295,6 @@ async function submit(): Promise<void> {
   if (ok) cancelEdit();
 }
 
-async function confirmDelete(id: string): Promise<void> {
-  const ok = await subs.remove(id);
-  if (ok) confirmingDelete.value = null;
-}
-
-async function publishSaved(id: string, destination = publishDestination.value, method = publishMethod.value, format = publishFormat.value): Promise<void> {
-  if (await subs.publish(id, destination, method, format)) {
-    publishingId.value = null;
-  }
-}
-
 function describe(item: SubscriptionListItem): string {
   if ((item.kind || KIND_SUB) === KIND_COLLECTION) {
     const byId = item.members?.length ?? 0;
@@ -328,6 +346,148 @@ function trafficOf(item: SubscriptionListItem): string {
   return formatTraffic(parseUserinfo(item.userinfo));
 }
 
+// ── table ───────────────────────────────────────────────────────────────────
+
+/** Rows after tag, kind, and text filters; the table sorts on top of this. */
+const filteredRows = computed(() =>
+  onThisTab.value.filter((item) => {
+    if (!matchesFilter(item)) return false;
+    if (kindFilter.value && (item.kind || KIND_SUB) !== (kindFilter.value === "collection" ? KIND_COLLECTION : KIND_SUB)) {
+      return false;
+    }
+    const query = searchText.value.trim().toLowerCase();
+    if (!query) return true;
+    return [item.name, item.display_name ?? "", item.id, item.remark ?? ""].some((field) =>
+      field.toLowerCase().includes(query),
+    );
+  }),
+);
+
+/** Status ranks worst-first so "sort by status" surfaces failures. */
+function statusRank(item: SubscriptionListItem): number {
+  if (item.last_fetch_ok === false) return 0;
+  if (!item.last_fetch_at) return 1;
+  return 2;
+}
+
+const tableColumns: LtColumn<SubscriptionListItem>[] = [
+  { id: "name", label: "Name", sort: (r) => (r.display_name || r.name).toLowerCase() },
+  { id: "source", label: "Source", width: "150px" },
+  { id: "target", label: "Target", width: "120px", optional: true },
+  { id: "status", label: "Status", width: "170px", sort: (r) => `${statusRank(r)}:${r.last_fetch_at ?? ""}` },
+  { id: "quota", label: "Quota", width: "150px", optional: true },
+  { id: "actions", label: "", width: "150px", align: "right" },
+];
+
+const table = useLtTable<SubscriptionListItem>({
+  rows: filteredRows,
+  columns: tableColumns,
+  rowKey: (r) => r.id,
+  storageKey: "lt.subscriptions.table",
+});
+
+watch(filteredRows, () => table.pruneSelection());
+
+function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
+  return item.source === SOURCE_VPN_CORE || item.source === SOURCE_VPN_CORE_GRAPH ? "accent" : "neutral";
+}
+
+function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" | "neutral"; label: string; title?: string } {
+  if (item.last_fetch_ok === false) {
+    return { tone: "danger", label: "Failed", title: item.last_error || "The last refresh failed" };
+  }
+  if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
+  const relative = formatRelativeTime(item.last_fetch_at);
+  return { tone: "ok", label: relative ? `Refreshed ${relative}` : "Refreshed" };
+}
+
+// ── row + batch operations ──────────────────────────────────────────────────
+
+function markPending(id: string, on: boolean): void {
+  const next = new Set(pendingIds.value);
+  if (on) next.add(id);
+  else next.delete(id);
+  pendingIds.value = next;
+}
+
+async function refreshRow(id: string): Promise<void> {
+  markPending(id, true);
+  try {
+    await subs.refresh(id);
+  } finally {
+    markPending(id, false);
+  }
+}
+
+async function batchRefresh(): Promise<void> {
+  const ids = [...table.selected.value];
+  for (const id of ids) {
+    // Serial on purpose: each refresh is a provider fetch, and the plugin
+    // worker handles one invocation at a time anyway.
+    await refreshRow(id);
+  }
+  table.clearSelection();
+}
+
+function requestDelete(ids: string[]): void {
+  deleting.value = ids;
+}
+
+const deletingNames = computed(() =>
+  deleting.value.map((id) => {
+    const item = subs.items.value.find((r) => r.id === id);
+    return item ? item.display_name || item.name : id;
+  }),
+);
+
+async function runDelete(): Promise<void> {
+  deleteBusy.value = true;
+  try {
+    for (const id of deleting.value) {
+      markPending(id, true);
+      const ok = await subs.remove(id);
+      markPending(id, false);
+      if (!ok) break; // the composable surfaced the error; stop rather than plough on
+    }
+  } finally {
+    deleteBusy.value = false;
+    deleting.value = [];
+    table.clearSelection();
+  }
+}
+
+// ── drawer ──────────────────────────────────────────────────────────────────
+
+const drawerItem = computed(() =>
+  drawer.value ? subs.items.value.find((r) => r.id === drawer.value?.id) : undefined,
+);
+const drawerTitle = computed(() => {
+  if (!drawer.value || !drawerItem.value) return "";
+  const name = drawerItem.value.display_name || drawerItem.value.name;
+  if (drawer.value.mode === "preview") return `Preview · ${name}`;
+  if (drawer.value.mode === "publish") return `Publish · ${name}`;
+  return `Share · ${name}`;
+});
+
+function openDrawer(mode: "preview" | "publish" | "share", id: string): void {
+  drawer.value = { mode, id };
+  if (mode === "preview" && subs.rowPreview.value?.id !== id) {
+    void subs.toggleRowPreview(id);
+  }
+}
+
+function closeDrawer(): void {
+  if (drawer.value?.mode === "preview" && subs.rowPreview.value) {
+    void subs.toggleRowPreview(subs.rowPreview.value.id);
+  }
+  drawer.value = null;
+}
+
+async function publishFromDrawer(destination: string, method: string, format: string): Promise<void> {
+  if (!drawer.value) return;
+  if (await subs.publish(drawer.value.id, destination, method, format)) closeDrawer();
+}
+
 // ── sharing ─────────────────────────────────────────────────────────────────
 
 /**
@@ -337,14 +497,10 @@ function trafficOf(item: SubscriptionListItem): string {
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
-function toggleShare(id: string): void {
-  sharingId.value = sharingId.value === id ? null : id;
-}
-
 function openShares(recordName: string): void {
   if (!shareOrigin.value) return;
   postNavigate(window, sharesRoute(recordName), shareOrigin.value);
-  sharingId.value = null;
+  closeDrawer();
   subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
 }
 
@@ -385,6 +541,15 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
     <section v-if="editing" class="configuration" aria-labelledby="editor-title">
+      <nav class="lt-breadcrumb" aria-label="Breadcrumb">
+        <button type="button" class="lt-breadcrumb-root" @click="cancelEdit">
+          <ChevronLeft :size="14" aria-hidden="true" /> Subscriptions
+        </button>
+        <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="lt-breadcrumb-here" aria-current="page">
+          {{ editingId ? draft.displayName || draft.name || editingId : (isCollection ? "New combination" : "New subscription") }}
+        </span>
+      </nav>
       <div class="section-heading">
         <div>
           <h2 id="editor-title">
@@ -658,6 +823,20 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </div>
         <div class="heading-actions">
           <span class="badge mono">{{ subs.items.value.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+          <LtButton
+            variant="primary"
+            :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
+            @click="startCreate(KIND_SUB)"
+          >
+            <Plus :size="14" aria-hidden="true" /> New subscription
+          </LtButton>
+          <LtButton
+            :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
+            :title="!singles.length ? 'Create a subscription first — there is nothing to combine' : ''"
+            @click="startCreate(KIND_COLLECTION)"
+          >
+            <Layers :size="14" aria-hidden="true" /> New combination
+          </LtButton>
         </div>
       </div>
 
@@ -671,412 +850,380 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <CircleCheck :size="16" aria-hidden="true" /> {{ migrateSummary }}
       </div>
 
-      <div v-if="allTags.length || hasUntagged" class="tag-row">
-        <button type="button" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">
-          All
-        </button>
-        <button
-          v-for="tag in allTags"
-          :key="tag"
-          type="button"
-          :class="{ 'is-active': tagFilter === tag }"
-          @click="tagFilter = tag"
-        >
-          {{ tag }}
-        </button>
-        <button
-          v-if="hasUntagged"
-          type="button"
-          :class="{ 'is-active': tagFilter === UNTAGGED }"
-          @click="tagFilter = UNTAGGED"
-        >
-          Untagged
-        </button>
-      </div>
+      <LtSkeleton v-if="!host.init.value || subs.state.value === 'loading'" :rows="6" :columns="5" />
 
-      <p v-if="!host.init.value || subs.state.value === 'loading'" class="skeleton-row">Loading…</p>
-      <div v-else-if="subs.loadError.value" class="alert" role="alert">
-        <CircleAlert :size="16" aria-hidden="true" /> {{ subs.loadError.value }}
-      </div>
+      <LtEmptyState
+        v-else-if="subs.loadError.value"
+        kind="error"
+        title="The list could not be loaded"
+        :detail="subs.loadError.value"
+      >
+        <LtButton variant="primary" @click="loadAll()">Retry</LtButton>
+      </LtEmptyState>
+
+      <LtEmptyState
+        v-else-if="storeEmpty"
+        title="No subscriptions yet"
+        detail="Start with your own fleet: one subscription reading this deployment's vpn-core nodes."
+      >
+        <LtButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
+          <Server :size="14" aria-hidden="true" /> Add this fleet's nodes
+        </LtButton>
+      </LtEmptyState>
 
       <template v-else>
-        <!-- Single subscriptions -->
-        <div class="group-head">
-          <button type="button" class="group-toggle" @click="showSubs = !showSubs">
-            <ChevronDown :size="15" :class="['group-caret', { 'is-open': showSubs }]" />
-            Subscriptions ({{ singles.length }})
-          </button>
-          <button
-            class="button button-primary button-compact"
-            type="button"
-            :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
-            @click="startCreate(KIND_SUB)"
-          >
-            <Plus :size="15" aria-hidden="true" /> New
-          </button>
-        </div>
-
-        <!-- Truly empty is a different moment from "the filter hides
-             everything": the first deserves guidance, the second an answer. -->
-        <div v-if="showSubs && !singles.length && !storeEmpty" class="panel-empty">
-          <p class="panel-empty-copy">No subscriptions carry this tag.</p>
-        </div>
-
-        <div v-else-if="showSubs && !singles.length" class="panel-empty panel-empty-stack">
-          <p class="panel-empty-copy">
-            Start with your own fleet: one subscription reading this deployment's vpn-core nodes.
-          </p>
-          <div class="empty-actions">
-            <button
-              class="button button-primary"
-              type="button"
-              :disabled="!subs.canMutate.value"
-              @click="startCreate(KIND_SUB)"
-            >
-              <Server :size="16" aria-hidden="true" /> Add this fleet's nodes
+        <LtToolbar>
+          <template #search>
+            <input
+              v-model="searchText"
+              class="lt-search"
+              type="search"
+              placeholder="Filter by name, id, remark"
+              aria-label="Filter subscriptions"
+            />
+          </template>
+          <template #filters>
+            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === '' }" @click="kindFilter = ''">All kinds</button>
+            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === 'sub' }" @click="kindFilter = 'sub'">
+              <Library :size="12" aria-hidden="true" /> Subs ({{ singles.length }})
             </button>
-          </div>
-
-          <div v-if="ops.canMigrate.value" class="empty-secondary">
-            <span class="field-label">Already running a standalone Sub-Store?</span>
-            <form class="empty-inline-form" @submit.prevent="runMigrate">
-              <input
-                v-model="migrateUrl"
-                type="text"
-                autocomplete="off"
-                spellcheck="false"
-                placeholder="Its base URL"
-              />
-              <button class="button button-secondary" type="submit" :disabled="ops.busy.value">
-                <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
-                Import from it
-              </button>
-            </form>
-            <p class="row-popover-note">
-              Importing publishes nothing — each subscription stays unserved until you share it.
-            </p>
-            <p v-if="ops.actionError.value" class="row-popover-error" role="alert">
-              {{ ops.actionError.value }}
-            </p>
-          </div>
-        </div>
-
-        <ul v-else-if="showSubs" class="sub-list">
-          <li v-for="item in singles" :key="item.id" class="sub-card sub-card-column">
-            <div class="sub-card-row">
-              <div class="sub-card-main">
-                <span class="sub-title">
-                  {{ item.display_name || item.name }}
-                  <span v-for="tag in item.tags ?? []" :key="tag" class="badge">{{ tag }}</span>
-                </span>
-                <span class="sub-meta">
-                  {{ describe(item) }}
-                  <template v-if="item.target"> · {{ item.target }}</template>
-                  <template v-if="item.step_count">
-                    · {{ item.step_count }} operation(s)<template v-if="item.disabled_step_count">
-                      , {{ item.disabled_step_count }} off</template>
-                  </template>
-                  <template v-if="item.last_fetch_at">
-                    ·
-                    <span
-                      v-if="item.last_fetch_ok === false"
-                      class="badge"
-                      data-tone="danger"
-                      :title="item.last_error || 'The last refresh failed'"
-                    >refresh failed</span>
-                    <template v-else>{{ refreshedLabel(item) }}</template>
-                    <template v-if="trafficOf(item)"> · {{ trafficOf(item) }}</template>
-                  </template>
-                </span>
-              </div>
-              <div class="sub-actions">
-                <span v-if="item.imported" class="badge">migrated</span>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canPublish.value || !subs.canMutate.value || subs.busyId.value === item.id"
-                  :aria-label="`Publish ${item.name}`"
-                  @click="publishingId = publishingId === item.id ? null : item.id"
-                >
-                  <Send :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canFetch.value || subs.busyId.value === item.id"
-                  :aria-label="`Refresh ${item.name}`"
-                  @click="subs.refresh(item.id)"
-                >
-                  <LoaderCircle v-if="subs.busyId.value === item.id" :size="16" class="spin" aria-hidden="true" />
-                  <RefreshCw v-else :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canPreview.value"
-                  :aria-label="`Preview ${item.name}`"
-                  :aria-expanded="subs.rowPreview.value?.id === item.id"
-                  @click="subs.toggleRowPreview(item.id)"
-                >
-                  <Eye :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!host.init.value"
-                  :title="
-                    host.init.value
-                      ? `Share ${item.name}`
-                      : 'Shares are published from the Lattice console — this frame is running standalone'
-                  "
-                  :aria-label="`Share ${item.name}`"
-                  :aria-expanded="sharingId === item.id"
-                  @click="toggleShare(item.id)"
-                >
-                  <Share2 :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canMutate.value"
-                  title="Make an independent copy of this record"
-                  :aria-label="`Duplicate ${item.name}`"
-                  @click="subs.duplicate(item.id)"
-                >
-                  <CopyPlus :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canMutate.value || subs.saving.value"
-                  :aria-label="`Edit ${item.name}`"
-                  @click="startEdit(item.id)"
-                >
-                  <Pencil :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button destructive"
-                  type="button"
-                  :disabled="!subs.canMutate.value"
-                  :aria-label="`Delete ${item.name}`"
-                  @click="confirmingDelete = confirmingDelete === item.id ? null : item.id"
-                >
-                  <Trash2 :size="16" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-
-            <SubscriptionPublishControl v-if="publishingId === item.id" :saved="true" :read-only="!subs.canMutate.value" :busy="subs.busyId.value === item.id" :error="subs.actionError.value" @publish="(destination, method, format) => publishSaved(item.id, destination, method, format)" />
-            <div v-if="subs.rowPreview.value?.id === item.id" class="row-popover">
-              <p v-if="subs.rowPreview.value.loading" class="row-popover-note">
-                <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
-              </p>
-              <p v-else-if="subs.rowPreview.value.error" class="row-popover-error" role="alert">
-                {{ subs.rowPreview.value.error }}
-              </p>
-              <template v-else>
-                <p class="row-popover-note">
-                  {{ subs.rowPreview.value.count }} node(s) once its operations run
-                </p>
-                <ul class="row-popover-list">
-                  <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`">
-                    <span>{{ node.name }}</span>
-                    <span class="badge">{{ node.type }}</span>
-                    <span v-if="node.security" class="badge">{{ node.security }}</span>
-                    <span v-if="node.server" class="row-node-endpoint mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
-                  </li>
-                </ul>
-                <p
-                  v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length"
-                  class="row-popover-note"
-                >
-                  …and {{ subs.rowPreview.value.count - subs.rowPreview.value.nodes.length }} more
-                </p>
-              </template>
-            </div>
-
-            <div v-if="sharingId === item.id" class="row-popover">
-              <p class="row-popover-copy">
-                Nothing here is reachable until a share is published for it. Shares live in the
-                dashboard, under <strong>Networking → Subscription Shares</strong>.
-              </p>
-              <p class="row-popover-note">Already published? The Shares view shows its link.</p>
-              <div v-if="shareOrigin" class="empty-actions">
-                <button
-                  class="button button-primary button-compact"
-                  type="button"
-                  @click="openShares(item.name)"
-                >
-                  <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
-                </button>
-              </div>
-              <p v-else class="row-popover-note">
-                This frame cannot ask the console to navigate — open Networking → Subscription
-                Shares yourself.
-              </p>
-            </div>
-
-            <div v-if="confirmingDelete === item.id" class="alert" role="alert">
-              <span>
-                Delete <strong>{{ item.name }}</strong>? Any combination including it stops
-                rendering until edited, and a published share keeps existing.
-              </span>
-              <button class="button button-compact" type="button" @click="confirmingDelete = null">
-                Keep
-              </button>
-              <button
-                class="button button-compact destructive"
-                type="button"
-                @click="confirmDelete(item.id)"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        </ul>
-
-        <!-- Combinations -->
-        <div class="group-head">
-          <button type="button" class="group-toggle" @click="showCollections = !showCollections">
-            <ChevronDown :size="15" :class="['group-caret', { 'is-open': showCollections }]" />
-            <Layers :size="14" aria-hidden="true" /> Combinations ({{ collections.length }})
-          </button>
-          <button
-            class="button button-primary button-compact"
-            type="button"
-            :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
-            :title="!singles.length ? 'Create a subscription first — there is nothing to combine' : ''"
-            @click="startCreate(KIND_COLLECTION)"
-          >
-            <Plus :size="15" aria-hidden="true" /> New
-          </button>
-        </div>
-
-        <div v-if="showCollections && !collections.length" class="panel-empty panel-empty-stack">
-          <p class="panel-empty-copy">
-            A combination merges several subscriptions into one URL — your own nodes plus a
-            provider's, deduplicated and renamed however you like.
-          </p>
-          <div class="empty-actions">
-            <button
-              class="button button-primary"
-              type="button"
-              :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
-              :title="!singles.length ? 'Create a subscription first — there is nothing to combine' : ''"
-              @click="startCreate(KIND_COLLECTION)"
-            >
-              <Layers :size="16" aria-hidden="true" /> New combination
+            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === 'collection' }" @click="kindFilter = 'collection'">
+              <Layers :size="12" aria-hidden="true" /> Combinations ({{ collections.length }})
             </button>
-          </div>
+            <span v-if="allTags.length || hasUntagged" class="lt-chip-sep" aria-hidden="true" />
+            <button v-if="allTags.length || hasUntagged" type="button" class="lt-chip" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">All tags</button>
+            <button
+              v-for="tag in allTags"
+              :key="tag"
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': tagFilter === tag }"
+              @click="tagFilter = tag"
+            >
+              {{ tag }}
+            </button>
+            <button
+              v-if="hasUntagged"
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': tagFilter === UNTAGGED }"
+              @click="tagFilter = UNTAGGED"
+            >
+              Untagged
+            </button>
+          </template>
+          <template #controls>
+            <div class="lt-columns">
+              <LtIconButton label="Choose columns" @click="columnsOpen = !columnsOpen">
+                <Columns3 :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <div v-if="columnsOpen" class="lt-columns-menu" role="menu">
+                <label v-for="column in tableColumns.filter((c) => c.optional)" :key="column.id" class="lt-columns-item">
+                  <input
+                    type="checkbox"
+                    :checked="!table.hidden.value.has(column.id)"
+                    @change="table.toggleColumn(column.id)"
+                  />
+                  {{ column.label }}
+                </label>
+              </div>
+            </div>
+            <LtIconButton
+              :label="table.compact.value ? 'Comfortable rows' : 'Compact rows'"
+              @click="table.setCompact(!table.compact.value)"
+            >
+              <Rows3 :size="15" aria-hidden="true" />
+            </LtIconButton>
+          </template>
+        </LtToolbar>
+
+        <LtEmptyState
+          v-if="!filteredRows.length"
+          kind="no-results"
+          title="Nothing matches"
+          detail="No record matches the current search and filters."
+        >
+          <LtButton @click="searchText = ''; tagFilter = ''; kindFilter = ''">Clear filters</LtButton>
+        </LtEmptyState>
+
+        <LtTable
+          v-else
+          :columns="table.visibleColumns.value"
+          :rows="table.sortedRows.value"
+          :row-key="(r: SubscriptionListItem) => r.id"
+          :sort="table.sort.value"
+          :compact="table.compact.value"
+          selectable
+          :selected="table.selected.value"
+          :all-selected="table.allSelected.value"
+          :pending="pendingIds"
+          @sort="table.toggleSort"
+          @toggle-row="table.toggleRow"
+          @toggle-all="table.toggleAll"
+          @row-click="(r: SubscriptionListItem) => subs.canMutate.value && startEdit(r.id)"
+        >
+          <template #cell-name="{ row }">
+            <div class="cell-name">
+              <span class="cell-name-title">
+                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="13" aria-hidden="true" />
+                {{ row.display_name || row.name }}
+                <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
+                <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
+              </span>
+              <span class="cell-name-sub mono">{{ row.id }}<template v-if="row.step_count"> · {{ row.step_count }} op(s)<template v-if="row.disabled_step_count">, {{ row.disabled_step_count }} off</template></template></span>
+            </div>
+          </template>
+          <template #cell-source="{ row }">
+            <LtBadge :tone="sourceTone(row)">{{ describe(row) }}</LtBadge>
+          </template>
+          <template #cell-target="{ row }">
+            <span class="mono">{{ row.target || "Auto (UA)" }}</span>
+          </template>
+          <template #cell-status="{ row }">
+            <LtBadge dot :tone="statusOf(row).tone" :title="statusOf(row).title">{{ statusOf(row).label }}</LtBadge>
+          </template>
+          <template #cell-quota="{ row }">
+            <span v-if="trafficOf(row)" class="mono">{{ trafficOf(row) }}</span>
+            <span v-else class="cell-dim">—</span>
+          </template>
+          <template #cell-actions="{ row }">
+            <div class="cell-actions" @click.stop>
+              <LtIconButton
+                :label="`Preview ${row.name}`"
+                :disabled="!subs.canPreview.value"
+                @click="openDrawer('preview', row.id)"
+              >
+                <Eye :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Refresh ${row.name}`"
+                :disabled="!subs.canFetch.value"
+                @click="refreshRow(row.id)"
+              >
+                <RefreshCw :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Publish ${row.name}`"
+                :disabled="!subs.canPublish.value || !subs.canMutate.value"
+                @click="openDrawer('publish', row.id)"
+              >
+                <Send :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Share ${row.name}`"
+                :disabled="!host.init.value"
+                @click="openDrawer('share', row.id)"
+              >
+                <Share2 :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Duplicate ${row.name}`"
+                :disabled="!subs.canMutate.value"
+                @click="subs.duplicate(row.id)"
+              >
+                <CopyPlus :size="15" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Delete ${row.name}`"
+                danger
+                :disabled="!subs.canMutate.value"
+                @click="requestDelete([row.id])"
+              >
+                <Trash2 :size="15" aria-hidden="true" />
+              </LtIconButton>
+            </div>
+          </template>
+        </LtTable>
+
+        <div v-if="storeEmpty === false && ops.canMigrate.value && !subs.items.value.length" />
+        <div v-if="ops.canMigrate.value && storeEmpty" class="empty-secondary">
+          <span class="field-label">Already running a standalone Sub-Store?</span>
+          <form class="empty-inline-form" @submit.prevent="runMigrate">
+            <input v-model="migrateUrl" type="text" autocomplete="off" spellcheck="false" placeholder="Its base URL" />
+            <button class="button button-secondary" type="submit" :disabled="ops.busy.value">
+              <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
+              Import from it
+            </button>
+          </form>
+          <p class="row-popover-note">
+            Importing publishes nothing — each subscription stays unserved until you share it.
+          </p>
+          <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
         </div>
 
-        <ul v-else-if="showCollections" class="sub-list">
-          <li v-for="item in collections" :key="item.id" class="sub-card sub-card-column">
-            <div class="sub-card-row">
-              <div class="sub-card-main">
-                <span class="sub-title">
-                  <Link2 :size="14" aria-hidden="true" />
-                  {{ item.display_name || item.name }}
-                  <span v-for="tag in item.tags ?? []" :key="tag" class="badge">{{ tag }}</span>
-                </span>
-                <span class="sub-meta">
-                  {{ describe(item) }}
-                  <template v-if="item.target"> · {{ item.target }}</template>
-                  <template v-if="item.step_count"> · {{ item.step_count }} operation(s)</template>
-                </span>
-              </div>
-              <div class="sub-actions">
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!host.init.value"
-                  :title="
-                    host.init.value
-                      ? `Share ${item.name}`
-                      : 'Shares are published from the Lattice console — this frame is running standalone'
-                  "
-                  :aria-label="`Share ${item.name}`"
-                  :aria-expanded="sharingId === item.id"
-                  @click="toggleShare(item.id)"
-                >
-                  <Share2 :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canMutate.value"
-                  title="Make an independent copy of this record"
-                  :aria-label="`Duplicate ${item.name}`"
-                  @click="subs.duplicate(item.id)"
-                >
-                  <CopyPlus :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button"
-                  type="button"
-                  :disabled="!subs.canMutate.value || subs.saving.value"
-                  :aria-label="`Edit ${item.name}`"
-                  @click="startEdit(item.id)"
-                >
-                  <Pencil :size="16" aria-hidden="true" />
-                </button>
-                <button
-                  class="icon-button destructive"
-                  type="button"
-                  :disabled="!subs.canMutate.value"
-                  :aria-label="`Delete ${item.name}`"
-                  @click="confirmingDelete = confirmingDelete === item.id ? null : item.id"
-                >
-                  <Trash2 :size="16" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-
-            <div v-if="sharingId === item.id" class="row-popover">
-              <p class="row-popover-copy">
-                Nothing here is reachable until a share is published for it. Shares live in the
-                dashboard, under <strong>Networking → Subscription Shares</strong>.
-              </p>
-              <p class="row-popover-note">Already published? The Shares view shows its link.</p>
-              <div v-if="shareOrigin" class="empty-actions">
-                <button
-                  class="button button-primary button-compact"
-                  type="button"
-                  @click="openShares(item.name)"
-                >
-                  <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
-                </button>
-              </div>
-              <p v-else class="row-popover-note">
-                This frame cannot ask the console to navigate — open Networking → Subscription
-                Shares yourself.
-              </p>
-            </div>
-
-            <div v-if="confirmingDelete === item.id" class="alert" role="alert">
-              <span>
-                Delete <strong>{{ item.name }}</strong>? The subscriptions it gathers are not
-                affected. A published share keeps existing.
-              </span>
-              <button class="button button-compact" type="button" @click="confirmingDelete = null">
-                Keep
-              </button>
-              <button
-                class="button button-compact destructive"
-                type="button"
-                @click="confirmDelete(item.id)"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        </ul>
+        <LtBatchBar :count="table.selected.value.size" @clear="table.clearSelection()">
+          <LtButton size="sm" :disabled="!subs.canFetch.value" @click="batchRefresh()">
+            <RefreshCw :size="13" aria-hidden="true" /> Refresh {{ table.selected.value.size }}
+          </LtButton>
+          <LtButton size="sm" variant="danger" :disabled="!subs.canMutate.value" @click="requestDelete([...table.selected.value])">
+            <Trash2 :size="13" aria-hidden="true" /> Delete {{ table.selected.value.size }}
+          </LtButton>
+        </LtBatchBar>
       </template>
+
+      <LtDrawer :open="!!drawer" :title="drawerTitle" @close="closeDrawer()">
+        <template v-if="drawer?.mode === 'preview'">
+          <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
+            <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
+          </p>
+          <p v-else-if="subs.rowPreview.value?.error" class="row-popover-error" role="alert">
+            {{ subs.rowPreview.value.error }}
+          </p>
+          <template v-else-if="subs.rowPreview.value">
+            <p class="row-popover-note">
+              {{ subs.rowPreview.value.count }} node(s) once its operations run
+            </p>
+            <ul class="row-popover-list">
+              <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`">
+                <span>{{ node.name }}</span>
+                <LtBadge tone="neutral">{{ node.type }}</LtBadge>
+                <LtBadge v-if="node.security" tone="neutral">{{ node.security }}</LtBadge>
+                <span v-if="node.server" class="row-node-endpoint mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+              </li>
+            </ul>
+            <p v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length" class="row-popover-note">
+              …and {{ subs.rowPreview.value.count - subs.rowPreview.value.nodes.length }} more
+            </p>
+          </template>
+        </template>
+
+        <SubscriptionPublishControl
+          v-else-if="drawer?.mode === 'publish'"
+          :saved="true"
+          :read-only="!subs.canMutate.value"
+          :busy="subs.busyId.value === drawer.id"
+          :error="subs.actionError.value"
+          @publish="publishFromDrawer"
+        />
+
+        <template v-else-if="drawer?.mode === 'share'">
+          <p class="row-popover-copy">
+            Nothing here is reachable until a share is published for it. Shares live in the
+            dashboard, under <strong>Networking → Subscription Shares</strong>.
+          </p>
+          <p class="row-popover-note">Already published? The Shares view shows its link.</p>
+          <div v-if="shareOrigin && drawerItem" class="empty-actions">
+            <LtButton variant="primary" @click="openShares(drawerItem.name)">
+              <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
+            </LtButton>
+          </div>
+          <p v-else class="row-popover-note">
+            This frame cannot ask the console to navigate — open Networking → Subscription Shares
+            yourself.
+          </p>
+        </template>
+      </LtDrawer>
+
+      <LtConfirmDialog
+        :open="deleting.length > 0"
+        :title="deleting.length === 1
+          ? 'Delete this record? Any combination including it stops rendering until edited, and a published share keeps existing.'
+          : `Delete ${deleting.length} records? Combinations including them stop rendering until edited, and published shares keep existing.`"
+        verb="Delete"
+        :names="deletingNames"
+        :busy="deleteBusy"
+        @confirm="runDelete()"
+        @cancel="deleting = []"
+      />
     </section>
   </template>
 </template>
 
 <style scoped>
+/* ── S1 table chrome ─────────────────────────────────────────────────────── */
+.lt-search {
+  width: 100%;
+  height: 30px;
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  padding: 0 var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  background: var(--lt-bg);
+  color: var(--lt-fg);
+}
+.lt-search:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.lt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-1);
+  height: 24px;
+  padding: 0 var(--lt-space-2);
+  font: inherit;
+  font-size: var(--lt-text-xs);
+  border: 1px solid var(--lt-border);
+  border-radius: 999px;
+  background: var(--lt-surface);
+  color: var(--lt-fg-muted);
+  cursor: pointer;
+}
+.lt-chip:hover { color: var(--lt-fg); }
+.lt-chip.is-active {
+  background: color-mix(in oklab, var(--lt-accent) 10%, var(--lt-surface) 90%);
+  border-color: var(--lt-accent);
+  color: var(--lt-accent);
+}
+.lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.lt-chip-sep { width: 1px; height: 16px; background: var(--lt-border); margin: 0 var(--lt-space-1); }
+.lt-columns { position: relative; }
+.lt-columns-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  background: var(--lt-surface);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  padding: var(--lt-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lt-space-1);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--lt-fg) 14%, transparent);
+}
+.lt-columns-item {
+  display: flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  font-size: var(--lt-text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cell-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cell-name-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-1);
+  font-weight: 500;
+  color: var(--lt-fg);
+}
+.cell-name-sub { font-family: var(--lt-mono); font-size: var(--lt-text-xs); color: var(--lt-fg-muted); }
+.cell-dim { color: var(--lt-fg-muted); }
+.cell-actions { display: inline-flex; gap: 2px; justify-content: flex-end; }
+.lt-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  font-size: var(--lt-text-sm);
+  margin-bottom: var(--lt-space-3);
+}
+.lt-breadcrumb-root {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  color: var(--lt-accent);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--lt-radius-sm);
+}
+.lt-breadcrumb-root:hover { text-decoration: underline; }
+.lt-breadcrumb-root:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.lt-breadcrumb-sep { color: var(--lt-fg-muted); }
+.lt-breadcrumb-here { color: var(--lt-fg); font-weight: 500; }
+
 /* ── editor grouping ─────────────────────────────────────────────────────
    The form was one undifferentiated column: name, source, output, settings
    and the operator chain all at the same level, so nothing told the reader

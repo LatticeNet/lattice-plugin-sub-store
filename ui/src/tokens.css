@@ -1,0 +1,59 @@
+/* Plugin-scope design tokens, derived from host variables with honest
+ * fallbacks. Everything the lt- component layer consumes lives here; screens
+ * never hardcode a color or a row height. */
+:root {
+  /* surfaces */
+  --lt-bg: var(--background, #ffffff);
+  --lt-surface: var(--card, #ffffff);
+  --lt-surface-2: color-mix(in oklab, var(--card, #ffffff) 96%, var(--foreground, #111827) 4%);
+  --lt-border: var(--border, #e5e7eb);
+  --lt-border-strong: color-mix(in oklab, var(--border, #e5e7eb) 60%, var(--foreground, #111827) 40%);
+
+  /* ink */
+  --lt-fg: var(--foreground, #111827);
+  --lt-fg-muted: var(--muted-foreground, #6b7280);
+  --lt-accent: var(--primary, #2563eb);
+  --lt-accent-contrast: var(--primary-foreground, #ffffff);
+
+  /* semantic status — the only colors that may carry meaning */
+  --lt-ok: #16a34a;
+  --lt-warn: #d97706;
+  --lt-danger: #dc2626;
+  --lt-ok-soft: color-mix(in oklab, var(--lt-ok) 12%, var(--lt-surface) 88%);
+  --lt-warn-soft: color-mix(in oklab, var(--lt-warn) 12%, var(--lt-surface) 88%);
+  --lt-danger-soft: color-mix(in oklab, var(--lt-danger) 12%, var(--lt-surface) 88%);
+  --lt-neutral-soft: color-mix(in oklab, var(--lt-fg) 7%, var(--lt-surface) 93%);
+
+  /* type */
+  --lt-font: inherit;
+  --lt-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --lt-text-xs: 11px;
+  --lt-text-sm: 12.5px;
+  --lt-text-md: 13.5px;
+
+  /* rhythm: 4px system */
+  --lt-space-1: 4px;
+  --lt-space-2: 8px;
+  --lt-space-3: 12px;
+  --lt-space-4: 16px;
+  --lt-space-6: 24px;
+
+  /* table density (comfortable default; compact swaps at runtime) */
+  --lt-row-h: 40px;
+  --lt-row-h-compact: 32px;
+  --lt-radius: 6px;
+  --lt-radius-sm: 4px;
+
+  /* focus */
+  --lt-focus-ring: 0 0 0 2px color-mix(in oklab, var(--lt-accent) 45%, transparent);
+
+  /* motion: functional only */
+  --lt-ease: cubic-bezier(0.2, 0, 0, 1);
+  --lt-dur: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lt-dur: 0ms;
+  }
+}
