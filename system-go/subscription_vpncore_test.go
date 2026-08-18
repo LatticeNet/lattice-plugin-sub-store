@@ -142,7 +142,7 @@ func TestVPNCoreRendersOnFirstRequestWithNoSnapshot(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	out, err := rt.renderSubscription("fleet", "", "", "", nil)
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Format: "", UAClass: ""})
 	if err != nil {
 		t.Fatalf("render with no snapshot failed: %v", err)
 	}

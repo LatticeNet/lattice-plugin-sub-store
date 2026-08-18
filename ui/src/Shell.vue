@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowLeftRight, CircleAlert, FileCode, Library, Settings, Store, Workflow } from "@lucide/vue";
+import { CircleAlert, FileCode, Library, Settings, Store } from "@lucide/vue";
 
 import { useHandshakeTimeout } from "./handshakeTimeout";
 import { useHost } from "./host";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
-import PipelinesScreen from "./screens/PipelinesScreen.vue";
-import ConvertScreen from "./screens/ConvertScreen.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
 import FilesScreen from "./screens/FilesScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
@@ -33,14 +31,21 @@ const standalone = computed(
   () => !host.init.value && (handshakeExpired.value || !!host.bootError.value),
 );
 
-type TabId = "subscriptions" | "files" | "pipelines" | "convert" | "settings";
+type TabId = "subscriptions" | "files" | "settings";
 
-// Subscriptions leads: it is what this plugin is for.
+/**
+ * Sub-Store's own destinations, not invented ones.
+ *
+ * "Pipelines" and "Convert" used to sit here. Neither is a Sub-Store concept:
+ * both were scratchpads that asked the operator to paste raw text and an
+ * operator JSON blob and press run. In the real product an operator chain
+ * belongs to a subscription (its "operations" section) and conversion is one
+ * click on a record — which is where both now live. Removing them takes two
+ * destinations out of the top level and puts the work where the record is.
+ */
 const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [
   { id: "subscriptions", label: "Subscriptions", icon: Library, screen: SubscriptionsScreen },
   { id: "files", label: "Files", icon: FileCode, screen: FilesScreen },
-  { id: "pipelines", label: "Pipelines", icon: Workflow, screen: PipelinesScreen },
-  { id: "convert", label: "Convert", icon: ArrowLeftRight, screen: ConvertScreen },
   { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },
 ];
 

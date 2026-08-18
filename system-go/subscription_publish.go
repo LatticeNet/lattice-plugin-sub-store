@@ -46,7 +46,7 @@ func (rt *runtime) publishSubscription(subscriptionID, destination, method, form
 		return publishResult{}, fmt.Errorf("publish method must be PUT, POST or PATCH")
 	}
 
-	rendered, err := rt.renderSubscription(subscriptionID, format, "other", "", nil)
+	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: subscriptionID, Format: format, UAClass: "other"})
 	if err != nil {
 		return publishResult{}, err
 	}

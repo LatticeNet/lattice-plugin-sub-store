@@ -53,6 +53,13 @@ export const BINDINGS = {
   subSave: binding(SERVICES.subscription, "save", "active"),
   subDelete: binding(SERVICES.subscription, "delete", "active"),
   subProbe: binding(SERVICES.subscription, "probe", "active"),
+  /**
+   * Renders the document a client would actually receive. Declared and signed
+   * since design-16 but never wired to a caller, so the UI could show which
+   * nodes survived the chain and never what the client gets. It is what makes
+   * "copy the config for Stash" possible without publishing a share first.
+   */
+  subRender: binding(SERVICES.subscription, "render", "active"),
   subPreview: binding(SERVICES.subscription, "preview", "active"),
   subOperators: binding(SERVICES.subscription, "operators", "active"),
   subGraphOptions: binding(SERVICES.subscription, "graph_options", "active"),
@@ -417,21 +424,49 @@ export const FAILURE_SKIP = "skip-failed";
  *  "sing-box" are pinned by the system-go engine tests; the rest are
  *  upstream-canonical spellings, not backend-test-pinned (hephaestus's
  *  2026-07-27 caveat). */
-export const CONVERT_TARGETS: readonly { id: string; label: string; produces: string }[] = [
-  { id: "Clash", label: "Clash", produces: "yaml" },
-  { id: "ClashMeta", label: "Clash Meta", produces: "yaml" },
-  { id: "sing-box", label: "sing-box", produces: "json" },
-  { id: "Surge", label: "Surge", produces: "conf" },
-  { id: "Loon", label: "Loon", produces: "conf" },
-  { id: "Stash", label: "Stash", produces: "yaml" },
-  { id: "QX", label: "Quantumult X", produces: "conf" },
-  { id: "Shadowrocket", label: "Shadowrocket", produces: "conf" },
-  { id: "Egern", label: "Egern", produces: "yaml" },
+/**
+ * The client targets, in the order and under the names Sub-Store itself shows
+ * in its "preview / copy subscription" sheet — the daily path for getting a
+ * configuration into a client.
+ *
+ * `uaClass` is the core's bounded client classification (uaClassTargets in
+ * system-go/subscription_render.go). A target that has one can be RENDERED, so
+ * the sheet can copy the real document a client would receive. A target
+ * without one can still be PREVIEWED, because preview takes the engine target
+ * directly. Nothing here pretends a target is renderable when the backend has
+ * no way to select it.
+ */
+export interface ConvertTarget {
+  id: string;
+  label: string;
+  produces: string;
+  /** Core UA classification, when the render path can select this client. */
+  uaClass?: string;
+}
+
+export const CONVERT_TARGETS: readonly ConvertTarget[] = [
+  { id: "URI", label: "Universal (URI)", produces: "text" },
+  { id: "Stash", label: "Stash", produces: "yaml", uaClass: "stash" },
+  { id: "ClashMeta", label: "mihomo", produces: "yaml" },
+  { id: "Egern", label: "Egern", produces: "yaml", uaClass: "egern" },
   { id: "Surfboard", label: "Surfboard", produces: "conf" },
-  { id: "SurgeMac", label: "Surge for macOS", produces: "conf" },
-  { id: "URI", label: "URI list", produces: "text" },
+  { id: "Surge", label: "Surge", produces: "conf", uaClass: "surge" },
+  { id: "SurgeMac", label: "Surge Mac", produces: "conf" },
+  { id: "Loon", label: "Loon", produces: "conf", uaClass: "loon" },
+  { id: "Shadowrocket", label: "Shadowrocket", produces: "conf", uaClass: "shadowrocket" },
+  { id: "QX", label: "Quantumult X", produces: "conf", uaClass: "quantumultx" },
+  { id: "sing-box", label: "sing-box", produces: "json", uaClass: "singbox" },
   { id: "V2Ray", label: "V2Ray", produces: "text" },
+  { id: "Clash", label: "Clash", produces: "yaml", uaClass: "clash" },
+  { id: "JSON", label: "JSON", produces: "json" },
 ];
+
+/** How a rendered node list is carried; independent of the client target. */
+export interface SubscriptionRenderResponse {
+  content: string;
+  content_type: string;
+  headers?: Record<string, string>;
+}
 
 /** Typed call through the bridge; every UI data path funnels through here. */
 export function callMethod<T>(

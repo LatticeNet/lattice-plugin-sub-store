@@ -107,7 +107,7 @@ func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) b
 // resolved and chained at fetch time, so the render pays no network and no
 // per-member work — only the collection's own chain. An empty one renders
 // live, which is how previews and unsaved drafts work.
-func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass, snapshotRaw string) (string, error) {
+func (rt *runtime) renderCollection(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string) (string, error) {
 	merged := ""
 	if strings.TrimSpace(snapshotRaw) != "" {
 		var snap snapshotArtifacts
@@ -146,8 +146,9 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, uaClass, snapshotRaw
 	}
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       merged,
-		Target:    subscriptionTarget(rec, uaClass),
+		Target:    target,
 		Operators: operators,
+		Options:   options,
 	})
 	if err != nil {
 		return "", err

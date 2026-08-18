@@ -101,6 +101,11 @@ type subStoreConversionRequest struct {
 	Raw       string            `json:"raw"`
 	Target    string            `json:"target"`
 	Operators []json.RawMessage `json:"operators,omitempty"`
+	// Options is the produce() opts object — Sub-Store's own flag names, e.g.
+	// "include-unsupported-proxy". Bounded to booleans so a caller cannot
+	// smuggle structures into the engine script; unknown names are simply
+	// ignored by the core, exactly as upstream ignores them.
+	Options map[string]bool `json:"options,omitempty"`
 }
 
 type subStoreResponseTransformRequest struct {
@@ -549,6 +554,10 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode operators: %w", err)
 	}
+	options, err := json.Marshal(req.Options)
+	if err != nil {
+		return "", fmt.Errorf("encode produce options: %w", err)
+	}
 	prefix := "(function() {"
 	processBlock := ""
 	if len(req.Operators) > 0 {
@@ -566,6 +575,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   const raw = %s;
   const target = %s;
   const operators = %s || [];
+  const produceOptions = %s || {};
   const root = globalThis.SubStoreProxyUtils;
   const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   if (!core || typeof core.parse !== "function" || typeof core.produce !== "function") {
@@ -580,12 +590,12 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
     throw new Error("Sub-Store operators must be an array");
   }
 %s
-  const output = core.produce(proxies, target, "external");
+  const output = core.produce(proxies, target, "external", produceOptions);
   if (typeof output !== "string") {
     throw new Error("Sub-Store produce(proxies, target, env) must return a string");
   }
   return JSON.stringify({ source_node_count: sourceNodeCount, node_count: proxies.length, output });
-})()`, prefix, raw, target, operators, processBlock), nil
+})()`, prefix, raw, target, operators, options, processBlock), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {

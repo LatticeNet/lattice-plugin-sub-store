@@ -302,7 +302,7 @@ func (rt *runtime) resolveNodesFor(rec subscriptionRecord) (string, error) {
 	if recordKind(rec) == kindCollection {
 		// URI is the interchange format: it round-trips through a second parse,
 		// which is what handing the result to another stage requires.
-		return rt.renderCollection(rec, "", "")
+		return rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "")
 	}
 	return rt.renderMemberNodes(rec)
 }

@@ -15,14 +15,14 @@ func TestRenderRefusesToProduceEmptyContent(t *testing.T) {
 	if err := rt.saveSubscription(subscriptionRecord{ID: "empty", Name: "empty", Content: "   "}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if _, err := rt.renderSubscription("empty", "base64", "surge", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "empty", Format: "base64", UAClass: "surge"}); err == nil {
 		t.Fatal("render returned success for a subscription with no content")
 	}
 }
 
 func TestRenderUnknownSubscriptionIsAnError(t *testing.T) {
 	rt, _ := newKVRuntime(t)
-	if _, err := rt.renderSubscription("missing", "base64", "surge", "", nil); err == nil {
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "missing", Format: "base64", UAClass: "surge"}); err == nil {
 		t.Fatal("unknown subscription rendered successfully")
 	}
 }
@@ -80,5 +80,32 @@ func TestEncodeSubscriptionOutput(t *testing.T) {
 
 	if _, _, err := encodeSubscriptionOutput(output, "nonsense"); err == nil {
 		t.Fatal("an unknown format was accepted")
+	}
+}
+
+// The Sub-Store URL parity contract: an explicit target names the client and
+// outranks everything — the record's own pin included. Below it the existing
+// order holds (pin, then UA class, then URI).
+func TestResolveRenderTargetPriority(t *testing.T) {
+	pinned := subscriptionRecord{Target: "Clash"}
+	free := subscriptionRecord{}
+	cases := []struct {
+		name     string
+		rec      subscriptionRecord
+		explicit string
+		uaClass  string
+		want     string
+	}{
+		{"explicit beats the record pin", pinned, "Stash", "surge", "Stash"},
+		{"explicit beats the UA class", free, "sing-box", "surge", "sing-box"},
+		{"pin beats the UA class", pinned, "", "surge", "Clash"},
+		{"UA class fills the gap", free, "", "loon", "Loon"},
+		{"URI is the last resort", free, "", "", "URI"},
+		{"whitespace explicit does not count", pinned, "   ", "surge", "Clash"},
+	}
+	for _, tc := range cases {
+		if got := resolveRenderTarget(tc.rec, tc.explicit, tc.uaClass); got != tc.want {
+			t.Fatalf("%s: got %q want %q", tc.name, got, tc.want)
+		}
 	}
 }

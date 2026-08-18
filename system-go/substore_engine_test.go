@@ -478,3 +478,40 @@ func TestEmbeddedSubStoreCoreProducesEveryCuratedTarget(t *testing.T) {
 		}
 	}
 }
+
+// TestSubStoreEngineThreadsProduceOptions pins the parity contract that
+// produce() receives the caller's option flags as its fourth argument —
+// Sub-Store's own mechanism for include-unsupported-proxy and friends. A
+// conversion without options must still call produce with an empty object,
+// not undefined, so the core's `opts?.flag` reads stay well-defined.
+func TestSubStoreEngineThreadsProduceOptions(t *testing.T) {
+	engine := newSubStoreEngine(`
+globalThis.SubStoreProxyUtils = {
+  parse(raw) { return [{ name: "n1" }]; },
+  produce(proxies, target, env, opts) {
+    return JSON.stringify({ target, opts: opts || null });
+  },
+};`)
+
+	withOpts, err := engine.convert(subStoreConversionRequest{
+		Raw:    "x",
+		Target: "Stash",
+		Options: map[string]bool{
+			"include-unsupported-proxy": true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("convert with options: %v", err)
+	}
+	if !strings.Contains(withOpts.Output, `"include-unsupported-proxy":true`) {
+		t.Fatalf("produce did not receive the option flags: %s", withOpts.Output)
+	}
+
+	without, err := engine.convert(subStoreConversionRequest{Raw: "x", Target: "Stash"})
+	if err != nil {
+		t.Fatalf("convert without options: %v", err)
+	}
+	if !strings.Contains(without.Output, `"opts":{}`) {
+		t.Fatalf("produce must receive an empty object when no options are set: %s", without.Output)
+	}
+}
