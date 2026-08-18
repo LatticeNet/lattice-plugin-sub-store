@@ -338,6 +338,24 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       content_type: client === "sing-box" ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
     };
   },
+  /**
+   * Core-backed shares bridge. Exactly one record is published so both sheet
+   * states are exercised: hk-team gets stable links, everything else shows
+   * the "no published share" note.
+   */
+  "shares/list": () => ({
+    shares: [
+      {
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev",
+        slug: "hk-team",
+        enabled: true,
+        default_format: "plain",
+        path: "/sub/hk-team/devtokendevtokendevtokendevtoken",
+        url: "https://lattice.example/sub/hk-team/devtokendevtokendevtokendevtoken",
+      },
+    ],
+  }),
   "subscription/get_settings": () => settings,
   "subscription/save_settings": (payload) => {
     settings = { ...settings, ...payload };
@@ -378,6 +396,10 @@ export function createFakeHost(): HostContext {
             "convert", "transform_response", "save_pipeline", "get_pipeline",
             "list_pipelines", "delete_pipeline", "run_pipeline",
           ],
+        },
+        {
+          service: "latticenet.sub-store/shares",
+          methods: ["list"],
         },
       ],
     };

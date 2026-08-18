@@ -1,0 +1,86 @@
+<script setup lang="ts">
+/**
+ * CodeEditor — line numbers, highlighting and real editing keys for every
+ * content surface that previously made do with a bare <textarea>: file
+ * configurations, generator scripts, script operators, pasted node lists.
+ *
+ * CodeMirror arrives as a lazy chunk on first mount (see codemirror.ts). Two
+ * honesty rules govern this component:
+ *  - until the chunk lands, and forever if it fails to load, the same old
+ *    textarea is shown — an editor upgrade must never be able to take the
+ *    ability to edit away;
+ *  - v-model semantics are exact: external writes replace the document,
+ *    internal edits emit, and neither echoes back into a loop.
+ */
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+
+import type { EditorHandle, EditorLanguage } from "../codemirror";
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: string;
+    language?: EditorLanguage;
+    rows?: number;
+    placeholder?: string;
+    readonly?: boolean;
+  }>(),
+  { language: "plain", rows: 12, placeholder: "", readonly: false },
+);
+
+const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
+
+const hostEl = ref<HTMLElement | null>(null);
+const ready = ref(false);
+const failed = ref(false);
+let handle: EditorHandle | null = null;
+
+onMounted(async () => {
+  try {
+    const cm = await import("../codemirror");
+    if (!hostEl.value) return;
+    handle = cm.createEditor({
+      parent: hostEl.value,
+      value: props.modelValue,
+      language: props.language,
+      readonly: props.readonly,
+      placeholderText: props.placeholder,
+      onChange: (value) => {
+        if (value !== props.modelValue) emit("update:modelValue", value);
+      },
+    });
+    ready.value = true;
+  } catch {
+    failed.value = true;
+  }
+});
+
+watch(
+  () => props.modelValue,
+  (value) => handle?.setValue(value),
+);
+watch(
+  () => props.language,
+  (language) => handle?.setLanguage(language),
+);
+
+onBeforeUnmount(() => {
+  handle?.destroy();
+  handle = null;
+});
+</script>
+
+<template>
+  <div class="code-editor" :style="{ '--code-editor-rows': String(rows) }">
+    <textarea
+      v-if="!ready"
+      class="code-area"
+      :rows="rows"
+      spellcheck="false"
+      :placeholder="placeholder"
+      :readonly="readonly"
+      :value="modelValue"
+      @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+    ></textarea>
+    <div v-show="ready" ref="hostEl" class="code-editor-host"></div>
+  </div>
+</template>

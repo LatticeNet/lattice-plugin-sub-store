@@ -17,13 +17,16 @@
  *    instead of implying the choice still applies.
  */
 import { computed, ref, watch } from "vue";
-import { Check, Copy, Eye, LoaderCircle, X } from "@lucide/vue";
+import { Check, Copy, Eye, Link, LoaderCircle, X } from "@lucide/vue";
 
 import {
   BINDINGS,
   CONVERT_TARGETS,
+  buildShareLink,
   callMethod,
   type ConvertTarget,
+  type SubStoreShareRow,
+  type SubStoreSharesResponse,
   type SubscriptionPreviewResponse,
   type SubscriptionRenderResponse,
 } from "../client";
@@ -49,6 +52,16 @@ const error = ref("");
 const preview = ref<{ target: string; response: SubscriptionPreviewResponse } | null>(null);
 const rendered = ref<{ target: string; content: string; contentType: string } | null>(null);
 
+/**
+ * The share core holds for this record, if any. Loaded when the sheet opens;
+ * a failure here is NOT fatal — one-off copies still work, so the sheet says
+ * "no stable link" rather than blocking on it.
+ */
+const share = ref<SubStoreShareRow | null>(null);
+const shareLoaded = ref(false);
+const copiedLink = ref("");
+const shownLink = ref<{ target: string; url: string } | null>(null);
+
 watch(
   () => props.open,
   (open) => {
@@ -57,8 +70,51 @@ watch(
     preview.value = null;
     rendered.value = null;
     copiedTarget.value = "";
+    copiedLink.value = "";
+    shownLink.value = null;
+    void loadShare();
   },
 );
+
+async function loadShare(): Promise<void> {
+  share.value = null;
+  shareLoaded.value = false;
+  if (!host.bridge) return;
+  try {
+    const response = await callMethod<SubStoreSharesResponse>(host.bridge, BINDINGS.sharesList, {}).promise;
+    const mine = (response?.shares ?? []).filter((row) => row.subscription_id === props.recordId);
+    share.value = mine.find((row) => row.enabled) ?? null;
+  } catch {
+    // Core-backed method unavailable (older server, restricted operator):
+    // the sheet simply has no stable links to offer.
+    share.value = null;
+  } finally {
+    shareLoaded.value = true;
+    await host.resize();
+  }
+}
+
+/** Absolute when the server knows its public base, path-only otherwise —
+ * a path link still works pasted next to the dashboard's own origin. */
+const shareBase = computed(() => share.value?.url || share.value?.path || "");
+
+async function copyLink(target: ConvertTarget): Promise<void> {
+  if (!shareBase.value || busyTarget.value) return;
+  const url = buildShareLink(shareBase.value, target.id, includeUnsupported.value);
+  shownLink.value = null;
+  try {
+    await navigator.clipboard.writeText(url);
+    copiedLink.value = target.id;
+    window.setTimeout(() => {
+      if (copiedLink.value === target.id) copiedLink.value = "";
+    }, 2000);
+  } catch {
+    // Same rule as document copies: never lose the goods to a clipboard
+    // denial. Show the link so it can be selected by hand.
+    shownLink.value = { target: target.id, url };
+    await host.resize();
+  }
+}
 
 const pinned = computed(() => (props.pinnedTarget ?? "").trim());
 
@@ -160,10 +216,23 @@ function close(): void {
 
       <p v-if="pinned" class="sheet-note">
         Served URLs for this record always produce <strong>{{ pinned }}</strong> (its pinned target).
-        The copies below override that for a one-off grab.
+        Links and copies below name their client explicitly, which overrides the pin.
+      </p>
+
+      <p v-if="share" class="sheet-note sheet-note-share">
+        Published as <strong>/{{ share.slug }}</strong> — each link below is that URL pinned to one client.
+      </p>
+      <p v-else-if="shareLoaded" class="sheet-note">
+        No published share yet, so there are no stable links — copies below are one-off documents.
+        Publish this record from the row menu to hand clients a URL.
       </p>
 
       <p v-if="error" class="sheet-error" role="alert">{{ error }}</p>
+
+      <p v-if="shownLink" class="sheet-note sheet-note-share">
+        The clipboard is unavailable — select the {{ shownLink.target }} link by hand:
+        <code class="share-link">{{ shownLink.url }}</code>
+      </p>
 
       <ul class="target-list">
         <li v-for="target in CONVERT_TARGETS" :key="target.id" class="target-row">
@@ -172,6 +241,18 @@ function close(): void {
             <span class="target-produces">{{ target.produces }}</span>
           </span>
           <span class="target-actions">
+            <button
+              v-if="share"
+              type="button"
+              class="target-action"
+              :disabled="!!busyTarget"
+              :title="`Copy the subscription link for ${target.label}`"
+              :aria-label="`Copy ${target.label} link`"
+              @click="copyLink(target)"
+            >
+              <Check v-if="copiedLink === target.id" :size="15" class="ok" aria-hidden="true" />
+              <Link v-else :size="15" aria-hidden="true" />
+            </button>
             <button
               type="button"
               class="target-action"

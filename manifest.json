@@ -16,7 +16,7 @@
   "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "bc9706a64f4ddc17668c49362bec387b431925d3704fbf90a7e5269e19781b55"
+    "digest_sha256": "ca094383de2063d5380f5cde6fabb79712d865cc6c17a3abc963ef466f359a25"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
@@ -390,6 +390,20 @@
         }
       ],
       "backing": "runtime"
+    },
+    {
+      "service": "latticenet.sub-store/shares",
+      "backing": "core",
+      "methods": [
+        {
+          "name": "list",
+          "effect": "read",
+          "scopes": [
+            "substore:admin",
+            "proxy:admin"
+          ]
+        }
+      ]
     }
   ],
   "dependencies": [

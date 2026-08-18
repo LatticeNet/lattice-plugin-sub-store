@@ -2,6 +2,7 @@
 import { computed } from "vue";
 
 import { schemaFor, type OperatorField } from "../operatorSchema";
+import CodeEditor from "./CodeEditor.vue";
 
 /**
  * Renders one operator's arguments from its field schema.
@@ -185,14 +186,13 @@ function setRaw(text: string): void {
           @input="setLines(field, ($event.target as HTMLTextAreaElement).value)"
         ></textarea>
 
-        <textarea
+        <CodeEditor
           v-else-if="field.kind === 'script'"
-          class="code-area"
-          rows="8"
-          spellcheck="false"
-          :value="textValue(field)"
-          @input="set(field.key, ($event.target as HTMLTextAreaElement).value)"
-        ></textarea>
+          :model-value="textValue(field)"
+          language="javascript"
+          :rows="8"
+          @update:model-value="(value: string) => set(field.key, value)"
+        />
 
         <select
           v-else-if="field.kind === 'select'"
