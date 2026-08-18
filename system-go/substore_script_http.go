@@ -51,6 +51,14 @@ const (
 	// scriptHTTPMaxDiagnostics caps retained per-call diagnostics so a loop
 	// cannot grow memory through the record it leaves behind.
 	scriptHTTPMaxDiagnostics = 32
+	// Request headers are the script's, and the host forwards them verbatim.
+	// That is the same trust the provider fetch already has, but a script is a
+	// broader authorship surface than a provider URL, so the shape is bounded
+	// here: a request cannot become a smuggling channel through header count
+	// or size, and the failure says which limit was hit.
+	scriptHTTPMaxHeaders        = 24
+	scriptHTTPMaxHeaderBytes    = 8 << 10
+	scriptHTTPMaxRequestBodyLen = 256 << 10
 )
 
 // scriptHTTPRequest is what the JavaScript shim hands to Go. Field names are
@@ -139,6 +147,12 @@ func (g *scriptHTTPGateway) do(requestJSON string) (string, error) {
 	if method == "" {
 		method = "GET"
 	}
+	if err := boundScriptHTTPHeaders(req.Headers); err != nil {
+		return "", err
+	}
+	if len(req.Body) > scriptHTTPMaxRequestBodyLen || len(req.BodyBase64) > scriptHTTPMaxRequestBodyLen*2 {
+		return "", fmt.Errorf("script http: request body exceeds %d bytes", scriptHTTPMaxRequestBodyLen)
+	}
 	params := map[string]any{"method": method, "url": target}
 	if len(req.Headers) > 0 {
 		params["header"] = req.Headers
@@ -192,6 +206,30 @@ func (g *scriptHTTPGateway) do(requestJSON string) (string, error) {
 		return "", fmt.Errorf("script http: response encoding failed")
 	}
 	return string(encoded), nil
+}
+
+// boundScriptHTTPHeaders keeps a script's headers to a shape the host can be
+// expected to forward. It deliberately does not filter WHICH headers may be
+// set: upstream scripts legitimately send authorization and user-agent, and a
+// denylist would break real subscriptions while a determined author could
+// still reach the same endpoint by other means.
+func boundScriptHTTPHeaders(headers map[string]string) error {
+	if len(headers) > scriptHTTPMaxHeaders {
+		return fmt.Errorf("script http: too many request headers (%d, limit %d)", len(headers), scriptHTTPMaxHeaders)
+	}
+	total := 0
+	for name, value := range headers {
+		if strings.ContainsAny(name, "\r\n") || strings.ContainsAny(value, "\r\n") {
+			// Go's client would reject this too; refusing here names the
+			// header instead of surfacing a transport error.
+			return fmt.Errorf("script http: header %q contains a line break", name)
+		}
+		total += len(name) + len(value)
+	}
+	if total > scriptHTTPMaxHeaderBytes {
+		return fmt.Errorf("script http: request headers exceed %d bytes", scriptHTTPMaxHeaderBytes)
+	}
+	return nil
 }
 
 // reserve takes one call slot before the request goes out, so a burst of

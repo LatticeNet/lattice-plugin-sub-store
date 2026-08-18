@@ -298,3 +298,65 @@ func TestResolveDomainOperatorNowResolves(t *testing.T) {
 		t.Fatalf("unexpected resolver request: %+v", requests[0])
 	}
 }
+
+func TestScriptHTTPBoundsRequestShape(t *testing.T) {
+	host := &scriptHTTPHost{body: []byte("ok")}
+	gateway := newScriptHTTPGateway(host)
+
+	// A header carrying a line break is a smuggling attempt, and naming the
+	// header beats surfacing a transport error from three layers down.
+	payload, _ := json.Marshal(map[string]any{
+		"method":  "GET",
+		"url":     "https://rules.example/list",
+		"headers": map[string]string{"X-Bad": "value\r\nHost: elsewhere"},
+	})
+	if _, err := gateway.do(string(payload)); err == nil || !strings.Contains(err.Error(), "line break") {
+		t.Fatalf("header injection must be refused, got %v", err)
+	}
+
+	many := map[string]string{}
+	for i := 0; i < scriptHTTPMaxHeaders+1; i++ {
+		many[fmt.Sprintf("X-%d", i)] = "v"
+	}
+	payload, _ = json.Marshal(map[string]any{"method": "GET", "url": "https://rules.example/list", "headers": many})
+	if _, err := gateway.do(string(payload)); err == nil || !strings.Contains(err.Error(), "too many request headers") {
+		t.Fatalf("header count must be bounded, got %v", err)
+	}
+
+	payload, _ = json.Marshal(map[string]any{
+		"method":  "POST",
+		"url":     "https://rules.example/list",
+		"body":    strings.Repeat("x", scriptHTTPMaxRequestBodyLen+1),
+		"headers": map[string]string{"Content-Type": "text/plain"},
+	})
+	if _, err := gateway.do(string(payload)); err == nil || !strings.Contains(err.Error(), "request body exceeds") {
+		t.Fatalf("request body must be bounded, got %v", err)
+	}
+
+	if len(host.seen()) != 0 {
+		t.Fatal("a refused request must never reach the host")
+	}
+
+	// Ordinary headers still pass: upstream scripts legitimately send
+	// authorization and a user agent, and a denylist would break them.
+	payload, _ = json.Marshal(map[string]any{
+		"method":  "POST",
+		"url":     "https://rules.example/list",
+		"headers": map[string]string{"Authorization": "Bearer token", "User-Agent": "Lattice/1.0"},
+		"body":    `{"ok":true}`,
+	})
+	if _, err := gateway.do(string(payload)); err != nil {
+		t.Fatalf("a normal request was refused: %v", err)
+	}
+	requests := host.seen()
+	if len(requests) != 1 {
+		t.Fatalf("expected the request to go out, got %d", len(requests))
+	}
+	header, _ := requests[0]["header"].(map[string]any)
+	if header["Authorization"] != "Bearer token" {
+		t.Fatalf("headers did not reach the host: %+v", requests[0])
+	}
+	if requests[0]["body_base64"] == nil {
+		t.Fatal("the body did not reach the host")
+	}
+}
