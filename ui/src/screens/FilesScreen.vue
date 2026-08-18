@@ -41,8 +41,10 @@ import {
   type SubscriptionDraft,
 } from "../useSubscriptions";
 import LtIconButton from "../components/lt/LtIconButton.vue";
+import CodeEditor from "../components/CodeEditor.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
+import type { EditorLanguage } from "../codemirror";
 
 /**
  * The Files tab.
@@ -89,6 +91,29 @@ function openShares(recordName: string): void {
 
 const isPlain = computed(() => draft.value.fileType === FILE_TYPE_PLAIN);
 const isScript = computed(() => draft.value.fileType === FILE_TYPE_SCRIPT);
+
+/**
+ * Editor highlighting. The file type decides the sensible default (script →
+ * JavaScript, config → YAML), and the selector lets the operator override it
+ * for the odd file — a JSON template, an INI ruleset — without inventing new
+ * file types. Pure presentation: nothing about the record changes.
+ */
+const CONTENT_LANGUAGES: ReadonlyArray<{ id: EditorLanguage; label: string }> = [
+  { id: "yaml", label: "YAML" },
+  { id: "javascript", label: "JavaScript" },
+  { id: "json", label: "JSON" },
+  { id: "ini", label: "INI" },
+  { id: "plain", label: "Plain text" },
+];
+const contentLanguageOverride = ref<EditorLanguage | "">("");
+const autoLanguage = computed<EditorLanguage>(() => {
+  if (isScript.value) return "javascript";
+  if (isPlain.value) return "plain";
+  return "yaml";
+});
+const contentLanguage = computed<EditorLanguage>(
+  () => contentLanguageOverride.value || autoLanguage.value,
+);
 const queryParamText = ref("");
 const isRemote = computed(() => draft.value.source === SOURCE_REMOTE);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
@@ -174,6 +199,7 @@ function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
   draft.value.nodeSource =
     fileType !== FILE_TYPE_PLAIN && nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
   tagText.value = "";
+  contentLanguageOverride.value = "";
   editingId.value = null;
   editing.value = true;
 }
@@ -186,6 +212,7 @@ async function startEdit(id: string): Promise<void> {
   if (!draft.value.source) draft.value.source = draft.value.url ? SOURCE_REMOTE : SOURCE_LOCAL;
   tagText.value = draft.value.tags.join(", ");
   queryParamText.value = draft.value.queryParams.join(", ");
+  contentLanguageOverride.value = "";
   editingId.value = id;
   editing.value = true;
   await host.resize();
@@ -357,15 +384,24 @@ watch(host.init, (value) => {
               </label>
             </template>
 
-            <label v-if="isScript || !isRemote" class="field field-wide">
-              <span class="field-label">
+            <div v-if="isScript || !isRemote" class="field field-wide">
+              <span class="field-label field-label-row">
                 {{ isScript ? "Script" : isPlain ? "Text" : "Configuration" }}
+                <select
+                  v-model="contentLanguageOverride"
+                  class="select select-compact"
+                  aria-label="Editor highlighting"
+                >
+                  <option value="">Auto ({{ CONTENT_LANGUAGES.find((l) => l.id === autoLanguage)?.label }})</option>
+                  <option v-for="lang in CONTENT_LANGUAGES" :key="lang.id" :value="lang.id">
+                    {{ lang.label }}
+                  </option>
+                </select>
               </span>
-              <textarea
+              <CodeEditor
                 v-model="draft.content"
-                class="code-area"
+                :language="contentLanguage"
                 :rows="isScript ? 22 : 16"
-                spellcheck="false"
                 :placeholder="
                   isScript
                     ? 'Paste the generator. Call produceArtifact({name, produceType: \'internal\'}) for your nodes and assign the result to $content.'
@@ -373,7 +409,7 @@ watch(host.init, (value) => {
                       ? 'Anything you want served verbatim'
                       : 'Paste the Mihomo or Clash config you already run'
                 "
-              ></textarea>
+              />
               <span v-if="isScript" class="field-optional">
                 Runs in the engine's sandbox — no filesystem, no network, no host calls. It reaches
                 <code>ProxyUtils</code>, <code>produceArtifact()</code>, <code>$arguments</code> and
@@ -384,7 +420,7 @@ watch(host.init, (value) => {
                 Keep your own rules, DNS and groups. Only <code>proxies</code> is replaced — and any
                 group left pointing at a node that is gone gets the new ones instead.
               </span>
-            </label>
+            </div>
           </div>
         </fieldset>
 
