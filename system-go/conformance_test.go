@@ -156,13 +156,22 @@ type invokeBudgetSpec struct {
 
 func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 	return map[string]invokeBudgetSpec{
-		pluginID + "/engine/convert":            {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
-		pluginID + "/engine/transform_response": {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
+		// 2026-08-18: convert and transform_response went from zero host calls to
+		// twelve when scripts gained a network. Sub-Store's scripting model
+		// assumes one — its own Resolve Domain operator speaks DoH and user
+		// scripts fetch rulesets and quota endpoints — and every one of those
+		// requests is a host call. Twelve is the gateway's per-invocation limit
+		// of eight plus room for the plumbing around it; the timeout follows for
+		// the same reason, since a fetching script spends its budget waiting on
+		// someone else's server rather than on CPU.
+		pluginID + "/engine/convert":            {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
+		pluginID + "/engine/transform_response": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
 		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		pluginID + "/engine/get_pipeline":       {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 32 << 10, HostCalls: 1},
 		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
-		pluginID + "/engine/run_pipeline":       {TimeoutMS: 10_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 1},
+		// run_pipeline is convert plus the stored chain's own read.
+		pluginID + "/engine/run_pipeline": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 13},
 		// render feeds a public subscription endpoint, so its stdout budget matches
 		// the other conversion methods: a large subscription must fail loudly rather
 		// than arrive truncated at a client. host_calls covers the heaviest shape the
@@ -175,7 +184,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// cold QuickJS/wazero boot costs ~13.5s on the production box (measured
 		// 2026-08-11); 10s timed out every script-file render. The warm-engine
 		// follow-up should let this come back down.
-		pluginID + "/subscription/render": {TimeoutMS: 20_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 68},
+		pluginID + "/subscription/render": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 76},
 		// fetch carries a provider's whole response, so its stdout budget is the
 		// 8 MiB the fetch path itself caps at. host_calls is 70: every record kind
 		// resolves its variable content at refresh — a script file's read (2), the
@@ -183,7 +192,9 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// member (maxCollectionMembers is 64), and the refresh bookkeeping's own
 		// read and write (2). The timeout is the host maximum: 64 sequential
 		// provider fetches cannot promise less.
-		pluginID + "/subscription/fetch": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 70},
+		// 2026-08-18: +8 host calls and +10s on every script-capable path, for the
+		// script HTTP budget described above.
+		pluginID + "/subscription/fetch": {TimeoutMS: 40_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 78},
 		pluginID + "/subscription/probe": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
 		// operators returns a fixed catalog and touches nothing, so it gets the
 		// smallest budget in the file and zero host calls.
@@ -198,7 +209,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// node-source work outright. Its timeout matches render's for the same
 		// cold-engine reason — 15s still timed out a script file on production
 		// (~13.5s boot plus the work itself).
-		pluginID + "/subscription/preview": {TimeoutMS: 20_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 68},
+		pluginID + "/subscription/preview": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 76},
 		// list returns definitions without their content, so it stays small.
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		// get returns one whole record including inline content, so its ceiling
@@ -236,7 +247,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// publish renders (render's 68) and sends once; its stdout is only a
 		// small result object because the rendered body goes out over the
 		// network, not back up stdout.
-		pluginID + "/subscription/publish": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 69},
+		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 77},
 		pluginID + "/subscription/export":  {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 258},
 		// import shares migrate's shape without the upstream fetches: the
 		// existing-records read, the batch's document load, one key per script

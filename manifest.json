@@ -11,7 +11,7 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.13.0-alpha.5",
+  "version": "0.13.0-alpha.6",
   "publisher": "latticenet",
   "signature_ed25519": "",
   "bundle": {
@@ -84,10 +84,10 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 0
+            "host_calls": 12
           }
         },
         {
@@ -97,10 +97,10 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 0
+            "host_calls": 12
           }
         },
         {
@@ -162,10 +162,10 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 10000,
+            "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 1
+            "host_calls": 13
           }
         }
       ],
@@ -181,10 +181,10 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 30000,
+            "timeout_ms": 40000,
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
-            "host_calls": 70
+            "host_calls": 78
           }
         },
         {
@@ -207,10 +207,10 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 20000,
+            "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 68
+            "host_calls": 76
           }
         },
         {
@@ -246,10 +246,10 @@
             "substore:read"
           ],
           "budget": {
-            "timeout_ms": 20000,
+            "timeout_ms": 30000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 68
+            "host_calls": 76
           }
         },
         {
@@ -382,10 +382,10 @@
             "destination"
           ],
           "budget": {
-            "timeout_ms": 20000,
+            "timeout_ms": 30000,
             "stdout_bytes": 65536,
             "stderr_bytes": 65536,
-            "host_calls": 69
+            "host_calls": 77
           }
         }
       ],

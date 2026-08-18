@@ -375,10 +375,13 @@ watch(host.init, (value) => {
                 "
               ></textarea>
               <span v-if="isScript" class="field-optional">
-                Runs in the engine's sandbox — no filesystem, no network, no host calls. It reaches
-                <code>ProxyUtils</code>, <code>produceArtifact()</code>, <code>$arguments</code> and
-                <code>$options</code>, and returns its document by assigning <code>$content</code>.
-                Response headers go in <code>$options._res.headers</code>.
+                Runs in the engine's sandbox: no filesystem, and network only through
+                <code>$substore.http</code> — every request leaves through the server's guarded
+                egress (private addresses refused, redirects re-checked), capped at 8 requests per
+                call. It reaches <code>ProxyUtils</code>, <code>produceArtifact()</code>,
+                <code>$arguments</code> and <code>$options</code>, and returns its document by
+                assigning <code>$content</code>. Response headers go in
+                <code>$options._res.headers</code>.
               </span>
               <span v-else-if="!isPlain" class="field-optional">
                 Keep your own rules, DNS and groups. Only <code>proxies</code> is replaced — and any

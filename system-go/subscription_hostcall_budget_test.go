@@ -138,9 +138,13 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			rt, host := newGraphBudgetRuntime(t)
 			seedGraphBudgetStore(t, rt)
 			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+method].HostCalls
-			// Model one additional broker call introduced before the measured path.
-			// The real path itself exactly consumes the signed cap.
-			host.total = 1
+			// Model one additional broker call introduced before the measured
+			// path. The signed cap is the measured path plus the script HTTP
+			// allowance, so the pre-spend has to include that allowance too:
+			// the invariant under test is that the measured path leaves no
+			// slack beyond what scripts are explicitly budgeted, not that the
+			// reservation for scripts is absent.
+			host.total = 1 + scriptHTTPMaxCalls
 			host.limit = budget
 			body := map[string]any{"subscription_id": "script-graphs", "format": "plain"}
 			if method == "preview" {
