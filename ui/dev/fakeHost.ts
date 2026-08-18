@@ -291,7 +291,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       fetched_at: found.last_fetch_at,
     };
   },
-  "subscription/preview": ({ subscription_id }) => {
+  "subscription/preview": ({ subscription_id, operators }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (found?.kind === "file") {
       // The plugin returns the rendered document for a file. Returning nodes
@@ -301,6 +301,22 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}",
       );
       return { document: injected, node_count: 0, nodes: [] };
+    }
+    // A cut preview sends fewer operators, so the harness answers with a
+    // node count that shrinks per step — otherwise the per-step preview looks
+    // identical at every step and the screen cannot be checked at all.
+    const steps = Array.isArray(operators) ? operators.length : 3;
+    const all = [
+      { name: "🇭🇰 Hong Kong 01", type: "vless" },
+      { name: "🇭🇰 Hong Kong 02", type: "vless" },
+      { name: "🇯🇵 Tokyo 01", type: "trojan" },
+      { name: "🇸🇬 Singapore 01", type: "vmess" },
+      { name: "🇺🇸 Portland 01", type: "vless" },
+      { name: "🇩🇪 Frankfurt 01", type: "trojan" },
+    ];
+    const kept = all.slice(0, Math.max(1, all.length - steps));
+    if (Array.isArray(operators)) {
+      return { nodes: kept, node_count: kept.length, source_node_count: 8 };
     }
     return {
       nodes: [
