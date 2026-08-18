@@ -13,7 +13,7 @@
   ],
   "version": "0.13.0-alpha.4",
   "publisher": "latticenet",
-  "signature_ed25519": "",
+  "signature_ed25519": "E5Iy2hZ0I0aK2dE7A1rbUs1yYlpo0t8BrwXzOIVer9MU//Tc2ZTiegaAmGf7lUj2MqaNhPpz3wMHakkAygTjDA==",
   "bundle": {
     "format": "tar+gzip",
     "digest_sha256": "f0d1e263fa06837c956255c4c52ba68b00a3e7d0c539b6f77a572a8655f516a1"
@@ -31,9 +31,9 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": ">=0.2.2-alpha.20",
-    "dashboard_host": ">=1",
-    "runtime_protocol": ">=2"
+    "server": "\u003e=0.2.2-alpha.20",
+    "dashboard_host": "\u003e=1",
+    "runtime_protocol": "\u003e=2"
   },
   "host_access": {
     "rpc": [
@@ -395,7 +395,7 @@
   "dependencies": [
     {
       "id": "latticenet.vpn-core",
-      "version": ">=0.8.0-alpha.10"
+      "version": "\u003e=0.8.0-alpha.10"
     }
   ]
 }
