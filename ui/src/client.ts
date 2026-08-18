@@ -426,6 +426,9 @@ export const CONVERT_TARGETS: readonly { id: string; label: string; produces: st
   { id: "Stash", label: "Stash", produces: "yaml" },
   { id: "QX", label: "Quantumult X", produces: "conf" },
   { id: "Shadowrocket", label: "Shadowrocket", produces: "conf" },
+  { id: "Egern", label: "Egern", produces: "yaml" },
+  { id: "Surfboard", label: "Surfboard", produces: "conf" },
+  { id: "SurgeMac", label: "Surge for macOS", produces: "conf" },
   { id: "URI", label: "URI list", produces: "text" },
   { id: "V2Ray", label: "V2Ray", produces: "text" },
 ];

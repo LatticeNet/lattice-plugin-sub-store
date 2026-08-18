@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.13.0-alpha.2",
+  "version": "0.13.0-alpha.3",
   "publisher": "latticenet",
-  "signature_ed25519": "x3zXXfqE09sYz6PqEJ0Acb0q824IK+HuXucHIbKg50Ysm+h6QkFi0PG3ooqftQANPZW58bovFU8ebXMmoJ+aCg==",
+  "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "eea5b1515b9beb3ccdba4691f3f1a049aa1eeb66dbb07346dd59901c8e1924a6"
+    "digest_sha256": "164fa329fbdef96b09cdaafc3dda6d6e56ed9271629502abfb179c58ea9956c8"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
@@ -31,9 +31,9 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.2-alpha.20",
-    "dashboard_host": "\u003e=1",
-    "runtime_protocol": "\u003e=2"
+    "server": ">=0.2.2-alpha.20",
+    "dashboard_host": ">=1",
+    "runtime_protocol": ">=2"
   },
   "host_access": {
     "rpc": [
@@ -395,7 +395,7 @@
   "dependencies": [
     {
       "id": "latticenet.vpn-core",
-      "version": "\u003e=0.8.0-alpha.10"
+      "version": ">=0.8.0-alpha.10"
     }
   ]
 }

@@ -450,3 +450,31 @@ func TestSubStoreEngineConvertsPinnedCoreWhenProvided(t *testing.T) {
 		t.Fatalf("pinned core conversion: %+v", result)
 	}
 }
+
+// Every target the UI curates must stay producible by the pinned core: a pin
+// bump that drops or renames a producer must break the build here rather than
+// surface as a runtime conversion error. The list mirrors CONVERT_TARGETS in
+// ui/src/client.ts.
+func TestEmbeddedSubStoreCoreProducesEveryCuratedTarget(t *testing.T) {
+	engine := newTestEmbeddedSubStoreEngine()
+	if err := engine.prewarm(); err != nil {
+		t.Fatalf("prewarm: %v", err)
+	}
+	targets := []string{
+		"Clash", "ClashMeta", "sing-box", "Surge", "Loon", "Stash", "QX",
+		"Shadowrocket", "Egern", "Surfboard", "SurgeMac", "URI", "V2Ray",
+	}
+	for _, target := range targets {
+		result, err := engine.convert(subStoreConversionRequest{
+			Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
+			Target: target,
+		})
+		if err != nil {
+			t.Errorf("target %s: %v", target, err)
+			continue
+		}
+		if result.OutputBytes == 0 {
+			t.Errorf("target %s produced no output", target)
+		}
+	}
+}
