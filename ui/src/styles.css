@@ -865,6 +865,22 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   color: var(--lt-danger);
 }
 
+/* A published share is good news, not a warning: same quiet chrome, but the
+   accent border says "these links are live". */
+.sheet-note-share {
+  border-left: 2px solid var(--lt-accent);
+}
+
+.share-link {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--lt-mono);
+  font-size: 11px;
+  word-break: break-all;
+  user-select: all;
+  color: var(--lt-fg);
+}
+
 .target-list {
   margin: 10px 0 0;
   padding: 0;

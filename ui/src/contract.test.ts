@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import manifest from "../../manifest.json";
-import { BINDINGS, CONVERT_TARGETS, SERVICES, type MethodBinding } from "./client";
+import { BINDINGS, CONVERT_TARGETS, SERVICES, buildShareLink, type MethodBinding } from "./client";
 
 /**
  * DoD gate: every UI data path must resolve to a manifest-declared method.
@@ -117,5 +117,28 @@ describe("client target catalog", () => {
     for (const uaClass of Object.keys(CORE_UA_CLASSES)) {
       expect(covered.has(uaClass)).toBe(true);
     }
+  });
+});
+
+describe("share link construction", () => {
+  // The serve path's URL contract (P-1): ?target= names the client, flags ride
+  // along under upstream's exact names. These strings hit production URLs, so
+  // they are pinned here rather than trusted to survive refactors.
+  it("appends the explicit target", () => {
+    expect(buildShareLink("https://host/sub/team/tok", "Stash", false)).toBe(
+      "https://host/sub/team/tok?target=Stash",
+    );
+  });
+
+  it("encodes targets that need it and adds flags only when set", () => {
+    expect(buildShareLink("/sub/team/tok", "sing-box", true)).toBe(
+      "/sub/team/tok?target=sing-box&includeUnsupportedProxy=1",
+    );
+  });
+
+  it("chains onto a base that already carries a query", () => {
+    expect(buildShareLink("/sub/team/tok?noFlow=1", "Surge", false)).toBe(
+      "/sub/team/tok?noFlow=1&target=Surge",
+    );
   });
 });
