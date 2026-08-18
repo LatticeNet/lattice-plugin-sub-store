@@ -69,9 +69,10 @@ jobs:
 
       - name: validate manifest against reviewed server
         env:
-          # No released checker currently accepts both `dependencies` and `stdio-json-v2`.
-          # Move this temporary pin to the first published compatible alpha when available.
-          LATTICE_CHECK_REF: v0.2.2-0.20260814124735-9ef835b30255
+          # alpha-0.2.2a20 release commit b0a87e76 — the first published server
+          # whose validator knows `dependencies` and `stdio-json-v2`. Move ONLY
+          # to another released tag's commit.
+          LATTICE_CHECK_REF: v0.2.2-0.20260818020912-b0a87e76451f
         run: go run "github.com/LatticeNet/lattice-server/cmd/lattice-plugin-manifest-check@${LATTICE_CHECK_REF}" manifest.json
 
       - name: build runtime binaries
