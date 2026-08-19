@@ -7,7 +7,7 @@ export function validateEndpoint(input: string): EndpointValidation {
   const raw = input.trim();
   if (!raw) return { error: "Sub-Store endpoint is required" };
   // design-15 §7: a secret:// reference asks the server to resolve the saved
-  // endpoint from the plugin's encrypted vault — it is not a URL and is
+  // endpoint from the plugin's encrypted vault. It is not a URL and is
   // validated server-side at resolution time.
   if (raw.startsWith("secret://")) {
     if (raw === "secret://latticenet.sub-store/endpoint" || raw === "secret://endpoint") return { value: raw };
@@ -41,7 +41,7 @@ export function validateCollection(input: string): string | undefined {
  * An error message safe to put on screen.
  *
  * Backend errors quote what they were working on, and in this product that is
- * routinely a URI carrying a credential — a provider link with a token in its
+ * routinely a URI carrying a credential. A provider link with a token in its
  * path, or a node URI whose userinfo IS the key. Any scheme-and-authority form
  * is replaced, not just http(s): `vless://`, `ss://`, `trojan://` and friends
  * are exactly the ones worth hiding.

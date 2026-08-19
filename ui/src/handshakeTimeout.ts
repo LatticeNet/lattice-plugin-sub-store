@@ -7,7 +7,7 @@ export const HANDSHAKE_TIMEOUT_MS = 3000;
  * True once the handshake has been missing for HANDSHAKE_TIMEOUT_MS.
  *
  * Opened standalone, the frame has no host: the bridge keeps waiting, every
- * screen shows "Loading…", and nothing ever changes — the operator cannot tell
+ * screen shows "Loading…", and nothing ever changes. The operator cannot tell
  * a slow start from a page that will never work. This timeout is what turns
  * that silence into a statement. A handshake that lands late simply resets it,
  * so a slow-but-real host never gets stuck behind the notice.

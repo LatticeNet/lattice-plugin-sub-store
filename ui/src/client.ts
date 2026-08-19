@@ -1,12 +1,12 @@
 /**
- * client.ts — every backend method binding for this UI, isolated in one module.
+ * client.ts. Every backend method binding for this UI, isolated in one module.
  *
  * Two tiers:
  *  - "active":  methods declared by the manifest on the integration line.
  *    Today that is the shipped `import` adapter surface plus the embedded
  *    `engine` surface (convert / transform_response / pipeline CRUD /
- *    run_pipeline — hephaestus's PR6, per-method budgets included).
- *  - "pending": proposed but not yet declared methods. Empty right now — the
+ *    run_pipeline, hephaestus's PR6, per-method budgets included).
+ *  - "pending": proposed but not yet declared methods. Empty right now, the
  *    engine contract landed and consumed the whole proposal tier. The tier
  *    mechanism stays: a future wave (e.g. subscription records) enters here
  *    first, and contract.test.ts trips when it becomes declared.
@@ -78,14 +78,14 @@ export const BINDINGS = {
 
 /**
  * Client-side guards mirroring the backend's signed per-method budgets and
- * record limits (system-go constants — keep in sync, BINARY units):
+ * record limits (system-go constants, keep in sync, BINARY units):
  *  - convert/transform_response/run_pipeline stdout budget: 6 << 20
  *  - run_pipeline raw input cap: 1 << 20
  *  - pipeline records: ≤ 256 records, ≤ 64 operators per record
  *
  * The stdout budget is enforced by ABORT, not truncation: the runner returns
  * `plugin stdout exceeded budget N bytes` and no result at all
- * (system_runner.go:475). So a result the UI can render was never truncated —
+ * (system_runner.go:475), so a result the UI can render was never truncated,
  * the only useful warning is proximity to the ceiling, which is why
  * CONVERT_OUTPUT_WARN_BYTES exists alongside the budget itself.
  */
@@ -98,7 +98,7 @@ export const MAX_PIPELINE_RECORDS = 256;
 // ── engine shapes (manifest: latticenet.sub-store/engine) ───────────────────
 
 /** convert request: raw subscription content + target format + optional
- *  operator chain. The engine never fetches — the UI supplies the content. */
+ *  operator chain. The engine never fetches. The UI supplies the content. */
 export interface ConversionRequest {
   raw: string;
   target: string;
@@ -249,7 +249,7 @@ export interface SubscriptionListItem {
   imported: boolean;
   /**
    * Fetch bookkeeping, present only once the record has been refreshed at all.
-   * Absent means "never fetched" — not "failed".
+   * Absent means "never fetched". Not "failed".
    */
   last_fetch_at?: string;
   last_fetch_ok?: boolean;
@@ -309,8 +309,8 @@ export interface SubscriptionPublishResponse {
 
 /** preview reduces nodes to a summary on the engine side, so a preview of a
  *  large subscription cannot blow the stdout budget. The summary carries the
- *  endpoint and the transport flags — the detail an operator needs to recognise
- *  a node, at the level upstream's preview shows — and never credentials: no
+ *  endpoint and the transport flags. The detail an operator needs to recognise
+ *  a node, at the level upstream's preview shows, and never credentials: no
  *  uuid, password, key or SNI crosses the process boundary. */
 export interface SubscriptionPreviewNode {
   name: string;
@@ -329,7 +329,7 @@ export interface SubscriptionPreviewResponse {
   nodes: SubscriptionPreviewNode[];
   /**
    * Nodes before and after the chain runs. The wire names are `node_count` /
-   * `source_node_count` (system-go's previewResult) — an earlier reading of
+   * `source_node_count` (system-go's previewResult). An earlier reading of
    * this type called the count `count`, a field the backend never sends, so
    * the editor's preview header rendered "undefined node(s)" in production.
    */
@@ -431,7 +431,7 @@ export const FAILURE_SKIP = "skip-failed";
  *  2026-07-27 caveat). */
 /**
  * The client targets, in the order and under the names Sub-Store itself shows
- * in its "preview / copy subscription" sheet — the daily path for getting a
+ * in its "preview / copy subscription" sheet. The daily path for getting a
  * configuration into a client.
  *
  * `uaClass` is the core's bounded client classification (uaClassTargets in

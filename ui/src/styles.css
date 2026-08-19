@@ -1,841 +1,826 @@
+/* Sub-Store plugin frame.
+ *
+ * Two constraints shape everything here and are easy to break by accident:
+ *
+ *  1. The frame is NOT a viewport. The host sizes the iframe to the content
+ *     height it reports, so `position: fixed` resolves against the whole
+ *     document and `position: sticky` never activates. Overlays are absolute
+ *     against a measured anchor (src/overlayAnchor.ts), and `vh` sizes an
+ *     element from its own output. Neither appears below.
+ *
+ *  2. Every color comes from the host through tokens.css. A literal hex here
+ *     renders a light-mode box on a dark console, which is what the whole
+ *     alert, badge and status family used to do.
+ *
+ * Sizes come from the --lt-space-* and --lt-text-* scales. If a value is not
+ * on a scale it is because the thing is a hairline, a control height, or a
+ * character-based measure.
+ */
+
+/* ── base ─────────────────────────────────────────────────────────────────── */
+
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: var(--foreground, #17191c);
-  background: var(--background, #f7f8f9);
+  /* The console's stack, verbatim. Naming a face here made this the one panel
+     in the product set in a different typeface. */
+  font-family: var(--lt-font);
+  color: var(--lt-fg);
+  background: var(--lt-bg);
   font-synthesis: none;
   letter-spacing: 0;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: var(--background, #f7f8f9); }
-button, input { font: inherit; letter-spacing: 0; }
+body { margin: 0; min-width: 320px; background: var(--lt-bg); }
+button, input, select, textarea { font: inherit; letter-spacing: 0; color: inherit; }
 button { cursor: pointer; }
-button:disabled { cursor: not-allowed; opacity: 0.52; }
+button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.mono { font-family: var(--lt-mono); }
+
+/* ── page frame ───────────────────────────────────────────────────────────
+   Fluid, like every other page in the console. It used to cap at 1120px and
+   centre itself, so on a wide display the plugin sat in a narrow strip with
+   several hundred pixels of dead space either side while the host pages ran
+   edge to edge. Surfaces that genuinely read better narrow cap THEMSELVES, in
+   characters, further down. */
 
 .workspace {
-  width: min(1120px, 100%);
-  margin: 0 auto;
-  padding: 28px clamp(18px, 3vw, 36px) 48px;
+  width: 100%;
+  padding: var(--lt-space-6) clamp(16px, 2vw, 32px) var(--lt-space-8);
+  /* The containing block for every overlay scrim below.
+   *
+   * `inset: 0` on an absolutely positioned element with no positioned ancestor
+   * resolves against the INITIAL containing block, which is the frame's own
+   * viewport, not the document. The host sizes the frame from the content
+   * height this page reports, so the two normally match and the bug is
+   * invisible; whenever they do not, the scrim is only as tall as the frame and
+   * the rest of the document stays uncovered and clickable underneath an open
+   * modal. Measured at 600px of scrim over 948px of content.
+   *
+   * They come apart on every resize (the content grows before the host has
+   * grown the frame) and permanently if the host ever clamps the frame height.
+   * Anchoring the scrims to this element instead removes the dependency: its
+   * padding box IS the content. `position: relative` with `z-index: auto`
+   * creates no stacking context, so the overlay z-indexes are unaffected. */
+  position: relative;
 }
 
 .page-header {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--border, #d9dde2);
+  gap: var(--lt-space-3);
+  padding-bottom: var(--lt-space-4);
+  border-bottom: 1px solid var(--lt-border);
 }
 
 .title-mark {
   display: grid;
-  width: 36px;
-  height: 36px;
+  flex: none;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 6px;
-  color: var(--primary, #1769aa);
-  background: var(--card, #fff);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  color: var(--lt-accent);
+  background: var(--lt-surface);
 }
 
-.title-copy h1, .section-heading h2, .operation h2 { margin: 0; font-weight: 650; }
-.title-copy h1 { font-size: 20px; line-height: 1.25; }
-.title-copy p, .section-heading p, .operation-copy p {
-  margin: 4px 0 0;
-  color: var(--muted-foreground, #656d76);
-  font-size: 13px;
-  line-height: 1.5;
+.title-copy h1 { margin: 0; font-size: var(--lt-text-xl); font-weight: 650; line-height: 1.25; }
+.title-copy p,
+.section-heading p {
+  margin: var(--lt-space-1) 0 0;
+  max-width: var(--lt-measure-prose);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-md);
+  line-height: var(--lt-leading);
 }
 
-.status {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 9px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 999px;
-  color: var(--muted-foreground, #656d76);
-  background: var(--card, #fff);
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.status[data-tone="positive"] { color: #147a4b; border-color: #7dc5a3; background: #effaf4; }
-.status[data-tone="negative"] { color: var(--destructive, #c43838); border-color: #e4a1a1; background: #fff3f2; }
+/* ── tabs ─────────────────────────────────────────────────────────────────── */
 
-.alert, .result {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: 18px;
-  padding: 11px 13px;
-  border: 1px solid #e4a1a1;
-  border-radius: 6px;
-  color: var(--destructive, #b52b2b);
-  background: #fff3f2;
-  font-size: 13px;
-}
-
-/* Three screens rendered their confirmations as `alert alert-ok` and this class
-   did not exist, so "Saved", "Copied" and "Deleted" all arrived in the failure
-   styling — red border, pink background — while claiming success. Built from the
-   host's own tokens rather than a hardcoded green, because the frame has no
-   colours of its own and a fixed one would fight whatever theme it lands in. */
-/* A checkbox reads as one control with its label, not as a box floating above
-   a paragraph. */
-.checkbox-field {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 10px;
-}
-.checkbox-field > input { margin-top: 3px; }
-.checkbox-field > span { display: flex; flex-direction: column; gap: 3px; }
-
-.alert-ok {
-  border-color: color-mix(in srgb, var(--primary, #1769aa) 45%, transparent);
-  color: var(--foreground, #17191c);
-  background: color-mix(in srgb, var(--primary, #1769aa) 10%, var(--card, #fff));
-}
-
-.alert-ok > svg { color: var(--primary, #1769aa); }
-
-.configuration { padding: 24px 0 28px; border-bottom: 1px solid var(--border, #d9dde2); }
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.section-heading h2, .operation h2 { font-size: 15px; }
-
-.form-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18px;
-}
-.field { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
-.field-wide { grid-column: 1 / -1; }
-.field-label { color: var(--foreground, #17191c); font-size: 12px; font-weight: 620; }
-.field > input, .secret-input {
-  width: 100%;
-  min-height: 38px;
-  border: 1px solid var(--border, #cfd4da);
-  border-radius: 6px;
-  color: var(--foreground, #17191c);
-  background: var(--card, #fff);
-  outline: none;
-}
-.field > input { padding: 8px 10px; }
-.field > input:focus, .secret-input:focus-within { border-color: var(--ring, #2c77b8); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring, #2c77b8) 18%, transparent); }
-.secret-input { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; padding-left: 10px; color: var(--muted-foreground, #656d76); }
-.secret-input input { min-width: 0; height: 36px; border: 0; padding: 7px 9px; color: var(--foreground, #17191c); background: transparent; outline: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
-.field-error { color: var(--destructive, #b52b2b); font-size: 11px; }
-
-.icon-button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; color: var(--muted-foreground, #656d76); background: transparent; }
-.icon-button:hover { color: var(--foreground, #17191c); }
-
-.operation {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr) auto;
-  align-items: center;
-  gap: 22px;
-  padding: 26px 0;
-}
-.result { margin: 0; color: #147a4b; border-color: #7dc5a3; background: #effaf4; }
-.result-error { color: var(--destructive, #b52b2b); border-color: #e4a1a1; background: #fff3f2; }
-.operation-action { display: flex; align-items: flex-end; flex-direction: column; gap: 8px; }
-.permission-note { display: inline-flex; align-items: center; gap: 5px; color: var(--muted-foreground, #656d76); font-size: 11px; white-space: nowrap; }
-
-.button { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; font-size: 12px; font-weight: 650; white-space: nowrap; }
-.button-secondary { border-color: var(--border, #cfd4da); color: var(--foreground, #17191c); background: var(--card, #fff); }
-.button-secondary:hover:not(:disabled) { background: var(--muted, #eef0f2); }
-.button-primary { color: var(--primary-foreground, #fff); background: var(--primary, #1769aa); }
-.button-primary:hover:not(:disabled) { filter: brightness(0.94); }
-.spin { animation: spin 0.8s linear infinite; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
-
-@media (max-width: 760px) {
-  .workspace { padding-top: 20px; }
-  .page-header { grid-template-columns: auto minmax(0, 1fr); }
-  .status { grid-column: 1 / -1; width: fit-content; }
-  .section-heading { align-items: flex-start; flex-direction: column; }
-  .form-grid, .operation { grid-template-columns: 1fr; }
-  .operation { align-items: stretch; }
-  .operation-action { align-items: stretch; }
-  .button { width: 100%; }
-}
-
-/* design-15 §7: endpoint vault + import preview */
-.endpoint-vault { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border, #e2e5ea); padding-top: 10px; }
-.vault-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.vault-saved { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-foreground, #656d76); }
-.vault-note { font-size: 11px; color: var(--muted-foreground, #656d76); }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-.badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; border: 1px solid var(--border, #d7dce3); color: var(--muted-foreground, #656d76); background: var(--muted, #f3f4f6); }
-.badge[data-tone="info"] { color: #0b5cad; border-color: #9cc7ee; background: #eef6fe; }
-.badge[data-tone="success"] { color: #147a4b; border-color: #7dc5a3; background: #effaf4; }
-.badge[data-tone="warning"] { color: #9a5b00; border-color: #e8c07a; background: #fdf6e8; }
-/* The failure tone a row's refresh status needs; `status` had one and the
-   badge palette did not, so a failed fetch could only render as neutral. */
-.badge[data-tone="danger"] { color: var(--destructive, #b52b2b); border-color: #e4a1a1; background: #fff3f2; }
-.button-compact { padding: 3px 9px; font-size: 11.5px; }
-.button-compact.destructive { color: var(--destructive, #b52b2b); }
-.toggle-field { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: inherit; }
-.preview-panel { display: flex; flex-direction: column; gap: 7px; border: 1px solid var(--border, #e2e5ea); border-radius: 8px; padding: 10px 12px; background: var(--muted, #f7f8fa); }
-.preview-summary { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 12.5px; }
-.preview-list { margin: 0; padding-left: 18px; font-size: 12px; max-height: 140px; overflow-y: auto; }
-.preview-removed { color: var(--destructive, #b52b2b); }
-.graph-options { display: grid; gap: 12px; }
-.field-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.graph-root-order { display: grid; gap: 8px; margin: 8px 0 12px; padding: 0; list-style: none; }
-.graph-root-order li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--border, #e2e5ea); border-radius: 8px; padding: 9px 10px; }
-.graph-root-order small, .graph-root-candidates span { display: block; color: var(--muted-foreground, #68707d); }
-.graph-root-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.graph-root-candidates { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
-.graph-root-candidates button { text-align: left; border: 1px solid var(--border, #e2e5ea); border-radius: 8px; padding: 9px 10px; background: var(--card, #fff); color: inherit; }
-.graph-root-candidates button:disabled { opacity: .55; }
-@media (max-width: 560px) {
-  .graph-root-order li { align-items: flex-start; flex-direction: column; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .graph-options *, .graph-options *::before, .graph-options *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
-}
-
-/* TASK-0003: tabbed shell + shared empty states */
 .tab-bar {
   display: flex;
-  gap: 4px;
-  margin-top: 18px;
-  border-bottom: 1px solid var(--border, #d9dde2);
+  gap: var(--lt-space-1);
+  margin-top: var(--lt-space-4);
+  border-bottom: 1px solid var(--lt-border);
 }
+
 .tab {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 13px;
+  gap: var(--lt-space-2);
+  padding: var(--lt-space-2) var(--lt-space-3);
   border: 0;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  color: var(--muted-foreground, #656d76);
+  border-radius: var(--lt-radius-sm) var(--lt-radius-sm) 0 0;
+  color: var(--lt-fg-muted);
   background: transparent;
-  font-size: 12.5px;
-  font-weight: 620;
+  font-size: var(--lt-text-md);
+  font-weight: 600;
 }
-.tab:hover { color: var(--foreground, #17191c); }
-.tab[data-active="true"] {
-  color: var(--primary, #1769aa);
-  border-bottom-color: var(--primary, #1769aa);
-}
-.tab:focus-visible { outline: 2px solid var(--ring, #2c77b8); outline-offset: -2px; border-radius: 4px 4px 0 0; }
+.tab:hover { color: var(--lt-fg); }
+.tab[data-active="true"] { color: var(--lt-accent); border-bottom-color: var(--lt-accent); }
+.tab:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
-.heading-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.configuration { padding: var(--lt-space-6) 0 var(--lt-space-6); }
+.configuration + .configuration { border-top: 1px solid var(--lt-border); }
 
-.panel-empty {
+.section-heading {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-top: 20px;
-  padding: 18px;
-  border: 1px dashed var(--border, #cfd4da);
-  border-radius: 8px;
-  color: var(--muted-foreground, #656d76);
-  background: var(--card, #fff);
-  font-size: 12.5px;
-  line-height: 1.55;
+  justify-content: space-between;
+  gap: var(--lt-space-4);
+  margin-bottom: var(--lt-space-4);
 }
-.panel-empty h3 { margin: 0 0 4px; color: var(--foreground, #17191c); font-size: 13.5px; font-weight: 650; }
-.panel-empty p { margin: 0; }
+.section-heading h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; }
+.heading-actions { display: flex; align-items: center; gap: var(--lt-space-2); flex-wrap: wrap; }
 
-/* The three-part guidance pattern: value line, primary action, secondary
-   action. The column variant stacks them; the actions row keeps the buttons
-   side by side. */
-.panel-empty-stack { flex-direction: column; }
-.empty-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* ── semantic surfaces ────────────────────────────────────────────────────
+   Every one of these used to be a literal hex: #fff3f2 pink, #effaf4 mint,
+   #eef6fe blue. Against the console's dark theme they rendered as white boxes,
+   so a failed refresh and a "Saved" confirmation both arrived as a light-mode
+   card on a near-black page. They mix into the current surface instead. */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lt-space-2);
+  margin-top: var(--lt-space-4);
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 1px solid var(--lt-danger-border);
+  border-left-width: 2px;
+  border-radius: var(--lt-radius);
+  color: var(--lt-fg);
+  background: var(--lt-danger-soft);
+  font-size: var(--lt-text-md);
+  line-height: var(--lt-leading);
+}
+.alert > svg { flex: none; margin-top: 1px; color: var(--lt-danger); }
+
+.alert-ok {
+  border-color: var(--lt-ok-border);
+  background: var(--lt-ok-soft);
+}
+.alert-ok > svg { color: var(--lt-ok); }
+
+/* An error under the control that produced it. It used to be bare red text
+   with no room around it, which read as a typo rather than as a failure. */
+.field-error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-1);
+  padding: 2px var(--lt-space-2);
+  border-left: 2px solid var(--lt-danger);
+  border-radius: 0 var(--lt-radius-sm) var(--lt-radius-sm) 0;
+  background: var(--lt-danger-soft);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+}
+
+.permission-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-1);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--lt-space-2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--lt-neutral-soft);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  line-height: 18px;
+  white-space: nowrap;
+}
+.badge[data-tone="info"] { background: var(--lt-accent-soft); color: var(--lt-accent); }
+.badge[data-tone="success"] { background: var(--lt-ok-soft); color: var(--lt-ok); }
+.badge[data-tone="warning"] { background: var(--lt-warn-soft); color: var(--lt-warn); }
+.badge[data-tone="danger"] { background: var(--lt-danger-soft); color: var(--lt-danger); }
+
+/* ── buttons ──────────────────────────────────────────────────────────────
+   `button-danger` had no rule at all, so the batch-delete control on both list
+   screens fell back to the user-agent button: a white box with black text,
+   sitting in a dark toolbar. Same for `link-button` in Settings. */
+
+.button {
+  display: inline-flex;
+  min-height: var(--lt-control-h);
+  align-items: center;
+  justify-content: center;
+  gap: var(--lt-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--lt-radius);
+  padding: var(--lt-space-1) var(--lt-space-3);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  background: transparent;
+  transition: background-color var(--lt-dur) var(--lt-ease), border-color var(--lt-dur) var(--lt-ease);
+}
+.button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.button-secondary { border-color: var(--lt-border); color: var(--lt-fg); background: var(--lt-surface); }
+.button-secondary:hover:not(:disabled) { background: var(--lt-surface-2); border-color: var(--lt-border-strong); }
+.button-primary { color: var(--lt-accent-contrast); background: var(--lt-accent); border-color: var(--lt-accent); }
+.button-primary:hover:not(:disabled) { background: color-mix(in oklab, var(--lt-accent) 88%, #000 12%); }
+.button-danger { border-color: var(--lt-danger-border); color: var(--lt-danger); background: var(--lt-surface); }
+.button-danger:hover:not(:disabled) { background: var(--lt-danger-soft); border-color: var(--lt-danger); }
+.button-compact { min-height: var(--lt-control-h-sm); padding: 0 var(--lt-space-2); font-size: var(--lt-text-xs); }
+
+/* An action that belongs inside a sentence, not beside it. */
+.link-button {
+  border: 0;
+  padding: 0 2px;
+  background: none;
+  color: var(--lt-accent);
+  font: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: var(--lt-radius-sm);
+}
+.link-button:hover { color: var(--lt-fg); }
+.link-button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+/* ── forms ────────────────────────────────────────────────────────────────
+   The workspace is fluid, so a form caps itself: a name field stretched to a
+   2400px display is not a wider form, it is a worse one. */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--lt-measure-field), 100%), 1fr));
+  gap: var(--lt-space-4);
+  max-width: var(--lt-measure-form);
+}
+
+.field { display: flex; min-width: 0; flex-direction: column; gap: var(--lt-space-1); }
+.field-wide { grid-column: 1 / -1; }
+.field-label { color: var(--lt-fg); font-size: var(--lt-text-sm); font-weight: 600; }
+.field-optional {
+  max-width: var(--lt-measure-prose);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-weight: 400;
+  line-height: var(--lt-leading);
+}
+.field-label-row { display: flex; align-items: center; justify-content: space-between; gap: var(--lt-space-2); }
+
+.field > input,
+.select,
+.code-area,
+.output-area {
+  width: 100%;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  color: var(--lt-fg);
+  background: var(--lt-surface);
+  outline: none;
+}
+.field > input, .select { min-height: 32px; padding: var(--lt-space-1) var(--lt-space-2); }
+.code-area, .output-area {
+  padding: var(--lt-space-2);
+  font-family: var(--lt-mono);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+  resize: vertical;
+}
+.output-area { min-height: 220px; }
+.field > input:focus-visible,
+.select:focus-visible,
+.code-area:focus-visible,
+.output-area:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
+.field > input::placeholder, .code-area::placeholder { color: var(--lt-fg-muted); }
+
+.select-compact { min-height: var(--lt-control-h-sm); padding: 0 var(--lt-space-1); font-size: var(--lt-text-xs); max-width: 14em; }
+
+/* A checkbox reads as one control with its label, not as a box floating above
+   a paragraph. */
+.checkbox-field { flex-direction: row; align-items: flex-start; gap: var(--lt-space-2); }
+.checkbox-field > input { margin-top: 3px; }
+.checkbox-field > span { display: flex; flex-direction: column; gap: 2px; }
+
+/* Checkboxes.
+ *
+ * `accent-color` only tints the CHECKED state; an unchecked user-agent
+ * checkbox stays a white box, and this frame is full of them. One per row for
+ * selection, one per operator step, one per common setting. Against the
+ * console's dark theme every list read as a column of white squares. Drawn
+ * from tokens instead, so the control follows whatever theme the host is in. */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1px solid var(--lt-border-strong);
+  border-radius: 3px;
+  background: var(--lt-bg);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: background-color var(--lt-dur) var(--lt-ease), border-color var(--lt-dur) var(--lt-ease);
+}
+input[type="checkbox"]::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  transform: scale(0);
+  background: var(--lt-accent-contrast);
+  /* A tick, not a filled square: at 15px a glyph is unreadable and a block is
+     ambiguous next to the indeterminate state. */
+  clip-path: polygon(14% 46%, 0 60%, 39% 100%, 100% 22%, 86% 8%, 39% 71%);
+}
+input[type="checkbox"]:checked { background: var(--lt-accent); border-color: var(--lt-accent); }
+input[type="checkbox"]:checked::before { transform: scale(1); }
+input[type="checkbox"]:indeterminate { background: var(--lt-accent); border-color: var(--lt-accent); }
+input[type="checkbox"]:indeterminate::before {
+  transform: scale(1);
+  clip-path: polygon(10% 40%, 90% 40%, 90% 60%, 10% 60%);
+}
+input[type="checkbox"]:hover:not(:disabled) { border-color: var(--lt-accent); }
+input[type="checkbox"]:disabled { opacity: 0.45; cursor: not-allowed; }
+
+input[type="radio"] { accent-color: var(--lt-accent); }
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
+.form-actions { display: flex; align-items: center; gap: var(--lt-space-2); margin-top: var(--lt-space-4); flex-wrap: wrap; }
+
+/* ── list toolbar ─────────────────────────────────────────────────────────
+   These lived in SubscriptionsScreen's SCOPED block while the Files screen
+   used the same class names. Scoped styles carry a per-component attribute, so
+   Files got none of them: its search box and every filter chip rendered as raw
+   user-agent controls, white boxes in a dark toolbar. A style a second screen
+   depends on is not a screen's own style. */
+
+.lt-search {
+  width: 100%;
+  height: var(--lt-control-h);
+  padding: 0 var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  background: var(--lt-bg);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+}
+.lt-search::placeholder { color: var(--lt-fg-muted); }
+.lt-search:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
+
+.lt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-1);
+  height: var(--lt-control-h-sm);
+  padding: 0 var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: 999px;
+  background: var(--lt-surface);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  white-space: nowrap;
+}
+.lt-chip:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.lt-chip.is-active { background: var(--lt-accent-soft); border-color: var(--lt-accent); color: var(--lt-accent); }
+.lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.lt-chip-sep { width: 1px; height: 16px; background: var(--lt-border); margin: 0 var(--lt-space-1); flex: none; }
+
+/* The sort control sits with the filters: both narrow what the eye has to
+   cross, and separating them would make the toolbar read as two toolbars. */
+.lt-sort { display: inline-flex; align-items: center; gap: var(--lt-space-1); font-size: var(--lt-text-xs); color: var(--lt-fg-muted); }
+.lt-sort-label { white-space: nowrap; }
+
+.lt-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  margin-bottom: var(--lt-space-3);
+  font-size: var(--lt-text-sm);
+}
+.lt-breadcrumb-root {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px var(--lt-space-1);
+  border: 0;
+  border-radius: var(--lt-radius-sm);
+  background: none;
+  color: var(--lt-accent);
+  font: inherit;
+  font-size: var(--lt-text-sm);
+}
+.lt-breadcrumb-root:hover { text-decoration: underline; }
+.lt-breadcrumb-root:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.lt-breadcrumb-sep { color: var(--lt-fg-muted); }
+.lt-breadcrumb-here { color: var(--lt-fg); font-weight: 500; }
+
+/* ── empty-state extras ───────────────────────────────────────────────────
+   The onboarding path inside LtEmptyState: a value line, a primary action, and
+   a secondary route (import an existing store). Left-aligned inside the
+   centred panel because it is a form, and a centred form is a form nobody can
+   scan. */
+
+.empty-actions { display: flex; align-items: center; gap: var(--lt-space-2); flex-wrap: wrap; }
 .empty-secondary {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  padding-top: 12px;
-  border-top: 1px dashed var(--border, #cfd4da);
+  gap: var(--lt-space-2);
+  width: min(100%, var(--lt-measure-prose));
+  margin-top: var(--lt-space-2);
+  padding-top: var(--lt-space-3);
+  border-top: 1px dashed var(--lt-border);
+  text-align: left;
 }
-.empty-secondary .field-label { font-weight: 620; }
-.empty-inline-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.empty-inline-form { display: flex; align-items: center; gap: var(--lt-space-2); flex-wrap: wrap; }
 .empty-inline-form > input {
   flex: 1 1 240px;
-  min-height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--border, #cfd4da);
-  border-radius: 6px;
-  color: var(--foreground, #17191c);
-  background: var(--card, #fff);
+  min-height: var(--lt-control-h);
+  padding: 0 var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  color: var(--lt-fg);
+  background: var(--lt-bg);
   outline: none;
 }
-.empty-inline-form > input:focus { border-color: var(--ring, #2c77b8); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring, #2c77b8) 18%, transparent); }
+.empty-inline-form > input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
 
-/* A row's inline answer panel: quick preview, share guidance. Sits under the
-   row it belongs to, divided from it the way the delete confirmation is. */
-.row-popover {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border, #e2e5ea);
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--foreground, #17191c);
-}
-.row-popover-note { margin: 0; color: var(--muted-foreground, #656d76); font-size: 11.5px; }
-.row-popover-copy { margin: 0; }
-.row-popover-error { margin: 0; color: var(--destructive, #b52b2b); font-size: 12px; }
-.row-popover-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
-.row-popover-list li { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.row-node-endpoint { color: var(--muted-foreground, #656d76); font-size: 11px; }
-/* A file's row preview is the document a client would receive; cap and scroll
-   it so a 60 KB config does not take over the list. */
-.row-popover-document {
-  margin: 0;
-  max-height: 220px;
-  overflow: auto;
-  padding: 8px 10px;
-  border: 1px solid var(--border, #e2e5ea);
-  border-radius: 6px;
-  background: var(--muted, #f7f8fa);
-  font-size: 11px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-.preview-type-chips { margin: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+/* ── record list ──────────────────────────────────────────────────────────
+   Sub-Store's own shape: a grouped list of records, each one an icon, a name
+   you can act on, its tags, what it is made of, and its identity, rather than
+   a grid whose columns were wider than the frame and emptier than the data.
+   Both list screens use it; Files had its own near-identical idiom, which is
+   how the two tabs drifted into looking like two products. */
 
-/* Opened on its own the frame has no host at all; this is what it says. */
-.standalone-notice {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 28px;
-  padding: 22px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 12px;
-  background: var(--card, #fff);
-  max-width: 560px;
-}
-.standalone-notice h2 { margin: 0; font-size: 15px; font-weight: 650; }
-.standalone-notice p { margin: 0; color: var(--muted-foreground, #656d76); font-size: 13px; line-height: 1.55; }
-.standalone-notice .standalone-where strong { color: var(--foreground, #17191c); }
-.standalone-detail { font-size: 11px; word-break: break-all; }
+.rec-group + .rec-group { margin-top: var(--lt-space-4); }
 
-/* subscriptions screen */
-.form-actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-.field-optional { color: var(--muted-foreground, #656d76); font-weight: 500; }
-
-.sub-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.sub-card {
+.rec-group-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--border, #e2e5ea);
-  border-radius: 8px;
-  background: var(--card, #fff);
-}
-.sub-card-main { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.sub-title { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; font-size: 13.5px; }
-.sub-hint { font-size: 11px; color: var(--muted-foreground, #656d76); word-break: break-all; }
-.sub-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 11px; color: var(--muted-foreground, #656d76); }
-.sub-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-
-.skeleton-row {
-  height: 62px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, var(--muted, #eef0f2) 25%, var(--card, #f7f8fa) 50%, var(--muted, #eef0f2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease infinite;
-}
-@keyframes shimmer { to { background-position: -200% 0; } }
-@media (prefers-reduced-motion: reduce) { .skeleton-row { animation: none; } }
-
-@media (max-width: 760px) {
-  .sub-card { align-items: flex-start; flex-direction: column; }
-  .sub-actions { width: 100%; justify-content: flex-end; }
-}
-
-/* convert screen */
-.source-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.source-row {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 12px;
-  border: 1px solid var(--border, #e2e5ea);
-  border-radius: 8px;
-  background: var(--card, #fff);
-  cursor: pointer;
-  font-size: 13px;
-}
-.source-row[data-checked="true"] { border-color: var(--ring, #2c77b8); background: color-mix(in srgb, var(--ring, #2c77b8) 6%, var(--card, #fff)); }
-.source-row input { accent-color: var(--primary, #1769aa); }
-.source-name { font-weight: 600; }
-
-.target-grid { display: flex; gap: 8px; flex-wrap: wrap; }
-.target-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 13px;
-  border: 1px solid var(--border, #e2e5ea);
-  border-radius: 8px;
-  background: var(--card, #fff);
-  cursor: pointer;
-  font-size: 13px;
-}
-.target-card[data-checked="true"] { border-color: var(--ring, #2c77b8); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring, #2c77b8) 14%, transparent); }
-.target-card input { accent-color: var(--primary, #1769aa); }
-.target-label { font-weight: 620; }
-.skeleton-chip { height: 38px; width: 130px; }
-
-.output-area {
+  gap: var(--lt-space-1);
   width: 100%;
-  min-height: 220px;
-  padding: 10px 12px;
-  border: 1px solid var(--border, #cfd4da);
-  border-radius: 8px;
-  color: var(--foreground, #17191c);
-  background: var(--card, #fff);
-  font-size: 11.5px;
-  line-height: 1.5;
-  resize: vertical;
-  outline: none;
+  padding: var(--lt-space-1) 2px;
+  border: 0;
+  border-radius: var(--lt-radius-sm);
+  background: none;
+  color: var(--lt-fg-muted);
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+  text-align: left;
 }
-.output-area:focus { border-color: var(--ring, #2c77b8); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring, #2c77b8) 18%, transparent); }
+.rec-group-head:hover { color: var(--lt-fg); }
+.rec-group-head:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-/* pipelines + convert (engine surface) */
-.code-area {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border, #cfd4da);
-  border-radius: 6px;
-  color: var(--foreground, #17191c);
-  background: var(--card, #fff);
-  font-size: 11.5px;
-  line-height: 1.5;
-  resize: vertical;
-  outline: none;
+.rec-group-caret { transition: transform var(--lt-dur) var(--lt-ease); flex: none; }
+.rec-group-caret.is-collapsed { transform: rotate(-90deg); }
+
+.rec-group-count {
+  padding: 0 var(--lt-space-2);
+  border-radius: 999px;
+  background: var(--lt-neutral-soft);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
 }
-.code-area:focus { border-color: var(--ring, #2c77b8); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring, #2c77b8) 18%, transparent); }
 
-.select {
-  width: 100%;
-  min-height: 38px;
-  padding: 8px 10px;
-  border: 1px solid var(--border, #cfd4da);
-  border-radius: 6px;
-  color: var(--foreground, #17191c);
-  background: var(--card, #fff);
-  outline: none;
-}
-.select:focus { border-color: var(--ring, #2c77b8); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring, #2c77b8) 18%, transparent); }
-
-.sub-card-column { flex-direction: column; align-items: stretch; }
-.sub-card-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-.run-drawer {
+.rec-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border, #e2e5ea);
+  gap: var(--lt-space-1);
+  margin: var(--lt-space-2) 0 0;
+  padding: 0;
+  list-style: none;
 }
-.convert-grid { margin-top: 16px; }
-.output-panel { display: flex; flex-direction: column; gap: 10px; }
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
+
+/* One grid for the header and every row, so the columns line up down the whole
+   list. Rows were a card whose contents floated wherever the flex box put
+   them: on a wide frame the name sat marooned in the middle with nothing to
+   the right of it, and there was no way to tell which value was which. */
+.rec-head,
+.rec {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--lt-space-3);
+}
+
+.rec-head {
+  padding: 0 var(--lt-space-3) var(--lt-space-1);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rec-head-status { text-align: right; }
+/* Reserves exactly the width the row's action cluster occupies, so the header
+   labels do not sit over the buttons. */
+.rec-head-spacer { width: var(--lt-rec-actions); }
+
+.rec {
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
+}
+.rec:hover { border-color: var(--lt-border-strong); }
+.rec.is-selected { border-color: var(--lt-accent-border); background: var(--lt-accent-soft); }
+/* Mid-operation. Not a spinner over the row: the row is still readable and
+   still true, it just cannot be acted on until the call returns. */
+.rec.is-pending { opacity: 0.55; }
+.rec.is-pending .rec-actions { pointer-events: none; }
+
+.rec-select { display: flex; align-items: center; }
+
+.rec-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface-2);
+  color: var(--lt-fg-muted);
+}
+
+.rec-body { min-width: 0; }
+
+.rec-name {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--lt-fg);
+  font: inherit;
+  font-size: var(--lt-text-md);
+  font-weight: 600;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.rec-name:hover { text-decoration: underline; }
+.rec-name:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
+.rec-tags { display: inline-flex; flex-wrap: wrap; gap: var(--lt-space-1); margin-left: var(--lt-space-2); vertical-align: middle; }
+
+.rec-summary,
+.rec-meta {
+  margin: 2px 0 0;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec-meta { font-size: var(--lt-text-xs); }
+
+/* The refresh state and the provider's quota, right-aligned in their own
+   column and tabular, so a column of them can be read down rather than hunted
+   for inside a sentence. It was a run-on line of "id · Refreshed 3h ago · 27 GB
+   / 500 GB" that no two rows aligned on. */
+.rec-status-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  text-align: right;
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-@media (max-width: 760px) {
-  .tab-bar { overflow-x: auto; }
-  .heading-actions { width: 100%; justify-content: flex-start; }
+.rec-status { color: var(--lt-fg-muted); }
+.rec-status.is-danger { color: var(--lt-danger); }
+.rec-status.is-warn { color: var(--lt-warn); }
+.rec-status.is-ok { color: var(--lt-ok); }
+.rec-quota { color: var(--lt-fg-muted); }
+
+.rec-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: var(--lt-rec-actions); }
+
+.rec-menu-wrap { position: relative; }
+
+.rec-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--lt-space-1));
+  z-index: 20;
+  min-width: 180px;
+  padding: var(--lt-space-1);
+  border: 1px solid var(--lt-border-strong);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
+  box-shadow: var(--lt-shadow-overlay);
 }
 
-/* ── editor chrome, shared by every screen with a record editor ──────────
-   These lived in SubscriptionsScreen's scoped block until Files needed the
-   same card pickers and grouping. A style a second screen depends on is not a
-   screen's own style; leaving it scoped rendered the Files editor as bare
-   text runs. Appended last so the density overrides win over the base rules
-   above by document order rather than by extra specificity. */
+.rec-menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  width: 100%;
+  padding: var(--lt-space-1) var(--lt-space-2);
+  border: 0;
+  border-radius: var(--lt-radius-sm);
+  background: none;
+  color: var(--lt-fg);
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  text-align: left;
+}
+.rec-menu button:hover:not(:disabled) { background: var(--lt-surface-2); }
+.rec-menu button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-menu button:disabled { opacity: 0.45; }
+.rec-menu button.is-danger { color: var(--lt-danger); }
+.rec-menu button.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
+.rec-menu-sep { height: 1px; margin: var(--lt-space-1) 0; background: var(--lt-border); }
+
+/* The rows are real but not fresh: a quiet strip, not an error state, because
+   nothing the operator is looking at is wrong. It is just older than they
+   might assume. */
+.stale-strip {
+  margin: 0 0 var(--lt-space-2);
+  padding: var(--lt-space-1) var(--lt-space-3);
+  border-left: 2px solid var(--lt-warn);
+  border-radius: 0 var(--lt-radius-sm) var(--lt-radius-sm) 0;
+  background: var(--lt-warn-soft);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+}
+
+/* ── record editor ────────────────────────────────────────────────────────
+   The form was one undifferentiated column: name, source, output, settings and
+   the operator chain all at the same level, so nothing told the reader where
+   one decision ended and the next began. */
+
 .editor-group {
-  margin: 0 0 16px;
-  padding: 16px 18px 6px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 12px;
-  background: var(--card, #fff);
+  max-width: var(--lt-measure-form);
+  margin: 0 0 var(--lt-space-4);
+  padding: var(--lt-space-4) var(--lt-space-4) var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
 }
 
 .editor-group > legend {
-  padding: 0 8px;
-  margin-left: -8px;
-  font-size: 12px;
+  padding: 0 var(--lt-space-2);
+  margin-left: calc(var(--lt-space-2) * -1);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted-foreground, #656d76);
 }
 
+.editor-block { max-width: var(--lt-measure-form); margin: 0 0 var(--lt-space-4); }
+
 .editor-actions {
-  /* Not sticky: sticky needs a scrollport, and this document has none — the
-     host scrolls the parent page instead. A sticky bar here simply never
-     activates, so the row is laid out honestly as the end of the form. */
-  position: relative;
-  z-index: 5;
+  /* Not sticky: sticky needs a scrollport and this document has none, the
+     host scrolls the parent page instead, so a sticky bar here simply never
+     activates. The row is laid out honestly as the end of the form. */
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 4px -4px 0;
-  padding: 12px 4px;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--background, #f7f8f9) 60%, transparent),
-    var(--background, #f7f8f9) 45%
-  );
-  border-top: 1px solid var(--border, #d9dde2);
+  gap: var(--lt-space-2);
+  max-width: var(--lt-measure-form);
+  margin-top: var(--lt-space-2);
+  padding: var(--lt-space-3) 0;
+  border-top: 1px solid var(--lt-border);
+}
+.editor-actions .field-error { margin-right: auto; }
+
+.editor-tabs {
+  display: flex;
+  gap: 2px;
+  max-width: var(--lt-measure-form);
+  margin: var(--lt-space-3) 0 var(--lt-space-4);
+  border-bottom: 1px solid var(--lt-border);
 }
 
-.editor-actions .field-error {
-  margin-right: auto;
+.editor-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-1);
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: var(--lt-radius-sm) var(--lt-radius-sm) 0 0;
+  background: none;
+  color: var(--lt-fg-muted);
+  font: inherit;
+  font-size: var(--lt-text-md);
+}
+.editor-tab:hover { color: var(--lt-fg); }
+.editor-tab[data-active="true"] { border-bottom-color: var(--lt-accent); color: var(--lt-fg); font-weight: 600; }
+.editor-tab:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+
+.editor-tab-count {
+  padding: 0 var(--lt-space-1);
+  border-radius: 999px;
+  background: var(--lt-neutral-soft);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
 }
 
+/* A single choice made of cards, not a row of buttons distinguishable only by
+   tint. */
 .source-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 10px;
-  margin-top: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--lt-space-2);
+  margin-top: var(--lt-space-1);
 }
 
 .source {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas: "icon title" "icon detail";
-  gap: 2px 10px;
+  gap: 2px var(--lt-space-2);
   align-items: start;
-  padding: 13px 14px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 11px;
-  background: transparent;
+  padding: var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-bg);
   color: inherit;
   text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--lt-dur) var(--lt-ease), background-color var(--lt-dur) var(--lt-ease);
 }
+.source:hover { border-color: var(--lt-border-strong); }
+.source:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.source > svg { grid-area: icon; margin-top: 2px; color: var(--lt-fg-muted); }
+.source.is-active { border-color: var(--lt-accent); background: var(--lt-accent-soft); }
+.source.is-active > svg { color: var(--lt-accent); }
+.source-title { grid-area: title; font-size: var(--lt-text-md); font-weight: 600; }
+.source-detail { grid-area: detail; font-size: var(--lt-text-xs); line-height: var(--lt-leading); color: var(--lt-fg-muted); }
 
-.source > svg {
-  grid-area: icon;
-  margin-top: 2px;
-  color: var(--muted-foreground, #656d76);
-}
+/* ── code editor (CodeMirror mount + textarea fallback) ───────────────────── */
 
-.source.is-active {
-  border-color: var(--primary, #1769aa);
-  background: color-mix(in srgb, var(--primary, #1769aa) 9%, transparent);
-}
+.code-editor { min-width: 0; }
 
-.source.is-active > svg {
-  color: var(--primary, #1769aa);
-}
-
-.source-title {
-  grid-area: title;
-  font-size: 13.5px;
-  font-weight: 650;
-}
-
-.source-detail {
-  grid-area: detail;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--muted-foreground, #656d76);
-}
-
-.sub-card {
-  padding: 12px 14px;
-}
-
-.sub-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 14.5px;
-  font-weight: 650;
-}
-
-.sub-meta {
-  margin-top: 3px;
-  font-size: 12.5px;
-  line-height: 1.5;
-}
-
-.badge {
-  padding: 2px 8px;
-  font-size: 10.5px;
-}
-
-.configuration form {
-  padding-bottom: 8px;
-}
-
-/* ── record list ────────────────────────────────────────────────────────────
-   Sub-Store's own shape: a grouped list of records, each one an icon, a name
-   you can act on, its tags, what it is made of, and its identity — rather than
-   a grid whose columns were wider than the frame and emptier than the data. */
-
-.rec-group + .rec-group {
-  margin-top: 18px;
-}
-
-.rec-group-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 4px 2px;
-  background: none;
-  border: 0;
-  color: var(--lt-fg-muted);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-align: left;
-  cursor: pointer;
-}
-
-.rec-group-head:hover {
-  color: var(--lt-fg);
-}
-
-.rec-group-caret {
-  transition: transform var(--lt-dur) ease;
-}
-
-.rec-group-caret.is-collapsed {
-  transform: rotate(-90deg);
-}
-
-.rec-group-count {
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--lt-surface-2);
-  color: var(--lt-fg-muted);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.rec-list {
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.rec {
-  display: grid;
-  /* icon | body | actions — the body is the only elastic track, so a long
-     name shortens itself instead of pushing the actions off the frame. */
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px;
-  padding: 10px 12px;
+.code-editor-host .cm-editor {
+  /* Rows drive the height the same way the old textarea's rows did, so the
+     form's rhythm does not change with the upgrade. */
+  min-height: calc(var(--code-editor-rows, 12) * 1.35em + 16px);
+  /* Not vh: this document's height IS the frame height the host syncs to the
+     content, so a viewport unit here sizes the editor from its own output. A
+     row-derived ceiling is stable and says what it means, about 24 lines,
+     after which the editor scrolls internally. */
+  max-height: calc(24 * 1.45em + 16px);
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);
   background: var(--lt-surface);
 }
+.code-editor-host .cm-editor.cm-focused { outline: none; box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
+.code-editor-host .cm-scroller { overflow: auto; font-family: var(--lt-mono); line-height: 1.45; }
 
-.rec.is-pending {
-  opacity: 0.6;
-}
-
-.rec-icon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface-2);
-  color: var(--lt-fg-muted);
-}
-
-.rec-body {
-  min-width: 0;
-}
-
-.rec-name {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--lt-fg);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-  vertical-align: bottom;
-}
-
-.rec-name:hover {
-  text-decoration: underline;
-}
-
-.rec-tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.rec-summary,
-.rec-meta {
-  margin: 3px 0 0;
-  color: var(--lt-fg-muted);
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rec-meta {
-  font-size: 11px;
-}
-
-.rec-status.is-danger {
-  color: var(--lt-danger);
-}
-
-.rec-status.is-warn {
-  color: var(--lt-warn);
-}
-
-.rec-status.is-ok {
-  color: var(--lt-ok);
-}
-
-.rec-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.rec-menu-wrap {
-  position: relative;
-}
-
-.rec-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 20;
-  min-width: 176px;
-  padding: 4px;
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
-}
-
-.rec-menu button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 8px;
-  border: 0;
-  border-radius: 4px;
-  background: none;
-  color: var(--lt-fg);
-  font: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.rec-menu button:hover:not(:disabled) {
-  background: var(--lt-surface-2);
-}
-
-.rec-menu button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.rec-menu button.is-danger {
-  color: var(--lt-danger);
-}
-
-/* ── target sheet ───────────────────────────────────────────────────────── */
+/* ── overlays ─────────────────────────────────────────────────────────────
+   Absolute, never fixed. The host sizes the frame to the content, so `fixed`
+   resolves against the whole frame and an overlay centred in it lands off the
+   operator's screen. The scrim covers the document and the panel opens at the
+   anchor the click supplied. */
 
 .sheet-scrim {
-  /* absolute, not fixed: this document is not a viewport. The host sizes the
-     frame to the content, so `fixed` resolves against the whole frame and an
-     overlay centred in it lands off the operator's screen. The scrim covers the
-     document and the sheet is positioned at the anchor the click supplied. */
   position: absolute;
   inset: 0;
-  min-height: 100%;
   z-index: 60;
   display: grid;
   justify-items: center;
   align-items: start;
-  padding: 0 16px;
-  background: rgb(0 0 0 / 45%);
+  padding: 0 var(--lt-space-4);
+  background: color-mix(in oklab, #000 55%, transparent);
   overflow-y: auto;
 }
 
 .sheet {
-  width: min(420px, 100%);
-  padding: 14px;
-  border: 1px solid var(--lt-border);
-  border-radius: 10px;
+  width: min(460px, 100%);
+  /* The sheet sits where the operator clicked, in document coordinates. */
+  margin-top: var(--overlay-anchor-top, 32px);
+  padding: var(--lt-space-4);
+  border: 1px solid var(--lt-border-strong);
+  border-radius: var(--lt-radius);
   background: var(--lt-surface);
-  box-shadow: 0 16px 48px rgb(0 0 0 / 40%);
+  box-shadow: var(--lt-shadow-overlay);
 }
+.sheet:focus-visible { outline: none; box-shadow: var(--lt-shadow-overlay), var(--lt-focus-ring-tight); }
 
-.sheet-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.sheet-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--lt-space-3); }
+.sheet-title { margin: 0; font-size: var(--lt-text-md); font-weight: 600; }
 .sheet-sub {
   margin: 2px 0 0;
   color: var(--lt-fg-muted);
-  font-size: 12px;
+  font-size: var(--lt-text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -846,122 +831,59 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   place-items: center;
   width: 26px;
   height: 26px;
+  flex: none;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--lt-radius-sm);
   background: none;
   color: var(--lt-fg-muted);
-  cursor: pointer;
 }
-
-.sheet-close:hover {
-  background: var(--lt-surface-2);
-  color: var(--lt-fg);
-}
+.sheet-close:hover { background: var(--lt-surface-2); color: var(--lt-fg); }
+.sheet-close:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
 .sheet-note,
-.sheet-error,
-.sheet-result-note {
-  margin: 10px 0 0;
-  padding: 8px 10px;
-  border-radius: 5px;
+.sheet-error {
+  margin: var(--lt-space-3) 0 0;
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border-radius: var(--lt-radius-sm);
   background: var(--lt-surface-2);
   color: var(--lt-fg-muted);
-  font-size: 12px;
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
 }
-
-.sheet-error {
-  color: var(--lt-danger);
-}
-
+.sheet-error { border-left: 2px solid var(--lt-danger); background: var(--lt-danger-soft); color: var(--lt-fg); }
 /* A published share is good news, not a warning: same quiet chrome, but the
    accent border says "these links are live". */
-.sheet-note-share {
-  border-left: 2px solid var(--lt-accent);
-}
+.sheet-note-share { border-left: 2px solid var(--lt-accent); }
+
+.sheet-toggle { display: flex; align-items: center; gap: var(--lt-space-2); margin: var(--lt-space-3) 0 0; color: var(--lt-fg-muted); font-size: var(--lt-text-sm); cursor: pointer; }
 
 .share-link {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--lt-space-1);
   font-family: var(--lt-mono);
-  font-size: 11px;
+  font-size: var(--lt-text-xs);
   word-break: break-all;
   user-select: all;
   color: var(--lt-fg);
 }
 
-/* ── code editor (CodeMirror mount + textarea fallback) ────────────────── */
-
-.code-editor {
-  min-width: 0;
-}
-
-.code-editor-host .cm-editor {
-  /* Rows drive the height the same way the old textarea's rows did, so the
-     form's rhythm does not change with the upgrade. */
-  min-height: calc(var(--code-editor-rows, 12) * 1.35em + 16px);
-  /* Not vh: this document's height IS the frame height the host syncs to the
-     content, so a viewport unit here sizes the editor from its own output. A
-     row-derived ceiling is stable and says what it means — about 24 lines,
-     after which the editor scrolls internally. */
-  max-height: calc(24 * 1.45em + 16px);
-}
-
-.code-editor-host .cm-scroller {
-  overflow: auto;
-  font-family: var(--lt-mono);
-  line-height: 1.45;
-}
-
-.field-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.select-compact {
-  font-size: 11px;
-  padding: 2px 6px;
-  max-width: 12em;
-}
-
-.target-list {
-  margin: 10px 0 0;
-  padding: 0;
-  list-style: none;
-}
+.target-list { margin: var(--lt-space-3) 0 0; padding: 0; list-style: none; }
 
 .target-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 7px 4px;
+  gap: var(--lt-space-3);
+  min-height: var(--lt-row-h-compact);
+  padding: var(--lt-space-1) var(--lt-space-1);
   border-bottom: 1px solid var(--lt-border);
 }
+.target-row:last-child { border-bottom: 0; }
+.target-row:hover { background: var(--lt-surface-2); }
 
-.target-row:last-child {
-  border-bottom: 0;
-}
-
-.target-name {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  min-width: 0;
-  font-size: 13px;
-}
-
-.target-produces {
-  color: var(--lt-fg-muted);
-  font-size: 11px;
-  font-family: var(--lt-mono);
-}
-
-.target-actions {
-  display: flex;
-  gap: 2px;
-}
+.target-name { display: flex; align-items: baseline; gap: var(--lt-space-2); min-width: 0; font-size: var(--lt-text-md); }
+.target-produces { color: var(--lt-fg-muted); font-size: var(--lt-text-xs); font-family: var(--lt-mono); }
+.target-actions { display: flex; gap: 2px; flex: none; }
 
 .target-action {
   display: grid;
@@ -969,214 +891,175 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   width: 26px;
   height: 26px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--lt-radius-sm);
   background: none;
   color: var(--lt-fg-muted);
-  cursor: pointer;
 }
+.target-action:hover:not(:disabled) { background: var(--lt-surface-2); color: var(--lt-fg); }
+.target-action:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.target-action:disabled { opacity: 0.35; }
+.target-action .ok { color: var(--lt-ok); }
 
-.target-action:hover:not(:disabled) {
-  background: var(--lt-surface-2);
-  color: var(--lt-fg);
-}
+.sheet-result { margin-top: var(--lt-space-3); padding-top: var(--lt-space-3); border-top: 1px solid var(--lt-border); }
+.result-title { margin: 0 0 var(--lt-space-1); font-size: var(--lt-text-sm); font-weight: 600; }
+.result-sub { color: var(--lt-fg-muted); font-weight: 400; }
+.result-more { margin: var(--lt-space-1) 0 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
 
-.target-action:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.target-action .ok {
-  color: var(--lt-ok);
-}
-
-.sheet-result {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--lt-border);
-}
-
-.result-title {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.result-sub {
-  color: var(--lt-fg-muted);
-  font-weight: 400;
-}
-
-.result-nodes {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 260px;
-  overflow-y: auto;
-}
-
-.result-nodes li {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 3px 0;
-  font-size: 12px;
-}
-
-.result-nodes .node-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.result-nodes .node-meta {
-  flex: none;
-  color: var(--lt-fg-muted);
-  font-family: var(--lt-mono);
-  font-size: 11px;
-}
-
-.result-doc {
+.result-doc,
+.row-popover-document {
   max-height: 260px;
   margin: 0;
-  padding: 8px;
+  padding: var(--lt-space-2);
   overflow: auto;
-  border-radius: 5px;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
   background: var(--lt-surface-2);
   font-family: var(--lt-mono);
-  font-size: 11px;
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
+.result-doc:focus-visible,
+.row-popover-document:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
-.result-more {
-  margin: 6px 0 0;
-  color: var(--lt-fg-muted);
-  font-size: 11px;
-}
+/* ── node list ────────────────────────────────────────────────────────────
+   One shape for "here are the nodes this produces", wherever it is shown: the
+   sheet's preview, the editor's preview summary, a row's drawer. It used to be
+   a stack of bordered cards in one place and a flex list in another, for the
+   same data. */
 
-/* ── editor tabs ────────────────────────────────────────────────────────────
-   Sub-Store splits an edit into what it is called, what it is made of, and
-   what is done to it. One long scroll of fieldsets buried the operator chain
-   — the thing this plugin is for — under everything else. */
+.node-list { margin: var(--lt-space-2) 0 0; padding: 0; list-style: none; max-height: 320px; overflow-y: auto; }
 
-.editor-tabs {
+.node-row {
   display: flex;
-  gap: 2px;
-  margin: 12px 0 14px;
-  border-bottom: 1px solid var(--lt-border);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+  padding: 3px 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--lt-border) 50%, transparent);
+  font-size: var(--lt-text-sm);
 }
+.node-row:last-child { border-bottom: 0; }
+.node-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.node-tags { display: inline-flex; gap: var(--lt-space-1); flex-wrap: wrap; }
+.node-meta { flex: none; color: var(--lt-fg-muted); font-family: var(--lt-mono); font-size: var(--lt-text-xs); }
 
-.editor-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--lt-fg-muted);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
+/* ── row detail panels ────────────────────────────────────────────────────── */
 
-.editor-tab:hover {
+.row-popover {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lt-space-2);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
   color: var(--lt-fg);
 }
-
-.editor-tab[data-active="true"] {
-  border-bottom-color: var(--lt-accent);
+.row-popover-note { margin: 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
+.row-popover-copy { margin: 0; }
+.row-popover-error {
+  margin: 0;
+  padding: var(--lt-space-2);
+  border-left: 2px solid var(--lt-danger);
+  border-radius: 0 var(--lt-radius-sm) var(--lt-radius-sm) 0;
+  background: var(--lt-danger-soft);
   color: var(--lt-fg);
-  font-weight: 600;
+  font-size: var(--lt-text-sm);
 }
 
-.editor-tab-count {
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--lt-surface-2);
-  color: var(--lt-fg-muted);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
+/* ── preview summary (editor) ─────────────────────────────────────────────── */
 
-.sheet-toggle {
+.preview-summary {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 10px 0 0;
-  color: var(--lt-fg-muted);
-  font-size: 12px;
-  cursor: pointer;
+  flex-direction: column;
+  gap: var(--lt-space-2);
+  max-width: var(--lt-measure-form);
+  margin-top: var(--lt-space-4);
+  padding: var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
 }
-
-/* The sheet sits where the operator clicked, in document coordinates. */
-.sheet {
-  margin-top: var(--overlay-anchor-top, 32px);
-}
+.preview-summary p { margin: 0; font-size: var(--lt-text-sm); }
+.preview-type-chips { display: flex; gap: var(--lt-space-1); flex-wrap: wrap; }
 
 /* A cut preview must not be mistaken for the record's real output. */
 .preview-cut {
-  margin: 0 0 6px;
-  padding: 6px 8px;
+  padding: var(--lt-space-1) var(--lt-space-2);
   border-left: 2px solid var(--lt-warn);
-  background: var(--lt-surface-2);
+  border-radius: 0 var(--lt-radius-sm) var(--lt-radius-sm) 0;
+  background: var(--lt-warn-soft);
   color: var(--lt-fg);
-  font-size: 12px;
 }
 
-/* The rows are real but not fresh: a quiet strip, not an error state, because
-   nothing the operator is looking at is wrong — it is just older than they
-   might assume. */
-.stale-strip {
-  margin: 0 0 8px;
-  padding: 6px 10px;
-  border-left: 2px solid var(--lt-warn);
-  background: var(--lt-surface-2);
-  color: var(--lt-fg-muted);
-  font-size: 12px;
-}
+/* ── graph subscription editor ────────────────────────────────────────────── */
 
-/* ── files: the same list idiom the subscriptions tab uses ────────────────── */
-
-.rec-select {
+.graph-options { display: grid; gap: var(--lt-space-3); }
+.graph-root-order { display: grid; gap: var(--lt-space-2); margin: var(--lt-space-2) 0 var(--lt-space-3); padding: 0; list-style: none; }
+.graph-root-order li {
   display: flex;
   align-items: center;
-  padding-right: 4px;
-}
-
-.rec-group-head-static {
-  margin: 14px 0 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--lt-fg-muted);
-}
-
-.lt-batch {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 8px 10px;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+  padding: var(--lt-space-2) var(--lt-space-3);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius, 6px);
-  background: var(--lt-surface-2);
-  font-size: 12px;
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
 }
+.graph-root-order li > span:first-child { min-width: 0; }
+.graph-root-order strong { display: block; font-size: var(--lt-text-md); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.graph-root-order small,
+.graph-root-candidates span { display: block; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
+.graph-root-actions { display: flex; flex-wrap: wrap; gap: var(--lt-space-1); flex: none; }
+.graph-root-candidates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--lt-space-2); }
+.graph-root-candidates button {
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
+  color: inherit;
+  font-size: var(--lt-text-sm);
+  text-align: left;
+}
+.graph-root-candidates button:hover:not(:disabled) { border-color: var(--lt-accent); }
+.graph-root-candidates button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.graph-root-candidates button:disabled { opacity: 0.5; }
+.graph-unavailable { margin-top: var(--lt-space-2); font-size: var(--lt-text-sm); color: var(--lt-fg-muted); }
+.graph-unavailable summary { cursor: pointer; }
+.graph-unavailable ul { margin: var(--lt-space-2) 0 0; padding-left: var(--lt-space-4); display: flex; flex-direction: column; gap: var(--lt-space-1); }
 
-.lt-chips {
+/* ── standalone notice ────────────────────────────────────────────────────
+   Opened on its own the frame has no host at all; this is what it says. */
+
+.standalone-notice {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--lt-space-3);
+  max-width: 60ch;
+  margin-top: var(--lt-space-6);
+  padding: var(--lt-space-5);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
 }
+.standalone-notice h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; }
+.standalone-notice p { margin: 0; color: var(--lt-fg-muted); font-size: var(--lt-text-md); line-height: var(--lt-leading); }
+.standalone-notice .standalone-where strong { color: var(--lt-fg); }
+.standalone-detail { font-size: var(--lt-text-xs); word-break: break-all; }
 
-/* The sort control sits with the filters: both narrow what the eye has to
-   cross, and separating them would make the toolbar read as two toolbars. */
-.lt-sort {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--lt-fg-muted);
-}
+/* ── narrow frames ────────────────────────────────────────────────────────
+   The console panel can be narrow. Nothing here is a phone layout; it is the
+   same layout with the two-track rows folded. */
 
-.lt-sort-label {
-  white-space: nowrap;
+@media (max-width: 760px) {
+  .workspace { padding-top: var(--lt-space-5); }
+  .section-heading { align-items: flex-start; flex-direction: column; }
+  .tab-bar { overflow-x: auto; }
+  .heading-actions { width: 100%; }
+  .rec-head { display: none; }
+  .rec { grid-template-columns: auto auto minmax(0, 1fr); row-gap: var(--lt-space-2); }
+  .rec-status-cell { grid-column: 3; align-items: flex-start; text-align: left; }
+  .rec-actions { grid-column: 1 / -1; }
+  .graph-root-order li { align-items: flex-start; flex-direction: column; }
 }

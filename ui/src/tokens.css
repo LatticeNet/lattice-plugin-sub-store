@@ -1,6 +1,10 @@
 /* Plugin-scope design tokens, derived from host variables with honest
  * fallbacks. Everything the lt- component layer consumes lives here; screens
- * never hardcode a color or a row height. */
+ * never hardcode a color, a step of the spacing scale, or a type size.
+ *
+ * The frame is embedded in the console and inherits its theme through these
+ * host variables. A literal color anywhere below the "semantic status" block
+ * is a bug: it renders a light-mode box on a dark console. */
 :root {
   /* surfaces */
   --lt-bg: var(--background, #ffffff);
@@ -14,42 +18,73 @@
   --lt-fg-muted: var(--muted-foreground, #6b7280);
   --lt-accent: var(--primary, #2563eb);
   --lt-accent-contrast: var(--primary-foreground, #ffffff);
+  --lt-accent-soft: color-mix(in oklab, var(--lt-accent) 12%, var(--lt-surface) 88%);
+  --lt-accent-border: color-mix(in oklab, var(--lt-accent) 45%, var(--lt-border) 55%);
 
-  /* semantic status — the only colors that may carry meaning */
+  /* semantic status: the only colors that may carry meaning, and the only
+   * literals in this file. Each has a soft fill mixed into the CURRENT
+   * surface, so the fill follows the host theme instead of fighting it. */
   --lt-ok: #16a34a;
   --lt-warn: #d97706;
-  --lt-danger: #dc2626;
+  --lt-danger: var(--destructive, #dc2626);
   --lt-ok-soft: color-mix(in oklab, var(--lt-ok) 12%, var(--lt-surface) 88%);
   --lt-warn-soft: color-mix(in oklab, var(--lt-warn) 12%, var(--lt-surface) 88%);
   --lt-danger-soft: color-mix(in oklab, var(--lt-danger) 12%, var(--lt-surface) 88%);
   --lt-neutral-soft: color-mix(in oklab, var(--lt-fg) 7%, var(--lt-surface) 93%);
+  --lt-ok-border: color-mix(in oklab, var(--lt-ok) 40%, var(--lt-border) 60%);
+  --lt-warn-border: color-mix(in oklab, var(--lt-warn) 40%, var(--lt-border) 60%);
+  --lt-danger-border: color-mix(in oklab, var(--lt-danger) 40%, var(--lt-border) 60%);
 
-  /* type */
-  --lt-font: inherit;
-  --lt-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* type. Inherit the console's stack exactly; naming a face here would make
+   * the frame the one panel in the product set in a different typeface. */
+  --lt-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --lt-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
   --lt-text-xs: 11px;
-  --lt-text-sm: 12.5px;
-  --lt-text-md: 13.5px;
+  --lt-text-sm: 12px;
+  --lt-text-md: 13px;
+  --lt-text-lg: 15px;
+  --lt-text-xl: 19px;
+  --lt-leading: 1.5;
 
-  /* rhythm: 4px system */
+  /* rhythm: one 4px scale. Nothing lays out on a number that is not here. */
   --lt-space-1: 4px;
   --lt-space-2: 8px;
   --lt-space-3: 12px;
   --lt-space-4: 16px;
+  --lt-space-5: 20px;
   --lt-space-6: 24px;
+  --lt-space-8: 32px;
+
+  /* measure. The frame is fluid to match the host's other pages, so a form or
+   * a paragraph caps ITSELF in characters rather than the app capping in px. */
+  --lt-measure-prose: 78ch;
+  --lt-measure-field: 46ch;
+  --lt-measure-form: 132ch;
 
   /* table density (comfortable default; compact swaps at runtime) */
   --lt-row-h: 40px;
   --lt-row-h-compact: 32px;
+  --lt-control-h: 30px;
+  /* Four 26px icon buttons and their gaps. Pinned rather than left to `auto`
+     so the status column lands on the same x in every row, whether a row shows
+     three actions or four. */
+  --lt-rec-actions: 112px;
+  --lt-control-h-sm: 24px;
   --lt-radius: 6px;
   --lt-radius-sm: 4px;
 
-  /* focus */
-  --lt-focus-ring: 0 0 0 2px color-mix(in oklab, var(--lt-accent) 45%, transparent);
+  /* focus. One ring, on every focusable thing; a keyboard operator in a data
+   * tool navigates by it. */
+  --lt-focus-ring: 0 0 0 2px var(--lt-bg), 0 0 0 4px color-mix(in oklab, var(--lt-accent) 70%, transparent);
+  --lt-focus-ring-tight: 0 0 0 2px color-mix(in oklab, var(--lt-accent) 70%, transparent);
+
+  /* elevation: overlays only. Nothing in the flow is raised. */
+  --lt-shadow-overlay: 0 12px 32px color-mix(in oklab, #000 45%, transparent);
 
   /* motion: functional only */
   --lt-ease: cubic-bezier(0.2, 0, 0, 1);
-  --lt-dur: 150ms;
+  --lt-dur: 120ms;
 }
 
 @media (prefers-reduced-motion: reduce) {

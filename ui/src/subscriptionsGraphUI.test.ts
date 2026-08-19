@@ -146,8 +146,18 @@ describe("vpn-core graph editor component contract", () => {
   });
 
   it("keeps the graph workflow responsive and reduced-motion safe", () => {
-    expect(styles).toContain("@media (max-width: 560px)");
+    // Asserted by behaviour rather than by a literal breakpoint. The old
+    // version pinned "@media (max-width: 560px)", which named a number instead
+    // of the thing that matters: at a narrow frame the ordered-root rows must
+    // fold so the label and its move/remove controls stop competing for one
+    // line. There is now one narrow-frame query for the whole stylesheet, and
+    // pinning the string again would break the next time it is consolidated.
+    const narrow = styles.match(/@media \(max-width: \d+px\) \{[\s\S]*?\n\}/g) ?? [];
+    expect(narrow.length).toBeGreaterThan(0);
+    expect(narrow.some((block) => /\.graph-root-order li\s*\{[^}]*flex-direction:\s*column/.test(block))).toBe(true);
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
-    expect(styles).toContain(".graph-root-candidates");
+    // The candidate grid itself sizes from a character-based minimum rather
+    // than a fixed column count, so it reflows without a breakpoint at all.
+    expect(styles).toMatch(/\.graph-root-candidates\s*\{[^}]*auto-fit/);
   });
 });

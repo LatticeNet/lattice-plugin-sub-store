@@ -23,7 +23,7 @@ const host = useHost();
 
 /**
  * The handshake failed or never came. Outside the console that is permanent,
- * so the tabs — each of which would show "Loading…" forever — are replaced by
+ * so the tabs. Each of which would show "Loading…" forever, are replaced by
  * one honest notice. A handshake that lands late flips this back off.
  */
 const handshakeExpired = useHandshakeTimeout(host.init);
@@ -40,7 +40,7 @@ type TabId = "subscriptions" | "files" | "settings";
  * both were scratchpads that asked the operator to paste raw text and an
  * operator JSON blob and press run. In the real product an operator chain
  * belongs to a subscription (its "operations" section) and conversion is one
- * click on a record — which is where both now live. Removing them takes two
+ * click on a record, which is where both now live. Removing them takes two
  * destinations out of the top level and puts the work where the record is.
  */
 const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [

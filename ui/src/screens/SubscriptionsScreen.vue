@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -52,6 +52,7 @@ import {
 } from "../client";
 import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
 import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
 import {
   draftFromRecord,
@@ -121,7 +122,7 @@ const canPreviewNow = computed(
  * What the current preview covers. A cut preview has to say so on the result,
  * or the operator reads a partial node list as the record's real output. The
  * chain hands over the label it shows in the list, because chain indices and
- * list positions differ — settings-managed steps live in the same array but
+ * list positions differ, settings-managed steps live in the same array but
  * are edited above, so a computed position would name a different step than
  * the one that was clicked.
  */
@@ -138,29 +139,26 @@ const onThisTab = computed(() =>
   subs.items.value.filter((i) => (i.kind || KIND_SUB) !== KIND_FILE),
 );
 
-const allTags = computed(() => {
-  const seen = new Set<string>();
-  for (const item of onThisTab.value) for (const tag of item.tags ?? []) seen.add(tag);
-  return [...seen].sort();
-});
+const allTags = computed(() => collectTags(onThisTab.value));
 
-/**
- * "Untagged" is its own filter rather than an absence of one.
- *
- * Once most records carry tags, the few that do not are exactly the ones an
- * operator is looking for — and no combination of the tag buttons can select
- * them.
- */
-const UNTAGGED = "\u0000untagged";
-
+/** Tag and search both live in recordSearch, so the chip counts and the rows
+ *  can never disagree about what "matching" means. */
 function matchesFilter(item: SubscriptionListItem): boolean {
-  if (!tagFilter.value) return true;
-  if (tagFilter.value === UNTAGGED) return (item.tags ?? []).length === 0;
-  return (item.tags ?? []).includes(tagFilter.value);
+  return matchesTag(item, tagFilter.value);
 }
 
 /** Offered only when there is something it would select. */
 const hasUntagged = computed(() => onThisTab.value.some((i) => (i.tags ?? []).length === 0));
+
+const filtersActive = computed(
+  () => !!searchText.value.trim() || !!tagFilter.value || !!kindFilter.value,
+);
+
+function clearFilters(): void {
+  searchText.value = "";
+  tagFilter.value = "";
+  kindFilter.value = "";
+}
 
 const singles = computed(() =>
   onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && matchesFilter(i)),
@@ -195,7 +193,7 @@ const SOURCES = [
   {
     id: SOURCE_LOCAL,
     title: "Nodes I paste",
-    detail: "URI list, base64, Clash YAML or sing-box JSON — the engine detects the format.",
+    detail: "URI list, base64, Clash YAML or sing-box JSON. The engine detects the format.",
     icon: ClipboardPaste,
   },
 ] as const;
@@ -330,7 +328,7 @@ function describe(item: SubscriptionListItem): string {
 
 // ── empty state: guidance, not a dead end ───────────────────────────────────
 
-/** Nothing on this tab at all — the moment to offer migration alongside
+/** Nothing on this tab at all. The moment to offer migration alongside
  *  creation. A filter that merely hides everything is not this moment. */
 const storeEmpty = computed(() => onThisTab.value.length === 0);
 
@@ -346,7 +344,7 @@ async function runMigrate(): Promise<void> {
   const combos = landed.filter((item) => item.kind === KIND_COLLECTION).length;
   migrateSummary.value =
     `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s). ` +
-    "Nothing is published yet — publish a share in Networking → Subscription Shares to make them reachable.";
+    "Nothing is published yet, publish a share in Networking → Subscription Shares to make them reachable.";
   migrateUrl.value = "";
 }
 
@@ -381,39 +379,27 @@ function toggleSelected(id: string): void {
   selectedIds.value = next;
 }
 
-const unsortedRows = computed(() =>
-  onThisTab.value.filter((item) => {
+const unsortedRows = computed(() => {
+  const query = normalizeQuery(searchText.value);
+  return onThisTab.value.filter((item) => {
     if (!matchesFilter(item)) return false;
     if (kindFilter.value && (item.kind || KIND_SUB) !== (kindFilter.value === "collection" ? KIND_COLLECTION : KIND_SUB)) {
       return false;
     }
-    const query = searchText.value.trim().toLowerCase();
-    if (!query) return true;
-    // Tags are searchable too: they are the only grouping axis this screen
-    // offers, so leaving them out of the search made the two ways of narrowing
-    // a list disagree.
-    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
-      (field) => field.toLowerCase().includes(query),
-    );
-  }),
-);
+    return matchesQuery(item, query);
+  });
+});
 
 /**
  * Chip counts reflect the search too.
  *
  * They used to apply the tag filter but not the search box, so typing left
- * "Subs (12)" sitting above a list of two — two ways of narrowing the same list
+ * "Subs (12)" sitting above a list of two, two ways of narrowing the same list
  * telling the operator different things.
  */
 const searchedRows = computed(() => {
-  const query = searchText.value.trim().toLowerCase();
-  return onThisTab.value.filter((item) => {
-    if (!matchesFilter(item)) return false;
-    if (!query) return true;
-    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
-      (field) => field.toLowerCase().includes(query),
-    );
-  });
+  const query = normalizeQuery(searchText.value);
+  return onThisTab.value.filter((item) => matchesFilter(item) && matchesQuery(item, query));
 });
 const visibleSingles = computed(
   () => searchedRows.value.filter((item) => (item.kind || KIND_SUB) === KIND_SUB).length,
@@ -445,6 +431,29 @@ const filteredRows = computed(() => {
 
 
 /**
+ * What "N selected" actually means.
+ *
+ * The raw set outlives the rows: filter the list, or delete a record from its
+ * row menu, and its id stays selected. The bar then offered to delete more
+ * records than it could name, and the confirmation listed a bare id for one
+ * that no longer existed. Everything the batch controls report and act on is
+ * the intersection with what is currently on screen.
+ */
+const selectedVisible = computed(() =>
+  filteredRows.value.filter((row) => selectedIds.value.has(row.id)),
+);
+const selectedCount = computed(() => selectedVisible.value.length);
+const allVisibleSelected = computed(
+  () => filteredRows.value.length > 0 && selectedCount.value === filteredRows.value.length,
+);
+
+function toggleSelectAll(): void {
+  selectedIds.value = allVisibleSelected.value
+    ? new Set()
+    : new Set(filteredRows.value.map((row) => row.id));
+}
+
+/**
  * Records are shown as a grouped list, the way Sub-Store shows them: one
  * section for single subscriptions and one for combinations, each collapsible
  * and carrying its own count.
@@ -452,7 +461,7 @@ const filteredRows = computed(() => {
  * This replaced a dense table whose fixed column widths could not hold real
  * data: inside the console's frame a name like "merge-cd-openjobs" wrapped
  * onto three lines, its tags spilled into the neighbouring column, and two
- * columns (Status, Quota) were "Never refreshed" and "—" for every row. A
+ * columns (Status, Quota) were "Never refreshed" and "-" for every row. A
  * table earns its columns by having values in them; this data does not.
  */
 const groups = computed(() => {
@@ -478,16 +487,51 @@ const openMenuId = ref("");
 /**
  * A popover that only closes when another one opens is a popover the operator
  * has to fight. Outside click and Escape both dismiss it, and because it is
- * absolutely positioned it never changes the document height — on the last row
+ * absolutely positioned it never changes the document height, on the last row
  * it could otherwise extend past the frame with its own items unreachable, so
  * opening one also re-reports the height.
  */
 function closeRowMenu(): void {
+  const id = openMenuId.value;
   openMenuId.value = "";
+  // Focus falls to the document when the menu it was in disappears, which
+  // drops a keyboard operator back at the top of the page. It belongs on the
+  // control that opened the menu.
+  if (id) {
+    void nextTick(() => {
+      const trigger = document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] button`);
+      trigger?.focus();
+    });
+  }
 }
+
+/** Ids come from the store and are not guaranteed selector-safe. */
+function cssEscape(value: string): string {
+  const escape = (globalThis as { CSS?: { escape?: (v: string) => string } }).CSS?.escape;
+  return escape ? escape(value) : value.replace(/["\\]/g, "\\$&");
+}
+
 async function toggleRowMenu(id: string): Promise<void> {
-  openMenuId.value = openMenuId.value === id ? "" : id;
+  const opening = openMenuId.value !== id;
+  openMenuId.value = opening ? id : "";
   await host.resize();
+  if (!opening) return;
+  // A menu that opens without focus is a menu Escape cannot close and arrow
+  // keys cannot reach, which is most of what `role="menu"` promises.
+  await nextTick();
+  document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] .rec-menu button:not(:disabled)`)?.focus();
+}
+
+/** Up and down walk the open menu; Escape is handled at the document. */
+function onRowMenuKeydown(event: KeyboardEvent): void {
+  const step = event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
+  if (!step) return;
+  event.preventDefault();
+  const menu = (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+  const items = [...menu];
+  if (!items.length) return;
+  const current = items.indexOf(document.activeElement as HTMLButtonElement);
+  items[(current + step + items.length) % items.length]?.focus();
 }
 // Re-read on return: a file saved on the sibling tab changes what this list
 // can point at, and a restore from Settings replaces everything.
@@ -516,7 +560,7 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * The editor's sections, split the way Sub-Store splits them: what the record
  * is called, what it is made of, and what is done to it. A single scroll of
  * eight fieldsets made the operator hunt for the one field they came to change
- * and buried the operator chain — the thing this plugin exists for — below
+ * and buried the operator chain. The thing this plugin exists for, below
  * everything else.
  */
 type EditorTab = "display" | "content" | "operations";
@@ -526,6 +570,19 @@ const EDITOR_TABS: { id: EditorTab; label: string }[] = [
   { id: "content", label: "Content" },
   { id: "operations", label: "Operations" },
 ];
+
+/**
+ * Which tab holds the field the current error is about.
+ *
+ * A tabbed form that reports "Give it a name." at the bottom of the Content tab
+ * says what is wrong and not where: the name lives two tabs away and nothing
+ * points at it. Every message except that one is about the source, so this is
+ * read off the draft rather than by matching the message text.
+ */
+const errorTab = computed<EditorTab | "">(() => {
+  if (!draftError.value) return "";
+  return draft.value.name.trim() ? "content" : "display";
+});
 
 /** The chain's size, shown on the tab so it is visible without opening it. */
 /**
@@ -546,8 +603,8 @@ const chainCount = computed(
 /** The preview/copy sheet: the one-click path to a client configuration. */
 const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
 /**
- * Where overlays open. This document is not a viewport — the host sizes the
- * frame to the content — so an overlay has to be placed at the click rather
+ * Where overlays open. This document is not a viewport. The host sizes the
+ * frame to the content, so an overlay has to be placed at the click rather
  * than centred in a frame whose top may be far above the fold.
  */
 const overlayAnchor = ref(32);
@@ -653,7 +710,7 @@ async function publishFromDrawer(destination: string, method: string, format: st
 /**
  * Shares are published by the dashboard, not by this frame: the frame can only
  * ask the console to navigate there. The origin is the one the bridge pinned
- * from the frame URL — re-read here rather than trusted from a second source.
+ * from the frame URL, re-read here rather than trusted from a second source.
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
@@ -668,7 +725,7 @@ function openShares(recordName: string): void {
  * Load after the bridge handshake, not on mount.
  *
  * `available()` reads the interfaces the host declares for this frame, and on
- * first paint that has not arrived — so loading in `onMounted` alone silently
+ * first paint that has not arrived, so loading in `onMounted` alone silently
  * no-ops and never retries.
  */
 async function loadAll(): Promise<void> {
@@ -740,6 +797,12 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         >
           {{ tab.label }}
           <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
+          <span
+            v-if="errorTab === tab.id && editorTab !== tab.id"
+            class="editor-tab-flag"
+            :title="draftError"
+            aria-label="This section has a problem"
+          />
         </button>
       </nav>
 
@@ -757,7 +820,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           />
           <span class="field-optional">
             <template v-if="editingId">
-              Stored as <code>{{ editingId }}</code>. Renaming is safe — a published share keeps
+              Stored as <code>{{ editingId }}</code>. Renaming is safe. A published share keeps
               working.
             </template>
             <template v-else>The only thing you have to fill in.</template>
@@ -825,7 +888,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           />
           <span class="field-optional">
             The export returns every node this fleet serves. Naming a proxy user narrows it to
-            theirs — useful when one share is meant for one person.
+            theirs, useful when one share is meant for one person.
           </span>
         </label>
 
@@ -970,14 +1033,24 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </span>
       </div>
 
-        <!-- Sticky: on a form this long, a save button at the bottom is a
-             button you have to go and look for. -->
+        <!-- Not sticky. Sticky needs a scrollport and this frame has none: the
+             host scrolls the parent page, so the bar is laid out honestly as
+             the end of the form. -->
         <div class="editor-actions">
           <!-- The failure belongs next to the button that produced it: this
                form is long, and a banner at the top is off-screen from the
                click that triggered it. -->
           <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
-          <span v-else-if="draftError" class="field-error">{{ draftError }}</span>
+          <!-- Clickable, because the field it names is usually on another tab. -->
+          <button
+            v-else-if="draftError"
+            type="button"
+            class="field-error field-error-jump"
+            :title="`Go to the ${EDITOR_TABS.find((t) => t.id === errorTab)?.label} section`"
+            @click="editorTab = errorTab || editorTab"
+          >
+            {{ draftError }}
+          </button>
           <button
             class="button button-secondary"
             type="button"
@@ -1029,7 +1102,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <LtButton
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
             :title="!singles.length
-              ? 'Create a subscription first — there is nothing to combine'
+              ? 'Create a subscription first. There is nothing to combine'
               : subs.atRecordLimit.value
                 ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
                 : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
@@ -1091,7 +1164,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </button>
           </form>
           <p class="row-popover-note">
-            Importing publishes nothing — each subscription stays unserved until you share it.
+            Importing publishes nothing. Each subscription stays unserved until you share it.
           </p>
           <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
         </div>
@@ -1167,14 +1240,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </template>
         </LtToolbar>
 
-        <LtBatchBar :count="selectedIds.size" @clear="selectedIds = new Set()">
+        <!-- The bar names the count it will act on, and that count is the
+             intersection with what is on screen: a stale id from a filtered or
+             already-deleted row must never be part of what Delete promises. -->
+        <LtBatchBar :count="selectedCount" @clear="selectedIds = new Set()">
           <button
             class="button button-danger button-compact"
             type="button"
             :disabled="!subs.canMutate.value"
-            @click="requestDelete([...selectedIds], $event)"
+            @click="requestDelete(selectedVisible.map((row) => row.id), $event)"
           >
-            <Trash2 :size="14" aria-hidden="true" /> Delete selected
+            <Trash2 :size="14" aria-hidden="true" />
+            Delete {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
           </button>
         </LtBatchBar>
 
@@ -1182,7 +1259,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
              below are then the last good read, and saying so beats either
              blanking them or pretending they are current. -->
         <p v-if="subs.staleError.value" class="stale-strip" role="status">
-          Showing the last good read — the newest reload failed ({{ subs.staleError.value }}).
+          Showing the last good read. The newest reload failed ({{ subs.staleError.value }}).
         </p>
 
         <LtEmptyState
@@ -1191,10 +1268,27 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           title="Nothing matches"
           detail="No record matches the current search and filters."
         >
-          <LtButton @click="searchText = ''; tagFilter = ''; kindFilter = ''">Clear filters</LtButton>
+          <LtButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</LtButton>
         </LtEmptyState>
 
-        <section v-for="group in groups" v-else :key="group.id" class="rec-group">
+        <template v-else>
+        <div class="rec-head" aria-hidden="true">
+          <label class="rec-select" :title="`Select all ${filteredRows.length} shown records`">
+            <input
+              type="checkbox"
+              :checked="allVisibleSelected"
+              :indeterminate.prop="selectedCount > 0 && !allVisibleSelected"
+              :aria-label="`Select all ${filteredRows.length} shown records`"
+              @change="toggleSelectAll()"
+            />
+          </label>
+          <span />
+          <span>Record</span>
+          <span class="rec-head-status">Last refresh</span>
+          <span class="rec-head-spacer" />
+        </div>
+
+        <section v-for="group in groups" :key="group.id" class="rec-group">
           <button
             type="button"
             class="rec-group-head"
@@ -1217,22 +1311,23 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               v-for="row in group.rows"
               :key="row.id"
               class="rec"
-              :class="{ 'is-pending': pendingIds.has(row.id) }"
+              :class="{ 'is-pending': pendingIds.has(row.id), 'is-selected': selectedIds.has(row.id) }"
             >
+              <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="selectedIds.has(row.id)"
+                  :aria-label="`Select ${row.name}`"
+                  @change="toggleSelected(row.id)"
+                />
+              </label>
+
               <span class="rec-icon" aria-hidden="true">
-                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="18" />
-                <Library v-else :size="18" />
+                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="17" />
+                <Library v-else :size="17" />
               </span>
 
-            <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
-              <input
-                type="checkbox"
-                :checked="selectedIds.has(row.id)"
-                :aria-label="`Select ${row.name}`"
-                @change="toggleSelected(row.id)"
-              />
-            </label>
-            <div class="rec-body">
+              <div class="rec-body">
                 <!-- The name opens the client sheet: the daily path is "give me
                      the config for my client", so it is the primary click. -->
                 <button
@@ -1247,7 +1342,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
                   <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
                 </span>
-                <p class="rec-summary">
+                <p class="rec-summary" :title="describe(row)">
                   {{ describe(row) }}
                   <template v-if="row.step_count">
                     · {{ row.step_count }} operation(s)<template v-if="row.disabled_step_count">, {{ row.disabled_step_count }} off</template>
@@ -1257,13 +1352,19 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <!-- The id is what ties a row to a published share, and it is
                      the first thing to be truncated, so it carries its full
                      value for hover and assistive tech. -->
-                <p class="rec-meta mono" :title="row.id">
-                  {{ row.id }}
-                  <template v-if="statusOf(row).label !== 'Never refreshed'">
-                    · <span :class="`rec-status is-${statusOf(row).tone}`">{{ statusOf(row).label }}</span>
-                  </template>
-                  <template v-if="trafficOf(row)"> · {{ trafficOf(row) }}</template>
-                </p>
+                <p class="rec-meta mono" :title="row.id">{{ row.id }}</p>
+              </div>
+
+              <!-- Refresh state and quota in their own right-aligned column.
+                   They used to be tacked onto the end of the id line, so no two
+                   rows put them in the same place and a column of them could
+                   not be read down. -->
+              <div class="rec-status-cell">
+                <span
+                  :class="`rec-status is-${statusOf(row).tone}`"
+                  :title="statusOf(row).title"
+                >{{ statusOf(row).label }}</span>
+                <span v-if="trafficOf(row)" class="rec-quota">{{ trafficOf(row) }}</span>
               </div>
 
               <div class="rec-actions" @click.stop>
@@ -1284,7 +1385,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row, $event)">
                   <ChevronsRight :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <div class="rec-menu-wrap" data-row-menu>
+                <div class="rec-menu-wrap" :data-row-menu="row.id">
                   <LtIconButton
                     :label="`More actions for ${row.name}`"
                     :aria-haspopup="true"
@@ -1293,7 +1394,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   >
                     <Ellipsis :size="15" aria-hidden="true" />
                   </LtIconButton>
-                  <div v-if="openMenuId === row.id" class="rec-menu" role="menu">
+                  <div v-if="openMenuId === row.id" class="rec-menu" role="menu" @keydown="onRowMenuKeydown">
                     <button
                       type="button"
                       role="menuitem"
@@ -1316,6 +1417,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                     <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="closeRowMenu(); subs.duplicate(row.id)">
                       <CopyPlus :size="14" aria-hidden="true" /> Duplicate
                     </button>
+                    <span class="rec-menu-sep" role="separator" />
                     <button
                       type="button"
                       role="menuitem"
@@ -1331,6 +1433,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </li>
           </ul>
         </section>
+        </template>
 
       </template>
 
@@ -1355,12 +1458,14 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             <p class="row-popover-note">
               {{ subs.rowPreview.value.count }} node(s) once its operations run
             </p>
-            <ul class="row-popover-list">
-              <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`">
-                <span>{{ node.name }}</span>
-                <LtBadge tone="neutral">{{ node.type }}</LtBadge>
-                <LtBadge v-if="node.security" tone="neutral">{{ node.security }}</LtBadge>
-                <span v-if="node.server" class="row-node-endpoint mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+            <ul class="node-list">
+              <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`" class="node-row">
+                <span class="node-name" :title="node.name">{{ node.name }}</span>
+                <span class="node-tags">
+                  <LtBadge tone="neutral">{{ node.type }}</LtBadge>
+                  <LtBadge v-if="node.security" tone="neutral">{{ node.security }}</LtBadge>
+                  <span v-if="node.server" class="node-meta">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+                </span>
               </li>
             </ul>
             <p v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length" class="row-popover-note">
@@ -1390,7 +1495,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </LtButton>
           </div>
           <p v-else class="row-popover-note">
-            This frame cannot ask the console to navigate — open Networking → Subscription Shares
+            This frame cannot ask the console to navigate, open Networking → Subscription Shares
             yourself.
           </p>
         </template>
@@ -1413,129 +1518,58 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 </template>
 
 <style scoped>
-/* ── S1 table chrome ─────────────────────────────────────────────────────── */
-.lt-search {
-  width: 100%;
-  height: 30px;
-  font: inherit;
-  font-size: var(--lt-text-sm);
-  padding: 0 var(--lt-space-3);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-bg);
-  color: var(--lt-fg);
-}
-.lt-search:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--lt-space-1);
-  height: 24px;
-  padding: 0 var(--lt-space-2);
-  font: inherit;
-  font-size: var(--lt-text-xs);
-  border: 1px solid var(--lt-border);
+/* A tab whose section holds the problem. A dot, not a colour swap: the tab is
+   still a tab, and colour alone would say nothing to anyone who cannot see it
+   (hence the title and the label). */
+.editor-tab-flag {
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
-  background: var(--lt-surface);
-  color: var(--lt-fg-muted);
-  cursor: pointer;
+  background: var(--lt-danger);
 }
-.lt-chip:hover { color: var(--lt-fg); }
-.lt-chip.is-active {
-  background: color-mix(in oklab, var(--lt-accent) 10%, var(--lt-surface) 90%);
-  border-color: var(--lt-accent);
-  color: var(--lt-accent);
-}
-.lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-chip-sep { width: 1px; height: 16px; background: var(--lt-border); margin: 0 var(--lt-space-1); }
-.cell-dim { color: var(--lt-fg-muted); }
-.lt-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--lt-space-2);
-  font-size: var(--lt-text-sm);
-  margin-bottom: var(--lt-space-3);
-}
-.lt-breadcrumb-root {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  border: none;
-  background: none;
+
+.field-error-jump {
+  border: 0;
+  border-left: 2px solid var(--lt-danger);
   font: inherit;
   font-size: var(--lt-text-sm);
-  color: var(--lt-accent);
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: var(--lt-radius-sm);
-}
-.lt-breadcrumb-root:hover { text-decoration: underline; }
-.lt-breadcrumb-root:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-breadcrumb-sep { color: var(--lt-fg-muted); }
-.lt-breadcrumb-here { color: var(--lt-fg); font-weight: 500; }
-
-/* ── editor grouping ─────────────────────────────────────────────────────
-   The form was one undifferentiated column: name, source, output, settings
-   and the operator chain all at the same level, so nothing told the reader
-   where one decision ended and the next began. */
-
-.editor-block {
-  margin: 0 0 16px;
-}
-
-/* The sticky bar floats over the form, so the last block needs room to scroll
-   out from under it rather than ending beneath it. */
-
-/* The action bar follows the reader down. A save button that has to be
-   scrolled to is a save button people lose. */
-
-/* ── list density ────────────────────────────────────────────────────────
-   Rows were 40px with 11px meta text: technically legible, and tiring to
-   scan. */
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 4px;
-}
-
-.tag-row button,
-.choice-row button {
-  padding: 4px 11px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted-foreground, #656d76);
-  font-size: 12px;
+  text-align: left;
   cursor: pointer;
 }
+.field-error-jump:hover { text-decoration: underline; }
+.field-error-jump:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-.tag-row button.is-active,
-.choice-row button.is-active {
-  border-color: var(--primary, #1769aa);
-  background: color-mix(in srgb, var(--primary, #1769aa) 12%, transparent);
-  color: var(--primary, #1769aa);
-}
+/* The toolbar, chip and breadcrumb rules that used to live here now sit in
+   styles.css. They were scoped, and the Files screen used the same class
+   names, so its search box and every filter chip rendered as raw user-agent
+   controls: white boxes in a dark toolbar. What is left below is genuinely
+   this screen's own. */
 
+/* A two-way choice where both sides need their consequence spelled out, so
+   neither is a default the reader can skip. */
 .choice-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  gap: var(--lt-space-1);
+  margin-top: var(--lt-space-1);
 }
 
 .choice-row button {
-  border-color: var(--border, #d9dde2);
+  height: var(--lt-control-h);
+  padding: 0 var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: 999px;
+  background: var(--lt-bg);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
 }
 
-.group-caret {
-  transition: transform 0.15s ease;
-  transform: rotate(-90deg);
-}
+.choice-row button:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.choice-row button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-.group-caret.is-open {
-  transform: rotate(0deg);
+.choice-row button.is-active {
+  border-color: var(--lt-accent);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
 }
-
 </style>

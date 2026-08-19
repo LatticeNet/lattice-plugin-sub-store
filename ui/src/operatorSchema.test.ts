@@ -6,12 +6,13 @@ import {
   schemaFor,
   toWireArgs,
   OPERATOR_SCHEMAS,
+  parseNumericArg,
 } from "./operatorSchema";
 
 /**
  * These pin each operator's arguments to what the bundled engine's constructor
  * actually destructures. The schemas were originally written from the operator
- * names, and most of them were wrong — a regex filter whose patterns were
+ * names, and most of them were wrong. A regex filter whose patterns were
  * stored under `value` left the engine with `regex = []`, and in keep mode that
  * drops every node rather than keeping them.
  *
@@ -48,14 +49,14 @@ describe("operator arguments match the engine's contract", () => {
   });
 
   // Region and Type filters accept `e?.value || e`, so the wrapper is fine.
-  // OW({sourceType, sourceName, position}) — `value` matched nothing, so the
+  // OW({sourceType, sourceName, position}), `value` matched nothing, so the
   // operator resolved no source at all.
   it("names the appended source the way the engine reads it", () => {
     const keys = keysOf("Add Proxies From Subscription Operator");
     expect(keys).toEqual(["sourceType", "sourceName", "position"]);
   });
 
-  // IW({action, template, link, position, field}) — `field` defaults to
+  // IW({action, template, link, position, field}), `field` defaults to
   // ["name"], so omitting it from the form is a choice rather than a gap.
   it("covers the duplicate handler's arguments", () => {
     const keys = keysOf("Handle Duplicate Operator");
@@ -153,5 +154,32 @@ describe("pair rows on the way to the wire", () => {
       value: [{ expr: "", now: "" }],
     }) as unknown;
     expect(rows === undefined || (Array.isArray(rows) && rows.length === 0)).toBe(true);
+  });
+});
+
+/**
+ * A numeric operator argument must never be able to store a value nobody typed.
+ * `Number("")` is 0 and `Number("x")` is NaN, so the plain conversion turned a
+ * cleared field into a stored 0 and a typo into a stored null.
+ */
+describe("parseNumericArg", () => {
+  it("treats a blank field as unset rather than as zero", () => {
+    expect(parseNumericArg("")).toBeUndefined();
+    expect(parseNumericArg("   ")).toBeUndefined();
+  });
+
+  it("treats unparseable input as unset rather than as NaN", () => {
+    expect(parseNumericArg("abc")).toBeUndefined();
+    expect(parseNumericArg("12abc")).toBeUndefined();
+    expect(parseNumericArg("Infinity")).toBeUndefined();
+    expect(parseNumericArg("-Infinity")).toBeUndefined();
+  });
+
+  it("keeps a real number, including zero when it was actually typed", () => {
+    expect(parseNumericArg("0")).toBe(0);
+    expect(parseNumericArg("42")).toBe(42);
+    expect(parseNumericArg(" 7 ")).toBe(7);
+    expect(parseNumericArg("-3")).toBe(-3);
+    expect(parseNumericArg("1.5")).toBe(1.5);
   });
 });

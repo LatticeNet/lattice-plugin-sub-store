@@ -48,7 +48,7 @@ function changeIdentity(event: Event): void {
       <select class="select" :value="draft.vpnIdentity" :disabled="readOnly || !eligibleIdentities.length" @change="changeIdentity">
         <option value="">Choose an eligible identity</option>
         <option v-for="identity in eligibleIdentities" :key="identity.id" :value="identity.id">
-          {{ identity.label }} — {{ identity.status }}
+          {{ identity.label }}, {{ identity.status }}
         </option>
       </select>
     </label>
@@ -58,11 +58,14 @@ function changeIdentity(event: Event): void {
       <p v-if="draft.entryRoots.length === 0" class="field-optional" role="status">No roots selected. Add at least one eligible source.</p>
       <ol v-else class="graph-root-order" aria-label="Selected graph roots">
         <li v-for="(root, index) in draft.entryRoots" :key="root">
-          <span><strong>{{ graphRoot(root)?.label ?? root }}</strong><small>{{ graphRoot(root)?.path_summary }}</small></span>
+          <span>
+            <strong :title="graphRoot(root)?.label ?? root">{{ graphRoot(root)?.label ?? root }}</strong>
+            <small>{{ graphRoot(root)?.path_summary }}</small>
+          </span>
           <span class="graph-root-actions">
-            <button type="button" :disabled="readOnly || index === 0" :aria-label="`Move ${graphRoot(root)?.label ?? root} up`" @click="emit('move', index, -1)">Up</button>
-            <button type="button" :disabled="readOnly || index === draft.entryRoots.length - 1" :aria-label="`Move ${graphRoot(root)?.label ?? root} down`" @click="emit('move', index, 1)">Down</button>
-            <button type="button" :disabled="readOnly" :aria-label="`Remove ${graphRoot(root)?.label ?? root}`" @click="emit('remove', index)">Remove</button>
+            <button class="button button-secondary button-compact" type="button" :disabled="readOnly || index === 0" :aria-label="`Move ${graphRoot(root)?.label ?? root} up`" @click="emit('move', index, -1)">Up</button>
+            <button class="button button-secondary button-compact" type="button" :disabled="readOnly || index === draft.entryRoots.length - 1" :aria-label="`Move ${graphRoot(root)?.label ?? root} down`" @click="emit('move', index, 1)">Down</button>
+            <button class="button button-danger button-compact" type="button" :disabled="readOnly" :aria-label="`Remove ${graphRoot(root)?.label ?? root}`" @click="emit('remove', index)">Remove</button>
           </span>
         </li>
       </ol>
@@ -73,10 +76,10 @@ function changeIdentity(event: Event): void {
           <span>Status {{ root.status }} · Path {{ root.path_summary }}</span>
         </button>
       </div>
-      <details v-if="unavailableRoots.length">
+      <details v-if="unavailableRoots.length" class="graph-unavailable">
         <summary>Unavailable roots ({{ unavailableRoots.length }})</summary>
         <ul>
-          <li v-for="root in unavailableRoots" :key="root.line_uuid"><strong>{{ root.label }}</strong> — Source {{ root.source_node_id || "unknown" }} · Target {{ root.target_label || "unresolved" }} · Status {{ root.status }} · Path {{ root.path_summary }} · Reason {{ root.reason || "not eligible for the selected identity" }}</li>
+          <li v-for="root in unavailableRoots" :key="root.line_uuid"><strong>{{ root.label }}</strong> · Source {{ root.source_node_id || "unknown" }} · Target {{ root.target_label || "unresolved" }} · Status {{ root.status }} · Path {{ root.path_summary }} · Reason {{ root.reason || "not eligible for the selected identity" }}</li>
         </ul>
       </details>
     </div>

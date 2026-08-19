@@ -6,7 +6,7 @@ import { BINDINGS, CONVERT_TARGETS, SERVICES, buildShareLink, type MethodBinding
 /**
  * DoD gate: every UI data path must resolve to a manifest-declared method.
  * The UI speaks only `lattice.plugin.call`, and the host rejects anything the
- * signed manifest does not declare — so the binding table is checked against
+ * signed manifest does not declare, so the binding table is checked against
  * the manifest directly.
  *
  * Tier rules:
@@ -40,7 +40,7 @@ const pending = all.filter((target) => target.status === "pending");
 
 describe("UI ↔ manifest method contract", () => {
   it("no longer declares the outbound import service", () => {
-    // It pushed nodes to an external Sub-Store — the direction this plugin
+    // It pushed nodes to an external Sub-Store. The direction this plugin
     // exists to remove. Re-declaring it should be a deliberate act, not a
     // silent reappearance.
     expect([...declared].some((entry) => entry.startsWith("latticenet.sub-store/import/"))).toBe(false);
@@ -64,7 +64,7 @@ describe("UI ↔ manifest method contract", () => {
     for (const target of pending) {
       expect(
         declared.has(key(target)),
-        `${key(target)} is now manifest-declared — flip it to "active" in client.ts`,
+        `${key(target)} is now manifest-declared, flip it to "active" in client.ts`,
       ).toBe(false);
     }
   });

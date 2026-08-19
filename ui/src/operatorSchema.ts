@@ -8,7 +8,7 @@
  *
  * An operator with no entry here still works: the editor falls back to raw JSON
  * arguments. That matters because the catalogue is extracted from the bundled
- * engine by a test — a pin bump can introduce an operator this table has never
+ * engine by a test. A pin bump can introduce an operator this table has never
  * heard of, and the honest response is a usable text box rather than a form
  * that silently drops the arguments it does not understand.
  */
@@ -43,7 +43,7 @@ export interface OperatorSchema {
   /**
    * The short name shown on a button and in the chain.
    *
-   * The engine's type strings are wire identifiers — "Add Proxies From
+   * The engine's type strings are wire identifiers, "Add Proxies From
    * Subscription Operator" is not a label anyone wants to read on a button,
    * and a row of them reads as noise rather than as a list of choices.
    */
@@ -56,8 +56,8 @@ export interface OperatorSchema {
    * How `args` is shaped on the wire.
    *
    * Most operators take an object keyed by field. Several take the value
-   * directly — `Regex Delete Operator` is handed `["cn"]`, `Sort Operator` is
-   * handed `"asc"` — and wrapping those in `{value: …}` produces an operator
+   * directly, `Regex Delete Operator` is handed `["cn"]`, `Sort Operator` is
+   * handed `"asc"`, and wrapping those in `{value: …}` produces an operator
    * the engine either ignores or throws on. Every entry here was read out of
    * the bundled engine's constructor, not inferred from the name; inferring is
    * how they came to be wrong in the first place.
@@ -318,8 +318,8 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
   },
   {
     // The engine destructures {sourceType, sourceName, position} and resolves
-    // the named source through produceArtifact. `value` — what this used to
-    // write — matched nothing, so the operator resolved no source at all.
+    // the named source through produceArtifact. `value`, what this used to
+    // write, matched nothing, so the operator resolved no source at all.
     //
     // It also acts only when the pipeline carries a $file, which this plugin's
     // file rendering does not yet set, so the step is inert here. The arguments
@@ -382,7 +382,7 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
         key: "content",
         label: "Script",
         kind: "script",
-        hint: "Define transformFunction(res) — it receives {status, headers, body} and returns it. Runs inside the engine's sandbox: no filesystem, and network only through $substore.http, which goes out under the server's egress guard (8 requests per call).",
+        hint: "Define transformFunction(res). It receives {status, headers, body} and returns it. Runs inside the engine's sandbox: no filesystem, and network only through $substore.http, which goes out under the server's egress guard (8 requests per call).",
       },
     ],
   },
@@ -456,7 +456,7 @@ export function defaultArgs(type: string): Record<string, unknown> {
 /**
  * Convert an operator's editor arguments to what the engine reads.
  *
- * `wire: "bare"` operators are handed their value directly — `Sort Operator`
+ * `wire: "bare"` operators are handed their value directly, `Sort Operator`
  * receives `"asc"`, `Regex Delete Operator` receives `["cn"]`. Wrapping those in
  * `{value: …}` gave the constructor an object where it expected a string or an
  * array, so the operator sat in the chain doing nothing or threw at serve time.
@@ -474,7 +474,7 @@ export function toWireArgs(type: string, args: Record<string, unknown>): unknown
  *
  * It is dropped here, on the way to the wire, rather than while they type: the
  * editor keeps every row they created, because deleting a row out from under
- * someone mid-edit — which is what filtering on each keystroke did — reads as
+ * someone mid-edit, which is what filtering on each keystroke did, reads as
  * the UI eating their work.
  */
 function dropBlankPairs(
@@ -514,12 +514,33 @@ export function fromWireArgs(type: string, raw: unknown): Record<string, unknown
   const field = schema.fields[0];
   if (!field) return {};
   if (raw === undefined || raw === null) return {};
-  // A bare operator whose stored args are still `{value: …}` — the old, wrong
-  // shape — reads its value back out rather than losing it.
+  // A bare operator whose stored args are still `{value: …}`. The old, wrong
+  // shape, reads its value back out rather than losing it.
   if (!Array.isArray(raw) && typeof raw === "object") {
     const wrapped = raw as Record<string, unknown>;
     if ("value" in wrapped) return { [field.key]: wrapped.value };
     return wrapped;
   }
   return { [field.key]: raw };
+}
+
+/**
+ * What a numeric operator argument becomes when the box is blank or nonsense.
+ *
+ * `Number("")` is `0` and `Number("x")` is `NaN`, and neither is `undefined`,
+ * so a setter that unsets on empty happily stored them: clearing a numeric
+ * field wrote a literal `0` and typing a stray letter wrote `NaN`, which
+ * serialises to `null` on the wire. For an operator argument that bounds
+ * something (a keep count, a limit) a silent `0` is not "unset", it is an
+ * instruction to keep nothing, applied to a record the operator was editing for
+ * an unrelated reason.
+ *
+ * Blank means unset. Unparseable means unset too: the alternative is writing a
+ * value nobody typed, and the field still shows what they did type.
+ */
+export function parseNumericArg(raw: string): number | undefined {
+  const text = raw.trim();
+  if (!text) return undefined;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : undefined;
 }

@@ -5,7 +5,7 @@ import LtButton from "./LtButton.vue";
 /**
  * Two-step destructive confirmation. The dialog restates every affected
  * resource by name; when more than one is affected the operator must type the
- * count to arm the confirm button — reading the list is the point.
+ * count to arm the confirm button, reading the list is the point.
  */
 const props = defineProps<{
   open: boolean;
@@ -68,9 +68,10 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
 
 <style scoped>
 .lt-dialog-backdrop {
+  /* Absolute against .workspace, which is the document; see the note on
+     .workspace in styles.css for why `inset: 0` alone is not enough. */
   position: absolute;
   inset: 0;
-  min-height: 100%;
   background: color-mix(in oklab, var(--lt-fg) 32%, transparent);
   display: flex;
   align-items: flex-start;

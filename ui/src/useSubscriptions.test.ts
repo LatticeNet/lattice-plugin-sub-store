@@ -137,7 +137,7 @@ describe("derived identity", () => {
   });
 
   // Renaming must not collide with an existing record, and must not silently
-  // overwrite one — two subscriptions sharing a key would lose data.
+  // overwrite one, two subscriptions sharing a key would lose data.
   it("suffixes until the key is free", () => {
     expect(uniqueId("Home", [])).toBe("home");
     expect(uniqueId("Home", ["home"])).toBe("home-2");
@@ -205,7 +205,7 @@ describe("draftFromRecord", () => {
     expect(draft.process).toEqual([{ type: "Flag Operator" }]);
   });
 
-  // A disabled step is stored and shown, but must never reach the engine — a
+  // A disabled step is stored and shown, but must never reach the engine, a
   // preview that ran it would describe a pipeline the operator switched off.
   it("drops disabled steps from what would run", () => {
     const draft = {

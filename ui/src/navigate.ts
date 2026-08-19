@@ -1,5 +1,5 @@
 /**
- * navigate.ts — asking the console to change views from inside the frame.
+ * navigate.ts, asking the console to change views from inside the frame.
  *
  * The bridge has no navigate capability and the frame is sandboxed, so the one
  * channel that exists is a postMessage to the host window. The console listens
@@ -7,7 +7,7 @@
  * (reading the shares list, opening a share directly) crosses the plugin
  * boundary and is deliberately not done here.
  *
- * The target origin is the `host_origin` the frame URL fragment carries — the
+ * The target origin is the `host_origin` the frame URL fragment carries, the
  * same value the bridge validates and pins for inbound messages. Reading it
  * again here, rather than trusting a second source, means the navigate request
  * can only ever go to the host this frame was embedded by.

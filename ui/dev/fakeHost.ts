@@ -7,7 +7,7 @@ import type { HostContext } from "../src/host";
  * A stand-in for the dashboard host, for looking at the UI in a browser.
  *
  * It answers the same wire shapes the plugin returns, so what renders here is
- * what renders in production — the point is to see the screens, not to
+ * what renders in production. The point is to see the screens, not to
  * approximate them. Anything it cannot answer throws, because a mock that
  * silently returns undefined teaches the UI to tolerate nonsense.
  *
@@ -66,26 +66,30 @@ const OPERATORS = [
 
 const SCRIPTING = new Set(["Script Operator", "Script Filter"]);
 
-/** Shaped like a real deployment: a fleet source, a provider, and a paste.
- *  The fetch bookkeeping spans its three states too — one sub with traffic,
- *  one whose last refresh failed, one never fetched — so the row status has
- *  something to say in the harness. */
+/** Shaped like the owner's actual deployment, names included.
+ *  The names matter: real records carry CJK ("建材市场") and long hyphenated
+ *  ids ("openjobs-host-trojan"), and a row tuned only against "Home nodes"
+ *  hides every truncation and line-height bug those produce. The fetch
+ *  bookkeeping spans its three states too, one sub with traffic, one whose last
+ *  refresh failed, one never fetched, so the row status has something to say. */
 const records: StoredRecord[] = [
   {
-    id: "home-nodes",
-    name: "Home nodes",
+    id: "cdcd-self-host",
+    name: "cdcd-self-host",
     tags: ["home", "self"],
     source: "vpn-core",
     target: "",
     process: [
       { type: "Useless Filter" },
       { type: "Quick Setting Operator", args: { udp: true } },
-      { type: "Regex Rename Operator", args: { value: [{ expr: "^HK", now: "🇭🇰 Hong Kong" }] } },
+      { type: "Regex Rename Operator", args: { value: [{ expr: "^HK", now: "香港 Hong Kong" }] } },
     ],
+    last_fetch_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    last_fetch_ok: true,
   },
   {
-    id: "provider-a",
-    name: "Provider A",
+    id: "openjobs-host",
+    name: "openjobs-host",
     tags: ["paid"],
     source: "remote",
     url: "https://example.invalid/subscribe",
@@ -96,35 +100,56 @@ const records: StoredRecord[] = [
     userinfo: "upload=3221225472; download=25769803776; total=536870912000; expire=1893456000",
   },
   {
-    id: "provider-b",
-    name: "Provider B (failing)",
+    id: "openjobs-host-trojan",
+    name: "openjobs-host-trojan",
     tags: ["paid"],
     source: "remote",
     url: "https://example.invalid/broken",
     process: [],
     last_fetch_at: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
     last_fetch_ok: false,
-    last_error: 'subscription "provider-b" provider returned status 503',
+    last_error: 'subscription "openjobs-host-trojan" provider returned status 503',
     userinfo: "upload=1073741824; download=10737418240; total=107374182400",
   },
   {
-    id: "pasted-backup",
-    name: "Pasted backup",
-    tags: ["backup"],
+    id: "jiancai-shichang",
+    name: "建材市场",
+    display_name: "建材市场机场节点",
+    remark: "备用线路，仅在主线路不可用时启用",
+    tags: ["backup", "备用"],
     source: "local",
     content: "vless://11111111-1111-1111-1111-111111111111@a.example:443#node-a",
     process: [],
   },
   {
-    id: "everything",
+    id: "a-deliberately-long-record-id-that-has-to-truncate-somewhere",
+    name: "A deliberately long subscription name that has to truncate somewhere sensible",
+    tags: ["home", "paid", "backup", "self", "备用"],
+    source: "local",
+    content: "vless://22222222-2222-2222-2222-222222222222@b.example:443#node-b",
+    process: [],
+  },
+  {
+    id: "merge-cd-openjobs",
     kind: "collection",
-    name: "Everything",
+    name: "merge-cd-openjobs",
     tags: ["home"],
-    members: ["home-nodes", "provider-a"],
+    members: ["cdcd-self-host", "openjobs-host"],
     member_tags: ["backup"],
     failure_mode: "strict",
     target: "Clash",
     process: [{ type: "Remove Duplicate Filter" }, { type: "Sort Operator", args: { value: "asc" } }],
+  },
+  {
+    id: "merge-openjobs",
+    kind: "collection",
+    name: "merge-openjobs",
+    tags: ["paid"],
+    members: ["openjobs-host", "openjobs-host-trojan"],
+    member_tags: [],
+    failure_mode: "skip",
+    target: "",
+    process: [{ type: "Remove Duplicate Filter" }],
   },
   {
     id: "phone-config",
@@ -133,7 +158,7 @@ const records: StoredRecord[] = [
     tags: ["phone"],
     source: "local",
     file_type: "config",
-    node_source: "everything",
+    node_source: "merge-cd-openjobs",
     content: [
       "mixed-port: 7890",
       "mode: rule",
@@ -149,9 +174,10 @@ const records: StoredRecord[] = [
     process: [],
   },
   {
-    id: "extra-rules",
+    id: "guize-buchong",
     kind: "file",
-    name: "Extra rules",
+    name: "规则补充",
+    display_name: "规则补充（自用）",
     source: "local",
     file_type: "plain",
     content: "DOMAIN-SUFFIX,example.invalid,DIRECT\n",
@@ -164,13 +190,13 @@ const records: StoredRecord[] = [
     tags: ["phone"],
     source: "local",
     file_type: "script",
-    node_source: "everything",
+    node_source: "merge-cd-openjobs",
     query_params: ["enhanced-mode"],
     arguments: { "enhanced-mode": "fake-ip" },
     content: [
       "// Builds the whole document from the node source.",
       "const proxies = await produceArtifact({",
-      '  type: "collection", name: "everything",',
+      '  type: "collection", name: "merge-cd-openjobs",',
       '  platform: "ClashMeta", produceType: "internal",',
       "});",
       "const mode = ($options && $options[\"enhanced-mode\"]) || $arguments[\"enhanced-mode\"];",
@@ -303,7 +329,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       return { document: injected, node_count: 0, nodes: [] };
     }
     // A cut preview sends fewer operators, so the harness answers with a
-    // node count that shrinks per step — otherwise the per-step preview looks
+    // node count that shrinks per step, otherwise the per-step preview looks
     // identical at every step and the screen cannot be checked at all.
     const steps = Array.isArray(operators) ? operators.length : 3;
     const all = [
@@ -327,7 +353,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         { name: "🇺🇸 Portland 01", type: "vless" },
         { name: "🇩🇪 Frankfurt 01", type: "trojan" },
       ],
-      // The real shape: node_count, not count — the UI once read `count`, a
+      // The real shape: node_count, not count. The UI once read `count`, a
       // field the backend never sent, and printed "undefined node(s)".
       node_count: 6,
       source_node_count: 8,
