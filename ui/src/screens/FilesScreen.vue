@@ -791,7 +791,18 @@ watch(host.init, (value) => {
               <span class="sub-title">
                 <FileText v-if="item.file_type === FILE_TYPE_PLAIN" :size="14" aria-hidden="true" />
                 <FileCode v-else :size="14" aria-hidden="true" />
-                {{ item.display_name || item.name }}
+                <!-- The name is the primary action on the sibling screen too:
+                     the daily job is "give me this for my client", and a row
+                     whose title does nothing teaches the operator to hunt for
+                     the icon that does. -->
+                <button
+                  type="button"
+                  class="rec-name"
+                  :title="`Preview or copy ${item.display_name || item.name} for a client`"
+                  @click="openFileSheet(item, $event)"
+                >
+                  {{ item.display_name || item.name }}
+                </button>
                 <span v-for="tag in item.tags ?? []" :key="tag" class="badge">{{ tag }}</span>
               </span>
               <span class="sub-meta">
