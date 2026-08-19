@@ -940,6 +940,19 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .target-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .target-chip-produces { flex: none; font-family: var(--lt-mono); font-size: var(--lt-text-xs); opacity: 0.75; }
 
+/* Inside the sheet, the sheet is the scroll surface.
+   It caps itself at the window now that the frame is a viewport, so a node
+   list or a document that also capped itself in px put a scrollbar inside a
+   scrollbar: on a tall display the sheet stayed short and the thing the
+   operator opened it to read scrolled in a 260px box. Uncapped, the panel
+   grows into the window and the sheet scrolls once when the content is longer
+   than the screen. The drawer keeps its own ceilings, it is still absolute in
+   document space and has no window to measure itself against. */
+.sheet .node-list,
+.sheet .result-doc {
+  max-height: none;
+}
+
 /* The three things the sheet can do, named rather than drawn. */
 .sheet-actions {
   display: flex;
