@@ -152,15 +152,30 @@ func parseRuntimeV2Environment(getenv func(string) string) (uint64, error) {
 
 func invocationHandler(base *runtime) latticeplugin.Handler {
 	return latticeplugin.HandlerFunc(func(ctx context.Context, req latticeplugin.Request, host *latticeplugin.HostClient) latticeplugin.Response {
-		invocation := &runtime{engine: base.engine, host: sdkHostCaller{ctx: ctx, client: host}}
-		// Scripts get the network for exactly this invocation. Attaching here
-		// rather than per method means every script-running path (convert,
-		// render, preview, file scripts, response transformers) is covered by
-		// one rule, and the release runs even when a handler panics.
-		release := base.engine.attachScriptHTTP(newScriptHTTPGateway(invocation.host))
-		defer release()
-		return invocation.handle(req)
+		return serveInvocation(base.engine, sdkHostCaller{ctx: ctx, client: host}, req)
 	})
+}
+
+// serveInvocation is one invocation's whole contract, in one place so a test
+// drives the same grant decision production does rather than a copy of it.
+//
+// Scripts get the network for exactly this invocation, and only when the method
+// being invoked is one the manifest declares broadly enough to cover it (see
+// script_network_policy.go). Attaching unconditionally was the older rule; it
+// meant a method declared substore:read could drive arbitrary outbound
+// requests, because the grant sat on the invocation rather than on the method
+// whose scope is the only bound this process has. Everything still runs its
+// chain, just without a network on the read-scoped paths. The release runs even
+// when a handler panics.
+func serveInvocation(engine *subStoreEngine, host hostCaller, req request) response {
+	invocation := &runtime{engine: engine, host: host}
+	var gateway *scriptHTTPGateway
+	if scriptNetworkAllowed(req) {
+		gateway = newScriptHTTPGateway(host)
+	}
+	release := engine.attachScriptHTTP(gateway)
+	defer release()
+	return invocation.handle(req)
 }
 
 type runtime struct {

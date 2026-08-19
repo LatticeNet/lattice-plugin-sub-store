@@ -633,7 +633,17 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
-	case "preview":
+	// preview renders what is already saved. preview_draft additionally resolves
+	// an UNSAVED draft's source live, from fields the caller supplies.
+	//
+	// They are two operations, not one with a flag, because the difference is
+	// exactly a scope: preview reads a record an admin already configured, while
+	// preview_draft lets the caller name the host the control plane will go and
+	// talk to. That second thing is what `fetch` is declared substore:admin to
+	// do, and it cannot be gated inside a single method because this process
+	// never learns who is calling. Splitting them puts the bound in the manifest,
+	// which is the only place it is enforced.
+	case "preview", "preview_draft":
 		var req struct {
 			SubscriptionID string            `json:"subscription_id"`
 			Raw            string            `json:"raw"`
@@ -642,7 +652,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			GraphSelection json.RawMessage   `json:"graph_selection"`
 			// Source fields let an UNSAVED draft say where its nodes come from;
 			// without them a fleet- or provider-sourced draft previewed as
-			// "no content" while the nodes were right there.
+			// "no content" while the nodes were right there. preview_draft only.
 			Source      string `json:"source,omitempty"`
 			URL         string `json:"url,omitempty"`
 			UA          string `json:"ua,omitempty"`
@@ -656,6 +666,24 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(fmt.Errorf("invalid preview payload: %w", err))
 			}
 		}
+		// Refused rather than ignored. Silently dropping the fields would let a
+		// caller believe they had previewed their draft's real source while they
+		// were looking at nothing, and a preview that lies about where its nodes
+		// came from is worse than one that says it cannot.
+		if call.Method == "preview" {
+			for name, value := range map[string]string{
+				"source": req.Source, "url": req.URL, "ua": req.UA, "vpn_identity": req.VPNIdentity,
+			} {
+				if strings.TrimSpace(value) != "" {
+					return latticeplugin.ErrorResponse(fmt.Errorf(
+						"preview does not resolve an unsaved draft: %q names a source the caller chose; use preview_draft, which is declared substore:admin", name))
+				}
+			}
+		}
+		// Set where the graph redactor runs: that path substitutes synthetic
+		// credentials into the content itself, so the preview does not reduce
+		// the node a second time and can let a script read the stand-in.
+		credentialsAlreadySynthetic := false
 		var graphSelection *vpnCoreGraphSelection
 		if len(req.GraphSelection) > 0 {
 			if bytes.Equal(bytes.TrimSpace(req.GraphSelection), []byte("null")) {
@@ -701,6 +729,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(err)
 			}
 			raw, err = redactVPNCoreGraphPreviewEntries(composed.Entries, graphSelection.EntryRoots)
+			credentialsAlreadySynthetic = true
 			if err != nil {
 				return latticeplugin.ErrorResponse(err)
 			}
@@ -738,7 +767,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}
-				out, err := rt.previewSubscription(merged, nil, "URI")
+				out, err := rt.previewSubscription(merged, nil, "URI", false)
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}
@@ -792,6 +821,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 					return latticeplugin.ErrorResponse(err)
 				}
 				raw, err = redactVPNCoreGraphPreviewEntries(composed.Entries, rec.EntryRoots)
+				credentialsAlreadySynthetic = true
 				if err != nil {
 					return latticeplugin.ErrorResponse(err)
 				}
@@ -813,7 +843,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			}
 			raw = fetched.Raw
 		}
-		out, err := rt.previewSubscription(raw, operators, target)
+		out, err := rt.previewSubscription(raw, operators, target, credentialsAlreadySynthetic)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}

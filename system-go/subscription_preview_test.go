@@ -12,7 +12,7 @@ const previewFixture = "vless://11111111-1111-1111-1111-111111111111@example.com
 func TestPreviewReportsNodesWithoutCredentials(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 
-	out, err := rt.previewSubscription(previewFixture, nil, "URI")
+	out, err := rt.previewSubscription(previewFixture, nil, "URI", false)
 	if err != nil {
 		t.Fatalf("preview: %v", err)
 	}
@@ -56,7 +56,7 @@ func TestPreviewAppliesTheOperatorPipeline(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	ops := []json.RawMessage{json.RawMessage(`{"type":"Regex Filter","args":{"keywords":["node-a"]}}`)}
 
-	out, err := rt.previewSubscription(previewFixture, ops, "URI")
+	out, err := rt.previewSubscription(previewFixture, ops, "URI", false)
 	if err != nil {
 		t.Fatalf("preview: %v", err)
 	}
@@ -71,14 +71,14 @@ func TestPreviewAppliesTheOperatorPipeline(t *testing.T) {
 func TestPreviewRejectsAnUnknownOperatorBeforeRunning(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	ops := []json.RawMessage{json.RawMessage(`{"type":"Not An Operator","args":{}}`)}
-	if _, err := rt.previewSubscription(previewFixture, ops, "URI"); err == nil {
+	if _, err := rt.previewSubscription(previewFixture, ops, "URI", false); err == nil {
 		t.Fatal("an unknown operator was previewed as if it worked")
 	}
 }
 
 func TestPreviewNeedsContent(t *testing.T) {
 	rt, _ := newKVRuntime(t)
-	if _, err := rt.previewSubscription("   ", nil, "URI"); err == nil {
+	if _, err := rt.previewSubscription("   ", nil, "URI", false); err == nil {
 		t.Fatal("preview accepted empty content")
 	}
 }

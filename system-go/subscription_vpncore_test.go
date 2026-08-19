@@ -168,9 +168,13 @@ type hostFailure struct{}
 
 func (*hostFailure) Error() string { return "vpn-core unreachable" }
 
-func TestPreviewResolvesAnUnsavedFleetDraft(t *testing.T) {
+func TestPreviewDraftResolvesAnUnsavedFleetDraft(t *testing.T) {
 	// A draft that reads the fleet has no pasted content and no stored record —
 	// the preview must resolve the live export, not report "no content".
+	//
+	// This is preview_draft, not preview. Naming the source is naming a
+	// destination for the control plane to go and read, so it is declared
+	// substore:admin; read-scoped preview refuses the field outright.
 	rt, host := newVPNCoreRuntime(t,
 		"vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a",
 		"vless://22222222-2222-2222-2222-222222222222@example.net:443?security=reality&sni=b.com&fp=chrome&pbk=y#node-b")
@@ -178,9 +182,9 @@ func TestPreviewResolvesAnUnsavedFleetDraft(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
-	res := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: raw})
+	res := rt.handleSubscriptionCall(callPayload{Method: "preview_draft", Payload: raw})
 	if !res.OK {
-		t.Fatalf("preview of an unsaved fleet draft failed: %s", res.Error)
+		t.Fatalf("preview_draft of an unsaved fleet draft failed: %s", res.Error)
 	}
 	var out previewResult
 	if err := json.Unmarshal(res.Result, &out); err != nil {

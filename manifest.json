@@ -253,6 +253,19 @@
           }
         },
         {
+          "name": "preview_draft",
+          "effect": "read",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 65536,
+            "host_calls": 76
+          }
+        },
+        {
           "name": "list",
           "effect": "read",
           "scopes": [
