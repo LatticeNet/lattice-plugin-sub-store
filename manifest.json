@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.13.0-alpha.11",
+  "version": "0.13.0-alpha.12",
   "publisher": "latticenet",
-  "signature_ed25519": "7Of1WBXcSOAyWFg2udu4iG+ASCEKGETfiQ6c54TxQSIv+ef2iXAOXiy5e73CzOCbYv1vMP6Lbzl7iU1JJBuQCg==",
+  "signature_ed25519": "qKubZ8rZUGPBd30iFmzp89uCOrAzHFek8yuVUttOIQSsTL9XVPaFL027KHW5Q/Aa1LxlipFizqZ6uQ8h9bmrBw==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "da1177a75e01adf83ec4b7932eb976636f8e58a1b3b12b7df248350567ba084a"
+    "digest_sha256": "f8ee0a9c8b28c6568dac40fbe16e0d0b72db675e925c5e6bc7521a9e6d2e8867"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
