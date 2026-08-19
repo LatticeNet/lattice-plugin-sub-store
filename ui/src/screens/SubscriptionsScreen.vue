@@ -360,7 +360,30 @@ function trafficOf(item: SubscriptionListItem): string {
 // ── table ───────────────────────────────────────────────────────────────────
 
 /** Rows after tag, kind, and text filters; the table sorts on top of this. */
-const filteredRows = computed(() =>
+/**
+ * How the list is ordered.
+ *
+ * At the record limit of 256 an unsorted list is a list you scroll. Freshness
+ * is the default because the question that brings someone here is usually
+ * "what did I just change" or "what has stopped refreshing".
+ */
+type SortKey = "recent" | "name" | "status";
+const sortKey = ref<SortKey>("recent");
+
+/** Selection for batch delete; deleting 40 stale imports one dialog at a time
+ *  is how an operator ends up not cleaning up at all. */
+const selectedIds = ref<Set<string>>(new Set());
+function toggleSelected(id: string): void {
+  const next = new Set(selectedIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  selectedIds.value = next;
+}
+function clearSelection(): void {
+  selectedIds.value = new Set();
+}
+
+const unsortedRows = computed(() =>
   onThisTab.value.filter((item) => {
     if (!matchesFilter(item)) return false;
     if (kindFilter.value && (item.kind || KIND_SUB) !== (kindFilter.value === "collection" ? KIND_COLLECTION : KIND_SUB)) {
@@ -368,11 +391,35 @@ const filteredRows = computed(() =>
     }
     const query = searchText.value.trim().toLowerCase();
     if (!query) return true;
-    return [item.name, item.display_name ?? "", item.id, item.remark ?? ""].some((field) =>
-      field.toLowerCase().includes(query),
+    // Tags are searchable too: they are the only grouping axis this screen
+    // offers, so leaving them out of the search made the two ways of narrowing
+    // a list disagree.
+    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
+      (field) => field.toLowerCase().includes(query),
     );
   }),
 );
+
+/** Rank for the status sort: what needs attention first. */
+function statusWeight(item: SubscriptionListItem): number {
+  const tone = statusOf(item).tone;
+  if (tone === "danger") return 0;
+  if (tone === "warn") return 1;
+  if (tone === "neutral") return 2;
+  return 3;
+}
+
+const filteredRows = computed(() => {
+  const rows = [...unsortedRows.value];
+  if (sortKey.value === "name") {
+    rows.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+  } else if (sortKey.value === "status") {
+    rows.sort((a, b) => statusWeight(a) - statusWeight(b) || a.name.localeCompare(b.name));
+  } else {
+    rows.sort((a, b) => String(b.last_fetch_at ?? "").localeCompare(String(a.last_fetch_at ?? "")));
+  }
+  return rows;
+});
 
 
 /**
@@ -1054,6 +1101,15 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             >
               <Layers :size="12" aria-hidden="true" /> Combinations ({{ collections.length }})
             </button>
+            <span class="lt-chip-sep" aria-hidden="true" />
+            <label class="lt-sort">
+              <span class="lt-sort-label">Sort</span>
+              <select v-model="sortKey" class="select select-compact" aria-label="Sort records">
+                <option value="recent">Recently refreshed</option>
+                <option value="name">Name</option>
+                <option value="status">Needs attention</option>
+              </select>
+            </label>
             <span v-if="allTags.length || hasUntagged" class="lt-chip-sep" aria-hidden="true" />
             <button v-if="allTags.length || hasUntagged" type="button" class="lt-chip" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">All tags</button>
             <button
@@ -1077,6 +1133,19 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </button>
           </template>
         </LtToolbar>
+
+        <div v-if="selectedIds.size" class="lt-batch">
+          <span>{{ selectedIds.size }} selected</span>
+          <button class="button button-secondary button-compact" type="button" @click="clearSelection">Clear</button>
+          <button
+            class="button button-danger button-compact"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="requestDelete([...selectedIds], $event)"
+          >
+            <Trash2 :size="14" aria-hidden="true" /> Delete selected
+          </button>
+        </div>
 
         <!-- A write can succeed and its trailing reload still fail. The rows
              below are then the last good read, and saying so beats either
@@ -1124,7 +1193,15 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <Library v-else :size="18" />
               </span>
 
-              <div class="rec-body">
+            <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedIds.has(row.id)"
+                :aria-label="`Select ${row.name}`"
+                @change="toggleSelected(row.id)"
+              />
+            </label>
+            <div class="rec-body">
                 <!-- The name opens the client sheet: the daily path is "give me
                      the config for my client", so it is the primary click. -->
                 <button
