@@ -600,8 +600,10 @@ const chainCount = computed(
     ).length,
 );
 
-/** The preview/copy sheet: the one-click path to a client configuration. */
-const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
+/** The preview/copy sheet: the one-click path to a client configuration. The
+ *  whole row goes in, because the sheet's shape depends on what the record is
+ *  (a file has no client to pick) and not only on its id. */
+const targetSheet = ref<SubscriptionListItem | null>(null);
 /**
  * Where overlays open. This document is not a viewport. The host sizes the
  * frame to the content, so an overlay has to be placed at the click rather
@@ -611,7 +613,7 @@ const overlayAnchor = ref(32);
 function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
   openMenuId.value = "";
   overlayAnchor.value = anchorTopFrom(event);
-  targetSheet.value = { id: row.id, name: row.display_name || row.name, target: row.target ?? "" };
+  targetSheet.value = row;
 }
 
 function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
@@ -620,7 +622,15 @@ function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
 
 function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" | "neutral"; label: string; title?: string } {
   if (item.last_fetch_ok === false) {
-    return { tone: "danger", label: "Failed", title: item.last_error || "The last refresh failed" };
+    // When it failed matters as much as that it failed: a row reading only
+    // "Failed" cannot be told apart from one that broke three weeks ago, and
+    // that is the row an operator is looking for.
+    const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at) : "";
+    return {
+      tone: "danger",
+      label: when ? `Failed ${when}` : "Failed",
+      title: item.last_error || "The last refresh failed",
+    };
   }
   if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
   const relative = formatRelativeTime(item.last_fetch_at);
@@ -1440,9 +1450,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <TargetSheet
         :open="!!targetSheet"
         :anchor-top="overlayAnchor"
-        :record-id="targetSheet?.id ?? ''"
-        :record-name="targetSheet?.name ?? ''"
-        :pinned-target="targetSheet?.target"
+        :record="targetSheet"
         @close="targetSheet = null"
       />
 
