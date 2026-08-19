@@ -35,6 +35,7 @@ import {
   SOURCE_REMOTE,
   type SubscriptionListItem,
 } from "../client";
+import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
@@ -131,16 +132,36 @@ const isRemote = computed(() => draft.value.source === SOURCE_REMOTE);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
 const canSave = computed(() => !draftError.value && !subs.saving.value);
 /**
- * Preview needs a saved record and a readable draft. Nothing else.
+ * Whether `preview` will answer for the draft as it stands.
  *
- * It used to also require the file to have no node source, no chain, no remote
- * template and not be a script, which excludes the headline use case this
- * screen exists for, a configuration whose proxies come from a subscription.
- * The row next door previewed exactly those files without complaint, so the
- * editor was forbidding what the list already did.
+ * The backend refuses a file that needs a node source, a fetch, a program or a
+ * chain, because preview is signed for two host calls and each of those is
+ * host-capable work. Both this screen and the row used to offer the control
+ * anyway and print the refusal, a backend sentence, as the reason. The row now
+ * renders such a file instead; the editor cannot, because render takes the
+ * SAVED record and the editor's whole point is unsaved text, so it says so and
+ * names what does work.
  */
+const draftPreview = computed(() =>
+  filePreviewSupport({
+    kind: KIND_FILE,
+    file_type: draft.value.fileType,
+    node_source: draft.value.nodeSource,
+    source: draft.value.source,
+    has_url: !!draft.value.url.trim(),
+    step_count: (draft.value.process as unknown[]).length,
+  }),
+);
+
+/** Preview needs a saved record, a readable draft, and a shape the backend
+ *  will actually answer for. */
 const canPreviewNow = computed(
-  () => subs.canPreview.value && !subs.previewing.value && !draftError.value && !!editingId.value,
+  () =>
+    subs.canPreview.value &&
+    !subs.previewing.value &&
+    !draftError.value &&
+    !!editingId.value &&
+    draftPreview.value.supported,
 );
 
 const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
@@ -148,7 +169,7 @@ const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_F
 /** Overlay anchoring: this document is not a viewport (see overlayAnchor). */
 const overlayAnchor = ref(32);
 /** The preview/copy sheet. A file is exactly the thing you hand to a client. */
-const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
+const targetSheet = ref<SubscriptionListItem | null>(null);
 /** Selection for batch delete; the record limit is 256 and deleting one at a
  *  time was the only way out of a bad import. */
 const selectedIds = ref<Set<string>>(new Set());
@@ -208,10 +229,10 @@ function toggleSelectAll(): void {
     : new Set(files.value.map((file) => file.id));
 }
 
-function openFileSheet(item: { id: string; name: string; display_name?: string; target?: string }, event?: Event): void {
+function openFileSheet(item: SubscriptionListItem, event?: Event): void {
   closeRowMenu();
   overlayAnchor.value = anchorTopFrom(event);
-  targetSheet.value = { id: item.id, name: item.display_name || item.name, target: item.target ?? "" };
+  targetSheet.value = item;
 }
 
 function toggleSelected(id: string): void {
@@ -367,7 +388,7 @@ const drawerItem = computed(() =>
 const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
   const name = drawerItem.value.display_name || drawerItem.value.name;
-  return drawer.value.mode === "preview" ? `Preview · ${name}` : `Share · ${name}`;
+  return drawer.value.mode === "preview" ? `Document · ${name}` : `Share · ${name}`;
 });
 
 function openDrawer(mode: "preview" | "share", id: string, event?: Event): void {
@@ -390,6 +411,20 @@ function closeDrawer(): void {
 const nodeSources = computed(() =>
   subs.items.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB || i.kind === KIND_COLLECTION),
 );
+
+/**
+ * The stored node source when no candidate matches it, meaning the record it
+ * names is gone. A `select` whose value matches no option renders blank, so
+ * the field said "nothing chosen" over a file that is in fact pointing at a
+ * deleted record, and the first touch of the control would silently rewrite
+ * it. The dangling id is offered as its own option instead, marked for what
+ * it is.
+ */
+const danglingNodeSource = computed(() => {
+  const id = draft.value.nodeSource.trim();
+  if (!id || subs.state.value !== "ready") return "";
+  return nodeSources.value.some((item) => item.id === id) ? "" : id;
+});
 
 const FILE_TYPES = [
   {
@@ -431,6 +466,20 @@ function sourceName(id: string | undefined): string {
   if (!id) return "";
   const found = subs.items.value.find((item) => item.id === id);
   return found ? found.display_name || found.name : id;
+}
+
+/**
+ * A file pointing at a record that is no longer in the store.
+ *
+ * Deleting a subscription does not touch the files that draw from it, and the
+ * row showed the dangling id as though it were a name, so a file that cannot
+ * serve at all looked exactly like one that can. The store is the authority
+ * here, so this is only asked once the list has actually loaded.
+ */
+function nodeSourceMissing(item: SubscriptionListItem): boolean {
+  const id = (item.node_source ?? "").trim();
+  if (!id || subs.state.value !== "ready") return false;
+  return !subs.items.value.some((entry) => entry.id === id);
 }
 
 function describe(item: SubscriptionListItem): string {
@@ -720,13 +769,20 @@ watch(host.init, (value) => {
               <span class="field-label">Node source</span>
               <select v-model="draft.nodeSource" class="select">
                 <option value="">Leave the configuration exactly as written</option>
+                <option v-if="danglingNodeSource" :value="danglingNodeSource">
+                  {{ danglingNodeSource }} (no longer in the store)
+                </option>
                 <option v-for="item in nodeSources" :key="item.id" :value="item.id">
                   {{ item.display_name || item.name }}
                   {{ item.kind === KIND_COLLECTION ? "(combination)" : "" }}
                 </option>
               </select>
               <span class="field-optional">
-                <template v-if="!nodeSources.length">
+                <template v-if="danglingNodeSource">
+                  The record this file draws from is not in the store any more, so serving it
+                  fails. Point it at another source, or clear it to serve the text as written.
+                </template>
+                <template v-else-if="!nodeSources.length">
                   There is nothing to point at yet, create a subscription on the Subscriptions tab
                   first.
                 </template>
@@ -799,6 +855,13 @@ watch(host.init, (value) => {
           </p>
         </fieldset>
 
+        <!-- A disabled control with the reason only in its title is a control
+             nobody on a touch device or a screen reader can find out about. -->
+        <p v-if="editingId && !draftPreview.supported" class="field-optional preview-blocked">
+          {{ draftPreview.reason }} It is on this file's row menu, and it shows the record as last
+          saved rather than the edits above.
+        </p>
+
         <div class="editor-actions">
           <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
           <p v-if="draftError" class="field-error">{{ draftError }}</p>
@@ -808,7 +871,7 @@ watch(host.init, (value) => {
             :disabled="!canPreviewNow"
             :title="
               editingId
-                ? draftError || (!canPreviewNow ? 'Preview requires a self-contained local config or plain-text file with no node source or operations' : 'Render this file and show what a client would receive')
+                ? draftError || draftPreview.reason || 'Render this file and show what a client would receive'
                 : 'Save it once, then preview'
             "
             @click="subs.runPreview(draft)"
@@ -1047,7 +1110,17 @@ watch(host.init, (value) => {
                    the one thing that decides whether Refresh does anything. -->
               <div class="rec-status-cell">
                 <span class="rec-status">{{ item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here" }}</span>
-                <span v-if="item.node_source" class="rec-quota">nodes from {{ sourceName(item.node_source) }}</span>
+                <span
+                  v-if="item.node_source"
+                  class="rec-quota"
+                  :class="{ 'is-danger': nodeSourceMissing(item) }"
+                  :title="nodeSourceMissing(item)
+                    ? `This file draws its proxy list from ${item.node_source}, which is not in the store. Serving it fails until the source is restored or the file points somewhere else.`
+                    : `Its proxy list comes from ${sourceName(item.node_source)}`"
+                >
+                  <template v-if="nodeSourceMissing(item)">node source {{ item.node_source }} is gone</template>
+                  <template v-else>nodes from {{ sourceName(item.node_source) }}</template>
+                </span>
               </div>
 
               <div class="rec-actions" @click.stop>
@@ -1085,10 +1158,10 @@ watch(host.init, (value) => {
                     <button
                       type="button"
                       role="menuitem"
-                      :disabled="!subs.canPreview.value"
+                      :disabled="!subs.canPreview.value && !subs.canRender.value"
                       @click="openDrawer('preview', item.id, $event)"
                     >
-                      <Eye :size="14" aria-hidden="true" /> Preview document
+                      <Eye :size="14" aria-hidden="true" /> Show document
                     </button>
                     <button
                       type="button"
@@ -1128,9 +1201,7 @@ watch(host.init, (value) => {
       <TargetSheet
         :open="!!targetSheet"
         :anchor-top="overlayAnchor"
-        :record-id="targetSheet?.id ?? ''"
-        :record-name="targetSheet?.name ?? ''"
-        :pinned-target="targetSheet?.target"
+        :record="targetSheet"
         @close="targetSheet = null"
       />
 

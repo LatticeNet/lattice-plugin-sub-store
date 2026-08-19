@@ -28,8 +28,10 @@ import {
   type SubscriptionPreviewNode,
   type SubscriptionPreviewResponse,
   type SubscriptionRecord,
+  type SubscriptionRenderResponse,
   type SubscriptionSaveResponse,
 } from "./client";
+import { filePreviewSupport } from "./filePreview";
 import type { HostContext } from "./host";
 import { safeErrorMessage } from "./subStoreModel";
 
@@ -359,6 +361,9 @@ export function useSubscriptions(host: HostContext) {
   const canMutate = computed(() => host.available(BINDINGS.subSave) && host.available(BINDINGS.subDelete));
   const canFetch = computed(() => host.available(BINDINGS.subProbe));
   const canPreview = computed(() => host.available(BINDINGS.subPreview));
+  /** Render is what produces the document a client receives. It is also the
+   *  only path that answers for the files preview refuses. */
+  const canRender = computed(() => host.available(BINDINGS.subRender));
   const canPublish = computed(() => host.available(BINDINGS.subPublish));
   const canLoadGraphOptions = computed(() => host.available(BINDINGS.subGraphOptions));
   const atRecordLimit = computed(() => items.value.length >= MAX_SUBSCRIPTION_RECORDS);
@@ -675,10 +680,35 @@ export function useSubscriptions(host: HostContext) {
       await host.resize();
       return;
     }
-    if (!host.bridge || !canPreview.value) return;
+    if (!host.bridge) return;
+    // A file whose document needs a node source, a fetch, a program or a chain
+    // is refused by preview and always has been: those are host-capable and
+    // preview is signed for two host calls. Render is the call that answers,
+    // and it answers with the same thing the drawer shows, the served
+    // document, so the row asks the one that can work rather than relaying a
+    // backend refusal the UI could see coming.
+    const row = items.value.find((item) => item.id === id);
+    const viaRender = !filePreviewSupport(row).supported && canRender.value;
+    if (!viaRender && !canPreview.value) return;
     rowPreview.value = { id, loading: true, error: "", nodes: [], count: 0 };
     await host.resize();
     try {
+      if (viaRender) {
+        const served = await callMethod<SubscriptionRenderResponse>(host.bridge, BINDINGS.subRender, {
+          subscription_id: id,
+          format: "plain",
+        }).promise;
+        if (rowPreview.value?.id !== id) return;
+        rowPreview.value = {
+          id,
+          loading: false,
+          error: "",
+          nodes: [],
+          count: 0,
+          document: served?.content ?? "",
+        };
+        return;
+      }
       // No raw and no operators: the backend previews the stored record with
       // its own chain, fetching first when the record has no inline content.
       const response = await callMethod<SubscriptionPreviewResponse>(
@@ -704,7 +734,7 @@ export function useSubscriptions(host: HostContext) {
       rowPreview.value = {
         id,
         loading: false,
-        error: safeErrorMessage(cause, "Preview failed"),
+        error: safeErrorMessage(cause, viaRender ? "The document could not be rendered" : "Preview failed"),
         nodes: [],
         count: 0,
       };
@@ -841,6 +871,7 @@ export function useSubscriptions(host: HostContext) {
     canMutate,
     canFetch,
     canPreview,
+    canRender,
     canPublish,
     canLoadGraphOptions,
     atRecordLimit,

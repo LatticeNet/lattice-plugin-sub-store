@@ -605,6 +605,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-status.is-warn { color: var(--lt-warn); }
 .rec-status.is-ok { color: var(--lt-ok); }
 .rec-quota { color: var(--lt-fg-muted); }
+.rec-quota.is-danger { color: var(--lt-danger); }
 
 .rec-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: var(--lt-rec-actions); }
 
@@ -698,6 +699,13 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   border-top: 1px solid var(--lt-border);
 }
 .editor-actions .field-error { margin-right: auto; }
+
+/* Why a disabled action is disabled, in the flow rather than in a title
+   attribute nobody on a touch device or a screen reader can reach. */
+.preview-blocked {
+  max-width: var(--lt-measure-prose);
+  margin: var(--lt-space-3) 0 0;
+}
 
 .editor-tabs {
   display: flex;
@@ -855,6 +863,15 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    accent border says "these links are live". */
 .sheet-note-share { border-left: 2px solid var(--lt-accent); }
 
+/* An explanation that is not a warning and not news. Unboxed, so two grey
+   panels do not stack on top of each other for one record. */
+.sheet-caption {
+  margin: var(--lt-space-2) 0 0;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+}
+
 .sheet-toggle { display: flex; align-items: center; gap: var(--lt-space-2); margin: var(--lt-space-3) 0 0; color: var(--lt-fg-muted); font-size: var(--lt-text-sm); cursor: pointer; }
 
 .share-link {
@@ -867,43 +884,78 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   color: var(--lt-fg);
 }
 
-.target-list { margin: var(--lt-space-3) 0 0; padding: 0; list-style: none; }
+/* ── the client picker ────────────────────────────────────────────────────
+   Fourteen clients, shown as chips rather than as fourteen rows of icon-only
+   buttons. The grid fits three to a line in the sheet's 460px, so the whole
+   set is five lines instead of a screen and a half, and the actions below act
+   on the one that is selected. */
 
-.target-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--lt-space-3);
-  min-height: var(--lt-row-h-compact);
-  padding: var(--lt-space-1) var(--lt-space-1);
-  border-bottom: 1px solid var(--lt-border);
-}
-.target-row:last-child { border-bottom: 0; }
-.target-row:hover { background: var(--lt-surface-2); }
-
-.target-name { display: flex; align-items: baseline; gap: var(--lt-space-2); min-width: 0; font-size: var(--lt-text-md); }
-.target-produces { color: var(--lt-fg-muted); font-size: var(--lt-text-xs); font-family: var(--lt-mono); }
-.target-actions { display: flex; gap: 2px; flex: none; }
-
-.target-action {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: var(--lt-radius-sm);
-  background: none;
+.target-picker { margin: var(--lt-space-3) 0 0; padding: 0; border: 0; }
+.target-legend {
+  padding: 0;
   color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.target-action:hover:not(:disabled) { background: var(--lt-surface-2); color: var(--lt-fg); }
-.target-action:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
-.target-action:disabled { opacity: 0.35; }
-.target-action .ok { color: var(--lt-ok); }
+
+.target-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+  gap: var(--lt-space-1);
+  margin-top: var(--lt-space-2);
+}
+
+.target-chip {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--lt-space-2);
+  min-height: var(--lt-control-h);
+  padding: 0 var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  background: var(--lt-bg);
+  color: var(--lt-fg-muted);
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.target-chip:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.target-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.target-chip.is-active {
+  border-color: var(--lt-accent);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
+}
+
+.target-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.target-chip-produces { flex: none; font-family: var(--lt-mono); font-size: var(--lt-text-xs); opacity: 0.75; }
+
+/* The three things the sheet can do, named rather than drawn. */
+.sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lt-space-2);
+  margin-top: var(--lt-space-3);
+}
+
+.sheet-headings { min-width: 0; }
 
 .sheet-result { margin-top: var(--lt-space-3); padding-top: var(--lt-space-3); border-top: 1px solid var(--lt-border); }
-.result-title { margin: 0 0 var(--lt-space-1); font-size: var(--lt-text-sm); font-weight: 600; }
+.result-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--lt-space-2);
+  margin: 0 0 var(--lt-space-1);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+}
 .result-sub { color: var(--lt-fg-muted); font-weight: 400; }
 .result-more { margin: var(--lt-space-1) 0 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
+.result-note { margin: 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); line-height: var(--lt-leading); }
 
 .result-doc,
 .row-popover-document {
