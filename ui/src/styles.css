@@ -2,11 +2,13 @@
  *
  * Two constraints shape everything here and are easy to break by accident:
  *
- *  1. The frame is NOT a viewport. The host sizes the iframe to the content
- *     height it reports, so `position: fixed` resolves against the whole
- *     document and `position: sticky` never activates. Overlays are absolute
- *     against a measured anchor (src/overlayAnchor.ts), and `vh` sizes an
- *     element from its own output. Neither appears below.
+ *  1. The frame IS a viewport. The host frames this plugin in a pane that fills
+ *     the console's main region, so this document scrolls inside it and
+ *     `position: fixed`, `position: sticky` and `vh` all resolve against the
+ *     visible window. That was not true while the host sized the iframe to the
+ *     content height this page reported; overlays were absolute against a
+ *     measured document anchor (src/overlayAnchor.ts) to work around it, and
+ *     that anchor is inert now.
  *
  *  2. Every color comes from the host through tokens.css. A literal hex here
  *     renders a light-mode box on a dark console, which is what the whole
@@ -794,27 +796,32 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .code-editor-host .cm-scroller { overflow: auto; font-family: var(--lt-mono); line-height: 1.45; }
 
 /* ── overlays ─────────────────────────────────────────────────────────────
-   Absolute, never fixed. The host sizes the frame to the content, so `fixed`
-   resolves against the whole frame and an overlay centred in it lands off the
-   operator's screen. The scrim covers the document and the panel opens at the
-   anchor the click supplied. */
+   Fixed, and measured against the window. The frame is a viewport, so `fixed`
+   means the area the operator can see and a sheet can centre in it and use the
+   height that is actually there. The sheet used to be absolute against
+   .workspace and pushed down by --overlay-anchor-top, a document coordinate,
+   because a content-sized frame had no viewport to centre in. Under a viewport
+   frame that offset would drop the sheet below the fold once the page is
+   scrolled, so it is gone; the variable the screens still set is inert. */
 
 .sheet-scrim {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 60;
   display: grid;
   justify-items: center;
-  align-items: start;
-  padding: 0 var(--lt-space-4);
+  align-items: center;
+  padding: var(--lt-space-5) var(--lt-space-4);
   background: color-mix(in oklab, #000 55%, transparent);
   overflow-y: auto;
 }
 
 .sheet {
   width: min(460px, 100%);
-  /* The sheet sits where the operator clicked, in document coordinates. */
-  margin-top: var(--overlay-anchor-top, 32px);
+  /* The window, less the scrim's padding. A sheet longer than the screen
+     scrolls itself rather than pushing its own head off the top. */
+  max-height: 100%;
+  overflow-y: auto;
   padding: var(--lt-space-4);
   border: 1px solid var(--lt-border-strong);
   border-radius: var(--lt-radius);
