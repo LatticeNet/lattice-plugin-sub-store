@@ -6,6 +6,7 @@ import {
   schemaFor,
   toWireArgs,
   OPERATOR_SCHEMAS,
+  parseNumericArg,
 } from "./operatorSchema";
 
 /**
@@ -153,5 +154,32 @@ describe("pair rows on the way to the wire", () => {
       value: [{ expr: "", now: "" }],
     }) as unknown;
     expect(rows === undefined || (Array.isArray(rows) && rows.length === 0)).toBe(true);
+  });
+});
+
+/**
+ * A numeric operator argument must never be able to store a value nobody typed.
+ * `Number("")` is 0 and `Number("x")` is NaN, so the plain conversion turned a
+ * cleared field into a stored 0 and a typo into a stored null.
+ */
+describe("parseNumericArg", () => {
+  it("treats a blank field as unset rather than as zero", () => {
+    expect(parseNumericArg("")).toBeUndefined();
+    expect(parseNumericArg("   ")).toBeUndefined();
+  });
+
+  it("treats unparseable input as unset rather than as NaN", () => {
+    expect(parseNumericArg("abc")).toBeUndefined();
+    expect(parseNumericArg("12abc")).toBeUndefined();
+    expect(parseNumericArg("Infinity")).toBeUndefined();
+    expect(parseNumericArg("-Infinity")).toBeUndefined();
+  });
+
+  it("keeps a real number, including zero when it was actually typed", () => {
+    expect(parseNumericArg("0")).toBe(0);
+    expect(parseNumericArg("42")).toBe(42);
+    expect(parseNumericArg(" 7 ")).toBe(7);
+    expect(parseNumericArg("-3")).toBe(-3);
+    expect(parseNumericArg("1.5")).toBe(1.5);
   });
 });

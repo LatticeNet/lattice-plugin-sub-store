@@ -523,3 +523,24 @@ export function fromWireArgs(type: string, raw: unknown): Record<string, unknown
   }
   return { [field.key]: raw };
 }
+
+/**
+ * What a numeric operator argument becomes when the box is blank or nonsense.
+ *
+ * `Number("")` is `0` and `Number("x")` is `NaN`, and neither is `undefined`,
+ * so a setter that unsets on empty happily stored them: clearing a numeric
+ * field wrote a literal `0` and typing a stray letter wrote `NaN`, which
+ * serialises to `null` on the wire. For an operator argument that bounds
+ * something (a keep count, a limit) a silent `0` is not "unset", it is an
+ * instruction to keep nothing, applied to a record the operator was editing for
+ * an unrelated reason.
+ *
+ * Blank means unset. Unparseable means unset too: the alternative is writing a
+ * value nobody typed, and the field still shows what they did type.
+ */
+export function parseNumericArg(raw: string): number | undefined {
+  const text = raw.trim();
+  if (!text) return undefined;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : undefined;
+}

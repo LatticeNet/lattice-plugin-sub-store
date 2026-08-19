@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { X } from "@lucide/vue";
 
-import { schemaFor, type OperatorField } from "../operatorSchema";
+import { parseNumericArg, schemaFor, type OperatorField } from "../operatorSchema";
 import CodeEditor from "./CodeEditor.vue";
 
 /**
@@ -200,7 +200,7 @@ function setRaw(text: string): void {
           v-else-if="field.kind === 'number'"
           type="number"
           :value="textValue(field)"
-          @input="set(field.key, Number(($event.target as HTMLInputElement).value))"
+          @input="set(field.key, parseNumericArg(($event.target as HTMLInputElement).value))"
         />
 
         <textarea
