@@ -5,7 +5,7 @@ import LtButton from "./LtButton.vue";
 /**
  * Two-step destructive confirmation. The dialog restates every affected
  * resource by name; when more than one is affected the operator must type the
- * count to arm the confirm button — reading the list is the point.
+ * count to arm the confirm button, reading the list is the point.
  */
 const props = defineProps<{
   open: boolean;

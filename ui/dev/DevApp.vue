@@ -13,7 +13,7 @@ provideHost(createFakeHost());
  * so it applies representative values itself.
  *
  * Without this the UI renders against its light fallbacks, and polishing it
- * would mean polishing colours the operator never sees — the dashboard is
+ * would mean polishing colours the operator never sees. The dashboard is
  * dark-forward.
  */
 const DARK: Record<string, string> = {
@@ -54,7 +54,7 @@ watchEffect(() => {
 
 <template>
   <div class="dev-bar">
-    <span>dev harness — fake host, canned records</span>
+    <span>dev harness, fake host, canned records</span>
     <button type="button" @click="dark = !dark">{{ dark ? "Light" : "Dark" }}</button>
   </div>
   <Shell />

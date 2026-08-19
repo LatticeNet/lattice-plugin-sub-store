@@ -8,7 +8,7 @@ import type { SubscriptionListItem } from "../client";
  * Choosing which subscriptions a combination gathers.
  *
  * Modelled on how Sub-Store actually does it: a tag filter across the top, a
- * checkbox per subscription, and a drag handle — because the ORDER of chosen
+ * checkbox per subscription, and a drag handle, because the ORDER of chosen
  * members decides the order their nodes appear in the merged output, and a
  * plain multi-select cannot express that.
  *

@@ -1,5 +1,5 @@
 /**
- * rowStatus.ts — the inline status a subscription row shows after a refresh.
+ * rowStatus.ts. The inline status a subscription row shows after a refresh.
  *
  * Two small formatters, kept pure so the row template stays declarative:
  *  - formatRelativeTime turns the record's RFC3339 last_fetch_at into
@@ -38,7 +38,7 @@ export interface Userinfo {
 
 /**
  * The header is a query-string-shaped list: "upload=1; download=2; total=3".
- * Providers are inconsistent about spacing and key order, and some omit keys —
+ * Providers are inconsistent about spacing and key order, and some omit keys,
  * anything that does not parse as a non-negative number is dropped rather than
  * formatted as NaN.
  */
@@ -75,7 +75,7 @@ export function formatBytes(bytes: number): string {
 
 /**
  * "used / total · until 2026-09-01" for the row, or "" when there is nothing
- * honest to say. Used is upload + download — what the subscriber has consumed
+ * honest to say. Used is upload + download, what the subscriber has consumed
  * of the provider's total.
  */
 export function formatTraffic(info: Userinfo | null): string {

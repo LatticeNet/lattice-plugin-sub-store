@@ -7,7 +7,7 @@
  *
  * `position: fixed` resolves against the frame, not against what the operator
  * can see. A sheet centred with `inset: 0` on a 1600px frame lands at the top of
- * that frame — which, when the operator clicked a row near the bottom, is 700px
+ * that frame, which, when the operator clicked a row near the bottom, is 700px
  * above the fold. The click reads as doing nothing.
  *
  * `position: sticky` never activates for the same reason: sticky needs a
@@ -26,8 +26,8 @@ const MIN_TOP = 12;
 /**
  * The document-space Y an overlay opened from `event` should use.
  *
- * Falls back to the current scroll offset when there is no event — a keyboard
- * shortcut, or an overlay opened programmatically — which is the top of what
+ * Falls back to the current scroll offset when there is no event. A keyboard
+ * shortcut, or an overlay opened programmatically, which is the top of what
  * the operator can see in every case except a frame taller than the viewport
  * that the host has scrolled past, and that case has no better answer from
  * inside the sandbox.

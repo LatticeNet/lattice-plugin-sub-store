@@ -12,7 +12,7 @@ const USELESS = "Useless Filter";
 
 /**
  * The common-settings block and the operator chain are two views of the same
- * data. The failure mode to guard against is them disagreeing — a toggle that
+ * data. The failure mode to guard against is them disagreeing. A toggle that
  * says "on" while the step it stands for is absent, or an edit through one
  * silently discarding what was set through the other.
  */

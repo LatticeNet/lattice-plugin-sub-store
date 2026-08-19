@@ -39,7 +39,7 @@ export default defineComponent({
       h("div", { class: "form-grid" }, [
         field("Destination", h("input", {
           value: destination.value, type: "url", required: true, autocomplete: "off", disabled: disabled(),
-          placeholder: "https://…",
+          placeholder: "Where the recomposed definition is sent",
           onInput: (event: Event) => { destination.value = (event.target as HTMLInputElement).value; },
         })),
         field("Method", h("select", {

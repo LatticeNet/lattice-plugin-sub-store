@@ -1,13 +1,13 @@
 <script setup lang="ts">
 /**
- * CodeEditor — line numbers, highlighting and real editing keys for every
+ * CodeEditor, line numbers, highlighting and real editing keys for every
  * content surface that previously made do with a bare <textarea>: file
  * configurations, generator scripts, script operators, pasted node lists.
  *
  * CodeMirror arrives as a lazy chunk on first mount (see codemirror.ts). Two
  * honesty rules govern this component:
  *  - until the chunk lands, and forever if it fails to load, the same old
- *    textarea is shown — an editor upgrade must never be able to take the
+ *    textarea is shown. An editor upgrade must never be able to take the
  *    ability to edit away;
  *  - v-model semantics are exact: external writes replace the document,
  *    internal edits emit, and neither echoes back into a loop.

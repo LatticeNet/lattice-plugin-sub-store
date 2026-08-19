@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
  * that arrives asynchronously. A screen that loads only in `onMounted` runs
  * before it: `available()` is false, the load silently no-ops, and nothing ever
  * retries. The symptom is a screen that looks empty and permissionless while
- * the backend is perfectly healthy — which is exactly what shipped, twice.
+ * the backend is perfectly healthy, which is exactly what shipped, twice.
  *
  * This is asserted as a source check rather than a behavioural test because the
  * failure is structural: the screen is wired to the wrong signal, and no amount
@@ -47,7 +47,7 @@ describe("screens wait for the bridge handshake", () => {
  * The other half of the timing contract: when the handshake never comes at
  * all (the frame opened standalone), the shell must say so instead of leaving
  * every screen on "Loading…" forever. Structural for the same reason as
- * above — what matters is that the shell is wired to the timeout at all.
+ * above, what matters is that the shell is wired to the timeout at all.
  */
 describe("the shell degrades a missing handshake", () => {
   it("replaces the perpetual loading state with the standalone notice", () => {

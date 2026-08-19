@@ -10,7 +10,7 @@ import type { ChainStep } from "./components/ProcessChain.vue";
  * a form to do it is exposing an implementation detail as a task.
  *
  * These map onto real chain steps in both directions, so nothing here is a
- * parallel storage path — the chain remains the single source of truth, and an
+ * parallel storage path. The chain remains the single source of truth, and an
  * operator who edits the step directly sees the toggles follow.
  */
 
@@ -58,7 +58,7 @@ const QUICK_KEYS: Record<Exclude<keyof CommonSettings, "dropUseless">, string> =
  *   }
  *
  * A boolean lands in `default` and the node keeps whatever it already had, so
- * every switch in this block was a no-op — the step was written, the editor
+ * every switch in this block was a no-op. The step was written, the editor
  * showed it set, and nothing changed. Booleans are still READ, because records
  * saved under the old shape exist.
  */

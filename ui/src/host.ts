@@ -4,7 +4,7 @@ import { canCall, type BridgeClient, type HostInit } from "@latticenet/plugin-br
 import type { MethodBinding } from "./client";
 
 /**
- * Host context — the one bridge instance owned by the shell (App.vue), handed
+ * Host context. The one bridge instance owned by the shell (App.vue), handed
  * to screens via provide/inject so no screen constructs its own BridgeClient
  * (a second client would double the ready handshake and split pending calls).
  */

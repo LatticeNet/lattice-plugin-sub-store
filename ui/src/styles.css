@@ -295,7 +295,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* Checkboxes.
  *
  * `accent-color` only tints the CHECKED state; an unchecked user-agent
- * checkbox stays a white box, and this frame is full of them — one per row for
+ * checkbox stays a white box, and this frame is full of them. One per row for
  * selection, one per operator step, one per common setting. Against the
  * console's dark theme every list read as a column of white squares. Drawn
  * from tokens instead, so the control follows whatever theme the host is in. */
@@ -344,7 +344,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    These lived in SubscriptionsScreen's SCOPED block while the Files screen
    used the same class names. Scoped styles carry a per-component attribute, so
    Files got none of them: its search box and every filter chip rendered as raw
-   user-agent controls — white boxes in a dark toolbar. A style a second screen
+   user-agent controls, white boxes in a dark toolbar. A style a second screen
    depends on is not a screen's own style. */
 
 .lt-search {
@@ -439,7 +439,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 /* ── record list ──────────────────────────────────────────────────────────
    Sub-Store's own shape: a grouped list of records, each one an icon, a name
-   you can act on, its tags, what it is made of, and its identity — rather than
+   you can act on, its tags, what it is made of, and its identity, rather than
    a grid whose columns were wider than the frame and emptier than the data.
    Both list screens use it; Files had its own near-identical idiom, which is
    how the two tabs drifted into looking like two products. */
@@ -629,7 +629,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-menu-sep { height: 1px; margin: var(--lt-space-1) 0; background: var(--lt-border); }
 
 /* The rows are real but not fresh: a quiet strip, not an error state, because
-   nothing the operator is looking at is wrong — it is just older than they
+   nothing the operator is looking at is wrong. It is just older than they
    might assume. */
 .stale-strip {
   margin: 0 0 var(--lt-space-2);
@@ -668,7 +668,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .editor-block { max-width: var(--lt-measure-form); margin: 0 0 var(--lt-space-4); }
 
 .editor-actions {
-  /* Not sticky: sticky needs a scrollport and this document has none — the
+  /* Not sticky: sticky needs a scrollport and this document has none, the
      host scrolls the parent page instead, so a sticky bar here simply never
      activates. The row is laid out honestly as the end of the form. */
   display: flex;
@@ -759,7 +759,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   min-height: calc(var(--code-editor-rows, 12) * 1.35em + 16px);
   /* Not vh: this document's height IS the frame height the host syncs to the
      content, so a viewport unit here sizes the editor from its own output. A
-     row-derived ceiling is stable and says what it means — about 24 lines,
+     row-derived ceiling is stable and says what it means, about 24 lines,
      after which the editor scrolls internally. */
   max-height: calc(24 * 1.45em + 16px);
   border: 1px solid var(--lt-border);

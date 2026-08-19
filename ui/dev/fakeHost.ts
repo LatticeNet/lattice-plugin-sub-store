@@ -7,7 +7,7 @@ import type { HostContext } from "../src/host";
  * A stand-in for the dashboard host, for looking at the UI in a browser.
  *
  * It answers the same wire shapes the plugin returns, so what renders here is
- * what renders in production — the point is to see the screens, not to
+ * what renders in production. The point is to see the screens, not to
  * approximate them. Anything it cannot answer throws, because a mock that
  * silently returns undefined teaches the UI to tolerate nonsense.
  *
@@ -67,8 +67,8 @@ const OPERATORS = [
 const SCRIPTING = new Set(["Script Operator", "Script Filter"]);
 
 /** Shaped like a real deployment: a fleet source, a provider, and a paste.
- *  The fetch bookkeeping spans its three states too — one sub with traffic,
- *  one whose last refresh failed, one never fetched — so the row status has
+ *  The fetch bookkeeping spans its three states too. One sub with traffic,
+ *  one whose last refresh failed, one never fetched, so the row status has
  *  something to say in the harness. */
 const records: StoredRecord[] = [
   {
@@ -303,7 +303,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       return { document: injected, node_count: 0, nodes: [] };
     }
     // A cut preview sends fewer operators, so the harness answers with a
-    // node count that shrinks per step — otherwise the per-step preview looks
+    // node count that shrinks per step, otherwise the per-step preview looks
     // identical at every step and the screen cannot be checked at all.
     const steps = Array.isArray(operators) ? operators.length : 3;
     const all = [
@@ -327,7 +327,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         { name: "🇺🇸 Portland 01", type: "vless" },
         { name: "🇩🇪 Frankfurt 01", type: "trojan" },
       ],
-      // The real shape: node_count, not count — the UI once read `count`, a
+      // The real shape: node_count, not count. The UI once read `count`, a
       // field the backend never sent, and printed "undefined node(s)".
       node_count: 6,
       source_node_count: 8,

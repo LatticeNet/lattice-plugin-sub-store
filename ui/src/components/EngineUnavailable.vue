@@ -4,7 +4,7 @@ import LtEmptyState from "./lt/LtEmptyState.vue";
 /**
  * Shown when the signed manifest does not declare the embedded-engine
  * service a screen needs. This is the expected production state until the
- * TASK-0002 engine contract lands — the panel says so honestly instead of
+ * TASK-0002 engine contract lands. The panel says so honestly instead of
  * rendering dead controls.
  *
  * It used its own dashed panel; the three real "there is nothing here"

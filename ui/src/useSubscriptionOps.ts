@@ -13,7 +13,7 @@ import { safeErrorMessage } from "./subStoreModel";
 export type OpsState = "idle" | "loading" | "ready" | "error";
 
 /**
- * Settings, backup/restore and migration — the operations surface.
+ * Settings, backup/restore and migration. The operations surface.
  *
  * Kept apart from `useSubscriptions` because these are whole-store actions
  * rather than per-record ones, and because migration in particular has a
@@ -104,7 +104,7 @@ export function useSubscriptionOps(host: HostContext) {
       notice.value =
         restored === undefined
           ? "Backup restored."
-          : `Backup restored: ${restored} subscription(s). Nothing was published — a share is a separate decision.`;
+          : `Backup restored: ${restored} subscription(s). Nothing was published. A share is a separate decision.`;
       return true;
     } catch (cause) {
       // The export refuses an unknown or missing format rather than guessing,
@@ -132,7 +132,7 @@ export function useSubscriptionOps(host: HostContext) {
         base_url: baseUrl.trim(),
       }).promise;
       const count = report.value?.imported?.length ?? 0;
-      notice.value = `Imported ${count} subscription(s). Nothing is published yet — create a share for each one you want served.`;
+      notice.value = `Imported ${count} subscription(s). Nothing is published yet, create a share for each one you want served.`;
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Migration failed");

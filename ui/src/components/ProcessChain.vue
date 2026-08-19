@@ -15,8 +15,8 @@ import OperatorArgs from "./OperatorArgs.vue";
  *  - a step can be renamed, because three "Regex Rename" rows in a row tell the
  *    reader nothing about which is which.
  *
- * Steps round-trip whole, so fields this editor does not understand — an `id`
- * from an import, whatever upstream adds next — survive an edit.
+ * Steps round-trip whole, so fields this editor does not understand. An `id`
+ * from an import, whatever upstream adds next, survive an edit.
  */
 
 export interface ChainStep {
@@ -32,15 +32,15 @@ const props = defineProps<{
   /** Operator types the backend accepts, from the catalogue call. */
   catalog: readonly { type: string; scripting?: boolean; response?: boolean }[];
   /**
-   * Types edited by the common-settings block above. They stay in the chain —
-   * they are ordinary operators — but listing them here too would give one
+   * Types edited by the common-settings block above. They stay in the chain,
+   * they are ordinary operators, but listing them here too would give one
    * setting two controls that can disagree.
    */
   managedTypes?: readonly string[];
   /**
    * Restricts the palette to the operators that make sense here. A plain-text
    * file runs its chain over the document, where a region filter or a rename
-   * has nothing to act on — offering them invites a chain that cannot work.
+   * has nothing to act on, offering them invites a chain that cannot work.
    */
   /**
    * Which chain this is. A response chain edits a served document; a node chain
@@ -84,7 +84,7 @@ const visible = computed(() =>
     .filter((entry) => !managed.value.has(entry.step.type)),
 );
 
-/** Every operator, in one flat grid — one click to add, nothing hidden. */
+/** Every operator, in one flat grid. One click to add, nothing hidden. */
 const wantsResponse = computed(() => props.chain === "response");
 
 const addable = computed(() =>
@@ -157,7 +157,7 @@ function setArgs(index: number, args: Record<string, unknown>): void {
  *
  * The buttons used to pass raw array indices while their disabled state was
  * computed from visible positions. With a settings-managed step sitting between
- * two visible ones — ordinary in an imported chain — "move down" swapped a step
+ * two visible ones, ordinary in an imported chain, "move down" swapped a step
  * with a row nobody can see, so the order on screen did not change and the
  * click read as broken.
  */
@@ -388,7 +388,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   background: var(--lt-surface);
 }
 
-/* A disabled step stays legible — it is kept precisely so it can be read and
+/* A disabled step stays legible. It is kept precisely so it can be read and
    switched back on, so fading it out would defeat the point. The dashed edge
    and the "off" badge carry the state instead. */
 .chain-step.is-off {
@@ -550,7 +550,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   justify-content: center;
   gap: var(--lt-space-1);
   /* Fixed height so a two-word label does not make its whole row taller than
-     the others — the grid reads as a set of equals or it reads as a mess. */
+     the others. The grid reads as a set of equals or it reads as a mess. */
   min-height: 38px;
   padding: var(--lt-space-1) var(--lt-space-2);
   border: 1px solid var(--lt-border);

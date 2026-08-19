@@ -11,7 +11,7 @@ import CodeEditor from "./CodeEditor.vue";
  * An operator the schema does not describe falls back to a raw JSON box rather
  * than to a form that quietly drops what it cannot represent. The catalogue is
  * extracted from the bundled engine by a test, so an engine bump can introduce
- * an operator this table has never seen — and a text box the operator can still
+ * an operator this table has never seen, and a text box the operator can still
  * use beats a form that silently loses their arguments.
  */
 
@@ -72,7 +72,7 @@ function boolValue(field: OperatorField): boolean {
 /**
  * Tri-state: unset / on / off.
  *
- * Two states would be wrong here — these operators force a protocol switch, and
+ * Two states would be wrong here, these operators force a protocol switch, and
  * "leave it as the node had it" is a different instruction from "turn it off".
  */
 function triValue(field: OperatorField): "unset" | "on" | "off" {
@@ -90,7 +90,7 @@ function setTri(field: OperatorField, value: "unset" | "on" | "off"): void {
  * Pairs are stored as `{expr, now}` objects, which is what the engine reads:
  * `for (const {expr, now} of value)`. They were written as `[from, to]` tuples,
  * so every rename configured here destructured to undefined and renamed
- * nothing — the operator was in the chain, the preview showed it running, and
+ * nothing. The operator was in the chain, the preview showed it running, and
  * the names came out unchanged.
  *
  * Tuples are still READ, because records written under the old shape exist.
@@ -121,7 +121,7 @@ function toWirePairs(rows: [string, string][]): { expr: string; now: string }[] 
  *
  * The old version dropped rows with an empty first column BEFORE committing,
  * which meant typing into the second column of a fresh row committed nothing
- * and the character vanished on the next render — and clearing the first column
+ * and the character vanished on the next render, and clearing the first column
  * of an existing rule silently threw away its second. Rows that are still
  * entirely blank are dropped only when the whole field is written out, so an
  * abandoned row does not become a rule.

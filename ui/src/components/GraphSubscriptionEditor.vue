@@ -48,7 +48,7 @@ function changeIdentity(event: Event): void {
       <select class="select" :value="draft.vpnIdentity" :disabled="readOnly || !eligibleIdentities.length" @change="changeIdentity">
         <option value="">Choose an eligible identity</option>
         <option v-for="identity in eligibleIdentities" :key="identity.id" :value="identity.id">
-          {{ identity.label }} — {{ identity.status }}
+          {{ identity.label }}, {{ identity.status }}
         </option>
       </select>
     </label>
@@ -79,7 +79,7 @@ function changeIdentity(event: Event): void {
       <details v-if="unavailableRoots.length" class="graph-unavailable">
         <summary>Unavailable roots ({{ unavailableRoots.length }})</summary>
         <ul>
-          <li v-for="root in unavailableRoots" :key="root.line_uuid"><strong>{{ root.label }}</strong> — Source {{ root.source_node_id || "unknown" }} · Target {{ root.target_label || "unresolved" }} · Status {{ root.status }} · Path {{ root.path_summary }} · Reason {{ root.reason || "not eligible for the selected identity" }}</li>
+          <li v-for="root in unavailableRoots" :key="root.line_uuid"><strong>{{ root.label }}</strong> · Source {{ root.source_node_id || "unknown" }} · Target {{ root.target_label || "unresolved" }} · Status {{ root.status }} · Path {{ root.path_summary }} · Reason {{ root.reason || "not eligible for the selected identity" }}</li>
         </ul>
       </details>
     </div>

@@ -11,7 +11,7 @@ import {
 /**
  * These pin each operator's arguments to what the bundled engine's constructor
  * actually destructures. The schemas were originally written from the operator
- * names, and most of them were wrong — a regex filter whose patterns were
+ * names, and most of them were wrong. A regex filter whose patterns were
  * stored under `value` left the engine with `regex = []`, and in keep mode that
  * drops every node rather than keeping them.
  *
@@ -48,14 +48,14 @@ describe("operator arguments match the engine's contract", () => {
   });
 
   // Region and Type filters accept `e?.value || e`, so the wrapper is fine.
-  // OW({sourceType, sourceName, position}) — `value` matched nothing, so the
+  // OW({sourceType, sourceName, position}), `value` matched nothing, so the
   // operator resolved no source at all.
   it("names the appended source the way the engine reads it", () => {
     const keys = keysOf("Add Proxies From Subscription Operator");
     expect(keys).toEqual(["sourceType", "sourceName", "position"]);
   });
 
-  // IW({action, template, link, position, field}) — `field` defaults to
+  // IW({action, template, link, position, field}), `field` defaults to
   // ["name"], so omitting it from the form is a choice rather than a gap.
   it("covers the duplicate handler's arguments", () => {
     const keys = keysOf("Handle Duplicate Operator");

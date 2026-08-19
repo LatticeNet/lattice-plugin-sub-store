@@ -10,7 +10,7 @@ import { MonitorOff } from "@lucide/vue";
  * a slow start rather than as the page being in the wrong place.
  */
 defineProps<{
-  /** The bridge's own words, when it gave any — useful to whoever debugs this. */
+  /** The bridge's own words, when it gave any, useful to whoever debugs this. */
   detail?: string;
 }>();
 </script>
@@ -21,7 +21,7 @@ defineProps<{
     <h2 id="standalone-title">This page runs inside the Lattice console</h2>
     <p>
       It is the Sub-Store extension's frame: the console hands it a signed identity and a data path
-      when it embeds it, so on its own it has neither — and no way to reach your subscriptions.
+      when it embeds it, so on its own it has neither, and no way to reach your subscriptions.
     </p>
     <p class="standalone-where">
       Find it under <strong>Console → Extensions → Sub-Store</strong>.

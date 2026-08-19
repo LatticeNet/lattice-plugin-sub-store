@@ -24,7 +24,7 @@ const exported = ref("");
  * Save writes the loaded settings back with the two edited fields replaced.
  *
  * It refuses to run before the load has landed: until then `settings` is still
- * `{}`, so an early click wrote `undefined` over whatever was stored — the two
+ * `{}`, so an early click wrote `undefined` over whatever was stored. The two
  * controls looked empty because nothing had been read yet, and clicking Save
  * made that emptiness real.
  */
@@ -55,7 +55,7 @@ async function copyExported(): Promise<void> {
     await navigator.clipboard.writeText(exported.value);
     ops.notice.value = "Backup copied to the clipboard.";
   } catch {
-    ops.actionError.value = "The clipboard is unavailable here — select the text and copy it manually.";
+    ops.actionError.value = "The clipboard is unavailable here, select the text and copy it manually.";
   }
 }
 
@@ -67,7 +67,7 @@ async function copyExported(): Promise<void> {
  * destructive action uses.
  *
  * What the dialog restates is what the envelope actually claims to hold, read
- * out of the pasted text rather than described in general terms — a truncated
+ * out of the pasted text rather than described in general terms. A truncated
  * or hand-edited envelope is refused by the backend, so if it does not parse
  * here there is nothing worth confirming either.
  */
@@ -123,7 +123,7 @@ async function runRestore(): Promise<void> {
  * Load after the bridge handshake, not on mount.
  *
  * `available()` reads the interfaces the host declared for this frame, and on
- * first paint that has not arrived — so loading in `onMounted` alone silently
+ * first paint that has not arrived, so loading in `onMounted` alone silently
  * no-ops and never retries, leaving the screen looking empty and permissionless.
  */
 async function loadAll(): Promise<void> {
@@ -170,7 +170,7 @@ watch(host.init, (value) => {
     </div>
 
     <!-- The controls used to render immediately, empty, while the stored values
-         were still in flight — indistinguishable from "nothing is set". -->
+         were still in flight, indistinguishable from "nothing is set". -->
     <LtSkeleton v-else-if="!settingsReady" :rows="2" :columns="2" />
 
     <template v-else>

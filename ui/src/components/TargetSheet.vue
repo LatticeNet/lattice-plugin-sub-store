@@ -1,12 +1,12 @@
 <script setup lang="ts">
 /**
- * TargetSheet — "preview / copy this subscription for a client".
+ * TargetSheet, "preview / copy this subscription for a client".
  *
  * This is the daily path Sub-Store itself puts one click away: open a record,
  * see every client it can produce, and take either the node list (preview) or
  * the actual document (copy) for the one you use. It replaces the invented
  * "Convert" tab, which asked the operator to paste raw text and an operator
- * JSON blob into a scratchpad — something no Sub-Store user has ever had to do
+ * JSON blob into a scratchpad, something no Sub-Store user has ever had to do
  * to get a config into their client.
  *
  * Honest capability split, mirroring the backend rather than the wish:
@@ -61,7 +61,7 @@ const rendered = ref<{ target: string; content: string; contentType: string } | 
 
 /**
  * The share core holds for this record, if any. Loaded when the sheet opens;
- * a failure here is NOT fatal — one-off copies still work, so the sheet says
+ * a failure here is NOT fatal, one-off copies still work, so the sheet says
  * "no stable link" rather than blocking on it.
  */
 const share = ref<SubStoreShareRow | null>(null);
@@ -84,7 +84,7 @@ watch(
     void loadShare();
     // Escape is bound to the panel, and a key event only reaches an element
     // that has focus. Without this the shortcut did nothing until the operator
-    // had tabbed inside — the opposite of an escape hatch.
+    // had tabbed inside. The opposite of an escape hatch.
     await nextTick();
     sheet.value?.focus();
   },
@@ -108,7 +108,7 @@ async function loadShare(): Promise<void> {
   }
 }
 
-/** Absolute when the server knows its public base, path-only otherwise —
+/** Absolute when the server knows its public base, path-only otherwise,
  * a path link still works pasted next to the dashboard's own origin. */
 const shareBase = computed(() => share.value?.url || share.value?.path || "");
 
@@ -170,15 +170,15 @@ async function copyDocument(target: ConvertTarget): Promise<void> {
       subscription_id: props.recordId,
       format: "plain",
       // Explicit target: the caller who names a client means that client,
-      // record pin or not — the same contract as Sub-Store's ?target= URLs.
+      // record pin or not. The same contract as Sub-Store's ?target= URLs.
       target: target.id,
       options: { "include-unsupported-proxy": includeUnsupported.value },
     }).promise;
     const content = response?.content ?? "";
     if (!content) throw new Error("The render returned no document");
     // The document is shown either way. A clipboard write can fail for
-    // reasons that have nothing to do with the configuration — an unfocused
-    // document, a denied permission — and losing a good render to that would
+    // reasons that have nothing to do with the configuration. An unfocused
+    // document, a denied permission, and losing a good render to that would
     // make the operator run it again to get back what is already in hand.
     rendered.value = { target: target.id, content, contentType: response.content_type };
     preview.value = null;
@@ -189,7 +189,7 @@ async function copyDocument(target: ConvertTarget): Promise<void> {
         if (copiedTarget.value === target.id) copiedTarget.value = "";
       }, 2000);
     } catch {
-      error.value = "The clipboard is unavailable — the configuration is below, select it to copy.";
+      error.value = "The clipboard is unavailable. The configuration is below, select it to copy.";
     }
   } catch (cause) {
     error.value = safeErrorMessage(cause, `Could not render the ${target.label} configuration`);
@@ -237,17 +237,17 @@ function close(): void {
       </p>
 
       <p v-if="share" class="sheet-note sheet-note-share">
-        Published as <strong>/{{ share.slug }}</strong> — each link below is that URL pinned to one client.
+        Published as <strong>/{{ share.slug }}</strong>. Each link below is that URL pinned to one client.
       </p>
       <p v-else-if="shareLoaded" class="sheet-note">
-        No published share yet, so there are no stable links — copies below are one-off documents.
+        No published share yet, so there are no stable links, copies below are one-off documents.
         Publish this record from the row menu to hand clients a URL.
       </p>
 
       <p v-if="error" class="sheet-error" role="alert">{{ error }}</p>
 
       <p v-if="shownLink" class="sheet-note sheet-note-share">
-        The clipboard is unavailable — select the {{ shownLink.target }} link by hand:
+        The clipboard is unavailable, select the {{ shownLink.target }} link by hand:
         <code class="share-link">{{ shownLink.url }}</code>
       </p>
 

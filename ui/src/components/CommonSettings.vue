@@ -9,7 +9,7 @@ import type { CommonSettings, TriState } from "../commonSettings";
  * fill in a form to do it exposes an implementation detail as a task.
  *
  * These write back into the operator chain, so there is no second storage path
- * — the chain stays the single source of truth.
+ *. The chain stays the single source of truth.
  */
 
 defineProps<{ modelValue: CommonSettings }>();

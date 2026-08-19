@@ -2,6 +2,7 @@
 import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
+  ChevronLeft,
   ChevronsRight,
   CircleAlert,
   RefreshCw,
@@ -64,8 +65,8 @@ import type { EditorLanguage } from "../codemirror";
 /**
  * The Files tab.
  *
- * A file is a document the core serves — usually a client configuration the
- * operator has already tuned — whose proxy list is filled in from a
+ * A file is a document the core serves, usually a client configuration the
+ * operator has already tuned, whose proxy list is filled in from a
  * subscription or a combination. It is the piece that lets nodes change without
  * anyone hand-editing a config, and it shares the subscription store, so
  * everything here runs on methods the signed manifest already declares.
@@ -89,7 +90,7 @@ const tagText = ref("");
 /**
  * Shares are published by the dashboard, not by this frame: the frame can only
  * ask the console to navigate there. The origin is the one the bridge pinned
- * from the frame URL — re-read here rather than trusted from a second source.
+ * from the frame URL, re-read here rather than trusted from a second source.
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
@@ -106,7 +107,7 @@ const isScript = computed(() => draft.value.fileType === FILE_TYPE_SCRIPT);
 /**
  * Editor highlighting. The file type decides the sensible default (script →
  * JavaScript, config → YAML), and the selector lets the operator override it
- * for the odd file — a JSON template, an INI ruleset — without inventing new
+ * for the odd file. A JSON template, an INI ruleset. Without inventing new
  * file types. Pure presentation: nothing about the record changes.
  */
 const CONTENT_LANGUAGES: ReadonlyArray<{ id: EditorLanguage; label: string }> = [
@@ -133,7 +134,7 @@ const canSave = computed(() => !draftError.value && !subs.saving.value);
  * Preview needs a saved record and a readable draft. Nothing else.
  *
  * It used to also require the file to have no node source, no chain, no remote
- * template and not be a script — which excludes the headline use case this
+ * template and not be a script, which excludes the headline use case this
  * screen exists for, a configuration whose proxies come from a subscription.
  * The row next door previewed exactly those files without complaint, so the
  * editor was forbidding what the list already did.
@@ -146,7 +147,7 @@ const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_F
 
 /** Overlay anchoring: this document is not a viewport (see overlayAnchor). */
 const overlayAnchor = ref(32);
-/** The preview/copy sheet — a file is exactly the thing you hand to a client. */
+/** The preview/copy sheet. A file is exactly the thing you hand to a client. */
 const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
 /** Selection for batch delete; the record limit is 256 and deleting one at a
  *  time was the only way out of a bad import. */
@@ -506,7 +507,7 @@ async function submit(): Promise<void> {
 /**
  * Load after the bridge handshake, not on mount: `available()` reads the
  * interfaces the host declares for this frame, and on first paint that has not
- * arrived — so loading in `onMounted` alone silently no-ops and never retries.
+ * arrived, so loading in `onMounted` alone silently no-ops and never retries.
  */
 async function loadAll(): Promise<void> {
   await subs.load();
@@ -514,7 +515,7 @@ async function loadAll(): Promise<void> {
 }
 
 // The screens are kept alive between tab switches, so a record created on the
-// sibling tab would otherwise be missing here until a full reload — most
+// sibling tab would otherwise be missing here until a full reload, most
 // visibly in the node-source picker, which lists subscriptions.
 onActivated(() => {
   if (host.init.value) void loadAll();
@@ -542,6 +543,17 @@ watch(host.init, (value) => {
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
     <section v-if="editing" class="configuration" aria-labelledby="file-editor-title">
+      <!-- The sibling editor has one; without it this screen's only way back is
+           the Cancel button at the far bottom of a long form. -->
+      <nav class="lt-breadcrumb" aria-label="Breadcrumb">
+        <button type="button" class="lt-breadcrumb-root" @click="cancelEdit">
+          <ChevronLeft :size="14" aria-hidden="true" /> Files
+        </button>
+        <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="lt-breadcrumb-here" aria-current="page">
+          {{ editingId ? draft.displayName || draft.name || editingId : "New file" }}
+        </span>
+      </nav>
       <div class="section-heading">
         <div>
           <h2 id="file-editor-title">{{ editingId ? "Edit" : "New" }} file</h2>
@@ -564,7 +576,7 @@ watch(host.init, (value) => {
               <input v-model="draft.name" type="text" autocomplete="off" placeholder="Phone config" />
               <span class="field-optional">
                 <template v-if="editingId">
-                  Stored as <code>{{ editingId }}</code>. Renaming is safe — a published share keeps
+                  Stored as <code>{{ editingId }}</code>. Renaming is safe. A published share keeps
                   working.
                 </template>
                 <template v-else>The only thing you have to fill in.</template>
@@ -686,7 +698,7 @@ watch(host.init, (value) => {
               />
               <span v-if="isScript" class="field-optional">
                 Runs in the engine's sandbox: no filesystem, and network only through
-                <code>$substore.http</code> — every request leaves through the server's guarded
+                <code>$substore.http</code>. Every request leaves through the server's guarded
                 egress (private addresses refused, redirects re-checked), capped at 8 requests per
                 call. It reaches <code>ProxyUtils</code>, <code>produceArtifact()</code>,
                 <code>$arguments</code> and <code>$options</code>, and returns its document by
@@ -694,7 +706,7 @@ watch(host.init, (value) => {
                 <code>$options._res.headers</code>.
               </span>
               <span v-else-if="!isPlain" class="field-optional">
-                Keep your own rules, DNS and groups. Only <code>proxies</code> is replaced — and any
+                Keep your own rules, DNS and groups. Only <code>proxies</code> is replaced, and any
                 group left pointing at a node that is gone gets the new ones instead.
               </span>
             </div>
@@ -715,7 +727,7 @@ watch(host.init, (value) => {
               </select>
               <span class="field-optional">
                 <template v-if="!nodeSources.length">
-                  There is nothing to point at yet — create a subscription on the Subscriptions tab
+                  There is nothing to point at yet, create a subscription on the Subscriptions tab
                   first.
                 </template>
                 <template v-else-if="isScript">
@@ -779,7 +791,7 @@ watch(host.init, (value) => {
           <p class="field-optional">
             <template v-if="isPlain">
               A script receives the document and returns what gets served. The node operators do
-              not appear here — the engine skips them for responses.
+              not appear here. The engine skips them for responses.
             </template>
             <template v-else>
               Operations run over the nodes before they are placed into the configuration.
@@ -815,7 +827,7 @@ watch(host.init, (value) => {
 
       <div v-if="subs.preview.value?.document" class="preview-summary">
         <p class="mono">
-          What a client receives<span v-if="subs.preview.value.truncated"> — truncated</span>
+          What a client receives<span v-if="subs.preview.value.truncated">, truncated</span>
         </p>
         <pre class="output-area mono" tabindex="0">{{ subs.preview.value.document }}</pre>
       </div>
@@ -939,7 +951,7 @@ watch(host.init, (value) => {
              list, so the one message saying "showing the last good read" was
              the only thing left on screen and there was nothing to show. -->
         <p v-if="subs.staleError.value" class="stale-strip" role="status">
-          Showing the last good read — the newest reload failed ({{ subs.staleError.value }}).
+          Showing the last good read. The newest reload failed ({{ subs.staleError.value }}).
         </p>
 
         <LtEmptyState
@@ -1153,7 +1165,7 @@ watch(host.init, (value) => {
             </LtButton>
           </div>
           <p v-else class="row-popover-note">
-            This frame cannot ask the console to navigate — open Networking → Subscription Shares
+            This frame cannot ask the console to navigate, open Networking → Subscription Shares
             yourself.
           </p>
         </template>

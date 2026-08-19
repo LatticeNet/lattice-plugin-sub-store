@@ -122,7 +122,7 @@ const canPreviewNow = computed(
  * What the current preview covers. A cut preview has to say so on the result,
  * or the operator reads a partial node list as the record's real output. The
  * chain hands over the label it shows in the list, because chain indices and
- * list positions differ — settings-managed steps live in the same array but
+ * list positions differ, settings-managed steps live in the same array but
  * are edited above, so a computed position would name a different step than
  * the one that was clicked.
  */
@@ -193,7 +193,7 @@ const SOURCES = [
   {
     id: SOURCE_LOCAL,
     title: "Nodes I paste",
-    detail: "URI list, base64, Clash YAML or sing-box JSON — the engine detects the format.",
+    detail: "URI list, base64, Clash YAML or sing-box JSON. The engine detects the format.",
     icon: ClipboardPaste,
   },
 ] as const;
@@ -328,7 +328,7 @@ function describe(item: SubscriptionListItem): string {
 
 // ── empty state: guidance, not a dead end ───────────────────────────────────
 
-/** Nothing on this tab at all — the moment to offer migration alongside
+/** Nothing on this tab at all. The moment to offer migration alongside
  *  creation. A filter that merely hides everything is not this moment. */
 const storeEmpty = computed(() => onThisTab.value.length === 0);
 
@@ -344,7 +344,7 @@ async function runMigrate(): Promise<void> {
   const combos = landed.filter((item) => item.kind === KIND_COLLECTION).length;
   migrateSummary.value =
     `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s). ` +
-    "Nothing is published yet — publish a share in Networking → Subscription Shares to make them reachable.";
+    "Nothing is published yet, publish a share in Networking → Subscription Shares to make them reachable.";
   migrateUrl.value = "";
 }
 
@@ -394,7 +394,7 @@ const unsortedRows = computed(() => {
  * Chip counts reflect the search too.
  *
  * They used to apply the tag filter but not the search box, so typing left
- * "Subs (12)" sitting above a list of two — two ways of narrowing the same list
+ * "Subs (12)" sitting above a list of two, two ways of narrowing the same list
  * telling the operator different things.
  */
 const searchedRows = computed(() => {
@@ -461,7 +461,7 @@ function toggleSelectAll(): void {
  * This replaced a dense table whose fixed column widths could not hold real
  * data: inside the console's frame a name like "merge-cd-openjobs" wrapped
  * onto three lines, its tags spilled into the neighbouring column, and two
- * columns (Status, Quota) were "Never refreshed" and "—" for every row. A
+ * columns (Status, Quota) were "Never refreshed" and "-" for every row. A
  * table earns its columns by having values in them; this data does not.
  */
 const groups = computed(() => {
@@ -487,7 +487,7 @@ const openMenuId = ref("");
 /**
  * A popover that only closes when another one opens is a popover the operator
  * has to fight. Outside click and Escape both dismiss it, and because it is
- * absolutely positioned it never changes the document height — on the last row
+ * absolutely positioned it never changes the document height, on the last row
  * it could otherwise extend past the frame with its own items unreachable, so
  * opening one also re-reports the height.
  */
@@ -560,7 +560,7 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * The editor's sections, split the way Sub-Store splits them: what the record
  * is called, what it is made of, and what is done to it. A single scroll of
  * eight fieldsets made the operator hunt for the one field they came to change
- * and buried the operator chain — the thing this plugin exists for — below
+ * and buried the operator chain. The thing this plugin exists for, below
  * everything else.
  */
 type EditorTab = "display" | "content" | "operations";
@@ -570,6 +570,19 @@ const EDITOR_TABS: { id: EditorTab; label: string }[] = [
   { id: "content", label: "Content" },
   { id: "operations", label: "Operations" },
 ];
+
+/**
+ * Which tab holds the field the current error is about.
+ *
+ * A tabbed form that reports "Give it a name." at the bottom of the Content tab
+ * says what is wrong and not where: the name lives two tabs away and nothing
+ * points at it. Every message except that one is about the source, so this is
+ * read off the draft rather than by matching the message text.
+ */
+const errorTab = computed<EditorTab | "">(() => {
+  if (!draftError.value) return "";
+  return draft.value.name.trim() ? "content" : "display";
+});
 
 /** The chain's size, shown on the tab so it is visible without opening it. */
 /**
@@ -590,8 +603,8 @@ const chainCount = computed(
 /** The preview/copy sheet: the one-click path to a client configuration. */
 const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
 /**
- * Where overlays open. This document is not a viewport — the host sizes the
- * frame to the content — so an overlay has to be placed at the click rather
+ * Where overlays open. This document is not a viewport. The host sizes the
+ * frame to the content, so an overlay has to be placed at the click rather
  * than centred in a frame whose top may be far above the fold.
  */
 const overlayAnchor = ref(32);
@@ -697,7 +710,7 @@ async function publishFromDrawer(destination: string, method: string, format: st
 /**
  * Shares are published by the dashboard, not by this frame: the frame can only
  * ask the console to navigate there. The origin is the one the bridge pinned
- * from the frame URL — re-read here rather than trusted from a second source.
+ * from the frame URL, re-read here rather than trusted from a second source.
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
@@ -712,7 +725,7 @@ function openShares(recordName: string): void {
  * Load after the bridge handshake, not on mount.
  *
  * `available()` reads the interfaces the host declares for this frame, and on
- * first paint that has not arrived — so loading in `onMounted` alone silently
+ * first paint that has not arrived, so loading in `onMounted` alone silently
  * no-ops and never retries.
  */
 async function loadAll(): Promise<void> {
@@ -784,6 +797,12 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         >
           {{ tab.label }}
           <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
+          <span
+            v-if="errorTab === tab.id && editorTab !== tab.id"
+            class="editor-tab-flag"
+            :title="draftError"
+            aria-label="This section has a problem"
+          />
         </button>
       </nav>
 
@@ -801,7 +820,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           />
           <span class="field-optional">
             <template v-if="editingId">
-              Stored as <code>{{ editingId }}</code>. Renaming is safe — a published share keeps
+              Stored as <code>{{ editingId }}</code>. Renaming is safe. A published share keeps
               working.
             </template>
             <template v-else>The only thing you have to fill in.</template>
@@ -869,7 +888,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           />
           <span class="field-optional">
             The export returns every node this fleet serves. Naming a proxy user narrows it to
-            theirs — useful when one share is meant for one person.
+            theirs, useful when one share is meant for one person.
           </span>
         </label>
 
@@ -1022,7 +1041,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                form is long, and a banner at the top is off-screen from the
                click that triggered it. -->
           <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
-          <span v-else-if="draftError" class="field-error">{{ draftError }}</span>
+          <!-- Clickable, because the field it names is usually on another tab. -->
+          <button
+            v-else-if="draftError"
+            type="button"
+            class="field-error field-error-jump"
+            :title="`Go to the ${EDITOR_TABS.find((t) => t.id === errorTab)?.label} section`"
+            @click="editorTab = errorTab || editorTab"
+          >
+            {{ draftError }}
+          </button>
           <button
             class="button button-secondary"
             type="button"
@@ -1074,7 +1102,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <LtButton
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
             :title="!singles.length
-              ? 'Create a subscription first — there is nothing to combine'
+              ? 'Create a subscription first. There is nothing to combine'
               : subs.atRecordLimit.value
                 ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
                 : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
@@ -1136,7 +1164,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </button>
           </form>
           <p class="row-popover-note">
-            Importing publishes nothing — each subscription stays unserved until you share it.
+            Importing publishes nothing. Each subscription stays unserved until you share it.
           </p>
           <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
         </div>
@@ -1231,7 +1259,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
              below are then the last good read, and saying so beats either
              blanking them or pretending they are current. -->
         <p v-if="subs.staleError.value" class="stale-strip" role="status">
-          Showing the last good read — the newest reload failed ({{ subs.staleError.value }}).
+          Showing the last good read. The newest reload failed ({{ subs.staleError.value }}).
         </p>
 
         <LtEmptyState
@@ -1467,7 +1495,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </LtButton>
           </div>
           <p v-else class="row-popover-note">
-            This frame cannot ask the console to navigate — open Networking → Subscription Shares
+            This frame cannot ask the console to navigate, open Networking → Subscription Shares
             yourself.
           </p>
         </template>
@@ -1490,9 +1518,30 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 </template>
 
 <style scoped>
+/* A tab whose section holds the problem. A dot, not a colour swap: the tab is
+   still a tab, and colour alone would say nothing to anyone who cannot see it
+   (hence the title and the label). */
+.editor-tab-flag {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--lt-danger);
+}
+
+.field-error-jump {
+  border: 0;
+  border-left: 2px solid var(--lt-danger);
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.field-error-jump:hover { text-decoration: underline; }
+.field-error-jump:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
 /* The toolbar, chip and breadcrumb rules that used to live here now sit in
    styles.css. They were scoped, and the Files screen used the same class
-   names — so its search box and every filter chip rendered as raw user-agent
+   names, so its search box and every filter chip rendered as raw user-agent
    controls: white boxes in a dark toolbar. What is left below is genuinely
    this screen's own. */
 

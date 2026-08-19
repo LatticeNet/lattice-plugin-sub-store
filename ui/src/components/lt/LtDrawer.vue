@@ -7,10 +7,10 @@ import { X } from "@lucide/vue";
  * One drawer at a time; Esc and the scrim both close it.
  *
  * Two things this has to get right that a normal page does not. The document is
- * not a viewport — the host sizes the frame to the content — so the scrim is
+ * not a viewport. The host sizes the frame to the content, so the scrim is
  * absolute over the document and the panel opens at the anchor the click
- * supplied rather than at the top of a frame that may be far above the fold.
- * And Escape only reaches a handler on an element that has focus, so the panel
+ * supplied rather than at the top of a frame that may be far above the fold,
+ * and Escape only reaches a handler on an element that has focus, so the panel
  * takes focus when it opens; without that the key did nothing until the
  * operator had tabbed inside, which is the opposite of an escape hatch.
  */

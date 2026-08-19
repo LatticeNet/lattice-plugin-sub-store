@@ -131,7 +131,7 @@ export function enabledSteps(draft: SubscriptionDraft): unknown[] {
  *
  * `upTo` cuts the chain after one step, which is how the editor answers the
  * question a long chain always raises: which step dropped my nodes? Upstream
- * can only preview the whole chain, so this is ours — the engine already
+ * can only preview the whole chain, so this is ours. The engine already
  * accepts an arbitrary operator array, so the cut costs nothing but the
  * slice. The index counts positions in the FULL chain (what the operator
  * sees in the list), and disabled and response-stage steps are removed after
@@ -249,7 +249,7 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
 /**
  * A subscription needs somewhere for its content to come from. Without either
  * a provider URL or inline content there is nothing to render, and the failure
- * would only surface later as a subscription that serves nothing — which the
+ * would only surface later as a subscription that serves nothing, which the
  * core turns into a bodiless 404, giving the operator no clue why.
  */
 export function validateDraft(draft: SubscriptionDraft): string {
@@ -280,7 +280,7 @@ export function validateDraft(draft: SubscriptionDraft): string {
     // request time with an error only the operator's logs would show.
     if (draft.fileType === FILE_TYPE_SCRIPT && !draft.nodeSource.trim()) {
       if (/produceArtifact\s*\(/.test(draft.content)) {
-        return "This script asks for nodes — choose the subscription or combination it should get them from.";
+        return "This script asks for nodes, choose the subscription or combination it should get them from.";
       }
     }
     return "";
@@ -368,7 +368,7 @@ export function useSubscriptions(host: HostContext) {
    *
    * `load()` runs again after save, delete and refresh. When that trailing read
    * failed it used to set `loadError`, and the screen keys its error state off
-   * that alone — so a write that SUCCEEDED could blank the rows the operator
+   * that alone, so a write that SUCCEEDED could blank the rows the operator
    * still had and tell them the list could not be loaded. A silent reload now
    * reports through `staleError`, which the screen shows as a strip above rows
    * that are still exactly what the server last sent.
@@ -405,7 +405,7 @@ export function useSubscriptions(host: HostContext) {
       operatorsState.value = "ready";
     } catch {
       // A missing catalogue costs the editor its operator hints and nothing
-      // else, so it is not worth an error banner over the whole tab — but the
+      // else, so it is not worth an error banner over the whole tab, but the
       // chain must be able to say "unavailable" instead of "loading" forever.
       operators.value = [];
       operatorsState.value = "error";
@@ -437,7 +437,7 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
-  /** Full record including content and operators — `list` omits both. */
+  /** Full record including content and operators, `list` omits both. */
   async function get(id: string): Promise<SubscriptionRecord | null> {
     if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
     actionError.value = "";
@@ -569,7 +569,7 @@ export function useSubscriptions(host: HostContext) {
         return false;
       }
       // Deleting the definition does not retract anything already published.
-      notice.value = `Deleted ${id}. A share published for it still exists — remove it in the dashboard.`;
+      notice.value = `Deleted ${id}. A share published for it still exists, remove it in the dashboard.`;
       await load();
       return true;
     } catch (cause) {
@@ -607,7 +607,7 @@ export function useSubscriptions(host: HostContext) {
     } finally {
       busyId.value = null;
       // The core may have moved a record's bookkeeping since the list was
-      // read — reload so the row shows the current status rather than what it
+      // read, reload so the row shows the current status rather than what it
       // said before. Best-effort: a reload failure must not replace the
       // check's own (already reported) outcome with an unhandled rejection.
       try {
@@ -640,7 +640,7 @@ export function useSubscriptions(host: HostContext) {
       // The cause is what separates "the destination refused the credentials"
       // from "the host is unreachable". Discarding it made every failure read
       // the same and left the operator with nothing to act on.
-      actionError.value = `Publish failed: ${safeErrorMessage(cause, "the destination did not accept it")} — the saved definition and destination were not changed.`;
+      actionError.value = `Publish failed: ${safeErrorMessage(cause, "the destination did not accept it")}. The saved definition and destination were not changed.`;
       return false;
     } finally {
       busyId.value = null;
@@ -653,7 +653,7 @@ export function useSubscriptions(host: HostContext) {
    * opening the editor.
    *
    * One open popover at a time, tracked here rather than per row, because the
-   * state is genuinely singular — two rows never need comparing, and two open
+   * state is genuinely singular, two rows never need comparing, and two open
    * panels would each need their own loading and error handling for no gain.
    */
   interface RowPreview {
@@ -724,7 +724,7 @@ export function useSubscriptions(host: HostContext) {
       // Sending the draft rather than the id previews unsaved edits; the
       // backend falls back to the stored record when raw is empty. A draft
       // whose source is the fleet or a provider link has no pasted content at
-      // all, so its source goes along — the engine resolves it live (read
+      // all, so its source goes along. The engine resolves it live (read
       // only; nothing is persisted as a refresh).
       const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
         subscription_id: draft.id.trim(),
@@ -776,7 +776,7 @@ export function useSubscriptions(host: HostContext) {
     if (!record) return null;
     // The NAME has to be unique too, not only the id. Copying twice produced
     // two rows reading "Home nodes copy", which is a list an operator cannot
-    // act on — the id that distinguishes them is not shown.
+    // act on. The id that distinguishes them is not shown.
     const name = uniqueName(`${record.name || id} copy`, items.value.map((item) => item.name));
     const copy: SubscriptionRecord = {
       ...record,

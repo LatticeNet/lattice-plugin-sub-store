@@ -3,7 +3,7 @@
  *
  * Only CodeEditor.vue imports this module, and only via dynamic import(): the
  * list screens ship none of it, and the editor chunk is fetched from inside
- * the signed bundle the first time an editing surface mounts — the sandbox
+ * the signed bundle the first time an editing surface mounts. The sandbox
  * CSP never sees an external host. Keep this file free of imports from the
  * rest of the app, or the chunk boundary quietly dissolves.
  */
@@ -75,7 +75,7 @@ const chrome = EditorView.theme({
   ".cm-placeholder": { color: "var(--lt-fg-muted)" },
 });
 
-/** Semantic colors only — the same discipline as the rest of the plugin. */
+/** Semantic colors only. The same discipline as the rest of the plugin. */
 const highlight = HighlightStyle.define([
   { tag: [tags.keyword, tags.operatorKeyword], color: "var(--lt-accent)" },
   { tag: [tags.string, tags.special(tags.string)], color: "var(--lt-ok)" },
@@ -138,7 +138,7 @@ export function createEditor(options: {
           ? EditorView.contentAttributes.of({ "aria-labelledby": options.ariaLabelledby })
           : [],
         // Tab indents, which makes the editor a keyboard trap unless there is a
-        // way out: Escape first, then Tab, moves focus on — the standard
+        // way out: Escape first, then Tab, moves focus on. The standard
         // CodeMirror escape hatch, and the only one a keyboard operator can
         // discover from the focus ring alone.
         keymap.of([{ key: "Escape", run: () => { escapeArmed = true; return false; } }]),

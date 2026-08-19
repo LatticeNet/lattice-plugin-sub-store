@@ -5,7 +5,7 @@ import { HANDSHAKE_TIMEOUT_MS, useHandshakeTimeout } from "./handshakeTimeout";
 
 /**
  * Standalone open hangs on "Loading…" forever unless something says so. These
- * pin the timeout that turns the silence into a statement — and the reset that
+ * pin the timeout that turns the silence into a statement, and the reset that
  * keeps a slow-but-real host from getting stuck behind the notice.
  */
 
