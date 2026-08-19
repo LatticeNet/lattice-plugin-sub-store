@@ -908,7 +908,7 @@ watch(host.init, (value) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono" :title="`${allFiles.length} of ${MAX_SUBSCRIPTION_RECORDS} records stored`">
+          <span class="badge mono" :title="`${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`">
             {{ allFiles.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}
           </span>
           <LtButton
@@ -916,7 +916,7 @@ watch(host.init, (value) => {
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
             :title="subs.atRecordLimit.value
               ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
-              : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
+              : !subs.canMutate.value ? 'This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.' : ''"
             @click="startCreate()"
           >
             <Plus :size="14" aria-hidden="true" /> New file
@@ -1247,8 +1247,8 @@ watch(host.init, (value) => {
         :open="!!deleteTargets"
         :anchor-top="overlayAnchor"
         :title="(deleteTargets?.ids.length ?? 0) === 1
-          ? 'Delete this file? A published share for it keeps existing and starts returning nothing.'
-          : `Delete ${deleteTargets?.ids.length ?? 0} files? Published shares for them keep existing and start returning nothing.`"
+          ? 'Delete this file? Any share published for it keeps existing and starts returning nothing.'
+          : `Delete ${deleteTargets?.ids.length ?? 0} files? Any shares published for them keep existing and start returning nothing.`"
         verb="Delete"
         :names="deleteTargets?.names ?? []"
         :busy="deleteBusy"

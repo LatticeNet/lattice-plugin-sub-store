@@ -424,7 +424,7 @@ export function useSubscriptions(host: HostContext) {
     try {
       const response = await callMethod<GraphOptionsResponse>(host.bridge, BINDINGS.subGraphOptions, {}).promise;
       if (!response.ok || response.schema_version !== 1 || !response.options_version) {
-        throw new Error("Graph options were not authoritative");
+        throw new Error("The server returned a graph option set this page cannot trust, so the editor was left closed rather than shown with stale choices.");
       }
       graphOptions.value = {
         ...response,
@@ -545,7 +545,7 @@ export function useSubscriptions(host: HostContext) {
         subscription: record,
       }).promise;
       if (!response.saved) {
-        actionError.value = "The backend did not confirm the save.";
+        actionError.value = "The server did not confirm the save, so this record may or may not have been written. Reload the list before saving again.";
         return false;
       }
       notice.value = `Saved ${record.name}.`;
@@ -570,11 +570,11 @@ export function useSubscriptions(host: HostContext) {
         subscription_id: id,
       }).promise;
       if (!response.deleted) {
-        actionError.value = "The backend did not confirm the deletion.";
+        actionError.value = "The server did not confirm the deletion, so this record may or may not still exist. Reload the list before deleting again.";
         return false;
       }
       // Deleting the definition does not retract anything already published.
-      notice.value = `Deleted ${id}. A share published for it still exists, remove it in the dashboard.`;
+      notice.value = `Deleted ${id}. Deleting the definition does not retract anything already published: if a share exists for it, remove that in the dashboard under Networking.`;
       await load();
       return true;
     } catch (cause) {
@@ -598,7 +598,7 @@ export function useSubscriptions(host: HostContext) {
       if (!response.ok) {
         // A failed fetch is not a failed subscription: the server keeps the
         // last good snapshot and clients stay working. Say both things.
-        actionError.value = "Provider refresh failed. The last good snapshot is still being served.";
+        actionError.value = "The provider refresh failed and changed nothing. Clients keep getting whatever this record already had, which may be nothing.";
         return false;
       }
       notice.value =
@@ -607,7 +607,7 @@ export function useSubscriptions(host: HostContext) {
           : `Refreshed ${id}.`;
       return true;
     } catch (cause) {
-      actionError.value = `${safeErrorMessage(cause, "Subscription could not be refreshed")}. The last good snapshot is still being served.`;
+      actionError.value = `${safeErrorMessage(cause, "Subscription could not be refreshed")}. The refresh did not complete, so nothing about this record changed.`;
       return false;
     } finally {
       busyId.value = null;
@@ -637,9 +637,11 @@ export function useSubscriptions(host: HostContext) {
         format: format.trim() || "plain",
       }).promise;
       if (response.subscription_id !== id || response.status_code < 200 || response.status_code >= 300) {
-        throw new Error("Publish was not confirmed");
+        throw new Error(
+          `the publish call came back with status ${response.status_code} for record ${response.subscription_id || "(none)"}`,
+        );
       }
-      notice.value = `Published ${response.bytes} bytes for ${id}.`;
+      notice.value = `Published ${response.bytes} bytes for ${id}. The destination accepted them; whether anything downstream serves them is not visible from here.`;
       return true;
     } catch (cause) {
       // The cause is what separates "the destination refused the credentials"
@@ -830,7 +832,7 @@ export function useSubscriptions(host: HostContext) {
         subscription: copy,
       }).promise;
       if (!response.saved) {
-        actionError.value = "The backend did not confirm the copy.";
+        actionError.value = "The server did not confirm the copy, so the new record may or may not have been written. Reload the list before copying again.";
         return null;
       }
       notice.value = `Copied to ${name}.`;

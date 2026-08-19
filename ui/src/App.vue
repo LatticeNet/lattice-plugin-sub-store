@@ -30,10 +30,16 @@ try {
       init.value = value;
     })
     .catch((cause) => {
-      bootError.value = safeErrorMessage(cause, "Plugin host unavailable");
+      bootError.value = safeErrorMessage(
+        cause,
+        "The console answered the handshake with a refusal and gave no reason.",
+      );
     });
 } catch (cause) {
-  bootError.value = safeErrorMessage(cause, "Plugin host unavailable");
+  bootError.value = safeErrorMessage(
+    cause,
+    "This page could not open a channel to the console.",
+  );
 }
 
 async function resize(): Promise<void> {
