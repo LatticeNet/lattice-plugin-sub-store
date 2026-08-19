@@ -1129,3 +1129,36 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   color: var(--lt-fg-muted);
   font-size: 12px;
 }
+
+/* ── files: the same list idiom the subscriptions tab uses ────────────────── */
+
+.rec-select {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+}
+
+.rec-group-head-static {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lt-fg-muted);
+}
+
+.lt-batch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius, 6px);
+  background: var(--lt-surface-2);
+  font-size: 12px;
+}
+
+.lt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -351,12 +351,6 @@ async function runMigrate(): Promise<void> {
 
 // ── row status ──────────────────────────────────────────────────────────────
 
-/** "refreshed 3h ago", or "" when the record has never been fetched. */
-function refreshedLabel(item: SubscriptionListItem): string {
-  if (!item.last_fetch_at) return "";
-  const relative = formatRelativeTime(item.last_fetch_at);
-  return relative ? `refreshed ${relative}` : "";
-}
 
 /** The provider's quota line, compact; "" when there is nothing honest to say. */
 function trafficOf(item: SubscriptionListItem): string {
@@ -380,12 +374,6 @@ const filteredRows = computed(() =>
   }),
 );
 
-/** Status ranks worst-first so "sort by status" surfaces failures. */
-function statusRank(item: SubscriptionListItem): number {
-  if (item.last_fetch_ok === false) return 0;
-  if (!item.last_fetch_at) return 1;
-  return 2;
-}
 
 /**
  * Records are shown as a grouped list, the way Sub-Store shows them: one
@@ -432,6 +420,12 @@ async function toggleRowMenu(id: string): Promise<void> {
   openMenuId.value = openMenuId.value === id ? "" : id;
   await host.resize();
 }
+// Re-read on return: a file saved on the sibling tab changes what this list
+// can point at, and a restore from Settings replaces everything.
+onActivated(() => {
+  if (host.init.value) void loadAll();
+});
+
 onMounted(() => {
   document.addEventListener("click", onDocumentClick, true);
   document.addEventListener("keydown", onDocumentKeydown);
@@ -1152,7 +1146,10 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   </template>
                   <template v-if="row.target"> · always {{ row.target }}</template>
                 </p>
-                <p class="rec-meta mono">
+                <!-- The id is what ties a row to a published share, and it is
+                     the first thing to be truncated, so it carries its full
+                     value for hover and assistive tech. -->
+                <p class="rec-meta mono" :title="row.id">
                   {{ row.id }}
                   <template v-if="statusOf(row).label !== 'Never refreshed'">
                     · <span :class="`rec-status is-${statusOf(row).tone}`">{{ statusOf(row).label }}</span>
@@ -1343,40 +1340,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 }
 .lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .lt-chip-sep { width: 1px; height: 16px; background: var(--lt-border); margin: 0 var(--lt-space-1); }
-.lt-columns { position: relative; }
-.lt-columns-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 40;
-  background: var(--lt-surface);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  padding: var(--lt-space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--lt-space-1);
-  box-shadow: 0 8px 24px color-mix(in oklab, var(--lt-fg) 14%, transparent);
-}
-.lt-columns-item {
-  display: flex;
-  align-items: center;
-  gap: var(--lt-space-2);
-  font-size: var(--lt-text-sm);
-  white-space: nowrap;
-  cursor: pointer;
-}
-.cell-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.cell-name-title {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--lt-space-1);
-  font-weight: 500;
-  color: var(--lt-fg);
-}
-.cell-name-sub { font-family: var(--lt-mono); font-size: var(--lt-text-xs); color: var(--lt-fg-muted); }
 .cell-dim { color: var(--lt-fg-muted); }
-.cell-actions { display: inline-flex; gap: 2px; justify-content: flex-end; }
 .lt-breadcrumb {
   display: flex;
   align-items: center;
@@ -1455,27 +1419,6 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 
 .choice-row button {
   border-color: var(--border, #d9dde2);
-}
-
-.group-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.group-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 2px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .group-caret {

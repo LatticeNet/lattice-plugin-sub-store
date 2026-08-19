@@ -637,8 +637,10 @@ export function useSubscriptions(host: HostContext) {
       notice.value = `Published ${response.bytes} bytes for ${id}.`;
       return true;
     } catch (cause) {
-      void cause;
-      actionError.value = "Publish failed; the saved definition and destination were not changed.";
+      // The cause is what separates "the destination refused the credentials"
+      // from "the host is unreachable". Discarding it made every failure read
+      // the same and left the operator with nothing to act on.
+      actionError.value = `Publish failed: ${safeErrorMessage(cause, "the destination did not accept it")} — the saved definition and destination were not changed.`;
       return false;
     } finally {
       busyId.value = null;
