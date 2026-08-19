@@ -82,30 +82,33 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
 .common {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 12px;
-  background: var(--background, #f7f8f9);
+  gap: var(--lt-space-3);
+  max-width: var(--lt-measure-form);
+  padding: var(--lt-space-4);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
 }
 
 .common h3 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--lt-text-lg);
+  font-weight: 650;
 }
 
 .common-row {
   display: grid;
   grid-template-columns: minmax(160px, 220px) 1fr;
   grid-template-areas: "label choices" "hint hint";
-  gap: 6px 16px;
+  gap: var(--lt-space-1) var(--lt-space-4);
   align-items: center;
 }
 
+.common-row + .common-row { padding-top: var(--lt-space-3); border-top: 1px solid var(--lt-border); }
+
 .common-label {
   grid-area: label;
-  font-size: 13px;
+  font-size: var(--lt-text-md);
   font-weight: 600;
 }
 
@@ -113,30 +116,34 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
   grid-area: choices;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--lt-space-1);
 }
 
 .common-choices button {
-  padding: 5px 12px;
-  border: 1px solid var(--border, #d9dde2);
+  height: var(--lt-control-h);
+  padding: 0 var(--lt-space-3);
+  border: 1px solid var(--lt-border);
   border-radius: 999px;
-  background: transparent;
-  color: inherit;
-  font-size: 12px;
-  cursor: pointer;
+  background: var(--lt-bg);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
 }
 
+.common-choices button:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.common-choices button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
 .common-choices button.is-active {
-  border-color: var(--primary, #1769aa);
-  background: color-mix(in srgb, var(--primary, #1769aa) 14%, transparent);
-  color: var(--primary, #1769aa);
+  border-color: var(--lt-accent);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
 }
 
 .common-hint {
   grid-area: hint;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--muted-foreground, #656d76);
+  max-width: var(--lt-measure-prose);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+  color: var(--lt-fg-muted);
 }
 
 @media (max-width: 620px) {

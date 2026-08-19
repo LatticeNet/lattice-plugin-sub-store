@@ -304,10 +304,10 @@ function close(): void {
             of {{ preview.response.source_node_count }} before the chain
           </span>
         </h3>
-        <pre v-if="preview.response.document" class="result-doc">{{ preview.response.document }}</pre>
-        <ul v-else class="result-nodes">
-          <li v-for="(node, index) in preview.response.nodes.slice(0, 40)" :key="`${node.name}:${index}`">
-            <span class="node-name">{{ node.name }}</span>
+        <pre v-if="preview.response.document" class="result-doc" tabindex="0">{{ preview.response.document }}</pre>
+        <ul v-else class="node-list">
+          <li v-for="(node, index) in preview.response.nodes.slice(0, 40)" :key="`${node.name}:${index}`" class="node-row">
+            <span class="node-name" :title="node.name">{{ node.name }}</span>
             <span class="node-meta">{{ node.type }}<template v-if="node.server"> · {{ node.server }}</template></span>
           </li>
         </ul>
@@ -321,7 +321,7 @@ function close(): void {
           {{ rendered.target }}
           <span class="result-sub">{{ rendered.content.length }} bytes · {{ rendered.contentType }}</span>
         </h3>
-        <pre class="result-doc">{{ rendered.content }}</pre>
+        <pre class="result-doc" tabindex="0">{{ rendered.content }}</pre>
       </section>
     </section>
   </div>

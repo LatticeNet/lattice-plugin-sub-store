@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { X } from "@lucide/vue";
 
 import { schemaFor, type OperatorField } from "../operatorSchema";
 import CodeEditor from "./CodeEditor.vue";
@@ -286,7 +287,15 @@ function setRaw(text: string): void {
               :value="row[1]"
               @input="setPair(field, index, 1, ($event.target as HTMLInputElement).value)"
             />
-            <button type="button" class="op-pair-drop" @click="removePair(field, index)">✕</button>
+            <button
+              type="button"
+              class="op-pair-drop"
+              :aria-label="`Remove rule ${index + 1}`"
+              title="Remove this rule"
+              @click="removePair(field, index)"
+            >
+              <X :size="13" aria-hidden="true" />
+            </button>
           </div>
           <button type="button" class="op-pair-add" @click="addPair(field)">Add a rule</button>
         </div>
@@ -314,99 +323,163 @@ function setRaw(text: string): void {
 </template>
 
 <style scoped>
+/* Every control in here used to be a bare element with no rule of its own: an
+   operator's text field, its number field and both columns of a rename rule
+   rendered as user-agent inputs, which inside the console's dark theme means a
+   white box. They are the most-used controls in the plugin. */
+
 .op-args {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--lt-space-3);
 }
 
 .op-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--lt-space-1);
+  max-width: var(--lt-measure-form);
 }
 
 .op-label {
-  font-size: 12px;
-  font-weight: 650;
-  color: var(--foreground, #17191c);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+  color: var(--lt-fg);
 }
 
+.op-field > input,
+.op-pair input {
+  min-height: 30px;
+  padding: var(--lt-space-1) var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-bg);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  outline: none;
+  min-width: 0;
+}
+
+.op-field > input::placeholder { color: var(--lt-fg-muted); }
+
+.op-field > input:focus-visible,
+.op-pair input:focus-visible {
+  box-shadow: var(--lt-focus-ring-tight);
+  border-color: var(--lt-accent);
+}
+
+.op-field > input[type="text"] { max-width: var(--lt-measure-field); }
+.op-field > input[type="number"] { max-width: 12ch; }
+
 .op-hint {
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+  color: var(--lt-fg-muted);
+  max-width: var(--lt-measure-prose);
+}
+
+/* The raw-JSON fallback reports syntax errors here. The class had no rule at
+   all, so a typo in an operator's arguments was announced in exactly the same
+   muted grey as the help text under it. */
+.op-hint-error {
+  padding: var(--lt-space-1) var(--lt-space-2);
+  border-left: 2px solid var(--lt-danger);
+  border-radius: 0 var(--lt-radius-sm) var(--lt-radius-sm) 0;
+  background: var(--lt-danger-soft);
+  color: var(--lt-fg);
+  font-family: var(--lt-mono);
 }
 
 .op-none {
   margin: 0;
-  font-size: 12.5px;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-sm);
+  color: var(--lt-fg-muted);
 }
 
 .op-chips,
 .op-tri {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--lt-space-1);
 }
 
 .op-chips button,
 .op-tri button {
-  padding: 4px 10px;
-  border: 1px solid var(--border, #d9dde2);
+  height: var(--lt-control-h-sm);
+  padding: 0 var(--lt-space-3);
+  border: 1px solid var(--lt-border);
   border-radius: 999px;
-  background: transparent;
-  color: inherit;
-  font-size: 12px;
-  cursor: pointer;
+  background: var(--lt-surface);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
 }
+
+.op-chips button:hover,
+.op-tri button:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+
+.op-chips button:focus-visible,
+.op-tri button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .op-chips button.is-active,
 .op-tri button.is-active {
-  border-color: var(--primary, #1769aa);
-  background: color-mix(in srgb, var(--primary, #1769aa) 16%, transparent);
-  color: var(--primary, #1769aa);
+  border-color: var(--lt-accent);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
 }
 
 .op-switch {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
+  gap: var(--lt-space-2);
+  font-size: var(--lt-text-sm);
+  cursor: pointer;
 }
 
 .op-pairs {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--lt-space-1);
+  max-width: var(--lt-measure-form);
 }
 
 .op-pair-head,
 .op-pair {
   display: grid;
-  grid-template-columns: 1fr 1fr 28px;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 28px;
+  gap: var(--lt-space-1);
   align-items: center;
 }
 
 .op-pair-head span {
-  font-size: 11px;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-xs);
+  color: var(--lt-fg-muted);
 }
 
-.op-pair-drop,
-.op-pair-add {
-  padding: 4px 8px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 7px;
+.op-pair-drop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--lt-radius-sm);
   background: transparent;
-  color: inherit;
-  font-size: 12px;
-  cursor: pointer;
+  color: var(--lt-fg-muted);
 }
+.op-pair-drop:hover { background: var(--lt-danger-soft); color: var(--lt-danger); }
+.op-pair-drop:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
 .op-pair-add {
   align-self: flex-start;
+  height: var(--lt-control-h-sm);
+  margin-top: var(--lt-space-1);
+  padding: 0 var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  background: var(--lt-surface);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-xs);
 }
+.op-pair-add:hover { border-color: var(--lt-accent); color: var(--lt-accent); }
+.op-pair-add:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 </style>

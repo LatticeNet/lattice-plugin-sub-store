@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { GripVertical } from "@lucide/vue";
+import { ArrowDown, ArrowUp, GripVertical } from "@lucide/vue";
 
 import type { SubscriptionListItem } from "../client";
 
@@ -132,21 +132,30 @@ function describe(item: SubscriptionListItem): string {
         <span class="row-order mono">{{ index + 1 }}</span>
         <label class="row-main">
           <input type="checkbox" checked @change="toggle(item.id)" />
-          <span class="row-name">{{ item.display_name || item.name }}</span>
+          <span class="row-name" :title="item.display_name || item.name">{{ item.display_name || item.name }}</span>
           <span class="row-meta mono">{{ describe(item) }}</span>
         </label>
         <span class="row-tags">
           <span v-for="tag in item.tags ?? []" :key="tag" class="row-tag">{{ tag }}</span>
         </span>
         <span class="row-move">
-          <button type="button" :disabled="index === 0" aria-label="Move up" @click="move(index, index - 1)">↑</button>
+          <button
+            type="button"
+            :disabled="index === 0"
+            :aria-label="`Move ${item.display_name || item.name} up`"
+            title="Move up"
+            @click="move(index, index - 1)"
+          >
+            <ArrowUp :size="13" aria-hidden="true" />
+          </button>
           <button
             type="button"
             :disabled="index === chosen.length - 1"
-            aria-label="Move down"
+            :aria-label="`Move ${item.display_name || item.name} down`"
+            title="Move down"
             @click="move(index, index + 1)"
           >
-            ↓
+            <ArrowDown :size="13" aria-hidden="true" />
           </button>
         </span>
       </li>
@@ -160,7 +169,7 @@ function describe(item: SubscriptionListItem): string {
       <li v-for="item in rest" :key="item.id" class="row">
         <label class="row-main">
           <input type="checkbox" @change="toggle(item.id)" />
-          <span class="row-name">{{ item.display_name || item.name }}</span>
+          <span class="row-name" :title="item.display_name || item.name">{{ item.display_name || item.name }}</span>
           <span class="row-meta mono">{{ describe(item) }}</span>
         </label>
         <span class="row-tags">
@@ -170,7 +179,7 @@ function describe(item: SubscriptionListItem): string {
     </ul>
 
     <p v-else-if="!chosen.length" class="picker-note">
-      <template v-if="tagFilter">Nothing tagged “{{ tagFilter }}”.</template>
+      <template v-if="tagFilter">Nothing tagged "{{ tagFilter }}".</template>
       <template v-else>There are no subscriptions to combine yet.</template>
     </p>
   </div>
@@ -180,18 +189,18 @@ function describe(item: SubscriptionListItem): string {
 .picker {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 11px;
-  background: var(--background, #f7f8f9);
+  gap: var(--lt-space-2);
+  padding: var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-bg);
 }
 
 .picker-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--lt-space-3);
   flex-wrap: wrap;
 }
 
@@ -199,84 +208,92 @@ function describe(item: SubscriptionListItem): string {
 .picker-bulk {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--lt-space-1);
 }
 
 .picker-tags button,
 .picker-bulk button {
-  padding: 3px 10px;
+  height: var(--lt-control-h-sm);
+  padding: 0 var(--lt-space-3);
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: var(--muted-foreground, #656d76);
-  font-size: 11.5px;
-  cursor: pointer;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
 }
+
+.picker-tags button:hover,
+.picker-bulk button:hover:not(:disabled) { color: var(--lt-fg); }
+
+.picker-tags button:focus-visible,
+.picker-bulk button:focus-visible,
+.row-move button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .picker-tags button.is-active {
-  border-color: var(--primary, #1769aa);
-  color: var(--primary, #1769aa);
+  border-color: var(--lt-accent);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
 }
 
-.picker-bulk button {
-  border-color: var(--border, #d9dde2);
-}
-
-.picker-bulk button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+.picker-bulk button { border-color: var(--lt-border); }
+.picker-bulk button:disabled { opacity: 0.45; }
 
 .picker-chosen,
 .picker-rest {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
+  /* A store can hold 256 records. The unchosen list is the long one, and it
+     scrolls inside the picker rather than pushing the rest of the form down a
+     screen and a half. */
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 9px;
+  gap: var(--lt-space-2);
+  padding: var(--lt-space-1) var(--lt-space-2);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--lt-radius-sm);
 }
 
 .row.is-chosen {
-  border-color: color-mix(in srgb, var(--primary, #1769aa) 35%, var(--border, #d9dde2));
-  background: color-mix(in srgb, var(--primary, #1769aa) 7%, transparent);
+  border-color: var(--lt-accent-border);
+  background: var(--lt-accent-soft);
 }
 
-.row:hover {
-  background: var(--card, #fff);
-}
+.row:hover { background: var(--lt-surface-2); }
+.row.is-chosen:hover { background: var(--lt-accent-soft); }
 
 .row-grip {
-  color: var(--muted-foreground, #656d76);
+  display: inline-flex;
+  color: var(--lt-fg-muted);
   cursor: grab;
 }
 
 .row-order {
   min-width: 18px;
-  font-size: 11px;
-  color: var(--primary, #1769aa);
+  font-size: var(--lt-text-xs);
+  color: var(--lt-accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .row-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--lt-space-2);
   flex: 1;
   min-width: 0;
   cursor: pointer;
 }
 
 .row-name {
-  font-size: 13px;
+  font-size: var(--lt-text-md);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -284,48 +301,48 @@ function describe(item: SubscriptionListItem): string {
 }
 
 .row-meta {
-  font-size: 11px;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-xs);
+  color: var(--lt-fg-muted);
   white-space: nowrap;
+  flex: none;
 }
 
 .row-tags {
   display: flex;
-  gap: 4px;
+  gap: var(--lt-space-1);
   flex-wrap: wrap;
+  flex: none;
 }
 
 .row-tag {
-  padding: 1px 6px;
+  padding: 0 var(--lt-space-2);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--muted-foreground, #656d76) 18%, transparent);
-  font-size: 10px;
-  color: var(--foreground, #17191c);
+  background: var(--lt-neutral-soft);
+  font-size: var(--lt-text-xs);
+  line-height: 18px;
+  color: var(--lt-fg-muted);
 }
 
-.row-move {
-  display: flex;
-  gap: 3px;
-}
+.row-move { display: flex; gap: 2px; flex: none; }
 
 .row-move button {
-  padding: 2px 6px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--lt-radius-sm);
   background: transparent;
-  color: inherit;
-  font-size: 11px;
-  cursor: pointer;
+  color: var(--lt-fg-muted);
 }
 
-.row-move button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+.row-move button:hover:not(:disabled) { background: var(--lt-surface-2); color: var(--lt-fg); }
+.row-move button:disabled { opacity: 0.35; }
 
 .picker-note {
   margin: 0;
-  font-size: 11.5px;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-xs);
+  color: var(--lt-fg-muted);
 }
 </style>

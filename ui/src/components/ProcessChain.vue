@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
+import { ArrowDown, ArrowUp, ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
 
 import { defaultArgs, fromWireArgs, schemaFor, toWireArgs } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
@@ -212,20 +212,25 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
           <button
             type="button"
             class="step-title"
+            :aria-expanded="expanded === entry.index"
+            :title="label(entry.step, position + 1)"
             @click="expanded = expanded === entry.index ? null : entry.index"
           >
             <ChevronRight
               :size="14"
+              aria-hidden="true"
               :class="['step-caret', { 'is-open': expanded === entry.index }]"
             />
-            {{ label(entry.step, position + 1) }}
+            <span class="step-label">{{ label(entry.step, position + 1) }}</span>
+            <span v-if="entry.step.disabled" class="badge" data-tone="warning">off</span>
           </button>
 
           <div class="step-actions">
-            <label class="step-toggle">
+            <label class="step-toggle" :title="entry.step.disabled ? 'Turn this step back on' : 'Turn this step off without losing its arguments'">
               <input
                 type="checkbox"
                 :checked="!entry.step.disabled"
+                :aria-label="`Enable ${label(entry.step, position + 1)}`"
                 @change="toggleDisabled(entry.index)"
               />
               <span>Enabled</span>
@@ -234,47 +239,51 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon"
               :disabled="position === 0"
-              aria-label="Move up"
+              title="Move up"
+              :aria-label="`Move ${label(entry.step, position + 1)} up`"
               @click="moveVisible(entry.index, -1)"
             >
-              ↑
+              <ArrowUp :size="14" aria-hidden="true" />
             </button>
             <button
               type="button"
               class="step-icon"
               :disabled="position === visible.length - 1"
-              aria-label="Move down"
+              title="Move down"
+              :aria-label="`Move ${label(entry.step, position + 1)} down`"
               @click="moveVisible(entry.index, 1)"
             >
-              ↓
+              <ArrowDown :size="14" aria-hidden="true" />
             </button>
             <button
               v-if="canPreviewStep"
               type="button"
               class="step-icon"
               :disabled="entry.step.disabled || previewingStep !== null"
-              :title="`Preview the nodes as they leave this step`"
+              title="Preview the nodes as they leave this step"
               :aria-label="`Preview up to step ${position + 1}`"
               @click="emit('preview-step', entry.index, label(entry.step, position + 1))"
             >
-              <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" />
-              <Eye v-else :size="14" />
+              <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" aria-hidden="true" />
+              <Eye v-else :size="14" aria-hidden="true" />
             </button>
             <button
               type="button"
               class="step-icon"
-              aria-label="Duplicate step"
+              title="Duplicate"
+              :aria-label="`Duplicate ${label(entry.step, position + 1)}`"
               @click="duplicate(entry.index)"
             >
-              <Copy :size="14" />
+              <Copy :size="14" aria-hidden="true" />
             </button>
             <button
               type="button"
               class="step-icon is-danger"
-              aria-label="Remove step"
+              title="Remove"
+              :aria-label="`Remove ${label(entry.step, position + 1)}`"
               @click="remove(entry.index)"
             >
-              <Trash2 :size="14" />
+              <Trash2 :size="14" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -336,82 +345,99 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 </template>
 
 <style scoped>
+/* The chain is the signature interaction of this plugin, so it gets the same
+   card language as the editor fieldsets around it rather than a second one. */
+
 .chain {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--lt-space-3);
 }
 
 .chain-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--lt-space-3);
 }
 
 .chain-head h3 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--lt-text-lg);
+  font-weight: 650;
 }
 
 .chain-count {
-  font-size: 12px;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-sm);
+  color: var(--lt-fg-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .chain-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--lt-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .chain-step {
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 10px;
-  background: var(--background, #f7f8f9);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
 }
 
 /* A disabled step stays legible — it is kept precisely so it can be read and
-   switched back on, so fading it out would defeat the point. */
+   switched back on, so fading it out would defeat the point. The dashed edge
+   and the "off" badge carry the state instead. */
 .chain-step.is-off {
-  opacity: 0.6;
   border-style: dashed;
+  background: var(--lt-bg);
 }
 
 .step-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: var(--lt-space-2);
+  padding: var(--lt-space-1) var(--lt-space-2);
 }
 
 .step-grip {
-  color: var(--muted-foreground, #656d76);
+  display: inline-flex;
+  color: var(--lt-fg-muted);
   cursor: grab;
 }
 
 .step-title {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--lt-space-2);
   flex: 1;
-  padding: 4px 6px;
+  min-width: 0;
+  padding: var(--lt-space-1) var(--lt-space-1);
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--lt-radius-sm);
   background: transparent;
   color: inherit;
-  font-size: 13px;
+  font-size: var(--lt-text-md);
   font-weight: 600;
   text-align: left;
-  cursor: pointer;
+}
+
+.step-title:hover { background: var(--lt-surface-2); }
+.step-title:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
+.step-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .step-caret {
-  transition: transform 0.15s ease;
+  flex: none;
+  transition: transform var(--lt-dur) var(--lt-ease);
 }
 
 .step-caret.is-open {
@@ -421,128 +447,142 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 .step-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  flex: none;
 }
 
 .step-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  margin-right: 4px;
-  font-size: 11.5px;
-  color: var(--muted-foreground, #656d76);
+  gap: var(--lt-space-1);
+  margin-right: var(--lt-space-1);
+  font-size: var(--lt-text-xs);
+  color: var(--lt-fg-muted);
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .step-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  padding: 4px 6px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 7px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--lt-radius-sm);
   background: transparent;
-  color: inherit;
-  font-size: 12px;
-  cursor: pointer;
+  color: var(--lt-fg-muted);
 }
 
-.step-icon:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+.step-icon:hover:not(:disabled) { background: var(--lt-surface-2); color: var(--lt-fg); }
+.step-icon:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.step-icon:disabled { opacity: 0.35; }
 
-.step-icon.is-danger {
-  color: #f87171;
-}
+/* Was a literal #f87171, which is a light-theme red pinned into a frame that
+   inherits the console's palette. */
+.step-icon.is-danger { color: var(--lt-danger); }
+.step-icon.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
 
 .step-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 4px 12px 14px;
-  border-top: 1px solid var(--border, #d9dde2);
+  gap: var(--lt-space-3);
+  padding: var(--lt-space-1) var(--lt-space-3) var(--lt-space-3);
+  border-top: 1px solid var(--lt-border);
 }
 
 .step-name {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 650;
-  color: var(--foreground, #17191c);
+  gap: var(--lt-space-1);
+  max-width: var(--lt-measure-field);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+  color: var(--lt-fg);
 }
+
+.step-name input {
+  min-height: 32px;
+  padding: var(--lt-space-1) var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-bg);
+  color: var(--lt-fg);
+  font-weight: 400;
+  outline: none;
+}
+.step-name input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
 
 .chain-empty {
   margin: 0;
-  padding: 12px 14px;
-  border: 1px dashed var(--border, #d9dde2);
-  border-radius: 10px;
-  font-size: 12.5px;
-  color: var(--muted-foreground, #656d76);
+  padding: var(--lt-space-3);
+  border: 1px dashed var(--lt-border);
+  border-radius: var(--lt-radius);
+  font-size: var(--lt-text-sm);
+  color: var(--lt-fg-muted);
 }
 
 .add-block {
-  padding: 12px 14px 14px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 10px;
-  background: var(--background, #f7f8f9);
+  padding: var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-bg);
 }
 
 .add-label {
-  margin: 0 0 10px;
-  font-size: 11px;
+  margin: 0 0 var(--lt-space-2);
+  font-size: var(--lt-text-xs);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted-foreground, #656d76);
+  color: var(--lt-fg-muted);
 }
 
 .add-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--lt-space-1);
 }
 
 .add-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--lt-space-1);
   /* Fixed height so a two-word label does not make its whole row taller than
      the others — the grid reads as a set of equals or it reads as a mess. */
-  min-height: 40px;
-  padding: 6px 10px;
-  border: 1px solid var(--border, #d9dde2);
-  border-radius: 8px;
-  background: var(--card, #fff);
+  min-height: 38px;
+  padding: var(--lt-space-1) var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
   color: inherit;
-  font-size: 12.5px;
+  font-size: var(--lt-text-sm);
   font-weight: 600;
   line-height: 1.25;
   text-align: center;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color var(--lt-dur) var(--lt-ease), color var(--lt-dur) var(--lt-ease);
 }
 
 .add-button:hover {
-  border-color: var(--primary, #1769aa);
-  color: var(--primary, #1769aa);
+  border-color: var(--lt-accent);
+  color: var(--lt-accent);
 }
 
+.add-button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
 .add-tag {
-  padding: 1px 5px;
+  padding: 0 var(--lt-space-1);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--primary, #1769aa) 20%, transparent);
-  color: var(--primary, #1769aa);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
   font-size: 9px;
   font-weight: 700;
 }
 
 .add-waiting {
   margin: 0;
-  font-size: 12px;
-  color: var(--muted-foreground, #656d76);
+  font-size: var(--lt-text-sm);
+  color: var(--lt-fg-muted);
 }
 </style>

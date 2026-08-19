@@ -63,15 +63,22 @@ watch(
   position: absolute;
   top: var(--overlay-anchor-top, 0);
   right: 0;
-  width: min(420px, 92vw);
-  max-height: 80vh;
-  overflow: auto;
+  width: min(440px, 92vw);
+  /* Not vh. This document's height IS the frame height, which the host syncs to
+     the content, so `80vh` sizes the panel from its own output: on a long list
+     it grew to thousands of pixels. A fixed ceiling says what it means. */
+  max-height: 640px;
+  overflow: hidden;
   background: var(--lt-surface);
-  border-left: 1px solid var(--lt-border);
+  border: 1px solid var(--lt-border-strong);
+  border-right: 0;
+  border-radius: var(--lt-radius) 0 0 var(--lt-radius);
+  box-shadow: var(--lt-shadow-overlay);
   display: flex;
   flex-direction: column;
   animation: lt-drawer-in var(--lt-dur) var(--lt-ease);
 }
+.lt-drawer:focus-visible { outline: none; box-shadow: var(--lt-shadow-overlay), var(--lt-focus-ring-tight); }
 @keyframes lt-drawer-in {
   from { transform: translateX(24px); opacity: 0.6; }
 }

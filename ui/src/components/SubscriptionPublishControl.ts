@@ -25,20 +25,39 @@ export default defineComponent({
         emit("publish", destination.value, method.value, format.value);
       },
     }, [
-      h("p", [h("strong", "Review publish target"), " — publishing recomposes the saved definition; unsaved edits are never sent."]),
-      !props.saved ? h("p", { class: "alert", role: "status" }, "Save this definition before publishing.") : null,
-      props.error ? h("p", { class: "alert", role: "alert" }, props.error) : null,
-      field("Destination", h("input", {
-        value: destination.value, type: "url", required: true, autocomplete: "off", disabled: disabled(),
-        onInput: (event: Event) => { destination.value = (event.target as HTMLInputElement).value; },
-      })),
-      field("Method", h("select", {
-        value: method.value, disabled: disabled(), onChange: (event: Event) => { method.value = (event.target as HTMLSelectElement).value; },
-      }, ["PUT", "POST", "PATCH"].map((value) => h("option", { value }, value)))),
-      field("Format", h("select", {
-        value: format.value, disabled: disabled(), onChange: (event: Event) => { format.value = (event.target as HTMLSelectElement).value; },
-      }, [h("option", { value: "plain" }, "Plain"), h("option", { value: "base64" }, "Base64"), h("option", { value: "sing-box" }, "sing-box")])),
-      h("button", { class: "button button-primary", type: "submit", disabled: disabled() || !destination.value.trim() || props.busy }, "Publish saved definition"),
+      h("p", { class: "row-popover-copy" }, [
+        h("strong", "Review publish target"),
+        ". Publishing recomposes the saved definition; unsaved edits are never sent.",
+      ]),
+      // "Save first" is an instruction, not a failure. It rendered in the
+      // `alert` chrome, which is the error styling, so a neutral precondition
+      // arrived looking like something had gone wrong.
+      !props.saved
+        ? h("p", { class: "row-popover-note", role: "status" }, "Save this definition before publishing.")
+        : null,
+      props.error ? h("p", { class: "row-popover-error", role: "alert" }, props.error) : null,
+      h("div", { class: "form-grid" }, [
+        field("Destination", h("input", {
+          value: destination.value, type: "url", required: true, autocomplete: "off", disabled: disabled(),
+          placeholder: "https://…",
+          onInput: (event: Event) => { destination.value = (event.target as HTMLInputElement).value; },
+        })),
+        field("Method", h("select", {
+          class: "select",
+          value: method.value, disabled: disabled(), onChange: (event: Event) => { method.value = (event.target as HTMLSelectElement).value; },
+        }, ["PUT", "POST", "PATCH"].map((value) => h("option", { value }, value)))),
+        field("Format", h("select", {
+          class: "select",
+          value: format.value, disabled: disabled(), onChange: (event: Event) => { format.value = (event.target as HTMLSelectElement).value; },
+        }, [h("option", { value: "plain" }, "Plain"), h("option", { value: "base64" }, "Base64"), h("option", { value: "sing-box" }, "sing-box")])),
+      ]),
+      h("div", { class: "form-actions" }, [
+        h("button", {
+          class: "button button-primary",
+          type: "submit",
+          disabled: disabled() || !destination.value.trim() || props.busy,
+        }, props.busy ? "Publishing…" : "Publish saved definition"),
+      ]),
     ]);
   },
 });
