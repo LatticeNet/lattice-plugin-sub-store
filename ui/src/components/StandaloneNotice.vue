@@ -18,13 +18,15 @@ defineProps<{
 <template>
   <section class="standalone-notice" aria-labelledby="standalone-title">
     <div class="title-mark" aria-hidden="true"><MonitorOff :size="19" /></div>
-    <h2 id="standalone-title">This page runs inside the Lattice console</h2>
+    <h2 id="standalone-title">Waiting for the Lattice console</h2>
     <p>
-      It is the Sub-Store extension's frame: the console hands it a signed identity and a data path
-      when it embeds it, so on its own it has neither, and no way to reach your subscriptions.
+      This page is the Sub-Store extension's frame. The console hands it a session when it embeds
+      it, and nothing has arrived yet. If you opened this address directly, that will not change,
+      because the frame has no way to reach your subscriptions on its own. If you opened it from
+      the console, this clears the moment the console answers.
     </p>
     <p class="standalone-where">
-      Find it under <strong>Console → Extensions → Sub-Store</strong>.
+      Find it under <strong>Console, then Extensions, then Sub-Store</strong>.
     </p>
     <p v-if="detail" class="standalone-detail mono">{{ detail }}</p>
   </section>

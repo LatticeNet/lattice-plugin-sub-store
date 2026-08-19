@@ -342,9 +342,11 @@ async function runMigrate(): Promise<void> {
   const imported = new Set(ops.report.value?.imported ?? []);
   const landed = subs.items.value.filter((item) => imported.has(item.id));
   const combos = landed.filter((item) => item.kind === KIND_COLLECTION).length;
+  const skipped = Object.keys(ops.report.value?.skipped ?? {}).length;
   migrateSummary.value =
-    `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s). ` +
-    "Nothing is published yet, publish a share in Networking → Subscription Shares to make them reachable.";
+    `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s)` +
+    (skipped ? `, and skipped ${skipped}` : "") +
+    ". Nothing is published yet, so publish a share under Networking, then Subscription Shares, to make them reachable.";
   migrateUrl.value = "";
 }
 
@@ -637,6 +639,15 @@ function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" 
   }
   if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
   const relative = formatRelativeTime(item.last_fetch_at);
+  if (item.last_fetch_ok !== true) {
+    // Fetched at some point, outcome not reported. Not a failure, and not a
+    // success either: rendering it green was the only wrong option.
+    return {
+      tone: "neutral",
+      label: relative ? `Fetched ${relative}, outcome not reported` : "Outcome not reported",
+      title: "The server recorded a fetch for this record but not whether it succeeded.",
+    };
+  }
   return { tone: "ok", label: relative ? `Refreshed ${relative}` : "Refreshed" };
 }
 
@@ -1101,13 +1112,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono">{{ onThisTab.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+          <span
+            class="badge mono"
+            :title="`${onThisTab.length} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
+          >{{ onThisTab.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <LtButton
             variant="primary"
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
             :title="subs.atRecordLimit.value
               ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
-              : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
+              : !subs.canMutate.value ? 'This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.' : ''"
             @click="startCreate(KIND_SUB)"
           >
             <Plus :size="14" aria-hidden="true" /> New subscription
@@ -1118,7 +1132,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               ? 'Create a subscription first. There is nothing to combine'
               : subs.atRecordLimit.value
                 ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
-                : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
+                : !subs.canMutate.value ? 'This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.' : ''"
             @click="startCreate(KIND_COLLECTION)"
           >
             <Layers :size="14" aria-hidden="true" /> New combination
@@ -1516,8 +1530,8 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         :anchor-top="overlayAnchor"
         :open="deleting.length > 0"
         :title="deleting.length === 1
-          ? 'Delete this record? Any combination including it stops rendering until edited, and a published share keeps existing.'
-          : `Delete ${deleting.length} records? Combinations including them stop rendering until edited, and published shares keep existing.`"
+          ? 'Delete this record? Any combination that includes it stops rendering until you edit it, and any share published for it keeps existing and starts returning nothing.'
+          : `Delete ${deleting.length} records? Any combination that includes them stops rendering until you edit it, and any shares published for them keep existing and start returning nothing.`"
         verb="Delete"
         :names="deletingNames"
         :busy="deleteBusy"

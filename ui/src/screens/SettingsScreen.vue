@@ -106,7 +106,10 @@ const canRestore = computed(() => ops.canImport.value && !ops.busy.value && pars
 const restoreNames = computed(() => {
   const parsed = parsedBackup.value;
   if (!parsed.ok) return [];
-  return [`${parsed.count} record(s) from a ${parsed.version} envelope`];
+  return [
+    `${parsed.count} record(s) from a ${parsed.version} envelope`,
+    "Restoring writes every one of them into the live store, overwriting any record that shares an id.",
+  ];
 });
 
 function requestRestore(event?: Event): void {
@@ -158,7 +161,8 @@ watch(host.init, (value) => {
     </div>
 
     <p v-if="!ops.canReadSettings.value" class="permission-note">
-      This bundle does not declare the settings methods.
+      This session cannot read Sub-Store settings. Either the installed bundle does not declare
+      those methods, or your token lacks the scope.
     </p>
 
     <div v-else-if="ops.loadError.value" class="alert" role="alert">
@@ -214,7 +218,8 @@ watch(host.init, (value) => {
     </div>
 
     <p v-if="!ops.canMigrate.value" class="permission-note">
-      This bundle does not declare the migration method.
+      This session cannot import from another Sub-Store. Either the installed bundle does not
+      declare that method, or your token lacks the scope.
     </p>
 
     <template v-else>
@@ -332,7 +337,7 @@ watch(host.init, (value) => {
         class="button button-danger"
         type="button"
         :disabled="!canRestore"
-        :title="ops.canImport.value ? undefined : 'This bundle does not declare the restore method'"
+        :title="ops.canImport.value ? undefined : 'This session cannot restore a backup. Either the installed bundle does not declare that method, or your token lacks the scope.'"
         @click="requestRestore($event)"
       >
         <Upload :size="16" aria-hidden="true" /> Restore

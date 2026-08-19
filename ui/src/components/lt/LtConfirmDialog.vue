@@ -53,13 +53,13 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
         <li v-for="name in names" :key="name" class="mono">{{ name }}</li>
       </ul>
       <label v-if="needsTyping" class="lt-dialog-arm">
-        Type {{ names.length }} to confirm
+        To confirm, type the number of items listed above: {{ names.length }}
         <input v-model="typed" class="lt-dialog-input" inputmode="numeric" autocomplete="off" />
       </label>
       <div class="lt-dialog-actions">
         <LtButton variant="ghost" @click="emit('cancel')">Cancel</LtButton>
         <LtButton variant="danger" :disabled="!armed || busy" @click="emit('confirm')">
-          {{ busy ? "Working…" : verb }}
+          {{ busy ? `${verb}…` : verb }}
         </LtButton>
       </div>
     </div>

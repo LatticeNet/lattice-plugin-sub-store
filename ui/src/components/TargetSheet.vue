@@ -316,8 +316,9 @@ function close(): void {
         <template v-else>Copy link gives you that URL pinned to <strong>{{ chosenTarget.label }}</strong>.</template>
       </p>
       <p v-else class="sheet-note">
-        No published share yet, so there are no stable links, copies below are one-off documents.
-        Publish this record from the row menu to hand clients a URL.
+        No enabled share for this record, so there are no stable links and the copies below are
+        one-off documents. Publish it from the row menu, or re-enable its share in the dashboard
+        under Networking.
       </p>
 
       <!-- ── a file: one document, no client to pick ───────────────────── -->
@@ -436,7 +437,7 @@ function close(): void {
       <section v-else-if="rendered" class="sheet-result">
         <h3 class="result-title">
           <span>{{ rendered.target || "What a client receives" }}</span>
-          <span class="result-sub">{{ rendered.content.length }} bytes · {{ rendered.contentType }}</span>
+          <span class="result-sub">{{ rendered.content.length }} characters · {{ rendered.contentType }}</span>
         </h3>
         <pre class="result-doc" tabindex="0">{{ rendered.content }}</pre>
       </section>

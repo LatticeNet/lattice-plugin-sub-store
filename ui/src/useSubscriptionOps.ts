@@ -76,7 +76,9 @@ export function useSubscriptionOps(host: HostContext) {
     notice.value = "";
     try {
       const response = await callMethod<BackupExportResponse>(host.bridge, BINDINGS.subExport, {}).promise;
-      notice.value = "Backup exported.";
+      notice.value = response.backup
+        ? "Backup exported."
+        : "The server returned an empty backup, so there is nothing to save.";
       return response.backup ?? "";
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Backup could not be exported");
@@ -104,7 +106,7 @@ export function useSubscriptionOps(host: HostContext) {
       notice.value =
         restored === undefined
           ? "Backup restored."
-          : `Backup restored: ${restored} subscription(s). Nothing was published. A share is a separate decision.`;
+          : `Backup restored: ${restored} record(s) landed. Any record the server rejected is not counted here. Nothing was published; a share is a separate decision.`;
       return true;
     } catch (cause) {
       // The export refuses an unknown or missing format rather than guessing,
@@ -132,7 +134,7 @@ export function useSubscriptionOps(host: HostContext) {
         base_url: baseUrl.trim(),
       }).promise;
       const count = report.value?.imported?.length ?? 0;
-      notice.value = `Imported ${count} subscription(s). Nothing is published yet, create a share for each one you want served.`;
+      notice.value = `Imported ${count} record(s); the report below lists anything that was skipped. Nothing is published yet, so create a share for each one you want served.`;
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Migration failed");

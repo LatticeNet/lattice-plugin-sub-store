@@ -19,7 +19,7 @@ defineProps<{
 
 <template>
   <LtEmptyState
-    title="Embedded engine not available"
-    :detail="`${feature} runs on the Sub-Store engine embedded in the plugin artifact. This build only carries the external-Sub-Store adapter, so the tab activates when an engine-capable build is installed and its methods appear in the signed manifest.`"
+    title="Sub-Store methods are not available to this session"
+    :detail="`${feature} needs the Sub-Store subscription methods, and this session cannot call them. Either the installed bundle does not declare them, or your token lacks the scope they require. Whoever installed the plugin can tell you which.`"
   />
 </template>
