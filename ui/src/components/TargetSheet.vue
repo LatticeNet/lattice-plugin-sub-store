@@ -43,10 +43,11 @@ import { safeErrorMessage } from "../subStoreModel";
 const props = defineProps<{
   open: boolean;
   /**
-   * Where the sheet should sit, in document coordinates. The frame has no
-   * scrollport, so a sheet centred with `position: fixed` opens at the top of a
-   * frame that may be far above what the operator can see; anchoring it to the
-   * row that was clicked keeps it beside the thing it is about.
+   * Inert. It carried a document coordinate for the sheet to open at, back
+   * when the host sized the frame to the content and there was no window to
+   * centre in. The frame is a viewport now and the scrim is fixed, so the
+   * sheet centres on screen and this is ignored. Still accepted so the screens
+   * that compute it keep type-checking until that machinery is retired.
    */
   anchorTop?: number;
   /** The row being acted on; null closes the sheet. */

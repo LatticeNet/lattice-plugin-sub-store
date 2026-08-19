@@ -166,7 +166,8 @@ const canPreviewNow = computed(
 
 const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
 
-/** Overlay anchoring: this document is not a viewport (see overlayAnchor). */
+/** Overlay anchoring. Inert for the sheet, which the viewport frame centres on
+ *  screen; the drawer still reads it (see overlayAnchor). */
 const overlayAnchor = ref(32);
 /** The preview/copy sheet. A file is exactly the thing you hand to a client. */
 const targetSheet = ref<SubscriptionListItem | null>(null);

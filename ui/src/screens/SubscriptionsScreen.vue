@@ -605,9 +605,12 @@ const chainCount = computed(
  *  (a file has no client to pick) and not only on its id. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
 /**
- * Where overlays open. This document is not a viewport. The host sizes the
- * frame to the content, so an overlay has to be placed at the click rather
- * than centred in a frame whose top may be far above the fold.
+ * Where overlays used to open. The host once sized the frame to the content,
+ * so an overlay had to be placed at the click rather than centred in a frame
+ * whose top might be far above the fold. The frame is a viewport now and the
+ * scrim is fixed, so this value is inert; it is still computed and passed
+ * because the drawer has not been converted yet and retiring the machinery is
+ * the frame owner's to schedule.
  */
 const overlayAnchor = ref(32);
 function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
