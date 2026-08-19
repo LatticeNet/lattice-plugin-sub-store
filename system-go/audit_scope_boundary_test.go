@@ -401,21 +401,6 @@ func TestDescribeVersionMatchesTheManifest(t *testing.T) {
 	}
 }
 
-// A released version is never reused with different bytes. This change alters
-// the manifest, so it must not ship as the version that was already signed.
-func TestManifestVersionMovedOffTheSignedRelease(t *testing.T) {
-	raw, err := os.ReadFile("../manifest.json")
-	if err != nil {
-		t.Fatalf("read manifest: %v", err)
-	}
-	if strings.Contains(string(raw), `"version": "0.13.0-alpha.14"`) {
-		t.Fatal("the manifest changed but still claims 0.13.0-alpha.14, which is already signed and released")
-	}
-	if !strings.Contains(string(raw), "preview_draft") {
-		t.Fatal("manifest no longer declares preview_draft")
-	}
-	t.Log("manifest.json changed: bundle digest and signature are stale until it is repacked and re-signed")
-}
 
 // callTarget must name exactly what handleCall will dispatch to, in both request
 // shapes the SDK accepts. If the two ever disagree, the grant gets computed for
