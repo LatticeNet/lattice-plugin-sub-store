@@ -291,16 +291,36 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     records.splice(index, 1);
     return { id: subscription_id, deleted: true };
   },
-  "subscription/probe": ({ subscription_id }) => ({ subscription_id, bytes: 4096, stale: false, ok: true }),
+  /**
+   * What the row's Refresh button actually calls. It has to move the record's
+   * bookkeeping, because the row reads its status back out of the list: a probe
+   * that answered a canned ok left every row saying exactly what it said
+   * before, so nothing about refresh could be checked here.
+   */
+  "subscription/probe": ({ subscription_id }) => {
+    const found = records.find((r) => r.id === subscription_id);
+    if (!found) throw new Error(`subscription "${subscription_id}" was not found`);
+    found.last_fetch_at = new Date().toISOString();
+    if (found.id === "openjobs-host-trojan") {
+      // A provider that is down stays down. The failure path needs a record
+      // that reaches it every time, or it is never seen.
+      found.last_fetch_ok = false;
+      found.last_error = `subscription "${found.id}" provider returned status 503`;
+      return { subscription_id, bytes: 0, stale: true, ok: false, error_code: "provider_status" };
+    }
+    found.last_fetch_ok = true;
+    found.last_error = undefined;
+    return { subscription_id, bytes: 4096, stale: false, ok: true };
+  },
   "subscription/fetch": ({ subscription_id }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (!found) throw new Error(`subscription "${subscription_id}" was not found`);
     // The harness records the outcome the way the backend does, so a refresh
     // moves the row's status instead of only flashing a banner.
     found.last_fetch_at = new Date().toISOString();
-    if (found.id === "provider-b") {
+    if (found.id === "openjobs-host-trojan") {
       found.last_fetch_ok = false;
-      found.last_error = 'subscription "provider-b" provider returned status 503';
+      found.last_error = `subscription "${found.id}" provider returned status 503`;
       throw new Error(found.last_error);
     }
     found.last_fetch_ok = true;
@@ -320,13 +340,22 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
   "subscription/preview": ({ subscription_id, operators }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (found?.kind === "file") {
-      // The plugin returns the rendered document for a file. Returning nodes
-      // here instead would hide the branch the screen actually takes.
-      const injected = (found.content ?? "").replace(
-        "proxies: []",
-        "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}",
-      );
-      return { document: injected, node_count: 0, nodes: [] };
+      // The plugin REFUSES a file preview that would need host work, in this
+      // order (system-go previewFileResponse). The harness answered every file
+      // with a document, which is why a UI that offered a preview it could not
+      // get was never caught here: production returned these sentences and the
+      // sheet printed them at the operator.
+      if ((found.node_source ?? "").trim()) {
+        throw new Error("file preview does not expose node-source content");
+      }
+      if (found.source === "remote" || (found.url ?? "").trim()) {
+        throw new Error("file preview requires a self-contained local document");
+      }
+      if (found.file_type === "script" || (found.process ?? []).length > 0) {
+        throw new Error("file preview requires a self-contained local document");
+      }
+      // A self-contained document previews as itself.
+      return { document: found.content ?? "", node_count: 0, nodes: [] };
     }
     // A cut preview sends fewer operators, so the harness answers with a
     // node count that shrinks per step, otherwise the per-step preview looks
@@ -367,6 +396,20 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
    */
   "subscription/render": ({ subscription_id, target, ua_class, options }) => {
     const found = records.find((r) => r.id === subscription_id);
+    if (found?.kind === "file") {
+      // renderFile ignores the target and the produce options: a file is served
+      // as the document it is. A harness that varied the output by target would
+      // let a sheet offering fourteen of them look correct.
+      const injected = (found.content ?? "").replace(
+        "proxies: []",
+        "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}",
+      );
+      return {
+        content: injected,
+        content_type:
+          found.file_type === "config" ? "text/yaml; charset=utf-8" : "text/plain; charset=utf-8",
+      };
+    }
     // Explicit target wins, mirroring resolveRenderTarget in system-go.
     const client = String(target || ua_class || "URI");
     const flags = (options ?? {}) as Record<string, boolean>;
@@ -381,23 +424,54 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     };
   },
   /**
-   * Core-backed shares bridge. Exactly one record is published so both sheet
-   * states are exercised: hk-team gets stable links, everything else shows
-   * the "no published share" note.
+   * Core-backed shares bridge. One subscription and one file are published, so
+   * every sheet state is reachable: a client-pinned link, a file's single
+   * link, and the "no published share" note on everything else. The
+   * subscription's slug matches the owner's deployment.
    */
   "shares/list": () => ({
     shares: [
       {
         subscription_id: records[0]?.id ?? "sub-1",
         share_id: "sh-dev",
-        slug: "hk-team",
+        slug: "cd-self",
         enabled: true,
         default_format: "plain",
-        path: "/sub/hk-team/devtokendevtokendevtokendevtoken",
-        url: "https://lattice.example/sub/hk-team/devtokendevtokendevtokendevtoken",
+        path: "/sub/cd-self/devtokendevtokendevtokendevtoken",
+        url: "https://lattice.example/sub/cd-self/devtokendevtokendevtokendevtoken",
+      },
+      {
+        // A published FILE too. Without one the file sheet's link branch is
+        // unreachable here, and that branch is the one that must NOT pin a
+        // client onto the URL: the serve path ignores ?target= for a file.
+        subscription_id: "phone-config",
+        share_id: "sh-dev-file",
+        slug: "phone",
+        enabled: true,
+        default_format: "plain",
+        path: "/sub/phone/filetokenfiletokenfiletokenfiletok",
+        url: "https://lattice.example/sub/phone/filetokenfiletokenfiletokenfiletok",
       },
     ],
   }),
+  /**
+   * Publish pushes the rendered document at a destination the operator names.
+   * The manifest declares it, so the row menu offers it; the harness had no
+   * answer, so every publish here died on "the dev harness has no answer for
+   * subscription/publish" and the drawer could never be checked.
+   */
+  "subscription/publish": ({ subscription_id, destination }) => {
+    const found = records.find((r) => r.id === subscription_id);
+    if (!found) throw new Error(`subscription "${subscription_id}" was not found`);
+    const target = String(destination ?? "");
+    if (!target) throw new Error("publish needs a destination");
+    // A destination that is not reachable is the normal failure, and the
+    // message quotes the URL, which is exactly what the redactor exists for.
+    if (target.includes("example.invalid")) {
+      throw new Error(`publish to ${target} failed: connection refused`);
+    }
+    return { subscription_id, bytes: 2048, status_code: 200 };
+  },
   "subscription/get_settings": () => settings,
   "subscription/save_settings": (payload) => {
     settings = { ...settings, ...payload };
@@ -427,9 +501,13 @@ export function createFakeHost(): HostContext {
       interfaces: [
         {
           service: "latticenet.sub-store/subscription",
+          // Exactly what manifest.json declares for this service. It was
+          // missing "probe", which is what the row's Refresh button asks for,
+          // so every Refresh in the harness rendered disabled and the refresh
+          // path, its notice and its failure state were undrivable here.
           methods: [
-            "fetch", "render", "operators", "graph_options", "preview", "list", "get", "save", "delete",
-            "migrate", "export", "import", "get_settings", "save_settings", "publish",
+            "fetch", "probe", "render", "operators", "graph_options", "preview", "list", "get", "save",
+            "delete", "migrate", "export", "import", "get_settings", "save_settings", "publish",
           ],
         },
         {
