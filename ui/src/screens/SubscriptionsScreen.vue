@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -52,6 +52,7 @@ import {
 } from "../client";
 import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
 import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
 import {
   draftFromRecord,
@@ -138,29 +139,26 @@ const onThisTab = computed(() =>
   subs.items.value.filter((i) => (i.kind || KIND_SUB) !== KIND_FILE),
 );
 
-const allTags = computed(() => {
-  const seen = new Set<string>();
-  for (const item of onThisTab.value) for (const tag of item.tags ?? []) seen.add(tag);
-  return [...seen].sort();
-});
+const allTags = computed(() => collectTags(onThisTab.value));
 
-/**
- * "Untagged" is its own filter rather than an absence of one.
- *
- * Once most records carry tags, the few that do not are exactly the ones an
- * operator is looking for — and no combination of the tag buttons can select
- * them.
- */
-const UNTAGGED = "\u0000untagged";
-
+/** Tag and search both live in recordSearch, so the chip counts and the rows
+ *  can never disagree about what "matching" means. */
 function matchesFilter(item: SubscriptionListItem): boolean {
-  if (!tagFilter.value) return true;
-  if (tagFilter.value === UNTAGGED) return (item.tags ?? []).length === 0;
-  return (item.tags ?? []).includes(tagFilter.value);
+  return matchesTag(item, tagFilter.value);
 }
 
 /** Offered only when there is something it would select. */
 const hasUntagged = computed(() => onThisTab.value.some((i) => (i.tags ?? []).length === 0));
+
+const filtersActive = computed(
+  () => !!searchText.value.trim() || !!tagFilter.value || !!kindFilter.value,
+);
+
+function clearFilters(): void {
+  searchText.value = "";
+  tagFilter.value = "";
+  kindFilter.value = "";
+}
 
 const singles = computed(() =>
   onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && matchesFilter(i)),
@@ -381,22 +379,16 @@ function toggleSelected(id: string): void {
   selectedIds.value = next;
 }
 
-const unsortedRows = computed(() =>
-  onThisTab.value.filter((item) => {
+const unsortedRows = computed(() => {
+  const query = normalizeQuery(searchText.value);
+  return onThisTab.value.filter((item) => {
     if (!matchesFilter(item)) return false;
     if (kindFilter.value && (item.kind || KIND_SUB) !== (kindFilter.value === "collection" ? KIND_COLLECTION : KIND_SUB)) {
       return false;
     }
-    const query = searchText.value.trim().toLowerCase();
-    if (!query) return true;
-    // Tags are searchable too: they are the only grouping axis this screen
-    // offers, so leaving them out of the search made the two ways of narrowing
-    // a list disagree.
-    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
-      (field) => field.toLowerCase().includes(query),
-    );
-  }),
-);
+    return matchesQuery(item, query);
+  });
+});
 
 /**
  * Chip counts reflect the search too.
@@ -406,14 +398,8 @@ const unsortedRows = computed(() =>
  * telling the operator different things.
  */
 const searchedRows = computed(() => {
-  const query = searchText.value.trim().toLowerCase();
-  return onThisTab.value.filter((item) => {
-    if (!matchesFilter(item)) return false;
-    if (!query) return true;
-    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
-      (field) => field.toLowerCase().includes(query),
-    );
-  });
+  const query = normalizeQuery(searchText.value);
+  return onThisTab.value.filter((item) => matchesFilter(item) && matchesQuery(item, query));
 });
 const visibleSingles = computed(
   () => searchedRows.value.filter((item) => (item.kind || KIND_SUB) === KIND_SUB).length,
@@ -443,6 +429,29 @@ const filteredRows = computed(() => {
   return rows;
 });
 
+
+/**
+ * What "N selected" actually means.
+ *
+ * The raw set outlives the rows: filter the list, or delete a record from its
+ * row menu, and its id stays selected. The bar then offered to delete more
+ * records than it could name, and the confirmation listed a bare id for one
+ * that no longer existed. Everything the batch controls report and act on is
+ * the intersection with what is currently on screen.
+ */
+const selectedVisible = computed(() =>
+  filteredRows.value.filter((row) => selectedIds.value.has(row.id)),
+);
+const selectedCount = computed(() => selectedVisible.value.length);
+const allVisibleSelected = computed(
+  () => filteredRows.value.length > 0 && selectedCount.value === filteredRows.value.length,
+);
+
+function toggleSelectAll(): void {
+  selectedIds.value = allVisibleSelected.value
+    ? new Set()
+    : new Set(filteredRows.value.map((row) => row.id));
+}
 
 /**
  * Records are shown as a grouped list, the way Sub-Store shows them: one
@@ -483,11 +492,46 @@ const openMenuId = ref("");
  * opening one also re-reports the height.
  */
 function closeRowMenu(): void {
+  const id = openMenuId.value;
   openMenuId.value = "";
+  // Focus falls to the document when the menu it was in disappears, which
+  // drops a keyboard operator back at the top of the page. It belongs on the
+  // control that opened the menu.
+  if (id) {
+    void nextTick(() => {
+      const trigger = document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] button`);
+      trigger?.focus();
+    });
+  }
 }
+
+/** Ids come from the store and are not guaranteed selector-safe. */
+function cssEscape(value: string): string {
+  const escape = (globalThis as { CSS?: { escape?: (v: string) => string } }).CSS?.escape;
+  return escape ? escape(value) : value.replace(/["\\]/g, "\\$&");
+}
+
 async function toggleRowMenu(id: string): Promise<void> {
-  openMenuId.value = openMenuId.value === id ? "" : id;
+  const opening = openMenuId.value !== id;
+  openMenuId.value = opening ? id : "";
   await host.resize();
+  if (!opening) return;
+  // A menu that opens without focus is a menu Escape cannot close and arrow
+  // keys cannot reach, which is most of what `role="menu"` promises.
+  await nextTick();
+  document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] .rec-menu button:not(:disabled)`)?.focus();
+}
+
+/** Up and down walk the open menu; Escape is handled at the document. */
+function onRowMenuKeydown(event: KeyboardEvent): void {
+  const step = event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
+  if (!step) return;
+  event.preventDefault();
+  const menu = (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+  const items = [...menu];
+  if (!items.length) return;
+  const current = items.indexOf(document.activeElement as HTMLButtonElement);
+  items[(current + step + items.length) % items.length]?.focus();
 }
 // Re-read on return: a file saved on the sibling tab changes what this list
 // can point at, and a restore from Settings replaces everything.
@@ -970,8 +1014,9 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </span>
       </div>
 
-        <!-- Sticky: on a form this long, a save button at the bottom is a
-             button you have to go and look for. -->
+        <!-- Not sticky. Sticky needs a scrollport and this frame has none: the
+             host scrolls the parent page, so the bar is laid out honestly as
+             the end of the form. -->
         <div class="editor-actions">
           <!-- The failure belongs next to the button that produced it: this
                form is long, and a banner at the top is off-screen from the
@@ -1167,14 +1212,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </template>
         </LtToolbar>
 
-        <LtBatchBar :count="selectedIds.size" @clear="selectedIds = new Set()">
+        <!-- The bar names the count it will act on, and that count is the
+             intersection with what is on screen: a stale id from a filtered or
+             already-deleted row must never be part of what Delete promises. -->
+        <LtBatchBar :count="selectedCount" @clear="selectedIds = new Set()">
           <button
             class="button button-danger button-compact"
             type="button"
             :disabled="!subs.canMutate.value"
-            @click="requestDelete([...selectedIds], $event)"
+            @click="requestDelete(selectedVisible.map((row) => row.id), $event)"
           >
-            <Trash2 :size="14" aria-hidden="true" /> Delete selected
+            <Trash2 :size="14" aria-hidden="true" />
+            Delete {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
           </button>
         </LtBatchBar>
 
@@ -1191,10 +1240,27 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           title="Nothing matches"
           detail="No record matches the current search and filters."
         >
-          <LtButton @click="searchText = ''; tagFilter = ''; kindFilter = ''">Clear filters</LtButton>
+          <LtButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</LtButton>
         </LtEmptyState>
 
-        <section v-for="group in groups" v-else :key="group.id" class="rec-group">
+        <template v-else>
+        <div class="rec-head" aria-hidden="true">
+          <label class="rec-select" :title="`Select all ${filteredRows.length} shown records`">
+            <input
+              type="checkbox"
+              :checked="allVisibleSelected"
+              :indeterminate.prop="selectedCount > 0 && !allVisibleSelected"
+              :aria-label="`Select all ${filteredRows.length} shown records`"
+              @change="toggleSelectAll()"
+            />
+          </label>
+          <span />
+          <span>Record</span>
+          <span class="rec-head-status">Last refresh</span>
+          <span class="rec-head-spacer" />
+        </div>
+
+        <section v-for="group in groups" :key="group.id" class="rec-group">
           <button
             type="button"
             class="rec-group-head"
@@ -1217,22 +1283,23 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               v-for="row in group.rows"
               :key="row.id"
               class="rec"
-              :class="{ 'is-pending': pendingIds.has(row.id) }"
+              :class="{ 'is-pending': pendingIds.has(row.id), 'is-selected': selectedIds.has(row.id) }"
             >
+              <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="selectedIds.has(row.id)"
+                  :aria-label="`Select ${row.name}`"
+                  @change="toggleSelected(row.id)"
+                />
+              </label>
+
               <span class="rec-icon" aria-hidden="true">
-                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="18" />
-                <Library v-else :size="18" />
+                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="17" />
+                <Library v-else :size="17" />
               </span>
 
-            <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
-              <input
-                type="checkbox"
-                :checked="selectedIds.has(row.id)"
-                :aria-label="`Select ${row.name}`"
-                @change="toggleSelected(row.id)"
-              />
-            </label>
-            <div class="rec-body">
+              <div class="rec-body">
                 <!-- The name opens the client sheet: the daily path is "give me
                      the config for my client", so it is the primary click. -->
                 <button
@@ -1247,7 +1314,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
                   <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
                 </span>
-                <p class="rec-summary">
+                <p class="rec-summary" :title="describe(row)">
                   {{ describe(row) }}
                   <template v-if="row.step_count">
                     · {{ row.step_count }} operation(s)<template v-if="row.disabled_step_count">, {{ row.disabled_step_count }} off</template>
@@ -1257,13 +1324,19 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <!-- The id is what ties a row to a published share, and it is
                      the first thing to be truncated, so it carries its full
                      value for hover and assistive tech. -->
-                <p class="rec-meta mono" :title="row.id">
-                  {{ row.id }}
-                  <template v-if="statusOf(row).label !== 'Never refreshed'">
-                    · <span :class="`rec-status is-${statusOf(row).tone}`">{{ statusOf(row).label }}</span>
-                  </template>
-                  <template v-if="trafficOf(row)"> · {{ trafficOf(row) }}</template>
-                </p>
+                <p class="rec-meta mono" :title="row.id">{{ row.id }}</p>
+              </div>
+
+              <!-- Refresh state and quota in their own right-aligned column.
+                   They used to be tacked onto the end of the id line, so no two
+                   rows put them in the same place and a column of them could
+                   not be read down. -->
+              <div class="rec-status-cell">
+                <span
+                  :class="`rec-status is-${statusOf(row).tone}`"
+                  :title="statusOf(row).title"
+                >{{ statusOf(row).label }}</span>
+                <span v-if="trafficOf(row)" class="rec-quota">{{ trafficOf(row) }}</span>
               </div>
 
               <div class="rec-actions" @click.stop>
@@ -1284,7 +1357,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row, $event)">
                   <ChevronsRight :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <div class="rec-menu-wrap" data-row-menu>
+                <div class="rec-menu-wrap" :data-row-menu="row.id">
                   <LtIconButton
                     :label="`More actions for ${row.name}`"
                     :aria-haspopup="true"
@@ -1293,7 +1366,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   >
                     <Ellipsis :size="15" aria-hidden="true" />
                   </LtIconButton>
-                  <div v-if="openMenuId === row.id" class="rec-menu" role="menu">
+                  <div v-if="openMenuId === row.id" class="rec-menu" role="menu" @keydown="onRowMenuKeydown">
                     <button
                       type="button"
                       role="menuitem"
@@ -1316,6 +1389,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                     <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="closeRowMenu(); subs.duplicate(row.id)">
                       <CopyPlus :size="14" aria-hidden="true" /> Duplicate
                     </button>
+                    <span class="rec-menu-sep" role="separator" />
                     <button
                       type="button"
                       role="menuitem"
@@ -1331,6 +1405,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </li>
           </ul>
         </section>
+        </template>
 
       </template>
 
@@ -1355,12 +1430,14 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             <p class="row-popover-note">
               {{ subs.rowPreview.value.count }} node(s) once its operations run
             </p>
-            <ul class="row-popover-list">
-              <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`">
-                <span>{{ node.name }}</span>
-                <LtBadge tone="neutral">{{ node.type }}</LtBadge>
-                <LtBadge v-if="node.security" tone="neutral">{{ node.security }}</LtBadge>
-                <span v-if="node.server" class="row-node-endpoint mono">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+            <ul class="node-list">
+              <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`" class="node-row">
+                <span class="node-name" :title="node.name">{{ node.name }}</span>
+                <span class="node-tags">
+                  <LtBadge tone="neutral">{{ node.type }}</LtBadge>
+                  <LtBadge v-if="node.security" tone="neutral">{{ node.security }}</LtBadge>
+                  <span v-if="node.server" class="node-meta">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+                </span>
               </li>
             </ul>
             <p v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length" class="row-popover-note">
@@ -1413,129 +1490,37 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 </template>
 
 <style scoped>
-/* ── S1 table chrome ─────────────────────────────────────────────────────── */
-.lt-search {
-  width: 100%;
-  height: 30px;
-  font: inherit;
-  font-size: var(--lt-text-sm);
-  padding: 0 var(--lt-space-3);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-bg);
-  color: var(--lt-fg);
-}
-.lt-search:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--lt-space-1);
-  height: 24px;
-  padding: 0 var(--lt-space-2);
-  font: inherit;
-  font-size: var(--lt-text-xs);
-  border: 1px solid var(--lt-border);
-  border-radius: 999px;
-  background: var(--lt-surface);
-  color: var(--lt-fg-muted);
-  cursor: pointer;
-}
-.lt-chip:hover { color: var(--lt-fg); }
-.lt-chip.is-active {
-  background: color-mix(in oklab, var(--lt-accent) 10%, var(--lt-surface) 90%);
-  border-color: var(--lt-accent);
-  color: var(--lt-accent);
-}
-.lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-chip-sep { width: 1px; height: 16px; background: var(--lt-border); margin: 0 var(--lt-space-1); }
-.cell-dim { color: var(--lt-fg-muted); }
-.lt-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--lt-space-2);
-  font-size: var(--lt-text-sm);
-  margin-bottom: var(--lt-space-3);
-}
-.lt-breadcrumb-root {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: var(--lt-text-sm);
-  color: var(--lt-accent);
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: var(--lt-radius-sm);
-}
-.lt-breadcrumb-root:hover { text-decoration: underline; }
-.lt-breadcrumb-root:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-breadcrumb-sep { color: var(--lt-fg-muted); }
-.lt-breadcrumb-here { color: var(--lt-fg); font-weight: 500; }
+/* The toolbar, chip and breadcrumb rules that used to live here now sit in
+   styles.css. They were scoped, and the Files screen used the same class
+   names — so its search box and every filter chip rendered as raw user-agent
+   controls: white boxes in a dark toolbar. What is left below is genuinely
+   this screen's own. */
 
-/* ── editor grouping ─────────────────────────────────────────────────────
-   The form was one undifferentiated column: name, source, output, settings
-   and the operator chain all at the same level, so nothing told the reader
-   where one decision ended and the next began. */
-
-.editor-block {
-  margin: 0 0 16px;
-}
-
-/* The sticky bar floats over the form, so the last block needs room to scroll
-   out from under it rather than ending beneath it. */
-
-/* The action bar follows the reader down. A save button that has to be
-   scrolled to is a save button people lose. */
-
-/* ── list density ────────────────────────────────────────────────────────
-   Rows were 40px with 11px meta text: technically legible, and tiring to
-   scan. */
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 4px;
-}
-
-.tag-row button,
-.choice-row button {
-  padding: 4px 11px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted-foreground, #656d76);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.tag-row button.is-active,
-.choice-row button.is-active {
-  border-color: var(--primary, #1769aa);
-  background: color-mix(in srgb, var(--primary, #1769aa) 12%, transparent);
-  color: var(--primary, #1769aa);
-}
-
+/* A two-way choice where both sides need their consequence spelled out, so
+   neither is a default the reader can skip. */
 .choice-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  gap: var(--lt-space-1);
+  margin-top: var(--lt-space-1);
 }
 
 .choice-row button {
-  border-color: var(--border, #d9dde2);
+  height: var(--lt-control-h);
+  padding: 0 var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: 999px;
+  background: var(--lt-bg);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
 }
 
-.group-caret {
-  transition: transform 0.15s ease;
-  transform: rotate(-90deg);
-}
+.choice-row button:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.choice-row button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-.group-caret.is-open {
-  transform: rotate(0deg);
+.choice-row button.is-active {
+  border-color: var(--lt-accent);
+  background: var(--lt-accent-soft);
+  color: var(--lt-accent);
 }
-
 </style>
