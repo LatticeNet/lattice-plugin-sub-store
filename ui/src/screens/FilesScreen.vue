@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onActivated, onMounted, ref, watch } from "vue";
 import {
+  ChevronsRight,
   CircleAlert,
+  RefreshCw,
   CircleCheck,
   ClipboardPaste,
   CopyPlus,
@@ -36,14 +38,21 @@ import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import {
   draftFromRecord,
   emptyDraft,
+  knownFileType,
   useSubscriptions,
   validateDraft,
   type SubscriptionDraft,
 } from "../useSubscriptions";
 import LtIconButton from "../components/lt/LtIconButton.vue";
+import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import CodeEditor from "../components/CodeEditor.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
+import TargetSheet from "../components/TargetSheet.vue";
+import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import LtSkeleton from "../components/lt/LtSkeleton.vue";
+import LtEmptyState from "../components/lt/LtEmptyState.vue";
+import { anchorTopFrom } from "../overlayAnchor";
 import type { EditorLanguage } from "../codemirror";
 
 /**
@@ -62,7 +71,6 @@ const subs = useSubscriptions(host);
 const editing = ref(false);
 const editingId = ref<string | null>(null);
 const draft = ref<SubscriptionDraft>(emptyDraft());
-const confirmingDelete = ref<string | null>(null);
 const tagText = ref("");
 const sharingId = ref<string | null>(null);
 /** Which file's overflow menu is open; only ever one, mirroring the list. */
@@ -118,20 +126,105 @@ const queryParamText = ref("");
 const isRemote = computed(() => draft.value.source === SOURCE_REMOTE);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
 const canSave = computed(() => !draftError.value && !subs.saving.value);
+/**
+ * Preview needs a saved record and a readable draft. Nothing else.
+ *
+ * It used to also require the file to have no node source, no chain, no remote
+ * template and not be a script — which excludes the headline use case this
+ * screen exists for, a configuration whose proxies come from a subscription.
+ * The row next door previewed exactly those files without complaint, so the
+ * editor was forbidding what the list already did.
+ */
 const canPreviewNow = computed(
-  () =>
-    subs.canPreview.value &&
-    !subs.previewing.value &&
-    !draftError.value &&
-    !!editingId.value &&
-    draft.value.source === SOURCE_LOCAL &&
-    !draft.value.url.trim() &&
-    !isScript.value &&
-    !draft.value.nodeSource.trim() &&
-    draft.value.process.length === 0,
+  () => subs.canPreview.value && !subs.previewing.value && !draftError.value && !!editingId.value,
 );
 
-const files = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
+const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
+
+/**
+ * Files get the same search, filters and grouping as subscriptions.
+ *
+ * They were the odd screen out: a bare list with no way to find anything, while
+ * the sibling tab had search, tag chips and grouped sections. Two screens of
+ * one product should not need two habits.
+ */
+/** Overlay anchoring: this document is not a viewport (see overlayAnchor). */
+const overlayAnchor = ref(32);
+/** The preview/copy sheet — a file is exactly the thing you hand to a client. */
+const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
+/** Selection for batch delete; the record limit is 256 and deleting one at a
+ *  time was the only way out of a bad import. */
+const selectedIds = ref<Set<string>>(new Set());
+const deleteTargets = ref<{ ids: string[]; names: string[] } | null>(null);
+
+const searchText = ref("");
+const typeFilter = ref<"" | typeof FILE_TYPE_CONFIG | typeof FILE_TYPE_PLAIN | typeof FILE_TYPE_SCRIPT>("");
+const tagFilter = ref("");
+
+const allTags = computed(() => {
+  const tags = new Set<string>();
+  for (const file of allFiles.value) for (const tag of file.tags ?? []) tags.add(tag);
+  return [...tags].sort();
+});
+
+const files = computed(() => {
+  const needle = searchText.value.trim().toLowerCase();
+  return allFiles.value.filter((file) => {
+    if (typeFilter.value && knownFileType(file.file_type) !== typeFilter.value) return false;
+    if (tagFilter.value && !(file.tags ?? []).includes(tagFilter.value)) return false;
+    if (!needle) return true;
+    return [file.name, file.display_name, file.id, file.remark]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(needle));
+  });
+});
+
+/** Grouped by what the file IS, which is how an operator looks for one. */
+function openFileSheet(item: { id: string; name: string; display_name?: string; target?: string }, event?: Event): void {
+  openFileMenuId.value = "";
+  overlayAnchor.value = anchorTopFrom(event);
+  targetSheet.value = { id: item.id, name: item.display_name || item.name, target: item.target ?? "" };
+}
+
+function toggleSelected(id: string): void {
+  const next = new Set(selectedIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  selectedIds.value = next;
+}
+
+function requestDelete(ids: string[], event?: Event): void {
+  openFileMenuId.value = "";
+  overlayAnchor.value = anchorTopFrom(event);
+  const names = ids
+    .map((id) => allFiles.value.find((file) => file.id === id))
+    .map((file) => file?.display_name || file?.name || "")
+    .filter(Boolean);
+  deleteTargets.value = { ids, names };
+}
+
+async function confirmDelete(): Promise<void> {
+  const target = deleteTargets.value;
+  if (!target) return;
+  for (const id of target.ids) {
+    await subs.remove(id);
+  }
+  selectedIds.value = new Set();
+  deleteTargets.value = null;
+}
+
+const fileGroups = computed(() => {
+  const groups: { id: string; label: string; rows: typeof files.value }[] = [
+    { id: FILE_TYPE_CONFIG, label: "Client configurations", rows: [] },
+    { id: FILE_TYPE_SCRIPT, label: "Built by a script", rows: [] },
+    { id: FILE_TYPE_PLAIN, label: "Plain text", rows: [] },
+  ];
+  for (const file of files.value) {
+    const group = groups.find((entry) => entry.id === knownFileType(file.file_type));
+    (group ?? groups[0]!).rows.push(file);
+  }
+  return groups.filter((group) => group.rows.length > 0);
+});
 
 /** Anything that resolves to nodes. A file sourcing a file would recurse. */
 const nodeSources = computed(() =>
@@ -199,6 +292,10 @@ function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
   draft.value.nodeSource =
     fileType !== FILE_TYPE_PLAIN && nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
   tagText.value = "";
+  // The allowlist is the guard on what a public share URL may reach in a
+  // script. Leaving the previous record's value in place meant a new file
+  // silently inherited an allowlist nobody chose for it.
+  queryParamText.value = "";
   contentLanguageOverride.value = "";
   editingId.value = null;
   editing.value = true;
@@ -239,11 +336,6 @@ async function submit(): Promise<void> {
   if (ok) cancelEdit();
 }
 
-async function confirmDelete(id: string): Promise<void> {
-  const ok = await subs.remove(id);
-  if (ok) confirmingDelete.value = null;
-}
-
 /**
  * Load after the bridge handshake, not on mount: `available()` reads the
  * interfaces the host declares for this frame, and on first paint that has not
@@ -253,6 +345,13 @@ async function loadAll(): Promise<void> {
   await subs.load();
   await subs.loadOperators();
 }
+
+// The screens are kept alive between tab switches, so a record created on the
+// sibling tab would otherwise be missing here until a full reload — most
+// visibly in the node-source picker, which lists subscriptions.
+onActivated(() => {
+  if (host.init.value) void loadAll();
+});
 
 onMounted(() => {
   if (host.init.value) void loadAll();
@@ -385,7 +484,7 @@ watch(host.init, (value) => {
             </template>
 
             <div v-if="isScript || !isRemote" class="field field-wide">
-              <span class="field-label field-label-row">
+              <span id="file-content-label" class="field-label field-label-row">
                 {{ isScript ? "Script" : isPlain ? "Text" : "Configuration" }}
                 <select
                   v-model="contentLanguageOverride"
@@ -399,6 +498,7 @@ watch(host.init, (value) => {
                 </select>
               </span>
               <CodeEditor
+                aria-labelledby="file-content-label"
                 v-model="draft.content"
                 :language="contentLanguage"
                 :rows="isScript ? 22 : 16"
@@ -496,6 +596,7 @@ watch(host.init, (value) => {
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
+            :catalog-state="subs.operatorsState.value"
             :chain="isPlain ? 'response' : 'nodes'"
             :heading="isPlain ? 'Document operations' : undefined"
             :empty-copy="isPlain ? 'No operations. The text is served exactly as written.' : undefined"
@@ -513,6 +614,7 @@ watch(host.init, (value) => {
         </fieldset>
 
         <div class="editor-actions">
+          <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
           <p v-if="draftError" class="field-error">{{ draftError }}</p>
           <button
             class="button button-secondary"
@@ -556,7 +658,7 @@ watch(host.init, (value) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono">{{ subs.items.value.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+          <span class="badge mono">{{ allFiles.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <button
             class="button button-primary button-compact"
             type="button"
@@ -575,10 +677,20 @@ watch(host.init, (value) => {
         <CircleCheck :size="16" aria-hidden="true" /> {{ subs.notice.value }}
       </div>
 
-      <p v-if="!host.init.value || subs.state.value === 'loading'" class="skeleton-row">Loading…</p>
-      <div v-else-if="subs.loadError.value" class="alert" role="alert">
-        <CircleAlert :size="16" aria-hidden="true" /> {{ subs.loadError.value }}
-      </div>
+      <LtSkeleton v-if="!host.init.value || subs.state.value === 'loading'" :rows="4" :columns="4" />
+
+      <LtEmptyState
+        v-else-if="subs.loadError.value"
+        kind="error"
+        title="The list could not be loaded"
+        :detail="subs.loadError.value"
+      >
+        <button class="button button-primary" type="button" @click="subs.load()">Retry</button>
+      </LtEmptyState>
+
+      <p v-else-if="subs.staleError.value" class="stale-strip" role="status">
+        Showing the last good read — the newest reload failed ({{ subs.staleError.value }}).
+      </p>
 
       <div v-else-if="!files.length" class="panel-empty panel-empty-stack">
         <p class="panel-empty-copy">
@@ -606,14 +718,91 @@ watch(host.init, (value) => {
         </div>
       </div>
 
-      <ul v-else class="sub-list">
-        <li v-for="item in files" :key="item.id" class="sub-card sub-card-column">
+      <template v-else>
+        <!-- The same toolbar the sibling tab has. A file list without search is
+             a list you scroll; with 40 configurations that is not a workflow. -->
+        <div class="lt-toolbar">
+          <input
+            v-model="searchText"
+            class="lt-search"
+            type="search"
+            placeholder="Filter by name, id, remark"
+            aria-label="Filter files"
+          />
+          <div class="lt-chips">
+            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === '' }" :aria-pressed="typeFilter === ''" @click="typeFilter = ''">All kinds</button>
+            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === FILE_TYPE_CONFIG }" :aria-pressed="typeFilter === FILE_TYPE_CONFIG" @click="typeFilter = FILE_TYPE_CONFIG">Configurations</button>
+            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === FILE_TYPE_SCRIPT }" :aria-pressed="typeFilter === FILE_TYPE_SCRIPT" @click="typeFilter = FILE_TYPE_SCRIPT">Scripts</button>
+            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === FILE_TYPE_PLAIN }" :aria-pressed="typeFilter === FILE_TYPE_PLAIN" @click="typeFilter = FILE_TYPE_PLAIN">Plain text</button>
+            <template v-if="allTags.length">
+              <span class="lt-chip-sep" aria-hidden="true" />
+              <button type="button" class="lt-chip" :class="{ 'is-active': tagFilter === '' }" :aria-pressed="tagFilter === ''" @click="tagFilter = ''">All tags</button>
+              <button
+                v-for="tag in allTags"
+                :key="tag"
+                type="button"
+                class="lt-chip"
+                :class="{ 'is-active': tagFilter === tag }"
+                :aria-pressed="tagFilter === tag"
+                @click="tagFilter = tag"
+              >{{ tag }}</button>
+            </template>
+          </div>
+        </div>
+
+        <LtBatchBar :count="selectedIds.size" @clear="selectedIds = new Set()">
+          <button
+            class="button button-danger button-compact"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="requestDelete([...selectedIds], $event)"
+          >
+            <Trash2 :size="14" aria-hidden="true" /> Delete selected
+          </button>
+        </LtBatchBar>
+
+        <LtEmptyState
+          v-if="!files.length"
+          kind="no-results"
+          title="Nothing matches"
+          detail="No file matches the current search and filters."
+        >
+          <button class="button button-secondary" type="button" @click="searchText = ''; typeFilter = ''; tagFilter = ''">
+            Clear filters
+          </button>
+        </LtEmptyState>
+
+        <section v-for="group in fileGroups" v-else :key="group.id" class="rec-group">
+          <p class="rec-group-head-static">
+            {{ group.label }} <span class="rec-group-count">{{ group.rows.length }}</span>
+          </p>
+          <ul class="sub-list">
+        <li v-for="item in group.rows" :key="item.id" class="sub-card sub-card-column">
           <div class="sub-card-row">
+            <label class="rec-select" :title="`Select ${item.name}`">
+              <input
+                type="checkbox"
+                :checked="selectedIds.has(item.id)"
+                :aria-label="`Select ${item.name}`"
+                @change="toggleSelected(item.id)"
+              />
+            </label>
             <div class="sub-card-main">
               <span class="sub-title">
                 <FileText v-if="item.file_type === FILE_TYPE_PLAIN" :size="14" aria-hidden="true" />
                 <FileCode v-else :size="14" aria-hidden="true" />
-                {{ item.display_name || item.name }}
+                <!-- The name is the primary action on the sibling screen too:
+                     the daily job is "give me this for my client", and a row
+                     whose title does nothing teaches the operator to hunt for
+                     the icon that does. -->
+                <button
+                  type="button"
+                  class="rec-name"
+                  :title="`Preview or copy ${item.display_name || item.name} for a client`"
+                  @click="openFileSheet(item, $event)"
+                >
+                  {{ item.display_name || item.name }}
+                </button>
                 <span v-for="tag in item.tags ?? []" :key="tag" class="badge">{{ tag }}</span>
               </span>
               <span class="sub-meta">
@@ -625,6 +814,20 @@ watch(host.init, (value) => {
               </span>
             </div>
             <div class="rec-actions" @click.stop>
+              <LtIconButton
+                v-if="item.source === SOURCE_REMOTE"
+                :label="`Refresh ${item.name} from its template URL`"
+                :disabled="!subs.canFetch.value || subs.busyId.value === item.id"
+                @click="subs.refresh(item.id)"
+              >
+                <RefreshCw :size="15" :class="subs.busyId.value === item.id ? 'spin' : ''" aria-hidden="true" />
+              </LtIconButton>
+              <LtIconButton
+                :label="`Preview or copy ${item.name} for a client`"
+                @click="openFileSheet(item, $event)"
+              >
+                <ChevronsRight :size="15" aria-hidden="true" />
+              </LtIconButton>
               <LtIconButton
                 :label="`Preview ${item.name}`"
                 :disabled="!subs.canPreview.value"
@@ -669,7 +872,7 @@ watch(host.init, (value) => {
                     role="menuitem"
                     class="is-danger"
                     :disabled="!subs.canMutate.value"
-                    @click="openFileMenuId = ''; confirmingDelete = item.id"
+                    @click="requestDelete([item.id], $event)"
                   >
                     <Trash2 :size="14" aria-hidden="true" /> Delete
                   </button>
@@ -714,24 +917,30 @@ watch(host.init, (value) => {
             </p>
           </div>
 
-          <div v-if="confirmingDelete === item.id" class="alert" role="alert">
-            <span>
-              Delete <strong>{{ item.name }}</strong
-              >? A published share for it keeps existing and starts failing.
-            </span>
-            <button class="button button-compact" type="button" @click="confirmingDelete = null">
-              Keep
-            </button>
-            <button
-              class="button button-compact destructive"
-              type="button"
-              @click="confirmDelete(item.id)"
-            >
-              Delete
-            </button>
-          </div>
         </li>
-      </ul>
+          </ul>
+        </section>
+      </template>
+
+      <TargetSheet
+        :open="!!targetSheet"
+        :anchor-top="overlayAnchor"
+        :record-id="targetSheet?.id ?? ''"
+        :record-name="targetSheet?.name ?? ''"
+        :pinned-target="targetSheet?.target"
+        @close="targetSheet = null"
+      />
+
+      <LtConfirmDialog
+        :open="!!deleteTargets"
+        :anchor-top="overlayAnchor"
+        title="Delete these files?"
+        verb="Delete"
+        :names="deleteTargets?.names ?? []"
+        :busy="subs.saving.value"
+        @cancel="deleteTargets = null"
+        @confirm="confirmDelete()"
+      />
     </section>
   </template>
 </template>

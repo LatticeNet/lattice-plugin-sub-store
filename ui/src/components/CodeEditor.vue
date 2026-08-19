@@ -23,8 +23,16 @@ const props = withDefaults(
     rows?: number;
     placeholder?: string;
     readonly?: boolean;
+    /**
+     * The id of the element naming this editor. CodeMirror's contenteditable
+     * and the textarea fallback both need it explicitly: a `<span class=
+     * "field-label">` sitting above them is not an accessible name, and these
+     * are exactly the controls that lost their `<label>` wrapper when they
+     * stopped being form elements.
+     */
+    ariaLabelledby?: string;
   }>(),
-  { language: "plain", rows: 12, placeholder: "", readonly: false },
+  { language: "plain", rows: 12, placeholder: "", readonly: false, ariaLabelledby: undefined },
 );
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
@@ -40,6 +48,7 @@ onMounted(async () => {
     if (!hostEl.value) return;
     handle = cm.createEditor({
       parent: hostEl.value,
+      ariaLabelledby: props.ariaLabelledby,
       value: props.modelValue,
       language: props.language,
       readonly: props.readonly,
@@ -78,6 +87,7 @@ onBeforeUnmount(() => {
       spellcheck="false"
       :placeholder="placeholder"
       :readonly="readonly"
+      :aria-labelledby="ariaLabelledby"
       :value="modelValue"
       @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     ></textarea>

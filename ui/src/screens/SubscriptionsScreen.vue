@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -30,9 +30,11 @@ import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtDrawer from "../components/lt/LtDrawer.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
+import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
+import { anchorTopFrom } from "../overlayAnchor";
 
 import {
   CONVERT_TARGETS,
@@ -350,12 +352,6 @@ async function runMigrate(): Promise<void> {
 
 // ── row status ──────────────────────────────────────────────────────────────
 
-/** "refreshed 3h ago", or "" when the record has never been fetched. */
-function refreshedLabel(item: SubscriptionListItem): string {
-  if (!item.last_fetch_at) return "";
-  const relative = formatRelativeTime(item.last_fetch_at);
-  return relative ? `refreshed ${relative}` : "";
-}
 
 /** The provider's quota line, compact; "" when there is nothing honest to say. */
 function trafficOf(item: SubscriptionListItem): string {
@@ -365,7 +361,27 @@ function trafficOf(item: SubscriptionListItem): string {
 // ── table ───────────────────────────────────────────────────────────────────
 
 /** Rows after tag, kind, and text filters; the table sorts on top of this. */
-const filteredRows = computed(() =>
+/**
+ * How the list is ordered.
+ *
+ * At the record limit of 256 an unsorted list is a list you scroll. Freshness
+ * is the default because the question that brings someone here is usually
+ * "what did I just change" or "what has stopped refreshing".
+ */
+type SortKey = "recent" | "name" | "status";
+const sortKey = ref<SortKey>("recent");
+
+/** Selection for batch delete; deleting 40 stale imports one dialog at a time
+ *  is how an operator ends up not cleaning up at all. */
+const selectedIds = ref<Set<string>>(new Set());
+function toggleSelected(id: string): void {
+  const next = new Set(selectedIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  selectedIds.value = next;
+}
+
+const unsortedRows = computed(() =>
   onThisTab.value.filter((item) => {
     if (!matchesFilter(item)) return false;
     if (kindFilter.value && (item.kind || KIND_SUB) !== (kindFilter.value === "collection" ? KIND_COLLECTION : KIND_SUB)) {
@@ -373,18 +389,60 @@ const filteredRows = computed(() =>
     }
     const query = searchText.value.trim().toLowerCase();
     if (!query) return true;
-    return [item.name, item.display_name ?? "", item.id, item.remark ?? ""].some((field) =>
-      field.toLowerCase().includes(query),
+    // Tags are searchable too: they are the only grouping axis this screen
+    // offers, so leaving them out of the search made the two ways of narrowing
+    // a list disagree.
+    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
+      (field) => field.toLowerCase().includes(query),
     );
   }),
 );
 
-/** Status ranks worst-first so "sort by status" surfaces failures. */
-function statusRank(item: SubscriptionListItem): number {
-  if (item.last_fetch_ok === false) return 0;
-  if (!item.last_fetch_at) return 1;
-  return 2;
+/**
+ * Chip counts reflect the search too.
+ *
+ * They used to apply the tag filter but not the search box, so typing left
+ * "Subs (12)" sitting above a list of two — two ways of narrowing the same list
+ * telling the operator different things.
+ */
+const searchedRows = computed(() => {
+  const query = searchText.value.trim().toLowerCase();
+  return onThisTab.value.filter((item) => {
+    if (!matchesFilter(item)) return false;
+    if (!query) return true;
+    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
+      (field) => field.toLowerCase().includes(query),
+    );
+  });
+});
+const visibleSingles = computed(
+  () => searchedRows.value.filter((item) => (item.kind || KIND_SUB) === KIND_SUB).length,
+);
+const visibleCollections = computed(
+  () => searchedRows.value.filter((item) => item.kind === KIND_COLLECTION).length,
+);
+
+/** Rank for the status sort: what needs attention first. */
+function statusWeight(item: SubscriptionListItem): number {
+  const tone = statusOf(item).tone;
+  if (tone === "danger") return 0;
+  if (tone === "warn") return 1;
+  if (tone === "neutral") return 2;
+  return 3;
 }
+
+const filteredRows = computed(() => {
+  const rows = [...unsortedRows.value];
+  if (sortKey.value === "name") {
+    rows.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+  } else if (sortKey.value === "status") {
+    rows.sort((a, b) => statusWeight(a) - statusWeight(b) || a.name.localeCompare(b.name));
+  } else {
+    rows.sort((a, b) => String(b.last_fetch_at ?? "").localeCompare(String(a.last_fetch_at ?? "")));
+  }
+  return rows;
+});
+
 
 /**
  * Records are shown as a grouped list, the way Sub-Store shows them: one
@@ -416,10 +474,44 @@ function toggleGroup(id: string): void {
 
 /** Which record's per-row menu is open; only ever one. */
 const openMenuId = ref("");
-function toggleMenu(id: string): void {
-  openMenuId.value = openMenuId.value === id ? "" : id;
-}
 
+/**
+ * A popover that only closes when another one opens is a popover the operator
+ * has to fight. Outside click and Escape both dismiss it, and because it is
+ * absolutely positioned it never changes the document height — on the last row
+ * it could otherwise extend past the frame with its own items unreachable, so
+ * opening one also re-reports the height.
+ */
+function closeRowMenu(): void {
+  openMenuId.value = "";
+}
+async function toggleRowMenu(id: string): Promise<void> {
+  openMenuId.value = openMenuId.value === id ? "" : id;
+  await host.resize();
+}
+// Re-read on return: a file saved on the sibling tab changes what this list
+// can point at, and a restore from Settings replaces everything.
+onActivated(() => {
+  if (host.init.value) void loadAll();
+});
+
+onMounted(() => {
+  document.addEventListener("click", onDocumentClick, true);
+  document.addEventListener("keydown", onDocumentKeydown);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onDocumentClick, true);
+  document.removeEventListener("keydown", onDocumentKeydown);
+});
+function onDocumentClick(event: MouseEvent): void {
+  if (!openMenuId.value) return;
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("[data-row-menu]")) return;
+  closeRowMenu();
+}
+function onDocumentKeydown(event: KeyboardEvent): void {
+  if (event.key === "Escape" && openMenuId.value) closeRowMenu();
+}
 /**
  * The editor's sections, split the way Sub-Store splits them: what the record
  * is called, what it is made of, and what is done to it. A single scroll of
@@ -436,12 +528,32 @@ const EDITOR_TABS: { id: EditorTab; label: string }[] = [
 ];
 
 /** The chain's size, shown on the tab so it is visible without opening it. */
-const chainCount = computed(() => (draft.value.process as unknown[]).length);
+/**
+ * What the Operations tab badge counts.
+ *
+ * The raw chain includes the steps the common-settings block above edits, which
+ * the chain list deliberately hides. Counting those made the badge read
+ * "Operations 1" over a panel saying "No operations" as soon as a quick setting
+ * was turned on.
+ */
+const chainCount = computed(
+  () =>
+    (draft.value.process as { type?: string }[]).filter(
+      (step) => !(MANAGED_TYPES as readonly string[]).includes(step?.type ?? ""),
+    ).length,
+);
 
 /** The preview/copy sheet: the one-click path to a client configuration. */
 const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
-function openTargetSheet(row: SubscriptionListItem): void {
+/**
+ * Where overlays open. This document is not a viewport — the host sizes the
+ * frame to the content — so an overlay has to be placed at the click rather
+ * than centred in a frame whose top may be far above the fold.
+ */
+const overlayAnchor = ref(32);
+function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
   openMenuId.value = "";
+  overlayAnchor.value = anchorTopFrom(event);
   targetSheet.value = { id: row.id, name: row.display_name || row.name, target: row.target ?? "" };
 }
 
@@ -476,7 +588,8 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-function requestDelete(ids: string[]): void {
+function requestDelete(ids: string[], event?: Event): void {
+  overlayAnchor.value = anchorTopFrom(event);
   deleting.value = ids;
 }
 
@@ -515,7 +628,8 @@ const drawerTitle = computed(() => {
   return `Share · ${name}`;
 });
 
-function openDrawer(mode: "preview" | "publish" | "share", id: string): void {
+function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
+  overlayAnchor.value = anchorTopFrom(event);
   drawer.value = { mode, id };
   if (mode === "preview" && subs.rowPreview.value?.id !== id) {
     void subs.toggleRowPreview(id);
@@ -680,11 +794,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <div class="form-grid">
         <!-- ── sub: where the nodes come from ─────────────────────────── -->
         <div v-if="!isCollection" class="field field-wide">
-          <div class="source-grid">
+          <!-- These cards are a single choice, so they carry the semantics of
+               one: a radiogroup whose selected member is announced, not a row
+               of buttons distinguishable only by tint. -->
+          <div class="source-grid" role="radiogroup" aria-label="Where the nodes come from">
             <button
               v-for="option in SOURCES"
               :key="option.id"
               type="button"
+              role="radio"
+              :aria-checked="draft.source === option.id"
               :class="['source', { 'is-active': draft.source === option.id }]"
               @click="selectSource(option.id)"
             >
@@ -744,8 +863,9 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </template>
 
         <div v-if="!isCollection && draft.source === SOURCE_LOCAL" class="field field-wide">
-          <span class="field-label">Nodes</span>
+          <span id="draft-nodes-label" class="field-label">Nodes</span>
           <CodeEditor
+            aria-labelledby="draft-nodes-label"
             v-model="draft.content"
             language="plain"
             :rows="12"
@@ -838,6 +958,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
+            :catalog-state="subs.operatorsState.value"
             :managed-types="MANAGED_TYPES"
             :can-preview-step="canPreviewNow"
             :previewing-step="subs.previewing.value ? subs.previewStep.value : null"
@@ -852,7 +973,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <!-- Sticky: on a form this long, a save button at the bottom is a
              button you have to go and look for. -->
         <div class="editor-actions">
-          <span v-if="draftError" class="field-error">{{ draftError }}</span>
+          <!-- The failure belongs next to the button that produced it: this
+               form is long, and a banner at the top is off-screen from the
+               click that triggered it. -->
+          <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
+          <span v-else-if="draftError" class="field-error">{{ draftError }}</span>
           <button
             class="button button-secondary"
             type="button"
@@ -890,17 +1015,24 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono">{{ subs.items.value.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+          <span class="badge mono">{{ onThisTab.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <LtButton
             variant="primary"
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
+            :title="subs.atRecordLimit.value
+              ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
+              : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
             @click="startCreate(KIND_SUB)"
           >
             <Plus :size="14" aria-hidden="true" /> New subscription
           </LtButton>
           <LtButton
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
-            :title="!singles.length ? 'Create a subscription first — there is nothing to combine' : ''"
+            :title="!singles.length
+              ? 'Create a subscription first — there is nothing to combine'
+              : subs.atRecordLimit.value
+                ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
+                : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
             @click="startCreate(KIND_COLLECTION)"
           >
             <Layers :size="14" aria-hidden="true" /> New combination
@@ -937,6 +1069,32 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <LtButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
           <Server :size="14" aria-hidden="true" /> Add this fleet's nodes
         </LtButton>
+
+        <!-- An empty store is exactly when importing from an existing Sub-Store
+             is the right move. This form used to be gated on the store being
+             empty while living inside the branch that only renders when it is
+             not, so it could never appear at all. -->
+        <div v-if="ops.canMigrate.value" class="empty-secondary">
+          <span class="field-label">Already running a standalone Sub-Store?</span>
+          <form class="empty-inline-form" @submit.prevent="runMigrate">
+            <input
+              v-model="migrateUrl"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Its base URL"
+              aria-label="Standalone Sub-Store base URL"
+            />
+            <button class="button button-secondary" type="submit" :disabled="ops.busy.value || !migrateUrl.trim()">
+              <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
+              Import from it
+            </button>
+          </form>
+          <p class="row-popover-note">
+            Importing publishes nothing — each subscription stays unserved until you share it.
+          </p>
+          <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
+        </div>
       </LtEmptyState>
 
       <template v-else>
@@ -951,13 +1109,40 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             />
           </template>
           <template #filters>
-            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === '' }" @click="kindFilter = ''">All kinds</button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === 'sub' }" @click="kindFilter = 'sub'">
-              <Library :size="12" aria-hidden="true" /> Subs ({{ singles.length }})
+            <button
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': kindFilter === '' }"
+              :aria-pressed="kindFilter === ''"
+              @click="kindFilter = ''"
+            >All kinds</button>
+            <button
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': kindFilter === 'sub' }"
+              :aria-pressed="kindFilter === 'sub'"
+              @click="kindFilter = 'sub'"
+            >
+              <Library :size="12" aria-hidden="true" /> Subs ({{ visibleSingles }})
             </button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === 'collection' }" @click="kindFilter = 'collection'">
-              <Layers :size="12" aria-hidden="true" /> Combinations ({{ collections.length }})
+            <button
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': kindFilter === 'collection' }"
+              :aria-pressed="kindFilter === 'collection'"
+              @click="kindFilter = 'collection'"
+            >
+              <Layers :size="12" aria-hidden="true" /> Combinations ({{ visibleCollections }})
             </button>
+            <span class="lt-chip-sep" aria-hidden="true" />
+            <label class="lt-sort">
+              <span class="lt-sort-label">Sort</span>
+              <select v-model="sortKey" class="select select-compact" aria-label="Sort records">
+                <option value="recent">Recently refreshed</option>
+                <option value="name">Name</option>
+                <option value="status">Needs attention</option>
+              </select>
+            </label>
             <span v-if="allTags.length || hasUntagged" class="lt-chip-sep" aria-hidden="true" />
             <button v-if="allTags.length || hasUntagged" type="button" class="lt-chip" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">All tags</button>
             <button
@@ -981,6 +1166,24 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </button>
           </template>
         </LtToolbar>
+
+        <LtBatchBar :count="selectedIds.size" @clear="selectedIds = new Set()">
+          <button
+            class="button button-danger button-compact"
+            type="button"
+            :disabled="!subs.canMutate.value"
+            @click="requestDelete([...selectedIds], $event)"
+          >
+            <Trash2 :size="14" aria-hidden="true" /> Delete selected
+          </button>
+        </LtBatchBar>
+
+        <!-- A write can succeed and its trailing reload still fail. The rows
+             below are then the last good read, and saying so beats either
+             blanking them or pretending they are current. -->
+        <p v-if="subs.staleError.value" class="stale-strip" role="status">
+          Showing the last good read — the newest reload failed ({{ subs.staleError.value }}).
+        </p>
 
         <LtEmptyState
           v-if="!filteredRows.length"
@@ -1021,14 +1224,22 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <Library v-else :size="18" />
               </span>
 
-              <div class="rec-body">
+            <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedIds.has(row.id)"
+                :aria-label="`Select ${row.name}`"
+                @change="toggleSelected(row.id)"
+              />
+            </label>
+            <div class="rec-body">
                 <!-- The name opens the client sheet: the daily path is "give me
                      the config for my client", so it is the primary click. -->
                 <button
                   type="button"
                   class="rec-name"
                   :title="`Preview or copy ${row.display_name || row.name} for a client`"
-                  @click="openTargetSheet(row)"
+                  @click="openTargetSheet(row, $event)"
                 >
                   {{ row.display_name || row.name }}
                 </button>
@@ -1043,7 +1254,10 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   </template>
                   <template v-if="row.target"> · always {{ row.target }}</template>
                 </p>
-                <p class="rec-meta mono">
+                <!-- The id is what ties a row to a published share, and it is
+                     the first thing to be truncated, so it carries its full
+                     value for hover and assistive tech. -->
+                <p class="rec-meta mono" :title="row.id">
                   {{ row.id }}
                   <template v-if="statusOf(row).label !== 'Never refreshed'">
                     · <span :class="`rec-status is-${statusOf(row).tone}`">{{ statusOf(row).label }}</span>
@@ -1067,11 +1281,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 >
                   <Pencil :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row)">
+                <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row, $event)">
                   <ChevronsRight :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <div class="rec-menu-wrap">
-                  <LtIconButton :label="`More actions for ${row.name}`" @click="toggleMenu(row.id)">
+                <div class="rec-menu-wrap" data-row-menu>
+                  <LtIconButton
+                    :label="`More actions for ${row.name}`"
+                    :aria-haspopup="true"
+                    :aria-expanded="openMenuId === row.id"
+                    @click="toggleRowMenu(row.id)"
+                  >
                     <Ellipsis :size="15" aria-hidden="true" />
                   </LtIconButton>
                   <div v-if="openMenuId === row.id" class="rec-menu" role="menu">
@@ -1079,22 +1298,22 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                       type="button"
                       role="menuitem"
                       :disabled="!subs.canPreview.value"
-                      @click="openMenuId = ''; openDrawer('preview', row.id)"
+                      @click="closeRowMenu(); openDrawer('preview', row.id, $event)"
                     >
                       <Eye :size="14" aria-hidden="true" /> Preview nodes
                     </button>
-                    <button type="button" role="menuitem" :disabled="!host.init.value" @click="openMenuId = ''; openDrawer('share', row.id)">
+                    <button type="button" role="menuitem" :disabled="!host.init.value" @click="closeRowMenu(); openDrawer('share', row.id, $event)">
                       <Share2 :size="14" aria-hidden="true" /> Share…
                     </button>
                     <button
                       type="button"
                       role="menuitem"
                       :disabled="!subs.canPublish.value || !subs.canMutate.value"
-                      @click="openMenuId = ''; openDrawer('publish', row.id)"
+                      @click="closeRowMenu(); openDrawer('publish', row.id, $event)"
                     >
                       <Send :size="14" aria-hidden="true" /> Publish…
                     </button>
-                    <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="openMenuId = ''; subs.duplicate(row.id)">
+                    <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="closeRowMenu(); subs.duplicate(row.id)">
                       <CopyPlus :size="14" aria-hidden="true" /> Duplicate
                     </button>
                     <button
@@ -1102,7 +1321,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                       role="menuitem"
                       class="is-danger"
                       :disabled="!subs.canMutate.value"
-                      @click="openMenuId = ''; requestDelete([row.id])"
+                      @click="closeRowMenu(); requestDelete([row.id], $event)"
                     >
                       <Trash2 :size="14" aria-hidden="true" /> Delete
                     </button>
@@ -1113,33 +1332,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </ul>
         </section>
 
-        <div v-if="storeEmpty === false && ops.canMigrate.value && !subs.items.value.length" />
-        <div v-if="ops.canMigrate.value && storeEmpty" class="empty-secondary">
-          <span class="field-label">Already running a standalone Sub-Store?</span>
-          <form class="empty-inline-form" @submit.prevent="runMigrate">
-            <input v-model="migrateUrl" type="text" autocomplete="off" spellcheck="false" placeholder="Its base URL" />
-            <button class="button button-secondary" type="submit" :disabled="ops.busy.value">
-              <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
-              Import from it
-            </button>
-          </form>
-          <p class="row-popover-note">
-            Importing publishes nothing — each subscription stays unserved until you share it.
-          </p>
-          <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
-        </div>
-
       </template>
 
       <TargetSheet
         :open="!!targetSheet"
+        :anchor-top="overlayAnchor"
         :record-id="targetSheet?.id ?? ''"
         :record-name="targetSheet?.name ?? ''"
         :pinned-target="targetSheet?.target"
         @close="targetSheet = null"
       />
 
-      <LtDrawer :open="!!drawer" :title="drawerTitle" @close="closeDrawer()">
+      <LtDrawer :open="!!drawer" :title="drawerTitle" :anchor-top="overlayAnchor" @close="closeDrawer()">
         <template v-if="drawer?.mode === 'preview'">
           <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
             <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
@@ -1193,6 +1397,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       </LtDrawer>
 
       <LtConfirmDialog
+        :anchor-top="overlayAnchor"
         :open="deleting.length > 0"
         :title="deleting.length === 1
           ? 'Delete this record? Any combination including it stops rendering until edited, and a published share keeps existing.'
@@ -1243,40 +1448,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 }
 .lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .lt-chip-sep { width: 1px; height: 16px; background: var(--lt-border); margin: 0 var(--lt-space-1); }
-.lt-columns { position: relative; }
-.lt-columns-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 40;
-  background: var(--lt-surface);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  padding: var(--lt-space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--lt-space-1);
-  box-shadow: 0 8px 24px color-mix(in oklab, var(--lt-fg) 14%, transparent);
-}
-.lt-columns-item {
-  display: flex;
-  align-items: center;
-  gap: var(--lt-space-2);
-  font-size: var(--lt-text-sm);
-  white-space: nowrap;
-  cursor: pointer;
-}
-.cell-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.cell-name-title {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--lt-space-1);
-  font-weight: 500;
-  color: var(--lt-fg);
-}
-.cell-name-sub { font-family: var(--lt-mono); font-size: var(--lt-text-xs); color: var(--lt-fg-muted); }
 .cell-dim { color: var(--lt-fg-muted); }
-.cell-actions { display: inline-flex; gap: 2px; justify-content: flex-end; }
 .lt-breadcrumb {
   display: flex;
   align-items: center;
@@ -1355,27 +1527,6 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 
 .choice-row button {
   border-color: var(--border, #d9dde2);
-}
-
-.group-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.group-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 2px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .group-caret {

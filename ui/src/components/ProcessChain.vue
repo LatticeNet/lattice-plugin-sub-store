@@ -59,6 +59,12 @@ const props = defineProps<{
   canPreviewStep?: boolean;
   /** The step a preview is currently running for, so its control can spin. */
   previewingStep?: number | null;
+  /**
+   * Whether the catalogue is still arriving. Without it an empty palette can
+   * only say "loading", which is what it said forever when the call failed or
+   * the bundle exposed no operators at all.
+   */
+  catalogState?: "idle" | "loading" | "ready" | "error";
 }>();
 
 const emit = defineEmits<{
@@ -146,6 +152,23 @@ function setArgs(index: number, args: Record<string, unknown>): void {
   );
 }
 
+/**
+ * Move a step to the position of its neighbour IN THE VISIBLE LIST.
+ *
+ * The buttons used to pass raw array indices while their disabled state was
+ * computed from visible positions. With a settings-managed step sitting between
+ * two visible ones — ordinary in an imported chain — "move down" swapped a step
+ * with a row nobody can see, so the order on screen did not change and the
+ * click read as broken.
+ */
+function moveVisible(entryIndex: number, direction: -1 | 1): void {
+  const order = visible.value.map((entry) => entry.index);
+  const position = order.indexOf(entryIndex);
+  const targetPosition = position + direction;
+  if (position === -1 || targetPosition < 0 || targetPosition >= order.length) return;
+  move(entryIndex, order[targetPosition]!);
+}
+
 function move(from: number, to: number): void {
   if (to < 0 || to >= props.steps.length || from === to) return;
   const next = [...props.steps];
@@ -212,7 +235,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="position === 0"
               aria-label="Move up"
-              @click="move(entry.index, entry.index - 1)"
+              @click="moveVisible(entry.index, -1)"
             >
               ↑
             </button>
@@ -221,7 +244,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="position === visible.length - 1"
               aria-label="Move down"
-              @click="move(entry.index, entry.index + 1)"
+              @click="moveVisible(entry.index, 1)"
             >
               ↓
             </button>
@@ -298,7 +321,16 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
           <span v-if="entry.scripting" class="add-tag">JS</span>
         </button>
       </div>
-      <p v-if="!addable.length" class="add-waiting">Loading the operator catalogue…</p>
+      <p v-if="!addable.length" class="add-waiting">
+        <template v-if="catalogState === 'loading'">Loading the operator catalogue…</template>
+        <template v-else-if="catalogState === 'error'">
+          The operator catalogue could not be read, so nothing can be added here.
+        </template>
+        <template v-else-if="chain === 'response'">
+          No response-stage operator is available for this file type.
+        </template>
+        <template v-else>This bundle exposes no operators to add.</template>
+      </p>
     </div>
   </section>
 </template>

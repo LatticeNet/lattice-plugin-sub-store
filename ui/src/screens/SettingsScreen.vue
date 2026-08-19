@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { CircleAlert, CircleCheck, Download, LoaderCircle, Upload } from "@lucide/vue";
 
 import { CONVERT_TARGETS } from "../client";
@@ -11,11 +11,22 @@ const ops = useSubscriptionOps(host);
 
 const defaultTarget = ref("");
 const defaultUa = ref("");
+/** Whether the stored settings have actually been read. */
+const settingsReady = computed(() => ops.state.value === "ready");
 const migrateUrl = ref("");
 const backupText = ref("");
 const exported = ref("");
 
+/**
+ * Save writes the loaded settings back with the two edited fields replaced.
+ *
+ * It refuses to run before the load has landed: until then `settings` is still
+ * `{}`, so an early click wrote `undefined` over whatever was stored — the two
+ * controls looked empty because nothing had been read yet, and clicking Save
+ * made that emptiness real.
+ */
 async function saveSettings(): Promise<void> {
+  if (!settingsReady.value) return;
   await ops.saveSettings({
     ...ops.settings.value,
     default_target: defaultTarget.value || undefined,
@@ -87,6 +98,14 @@ watch(host.init, (value) => {
       This bundle does not declare the settings methods.
     </p>
 
+    <div v-else-if="ops.loadError.value" class="alert" role="alert">
+      <CircleAlert :size="16" aria-hidden="true" />
+      <span>
+        {{ ops.loadError.value }}
+        <button class="link-button" type="button" @click="ops.loadSettings()">Retry</button>
+      </span>
+    </div>
+
     <template v-else>
       <div class="form-grid">
         <label class="field">
@@ -109,10 +128,11 @@ watch(host.init, (value) => {
         <button
           class="button button-primary"
           type="button"
-          :disabled="!ops.canWriteSettings.value || ops.saving.value"
+          :disabled="!ops.canWriteSettings.value || ops.saving.value || !settingsReady"
+          :title="settingsReady ? undefined : 'Waiting for the stored defaults to load'"
           @click="saveSettings"
         >
-          <LoaderCircle v-if="ops.saving.value" :size="16" class="spin" aria-hidden="true" />
+          <LoaderCircle v-if="ops.saving.value || !settingsReady" :size="16" class="spin" aria-hidden="true" />
           Save defaults
         </button>
       </div>

@@ -37,9 +37,18 @@ export function validateCollection(input: string): string | undefined {
   return undefined;
 }
 
+/**
+ * An error message safe to put on screen.
+ *
+ * Backend errors quote what they were working on, and in this product that is
+ * routinely a URI carrying a credential — a provider link with a token in its
+ * path, or a node URI whose userinfo IS the key. Any scheme-and-authority form
+ * is replaced, not just http(s): `vless://`, `ss://`, `trojan://` and friends
+ * are exactly the ones worth hiding.
+ */
 export function safeErrorMessage(error: unknown, fallback: string): string {
   const raw = error instanceof Error ? error.message : fallback;
-  const redacted = raw.replace(/https?:\/\/[^\s"']+/gi, "[endpoint]").trim();
+  const redacted = raw.replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"']+/gi, "[endpoint]").trim();
   return redacted || fallback;
 }
 

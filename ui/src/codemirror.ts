@@ -99,9 +99,12 @@ export function createEditor(options: {
   language: EditorLanguage;
   readonly?: boolean;
   placeholderText?: string;
+  /** Element id that names this editor; applied to the contenteditable. */
+  ariaLabelledby?: string;
   onChange: (value: string) => void;
 }): EditorHandle {
   const languageSlot = new Compartment();
+  let escapeArmed = false;
   const view = new EditorView({
     parent: options.parent,
     state: EditorState.create({
@@ -110,13 +113,35 @@ export function createEditor(options: {
         lineNumbers(),
         history(),
         bracketMatching(),
-        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+        keymap.of([
+          ...defaultKeymap,
+          ...historyKeymap,
+          {
+            key: "Tab",
+            run: (view) => {
+              if (escapeArmed) {
+                escapeArmed = false;
+                return false; // let the browser move focus out
+              }
+              return indentWithTab.run ? indentWithTab.run(view) : false;
+            },
+            shift: indentWithTab.shift,
+          },
+        ]),
         languageSlot.of(languageExtension(options.language)),
         syntaxHighlighting(highlight),
         chrome,
         EditorView.lineWrapping,
         EditorState.readOnly.of(!!options.readonly),
         options.placeholderText ? cmPlaceholder(options.placeholderText) : [],
+        options.ariaLabelledby
+          ? EditorView.contentAttributes.of({ "aria-labelledby": options.ariaLabelledby })
+          : [],
+        // Tab indents, which makes the editor a keyboard trap unless there is a
+        // way out: Escape first, then Tab, moves focus on — the standard
+        // CodeMirror escape hatch, and the only one a keyboard operator can
+        // discover from the focus ring alone.
+        keymap.of([{ key: "Escape", run: () => { escapeArmed = true; return false; } }]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) options.onChange(update.state.doc.toString());
         }),

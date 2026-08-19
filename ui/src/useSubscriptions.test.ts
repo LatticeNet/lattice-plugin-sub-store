@@ -504,6 +504,11 @@ describe("vpn-core graph workflow", () => {
     expect(calls).toHaveLength(1);
     expect(subs.actionError.value).toMatch(/publish failed/i);
     expect(subs.actionError.value).not.toContain("vless://");
+    // The cause is kept, redacted: an operator needs to tell a refused
+    // credential from an unreachable host, and neither is legible from a
+    // single generic sentence.
+    expect(subs.actionError.value).toContain("HTTP 502");
+    expect(subs.actionError.value).toContain("[endpoint]");
     expect(GRAPH_OPTIONS).toEqual(before);
   });
 

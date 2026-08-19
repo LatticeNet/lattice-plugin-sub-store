@@ -14,8 +14,10 @@ const emit = defineEmits<{ (e: "clear"): void }>();
 
 <style scoped>
 .lt-batchbar {
-  position: sticky;
-  bottom: var(--lt-space-3);
+  /* Not sticky: the host sizes this frame to its content, so there is no
+     scrollport for sticky to attach to and the bar simply never floats. It
+     sits with the list instead, which is where the selection is. */
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--lt-space-3);

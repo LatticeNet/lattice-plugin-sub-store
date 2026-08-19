@@ -1,15 +1,45 @@
 <script setup lang="ts">
+import { nextTick, ref, watch } from "vue";
 import { X } from "@lucide/vue";
 
-/** Right-side panel for row-scoped work (preview, publish, share guidance).
- *  One drawer at a time; Esc and the scrim both close it. */
-defineProps<{ open: boolean; title: string }>();
+/**
+ * Right-side panel for row-scoped work (preview, publish, share guidance).
+ * One drawer at a time; Esc and the scrim both close it.
+ *
+ * Two things this has to get right that a normal page does not. The document is
+ * not a viewport — the host sizes the frame to the content — so the scrim is
+ * absolute over the document and the panel opens at the anchor the click
+ * supplied rather than at the top of a frame that may be far above the fold.
+ * And Escape only reaches a handler on an element that has focus, so the panel
+ * takes focus when it opens; without that the key did nothing until the
+ * operator had tabbed inside, which is the opposite of an escape hatch.
+ */
+const props = defineProps<{ open: boolean; title: string; anchorTop?: number }>();
 const emit = defineEmits<{ (e: "close"): void }>();
+
+const panel = ref<HTMLElement | null>(null);
+watch(
+  () => props.open,
+  async (open) => {
+    if (!open) return;
+    await nextTick();
+    panel.value?.focus();
+  },
+);
 </script>
 
 <template>
   <div v-if="open" class="lt-drawer-scrim" @click.self="emit('close')">
-    <aside class="lt-drawer" role="dialog" aria-modal="true" :aria-label="title" @keydown.esc="emit('close')">
+    <aside
+      ref="panel"
+      class="lt-drawer"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      :aria-label="title"
+      :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
+      @keydown.esc="emit('close')"
+    >
       <header class="lt-drawer-head">
         <h3 class="lt-drawer-title">{{ title }}</h3>
         <button class="lt-drawer-close" type="button" aria-label="Close" @click="emit('close')">
@@ -23,17 +53,19 @@ const emit = defineEmits<{ (e: "close"): void }>();
 
 <style scoped>
 .lt-drawer-scrim {
-  position: fixed;
+  position: absolute;
   inset: 0;
+  min-height: 100%;
   background: color-mix(in oklab, var(--lt-fg) 24%, transparent);
   z-index: 50;
 }
 .lt-drawer {
   position: absolute;
-  top: 0;
+  top: var(--overlay-anchor-top, 0);
   right: 0;
-  bottom: 0;
   width: min(420px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
   background: var(--lt-surface);
   border-left: 1px solid var(--lt-border);
   display: flex;

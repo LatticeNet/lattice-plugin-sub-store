@@ -20,7 +20,7 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 
 .page-header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding-bottom: 22px;
@@ -495,8 +495,10 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 }
 
 .editor-actions {
-  position: sticky;
-  bottom: 0;
+  /* Not sticky: sticky needs a scrollport, and this document has none — the
+     host scrolls the parent page instead. A sticky bar here simply never
+     activates, so the row is laid out honestly as the end of the form. */
+  position: relative;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -656,7 +658,7 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   display: grid;
   /* icon | body | actions — the body is the only elastic track, so a long
      name shortens itself instead of pushing the actions off the frame. */
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px;
   padding: 10px 12px;
@@ -792,12 +794,18 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 /* ── target sheet ───────────────────────────────────────────────────────── */
 
 .sheet-scrim {
-  position: fixed;
+  /* absolute, not fixed: this document is not a viewport. The host sizes the
+     frame to the content, so `fixed` resolves against the whole frame and an
+     overlay centred in it lands off the operator's screen. The scrim covers the
+     document and the sheet is positioned at the anchor the click supplied. */
+  position: absolute;
   inset: 0;
+  min-height: 100%;
   z-index: 60;
   display: grid;
-  place-items: start center;
-  padding: 32px 16px;
+  justify-items: center;
+  align-items: start;
+  padding: 0 16px;
   background: rgb(0 0 0 / 45%);
   overflow-y: auto;
 }
@@ -891,7 +899,11 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   /* Rows drive the height the same way the old textarea's rows did, so the
      form's rhythm does not change with the upgrade. */
   min-height: calc(var(--code-editor-rows, 12) * 1.35em + 16px);
-  max-height: 60vh;
+  /* Not vh: this document's height IS the frame height the host syncs to the
+     content, so a viewport unit here sizes the editor from its own output. A
+     row-derived ceiling is stable and says what it means — about 24 lines,
+     after which the editor scrolls internally. */
+  max-height: calc(24 * 1.45em + 16px);
 }
 
 .code-editor-host .cm-scroller {
@@ -1095,6 +1107,11 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   cursor: pointer;
 }
 
+/* The sheet sits where the operator clicked, in document coordinates. */
+.sheet {
+  margin-top: var(--overlay-anchor-top, 32px);
+}
+
 /* A cut preview must not be mistaken for the record's real output. */
 .preview-cut {
   margin: 0 0 6px;
@@ -1103,4 +1120,63 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   background: var(--lt-surface-2);
   color: var(--lt-fg);
   font-size: 12px;
+}
+
+/* The rows are real but not fresh: a quiet strip, not an error state, because
+   nothing the operator is looking at is wrong — it is just older than they
+   might assume. */
+.stale-strip {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--lt-warn);
+  background: var(--lt-surface-2);
+  color: var(--lt-fg-muted);
+  font-size: 12px;
+}
+
+/* ── files: the same list idiom the subscriptions tab uses ────────────────── */
+
+.rec-select {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+}
+
+.rec-group-head-static {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lt-fg-muted);
+}
+
+.lt-batch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius, 6px);
+  background: var(--lt-surface-2);
+  font-size: 12px;
+}
+
+.lt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* The sort control sits with the filters: both narrow what the eye has to
+   cross, and separating them would make the toolbar read as two toolbars. */
+.lt-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--lt-fg-muted);
+}
+
+.lt-sort-label {
+  white-space: nowrap;
 }
