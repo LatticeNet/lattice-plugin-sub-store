@@ -350,18 +350,71 @@ func TestPreviewDraftIsDeclaredAdminInTheManifest(t *testing.T) {
 	}
 }
 
-// The signed bundle has to be rebuilt after a manifest change, and a stale
-// signature is the kind of thing that gets noticed at deploy time instead of
-// review time. Fail loudly here while it is cheap.
-func TestManifestSignatureIsStaleAfterTheScopeSplit(t *testing.T) {
+// Every method has to declare its scopes or the host refuses it, and a method
+// that declares none would silently inherit the interface default. Checked for
+// the whole surface rather than for the one method added here.
+func TestEveryManifestMethodDeclaresScopes(t *testing.T) {
+	for _, iface := range loadManifestInterfaces(t) {
+		for _, method := range iface.Methods {
+			if len(method.Scopes) == 0 {
+				t.Errorf("%s/%s declares no scopes", iface.Service, method.Name)
+			}
+		}
+	}
+}
+
+// describe reports a version to whoever reads it, and the manifest is what the
+// host enforces against. vpn-core, netguard and wireguard each pin these
+// together; sub-store did not, which is how its constant drifted nine alphas
+// behind the signed manifest without anything failing.
+func TestDescribeVersionMatchesTheManifest(t *testing.T) {
 	raw, err := os.ReadFile("../manifest.json")
 	if err != nil {
 		t.Fatalf("read manifest: %v", err)
 	}
+	var m struct {
+		ID      string `json:"id"`
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		t.Fatalf("parse manifest: %v", err)
+	}
+
+	rt := &runtime{}
+	resp := rt.handle(request{Action: latticeplugin.ActionDescribe})
+	if !resp.OK {
+		t.Fatalf("describe failed: %s", resp.Error)
+	}
+	var body struct {
+		ID           string   `json:"id"`
+		Version      string   `json:"version"`
+		Capabilities []string `json:"capabilities"`
+	}
+	if err := json.Unmarshal(resp.Result, &body); err != nil {
+		t.Fatalf("decode describe: %v", err)
+	}
+	if body.ID != m.ID {
+		t.Errorf("describe id %q != manifest %q", body.ID, m.ID)
+	}
+	if body.Version != m.Version {
+		t.Errorf("describe version %q != manifest %q", body.Version, m.Version)
+	}
+}
+
+// A released version is never reused with different bytes. This change alters
+// the manifest, so it must not ship as the version that was already signed.
+func TestManifestVersionMovedOffTheSignedRelease(t *testing.T) {
+	raw, err := os.ReadFile("../manifest.json")
+	if err != nil {
+		t.Fatalf("read manifest: %v", err)
+	}
+	if strings.Contains(string(raw), `"version": "0.13.0-alpha.14"`) {
+		t.Fatal("the manifest changed but still claims 0.13.0-alpha.14, which is already signed and released")
+	}
 	if !strings.Contains(string(raw), "preview_draft") {
 		t.Fatal("manifest no longer declares preview_draft")
 	}
-	t.Log("manifest.json changed: the bundle must be repacked and re-signed before release")
+	t.Log("manifest.json changed: bundle digest and signature are stale until it is repacked and re-signed")
 }
 
 // callTarget must name exactly what handleCall will dispatch to, in both request

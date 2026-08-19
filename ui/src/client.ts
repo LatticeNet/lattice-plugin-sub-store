@@ -66,6 +66,15 @@ export const BINDINGS = {
   // ── core-backed (dispatched to the host, never to the runtime) ────────────
   sharesList: binding(SERVICES.shares, "list", "active"),
   subPreview: binding(SERVICES.subscription, "preview", "active"),
+  /**
+   * Previews an UNSAVED draft by resolving the source the caller named, which
+   * `subPreview` deliberately will not do. Naming a source is naming a host for
+   * the control plane to go and read, so it is declared substore:admin while
+   * `preview` stays substore:read. Availability does the rest: a read-scoped
+   * operator never sees this binding, so the draft path is simply not offered
+   * to them rather than failing when they use it.
+   */
+  subPreviewDraft: binding(SERVICES.subscription, "preview_draft", "active"),
   subOperators: binding(SERVICES.subscription, "operators", "active"),
   subGraphOptions: binding(SERVICES.subscription, "graph_options", "active"),
   subMigrate: binding(SERVICES.subscription, "migrate", "active"),

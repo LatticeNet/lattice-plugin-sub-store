@@ -373,6 +373,44 @@ describe("vpn-core graph workflow", () => {
     expect(saved.graph_options_version).toBe(GRAPH_OPTIONS.options_version);
   });
 
+  // Naming a source is naming a host for the control plane to read, so it goes
+  // to preview_draft (substore:admin). A preview of pasted or stored content
+  // stays on preview (substore:read), which is what keeps a read-only operator
+  // able to preview at all.
+  it("routes a draft that names a source to the admin-scoped preview method", async () => {
+    const draftKey = `${BINDINGS.subPreviewDraft.service}/${BINDINGS.subPreviewDraft.method}`;
+    const { host, calls } = subscriptionHost({
+      [draftKey]: { source_node_count: 1, node_count: 1, nodes: [{ name: "A" }] },
+    });
+    const subs = useSubscriptions(host);
+    await subs.runPreview({ ...emptyDraft(), source: "provider", url: "https://provider.example/sub" });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].method).toBe("preview_draft");
+    expect(calls[0].payload).toMatchObject({ source: "provider", url: "https://provider.example/sub" });
+  });
+
+  it("keeps a pasted-content preview on the read-scoped method", async () => {
+    const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
+    const { host, calls } = subscriptionHost({
+      [previewKey]: { source_node_count: 1, node_count: 1, nodes: [{ name: "A" }] },
+    });
+    const subs = useSubscriptions(host);
+    await subs.runPreview({ ...emptyDraft(), content: "ss://example" });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].method).toBe("preview");
+    expect(calls[0].payload).not.toHaveProperty("source", expect.anything());
+  });
+
+  // A read-scoped operator never sees preview_draft, so the draft path must say
+  // so instead of firing a call the server will refuse.
+  it("explains rather than calls when the draft method is out of scope", async () => {
+    const { host, calls } = subscriptionHost({}, (method) => method !== "preview_draft");
+    const subs = useSubscriptions(host);
+    await subs.runPreview({ ...emptyDraft(), source: "provider", url: "https://provider.example/sub" });
+    expect(calls).toHaveLength(0);
+    expect(subs.actionError.value).toContain("admin");
+  });
+
   it("previews an unsaved graph from the exact draft selection without raw credentials", async () => {
     const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
     const sourceVersion = `sv1:${"c".repeat(64)}`;

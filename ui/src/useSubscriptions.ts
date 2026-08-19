@@ -361,6 +361,9 @@ export function useSubscriptions(host: HostContext) {
   const canMutate = computed(() => host.available(BINDINGS.subSave) && host.available(BINDINGS.subDelete));
   const canFetch = computed(() => host.available(BINDINGS.subProbe));
   const canPreview = computed(() => host.available(BINDINGS.subPreview));
+  // Resolving a source the caller named is substore:admin, so it is a separate
+  // binding and a separate question from whether preview works at all.
+  const canPreviewDraft = computed(() => host.available(BINDINGS.subPreviewDraft));
   /** Render is what produces the document a client receives. It is also the
    *  only path that answers for the files preview refuses. */
   const canRender = computed(() => host.available(BINDINGS.subRender));
@@ -754,34 +757,46 @@ export function useSubscriptions(host: HostContext) {
       // Sending the draft rather than the id previews unsaved edits; the
       // backend falls back to the stored record when raw is empty. A draft
       // whose source is the fleet or a provider link has no pasted content at
-      // all, so its source goes along. The engine resolves it live (read
-      // only; nothing is persisted as a refresh).
-      const response = await callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, {
-        subscription_id: draft.id.trim(),
-        raw: draft.source === SOURCE_VPN_CORE_GRAPH ? undefined : draft.content,
-        target: draft.target.trim(),
-        // Explicit draft authority must not fall back to the stored process.
-        // Node preview excludes both disabled and response-stage steps.
-        operators,
-        graph_selection: draft.source === SOURCE_VPN_CORE_GRAPH ? {
-          schema_version: 1,
-          options_version: draft.optionsVersion,
-          identity_id: draft.vpnIdentity,
-          entry_roots: [...draft.entryRoots],
-        } : undefined,
-        // An unsaved draft's source rides along so the engine can resolve a
-        // fleet- or provider-sourced draft live (read only; not a refresh). A
-        // graph draft's authority is its selection alone, so nothing else is
-        // sent for it.
-        ...(draft.source === SOURCE_VPN_CORE_GRAPH
-          ? {}
-          : {
-              source: draft.source || undefined,
-              url: draft.url.trim() || undefined,
-              ua: draft.ua.trim() || undefined,
-              vpn_identity: draft.vpnIdentity.trim() || undefined,
-            }),
-      }).promise;
+      // all, so its source goes along and the engine resolves it live (read
+      // only; nothing is persisted as a refresh). A graph draft's authority is
+      // its selection alone, so nothing else is sent for it.
+      const draftSource = draft.source === SOURCE_VPN_CORE_GRAPH
+        ? {}
+        : {
+            source: draft.source || undefined,
+            url: draft.url.trim() || undefined,
+            ua: draft.ua.trim() || undefined,
+            vpn_identity: draft.vpnIdentity.trim() || undefined,
+          };
+      // Naming a source is naming a host for the control plane to read, which
+      // is substore:admin. Only that shape goes to the admin method; a preview
+      // of stored or pasted content stays on the read-scoped one, so a
+      // read-only operator keeps the preview they are entitled to.
+      const namesASource = Object.values(draftSource).some((value) => value !== undefined);
+      if (namesASource && !canPreviewDraft.value) {
+        actionError.value =
+          "Previewing an unsaved draft resolves the source you named, which needs admin access. Save the subscription first, or preview pasted content.";
+        return;
+      }
+      const response = await callMethod<SubscriptionPreviewResponse>(
+        host.bridge,
+        namesASource ? BINDINGS.subPreviewDraft : BINDINGS.subPreview,
+        {
+          subscription_id: draft.id.trim(),
+          raw: draft.source === SOURCE_VPN_CORE_GRAPH ? undefined : draft.content,
+          target: draft.target.trim(),
+          // Explicit draft authority must not fall back to the stored process.
+          // Node preview excludes both disabled and response-stage steps.
+          operators,
+          graph_selection: draft.source === SOURCE_VPN_CORE_GRAPH ? {
+            schema_version: 1,
+            options_version: draft.optionsVersion,
+            identity_id: draft.vpnIdentity,
+            entry_roots: [...draft.entryRoots],
+          } : undefined,
+          ...draftSource,
+        },
+      ).promise;
       preview.value = response;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Preview failed");
@@ -871,6 +886,7 @@ export function useSubscriptions(host: HostContext) {
     canMutate,
     canFetch,
     canPreview,
+    canPreviewDraft,
     canRender,
     canPublish,
     canLoadGraphOptions,
