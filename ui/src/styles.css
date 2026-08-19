@@ -899,7 +899,11 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   /* Rows drive the height the same way the old textarea's rows did, so the
      form's rhythm does not change with the upgrade. */
   min-height: calc(var(--code-editor-rows, 12) * 1.35em + 16px);
-  max-height: 60vh;
+  /* Not vh: this document's height IS the frame height the host syncs to the
+     content, so a viewport unit here sizes the editor from its own output. A
+     row-derived ceiling is stable and says what it means — about 24 lines,
+     after which the editor scrolls internally. */
+  max-height: calc(24 * 1.45em + 16px);
 }
 
 .code-editor-host .cm-scroller {

@@ -30,6 +30,7 @@ import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtDrawer from "../components/lt/LtDrawer.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
+import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
@@ -379,9 +380,6 @@ function toggleSelected(id: string): void {
   else next.add(id);
   selectedIds.value = next;
 }
-function clearSelection(): void {
-  selectedIds.value = new Set();
-}
 
 const unsortedRows = computed(() =>
   onThisTab.value.filter((item) => {
@@ -398,6 +396,30 @@ const unsortedRows = computed(() =>
       (field) => field.toLowerCase().includes(query),
     );
   }),
+);
+
+/**
+ * Chip counts reflect the search too.
+ *
+ * They used to apply the tag filter but not the search box, so typing left
+ * "Subs (12)" sitting above a list of two — two ways of narrowing the same list
+ * telling the operator different things.
+ */
+const searchedRows = computed(() => {
+  const query = searchText.value.trim().toLowerCase();
+  return onThisTab.value.filter((item) => {
+    if (!matchesFilter(item)) return false;
+    if (!query) return true;
+    return [item.name, item.display_name ?? "", item.id, item.remark ?? "", ...(item.tags ?? [])].some(
+      (field) => field.toLowerCase().includes(query),
+    );
+  });
+});
+const visibleSingles = computed(
+  () => searchedRows.value.filter((item) => (item.kind || KIND_SUB) === KIND_SUB).length,
+);
+const visibleCollections = computed(
+  () => searchedRows.value.filter((item) => item.kind === KIND_COLLECTION).length,
 );
 
 /** Rank for the status sort: what needs attention first. */
@@ -951,7 +973,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <!-- Sticky: on a form this long, a save button at the bottom is a
              button you have to go and look for. -->
         <div class="editor-actions">
-          <span v-if="draftError" class="field-error">{{ draftError }}</span>
+          <!-- The failure belongs next to the button that produced it: this
+               form is long, and a banner at the top is off-screen from the
+               click that triggered it. -->
+          <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
+          <span v-else-if="draftError" class="field-error">{{ draftError }}</span>
           <button
             class="button button-secondary"
             type="button"
@@ -989,17 +1015,24 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono">{{ subs.items.value.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+          <span class="badge mono">{{ onThisTab.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <LtButton
             variant="primary"
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
+            :title="subs.atRecordLimit.value
+              ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
+              : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
             @click="startCreate(KIND_SUB)"
           >
             <Plus :size="14" aria-hidden="true" /> New subscription
           </LtButton>
           <LtButton
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
-            :title="!singles.length ? 'Create a subscription first — there is nothing to combine' : ''"
+            :title="!singles.length
+              ? 'Create a subscription first — there is nothing to combine'
+              : subs.atRecordLimit.value
+                ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
+                : !subs.canMutate.value ? 'This bundle does not declare the save and delete methods' : ''"
             @click="startCreate(KIND_COLLECTION)"
           >
             <Layers :size="14" aria-hidden="true" /> New combination
@@ -1090,7 +1123,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               :aria-pressed="kindFilter === 'sub'"
               @click="kindFilter = 'sub'"
             >
-              <Library :size="12" aria-hidden="true" /> Subs ({{ singles.length }})
+              <Library :size="12" aria-hidden="true" /> Subs ({{ visibleSingles }})
             </button>
             <button
               type="button"
@@ -1099,7 +1132,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               :aria-pressed="kindFilter === 'collection'"
               @click="kindFilter = 'collection'"
             >
-              <Layers :size="12" aria-hidden="true" /> Combinations ({{ collections.length }})
+              <Layers :size="12" aria-hidden="true" /> Combinations ({{ visibleCollections }})
             </button>
             <span class="lt-chip-sep" aria-hidden="true" />
             <label class="lt-sort">
@@ -1134,9 +1167,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </template>
         </LtToolbar>
 
-        <div v-if="selectedIds.size" class="lt-batch">
-          <span>{{ selectedIds.size }} selected</span>
-          <button class="button button-secondary button-compact" type="button" @click="clearSelection">Clear</button>
+        <LtBatchBar :count="selectedIds.size" @clear="selectedIds = new Set()">
           <button
             class="button button-danger button-compact"
             type="button"
@@ -1145,7 +1176,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           >
             <Trash2 :size="14" aria-hidden="true" /> Delete selected
           </button>
-        </div>
+        </LtBatchBar>
 
         <!-- A write can succeed and its trailing reload still fail. The rows
              below are then the last good read, and saying so beats either

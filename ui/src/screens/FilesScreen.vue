@@ -3,6 +3,7 @@ import { computed, onActivated, onMounted, ref, watch } from "vue";
 import {
   ChevronsRight,
   CircleAlert,
+  RefreshCw,
   CircleCheck,
   ClipboardPaste,
   CopyPlus,
@@ -43,6 +44,7 @@ import {
   type SubscriptionDraft,
 } from "../useSubscriptions";
 import LtIconButton from "../components/lt/LtIconButton.vue";
+import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import CodeEditor from "../components/CodeEditor.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
@@ -612,6 +614,7 @@ watch(host.init, (value) => {
         </fieldset>
 
         <div class="editor-actions">
+          <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
           <p v-if="draftError" class="field-error">{{ draftError }}</p>
           <button
             class="button button-secondary"
@@ -655,7 +658,7 @@ watch(host.init, (value) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono">{{ subs.items.value.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+          <span class="badge mono">{{ allFiles.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <button
             class="button button-primary button-compact"
             type="button"
@@ -747,9 +750,7 @@ watch(host.init, (value) => {
           </div>
         </div>
 
-        <div v-if="selectedIds.size" class="lt-batch">
-          <span>{{ selectedIds.size }} selected</span>
-          <button class="button button-secondary button-compact" type="button" @click="selectedIds = new Set()">Clear</button>
+        <LtBatchBar :count="selectedIds.size" @clear="selectedIds = new Set()">
           <button
             class="button button-danger button-compact"
             type="button"
@@ -758,7 +759,7 @@ watch(host.init, (value) => {
           >
             <Trash2 :size="14" aria-hidden="true" /> Delete selected
           </button>
-        </div>
+        </LtBatchBar>
 
         <LtEmptyState
           v-if="!files.length"
@@ -802,6 +803,14 @@ watch(host.init, (value) => {
               </span>
             </div>
             <div class="rec-actions" @click.stop>
+              <LtIconButton
+                v-if="item.source === SOURCE_REMOTE"
+                :label="`Refresh ${item.name} from its template URL`"
+                :disabled="!subs.canFetch.value || subs.busyId.value === item.id"
+                @click="subs.refresh(item.id)"
+              >
+                <RefreshCw :size="15" :class="subs.busyId.value === item.id ? 'spin' : ''" aria-hidden="true" />
+              </LtIconButton>
               <LtIconButton
                 :label="`Preview or copy ${item.name} for a client`"
                 @click="openFileSheet(item, $event)"
