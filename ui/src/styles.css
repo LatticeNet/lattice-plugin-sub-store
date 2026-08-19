@@ -495,8 +495,10 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 }
 
 .editor-actions {
-  position: sticky;
-  bottom: 0;
+  /* Not sticky: sticky needs a scrollport, and this document has none — the
+     host scrolls the parent page instead. A sticky bar here simply never
+     activates, so the row is laid out honestly as the end of the form. */
+  position: relative;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -792,12 +794,18 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
 /* ── target sheet ───────────────────────────────────────────────────────── */
 
 .sheet-scrim {
-  position: fixed;
+  /* absolute, not fixed: this document is not a viewport. The host sizes the
+     frame to the content, so `fixed` resolves against the whole frame and an
+     overlay centred in it lands off the operator's screen. The scrim covers the
+     document and the sheet is positioned at the anchor the click supplied. */
+  position: absolute;
   inset: 0;
+  min-height: 100%;
   z-index: 60;
   display: grid;
-  place-items: start center;
-  padding: 32px 16px;
+  justify-items: center;
+  align-items: start;
+  padding: 0 16px;
   background: rgb(0 0 0 / 45%);
   overflow-y: auto;
 }
@@ -1095,6 +1103,11 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   cursor: pointer;
 }
 
+/* The sheet sits where the operator clicked, in document coordinates. */
+.sheet {
+  margin-top: var(--overlay-anchor-top, 32px);
+}
+
 /* A cut preview must not be mistaken for the record's real output. */
 .preview-cut {
   margin: 0 0 6px;
@@ -1102,5 +1115,17 @@ button:disabled { cursor: not-allowed; opacity: 0.52; }
   border-left: 2px solid var(--lt-warn);
   background: var(--lt-surface-2);
   color: var(--lt-fg);
+  font-size: 12px;
+}
+
+/* The rows are real but not fresh: a quiet strip, not an error state, because
+   nothing the operator is looking at is wrong — it is just older than they
+   might assume. */
+.stale-strip {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--lt-warn);
+  background: var(--lt-surface-2);
+  color: var(--lt-fg-muted);
   font-size: 12px;
 }

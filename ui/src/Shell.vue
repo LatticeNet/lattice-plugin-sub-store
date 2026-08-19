@@ -49,6 +49,26 @@ const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [
   { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },
 ];
 
+/**
+ * Arrow-key movement across the tablist.
+ *
+ * A tablist that only responds to clicks is a tablist in name only: the role
+ * promises arrow keys, and a keyboard operator who lands on it otherwise has to
+ * Tab through every panel to reach the next section.
+ */
+const tabButtons = ref<HTMLElement[]>([]);
+function setTabRef(el: unknown, index: number): void {
+  if (el instanceof HTMLElement) tabButtons.value[index] = el;
+}
+function onTabKeydown(event: KeyboardEvent, index: number): void {
+  const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+  if (!step) return;
+  event.preventDefault();
+  const next = (index + step + tabs.length) % tabs.length;
+  activeTab.value = tabs[next]!.id;
+  tabButtons.value[next]?.focus();
+}
+
 const activeTab = ref<TabId>("subscriptions");
 const activeScreen = computed(
   () => tabs.find((tab) => tab.id === activeTab.value)?.screen ?? SubscriptionsScreen,
@@ -75,15 +95,18 @@ const activeScreen = computed(
 
       <nav class="tab-bar" role="tablist" aria-label="Sub-Store sections">
         <button
-          v-for="tab in tabs"
+          v-for="(tab, index) in tabs"
           :id="`tab-${tab.id}`"
           :key="tab.id"
+          :ref="(el) => setTabRef(el, index)"
           class="tab"
           type="button"
           role="tab"
           :aria-selected="activeTab === tab.id"
           :aria-controls="`panel-${tab.id}`"
           :data-active="activeTab === tab.id"
+          :tabindex="activeTab === tab.id ? 0 : -1"
+          @keydown="onTabKeydown($event, index)"
           @click="activeTab = tab.id"
         >
           <component :is="tab.icon" :size="15" aria-hidden="true" />
@@ -91,14 +114,15 @@ const activeScreen = computed(
         </button>
       </nav>
 
-      <KeepAlive>
-        <component
-          :is="activeScreen"
-          :id="`panel-${activeTab}`"
-          role="tabpanel"
-          :aria-labelledby="`tab-${activeTab}`"
-        />
-      </KeepAlive>
+      <!-- The panel attributes live on a real wrapper element.
+           Passing them to <component :is> put them on a screen whose root is a
+           fragment, where Vue drops them: aria-controls pointed at nothing, and
+           there was no tabpanel at all. -->
+      <div :id="`panel-${activeTab}`" role="tabpanel" :aria-labelledby="`tab-${activeTab}`" tabindex="-1">
+        <KeepAlive>
+          <component :is="activeScreen" />
+        </KeepAlive>
+      </div>
     </template>
   </main>
 </template>

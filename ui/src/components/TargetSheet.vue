@@ -16,7 +16,7 @@
  *    pins its own `target` always renders as that target, so the sheet says so
  *    instead of implying the choice still applies.
  */
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { Check, Copy, Eye, Link, LoaderCircle, X } from "@lucide/vue";
 
 import {
@@ -35,6 +35,13 @@ import { safeErrorMessage } from "../subStoreModel";
 
 const props = defineProps<{
   open: boolean;
+  /**
+   * Where the sheet should sit, in document coordinates. The frame has no
+   * scrollport, so a sheet centred with `position: fixed` opens at the top of a
+   * frame that may be far above what the operator can see; anchoring it to the
+   * row that was clicked keeps it beside the thing it is about.
+   */
+  anchorTop?: number;
   /** The record being inspected; null closes the sheet. */
   recordId: string;
   recordName: string;
@@ -62,9 +69,11 @@ const shareLoaded = ref(false);
 const copiedLink = ref("");
 const shownLink = ref<{ target: string; url: string } | null>(null);
 
+const sheet = ref<HTMLElement | null>(null);
+
 watch(
   () => props.open,
-  (open) => {
+  async (open) => {
     if (!open) return;
     error.value = "";
     preview.value = null;
@@ -73,6 +82,11 @@ watch(
     copiedLink.value = "";
     shownLink.value = null;
     void loadShare();
+    // Escape is bound to the panel, and a key event only reaches an element
+    // that has focus. Without this the shortcut did nothing until the operator
+    // had tabbed inside — the opposite of an escape hatch.
+    await nextTick();
+    sheet.value?.focus();
   },
 );
 
@@ -193,7 +207,10 @@ function close(): void {
 <template>
   <div v-if="open" class="sheet-scrim" role="presentation" @click.self="close">
     <section
+      ref="sheet"
+      tabindex="-1"
       class="sheet"
+      :style="{ '--overlay-anchor-top': `${anchorTop ?? 32}px` }"
       role="dialog"
       aria-modal="true"
       :aria-label="`Preview or copy ${recordName}`"

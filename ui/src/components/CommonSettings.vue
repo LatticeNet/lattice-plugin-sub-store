@@ -41,18 +41,14 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
     <h3>Common settings</h3>
 
     <div class="common-row">
-      <span class="common-label">Junk nodes</span>
-      <div class="common-choices">
-        <button
-          type="button"
-          :class="{ 'is-active': !modelValue.dropUseless }"
+      <span id="common-junk-label" class="common-label">Junk nodes</span>
+      <div class="common-choices" role="radiogroup" aria-labelledby="common-junk-label">
+        <button type="button" role="radio" :aria-checked="!modelValue.dropUseless" :class="{ 'is-active': !modelValue.dropUseless }"
           @click="emit('update:modelValue', { ...modelValue, dropUseless: false })"
         >
           Keep
         </button>
-        <button
-          type="button"
-          :class="{ 'is-active': modelValue.dropUseless }"
+        <button type="button" role="radio" :aria-checked="modelValue.dropUseless" :class="{ 'is-active': modelValue.dropUseless }"
           @click="emit('update:modelValue', { ...modelValue, dropUseless: true })"
         >
           Drop
@@ -65,8 +61,8 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
     </div>
 
     <div v-for="row in SWITCHES" :key="row.key" class="common-row">
-      <span class="common-label">{{ row.label }}</span>
-      <div class="common-choices">
+      <span :id="`common-${row.key}-label`" class="common-label">{{ row.label }}</span>
+      <div class="common-choices" role="radiogroup" :aria-labelledby="`common-${row.key}-label`">
         <button
           v-for="choice in TRI"
           :key="choice.value"

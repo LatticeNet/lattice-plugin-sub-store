@@ -463,9 +463,40 @@ export function defaultArgs(type: string): Record<string, unknown> {
  */
 export function toWireArgs(type: string, args: Record<string, unknown>): unknown {
   const schema = schemaFor(type);
-  if (!schema || schema.wire !== "bare") return args;
+  const cleaned = dropBlankPairs(schema, args);
+  if (!schema || schema.wire !== "bare") return cleaned;
   const field = schema.fields[0];
-  return field ? args[field.key] : args;
+  return field ? cleaned[field.key] : cleaned;
+}
+
+/**
+ * A pair row the operator started and left entirely empty is not a rule.
+ *
+ * It is dropped here, on the way to the wire, rather than while they type: the
+ * editor keeps every row they created, because deleting a row out from under
+ * someone mid-edit — which is what filtering on each keystroke did — reads as
+ * the UI eating their work.
+ */
+function dropBlankPairs(
+  schema: ReturnType<typeof schemaFor>,
+  args: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!schema) return args;
+  let out = args;
+  for (const field of schema.fields) {
+    if (field.kind !== "pairs") continue;
+    const rows = args[field.key];
+    if (!Array.isArray(rows)) continue;
+    const kept = rows.filter((row) => {
+      const pair = row as { expr?: unknown; now?: unknown };
+      return String(pair?.expr ?? "").trim() !== "" || String(pair?.now ?? "").trim() !== "";
+    });
+    if (kept.length === rows.length) continue;
+    if (out === args) out = { ...args };
+    if (kept.length) out[field.key] = kept;
+    else delete out[field.key];
+  }
+  return out;
 }
 
 /**

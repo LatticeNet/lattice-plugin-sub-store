@@ -130,3 +130,28 @@ describe("defaults survive the wire conversion", () => {
     }
   });
 });
+
+describe("pair rows on the way to the wire", () => {
+  it("keeps rows the operator is still typing, drops only the fully blank ones", () => {
+    // The editor keeps every row so a half-typed rule cannot vanish mid-edit;
+    // this boundary is where an abandoned row stops being a rule.
+    // This operator's wire shape is bare: the field's value IS the payload.
+    const rows = toWireArgs("Regex Rename Operator", {
+      value: [
+        { expr: "", now: "PROD" },
+        { expr: "", now: "" },
+        { expr: "^HK", now: "Hong Kong" },
+      ],
+    }) as { expr: string; now: string }[];
+    expect(rows.length).toBe(2);
+    expect(rows[0]).toEqual({ expr: "", now: "PROD" });
+    expect(rows[1]).toEqual({ expr: "^HK", now: "Hong Kong" });
+  });
+
+  it("drops the field entirely when every row was abandoned", () => {
+    const rows = toWireArgs("Regex Rename Operator", {
+      value: [{ expr: "", now: "" }],
+    }) as unknown;
+    expect(rows === undefined || (Array.isArray(rows) && rows.length === 0)).toBe(true);
+  });
+});

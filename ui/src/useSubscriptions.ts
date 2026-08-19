@@ -338,6 +338,10 @@ export function useSubscriptions(host: HostContext) {
   const state = ref<LoadState>("idle");
   const items = ref<SubscriptionListItem[]>([]);
   const loadError = ref("");
+  /** A failed background reload: the rows on screen are the last good ones. */
+  const staleError = ref("");
+  /** Whether the operator catalogue is still coming, or is simply not there. */
+  const operatorsState = ref<LoadState>("idle");
   const actionError = ref("");
   const notice = ref("");
   const saving = ref(false);
@@ -359,18 +363,34 @@ export function useSubscriptions(host: HostContext) {
   const canLoadGraphOptions = computed(() => host.available(BINDINGS.subGraphOptions));
   const atRecordLimit = computed(() => items.value.length >= MAX_SUBSCRIPTION_RECORDS);
 
+  /**
+   * A reload that fails behind a successful write must not replace the list.
+   *
+   * `load()` runs again after save, delete and refresh. When that trailing read
+   * failed it used to set `loadError`, and the screen keys its error state off
+   * that alone — so a write that SUCCEEDED could blank the rows the operator
+   * still had and tell them the list could not be loaded. A silent reload now
+   * reports through `staleError`, which the screen shows as a strip above rows
+   * that are still exactly what the server last sent.
+   */
   async function load(): Promise<void> {
     if (!host.bridge || !available.value) return;
     const silent = state.value === "ready";
     if (!silent) state.value = "loading";
     loadError.value = "";
+    staleError.value = "";
     try {
       const response = await callMethod<SubscriptionListResponse>(host.bridge, BINDINGS.subList, {}).promise;
       items.value = response.subscriptions ?? [];
       state.value = "ready";
     } catch (cause) {
-      if (!silent) state.value = "error";
-      loadError.value = safeErrorMessage(cause, "Subscriptions could not be loaded");
+      const message = safeErrorMessage(cause, "Subscriptions could not be loaded");
+      if (silent) {
+        staleError.value = message;
+      } else {
+        state.value = "error";
+        loadError.value = message;
+      }
     } finally {
       await host.resize();
     }
@@ -378,13 +398,17 @@ export function useSubscriptions(host: HostContext) {
 
   async function loadOperators(): Promise<void> {
     if (!host.bridge || !host.available(BINDINGS.subOperators) || operators.value.length > 0) return;
+    operatorsState.value = "loading";
     try {
       const response = await callMethod<OperatorCatalogResponse>(host.bridge, BINDINGS.subOperators, {}).promise;
       operators.value = response.operators ?? [];
+      operatorsState.value = "ready";
     } catch {
       // A missing catalogue costs the editor its operator hints and nothing
-      // else, so it is not worth an error banner over the whole tab.
+      // else, so it is not worth an error banner over the whole tab — but the
+      // chain must be able to say "unavailable" instead of "loading" forever.
       operators.value = [];
+      operatorsState.value = "error";
     }
   }
 
@@ -806,6 +830,8 @@ export function useSubscriptions(host: HostContext) {
     preview,
     previewing,
     previewStep,
+    staleError,
+    operatorsState,
     graphOptions,
     graphOptionsLoading,
     rowPreview,

@@ -199,6 +199,10 @@ function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
   draft.value.nodeSource =
     fileType !== FILE_TYPE_PLAIN && nodeSources.value.length === 1 ? nodeSources.value[0]!.id : "";
   tagText.value = "";
+  // The allowlist is the guard on what a public share URL may reach in a
+  // script. Leaving the previous record's value in place meant a new file
+  // silently inherited an allowlist nobody chose for it.
+  queryParamText.value = "";
   contentLanguageOverride.value = "";
   editingId.value = null;
   editing.value = true;
@@ -385,7 +389,7 @@ watch(host.init, (value) => {
             </template>
 
             <div v-if="isScript || !isRemote" class="field field-wide">
-              <span class="field-label field-label-row">
+              <span id="file-content-label" class="field-label field-label-row">
                 {{ isScript ? "Script" : isPlain ? "Text" : "Configuration" }}
                 <select
                   v-model="contentLanguageOverride"
@@ -399,6 +403,7 @@ watch(host.init, (value) => {
                 </select>
               </span>
               <CodeEditor
+                aria-labelledby="file-content-label"
                 v-model="draft.content"
                 :language="contentLanguage"
                 :rows="isScript ? 22 : 16"
@@ -496,6 +501,7 @@ watch(host.init, (value) => {
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
+            :catalog-state="subs.operatorsState.value"
             :chain="isPlain ? 'response' : 'nodes'"
             :heading="isPlain ? 'Document operations' : undefined"
             :empty-copy="isPlain ? 'No operations. The text is served exactly as written.' : undefined"

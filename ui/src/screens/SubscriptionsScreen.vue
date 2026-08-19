@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -33,6 +33,7 @@ import LtIconButton from "../components/lt/LtIconButton.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
+import { anchorTopFrom } from "../overlayAnchor";
 
 import {
   CONVERT_TARGETS,
@@ -416,10 +417,38 @@ function toggleGroup(id: string): void {
 
 /** Which record's per-row menu is open; only ever one. */
 const openMenuId = ref("");
-function toggleMenu(id: string): void {
-  openMenuId.value = openMenuId.value === id ? "" : id;
-}
 
+/**
+ * A popover that only closes when another one opens is a popover the operator
+ * has to fight. Outside click and Escape both dismiss it, and because it is
+ * absolutely positioned it never changes the document height — on the last row
+ * it could otherwise extend past the frame with its own items unreachable, so
+ * opening one also re-reports the height.
+ */
+function closeRowMenu(): void {
+  openMenuId.value = "";
+}
+async function toggleRowMenu(id: string): Promise<void> {
+  openMenuId.value = openMenuId.value === id ? "" : id;
+  await host.resize();
+}
+onMounted(() => {
+  document.addEventListener("click", onDocumentClick, true);
+  document.addEventListener("keydown", onDocumentKeydown);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onDocumentClick, true);
+  document.removeEventListener("keydown", onDocumentKeydown);
+});
+function onDocumentClick(event: MouseEvent): void {
+  if (!openMenuId.value) return;
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("[data-row-menu]")) return;
+  closeRowMenu();
+}
+function onDocumentKeydown(event: KeyboardEvent): void {
+  if (event.key === "Escape" && openMenuId.value) closeRowMenu();
+}
 /**
  * The editor's sections, split the way Sub-Store splits them: what the record
  * is called, what it is made of, and what is done to it. A single scroll of
@@ -436,12 +465,32 @@ const EDITOR_TABS: { id: EditorTab; label: string }[] = [
 ];
 
 /** The chain's size, shown on the tab so it is visible without opening it. */
-const chainCount = computed(() => (draft.value.process as unknown[]).length);
+/**
+ * What the Operations tab badge counts.
+ *
+ * The raw chain includes the steps the common-settings block above edits, which
+ * the chain list deliberately hides. Counting those made the badge read
+ * "Operations 1" over a panel saying "No operations" as soon as a quick setting
+ * was turned on.
+ */
+const chainCount = computed(
+  () =>
+    (draft.value.process as { type?: string }[]).filter(
+      (step) => !(MANAGED_TYPES as readonly string[]).includes(step?.type ?? ""),
+    ).length,
+);
 
 /** The preview/copy sheet: the one-click path to a client configuration. */
 const targetSheet = ref<{ id: string; name: string; target: string } | null>(null);
-function openTargetSheet(row: SubscriptionListItem): void {
+/**
+ * Where overlays open. This document is not a viewport — the host sizes the
+ * frame to the content — so an overlay has to be placed at the click rather
+ * than centred in a frame whose top may be far above the fold.
+ */
+const overlayAnchor = ref(32);
+function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
   openMenuId.value = "";
+  overlayAnchor.value = anchorTopFrom(event);
   targetSheet.value = { id: row.id, name: row.display_name || row.name, target: row.target ?? "" };
 }
 
@@ -476,7 +525,8 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-function requestDelete(ids: string[]): void {
+function requestDelete(ids: string[], event?: Event): void {
+  overlayAnchor.value = anchorTopFrom(event);
   deleting.value = ids;
 }
 
@@ -515,7 +565,8 @@ const drawerTitle = computed(() => {
   return `Share · ${name}`;
 });
 
-function openDrawer(mode: "preview" | "publish" | "share", id: string): void {
+function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
+  overlayAnchor.value = anchorTopFrom(event);
   drawer.value = { mode, id };
   if (mode === "preview" && subs.rowPreview.value?.id !== id) {
     void subs.toggleRowPreview(id);
@@ -680,11 +731,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <div class="form-grid">
         <!-- ── sub: where the nodes come from ─────────────────────────── -->
         <div v-if="!isCollection" class="field field-wide">
-          <div class="source-grid">
+          <!-- These cards are a single choice, so they carry the semantics of
+               one: a radiogroup whose selected member is announced, not a row
+               of buttons distinguishable only by tint. -->
+          <div class="source-grid" role="radiogroup" aria-label="Where the nodes come from">
             <button
               v-for="option in SOURCES"
               :key="option.id"
               type="button"
+              role="radio"
+              :aria-checked="draft.source === option.id"
               :class="['source', { 'is-active': draft.source === option.id }]"
               @click="selectSource(option.id)"
             >
@@ -744,8 +800,9 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </template>
 
         <div v-if="!isCollection && draft.source === SOURCE_LOCAL" class="field field-wide">
-          <span class="field-label">Nodes</span>
+          <span id="draft-nodes-label" class="field-label">Nodes</span>
           <CodeEditor
+            aria-labelledby="draft-nodes-label"
             v-model="draft.content"
             language="plain"
             :rows="12"
@@ -838,6 +895,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
+            :catalog-state="subs.operatorsState.value"
             :managed-types="MANAGED_TYPES"
             :can-preview-step="canPreviewNow"
             :previewing-step="subs.previewing.value ? subs.previewStep.value : null"
@@ -937,6 +995,32 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         <LtButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
           <Server :size="14" aria-hidden="true" /> Add this fleet's nodes
         </LtButton>
+
+        <!-- An empty store is exactly when importing from an existing Sub-Store
+             is the right move. This form used to be gated on the store being
+             empty while living inside the branch that only renders when it is
+             not, so it could never appear at all. -->
+        <div v-if="ops.canMigrate.value" class="empty-secondary">
+          <span class="field-label">Already running a standalone Sub-Store?</span>
+          <form class="empty-inline-form" @submit.prevent="runMigrate">
+            <input
+              v-model="migrateUrl"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Its base URL"
+              aria-label="Standalone Sub-Store base URL"
+            />
+            <button class="button button-secondary" type="submit" :disabled="ops.busy.value || !migrateUrl.trim()">
+              <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
+              Import from it
+            </button>
+          </form>
+          <p class="row-popover-note">
+            Importing publishes nothing — each subscription stays unserved until you share it.
+          </p>
+          <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
+        </div>
       </LtEmptyState>
 
       <template v-else>
@@ -951,11 +1035,29 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             />
           </template>
           <template #filters>
-            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === '' }" @click="kindFilter = ''">All kinds</button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === 'sub' }" @click="kindFilter = 'sub'">
+            <button
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': kindFilter === '' }"
+              :aria-pressed="kindFilter === ''"
+              @click="kindFilter = ''"
+            >All kinds</button>
+            <button
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': kindFilter === 'sub' }"
+              :aria-pressed="kindFilter === 'sub'"
+              @click="kindFilter = 'sub'"
+            >
               <Library :size="12" aria-hidden="true" /> Subs ({{ singles.length }})
             </button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': kindFilter === 'collection' }" @click="kindFilter = 'collection'">
+            <button
+              type="button"
+              class="lt-chip"
+              :class="{ 'is-active': kindFilter === 'collection' }"
+              :aria-pressed="kindFilter === 'collection'"
+              @click="kindFilter = 'collection'"
+            >
               <Layers :size="12" aria-hidden="true" /> Combinations ({{ collections.length }})
             </button>
             <span v-if="allTags.length || hasUntagged" class="lt-chip-sep" aria-hidden="true" />
@@ -981,6 +1083,13 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             </button>
           </template>
         </LtToolbar>
+
+        <!-- A write can succeed and its trailing reload still fail. The rows
+             below are then the last good read, and saying so beats either
+             blanking them or pretending they are current. -->
+        <p v-if="subs.staleError.value" class="stale-strip" role="status">
+          Showing the last good read — the newest reload failed ({{ subs.staleError.value }}).
+        </p>
 
         <LtEmptyState
           v-if="!filteredRows.length"
@@ -1028,7 +1137,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   type="button"
                   class="rec-name"
                   :title="`Preview or copy ${row.display_name || row.name} for a client`"
-                  @click="openTargetSheet(row)"
+                  @click="openTargetSheet(row, $event)"
                 >
                   {{ row.display_name || row.name }}
                 </button>
@@ -1067,11 +1176,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 >
                   <Pencil :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row)">
+                <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row, $event)">
                   <ChevronsRight :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <div class="rec-menu-wrap">
-                  <LtIconButton :label="`More actions for ${row.name}`" @click="toggleMenu(row.id)">
+                <div class="rec-menu-wrap" data-row-menu>
+                  <LtIconButton
+                    :label="`More actions for ${row.name}`"
+                    :aria-haspopup="true"
+                    :aria-expanded="openMenuId === row.id"
+                    @click="toggleRowMenu(row.id)"
+                  >
                     <Ellipsis :size="15" aria-hidden="true" />
                   </LtIconButton>
                   <div v-if="openMenuId === row.id" class="rec-menu" role="menu">
@@ -1079,22 +1193,22 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                       type="button"
                       role="menuitem"
                       :disabled="!subs.canPreview.value"
-                      @click="openMenuId = ''; openDrawer('preview', row.id)"
+                      @click="closeRowMenu(); openDrawer('preview', row.id, $event)"
                     >
                       <Eye :size="14" aria-hidden="true" /> Preview nodes
                     </button>
-                    <button type="button" role="menuitem" :disabled="!host.init.value" @click="openMenuId = ''; openDrawer('share', row.id)">
+                    <button type="button" role="menuitem" :disabled="!host.init.value" @click="closeRowMenu(); openDrawer('share', row.id, $event)">
                       <Share2 :size="14" aria-hidden="true" /> Share…
                     </button>
                     <button
                       type="button"
                       role="menuitem"
                       :disabled="!subs.canPublish.value || !subs.canMutate.value"
-                      @click="openMenuId = ''; openDrawer('publish', row.id)"
+                      @click="closeRowMenu(); openDrawer('publish', row.id, $event)"
                     >
                       <Send :size="14" aria-hidden="true" /> Publish…
                     </button>
-                    <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="openMenuId = ''; subs.duplicate(row.id)">
+                    <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="closeRowMenu(); subs.duplicate(row.id)">
                       <CopyPlus :size="14" aria-hidden="true" /> Duplicate
                     </button>
                     <button
@@ -1102,7 +1216,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                       role="menuitem"
                       class="is-danger"
                       :disabled="!subs.canMutate.value"
-                      @click="openMenuId = ''; requestDelete([row.id])"
+                      @click="closeRowMenu(); requestDelete([row.id], $event)"
                     >
                       <Trash2 :size="14" aria-hidden="true" /> Delete
                     </button>
@@ -1113,33 +1227,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </ul>
         </section>
 
-        <div v-if="storeEmpty === false && ops.canMigrate.value && !subs.items.value.length" />
-        <div v-if="ops.canMigrate.value && storeEmpty" class="empty-secondary">
-          <span class="field-label">Already running a standalone Sub-Store?</span>
-          <form class="empty-inline-form" @submit.prevent="runMigrate">
-            <input v-model="migrateUrl" type="text" autocomplete="off" spellcheck="false" placeholder="Its base URL" />
-            <button class="button button-secondary" type="submit" :disabled="ops.busy.value">
-              <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
-              Import from it
-            </button>
-          </form>
-          <p class="row-popover-note">
-            Importing publishes nothing — each subscription stays unserved until you share it.
-          </p>
-          <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
-        </div>
-
       </template>
 
       <TargetSheet
         :open="!!targetSheet"
+        :anchor-top="overlayAnchor"
         :record-id="targetSheet?.id ?? ''"
         :record-name="targetSheet?.name ?? ''"
         :pinned-target="targetSheet?.target"
         @close="targetSheet = null"
       />
 
-      <LtDrawer :open="!!drawer" :title="drawerTitle" @close="closeDrawer()">
+      <LtDrawer :open="!!drawer" :title="drawerTitle" :anchor-top="overlayAnchor" @close="closeDrawer()">
         <template v-if="drawer?.mode === 'preview'">
           <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
             <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
@@ -1193,6 +1292,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       </LtDrawer>
 
       <LtConfirmDialog
+        :anchor-top="overlayAnchor"
         :open="deleting.length > 0"
         :title="deleting.length === 1
           ? 'Delete this record? Any combination including it stops rendering until edited, and a published share keeps existing.'

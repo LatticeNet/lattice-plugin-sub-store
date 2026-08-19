@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import LtButton from "./LtButton.vue";
 
 /**
@@ -13,14 +13,23 @@ const props = defineProps<{
   verb: string;
   names: string[];
   busy?: boolean;
+  /** Document-space position; the frame is not a viewport (see overlayAnchor). */
+  anchorTop?: number;
 }>();
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
 const typed = ref("");
+const dialog = ref<HTMLElement | null>(null);
 watch(
   () => props.open,
-  () => {
+  async (open) => {
     typed.value = "";
+    if (!open) return;
+    // Escape only reaches a handler on a focused element, and a destructive
+    // dialog the operator cannot dismiss with Escape is the worst one to get
+    // wrong.
+    await nextTick();
+    dialog.value?.focus();
   },
 );
 const needsTyping = computed(() => props.names.length > 1);
@@ -29,7 +38,16 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
 
 <template>
   <div v-if="open" class="lt-dialog-backdrop" @click.self="emit('cancel')">
-    <div class="lt-dialog" role="alertdialog" aria-modal="true" :aria-label="title" @keydown.esc="emit('cancel')">
+    <div
+      ref="dialog"
+      class="lt-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      tabindex="-1"
+      :aria-label="title"
+      :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
+      @keydown.esc="emit('cancel')"
+    >
       <p class="lt-dialog-title">{{ title }}</p>
       <ul class="lt-dialog-names">
         <li v-for="name in names" :key="name" class="mono">{{ name }}</li>
@@ -50,17 +68,21 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
 
 <style scoped>
 .lt-dialog-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
+  min-height: 100%;
   background: color-mix(in oklab, var(--lt-fg) 32%, transparent);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 12vh;
+  /* Anchored to the click rather than to a fraction of a "viewport" that is
+     really the frame's own content height. */
+  padding-top: var(--overlay-anchor-top, 24px);
   z-index: 60;
 }
 .lt-dialog {
   width: min(440px, calc(100vw - 32px));
+  outline: none;
   background: var(--lt-surface);
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);

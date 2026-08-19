@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 import { schemaFor, type OperatorField } from "../operatorSchema";
 import CodeEditor from "./CodeEditor.vue";
@@ -114,11 +114,25 @@ function toWirePairs(rows: [string, string][]): { expr: string; now: string }[] 
   return rows.map(([expr, now]) => ({ expr, now }));
 }
 
+/**
+ * Every keystroke is kept, including on a row whose first column is still
+ * empty.
+ *
+ * The old version dropped rows with an empty first column BEFORE committing,
+ * which meant typing into the second column of a fresh row committed nothing
+ * and the character vanished on the next render — and clearing the first column
+ * of an existing rule silently threw away its second. Rows that are still
+ * entirely blank are dropped only when the whole field is written out, so an
+ * abandoned row does not become a rule.
+ */
 function setPair(field: OperatorField, index: number, slot: 0 | 1, value: string): void {
   const rows = pairs(field).map((row) => [...row] as [string, string]);
+  if (!rows[index]) return;
   rows[index][slot] = value;
-  const kept = rows.filter((row) => row[0].trim() !== "");
-  set(field.key, kept.length ? toWirePairs(kept) : undefined);
+  // Every row the operator created is kept while they edit; entirely blank ones
+  // are dropped on the way to the wire (toWireArgs), so a half-typed rule never
+  // disappears from under the cursor.
+  set(field.key, rows.length ? toWirePairs(rows) : undefined);
 }
 
 function addPair(field: OperatorField): void {
@@ -136,15 +150,27 @@ function removePair(field: OperatorField, index: number): void {
 
 const rawJson = computed(() => JSON.stringify(props.args ?? {}, null, 2));
 
+/**
+ * The raw-JSON fallback reports its own syntax errors.
+ *
+ * It used to swallow them and keep the last value that parsed, so a typo meant
+ * Save wrote something different from what was on screen and nothing said so.
+ * Reformatting mid-keystroke would fight the person typing, so the text is left
+ * exactly as entered and the problem is stated underneath.
+ */
+const rawError = ref("");
+
 function setRaw(text: string): void {
   try {
     const parsed: unknown = JSON.parse(text || "{}");
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      emit("update:args", parsed as Record<string, unknown>);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      rawError.value = "Arguments must be a JSON object.";
+      return;
     }
-  } catch {
-    // Left to the caller's validation: reformatting mid-keystroke would fight
-    // the person typing.
+    rawError.value = "";
+    emit("update:args", parsed as Record<string, unknown>);
+  } catch (cause) {
+    rawError.value = cause instanceof Error ? cause.message : "This is not valid JSON.";
   }
 }
 </script>
@@ -219,6 +245,8 @@ function setRaw(text: string): void {
             v-for="choice in (['unset', 'on', 'off'] as const)"
             :key="choice"
             type="button"
+            role="radio"
+            :aria-checked="triValue(field) === choice"
             :class="{ 'is-active': triValue(field) === choice }"
             @click="setTri(field, choice)"
           >
@@ -231,6 +259,7 @@ function setRaw(text: string): void {
             v-for="option in field.options"
             :key="option.value"
             type="button"
+            :aria-pressed="selected(field).includes(option.value)"
             :class="{ 'is-active': selected(field).includes(option.value) }"
             @click="toggleMulti(field, option.value)"
           >
@@ -275,7 +304,8 @@ function setRaw(text: string): void {
         :value="rawJson"
         @input="setRaw(($event.target as HTMLTextAreaElement).value)"
       ></textarea>
-      <span class="op-hint">
+      <span v-if="rawError" class="op-hint op-hint-error" role="alert">{{ rawError }}</span>
+      <span v-else class="op-hint">
         This operator has no form yet, so its arguments are edited as JSON. The engine still
         validates the type.
       </span>
