@@ -47,6 +47,22 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .workspace {
   width: 100%;
   padding: var(--lt-space-6) clamp(16px, 2vw, 32px) var(--lt-space-8);
+  /* The containing block for every overlay scrim below.
+   *
+   * `inset: 0` on an absolutely positioned element with no positioned ancestor
+   * resolves against the INITIAL containing block, which is the frame's own
+   * viewport, not the document. The host sizes the frame from the content
+   * height this page reports, so the two normally match and the bug is
+   * invisible; whenever they do not, the scrim is only as tall as the frame and
+   * the rest of the document stays uncovered and clickable underneath an open
+   * modal. Measured at 600px of scrim over 948px of content.
+   *
+   * They come apart on every resize (the content grows before the host has
+   * grown the frame) and permanently if the host ever clamps the frame height.
+   * Anchoring the scrims to this element instead removes the dependency: its
+   * padding box IS the content. `position: relative` with `z-index: auto`
+   * creates no stacking context, so the overlay z-indexes are unaffected. */
+  position: relative;
 }
 
 .page-header {
@@ -778,7 +794,6 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .sheet-scrim {
   position: absolute;
   inset: 0;
-  min-height: 100%;
   z-index: 60;
   display: grid;
   justify-items: center;

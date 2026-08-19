@@ -53,9 +53,10 @@ watch(
 
 <style scoped>
 .lt-drawer-scrim {
+  /* Absolute against .workspace, which is the document; see the note on
+     .workspace in styles.css for why `inset: 0` alone is not enough. */
   position: absolute;
   inset: 0;
-  min-height: 100%;
   background: color-mix(in oklab, var(--lt-fg) 24%, transparent);
   z-index: 50;
 }
