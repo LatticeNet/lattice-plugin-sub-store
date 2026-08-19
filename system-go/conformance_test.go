@@ -213,6 +213,10 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// cold-engine reason — 15s still timed out a script file on production
 		// (~13.5s boot plus the work itself).
 		pluginID + "/subscription/preview": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 76},
+		// preview_draft is preview plus the one live resolve of a source the
+		// CALLER named, which is why it is declared substore:admin and preview
+		// is not. Same shape, same ceiling.
+		pluginID + "/subscription/preview_draft": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 76},
 		// list returns definitions without their content, so it stays small.
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		// get returns one whole record including inline content, so its ceiling

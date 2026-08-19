@@ -224,13 +224,13 @@ globalThis.SubStoreProxyUtils.processResponse = function(response){ return { sta
 	}
 	rt := &runtime{engine: previewEngine}
 	scriptOp := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
-	if _, err := rt.previewSubscription("ss://x", []json.RawMessage{scriptOp}, "URI"); err != nil {
+	if _, err := rt.previewSubscription("ss://x", []json.RawMessage{scriptOp}, "URI", false); err != nil {
 		t.Fatalf("script preview: %v", err)
 	}
 	if warm, isolated := previewEngine.pathCounts(); warm != 0 || isolated != 1 {
 		t.Fatalf("script preview path counts warm=%d isolated=%d, want 0/1", warm, isolated)
 	}
-	if _, err := rt.previewSubscription("ss://y", nil, "URI"); err != nil {
+	if _, err := rt.previewSubscription("ss://y", nil, "URI", false); err != nil {
 		t.Fatalf("scriptless preview: %v", err)
 	}
 	if warm, _ := previewEngine.pathCounts(); warm != 1 {

@@ -11,7 +11,7 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.13.0-alpha.14",
+  "version": "0.13.0-alpha.15",
   "publisher": "latticenet",
   "signature_ed25519": "QM2pSbwVs8hTghe+E6X24WczkIoxRxorOEMeeZeBVpB8TkYnTGm9c1UZI2oqDSbE9DtdrFdXiGIWvSvwoYmEAg==",
   "bundle": {
@@ -244,6 +244,19 @@
           "effect": "read",
           "scopes": [
             "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 65536,
+            "host_calls": 76
+          }
+        },
+        {
+          "name": "preview_draft",
+          "effect": "read",
+          "scopes": [
+            "substore:admin"
           ],
           "budget": {
             "timeout_ms": 30000,

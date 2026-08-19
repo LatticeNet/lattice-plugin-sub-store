@@ -58,7 +58,18 @@ const maxPreviewNodes = 200
 // previewSubscription applies a pipeline and reports the nodes it produces
 // without producing a client config. It is how an operator sees the effect of a
 // filter before saving it.
-func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, target string) (previewResult, error) {
+//
+// credentialsAlreadySynthetic says the caller has already replaced this
+// content's secrets with stand-ins before it ever reached the engine, which is
+// what the vpn-core graph path does: it composes the entries itself and
+// substitutes a synthetic credential of the right shape, so a script still sees
+// a well-formed node and the real secret never enters the process. When that has
+// happened there is nothing left to withhold, and reducing again would only cost
+// the script the field it is entitled to read.
+//
+// Every other source is arbitrary upstream content whose secret-bearing fields
+// this process cannot enumerate, so those get the reduction.
+func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, target string, credentialsAlreadySynthetic bool) (previewResult, error) {
 	if strings.TrimSpace(raw) == "" {
 		return previewResult{}, fmt.Errorf("preview needs subscription content")
 	}
@@ -75,7 +86,7 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 		// User JavaScript never touches the warm runtime.
 		run = engine.runIsolatedScript
 	}
-	out, err := run("preview", "preview.js", previewScript(raw, operators, target))
+	out, err := run("preview", "preview.js", previewScript(raw, operators, target, !credentialsAlreadySynthetic))
 	if err != nil {
 		return previewResult{}, err
 	}
@@ -100,7 +111,23 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 
 // previewScript reduces each node to its summary inside the engine, so the
 // fields a preview must not expose never cross the process boundary at all.
-func previewScript(raw string, operators []json.RawMessage, target string) string {
+//
+// The reduction happens BEFORE the operator chain, not only after it. Reducing
+// only on the way out protected the shape of the reply while leaving the chain
+// itself holding the full node: a caller-supplied "Script Operator" could read
+// the password off a proxy and assign it to `name`, which the summary does
+// return, and the redaction was bypassed without ever being touched. Running
+// the chain over already-reduced nodes makes that impossible to express, and it
+// holds for operators nobody has written yet rather than for the two that ship
+// today.
+//
+// The trade is fidelity: an operator that branches on a field outside this set
+// sees it as absent here and may keep or drop a node the served render would
+// not. A preview answers "which nodes survive my filter", and answering it
+// without handing the caller the credentials is worth more than matching the
+// render byte for byte. The render itself is unchanged and still runs the chain
+// over whole nodes.
+func previewScript(raw string, operators []json.RawMessage, target string, reduceBeforeOperators bool) string {
 	rawJSON, _ := json.Marshal(raw)
 	opsJSON, _ := json.Marshal(operators)
 	targetJSON, _ := json.Marshal(target)
@@ -113,6 +140,28 @@ func previewScript(raw string, operators []json.RawMessage, target string) strin
   let proxies = core.parse(raw);
   if (!Array.isArray(proxies)) { throw new Error("parse(raw) must return an array"); }
   const sourceNodeCount = proxies.length;
+
+  // An allowlist, not a denylist of secret-looking names: a protocol added
+  // upstream tomorrow brings its own credential field, and a denylist would
+  // not know to exclude it. Everything here is either returned by the summary
+  // or read to compute it, plus _subName, which is how a real chain filters by
+  // the subscription a node came from and which carries nothing secret.
+  const VISIBLE = [
+    "name", "type", "server", "port", "network",
+    "security", "tls", "reality-opts",
+    "udp", "tfo", "skip-cert-verify", "aead",
+    "_subName"
+  ];
+  const reduce = function (p) {
+    const out = {};
+    if (!p || typeof p !== "object") return out;
+    for (const key of VISIBLE) {
+      if (p[key] !== undefined) out[key] = p[key];
+    }
+    return out;
+  };
+  if (%t) { proxies = proxies.map(reduce); }
+
   if (operators.length > 0) {
     proxies = await core.process(proxies, operators, target, undefined, undefined, raw);
     if (!Array.isArray(proxies)) { throw new Error("process(...) must return an array"); }
@@ -134,5 +183,5 @@ func previewScript(raw string, operators []json.RawMessage, target string) strin
     };
   });
   return JSON.stringify({ source_node_count: sourceNodeCount, nodes: nodes });
-})()`, rawJSON, opsJSON, targetJSON)
+})()`, rawJSON, opsJSON, targetJSON, reduceBeforeOperators)
 }
