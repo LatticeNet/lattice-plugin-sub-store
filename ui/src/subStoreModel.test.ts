@@ -32,6 +32,29 @@ it("redacts endpoint secrets from errors", () => {
     .toBe("dial [endpoint] refused");
 });
 
+/**
+ * V8 quotes the offending input back in a JSON.parse message, and what an
+ * operator pastes into an operator argument is routinely a node URI whose
+ * userinfo is the credential. The raw-argument editor shows that message, so
+ * it has to survive the redactor with nothing readable left.
+ */
+it("redacts a node URI quoted back by a JSON parse failure", () => {
+  // A short input is quoted whole: JSON.parse("ss://abc@h:1") reports
+  // `Unexpected token 's', "ss://abc@h:1" is not valid JSON`, credential and
+  // all. A long one is cut after ten characters, which still carries the
+  // scheme and the start of the secret.
+  const message = (input: string): string => {
+    try {
+      JSON.parse(input);
+    } catch (cause) {
+      return safeErrorMessage(cause, "This is not valid JSON.");
+    }
+    throw new Error("that input parsed");
+  };
+  expect(message("ss://abc@h:1")).toBe('Unexpected token \'s\', "[endpoint]" is not valid JSON');
+  expect(message("trojan://hunter2@example.com:443")).not.toContain("hunter2");
+});
+
 it("summarizes status without inventing success", () => {
   expect(statusLabel()).toBe("Not checked");
   expect(statusLabel({ reachable: true })).toBe("Reachable");

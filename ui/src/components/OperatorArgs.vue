@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { X } from "@lucide/vue";
 
 import { parseNumericArg, schemaFor, type OperatorField } from "../operatorSchema";
+import { safeErrorMessage } from "../subStoreModel";
 import CodeEditor from "./CodeEditor.vue";
 
 /**
@@ -171,7 +172,12 @@ function setRaw(text: string): void {
     rawError.value = "";
     emit("update:args", parsed as Record<string, unknown>);
   } catch (cause) {
-    rawError.value = cause instanceof Error ? cause.message : "This is not valid JSON.";
+    // V8 quotes the offending input back in a JSON.parse message ("Unexpected
+    // token 'v', \"vless://...\" is not valid JSON"), and what an operator
+    // pastes into an argument is routinely a node or provider URI whose
+    // userinfo IS the credential. Every error this UI shows goes through the
+    // redactor, this one included.
+    rawError.value = safeErrorMessage(cause, "This is not valid JSON.");
   }
 }
 </script>
