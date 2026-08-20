@@ -13,10 +13,10 @@
   ],
   "version": "0.13.0-alpha.15",
   "publisher": "latticenet",
-  "signature_ed25519": "QM2pSbwVs8hTghe+E6X24WczkIoxRxorOEMeeZeBVpB8TkYnTGm9c1UZI2oqDSbE9DtdrFdXiGIWvSvwoYmEAg==",
+  "signature_ed25519": "IszCjYn+jOlbIeTx9JAMJyxiVzXxu3QzJU1yN2JSjWCSaXqOMW89Gch9mvXH5u5jh9IOurVx2d57Jd3ybFxpBA==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "9cf9c03971a32c060dfed8b3bf3dc975d62b673aaefa8fe8e0632cde89238d23"
+    "digest_sha256": "c109785fb9ae017fbb9c51767cdaf7f7a0cf1fb4514b088abf2b071ddfb42637"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
