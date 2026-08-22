@@ -401,6 +401,37 @@ describe("vpn-core graph workflow", () => {
     expect(calls[0].payload).not.toHaveProperty("source", expect.anything());
   });
 
+  it("keeps a saved local file preview on the read-scoped method", async () => {
+    const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
+    const { host, calls } = subscriptionHost({
+      [previewKey]: {
+        document: "DOMAIN-SUFFIX,example.invalid,DIRECT",
+        node_count: 0,
+      },
+    }, (method) => method !== "preview_draft");
+    const subs = useSubscriptions(host);
+    await subs.runPreview({
+      ...emptyDraft(),
+      id: "rules",
+      name: "Rules",
+      kind: KIND_FILE,
+      fileType: FILE_TYPE_PLAIN,
+      source: SOURCE_LOCAL,
+      content: "DOMAIN-SUFFIX,example.invalid,DIRECT",
+      // Switching source changes the authority, but the form deliberately
+      // keeps the other source's fields so switching back does not erase work.
+      // None of that stale data may turn a local preview into host resolution.
+      url: "https://provider.example/stale",
+      ua: "Stale provider UA",
+      vpnIdentity: "stale-vpn-identity",
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].method).toBe("preview");
+    expect(calls[0].payload).not.toHaveProperty("source", expect.anything());
+    expect(subs.preview.value?.document).toContain("example.invalid");
+    expect(subs.actionError.value).toBe("");
+  });
+
   // A read-scoped operator never sees preview_draft, so the draft path must say
   // so instead of firing a call the server will refuse.
   it("explains rather than calls when the draft method is out of scope", async () => {

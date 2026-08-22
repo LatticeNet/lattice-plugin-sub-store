@@ -23,6 +23,8 @@ const props = withDefaults(
     rows?: number;
     placeholder?: string;
     readonly?: boolean;
+    /** Read-only rendered output. It grows with its containing scroll surface. */
+    preview?: boolean;
     /**
      * The id of the element naming this editor. CodeMirror's contenteditable
      * and the textarea fallback both need it explicitly: a `<span class=
@@ -32,7 +34,14 @@ const props = withDefaults(
      */
     ariaLabelledby?: string;
   }>(),
-  { language: "plain", rows: 12, placeholder: "", readonly: false, ariaLabelledby: undefined },
+  {
+    language: "plain",
+    rows: 12,
+    placeholder: "",
+    readonly: false,
+    preview: false,
+    ariaLabelledby: undefined,
+  },
 );
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
@@ -41,6 +50,10 @@ const hostEl = ref<HTMLElement | null>(null);
 const ready = ref(false);
 const failed = ref(false);
 let handle: EditorHandle | null = null;
+
+function onTextareaInput(event: Event): void {
+  emit("update:modelValue", (event.target as HTMLTextAreaElement).value);
+}
 
 onMounted(async () => {
   try {
@@ -59,6 +72,8 @@ onMounted(async () => {
     });
     ready.value = true;
   } catch {
+    // The visible textarea is the durable fallback. A failed enhancement must
+    // not take an editable document or a read-only render away.
     failed.value = true;
   }
 });
@@ -79,7 +94,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="code-editor" :style="{ '--code-editor-rows': String(rows) }">
+  <div
+    class="code-editor"
+    :class="{ 'code-editor-preview': preview }"
+    :style="{ '--code-editor-rows': String(rows) }"
+  >
     <textarea
       v-if="!ready"
       class="code-area"
@@ -89,8 +108,11 @@ onBeforeUnmount(() => {
       :readonly="readonly"
       :aria-labelledby="ariaLabelledby"
       :value="modelValue"
-      @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+      @input="onTextareaInput"
     ></textarea>
+    <p v-if="failed" class="code-editor-fallback-note" role="status">
+      Syntax highlighting is unavailable. Plain-text {{ preview ? "view" : "editor" }} shown.
+    </p>
     <div v-show="ready" ref="hostEl" class="code-editor-host"></div>
   </div>
 </template>

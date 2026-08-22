@@ -90,7 +90,9 @@ the live pass is about the boundary, not the screens:
    what the destination answered rather than a bare success.
 5. Settings tab: export a backup, restore it, and confirm the confirmation
    dialog lists what the envelope will overwrite before it arms.
-6. Resize: frame height follows content in every tab, no clipped buttons.
+6. Resize the host pane to 375px and 1440px. The frame remains the viewport,
+   each sheet stays centred inside it, long output has one reachable scroll
+   surface, and no button or evidence strip is clipped.
 
 ## Security boundary
 
