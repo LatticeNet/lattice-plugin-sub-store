@@ -401,7 +401,6 @@ func TestDescribeVersionMatchesTheManifest(t *testing.T) {
 	}
 }
 
-
 // callTarget must name exactly what handleCall will dispatch to, in both request
 // shapes the SDK accepts. If the two ever disagree, the grant gets computed for
 // one method while a different one runs, which is the same bug this whole change
