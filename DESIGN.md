@@ -50,9 +50,76 @@
 ## Components
 
 - Existing components to reuse: `CodeEditor`, `TargetSheet`, `ProcessChain`, and the `Lt*` component layer
-- New/changed components: S-A extends `CodeEditor` with an explicit preview mode and reuses it for all rendered documents
+- New/changed components: `TargetSheet` becomes the Client Output Workspace; `CodeEditor` remains the single lazy editor and viewer implementation
 - Variants and states: editable and read-only preview, lazy-load textarea fallback, known and plain languages, truncated and complete output
 - Token/component ownership: host variables enter through `ui/src/tokens.css`; screens consume `--lt-*`; `CodeEditor` owns CodeMirror assembly and the lazy chunk boundary
+
+## Client Output Workspace
+
+### 迷你体验地图
+
+- 人、场景与触发：日常维护集群的操作员从记录行打开订阅、组合或文件，在不离开 Lattice 的情况下检查并交付产物。
+- 主要任务与成功结果：选择一个 Client，看到它实际收到的文档，再复制稳定 share link 或当前可见的一次性文档。
+- 核心对象与用语：Record 是存储定义，Client 是产物目标，Document 是交付证据，Share 是稳定 URL，Nodes 是算子链诊断。
+- 主路径：打开记录，选择 Client，看到对应目标开始生成，检查产物，复制链接或文档，关闭后回到原列表上下文。
+- 失败与替代路径：没有 share 只影响稳定链接；渲染失败保留 Client 选择并提供 Retry；剪贴板被拒时保留可选内容；只读会话退回脱敏节点诊断，不暴露 admin 文档。
+- 成功信号与证据：结果标题和正文同步变化且绑定同一目标，例如 `Stash · YAML · 12.4 KB`；复制动作始终复制用户眼前的文档。
+- 待验证假设：正常切换目标时自动渲染的延迟可以接受。浏览器检查属于认知走查，不是有参与者的可用性研究。
+
+### 屏幕合同
+
+- 目的与当前对象：为一个具体客户端转换、检查并交付当前记录。
+- 首要信息：真实生成文档，而不是目标选择器或解释文字。
+- 主动作：Copy document；只有存在 enabled share 时，Copy link 才同等可见。
+- 次要动作：切换到 Pipeline nodes 检查保留和过滤结果；该视图不声称自己是客户端文档。
+- 始终可见状态：记录、选中 Client、产物语言、字节数、发布状态、生成进度和 include-unsupported 选择。
+- 导航与退出：Close 和 Escape 关闭，Tab 留在 modal 内，焦点返回触发它的记录行。
+- 状态变体：生成中、成功、渲染失败加 Retry、无 enabled share、share 查询失败、剪贴板拒绝、只读权限、空节点和 CodeMirror 降级。
+
+### Gate 1 布局
+
+```text
+Wide
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Client output · openjobs-host                                      [Close]   │
+├──────────────────────┬───────────────────────────────────────────────────────┤
+│ CLIENT               │ CLIENT STASH → OUTPUT YAML → RECORD openjobs-host     │
+│ Universal            │ [Document] [Pipeline nodes]                           │
+│ Stash  selected      │ What Stash receives                    [Copy document]│
+│ mihomo               ├───────────────────────────────────────────────────────┤
+│ Egern                │  1 │ proxies:                                         │
+│ …                    │  2 │   - name: Hong Kong 01                           │
+│                      │  3 │     type: vless                                  │
+│ OUTPUT OPTIONS       │    │                                                   │
+│ Include unsupported │    │       large read-only CodeMirror evidence        │
+│                      │    │                                                   │
+│ DELIVERY             │    │                                                   │
+│ Not published        │    │                                                   │
+│ Copy document        │    │                                                   │
+└──────────────────────┴───────────────────────────────────────────────────────┘
+
+Narrow
+┌──────────────────────────────────────────┐
+│ Client output · openjobs-host     [Close] │
+├──────────────────────────────────────────┤
+│ [Universal] [Stash] [mihomo] [Egern] →   │
+│ Include unsupported [ ]                   │
+├──────────────────────────────────────────┤
+│ STASH → YAML → 12.4 KB                    │
+│ [Document] [Pipeline nodes]               │
+│ What Stash receives        [Copy document]│
+│  1 │ proxies:                             │
+│  2 │   - name: Hong Kong 01               │
+│    │              readable output         │
+└──────────────────────────────────────────┘
+```
+
+- 调色：`--lt-bg`、`--lt-surface`、`--lt-surface-2`、`--lt-border`、`--lt-fg` 和 `--lt-fg-muted`；`--lt-accent` 只标识选中 Client 和焦点。
+- 字体角色：控件和说明使用 `--lt-font`；Evidence Rail、记录 ID、产物语言、字节数、行号和文档使用 `--lt-mono`。
+- 标志元素：Evidence Rail 不靠装饰，直接显示 Client 选择到产物的因果链。
+- 响应式规则：宽屏为稳定决策栏加主证据面；窄屏为可横向滚动的 Client 轨加单列，同时保留相同选择、文档、动作和状态。
+- 动效：Client 选择立即响应，内容只使用既有 120ms 功能过渡；reduced motion 仍为零。
+- 明确不做：不加第二套语法库、字体、调色、外部预览页、新 RPC 或本片之外的多 Client 对比，也不模仿官方逐 Client 一行加重复图标动作。
 
 ## Accessibility
 

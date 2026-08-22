@@ -67,6 +67,7 @@ const chrome = EditorView.theme({
     border: "none",
     borderRight: "1px solid var(--lt-border)",
     fontSize: "var(--lt-text-xs)",
+    userSelect: "none",
   },
   ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--lt-fg)" },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {

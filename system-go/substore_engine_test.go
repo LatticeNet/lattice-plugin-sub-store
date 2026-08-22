@@ -462,7 +462,7 @@ func TestEmbeddedSubStoreCoreProducesEveryCuratedTarget(t *testing.T) {
 	}
 	targets := []string{
 		"Clash", "ClashMeta", "sing-box", "Surge", "Loon", "Stash", "QX",
-		"Shadowrocket", "Egern", "Surfboard", "SurgeMac", "URI", "V2Ray",
+		"Shadowrocket", "Egern", "Surfboard", "SurgeMac", "URI", "V2Ray", "JSON",
 	}
 	for _, target := range targets {
 		result, err := engine.convert(subStoreConversionRequest{

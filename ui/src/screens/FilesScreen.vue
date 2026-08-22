@@ -177,6 +177,7 @@ const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_F
 const overlayAnchor = ref(32);
 /** The preview/copy sheet. A file is exactly the thing you hand to a client. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
+const targetSheetTrigger = ref<HTMLElement | null>(null);
 /** Selection for batch delete; the record limit is 256 and deleting one at a
  *  time was the only way out of a bad import. */
 const selectedIds = ref<Set<string>>(new Set());
@@ -239,7 +240,15 @@ function toggleSelectAll(): void {
 function openFileSheet(item: SubscriptionListItem, event?: Event): void {
   closeRowMenu();
   overlayAnchor.value = anchorTopFrom(event);
+  targetSheetTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
   targetSheet.value = item;
+}
+
+function closeTargetSheet(): void {
+  targetSheet.value = null;
+  const trigger = targetSheetTrigger.value;
+  targetSheetTrigger.value = null;
+  void nextTick(() => trigger?.focus());
 }
 
 function toggleSelected(id: string): void {
@@ -1227,7 +1236,7 @@ watch(host.init, (value) => {
         :open="!!targetSheet"
         :anchor-top="overlayAnchor"
         :record="targetSheet"
-        @close="targetSheet = null"
+        @close="closeTargetSheet()"
       />
 
       <!-- One drawer, as on the sibling tab. These were inline blocks that grew

@@ -443,18 +443,15 @@ export const FAILURE_SKIP = "skip-failed";
  * in its "preview / copy subscription" sheet. The daily path for getting a
  * configuration into a client.
  *
- * `uaClass` is the core's bounded client classification (uaClassTargets in
- * system-go/subscription_render.go). A target that has one can be RENDERED, so
- * the sheet can copy the real document a client would receive. A target
- * without one can still be PREVIEWED, because preview takes the engine target
- * directly. Nothing here pretends a target is renderable when the backend has
- * no way to select it.
+ * Every id is an explicit engine target and can be rendered directly. `uaClass`
+ * documents only the server's bounded fallback when a caller does not name a
+ * target; it is not a renderability gate for this UI.
  */
 export interface ConvertTarget {
   id: string;
   label: string;
   produces: string;
-  /** Core UA classification, when the render path can select this client. */
+  /** Core UA classification used only when the caller leaves target automatic. */
   uaClass?: string;
 }
 

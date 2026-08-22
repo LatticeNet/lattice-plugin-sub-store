@@ -606,6 +606,7 @@ const chainCount = computed(
  *  whole row goes in, because the sheet's shape depends on what the record is
  *  (a file has no client to pick) and not only on its id. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
+const targetSheetTrigger = ref<HTMLElement | null>(null);
 /**
  * Where overlays used to open. The host once sized the frame to the content,
  * so an overlay had to be placed at the click rather than centred in a frame
@@ -618,7 +619,15 @@ const overlayAnchor = ref(32);
 function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
   openMenuId.value = "";
   overlayAnchor.value = anchorTopFrom(event);
+  targetSheetTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
   targetSheet.value = row;
+}
+
+function closeTargetSheet(): void {
+  targetSheet.value = null;
+  const trigger = targetSheetTrigger.value;
+  targetSheetTrigger.value = null;
+  void nextTick(() => trigger?.focus());
 }
 
 function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
@@ -1468,7 +1477,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         :open="!!targetSheet"
         :anchor-top="overlayAnchor"
         :record="targetSheet"
-        @close="targetSheet = null"
+        @close="closeTargetSheet()"
       />
 
       <LtDrawer :open="!!drawer" :title="drawerTitle" :anchor-top="overlayAnchor" @close="closeDrawer()">
