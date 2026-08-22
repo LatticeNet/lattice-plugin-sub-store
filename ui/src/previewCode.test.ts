@@ -11,6 +11,7 @@ describe("rendered documents use the shared read-only code viewer", () => {
   const targetSheet = source("components/TargetSheet.vue");
   const filesScreen = source("screens/FilesScreen.vue");
   const editor = source("components/CodeEditor.vue");
+  const styles = source("styles.css");
 
   it("removes the three raw preformatted preview surfaces", () => {
     expect(targetSheet).not.toContain('<pre class="result-doc"');
@@ -48,5 +49,9 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(filesScreen).toContain(
       "has_url: isRemote.value && !!draft.value.url.trim()",
     );
+  });
+
+  it("lets fieldsets shrink inside a narrow plugin viewport", () => {
+    expect(styles).toMatch(/\.editor-group\s*\{[^}]*min-width:\s*0[^}]*width:\s*100%/s);
   });
 });
