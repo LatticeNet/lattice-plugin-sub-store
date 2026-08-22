@@ -23,6 +23,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { Check, Copy, Eye, Link, LoaderCircle, X } from "@lucide/vue";
 
+import CodeEditor from "./CodeEditor.vue";
 import LtButton from "./lt/LtButton.vue";
 import {
   BINDINGS,
@@ -37,7 +38,13 @@ import {
   type SubscriptionRenderResponse,
 } from "../client";
 import { isFileRecord } from "../filePreview";
+import { trapDialogTab } from "../dialogFocus";
 import { useHost } from "../host";
+import {
+  editorLanguageForFileType,
+  editorLanguageForRender,
+  editorLanguageLabel,
+} from "../previewLanguage";
 import { safeErrorMessage } from "../subStoreModel";
 
 const props = defineProps<{
@@ -92,6 +99,18 @@ const recordName = computed(() => props.record?.display_name || props.record?.na
 const isFile = computed(() => isFileRecord(props.record));
 const isCollection = computed(() => props.record?.kind === KIND_COLLECTION);
 const pinned = computed(() => (props.record?.target ?? "").trim());
+const renderedTarget = computed(() =>
+  CONVERT_TARGETS.find((target) => target.id === rendered.value?.target),
+);
+const renderedLanguage = computed(() =>
+  isFile.value
+    ? editorLanguageForFileType(props.record?.file_type)
+    : editorLanguageForRender({
+        contentType: rendered.value?.contentType ?? "",
+        produces: renderedTarget.value?.produces,
+      }),
+);
+const renderedLanguageLabel = computed(() => editorLanguageLabel(renderedLanguage.value));
 
 const chosenTarget = computed(
   () => CONVERT_TARGETS.find((target) => target.id === chosen.value) ?? CONVERT_TARGETS[0]!,
@@ -281,6 +300,10 @@ async function renderDocument(copy: boolean): Promise<void> {
 function close(): void {
   emit("close");
 }
+
+function onTab(event: KeyboardEvent): void {
+  if (sheet.value) trapDialogTab(event, sheet.value);
+}
 </script>
 
 <template>
@@ -294,6 +317,7 @@ function close(): void {
       aria-modal="true"
       :aria-label="`Preview or copy ${recordName}`"
       @keydown.esc="close"
+      @keydown.tab="onTab"
     >
       <header class="sheet-head">
         <div class="sheet-headings">
@@ -435,11 +459,19 @@ function close(): void {
       </section>
 
       <section v-else-if="rendered" class="sheet-result">
-        <h3 class="result-title">
+        <h3 id="target-sheet-document-label" class="result-title">
           <span>{{ rendered.target || "What a client receives" }}</span>
-          <span class="result-sub">{{ rendered.content.length }} characters · {{ rendered.contentType }}</span>
+          <span class="result-sub">{{ renderedLanguageLabel }} · {{ rendered.content.length }} characters</span>
         </h3>
-        <pre class="result-doc" tabindex="0">{{ rendered.content }}</pre>
+        <CodeEditor
+          class="result-doc"
+          :model-value="rendered.content"
+          :language="renderedLanguage"
+          :rows="10"
+          :aria-labelledby="'target-sheet-document-label'"
+          preview
+          readonly
+        />
       </section>
     </section>
   </div>

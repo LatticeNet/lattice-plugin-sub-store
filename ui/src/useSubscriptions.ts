@@ -762,14 +762,19 @@ export function useSubscriptions(host: HostContext) {
       // all, so its source goes along and the engine resolves it live (read
       // only; nothing is persisted as a refresh). A graph draft's authority is
       // its selection alone, so nothing else is sent for it.
-      const draftSource = draft.source === SOURCE_VPN_CORE_GRAPH
-        ? {}
-        : {
-            source: draft.source || undefined,
-            url: draft.url.trim() || undefined,
-            ua: draft.ua.trim() || undefined,
-            vpn_identity: draft.vpnIdentity.trim() || undefined,
-          };
+      const draftSource =
+        !draft.source || draft.source === SOURCE_LOCAL || draft.source === SOURCE_VPN_CORE_GRAPH
+          ? {}
+          : draft.source === SOURCE_VPN_CORE
+            ? {
+                source: draft.source,
+                vpn_identity: draft.vpnIdentity.trim() || undefined,
+              }
+            : {
+                source: draft.source,
+                url: draft.url.trim() || undefined,
+                ua: draft.ua.trim() || undefined,
+              };
       // Naming a source is naming a host for the control plane to read, which
       // is substore:admin. Only that shape goes to the admin method; a preview
       // of stored or pasted content stays on the read-scoped one, so a

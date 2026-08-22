@@ -27,7 +27,11 @@ describe("filePreviewSupport", () => {
 
   it("refuses a fetched template, by source or by url alone", () => {
     expect(filePreviewSupport(file({ source: SOURCE_REMOTE })).supported).toBe(false);
-    expect(filePreviewSupport(file({ has_url: true })).reason).toContain("fetched from a link");
+    expect(filePreviewSupport(file({ source: "", has_url: true })).reason).toContain("fetched from a link");
+  });
+
+  it("refuses a persisted local record that still carries a url", () => {
+    expect(filePreviewSupport(file({ source: SOURCE_LOCAL, has_url: true })).supported).toBe(false);
   });
 
   it("refuses a script file", () => {

@@ -28,6 +28,9 @@
   color: var(--lt-fg);
   background: var(--lt-bg);
   font-synthesis: none;
+  font-optical-sizing: auto;
+  font-size: var(--lt-text-md);
+  line-height: var(--lt-leading);
   letter-spacing: 0;
 }
 
@@ -49,21 +52,10 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .workspace {
   width: 100%;
   padding: var(--lt-space-6) clamp(16px, 2vw, 32px) var(--lt-space-8);
-  /* The containing block for every overlay scrim below.
-   *
-   * `inset: 0` on an absolutely positioned element with no positioned ancestor
-   * resolves against the INITIAL containing block, which is the frame's own
-   * viewport, not the document. The host sizes the frame from the content
-   * height this page reports, so the two normally match and the bug is
-   * invisible; whenever they do not, the scrim is only as tall as the frame and
-   * the rest of the document stays uncovered and clickable underneath an open
-   * modal. Measured at 600px of scrim over 948px of content.
-   *
-   * They come apart on every resize (the content grows before the host has
-   * grown the frame) and permanently if the host ever clamps the frame height.
-   * Anchoring the scrims to this element instead removes the dependency: its
-   * padding box IS the content. `position: relative` with `z-index: auto`
-   * creates no stacking context, so the overlay z-indexes are unaffected. */
+  /* The frame is the viewport. Target sheets are fixed to it; row-scoped
+   * drawers remain absolute beside their source row. This containing block
+   * anchors those drawers and their scrims to the workspace without creating a
+   * stacking context, so their overlay z-indexes remain effective. */
   position: relative;
 }
 
@@ -87,7 +79,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   background: var(--lt-surface);
 }
 
-.title-copy h1 { margin: 0; font-size: var(--lt-text-xl); font-weight: 650; line-height: 1.25; }
+.title-copy h1 { margin: 0; font-size: var(--lt-text-xl); font-weight: 650; line-height: var(--lt-leading-tight); }
 .title-copy p,
 .section-heading p {
   margin: var(--lt-space-1) 0 0;
@@ -134,7 +126,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   gap: var(--lt-space-4);
   margin-bottom: var(--lt-space-4);
 }
-.section-heading h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; }
+.section-heading h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; line-height: var(--lt-leading-tight); }
 .heading-actions { display: flex; align-items: center; gap: var(--lt-space-2); flex-wrap: wrap; }
 
 /* ── semantic surfaces ────────────────────────────────────────────────────
@@ -278,8 +270,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 .field > input,
 .select,
-.code-area,
-.output-area {
+.code-area {
   width: 100%;
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);
@@ -288,18 +279,16 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   outline: none;
 }
 .field > input, .select { min-height: 32px; padding: var(--lt-space-1) var(--lt-space-2); }
-.code-area, .output-area {
+.code-area {
   padding: var(--lt-space-2);
   font-family: var(--lt-mono);
-  font-size: var(--lt-text-xs);
-  line-height: var(--lt-leading);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-code-line);
   resize: vertical;
 }
-.output-area { min-height: 220px; }
 .field > input:focus-visible,
 .select:focus-visible,
-.code-area:focus-visible,
-.output-area:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
+.code-area:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
 .field > input::placeholder, .code-area::placeholder { color: var(--lt-fg-muted); }
 
 .select-compact { min-height: var(--lt-control-h-sm); padding: 0 var(--lt-space-1); font-size: var(--lt-text-xs); max-width: 14em; }
@@ -666,6 +655,8 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    one decision ended and the next began. */
 
 .editor-group {
+  min-width: 0;
+  width: 100%;
   max-width: var(--lt-measure-form);
   margin: 0 0 var(--lt-space-4);
   padding: var(--lt-space-4) var(--lt-space-4) var(--lt-space-2);
@@ -687,9 +678,9 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .editor-block { max-width: var(--lt-measure-form); margin: 0 0 var(--lt-space-4); }
 
 .editor-actions {
-  /* Not sticky: sticky needs a scrollport and this document has none, the
-     host scrolls the parent page instead, so a sticky bar here simply never
-     activates. The row is laid out honestly as the end of the form. */
+  /* The frame now has a real scrollport, so sticky is available to the S-B
+     detail layout. This S-A form remains single-column and keeps its actions at
+     the end rather than introducing that navigation change early. */
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -780,20 +771,36 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .code-editor { min-width: 0; }
 
 .code-editor-host .cm-editor {
-  /* Rows drive the height the same way the old textarea's rows did, so the
-     form's rhythm does not change with the upgrade. */
-  min-height: calc(var(--code-editor-rows, 12) * 1.35em + 16px);
-  /* Not vh: this document's height IS the frame height the host syncs to the
-     content, so a viewport unit here sizes the editor from its own output. A
-     row-derived ceiling is stable and says what it means, about 24 lines,
-     after which the editor scrolls internally. */
-  max-height: calc(24 * 1.45em + 16px);
+  /* Editing stays bounded so a long draft does not displace its save controls.
+     Read-only evidence uses the containing sheet, page, or drawer as its one
+     scroll surface and removes this ceiling below. */
+  max-height: calc(24 * var(--lt-code-line) + var(--lt-space-4));
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);
   background: var(--lt-surface);
 }
 .code-editor-host .cm-editor.cm-focused { outline: none; box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
-.code-editor-host .cm-scroller { overflow: auto; font-family: var(--lt-mono); line-height: 1.45; }
+.code-editor-host .cm-scroller {
+  /* The scroller, rather than its flex parent, owns the row-derived minimum.
+     Putting it on .cm-editor left an empty band below a content-height
+     scroller, so the border said there was more document than could be read. */
+  min-height: calc(var(--code-editor-rows, 12) * var(--lt-code-line) + var(--lt-space-4));
+  overflow: auto;
+  font-family: var(--lt-mono);
+  line-height: var(--lt-code-line);
+}
+
+.code-editor-preview .cm-editor { max-height: none; background: var(--lt-surface-2); }
+.code-editor-preview .code-area {
+  margin: 0;
+  resize: none;
+  background: var(--lt-surface-2);
+}
+.code-editor-fallback-note {
+  margin: var(--lt-space-1) 0 0;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+}
 
 /* ── overlays ─────────────────────────────────────────────────────────────
    Fixed, and measured against the window. The frame is a viewport, so `fixed`
@@ -822,6 +829,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
      scrolls itself rather than pushing its own head off the top. */
   max-height: 100%;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--lt-space-4);
   border: 1px solid var(--lt-border-strong);
   border-radius: var(--lt-radius);
@@ -940,14 +948,8 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .target-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .target-chip-produces { flex: none; font-family: var(--lt-mono); font-size: var(--lt-text-xs); opacity: 0.75; }
 
-/* Inside the sheet, the sheet is the scroll surface.
-   It caps itself at the window now that the frame is a viewport, so a node
-   list or a document that also capped itself in px put a scrollbar inside a
-   scrollbar: on a tall display the sheet stayed short and the thing the
-   operator opened it to read scrolled in a 260px box. Uncapped, the panel
-   grows into the window and the sheet scrolls once when the content is longer
-   than the screen. The drawer keeps its own ceilings, it is still absolute in
-   document space and has no window to measure itself against. */
+/* Inside the sheet, the sheet is the scroll surface. A rendered document that
+   also caps itself would put a scrollbar inside that scrollbar. */
 .sheet .node-list,
 .sheet .result-doc {
   max-height: none;
@@ -978,22 +980,29 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .result-note { margin: 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); line-height: var(--lt-leading); }
 
 .result-doc,
-.row-popover-document {
-  max-height: 260px;
+.row-popover-document,
+.output-area { margin: 0; }
+
+.preview-evidence-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--lt-space-1) var(--lt-space-3);
+}
+.preview-evidence-title {
   margin: 0;
-  padding: var(--lt-space-2);
-  overflow: auto;
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-surface-2);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+}
+.preview-evidence-meta {
+  margin: 0;
+  color: var(--lt-fg-muted);
   font-family: var(--lt-mono);
   font-size: var(--lt-text-xs);
-  line-height: var(--lt-leading);
-  white-space: pre-wrap;
-  word-break: break-all;
+  font-variant-numeric: tabular-nums;
 }
-.result-doc:focus-visible,
-.row-popover-document:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
 /* ── node list ────────────────────────────────────────────────────────────
    One shape for "here are the nodes this produces", wherever it is shown: the

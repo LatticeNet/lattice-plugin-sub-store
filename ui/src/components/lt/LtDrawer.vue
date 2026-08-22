@@ -2,17 +2,18 @@
 import { nextTick, ref, watch } from "vue";
 import { X } from "@lucide/vue";
 
+import { trapDialogTab } from "../../dialogFocus";
+
 /**
  * Right-side panel for row-scoped work (preview, publish, share guidance).
  * One drawer at a time; Esc and the scrim both close it.
  *
- * Two things this has to get right that a normal page does not. The document is
- * not a viewport. The host sizes the frame to the content, so the scrim is
- * absolute over the document and the panel opens at the anchor the click
- * supplied rather than at the top of a frame that may be far above the fold,
- * and Escape only reaches a handler on an element that has focus, so the panel
- * takes focus when it opens; without that the key did nothing until the
- * operator had tabbed inside, which is the opposite of an escape hatch.
+ * Two things this has to get right that a normal page does not. The frame is a
+ * viewport, but this row-scoped drawer stays anchored beside the record that
+ * opened it rather than replacing the whole pane. Escape only reaches a
+ * handler on an element that has focus, so the panel takes focus when it opens;
+ * without that the key did nothing until the operator had tabbed inside,
+ * which is the opposite of an escape hatch.
  */
 const props = defineProps<{ open: boolean; title: string; anchorTop?: number }>();
 const emit = defineEmits<{ (e: "close"): void }>();
@@ -26,6 +27,10 @@ watch(
     panel.value?.focus();
   },
 );
+
+function onTab(event: KeyboardEvent): void {
+  if (panel.value) trapDialogTab(event, panel.value);
+}
 </script>
 
 <template>
@@ -39,6 +44,7 @@ watch(
       :aria-label="title"
       :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
       @keydown.esc="emit('close')"
+      @keydown.tab="onTab"
     >
       <header class="lt-drawer-head">
         <h3 class="lt-drawer-title">{{ title }}</h3>
@@ -53,8 +59,8 @@ watch(
 
 <style scoped>
 .lt-drawer-scrim {
-  /* Absolute against .workspace, which is the document; see the note on
-     .workspace in styles.css for why `inset: 0` alone is not enough. */
+  /* Absolute against .workspace so row work remains beside its source. The
+     target sheet is the full-viewport overlay. */
   position: absolute;
   inset: 0;
   background: color-mix(in oklab, var(--lt-fg) 24%, transparent);
@@ -65,9 +71,8 @@ watch(
   top: var(--overlay-anchor-top, 0);
   right: 0;
   width: min(440px, 92vw);
-  /* Not vh. This document's height IS the frame height, which the host syncs to
-     the content, so `80vh` sizes the panel from its own output: on a long list
-     it grew to thousands of pixels. A fixed ceiling says what it means. */
+  /* A fixed ceiling keeps a row inspection task bounded. The drawer body is
+     its one scroll surface when the rendered document is longer. */
   max-height: 640px;
   overflow: hidden;
   background: var(--lt-surface);
@@ -102,5 +107,5 @@ watch(
 }
 .lt-drawer-close:hover { background: var(--lt-surface-2); color: var(--lt-fg); }
 .lt-drawer-close:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-drawer-body { padding: var(--lt-space-4); overflow-y: auto; flex: 1; }
+.lt-drawer-body { padding: var(--lt-space-4); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 </style>

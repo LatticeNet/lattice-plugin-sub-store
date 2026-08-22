@@ -12,6 +12,9 @@
   --lt-surface-2: color-mix(in oklab, var(--card, #ffffff) 96%, var(--foreground, #111827) 4%);
   --lt-border: var(--border, #e5e7eb);
   --lt-border-strong: color-mix(in oklab, var(--border, #e5e7eb) 60%, var(--foreground, #111827) 40%);
+  /* A shadow stays dark in both themes. Deriving it from foreground turns the
+   * dark theme's overlays into a white halo. */
+  --lt-shadow-ink: #000;
 
   /* ink */
   --lt-fg: var(--foreground, #111827);
@@ -40,12 +43,14 @@
   --lt-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   --lt-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
-  --lt-text-xs: 11px;
-  --lt-text-sm: 12px;
-  --lt-text-md: 13px;
-  --lt-text-lg: 15px;
-  --lt-text-xl: 19px;
+  --lt-text-xs: 12px;
+  --lt-text-sm: 13px;
+  --lt-text-md: 14px;
+  --lt-text-lg: 16px;
+  --lt-text-xl: 20px;
+  --lt-leading-tight: 1.25;
   --lt-leading: 1.5;
+  --lt-code-line: 1.6em;
 
   /* rhythm: one 4px scale. Nothing lays out on a number that is not here. */
   --lt-space-1: 4px;
@@ -80,7 +85,7 @@
   --lt-focus-ring-tight: 0 0 0 2px color-mix(in oklab, var(--lt-accent) 70%, transparent);
 
   /* elevation: overlays only. Nothing in the flow is raised. */
-  --lt-shadow-overlay: 0 12px 32px color-mix(in oklab, #000 45%, transparent);
+  --lt-shadow-overlay: 0 12px 32px color-mix(in oklab, var(--lt-shadow-ink) 45%, transparent);
 
   /* motion: functional only */
   --lt-ease: cubic-bezier(0.2, 0, 0, 1);

@@ -62,6 +62,10 @@ import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import { anchorTopFrom } from "../overlayAnchor";
 import type { EditorLanguage } from "../codemirror";
+import {
+  editorLanguageForFileType,
+  editorLanguageLabel,
+} from "../previewLanguage";
 
 /**
  * The Files tab.
@@ -120,13 +124,12 @@ const CONTENT_LANGUAGES: ReadonlyArray<{ id: EditorLanguage; label: string }> = 
 ];
 const contentLanguageOverride = ref<EditorLanguage | "">("");
 const autoLanguage = computed<EditorLanguage>(() => {
-  if (isScript.value) return "javascript";
-  if (isPlain.value) return "plain";
-  return "yaml";
+  return editorLanguageForFileType(draft.value.fileType);
 });
 const contentLanguage = computed<EditorLanguage>(
   () => contentLanguageOverride.value || autoLanguage.value,
 );
+const contentLanguageLabel = computed(() => editorLanguageLabel(contentLanguage.value));
 const queryParamText = ref("");
 const isRemote = computed(() => draft.value.source === SOURCE_REMOTE);
 const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
@@ -148,7 +151,10 @@ const draftPreview = computed(() =>
     file_type: draft.value.fileType,
     node_source: draft.value.nodeSource,
     source: draft.value.source,
-    has_url: !!draft.value.url.trim(),
+    // Source is the current authority. The form retains a previous link so an
+    // operator can switch back without retyping it, but local text must not be
+    // classified as a fetch because that dormant field is still populated.
+    has_url: isRemote.value && !!draft.value.url.trim(),
     step_count: (draft.value.process as unknown[]).length,
   }),
 );
@@ -385,6 +391,11 @@ const drawer = ref<{ mode: "preview" | "share"; id: string } | null>(null);
 const drawerItem = computed(() =>
   drawer.value ? allFiles.value.find((file) => file.id === drawer.value?.id) : undefined,
 );
+const drawerLanguage = computed(() =>
+  editorLanguageForFileType(drawerItem.value?.file_type),
+);
+const drawerLanguageLabel = computed(() => editorLanguageLabel(drawerLanguage.value));
+const drawerDocument = computed(() => subs.rowPreview.value?.document ?? "");
 
 const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
@@ -890,10 +901,23 @@ watch(host.init, (value) => {
       </form>
 
       <div v-if="subs.preview.value?.document" class="preview-summary">
-        <p class="mono">
-          What a client receives<span v-if="subs.preview.value.truncated">, truncated</span>
-        </p>
-        <pre class="output-area mono" tabindex="0">{{ subs.preview.value.document }}</pre>
+        <div class="preview-evidence-head">
+          <p id="file-editor-preview-label" class="preview-evidence-title">
+            What a client receives<span v-if="subs.preview.value.truncated">, truncated</span>
+          </p>
+          <p class="preview-evidence-meta">
+            {{ contentLanguageLabel }} · {{ subs.preview.value.document.length }} characters
+          </p>
+        </div>
+        <CodeEditor
+          class="output-area"
+          :model-value="subs.preview.value.document"
+          :language="contentLanguage"
+          :rows="10"
+          :aria-labelledby="'file-editor-preview-label'"
+          preview
+          readonly
+        />
       </div>
     </section>
 
@@ -1218,10 +1242,23 @@ watch(host.init, (value) => {
             {{ subs.rowPreview.value.error }}
           </p>
           <template v-else-if="subs.rowPreview.value">
-            <p class="row-popover-note">
-              What a client receives<span v-if="subs.rowPreview.value.truncated"> · truncated</span>
-            </p>
-            <pre class="row-popover-document mono" tabindex="0">{{ subs.rowPreview.value.document }}</pre>
+            <div class="preview-evidence-head">
+              <p id="file-row-preview-label" class="preview-evidence-title">
+                What a client receives<span v-if="subs.rowPreview.value.truncated">, truncated</span>
+              </p>
+              <p class="preview-evidence-meta">
+                {{ drawerLanguageLabel }} · {{ drawerDocument.length }} characters
+              </p>
+            </div>
+            <CodeEditor
+              class="row-popover-document"
+              :model-value="drawerDocument"
+              :language="drawerLanguage"
+              :rows="8"
+              :aria-labelledby="'file-row-preview-label'"
+              preview
+              readonly
+            />
           </template>
         </template>
 

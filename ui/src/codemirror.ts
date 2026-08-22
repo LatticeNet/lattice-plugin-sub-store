@@ -50,7 +50,7 @@ const chrome = EditorView.theme({
     color: "var(--lt-fg)",
     border: "1px solid var(--lt-border)",
     borderRadius: "var(--lt-radius, 6px)",
-    fontSize: "12.5px",
+    fontSize: "var(--lt-text-sm)",
   },
   "&.cm-focused": {
     outline: "none",
@@ -66,6 +66,7 @@ const chrome = EditorView.theme({
     color: "var(--lt-fg-muted)",
     border: "none",
     borderRight: "1px solid var(--lt-border)",
+    fontSize: "var(--lt-text-xs)",
   },
   ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--lt-fg)" },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
@@ -105,12 +106,19 @@ export function createEditor(options: {
 }): EditorHandle {
   const languageSlot = new Compartment();
   let escapeArmed = false;
-  const view = new EditorView({
-    parent: options.parent,
-    state: EditorState.create({
-      doc: options.value,
-      extensions: [
-        lineNumbers(),
+  const contentAttributes: Record<string, string> = {};
+  if (options.ariaLabelledby) {
+    contentAttributes["aria-labelledby"] = options.ariaLabelledby;
+  }
+  if (options.readonly) {
+    // editable(false) removes the browser editing surface. The explicit
+    // tabindex preserves keyboard focus for reading and copying; CodeMirror
+    // supplies aria-readonly from the state facet.
+    contentAttributes.tabindex = "0";
+  }
+  const interactionExtensions: Extension[] = options.readonly
+    ? [EditorView.editable.of(false)]
+    : [
         history(),
         bracketMatching(),
         keymap.of([
@@ -128,20 +136,27 @@ export function createEditor(options: {
             shift: indentWithTab.shift,
           },
         ]),
+        // Tab indents, which makes the editor a keyboard trap unless there is a
+        // way out: Escape first, then Tab, moves focus on. A preview has no edit
+        // keymap, so ordinary Tab leaves it without this two-step escape hatch.
+        keymap.of([{ key: "Escape", run: () => { escapeArmed = true; return false; } }]),
+      ];
+  const view = new EditorView({
+    parent: options.parent,
+    state: EditorState.create({
+      doc: options.value,
+      extensions: [
+        lineNumbers(),
+        ...interactionExtensions,
         languageSlot.of(languageExtension(options.language)),
         syntaxHighlighting(highlight),
         chrome,
         EditorView.lineWrapping,
         EditorState.readOnly.of(!!options.readonly),
         options.placeholderText ? cmPlaceholder(options.placeholderText) : [],
-        options.ariaLabelledby
-          ? EditorView.contentAttributes.of({ "aria-labelledby": options.ariaLabelledby })
+        Object.keys(contentAttributes).length
+          ? EditorView.contentAttributes.of(contentAttributes)
           : [],
-        // Tab indents, which makes the editor a keyboard trap unless there is a
-        // way out: Escape first, then Tab, moves focus on. The standard
-        // CodeMirror escape hatch, and the only one a keyboard operator can
-        // discover from the focus ring alone.
-        keymap.of([{ key: "Escape", run: () => { escapeArmed = true; return false; } }]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) options.onChange(update.state.doc.toString());
         }),
