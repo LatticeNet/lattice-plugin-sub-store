@@ -66,6 +66,10 @@
   --lt-measure-prose: 78ch;
   --lt-measure-field: 46ch;
   --lt-measure-form: 132ch;
+  --lt-preview-workspace-w: 1120px;
+  --lt-preview-workspace-h: 800px;
+  --lt-preview-control-w: 280px;
+  --lt-preview-header-h: 64px;
 
   /* table density (comfortable default; compact swaps at runtime) */
   --lt-row-h: 40px;

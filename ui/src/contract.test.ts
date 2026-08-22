@@ -76,14 +76,11 @@ describe("UI ↔ manifest method contract", () => {
 });
 
 /**
- * The client sheet's capability split has to match the backend, not a wish.
+ * The client catalog's automatic detection metadata has to match the backend.
  *
- * `render` picks the client from the core's bounded UA classification
- * (uaClassTargets in system-go/subscription_render.go). A target the UI marks
- * renderable but the core cannot select would offer a copy action that always
- * fails; a target the core CAN select but the UI leaves unmarked hides a
- * working path. Both directions are pinned here, so adding a client to one
- * side without the other fails the suite instead of production.
+ * Explicit target ids render directly. `uaClass` exists only for the fallback
+ * path where no explicit target was supplied, so the two bounded maps still
+ * need to agree in both directions.
  */
 describe("client target catalog", () => {
   // Mirrors uaClassTargets; keep in step with the Go map.
@@ -103,14 +100,14 @@ describe("client target catalog", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("only marks a target renderable when the core can select it", () => {
+  it("maps declared UA fallbacks to the same explicit targets as the core", () => {
     for (const target of CONVERT_TARGETS) {
       if (!target.uaClass) continue;
       expect(CORE_UA_CLASSES[target.uaClass]).toBe(target.id);
     }
   });
 
-  it("exposes every client the core can select", () => {
+  it("covers every bounded UA fallback the core can detect", () => {
     const covered = new Set(
       CONVERT_TARGETS.filter((t) => t.uaClass).map((t) => t.uaClass as string),
     );

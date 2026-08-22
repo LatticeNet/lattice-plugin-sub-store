@@ -20,7 +20,7 @@ describe("rendered documents use the shared read-only code viewer", () => {
   });
 
   it("renders every preview through CodeEditor in explicit preview mode", () => {
-    expect(targetSheet).toMatch(/<CodeEditor\s+class="result-doc"[\s\S]*?preview[\s\S]*?readonly/);
+    expect(targetSheet).toMatch(/<CodeEditor[\s\S]*?class="result-doc"[\s\S]*?preview[\s\S]*?readonly/);
     expect(filesScreen).toMatch(/<CodeEditor\s+class="output-area"[\s\S]*?preview[\s\S]*?readonly/);
     expect(filesScreen).toMatch(/<CodeEditor\s+class="row-popover-document"[\s\S]*?preview[\s\S]*?readonly/);
     expect(editor).toContain("preview?: boolean");
@@ -53,5 +53,14 @@ describe("rendered documents use the shared read-only code viewer", () => {
 
   it("lets fieldsets shrink inside a narrow plugin viewport", () => {
     expect(styles).toMatch(/\.editor-group\s*\{[^}]*min-width:\s*0[^}]*width:\s*100%/s);
+  });
+
+  it("gives the preview workspace a dominant evidence pane", () => {
+    expect(styles).toMatch(/\.sheet\s*\{[^}]*width:\s*min\(var\(--lt-preview-workspace-w\)/s);
+    expect(styles).toMatch(/\.target-workspace-body\s*\{[^}]*grid-template-columns/s);
+  });
+
+  it("keeps line numbers out of document selection", () => {
+    expect(source("codemirror.ts")).toContain('userSelect: "none"');
   });
 });

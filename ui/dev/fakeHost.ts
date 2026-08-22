@@ -362,26 +362,19 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     // identical at every step and the screen cannot be checked at all.
     const steps = Array.isArray(operators) ? operators.length : 3;
     const all = [
-      { name: "🇭🇰 Hong Kong 01", type: "vless" },
-      { name: "🇭🇰 Hong Kong 02", type: "vless" },
-      { name: "🇯🇵 Tokyo 01", type: "trojan" },
-      { name: "🇸🇬 Singapore 01", type: "vmess" },
-      { name: "🇺🇸 Portland 01", type: "vless" },
-      { name: "🇩🇪 Frankfurt 01", type: "trojan" },
+      { name: "🇭🇰 Hong Kong 01", type: "vless", server: "hk-01.edge.example", port: "443" },
+      { name: "🇭🇰 Hong Kong 02", type: "vless", server: "hk-02.edge.example", port: "8443" },
+      { name: "🇯🇵 Tokyo 01", type: "trojan", server: "nrt-01.edge.example", port: "443" },
+      { name: "🇸🇬 Singapore 01", type: "vmess", server: "sin-01.edge.example", port: "443" },
+      { name: "🇺🇸 Portland 01", type: "vless", server: "pdx-01.edge.example", port: "2053" },
+      { name: "🇩🇪 Frankfurt 01", type: "trojan", server: "fra-01.edge.example", port: "443" },
     ];
     const kept = all.slice(0, Math.max(1, all.length - steps));
     if (Array.isArray(operators)) {
       return { nodes: kept, node_count: kept.length, source_node_count: 8 };
     }
     return {
-      nodes: [
-        { name: "🇭🇰 Hong Kong 01", type: "vless" },
-        { name: "🇭🇰 Hong Kong 02", type: "vless" },
-        { name: "🇯🇵 Tokyo 01", type: "trojan" },
-        { name: "🇸🇬 Singapore 01", type: "vmess" },
-        { name: "🇺🇸 Portland 01", type: "vless" },
-        { name: "🇩🇪 Frankfurt 01", type: "trojan" },
-      ],
+      nodes: all,
       // The real shape: node_count, not count. The UI once read `count`, a
       // field the backend never sent, and printed "undefined node(s)".
       node_count: 6,
@@ -396,6 +389,9 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
    */
   "subscription/render": ({ subscription_id, target, ua_class, options }) => {
     const found = records.find((r) => r.id === subscription_id);
+    if (found?.id === "openjobs-host-trojan") {
+      throw new Error(`subscription "${found.id}" provider returned status 503`);
+    }
     if (found?.kind === "file") {
       // renderFile ignores the target and the produce options: a file is served
       // as the document it is. A harness that varied the output by target would
@@ -413,14 +409,35 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     // Explicit target wins, mirroring resolveRenderTarget in system-go.
     const client = String(target || ua_class || "URI");
     const flags = (options ?? {}) as Record<string, boolean>;
-    const body =
-      client === "Stash" || client === "Clash"
-        ? "proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}\n"
-        : "vless://canned@a.example:443#%F0%9F%87%AD%F0%9F%87%B0%20Hong%20Kong%2001\n";
-    const note = flags["include-unsupported-proxy"] ? "# include-unsupported-proxy: on\n" : "";
+    const includeUnsupported = flags["include-unsupported-proxy"] === true;
+    const yamlTargets = new Set(["Stash", "Clash", "ClashMeta", "Egern"]);
+    const jsonTargets = new Set(["sing-box", "JSON"]);
+    const confTargets = new Set([
+      "Surfboard",
+      "Surge",
+      "SurgeMac",
+      "Loon",
+      "Shadowrocket",
+      "QX",
+    ]);
+    const content = jsonTargets.has(client)
+      ? JSON.stringify({
+          target: client,
+          ...(includeUnsupported ? { includeUnsupportedProxy: true } : {}),
+          proxies: [{ name: "🇭🇰 Hong Kong 01", type: "vless", server: "a.example", port: 443 }],
+        }, null, 2)
+      : yamlTargets.has(client)
+        ? `# ${found?.name ?? subscription_id} rendered for ${client}\n${includeUnsupported ? "# include-unsupported-proxy: on\n" : ""}proxies:\n  - {name: 🇭🇰 Hong Kong 01, type: vless, server: a.example, port: 443}\n`
+        : confTargets.has(client)
+          ? `# ${found?.name ?? subscription_id} rendered for ${client}\n${includeUnsupported ? "# include-unsupported-proxy: on\n" : ""}Hong Kong 01 = vless, a.example, 443, udp=true\n`
+          : `# ${found?.name ?? subscription_id} rendered for ${client}\n${includeUnsupported ? "# include-unsupported-proxy: on\n" : ""}vless://canned@a.example:443#%F0%9F%87%AD%F0%9F%87%B0%20Hong%20Kong%2001\n`;
     return {
-      content: `# ${found?.name ?? subscription_id} rendered for ${client}\n${note}${body}`,
-      content_type: client === "sing-box" ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
+      content,
+      content_type: jsonTargets.has(client)
+        ? "application/json; charset=utf-8"
+        : yamlTargets.has(client)
+          ? "text/yaml; charset=utf-8"
+          : "text/plain; charset=utf-8",
     };
   },
   /**
