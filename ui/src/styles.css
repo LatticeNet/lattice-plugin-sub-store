@@ -766,6 +766,78 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .source-title { grid-area: title; font-size: var(--lt-text-md); font-weight: 600; }
 .source-detail { grid-area: detail; font-size: var(--lt-text-xs); line-height: var(--lt-leading); color: var(--lt-fg-muted); }
 
+/* ── record editor layout ─────────────────────────────────────────────────── */
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--lt-space-5);
+  align-items: start;
+  min-width: 0;
+}
+
+.editor-main { min-width: 0; }
+
+.editor-side {
+  min-width: 0;
+  padding: var(--lt-space-4);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface-2);
+}
+
+.editor-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+  margin-bottom: var(--lt-space-3);
+}
+.editor-side-head h3 {
+  margin: 0;
+  font-size: var(--lt-text-md);
+  font-weight: 600;
+}
+.editor-side-note {
+  margin: 0;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+}
+.editor-side-note.is-error {
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 1px solid var(--lt-danger-border);
+  border-radius: var(--lt-radius-sm);
+  background: var(--lt-danger-soft);
+  color: var(--lt-fg);
+}
+
+/* The editor asks how much room it has, not how wide the device is. A plugin
+   frame is a pane inside a console, so the two are different questions, and
+   only the first one decides whether a form and a pane fit side by side. */
+.editor-shell { container-type: inline-size; }
+
+/* Two columns once both can be read. Below this the pane is the last block
+   instead of a sticky column, because a sticky column in a narrow frame is a
+   column that covers the form it is there to explain. */
+@container (min-width: 1040px) {
+  .editor-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    /* The fields inside cap themselves in characters, so on a very wide frame
+       an uncapped grid parks the pane far off to the right. The layout caps at
+       what the two columns actually need. */
+    max-width: calc(var(--lt-measure-form) + 380px + var(--lt-space-5));
+  }
+  .editor-side {
+    /* The frame is the visible window now (PluginFrameHost), so sticky resolves
+       against it: the pane stays put while a long form scrolls under it. */
+    position: sticky;
+    top: var(--lt-space-4);
+    max-height: calc(100vh - var(--lt-space-8));
+    overflow: auto;
+  }
+}
+
 /* ── document view (read-only render; no editor, see DocumentView.vue) ────── */
 
 .doc-view { min-width: 0; }
