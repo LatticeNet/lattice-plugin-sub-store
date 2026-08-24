@@ -13,7 +13,7 @@
   ],
   "version": "0.13.0-alpha.18",
   "publisher": "latticenet",
-  "signature_ed25519": "4DUm1LrEUewflc5wwIg/kIY2kMnq0mbVy3VHiQGfLgwNJssv3typLlbOMtfybwuCjtccWsrwXoY7BhBAVAZdCQ==",
+  "signature_ed25519": "kAUvjjg9fVN2bHXIGXkiOiEm4Ym4rI2xz+WgPkR3QLyj/cEjUyuvjn2sfGXy+NKSHxSNr/pY7oHUyIUNpYNFBQ==",
   "bundle": {
     "format": "tar+gzip",
     "digest_sha256": "8d523545d5143252a43ff1718f747bcbb76abcdf76db77f3622faffa14d3f816"
