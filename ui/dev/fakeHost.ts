@@ -431,13 +431,20 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         : confTargets.has(client)
           ? `# ${found?.name ?? subscription_id} rendered for ${client}\n${includeUnsupported ? "# include-unsupported-proxy: on\n" : ""}Hong Kong 01 = vless, a.example, 443, udp=true\n`
           : `# ${found?.name ?? subscription_id} rendered for ${client}\n${includeUnsupported ? "# include-unsupported-proxy: on\n" : ""}vless://canned@a.example:443#%F0%9F%87%AD%F0%9F%87%B0%20Hong%20Kong%2001\n`;
+    // Clash carries neither VLESS nor Hysteria2, so a fleet of them renders for
+    // it as an all but empty document. The harness reproduces that, because a
+    // sheet that never sees it looks correct while the real one is unreadable.
+    const clashRefusesEverything = client === "Clash" && !includeUnsupported;
     return {
-      content,
+      content: clashRefusesEverything ? "proxies:\n" : content,
       content_type: jsonTargets.has(client)
         ? "application/json; charset=utf-8"
         : yamlTargets.has(client)
           ? "text/yaml; charset=utf-8"
           : "text/plain; charset=utf-8",
+      node_count: 4,
+      dropped_node_count: clashRefusesEverything ? 4 : 0,
+      ...(clashRefusesEverything ? { dropped_protocols: ["hysteria2", "vless"] } : {}),
     };
   },
   /**

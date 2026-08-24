@@ -153,6 +153,10 @@ type subStoreConversionRequest struct {
 	// smuggle structures into the engine script; unknown names are simply
 	// ignored by the core, exactly as upstream ignores them.
 	Options map[string]bool `json:"options,omitempty"`
+	// Explain asks the engine to also work out which nodes this target dropped.
+	// The console sets it so a near-empty document can say why; the path that
+	// serves subscriptions to clients does not, and pays nothing for it.
+	Explain bool `json:"explain,omitempty"`
 }
 
 type subStoreResponseTransformRequest struct {
@@ -167,6 +171,18 @@ type subStoreConversionResult struct {
 	NodeCount       int    `json:"node_count"`
 	Output          string `json:"output"`
 	OutputBytes     int    `json:"output_bytes"`
+	// UnsupportedNodeCount and UnsupportedProtocols describe nodes the target
+	// client cannot carry, which its producer drops on the way to the document.
+	// Without them a record made entirely of VLESS and Hysteria2 renders for
+	// Clash as the nine bytes "proxies:" and nothing explains why.
+	//
+	// Only filled when the request asked to explain. Each producer owns its own
+	// support rules, and they are not declared anywhere a caller can read, so
+	// the only honest way to learn them is to ask the producer: a node the
+	// producer drops leaves the document exactly as an empty list would. That
+	// costs extra produce calls, which the serve path has no reason to pay.
+	UnsupportedNodeCount int      `json:"unsupported_node_count"`
+	UnsupportedProtocols []string `json:"unsupported_protocols,omitempty"`
 }
 
 type subStoreResponseTransformResult struct {
@@ -178,9 +194,11 @@ type subStoreResponseTransformResult struct {
 }
 
 type subStoreCoreConversionResult struct {
-	SourceNodeCount int    `json:"source_node_count"`
-	NodeCount       int    `json:"node_count"`
-	Output          string `json:"output"`
+	SourceNodeCount      int      `json:"source_node_count"`
+	NodeCount            int      `json:"node_count"`
+	UnsupportedNodeCount int      `json:"unsupported_node_count"`
+	UnsupportedProtocols []string `json:"unsupported_protocols"`
+	Output               string   `json:"output"`
 }
 
 type subStoreCoreResponseTransformResult struct {
@@ -234,6 +252,9 @@ func (engine *subStoreEngine) convert(req subStoreConversionRequest) (result sub
 		NodeCount:       coreResult.NodeCount,
 		Output:          coreResult.Output,
 		OutputBytes:     len([]byte(coreResult.Output)),
+
+		UnsupportedNodeCount: coreResult.UnsupportedNodeCount,
+		UnsupportedProtocols: coreResult.UnsupportedProtocols,
 	}, nil
 }
 
@@ -618,6 +639,10 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode produce options: %w", err)
 	}
+	explain := "false"
+	if req.Explain {
+		explain = "true"
+	}
 	prefix := "(function() {"
 	processBlock := ""
 	if len(req.Operators) > 0 {
@@ -636,6 +661,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   const target = %s;
   const operators = %s || [];
   const produceOptions = %s || {};
+  const explain = %s;
   const root = globalThis.SubStoreProxyUtils;
   const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   if (!core || typeof core.parse !== "function" || typeof core.produce !== "function") {
@@ -654,8 +680,56 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   if (typeof output !== "string") {
     throw new Error("Sub-Store produce(proxies, target, env) must return a string");
   }
-  return JSON.stringify({ source_node_count: sourceNodeCount, node_count: proxies.length, output });
-})()`, prefix, raw, target, operators, options, processBlock), nil
+  // Which nodes this client could not carry.
+  //
+  // Every producer keeps its own support rules inside itself and declares them
+  // nowhere, so the only reading that cannot go stale is to ask it: a node the
+  // producer drops leaves the document byte for byte as an empty list would.
+  // The cheap check comes first, and on the common path where nothing was
+  // dropped it is the only extra work done.
+  const unsupportedTypes = [];
+  let unsupportedCount = 0;
+  if (explain && !produceOptions["include-unsupported-proxy"] && proxies.length > 0) {
+    const permissive = Object.assign({}, produceOptions, { "include-unsupported-proxy": true });
+    let everything = output;
+    try {
+      everything = core.produce(proxies, target, "external", permissive);
+    } catch (err) {
+      everything = output;
+    }
+    if (everything !== output) {
+      let empty = null;
+      try {
+        empty = core.produce([], target, "external", produceOptions);
+      } catch (err) {
+        empty = null;
+      }
+      if (empty !== null) {
+        for (const proxy of proxies) {
+          let alone = null;
+          try {
+            alone = core.produce([proxy], target, "external", produceOptions);
+          } catch (err) {
+            // A producer that refuses one node outright has dropped it just as
+            // surely as one that filters it.
+            alone = empty;
+          }
+          if (alone !== empty) continue;
+          unsupportedCount += 1;
+          const type = proxy && typeof proxy.type === "string" ? proxy.type : "unknown";
+          if (!unsupportedTypes.includes(type)) unsupportedTypes.push(type);
+        }
+      }
+    }
+  }
+  return JSON.stringify({
+    source_node_count: sourceNodeCount,
+    node_count: proxies.length,
+    unsupported_node_count: unsupportedCount,
+    unsupported_protocols: unsupportedTypes.sort(),
+    output,
+  });
+})()`, prefix, raw, target, operators, options, explain, processBlock), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {

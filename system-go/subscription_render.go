@@ -19,6 +19,13 @@ import (
 type renderResult struct {
 	Content     string `json:"content"`
 	ContentType string `json:"content_type"`
+	// DroppedNodeCount and DroppedProtocols name what this client could not
+	// carry. Only filled when the caller asked to explain, which the console
+	// does and the serve path does not: a client that receives an empty
+	// document deserves a reason, and finding one costs extra produce calls.
+	NodeCount        int      `json:"node_count,omitempty"`
+	DroppedNodeCount int      `json:"dropped_node_count,omitempty"`
+	DroppedProtocols []string `json:"dropped_protocols,omitempty"`
 	// Headers a script file asked for through `$options._res.headers`. The core
 	// decides which of them it is willing to send; the plugin only reports what
 	// the document said it wanted.
@@ -95,6 +102,8 @@ type subscriptionRenderRequest struct {
 	Options        map[string]bool
 	Raw            string
 	Query          map[string]string
+	// Explain asks for the diagnosis alongside the document.
+	Explain bool
 }
 
 // resolveRenderTarget picks the client for one render. Priority is explicit
@@ -207,6 +216,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		Target:    resolveRenderTarget(rec, req.Target, uaClass),
 		Operators: operators,
 		Options:   req.Options,
+		Explain:   req.Explain,
 	})
 	if err != nil {
 		return renderResult{}, err
@@ -223,7 +233,24 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	if err != nil {
 		return renderResult{}, err
 	}
-	return renderResult{Content: body, ContentType: contentType, Headers: headers}, nil
+	return renderResult{
+		Content:     body,
+		ContentType: contentType,
+		Headers:     headers,
+
+		NodeCount:        explainedNodeCount(req.Explain, converted.NodeCount),
+		DroppedNodeCount: converted.UnsupportedNodeCount,
+		DroppedProtocols: converted.UnsupportedProtocols,
+	}, nil
+}
+
+// explainedNodeCount reports the chain's node count only to a caller that asked
+// for an explanation. The serve response stays byte for byte what it was.
+func explainedNodeCount(explain bool, count int) int {
+	if !explain {
+		return 0
+	}
+	return count
 }
 
 // applyResponseChain runs the record's chain a second time, over what it is
@@ -871,6 +898,10 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			// Only the parameters the core decided to forward reach here, and the
 			// record narrows them again to the names it declared.
 			Query map[string]string `json:"query"`
+			// Explain asks the render to also report what the chosen client
+			// dropped. The console sets it; the path that serves a client does
+			// not, so serving pays nothing for a diagnosis nobody reads.
+			Explain bool `json:"explain"`
 		}
 		if len(call.Payload) > 0 {
 			if err := json.Unmarshal(call.Payload, &req); err != nil {
@@ -885,6 +916,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			Options:        req.Options,
 			Raw:            req.Raw,
 			Query:          req.Query,
+			Explain:        req.Explain,
 		})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)

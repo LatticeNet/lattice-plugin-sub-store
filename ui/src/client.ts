@@ -477,6 +477,15 @@ export interface SubscriptionRenderResponse {
   content: string;
   content_type: string;
   headers?: Record<string, string>;
+  /**
+   * What the chosen client refused to carry. Present only when the caller asked
+   * to explain, which the console does: a fleet of VLESS and Hysteria2 nodes
+   * renders for Clash as the nine bytes "proxies:", and a document that short
+   * is indistinguishable from a broken render unless something says why.
+   */
+  node_count?: number;
+  dropped_node_count?: number;
+  dropped_protocols?: string[];
 }
 
 /**
