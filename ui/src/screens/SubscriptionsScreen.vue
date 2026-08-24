@@ -34,6 +34,7 @@ import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
+import { escapeAction, exitAction, type ExitAction } from "../editorExit";
 import { anchorTopFrom } from "../overlayAnchor";
 
 import {
@@ -217,6 +218,7 @@ function startCreate(kind: string): void {
   editingId.value = null;
   editorTab.value = "display";
   editing.value = true;
+  markPristine();
 }
 
 async function startEdit(id: string): Promise<void> {
@@ -236,6 +238,8 @@ async function startEdit(id: string): Promise<void> {
   editorTab.value = "display";
   editing.value = true;
   if (draft.value.source === SOURCE_VPN_CORE_GRAPH) await loadGraphOptionsForDraft(false);
+  // After the graph options land, so loading them is not mistaken for an edit.
+  markPristine();
   await host.resize();
 }
 
@@ -284,10 +288,62 @@ function setGraphIdentity(identity: string): void {
   draft.value.vpnIdentity = identity;
 }
 
+/**
+ * What the draft looked like when the editor opened.
+ *
+ * Leaving is one click on a breadcrumb and one press of Escape, and this form
+ * does not autosave, so without a comparison to make an unsaved edit is one
+ * stray keystroke away from being gone with nothing said. The snapshot is the
+ * serialised draft plus the two text fields that live outside it, because those
+ * are edits too.
+ */
+const pristine = ref("");
+
+function draftFingerprint(): string {
+  return JSON.stringify([draft.value, common.value, tagText.value, memberTagText.value]);
+}
+
+function markPristine(): void {
+  pristine.value = draftFingerprint();
+}
+
+const editorDirty = computed(() => editing.value && pristine.value !== draftFingerprint());
+
+/** Set while a confirm is deciding whether an unsaved edit may be abandoned. */
+const discarding = ref(false);
+
+/**
+ * Leaving the editor. Every exit goes through here: the breadcrumb, Escape, and
+ * the Cancel button, so none of them can quietly become the one that loses work.
+ */
+function exitState() {
+  return {
+    editing: editing.value,
+    dirty: editorDirty.value,
+    overlayOpen:
+      discarding.value || deleting.value.length > 0 || !!drawer.value || !!targetSheet.value,
+  };
+}
+
+function applyExit(action: ExitAction): void {
+  if (action === "ignore") return;
+  if (action === "confirm") {
+    discarding.value = true;
+    return;
+  }
+  cancelEdit();
+}
+
+function leaveEditor(): void {
+  applyExit(exitAction(exitState()));
+}
+
 function cancelEdit(): void {
+  discarding.value = false;
   editing.value = false;
   editingId.value = null;
   draft.value = emptyDraft();
+  pristine.value = "";
   subs.preview.value = null;
 }
 
@@ -556,7 +612,15 @@ function onDocumentClick(event: MouseEvent): void {
   closeRowMenu();
 }
 function onDocumentKeydown(event: KeyboardEvent): void {
-  if (event.key === "Escape" && openMenuId.value) closeRowMenu();
+  if (event.key !== "Escape") return;
+  if (openMenuId.value) {
+    closeRowMenu();
+    return;
+  }
+  // Escape is how every other surface in this frame steps back, and the editor
+  // is a screen you enter, so it answers the same key. Who owns the key while
+  // an overlay is up is decided in editorExit.ts.
+  applyExit(escapeAction(exitState()));
 }
 /**
  * The editor's sections, split the way Sub-Store splits them: what the record
@@ -792,7 +856,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
     <!-- ── editor ───────────────────────────────────────────────────────── -->
     <section v-if="editing" class="configuration" aria-labelledby="editor-title">
       <nav class="lt-breadcrumb" aria-label="Breadcrumb">
-        <button type="button" class="lt-breadcrumb-root" @click="cancelEdit">
+        <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
           <ChevronLeft :size="14" aria-hidden="true" /> Subscriptions
         </button>
         <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
@@ -1095,7 +1159,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             <Eye v-else :size="16" aria-hidden="true" />
             Preview
           </button>
-          <button class="button button-secondary" type="button" @click="cancelEdit">Cancel</button>
+          <button class="button button-secondary" type="button" @click="leaveEditor">Cancel</button>
           <button class="button button-primary" type="submit" :disabled="!canSave || !subs.canMutate.value">
             <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
             Save
@@ -1107,6 +1171,20 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         v-if="subs.preview.value"
         :preview="subs.preview.value"
         :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
+      />
+
+      <!-- Leaving with unsaved changes. It lives inside the editor because that
+           is the only screen it can be asked from: parked next to the list's
+           dialogs it was never rendered while the editor was up, and the exit
+           silently did nothing at all. -->
+      <LtConfirmDialog
+        :anchor-top="overlayAnchor"
+        :open="discarding"
+        title="Leave without saving? The changes you made to this record are not stored yet and will be lost."
+        verb="Discard changes"
+        :names="[draft.displayName || draft.name || (editingId ?? 'this record')]"
+        @confirm="cancelEdit()"
+        @cancel="discarding = false"
       />
     </section>
 
