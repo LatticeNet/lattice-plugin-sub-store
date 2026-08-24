@@ -153,7 +153,13 @@ function mountSheet(options: {
   const shareCalls: Array<{ service: string; method: string }> = [];
   const renderCalls: Array<{
     payload: Record<string, unknown>;
-    result: ReturnType<typeof deferred<{ content: string; content_type: string }>>;
+    result: ReturnType<typeof deferred<{
+      content: string;
+      content_type: string;
+      node_count?: number;
+      dropped_node_count?: number;
+      dropped_protocols?: string[];
+    }>>;
     cancel: ReturnType<typeof vi.fn>;
   }> = [];
   const previewCalls: Array<{
@@ -178,7 +184,13 @@ function mountSheet(options: {
         if (renderThrows) throw new Error("bridge rejected render synchronously");
         const call = {
           payload: payload as Record<string, unknown>,
-          result: deferred<{ content: string; content_type: string }>(),
+          result: deferred<{
+      content: string;
+      content_type: string;
+      node_count?: number;
+      dropped_node_count?: number;
+      dropped_protocols?: string[];
+    }>(),
           cancel: vi.fn(),
         };
         renderCalls.push(call);
@@ -342,6 +354,69 @@ describe("TargetSheet client output behavior", () => {
     expect(find(root, (node) => node.props["data-document-view"] === "true")).toHaveLength(0);
     const copy = find(root, (node) => node.type === "button" && textOf(node).includes("Copy document"))[0]!;
     expect(copy.props.disabled).toBe(true);
+    app.unmount();
+  });
+});
+
+// A record of VLESS and Hysteria2 nodes renders for Clash as the nine bytes
+// "proxies:". That is correct, and for a long time it was also unreadable: the
+// sheet showed an almost empty document and said nothing. The toggle that
+// changes the outcome is in the same sheet, so the notice names it.
+describe("TargetSheet says when a client refused nodes", () => {
+  it("asks the render to explain, and repeats what it was told", async () => {
+    const { app, root, renderCalls } = mountSheet();
+    await settle();
+    expect(renderCalls[0]!.payload).toMatchObject({ explain: true });
+    renderCalls[0]!.result.resolve({
+      content: "proxies:\n",
+      content_type: "text/yaml",
+      node_count: 4,
+      dropped_node_count: 4,
+      dropped_protocols: ["hysteria2", "vless"],
+    });
+    await settle();
+    const notice = find(root, (node) => node.props.class === "output-dropped")[0]!;
+    const said = textOf(notice);
+    expect(said).toContain("hysteria2, vless");
+    expect(said).toContain("any of this record's 4 nodes");
+    expect(said).toContain("This document has none of them.");
+    expect(said).toContain("Include protocols the selected client does not support");
+    // The document is still shown: the operator asked to see what the client
+    // receives, and "almost nothing" is the answer.
+    const output = find(root, (node) => node.props["data-document-view"] === "true")[0]!;
+    expect(textOf(output)).toContain("proxies:");
+    app.unmount();
+  });
+
+  it("says nothing when the client carried everything", async () => {
+    const { app, root, renderCalls } = mountSheet();
+    await settle();
+    renderCalls[0]!.result.resolve({
+      content: "vless://node",
+      content_type: "text/plain",
+      node_count: 4,
+      dropped_node_count: 0,
+    });
+    await settle();
+    expect(find(root, (node) => node.props.class === "output-dropped")).toHaveLength(0);
+    app.unmount();
+  });
+
+  it("counts partially, not just all or nothing", async () => {
+    const { app, root, renderCalls } = mountSheet();
+    await settle();
+    renderCalls[0]!.result.resolve({
+      content: "proxies:\n  - one\n",
+      content_type: "text/yaml",
+      node_count: 4,
+      dropped_node_count: 3,
+      dropped_protocols: ["vless"],
+    });
+    await settle();
+    const said = textOf(find(root, (node) => node.props.class === "output-dropped")[0]!);
+    expect(said).toContain("3 of this record's 4 nodes");
+    expect(said).toContain("They are not in this document.");
+    expect(said).not.toContain("any of");
     app.unmount();
   });
 });

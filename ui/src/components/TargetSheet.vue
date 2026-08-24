@@ -60,6 +60,9 @@ const rendered = ref<{
   target: string;
   content: string;
   contentType: string;
+  nodeCount: number;
+  droppedCount: number;
+  droppedProtocols: string[];
 } | null>(null);
 
 const nodesStatus = ref<ResultStatus>("idle");
@@ -107,6 +110,32 @@ const renderedLanguage = computed(() =>
       }),
 );
 const renderedLanguageLabel = computed(() => editorLanguageLabel(renderedLanguage.value));
+
+/**
+ * What to say when the chosen client refused some of the record's nodes.
+ *
+ * The count comes from the client's own producer, so the sentence is about this
+ * client and this record rather than a table of protocol support that would
+ * drift from the pinned engine. It names the toggle that changes the outcome,
+ * because that toggle is a few centimetres away in the same sheet and without
+ * the sentence nobody connects the two.
+ */
+const droppedNotice = computed(() => {
+  const dropped = rendered.value?.droppedCount ?? 0;
+  if (dropped <= 0) return "";
+  const total = rendered.value?.nodeCount ?? 0;
+  const protocols = rendered.value?.droppedProtocols ?? [];
+  const named = protocols.length > 0 ? ` (${protocols.join(", ")})` : "";
+  const all = total > 0 && dropped >= total;
+  const scope = all
+    ? `any of this record's ${total} nodes`
+    : `${dropped} of this record's ${total || dropped} nodes`;
+  const outcome = all ? "This document has none of them." : "They are not in this document.";
+  return (
+    `${chosenTarget.value.label} cannot carry ${scope}${named}. ${outcome} ` +
+    `Turn on "Include protocols the selected client does not support" to send them anyway.`
+  );
+});
 const renderedBytes = computed(() =>
   rendered.value ? new TextEncoder().encode(rendered.value.content).byteLength : 0,
 );
@@ -233,6 +262,9 @@ async function loadDocument(): Promise<void> {
         : {
             target,
             options: { "include-unsupported-proxy": includeUnsupportedAtStart },
+            // Ask why, so a near-empty document can say so. The path that
+            // serves a client never sets this.
+            explain: true,
           }),
     });
     documentCancel = call.cancel;
@@ -254,6 +286,9 @@ async function loadDocument(): Promise<void> {
       target,
       content: response.content,
       contentType: response.content_type ?? "",
+      nodeCount: Number(response.node_count ?? 0),
+      droppedCount: Number(response.dropped_node_count ?? 0),
+      droppedProtocols: Array.isArray(response.dropped_protocols) ? response.dropped_protocols : [],
     };
     documentStatus.value = "ready";
   } catch (cause) {
@@ -744,6 +779,18 @@ onBeforeUnmount(stopAllRequests);
             role="tabpanel"
             :aria-labelledby="isFile ? 'target-document-label' : 'target-document-tab target-document-label'"
           >
+            <!-- A client that refuses a protocol produces a document with
+                 nothing of those nodes in it, which reads as a broken render.
+                 The toggle that changes it is in this same sheet, so the notice
+                 names it rather than leaving the operator to guess. Its own
+                 v-if, so the states below stay one chain. -->
+            <p
+              v-if="documentStatus === 'ready' && droppedNotice"
+              class="output-dropped"
+              role="status"
+            >
+              {{ droppedNotice }}
+            </p>
             <div v-if="documentStatus === 'loading'" class="output-state" role="status">
               <LoaderCircle :size="18" class="spin" aria-hidden="true" />
               <strong>Generating {{ isFile ? "document" : chosenTarget.label }} output…</strong>

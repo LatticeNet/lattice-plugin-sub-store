@@ -839,6 +839,17 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .tok-literal { color: var(--lt-warn); }
 .tok-comment { color: var(--lt-fg-muted); font-style: italic; }
 
+.output-dropped {
+  margin: 0 0 var(--lt-space-3);
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 1px solid var(--lt-warn-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-warn-soft);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+}
+
 .doc-truncated {
   margin: var(--lt-space-2) 0 0;
   color: var(--lt-fg-muted);
