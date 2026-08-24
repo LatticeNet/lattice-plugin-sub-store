@@ -54,6 +54,7 @@ import LtIconButton from "../components/lt/LtIconButton.vue";
 import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import CodeEditor from "../components/CodeEditor.vue";
+import DocumentView from "../components/DocumentView.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 import TargetSheet from "../components/TargetSheet.vue";
@@ -918,14 +919,12 @@ watch(host.init, (value) => {
             {{ contentLanguageLabel }} · {{ subs.preview.value.document.length }} characters
           </p>
         </div>
-        <CodeEditor
+        <DocumentView
           class="output-area"
-          :model-value="subs.preview.value.document"
+          :text="subs.preview.value.document"
           :language="contentLanguage"
           :rows="10"
           :aria-labelledby="'file-editor-preview-label'"
-          preview
-          readonly
         />
       </div>
     </section>
@@ -1259,14 +1258,12 @@ watch(host.init, (value) => {
                 {{ drawerLanguageLabel }} · {{ drawerDocument.length }} characters
               </p>
             </div>
-            <CodeEditor
+            <DocumentView
               class="row-popover-document"
-              :model-value="drawerDocument"
+              :text="drawerDocument"
               :language="drawerLanguage"
               :rows="8"
               :aria-labelledby="'file-row-preview-label'"
-              preview
-              readonly
             />
           </template>
         </template>

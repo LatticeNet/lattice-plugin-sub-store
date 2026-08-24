@@ -10,7 +10,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { Check, Copy, Link, LoaderCircle, RefreshCw, X } from "@lucide/vue";
 
-import CodeEditor from "./CodeEditor.vue";
+import DocumentView from "./DocumentView.vue";
 import LtButton from "./lt/LtButton.vue";
 import {
   BINDINGS,
@@ -763,15 +763,13 @@ onBeforeUnmount(stopAllRequests);
               <strong>The render completed with an empty document.</strong>
               <span>Nothing is available to copy for this client target.</span>
             </div>
-            <CodeEditor
+            <DocumentView
               v-else-if="documentStatus === 'ready' && rendered"
               class="result-doc"
-              :model-value="rendered.content"
+              :text="rendered.content"
               :language="renderedLanguage"
               :rows="24"
               :aria-labelledby="'target-document-label'"
-              preview
-              readonly
             />
             <div v-else class="output-state">
               <strong>No document generated yet.</strong>

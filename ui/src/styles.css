@@ -766,6 +766,85 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .source-title { grid-area: title; font-size: var(--lt-text-md); font-weight: 600; }
 .source-detail { grid-area: detail; font-size: var(--lt-text-xs); line-height: var(--lt-leading); color: var(--lt-fg-muted); }
 
+/* ── document view (read-only render; no editor, see DocumentView.vue) ────── */
+
+.doc-view { min-width: 0; }
+
+.doc-scroll {
+  /* The viewer owns its scrolling. Letting it grow instead put a long document
+     past the bottom of the sheet with nothing to scroll it. */
+  max-height: calc(var(--doc-rows, 24) * var(--lt-code-line) + var(--lt-space-4));
+  overflow: auto;
+  padding: var(--lt-space-2) 0;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface-2);
+}
+.doc-scroll:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
+
+.doc-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: doc-line;
+  font-family: var(--lt-mono);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-code-line);
+}
+
+.doc-line {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  gap: var(--lt-space-3);
+  padding: var(--lt-space-1) var(--lt-space-3);
+  counter-increment: doc-line;
+}
+/* A produced line is often four or five visual rows once it wraps, and without
+   a boundary the document reads as one undifferentiated block. The rule is the
+   cheapest thing that tells the eye where an entry ends. */
+.doc-line + .doc-line { border-top: 1px solid color-mix(in oklab, var(--lt-border) 55%, transparent); }
+.doc-line:hover { background: color-mix(in oklab, var(--lt-fg) 4%, transparent); }
+
+.doc-line::before {
+  /* A counter, not text in the DOM: selecting the document copies the document
+     and not a column of line numbers. */
+  content: counter(doc-line);
+  position: sticky;
+  left: 0;
+  text-align: right;
+  color: var(--lt-fg-muted);
+  opacity: 0.65;
+  user-select: none;
+  background: var(--lt-surface-2);
+}
+
+.doc-code {
+  grid-column: 2;
+  min-width: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.doc-empty::before { content: "\200b"; }
+
+/* Semantic roles only. Most of a produced document is boilerplate, so the
+   baseline is quiet and the parts an operator scans for carry the contrast. */
+.tok { color: var(--lt-fg-muted); }
+.tok-plain { color: var(--lt-fg-muted); }
+.tok-host { color: var(--lt-fg); }
+.tok-name { color: var(--lt-accent); }
+.tok-key { color: var(--lt-fg); }
+.tok-string { color: var(--lt-ok); }
+.tok-number,
+.tok-literal { color: var(--lt-warn); }
+.tok-comment { color: var(--lt-fg-muted); font-style: italic; }
+
+.doc-truncated {
+  margin: var(--lt-space-2) 0 0;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+}
+
 /* ── code editor (CodeMirror mount + textarea fallback) ───────────────────── */
 
 .code-editor { min-width: 0; }
