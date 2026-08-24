@@ -44,6 +44,22 @@ function languageExtension(language: EditorLanguage): Extension {
  * dashboard theme without carrying a palette of its own. The fallbacks keep
  * the dev harness legible when a token is missing.
  */
+/**
+ * The style nonce the server minted for this document.
+ *
+ * CodeMirror installs its layout and highlighting as stylesheets it creates at
+ * runtime, and the plugin frame's policy has no 'unsafe-inline'. Without the
+ * nonce the browser drops every one of them and the editor renders as unstyled
+ * text: this is not a nicety, it is whether the editor works at all. The
+ * placeholder means nobody substituted it (the dev harness, or a server older
+ * than the contract), and there is no CSP in that case either.
+ */
+function cspNonce(): string {
+  const meta = document.querySelector('meta[name="lattice-csp-nonce"]');
+  const value = meta?.getAttribute("content")?.trim() ?? "";
+  return value === "__LATTICE_CSP_NONCE__" ? "" : value;
+}
+
 const chrome = EditorView.theme({
   "&": {
     backgroundColor: "var(--lt-surface)",
@@ -147,6 +163,9 @@ export function createEditor(options: {
     state: EditorState.create({
       doc: options.value,
       extensions: [
+        // First, so the stylesheets every later extension installs are allowed
+        // in rather than dropped.
+        EditorView.cspNonce.of(cspNonce()),
         lineNumbers(),
         ...interactionExtensions,
         languageSlot.of(languageExtension(options.language)),

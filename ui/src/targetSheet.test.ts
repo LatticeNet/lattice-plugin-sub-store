@@ -8,22 +8,26 @@ import type { BridgeClient, HostInit } from "@latticenet/plugin-bridge";
 import { BINDINGS, KIND_SUB, type SubscriptionListItem } from "./client";
 import { provideHost, type HostContext } from "./host";
 
-vi.mock("./components/CodeEditor.vue", async () => {
+// The sheet's own behaviour is what these cover: which document reaches the
+// output and when. How the viewer colours it is DocumentView's business and has
+// its own tests.
+vi.mock("./components/DocumentView.vue", async () => {
   const { defineComponent, h } = await import("vue");
   return {
     default: defineComponent({
-      name: "CodeEditorStub",
+      name: "DocumentViewStub",
       props: {
-        modelValue: { type: String, required: true },
+        text: { type: String, required: true },
         language: { type: String, default: "plain" },
+        rows: { type: Number, default: 24 },
         ariaLabelledby: { type: String, default: undefined },
       },
       setup(props) {
         return () => h("output", {
-          "data-code-editor": "true",
+          "data-document-view": "true",
           "data-language": props.language,
           "aria-labelledby": props.ariaLabelledby,
-        }, props.modelValue);
+        }, props.text);
       },
     }),
   };
@@ -241,7 +245,7 @@ describe("TargetSheet client output behavior", () => {
     expect(textOf(root)).toContain("Generating Universal (URI) output");
     renderCalls[0]!.result.resolve({ content: "vless://node", content_type: "text/plain" });
     await settle();
-    const output = find(root, (node) => node.props["data-code-editor"] === "true")[0]!;
+    const output = find(root, (node) => node.props["data-document-view"] === "true")[0]!;
     expect(textOf(output)).toContain("vless://node");
     app.unmount();
   });
@@ -261,7 +265,7 @@ describe("TargetSheet client output behavior", () => {
     renderCalls[0]!.result.resolve({ content: "old URI", content_type: "text/plain" });
     renderCalls[1]!.result.resolve({ content: "fresh Stash", content_type: "text/yaml" });
     await settle();
-    const output = find(root, (node) => node.props["data-code-editor"] === "true")[0]!;
+    const output = find(root, (node) => node.props["data-document-view"] === "true")[0]!;
     expect(textOf(output)).toContain("fresh Stash");
     expect(textOf(output)).not.toContain("old URI");
     app.unmount();
@@ -284,7 +288,7 @@ describe("TargetSheet client output behavior", () => {
     await settle();
     const nodesTab = find(root, (node) => node.props.role === "tab" && textOf(node).includes("Pipeline nodes"))[0]!;
     expect(nodesTab.props["aria-selected"]).toBe(true);
-    expect(find(root, (node) => node.props["data-code-editor"] === "true")).toHaveLength(0);
+    expect(find(root, (node) => node.props["data-document-view"] === "true")).toHaveLength(0);
     expect(textOf(root)).toContain("Hong Kong 01");
     app.unmount();
   });
@@ -335,7 +339,7 @@ describe("TargetSheet client output behavior", () => {
     await settle();
     expect(textOf(root)).toContain("The render completed with an empty document");
     expect(textOf(root)).not.toContain("Retry render");
-    expect(find(root, (node) => node.props["data-code-editor"] === "true")).toHaveLength(0);
+    expect(find(root, (node) => node.props["data-document-view"] === "true")).toHaveLength(0);
     const copy = find(root, (node) => node.type === "button" && textOf(node).includes("Copy document"))[0]!;
     expect(copy.props.disabled).toBe(true);
     app.unmount();

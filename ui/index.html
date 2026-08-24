@@ -1,6 +1,12 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- The server replaces this token with a nonce minted for the response and
+         names the same value in style-src. Without it the frame's policy drops
+         every stylesheet the editor creates at runtime, which is how CodeMirror
+         installs all of its layout and highlighting. See
+         lattice-server internal/server/server_plugin_assets.go. -->
+    <meta name="lattice-csp-nonce" content="__LATTICE_CSP_NONCE__" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sub-Store</title>
