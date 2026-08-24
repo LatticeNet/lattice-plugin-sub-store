@@ -65,9 +65,7 @@ describe("the editor screen delegates its exits", () => {
   // editor was up, so the exit silently did nothing at all. The tests passed:
   // every piece existed, in the wrong place.
   it("keeps the confirm inside the only screen that can ask it", () => {
-    const editor = screen.slice(
-      screen.indexOf('<section v-if="editing" class="configuration"'),
-    );
+    const editor = screen.slice(screen.indexOf('<section v-if="editing"'));
     const listStart = editor.indexOf('<section v-else class="configuration"');
     const editorOnly = listStart > 0 ? editor.slice(0, listStart) : editor;
     expect(editorOnly, "the discard confirm is outside the editor section").toContain(

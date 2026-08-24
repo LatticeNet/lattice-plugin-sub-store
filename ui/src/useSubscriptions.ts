@@ -345,6 +345,8 @@ export function useSubscriptions(host: HostContext) {
   /** Whether the operator catalogue is still coming, or is simply not there. */
   const operatorsState = ref<LoadState>("idle");
   const actionError = ref("");
+  /** A preview failure, kept apart so it can be shown where the preview goes. */
+  const previewError = ref("");
   const notice = ref("");
   const saving = ref(false);
   const busyId = ref<string | null>(null);
@@ -752,6 +754,7 @@ export function useSubscriptions(host: HostContext) {
     if (!host.bridge || !canPreview.value || previewing.value) return;
     previewing.value = true;
     actionError.value = "";
+    previewError.value = "";
     preview.value = null;
     previewStep.value = typeof upTo === "number" ? upTo : null;
     try {
@@ -806,7 +809,12 @@ export function useSubscriptions(host: HostContext) {
       ).promise;
       preview.value = response;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Preview failed");
+      // Reported where the preview would have appeared, not only on the save
+      // row: since the control moved into the preview pane, a failure that
+      // only surfaced at the bottom of a long form was a failure the operator
+      // could press the button for and never see.
+      previewError.value = safeErrorMessage(cause, "Preview failed");
+      actionError.value = previewError.value;
     } finally {
       previewing.value = false;
       await host.resize();
@@ -882,6 +890,7 @@ export function useSubscriptions(host: HostContext) {
     busyId,
     operators,
     preview,
+    previewError,
     previewing,
     previewStep,
     staleError,

@@ -854,7 +854,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
-    <section v-if="editing" class="configuration" aria-labelledby="editor-title">
+    <section v-if="editing" class="configuration editor-shell" aria-labelledby="editor-title">
       <nav class="lt-breadcrumb" aria-label="Breadcrumb">
         <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
           <ChevronLeft :size="14" aria-hidden="true" /> Subscriptions
@@ -903,7 +903,8 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </button>
       </nav>
 
-      <form @submit.prevent="submit">
+      <div class="editor-layout">
+      <form class="editor-main" @submit.prevent="submit">
       <fieldset v-show="editorTab === 'display'" class="editor-group">
         <legend>Basics</legend>
         <div class="form-grid">
@@ -1130,9 +1131,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </span>
       </div>
 
-        <!-- Not sticky. Sticky needs a scrollport and this frame has none: the
-             host scrolls the parent page, so the bar is laid out honestly as
-             the end of the form. -->
+        <!-- Deliberately not sticky. The frame is a viewport now, so it could
+             be, but a bar pinned over a form this tall covers a field for the
+             whole time it is being filled in. Save belongs at the end of the
+             form; what needed to stay in view was the preview, and that is the
+             pane beside it. -->
         <div class="editor-actions">
           <!-- The failure belongs next to the button that produced it: this
                form is long, and a banner at the top is off-screen from the
@@ -1148,17 +1151,6 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           >
             {{ draftError }}
           </button>
-          <button
-            class="button button-secondary"
-            type="button"
-            :disabled="!canPreviewNow"
-            :title="draftError || 'Show the nodes this would produce'"
-            @click="subs.runPreview(draft)"
-          >
-            <LoaderCircle v-if="subs.previewing.value" :size="16" class="spin" aria-hidden="true" />
-            <Eye v-else :size="16" aria-hidden="true" />
-            Preview
-          </button>
           <button class="button button-secondary" type="button" @click="leaveEditor">Cancel</button>
           <button class="button button-primary" type="submit" :disabled="!canSave || !subs.canMutate.value">
             <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
@@ -1167,11 +1159,42 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </div>
       </form>
 
-      <SubscriptionPreviewSummary
-        v-if="subs.preview.value"
-        :preview="subs.preview.value"
-        :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
-      />
+      <!-- What this record would produce, beside the form that decides it. The
+           frame is a viewport now, so the pane can stay in view while a long
+           form scrolls under it. Below the breakpoint it becomes the last block
+           instead: a sticky column in a 375px frame is a column that covers the
+           form. -->
+      <aside class="editor-side" aria-labelledby="editor-preview-title">
+        <div class="editor-side-head">
+          <h3 id="editor-preview-title">Nodes this produces</h3>
+          <button
+            class="button button-secondary"
+            type="button"
+            :disabled="!canPreviewNow"
+            :title="draftError || 'Run the chain and show the nodes it produces'"
+            @click="subs.runPreview(draft)"
+          >
+            <LoaderCircle v-if="subs.previewing.value" :size="16" class="spin" aria-hidden="true" />
+            <Eye v-else :size="16" aria-hidden="true" />
+            {{ subs.preview.value ? "Refresh" : "Preview" }}
+          </button>
+        </div>
+
+        <SubscriptionPreviewSummary
+          v-if="subs.preview.value"
+          :preview="subs.preview.value"
+          :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
+        />
+        <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert">
+          {{ subs.previewError.value }}
+        </p>
+        <p v-else-if="draftError" class="editor-side-note">{{ draftError }}</p>
+        <p v-else class="editor-side-note">
+          Nothing run yet. Preview walks the chain over this draft without saving it, so the
+          operations can be checked before anyone else sees them.
+        </p>
+      </aside>
+      </div>
 
       <!-- Leaving with unsaved changes. It lives inside the editor because that
            is the only screen it can be asked from: parked next to the list's
