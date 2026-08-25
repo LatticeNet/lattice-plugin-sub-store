@@ -389,6 +389,24 @@ describe("vpn-core graph workflow", () => {
     expect(calls[0].payload).toMatchObject({ source: "provider", url: "https://provider.example/sub" });
   });
 
+  // The Preview button lives in the pane beside the form. A refusal that only
+  // reaches the action channel prints at the bottom of the form, so the pane
+  // goes on saying nothing has run yet while the reason it has not sits
+  // somewhere the click never looked.
+  it("refuses a draft it cannot resolve where the preview would have been", async () => {
+    const draftKey = `${BINDINGS.subPreviewDraft.service}/${BINDINGS.subPreviewDraft.method}`;
+    const { host, calls } = subscriptionHost(
+      { [draftKey]: { source_node_count: 1, node_count: 1, nodes: [{ name: "A" }] } },
+      (method) => method !== "preview_draft",
+    );
+    const subs = useSubscriptions(host);
+    await subs.runPreview({ ...emptyDraft(), source: "provider", url: "https://provider.example/sub" });
+    expect(calls).toHaveLength(0);
+    expect(subs.previewError.value).toContain("admin access");
+    expect(subs.actionError.value).toContain("admin access");
+    expect(subs.preview.value).toBeNull();
+  });
+
   it("keeps a pasted-content preview on the read-scoped method", async () => {
     const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
     const { host, calls } = subscriptionHost({

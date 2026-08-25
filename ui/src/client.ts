@@ -332,6 +332,13 @@ export interface SubscriptionPreviewNode {
   tfo?: boolean;
   skip_cert_verify?: boolean;
   aead?: boolean;
+  /**
+   * The name this node carried before the chain ran, set only when the chain
+   * changed it. The backend pairs result nodes back to source nodes by
+   * endpoint, so a rename is reported rather than passing as the node's
+   * original name.
+   */
+  was?: string;
 }
 
 export interface SubscriptionPreviewResponse {
@@ -345,6 +352,14 @@ export interface SubscriptionPreviewResponse {
   node_count: number;
   source_node_count?: number;
   truncated?: boolean;
+  /**
+   * The source nodes the chain removed, and how many there were before the
+   * list was capped. A count says a filter bit; the list says which nodes it
+   * bit, which is what someone tuning that filter is reading for.
+   */
+  dropped?: SubscriptionPreviewNode[];
+  dropped_count?: number;
+  dropped_truncated?: boolean;
   source_version?: string;
   stale?: boolean;
   /**

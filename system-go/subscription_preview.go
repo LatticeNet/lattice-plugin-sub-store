@@ -30,6 +30,10 @@ type nodeSummary struct {
 	TFO            bool `json:"tfo,omitempty"`
 	SkipCertVerify bool `json:"skip_cert_verify,omitempty"`
 	AEAD           bool `json:"aead,omitempty"`
+	// Was carries the name this node had before the chain ran, and only when
+	// the chain changed it. A rename is the one edit a preview cannot show by
+	// listing the result alone: the new name looks like it was always there.
+	Was string `json:"was,omitempty"`
 }
 
 type previewResult struct {
@@ -37,8 +41,15 @@ type previewResult struct {
 	NodeCount       int           `json:"node_count"`
 	Nodes           []nodeSummary `json:"nodes"`
 	Truncated       bool          `json:"truncated"`
-	SourceVersion   string        `json:"source_version,omitempty"`
-	Stale           bool          `json:"stale"`
+	// Dropped is the source nodes the chain removed, and DroppedCount is how
+	// many there were before this list was capped. A count alone says a filter
+	// bit; the list says which nodes it bit, which is the question an operator
+	// tuning a filter is actually asking.
+	Dropped          []nodeSummary `json:"dropped,omitempty"`
+	DroppedCount     int           `json:"dropped_count"`
+	DroppedTruncated bool          `json:"dropped_truncated,omitempty"`
+	SourceVersion    string        `json:"source_version,omitempty"`
+	Stale            bool          `json:"stale"`
 	// Document is set instead of Nodes when the record is a file. A file is a
 	// document, so the question its preview answers is "what will a client
 	// receive", not "which nodes survived the filter".
@@ -93,6 +104,7 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 	var decoded struct {
 		SourceNodeCount int           `json:"source_node_count"`
 		Nodes           []nodeSummary `json:"nodes"`
+		Dropped         []nodeSummary `json:"dropped"`
 	}
 	if err := json.Unmarshal([]byte(out), &decoded); err != nil {
 		return previewResult{}, fmt.Errorf("decode preview result: %w", err)
@@ -101,10 +113,18 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 		SourceNodeCount: decoded.SourceNodeCount,
 		NodeCount:       len(decoded.Nodes),
 		Nodes:           decoded.Nodes,
+		Dropped:         decoded.Dropped,
+		// Counted before the cap below, so a subscription too long to list is
+		// still told the truth about how many nodes it lost.
+		DroppedCount: len(decoded.Dropped),
 	}
 	if len(result.Nodes) > maxPreviewNodes {
 		result.Nodes = result.Nodes[:maxPreviewNodes]
 		result.Truncated = true
+	}
+	if len(result.Dropped) > maxPreviewNodes {
+		result.Dropped = result.Dropped[:maxPreviewNodes]
+		result.DroppedTruncated = true
 	}
 	return result, nil
 }
@@ -162,12 +182,8 @@ func previewScript(raw string, operators []json.RawMessage, target string, reduc
   };
   if (%t) { proxies = proxies.map(reduce); }
 
-  if (operators.length > 0) {
-    proxies = await core.process(proxies, operators, target, undefined, undefined, raw);
-    if (!Array.isArray(proxies)) { throw new Error("process(...) must return an array"); }
-  }
   const text = function (v) { return v == null ? "" : String(v); };
-  const nodes = proxies.map(function (p) {
+  const summarize = function (p) {
     p = p || {};
     return {
       name: text(p.name),
@@ -181,7 +197,62 @@ func previewScript(raw string, operators []json.RawMessage, target string, reduc
       skip_cert_verify: p["skip-cert-verify"] === true,
       aead: p.aead === true
     };
-  });
-  return JSON.stringify({ source_node_count: sourceNodeCount, nodes: nodes });
+  };
+  // Snapshot the input before the chain runs. Operators edit proxies in place,
+  // so a snapshot taken afterwards is the output wearing the input's name.
+  // These are fresh objects holding copied primitives, so nothing downstream
+  // can reach back and change them.
+  const sourceNodes = proxies.map(summarize);
+
+  if (operators.length > 0) {
+    proxies = await core.process(proxies, operators, target, undefined, undefined, raw);
+    if (!Array.isArray(proxies)) { throw new Error("process(...) must return an array"); }
+  }
+  const nodes = proxies.map(summarize);
+
+  // Pair every produced node back to the source node it came from, so the
+  // reply can say what the chain removed and what it renamed rather than only
+  // how many survived. The endpoint is the identity: a rename changes the name
+  // and leaves type/server/port alone, which is exactly what makes the pairing
+  // possible.
+  const keyOf = function (n) {
+    return text(n.type) + "|" + text(n.server).toLowerCase() + "|" + text(n.port);
+  };
+  const byKey = new Map();
+  for (let i = 0; i < sourceNodes.length; i++) {
+    const key = keyOf(sourceNodes[i]);
+    if (!byKey.has(key)) { byKey.set(key, []); }
+    byKey.get(key).push(i);
+  }
+  const claimed = sourceNodes.map(function () { return false; });
+  // Two passes, because one endpoint can carry several nodes. Exact name
+  // matches are claimed first: pairing a node the chain left alone against a
+  // renamed sibling would report a rename that never happened.
+  const unpaired = [];
+  for (const node of nodes) {
+    const bucket = byKey.get(keyOf(node)) || [];
+    let hit = -1;
+    for (const i of bucket) {
+      if (!claimed[i] && sourceNodes[i].name === node.name) { hit = i; break; }
+    }
+    if (hit < 0) { unpaired.push(node); continue; }
+    claimed[hit] = true;
+  }
+  for (const node of unpaired) {
+    const bucket = byKey.get(keyOf(node)) || [];
+    for (const i of bucket) {
+      if (claimed[i]) { continue; }
+      claimed[i] = true;
+      if (sourceNodes[i].name !== node.name) { node.was = sourceNodes[i].name; }
+      break;
+    }
+    // No leftover at this endpoint means the chain produced a node the input
+    // did not have. Saying nothing is right: there is no earlier name to show.
+  }
+  const dropped = [];
+  for (let i = 0; i < sourceNodes.length; i++) {
+    if (!claimed[i]) { dropped.push(sourceNodes[i]); }
+  }
+  return JSON.stringify({ source_node_count: sourceNodeCount, nodes: nodes, dropped: dropped });
 })()`, rawJSON, opsJSON, targetJSON, reduceBeforeOperators)
 }

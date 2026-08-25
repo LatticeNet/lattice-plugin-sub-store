@@ -361,24 +361,35 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     // node count that shrinks per step, otherwise the per-step preview looks
     // identical at every step and the screen cannot be checked at all.
     const steps = Array.isArray(operators) ? operators.length : 3;
+    // Eight nodes in, and the chain takes some out. The harness used to list
+    // six and claim a source of eight, so the two nodes the count said were
+    // removed did not exist and the pane could not be checked against them.
     const all = [
-      { name: "🇭🇰 Hong Kong 01", type: "vless", server: "hk-01.edge.example", port: "443" },
-      { name: "🇭🇰 Hong Kong 02", type: "vless", server: "hk-02.edge.example", port: "8443" },
+      { name: "🇭🇰 Hong Kong 01", type: "vless", server: "hk-01.edge.example", port: "443", was: "hk-01" },
+      { name: "🇭🇰 Hong Kong 02", type: "vless", server: "hk-02.edge.example", port: "8443", was: "hk-02" },
       { name: "🇯🇵 Tokyo 01", type: "trojan", server: "nrt-01.edge.example", port: "443" },
       { name: "🇸🇬 Singapore 01", type: "vmess", server: "sin-01.edge.example", port: "443" },
       { name: "🇺🇸 Portland 01", type: "vless", server: "pdx-01.edge.example", port: "2053" },
       { name: "🇩🇪 Frankfurt 01", type: "trojan", server: "fra-01.edge.example", port: "443" },
+      { name: "🇷🇺 Moscow 01", type: "ss", server: "svo-01.edge.example", port: "8388" },
+      { name: "🇮🇷 Tehran 01", type: "ss", server: "thr-01.edge.example", port: "8388" },
     ];
-    const kept = all.slice(0, Math.max(1, all.length - steps));
-    if (Array.isArray(operators)) {
-      return { nodes: kept, node_count: kept.length, source_node_count: 8 };
-    }
+    // A cut preview sends fewer operators, so the count shrinks per step:
+    // otherwise the per-step preview looks identical at every step and the
+    // screen cannot be checked at all.
+    const keptCount = Array.isArray(operators) ? Math.max(1, all.length - steps) : all.length;
+    // The renaming operator is the first step, so its mark only survives while
+    // that step is still in the run.
+    const kept = all.slice(0, keptCount).map((node) => (steps > 0 ? node : { ...node, was: undefined }));
+    const dropped = all.slice(keptCount);
     return {
-      nodes: all,
+      nodes: kept,
       // The real shape: node_count, not count. The UI once read `count`, a
       // field the backend never sent, and printed "undefined node(s)".
-      node_count: 6,
-      source_node_count: 8,
+      node_count: kept.length,
+      source_node_count: all.length,
+      dropped,
+      dropped_count: dropped.length,
     };
   },
   /**
