@@ -167,6 +167,18 @@ describe("the palette's wiring", () => {
     expect(palette).toContain(':id="`palette-row-${index}`"');
   });
 
+  // Bound to the input alone, Escape stopped working the moment focus landed
+  // anywhere else, and an aria-modal overlay you cannot dismiss is one you are
+  // stuck inside. Tab used the helper the drawer and the client sheet already
+  // share rather than a fourth version of a focus trap.
+  it("lets the dialog own its keys, not the input", () => {
+    expect(palette).toMatch(/class="palette"[\s\S]{0,200}@keydown="onKeydown"/);
+    const input = palette.slice(palette.indexOf("<input"), palette.indexOf("/>", palette.indexOf("<input")));
+    expect(input, "the input still owns the keys").not.toContain("@keydown");
+    expect(palette).toContain("trapDialogTab(event, dialog.value)");
+    expect(palette).toContain('from "../dialogFocus"');
+  });
+
   it("steps back a level before it closes", () => {
     const escape = palette.slice(palette.indexOf('event.key === "Escape"'));
     expect(escape.slice(0, 400)).toContain("chosen.value = null");

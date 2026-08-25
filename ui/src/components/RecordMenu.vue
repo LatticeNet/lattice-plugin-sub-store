@@ -28,6 +28,15 @@ function iconFor(name: string) {
 /** The destructive actions are rendered apart, after a separator. */
 const safe = () => props.actions.filter((action) => !action.danger);
 const danger = () => props.actions.filter((action) => action.danger);
+
+/**
+ * Each distinct reason once.
+ *
+ * This printed the first blocked item's reason and stopped, so a menu where
+ * Publish is off for a missing method and Delete is off for a missing scope
+ * explained the first and silently attributed it to both.
+ */
+const reasons = () => [...new Set(props.actions.filter((a) => a.disabled).map((a) => a.reason))];
 </script>
 
 <template>
@@ -70,11 +79,8 @@ const danger = () => props.actions.filter((action) => action.danger);
         </button>
       </template>
       <!-- A disabled control whose reason lives only in a title is a control
-           nobody on a touch device or a screen reader can find out about. One
-           line under the menu, for whichever item is blocked. -->
-      <p v-if="actions.some((a) => a.disabled)" class="rec-menu-note">
-        {{ actions.find((a) => a.disabled)?.reason }}
-      </p>
+           nobody on a touch device or a screen reader can find out about. -->
+      <p v-for="reason in reasons()" :key="reason" class="rec-menu-note">{{ reason }}</p>
     </div>
   </div>
 </template>

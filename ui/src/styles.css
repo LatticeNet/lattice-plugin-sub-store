@@ -705,13 +705,6 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 }
 .editor-actions .field-error { margin-right: auto; }
 
-/* Why a disabled action is disabled, in the flow rather than in a title
-   attribute nobody on a touch device or a screen reader can reach. */
-.preview-blocked {
-  max-width: var(--lt-measure-prose);
-  margin: var(--lt-space-3) 0 0;
-}
-
 .editor-tabs {
   display: flex;
   gap: 2px;

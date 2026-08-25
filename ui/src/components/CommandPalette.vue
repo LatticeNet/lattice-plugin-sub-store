@@ -9,6 +9,7 @@ import {
   paletteEntries,
   type PaletteEntry,
 } from "../commandPalette";
+import { trapDialogTab } from "../dialogFocus";
 import type { ActionCapabilities, ActionId } from "../recordActions";
 
 const props = defineProps<{
@@ -85,7 +86,21 @@ function choose(index: number): void {
   }
 }
 
+const dialog = ref<HTMLElement | null>(null);
+
+/**
+ * The dialog owns these keys, not the input.
+ *
+ * They were bound to the input alone, which works only while the input has
+ * focus — and an `aria-modal` overlay that stops answering Escape the moment a
+ * click lands somewhere else is an overlay you can get stuck inside. Tab is
+ * kept in with the same helper the drawer and the client sheet use.
+ */
 function onKeydown(event: KeyboardEvent): void {
+  if (event.key === "Tab" && dialog.value) {
+    trapDialogTab(event, dialog.value);
+    return;
+  }
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
     cursor.value = moveSelection(cursor.value, event.key === "ArrowDown" ? 1 : -1, rows.value.length);
@@ -113,11 +128,14 @@ function onKeydown(event: KeyboardEvent): void {
 <template>
   <div v-if="open" class="palette-scrim" @click="emit('close')">
     <div
+      ref="dialog"
       class="palette"
       role="dialog"
       aria-modal="true"
       aria-label="Search records and actions"
+      tabindex="-1"
       @click.stop
+      @keydown="onKeydown"
     >
       <div class="palette-input">
         <Search :size="15" aria-hidden="true" />
@@ -132,7 +150,6 @@ function onKeydown(event: KeyboardEvent): void {
           :placeholder="chosen ? `What to do with ${chosen.display_name || chosen.name}` : 'Search records, or type a command'"
           autocomplete="off"
           spellcheck="false"
-          @keydown="onKeydown"
         />
         <kbd class="palette-hint">esc</kbd>
       </div>
