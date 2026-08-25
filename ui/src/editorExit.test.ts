@@ -35,23 +35,50 @@ describe("leaving the record editor", () => {
 import { readFileSync } from "node:fs";
 
 const screen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
+const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
 
-// The decision above is only worth anything if the screen actually asks it.
-describe("the editor screen delegates its exits", () => {
-  it("routes every exit through the decision", () => {
-    expect(screen).toContain("applyExit(exitAction(exitState()))");
-    expect(screen).toContain("applyExit(escapeAction(exitState()))");
-    expect(screen).toContain('class="lt-breadcrumb-root" @click="leaveEditor"');
-    expect(screen).toContain('@click="leaveEditor">Cancel</button>');
-    // cancelEdit is the unconditional teardown. Only the guard and the
-    // confirm's own handler may reach it.
-    expect(screen.match(/@click="cancelEdit\(?\)?"/g) ?? []).toHaveLength(0);
+// Both screens have a record editor, and the second one to grow it is where a
+// rule like this silently diverges: Files had the detail screen and the
+// breadcrumb and none of the guard, so its Cancel threw work away without
+// asking and its Escape did nothing at all. They are checked together.
+const EDITORS = [
+  ["SubscriptionsScreen.vue", screen],
+  ["FilesScreen.vue", files],
+] as const;
+
+// The decision above is only worth anything if the screens actually ask it.
+describe("the editor screens delegate their exits", () => {
+  it("routes every exit through the shared guard", () => {
+    for (const [name, source] of EDITORS) {
+      expect(source, name + " does not use the shared guard").toContain("useEditorExit({");
+      expect(source, name + " leaves without asking").toContain(
+        'class="lt-breadcrumb-root" @click="leaveEditor"',
+      );
+      expect(source, name + " has a Cancel that skips the guard").toContain(
+        '@click="leaveEditor">Cancel</button>',
+      );
+      // The unconditional teardown. Only the guard and the confirm's own
+      // handler may reach it.
+      expect(source.match(/@click="cancelEdit\(?\)?"/g) ?? [], name).toHaveLength(0);
+      // Escape is how every surface in this frame steps back.
+      expect(source, name + " ignores Escape in the editor").toContain("exit.onEscape()");
+    }
   });
 
   it("reports every overlay that owns Escape", () => {
+    // The discard confirm is the guard's own and is not named here.
     expect(screen).toMatch(
-      /overlayOpen:\s*\n?\s*discarding\.value \|\| deleting\.value\.length > 0 \|\| !!drawer\.value \|\| !!targetSheet\.value/,
+      /overlayOpen: \(\) => deleting\.value\.length > 0 \|\| !!drawer\.value \|\| !!targetSheet\.value/,
     );
+    expect(files).toMatch(
+      /overlayOpen: \(\) =>[\s\S]{0,160}!!deleteTargets\.value[\s\S]{0,160}!!drawer\.value/,
+    );
+  });
+
+  it("snapshots each editor against the fields that screen can edit", () => {
+    expect(files).toMatch(/fingerprint: \(\) =>[\s\S]{0,120}draft\.value/);
+    expect(files).toMatch(/fingerprint: \(\) =>[\s\S]{0,160}queryParamText\.value/);
+    expect((files.match(/markPristine\(\);/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
   it("compares against what the editor opened with, fields outside the draft included", () => {

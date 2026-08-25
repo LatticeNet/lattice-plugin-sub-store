@@ -780,6 +780,13 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .editor-side {
   min-width: 0;
+  /* Never pinned until a container query says the pane has earned its own
+     column. Stated rather than left to the initial value, because a pinned
+     full-width block is a block that covers the form under it, and that is
+     what a stray inherited `position: sticky` produced. */
+  position: static;
+  max-height: none;
+  overflow: visible;
   padding: var(--lt-space-4);
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);
@@ -817,20 +824,30 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    only the first one decides whether a form and a pane fit side by side. */
 .editor-shell { container-type: inline-size; }
 
-/* Two columns once both can be read. Below this the pane is the last block
-   instead of a sticky column, because a sticky column in a narrow frame is a
-   column that covers the form it is there to explain. */
+/* Two columns once both can be read, and the pane pinned only there. Below the
+   breakpoint the pane is the last block instead: a sticky column in a narrow
+   frame is a column that covers the form it is there to explain.
+
+   Each variant states both halves — its columns AND its pinning — even though
+   that repeats four declarations. It was written as one blanket rule plus
+   overrides, and the override reverted the columns but not the pinning, so the
+   wide pane spent the band between the two breakpoints stacked full width AND
+   sticky, which is the exact thing the breakpoint exists to prevent. A block
+   that reads completely on its own cannot drift like that.
+
+   The frame is the visible window (PluginFrameHost), so sticky resolves against
+   it and the pane stays put while a long form scrolls under it. */
+
+/* A node list is short rows; 380px reads it. */
 @container (min-width: 1040px) {
-  .editor-layout {
+  .editor-layout:not([data-pane="wide"]) {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
     /* The fields inside cap themselves in characters, so on a very wide frame
        an uncapped grid parks the pane far off to the right. The layout caps at
        what the two columns actually need. */
     max-width: calc(var(--lt-measure-form) + 380px + var(--lt-space-5));
   }
-  .editor-side {
-    /* The frame is the visible window now (PluginFrameHost), so sticky resolves
-       against it: the pane stays put while a long form scrolls under it. */
+  .editor-layout:not([data-pane="wide"]) > .editor-side {
     position: sticky;
     top: var(--lt-space-4);
     max-height: calc(100vh - var(--lt-space-8));
@@ -839,7 +856,28 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   /* One scroller per surface. The lists cap themselves everywhere else, but
      inside a pane that already scrolls that cap makes a scroll area inside a
      scroll area, and reaching a row means guessing which one owns the wheel. */
-  .editor-side .node-list { max-height: none; overflow: visible; }
+  .editor-layout:not([data-pane="wide"]) > .editor-side .node-list {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* A rendered configuration is 80-column text, so it needs a wider column and
+   therefore a later breakpoint. Same mechanism, one parameter. */
+@container (min-width: 1180px) {
+  .editor-layout[data-pane="wide"] {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+    max-width: calc(var(--lt-measure-form) + 520px + var(--lt-space-5));
+  }
+  .editor-layout[data-pane="wide"] > .editor-side {
+    position: sticky;
+    top: var(--lt-space-4);
+    max-height: calc(100vh - var(--lt-space-8));
+    overflow: auto;
+  }
+  .editor-layout[data-pane="wide"] > .editor-side .doc-scroll {
+    max-height: none;
+  }
 }
 
 /* ── document view (read-only render; no editor, see DocumentView.vue) ────── */
