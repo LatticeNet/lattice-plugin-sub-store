@@ -882,9 +882,19 @@ export function useSubscriptions(host: HostContext) {
   }
 
   function clearMessages(): void {
+    clearErrors();
+    notice.value = "";
+  }
+
+  /**
+   * The failures raised on one screen, without the confirmations. Leaving the
+   * editor has to drop its errors — they are about a draft that stops existing
+   * — but a save reports success and then leaves, so clearing everything on the
+   * way out threw away the only confirmation the save ever gave.
+   */
+  function clearErrors(): void {
     actionError.value = "";
     previewError.value = "";
-    notice.value = "";
   }
 
   return {
@@ -926,5 +936,6 @@ export function useSubscriptions(host: HostContext) {
     runPreview,
     toggleRowPreview,
     clearMessages,
+    clearErrors,
   };
 }
