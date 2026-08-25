@@ -39,6 +39,7 @@ import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
+import { useEditorExit } from "../useEditorExit";
 import {
   draftFromRecord,
   emptyDraft,
@@ -386,7 +387,15 @@ function onDocumentClick(event: MouseEvent): void {
 }
 
 function onDocumentKeydown(event: KeyboardEvent): void {
-  if (event.key === "Escape" && openFileMenuId.value) closeRowMenu();
+  if (event.key !== "Escape") return;
+  if (openFileMenuId.value) {
+    closeRowMenu();
+    return;
+  }
+  // Escape is how every other surface in this frame steps back, and the editor
+  // is a screen you enter, so it answers the same key. Who owns the key while
+  // an overlay is up is decided in editorExit.ts.
+  exit.onEscape();
 }
 
 // ── drawer ──────────────────────────────────────────────────────────────────
@@ -510,6 +519,56 @@ function describe(item: SubscriptionListItem): string {
   return item.node_source ? `${kind} · nodes from ${sourceName(item.node_source)}` : `${kind} · no node source`;
 }
 
+/**
+ * The editor's sections, split the way the subscription editor splits them:
+ * what the file is called, what it is made of, and what is done to it.
+ *
+ * This form was a single scroll of six fieldsets — 1400px, nearly a viewport —
+ * while its sibling doing the same job was 356px behind three tabs. The pane
+ * beside it is sticky, so the operator scrolled a screen and a half of form
+ * past a fixed panel to reach the field they came for.
+ */
+type EditorTab = "display" | "content" | "operations";
+const editorTab = ref<EditorTab>("display");
+const EDITOR_TABS: { id: EditorTab; label: string }[] = [
+  { id: "display", label: "Display" },
+  { id: "content", label: "Content" },
+  { id: "operations", label: "Operations" },
+];
+
+/**
+ * Which section holds the invalid field. A form that says what is wrong and not
+ * where is worse behind tabs than in a single scroll: the name lives two tabs
+ * away and nothing points at it. Every message except the name one is about
+ * what the file is made of, so this is read off the draft rather than by
+ * matching message text.
+ */
+const errorTab = computed<EditorTab | "">(() => {
+  if (!draftError.value) return "";
+  return draft.value.name.trim() ? "content" : "display";
+});
+
+/** The chain's size, shown on the tab so it is visible without opening it. */
+const chainCount = computed(() => (draft.value.process as unknown[]).length);
+
+/**
+ * The unsaved-edit guard, the same one the Subscriptions editor uses. The
+ * snapshot is the serialised draft plus the two text fields that live outside
+ * it — tags and the query-parameter allowlist — because those are edits too.
+ * The language selector is not: it changes how the document is coloured, not
+ * what gets saved.
+ */
+const exit = useEditorExit({
+  editing,
+  fingerprint: () => JSON.stringify([draft.value, tagText.value, queryParamText.value]),
+  overlayOpen: () =>
+    !!deleteTargets.value || !!drawer.value || !!targetSheet.value || !!openFileMenuId.value,
+  leave: () => cancelEdit(),
+});
+const { discarding, markPristine } = exit;
+const editorDirty = exit.dirty;
+const leaveEditor = exit.leaveEditor;
+
 function clearTransientListState(): void {
   openFileMenuId.value = "";
   drawer.value = null;
@@ -535,8 +594,10 @@ function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
   // silently inherited an allowlist nobody chose for it.
   queryParamText.value = "";
   contentLanguageOverride.value = "";
+  editorTab.value = "display";
   editingId.value = null;
   editing.value = true;
+  markPristine();
 }
 
 async function startEdit(id: string): Promise<void> {
@@ -549,16 +610,22 @@ async function startEdit(id: string): Promise<void> {
   tagText.value = draft.value.tags.join(", ");
   queryParamText.value = draft.value.queryParams.join(", ");
   contentLanguageOverride.value = "";
+  editorTab.value = "display";
   editingId.value = id;
   editing.value = true;
+  markPristine();
   await host.resize();
 }
 
 function cancelEdit(): void {
+  exit.reset();
   editing.value = false;
   editingId.value = null;
   draft.value = emptyDraft();
   subs.preview.value = null;
+  // Errors belong to the screen that raised them, and the notice does not: a
+  // successful save reports "Saved ..." and then leaves through here.
+  subs.clearErrors();
 }
 
 function splitList(text: string): string[] {
@@ -613,11 +680,11 @@ watch(host.init, (value) => {
 
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
-    <section v-if="editing" class="configuration" aria-labelledby="file-editor-title">
+    <section v-if="editing" class="configuration editor-shell" aria-labelledby="file-editor-title">
       <!-- The sibling editor has one; without it this screen's only way back is
            the Cancel button at the far bottom of a long form. -->
       <nav class="lt-breadcrumb" aria-label="Breadcrumb">
-        <button type="button" class="lt-breadcrumb-root" @click="cancelEdit">
+        <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
           <ChevronLeft :size="14" aria-hidden="true" /> Files
         </button>
         <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
@@ -638,8 +705,36 @@ watch(host.init, (value) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
       </div>
 
-      <form @submit.prevent="submit">
-        <fieldset class="editor-group">
+      <nav class="editor-tabs" role="tablist" aria-label="Editor sections">
+        <button
+          v-for="tab in EDITOR_TABS"
+          :key="tab.id"
+          type="button"
+          role="tab"
+          class="editor-tab"
+          :aria-selected="editorTab === tab.id"
+          :data-active="editorTab === tab.id"
+          @click="editorTab = tab.id"
+        >
+          {{ tab.label }}
+          <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
+          <span
+            v-if="errorTab === tab.id && editorTab !== tab.id"
+            class="editor-tab-flag"
+            :title="draftError"
+            aria-label="This section has a problem"
+          />
+        </button>
+      </nav>
+
+      <!-- Form and evidence side by side, the same layout the subscription
+           editor uses. The pane is wider here because the evidence is: a node
+           list is short rows, a rendered configuration is 80-column text, and
+           squeezing that into a 380px column to match would be shape over
+           substance. -->
+      <div class="editor-layout" data-pane="wide">
+      <form class="editor-main" @submit.prevent="submit">
+        <fieldset v-show="editorTab === 'display'" class="editor-group">
           <legend>Basics</legend>
           <div class="form-grid">
             <label class="field field-wide">
@@ -683,7 +778,7 @@ watch(host.init, (value) => {
           </div>
         </fieldset>
 
-        <fieldset class="editor-group">
+        <fieldset v-show="editorTab === 'content'" class="editor-group">
           <legend>What kind of file</legend>
           <div class="form-grid">
             <div class="field field-wide">
@@ -704,7 +799,7 @@ watch(host.init, (value) => {
           </div>
         </fieldset>
 
-        <fieldset class="editor-group">
+        <fieldset v-show="editorTab === 'content'" class="editor-group">
           <legend>{{ isScript ? "The program" : isPlain ? "The text" : "The template" }}</legend>
           <div class="form-grid">
             <div v-if="!isScript" class="field field-wide">
@@ -784,7 +879,7 @@ watch(host.init, (value) => {
           </div>
         </fieldset>
 
-        <fieldset v-if="!isPlain" class="editor-group">
+        <fieldset v-if="!isPlain" v-show="editorTab === 'content'" class="editor-group">
           <legend>Where its nodes come from</legend>
           <div class="form-grid">
             <label class="field field-wide">
@@ -820,7 +915,7 @@ watch(host.init, (value) => {
           </div>
         </fieldset>
 
-        <fieldset v-if="isScript" class="editor-group">
+        <fieldset v-if="isScript" v-show="editorTab === 'content'" class="editor-group">
           <legend>What the script can read</legend>
           <div class="form-grid">
             <label class="field field-wide">
@@ -855,7 +950,7 @@ watch(host.init, (value) => {
 
         <!-- A program does the whole job, including anything an operator chain
              would have done. Offering one as well would ask which runs first. -->
-        <fieldset v-if="!isScript" class="editor-group">
+        <fieldset v-if="!isScript" v-show="editorTab === 'operations'" class="editor-group">
           <legend>Operations</legend>
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
@@ -877,16 +972,20 @@ watch(host.init, (value) => {
           </p>
         </fieldset>
 
-        <!-- A disabled control with the reason only in its title is a control
-             nobody on a touch device or a screen reader can find out about. -->
-        <p v-if="editingId && !draftPreview.supported" class="field-optional preview-blocked">
-          {{ draftPreview.reason }} It is on this file's row menu, and it shows the record as last
-          saved rather than the edits above.
-        </p>
-
         <div class="editor-actions">
           <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
           <p v-if="draftError" class="field-error">{{ draftError }}</p>
+          <button class="button button-secondary" type="button" @click="leaveEditor">Cancel</button>
+          <button class="button button-primary" type="submit" :disabled="!canSave">
+            <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
+            Save
+          </button>
+        </div>
+      </form>
+
+      <aside class="editor-side" aria-labelledby="file-editor-preview-label">
+        <div class="editor-side-head">
+          <h3 id="file-editor-preview-label">What a client receives</h3>
           <button
             class="button button-secondary"
             type="button"
@@ -900,33 +999,50 @@ watch(host.init, (value) => {
           >
             <LoaderCircle v-if="subs.previewing.value" :size="16" class="spin" aria-hidden="true" />
             <Eye v-else :size="16" aria-hidden="true" />
-            Preview
-          </button>
-          <button class="button button-secondary" type="button" @click="cancelEdit">Cancel</button>
-          <button class="button button-primary" type="submit" :disabled="!canSave">
-            <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
-            Save
+            {{ subs.preview.value?.document ? "Refresh" : "Preview" }}
           </button>
         </div>
-      </form>
 
-      <div v-if="subs.preview.value?.document" class="preview-summary">
-        <div class="preview-evidence-head">
-          <p id="file-editor-preview-label" class="preview-evidence-title">
-            What a client receives<span v-if="subs.preview.value.truncated">, truncated</span>
-          </p>
+        <template v-if="subs.preview.value?.document">
           <p class="preview-evidence-meta">
-            {{ contentLanguageLabel }} · {{ subs.preview.value.document.length }} characters
+            {{ contentLanguageLabel }} · {{ subs.preview.value.document.length }} characters<span
+              v-if="subs.preview.value.truncated"
+            > · truncated</span>
           </p>
-        </div>
-        <DocumentView
-          class="output-area"
-          :text="subs.preview.value.document"
-          :language="contentLanguage"
-          :rows="10"
-          :aria-labelledby="'file-editor-preview-label'"
-        />
+          <DocumentView
+            class="output-area"
+            :text="subs.preview.value.document"
+            :language="contentLanguage"
+            :rows="10"
+            :aria-labelledby="'file-editor-preview-label'"
+          />
+        </template>
+        <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert">
+          {{ subs.previewError.value }}
+        </p>
+        <p v-else-if="editingId && !draftPreview.supported" class="editor-side-note">
+          {{ draftPreview.reason }} It is on this file's row menu, and it shows the record as last
+          saved rather than the edits here.
+        </p>
+        <p v-else-if="draftError" class="editor-side-note">{{ draftError }}</p>
+        <p v-else class="editor-side-note">
+          Nothing run yet. Preview renders this draft without saving it, so the document can be
+          read before anyone else receives it.
+        </p>
+      </aside>
       </div>
+
+      <!-- Leaving with unsaved changes. It lives inside the editor because that
+           is the only screen it can be asked from. -->
+      <LtConfirmDialog
+        :anchor-top="overlayAnchor"
+        :open="discarding"
+        title="Leave without saving? The changes you made to this file are not stored yet and will be lost."
+        verb="Discard changes"
+        :names="[draft.displayName || draft.name || (editingId ?? 'this file')]"
+        @confirm="cancelEdit()"
+        @cancel="discarding = false"
+      />
     </section>
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->

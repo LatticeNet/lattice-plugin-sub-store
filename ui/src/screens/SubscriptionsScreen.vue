@@ -34,7 +34,7 @@ import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
-import { escapeAction, exitAction, type ExitAction } from "../editorExit";
+import { useEditorExit } from "../useEditorExit";
 import { anchorTopFrom } from "../overlayAnchor";
 
 import {
@@ -289,61 +289,27 @@ function setGraphIdentity(identity: string): void {
 }
 
 /**
- * What the draft looked like when the editor opened.
- *
- * Leaving is one click on a breadcrumb and one press of Escape, and this form
- * does not autosave, so without a comparison to make an unsaved edit is one
- * stray keystroke away from being gone with nothing said. The snapshot is the
- * serialised draft plus the two text fields that live outside it, because those
- * are edits too.
+ * The unsaved-edit guard. The snapshot is the serialised draft plus the text
+ * fields that live outside it, because those are edits too. The rest of the
+ * rule is shared with the Files editor (useEditorExit.ts) — a second screen
+ * carrying its own copy is how the two silently stopped behaving the same.
  */
-const pristine = ref("");
-
-function draftFingerprint(): string {
-  return JSON.stringify([draft.value, common.value, tagText.value, memberTagText.value]);
-}
-
-function markPristine(): void {
-  pristine.value = draftFingerprint();
-}
-
-const editorDirty = computed(() => editing.value && pristine.value !== draftFingerprint());
-
-/** Set while a confirm is deciding whether an unsaved edit may be abandoned. */
-const discarding = ref(false);
-
-/**
- * Leaving the editor. Every exit goes through here: the breadcrumb, Escape, and
- * the Cancel button, so none of them can quietly become the one that loses work.
- */
-function exitState() {
-  return {
-    editing: editing.value,
-    dirty: editorDirty.value,
-    overlayOpen:
-      discarding.value || deleting.value.length > 0 || !!drawer.value || !!targetSheet.value,
-  };
-}
-
-function applyExit(action: ExitAction): void {
-  if (action === "ignore") return;
-  if (action === "confirm") {
-    discarding.value = true;
-    return;
-  }
-  cancelEdit();
-}
-
-function leaveEditor(): void {
-  applyExit(exitAction(exitState()));
-}
+const exit = useEditorExit({
+  editing,
+  fingerprint: () =>
+    JSON.stringify([draft.value, common.value, tagText.value, memberTagText.value]),
+  overlayOpen: () => deleting.value.length > 0 || !!drawer.value || !!targetSheet.value,
+  leave: () => cancelEdit(),
+});
+const { discarding, markPristine } = exit;
+const editorDirty = exit.dirty;
+const leaveEditor = exit.leaveEditor;
 
 function cancelEdit(): void {
-  discarding.value = false;
+  exit.reset();
   editing.value = false;
   editingId.value = null;
   draft.value = emptyDraft();
-  pristine.value = "";
   subs.preview.value = null;
   // Errors belong to the screen that raised them. A preview refused inside the
   // editor used to follow the operator out to the list and sit above it as an
@@ -626,7 +592,7 @@ function onDocumentKeydown(event: KeyboardEvent): void {
   // Escape is how every other surface in this frame steps back, and the editor
   // is a screen you enter, so it answers the same key. Who owns the key while
   // an overlay is up is decided in editorExit.ts.
-  applyExit(escapeAction(exitState()));
+  exit.onEscape();
 }
 /**
  * The editor's sections, split the way Sub-Store splits them: what the record

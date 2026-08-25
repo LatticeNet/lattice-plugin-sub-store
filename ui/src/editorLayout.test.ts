@@ -5,6 +5,11 @@ import { describe, expect, it } from "vitest";
 const screen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
 const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8");
 
+/** CSS with its comments removed, for assertions about declarations. */
+function withoutComments(css: string): string {
+  return css.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
 // The editor decides a record and the pane shows what that record produces.
 // Keeping them side by side, with the pane in view while the form scrolls, is
 // the point: before this the summary appeared below a long form, so the thing
@@ -33,10 +38,11 @@ describe("the record editor beside its preview", () => {
     expect(wide).toMatch(/\.editor-side\s*\{[^}]*position:\s*sticky/s);
     expect(wide).toMatch(/\.editor-side\s*\{[^}]*top:\s*var\(--lt-space-4\)/s);
     // Not in the base rules: sticky in a narrow frame is a column covering the
-    // form it is there to explain.
+    // form it is there to explain. Comments are stripped first — this asserts
+    // about declarations, and a comment quoting one is prose.
     const narrow = styles.slice(0, styles.indexOf("@container (min-width: 1040px)"));
     const sideRule = narrow.slice(narrow.indexOf(".editor-side {"), narrow.indexOf(".editor-side-head"));
-    expect(sideRule).not.toContain("position: sticky");
+    expect(withoutComments(sideRule)).not.toContain("position: sticky");
   });
 
   it("gives the pane the control that fills it, once", () => {
@@ -114,5 +120,60 @@ describe("the record editor beside its preview", () => {
     const children = elements(row!).map(classOf);
     expect(children).toContain("node-meta");
     expect(children).toContain("node-tags");
+  });
+});
+
+// The two editors do the same job on different records, and the second one to
+// grow a feature is where they silently stop matching. Files had the detail
+// screen and the breadcrumb, and then a 1400px single scroll of six fieldsets
+// next to a sticky pane, while its sibling was 356px behind three tabs.
+describe("the two record editors are the same shape", () => {
+  const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+
+  it("splits both editors into the same sections", () => {
+    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FilesScreen.vue", files]] as const) {
+      expect(source, name).toMatch(
+        /EDITOR_TABS[\s\S]{0,220}id: "display"[\s\S]{0,80}id: "content"[\s\S]{0,80}id: "operations"/,
+      );
+      expect(source, name + " opens on a section nobody chose").toContain('editorTab = ref<EditorTab>("display")');
+      expect(source, name + " keeps the last record's section").toMatch(/editorTab\.value = "display";/);
+    }
+  });
+
+  // A form that says what is wrong and not where is worse behind tabs than in
+  // a single scroll: the field is two sections away and nothing points at it.
+  it("points at the section holding the invalid field", () => {
+    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FilesScreen.vue", files]] as const) {
+      expect(source, name).toMatch(/const errorTab = computed/);
+      expect(source, name).toContain('v-if="errorTab === tab.id && editorTab !== tab.id"');
+      expect(source, name).toContain('class="editor-tab-flag"');
+    }
+  });
+
+  // A fieldset with no section is a field the operator cannot reach.
+  it("gives every fieldset in the files editor a section", () => {
+    const opens = files.match(/<fieldset[^>]*>/g) ?? [];
+    expect(opens.length).toBeGreaterThan(3);
+    for (const tag of opens) {
+      expect(tag, "fieldset without a section: " + tag).toMatch(/v-show="editorTab === '(display|content|operations)'"/);
+    }
+  });
+
+  // The pane is 380px of node rows on one screen and 520px of rendered
+  // configuration on the other. One mechanism, one parameter.
+  it("gives the wide pane its own breakpoint and its own pinning", () => {
+    expect(files).toContain('data-pane="wide"');
+    expect(styles).toMatch(/@container \(min-width: 1180px\)[\s\S]{0,400}\.editor-layout\[data-pane="wide"\]/);
+    // Each block states its columns AND its pinning. Written as one blanket
+    // rule plus overrides, the override reverted the columns and left the
+    // pinning, so the wide pane was stacked full width and sticky at once.
+    const narrow = styles.slice(styles.indexOf("@container (min-width: 1040px)"), styles.indexOf("@container (min-width: 1180px)"));
+    const wide = styles.slice(styles.indexOf("@container (min-width: 1180px)"));
+    expect(narrow).toMatch(/\.editor-layout:not\(\[data-pane="wide"\]\) > \.editor-side\s*\{[^}]*position:\s*sticky/s);
+    expect(wide).toMatch(/\.editor-layout\[data-pane="wide"\] > \.editor-side\s*\{[^}]*position:\s*sticky/s);
+    // Outside a query the pane is never pinned: a sticky full-width block is a
+    // block that covers the form under it.
+    const base = styles.slice(0, styles.indexOf("@container (min-width: 1040px)"));
+    expect(base).toMatch(/\.editor-side\s*\{[^}]*position:\s*static/s);
   });
 });
