@@ -68,12 +68,17 @@ describe("the record editor beside its preview", () => {
   // An error raised inside the editor is about a draft that stops existing the
   // moment the editor closes. Left standing it sits above the list as an alert
   // about nothing on screen.
-  it("does not carry the editor's messages back to the list", () => {
+  it("does not carry the editor's errors back to the list", () => {
     const cancel = screen.slice(screen.indexOf("function cancelEdit"));
-    expect(cancel.slice(0, cancel.indexOf("}"))).toContain("subs.clearMessages()");
+    expect(cancel.slice(0, cancel.indexOf("}"))).toContain("subs.clearErrors()");
     const hook = readFileSync(new URL("./useSubscriptions.ts", import.meta.url), "utf8");
-    const clear = hook.slice(hook.indexOf("function clearMessages"));
-    expect(clear.slice(0, clear.indexOf("}"))).toContain('previewError.value = ""');
+    const clear = hook.slice(hook.indexOf("function clearErrors"));
+    const body = clear.slice(0, clear.indexOf("}"));
+    expect(body).toContain('previewError.value = ""');
+    expect(body).toContain('actionError.value = ""');
+    // A save reports success and then leaves through the same exit. Clearing
+    // the notice on the way out left the save with nothing to show for itself.
+    expect(body).not.toContain("notice.value");
   });
 
   // The pane is 380px beside a form and 836px stacked under one. Only the

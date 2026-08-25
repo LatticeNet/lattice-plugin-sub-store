@@ -345,10 +345,12 @@ function cancelEdit(): void {
   draft.value = emptyDraft();
   pristine.value = "";
   subs.preview.value = null;
-  // Messages belong to the screen that raised them. A preview refused inside
-  // the editor used to follow the operator out to the list and sit above it as
-  // an unexplained alert about a draft no longer on screen.
-  subs.clearMessages();
+  // Errors belong to the screen that raised them. A preview refused inside the
+  // editor used to follow the operator out to the list and sit above it as an
+  // unexplained alert about a draft no longer on screen. Only the errors go:
+  // a successful save reports "Saved ..." and then leaves through here, so
+  // clearing the notice too left the save with nothing to show for itself.
+  subs.clearErrors();
 }
 
 function parseTags(text: string): string[] {
