@@ -154,6 +154,16 @@ describe("the screens ask the registry rather than re-deciding", () => {
     }
   });
 
+  // A menu can hold two blocked items blocked for different reasons: a missing
+  // method and a missing scope are not the same problem. Printing the first
+  // and stopping attributed one item's reason to the other.
+  it("explains every distinct reason, not just the first", () => {
+    const menu = readFileSync(new URL("./components/RecordMenu.vue", import.meta.url), "utf8");
+    expect(menu).toMatch(/new Set\(props\.actions\.filter\(\(a\) => a\.disabled\)\.map\(\(a\) => a\.reason\)\)/);
+    expect(menu).toContain('v-for="reason in reasons()"');
+    expect(menu, "still prints only the first").not.toContain("actions.find((a) => a.disabled)?.reason");
+  });
+
   it("dispatches by action id rather than by menu position", () => {
     for (const [name, source] of screens) {
       expect(source, name).toMatch(/function runRowAction\(id: ActionId/);

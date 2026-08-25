@@ -527,6 +527,11 @@ function describe(item: SubscriptionListItem): string {
  * five capabilities the sibling screen reports, so "why is that greyed out"
  * has one answer across both.
  */
+/** How many files this tab holds, or null while that is not yet known. */
+const listed = computed(() =>
+  !host.init.value || subs.state.value === "loading" ? null : allFiles.value.length,
+);
+
 const actionCaps = computed<ActionCapabilities>(() => ({
   ready: !!host.init.value,
   mutate: subs.canMutate.value,
@@ -1131,8 +1136,11 @@ watch(host.init, (value) => {
           </p>
         </div>
         <div class="heading-actions">
-          <span class="badge mono" :title="`${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`">
-            {{ allFiles.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}
+          <!-- "0 / 256" during a load is a claim, not an unknown. -->
+          <span class="badge mono" :title="listed === null
+            ? `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`
+            : `${listed} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`">
+            {{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}
           </span>
           <LtButton
             variant="primary"

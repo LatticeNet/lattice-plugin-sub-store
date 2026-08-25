@@ -251,7 +251,12 @@ function listView(rec: StoredRecord) {
 }
 
 const HANDLERS: Record<string, (payload: any) => unknown> = {
-  "subscription/list": () => ({ subscriptions: records.map(listView) }),
+  "subscription/list": () => {
+    const state = harnessState();
+    if (state === "empty") return { subscriptions: [] };
+    if (state === "error") throw new Error("the store could not be read (harness ?state=error)");
+    return { subscriptions: records.map(listView) };
+  },
   "subscription/operators": () => ({
     operators: [
       ...OPERATORS.map((type) => ({ type, scripting: SCRIPTING.has(type) })),
@@ -519,7 +524,32 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
 
 /** Slight latency so loading states are visible rather than theoretical. */
 function delay<T>(value: T): Promise<T> {
+  // `?state=slow` holds rather than delays. Every timed version lost the race:
+  // by the time anyone had switched to the window the list had arrived, which
+  // is the same problem as having no state at all. A loading state exists to
+  // be looked at, so this one stays up until the page is reloaded without it.
+  if (harnessState() === "slow") return new Promise<T>(() => {});
   return new Promise((resolve) => setTimeout(() => resolve(value), 180));
+}
+
+/**
+ * Which state to render, from `?state=` on the harness URL.
+ *
+ * A screen's failure states were only ever reachable by breaking something on
+ * purpose and putting it back afterwards, so in practice nobody looked at
+ * them: the empty state, the load error and the read-only session were written
+ * once and never seen again. Naming them makes the whole set walkable in a
+ * minute, which is the only way an audit of them stays honest.
+ *
+ * `?state=slow` is deliberately not instant — a skeleton that flashes past is a
+ * skeleton nobody has actually judged.
+ */
+export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale";
+
+export function harnessState(): HarnessState {
+  const asked = new URLSearchParams(window.location.search).get("state");
+  const known: HarnessState[] = ["ok", "empty", "error", "slow", "readonly", "stale"];
+  return (known as string[]).includes(asked ?? "") ? (asked as HarnessState) : "ok";
 }
 
 export function createFakeHost(): HostContext {
@@ -560,6 +590,13 @@ export function createFakeHost(): HostContext {
     };
   }, 400);
 
+  // A read-only session, which is a token or a bundle without the write
+  // methods rather than a flag. Withholding them here exercises the same path
+  // production takes, including every "why is this greyed out" sentence.
+  const WITHHELD: Record<string, true> = harnessState() === "readonly"
+    ? { save: true, delete: true, publish: true }
+    : {};
+
   const bridge = {
     call<T>(service: string, method: string, payload: unknown) {
       // The real bridge posts to the host, which structured-clones the payload.
@@ -598,6 +635,7 @@ export function createFakeHost(): HostContext {
     init,
     bootError,
     available: (target: MethodBinding) =>
+      !WITHHELD[target.method] &&
       init.value?.interfaces.some(
         (contract: any) =>
           contract.service === target.service && contract.methods.includes(target.method),

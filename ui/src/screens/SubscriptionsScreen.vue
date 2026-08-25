@@ -602,6 +602,11 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * to answer "why is that greyed out", rather than an inline expression per
  * control that drifts from its neighbours.
  */
+/** How many records this tab holds, or null while that is not yet known. */
+const listed = computed(() =>
+  !host.init.value || subs.state.value === "loading" ? null : onThisTab.value.length,
+);
+
 const actionCaps = computed<ActionCapabilities>(() => ({
   ready: !!host.init.value,
   mutate: subs.canMutate.value,
@@ -1271,10 +1276,15 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </p>
         </div>
         <div class="heading-actions">
+          <!-- While the list is still coming this said "0 / 256", which is a
+               claim and not an unknown: an operator glancing at a slow load
+               was told the store was empty. An em-dash says nothing yet. -->
           <span
             class="badge mono"
-            :title="`${onThisTab.length} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
-          >{{ onThisTab.length }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
+            :title="listed === null
+              ? `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
+              : `${listed} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
+          >{{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <LtButton
             variant="primary"
             :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
