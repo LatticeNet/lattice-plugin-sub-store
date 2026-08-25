@@ -784,8 +784,14 @@ export function useSubscriptions(host: HostContext) {
       // read-only operator keeps the preview they are entitled to.
       const namesASource = Object.values(draftSource).some((value) => value !== undefined);
       if (namesASource && !canPreviewDraft.value) {
-        actionError.value =
+        // Also on the preview channel, which is the pane the button now lives
+        // in. Sent to the action channel alone it landed at the bottom of the
+        // form, so the pane went on saying nothing had run yet while the reason
+        // it had not sat somewhere the click never looked.
+        const refusal =
           "Previewing an unsaved draft resolves the source you named, which needs admin access. Save the subscription first, or preview pasted content.";
+        actionError.value = refusal;
+        previewError.value = refusal;
         return;
       }
       const response = await callMethod<SubscriptionPreviewResponse>(
@@ -877,6 +883,7 @@ export function useSubscriptions(host: HostContext) {
 
   function clearMessages(): void {
     actionError.value = "";
+    previewError.value = "";
     notice.value = "";
   }
 

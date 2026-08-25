@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { ChevronDown } from "@lucide/vue";
 import type { SubscriptionPreviewResponse } from "../client";
+import NodeRows from "./NodeRows.vue";
 
 const props = defineProps<{
   preview: SubscriptionPreviewResponse;
@@ -15,6 +17,11 @@ const headline = computed(() => {
   return source > kept ? `kept ${kept} of ${source} nodes` : `${kept} node(s)`;
 });
 
+const dropped = computed(() => props.preview.dropped ?? []);
+/** Counted before the reply capped the list, so a long subscription still
+ *  reports every node it lost even when it cannot name them all. */
+const droppedCount = computed(() => props.preview.dropped_count ?? dropped.value.length);
+
 /** Protocol breakdown of the previewed set, most common first. */
 const typeCounts = computed(() => {
   const counts = new Map<string, number>();
@@ -27,18 +34,10 @@ const typeCounts = computed(() => {
     .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
 });
 
-/** The flags worth surfacing per node, in a fixed order so the eye can scan a
- *  column rather than re-read each row. */
-function flags(node: SubscriptionPreviewResponse["nodes"][number]): { label: string; title: string }[] {
-  const out: { label: string; title: string }[] = [];
-  if (node.network) out.push({ label: node.network, title: "Transport" });
-  if (node.security) out.push({ label: node.security, title: "Security" });
-  if (node.udp) out.push({ label: "UDP", title: "UDP relay" });
-  if (node.tfo) out.push({ label: "TFO", title: "TCP Fast Open" });
-  if (node.skip_cert_verify) out.push({ label: "skip-cert", title: "Skips TLS certificate verification" });
-  if (node.aead) out.push({ label: "AEAD", title: "VMess AEAD" });
-  return out;
-}
+// Both groups open. Either can be folded away, because at pane width a list of
+// 200 buries whichever group is not being read.
+const keptOpen = ref(true);
+const removedOpen = ref(true);
 </script>
 
 <template>
@@ -57,21 +56,47 @@ function flags(node: SubscriptionPreviewResponse["nodes"][number]): { label: str
         {{ entry.type }} × {{ entry.count }}
       </span>
     </p>
-    <!-- One dense list, the same one the sheet and the row drawer use. This was
-         a stack of bordered cards, which turned 50 nodes into 50 boxes. -->
-    <ul class="node-list">
-      <li v-for="(node, index) in preview.nodes" :key="`${node.name}-${index}`" class="node-row">
-        <span class="node-name" :title="node.name">{{ node.name }}</span>
-        <span class="node-tags">
-          <span class="badge">{{ node.type }}</span>
-          <span v-for="flag in flags(node)" :key="flag.label" class="badge" :title="flag.title">
-            {{ flag.label }}
-          </span>
-          <span v-if="node.server" class="node-meta">
-            {{ node.port ? `${node.server}:${node.port}` : node.server }}
-          </span>
-        </span>
-      </li>
-    </ul>
+
+    <!-- Nothing was removed, so there is nothing to compare against and the
+         result is the whole answer. Two labelled groups here would be one
+         group and an empty one. -->
+    <NodeRows v-if="!droppedCount" :nodes="preview.nodes" />
+
+    <!-- A filter ran. What it removed is the half the result cannot show, and
+         it is the half someone tuning that filter is reading for. -->
+    <template v-else>
+      <section class="rec-group">
+        <button
+          type="button"
+          class="rec-group-head"
+          :aria-expanded="keptOpen"
+          @click="keptOpen = !keptOpen"
+        >
+          <ChevronDown :size="14" class="rec-group-caret" :class="{ 'is-collapsed': !keptOpen }" aria-hidden="true" />
+          <span>Kept</span>
+          <span class="rec-group-count">{{ preview.node_count }}</span>
+        </button>
+        <NodeRows v-if="keptOpen" :nodes="preview.nodes" />
+      </section>
+
+      <section class="rec-group">
+        <button
+          type="button"
+          class="rec-group-head"
+          :aria-expanded="removedOpen"
+          @click="removedOpen = !removedOpen"
+        >
+          <ChevronDown :size="14" class="rec-group-caret" :class="{ 'is-collapsed': !removedOpen }" aria-hidden="true" />
+          <span>Removed by the chain</span>
+          <span class="rec-group-count" data-tone="danger">{{ droppedCount }}</span>
+        </button>
+        <template v-if="removedOpen">
+          <p v-if="preview.dropped_truncated" class="node-group-note">
+            Naming the first {{ dropped.length }} of them.
+          </p>
+          <NodeRows :nodes="dropped" tone="dropped" />
+        </template>
+      </section>
+    </template>
   </div>
 </template>

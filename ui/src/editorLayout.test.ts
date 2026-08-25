@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { parse } from "vue/compiler-sfc";
 import { describe, expect, it } from "vitest";
 
 const screen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
@@ -63,5 +64,50 @@ describe("the record editor beside its preview", () => {
   it("says something true before the first run instead of showing an empty box", () => {
     expect(screen).toContain("Nothing run yet.");
     expect(screen).toContain("without saving it");
+  });
+  // An error raised inside the editor is about a draft that stops existing the
+  // moment the editor closes. Left standing it sits above the list as an alert
+  // about nothing on screen.
+  it("does not carry the editor's messages back to the list", () => {
+    const cancel = screen.slice(screen.indexOf("function cancelEdit"));
+    expect(cancel.slice(0, cancel.indexOf("}"))).toContain("subs.clearMessages()");
+    const hook = readFileSync(new URL("./useSubscriptions.ts", import.meta.url), "utf8");
+    const clear = hook.slice(hook.indexOf("function clearMessages"));
+    expect(clear.slice(0, clear.indexOf("}"))).toContain('previewError.value = ""');
+  });
+
+  // The pane is 380px beside a form and 836px stacked under one. Only the
+  // first has to trade a row's layout for its width, so the row asks the pane
+  // how wide IT is rather than reading the frame's breakpoint.
+  it("lets the pane's own width decide how a node row is laid out", () => {
+    expect(styles).toMatch(/\.editor-side\s*\{[^}]*container-type:\s*inline-size/s);
+    const narrow = styles.slice(styles.indexOf("@container (max-width: 460px)"));
+    expect(narrow).toMatch(/\.editor-side \.node-row\s*\{[^}]*flex-wrap:\s*wrap/s);
+    expect(narrow).toMatch(/\.editor-side \.node-meta\s*\{[^}]*flex:\s*0 0 100%/s);
+    // Not a frame-wide rule: the same declaration outside the query would put
+    // two-line rows in a pane with room for one.
+    const beforeQuery = styles.slice(0, styles.indexOf("@container (max-width: 460px)"));
+    expect(beforeQuery).not.toMatch(/\.editor-side \.node-meta\s*\{[^}]*flex:\s*0 0 100%/s);
+  });
+
+  // The endpoint sat inside the badge box, whose intrinsic width then claimed
+  // most of a 320px row and ellipsed every node name down to "Portland ...".
+  // Its place in the row is structural, so the check is too: read the template
+  // rather than the order two spans happen to appear in.
+  it("keeps the endpoint out of the badge box so a narrow row can reflow it", () => {
+    const source = readFileSync(new URL("./components/NodeRows.vue", import.meta.url), "utf8");
+    const template = parse(source, { filename: "NodeRows.vue" }).descriptor.template;
+    if (!template?.ast) throw new Error("NodeRows template is missing");
+    const classOf = (node: Record<string, any>): string =>
+      (node.props ?? []).find((p: any) => p.name === "class")?.value?.content ?? "";
+    const elements = (node: Record<string, any>): Record<string, any>[] =>
+      (node.children ?? []).filter((child: any) => child.type === 1);
+    const walk = (node: Record<string, any>, want: string): Record<string, any> | undefined =>
+      classOf(node) === want ? node : elements(node).map((child) => walk(child, want)).find(Boolean);
+    const row = walk(template.ast as Record<string, any>, "node-row");
+    expect(row, "the list has no node-row").toBeTruthy();
+    const children = elements(row!).map(classOf);
+    expect(children).toContain("node-meta");
+    expect(children).toContain("node-tags");
   });
 });

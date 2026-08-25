@@ -836,6 +836,10 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
     max-height: calc(100vh - var(--lt-space-8));
     overflow: auto;
   }
+  /* One scroller per surface. The lists cap themselves everywhere else, but
+     inside a pane that already scrolls that cap makes a scroll area inside a
+     scroll area, and reaching a row means guessing which one owns the wheel. */
+  .editor-side .node-list { max-height: none; overflow: visible; }
 }
 
 /* ── document view (read-only render; no editor, see DocumentView.vue) ────── */
@@ -1372,6 +1376,42 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .node-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .node-tags { display: inline-flex; gap: var(--lt-space-1); flex-wrap: wrap; }
 .node-meta { flex: none; color: var(--lt-fg-muted); font-family: var(--lt-mono); font-size: var(--lt-text-xs); }
+/* The name the chain replaced, carried under the new one. Muted and smaller:
+   it is provenance, and the current name is what the client will see. */
+.node-name-cell { display: flex; min-width: 0; flex-direction: column; }
+.node-was {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Narrow enough and the endpoint takes its own line under the badges. Sharing
+   one line with them it claimed most of a 320px row, and every node name was
+   ellipsed down to "Portland ..." to pay for it. Two predictable lines beat one
+   line with the identifying half cut off.
+   The pane asks its own width, not the frame's: the same pane is 380px beside a
+   form and 836px stacked under one, and only the first of those has to choose.
+   The column gap between name and badges is not the gap wanted between a row's
+   two lines either: inherited as a row gap it added twelve dead pixels per
+   node. */
+.editor-side { container-type: inline-size; }
+@container (max-width: 460px) {
+  .editor-side .node-row { flex-wrap: wrap; row-gap: 0; }
+  .editor-side .node-meta { flex: 0 0 100%; text-align: right; }
+}
+
+/* Removed nodes are context for a count rather than a result, so their names
+   sit at the weight of the metadata around them. */
+.node-list[data-tone="dropped"] .node-name { color: var(--lt-fg-muted); }
+
+/* Kept and removed are two collapsible groups of rows with a count, which is
+   what the record list's groups already are, so they are the same control
+   rather than a second one that means the same thing. Only the red count is
+   new: a removal count is a number someone is looking for. */
+.rec-group-count[data-tone="danger"] { background: var(--lt-danger-soft); color: var(--lt-danger); }
+.node-group-note { margin: 0 0 var(--lt-space-1); color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
 
 /* ── row detail panels ────────────────────────────────────────────────────── */
 
