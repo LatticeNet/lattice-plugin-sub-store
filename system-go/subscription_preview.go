@@ -48,8 +48,8 @@ type previewResult struct {
 	Dropped          []nodeSummary `json:"dropped,omitempty"`
 	DroppedCount     int           `json:"dropped_count"`
 	DroppedTruncated bool          `json:"dropped_truncated,omitempty"`
-	SourceVersion   string        `json:"source_version,omitempty"`
-	Stale           bool          `json:"stale"`
+	SourceVersion    string        `json:"source_version,omitempty"`
+	Stale            bool          `json:"stale"`
 	// Document is set instead of Nodes when the record is a file. A file is a
 	// document, so the question its preview answers is "what will a client
 	// receive", not "which nodes survived the filter".
