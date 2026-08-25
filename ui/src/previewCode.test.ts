@@ -44,6 +44,16 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(filesScreen).toMatch(/class="row-popover-document"[\s\S]*?:aria-labelledby=/);
   });
 
+  // Every call is flattened to plain data in one place. A screen that reaches
+  // for the bridge directly skips that and posts its reactive objects at the
+  // host, where the structured clone rejects them and the call never leaves.
+  it("routes every call through the one door that flattens the payload", () => {
+    expect(source("client.ts")).toMatch(/callMethod[\s\S]*?wireSafe\(payload\)/);
+    for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue", "screens/SettingsScreen.vue", "useSubscriptions.ts"]) {
+      expect(source(file), file + " calls the bridge directly").not.toMatch(/bridge\.call\(/);
+    }
+  });
+
   it("keeps preview configuration out of the editable keymap", () => {
     expect(editor).toContain("readonly: props.readonly");
     expect(source("codemirror.ts")).toContain("EditorView.editable.of(false)");

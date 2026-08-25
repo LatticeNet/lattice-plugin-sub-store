@@ -34,7 +34,12 @@ function subscriptionHost(responses: Record<string, unknown>, available: (method
   const calls: { service: string; method: string; payload: unknown }[] = [];
   const bridge = {
     call(service: string, method: string, payload: unknown) {
+      // The real bridge posts the payload to the host, which structured-clones
+      // it. A Proxy cannot be cloned, and every object a Vue screen holds is
+      // one, so a transport that hands the payload over by reference proves
+      // nothing about whether the call can leave the frame at all.
       calls.push({ service, method, payload });
+      structuredClone(payload);
       const key = `${service}/${method}`;
       return { promise: Promise.resolve(responses[key]), cancel: () => {} };
     },
@@ -387,6 +392,27 @@ describe("vpn-core graph workflow", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0].method).toBe("preview_draft");
     expect(calls[0].payload).toMatchObject({ source: "provider", url: "https://provider.example/sub" });
+  });
+
+  // The screen holds its draft in a ref, so everything reachable from it is a
+  // reactive Proxy, and a Proxy cannot be structured-cloned. A payload carrying
+  // one never leaves the frame: postMessage throws before the host sees it.
+  it("sends a payload the host transport can actually carry", async () => {
+    const previewKey = `${BINDINGS.subPreview.service}/${BINDINGS.subPreview.method}`;
+    const { host, calls } = subscriptionHost({
+      [previewKey]: { source_node_count: 2, node_count: 1, nodes: [{ name: "A" }] },
+    });
+    const subs = useSubscriptions(host);
+    // Exactly how SubscriptionsScreen holds it: a ref, unwrapped by the
+    // template before it reaches this call.
+    const draft = ref({
+      ...emptyDraft(),
+      content: "ss://example",
+      process: [{ type: "Regex Filter", args: { regex: ["drop-me"], keep: false } }],
+    });
+    await subs.runPreview(draft.value);
+    expect(calls).toHaveLength(1);
+    expect(() => structuredClone(calls[0].payload)).not.toThrow();
   });
 
   // The Preview button lives in the pane beside the form. A refusal that only
