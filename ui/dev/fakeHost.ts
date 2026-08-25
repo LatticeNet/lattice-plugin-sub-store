@@ -562,6 +562,25 @@ export function createFakeHost(): HostContext {
 
   const bridge = {
     call<T>(service: string, method: string, payload: unknown) {
+      // The real bridge posts to the host, which structured-clones the payload.
+      // Handing it over by reference made the harness answer calls that could
+      // never have left the frame: a Proxy cannot be cloned, and every object a
+      // screen holds is one. Cloning here means the harness fails the same way
+      // production does.
+      try {
+        structuredClone(payload);
+      } catch (cause) {
+        return {
+          promise: Promise.reject(
+            new Error(
+              `payload for ${method} cannot cross the host transport: ${
+                cause instanceof Error ? cause.message : String(cause)
+              }`,
+            ),
+          ),
+          cancel: () => {},
+        };
+      }
       const key = `${service.split("/").pop()}/${method}`;
       const handler = HANDLERS[key];
       const promise = handler

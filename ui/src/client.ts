@@ -533,6 +533,24 @@ export function buildShareLink(base: string, targetId: string, includeUnsupporte
   return `${base}${base.includes("?") ? "&" : "?"}${params.toString()}`;
 }
 
+/**
+ * Flattens a payload to plain data before it leaves the frame.
+ *
+ * The bridge posts the payload to the host, which structured-clones it, and a
+ * Proxy cannot be cloned. Every object a Vue screen holds is one: a draft lives
+ * in a ref, so its operator list, its members and its query params all arrive
+ * here wrapped. Passing them through threw DataCloneError at postMessage, which
+ * the caller then reported as a failed call, when in fact nothing was ever sent.
+ *
+ * A JSON round-trip is the right flattener here rather than toRaw: it is deep,
+ * and the host serializes to JSON to reach the plugin anyway, so anything it
+ * would drop was never going to arrive.
+ */
+function wireSafe(payload: unknown): unknown {
+  if (payload === undefined || payload === null) return payload;
+  return JSON.parse(JSON.stringify(payload));
+}
+
 /** Typed call through the bridge; every UI data path funnels through here. */
 export function callMethod<T>(
   bridge: BridgeClient,
@@ -540,5 +558,5 @@ export function callMethod<T>(
   payload: unknown,
   timeoutMs?: number,
 ): { promise: Promise<T>; cancel: () => void } {
-  return bridge.call<T>(target.service, target.method, payload, timeoutMs);
+  return bridge.call<T>(target.service, target.method, wireSafe(payload), timeoutMs);
 }
