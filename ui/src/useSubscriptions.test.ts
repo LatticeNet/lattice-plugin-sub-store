@@ -7,6 +7,7 @@ import {
   FILE_TYPE_SCRIPT,
   KIND_COLLECTION,
   KIND_FILE,
+  KIND_SUB,
   MAX_SUBSCRIPTION_INLINE_BYTES,
   SOURCE_LOCAL,
   SOURCE_REMOTE,
@@ -18,6 +19,7 @@ import type { HostContext } from "./host";
 import {
   argumentsToText,
   draftFromRecord,
+  recordCatalogue,
   emptyDraft,
   enabledSteps,
   knownFileType,
@@ -327,6 +329,44 @@ describe("copying a record", () => {
 
   it("leaves an unrelated name alone", () => {
     expect(uniqueName("Office", ["Home copy"])).toBe("Office");
+  });
+});
+
+describe("the record catalogue", () => {
+  it("is one list per host, so two screens cannot disagree about it", async () => {
+    const listKey = `${BINDINGS.subList.service}/${BINDINGS.subList.method}`;
+    const { host, calls } = subscriptionHost({
+      [listKey]: { subscriptions: [{ id: "a", name: "A", kind: KIND_SUB }] },
+    });
+    // Both screens call the hook, and both are kept alive.
+    const first = useSubscriptions(host);
+    const second = useSubscriptions(host);
+    await first.load();
+    expect(first.items.value).toHaveLength(1);
+    expect(second.items.value, "the second screen holds its own stale copy").toEqual(first.items.value);
+    expect(calls.filter((c) => c.method === BINDINGS.subList.method)).toHaveLength(1);
+  });
+
+  it("gives a different host its own list", async () => {
+    const listKey = `${BINDINGS.subList.service}/${BINDINGS.subList.method}`;
+    const one = subscriptionHost({ [listKey]: { subscriptions: [{ id: "a", name: "A", kind: KIND_SUB }] } });
+    const two = subscriptionHost({ [listKey]: { subscriptions: [] } });
+    const a = useSubscriptions(one.host);
+    await a.load();
+    const b = useSubscriptions(two.host);
+    expect(b.items.value, "a second host inherited the first host's records").toEqual([]);
+  });
+
+  it("hands readers the records without the editing state", async () => {
+    const listKey = `${BINDINGS.subList.service}/${BINDINGS.subList.method}`;
+    const { host } = subscriptionHost({
+      [listKey]: { subscriptions: [{ id: "a", name: "A", kind: KIND_SUB }] },
+    });
+    const subs = useSubscriptions(host);
+    await subs.load();
+    const catalogue = recordCatalogue(host);
+    expect(catalogue.items.value).toEqual(subs.items.value);
+    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError"]);
   });
 });
 

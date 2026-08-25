@@ -634,6 +634,18 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-menu button:disabled { opacity: 0.45; }
 .rec-menu button.is-danger { color: var(--lt-danger); }
 .rec-menu button.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
+/* Why a menu item is greyed out, in the menu itself rather than only in a
+   title attribute that no touch device and no screen reader ever shows. */
+.rec-menu-note {
+  margin: var(--lt-space-1) 0 0;
+  padding: var(--lt-space-2) var(--lt-space-2) var(--lt-space-1);
+  border-top: 1px solid var(--lt-border);
+  max-width: 34ch;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+}
+
 .rec-menu-sep { height: 1px; margin: var(--lt-space-1) 0; background: var(--lt-border); }
 
 /* The rows are real but not fresh: a quiet strip, not an error state, because
@@ -1611,3 +1623,117 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .rec-actions { grid-column: 1 / -1; }
   .graph-root-order li { align-items: flex-start; flex-direction: column; }
 }
+
+/* ── command palette ──────────────────────────────────────────────────────
+   Fixed to the frame, which is the visible window (PluginFrameHost), so it
+   centres on what the operator is looking at rather than on the document. */
+
+.palette-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  /* Hug the rows. A flex parent stretches its child by default, which made an
+     empty palette a full-height panel with five lines at the top of it. */
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: color-mix(in oklab, var(--lt-bg) 70%, transparent);
+}
+
+.palette {
+  display: flex;
+  width: min(640px, calc(100vw - var(--lt-space-6)));
+  max-height: 60vh;
+  flex-direction: column;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
+  box-shadow: var(--lt-shadow-lg, 0 24px 48px rgb(0 0 0 / 0.32));
+  overflow: hidden;
+}
+
+.palette-input {
+  display: flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  padding: var(--lt-space-3);
+  border-bottom: 1px solid var(--lt-border);
+  color: var(--lt-fg-muted);
+}
+.palette-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--lt-fg);
+  font-size: var(--lt-text-md);
+  outline: none;
+}
+.palette-hint {
+  padding: 0 var(--lt-space-1);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-sm);
+  color: var(--lt-fg-muted);
+  font-family: var(--lt-mono);
+  font-size: var(--lt-text-xs);
+}
+
+.palette-list { margin: 0; padding: var(--lt-space-1); list-style: none; overflow-y: auto; }
+
+.palette-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--lt-space-3);
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border-radius: var(--lt-radius-sm);
+  cursor: pointer;
+}
+.palette-row[data-active="true"] { background: var(--lt-surface-2); }
+.palette-row[data-danger="true"] .palette-label { color: var(--lt-danger); }
+/* Kept in the list rather than hidden: an action missing from the palette
+   reads as a feature this build does not have, when the truth is that this
+   token cannot reach it. The reason takes the place of the hint. */
+.palette-row[data-disabled="true"] { cursor: not-allowed; opacity: 0.65; }
+.palette-row[data-disabled="true"] .palette-label { color: var(--lt-fg-muted); }
+
+/* The name may shrink, but not below what identifies the record: a row is
+   name plus context, and losing the name entirely leaves the context
+   describing nothing. */
+.palette-label {
+  min-width: 0;
+  max-width: 60%;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palette-meta {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palette-empty { padding: var(--lt-space-4); color: var(--lt-fg-muted); font-size: var(--lt-text-sm); }
+
+/* The tablist and the search entry sit on one line, but the entry is not in
+   the tablist: a button in there announces itself as a tab. */
+.tab-row { display: flex; align-items: stretch; justify-content: space-between; gap: var(--lt-space-3); }
+.tab-row .tab-bar { flex: 1; }
+.tab-search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  margin-bottom: -1px;
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 0;
+  border-bottom: 1px solid var(--lt-border);
+  background: none;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-md);
+}
+.tab-search:hover { color: var(--lt-fg); }
+.tab-search:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }

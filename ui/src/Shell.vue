@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { CircleAlert, FileCode, Library, Settings, Store } from "@lucide/vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { CircleAlert, FileCode, Library, Search, Settings, Store } from "@lucide/vue";
 
 import { useHandshakeTimeout } from "./handshakeTimeout";
 import { useHost } from "./host";
+import CommandPalette from "./components/CommandPalette.vue";
+import { recordCatalogue } from "./useSubscriptions";
+import { recordIntent } from "./recordIntent";
+import type { ActionCapabilities, ActionId } from "./recordActions";
+import type { PaletteCommandId } from "./commandPalette";
+import type { SubscriptionListItem } from "./client";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
 import FilesScreen from "./screens/FilesScreen.vue";
@@ -73,6 +79,70 @@ const activeTab = ref<TabId>("subscriptions");
 const activeScreen = computed(
   () => tabs.find((tab) => tab.id === activeTab.value)?.screen ?? SubscriptionsScreen,
 );
+
+/**
+ * One search across both tabs.
+ *
+ * The shell is the only place that can see every record and can switch tabs,
+ * so the palette lives here. It reads the shared catalogue rather than a list
+ * of its own, and it hands the chosen action to the owning screen through an
+ * intent rather than reaching into that screen's state.
+ */
+const catalogue = recordCatalogue(host);
+const intent = recordIntent(host);
+const paletteOpen = ref(false);
+
+/**
+ * The capabilities the palette reasons with.
+ *
+ * The shell does not hold a subscriptions hook and should not grow one to ask
+ * five booleans, so it reads the same manifest the hook does. `available` is
+ * the host's own answer about what the signed bundle declares.
+ */
+const caps = computed<ActionCapabilities>(() => {
+  const declared = (service: string, method: string) => host.available({ service, method, status: "active" });
+  const S = "latticenet.sub-store/subscription";
+  return {
+    ready: !!host.init.value,
+    mutate: declared(S, "save") && declared(S, "delete"),
+    fetch: declared(S, "probe"),
+    preview: declared(S, "preview"),
+    render: declared(S, "render"),
+    publish: declared(S, "publish"),
+  };
+});
+
+function openPalette(): void {
+  paletteOpen.value = true;
+}
+
+/**
+ * Cmd/Ctrl+K, inside this frame only.
+ *
+ * The console binds the same key on its own document. A cross-origin sandboxed
+ * frame does not propagate key events to its parent, so whichever surface has
+ * focus answers, and the two palettes never contend. The visible button beside
+ * the tabs is the entry that does not depend on that: a feature reachable only
+ * by a shortcut is a feature most operators never find.
+ */
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key !== "k" || !(event.metaKey || event.ctrlKey)) return;
+  event.preventDefault();
+  paletteOpen.value = !paletteOpen.value;
+}
+
+onMounted(() => document.addEventListener("keydown", onKeydown));
+onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
+
+function runFromPalette(record: SubscriptionListItem, action: ActionId): void {
+  activeTab.value = record.kind === "file" ? "files" : "subscriptions";
+  intent.value = { recordId: record.id, action };
+}
+
+function runCommand(command: PaletteCommandId): void {
+  activeTab.value = command === "new-file" ? "files" : "subscriptions";
+  intent.value = { command };
+}
 </script>
 
 <template>
@@ -93,6 +163,7 @@ const activeScreen = computed(
         <span>{{ host.bootError.value }}</span>
       </div>
 
+      <div class="tab-row">
       <nav class="tab-bar" role="tablist" aria-label="Sub-Store sections">
         <button
           v-for="(tab, index) in tabs"
@@ -113,6 +184,15 @@ const activeScreen = computed(
           {{ tab.label }}
         </button>
       </nav>
+      <!-- Outside the tablist: a button in there announces itself as a tab and
+           joins the arrow-key order. Not only a shortcut either, because a
+           palette reachable only by Cmd+K is one most operators never find. -->
+      <button class="tab-search" type="button" @click="openPalette()">
+        <Search :size="15" aria-hidden="true" />
+        Search
+        <kbd class="palette-hint">⌘K</kbd>
+      </button>
+      </div>
 
       <!-- The panel attributes live on a real wrapper element.
            Passing them to <component :is> put them on a screen whose root is a
@@ -123,6 +203,14 @@ const activeScreen = computed(
           <component :is="activeScreen" />
         </KeepAlive>
       </div>
+      <CommandPalette
+        :open="paletteOpen"
+        :records="catalogue.items.value"
+        :caps="caps"
+        @close="paletteOpen = false"
+        @run="runFromPalette"
+        @command="runCommand"
+      />
     </template>
   </main>
 </template>

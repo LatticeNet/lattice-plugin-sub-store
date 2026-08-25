@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, ref, type Ref } from "vue";
 
 import {
   BINDINGS,
@@ -336,12 +336,52 @@ export function reconcileGraphDraftOptions(
  * Availability still degrades per binding: an older signed bundle without
  * `save`/`delete` renders the list read-only rather than throwing on click.
  */
-export function useSubscriptions(host: HostContext) {
-  const state = ref<LoadState>("idle");
-  const items = ref<SubscriptionListItem[]>([]);
-  const loadError = ref("");
+/**
+ * The record catalogue, shared by everything that reads it.
+ *
+ * Both screens call this hook and both are kept alive, so a per-instance list
+ * meant the same records were fetched twice and could disagree after a write
+ * on the other tab. The catalogue is one copy; everything else in this hook —
+ * the draft being edited, its preview, its errors — stays per instance,
+ * because two editors are genuinely two editors.
+ */
+interface Catalogue {
+  state: Ref<LoadState>;
+  items: Ref<SubscriptionListItem[]>;
+  loadError: Ref<string>;
   /** A failed background reload: the rows on screen are the last good ones. */
-  const staleError = ref("");
+  staleError: Ref<string>;
+}
+
+/**
+ * One catalogue per host, not one per module: a module-level singleton would
+ * be shared by every test in a file as well, so a record left behind by one
+ * case would arrive in the next. A host is a plugin instance, which is exactly
+ * the scope the records belong to.
+ */
+const catalogues = new WeakMap<object, Catalogue>();
+
+function catalogueFor(host: HostContext): Catalogue {
+  const existing = catalogues.get(host);
+  if (existing) return existing;
+  const fresh: Catalogue = {
+    state: ref<LoadState>("idle"),
+    items: ref<SubscriptionListItem[]>([]),
+    loadError: ref(""),
+    staleError: ref(""),
+  };
+  catalogues.set(host, fresh);
+  return fresh;
+}
+
+/** Records as they were last read, for readers that do not edit them. */
+export function recordCatalogue(host: HostContext) {
+  const { state, items, loadError } = catalogueFor(host);
+  return { state, items, loadError };
+}
+
+export function useSubscriptions(host: HostContext) {
+  const { state, items, loadError, staleError } = catalogueFor(host);
   /** Whether the operator catalogue is still coming, or is simply not there. */
   const operatorsState = ref<LoadState>("idle");
   const actionError = ref("");
