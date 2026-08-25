@@ -39,6 +39,8 @@ import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
+import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import {
   draftFromRecord,
@@ -60,6 +62,7 @@ import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import RecordMenu from "../components/RecordMenu.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import { anchorTopFrom } from "../overlayAnchor";
@@ -518,6 +521,78 @@ function describe(item: SubscriptionListItem): string {
   const kind = item.file_type === FILE_TYPE_SCRIPT ? "Built by a script" : "Client configuration";
   return item.node_source ? `${kind} · nodes from ${sourceName(item.node_source)}` : `${kind} · no node source`;
 }
+
+/**
+ * What this session may do, in the shape the action registry reads. The same
+ * five capabilities the sibling screen reports, so "why is that greyed out"
+ * has one answer across both.
+ */
+const actionCaps = computed<ActionCapabilities>(() => ({
+  ready: !!host.init.value,
+  mutate: subs.canMutate.value,
+  fetch: subs.canFetch.value,
+  preview: subs.canPreview.value,
+  render: subs.canRender.value,
+  publish: subs.canPublish.value,
+}));
+
+// A file has no node preview and nothing to refresh: the registry decides that
+// from the record's kind, so this names the menu's slots and not the rules.
+// Publish is deliberately absent: this screen has no publish drawer, and the
+// registry offering an action a screen cannot carry out is worse than not
+// offering it. Adding the flow is a decision, not a wiring gap.
+const MENU_ACTIONS = ["output", "share", "duplicate", "delete"] as const;
+
+function menuActionsFor(item: SubscriptionListItem) {
+  return actionsFor(item, actionCaps.value, MENU_ACTIONS);
+}
+
+/** What the selection can carry; blocked if any record in it refuses. */
+const batchActions = computed(() => batchActionsFor(selectedVisible.value, actionCaps.value));
+
+/** One resolved action, for the icon buttons that sit in the row itself. */
+function rowAction(item: SubscriptionListItem, id: ActionId) {
+  return (
+    actionsFor(item, actionCaps.value, [id])[0] ?? { id, label: "", icon: "", danger: false, reason: "", disabled: true }
+  );
+}
+
+/**
+ * The registry says what and when; this says how. Every caller goes through
+ * here — the row's icon buttons, its menu, and the palette — so an action
+ * means the same thing wherever it was started from.
+ */
+function runRowAction(id: ActionId, item: SubscriptionListItem, event: MouseEvent): void {
+  closeRowMenu();
+  if (id === "edit") return void startEdit(item.id);
+  if (id === "refresh") return void refreshRow(item.id);
+  if (id === "output") return openDrawer("preview", item.id, event);
+  if (id === "share") return openDrawer("share", item.id, event);
+  if (id === "duplicate") return void subs.duplicate(item.id);
+  if (id === "delete") return requestDelete([item.id], event);
+}
+
+/**
+ * Requests from the palette. Only intents this screen owns are taken: both
+ * screens are kept alive and both watch, so the sibling must find its own.
+ */
+const intent = recordIntent(host);
+watch(
+  intent,
+  (value) => {
+    if (isCommandIntent(value) && value.command === "new-file") {
+      claimIntent(intent, () => true);
+      startCreate();
+      return;
+    }
+    if (!isRecordIntent(value)) return;
+    const item = subs.items.value.find((row) => row.id === value.recordId);
+    if (!item || item.kind !== KIND_FILE) return;
+    claimIntent(intent, () => true);
+    runRowAction(value.action, item, new MouseEvent("click"));
+  },
+  { immediate: true },
+);
 
 /**
  * The editor's sections, split the way the subscription editor splits them:
@@ -1148,13 +1223,16 @@ watch(host.init, (value) => {
 
         <LtBatchBar :count="selectedCount" @clear="selectedIds = new Set()">
           <button
+            v-for="action in batchActions"
+            :key="action.id"
             class="button button-danger button-compact"
             type="button"
-            :disabled="!subs.canMutate.value"
+            :disabled="action.disabled"
+            :title="action.reason || undefined"
             @click="requestDelete(selectedVisible.map((file) => file.id), $event)"
           >
             <Trash2 :size="14" aria-hidden="true" />
-            Delete {{ selectedCount }} file{{ selectedCount === 1 ? "" : "s" }}
+            {{ action.label }} {{ selectedCount }} file{{ selectedCount === 1 ? "" : "s" }}
           </button>
         </LtBatchBar>
 
@@ -1276,70 +1354,37 @@ watch(host.init, (value) => {
                 <LtIconButton
                   v-if="item.source === SOURCE_REMOTE"
                   :label="`Refresh ${item.name} from its template URL`"
-                  :disabled="!subs.canFetch.value || pendingIds.has(item.id)"
-                  @click="refreshRow(item.id)"
+                  :disabled="rowAction(item, 'refresh').disabled || pendingIds.has(item.id)"
+                  :title="rowAction(item, 'refresh').reason || undefined"
+                  @click="runRowAction('refresh', item, $event)"
                 >
                   <RefreshCw :size="15" :class="pendingIds.has(item.id) ? 'spin' : ''" aria-hidden="true" />
                 </LtIconButton>
                 <LtIconButton
                   :label="`Edit ${item.name}`"
-                  :disabled="!subs.canMutate.value"
-                  @click="startEdit(item.id)"
+                  :disabled="rowAction(item, 'edit').disabled"
+                  :title="rowAction(item, 'edit').reason || undefined"
+                  @click="runRowAction('edit', item, $event)"
                 >
                   <Pencil :size="15" aria-hidden="true" />
                 </LtIconButton>
                 <LtIconButton
                   :label="`Preview or copy ${item.name} for a client`"
+                  :disabled="rowAction(item, 'output').disabled"
+                  :title="rowAction(item, 'output').reason || undefined"
                   @click="openFileSheet(item, $event)"
                 >
                   <ChevronsRight :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <div class="rec-menu-wrap" :data-row-menu="item.id">
-                  <LtIconButton
-                    :label="`More actions for ${item.name}`"
-                    :aria-haspopup="true"
-                    :aria-expanded="openFileMenuId === item.id"
-                    @click="toggleFileMenu(item.id)"
-                  >
-                    <Ellipsis :size="15" aria-hidden="true" />
-                  </LtIconButton>
-                  <div v-if="openFileMenuId === item.id" class="rec-menu" role="menu" @keydown="onRowMenuKeydown">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      :disabled="!subs.canPreview.value && !subs.canRender.value"
-                      @click="openDrawer('preview', item.id, $event)"
-                    >
-                      <Eye :size="14" aria-hidden="true" /> Show document
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      :disabled="!host.init.value"
-                      @click="openDrawer('share', item.id, $event)"
-                    >
-                      <Share2 :size="14" aria-hidden="true" /> Share…
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      :disabled="!subs.canMutate.value"
-                      @click="closeRowMenu(); subs.duplicate(item.id)"
-                    >
-                      <CopyPlus :size="14" aria-hidden="true" /> Duplicate
-                    </button>
-                    <span class="rec-menu-sep" role="separator" />
-                    <button
-                      type="button"
-                      role="menuitem"
-                      class="is-danger"
-                      :disabled="!subs.canMutate.value"
-                      @click="requestDelete([item.id], $event)"
-                    >
-                      <Trash2 :size="14" aria-hidden="true" /> Delete
-                    </button>
-                  </div>
-                </div>
+                <RecordMenu
+                  :data-row-menu="item.id"
+                  :name="item.name"
+                  :actions="menuActionsFor(item)"
+                  :open="openFileMenuId === item.id"
+                  @toggle="toggleFileMenu(item.id)"
+                  @run="(id, event) => runRowAction(id, item, event)"
+                  @keydown="onRowMenuKeydown"
+                />
               </div>
             </li>
           </ul>

@@ -1,0 +1,80 @@
+<script setup lang="ts">
+import { CopyPlus, Ellipsis, Eye, Send, Share2, Trash2 } from "@lucide/vue";
+
+import LtIconButton from "./lt/LtIconButton.vue";
+import type { ResolvedAction } from "../recordActions";
+
+const props = defineProps<{
+  /** What this menu belongs to, for the trigger's accessible name. */
+  name: string;
+  actions: ResolvedAction[];
+  open: boolean;
+}>();
+
+const emit = defineEmits<{
+  toggle: [];
+  run: [id: ResolvedAction["id"], event: MouseEvent];
+  keydown: [event: KeyboardEvent];
+}>();
+
+/** Declarations name an icon; the mapping to a component lives here so the
+ *  registry stays free of imports and can be tested without Vue. */
+const ICONS = { eye: Eye, share: Share2, send: Send, copy: CopyPlus, trash: Trash2 } as const;
+
+function iconFor(name: string) {
+  return ICONS[name as keyof typeof ICONS] ?? Eye;
+}
+
+/** The destructive actions are rendered apart, after a separator. */
+const safe = () => props.actions.filter((action) => !action.danger);
+const danger = () => props.actions.filter((action) => action.danger);
+</script>
+
+<template>
+  <div class="rec-menu-wrap">
+    <LtIconButton
+      :label="`More actions for ${name}`"
+      :aria-haspopup="true"
+      :aria-expanded="open"
+      @click="emit('toggle')"
+    >
+      <Ellipsis :size="15" aria-hidden="true" />
+    </LtIconButton>
+    <div v-if="open" class="rec-menu" role="menu" @keydown="emit('keydown', $event)">
+      <button
+        v-for="action in safe()"
+        :key="action.id"
+        type="button"
+        role="menuitem"
+        :disabled="action.disabled"
+        :title="action.reason || undefined"
+        @click="emit('run', action.id, $event)"
+      >
+        <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />
+        {{ action.label }}
+      </button>
+      <template v-if="danger().length">
+        <span class="rec-menu-sep" role="separator" />
+        <button
+          v-for="action in danger()"
+          :key="action.id"
+          type="button"
+          role="menuitem"
+          class="is-danger"
+          :disabled="action.disabled"
+          :title="action.reason || undefined"
+          @click="emit('run', action.id, $event)"
+        >
+          <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />
+          {{ action.label }}
+        </button>
+      </template>
+      <!-- A disabled control whose reason lives only in a title is a control
+           nobody on a touch device or a screen reader can find out about. One
+           line under the menu, for whichever item is blocked. -->
+      <p v-if="actions.some((a) => a.disabled)" class="rec-menu-note">
+        {{ actions.find((a) => a.disabled)?.reason }}
+      </p>
+    </div>
+  </div>
+</template>

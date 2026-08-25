@@ -27,6 +27,7 @@ import {
 import LtBadge from "../components/lt/LtBadge.vue";
 import LtButton from "../components/lt/LtButton.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import RecordMenu from "../components/RecordMenu.vue";
 import LtDrawer from "../components/lt/LtDrawer.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
@@ -34,6 +35,8 @@ import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
+import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import { anchorTopFrom } from "../overlayAnchor";
 
@@ -594,6 +597,80 @@ function onDocumentKeydown(event: KeyboardEvent): void {
   // an overlay is up is decided in editorExit.ts.
   exit.onEscape();
 }
+/**
+ * What this session may do, in the shape the action registry reads. One place
+ * to answer "why is that greyed out", rather than an inline expression per
+ * control that drifts from its neighbours.
+ */
+const actionCaps = computed<ActionCapabilities>(() => ({
+  ready: !!host.init.value,
+  mutate: subs.canMutate.value,
+  fetch: subs.canFetch.value,
+  preview: subs.canPreview.value,
+  render: subs.canRender.value,
+  publish: subs.canPublish.value,
+}));
+
+const MENU_ACTIONS = ["preview", "share", "publish", "duplicate", "delete"] as const;
+
+function menuActionsFor(row: SubscriptionListItem) {
+  return actionsFor(row, actionCaps.value, MENU_ACTIONS);
+}
+
+/**
+ * What the selection can carry. A batch is allowed only where every record in
+ * it allows the action: reporting "Delete 12" and then refusing four of them
+ * is worse than saying up front that the set cannot go.
+ */
+const batchActions = computed(() => batchActionsFor(selectedVisible.value, actionCaps.value));
+
+/** One resolved action, for the icon buttons that sit in the row itself. */
+function rowAction(row: SubscriptionListItem, id: ActionId) {
+  return (
+    actionsFor(row, actionCaps.value, [id])[0] ?? { id, label: "", icon: "", danger: false, reason: "", disabled: true }
+  );
+}
+
+/**
+ * Requests from the palette, which can see every record but cannot open this
+ * screen's drawers. Only intents this screen owns are taken: both screens are
+ * kept alive and both watch, so the sibling must be able to find its own.
+ */
+const intent = recordIntent(host);
+watch(
+  intent,
+  (value) => {
+    if (isCommandIntent(value) && value.command !== "new-file") {
+      claimIntent(intent, () => true);
+      startCreate(value.command === "new-collection" ? KIND_COLLECTION : KIND_SUB);
+      return;
+    }
+    if (!isRecordIntent(value)) return;
+    const row = subs.items.value.find((item) => item.id === value.recordId);
+    if (!row || row.kind === KIND_FILE) return;
+    claimIntent(intent, () => true);
+    runRowAction(value.action, row, new MouseEvent("click"));
+  },
+  { immediate: true },
+);
+
+/**
+ * The registry says what and when; this says how. Every caller goes through
+ * here — the row's icon buttons, its menu, and the palette — so an action
+ * means the same thing wherever it was started from.
+ */
+function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent): void {
+  closeRowMenu();
+  if (id === "edit") return void startEdit(row.id);
+  if (id === "refresh") return void refreshRow(row.id);
+  if (id === "output") return openTargetSheet(row, event);
+  if (id === "preview") return openDrawer("preview", row.id, event);
+  if (id === "share") return openDrawer("share", row.id, event);
+  if (id === "publish") return openDrawer("publish", row.id, event);
+  if (id === "duplicate") return void subs.duplicate(row.id);
+  if (id === "delete") return requestDelete([row.id], event);
+}
+
 /**
  * The editor's sections, split the way Sub-Store splits them: what the record
  * is called, what it is made of, and what is done to it. A single scroll of
@@ -1354,13 +1431,16 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
              already-deleted row must never be part of what Delete promises. -->
         <LtBatchBar :count="selectedCount" @clear="selectedIds = new Set()">
           <button
+            v-for="action in batchActions"
+            :key="action.id"
             class="button button-danger button-compact"
             type="button"
-            :disabled="!subs.canMutate.value"
+            :disabled="action.disabled"
+            :title="action.reason || undefined"
             @click="requestDelete(selectedVisible.map((row) => row.id), $event)"
           >
             <Trash2 :size="14" aria-hidden="true" />
-            Delete {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
+            {{ action.label }} {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
           </button>
         </LtBatchBar>
 
@@ -1479,65 +1559,37 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               <div class="rec-actions" @click.stop>
                 <LtIconButton
                   :label="`Refresh ${row.name}`"
-                  :disabled="!subs.canFetch.value"
-                  @click="refreshRow(row.id)"
+                  :disabled="rowAction(row, 'refresh').disabled"
+                  :title="rowAction(row, 'refresh').reason || undefined"
+                  @click="runRowAction('refresh', row, $event)"
                 >
                   <RefreshCw :size="15" aria-hidden="true" />
                 </LtIconButton>
                 <LtIconButton
                   :label="`Edit ${row.name}`"
-                  :disabled="!subs.canMutate.value"
-                  @click="startEdit(row.id)"
+                  :disabled="rowAction(row, 'edit').disabled"
+                  :title="rowAction(row, 'edit').reason || undefined"
+                  @click="runRowAction('edit', row, $event)"
                 >
                   <Pencil :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <LtIconButton :label="`Preview or copy ${row.name}`" @click="openTargetSheet(row, $event)">
+                <LtIconButton
+                  :label="`Preview or copy ${row.name}`"
+                  :disabled="rowAction(row, 'output').disabled"
+                  :title="rowAction(row, 'output').reason || undefined"
+                  @click="runRowAction('output', row, $event)"
+                >
                   <ChevronsRight :size="15" aria-hidden="true" />
                 </LtIconButton>
-                <div class="rec-menu-wrap" :data-row-menu="row.id">
-                  <LtIconButton
-                    :label="`More actions for ${row.name}`"
-                    :aria-haspopup="true"
-                    :aria-expanded="openMenuId === row.id"
-                    @click="toggleRowMenu(row.id)"
-                  >
-                    <Ellipsis :size="15" aria-hidden="true" />
-                  </LtIconButton>
-                  <div v-if="openMenuId === row.id" class="rec-menu" role="menu" @keydown="onRowMenuKeydown">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      :disabled="!subs.canPreview.value"
-                      @click="closeRowMenu(); openDrawer('preview', row.id, $event)"
-                    >
-                      <Eye :size="14" aria-hidden="true" /> Preview nodes
-                    </button>
-                    <button type="button" role="menuitem" :disabled="!host.init.value" @click="closeRowMenu(); openDrawer('share', row.id, $event)">
-                      <Share2 :size="14" aria-hidden="true" /> Share…
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      :disabled="!subs.canPublish.value || !subs.canMutate.value"
-                      @click="closeRowMenu(); openDrawer('publish', row.id, $event)"
-                    >
-                      <Send :size="14" aria-hidden="true" /> Publish…
-                    </button>
-                    <button type="button" role="menuitem" :disabled="!subs.canMutate.value" @click="closeRowMenu(); subs.duplicate(row.id)">
-                      <CopyPlus :size="14" aria-hidden="true" /> Duplicate
-                    </button>
-                    <span class="rec-menu-sep" role="separator" />
-                    <button
-                      type="button"
-                      role="menuitem"
-                      class="is-danger"
-                      :disabled="!subs.canMutate.value"
-                      @click="closeRowMenu(); requestDelete([row.id], $event)"
-                    >
-                      <Trash2 :size="14" aria-hidden="true" /> Delete
-                    </button>
-                  </div>
-                </div>
+                <RecordMenu
+                  :data-row-menu="row.id"
+                  :name="row.name"
+                  :actions="menuActionsFor(row)"
+                  :open="openMenuId === row.id"
+                  @toggle="toggleRowMenu(row.id)"
+                  @run="(id, event) => runRowAction(id, row, event)"
+                  @keydown="onRowMenuKeydown"
+                />
               </div>
             </li>
           </ul>
