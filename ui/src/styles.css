@@ -959,6 +959,11 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .tok-comment { color: var(--lt-fg-muted); font-style: italic; }
 
 .output-dropped {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+  flex-wrap: wrap;
   margin: 0 0 var(--lt-space-3);
   padding: var(--lt-space-2) var(--lt-space-3);
   border: 1px solid var(--lt-warn-border);
@@ -968,6 +973,9 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   font-size: var(--lt-text-sm);
   line-height: var(--lt-leading);
 }
+.output-dropped p { margin: 0; min-width: 0; flex: 1; }
+.output-dropped button { flex: none; }
+
 
 .doc-truncated {
   margin: var(--lt-space-2) 0 0;
@@ -1032,13 +1040,20 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   overflow-y: auto;
 }
 
+/* The sheet is a frame, not a scroller.
+ *
+ * It used to scroll as one surface with three sticky layers inside it — the
+ * header, the control rail and the output toolbar — so the whole thing moved
+ * while pieces of it stayed put. Each pane owns its own scroll now: the rail
+ * scrolls its clients, the output scrolls its document, and neither drags the
+ * other past its heading. */
 .sheet {
   width: min(var(--lt-preview-workspace-w), 100%);
   height: min(var(--lt-preview-workspace-h), 100%);
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   padding: 0;
   border: 1px solid var(--lt-border-strong);
@@ -1049,9 +1064,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .sheet:focus-visible { outline: none; box-shadow: var(--lt-shadow-overlay), var(--lt-focus-ring-tight); }
 
 .sheet-head {
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  flex: none;
   display: flex;
   min-height: var(--lt-preview-header-h);
   align-items: center;
@@ -1104,16 +1117,38 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .target-workspace-body {
   display: grid;
+  flex: 1;
   grid-template-columns: var(--lt-preview-control-w) minmax(0, 1fr);
-  min-height: calc(100% - var(--lt-preview-header-h));
+  /* Without this a grid child refuses to shrink below its content and the
+     panes never scroll — the sheet grows instead. */
+  min-height: 0;
 }
 .target-workspace-body.is-file { grid-template-columns: 220px minmax(0, 1fr); }
 
+/* Below this the two columns stop being two columns: a 300px rail beside a
+   90px document is a document nobody can read. The rail becomes a capped strip
+   on top with its own scroll, and the output takes the rest. The sheet asks its
+   own width rather than the device's, because it is a pane inside a console. */
+.sheet { container-type: inline-size; }
+
+@container (max-width: 720px) {
+  .target-workspace-body,
+  .target-workspace-body.is-file {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+  }
+  .target-controls {
+    max-height: 38%;
+    border-right: 0;
+    border-bottom: 1px solid var(--lt-border);
+  }
+}
+
 .target-controls {
-  position: sticky;
-  top: var(--lt-preview-header-h);
-  align-self: start;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--lt-space-4);
   border-right: 1px solid var(--lt-border);
   background: var(--lt-surface-2);
@@ -1233,15 +1268,19 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 }
 
 .target-output {
+  display: flex;
   min-width: 0;
+  min-height: 0;
+  flex-direction: column;
   padding: var(--lt-space-4);
   background: var(--lt-surface);
 }
 
+/* Top of its own pane, so it does not need to be pinned to anything. It was
+   sticky over a scrolling sheet, which is what made it feel nailed down while
+   everything else moved. */
 .target-output-toolbar {
-  position: sticky;
-  top: var(--lt-preview-header-h);
-  z-index: 3;
+  flex: none;
   padding-bottom: var(--lt-space-3);
   border-bottom: 1px solid var(--lt-border);
   background: var(--lt-surface);
@@ -1305,7 +1344,14 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 }
 .output-actions { display: flex; flex: none; gap: var(--lt-space-2); }
 
-.output-panel { min-width: 0; padding-top: var(--lt-space-3); }
+.output-panel {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: var(--lt-space-3);
+}
 .document-panel .code-editor-host .cm-scroller { min-height: calc(24 * var(--lt-code-line) + var(--lt-space-4)); }
 
 .output-state {
@@ -1364,11 +1410,10 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .preview-node-table td:first-child { overflow-wrap: anywhere; }
 .preview-node-table code { font-family: var(--lt-mono); font-size: var(--lt-text-xs); overflow-wrap: anywhere; }
 
-/* Inside the sheet, the sheet is the scroll surface. A rendered document that
-   also caps itself would put a scrollbar inside that scrollbar. */
-.sheet .result-doc {
-  max-height: none;
-}
+/* The output panel is the scroll surface here, so the document fills it rather
+   than capping at a row count and scrolling inside a scroller. */
+.sheet .result-doc { max-height: none; }
+.sheet .result-doc .doc-scroll { max-height: none; overflow: visible; }
 
 .sheet-headings { min-width: 0; }
 .result-more { margin: var(--lt-space-1) 0 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
