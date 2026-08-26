@@ -380,7 +380,12 @@ describe("TargetSheet says when a client refused nodes", () => {
     expect(said).toContain("hysteria2, vless");
     expect(said).toContain("any of this record's 4 nodes");
     expect(said).toContain("This document has none of them.");
-    expect(said).toContain("Include protocols the selected client does not support");
+    // The remedy is in the notice, not directions to a control in the other
+    // column: naming the toggle and leaving the operator to find it is the
+    // same as not offering it.
+    expect(said).toContain("Send them anyway");
+    const action = find(notice, (node) => node.type === "button")[0];
+    expect(action, "the notice explains but cannot act").toBeTruthy();
     // The document is still shown: the operator asked to see what the client
     // receives, and "almost nothing" is the answer.
     const output = find(root, (node) => node.props["data-document-view"] === "true")[0]!;

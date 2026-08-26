@@ -131,10 +131,7 @@ const droppedNotice = computed(() => {
     ? `any of this record's ${total} nodes`
     : `${dropped} of this record's ${total || dropped} nodes`;
   const outcome = all ? "This document has none of them." : "They are not in this document.";
-  return (
-    `${chosenTarget.value.label} cannot carry ${scope}${named}. ${outcome} ` +
-    `Turn on "Include protocols the selected client does not support" to send them anyway.`
-  );
+  return `${chosenTarget.value.label} cannot carry ${scope}${named}. ${outcome}`;
 });
 const renderedBytes = computed(() =>
   rendered.value ? new TextEncoder().encode(rendered.value.content).byteLength : 0,
@@ -784,13 +781,25 @@ onBeforeUnmount(stopAllRequests);
                  The toggle that changes it is in this same sheet, so the notice
                  names it rather than leaving the operator to guess. Its own
                  v-if, so the states below stay one chain. -->
-            <p
+            <div
               v-if="documentStatus === 'ready' && droppedNotice"
               class="output-dropped"
               role="status"
             >
-              {{ droppedNotice }}
-            </p>
+              <p>{{ droppedNotice }}</p>
+              <!-- The remedy, not directions to it. This named the toggle and
+                   left the operator to find it in the other column, which is
+                   the same as not offering it: the notice was read twice and
+                   the document stayed empty both times. -->
+              <button
+                v-if="!includeUnsupported"
+                type="button"
+                class="button button-secondary button-compact"
+                @click="includeUnsupported = true"
+              >
+                Send them anyway
+              </button>
+            </div>
             <div v-if="documentStatus === 'loading'" class="output-state" role="status">
               <LoaderCircle :size="18" class="spin" aria-hidden="true" />
               <strong>Generating {{ isFile ? "document" : chosenTarget.label }} output…</strong>

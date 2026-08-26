@@ -87,6 +87,31 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(styles).toMatch(/\.editor-group\s*\{[^}]*min-width:\s*0[^}]*width:\s*100%/s);
   });
 
+  /**
+   * Each pane owns its scroll.
+   *
+   * The sheet used to be one scroll surface with three sticky layers inside it
+   * — the header, the client rail and the output toolbar — so the whole sheet
+   * moved while pieces of it stayed nailed down. Reading a long document
+   * dragged the client list past its own heading.
+   */
+  it("scrolls each pane rather than the whole sheet", () => {
+    const decl = styles.replace(/\/\*[\s\S]*?\*\//g, "");
+    // The frame itself does not scroll.
+    expect(decl).toMatch(/\.sheet\s*\{[^}]*overflow:\s*hidden/s);
+    // The rail and the document panel each do.
+    expect(decl).toMatch(/\.target-controls\s*\{[^}]*overflow-y:\s*auto/s);
+    expect(decl).toMatch(/\.output-panel\s*\{[^}]*overflow-y:\s*auto/s);
+    // A grid child that cannot shrink never scrolls; the sheet grows instead.
+    expect(decl).toMatch(/\.target-workspace-body\s*\{[^}]*min-height:\s*0/s);
+    expect(decl).toMatch(/\.target-output\s*\{[^}]*min-height:\s*0/s);
+    // Nothing in the sheet is pinned any more.
+    for (const rule of ["\\.sheet-head", "\\.target-controls", "\\.target-output-toolbar"]) {
+      const m = new RegExp(rule + "\\s*\\{[^}]*position:\\s*sticky", "s");
+      expect(decl, rule + " is still pinned").not.toMatch(m);
+    }
+  });
+
   it("gives the preview workspace a dominant evidence pane", () => {
     expect(styles).toMatch(/\.sheet\s*\{[^}]*width:\s*min\(var\(--lt-preview-workspace-w\)/s);
     expect(styles).toMatch(/\.target-workspace-body\s*\{[^}]*grid-template-columns/s);
