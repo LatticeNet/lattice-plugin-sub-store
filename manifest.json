@@ -11,7 +11,7 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.13.0-alpha.26",
+  "version": "0.13.0-alpha.27",
   "publisher": "latticenet",
   "signature_ed25519": "eOpHg/EBZCcfPGBPVyL0rQQYZ8u3fPviVi27PY4LLVOWPCePYrstjSqS+WC/8FPtbAxVQXhCHOTnmc9C7+S2Bg==",
   "bundle": {
