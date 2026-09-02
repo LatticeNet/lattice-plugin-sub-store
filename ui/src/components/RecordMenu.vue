@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CopyPlus, Ellipsis, Eye, Send, Share2, Trash2 } from "@lucide/vue";
+import { CopyPlus, Ellipsis, Eye, Link, Share2, Trash2, Upload } from "@lucide/vue";
 
 import LtIconButton from "./lt/LtIconButton.vue";
 import type { ResolvedAction } from "../recordActions";
@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 /** Declarations name an icon; the mapping to a component lives here so the
  *  registry stays free of imports and can be tested without Vue. */
-const ICONS = { eye: Eye, share: Share2, send: Send, copy: CopyPlus, trash: Trash2 } as const;
+const ICONS = { eye: Eye, share: Share2, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2 } as const;
 
 function iconFor(name: string) {
   return ICONS[name as keyof typeof ICONS] ?? Eye;
@@ -56,7 +56,7 @@ const reasons = () => [...new Set(props.actions.filter((a) => a.disabled).map((a
         type="button"
         role="menuitem"
         :disabled="action.disabled"
-        :title="action.reason || undefined"
+        :title="action.reason || action.title"
         @click="emit('run', action.id, $event)"
       >
         <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />
@@ -71,7 +71,7 @@ const reasons = () => [...new Set(props.actions.filter((a) => a.disabled).map((a
           role="menuitem"
           class="is-danger"
           :disabled="action.disabled"
-          :title="action.reason || undefined"
+          :title="action.reason || action.title"
           @click="emit('run', action.id, $event)"
         >
           <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />

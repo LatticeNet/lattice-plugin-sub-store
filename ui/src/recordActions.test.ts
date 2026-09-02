@@ -66,6 +66,17 @@ describe("why an action cannot run", () => {
     expect(actionsFor(record(), caps({ fetch: false })).find((a) => a.id === "refresh")?.disabled).toBe(true);
   });
 
+  it("names the two ways out of the store by their outcome and says what each does", () => {
+    // The share action opens the console's form and the record comes back
+    // published, so it carries that word; the upload sends a rendered
+    // document to a URL and creates no share, so it must not. Both used to
+    // read Share… and Publish… side by side, with no title on either.
+    const actions = actionsFor(record(), caps());
+    expect(actions.find((a) => a.id === "share")?.label).toBe("Publish…");
+    expect(actions.find((a) => a.id === "publish")?.label).toBe("Upload document…");
+    for (const action of actions) expect(action.title, action.id).toMatch(/\S\.$/);
+  });
+
   it("distinguishes a missing method from a missing scope", () => {
     const noPublishMethod = actionsFor(record(), caps({ publish: false })).find((a) => a.id === "publish")!;
     expect(noPublishMethod.reason).toContain("does not declare");

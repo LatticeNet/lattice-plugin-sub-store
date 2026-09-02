@@ -71,10 +71,8 @@ function onTab(event: KeyboardEvent): void {
   top: var(--overlay-anchor-top, 0);
   right: 0;
   width: min(440px, 92vw);
-  /* A fixed ceiling keeps a row inspection task bounded. The drawer body is
-     its one scroll surface when the rendered document is longer. */
-  max-height: 640px;
-  overflow: hidden;
+  /* Its height is its content: the document is the one scroller, so a long
+     rendered document lengthens the page rather than a box inside it. */
   background: var(--lt-surface);
   border: 1px solid var(--lt-border-strong);
   border-right: 0;
@@ -82,7 +80,7 @@ function onTab(event: KeyboardEvent): void {
   box-shadow: var(--lt-shadow-overlay);
   display: flex;
   flex-direction: column;
-  animation: lt-drawer-in var(--lt-dur) var(--lt-ease);
+  animation: lt-drawer-in var(--lt-dur-base) var(--lt-ease);
 }
 .lt-drawer:focus-visible { outline: none; box-shadow: var(--lt-shadow-overlay), var(--lt-focus-ring-tight); }
 @keyframes lt-drawer-in {
@@ -107,5 +105,5 @@ function onTab(event: KeyboardEvent): void {
 }
 .lt-drawer-close:hover { background: var(--lt-surface-2); color: var(--lt-fg); }
 .lt-drawer-close:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-drawer-body { padding: var(--lt-space-4); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
+.lt-drawer-body { padding: var(--lt-space-4); flex: 1; }
 </style>

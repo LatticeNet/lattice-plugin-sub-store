@@ -44,6 +44,12 @@ export interface ActionDeclaration {
   id: ActionId;
   /** Menu label. A file's nodes are a document, so two ids read differently. */
   label: (kind: RecordKind) => string;
+  /**
+   * What running it does, one sentence, shown as the control's title when
+   * nothing blocks it. Only the blocked items used to carry a title, so
+   * "Share…" beside "Publish…" had no way of saying which was which.
+   */
+  title: (kind: RecordKind) => string;
   /** Icon name; each screen maps it to its own imported component. */
   icon: string;
   kinds: readonly RecordKind[];
@@ -74,6 +80,7 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "edit",
     label: () => "Edit",
+    title: () => "Open the record: its name, source and operations.",
     icon: "pencil",
     kinds: ALL_KINDS,
     // The editor exists to change the record, and its Save is the capability
@@ -83,7 +90,8 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   },
   {
     id: "refresh",
-    label: () => "Refresh now",
+    label: () => "Refresh",
+    title: () => "Read the source again and store what it returns.",
     icon: "refresh",
     kinds: NODE_KINDS,
     // Refreshing reads the source again; it is gated on the probe method, not
@@ -95,6 +103,10 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "output",
     label: (kind) => (kind === KIND_FILE ? "Show document" : "Client output…"),
+    title: (kind) =>
+      kind === KIND_FILE
+        ? "Show the document a client receives."
+        : "Render this record for a client of your choice and copy the result.",
     icon: "eye",
     kinds: ALL_KINDS,
     blocked: (caps) =>
@@ -107,6 +119,7 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "preview",
     label: () => "Preview nodes",
+    title: () => "Run the chain and list the nodes it produces.",
     icon: "eye",
     // A file is a document; its nodes are not the thing it serves.
     kinds: NODE_KINDS,
@@ -114,16 +127,27 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
       !caps.ready ? NEEDS_HOST : caps.preview ? "" : "The installed bundle does not declare a preview method.",
   },
   {
+    // Named by its outcome. The console creates the share, so this frame can
+    // only open the form there; what the operator gets is a published record,
+    // which is the word the PUBLISHED column and the banner already use.
     id: "share",
-    label: () => "Share…",
+    label: () => "Publish…",
+    title: () => "Open the console's share form for this record. A share is what makes a record reachable to a client.",
     icon: "share",
     kinds: ALL_KINDS,
     blocked: (caps) => (caps.ready ? "" : NEEDS_HOST),
   },
   {
+    // The server's `publish` renders the saved record and ships the document
+    // to a destination the operator names (an upload, the way the official
+    // front end syncs an artifact to a gist). It creates no share, so it is
+    // not called Publish here: two menu items with that word, one of which
+    // made the record reachable and one of which did not, was the vocabulary
+    // bug.
     id: "publish",
-    label: () => "Publish…",
-    icon: "send",
+    label: () => "Upload document…",
+    title: () => "Render the saved record and send the document to a URL you name (PUT, POST or PATCH). Unsaved edits are never sent.",
+    icon: "upload",
     kinds: ALL_KINDS,
     blocked: (caps) =>
       !caps.ready
@@ -137,6 +161,7 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "duplicate",
     label: () => "Duplicate",
+    title: () => "Copy this record as a new one.",
     icon: "copy",
     kinds: ALL_KINDS,
     blocked: (caps) => (!caps.ready ? NEEDS_HOST : caps.mutate ? "" : NEEDS_MUTATE),
@@ -144,6 +169,7 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "delete",
     label: () => "Delete",
+    title: () => "Remove the record. A share published for it keeps existing and starts returning nothing.",
     icon: "trash",
     kinds: ALL_KINDS,
     danger: true,
@@ -155,6 +181,8 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
 export interface ResolvedAction {
   id: ActionId;
   label: string;
+  /** What running it does; the control's title when nothing blocks it. */
+  title: string;
   icon: string;
   danger: boolean;
   /** "" when the action can run; otherwise the sentence to show. */
@@ -176,6 +204,7 @@ export function actionsFor(
     return {
       id: action.id,
       label: action.label(kind),
+      title: action.title(kind),
       icon: action.icon,
       danger: action.danger === true,
       reason,
@@ -204,6 +233,7 @@ export function batchActionsFor(
     return {
       id: action.id,
       label: action.label(kind),
+      title: action.title(kind),
       icon: action.icon,
       danger: action.danger === true,
       reason,

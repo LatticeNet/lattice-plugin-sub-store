@@ -79,7 +79,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   background: var(--lt-surface);
 }
 
-.title-copy h1 { margin: 0; font-size: var(--lt-text-xl); font-weight: 650; line-height: var(--lt-leading-tight); }
+.title-copy h1 { margin: 0; font-size: var(--lt-text-xl); font-weight: 650; line-height: var(--lt-leading-tight); letter-spacing: -0.02em; }
 .title-copy p,
 .section-heading p {
   margin: var(--lt-space-1) 0 0;
@@ -113,6 +113,19 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   font-weight: 600;
 }
 .tab:hover { color: var(--lt-fg); }
+/* The count from the list the lens renders; absent until that list is read. */
+.tab-count {
+  padding: 0 var(--lt-space-1);
+  border-radius: 999px;
+  background: var(--lt-neutral-soft);
+  color: var(--lt-fg-muted);
+  font-family: var(--lt-mono);
+  font-size: var(--lt-text-xs);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+.tab[data-active="true"] .tab-count { color: var(--lt-accent); background: var(--lt-accent-soft); }
 .tab[data-active="true"] { color: var(--lt-accent); border-bottom-color: var(--lt-accent); }
 .tab:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
@@ -126,7 +139,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   gap: var(--lt-space-4);
   margin-bottom: var(--lt-space-4);
 }
-.section-heading h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; line-height: var(--lt-leading-tight); }
+.section-heading h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; line-height: var(--lt-leading-tight); letter-spacing: -0.01em; }
 .heading-actions { display: flex; align-items: center; gap: var(--lt-space-2); flex-wrap: wrap; }
 
 /* ── semantic surfaces ────────────────────────────────────────────────────
@@ -269,6 +282,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .field-label-row { display: flex; align-items: center; justify-content: space-between; gap: var(--lt-space-2); }
 
 .field > input,
+.field .masked-url input,
 .select,
 .code-area {
   width: 100%;
@@ -278,7 +292,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   background: var(--lt-surface);
   outline: none;
 }
-.field > input, .select { min-height: 32px; padding: var(--lt-space-1) var(--lt-space-2); }
+.field > input, .field .masked-url input, .select { min-height: 32px; padding: var(--lt-space-1) var(--lt-space-2); }
 .code-area {
   padding: var(--lt-space-2);
   font-family: var(--lt-mono);
@@ -287,9 +301,10 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   resize: vertical;
 }
 .field > input:focus-visible,
+.field .masked-url input:focus-visible,
 .select:focus-visible,
 .code-area:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
-.field > input::placeholder, .code-area::placeholder { color: var(--lt-fg-muted); }
+.field > input::placeholder, .field .masked-url input::placeholder, .code-area::placeholder { color: var(--lt-fg-muted); }
 
 .select-compact { min-height: var(--lt-control-h-sm); padding: 0 var(--lt-space-1); font-size: var(--lt-text-xs); max-width: 14em; }
 
@@ -486,10 +501,10 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-list {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-1);
-  margin: var(--lt-space-2) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
+  border-top: 1px solid var(--lt-border);
 }
 
 /* One grid for the header and every row, so the columns line up down the whole
@@ -499,13 +514,61 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-head,
 .rec {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) minmax(120px, auto) auto auto;
+  grid-template-columns:
+    var(--lt-col-select) var(--lt-col-expand) minmax(200px, 1fr) var(--lt-col-source)
+    var(--lt-col-nodes) var(--lt-col-ops) var(--lt-col-published) var(--lt-col-status) var(--lt-rec-actions);
   align-items: center;
   gap: var(--lt-space-3);
 }
-.rec-head-published { min-width: 120px; }
-.rec-published-cell { min-width: 120px; }
-.rec-published { font-size: var(--lt-text-xs); white-space: nowrap; }
+/* Each row is its own grid, so every track is a fixed width: an `auto` track
+   would let one row's longer quota line shift that row's columns away from
+   its neighbours', and the header would agree with none of them. */
+.rec-scroll {
+  --lt-col-select: 18px;
+  --lt-col-expand: 22px;
+  --lt-col-source: 128px;
+  --lt-col-nodes: 84px;
+  --lt-col-ops: 104px;
+  --lt-col-published: 150px;
+  --lt-col-status: 204px;
+  min-width: 0;
+  container-type: inline-size;
+}
+.rec-head-nodes,
+.rec-head-ops { text-align: right; }
+.rec-nodes,
+.rec-ops {
+  font-size: var(--lt-text-xs);
+  text-align: right;
+  white-space: nowrap;
+  color: var(--lt-fg);
+}
+.rec-ops-off { color: var(--lt-fg-muted); }
+.rec-source {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-sm);
+}
+.rec-expand-cell { display: flex; align-items: center; min-width: 0; }
+.rec-expand {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--lt-radius-sm);
+  background: none;
+  color: var(--lt-fg-muted);
+}
+.rec-expand:hover { background: var(--lt-surface-2); color: var(--lt-fg); }
+.rec-expand:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-kind { flex: none; margin-right: var(--lt-space-1); color: var(--lt-fg-muted); vertical-align: -2px; }
+.rec-published-cell { min-width: 0; overflow: hidden; }
+.rec-published { display: block; font-size: var(--lt-text-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rec-published.is-ok { color: var(--lt-ok, var(--lt-fg)); }
 .rec-published.is-warn { color: var(--lt-warn, var(--lt-fg)); }
 .rec-published.is-neutral { color: var(--lt-fg-muted); }
@@ -533,19 +596,33 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.rec-head-status { text-align: right; }
+.rec-head-status { text-align: left; }
 /* Reserves exactly the width the row's action cluster occupies, so the header
    labels do not sit over the buttons. */
 .rec-head-spacer { width: var(--lt-rec-actions); }
 
+/* One dense row per record: 40px, a hairline under each, no card. The chain
+   opens under the row and takes the whole width. */
 .rec {
-  padding: var(--lt-space-2) var(--lt-space-3);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  min-height: var(--lt-row-h);
+  padding: 0 var(--lt-space-3);
+  border-bottom: 1px solid var(--lt-border);
   background: var(--lt-surface);
+  transition: background-color var(--lt-dur) var(--lt-ease);
 }
-.rec:hover { border-color: var(--lt-border-strong); }
-.rec.is-selected { border-color: var(--lt-accent-border); background: var(--lt-accent-soft); }
+.rec:hover { background: var(--lt-surface-2); }
+.rec.is-selected { background: var(--lt-accent-soft); }
+.rec.is-open { background: var(--lt-surface-2); }
+/* Row actions show on hover and on keyboard focus inside the row, and stay
+   shown where there is no hover to reveal them. */
+.rec-actions { opacity: 0; transition: opacity var(--lt-dur) var(--lt-ease); }
+.rec:hover .rec-actions,
+.rec:focus-within .rec-actions,
+.rec.is-open .rec-actions,
+.rec.is-pending .rec-actions { opacity: 1; }
+@media (hover: none) {
+  .rec-actions { opacity: 1; }
+}
 /* Mid-operation. Not a spinner over the row: the row is still readable and
    still true, it just cannot be acted on until the call returns. */
 .rec.is-pending { opacity: 0.55; }
@@ -553,20 +630,115 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .rec-select { display: flex; align-items: center; }
 
-.rec-icon {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface-2);
+/* The chain under its row. It spans every column, opens in 200ms with the
+   expo-out curve and can be closed mid-motion; a narrow frame pins it to the
+   visible width so it never scrolls with the columns. */
+.rec-chain {
+  grid-column: 1 / -1;
+  margin: 0 calc(var(--lt-space-3) * -1);
+  padding: var(--lt-space-3) var(--lt-space-4) var(--lt-space-4) calc(var(--lt-space-3) + var(--lt-col-select) + var(--lt-col-expand) + var(--lt-space-3) * 2);
+  border-top: 1px solid var(--lt-border);
+  background: var(--lt-surface);
+  font-size: var(--lt-text-sm);
+  animation: rec-chain-in var(--lt-dur-base) var(--lt-ease);
+  transform-origin: top;
+}
+@keyframes rec-chain-in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+.rec-chain-note {
+  margin: 0;
+  color: var(--lt-fg-muted);
+  line-height: var(--lt-leading);
+}
+.rec-chain-note.is-error {
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border-left: 2px solid var(--lt-danger);
+  background: var(--lt-danger-soft);
+  color: var(--lt-fg);
+}
+.rec-chain-note + .rec-chain-note,
+.rec-chain-list + .rec-chain-note { margin-top: var(--lt-space-2); }
+.rec-chain-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--lt-space-1) var(--lt-space-2);
+  margin: 0 0 var(--lt-space-2);
   color: var(--lt-fg-muted);
 }
+.rec-chain-eyebrow {
+  font-family: var(--lt-mono);
+  font-size: var(--lt-text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rec-chain-url { color: var(--lt-fg); font-family: var(--lt-mono); font-size: var(--lt-text-xs); overflow-wrap: anywhere; }
+.rec-reveal {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lt-fg-muted);
+  font: inherit;
+  font-size: var(--lt-text-xs);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.rec-reveal:hover { color: var(--lt-fg); }
+.rec-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: 2px; }
+.rec-chain-list {
+  display: flex;
+  flex-direction: column;
+  max-width: 64ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rec-chain-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+  min-height: var(--lt-row-h-compact);
+  padding: var(--lt-space-1) 0;
+  border-bottom: 1px solid var(--lt-border);
+  color: var(--lt-fg-muted);
+}
+.rec-chain-list li.is-cut { color: var(--lt-fg); }
+.rec-chain-list li.is-off { text-decoration: line-through; }
+.rec-chain-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-chain-delta { flex: none; font-size: var(--lt-text-xs); }
+.rec-chain-dropped {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(36ch, 100%), 1fr));
+  gap: 2px var(--lt-space-5);
+  margin: var(--lt-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--lt-text-xs);
+  color: var(--lt-fg-muted);
+}
+.rec-chain-dropped li { display: flex; flex-wrap: wrap; gap: var(--lt-space-1) var(--lt-space-2); min-width: 0; }
+.rec-chain-dropped > .rec-chain-note { grid-column: 1 / -1; }
+.rec-chain-dropped-name { color: var(--lt-fg); text-decoration: line-through; }
+.rec-chain-dropped-by::before { content: "· "; }
 
-.rec-body { min-width: 0; }
+/* The name outranks the tags. The name never shrinks: it is capped at 68%
+   of the cell while tags sit beside it and at the whole cell otherwise, and
+   the tags are the one thing that gives. A shrinkable name lost a fraction
+   of a pixel to every deficit and its ellipsis fired on names that fit. The
+   ellipsis lives on a span inside the name: the name is a flex box because
+   of its icon, and `text-overflow` does not apply to a flex container's
+   anonymous text, so until this the name was cut mid-glyph by the cell's
+   clip and a long name spilled into SOURCE. */
+.rec-body { display: flex; align-items: center; gap: var(--lt-space-2); min-width: 0; overflow: hidden; }
+.rec-body .rec-name { flex: 0 0 auto; min-width: 0; max-width: 100%; }
+.rec-body .rec-name.has-tags { max-width: 68%; }
 
 .rec-name {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
   max-width: 100%;
   padding: 0;
   border: 0;
@@ -577,36 +749,50 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   font-size: var(--lt-text-md);
   font-weight: 600;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
   vertical-align: bottom;
 }
-.rec-name:hover { text-decoration: underline; }
+.rec-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+button.rec-name { cursor: pointer; }
+button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .rec-name:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-.rec-tags { display: inline-flex; flex-wrap: wrap; gap: var(--lt-space-1); margin-left: var(--lt-space-2); vertical-align: middle; }
-
-.rec-summary,
-.rec-meta {
-  margin: 2px 0 0;
-  color: var(--lt-fg-muted);
-  font-size: var(--lt-text-sm);
+/* A block, not a flex box, so a badge that no longer fits is dropped for an
+   ellipsis rather than sliced; and each badge can ellipse inside its own
+   pill, for the strip too short for even one whole badge. */
+.rec-tags {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--lt-text-xs);
+  line-height: 18px;
 }
-.rec-meta { font-size: var(--lt-text-xs); }
+.rec-tags > * + * { margin-left: var(--lt-space-1); }
+.rec-body .rec-tags .lt-badge {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
 
-/* The refresh state and the provider's quota, right-aligned in their own
-   column and tabular, so a column of them can be read down rather than hunted
-   for inside a sentence. It was a run-on line of "id · Refreshed 3h ago · 27 GB
-   / 500 GB" that no two rows aligned on. */
+/* The refresh state and the provider's quota in their own column and
+   tabular, so a column of them can be read down rather than hunted for
+   inside a sentence. It was a run-on line of "id · Refreshed 3h ago · 27 GB
+   / 500 GB" that no two rows aligned on. Left-aligned like the text columns
+   before it: right-aligned, every short value ("n/a") sat at the far end of
+   a track sized for the longest quota line, and the space between it and
+   PUBLISHED read as a gutter. */
 .rec-status-cell {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 1px;
-  text-align: right;
+  text-align: left;
   font-size: var(--lt-text-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -616,7 +802,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-status.is-danger { color: var(--lt-danger); }
 .rec-status.is-warn { color: var(--lt-warn); }
 .rec-status.is-ok { color: var(--lt-ok); }
-.rec-quota { color: var(--lt-fg-muted); }
+.rec-quota { color: var(--lt-fg-muted); white-space: normal; }
 .rec-quota.is-danger { color: var(--lt-danger); }
 
 .rec-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: var(--lt-rec-actions); }
@@ -821,15 +1007,18 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .editor-side-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--lt-space-3);
+  gap: var(--lt-space-2) var(--lt-space-3);
   margin-bottom: var(--lt-space-3);
 }
+/* The heading is one phrase; the buttons wrap under it before it breaks. */
 .editor-side-head h3 {
   margin: 0;
   font-size: var(--lt-text-md);
   font-weight: 600;
+  white-space: nowrap;
 }
 .editor-side-note {
   margin: 0;
@@ -854,42 +1043,24 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    breakpoint the pane is the last block instead: a sticky column in a narrow
    frame is a column that covers the form it is there to explain.
 
-   Each variant states both halves — its columns AND its pinning — even though
-   that repeats four declarations. It was written as one blanket rule plus
-   overrides, and the override reverted the columns but not the pinning, so the
-   wide pane spent the band between the two breakpoints stacked full width AND
-   sticky, which is the exact thing the breakpoint exists to prevent. A block
-   that reads completely on its own cannot drift like that.
+   The block states both halves, its columns AND its pinning. It was written
+   as one blanket rule plus overrides, and the override reverted the columns
+   but not the pinning, so a pane spent a band of widths stacked full width
+   AND sticky, which is the exact thing the breakpoint exists to prevent. A
+   block that reads completely on its own cannot drift like that.
 
    The frame is the visible window (PluginFrameHost), so sticky resolves against
    it and the pane stays put while a long form scrolls under it. */
 
-/* A node list is short rows; 380px reads it. */
-@container (min-width: 1040px) {
-  .editor-layout:not([data-pane="wide"]) {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    /* The fields inside cap themselves in characters, so on a very wide frame
-       an uncapped grid parks the pane far off to the right. The layout caps at
-       what the two columns actually need. */
-    max-width: calc(var(--lt-measure-form) + 380px + var(--lt-space-5));
-  }
-  .editor-layout:not([data-pane="wide"]) > .editor-side {
-    position: sticky;
-    top: var(--lt-space-4);
-    max-height: calc(100vh - var(--lt-space-8));
-    overflow: auto;
-  }
-  /* One scroller per surface. The lists cap themselves everywhere else, but
-     inside a pane that already scrolls that cap makes a scroll area inside a
-     scroll area, and reaching a row means guessing which one owns the wheel. */
-  .editor-layout:not([data-pane="wide"]) > .editor-side .node-list {
-    max-height: none;
-    overflow: visible;
-  }
-}
+/* The subscription editor's pane has no column of its own at any width. It
+   is the compare panel now, source beside result with an endpoint under
+   each name, and in the 380px column it used to take from 1040px up every
+   endpoint wrapped mid-token. A panel read row by row needs the width more
+   than it needs to stay in view, so it is the last block under the form at
+   every width, as it always was below the breakpoint. */
 
-/* A rendered configuration is 80-column text, so it needs a wider column and
-   therefore a later breakpoint. Same mechanism, one parameter. */
+/* A rendered configuration is 80-column text, so the files editor keeps a
+   wide pane beside its form once the frame can hold both. */
 @container (min-width: 1180px) {
   .editor-layout[data-pane="wide"] {
     grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
@@ -898,8 +1069,8 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .editor-layout[data-pane="wide"] > .editor-side {
     position: sticky;
     top: var(--lt-space-4);
-    max-height: calc(100vh - var(--lt-space-8));
-    overflow: auto;
+    max-height: none;
+    overflow: visible;
   }
   .editor-layout[data-pane="wide"] > .editor-side .doc-scroll {
     max-height: none;
@@ -1049,38 +1220,37 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    frame that offset would drop the sheet below the fold once the page is
    scrolled, so it is gone; the variable the screens still set is inert. */
 
+/* The scrim covers the workspace, not the window: the sheet sits in the
+   document, at the row that opened it, and the document scrolls it. */
 .sheet-scrim {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 60;
-  display: grid;
-  justify-items: center;
-  align-items: center;
-  padding: var(--lt-space-5) var(--lt-space-4);
-  background: color-mix(in oklab, #000 55%, transparent);
-  overflow-y: auto;
+  background: color-mix(in oklab, var(--lt-fg) 24%, transparent);
 }
 
-/* The sheet is a frame, not a scroller.
- *
- * It used to scroll as one surface with three sticky layers inside it — the
- * header, the control rail and the output toolbar — so the whole thing moved
- * while pieces of it stayed put. Each pane owns its own scroll now: the rail
- * scrolls its clients, the output scrolls its document, and neither drags the
- * other past its heading. */
+/* The sheet is a right-side panel and never a scroller. It used to be a
+ * fixed frame with three scrollers inside it (the rail, the output, the
+ * scrim), and reaching a row meant guessing which one owned the wheel. Its
+ * height is its content; the document is the one thing that scrolls. It
+ * opens in 200ms on the expo-out curve and can be closed mid-motion. */
 .sheet {
-  width: min(var(--lt-preview-workspace-w), 100%);
-  height: min(var(--lt-preview-workspace-h), 100%);
-  max-height: 100%;
+  position: absolute;
+  top: var(--overlay-anchor-top, 0);
+  right: 0;
+  width: min(960px, 100%);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  overscroll-behavior: contain;
   padding: 0;
   border: 1px solid var(--lt-border-strong);
-  border-radius: var(--lt-radius);
+  border-right: 0;
+  border-radius: var(--lt-radius) 0 0 var(--lt-radius);
   background: var(--lt-surface);
   box-shadow: var(--lt-shadow-overlay);
+  animation: sheet-in var(--lt-dur-base) var(--lt-ease);
+}
+@keyframes sheet-in {
+  from { transform: translateX(16px); opacity: 0.6; }
 }
 .sheet:focus-visible { outline: none; box-shadow: var(--lt-shadow-overlay), var(--lt-focus-ring-tight); }
 
@@ -1140,9 +1310,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   display: grid;
   flex: 1;
   grid-template-columns: var(--lt-preview-control-w) minmax(0, 1fr);
-  /* Without this a grid child refuses to shrink below its content and the
-     panes never scroll — the sheet grows instead. */
-  min-height: 0;
+  align-items: start;
 }
 .target-workspace-body.is-file { grid-template-columns: 220px minmax(0, 1fr); }
 
@@ -1159,7 +1327,6 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
     grid-template-rows: minmax(0, auto) minmax(0, 1fr);
   }
   .target-controls {
-    max-height: 38%;
     border-right: 0;
     border-bottom: 1px solid var(--lt-border);
   }
@@ -1167,9 +1334,6 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .target-controls {
   min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   padding: var(--lt-space-4);
   border-right: 1px solid var(--lt-border);
   background: var(--lt-surface-2);
@@ -1367,10 +1531,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .output-panel {
   min-width: 0;
-  min-height: 0;
   flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   padding-top: var(--lt-space-3);
 }
 .document-panel .code-editor-host .cm-scroller { min-height: calc(24 * var(--lt-code-line) + var(--lt-space-4)); }
@@ -1470,7 +1631,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    a stack of bordered cards in one place and a flex list in another, for the
    same data. */
 
-.node-list { margin: var(--lt-space-2) 0 0; padding: 0; list-style: none; max-height: 320px; overflow-y: auto; }
+.node-list { margin: var(--lt-space-2) 0 0; padding: 0; list-style: none; }
 
 .node-row {
   display: flex;
@@ -1630,17 +1791,16 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    same layout with the two-track rows folded. */
 
 @media (max-width: 760px) {
-  .sheet-scrim { padding: 0; }
+  /* Full width and at least the visible height: a page of its own. */
   .sheet {
     width: 100%;
-    height: 100%;
-    max-height: 100%;
+    min-height: 100vh;
     border: 0;
     border-radius: 0;
   }
   .sheet-head { padding: var(--lt-space-3); }
   .target-workspace-body,
-  .target-workspace-body.is-file { display: block; min-height: 0; }
+  .target-workspace-body.is-file { display: block; }
   .target-controls {
     position: static;
     padding: var(--lt-space-3);
@@ -1676,12 +1836,68 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .section-heading { align-items: flex-start; flex-direction: column; }
   .tab-bar { overflow-x: auto; }
   .heading-actions { width: 100%; }
-  .rec-head { display: none; }
-  .rec { grid-template-columns: auto auto minmax(0, 1fr); row-gap: var(--lt-space-2); }
-  .rec-published-cell { grid-column: 3; min-width: 0; }
-  .rec-status-cell { grid-column: 3; align-items: flex-start; text-align: left; }
-  .rec-actions { grid-column: 1 / -1; }
+  .rec-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  .rec-head,
+  .rec {
+    grid-template-columns:
+      var(--lt-col-select) var(--lt-col-expand) 180px var(--lt-col-source) var(--lt-col-nodes) var(--lt-col-ops)
+      var(--lt-col-published) var(--lt-col-status) var(--lt-rec-actions);
+    width: max-content;
+    min-width: 100%;
+  }
+  /* The pinned cells paint over the grid gaps beside them (a negative
+     right margin widens each box into the gap), so nothing scrolling under
+     them shows through. */
+  .rec-select,
+  .rec-expand-cell,
+  .rec-body,
+  .rec-head > :nth-child(-n + 3) {
+    position: sticky;
+    z-index: 1;
+    box-sizing: content-box;
+    margin-right: calc(var(--lt-space-3) * -1);
+    padding-right: var(--lt-space-3);
+    background: inherit;
+  }
+  .rec-select, .rec-head > :nth-child(1) { left: 0; }
+  .rec-expand-cell, .rec-head > :nth-child(2) { left: calc(var(--lt-col-select) + var(--lt-space-3)); }
+  .rec-body, .rec-head > :nth-child(3) {
+    left: calc(var(--lt-col-select) + var(--lt-col-expand) + var(--lt-space-3) * 2);
+    box-shadow: 1px 0 0 var(--lt-border);
+  }
+  .rec-expand { border-radius: 0; }
+  .rec-head { background: var(--lt-bg); }
+  /* The group spans the whole scroll width so its heading can pin. */
+  .rec-group { width: max-content; min-width: 100%; }
+  /* Sized to its words: a heading as wide as its section has no room to
+     stick, so it would scroll away with the columns. */
+  .rec-group-head { position: sticky; left: 0; width: max-content; max-width: 100cqw; }
+  .rec-chain { position: sticky; left: 0; width: 100cqw; box-sizing: border-box; }
+  .rec-actions { opacity: 1; }
   .graph-root-order li { align-items: flex-start; flex-direction: column; }
+}
+
+/* Under 480px the four lenses and the search entry cannot share a line: the
+   entry sat over the last lens and the strip scrolled inside what was left,
+   so Files was sliced and Shares and Settings were off screen with nothing
+   to say so. The entry takes a line of its own above the strip, drawn as a
+   field, and the lenses drop their icons and tighten so all four are on
+   screen on load. No keyboard, so no shortcut hint. */
+@media (max-width: 480px) {
+  .tab-row { flex-wrap: wrap; }
+  .tab-row .tab-bar { flex: 1 1 100%; gap: 0; margin-top: var(--lt-space-2); }
+  .tab { padding: var(--lt-space-2) 6px; font-size: var(--lt-text-sm); }
+  .tab > svg { display: none; }
+  .tab-search {
+    order: -1;
+    flex: 1 1 100%;
+    margin: var(--lt-space-4) 0 0;
+    padding: var(--lt-space-2) var(--lt-space-3);
+    border: 1px solid var(--lt-border);
+    border-radius: var(--lt-radius);
+    background: var(--lt-surface);
+  }
+  .tab-search .palette-hint { display: none; }
 }
 
 /* ── command palette ──────────────────────────────────────────────────────
@@ -1807,9 +2023,178 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);
   list-style: none;
-  font-family: var(--lt-font-mono);
+  font-family: var(--lt-mono);
   font-size: var(--lt-text-xs);
   line-height: 1.7;
   color: var(--lt-fg-muted);
 }
 .chain-deltas li.is-cut { color: var(--lt-fg); }
+
+/* The editor's unsaved marker, beside its title. */
+.editor-dirty {
+  display: inline-block;
+  margin-left: var(--lt-space-2);
+  padding: 0 var(--lt-space-2);
+  border: 1px solid var(--lt-warn-border);
+  border-radius: 999px;
+  background: var(--lt-warn-soft);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+/* ── compare panel ────────────────────────────────────────────────────────
+   Source beside result, one row per source node; a removed node keeps its
+   row and names the operation that removed it. Paged, never scrolled. */
+
+.compare-table {
+  width: 100%;
+  margin-top: var(--lt-space-2);
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--lt-text-sm);
+}
+.compare-table th,
+.compare-table td {
+  padding: var(--lt-space-1) var(--lt-space-2);
+  border-bottom: 1px solid var(--lt-border);
+  text-align: left;
+  vertical-align: top;
+}
+.compare-table th {
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.compare-table th:first-child,
+.compare-table td:first-child { border-right: 1px solid var(--lt-border); }
+.compare-count {
+  margin-left: var(--lt-space-1);
+  font-family: var(--lt-mono);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+.compare-source,
+.compare-result { display: table-cell; min-width: 0; }
+.compare-source .node-name,
+.compare-result .node-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compare-source .node-meta,
+.compare-result .node-meta { display: block; }
+.compare-result .node-was { display: block; }
+.compare-result .node-tags { display: flex; flex-wrap: wrap; gap: var(--lt-space-1); margin-top: 2px; }
+.compare-table tr.is-dropped .compare-source .node-name { color: var(--lt-fg-muted); text-decoration: line-through; }
+.compare-dropped { color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
+
+.compare-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lt-space-2);
+  margin-top: var(--lt-space-2);
+  font-size: var(--lt-text-xs);
+  color: var(--lt-fg-muted);
+}
+
+.editor-side-note.is-note {
+  margin-bottom: var(--lt-space-2);
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border-left: 2px solid var(--lt-warn);
+  background: var(--lt-warn-soft);
+  color: var(--lt-fg);
+}
+
+/* ── masked link field ────────────────────────────────────────────────────
+   The field and its Reveal share one row; the input keeps the field's own
+   width and the control sits at its end. */
+.masked-url { display: flex; align-items: center; gap: var(--lt-space-2); max-width: var(--lt-measure-field); }
+.masked-url input { flex: 1; min-width: 0; font-family: var(--lt-mono); font-size: var(--lt-text-sm); }
+.masked-url-reveal {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lt-fg-muted);
+  font: inherit;
+  font-size: var(--lt-text-xs);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.masked-url-reveal:hover { color: var(--lt-fg); }
+.masked-url-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: 2px; }
+
+/* ── shares lens ──────────────────────────────────────────────────────────
+   The record list from the client's side. A real table, because every
+   column is a value on every row; at any width it keeps its columns and
+   scrolls sideways inside itself with the record column pinned. */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.shares-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+
+.shares-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: var(--lt-text-sm);
+}
+.shares-table th,
+.shares-table td {
+  height: var(--lt-row-h);
+  padding: 0 var(--lt-space-3);
+  border-bottom: 1px solid var(--lt-border);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.shares-table thead th {
+  height: var(--lt-row-h-compact);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.shares-table tbody tr { transition: background-color var(--lt-dur) var(--lt-ease); }
+.shares-table tbody tr:hover { background: var(--lt-surface-2); }
+.shares-table th:first-child,
+.shares-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--lt-bg);
+  box-shadow: 1px 0 0 var(--lt-border);
+}
+.shares-table tbody tr:hover th:first-child { background: var(--lt-surface-2); }
+.shares-record { max-width: 260px; font-weight: 600; }
+.shares-record-name { display: block; overflow: hidden; text-overflow: ellipsis; }
+.shares-record-kind { display: block; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); font-weight: 400; }
+.shares-path { max-width: 280px; overflow: hidden; text-overflow: ellipsis; font-size: var(--lt-text-xs); }
+.shares-table td.mono { font-size: var(--lt-text-xs); }
+.shares-state { font-size: var(--lt-text-xs); }
+.shares-state.is-ok { color: var(--lt-ok); }
+.shares-state.is-warn { color: var(--lt-warn); }
+.shares-actions { text-align: right; }
+.shares-actions .button + .button { margin-left: var(--lt-space-2); }
+/* Row actions show on hover and focus, and stay where nothing can hover. */
+.shares-actions .button { opacity: 0; transition: opacity var(--lt-dur) var(--lt-ease); }
+.shares-table tbody tr:hover .shares-actions .button,
+.shares-table tbody tr:focus-within .shares-actions .button { opacity: 1; }
+@media (hover: none) {
+  .shares-actions .button { opacity: 1; }
+}

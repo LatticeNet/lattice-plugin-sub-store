@@ -4,7 +4,7 @@ import { compileScript, parse } from "vue/compiler-sfc";
 import { describe, expect, it, vi } from "vitest";
 
 import SubscriptionPreviewSummary from "./components/SubscriptionPreviewSummary.vue";
-import NodeRows from "./components/NodeRows.vue";
+import type { StepDelta } from "./chainExplain";
 import type { SubscriptionPreviewNode, SubscriptionPreviewResponse } from "./client";
 
 // Templates compiled here rather than taken from the build plugin, the way the
@@ -22,13 +22,12 @@ function useTemplate(component: object, file: string, id: string): void {
 }
 
 useTemplate(SubscriptionPreviewSummary, "SubscriptionPreviewSummary.vue", "preview-summary-test");
-useTemplate(NodeRows, "NodeRows.vue", "node-rows-test");
 
 vi.mock("@lucide/vue", async () => {
   const { defineComponent, h: create } = await import("vue");
   const icon = (name: string) =>
     defineComponent({ name, inheritAttrs: false, setup: () => () => create("svg", { "data-icon": name }) });
-  return { ChevronDown: icon("ChevronDown") };
+  return { ChevronLeft: icon("ChevronLeft"), ChevronRight: icon("ChevronRight") };
 });
 
 type HostNode = {
@@ -43,10 +42,6 @@ type HostNode = {
 function renderer() {
   return createRenderer<HostNode, HostNode>({
     patchProp(node, key, _previous, value) { node.props[key] = value; },
-    // The anchor matters here: toggling a group unmounts a fragment, and Vue
-    // walks from its opening anchor to its closing one to find what to remove.
-    // A renderer that appends everything reports the wrong siblings and the
-    // fragment survives its own v-if.
     insert(child, parent, anchor) {
       child.parent = parent;
       const at = anchor ? parent.children.indexOf(anchor) : -1;
@@ -71,7 +66,7 @@ function renderer() {
     cloneNode(node) {
       return { ...node, props: { ...node.props }, style: { ...node.style }, children: [...node.children] };
     },
-    insertStaticContent() { throw new Error("static content is not used by the preview summary"); },
+    insertStaticContent() { throw new Error("static content is not used by the compare panel"); },
   });
 }
 
@@ -91,62 +86,52 @@ function withClass(root: HostNode, name: string): HostNode[] {
 }
 
 function node(name: string, extra: Partial<SubscriptionPreviewNode> = {}): SubscriptionPreviewNode {
-  return { name, type: "vless", server: "example.com", port: "443", ...extra };
+  return { name, type: "vless", server: `${name}.example`, port: "443", ...extra };
 }
 
-function mount(preview: SubscriptionPreviewResponse) {
+function mount(preview: SubscriptionPreviewResponse, extra: Record<string, unknown> = {}) {
   const root: HostNode = { type: "root", props: {}, style: {}, children: [] };
-  const app = renderer().createApp(SubscriptionPreviewSummary, { preview });
+  const app = renderer().createApp(SubscriptionPreviewSummary, { preview, ...extra });
   app.provide(ssrContextKey, { modules: new Set<string>() });
   app.mount(root);
   return { root, app };
 }
 
-const KEPT = [node("hk-01"), node("hk-02", { server: "example.net" })];
+const KEPT = [node("hk-01"), node("hk-02")];
 
-describe("the preview pane compares what the chain kept against what it removed", () => {
-  it("shows one plain list when the chain removed nothing", () => {
+describe("the compare panel sets source nodes beside what the chain made of them", () => {
+  it("shows every node kept beside itself when the chain removed nothing", () => {
     const { root } = mount({ nodes: KEPT, node_count: 2, source_node_count: 2 });
-
-    expect(withClass(root, "node-list")).toHaveLength(1);
-    // No group chrome: labelling one group and an empty one is worse than not
-    // labelling the only group there is.
-    expect(withClass(root, "rec-group-head")).toHaveLength(0);
     expect(textOf(root)).toContain("2 node(s)");
+    const rows = find(root, (n) => n.type === "tr").slice(1);
+    expect(rows).toHaveLength(2);
+    expect(withClass(root, "is-dropped")).toHaveLength(0);
+    expect(textOf(withClass(root, "compare-count")[0])).toBe("2");
+    expect(textOf(withClass(root, "compare-count")[1])).toBe("2");
   });
 
-  it("splits kept from removed and counts both", () => {
-    const { root } = mount({
-      nodes: KEPT,
-      node_count: 2,
-      source_node_count: 3,
-      dropped: [node("jp-01", { server: "dropped.example" })],
-      dropped_count: 1,
-    });
-
+  it("lists a removed node on the source side with the operation that removed it", () => {
+    const { root } = mount(
+      {
+        nodes: KEPT,
+        node_count: 2,
+        source_node_count: 3,
+        dropped: [node("jp-01")],
+        dropped_count: 1,
+      },
+      { droppedBy: new Map([["jp-01.example:443", "1. Region filter"]]) },
+    );
     expect(textOf(root)).toContain("kept 2 of 3 nodes");
-    const heads = withClass(root, "rec-group-head");
-    expect(heads).toHaveLength(2);
-    expect(textOf(heads[0])).toContain("Kept");
-    expect(textOf(heads[0])).toContain("2");
-    expect(textOf(heads[1])).toContain("Removed by the chain");
-    expect(textOf(heads[1])).toContain("1");
-    // The removed node is named, not just counted.
-    expect(textOf(root)).toContain("jp-01");
+    const dropped = withClass(root, "is-dropped");
+    expect(dropped).toHaveLength(1);
+    expect(textOf(dropped[0])).toContain("jp-01");
+    expect(textOf(dropped[0])).toContain("removed by 1. Region filter");
+    expect(textOf(withClass(root, "compare-count")[0])).toBe("3");
   });
 
-  it("marks the removal count as the one worth noticing", () => {
-    const { root } = mount({
-      nodes: KEPT,
-      node_count: 2,
-      source_node_count: 3,
-      dropped: [node("jp-01")],
-      dropped_count: 1,
-    });
-    const counts = withClass(root, "rec-group-count");
-    expect(counts).toHaveLength(2);
-    expect(counts[0].props["data-tone"]).toBeUndefined();
-    expect(counts[1].props["data-tone"]).toBe("danger");
+  it("names the chain when it cannot say which operation removed a node", () => {
+    const { root } = mount({ nodes: KEPT, node_count: 2, source_node_count: 3, dropped: [node("jp-01")], dropped_count: 1 });
+    expect(textOf(withClass(root, "is-dropped")[0])).toContain("removed by the chain");
   });
 
   it("reports every removal even when it can only name some of them", () => {
@@ -158,45 +143,51 @@ describe("the preview pane compares what the chain kept against what it removed"
       dropped_count: 400,
       dropped_truncated: true,
     });
-
-    const heads = withClass(root, "rec-group-head");
-    expect(textOf(heads[1])).toContain("400");
-    expect(textOf(root)).toContain("Naming the first 2 of them");
+    expect(textOf(root)).toContain("Naming the first 2 of 400 removed");
   });
 
   // A rename is invisible in the result alone: the new name reads as the name
-  // the node always had.
-  it("shows the name a renamed node used to have", () => {
+  // the node always had. The source column carries the old one.
+  it("shows the name a renamed node used to have, on both sides", () => {
     const { root } = mount({
       nodes: [node("edge-01", { was: "hk-01" }), node("hk-02")],
       node_count: 2,
       source_node_count: 2,
     });
-
     const previous = withClass(root, "node-was");
     expect(previous).toHaveLength(1);
     expect(textOf(previous[0])).toContain("was hk-01");
+    expect(textOf(withClass(root, "compare-source")[0])).toContain("hk-01");
+    expect(textOf(withClass(root, "compare-result")[0])).toContain("edge-01");
   });
 
-  it("folds a group away without losing its count", async () => {
-    const { root } = mount({
-      nodes: KEPT,
-      node_count: 2,
-      source_node_count: 3,
-      dropped: [node("jp-01")],
-      dropped_count: 1,
-    });
+  it("prints the per-operation strip on top when the chain was explained", () => {
+    const deltas: StepDelta[] = [
+      { index: 0, label: "1. Region filter", before: 3, after: 2 },
+      { index: 1, label: "2. Sort", before: 2, after: 2 },
+    ];
+    const { root } = mount({ nodes: KEPT, node_count: 2, source_node_count: 3 }, { deltas });
+    const strip = withClass(root, "chain-deltas");
+    expect(strip).toHaveLength(1);
+    expect(textOf(strip[0])).toContain("1. Region filter: kept 2 of 3");
+    expect(withClass(strip[0], "is-cut")).toHaveLength(1);
+  });
 
-    const removed = withClass(root, "rec-group-head")[1];
-    expect(removed.props["aria-expanded"]).toBe(true);
-    expect(textOf(root)).toContain("jp-01");
-
-    (removed.props.onClick as () => void)();
+  // The document is the only scroller, so a long set is paged to what fits.
+  it("pages a long set instead of scrolling it", async () => {
+    const nodes = Array.from({ length: 30 }, (_, i) => node(`n-${String(i).padStart(2, "0")}`));
+    const { root } = mount({ nodes, node_count: 30, source_node_count: 30 }, { pageSize: 12 });
+    expect(find(root, (n) => n.type === "tr").slice(1)).toHaveLength(12);
+    expect(textOf(root)).toContain("Rows 1–12 of 30");
+    const next = find(root, (n) => n.props["aria-label"] === "Next page")[0]!;
+    (next.props.onClick as () => void)();
     await nextTick();
-
-    expect(removed.props["aria-expanded"]).toBe(false);
-    expect(textOf(root)).not.toContain("jp-01");
-    expect(textOf(withClass(root, "rec-group-head")[1])).toContain("1");
+    expect(textOf(root)).toContain("Rows 13–24 of 30");
+    expect(textOf(root)).toContain("n-12");
+    expect(textOf(root)).not.toContain("n-00");
+    (next.props.onClick as () => void)();
+    await nextTick();
+    expect(textOf(root)).toContain("Rows 25–30 of 30");
+    expect(next.props.disabled).toBe(true);
   });
 });
-

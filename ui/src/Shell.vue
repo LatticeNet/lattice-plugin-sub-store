@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { CircleAlert, FileCode, Library, Search, Settings, Store } from "@lucide/vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { CircleAlert, FileCode, Library, Link2, Search, Settings, Store } from "@lucide/vue";
 
 import { useHandshakeTimeout } from "./handshakeTimeout";
 import { useHost } from "./host";
@@ -14,6 +14,9 @@ import StandaloneNotice from "./components/StandaloneNotice.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
 import FilesScreen from "./screens/FilesScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
+import SharesScreen from "./screens/SharesScreen.vue";
+import { useShares } from "./useShares";
+import { KIND_FILE } from "./client";
 
 /**
  * The plugin's chrome and its tabs, with no knowledge of how the host is
@@ -37,7 +40,7 @@ const standalone = computed(
   () => !host.init.value && (handshakeExpired.value || !!host.bootError.value),
 );
 
-type TabId = "subscriptions" | "files" | "settings";
+type TabId = "subscriptions" | "files" | "shares" | "settings";
 
 /**
  * Sub-Store's own destinations, not invented ones.
@@ -52,6 +55,8 @@ type TabId = "subscriptions" | "files" | "settings";
 const tabs: { id: TabId; label: string; icon: unknown; screen: unknown }[] = [
   { id: "subscriptions", label: "Subscriptions", icon: Library, screen: SubscriptionsScreen },
   { id: "files", label: "Files", icon: FileCode, screen: FilesScreen },
+  // The record list from the client's side: every link the console serves.
+  { id: "shares", label: "Shares", icon: Link2, screen: SharesScreen },
   { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },
 ];
 
@@ -90,6 +95,26 @@ const activeScreen = computed(
  */
 const catalogue = recordCatalogue(host);
 const intent = recordIntent(host);
+
+/**
+ * The counts on the lenses, from the same two lists the lenses render: the
+ * record catalogue and the share store. A lens counting for itself is how the
+ * badges came to disagree across tabs. Null until the list has been read, and
+ * then the badge stays away rather than claiming zero.
+ */
+const shareStore = useShares(host);
+const tabCounts = computed<Record<TabId, number | null>>(() => {
+  const records = catalogue.state.value === "ready" ? catalogue.items.value : null;
+  return {
+    subscriptions: records ? records.filter((item) => item.kind !== KIND_FILE).length : null,
+    files: records ? records.filter((item) => item.kind === KIND_FILE).length : null,
+    shares: shareStore.shares.value ? shareStore.shares.value.length : null,
+    settings: null,
+  };
+});
+watch(host.init, (value) => {
+  if (value) void shareStore.load();
+}, { immediate: true });
 const paletteOpen = ref(false);
 
 /**
@@ -182,6 +207,7 @@ function runCommand(command: PaletteCommandId): void {
         >
           <component :is="tab.icon" :size="15" aria-hidden="true" />
           {{ tab.label }}
+          <span v-if="tabCounts[tab.id] !== null" class="tab-count">{{ tabCounts[tab.id] }}</span>
         </button>
       </nav>
       <!-- Outside the tablist: a button in there announces itself as a tab and

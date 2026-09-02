@@ -36,7 +36,7 @@ import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
-import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId, type ResolvedAction } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import { anchorTopFrom } from "../overlayAnchor";
@@ -56,13 +56,31 @@ import {
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
-import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
-import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
+import { formatRelativeTime, formatTraffic, parseUserinfo, tagChips as tagChipsOf } from "../rowStatus";
 import { publishStateFor, refreshStateFor } from "../shareState";
-import { describeDelta, enabledStepIndexes, stepDeltas, type StepDelta } from "../chainExplain";
+import { useShares } from "../useShares";
+import {
+  cutChain,
+  enabledStepIndexes,
+  explainChain,
+  nodeKey,
+  stepLabelOf,
+  type ChainExplanation,
+} from "../chainExplain";
+import { createNodeCountQueue, nodeCountLabel, nodeCountTitle } from "../nodeCounts";
+import { maskUrl } from "../urlMask";
+import { useReveal } from "../reveal";
+import MaskedUrlInput from "../components/MaskedUrlInput.vue";
 import { safeErrorMessage } from "../subStoreModel";
-import { BINDINGS, callMethod, type SubStoreShareRow, type SubStoreSharesResponse } from "../client";
+import {
+  BINDINGS,
+  callMethod,
+  type SubscriptionPreviewNode,
+  type SubscriptionPreviewResponse,
+  type SubscriptionRecord,
+} from "../client";
 import {
   draftFromRecord,
   emptyDraft,
@@ -85,6 +103,7 @@ import CommonSettingsBlock from "../components/CommonSettings.vue";
 import MemberPicker from "../components/MemberPicker.vue";
 import GraphSubscriptionEditor from "../components/GraphSubscriptionEditor.vue";
 import SubscriptionPreviewSummary from "../components/SubscriptionPreviewSummary.vue";
+import NodeRows from "../components/NodeRows.vue";
 import SubscriptionPublishControl from "../components/SubscriptionPublishControl";
 
 /** Types the common-settings block owns; the chain list hides them. */
@@ -142,29 +161,28 @@ const previewStepLabel = ref("");
 // then the whole chain again so the panel ends on the full result. The
 // engine does the work; this only asks the same question N times.
 const explaining = ref(false);
-const stepCounts = ref<StepDelta[]>([]);
+const explanation = ref<ChainExplanation | null>(null);
 const explainable = computed(() => enabledStepIndexes(draft.value.process as ChainStep[]).length > 0);
-async function explainChain(): Promise<void> {
+async function explainDraft(): Promise<void> {
   if (explaining.value || !canPreviewNow.value) return;
   explaining.value = true;
-  stepCounts.value = [];
-  const counts: number[] = [];
-  let source = 0;
+  explanation.value = null;
+  const steps = draft.value.process as ChainStep[];
   try {
-    for (const index of enabledStepIndexes(draft.value.process as ChainStep[])) {
-      await subs.runPreview(draft.value, index);
-      const result = subs.preview.value;
-      if (!result || subs.previewError.value) break;
-      if (!counts.length) source = result.source_node_count ?? result.node_count;
-      counts.push(result.node_count);
-    }
-    stepCounts.value = stepDeltas(draft.value.process as ChainStep[], source, counts);
-    if (counts.length) await subs.runPreview(draft.value);
+    const result = await explainChain(steps, async (upTo) => {
+      await subs.runPreview(draft.value, upTo);
+      if (!subs.preview.value || subs.previewError.value) throw new Error(subs.previewError.value || "Preview failed");
+      return subs.preview.value;
+    });
+    explanation.value = result;
+    // The last cut is the whole chain, so the pane already holds the full
+    // result and the partial-run label would be false.
+    if (result.complete) subs.previewStep.value = null;
   } finally {
     explaining.value = false;
   }
 }
-watch(() => draft.value.process, () => { stepCounts.value = []; }, { deep: true });
+watch(() => draft.value.process, () => { explanation.value = null; }, { deep: true });
 
 function previewUpToStep(index: number, label: string): void {
   previewStepLabel.value = label;
@@ -225,7 +243,7 @@ const SOURCES = [
   {
     id: SOURCE_REMOTE,
     title: "A provider link",
-    detail: "Fetches an external subscription URL and re-serves it through this pipeline.",
+    detail: "Fetches an external subscription link and re-serves it through this record's operations.",
     icon: Globe,
   },
   {
@@ -241,6 +259,9 @@ function clearTransientListState(): void {
   // reappear when the operator comes back to the list.
   deleting.value = [];
   drawer.value = null;
+  expandedId.value = "";
+  rowChain.value = null;
+  revealSource.hide();
 }
 
 function startCreate(kind: string): void {
@@ -373,17 +394,21 @@ async function submit(): Promise<void> {
   draft.value.tags = parseTags(tagText.value);
   draft.value.memberTags = parseTags(memberTagText.value);
   const ok = await subs.save(draft.value);
-  if (ok) cancelEdit();
+  if (ok) {
+    if (editingId.value) recount(editingId.value);
+    cancelEdit();
+  }
 }
 
+/** The Source column: where a record's nodes come from, in three words. */
 function describe(item: SubscriptionListItem): string {
   if ((item.kind || KIND_SUB) === KIND_COLLECTION) {
     const byId = item.members?.length ?? 0;
     const byTag = item.member_tags?.length ?? 0;
     const parts: string[] = [];
-    if (byId) parts.push(`${byId} chosen`);
+    if (byId) parts.push(`${byId} member${byId === 1 ? "" : "s"}`);
     if (byTag) parts.push(`${byTag} tag${byTag === 1 ? "" : "s"}`);
-    return parts.length ? `Combines ${parts.join(" + ")}` : "Combines nothing yet";
+    return parts.length ? parts.join(", ") : "No members yet";
   }
   if (item.source === SOURCE_VPN_CORE) return "This fleet's nodes";
   if (item.source === SOURCE_VPN_CORE_GRAPH) return "Converged graph path";
@@ -626,6 +651,10 @@ function onDocumentKeydown(event: KeyboardEvent): void {
     closeRowMenu();
     return;
   }
+  if (expandedId.value && !editing.value && !drawer.value && !targetSheet.value && !deleting.value.length) {
+    collapseRow();
+    return;
+  }
   // Escape is how every other surface in this frame steps back, and the editor
   // is a screen you enter, so it answers the same key. Who owns the key while
   // an overlay is up is decided in editorExit.ts.
@@ -636,9 +665,13 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * to answer "why is that greyed out", rather than an inline expression per
  * control that drifts from its neighbours.
  */
-/** How many records this tab holds, or null while that is not yet known. */
+/**
+ * How many records this tab holds, or null while that is not known: before
+ * the host answers, during a load, and after a load that failed. The last
+ * case printed "0 / 256" over the error, a count of records it never saw.
+ */
 const listed = computed(() =>
-  !host.init.value || subs.state.value === "loading" ? null : onThisTab.value.length,
+  !host.init.value || subs.loadError.value || subs.state.value === "loading" ? null : onThisTab.value.length,
 );
 
 const actionCaps = computed<ActionCapabilities>(() => ({
@@ -653,7 +686,44 @@ const actionCaps = computed<ActionCapabilities>(() => ({
 const MENU_ACTIONS = ["preview", "share", "publish", "duplicate", "delete"] as const;
 
 function menuActionsFor(row: SubscriptionListItem) {
-  return actionsFor(row, actionCaps.value, MENU_ACTIONS);
+  return actionsFor(row, actionCaps.value, MENU_ACTIONS).map((action) =>
+    action.id === "share" ? shareActionFor(row, action) : action,
+  );
+}
+
+/**
+ * The share item named by what it will do for this row. A record with no
+ * share gets published, a live share gets its link copied, a dead one gets
+ * renewed in the console. The menu said "Share…" for all three and left the
+ * operator to find out which.
+ */
+function shareActionFor(row: SubscriptionListItem, action: ResolvedAction): ResolvedAction {
+  const state = publishedOf(row);
+  if (state.tone === "ok") {
+    return { ...action, label: "Copy share link", icon: "link", title: `Copies the link a client fetches, ${state.label}.` };
+  }
+  if (state.tone === "warn") {
+    return { ...action, label: "Renew share…", title: `${state.title} Renewing it happens in the console, under Networking.` };
+  }
+  return action;
+}
+
+/** The tags a row shows: two, then "+N", the whole list in the title. */
+function tagChips(row: SubscriptionListItem) {
+  return tagChipsOf(row.tags, row.imported);
+}
+
+/**
+ * The name opens the record where this session can edit it. Where it cannot,
+ * the name is text: a button that opens nothing is worse than none, and the
+ * » at the row's end still gives the client output.
+ */
+function openRecord(row: SubscriptionListItem, event: MouseEvent): void {
+  if (!rowAction(row, "edit").disabled) runRowAction("edit", row, event);
+}
+function nameTitle(row: SubscriptionListItem): string {
+  const edit = rowAction(row, "edit");
+  return edit.disabled ? `${row.id}. ${edit.reason}` : `${row.id}. Open ${row.display_name || row.name}`;
 }
 
 /**
@@ -704,7 +774,9 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   if (id === "refresh") return void refreshRow(row.id);
   if (id === "output") return openTargetSheet(row, event);
   if (id === "preview") return openDrawer("preview", row.id, event);
-  if (id === "share") return openDrawer("share", row.id, event);
+  if (id === "share") {
+    return publishedOf(row).tone === "ok" ? void copyShareLink(row) : openDrawer("share", row.id, event);
+  }
   if (id === "publish") return openDrawer("publish", row.id, event);
   if (id === "duplicate") return void subs.duplicate(row.id);
   if (id === "delete") return requestDelete([row.id], event);
@@ -791,27 +863,175 @@ function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" 
 }
 
 // ── published shares ────────────────────────────────────────────────────────
-// The host's share list, read once per list load and folded onto each row.
-// `undefined` until it has been read, so the column can say "not yet" rather
-// than "not published" while the call is in flight.
-const shares = ref<SubStoreShareRow[] | undefined>(undefined);
-const sharesError = ref("");
-async function loadShares(): Promise<void> {
-  if (!host.bridge || !host.available(BINDINGS.sharesList)) return;
-  try {
-    const response = await callMethod<SubStoreSharesResponse>(host.bridge, BINDINGS.sharesList, {}).promise;
-    shares.value = response.shares ?? [];
-    sharesError.value = "";
-  } catch (cause) {
-    sharesError.value = safeErrorMessage(cause, "The share list could not be read");
-  }
-}
+// The host's share list, the one copy the Shares lens and the lens switch
+// read too, folded onto each row. `undefined` until it has been read, so the
+// column can say "not yet" rather than "not published" while the call is in
+// flight.
+const shareStore = useShares(host);
+const shares = shareStore.shares;
+const sharesError = shareStore.error;
 function publishedOf(item: SubscriptionListItem) {
   return publishStateFor(shares.value, item.id);
 }
 const publishedCount = computed(() => shares.value === undefined
   ? null
   : filteredRows.value.filter((row) => publishStateFor(shares.value, row.id).tone === "ok").length);
+
+// ── node counts ─────────────────────────────────────────────────────────────
+// The server keeps no count from the last preview or fetch (`list` carries
+// fetch bookkeeping and operation counts, a preview's node_count lives only
+// in its reply), so the NODES column is computed here: lazily, once per
+// record per session, two previews in flight at a time, through the same
+// read-scoped `preview` the row's eye uses. The rows render first and print
+// "?" until their count lands; a preview of a provider link fetches the
+// provider, exactly as the eye does.
+const counts = createNodeCountQueue((id) => {
+  if (!host.bridge) return Promise.reject(new Error("The console is not connected"));
+  return callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, { subscription_id: id })
+    .promise.catch((cause) => {
+      // The reason is shown in the cell's title, so it goes through the same
+      // redaction every other error does: a fetch failure quotes the link.
+      throw new Error(safeErrorMessage(cause, "Preview failed"));
+    });
+});
+watch(
+  () => (subs.canPreview.value && !editing.value ? filteredRows.value.map((row) => row.id) : []),
+  (ids) => counts.request(ids),
+  { immediate: true },
+);
+function nodesOf(row: SubscriptionListItem): string {
+  return nodeCountLabel(counts.stateOf(row.id));
+}
+function nodesTitle(row: SubscriptionListItem): string {
+  return nodeCountTitle(counts.stateOf(row.id), subs.canPreview.value);
+}
+/** The node set may have changed: count it again on the next render. */
+function recount(id: string): void {
+  counts.forget(id);
+  if (subs.canPreview.value && filteredRows.value.some((row) => row.id === id)) counts.request([id]);
+}
+
+// ── inline chain ────────────────────────────────────────────────────────────
+// A row expands to its operations and what each one kept, so the chain can be
+// read without opening the editor. The list item carries only counts, so the
+// record is read on expand and the chain explained the way the editor does:
+// one partial run per enabled operation. One row at a time; Escape collapses.
+interface RowChain {
+  id: string;
+  loading: boolean;
+  error: string;
+  record: SubscriptionRecord | null;
+  explanation: ChainExplanation | null;
+  /** The chain position being previewed right now. */
+  running: number | null;
+}
+const expandedId = ref("");
+const rowChain = ref<RowChain | null>(null);
+const revealSource = useReveal();
+
+const chainSteps = computed<ChainStep[]>(() => {
+  const record = rowChain.value?.record;
+  if (!record) return [];
+  const process = Array.isArray(record.process) && record.process.length ? record.process : record.operators;
+  return (Array.isArray(process) ? process : []) as ChainStep[];
+});
+const chainIsCombination = computed(() => (rowChain.value?.record?.kind || KIND_SUB) === KIND_COLLECTION);
+const chainDropped = computed(() => rowChain.value?.explanation?.final?.dropped ?? []);
+
+function chainDeltaText(index: number): string {
+  const chain = rowChain.value;
+  const step = chainSteps.value[index];
+  if (!step || !chain) return "";
+  if (step.disabled) return "off";
+  if (chainIsCombination.value) return "";
+  const delta = chain.explanation?.deltas.find((entry) => entry.index === index);
+  if (delta) {
+    if (delta.after === delta.before) return `${delta.after}, none removed`;
+    if (delta.after < delta.before) return `kept ${delta.after} of ${delta.before}`;
+    return `${delta.before} became ${delta.after}`;
+  }
+  if (chain.running === index) return "running…";
+  if (!subs.canPreview.value) return "";
+  if (chain.explanation) return chain.explanation.complete ? "" : "not run";
+  return "…";
+}
+
+/** Which operation removed a node, by the key the runs are folded on. */
+function droppedBy(node: SubscriptionPreviewNode): string {
+  return rowChain.value?.explanation?.droppedBy.get(nodeKey(node)) ?? "the chain";
+}
+
+function collapseRow(): void {
+  const id = expandedId.value;
+  expandedId.value = "";
+  rowChain.value = null;
+  revealSource.hide();
+  if (id) {
+    void nextTick(() => {
+      document.querySelector<HTMLElement>(`[data-expand="${cssEscape(id)}"]`)?.focus();
+    });
+  }
+  void host.resize();
+}
+
+async function toggleRow(id: string): Promise<void> {
+  if (expandedId.value === id) {
+    collapseRow();
+    return;
+  }
+  expandedId.value = id;
+  revealSource.hide();
+  rowChain.value = { id, loading: true, error: "", record: null, explanation: null, running: null };
+  await host.resize();
+  const record = await subs.get(id);
+  if (expandedId.value !== id) return;
+  if (!record) {
+    rowChain.value = { id, loading: false, error: subs.actionError.value || "The record could not be read", record: null, explanation: null, running: null };
+    subs.actionError.value = "";
+    return;
+  }
+  rowChain.value = { id, loading: false, error: "", record, explanation: null, running: null };
+  // Work on the ref's own proxy, not the object handed to it: writes through
+  // a plain copy would render nothing, and the copy never equals the proxy.
+  const chain = rowChain.value;
+  await host.resize();
+  const bridge = host.bridge;
+  if (!bridge || !subs.canPreview.value) return;
+  const steps = chainSteps.value;
+  const current = () => rowChain.value?.id === id && expandedId.value === id;
+  try {
+    if ((record.kind || KIND_SUB) === KIND_COLLECTION || !enabledStepIndexes(steps).length) {
+      // The engine runs a combination's operations over its members' merged
+      // output and reports one result, and a chain with nothing enabled has
+      // nothing to account for: one whole run answers both.
+      const result = await callMethod<SubscriptionPreviewResponse>(bridge, BINDINGS.subPreview, { subscription_id: id }).promise;
+      if (!current()) return;
+      chain.explanation = { deltas: [], droppedBy: new Map(), final: result, complete: true };
+      counts.record(id, result);
+      return;
+    }
+    const explanation = await explainChain(steps, async (upTo) => {
+      if (!current()) throw new Error("collapsed");
+      chain.running = upTo;
+      try {
+        return await callMethod<SubscriptionPreviewResponse>(bridge, BINDINGS.subPreview, {
+          subscription_id: id,
+          operators: cutChain(steps, upTo),
+        }).promise;
+      } catch (cause) {
+        if (current()) chain.error = safeErrorMessage(cause, "Preview failed");
+        throw cause;
+      } finally {
+        chain.running = null;
+      }
+    });
+    if (!current()) return;
+    chain.explanation = explanation;
+    if (explanation.complete && explanation.final) counts.record(id, explanation.final);
+  } finally {
+    await host.resize();
+  }
+}
 
 // ── row + batch operations ──────────────────────────────────────────────────
 
@@ -828,6 +1048,7 @@ async function refreshRow(id: string): Promise<void> {
     await subs.refresh(id);
   } finally {
     markPending(id, false);
+    recount(id);
   }
 }
 
@@ -867,8 +1088,8 @@ const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
   const name = drawerItem.value.display_name || drawerItem.value.name;
   if (drawer.value.mode === "preview") return `Preview · ${name}`;
-  if (drawer.value.mode === "publish") return `Publish · ${name}`;
-  return `Share · ${name}`;
+  if (drawer.value.mode === "publish") return `Upload · ${name}`;
+  return publishedOf(drawerItem.value).tone === "warn" ? `Renew share · ${name}` : `Publish · ${name}`;
 });
 
 function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
@@ -900,11 +1121,30 @@ async function publishFromDrawer(destination: string, method: string, format: st
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
-function openShares(recordName: string): void {
+/**
+ * The console's share view takes a record name only for its create form; an
+ * existing share is found in the list, so a record that already has one opens
+ * the list rather than a second create form.
+ */
+function openShares(record: SubscriptionListItem): void {
   if (!shareOrigin.value) return;
-  postNavigate(window, sharesRoute(recordName), shareOrigin.value);
+  const route = publishedOf(record).shares.length ? SHARES_LIST_ROUTE : sharesRoute(record.name);
+  postNavigate(window, route, shareOrigin.value);
   closeDrawer();
   subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+}
+
+/** The live share's link onto the clipboard, the way the Shares lens copies it. */
+async function copyShareLink(row: SubscriptionListItem): Promise<void> {
+  const state = publishedOf(row);
+  const share = state.shares.find((candidate) => candidate.slug === state.slug);
+  if (!share) return;
+  try {
+    await navigator.clipboard.writeText(share.url || share.path);
+    subs.notice.value = `Copied the link for ${state.label}.`;
+  } catch {
+    subs.actionError.value = "The clipboard refused the link. Copy it from the Shares lens instead.";
+  }
 }
 
 /**
@@ -915,7 +1155,7 @@ function openShares(recordName: string): void {
  * no-ops and never retries.
  */
 async function loadAll(): Promise<void> {
-  void loadShares();
+  void shareStore.load();
   await subs.load();
   await subs.loadOperators();
 }
@@ -959,6 +1199,9 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           <h2 id="editor-title">
             {{ editingId ? "Edit" : "New" }}
             {{ isCollection ? "combination" : "subscription" }}
+            <!-- The draft survives a switch to another lens and back; this
+                 says so on return, so an edit is not mistaken for saved. -->
+            <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
           </h2>
           <p v-if="isCollection">
             Merges several subscriptions and processes the merged result as one.
@@ -1094,16 +1337,17 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         />
 
         <template v-if="!isCollection && draft.source === SOURCE_REMOTE">
-          <label class="field field-wide">
+          <!-- The link carries the provider's token, so it reads masked and
+               shows whole only while it is being edited or revealed. -->
+          <div class="field field-wide">
             <span class="field-label">Provider link</span>
-            <input
+            <MaskedUrlInput
               v-model="draft.url"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
+              aria-label="Provider link"
               placeholder="The subscription link your provider gave you"
             />
-          </label>
+            <span class="field-optional">Shown masked after the host; the record keeps the whole link.</span>
+          </div>
           <label class="field">
             <span class="field-label">User agent</span>
             <input v-model="draft.ua" type="text" autocomplete="off" placeholder="Optional" />
@@ -1256,14 +1500,14 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
            form. -->
       <aside class="editor-side" aria-labelledby="editor-preview-title">
         <div class="editor-side-head">
-          <h3 id="editor-preview-title">Nodes this produces</h3>
+          <h3 id="editor-preview-title">Source and result</h3>
           <div class="editor-side-actions">
             <button
               class="button button-secondary"
               type="button"
               :disabled="!canPreviewNow || !explainable || explaining"
-              :title="!explainable ? 'Add an operation first; there is nothing to explain' : (draftError || 'Run the chain one step at a time and say what each step kept')"
-              @click="explainChain()"
+              :title="!explainable ? 'Add an operation first; there is nothing to explain' : (draftError || 'Run the chain one operation at a time and say what each one kept')"
+              @click="explainDraft()"
             >
               <LoaderCircle v-if="explaining" :size="16" class="spin" aria-hidden="true" />
               <ListOrdered v-else :size="16" aria-hidden="true" />
@@ -1283,16 +1527,17 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </div>
         </div>
 
-        <ol v-if="stepCounts.length" class="chain-deltas" aria-label="What each operation kept">
-          <li v-for="delta in stepCounts" :key="delta.index" :class="{ 'is-cut': delta.after < delta.before }">
-            {{ describeDelta(delta) }}
-          </li>
-        </ol>
-
+        <!-- What the preview could not do as asked and did instead: a read
+             session previewing a saved record's stored source. -->
+        <p v-if="subs.preview.value && subs.previewNote.value" class="editor-side-note is-note" role="status">
+          {{ subs.previewNote.value }}
+        </p>
         <SubscriptionPreviewSummary
           v-if="subs.preview.value"
           :preview="subs.preview.value"
           :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
+          :deltas="explanation?.deltas ?? []"
+          :dropped-by="explanation?.droppedBy"
         />
         <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert">
           {{ subs.previewError.value }}
@@ -1325,7 +1570,10 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <div class="section-heading">
         <div>
           <h2 id="subs-title">Subscriptions</h2>
-          <p v-if="publishedCount === null">
+          <!-- Nothing to sum up while the list is unread or unreadable: a failed
+               load used to print "None of these records is published" over the
+               error, a verdict about records it never saw. -->
+          <p v-if="subs.loadError.value || publishedCount === null">
             A record reaches a client only through a share, published in the console under Networking.
           </p>
           <p v-else-if="publishedCount === 0">
@@ -1342,9 +1590,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                was told the store was empty. An em-dash says nothing yet. -->
           <span
             class="badge mono"
-            :title="listed === null
-              ? `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
-              : `${listed} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
+            :title="listed !== null
+              ? `${listed} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
+              : subs.loadError.value
+                ? `Unknown: the list could not be read. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
+                : `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
           >{{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <LtButton
             variant="primary"
@@ -1453,7 +1703,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               :aria-pressed="kindFilter === 'sub'"
               @click="kindFilter = 'sub'"
             >
-              <Library :size="12" aria-hidden="true" /> Subs ({{ visibleSingles }})
+              <Library :size="12" aria-hidden="true" /> Subscriptions ({{ visibleSingles }})
             </button>
             <button
               type="button"
@@ -1532,8 +1782,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         </LtEmptyState>
 
         <template v-else>
-        <div class="rec-head" aria-hidden="true">
-          <label class="rec-select" :title="`Select all ${filteredRows.length} shown records`">
+        <!-- One table, one row per record, columns the operator scans for:
+             what feeds it, how many nodes go in and come out, how many
+             operations, whether anyone can fetch it, when it was last fetched.
+             At a narrow width the table keeps its columns and scrolls sideways
+             inside itself, with the record column pinned. -->
+        <!-- A table in role, so each cell is announced under its column. It
+             stays a grid of divs rather than a <table>: each row is its own
+             grid so the chain can open under it and the record column can pin
+             at a narrow width, neither of which table layout gives. -->
+        <div class="rec-scroll" role="table" aria-label="Subscriptions and combinations">
+        <div class="rec-head" role="row">
+          <label class="rec-select" role="columnheader" :title="`Select all ${filteredRows.length} shown records`">
             <input
               type="checkbox"
               :checked="allVisibleSelected"
@@ -1542,14 +1802,21 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               @change="toggleSelectAll()"
             />
           </label>
-          <span />
-          <span>Record</span>
-          <span class="rec-head-published">Published</span>
-          <span class="rec-head-status">Last refresh</span>
-          <span class="rec-head-spacer" />
+          <!-- Named by attribute, not hidden text: an absolutely positioned
+               span here escaped the scroller and widened the page at 375px. -->
+          <span role="columnheader" aria-label="Expand" />
+          <span class="rec-head-record" role="columnheader">Record</span>
+          <span role="columnheader">Source</span>
+          <span class="rec-head-nodes" role="columnheader" title="Nodes in and out of the chain, from the last preview run">Nodes</span>
+          <span class="rec-head-ops" role="columnheader">Operations</span>
+          <span class="rec-head-published" role="columnheader">Published</span>
+          <span class="rec-head-status" role="columnheader">Last fetch</span>
+          <span class="rec-head-spacer" role="columnheader" aria-label="Actions" />
         </div>
 
-        <section v-for="group in groups" :key="group.id" class="rec-group">
+        <div v-for="group in groups" :key="group.id" class="rec-group" role="rowgroup">
+          <div role="row">
+          <div role="cell" aria-colspan="9">
           <button
             type="button"
             class="rec-group-head"
@@ -1566,15 +1833,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             <span>{{ group.label }}</span>
             <span class="rec-group-count">{{ group.rows.length }}</span>
           </button>
+          </div>
+          </div>
 
-          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list">
+          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list" role="presentation">
             <li
               v-for="row in group.rows"
               :key="row.id"
               class="rec"
-              :class="{ 'is-pending': pendingIds.has(row.id), 'is-selected': selectedIds.has(row.id) }"
+              role="row"
+              :class="{ 'is-pending': pendingIds.has(row.id), 'is-selected': selectedIds.has(row.id), 'is-open': expandedId === row.id }"
             >
-              <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
+              <label class="rec-select" role="cell" :title="`Select ${row.name}`" @click.stop>
                 <input
                   type="checkbox"
                   :checked="selectedIds.has(row.id)"
@@ -1583,47 +1853,67 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 />
               </label>
 
-              <span class="rec-icon" aria-hidden="true">
-                <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="17" />
-                <Library v-else :size="17" />
-              </span>
-
-              <div class="rec-body">
-                <!-- The name opens the client sheet: the daily path is "give me
-                     the config for my client", so it is the primary click. -->
-                <button
-                  type="button"
-                  class="rec-name"
-                  :title="`Preview or copy ${row.display_name || row.name} for a client`"
-                  @click="openTargetSheet(row, $event)"
-                >
-                  {{ row.display_name || row.name }}
-                </button>
-                <span class="rec-tags">
-                  <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
-                  <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
-                </span>
-                <p class="rec-summary" :title="describe(row)">
-                  {{ describe(row) }}
-                  <template v-if="row.step_count">
-                    · {{ row.step_count }} operation(s)<template v-if="row.disabled_step_count">, {{ row.disabled_step_count }} off</template>
-                  </template>
-                  <template v-if="row.target"> · always {{ row.target }}</template>
-                </p>
-                <!-- The id is what ties a row to a published share, and it is
-                     the first thing to be truncated, so it carries its full
-                     value for hover and assistive tech. -->
-                <p class="rec-meta mono" :title="row.id">{{ row.id }}</p>
+              <!-- Opens the chain under the row. A button, so Enter and Space
+                   toggle it natively; Escape is handled at the document. -->
+              <div class="rec-expand-cell" role="cell">
+              <button
+                type="button"
+                class="rec-expand"
+                :data-expand="row.id"
+                :aria-expanded="expandedId === row.id"
+                :aria-controls="`rec-chain-${row.id}`"
+                :aria-label="`${expandedId === row.id ? 'Collapse' : 'Expand'} ${row.name}: its operations and what each one kept`"
+                @click="toggleRow(row.id)"
+              >
+                <ChevronDown
+                  :size="14"
+                  class="rec-group-caret"
+                  :class="{ 'is-collapsed': expandedId !== row.id }"
+                  aria-hidden="true"
+                />
+              </button>
               </div>
 
-              <!-- Refresh state and quota in their own right-aligned column.
-                   They used to be tacked onto the end of the id line, so no two
-                   rows put them in the same place and a column of them could
-                   not be read down. -->
+              <div class="rec-body" role="cell">
+                <!-- The name opens the record; the » at the row's end is the
+                     client output. Both opened the sheet, so the click an
+                     operator makes most duplicated a button and none reached
+                     the editor. Text, not a button, where this session cannot
+                     edit. The id is what ties a row to a share, and it is the
+                     first thing truncated, so it rides in the title. -->
+                <component
+                  :is="rowAction(row, 'edit').disabled ? 'span' : 'button'"
+                  :type="rowAction(row, 'edit').disabled ? undefined : 'button'"
+                  class="rec-name"
+                  :class="{ 'has-tags': tagChips(row).shown.length > 0 }"
+                  :title="nameTitle(row)"
+                  @click="openRecord(row, $event)"
+                >
+                  <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="14" class="rec-kind" aria-hidden="true" />
+                  <Library v-else :size="14" class="rec-kind" aria-hidden="true" />
+                  <span class="rec-name-text">{{ row.display_name || row.name }}</span>
+                </component>
+                <span v-if="tagChips(row).shown.length" class="rec-tags" :title="tagChips(row).all.join(', ')">
+                  <LtBadge v-for="tag in tagChips(row).shown" :key="tag" tone="neutral">{{ tag }}</LtBadge>
+                  <LtBadge v-if="tagChips(row).more" tone="neutral">+{{ tagChips(row).more }}</LtBadge>
+                </span>
+              </div>
+
+              <span class="rec-source" role="cell" :title="row.remark || describe(row)">{{ describe(row) }}</span>
+
+              <!-- "in → out" from the last preview run this session made for
+                   the row, "?" until one has. The title says which run and
+                   when. -->
+              <span class="rec-nodes mono" role="cell" :title="nodesTitle(row)">{{ nodesOf(row) }}</span>
+
+              <span class="rec-ops mono" role="cell" :title="row.target ? `Always rendered for ${row.target}` : undefined">
+                {{ row.step_count }}<template v-if="row.disabled_step_count"> <span class="rec-ops-off">({{ row.disabled_step_count }} off)</span></template>
+              </span>
+
               <!-- Whether anyone can fetch this record. The banner above said
                    "nothing is reachable until you publish a share" and no row
                    said which rows that was true of. -->
-              <div class="rec-published-cell" @click.stop>
+              <div class="rec-published-cell" role="cell" @click.stop>
                 <span
                   v-if="publishedOf(row).slug"
                   :class="`rec-published mono is-${publishedOf(row).tone}`"
@@ -1640,7 +1930,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <span v-else class="rec-published is-neutral" :title="sharesError || publishedOf(row).title">{{ publishedOf(row).label }}</span>
               </div>
 
-              <div class="rec-status-cell">
+              <div class="rec-status-cell" role="cell">
                 <span
                   :class="`rec-status is-${statusOf(row).tone}`"
                   :title="statusOf(row).title"
@@ -1648,7 +1938,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <span v-if="trafficOf(row)" class="rec-quota">{{ trafficOf(row) }}</span>
               </div>
 
-              <div class="rec-actions" @click.stop>
+              <div class="rec-actions" role="cell" @click.stop>
                 <LtIconButton
                   :label="`Refresh ${row.name}`"
                   :disabled="rowAction(row, 'refresh').disabled"
@@ -1666,7 +1956,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   <Pencil :size="15" aria-hidden="true" />
                 </LtIconButton>
                 <LtIconButton
-                  :label="`Preview or copy ${row.name}`"
+                  :label="`Client output for ${row.name}`"
                   :disabled="rowAction(row, 'output').disabled"
                   :title="rowAction(row, 'output').reason || undefined"
                   @click="runRowAction('output', row, $event)"
@@ -1683,9 +1973,71 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   @keydown="onRowMenuKeydown"
                 />
               </div>
+
+              <!-- The chain, read in place: each operation with what it kept,
+                   and the nodes the chain removed with the operation that
+                   removed each. -->
+              <div
+                v-if="expandedId === row.id"
+                :id="`rec-chain-${row.id}`"
+                class="rec-chain"
+                role="cell"
+                aria-colspan="9"
+              >
+                <p v-if="rowChain?.loading" class="rec-chain-note" role="status">
+                  <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Reading the record…
+                </p>
+                <template v-else-if="rowChain?.record">
+                  <p class="rec-chain-source">
+                    <span class="rec-chain-eyebrow">Source</span>
+                    <span>{{ describe(row) }}</span>
+                    <!-- The provider link, masked after the host: the token
+                         rides in its query string. Reveal shows it for a
+                         minute. -->
+                    <template v-if="rowChain.record.url">
+                      <code class="rec-chain-url" :title="revealSource.on.value ? 'Masks itself again after a minute' : 'Masked: the query string carries the provider token'">{{ revealSource.on.value ? rowChain.record.url : maskUrl(rowChain.record.url) }}</code>
+                      <button type="button" class="rec-reveal" @click="revealSource.toggle()">
+                        {{ revealSource.on.value ? "Hide" : "Reveal" }}
+                      </button>
+                    </template>
+                  </p>
+                  <p v-if="rowChain.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
+                  <ol v-if="chainSteps.length" class="rec-chain-list" aria-label="Operations, in order">
+                    <li
+                      v-for="(step, index) in chainSteps"
+                      :key="index"
+                      :class="{ 'is-off': step.disabled, 'is-cut': /^kept/.test(chainDeltaText(index)) }"
+                    >
+                      <span class="rec-chain-label">{{ stepLabelOf(step, index) }}</span>
+                      <span class="rec-chain-delta mono">{{ chainDeltaText(index) }}</span>
+                    </li>
+                  </ol>
+                  <p v-else class="rec-chain-note">
+                    No operations. The nodes are served as the source provides them<template v-if="rowChain.explanation?.final">: {{ rowChain.explanation.final.node_count }} of them</template>.
+                  </p>
+                  <p v-if="chainIsCombination && chainSteps.length" class="rec-chain-note">
+                    The engine runs a combination's operations over its members' merged output and reports one result<template v-if="rowChain.explanation?.final">, {{ rowChain.explanation.final.node_count }} nodes</template>; per-operation counts exist for a subscription only.
+                  </p>
+                  <p v-else-if="!subs.canPreview.value && chainSteps.length" class="rec-chain-note">
+                    This session cannot run a preview, so what each operation kept is unknown.
+                  </p>
+                  <ul v-if="chainDropped.length" class="rec-chain-dropped" aria-label="Nodes the chain removed">
+                    <li v-for="(node, index) in chainDropped" :key="`${node.name}-${index}`">
+                      <span class="rec-chain-dropped-name" :title="node.name">{{ node.name }}</span>
+                      <span v-if="node.server" class="mono rec-chain-dropped-endpoint">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+                      <span class="rec-chain-dropped-by">removed by {{ droppedBy(node) }}</span>
+                    </li>
+                    <li v-if="rowChain.explanation?.final?.dropped_truncated" class="rec-chain-note">
+                      Naming the first {{ chainDropped.length }} of {{ rowChain.explanation.final.dropped_count }}.
+                    </li>
+                  </ul>
+                </template>
+                <p v-else-if="rowChain?.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
+              </div>
             </li>
           </ul>
-        </section>
+        </div>
+        </div>
         </template>
 
       </template>
@@ -1709,16 +2061,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             <p class="row-popover-note">
               {{ subs.rowPreview.value.count }} node(s) once its operations run
             </p>
-            <ul class="node-list">
-              <li v-for="(node, index) in subs.rowPreview.value.nodes" :key="`${node.name}-${index}`" class="node-row">
-                <span class="node-name" :title="node.name">{{ node.name }}</span>
-                <span class="node-tags">
-                  <LtBadge tone="neutral">{{ node.type }}</LtBadge>
-                  <LtBadge v-if="node.security" tone="neutral">{{ node.security }}</LtBadge>
-                  <span v-if="node.server" class="node-meta">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
-                </span>
-              </li>
-            </ul>
+            <NodeRows :nodes="subs.rowPreview.value.nodes" />
             <p v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length" class="row-popover-note">
               …and {{ subs.rowPreview.value.count - subs.rowPreview.value.nodes.length }} more
             </p>
@@ -1735,13 +2078,19 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         />
 
         <template v-else-if="drawer?.mode === 'share'">
-          <p class="row-popover-copy">
-            Nothing here is reachable until a share is published for it. Shares live in the
+          <p v-if="drawerItem && publishedOf(drawerItem).tone === 'warn'" class="row-popover-copy">
+            {{ publishedOf(drawerItem).title }} Renewing or enabling it happens in the
             dashboard, under <strong>Networking → Subscription Shares</strong>.
           </p>
-          <p class="row-popover-note">Already published? The Shares view shows its link.</p>
+          <template v-else>
+            <p class="row-popover-copy">
+              Nothing here is reachable until a share is published for it. Shares live in the
+              dashboard, under <strong>Networking → Subscription Shares</strong>.
+            </p>
+            <p class="row-popover-note">Already published? The Shares lens shows its link.</p>
+          </template>
           <div v-if="shareOrigin && drawerItem" class="empty-actions">
-            <LtButton variant="primary" @click="openShares(drawerItem.name)">
+            <LtButton variant="primary" @click="openShares(drawerItem)">
               <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
             </LtButton>
           </div>

@@ -12,6 +12,7 @@
  */
 import type { SubStoreShareRow, SubscriptionListItem } from "./client";
 import { formatRelativeTime } from "./rowStatus";
+import { maskUrlsIn } from "./urlMask";
 
 export type Tone = "ok" | "warn" | "danger" | "neutral";
 
@@ -55,6 +56,23 @@ export function publishStateFor(shares: readonly SubStoreShareRow[] | undefined,
   };
 }
 
+export interface ShareState {
+  tone: Tone;
+  label: "live" | "disabled" | "expired";
+  title: string;
+}
+
+/** One share's own verdict, the way the Shares lens prints it. */
+export function shareStateOf(share: SubStoreShareRow, now: number = Date.now()): ShareState {
+  if (expired(share, now)) {
+    return { tone: "warn", label: "expired", title: "Past its expiry: a client that fetches it gets nothing." };
+  }
+  if (!share.enabled) {
+    return { tone: "warn", label: "disabled", title: "Switched off in the console: a client that fetches it gets nothing." };
+  }
+  return { tone: "ok", label: "live", title: `Served at ${share.path}.` };
+}
+
 export interface RefreshState {
   tone: Tone;
   label: string;
@@ -75,7 +93,9 @@ export function refreshStateFor(item: SubscriptionListItem, now: number = Date.n
     // "Failed" cannot be told apart from one that broke three weeks ago, and
     // that is the row an operator is looking for.
     const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, now) : "";
-    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: item.last_error || "The last refresh failed" };
+    // The server trims the reason, and the reason quotes the link it fetched;
+    // the title masks it after the host like every other read view.
+    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: maskUrlsIn(item.last_error || "The last refresh failed") };
   }
   if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
   const relative = formatRelativeTime(item.last_fetch_at, now);

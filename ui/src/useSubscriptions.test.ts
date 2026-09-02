@@ -655,7 +655,7 @@ describe("vpn-core graph workflow", () => {
     const before = structuredClone(GRAPH_OPTIONS);
     expect(await subs.publish("graph", "https://destination.invalid/graph", "PUT", "plain")).toBe(false);
     expect(calls).toHaveLength(1);
-    expect(subs.actionError.value).toMatch(/publish failed/i);
+    expect(subs.actionError.value).toMatch(/upload failed/i);
     expect(subs.actionError.value).not.toContain("vless://");
     // The cause is kept, redacted: an operator needs to tell a refused
     // credential from an unreachable host, and neither is legible from a
@@ -821,5 +821,59 @@ describe("refresh", () => {
     await subs.refresh("s1");
     expect(lists).toBe(2);
     expect(subs.actionError.value).toContain("503");
+  });
+});
+
+// A read-scoped session cannot ask the control plane to resolve a source a
+// draft names. It can ask for a saved record's stored source, which the admin
+// named when they saved it, so a draft whose source is unchanged previews
+// through that path with its own chain.
+describe("previewing a draft without admin access", () => {
+  const stored = { id: "paid", name: "paid", source: SOURCE_REMOTE, url: "https://p.example/sub?token=1", ua: "Surge", process: [{ type: "Sort Operator" }] };
+  const answers = {
+    "latticenet.sub-store/subscription/get": { subscription: stored },
+    "latticenet.sub-store/subscription/preview": { nodes: [{ name: "a", type: "ss" }], node_count: 1, source_node_count: 3 },
+  };
+
+  it("previews a saved record's stored source with the draft's operations", async () => {
+    const { host, calls } = subscriptionHost(answers, (method) => method !== "preview_draft");
+    const subs = useSubscriptions(host);
+    const record = await subs.get("paid");
+    const draft = draftFromRecord(record!);
+    draft.process = [{ type: "Region Filter" }];
+    await subs.runPreview(draft);
+    const preview = calls.find((call) => call.method === "preview");
+    expect(preview).toBeTruthy();
+    expect(calls.some((call) => call.method === "preview_draft")).toBe(false);
+    const payload = preview!.payload as Record<string, unknown>;
+    expect(payload.subscription_id).toBe("paid");
+    expect(payload.source).toBeUndefined();
+    expect(payload.url).toBeUndefined();
+    expect(payload.operators).toEqual([{ type: "Region Filter" }]);
+    expect(subs.preview.value?.node_count).toBe(1);
+    expect(subs.previewNote.value).toContain("Previewed from the saved source");
+    expect(subs.previewError.value).toBe("");
+  });
+
+  it("refuses a changed source and says what the session can do instead", async () => {
+    const { host, calls } = subscriptionHost(answers, (method) => method !== "preview_draft");
+    const subs = useSubscriptions(host);
+    const draft = draftFromRecord((await subs.get("paid"))!);
+    draft.url = "https://other.example/sub?token=2";
+    await subs.runPreview(draft);
+    expect(calls.some((call) => call.method === "preview" || call.method === "preview_draft")).toBe(false);
+    expect(subs.previewError.value).toContain("admin access");
+    expect(subs.previewError.value).toContain("saved record's stored source");
+    expect(subs.previewNote.value).toBe("");
+  });
+
+  it("still names the source on the admin method when the session has it", async () => {
+    const { host, calls } = subscriptionHost({ ...answers, "latticenet.sub-store/subscription/preview_draft": answers["latticenet.sub-store/subscription/preview"] });
+    const subs = useSubscriptions(host);
+    const draft = draftFromRecord((await subs.get("paid"))!);
+    await subs.runPreview(draft);
+    const call = calls.find((entry) => entry.method === "preview_draft");
+    expect((call?.payload as Record<string, unknown>).url).toBe(stored.url);
+    expect(subs.previewNote.value).toBe("");
   });
 });
