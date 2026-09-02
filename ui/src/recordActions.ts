@@ -83,7 +83,7 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   },
   {
     id: "refresh",
-    label: () => "Refresh now",
+    label: () => "Refresh",
     icon: "refresh",
     kinds: NODE_KINDS,
     // Refreshing reads the source again; it is gated on the probe method, not

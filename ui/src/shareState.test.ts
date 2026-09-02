@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { SubStoreShareRow, SubscriptionListItem } from "./client";
-import { publishStateFor, refreshStateFor } from "./shareState";
+import { publishStateFor, refreshStateFor, shareStateOf } from "./shareState";
 
 const NOW = Date.parse("2026-09-02T05:00:00Z");
 const share = (over: Partial<SubStoreShareRow>): SubStoreShareRow => ({
@@ -41,5 +41,19 @@ describe("refreshStateFor", () => {
       .toMatchObject({ tone: "danger", title: "403" });
     expect(refreshStateFor(item({ has_url: true, last_fetch_at: "2026-09-02T04:00:00Z" }), NOW).tone).toBe("neutral");
     expect(refreshStateFor(item({ has_url: true, last_fetch_at: "2026-09-02T04:00:00Z", last_fetch_ok: true }), NOW).tone).toBe("ok");
+  });
+});
+
+describe("one share's own verdict", () => {
+  const now = Date.parse("2026-09-02T04:00:00Z");
+  const base = { subscription_id: "s", share_id: "x", slug: "cd", path: "/sub/cd/tok" };
+
+  it("is live only when enabled and not past its expiry", () => {
+    expect(shareStateOf({ ...base, enabled: true }, now)).toMatchObject({ tone: "ok", label: "live" });
+    expect(shareStateOf({ ...base, enabled: true, expires_at: "2026-12-01T00:00:00Z" }, now).label).toBe("live");
+    expect(shareStateOf({ ...base, enabled: false }, now)).toMatchObject({ tone: "warn", label: "disabled" });
+    expect(shareStateOf({ ...base, enabled: true, expires_at: "2026-09-01T00:00:00Z" }, now)).toMatchObject({ tone: "warn", label: "expired" });
+    // Expired wins over disabled: the expiry is the reason a client gets nothing.
+    expect(shareStateOf({ ...base, enabled: false, expires_at: "2026-09-01T00:00:00Z" }, now).label).toBe("expired");
   });
 });

@@ -66,8 +66,6 @@
   --lt-measure-prose: 78ch;
   --lt-measure-field: 46ch;
   --lt-measure-form: 132ch;
-  --lt-preview-workspace-w: 1360px;
-  --lt-preview-workspace-h: 900px;
   --lt-preview-control-w: 300px;
   --lt-preview-header-h: 64px;
 
@@ -80,24 +78,31 @@
      three actions or four. */
   --lt-rec-actions: 112px;
   --lt-control-h-sm: 24px;
-  --lt-radius: 6px;
-  --lt-radius-sm: 4px;
+  /* Controls read as controls, not pills (DESIGN-PROGRAM 1.x): 4px on
+   * buttons, inputs and rows, 3px on the small ones. Badges keep their pill. */
+  --lt-radius: 4px;
+  --lt-radius-sm: 3px;
 
   /* focus. One ring, on every focusable thing; a keyboard operator in a data
    * tool navigates by it. */
   --lt-focus-ring: 0 0 0 2px var(--lt-bg), 0 0 0 4px color-mix(in oklab, var(--lt-accent) 70%, transparent);
   --lt-focus-ring-tight: 0 0 0 2px color-mix(in oklab, var(--lt-accent) 70%, transparent);
 
-  /* elevation: overlays only. Nothing in the flow is raised. */
-  --lt-shadow-overlay: 0 12px 32px color-mix(in oklab, var(--lt-shadow-ink) 45%, transparent);
+  /* elevation: overlays only. Nothing in the flow is raised, and the one
+   * shadow is tinted with the accent rather than neutral black. */
+  --lt-shadow-overlay: 0 12px 32px color-mix(in oklab, var(--lt-accent) 6%, color-mix(in oklab, var(--lt-shadow-ink) 40%, transparent));
 
-  /* motion: functional only */
-  --lt-ease: cubic-bezier(0.2, 0, 0, 1);
-  --lt-dur: 120ms;
+  /* motion: two durations and one curve. Fast for hover, focus and pressed;
+   * base for expand, collapse, sheet and tab changes; expo-out, so a change
+   * starts at once and settles. Nothing loops and nothing moves without a job. */
+  --lt-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  --lt-dur: 100ms;
+  --lt-dur-base: 200ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --lt-dur: 0ms;
+    --lt-dur-base: 0ms;
   }
 }

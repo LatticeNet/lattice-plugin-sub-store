@@ -16,30 +16,33 @@ provideHost(createFakeHost());
  * would mean polishing colours the operator never sees. The dashboard is
  * dark-forward.
  */
+// The console's default palette (DESIGN-PROGRAM 1.x, "claude"): warm
+// neutrals and one terracotta accent. These are the host's values, not the
+// plugin's; the plugin only ever reads the tokens.
 const DARK: Record<string, string> = {
-  "--background": "#0d1117",
-  "--foreground": "#e9eef5",
-  "--card": "#161c26",
-  "--border": "#242d3a",
-  "--muted": "#1a212c",
-  "--muted-foreground": "#8b96a5",
-  "--primary": "#2dd4bf",
-  "--primary-foreground": "#04211d",
+  "--background": "oklch(0.20 0.006 60)",
+  "--foreground": "oklch(0.95 0.006 80)",
+  "--card": "oklch(0.235 0.007 60)",
+  "--border": "oklch(1 0 0 / 10%)",
+  "--muted": "oklch(0.27 0.007 60)",
+  "--muted-foreground": "oklch(0.72 0.01 70)",
+  "--primary": "oklch(0.74 0.12 42)",
+  "--primary-foreground": "oklch(0.20 0.02 45)",
   "--destructive": "#f87171",
-  "--ring": "#2dd4bf",
+  "--ring": "oklch(0.74 0.12 42)",
 };
 
 const LIGHT: Record<string, string> = {
-  "--background": "#f7f8f9",
-  "--foreground": "#17191c",
-  "--card": "#ffffff",
-  "--border": "#d9dde2",
-  "--muted": "#f1f3f5",
-  "--muted-foreground": "#656d76",
-  "--primary": "#1769aa",
+  "--background": "oklch(0.985 0.004 85)",
+  "--foreground": "oklch(0.24 0.012 60)",
+  "--card": "oklch(0.995 0.002 85)",
+  "--border": "oklch(0.90 0.008 75)",
+  "--muted": "oklch(0.955 0.006 80)",
+  "--muted-foreground": "oklch(0.50 0.012 60)",
+  "--primary": "oklch(0.58 0.14 40)",
   "--primary-foreground": "#ffffff",
   "--destructive": "#c43838",
-  "--ring": "#1769aa",
+  "--ring": "oklch(0.58 0.14 40)",
 };
 
 const dark = ref(true);

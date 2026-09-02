@@ -226,7 +226,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
           </button>
 
           <div class="step-actions">
-            <label class="step-toggle" :title="entry.step.disabled ? 'Turn this step back on' : 'Turn this step off without losing its arguments'">
+            <label class="step-toggle" :title="entry.step.disabled ? 'Turn this operation back on' : 'Turn this operation off without losing its arguments'">
               <input
                 type="checkbox"
                 :checked="!entry.step.disabled"
@@ -260,8 +260,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon"
               :disabled="entry.step.disabled || previewingStep !== null"
-              title="Preview the nodes as they leave this step"
-              :aria-label="`Preview up to step ${position + 1}`"
+              title="Preview the nodes as they leave this operation"
+              :aria-label="`Preview up to operation ${position + 1}`"
               @click="emit('preview-step', entry.index, label(entry.step, position + 1))"
             >
               <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" aria-hidden="true" />

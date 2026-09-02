@@ -235,7 +235,7 @@ async function loadDocument(): Promise<void> {
   if (!host.bridge || !canRender.value) {
     documentStatus.value = "error";
     documentError.value =
-      "This session cannot render client documents. Use Pipeline nodes for the redacted read view.";
+      "This session cannot render client documents. Use Node preview for the redacted read view.";
     return;
   }
 
@@ -311,8 +311,8 @@ async function loadNodes(): Promise<void> {
   if (!host.bridge || !canPreview.value || isFile.value) {
     nodesStatus.value = "error";
     nodesError.value = isFile.value
-      ? "Files are documents and do not have a pipeline-node view."
-      : "This session cannot preview redacted pipeline nodes.";
+      ? "Files are documents and do not have a node preview."
+      : "This session cannot preview this record's nodes.";
     return;
   }
 
@@ -345,7 +345,7 @@ async function loadNodes(): Promise<void> {
     if (generation !== nodesGeneration || !props.open) return;
     preview.value = null;
     nodesStatus.value = "error";
-    nodesError.value = safeErrorMessage(cause, "Pipeline node preview failed");
+    nodesError.value = safeErrorMessage(cause, "Node preview failed");
   } finally {
     if (generation === nodesGeneration) {
       nodesCancel = null;
@@ -529,6 +529,7 @@ onBeforeUnmount(stopAllRequests);
       role="dialog"
       aria-modal="true"
       :aria-label="`${isFile ? 'Document preview' : 'Client output'} for ${recordName}`"
+      :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
       @keydown.esc="close"
       @keydown.tab="onTab"
     >
@@ -635,8 +636,8 @@ onBeforeUnmount(stopAllRequests);
           </section>
 
           <p v-if="!canRender" class="permission-strip">
-            Client documents require admin access. This session can inspect redacted pipeline
-            nodes only.
+            Client documents require admin access. This session can preview redacted nodes
+            only.
           </p>
           <p v-if="actionError" class="sheet-error" role="alert">{{ actionError }}</p>
         </aside>
@@ -669,7 +670,7 @@ onBeforeUnmount(stopAllRequests);
               </template>
               <template v-else>
                 <span class="evidence-step">
-                  <small>PIPELINE</small>
+                  <small>AFTER OPERATIONS</small>
                   <strong>NODES</strong>
                 </span>
                 <span class="evidence-arrow" aria-hidden="true">→</span>
@@ -715,7 +716,7 @@ onBeforeUnmount(stopAllRequests);
                 @click="showNodes()"
                 @keydown="onViewTabKeydown"
               >
-                Pipeline nodes
+                Node preview
               </button>
             </div>
 
@@ -726,7 +727,7 @@ onBeforeUnmount(stopAllRequests);
                     {{ isFile ? "Rendered document" : `What ${chosenTarget.label} receives` }}
                   </template>
                   <template v-else>
-                    {{ isCollection ? "Merged pipeline nodes" : "Pipeline nodes after operations" }}
+                    {{ isCollection ? "Merged nodes after operations" : "Nodes after operations" }}
                   </template>
                 </h3>
                 <p v-if="viewMode === 'document'" class="output-description">
@@ -841,7 +842,7 @@ onBeforeUnmount(stopAllRequests);
           >
             <div v-if="nodesStatus === 'loading'" class="output-state" role="status">
               <LoaderCircle :size="18" class="spin" aria-hidden="true" />
-              <strong>Inspecting pipeline nodes…</strong>
+              <strong>Previewing nodes…</strong>
             </div>
             <div v-else-if="nodesStatus === 'error'" class="output-state is-error" role="alert">
               <strong>{{ nodesError }}</strong>
@@ -891,7 +892,7 @@ onBeforeUnmount(stopAllRequests);
             </template>
             <div v-else class="output-state">
               <strong>No node evidence loaded.</strong>
-              <LtButton @click="showNodes()">Inspect pipeline nodes</LtButton>
+              <LtButton @click="showNodes()">Preview nodes</LtButton>
             </div>
           </section>
         </main>

@@ -95,25 +95,33 @@ describe("rendered documents use the shared read-only code viewer", () => {
    * moved while pieces of it stayed nailed down. Reading a long document
    * dragged the client list past its own heading.
    */
-  it("scrolls each pane rather than the whole sheet", () => {
+  // One scroller per document (DESIGN-PROGRAM 1). The sheet used to be a
+  // fixed frame with three scrollers inside it, and reaching a row meant
+  // guessing which one owned the wheel. It is a panel in the document now:
+  // its height is its content and the document scrolls it.
+  it("is a panel the document scrolls, not a scroller of its own", () => {
     const decl = styles.replace(/\/\*[\s\S]*?\*\//g, "");
-    // The frame itself does not scroll.
-    expect(decl).toMatch(/\.sheet\s*\{[^}]*overflow:\s*hidden/s);
-    // The rail and the document panel each do.
-    expect(decl).toMatch(/\.target-controls\s*\{[^}]*overflow-y:\s*auto/s);
-    expect(decl).toMatch(/\.output-panel\s*\{[^}]*overflow-y:\s*auto/s);
-    // A grid child that cannot shrink never scrolls; the sheet grows instead.
-    expect(decl).toMatch(/\.target-workspace-body\s*\{[^}]*min-height:\s*0/s);
-    expect(decl).toMatch(/\.target-output\s*\{[^}]*min-height:\s*0/s);
-    // Nothing in the sheet is pinned any more.
+    expect(decl).toMatch(/\.sheet\s*\{[^}]*position:\s*absolute/s);
+    expect(decl).not.toMatch(/\.sheet\s*\{[^}]*overflow:\s*hidden/s);
+    expect(decl).not.toMatch(/\.sheet\s*\{[^}]*max-height/s);
+    expect(decl).not.toMatch(/\.sheet-scrim\s*\{[^}]*overflow-y:\s*auto/s);
+    // Neither pane scrolls on its own either.
+    expect(decl).not.toMatch(/\.target-controls\s*\{[^}]*overflow-y:\s*auto/s);
+    expect(decl).not.toMatch(/\.output-panel\s*\{[^}]*overflow-y:\s*auto/s);
+    // Nothing in the sheet is pinned.
     for (const rule of ["\\.sheet-head", "\\.target-controls", "\\.target-output-toolbar"]) {
       const m = new RegExp(rule + "\\s*\\{[^}]*position:\\s*sticky", "s");
       expect(decl, rule + " is still pinned").not.toMatch(m);
     }
+    // Neither does the row drawer scroll inside itself.
+    const drawer = source("components/lt/LtDrawer.vue").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(drawer).not.toMatch(/max-height:\s*\d/);
+    expect(drawer).not.toMatch(/overflow-y:\s*auto/);
   });
 
   it("gives the preview workspace a dominant evidence pane", () => {
-    expect(styles).toMatch(/\.sheet\s*\{[^}]*width:\s*min\(var\(--lt-preview-workspace-w\)/s);
+    // A right-side panel wide enough for the rail and an 80-column document.
+    expect(styles).toMatch(/\.sheet\s*\{[^}]*width:\s*min\(960px, 100%\)/s);
     expect(styles).toMatch(/\.target-workspace-body\s*\{[^}]*grid-template-columns/s);
   });
 

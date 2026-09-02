@@ -15,7 +15,10 @@
 
 export const NAVIGATE_MESSAGE_TYPE = "lattice:navigate";
 
-/** The dashboard's share management view, pre-opened on the create form. */
+/** The dashboard's share management view, where an existing share is changed. */
+export const SHARES_LIST_ROUTE = "/network/subscription-shares";
+
+/** The same view, pre-opened on the create form. */
 export function sharesRoute(recordName: string): string {
   return `/network/subscription-shares?create=1&for=${encodeURIComponent(recordName)}`;
 }

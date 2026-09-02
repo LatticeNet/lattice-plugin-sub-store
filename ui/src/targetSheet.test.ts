@@ -283,7 +283,7 @@ describe("TargetSheet client output behavior", () => {
     app.unmount();
   });
 
-  it("uses redacted pipeline nodes when document rendering is out of scope", async () => {
+  it("uses the redacted node preview when document rendering is out of scope", async () => {
     const { app, root, renderCalls, previewCalls } = mountSheet({ canRender: false });
     await settle();
     expect(renderCalls).toHaveLength(0);
@@ -298,7 +298,7 @@ describe("TargetSheet client output behavior", () => {
       source_node_count: 2,
     });
     await settle();
-    const nodesTab = find(root, (node) => node.props.role === "tab" && textOf(node).includes("Pipeline nodes"))[0]!;
+    const nodesTab = find(root, (node) => node.props.role === "tab" && textOf(node).includes("Node preview"))[0]!;
     expect(nodesTab.props["aria-selected"]).toBe(true);
     expect(find(root, (node) => node.props["data-document-view"] === "true")).toHaveLength(0);
     expect(textOf(root)).toContain("Hong Kong 01");

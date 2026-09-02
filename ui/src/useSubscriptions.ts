@@ -1,3 +1,5 @@
+import { cutChain } from "./chainExplain";
+import type { ChainStep } from "./components/ProcessChain.vue";
 import { computed, ref, type Ref } from "vue";
 
 import {
@@ -140,12 +142,7 @@ export function enabledSteps(draft: SubscriptionDraft): unknown[] {
  * the cut so the count on screen keeps matching the list.
  */
 function previewOperators(draft: SubscriptionDraft, upTo?: number): unknown[] {
-  const chain = typeof upTo === "number" ? draft.process.slice(0, upTo + 1) : draft.process;
-  return chain
-    .filter((step) => !(step && typeof step === "object" && (step as { disabled?: boolean }).disabled))
-    .filter(
-      (step) => !(step && typeof step === "object" && (step as { type?: string }).type === "Response Transformer"),
-    );
+  return cutChain(draft.process as ChainStep[], upTo);
 }
 
 /** A stored file type the editor knows how to render. */
@@ -394,8 +391,13 @@ export function useSubscriptions(host: HostContext) {
   const operators = ref<OperatorInfo[]>([]);
   const preview = ref<SubscriptionPreviewResponse | null>(null);
   const previewing = ref(false);
-  /** Which step the current preview stopped after, or null for the whole chain. */
+  /** Which operation the current preview stopped after, or null for the whole chain. */
   const previewStep = ref<number | null>(null);
+  /** What the preview could not do as asked, and did instead. */
+  const previewNote = ref("");
+  /** The record most recently read for editing, so a draft can be compared
+   *  with what the server holds for it. */
+  const lastRead = ref<SubscriptionRecord | null>(null);
   const graphOptions = ref<GraphOptionsResponse | null>(null);
   const graphOptionsLoading = ref(false);
 
@@ -496,6 +498,7 @@ export function useSubscriptions(host: HostContext) {
       const response = await callMethod<SubscriptionGetResponse>(host.bridge, BINDINGS.subGet, {
         subscription_id: id,
       }).promise;
+      lastRead.value = response.subscription ?? null;
       return response.subscription ?? null;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, "Subscription could not be read");
@@ -790,11 +793,24 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
+  /** True when the draft's source is exactly what the server holds for it. */
+  function sourceUnchanged(draft: SubscriptionDraft): boolean {
+    const stored = lastRead.value;
+    if (!stored || stored.id !== draft.id.trim()) return false;
+    return (
+      (stored.source ?? "") === draft.source &&
+      (stored.url ?? "") === draft.url.trim() &&
+      (stored.ua ?? "") === draft.ua.trim() &&
+      (stored.vpn_identity ?? "") === draft.vpnIdentity.trim()
+    );
+  }
+
   async function runPreview(draft: SubscriptionDraft, upTo?: number): Promise<void> {
     if (!host.bridge || !canPreview.value || previewing.value) return;
     previewing.value = true;
     actionError.value = "";
     previewError.value = "";
+    previewNote.value = "";
     preview.value = null;
     previewStep.value = typeof upTo === "number" ? upTo : null;
     try {
@@ -822,17 +838,31 @@ export function useSubscriptions(host: HostContext) {
       // is substore:admin. Only that shape goes to the admin method; a preview
       // of stored or pasted content stays on the read-scoped one, so a
       // read-only operator keeps the preview they are entitled to.
-      const namesASource = Object.values(draftSource).some((value) => value !== undefined);
+      let namesASource = Object.values(draftSource).some((value) => value !== undefined);
+      let sourceFields: Record<string, string | undefined> = draftSource;
       if (namesASource && !canPreviewDraft.value) {
-        // Also on the preview channel, which is the pane the button now lives
-        // in. Sent to the action channel alone it landed at the bottom of the
-        // form, so the pane went on saying nothing had run yet while the reason
-        // it had not sat somewhere the click never looked.
-        const refusal =
-          "Previewing an unsaved draft resolves the source you named, which needs admin access. Save the subscription first, or preview pasted content.";
-        actionError.value = refusal;
-        previewError.value = refusal;
-        return;
+        // The read-scoped `preview` resolves a SAVED record's source itself:
+        // naming the record is not naming a host, the admin already did that
+        // when they saved it. So a draft whose source fields still match the
+        // stored record previews through that path, with the draft's chain,
+        // and only a source the operator changed or a record never saved is
+        // out of reach here.
+        if (draft.id.trim() && sourceUnchanged(draft)) {
+          namesASource = false;
+          sourceFields = {};
+          previewNote.value =
+            "Previewed from the saved source with this draft's operations. This session cannot resolve a source a draft names, so a changed link or user would not show here until an admin saves it.";
+        } else {
+          // Also on the preview channel, which is the pane the button lives
+          // in. Sent to the action channel alone it landed at the bottom of
+          // the form, so the pane went on saying nothing had run yet while the
+          // reason it had not sat somewhere the click never looked.
+          const refusal =
+            "This session cannot resolve the source a draft names: that needs admin access (substore:admin), because naming a source is naming a host for the control plane to read. It can preview pasted nodes, a converged path, and any saved record's stored source. Ask an operator with admin access to save this record; its preview then works here.";
+          actionError.value = refusal;
+          previewError.value = refusal;
+          return;
+        }
       }
       const response = await callMethod<SubscriptionPreviewResponse>(
         host.bridge,
@@ -850,7 +880,7 @@ export function useSubscriptions(host: HostContext) {
             identity_id: draft.vpnIdentity,
             entry_roots: [...draft.entryRoots],
           } : undefined,
-          ...draftSource,
+          ...sourceFields,
         },
       ).promise;
       preview.value = response;
@@ -948,6 +978,7 @@ export function useSubscriptions(host: HostContext) {
     operators,
     preview,
     previewError,
+    previewNote,
     previewing,
     previewStep,
     staleError,

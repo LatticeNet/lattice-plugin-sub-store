@@ -57,6 +57,7 @@ import LtIconButton from "../components/lt/LtIconButton.vue";
 import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import CodeEditor from "../components/CodeEditor.vue";
+import MaskedUrlInput from "../components/MaskedUrlInput.vue";
 import DocumentView from "../components/DocumentView.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
@@ -774,7 +775,10 @@ watch(host.init, (value) => {
       </nav>
       <div class="section-heading">
         <div>
-          <h2 id="file-editor-title">{{ editingId ? "Edit" : "New" }} file</h2>
+          <h2 id="file-editor-title">
+            {{ editingId ? "Edit" : "New" }} file
+            <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
+          </h2>
           <p>
             A document served as it is, with its proxy list kept in step with a subscription.
           </p>
@@ -899,16 +903,16 @@ watch(host.init, (value) => {
             </div>
 
             <template v-if="isRemote && !isScript">
-              <label class="field field-wide">
+              <!-- A template link can carry a token like a provider link, so
+                   it reads masked and shows whole only while edited. -->
+              <div class="field field-wide">
                 <span class="field-label">Link</span>
-                <input
+                <MaskedUrlInput
                   v-model="draft.url"
-                  type="text"
-                  autocomplete="off"
-                  spellcheck="false"
+                  aria-label="Link"
                   placeholder="Where the template is fetched from"
                 />
-              </label>
+              </div>
               <label class="field">
                 <span class="field-label">User agent</span>
                 <input v-model="draft.ua" type="text" autocomplete="off" placeholder="Optional" />
@@ -1323,7 +1327,7 @@ watch(host.init, (value) => {
                 <button
                   type="button"
                   class="rec-name"
-                  :title="`Preview or copy ${item.display_name || item.name} for a client`"
+                  :title="`Show the document ${item.display_name || item.name} serves`"
                   @click="openFileSheet(item, $event)"
                 >
                   {{ item.display_name || item.name }}
@@ -1377,7 +1381,7 @@ watch(host.init, (value) => {
                   <Pencil :size="15" aria-hidden="true" />
                 </LtIconButton>
                 <LtIconButton
-                  :label="`Preview or copy ${item.name} for a client`"
+                  :label="`Show document for ${item.name}`"
                   :disabled="rowAction(item, 'output').disabled"
                   :title="rowAction(item, 'output').reason || undefined"
                   @click="openFileSheet(item, $event)"

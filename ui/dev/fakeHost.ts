@@ -92,9 +92,17 @@ const records: StoredRecord[] = [
     name: "openjobs-host",
     tags: ["paid"],
     source: "remote",
-    url: "https://example.invalid/subscribe",
+    // A real provider link: the token rides in the query string, which is
+    // exactly what every read view must mask and no toast may print.
+    url: "https://sub.example-provider.com/api/v1/client/subscribe?token=9f8e7d6c5b4a32100123456789abcdef&flag=clash",
     ua: "Surge",
-    process: [{ type: "Region Filter", args: { value: ["HK", "JP"], keep: true } }],
+    // Three enabled operations, so the expanded row and the compare panel
+    // have a chain to account for step by step.
+    process: [
+      { type: "Region Filter", args: { value: ["HK", "JP"], keep: true } },
+      { type: "Regex Rename Operator", args: { value: [{ expr: "^HK", now: "香港 Hong Kong" }] } },
+      { type: "Sort Operator", args: { value: "asc" } },
+    ],
     last_fetch_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
     last_fetch_ok: true,
     userinfo: "upload=3221225472; download=25769803776; total=536870912000; expire=1893456000",
@@ -342,6 +350,10 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       fetched_at: found.last_fetch_at,
     };
   },
+  // The admin-scoped twin of preview, for a draft that names a source. The
+  // harness answers it exactly as preview does; what it exists to exercise is
+  // the gate on the client, which withholds it in the read-only state.
+  "subscription/preview_draft": (payload) => HANDLERS["subscription/preview"]!(payload),
   "subscription/preview": ({ subscription_id, operators }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (found?.kind === "file") {
@@ -481,6 +493,29 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         url: "https://lattice.example/sub/cd-self/devtokendevtokendevtokendevtoken",
       },
       {
+        // A second share on the same record, switched off: the Shares lens
+        // and the Published column have to tell "disabled" from "expired".
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev-off",
+        slug: "cd-self-old",
+        enabled: false,
+        default_format: "plain",
+        expires_at: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
+        path: "/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
+        url: "https://lattice.example/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
+      },
+      {
+        // Enabled but past its expiry: reachable in the list, dead to a client.
+        subscription_id: "openjobs-host",
+        share_id: "sh-dev-expired",
+        slug: "openjobs",
+        enabled: true,
+        default_format: "clash",
+        expires_at: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
+        path: "/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
+        url: "https://lattice.example/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
+      },
+      {
         // A published FILE too. Without one the file sheet's link branch is
         // unreachable here, and that branch is the one that must NOT pin a
         // client onto the URL: the serve path ignores ?target= for a file.
@@ -571,8 +606,8 @@ export function createFakeHost(): HostContext {
           // so every Refresh in the harness rendered disabled and the refresh
           // path, its notice and its failure state were undrivable here.
           methods: [
-            "fetch", "probe", "render", "operators", "graph_options", "preview", "list", "get", "save",
-            "delete", "migrate", "export", "import", "get_settings", "save_settings", "publish",
+            "fetch", "probe", "render", "operators", "graph_options", "preview", "preview_draft", "list",
+            "get", "save", "delete", "migrate", "export", "import", "get_settings", "save_settings", "publish",
           ],
         },
         {
@@ -594,7 +629,7 @@ export function createFakeHost(): HostContext {
   // methods rather than a flag. Withholding them here exercises the same path
   // production takes, including every "why is this greyed out" sentence.
   const WITHHELD: Record<string, true> = harnessState() === "readonly"
-    ? { save: true, delete: true, publish: true }
+    ? { save: true, delete: true, publish: true, preview_draft: true }
     : {};
 
   const bridge = {
