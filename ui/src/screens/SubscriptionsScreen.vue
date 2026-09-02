@@ -22,6 +22,7 @@ import {
   Share2,
   SquareArrowOutUpRight,
   Trash2,
+  ListOrdered,
 } from "@lucide/vue";
 
 import LtBadge from "../components/lt/LtBadge.vue";
@@ -58,6 +59,10 @@ import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
 import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
+import { publishStateFor, refreshStateFor } from "../shareState";
+import { describeDelta, enabledStepIndexes, stepDeltas, type StepDelta } from "../chainExplain";
+import { safeErrorMessage } from "../subStoreModel";
+import { BINDINGS, callMethod, type SubStoreShareRow, type SubStoreSharesResponse } from "../client";
 import {
   draftFromRecord,
   emptyDraft,
@@ -131,6 +136,35 @@ const canPreviewNow = computed(
  * the one that was clicked.
  */
 const previewStepLabel = ref("");
+
+// ── explain the chain ───────────────────────────────────────────────────────
+// One partial run per enabled step, in order, reading the count after each;
+// then the whole chain again so the panel ends on the full result. The
+// engine does the work; this only asks the same question N times.
+const explaining = ref(false);
+const stepCounts = ref<StepDelta[]>([]);
+const explainable = computed(() => enabledStepIndexes(draft.value.process as ChainStep[]).length > 0);
+async function explainChain(): Promise<void> {
+  if (explaining.value || !canPreviewNow.value) return;
+  explaining.value = true;
+  stepCounts.value = [];
+  const counts: number[] = [];
+  let source = 0;
+  try {
+    for (const index of enabledStepIndexes(draft.value.process as ChainStep[])) {
+      await subs.runPreview(draft.value, index);
+      const result = subs.preview.value;
+      if (!result || subs.previewError.value) break;
+      if (!counts.length) source = result.source_node_count ?? result.node_count;
+      counts.push(result.node_count);
+    }
+    stepCounts.value = stepDeltas(draft.value.process as ChainStep[], source, counts);
+    if (counts.length) await subs.runPreview(draft.value);
+  } finally {
+    explaining.value = false;
+  }
+}
+watch(() => draft.value.process, () => { stepCounts.value = []; }, { deep: true });
 
 function previewUpToStep(index: number, label: string): void {
   previewStepLabel.value = label;
@@ -753,30 +787,31 @@ function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
 }
 
 function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" | "neutral"; label: string; title?: string } {
-  if (item.last_fetch_ok === false) {
-    // When it failed matters as much as that it failed: a row reading only
-    // "Failed" cannot be told apart from one that broke three weeks ago, and
-    // that is the row an operator is looking for.
-    const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at) : "";
-    return {
-      tone: "danger",
-      label: when ? `Failed ${when}` : "Failed",
-      title: item.last_error || "The last refresh failed",
-    };
-  }
-  if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
-  const relative = formatRelativeTime(item.last_fetch_at);
-  if (item.last_fetch_ok !== true) {
-    // Fetched at some point, outcome not reported. Not a failure, and not a
-    // success either: rendering it green was the only wrong option.
-    return {
-      tone: "neutral",
-      label: relative ? `Fetched ${relative}, outcome not reported` : "Outcome not reported",
-      title: "The server recorded a fetch for this record but not whether it succeeded.",
-    };
-  }
-  return { tone: "ok", label: relative ? `Refreshed ${relative}` : "Refreshed" };
+  return refreshStateFor(item);
 }
+
+// ── published shares ────────────────────────────────────────────────────────
+// The host's share list, read once per list load and folded onto each row.
+// `undefined` until it has been read, so the column can say "not yet" rather
+// than "not published" while the call is in flight.
+const shares = ref<SubStoreShareRow[] | undefined>(undefined);
+const sharesError = ref("");
+async function loadShares(): Promise<void> {
+  if (!host.bridge || !host.available(BINDINGS.sharesList)) return;
+  try {
+    const response = await callMethod<SubStoreSharesResponse>(host.bridge, BINDINGS.sharesList, {}).promise;
+    shares.value = response.shares ?? [];
+    sharesError.value = "";
+  } catch (cause) {
+    sharesError.value = safeErrorMessage(cause, "The share list could not be read");
+  }
+}
+function publishedOf(item: SubscriptionListItem) {
+  return publishStateFor(shares.value, item.id);
+}
+const publishedCount = computed(() => shares.value === undefined
+  ? null
+  : filteredRows.value.filter((row) => publishStateFor(shares.value, row.id).tone === "ok").length);
 
 // ── row + batch operations ──────────────────────────────────────────────────
 
@@ -880,6 +915,7 @@ function openShares(recordName: string): void {
  * no-ops and never retries.
  */
 async function loadAll(): Promise<void> {
+  void loadShares();
   await subs.load();
   await subs.loadOperators();
 }
@@ -1221,18 +1257,37 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <aside class="editor-side" aria-labelledby="editor-preview-title">
         <div class="editor-side-head">
           <h3 id="editor-preview-title">Nodes this produces</h3>
-          <button
-            class="button button-secondary"
-            type="button"
-            :disabled="!canPreviewNow"
-            :title="draftError || 'Run the chain and show the nodes it produces'"
-            @click="subs.runPreview(draft)"
-          >
-            <LoaderCircle v-if="subs.previewing.value" :size="16" class="spin" aria-hidden="true" />
-            <Eye v-else :size="16" aria-hidden="true" />
-            {{ subs.preview.value ? "Refresh" : "Preview" }}
-          </button>
+          <div class="editor-side-actions">
+            <button
+              class="button button-secondary"
+              type="button"
+              :disabled="!canPreviewNow || !explainable || explaining"
+              :title="!explainable ? 'Add an operation first; there is nothing to explain' : (draftError || 'Run the chain one step at a time and say what each step kept')"
+              @click="explainChain()"
+            >
+              <LoaderCircle v-if="explaining" :size="16" class="spin" aria-hidden="true" />
+              <ListOrdered v-else :size="16" aria-hidden="true" />
+              Explain chain
+            </button>
+            <button
+              class="button button-secondary"
+              type="button"
+              :disabled="!canPreviewNow || explaining"
+              :title="draftError || 'Run the chain and show the nodes it produces'"
+              @click="subs.runPreview(draft)"
+            >
+              <LoaderCircle v-if="subs.previewing.value && !explaining" :size="16" class="spin" aria-hidden="true" />
+              <Eye v-else :size="16" aria-hidden="true" />
+              {{ subs.preview.value ? "Refresh" : "Preview" }}
+            </button>
+          </div>
         </div>
+
+        <ol v-if="stepCounts.length" class="chain-deltas" aria-label="What each operation kept">
+          <li v-for="delta in stepCounts" :key="delta.index" :class="{ 'is-cut': delta.after < delta.before }">
+            {{ describeDelta(delta) }}
+          </li>
+        </ol>
 
         <SubscriptionPreviewSummary
           v-if="subs.preview.value"
@@ -1270,9 +1325,15 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <div class="section-heading">
         <div>
           <h2 id="subs-title">Subscriptions</h2>
-          <p>
-            Nothing here is reachable until you publish a share for it, in the dashboard under
-            Networking.
+          <p v-if="publishedCount === null">
+            A record reaches a client only through a share, published in the console under Networking.
+          </p>
+          <p v-else-if="publishedCount === 0">
+            None of these records is published: no client can fetch any of them until a share exists
+            for it, in the console under Networking.
+          </p>
+          <p v-else>
+            {{ publishedCount }} of {{ filteredRows.length }} shown records {{ publishedCount === 1 ? 'is' : 'are' }} published; the rest reach no client until a share exists.
           </p>
         </div>
         <div class="heading-actions">
@@ -1483,6 +1544,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
           </label>
           <span />
           <span>Record</span>
+          <span class="rec-head-published">Published</span>
           <span class="rec-head-status">Last refresh</span>
           <span class="rec-head-spacer" />
         </div>
@@ -1558,6 +1620,26 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                    They used to be tacked onto the end of the id line, so no two
                    rows put them in the same place and a column of them could
                    not be read down. -->
+              <!-- Whether anyone can fetch this record. The banner above said
+                   "nothing is reachable until you publish a share" and no row
+                   said which rows that was true of. -->
+              <div class="rec-published-cell" @click.stop>
+                <span
+                  v-if="publishedOf(row).slug"
+                  :class="`rec-published mono is-${publishedOf(row).tone}`"
+                  :title="publishedOf(row).title"
+                >{{ publishedOf(row).label }}</span>
+                <button
+                  v-else-if="shares !== undefined"
+                  type="button"
+                  class="rec-publish-link"
+                  :title="publishedOf(row).title + ' Opens the share form in the console.'"
+                  :disabled="rowAction(row, 'share').disabled"
+                  @click="runRowAction('share', row, $event)"
+                >{{ publishedOf(row).label }}</button>
+                <span v-else class="rec-published is-neutral" :title="sharesError || publishedOf(row).title">{{ publishedOf(row).label }}</span>
+              </div>
+
               <div class="rec-status-cell">
                 <span
                   :class="`rec-status is-${statusOf(row).tone}`"
