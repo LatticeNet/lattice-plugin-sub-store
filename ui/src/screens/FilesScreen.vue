@@ -406,38 +406,31 @@ function onDocumentKeydown(event: KeyboardEvent): void {
 // ── drawer ──────────────────────────────────────────────────────────────────
 
 /**
- * One drawer carries every row-scoped panel, as on the sibling tab. These were
- * inline blocks that grew inside the row, so opening a 60 KB preview shoved the
- * rest of the list off the screen and the operator lost their place.
+ * The drawer carries the share guidance, the one row-scoped panel that is not
+ * the document. The document itself has one surface, the sheet: the row menu
+ * used to open a second viewer here, capped at eight lines and scrolling
+ * inside itself, while the name and the » on the same row opened the sheet.
+ * Two viewers for one job, and the drawer's was the one that broke the
+ * one-scroller rule.
  */
-const drawer = ref<{ mode: "preview" | "share"; id: string } | null>(null);
+const drawer = ref<{ mode: "share"; id: string } | null>(null);
 
 const drawerItem = computed(() =>
   drawer.value ? allFiles.value.find((file) => file.id === drawer.value?.id) : undefined,
 );
-const drawerLanguage = computed(() =>
-  editorLanguageForFileType(drawerItem.value?.file_type),
-);
-const drawerLanguageLabel = computed(() => editorLanguageLabel(drawerLanguage.value));
-const drawerDocument = computed(() => subs.rowPreview.value?.document ?? "");
 
 const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
-  const name = drawerItem.value.display_name || drawerItem.value.name;
-  return drawer.value.mode === "preview" ? `Document · ${name}` : `Publish · ${name}`;
+  return `Publish · ${drawerItem.value.display_name || drawerItem.value.name}`;
 });
 
-function openDrawer(mode: "preview" | "share", id: string, event?: Event): void {
+function openDrawer(mode: "share", id: string, event?: Event): void {
   closeRowMenu();
   overlayAnchor.value = anchorTopFrom(event);
   drawer.value = { mode, id };
-  if (mode === "preview" && subs.rowPreview.value?.id !== id) void subs.toggleRowPreview(id);
 }
 
 function closeDrawer(): void {
-  if (drawer.value?.mode === "preview" && subs.rowPreview.value) {
-    void subs.toggleRowPreview(subs.rowPreview.value.id);
-  }
   drawer.value = null;
 }
 
@@ -518,10 +511,12 @@ function nodeSourceMissing(item: SubscriptionListItem): boolean {
   return !subs.items.value.some((entry) => entry.id === id);
 }
 
-function describe(item: SubscriptionListItem): string {
-  if (item.file_type === FILE_TYPE_PLAIN) return "Plain text";
-  const kind = item.file_type === FILE_TYPE_SCRIPT ? "Built by a script" : "Client configuration";
-  return item.node_source ? `${kind} · nodes from ${sourceName(item.node_source)}` : `${kind} · no node source`;
+/**
+ * The name cell ellipses at 375, so the whole name rides in the title, with
+ * the id (what ties a file to a share) the way the sibling tab does it.
+ */
+function nameTitle(item: SubscriptionListItem): string {
+  return `${item.id}. Show the document ${item.display_name || item.name} serves`;
 }
 
 /**
@@ -573,7 +568,7 @@ function runRowAction(id: ActionId, item: SubscriptionListItem, event: MouseEven
   closeRowMenu();
   if (id === "edit") return void startEdit(item.id);
   if (id === "refresh") return void refreshRow(item.id);
-  if (id === "output") return openDrawer("preview", item.id, event);
+  if (id === "output") return openFileSheet(item, event);
   if (id === "share") return openDrawer("share", item.id, event);
   if (id === "duplicate") return void subs.duplicate(item.id);
   if (id === "delete") return requestDelete([item.id], event);
@@ -1098,7 +1093,6 @@ watch(host.init, (value) => {
             class="output-area"
             :text="subs.preview.value.document"
             :language="contentLanguage"
-            :rows="10"
             :aria-labelledby="'file-editor-preview-label'"
           />
         </template>
@@ -1269,6 +1263,11 @@ watch(host.init, (value) => {
         </LtEmptyState>
 
         <template v-else>
+        <!-- Its own grid (.rec-files), not the sibling table's. That grid's
+             column tokens live on .rec-scroll, so borrowed without it the
+             template was invalid: every cell stacked into one column, and at
+             375 the sibling's max-content rule ran the row 636px wide. -->
+        <div class="rec-files">
         <div class="rec-head" aria-hidden="true">
           <label class="rec-select" :title="`Select all ${files.length} shown files`">
             <input
@@ -1281,7 +1280,7 @@ watch(host.init, (value) => {
           </label>
           <span />
           <span>File</span>
-          <span class="rec-head-status">Source</span>
+          <span class="rec-head-source">Source</span>
           <span class="rec-head-spacer" />
         </div>
 
@@ -1326,12 +1325,14 @@ watch(host.init, (value) => {
 
               <div class="rec-body">
                 <!-- The name opens the client sheet, as on the sibling screen:
-                     the daily job is "give me this for my client". -->
+                     the daily job is "give me this for my client". The name
+                     takes the slack and ellipses; the kind is the group
+                     heading and the icon, so the row does not repeat it. -->
                 <button
                   type="button"
                   class="rec-name"
                   :class="{ 'has-tags': tagChips(item.tags, false).shown.length > 0 }"
-                  :title="`Show the document ${item.display_name || item.name} serves`"
+                  :title="nameTitle(item)"
                   @click="openFileSheet(item, $event)"
                 >
                   <span class="rec-name-text">{{ item.display_name || item.name }}</span>
@@ -1340,30 +1341,31 @@ watch(host.init, (value) => {
                   <LtBadge v-for="tag in tagChips(item.tags, false).shown" :key="tag" tone="neutral">{{ tag }}</LtBadge>
                   <LtBadge v-if="tagChips(item.tags, false).more" tone="neutral">+{{ tagChips(item.tags, false).more }}</LtBadge>
                 </span>
-                <p class="rec-summary" :title="describe(item)">
-                  {{ describe(item) }}
-                  <template v-if="item.step_count">
-                    · {{ item.step_count }} operation(s)<template v-if="item.disabled_step_count">, {{ item.disabled_step_count }} off</template>
-                  </template>
-                </p>
-                <p class="rec-meta mono" :title="item.id">{{ item.id }}</p>
               </div>
 
               <!-- Same column the sibling tab puts refresh state in. A file's
                    equivalent fact is where its template comes from, which is
-                   the one thing that decides whether Refresh does anything. -->
+                   the one thing that decides whether Refresh does anything.
+                   At 375 this cell drops under the name as the row's second
+                   line rather than pushing the row past the viewport. -->
               <div class="rec-status-cell">
                 <span class="rec-status">{{ item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here" }}</span>
+                <!-- One line for the nodes: where they come from and how many
+                     operations run on them. Two lines is the row's height. -->
                 <span
-                  v-if="item.node_source"
+                  v-if="item.node_source || item.step_count"
                   class="rec-quota"
                   :class="{ 'is-danger': nodeSourceMissing(item) }"
                   :title="nodeSourceMissing(item)
                     ? `This file draws its proxy list from ${item.node_source}, which is not in the store. Serving it fails until the source is restored or the file points somewhere else.`
-                    : `Its proxy list comes from ${sourceName(item.node_source)}`"
+                    : [
+                      item.node_source ? `Its proxy list comes from ${sourceName(item.node_source)}` : '',
+                      item.step_count ? `${item.step_count} operation(s) run on its nodes before the document is served${item.disabled_step_count ? `, ${item.disabled_step_count} switched off` : ''}` : '',
+                    ].filter(Boolean).join('. ')"
                 >
                   <template v-if="nodeSourceMissing(item)">node source {{ item.node_source }} is gone</template>
-                  <template v-else>nodes from {{ sourceName(item.node_source) }}</template>
+                  <template v-else-if="item.node_source">nodes from {{ sourceName(item.node_source) }}</template>
+                  <template v-if="item.step_count"><template v-if="item.node_source"> · </template>{{ item.step_count }} operation(s)<template v-if="item.disabled_step_count">, {{ item.disabled_step_count }} off</template></template>
                 </span>
               </div>
 
@@ -1406,6 +1408,7 @@ watch(host.init, (value) => {
             </li>
           </ul>
         </section>
+        </div>
         </template>
       </template>
 
@@ -1416,37 +1419,10 @@ watch(host.init, (value) => {
         @close="closeTargetSheet()"
       />
 
-      <!-- One drawer, as on the sibling tab. These were inline blocks that grew
-           inside the row, so opening a 60 KB preview pushed the rest of the
-           list off the screen. -->
+      <!-- One drawer, as on the sibling tab, for the share guidance. The
+           document is the sheet's; see the drawer state above. -->
       <LtDrawer :open="!!drawer" :title="drawerTitle" :anchor-top="overlayAnchor" @close="closeDrawer()">
-        <template v-if="drawer?.mode === 'preview'">
-          <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
-            <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Rendering…
-          </p>
-          <p v-else-if="subs.rowPreview.value?.error" class="row-popover-error" role="alert">
-            {{ subs.rowPreview.value.error }}
-          </p>
-          <template v-else-if="subs.rowPreview.value">
-            <div class="preview-evidence-head">
-              <p id="file-row-preview-label" class="preview-evidence-title">
-                What a client receives<span v-if="subs.rowPreview.value.truncated">, truncated</span>
-              </p>
-              <p class="preview-evidence-meta">
-                {{ drawerLanguageLabel }} · {{ drawerDocument.length }} characters
-              </p>
-            </div>
-            <DocumentView
-              class="row-popover-document"
-              :text="drawerDocument"
-              :language="drawerLanguage"
-              :rows="8"
-              :aria-labelledby="'file-row-preview-label'"
-            />
-          </template>
-        </template>
-
-        <template v-else-if="drawer?.mode === 'share'">
+        <template v-if="drawer?.mode === 'share'">
           <p class="row-popover-copy">
             Nothing here is reachable until a share is published for it. Shares live in the
             dashboard, under <strong>Networking → Subscription Shares</strong>.

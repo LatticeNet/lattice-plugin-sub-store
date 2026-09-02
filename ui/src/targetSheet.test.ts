@@ -19,7 +19,6 @@ vi.mock("./components/DocumentView.vue", async () => {
       props: {
         text: { type: String, required: true },
         language: { type: String, default: "plain" },
-        rows: { type: Number, default: 24 },
         ariaLabelledby: { type: String, default: undefined },
       },
       setup(props) {

@@ -28,7 +28,9 @@ describe("rendered documents use the shared read-only code viewer", () => {
   it("renders every preview through the document view, not an editor", () => {
     expect(targetSheet).toMatch(/<DocumentView[\s\S]*?class="result-doc"/);
     expect(filesScreen).toMatch(/<DocumentView\s+class="output-area"/);
-    expect(filesScreen).toMatch(/<DocumentView\s+class="row-popover-document"/);
+    // The files drawer no longer holds a viewer of its own: the row menu opens
+    // the same sheet the name and the » open (see filesList.test.ts).
+    expect(filesScreen).not.toContain("row-popover-document");
     for (const [name, markup] of [
       ["TargetSheet.vue", targetSheet],
       ["FilesScreen.vue", filesScreen],
@@ -41,7 +43,6 @@ describe("rendered documents use the shared read-only code viewer", () => {
   it("gives each read-only viewer a visible accessible name", () => {
     expect(targetSheet).toMatch(/class="result-doc"[\s\S]*?:aria-labelledby=/);
     expect(filesScreen).toMatch(/class="output-area"[\s\S]*?:aria-labelledby=/);
-    expect(filesScreen).toMatch(/class="row-popover-document"[\s\S]*?:aria-labelledby=/);
   });
 
   // Every call is flattened to plain data in one place. A screen that reaches
@@ -108,11 +109,15 @@ describe("rendered documents use the shared read-only code viewer", () => {
     // Neither pane scrolls on its own either.
     expect(decl).not.toMatch(/\.target-controls\s*\{[^}]*overflow-y:\s*auto/s);
     expect(decl).not.toMatch(/\.output-panel\s*\{[^}]*overflow-y:\s*auto/s);
-    // Nothing in the sheet is pinned.
+    // One strip is pinned, the document's title with its copy action, so a
+    // long document can be copied from wherever the reader is in it. Nothing
+    // else in the sheet is: three pinned layers over one scroller is what
+    // made the sheet feel nailed down while everything moved.
     for (const rule of ["\\.sheet-head", "\\.target-controls", "\\.target-output-toolbar"]) {
       const m = new RegExp(rule + "\\s*\\{[^}]*position:\\s*sticky", "s");
       expect(decl, rule + " is still pinned").not.toMatch(m);
     }
+    expect(decl).toMatch(/\.output-heading\s*\{[^}]*position:\s*sticky/s);
     // Neither does the row drawer scroll inside itself.
     const drawer = source("components/lt/LtDrawer.vue").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(drawer).not.toMatch(/max-height:\s*\d/);
@@ -133,9 +138,16 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(styles).toMatch(/\.doc-line::before\s*\{[^}]*user-select:\s*none/s);
   });
 
-  // A viewer that grows without bound leaves a long document past the bottom of
-  // the sheet with nothing to scroll it, which is what the previous preview did.
-  it("gives the document view its own bounded scroll surface", () => {
-    expect(styles).toMatch(/\.doc-scroll\s*\{[^}]*max-height:[^}]*overflow:\s*auto/s);
+  // One scroller per document (DESIGN-PROGRAM 1): the viewer is as tall as
+  // what it holds and the page scrolls it. It used to cap itself at a row
+  // count, which put a second wheel inside every panel that showed a
+  // document, and each panel then overrode the cap one by one. Growth is
+  // bounded by the tokenizer's MAX_RENDERED_LINES, which the viewer reports.
+  it("lets the document view grow instead of scrolling inside itself", () => {
+    const decl = styles.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(decl).not.toMatch(/\.doc-scroll\s*\{[^}]*max-height/s);
+    expect(decl).not.toMatch(/\.doc-scroll\s*\{[^}]*overflow/s);
+    expect(source("components/DocumentView.vue")).not.toMatch(/\brows\??:/);
+    expect(source("components/DocumentView.vue")).toContain("doc-truncated");
   });
 });
