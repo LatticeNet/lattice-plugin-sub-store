@@ -9,6 +9,22 @@
  *    summary, guarding providers that send junk.
  */
 
+/**
+ * The tags a row shows: the first `limit`, a "+N" for the rest, and the whole
+ * list for a title. Five badges after a long name were what pushed the name
+ * out of its cell; a row is for telling records apart, and two tags do that.
+ * The migration marker counts as a tag here because it is shown as one.
+ */
+export function tagChips(
+  tags: readonly string[] | undefined,
+  imported: boolean | undefined,
+  limit = 2,
+): { shown: string[]; more: number; all: string[] } {
+  const all = [...(tags ?? []), ...(imported ? ["migrated"] : [])];
+  const shown = all.slice(0, limit);
+  return { shown, more: all.length - shown.length, all };
+}
+
 /** "3h ago"-style phrasing for a timestamp, or "" when it does not parse. */
 export function formatRelativeTime(iso: string, now: number = Date.now()): string {
   const then = Date.parse(iso);

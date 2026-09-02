@@ -655,7 +655,7 @@ describe("vpn-core graph workflow", () => {
     const before = structuredClone(GRAPH_OPTIONS);
     expect(await subs.publish("graph", "https://destination.invalid/graph", "PUT", "plain")).toBe(false);
     expect(calls).toHaveLength(1);
-    expect(subs.actionError.value).toMatch(/publish failed/i);
+    expect(subs.actionError.value).toMatch(/upload failed/i);
     expect(subs.actionError.value).not.toContain("vless://");
     // The cause is kept, redacted: an operator needs to tell a refused
     // credential from an unreachable host, and neither is legible from a

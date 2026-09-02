@@ -36,7 +36,7 @@ import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
-import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId, type ResolvedAction } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import { anchorTopFrom } from "../overlayAnchor";
@@ -56,9 +56,9 @@ import {
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
-import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
-import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
+import { formatRelativeTime, formatTraffic, parseUserinfo, tagChips as tagChipsOf } from "../rowStatus";
 import { publishStateFor, refreshStateFor } from "../shareState";
 import { useShares } from "../useShares";
 import {
@@ -665,9 +665,13 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * to answer "why is that greyed out", rather than an inline expression per
  * control that drifts from its neighbours.
  */
-/** How many records this tab holds, or null while that is not yet known. */
+/**
+ * How many records this tab holds, or null while that is not known: before
+ * the host answers, during a load, and after a load that failed. The last
+ * case printed "0 / 256" over the error, a count of records it never saw.
+ */
 const listed = computed(() =>
-  !host.init.value || subs.state.value === "loading" ? null : onThisTab.value.length,
+  !host.init.value || subs.loadError.value || subs.state.value === "loading" ? null : onThisTab.value.length,
 );
 
 const actionCaps = computed<ActionCapabilities>(() => ({
@@ -682,7 +686,44 @@ const actionCaps = computed<ActionCapabilities>(() => ({
 const MENU_ACTIONS = ["preview", "share", "publish", "duplicate", "delete"] as const;
 
 function menuActionsFor(row: SubscriptionListItem) {
-  return actionsFor(row, actionCaps.value, MENU_ACTIONS);
+  return actionsFor(row, actionCaps.value, MENU_ACTIONS).map((action) =>
+    action.id === "share" ? shareActionFor(row, action) : action,
+  );
+}
+
+/**
+ * The share item named by what it will do for this row. A record with no
+ * share gets published, a live share gets its link copied, a dead one gets
+ * renewed in the console. The menu said "Share…" for all three and left the
+ * operator to find out which.
+ */
+function shareActionFor(row: SubscriptionListItem, action: ResolvedAction): ResolvedAction {
+  const state = publishedOf(row);
+  if (state.tone === "ok") {
+    return { ...action, label: "Copy share link", icon: "link", title: `Copies the link a client fetches, ${state.label}.` };
+  }
+  if (state.tone === "warn") {
+    return { ...action, label: "Renew share…", title: `${state.title} Renewing it happens in the console, under Networking.` };
+  }
+  return action;
+}
+
+/** The tags a row shows: two, then "+N", the whole list in the title. */
+function tagChips(row: SubscriptionListItem) {
+  return tagChipsOf(row.tags, row.imported);
+}
+
+/**
+ * The name opens the record where this session can edit it. Where it cannot,
+ * the name is text: a button that opens nothing is worse than none, and the
+ * » at the row's end still gives the client output.
+ */
+function openRecord(row: SubscriptionListItem, event: MouseEvent): void {
+  if (!rowAction(row, "edit").disabled) runRowAction("edit", row, event);
+}
+function nameTitle(row: SubscriptionListItem): string {
+  const edit = rowAction(row, "edit");
+  return edit.disabled ? `${row.id}. ${edit.reason}` : `${row.id}. Open ${row.display_name || row.name}`;
 }
 
 /**
@@ -733,7 +774,9 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   if (id === "refresh") return void refreshRow(row.id);
   if (id === "output") return openTargetSheet(row, event);
   if (id === "preview") return openDrawer("preview", row.id, event);
-  if (id === "share") return openDrawer("share", row.id, event);
+  if (id === "share") {
+    return publishedOf(row).tone === "ok" ? void copyShareLink(row) : openDrawer("share", row.id, event);
+  }
   if (id === "publish") return openDrawer("publish", row.id, event);
   if (id === "duplicate") return void subs.duplicate(row.id);
   if (id === "delete") return requestDelete([row.id], event);
@@ -1045,8 +1088,8 @@ const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
   const name = drawerItem.value.display_name || drawerItem.value.name;
   if (drawer.value.mode === "preview") return `Preview · ${name}`;
-  if (drawer.value.mode === "publish") return `Publish · ${name}`;
-  return `Share · ${name}`;
+  if (drawer.value.mode === "publish") return `Upload · ${name}`;
+  return publishedOf(drawerItem.value).tone === "warn" ? `Renew share · ${name}` : `Publish · ${name}`;
 });
 
 function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
@@ -1078,11 +1121,30 @@ async function publishFromDrawer(destination: string, method: string, format: st
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
-function openShares(recordName: string): void {
+/**
+ * The console's share view takes a record name only for its create form; an
+ * existing share is found in the list, so a record that already has one opens
+ * the list rather than a second create form.
+ */
+function openShares(record: SubscriptionListItem): void {
   if (!shareOrigin.value) return;
-  postNavigate(window, sharesRoute(recordName), shareOrigin.value);
+  const route = publishedOf(record).shares.length ? SHARES_LIST_ROUTE : sharesRoute(record.name);
+  postNavigate(window, route, shareOrigin.value);
   closeDrawer();
   subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+}
+
+/** The live share's link onto the clipboard, the way the Shares lens copies it. */
+async function copyShareLink(row: SubscriptionListItem): Promise<void> {
+  const state = publishedOf(row);
+  const share = state.shares.find((candidate) => candidate.slug === state.slug);
+  if (!share) return;
+  try {
+    await navigator.clipboard.writeText(share.url || share.path);
+    subs.notice.value = `Copied the link for ${state.label}.`;
+  } catch {
+    subs.actionError.value = "The clipboard refused the link. Copy it from the Shares lens instead.";
+  }
 }
 
 /**
@@ -1508,7 +1570,10 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <div class="section-heading">
         <div>
           <h2 id="subs-title">Subscriptions</h2>
-          <p v-if="publishedCount === null">
+          <!-- Nothing to sum up while the list is unread or unreadable: a failed
+               load used to print "None of these records is published" over the
+               error, a verdict about records it never saw. -->
+          <p v-if="subs.loadError.value || publishedCount === null">
             A record reaches a client only through a share, published in the console under Networking.
           </p>
           <p v-else-if="publishedCount === 0">
@@ -1525,9 +1590,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                was told the store was empty. An em-dash says nothing yet. -->
           <span
             class="badge mono"
-            :title="listed === null
-              ? `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
-              : `${listed} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
+            :title="listed !== null
+              ? `${listed} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
+              : subs.loadError.value
+                ? `Unknown: the list could not be read. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
+                : `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
           >{{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
           <LtButton
             variant="primary"
@@ -1720,9 +1787,13 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
              operations, whether anyone can fetch it, when it was last fetched.
              At a narrow width the table keeps its columns and scrolls sideways
              inside itself, with the record column pinned. -->
-        <div class="rec-scroll">
-        <div class="rec-head" aria-hidden="true">
-          <label class="rec-select" :title="`Select all ${filteredRows.length} shown records`">
+        <!-- A table in role, so each cell is announced under its column. It
+             stays a grid of divs rather than a <table>: each row is its own
+             grid so the chain can open under it and the record column can pin
+             at a narrow width, neither of which table layout gives. -->
+        <div class="rec-scroll" role="table" aria-label="Subscriptions and combinations">
+        <div class="rec-head" role="row">
+          <label class="rec-select" role="columnheader" :title="`Select all ${filteredRows.length} shown records`">
             <input
               type="checkbox"
               :checked="allVisibleSelected"
@@ -1731,17 +1802,21 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               @change="toggleSelectAll()"
             />
           </label>
-          <span />
-          <span class="rec-head-record">Record</span>
-          <span>Source</span>
-          <span class="rec-head-nodes" title="Nodes in and out of the chain, from the last preview run">Nodes</span>
-          <span class="rec-head-ops">Operations</span>
-          <span class="rec-head-published">Published</span>
-          <span class="rec-head-status">Last fetch</span>
-          <span class="rec-head-spacer" />
+          <!-- Named by attribute, not hidden text: an absolutely positioned
+               span here escaped the scroller and widened the page at 375px. -->
+          <span role="columnheader" aria-label="Expand" />
+          <span class="rec-head-record" role="columnheader">Record</span>
+          <span role="columnheader">Source</span>
+          <span class="rec-head-nodes" role="columnheader" title="Nodes in and out of the chain, from the last preview run">Nodes</span>
+          <span class="rec-head-ops" role="columnheader">Operations</span>
+          <span class="rec-head-published" role="columnheader">Published</span>
+          <span class="rec-head-status" role="columnheader">Last fetch</span>
+          <span class="rec-head-spacer" role="columnheader" aria-label="Actions" />
         </div>
 
-        <section v-for="group in groups" :key="group.id" class="rec-group">
+        <div v-for="group in groups" :key="group.id" class="rec-group" role="rowgroup">
+          <div role="row">
+          <div role="cell" aria-colspan="9">
           <button
             type="button"
             class="rec-group-head"
@@ -1758,15 +1833,18 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             <span>{{ group.label }}</span>
             <span class="rec-group-count">{{ group.rows.length }}</span>
           </button>
+          </div>
+          </div>
 
-          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list">
+          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list" role="presentation">
             <li
               v-for="row in group.rows"
               :key="row.id"
               class="rec"
+              role="row"
               :class="{ 'is-pending': pendingIds.has(row.id), 'is-selected': selectedIds.has(row.id), 'is-open': expandedId === row.id }"
             >
-              <label class="rec-select" :title="`Select ${row.name}`" @click.stop>
+              <label class="rec-select" role="cell" :title="`Select ${row.name}`" @click.stop>
                 <input
                   type="checkbox"
                   :checked="selectedIds.has(row.id)"
@@ -1777,6 +1855,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 
               <!-- Opens the chain under the row. A button, so Enter and Space
                    toggle it natively; Escape is handled at the document. -->
+              <div class="rec-expand-cell" role="cell">
               <button
                 type="button"
                 class="rec-expand"
@@ -1793,43 +1872,48 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   aria-hidden="true"
                 />
               </button>
+              </div>
 
-              <div class="rec-body">
-                <!-- The name opens the client sheet: the daily path is "give me
-                     the config for my client", so it is the primary click. The
-                     id is what ties a row to a share, and it is the first thing
-                     truncated, so it rides in the title. -->
-                <button
-                  type="button"
+              <div class="rec-body" role="cell">
+                <!-- The name opens the record; the » at the row's end is the
+                     client output. Both opened the sheet, so the click an
+                     operator makes most duplicated a button and none reached
+                     the editor. Text, not a button, where this session cannot
+                     edit. The id is what ties a row to a share, and it is the
+                     first thing truncated, so it rides in the title. -->
+                <component
+                  :is="rowAction(row, 'edit').disabled ? 'span' : 'button'"
+                  :type="rowAction(row, 'edit').disabled ? undefined : 'button'"
                   class="rec-name"
-                  :title="`${row.id}. Client output for ${row.display_name || row.name}`"
-                  @click="openTargetSheet(row, $event)"
+                  :class="{ 'has-tags': tagChips(row).shown.length > 0 }"
+                  :title="nameTitle(row)"
+                  @click="openRecord(row, $event)"
                 >
                   <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="14" class="rec-kind" aria-hidden="true" />
                   <Library v-else :size="14" class="rec-kind" aria-hidden="true" />
-                  {{ row.display_name || row.name }}
-                </button>
-                <span class="rec-tags">
-                  <LtBadge v-for="tag in row.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
-                  <LtBadge v-if="row.imported" tone="neutral">migrated</LtBadge>
+                  <span class="rec-name-text">{{ row.display_name || row.name }}</span>
+                </component>
+                <span v-if="tagChips(row).shown.length" class="rec-tags" :title="tagChips(row).all.join(', ')">
+                  <LtBadge v-for="tag in tagChips(row).shown" :key="tag" tone="neutral">{{ tag }}</LtBadge>
+                  <LtBadge v-if="tagChips(row).more" tone="neutral">+{{ tagChips(row).more }}</LtBadge>
                 </span>
               </div>
 
-              <span class="rec-source" :title="row.remark || describe(row)">{{ describe(row) }}</span>
+              <span class="rec-source" role="cell" :title="row.remark || describe(row)">{{ describe(row) }}</span>
 
               <!-- "in → out" from the last preview run this session made for
                    the row, "?" until one has. The title says which run and
                    when. -->
-              <span class="rec-nodes mono" :title="nodesTitle(row)">{{ nodesOf(row) }}</span>
+              <span class="rec-nodes mono" role="cell" :title="nodesTitle(row)">{{ nodesOf(row) }}</span>
 
-              <span class="rec-ops mono" :title="row.target ? `Always rendered for ${row.target}` : undefined">
+              <span class="rec-ops mono" role="cell" :title="row.target ? `Always rendered for ${row.target}` : undefined">
                 {{ row.step_count }}<template v-if="row.disabled_step_count"> <span class="rec-ops-off">({{ row.disabled_step_count }} off)</span></template>
               </span>
 
               <!-- Whether anyone can fetch this record. The banner above said
                    "nothing is reachable until you publish a share" and no row
                    said which rows that was true of. -->
-              <div class="rec-published-cell" @click.stop>
+              <div class="rec-published-cell" role="cell" @click.stop>
                 <span
                   v-if="publishedOf(row).slug"
                   :class="`rec-published mono is-${publishedOf(row).tone}`"
@@ -1846,7 +1930,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <span v-else class="rec-published is-neutral" :title="sharesError || publishedOf(row).title">{{ publishedOf(row).label }}</span>
               </div>
 
-              <div class="rec-status-cell">
+              <div class="rec-status-cell" role="cell">
                 <span
                   :class="`rec-status is-${statusOf(row).tone}`"
                   :title="statusOf(row).title"
@@ -1854,7 +1938,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 <span v-if="trafficOf(row)" class="rec-quota">{{ trafficOf(row) }}</span>
               </div>
 
-              <div class="rec-actions" @click.stop>
+              <div class="rec-actions" role="cell" @click.stop>
                 <LtIconButton
                   :label="`Refresh ${row.name}`"
                   :disabled="rowAction(row, 'refresh').disabled"
@@ -1897,8 +1981,8 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                 v-if="expandedId === row.id"
                 :id="`rec-chain-${row.id}`"
                 class="rec-chain"
-                role="region"
-                :aria-label="`Operations of ${row.name}`"
+                role="cell"
+                aria-colspan="9"
               >
                 <p v-if="rowChain?.loading" class="rec-chain-note" role="status">
                   <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Reading the record…
@@ -1952,7 +2036,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
               </div>
             </li>
           </ul>
-        </section>
+        </div>
         </div>
         </template>
 
@@ -1994,13 +2078,19 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         />
 
         <template v-else-if="drawer?.mode === 'share'">
-          <p class="row-popover-copy">
-            Nothing here is reachable until a share is published for it. Shares live in the
+          <p v-if="drawerItem && publishedOf(drawerItem).tone === 'warn'" class="row-popover-copy">
+            {{ publishedOf(drawerItem).title }} Renewing or enabling it happens in the
             dashboard, under <strong>Networking → Subscription Shares</strong>.
           </p>
-          <p class="row-popover-note">Already published? The Shares view shows its link.</p>
+          <template v-else>
+            <p class="row-popover-copy">
+              Nothing here is reachable until a share is published for it. Shares live in the
+              dashboard, under <strong>Networking → Subscription Shares</strong>.
+            </p>
+            <p class="row-popover-note">Already published? The Shares lens shows its link.</p>
+          </template>
           <div v-if="shareOrigin && drawerItem" class="empty-actions">
-            <LtButton variant="primary" @click="openShares(drawerItem.name)">
+            <LtButton variant="primary" @click="openShares(drawerItem)">
               <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
             </LtButton>
           </div>

@@ -26,14 +26,14 @@ export default defineComponent({
       },
     }, [
       h("p", { class: "row-popover-copy" }, [
-        h("strong", "Review publish target"),
-        ". Publishing recomposes the saved definition; unsaved edits are never sent.",
+        h("strong", "Review the upload target"),
+        ". The saved record is rendered and the document sent there; unsaved edits are never sent.",
       ]),
       // "Save first" is an instruction, not a failure. It rendered in the
       // `alert` chrome, which is the error styling, so a neutral precondition
       // arrived looking like something had gone wrong.
       !props.saved
-        ? h("p", { class: "row-popover-note", role: "status" }, "Save this definition before publishing.")
+        ? h("p", { class: "row-popover-note", role: "status" }, "Save this record before uploading.")
         : null,
       props.error ? h("p", { class: "row-popover-error", role: "alert" }, props.error) : null,
       h("div", { class: "form-grid" }, [
@@ -56,7 +56,7 @@ export default defineComponent({
           class: "button button-primary",
           type: "submit",
           disabled: disabled() || !destination.value.trim() || props.busy,
-        }, props.busy ? "Publishing…" : "Publish saved definition"),
+        }, props.busy ? "Uploading…" : "Upload document"),
       ]),
     ]);
   },

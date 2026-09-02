@@ -38,6 +38,7 @@ import {
 import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { tagChips } from "../rowStatus";
 import { collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
 import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
@@ -423,7 +424,7 @@ const drawerDocument = computed(() => subs.rowPreview.value?.document ?? "");
 const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
   const name = drawerItem.value.display_name || drawerItem.value.name;
-  return drawer.value.mode === "preview" ? `Document · ${name}` : `Share · ${name}`;
+  return drawer.value.mode === "preview" ? `Document · ${name}` : `Publish · ${name}`;
 });
 
 function openDrawer(mode: "preview" | "share", id: string, event?: Event): void {
@@ -530,7 +531,7 @@ function describe(item: SubscriptionListItem): string {
  */
 /** How many files this tab holds, or null while that is not yet known. */
 const listed = computed(() =>
-  !host.init.value || subs.state.value === "loading" ? null : allFiles.value.length,
+  !host.init.value || subs.loadError.value || subs.state.value === "loading" ? null : allFiles.value.length,
 );
 
 const actionCaps = computed<ActionCapabilities>(() => ({
@@ -1141,9 +1142,11 @@ watch(host.init, (value) => {
         </div>
         <div class="heading-actions">
           <!-- "0 / 256" during a load is a claim, not an unknown. -->
-          <span class="badge mono" :title="listed === null
-            ? `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`
-            : `${listed} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`">
+          <span class="badge mono" :title="listed !== null
+            ? `${listed} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`
+            : subs.loadError.value
+              ? `Unknown: the list could not be read. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`
+              : `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`">
             {{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}
           </span>
           <LtButton
@@ -1327,13 +1330,15 @@ watch(host.init, (value) => {
                 <button
                   type="button"
                   class="rec-name"
+                  :class="{ 'has-tags': tagChips(item.tags, false).shown.length > 0 }"
                   :title="`Show the document ${item.display_name || item.name} serves`"
                   @click="openFileSheet(item, $event)"
                 >
-                  {{ item.display_name || item.name }}
+                  <span class="rec-name-text">{{ item.display_name || item.name }}</span>
                 </button>
-                <span class="rec-tags">
-                  <LtBadge v-for="tag in item.tags ?? []" :key="tag" tone="neutral">{{ tag }}</LtBadge>
+                <span v-if="tagChips(item.tags, false).shown.length" class="rec-tags" :title="tagChips(item.tags, false).all.join(', ')">
+                  <LtBadge v-for="tag in tagChips(item.tags, false).shown" :key="tag" tone="neutral">{{ tag }}</LtBadge>
+                  <LtBadge v-if="tagChips(item.tags, false).more" tone="neutral">+{{ tagChips(item.tags, false).more }}</LtBadge>
                 </span>
                 <p class="rec-summary" :title="describe(item)">
                   {{ describe(item) }}

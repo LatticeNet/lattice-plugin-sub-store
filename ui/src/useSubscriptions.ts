@@ -689,13 +689,13 @@ export function useSubscriptions(host: HostContext) {
           `the publish call came back with status ${response.status_code} for record ${response.subscription_id || "(none)"}`,
         );
       }
-      notice.value = `Published ${response.bytes} bytes for ${id}. The destination accepted them; whether anything downstream serves them is not visible from here.`;
+      notice.value = `Uploaded ${response.bytes} bytes for ${id}. The destination accepted them; whether anything downstream serves them is not visible from here.`;
       return true;
     } catch (cause) {
       // The cause is what separates "the destination refused the credentials"
       // from "the host is unreachable". Discarding it made every failure read
       // the same and left the operator with nothing to act on.
-      actionError.value = `Publish failed: ${safeErrorMessage(cause, "the destination did not accept it")}. The saved definition and destination were not changed.`;
+      actionError.value = `Upload failed: ${safeErrorMessage(cause, "the destination did not accept it")}. The saved record and the destination were not changed.`;
       return false;
     } finally {
       busyId.value = null;

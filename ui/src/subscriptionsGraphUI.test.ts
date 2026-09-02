@@ -115,14 +115,14 @@ describe("vpn-core graph editor component contract", () => {
 
   it("SSR renders saved-only publish review, read-only, and failure states without secrets", async () => {
     const saved = await renderToString(createSSRApp({ render: () => h(SubscriptionPublishControl, { saved: true, readOnly: false, busy: false }) }));
-    expect(saved).toContain("Review publish target");
+    expect(saved).toContain("Review the upload target");
     expect(saved).toContain("Destination");
-    expect(saved).toContain("Publish saved definition");
+    expect(saved).toContain("Upload document");
     const blocked = await renderToString(createSSRApp({ render: () => h(SubscriptionPublishControl, { saved: false, readOnly: true, busy: false, error: "Publish failed; definition unchanged." }) }));
-    expect(blocked).toContain("Save this definition before publishing.");
+    expect(blocked).toContain("Save this record before uploading.");
     expect(blocked).toContain("Publish failed; definition unchanged.");
     expect(blocked).toMatch(/<input[^>]+disabled/);
-    expect(blocked).toMatch(/<button[^>]+disabled[^>]*>Publish saved definition/);
+    expect(blocked).toMatch(/<button[^>]+disabled[^>]*>Upload document/);
     expect(blocked).not.toContain("vless://");
   });
 

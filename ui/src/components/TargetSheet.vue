@@ -555,6 +555,47 @@ onBeforeUnmount(stopAllRequests);
 
       <div class="target-workspace-body" :class="{ 'is-file': isFile }">
         <aside class="target-controls" aria-label="Output controls">
+          <!-- Delivery first. It is two lines and the reason most operators
+               open this sheet ("is it published, and where"), and it sat
+               under fourteen client chips, below the fold on a wide frame. -->
+          <section class="target-control-section delivery-section">
+            <h3 class="control-eyebrow">Delivery</h3>
+            <template v-if="shareState === 'loading'">
+              <p class="delivery-state">Checking publication…</p>
+            </template>
+            <template v-else-if="shareState === 'unavailable'">
+              <p class="delivery-state is-unknown">Publication status requires admin access</p>
+              <p class="control-note">Document generation is unaffected.</p>
+            </template>
+            <template v-else-if="shareState === 'failed'">
+              <p class="delivery-state is-unknown">Could not check publication status</p>
+              <p class="control-note">Document generation is unaffected.</p>
+            </template>
+            <template v-else-if="share">
+              <p v-if="shareVerdict?.tone === 'ok'" class="delivery-state is-published">Published as /{{ share.slug }}</p>
+              <template v-else>
+                <p class="delivery-state is-unknown">Share {{ shareVerdict?.label }}</p>
+                <p class="control-note">{{ shareVerdict?.title }} Renew it under Networking.</p>
+              </template>
+              <LtButton :disabled="copyingLink" @click="copyLink()">
+                <LoaderCircle v-if="copyingLink" :size="14" class="spin" aria-hidden="true" />
+                <Check v-else-if="copied === 'link'" :size="14" aria-hidden="true" />
+                <Link v-else :size="14" aria-hidden="true" />
+                {{ copied === "link" ? "Link copied" : "Copy stable link" }}
+              </LtButton>
+            </template>
+            <template v-else>
+              <p class="delivery-state">Not published</p>
+              <p class="control-note">
+                Copy document still works. Publish under Networking to create a stable URL.
+              </p>
+            </template>
+            <p v-if="shownLink" class="manual-copy">
+              Clipboard unavailable. Select the link:
+              <code>{{ shownLink }}</code>
+            </p>
+          </section>
+
           <section v-if="!isFile" class="target-control-section">
             <h3 class="control-eyebrow">
               Client <span class="control-count">{{ CONVERT_TARGETS.length }}</span>
@@ -606,44 +647,6 @@ onBeforeUnmount(stopAllRequests);
               />
               Include protocols the selected client does not support
             </label>
-          </section>
-
-          <section class="target-control-section delivery-section">
-            <h3 class="control-eyebrow">Delivery</h3>
-            <template v-if="shareState === 'loading'">
-              <p class="delivery-state">Checking publication…</p>
-            </template>
-            <template v-else-if="shareState === 'unavailable'">
-              <p class="delivery-state is-unknown">Publication status requires admin access</p>
-              <p class="control-note">Document generation is unaffected.</p>
-            </template>
-            <template v-else-if="shareState === 'failed'">
-              <p class="delivery-state is-unknown">Could not check publication status</p>
-              <p class="control-note">Document generation is unaffected.</p>
-            </template>
-            <template v-else-if="share">
-              <p v-if="shareVerdict?.tone === 'ok'" class="delivery-state is-published">Published as /{{ share.slug }}</p>
-              <template v-else>
-                <p class="delivery-state is-unknown">Share {{ shareVerdict?.label }}</p>
-                <p class="control-note">{{ shareVerdict?.title }} Renew it under Networking.</p>
-              </template>
-              <LtButton :disabled="copyingLink" @click="copyLink()">
-                <LoaderCircle v-if="copyingLink" :size="14" class="spin" aria-hidden="true" />
-                <Check v-else-if="copied === 'link'" :size="14" aria-hidden="true" />
-                <Link v-else :size="14" aria-hidden="true" />
-                {{ copied === "link" ? "Link copied" : "Copy stable link" }}
-              </LtButton>
-            </template>
-            <template v-else>
-              <p class="delivery-state">Not published</p>
-              <p class="control-note">
-                Copy document still works. Publish under Networking to create a stable URL.
-              </p>
-            </template>
-            <p v-if="shownLink" class="manual-copy">
-              Clipboard unavailable. Select the link:
-              <code>{{ shownLink }}</code>
-            </p>
           </section>
 
           <p v-if="!canRender" class="permission-strip">

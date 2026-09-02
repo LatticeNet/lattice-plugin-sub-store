@@ -552,6 +552,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   color: var(--lt-fg-muted);
   font-size: var(--lt-text-sm);
 }
+.rec-expand-cell { display: flex; align-items: center; min-width: 0; }
 .rec-expand {
   display: grid;
   place-items: center;
@@ -595,7 +596,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.rec-head-status { text-align: right; }
+.rec-head-status { text-align: left; }
 /* Reserves exactly the width the row's action cluster occupies, so the header
    labels do not sit over the buttons. */
 .rec-head-spacer { width: var(--lt-rec-actions); }
@@ -708,23 +709,31 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-chain-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rec-chain-delta { flex: none; font-size: var(--lt-text-xs); }
 .rec-chain-dropped {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-width: 64ch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(36ch, 100%), 1fr));
+  gap: 2px var(--lt-space-5);
   margin: var(--lt-space-3) 0 0;
   padding: 0;
   list-style: none;
   font-size: var(--lt-text-xs);
   color: var(--lt-fg-muted);
 }
-.rec-chain-dropped li { display: flex; flex-wrap: wrap; gap: var(--lt-space-1) var(--lt-space-2); }
+.rec-chain-dropped li { display: flex; flex-wrap: wrap; gap: var(--lt-space-1) var(--lt-space-2); min-width: 0; }
+.rec-chain-dropped > .rec-chain-note { grid-column: 1 / -1; }
 .rec-chain-dropped-name { color: var(--lt-fg); text-decoration: line-through; }
 .rec-chain-dropped-by::before { content: "· "; }
 
-/* The name outranks the tags: when the cell is short the tags clip first. */
-.rec-body { display: flex; align-items: center; gap: var(--lt-space-2); min-width: 0; }
-.rec-body .rec-name { flex: 0 1 auto; min-width: 8ch; }
+/* The name outranks the tags. The name never shrinks: it is capped at 68%
+   of the cell while tags sit beside it and at the whole cell otherwise, and
+   the tags are the one thing that gives. A shrinkable name lost a fraction
+   of a pixel to every deficit and its ellipsis fired on names that fit. The
+   ellipsis lives on a span inside the name: the name is a flex box because
+   of its icon, and `text-overflow` does not apply to a flex container's
+   anonymous text, so until this the name was cut mid-glyph by the cell's
+   clip and a long name spilled into SOURCE. */
+.rec-body { display: flex; align-items: center; gap: var(--lt-space-2); min-width: 0; overflow: hidden; }
+.rec-body .rec-name { flex: 0 0 auto; min-width: 0; max-width: 100%; }
+.rec-body .rec-name.has-tags { max-width: 68%; }
 
 .rec-name {
   display: inline-flex;
@@ -740,25 +749,50 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   font-size: var(--lt-text-md);
   font-weight: 600;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
   vertical-align: bottom;
 }
-.rec-name:hover { text-decoration: underline; }
+.rec-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+button.rec-name { cursor: pointer; }
+button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .rec-name:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-.rec-tags { display: inline-flex; flex: 0 1 auto; min-width: 0; gap: var(--lt-space-1); overflow: hidden; white-space: nowrap; vertical-align: middle; }
+/* A block, not a flex box, so a badge that no longer fits is dropped for an
+   ellipsis rather than sliced; and each badge can ellipse inside its own
+   pill, for the strip too short for even one whole badge. */
+.rec-tags {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--lt-text-xs);
+  line-height: 18px;
+}
+.rec-tags > * + * { margin-left: var(--lt-space-1); }
+.rec-body .rec-tags .lt-badge {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
 
-/* The refresh state and the provider's quota, right-aligned in their own
-   column and tabular, so a column of them can be read down rather than hunted
-   for inside a sentence. It was a run-on line of "id · Refreshed 3h ago · 27 GB
-   / 500 GB" that no two rows aligned on. */
+/* The refresh state and the provider's quota in their own column and
+   tabular, so a column of them can be read down rather than hunted for
+   inside a sentence. It was a run-on line of "id · Refreshed 3h ago · 27 GB
+   / 500 GB" that no two rows aligned on. Left-aligned like the text columns
+   before it: right-aligned, every short value ("n/a") sat at the far end of
+   a track sized for the longest quota line, and the space between it and
+   PUBLISHED read as a gutter. */
 .rec-status-cell {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 1px;
-  text-align: right;
+  text-align: left;
   font-size: var(--lt-text-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -973,15 +1007,18 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .editor-side-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--lt-space-3);
+  gap: var(--lt-space-2) var(--lt-space-3);
   margin-bottom: var(--lt-space-3);
 }
+/* The heading is one phrase; the buttons wrap under it before it breaks. */
 .editor-side-head h3 {
   margin: 0;
   font-size: var(--lt-text-md);
   font-weight: 600;
+  white-space: nowrap;
 }
 .editor-side-note {
   margin: 0;
@@ -1006,37 +1043,24 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    breakpoint the pane is the last block instead: a sticky column in a narrow
    frame is a column that covers the form it is there to explain.
 
-   Each variant states both halves — its columns AND its pinning — even though
-   that repeats four declarations. It was written as one blanket rule plus
-   overrides, and the override reverted the columns but not the pinning, so the
-   wide pane spent the band between the two breakpoints stacked full width AND
-   sticky, which is the exact thing the breakpoint exists to prevent. A block
-   that reads completely on its own cannot drift like that.
+   The block states both halves, its columns AND its pinning. It was written
+   as one blanket rule plus overrides, and the override reverted the columns
+   but not the pinning, so a pane spent a band of widths stacked full width
+   AND sticky, which is the exact thing the breakpoint exists to prevent. A
+   block that reads completely on its own cannot drift like that.
 
    The frame is the visible window (PluginFrameHost), so sticky resolves against
    it and the pane stays put while a long form scrolls under it. */
 
-/* A node list is short rows; 380px reads it. */
-@container (min-width: 1040px) {
-  .editor-layout:not([data-pane="wide"]) {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    /* The fields inside cap themselves in characters, so on a very wide frame
-       an uncapped grid parks the pane far off to the right. The layout caps at
-       what the two columns actually need. */
-    max-width: calc(var(--lt-measure-form) + 380px + var(--lt-space-5));
-  }
-  /* Pinned, and never a scroller of its own: the document is the one
-     scroller, and the pane pages its long sets to what fits a screen. */
-  .editor-layout:not([data-pane="wide"]) > .editor-side {
-    position: sticky;
-    top: var(--lt-space-4);
-    max-height: none;
-    overflow: visible;
-  }
-}
+/* The subscription editor's pane has no column of its own at any width. It
+   is the compare panel now, source beside result with an endpoint under
+   each name, and in the 380px column it used to take from 1040px up every
+   endpoint wrapped mid-token. A panel read row by row needs the width more
+   than it needs to stay in view, so it is the last block under the form at
+   every width, as it always was below the breakpoint. */
 
-/* A rendered configuration is 80-column text, so it needs a wider column and
-   therefore a later breakpoint. Same mechanism, one parameter. */
+/* A rendered configuration is 80-column text, so the files editor keeps a
+   wide pane beside its form once the frame can hold both. */
 @container (min-width: 1180px) {
   .editor-layout[data-pane="wide"] {
     grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
@@ -1825,7 +1849,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
      right margin widens each box into the gap), so nothing scrolling under
      them shows through. */
   .rec-select,
-  .rec-expand,
+  .rec-expand-cell,
   .rec-body,
   .rec-head > :nth-child(-n + 3) {
     position: sticky;
@@ -1836,12 +1860,12 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
     background: inherit;
   }
   .rec-select, .rec-head > :nth-child(1) { left: 0; }
-  .rec-expand, .rec-head > :nth-child(2) { left: calc(var(--lt-col-select) + var(--lt-space-3)); }
+  .rec-expand-cell, .rec-head > :nth-child(2) { left: calc(var(--lt-col-select) + var(--lt-space-3)); }
   .rec-body, .rec-head > :nth-child(3) {
     left: calc(var(--lt-col-select) + var(--lt-col-expand) + var(--lt-space-3) * 2);
     box-shadow: 1px 0 0 var(--lt-border);
   }
-  .rec-expand { width: var(--lt-col-expand); border-radius: 0; }
+  .rec-expand { border-radius: 0; }
   .rec-head { background: var(--lt-bg); }
   /* The group spans the whole scroll width so its heading can pin. */
   .rec-group { width: max-content; min-width: 100%; }
@@ -1851,6 +1875,29 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .rec-chain { position: sticky; left: 0; width: 100cqw; box-sizing: border-box; }
   .rec-actions { opacity: 1; }
   .graph-root-order li { align-items: flex-start; flex-direction: column; }
+}
+
+/* Under 480px the four lenses and the search entry cannot share a line: the
+   entry sat over the last lens and the strip scrolled inside what was left,
+   so Files was sliced and Shares and Settings were off screen with nothing
+   to say so. The entry takes a line of its own above the strip, drawn as a
+   field, and the lenses drop their icons and tighten so all four are on
+   screen on load. No keyboard, so no shortcut hint. */
+@media (max-width: 480px) {
+  .tab-row { flex-wrap: wrap; }
+  .tab-row .tab-bar { flex: 1 1 100%; gap: 0; margin-top: var(--lt-space-2); }
+  .tab { padding: var(--lt-space-2) 6px; font-size: var(--lt-text-sm); }
+  .tab > svg { display: none; }
+  .tab-search {
+    order: -1;
+    flex: 1 1 100%;
+    margin: var(--lt-space-4) 0 0;
+    padding: var(--lt-space-2) var(--lt-space-3);
+    border: 1px solid var(--lt-border);
+    border-radius: var(--lt-radius);
+    background: var(--lt-surface);
+  }
+  .tab-search .palette-hint { display: none; }
 }
 
 /* ── command palette ──────────────────────────────────────────────────────

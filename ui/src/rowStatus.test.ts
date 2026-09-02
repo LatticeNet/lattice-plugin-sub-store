@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBytes, formatRelativeTime, formatTraffic, parseUserinfo } from "./rowStatus";
+import { formatBytes, formatRelativeTime, formatTraffic, parseUserinfo, tagChips } from "./rowStatus";
 
 const NOW = Date.parse("2026-08-10T12:00:00Z");
 
@@ -68,5 +68,24 @@ describe("formatTraffic", () => {
     expect(formatTraffic({ upload: 5, download: 7 })).toBe("12 B used");
     expect(formatTraffic(null)).toBe("");
     expect(formatTraffic({})).toBe("");
+  });
+});
+
+describe("tagChips", () => {
+  it("shows two and counts the rest, with the whole list for a title", () => {
+    expect(tagChips(["home", "paid", "backup", "self"], false)).toEqual({
+      shown: ["home", "paid"],
+      more: 2,
+      all: ["home", "paid", "backup", "self"],
+    });
+  });
+
+  it("counts the migration marker as a tag, last", () => {
+    expect(tagChips(["paid"], true)).toEqual({ shown: ["paid", "migrated"], more: 0, all: ["paid", "migrated"] });
+    expect(tagChips(["a", "b"], true).more).toBe(1);
+  });
+
+  it("shows nothing for a record with no tags", () => {
+    expect(tagChips(undefined, false)).toEqual({ shown: [], more: 0, all: [] });
   });
 });
