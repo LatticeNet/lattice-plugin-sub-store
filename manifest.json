@@ -13,7 +13,7 @@
   ],
   "version": "0.13.0-alpha.29",
   "publisher": "latticenet",
-  "signature_ed25519": "cFZGwDuZ7rb4Wj79m56g8w6s9oMC20FEjH0kN7CsFqw5OCYODhnHgQFjlDRqUVIqVp9tyuRuIfiACxDB5RRXDA==",
+  "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
     "digest_sha256": "f3e1f1be876150cdca6b82f0a7a39f4952c006cff8c90515f70f5f3a814f83e2"
