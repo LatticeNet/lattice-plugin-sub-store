@@ -1797,3 +1797,19 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 }
 .tab-search:hover { color: var(--lt-fg); }
 .tab-search:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+
+/* The per-step account under the preview heading: one line per enabled
+   operation, the ones that removed nodes marked, mono so the counts align. */
+.editor-side-actions { display: inline-flex; flex-wrap: wrap; gap: var(--lt-space-2); }
+.chain-deltas {
+  margin: 0 0 var(--lt-space-3);
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  list-style: none;
+  font-family: var(--lt-font-mono);
+  font-size: var(--lt-text-xs);
+  line-height: 1.7;
+  color: var(--lt-fg-muted);
+}
+.chain-deltas li.is-cut { color: var(--lt-fg); }

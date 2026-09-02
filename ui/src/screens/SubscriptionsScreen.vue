@@ -22,6 +22,7 @@ import {
   Share2,
   SquareArrowOutUpRight,
   Trash2,
+  ListOrdered,
 } from "@lucide/vue";
 
 import LtBadge from "../components/lt/LtBadge.vue";
@@ -59,6 +60,7 @@ import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
 import { formatRelativeTime, formatTraffic, parseUserinfo } from "../rowStatus";
 import { publishStateFor, refreshStateFor } from "../shareState";
+import { describeDelta, enabledStepIndexes, stepDeltas, type StepDelta } from "../chainExplain";
 import { safeErrorMessage } from "../subStoreModel";
 import { BINDINGS, callMethod, type SubStoreShareRow, type SubStoreSharesResponse } from "../client";
 import {
@@ -134,6 +136,35 @@ const canPreviewNow = computed(
  * the one that was clicked.
  */
 const previewStepLabel = ref("");
+
+// ── explain the chain ───────────────────────────────────────────────────────
+// One partial run per enabled step, in order, reading the count after each;
+// then the whole chain again so the panel ends on the full result. The
+// engine does the work; this only asks the same question N times.
+const explaining = ref(false);
+const stepCounts = ref<StepDelta[]>([]);
+const explainable = computed(() => enabledStepIndexes(draft.value.process as ChainStep[]).length > 0);
+async function explainChain(): Promise<void> {
+  if (explaining.value || !canPreviewNow.value) return;
+  explaining.value = true;
+  stepCounts.value = [];
+  const counts: number[] = [];
+  let source = 0;
+  try {
+    for (const index of enabledStepIndexes(draft.value.process as ChainStep[])) {
+      await subs.runPreview(draft.value, index);
+      const result = subs.preview.value;
+      if (!result || subs.previewError.value) break;
+      if (!counts.length) source = result.source_node_count ?? result.node_count;
+      counts.push(result.node_count);
+    }
+    stepCounts.value = stepDeltas(draft.value.process as ChainStep[], source, counts);
+    if (counts.length) await subs.runPreview(draft.value);
+  } finally {
+    explaining.value = false;
+  }
+}
+watch(() => draft.value.process, () => { stepCounts.value = []; }, { deep: true });
 
 function previewUpToStep(index: number, label: string): void {
   previewStepLabel.value = label;
@@ -1226,18 +1257,37 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <aside class="editor-side" aria-labelledby="editor-preview-title">
         <div class="editor-side-head">
           <h3 id="editor-preview-title">Nodes this produces</h3>
-          <button
-            class="button button-secondary"
-            type="button"
-            :disabled="!canPreviewNow"
-            :title="draftError || 'Run the chain and show the nodes it produces'"
-            @click="subs.runPreview(draft)"
-          >
-            <LoaderCircle v-if="subs.previewing.value" :size="16" class="spin" aria-hidden="true" />
-            <Eye v-else :size="16" aria-hidden="true" />
-            {{ subs.preview.value ? "Refresh" : "Preview" }}
-          </button>
+          <div class="editor-side-actions">
+            <button
+              class="button button-secondary"
+              type="button"
+              :disabled="!canPreviewNow || !explainable || explaining"
+              :title="!explainable ? 'Add an operation first; there is nothing to explain' : (draftError || 'Run the chain one step at a time and say what each step kept')"
+              @click="explainChain()"
+            >
+              <LoaderCircle v-if="explaining" :size="16" class="spin" aria-hidden="true" />
+              <ListOrdered v-else :size="16" aria-hidden="true" />
+              Explain chain
+            </button>
+            <button
+              class="button button-secondary"
+              type="button"
+              :disabled="!canPreviewNow || explaining"
+              :title="draftError || 'Run the chain and show the nodes it produces'"
+              @click="subs.runPreview(draft)"
+            >
+              <LoaderCircle v-if="subs.previewing.value && !explaining" :size="16" class="spin" aria-hidden="true" />
+              <Eye v-else :size="16" aria-hidden="true" />
+              {{ subs.preview.value ? "Refresh" : "Preview" }}
+            </button>
+          </div>
         </div>
+
+        <ol v-if="stepCounts.length" class="chain-deltas" aria-label="What each operation kept">
+          <li v-for="delta in stepCounts" :key="delta.index" :class="{ 'is-cut': delta.after < delta.before }">
+            {{ describeDelta(delta) }}
+          </li>
+        </ol>
 
         <SubscriptionPreviewSummary
           v-if="subs.preview.value"
