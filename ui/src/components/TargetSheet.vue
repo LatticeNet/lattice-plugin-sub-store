@@ -24,6 +24,7 @@ import {
   type SubscriptionPreviewResponse,
   type SubscriptionRenderResponse,
 } from "../client";
+import { publishStateFor, type PublishState } from "../shareState";
 import { trapDialogTab } from "../dialogFocus";
 import { isFileRecord } from "../filePreview";
 import { useHost } from "../host";
@@ -77,6 +78,9 @@ const shownLink = ref("");
 
 const share = ref<SubStoreShareRow | null>(null);
 const shareState = ref<"loading" | "ready" | "unavailable" | "failed">("loading");
+/** Whether the share found actually serves anyone: a disabled or expired
+ *  share has a slug and a link and returns nothing to a client. */
+const shareVerdict = ref<PublishState | null>(null);
 
 const sheet = ref<HTMLElement | null>(null);
 
@@ -219,8 +223,11 @@ async function loadShare(): Promise<void> {
       {},
     ).promise;
     if (generation !== shareGeneration || !props.open || id !== recordId.value) return;
-    const mine = (response?.shares ?? []).filter((row) => row.subscription_id === id);
-    share.value = mine.find((row) => row.enabled) ?? null;
+    // The same verdict the record list prints, so the sheet never calls a
+    // share "published" that the table calls expired.
+    const verdict = publishStateFor(response?.shares ?? [], id);
+    shareVerdict.value = verdict;
+    share.value = verdict.shares.find((row) => row.slug === verdict.slug) ?? verdict.shares[0] ?? null;
     shareState.value = "ready";
   } catch {
     if (generation !== shareGeneration || !props.open || id !== recordId.value) return;
@@ -615,7 +622,11 @@ onBeforeUnmount(stopAllRequests);
               <p class="control-note">Document generation is unaffected.</p>
             </template>
             <template v-else-if="share">
-              <p class="delivery-state is-published">Published as /{{ share.slug }}</p>
+              <p v-if="shareVerdict?.tone === 'ok'" class="delivery-state is-published">Published as /{{ share.slug }}</p>
+              <template v-else>
+                <p class="delivery-state is-unknown">Share {{ shareVerdict?.label }}</p>
+                <p class="control-note">{{ shareVerdict?.title }} Renew it under Networking.</p>
+              </template>
               <LtButton :disabled="copyingLink" @click="copyLink()">
                 <LoaderCircle v-if="copyingLink" :size="14" class="spin" aria-hidden="true" />
                 <Check v-else-if="copied === 'link'" :size="14" aria-hidden="true" />

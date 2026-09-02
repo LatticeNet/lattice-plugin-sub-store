@@ -515,18 +515,22 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec {
   display: grid;
   grid-template-columns:
-    var(--lt-col-select) var(--lt-col-expand) minmax(200px, 1fr) minmax(110px, auto)
-    var(--lt-col-nodes) var(--lt-col-ops) minmax(120px, auto) minmax(120px, auto) var(--lt-rec-actions);
+    var(--lt-col-select) var(--lt-col-expand) minmax(200px, 1fr) var(--lt-col-source)
+    var(--lt-col-nodes) var(--lt-col-ops) var(--lt-col-published) var(--lt-col-status) var(--lt-rec-actions);
   align-items: center;
   gap: var(--lt-space-3);
 }
-/* The record column pins on a sideways scroll, so every row and the header
-   must agree on where it starts: the two columns before it are fixed. */
+/* Each row is its own grid, so every track is a fixed width: an `auto` track
+   would let one row's longer quota line shift that row's columns away from
+   its neighbours', and the header would agree with none of them. */
 .rec-scroll {
   --lt-col-select: 18px;
   --lt-col-expand: 22px;
+  --lt-col-source: 128px;
   --lt-col-nodes: 84px;
-  --lt-col-ops: 72px;
+  --lt-col-ops: 104px;
+  --lt-col-published: 150px;
+  --lt-col-status: 204px;
   min-width: 0;
   container-type: inline-size;
 }
@@ -562,9 +566,8 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-expand:hover { background: var(--lt-surface-2); color: var(--lt-fg); }
 .rec-expand:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 .rec-kind { flex: none; margin-right: var(--lt-space-1); color: var(--lt-fg-muted); vertical-align: -2px; }
-.rec-head-published { min-width: 120px; }
-.rec-published-cell { min-width: 120px; }
-.rec-published { font-size: var(--lt-text-xs); white-space: nowrap; }
+.rec-published-cell { min-width: 0; overflow: hidden; }
+.rec-published { display: block; font-size: var(--lt-text-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rec-published.is-ok { color: var(--lt-ok, var(--lt-fg)); }
 .rec-published.is-warn { color: var(--lt-warn, var(--lt-fg)); }
 .rec-published.is-neutral { color: var(--lt-fg-muted); }
@@ -719,7 +722,9 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-chain-dropped-name { color: var(--lt-fg); text-decoration: line-through; }
 .rec-chain-dropped-by::before { content: "· "; }
 
+/* The name outranks the tags: when the cell is short the tags clip first. */
 .rec-body { display: flex; align-items: center; gap: var(--lt-space-2); min-width: 0; }
+.rec-body .rec-name { flex: 0 1 auto; min-width: 8ch; }
 
 .rec-name {
   display: inline-flex;
@@ -742,7 +747,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-name:hover { text-decoration: underline; }
 .rec-name:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
-.rec-tags { display: inline-flex; flex: none; gap: var(--lt-space-1); vertical-align: middle; }
+.rec-tags { display: inline-flex; flex: 0 1 auto; min-width: 0; gap: var(--lt-space-1); overflow: hidden; white-space: nowrap; vertical-align: middle; }
 
 /* The refresh state and the provider's quota, right-aligned in their own
    column and tabular, so a column of them can be read down rather than hunted
@@ -763,7 +768,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-status.is-danger { color: var(--lt-danger); }
 .rec-status.is-warn { color: var(--lt-warn); }
 .rec-status.is-ok { color: var(--lt-ok); }
-.rec-quota { color: var(--lt-fg-muted); }
+.rec-quota { color: var(--lt-fg-muted); white-space: normal; }
 .rec-quota.is-danger { color: var(--lt-danger); }
 
 .rec-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: var(--lt-rec-actions); }
@@ -1811,26 +1816,38 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .rec-head,
   .rec {
     grid-template-columns:
-      var(--lt-col-select) var(--lt-col-expand) 180px 120px var(--lt-col-nodes) var(--lt-col-ops) 130px 140px var(--lt-rec-actions);
+      var(--lt-col-select) var(--lt-col-expand) 180px var(--lt-col-source) var(--lt-col-nodes) var(--lt-col-ops)
+      var(--lt-col-published) var(--lt-col-status) var(--lt-rec-actions);
     width: max-content;
     min-width: 100%;
   }
+  /* The pinned cells paint over the grid gaps beside them (a negative
+     right margin widens each box into the gap), so nothing scrolling under
+     them shows through. */
   .rec-select,
   .rec-expand,
   .rec-body,
   .rec-head > :nth-child(-n + 3) {
     position: sticky;
     z-index: 1;
+    box-sizing: content-box;
+    margin-right: calc(var(--lt-space-3) * -1);
+    padding-right: var(--lt-space-3);
     background: inherit;
   }
   .rec-select, .rec-head > :nth-child(1) { left: 0; }
   .rec-expand, .rec-head > :nth-child(2) { left: calc(var(--lt-col-select) + var(--lt-space-3)); }
   .rec-body, .rec-head > :nth-child(3) {
     left: calc(var(--lt-col-select) + var(--lt-col-expand) + var(--lt-space-3) * 2);
-    padding-right: var(--lt-space-2);
     box-shadow: 1px 0 0 var(--lt-border);
   }
+  .rec-expand { width: var(--lt-col-expand); border-radius: 0; }
   .rec-head { background: var(--lt-bg); }
+  /* The group spans the whole scroll width so its heading can pin. */
+  .rec-group { width: max-content; min-width: 100%; }
+  /* Sized to its words: a heading as wide as its section has no room to
+     stick, so it would scroll away with the columns. */
+  .rec-group-head { position: sticky; left: 0; width: max-content; max-width: 100cqw; }
   .rec-chain { position: sticky; left: 0; width: 100cqw; box-sizing: border-box; }
   .rec-actions { opacity: 1; }
   .graph-root-order li { align-items: flex-start; flex-direction: column; }

@@ -947,13 +947,15 @@ async function toggleRow(id: string): Promise<void> {
     subs.actionError.value = "";
     return;
   }
-  const chain: RowChain = { id, loading: false, error: "", record, explanation: null, running: null };
-  rowChain.value = chain;
+  rowChain.value = { id, loading: false, error: "", record, explanation: null, running: null };
+  // Work on the ref's own proxy, not the object handed to it: writes through
+  // a plain copy would render nothing, and the copy never equals the proxy.
+  const chain = rowChain.value;
   await host.resize();
   const bridge = host.bridge;
   if (!bridge || !subs.canPreview.value) return;
   const steps = chainSteps.value;
-  const current = () => rowChain.value === chain && expandedId.value === id;
+  const current = () => rowChain.value?.id === id && expandedId.value === id;
   try {
     if ((record.kind || KIND_SUB) === KIND_COLLECTION || !enabledStepIndexes(steps).length) {
       // The engine runs a combination's operations over its members' merged
