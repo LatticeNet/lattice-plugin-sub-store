@@ -871,7 +871,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   min-width: 180px;
   padding: var(--lt-space-1);
   border: 1px solid var(--lt-border-strong);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface);
   box-shadow: var(--lt-shadow-overlay);
 }
@@ -934,7 +934,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   margin: 0 0 var(--lt-space-4);
   padding: var(--lt-space-4) var(--lt-space-4) var(--lt-space-2);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface);
 }
 
@@ -1018,7 +1018,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   align-items: start;
   padding: var(--lt-space-3);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-bg);
   color: inherit;
   text-align: left;
@@ -1055,7 +1055,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   overflow: visible;
   padding: var(--lt-space-4);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface-2);
 }
 
@@ -1140,7 +1140,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
      showed a document, and each panel then overrode the cap one by one. */
   padding: var(--lt-space-2) 0;
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface-2);
 }
 
@@ -1236,7 +1236,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
      scroll surface and removes this ceiling below. */
   max-height: calc(24 * var(--lt-code-line) + var(--lt-space-4));
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface);
 }
 .code-editor-host .cm-editor.cm-focused { outline: none; box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
@@ -1295,7 +1295,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   padding: 0;
   border: 1px solid var(--lt-border-strong);
   border-right: 0;
-  border-radius: var(--lt-radius) 0 0 var(--lt-radius);
+  border-radius: var(--lt-radius-lg) 0 0 var(--lt-radius-lg);
   background: var(--lt-surface);
   box-shadow: var(--lt-shadow-overlay);
   animation: sheet-in var(--lt-dur-base) var(--lt-ease);
@@ -1624,7 +1624,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   gap: var(--lt-space-2);
   padding: var(--lt-space-5);
   border: 1px dashed var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface-2);
   color: var(--lt-fg-muted);
   text-align: center;
@@ -1775,7 +1775,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   margin-top: var(--lt-space-4);
   padding: var(--lt-space-3);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface);
 }
 .preview-summary p { margin: 0; font-size: var(--lt-text-sm); }
@@ -1838,7 +1838,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   margin-top: var(--lt-space-6);
   padding: var(--lt-space-5);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface);
 }
 .standalone-notice h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; }
@@ -2027,7 +2027,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   max-height: 60vh;
   flex-direction: column;
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   background: var(--lt-surface);
   box-shadow: var(--lt-shadow-lg, 0 24px 48px rgb(0 0 0 / 0.32));
   overflow: hidden;
@@ -2125,7 +2125,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   margin: 0 0 var(--lt-space-3);
   padding: var(--lt-space-2) var(--lt-space-3);
   border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
+  border-radius: var(--lt-radius-lg);
   list-style: none;
   font-family: var(--lt-mono);
   font-size: var(--lt-text-xs);
@@ -2313,4 +2313,36 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   .sheet,
   .rec-chain { animation: none; }
+}
+
+/* The clipboard fallback strip on the record list. It is not an error state:
+ * the operator asked for a value and is getting it, just by hand, so it takes
+ * the neutral surface rather than the alert's red. */
+.manual-copy-strip {
+  margin-top: var(--lt-space-3);
+  padding: var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius-lg);
+  background: var(--lt-surface-2);
+}
+.manual-copy-strip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+}
+.manual-copy-strip__label {
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  font-weight: 620;
+}
+
+/* The clipboard fallback under a shares row. The row it belongs to keeps its
+ * hover tint so the pair reads as one thing. */
+.shares-manual-row > td {
+  padding: 0 var(--lt-space-3) var(--lt-space-3);
+  background: var(--lt-surface-2);
+}
+tr.has-manual-copy > * {
+  background: var(--lt-surface-2);
 }

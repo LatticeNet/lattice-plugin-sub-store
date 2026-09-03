@@ -86,9 +86,18 @@
   --lt-rec-actions: 134px;
   --lt-control-h-sm: 24px;
   /* Controls read as controls, not pills (DESIGN-PROGRAM 1.x): 4px on
-   * buttons, inputs and rows, 3px on the small ones. Badges keep their pill. */
+   * buttons, inputs and rows, 3px on the small ones. Badges keep their pill.
+   *
+   * The third step exists because two did not. Every surface here, from a 3px
+   * chip to a full-height sheet, was cut at 3 or 4px, and a large panel with a
+   * control's radius is what makes this lens read harder-edged than vpn-core
+   * and netguard beside it. Those two both give a panel the next step up
+   * (netguard's `--ng-radius-lg`, 6px) while keeping controls tight, so a
+   * panel, a sheet, a dialog and a table container take `-lg` here and nothing
+   * smaller than a panel is allowed to. */
   --lt-radius: 4px;
   --lt-radius-sm: 3px;
+  --lt-radius-lg: 6px;
 
   /* focus. One ring, on every focusable thing; a keyboard operator in a data
    * tool navigates by it. */

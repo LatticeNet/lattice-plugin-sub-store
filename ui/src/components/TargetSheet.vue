@@ -12,6 +12,7 @@ import { Check, Copy, Link, LoaderCircle, RefreshCw, X } from "@lucide/vue";
 
 import DocumentView from "./DocumentView.vue";
 import LtButton from "./lt/LtButton.vue";
+import LtManualCopy from "./lt/LtManualCopy.vue";
 import {
   BINDINGS,
   CONVERT_TARGETS,
@@ -28,6 +29,7 @@ import { publishStateFor, type PublishState } from "../shareState";
 import { trapDialogTab } from "../dialogFocus";
 import { isFileRecord } from "../filePreview";
 import { useHost } from "../host";
+import { copyText } from "../hostClipboard";
 import {
   editorLanguageForFileType,
   editorLanguageForRender,
@@ -75,6 +77,16 @@ const copyingLink = ref(false);
 const copyingDocument = ref(false);
 const actionError = ref("");
 const shownLink = ref("");
+
+/**
+ * The rendered document, when the clipboard refused it.
+ *
+ * A config document is thousands of characters, so "select it to copy" was not
+ * a recovery: the document below is a syntax-highlighted read-only view an
+ * operator cannot reliably drag-select to the end. This puts the whole text in
+ * a real textarea, already selected, so the copy is one keystroke.
+ */
+const shownDocument = ref("");
 
 const share = ref<SubStoreShareRow | null>(null);
 const shareState = ref<"loading" | "ready" | "unavailable" | "failed">("loading");
@@ -201,6 +213,7 @@ function resetWorkspace(): void {
   copied.value = "";
   actionError.value = "";
   shownLink.value = "";
+  shownDocument.value = "";
 }
 
 async function loadShare(): Promise<void> {
@@ -456,11 +469,11 @@ async function copyLink(): Promise<void> {
   shownLink.value = "";
   actionError.value = "";
   try {
-    await navigator.clipboard.writeText(shareUrl.value);
-    flash("link");
-  } catch {
-    shownLink.value = shareUrl.value;
-    await host.resize();
+    if (await copyText(shareUrl.value)) flash("link");
+    else {
+      shownLink.value = shareUrl.value;
+      await host.resize();
+    }
   } finally {
     copyingLink.value = false;
   }
@@ -470,12 +483,13 @@ async function copyDocument(): Promise<void> {
   if (!documentIsCurrent() || !rendered.value || copyingDocument.value) return;
   copyingDocument.value = true;
   actionError.value = "";
+  shownDocument.value = "";
   try {
-    await navigator.clipboard.writeText(rendered.value.content);
-    flash("document");
-  } catch {
-    actionError.value =
-      "The clipboard is unavailable. The document remains below, select it to copy.";
+    if (await copyText(rendered.value.content)) flash("document");
+    else {
+      shownDocument.value = rendered.value.content;
+      await host.resize();
+    }
   } finally {
     copyingDocument.value = false;
   }
@@ -590,10 +604,7 @@ onBeforeUnmount(stopAllRequests);
                 Copy document still works. Publish under Networking to create a stable URL.
               </p>
             </template>
-            <p v-if="shownLink" class="manual-copy">
-              Clipboard unavailable. Select the link:
-              <code>{{ shownLink }}</code>
-            </p>
+            <LtManualCopy v-if="shownLink" :value="shownLink" subject="link" />
           </section>
 
           <section v-if="!isFile" class="target-control-section">
@@ -790,6 +801,18 @@ onBeforeUnmount(stopAllRequests);
                 </LtButton>
               </div>
           </div>
+
+          <!--
+            Full width, above the document rather than beside the button: the
+            operator is about to press a copy shortcut, and the field holding
+            what they are copying should not be a 200px sliver in a header.
+          -->
+          <LtManualCopy
+            v-if="shownDocument"
+            :value="shownDocument"
+            subject="document"
+            multiline
+          />
 
           <section
             v-if="viewMode === 'document'"

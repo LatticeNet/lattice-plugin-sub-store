@@ -31,6 +31,7 @@ import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import LtDrawer from "../components/lt/LtDrawer.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
+import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
 import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
@@ -56,6 +57,7 @@ import {
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
+import { copyText } from "../hostClipboard";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
 import { formatRelativeTime, formatTraffic, parseUserinfo, tagChips as tagChipsOf } from "../rowStatus";
@@ -1134,17 +1136,32 @@ function openShares(record: SubscriptionListItem): void {
   subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
 }
 
+/**
+ * The link this row's live share serves, when it could not be put on the
+ * clipboard. Held here rather than in the row so the reveal survives the row
+ * list re-sorting under it, and cleared by the next copy or by dismissing it.
+ */
+const manualShareLink = ref<{ id: string; label: string; value: string } | null>(null);
+
 /** The live share's link onto the clipboard, the way the Shares lens copies it. */
 async function copyShareLink(row: SubscriptionListItem): Promise<void> {
   const state = publishedOf(row);
   const share = state.shares.find((candidate) => candidate.slug === state.slug);
   if (!share) return;
-  try {
-    await navigator.clipboard.writeText(share.url || share.path);
+  const link = share.url || share.path;
+  if (!link) return;
+  manualShareLink.value = null;
+  if (await copyText(link)) {
+    subs.actionError.value = "";
     subs.notice.value = `Copied the link for ${state.label}.`;
-  } catch {
-    subs.actionError.value = "The clipboard refused the link. Copy it from the Shares lens instead.";
+    return;
   }
+  // Sending the operator to another lens to do by hand what this button was
+  // for is not a recovery. The link goes on screen here, selected.
+  subs.notice.value = "";
+  subs.actionError.value = "";
+  manualShareLink.value = { id: row.id, label: state.label, value: link };
+  await host.resize();
 }
 
 /**
@@ -1628,6 +1645,19 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       </div>
       <div v-if="migrateSummary" class="alert alert-ok" role="status">
         <CircleCheck :size="16" aria-hidden="true" /> {{ migrateSummary }}
+      </div>
+
+      <!--
+        A copy that the clipboard refused. Sits with the other status strips
+        rather than inside the row, because the row list re-sorts and a reveal
+        anchored to a row would move out from under the operator mid-copy.
+      -->
+      <div v-if="manualShareLink" class="manual-copy-strip">
+        <div class="manual-copy-strip__head">
+          <span class="manual-copy-strip__label">Link for {{ manualShareLink.label }}</span>
+          <LtButton size="sm" @click="manualShareLink = null">Dismiss</LtButton>
+        </div>
+        <LtManualCopy :value="manualShareLink.value" subject="link" />
       </div>
 
       <LtSkeleton v-if="!host.init.value || subs.state.value === 'loading'" :rows="6" :columns="5" />

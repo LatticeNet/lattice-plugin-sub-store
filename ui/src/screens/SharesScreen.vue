@@ -4,8 +4,10 @@ import { CircleAlert, Copy, SquareArrowOutUpRight } from "@lucide/vue";
 
 import LtButton from "../components/lt/LtButton.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
+import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubStoreShareRow, type SubscriptionListItem } from "../client";
+import { copyText } from "../hostClipboard";
 import { useHost } from "../host";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "../navigate";
 import { formatRelativeTime } from "../rowStatus";
@@ -84,20 +86,38 @@ const listed = computed(() =>
 // ── copying and navigating ───────────────────────────────────────────────────
 
 const copiedId = ref("");
+/**
+ * The share whose link could not be copied, if any. One at a time: the reveal
+ * opens under its own row, and two open at once would push the row the operator
+ * is reading off screen. Asking for a second link closes the first.
+ */
+const manualCopyId = ref("");
 let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 async function copyLink(line: ShareLine): Promise<void> {
   const link = line.share.url || line.share.path;
-  try {
-    await navigator.clipboard.writeText(link);
+  if (!link) return;
+  manualCopyId.value = "";
+  if (await copyText(link)) {
     copiedId.value = line.share.share_id;
     if (copiedTimer !== undefined) clearTimeout(copiedTimer);
     copiedTimer = setTimeout(() => {
       copiedId.value = "";
     }, 1500);
-  } catch {
-    notice.value = "The clipboard refused the link. Copy it from the console instead.";
+    return;
   }
+  // The link is what the operator came for, so it goes on screen rather than
+  // being replaced by a sentence about the clipboard. Under its own row, at
+  // full width, because a subscription URL does not fit an actions cell.
+  copiedId.value = "";
+  manualCopyId.value = line.share.share_id;
+  await host.resize();
 }
+
+/** The link the reveal is showing, so the row and the field cannot disagree. */
+const manualCopyValue = computed(() => {
+  const line = lines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
+  return line ? line.share.url || line.share.path : "";
+});
 
 const notice = ref("");
 const origin = computed(() => hostOriginFromHash(window.location.hash));
@@ -201,7 +221,8 @@ watch(host.init, (value) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="line in lines" :key="line.share.share_id" :class="`is-${line.state.tone}`">
+          <template v-for="line in lines" :key="line.share.share_id">
+          <tr :class="[`is-${line.state.tone}`, { 'has-manual-copy': manualCopyId === line.share.share_id }]">
             <th scope="row" class="shares-record">
               <span class="shares-record-name" :title="line.share.subscription_id">{{ recordName(line) }}</span>
               <span class="shares-record-kind">{{ line.record ? kindOf(line) : "record not in this store" }}</span>
@@ -233,6 +254,18 @@ watch(host.init, (value) => {
               </button>
             </td>
           </tr>
+          <!--
+            The clipboard fallback, as a row of its own rather than a cell in
+            the one above. A subscription URL is longer than any column here,
+            and squeezing it into the actions cell is how it becomes unreadable
+            and unselectable at the same time.
+          -->
+          <tr v-if="manualCopyId === line.share.share_id" class="shares-manual-row">
+            <td :colspan="6">
+              <LtManualCopy :value="manualCopyValue" subject="link" />
+            </td>
+          </tr>
+          </template>
         </tbody>
       </table>
     </div>
