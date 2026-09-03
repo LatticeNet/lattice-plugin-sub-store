@@ -43,7 +43,7 @@ function onTab(event: KeyboardEvent): void {
       tabindex="-1"
       :aria-label="title"
       :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
-      @keydown.esc="emit('close')"
+      @keydown.esc.stop="emit('close')"
       @keydown.tab="onTab"
     >
       <header class="lt-drawer-head">

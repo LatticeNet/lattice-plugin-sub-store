@@ -551,7 +551,7 @@ onBeforeUnmount(stopAllRequests);
       aria-modal="true"
       :aria-label="`${isFile ? 'Document preview' : 'Client output'} for ${recordName}`"
       :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
-      @keydown.esc="close"
+      @keydown.esc.stop="close"
       @keydown.tab="onTab"
     >
       <header class="sheet-head">

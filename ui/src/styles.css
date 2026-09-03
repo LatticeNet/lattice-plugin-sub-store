@@ -2337,12 +2337,56 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   font-weight: 620;
 }
 
-/* The clipboard fallback under a shares row. The row it belongs to keeps its
- * hover tint so the pair reads as one thing. */
-.shares-manual-row > td {
-  padding: 0 var(--lt-space-3) var(--lt-space-3);
-  background: var(--lt-surface-2);
-}
+/* The row whose link is being shown above, so the strip and its row read as
+ * one thing while the operator's eyes move between them. */
 tr.has-manual-copy > * {
   background: var(--lt-surface-2);
+}
+
+/* A batch operation that stopped part way. Warning-toned, not danger: nothing
+ * is broken, some of the work simply has not happened yet and the operator is
+ * being told which part. */
+.partial-strip {
+  margin-top: var(--lt-space-3);
+  padding: var(--lt-space-3);
+  border: 1px solid var(--lt-warn-border);
+  border-left-width: 3px;
+  border-radius: var(--lt-radius-lg);
+  background: var(--lt-warn-soft);
+}
+.partial-strip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lt-space-3);
+  flex-wrap: wrap;
+}
+.partial-strip__label {
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  font-weight: 620;
+}
+.partial-strip__actions {
+  display: flex;
+  gap: var(--lt-space-2);
+}
+.partial-strip__note {
+  margin: var(--lt-space-2) 0 0;
+  max-width: var(--lt-measure-prose);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+}
+.partial-strip__names {
+  display: grid;
+  gap: var(--lt-space-1);
+  max-height: 140px;
+  overflow: auto;
+  margin: var(--lt-space-2) 0 0;
+  padding: var(--lt-space-2);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-surface);
+  list-style: none;
+  font-size: var(--lt-text-xs);
 }

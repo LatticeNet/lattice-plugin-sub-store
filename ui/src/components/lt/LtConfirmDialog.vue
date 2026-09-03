@@ -7,15 +7,26 @@ import LtButton from "./LtButton.vue";
  * resource by name; when more than one is affected the operator must type the
  * count to arm the confirm button, reading the list is the point.
  */
-const props = defineProps<{
-  open: boolean;
-  title: string;
-  verb: string;
-  names: string[];
-  busy?: boolean;
-  /** Document-space position; the frame is not a viewport (see overlayAnchor). */
-  anchorTop?: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    title: string;
+    verb: string;
+    /** What the verb will be applied to. This is what the operator types the count of. */
+    names: string[];
+    /**
+     * What else breaks as a consequence, if anything. Kept apart from `names`
+     * deliberately: these are not being deleted, and folding them in inflated
+     * the arming count so a one-record delete asked the operator to type the
+     * number of records it would damage. Listed, not counted.
+     */
+    consequences?: string[];
+    busy?: boolean;
+    /** Document-space position; the frame is not a viewport (see overlayAnchor). */
+    anchorTop?: number;
+  }>(),
+  { consequences: () => [] },
+);
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
 const typed = ref("");
@@ -37,6 +48,14 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
 </script>
 
 <template>
+  <!--
+    The `.stop` on the Escape handler below is load-bearing, not tidiness. The
+    screens also listen for Escape on the document, to step back out of a row
+    or an editor. Without it, one Escape on the "leave without saving?" dialog
+    cancelled the dialog AND then reached the screen, which saw no overlay
+    open, saw the draft still dirty, and raised the same dialog again: the
+    dialog could not be dismissed from the keyboard at all.
+  -->
   <div v-if="open" class="lt-dialog-backdrop" @click.self="emit('cancel')">
     <div
       ref="dialog"
@@ -46,12 +65,20 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
       tabindex="-1"
       :aria-label="title"
       :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
-      @keydown.esc="emit('cancel')"
+      @keydown.esc.stop="emit('cancel')"
     >
       <p class="lt-dialog-title">{{ title }}</p>
       <ul class="lt-dialog-names">
         <li v-for="name in names" :key="name" class="mono">{{ name }}</li>
       </ul>
+      <template v-if="consequences.length">
+        <p class="lt-dialog-subtitle">
+          {{ consequences.length === 1 ? "This also breaks:" : `This also breaks ${consequences.length} records:` }}
+        </p>
+        <ul class="lt-dialog-names is-consequence">
+          <li v-for="note in consequences" :key="note" class="mono">{{ note }}</li>
+        </ul>
+      </template>
       <label v-if="needsTyping" class="lt-dialog-arm">
         To confirm, type the number of items listed above: {{ names.length }}
         <input v-model="typed" class="lt-dialog-input" inputmode="numeric" autocomplete="off" />
@@ -103,6 +130,18 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
   font-size: var(--lt-text-sm);
 }
 .lt-dialog-names .mono { font-family: var(--lt-mono); }
+/* Consequences are a warning, not a kill list, and must not read as things
+   about to be deleted. */
+.lt-dialog-names.is-consequence {
+  border-color: var(--lt-warn-border);
+  background: var(--lt-warn-soft);
+}
+.lt-dialog-subtitle {
+  margin: 0 0 var(--lt-space-1);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+}
 .lt-dialog-arm { display: block; font-size: var(--lt-text-sm); color: var(--lt-fg-muted); margin-bottom: var(--lt-space-3); }
 .lt-dialog-input {
   display: block;

@@ -36,6 +36,11 @@ async function selectAll(): Promise<void> {
   if (!element) return;
   element.focus({ preventScroll: false });
   element.select();
+  // Selecting to the end leaves the field scrolled to the end, so a long
+  // subscription URL showed its token and not which link it was. The selection
+  // is what matters for the copy; the start is what matters for reading it.
+  element.scrollLeft = 0;
+  element.scrollTop = 0;
 }
 
 onMounted(selectAll);

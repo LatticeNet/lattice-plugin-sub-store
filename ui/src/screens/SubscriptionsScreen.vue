@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -633,14 +633,34 @@ onActivated(() => {
   if (host.init.value) void loadAll();
 });
 
-onMounted(() => {
+/**
+ * The document listeners are bound while this screen is the visible one, not
+ * for the life of the component.
+ *
+ * The shell keeps both record screens alive across tab switches (`<KeepAlive>`
+ * in Shell.vue), so `onBeforeUnmount` does not run when the operator moves to
+ * the sibling tab. Both screens' Escape handlers therefore stayed live at
+ * once: with a Files draft open and the Subscriptions tab in front, one
+ * Escape reached the Files screen and closed its editor, or raised a discard
+ * dialog on a screen nobody could see. `onDeactivated` is the matching half
+ * of `onActivated`, and binding to that pair means exactly one screen owns
+ * the key at a time.
+ */
+function bindDocumentKeys(): void {
   document.addEventListener("click", onDocumentClick, true);
   document.addEventListener("keydown", onDocumentKeydown);
-});
-onBeforeUnmount(() => {
+}
+function releaseDocumentKeys(): void {
   document.removeEventListener("click", onDocumentClick, true);
   document.removeEventListener("keydown", onDocumentKeydown);
+}
+
+onMounted(() => {
+  bindDocumentKeys();
 });
+onActivated(bindDocumentKeys);
+onDeactivated(releaseDocumentKeys);
+onBeforeUnmount(releaseDocumentKeys);
 function onDocumentClick(event: MouseEvent): void {
   if (!openMenuId.value) return;
   const target = event.target as HTMLElement | null;
@@ -1059,26 +1079,117 @@ function requestDelete(ids: string[], event?: Event): void {
   deleting.value = ids;
 }
 
-const deletingNames = computed(() =>
-  deleting.value.map((id) => {
+const deletingNames = computed(() => namesFor(deleting.value));
+
+/**
+ * The records that break if this delete goes ahead, found rather than described.
+ *
+ * The dialog already warned, in general terms, that "any combination that
+ * includes it stops rendering". Every reference it was talking about is
+ * computable from the list already on screen: a combination names its parts in
+ * `members`, and a file draws its nodes from `node_source`. So the warning is
+ * now the actual names, and a record with no dependents no longer carries a
+ * warning about dependents it does not have.
+ */
+const deleteDependents = computed(() => {
+  const doomed = new Set(deleting.value);
+  if (!doomed.size) return [] as Array<{ name: string; because: string }>;
+  const found: Array<{ name: string; because: string }> = [];
+  for (const item of subs.items.value) {
+    if (doomed.has(item.id)) continue;
+    const label = item.display_name || item.name;
+    if ((item.members ?? []).some((member) => doomed.has(member))) {
+      found.push({ name: label, because: "combination, loses a member" });
+      continue;
+    }
+    if (item.node_source && doomed.has(item.node_source)) {
+      found.push({ name: label, because: "file, loses its node source" });
+    }
+  }
+  return found;
+});
+
+/**
+ * What will break, phrased for the dialog's second list. Kept out of `names`
+ * because `names` is what the operator types the count of to arm the confirm,
+ * and these records are not being deleted.
+ */
+const deleteConsequences = computed(() =>
+  deleteDependents.value.map((entry) => `${entry.name}  (${entry.because})`),
+);
+
+const deleteTitle = computed(() => {
+  const count = deleting.value.length;
+  const one = count === 1;
+  const subject = one ? "this record" : `${count} records`;
+  const object = one ? "it" : "them";
+  const dependents = deleteDependents.value.length;
+  const shares = one
+    ? "Any share published for it keeps existing and starts returning nothing."
+    : "Any share published for them keeps existing and starts returning nothing.";
+  if (!dependents) return `Delete ${subject}? Nothing else in this store points at ${object}. ${shares}`;
+  const breaks = dependents === 1
+    ? `1 other record in this store points at ${object} and stops working`
+    : `${dependents} other records in this store point at ${object} and stop working`;
+  return `Delete ${subject}? ${breaks} until you edit them, listed below. ${shares}`;
+});
+
+/**
+ * What a partly-finished batch delete left behind.
+ *
+ * Null while nothing has half-failed. Set when a run stops early, and read by
+ * the strip that offers a retry of just the part that did not happen.
+ */
+const deleteRemainder = ref<{ done: string[]; failed: string; pending: string[] } | null>(null);
+
+/** Display names for a set of ids, falling back to the id when it is gone. */
+function namesFor(ids: string[]): string[] {
+  return ids.map((id) => {
     const item = subs.items.value.find((r) => r.id === id);
     return item ? item.display_name || item.name : id;
-  }),
-);
+  });
+}
 
 async function runDelete(): Promise<void> {
   deleteBusy.value = true;
+  deleteRemainder.value = null;
+  const queue = [...deleting.value];
+  const done: string[] = [];
   try {
-    for (const id of deleting.value) {
+    for (let index = 0; index < queue.length; index += 1) {
+      const id = queue[index]!;
       markPending(id, true);
       const ok = await subs.remove(id);
       markPending(id, false);
-      if (!ok) break; // the composable surfaced the error; stop rather than plough on
+      if (ok) {
+        done.push(id);
+        continue;
+      }
+      // Stopping is right: the rest of the batch is likely to fail the same
+      // way, and deleting on through an error the operator has not read is how
+      // a wrong batch runs to completion. But stopping silently was not. The
+      // dialog used to close on this path having said only which record
+      // failed, so a run of twelve that died on the sixth left no way to know
+      // that five were gone and six had never been attempted.
+      deleteRemainder.value = { done, failed: id, pending: queue.slice(index + 1) };
+      return;
     }
   } finally {
     deleteBusy.value = false;
     deleting.value = [];
+    // The selection is kept when there is a remainder to retry. Clearing it was
+    // the second half of the same bug: the records that were never attempted
+    // had to be found again by hand.
+    if (!deleteRemainder.value) selectedIds.value = new Set();
   }
+}
+
+/** Retry only the records the stopped run never reached, plus the one that failed. */
+function retryDeleteRemainder(): void {
+  const remainder = deleteRemainder.value;
+  if (!remainder) return;
+  deleteRemainder.value = null;
+  deleting.value = [remainder.failed, ...remainder.pending];
 }
 
 // ── drawer ──────────────────────────────────────────────────────────────────
@@ -1648,6 +1759,43 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       </div>
 
       <!--
+        A batch delete that stopped part way. The error alert above already
+        says why the one record failed; this says what that means for the
+        other eleven, which is the part the operator cannot work out alone.
+      -->
+      <div v-if="deleteRemainder" class="partial-strip" role="status">
+        <div class="partial-strip__head">
+          <span class="partial-strip__label">
+            {{ deleteRemainder.done.length }} deleted,
+            1 failed,
+            {{ deleteRemainder.pending.length }} not attempted
+          </span>
+          <div class="partial-strip__actions">
+            <LtButton
+              v-if="deleteRemainder.pending.length || deleteRemainder.failed"
+              size="sm"
+              variant="primary"
+              @click="retryDeleteRemainder()"
+            >
+              Retry the {{ deleteRemainder.pending.length + 1 }} that remain
+            </LtButton>
+            <LtButton size="sm" @click="deleteRemainder = null">Dismiss</LtButton>
+          </div>
+        </div>
+        <p class="partial-strip__note">
+          The run stopped at
+          <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>
+          so nothing after it was touched. The records below are still here and
+          still selected.
+        </p>
+        <ul class="partial-strip__names">
+          <li v-for="name in namesFor([deleteRemainder.failed, ...deleteRemainder.pending])" :key="name" class="mono">
+            {{ name }}
+          </li>
+        </ul>
+      </div>
+
+      <!--
         A copy that the clipboard refused. Sits with the other status strips
         rather than inside the row, because the row list re-sorts and a reveal
         anchored to a row would move out from under the operator mid-copy.
@@ -2133,11 +2281,10 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <LtConfirmDialog
         :anchor-top="overlayAnchor"
         :open="deleting.length > 0"
-        :title="deleting.length === 1
-          ? 'Delete this record? Any combination that includes it stops rendering until you edit it, and any share published for it keeps existing and starts returning nothing.'
-          : `Delete ${deleting.length} records? Any combination that includes them stops rendering until you edit it, and any shares published for them keep existing and start returning nothing.`"
+        :title="deleteTitle"
         verb="Delete"
         :names="deletingNames"
+        :consequences="deleteConsequences"
         :busy="deleteBusy"
         @confirm="runDelete()"
         @cancel="deleting = []"
