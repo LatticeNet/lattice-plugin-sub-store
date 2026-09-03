@@ -2390,3 +2390,105 @@ tr.has-manual-copy > * {
   list-style: none;
   font-size: var(--lt-text-xs);
 }
+
+/* A save refused because the record moved underneath it.
+ *
+ * Warning-toned rather than danger: nothing is broken and nothing is lost yet.
+ * It sits inline above the editor the operator is still holding, so the work
+ * being decided about stays on screen while they decide. */
+.conflict-panel {
+  margin: var(--lt-space-3) 0;
+  padding: var(--lt-space-4);
+  border: 1px solid var(--lt-warn-border);
+  border-left-width: 3px;
+  border-radius: var(--lt-radius-lg);
+  background: var(--lt-warn-soft);
+}
+.conflict-panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--lt-space-2);
+  color: var(--lt-warn);
+}
+.conflict-panel__title {
+  margin: 0;
+  color: var(--lt-fg);
+  font-size: var(--lt-text-md);
+  font-weight: 620;
+}
+.conflict-panel__summary {
+  margin: var(--lt-space-2) 0 0;
+  max-width: var(--lt-measure-prose);
+  color: var(--lt-fg);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+}
+.conflict-table {
+  width: 100%;
+  margin-top: var(--lt-space-3);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  border-collapse: collapse;
+  overflow: hidden;
+  background: var(--lt-surface);
+  font-size: var(--lt-text-xs);
+}
+.conflict-table th,
+.conflict-table td {
+  padding: var(--lt-space-2) var(--lt-space-3);
+  border-bottom: 1px solid var(--lt-border);
+  text-align: left;
+  vertical-align: top;
+}
+.conflict-table thead th {
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  background: var(--lt-surface-2);
+}
+.conflict-table tbody tr:last-child th,
+.conflict-table tbody tr:last-child td { border-bottom: 0; }
+.conflict-table tbody th { font-weight: 620; white-space: nowrap; }
+/* The rows that actually force a choice. The others are informational: their
+   edit and yours can both survive a reopen. */
+.conflict-table tr.is-contested th,
+.conflict-table tr.is-contested td { background: var(--lt-warn-soft); }
+.conflict-tag {
+  display: block;
+  margin-top: 2px;
+  color: var(--lt-warn);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.conflict-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lt-space-2);
+  margin-top: var(--lt-space-3);
+}
+.conflict-panel__note {
+  margin: var(--lt-space-2) 0 0;
+  max-width: var(--lt-measure-prose);
+  color: var(--lt-fg-muted);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+}
+@media (max-width: 560px) {
+  /* Three columns of values do not fit; the field name carries the row and the
+     two values stack under it. */
+  .conflict-table thead { display: none; }
+  .conflict-table tbody tr { display: block; border-bottom: 1px solid var(--lt-border); }
+  .conflict-table tbody tr:last-child { border-bottom: 0; }
+  .conflict-table th,
+  .conflict-table td { display: block; border-bottom: 0; padding-bottom: 0; }
+  .conflict-table td:last-child { padding-bottom: var(--lt-space-2); }
+  .conflict-table td::before {
+    display: block;
+    color: var(--lt-fg-muted);
+    font-family: var(--lt-font);
+    font-size: 11px;
+  }
+  .conflict-table td:nth-of-type(1)::before { content: "when you opened it"; }
+  .conflict-table td:nth-of-type(2)::before { content: "now"; }
+}

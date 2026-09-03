@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -152,6 +154,83 @@ type subscriptionRecord struct {
 	LastFetchOK bool   `json:"last_fetch_ok,omitempty"`
 	LastError   string `json:"last_error,omitempty"`
 	Userinfo    string `json:"userinfo,omitempty"`
+	// ScriptDigest fingerprints a script file's program, which is stored under
+	// its own key and is therefore not part of this record's own bytes.
+	//
+	// It exists so Revision can cover the program without reading it. The save
+	// path is budgeted at three host round trips (load the document, write the
+	// program, write the document) and fetching the previous program to compare
+	// it would need a fourth, so the digest is written alongside the program and
+	// travels with the record instead. Empty on every record that is not a
+	// script file.
+	ScriptDigest string `json:"script_digest,omitempty"`
+	// Revision fingerprints the operator-editable content of this record, so a
+	// save can be refused when the stored copy has moved since it was read.
+	//
+	// Derived, never trusted from a caller, and recomputed at every read and
+	// every write: the stored value is a cache, and correctness does not depend
+	// on it. That is what lets this exist without a migration, because a record
+	// written before this field gets a correct revision the first time anything
+	// reads it.
+	//
+	// A counter was the obvious alternative and is wrong here. The fetch path
+	// writes LastFetchAt, LastFetchOK, LastError and Userinfo on a schedule
+	// nobody triggers, and a counter would bump on every one of those, so an
+	// operator who opened a record and typed for a minute would be told their
+	// edit conflicted with a refresh that changed nothing they can see. A
+	// fingerprint over content only stays still through all of that and moves
+	// exactly when someone changes something the operator would have to
+	// reconcile. The excluded fields are listed in subscriptionRevision.
+	Revision string `json:"revision,omitempty"`
+}
+
+// subscriptionRevision fingerprints a record's operator-editable content.
+//
+// Excluded, deliberately: the four fetch-bookkeeping fields, because they are
+// written by a background refresh and are preserved across an edit anyway, so
+// including them would manufacture conflicts out of events the operator did
+// not cause and cannot act on. Origin is excluded for the same reason, being
+// server-owned and preserved on save. Revision itself is zeroed so the
+// fingerprint is a function of content alone rather than of its own previous
+// value.
+//
+// Marshalling is deterministic: encoding/json writes struct fields in
+// declaration order and map keys sorted, so the same content always hashes the
+// same way. A hash rather than a counter also means two writes that produce
+// identical content leave the revision alone, which is the honest answer.
+func subscriptionRevision(rec subscriptionRecord) string {
+	rec.LastFetchAt, rec.LastFetchOK = "", false
+	rec.LastError, rec.Userinfo = "", ""
+	rec.Origin = nil
+	rec.Revision = ""
+	// Content is deliberately left in. For a script file the stored record's
+	// Content is empty and ScriptDigest stands in for the program, so both
+	// shapes are covered by the one hash.
+	encoded, err := json.Marshal(rec)
+	if err != nil {
+		// A record that cannot be marshalled cannot be stored either, so the
+		// save will fail on its own. Returning empty means "no revision", which
+		// every comparison below treats as unknown rather than as a match.
+		return ""
+	}
+	return digestOf(string(encoded))
+}
+
+// digestOf is the one fingerprint function: 16 bytes of SHA-256, hex. Short
+// enough to sit in a record and a payload without being noise, long enough that
+// a collision is not a thing that happens.
+func digestOf(text string) string {
+	sum := sha256.Sum256([]byte(text))
+	return hex.EncodeToString(sum[:16])
+}
+
+// withRevision returns the record with its fingerprint recomputed. Every path
+// that hands a record outward goes through here, so a caller can never be given
+// a stale revision to send back.
+func withRevision(rec subscriptionRecord) subscriptionRecord {
+	rec.Revision = ""
+	rec.Revision = subscriptionRevision(rec)
+	return rec
 }
 
 func (rt *runtime) loadSubscriptionRecords() (subscriptionRecordsDocument, error) {
@@ -233,6 +312,7 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 			// that would read as "this file has nothing in it".
 			script = rec.Content
 			rec.Content = ""
+			rec.ScriptDigest = digestOf(script)
 		default:
 			rec.QueryParams, rec.Arguments = nil, nil
 		}
@@ -272,6 +352,15 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 	if rec.SchemaVersion == 0 {
 		rec.SchemaVersion = 1
 	}
+	// A record that stopped being a script file must not keep the digest of the
+	// program it used to have: the revision is a claim about current content.
+	if !isScriptFile(rec) {
+		rec.ScriptDigest = ""
+	}
+	// Stamped last, after every field this function normalises, so the
+	// fingerprint describes what is actually stored rather than what arrived.
+	// A caller-supplied Revision never survives: it is zeroed and recomputed.
+	rec = withRevision(rec)
 	return rec, script, nil
 }
 
@@ -399,6 +488,12 @@ func (rt *runtime) getSubscription(id string) (subscriptionRecord, error) {
 	}
 	for _, rec := range doc.Records {
 		if rec.ID == id {
+			// Recomputed rather than read out of storage, so a record written
+			// before this field existed still reports a revision, and so the
+			// value a caller is handed cannot be stale. It is computed on the
+			// STORED shape, before the program is reattached below, because that
+			// is the shape the save path compares against.
+			rec = withRevision(rec)
 			// A script file's program is stored separately. Reattaching it here
 			// keeps the split invisible to every caller: edit, render and preview
 			// all see one record with its content in it, the same as any other
