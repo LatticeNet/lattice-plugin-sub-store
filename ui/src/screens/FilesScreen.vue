@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from "vue";
 import {
   ChevronDown,
   ChevronLeft,
@@ -736,16 +736,35 @@ onActivated(() => {
   if (host.init.value) void loadAll();
 });
 
-onMounted(() => {
-  if (host.init.value) void loadAll();
+/**
+ * The document listeners are bound while this screen is the visible one, not
+ * for the life of the component.
+ *
+ * The shell keeps both record screens alive across tab switches (`<KeepAlive>`
+ * in Shell.vue), so `onBeforeUnmount` does not run when the operator moves to
+ * the sibling tab. Both screens' Escape handlers therefore stayed live at
+ * once: with a Files draft open and the Subscriptions tab in front, one
+ * Escape reached the Files screen and closed its editor, or raised a discard
+ * dialog on a screen nobody could see. `onDeactivated` is the matching half
+ * of `onActivated`, and binding to that pair means exactly one screen owns
+ * the key at a time.
+ */
+function bindDocumentKeys(): void {
   document.addEventListener("click", onDocumentClick, true);
   document.addEventListener("keydown", onDocumentKeydown);
-});
-
-onBeforeUnmount(() => {
+}
+function releaseDocumentKeys(): void {
   document.removeEventListener("click", onDocumentClick, true);
   document.removeEventListener("keydown", onDocumentKeydown);
+}
+
+onMounted(() => {
+  if (host.init.value) void loadAll();
+  bindDocumentKeys();
 });
+onActivated(bindDocumentKeys);
+onDeactivated(releaseDocumentKeys);
+onBeforeUnmount(releaseDocumentKeys);
 
 watch(host.init, (value) => {
   if (value) void loadAll();

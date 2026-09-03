@@ -5,7 +5,7 @@ const emit = defineEmits<{ (e: "clear"): void }>();
 </script>
 
 <template>
-  <div v-if="count > 0" class="lt-batchbar" role="toolbar" aria-label="Selection actions" @keydown.esc="emit('clear')">
+  <div v-if="count > 0" class="lt-batchbar" role="toolbar" aria-label="Selection actions" @keydown.esc.stop="emit('clear')">
     <span class="lt-batchbar-count">{{ count }} selected</span>
     <div class="lt-batchbar-actions"><slot /></div>
     <button class="lt-batchbar-clear" type="button" @click="emit('clear')">Clear</button>

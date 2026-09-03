@@ -4,8 +4,10 @@ import { CircleAlert, Copy, SquareArrowOutUpRight } from "@lucide/vue";
 
 import LtButton from "../components/lt/LtButton.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
+import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubStoreShareRow, type SubscriptionListItem } from "../client";
+import { copyText } from "../hostClipboard";
 import { useHost } from "../host";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "../navigate";
 import { formatRelativeTime } from "../rowStatus";
@@ -77,27 +79,66 @@ const summary = computed(() => {
   return { total: all.length, live, dead: all.length - live };
 });
 
-const listed = computed(() =>
-  !host.init.value || store.loading.value && store.shares.value === undefined ? null : lines.value.length,
-);
+/**
+ * How many shares there are, or null when that is not known.
+ *
+ * A failed read used to fall through to `lines.value.length`, which is zero,
+ * and the heading then said "No share exists yet, so no client can fetch any
+ * record here" directly above the error alert saying the list could not be
+ * read. Absent is not zero: an unanswered question must not be rendered as a
+ * confident count. The sibling record list already draws this distinction.
+ */
+const listed = computed(() => {
+  if (!host.init.value) return null;
+  if (store.loading.value && store.shares.value === undefined) return null;
+  if (store.error.value && store.shares.value === undefined) return null;
+  return lines.value.length;
+});
 
 // ── copying and navigating ───────────────────────────────────────────────────
 
 const copiedId = ref("");
+/**
+ * The share whose link could not be copied, if any.
+ *
+ * One at a time, and the reveal sits above the table with the other status
+ * strips rather than in a row of its own. A cell inside this table cannot hold
+ * it: the table scrolls sideways below about 900px, so at 375 the reveal
+ * scrolled out of view and the operator was left with a clipped half-sentence
+ * and a truncated URL, which is worse than the failure it recovers from.
+ */
+const manualCopyId = ref("");
 let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 async function copyLink(line: ShareLine): Promise<void> {
   const link = line.share.url || line.share.path;
-  try {
-    await navigator.clipboard.writeText(link);
+  if (!link) return;
+  manualCopyId.value = "";
+  if (await copyText(link)) {
     copiedId.value = line.share.share_id;
     if (copiedTimer !== undefined) clearTimeout(copiedTimer);
     copiedTimer = setTimeout(() => {
       copiedId.value = "";
     }, 1500);
-  } catch {
-    notice.value = "The clipboard refused the link. Copy it from the console instead.";
+    return;
   }
+  // The link is what the operator came for, so it goes on screen rather than
+  // being replaced by a sentence about the clipboard.
+  copiedId.value = "";
+  manualCopyId.value = line.share.share_id;
+  await host.resize();
 }
+
+/** The link the reveal is showing, so the strip and the list cannot disagree. */
+const manualCopyValue = computed(() => {
+  const line = lines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
+  return line ? line.share.url || line.share.path : "";
+});
+
+/** Which share the reveal belongs to, named so the strip is not ambiguous. */
+const manualCopyLabel = computed(() => {
+  const line = lines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
+  return line ? `${recordName(line)} · /${line.share.slug}` : "";
+});
 
 const notice = ref("");
 const origin = computed(() => hostOriginFromHash(window.location.hash));
@@ -161,14 +202,37 @@ watch(host.init, (value) => {
     </div>
     <div v-else-if="notice" class="alert alert-ok" role="status">{{ notice }}</div>
 
+    <div v-if="manualCopyId && manualCopyValue" class="manual-copy-strip">
+      <div class="manual-copy-strip__head">
+        <span class="manual-copy-strip__label">Link for {{ manualCopyLabel }}</span>
+        <LtButton size="sm" @click="manualCopyId = ''">Dismiss</LtButton>
+      </div>
+      <LtManualCopy :value="manualCopyValue" subject="link" />
+    </div>
+
     <LtSkeleton v-if="listed === null && !store.error.value" :rows="4" :columns="5" />
 
+    <!--
+      A permission wall is still a place the operator can leave. This used to be
+      the one state on the screen with no way forward at all: a sentence, and
+      nothing to press. The console's own share list does not need this frame's
+      scope, so pointing at it is a real route to the thing they came for.
+    -->
     <LtEmptyState
       v-else-if="!store.available.value"
       kind="error"
       title="This session cannot read the share list"
-      detail="The installed bundle does not declare shares.list, or your token lacks the scope."
-    />
+      detail="The installed bundle does not declare shares.list, or your token lacks substore:admin and proxy:admin. Shares themselves still exist; this lens just cannot read them."
+    >
+      <LtButton
+        variant="primary"
+        :disabled="!origin"
+        :title="origin ? 'The console lists the same shares under Networking.' : 'This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.'"
+        @click="openInNetworking()"
+      >
+        <SquareArrowOutUpRight :size="14" aria-hidden="true" /> Open in Networking
+      </LtButton>
+    </LtEmptyState>
 
     <LtEmptyState
       v-else-if="store.error.value"
@@ -201,7 +265,11 @@ watch(host.init, (value) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="line in lines" :key="line.share.share_id" :class="`is-${line.state.tone}`">
+          <tr
+            v-for="line in lines"
+            :key="line.share.share_id"
+            :class="[`is-${line.state.tone}`, { 'has-manual-copy': manualCopyId === line.share.share_id }]"
+          >
             <th scope="row" class="shares-record">
               <span class="shares-record-name" :title="line.share.subscription_id">{{ recordName(line) }}</span>
               <span class="shares-record-kind">{{ line.record ? kindOf(line) : "record not in this store" }}</span>

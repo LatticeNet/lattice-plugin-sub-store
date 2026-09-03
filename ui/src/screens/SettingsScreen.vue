@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { CircleAlert, CircleCheck, Download, LoaderCircle, Upload } from "@lucide/vue";
 
 import { CONVERT_TARGETS } from "../client";
 import { useHost } from "../host";
+import { copyText } from "../hostClipboard";
 import { useSubscriptionOps } from "../useSubscriptionOps";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
@@ -41,6 +42,8 @@ async function doExport(): Promise<void> {
   exported.value = await ops.exportBackup();
 }
 
+const exportField = ref<HTMLTextAreaElement | null>(null);
+
 /**
  * The backup is offered as a copyable block rather than a download.
  *
@@ -48,15 +51,26 @@ async function doExport(): Promise<void> {
  * a `download` attribute is exactly the kind of thing that behaves differently
  * across browsers there, and a save that silently does nothing is worse than a
  * textarea the operator can select.
+ *
+ * That sandbox is also why the copy itself goes through the host: the frame's
+ * own clipboard is blocked by Permissions Policy. See hostClipboard.ts.
  */
 async function copyExported(): Promise<void> {
   if (!exported.value) return;
-  try {
-    await navigator.clipboard.writeText(exported.value);
+  ops.actionError.value = "";
+  if (await copyText(exported.value)) {
     ops.notice.value = "Backup copied to the clipboard.";
-  } catch {
-    ops.actionError.value = "The clipboard is unavailable here, select the text and copy it manually.";
+    return;
   }
+  // This screen already prints the envelope in a textarea below the button, so
+  // the recovery is to put the operator's cursor in it with everything
+  // selected rather than to describe where to look.
+  ops.notice.value = "";
+  ops.actionError.value =
+    "The console could not reach the clipboard. The backup below is selected, copy it with your keyboard.";
+  await nextTick();
+  exportField.value?.focus();
+  exportField.value?.select();
 }
 
 /**
@@ -304,7 +318,7 @@ watch(host.init, (value) => {
     <div class="form-grid">
       <label v-if="exported" class="field field-wide">
         <span class="field-label">Exported backup</span>
-        <textarea class="code-area" rows="6" readonly :value="exported"></textarea>
+        <textarea ref="exportField" class="code-area" rows="6" readonly :value="exported"></textarea>
       </label>
 
       <label class="field field-wide">
