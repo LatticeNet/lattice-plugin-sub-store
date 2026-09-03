@@ -87,6 +87,11 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   color: var(--lt-fg-muted);
   font-size: var(--lt-text-md);
   line-height: var(--lt-leading);
+  /* Even the two lines rather than leave "to give it a URL." alone under a
+     full one. `pretty` only suppresses a single-word orphan, and left that
+     four-word tail exactly where it was; `balance` splits a short paragraph
+     evenly. The measure is already capped, so this only moves the breaks. */
+  text-wrap: balance;
 }
 
 /* ── tabs ─────────────────────────────────────────────────────────────────── */
@@ -256,6 +261,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 .spin { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* The spinner is the one animation with a literal duration, so it needs its
+   own switch. The rest are collected at the end of this file, where they can
+   override the rules that declare them. */
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 
 /* ── forms ────────────────────────────────────────────────────────────────
@@ -723,17 +731,19 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-chain-dropped-name { color: var(--lt-fg); text-decoration: line-through; }
 .rec-chain-dropped-by::before { content: "· "; }
 
-/* The name outranks the tags. The name never shrinks: it is capped at 68%
-   of the cell while tags sit beside it and at the whole cell otherwise, and
-   the tags are the one thing that gives. A shrinkable name lost a fraction
-   of a pixel to every deficit and its ellipsis fired on names that fit. The
+/* The name outranks the tags. The name never shrinks: it takes what it needs
+   and the tags are the one thing that gives. A shrinkable name lost a
+   fraction of a pixel to every deficit and its ellipsis fired on names that
+   fit. Beside tags it keeps a strip back for them, whichever is larger: a
+   fixed 7rem reserve, so a wide cell spends everything else on the name (a
+   flat 68% cut a 671px name to 597px in an 878px cell), or 68% of the cell,
+   so a narrow one still leaves the name most of the room. The
    ellipsis lives on a span inside the name: the name is a flex box because
    of its icon, and `text-overflow` does not apply to a flex container's
    anonymous text, so until this the name was cut mid-glyph by the cell's
    clip and a long name spilled into SOURCE. */
 .rec-body { display: flex; align-items: center; gap: var(--lt-space-2); min-width: 0; overflow: hidden; }
-.rec-body .rec-name { flex: 0 0 auto; min-width: 0; max-width: 100%; }
-.rec-body .rec-name.has-tags { max-width: 68%; }
+.rec-body .rec-name { flex: 0 1 auto; min-width: 0; max-width: 100%; }
 
 .rec-name {
   display: inline-flex;
@@ -763,7 +773,13 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
    pill, for the strip too short for even one whole badge. */
 .rec-tags {
   display: block;
-  flex: 0 1 auto;
+  /* The tags shrink a hundred times faster than the name beside them, which
+     is what "the name outranks the tags" means in a flex box: the name keeps
+     every pixel it can use and the strip closes up from the right. A flat cap
+     could not do this. At 68% a 671px name was cut to 597px in an 878px cell
+     and 180px sat blank beside it; any fixed reserve blanks the same way at
+     some width. */
+  flex: 0 100 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -806,6 +822,44 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .rec-quota.is-danger { color: var(--lt-danger); }
 
 .rec-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: var(--lt-rec-actions); }
+
+/* ── files list ──────────────────────────────────────────────────────────
+   The same 40px row as the table above, on a grid of its own: select, kind
+   icon, name, source, actions. The table's column tokens live on .rec-scroll,
+   and the files list borrowed its rows without that ancestor, so the template
+   was invalid, every cell stacked into one column, and the sibling's
+   max-content rule at 375 ran each row 636px wide. This list has no sideways
+   scroll: the name takes the slack and ellipses, and under 760px the source
+   drops under the name as the row's second line. */
+.rec-files {
+  --lt-col-select: 18px;
+  --lt-col-kind: 22px;
+  --lt-col-file-source: 240px;
+  min-width: 0;
+}
+/* The name grows with the frame and stops at 48rem; SOURCE takes whatever is
+   left and the actions stay pinned to the right edge. As `1fr` the name took
+   878px on a 1440 frame and started SOURCE at x=995, a 740px void beside a
+   six-column table. Handing that slack to the action column instead only moves
+   the void: those buttons are `opacity: 0` until the row is hovered above
+   760px, so 569px of the row read as nothing at all while the name was still
+   truncating. A fixed maximum grows by free-space distribution rather than by
+   content, so every row reports the same template and the columns line up down
+   the list; a content-sized track (auto, max-content, fit-content) is the kind
+   that would let one long name push its row off its neighbours'. */
+.rec-files .rec-head,
+.rec-files .rec {
+  grid-template-columns:
+    var(--lt-col-select) var(--lt-col-kind) minmax(16rem, 48rem)
+    minmax(var(--lt-col-file-source), 1fr) var(--lt-rec-actions);
+}
+.rec-icon { display: flex; align-items: center; justify-content: center; color: var(--lt-fg-muted); }
+.rec-head-source { text-align: left; }
+.rec-files .rec-status-cell { min-width: 0; max-width: 100%; }
+/* Two facts, two lines, 40px: each line ellipses in its column and carries
+   the whole sentence in its title. */
+.rec-files .rec-status,
+.rec-files .rec-quota { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .rec-menu-wrap { position: relative; }
 
@@ -1072,9 +1126,6 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
     max-height: none;
     overflow: visible;
   }
-  .editor-layout[data-pane="wide"] > .editor-side .doc-scroll {
-    max-height: none;
-  }
 }
 
 /* ── document view (read-only render; no editor, see DocumentView.vue) ────── */
@@ -1082,16 +1133,16 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .doc-view { min-width: 0; }
 
 .doc-scroll {
-  /* The viewer owns its scrolling. Letting it grow instead put a long document
-     past the bottom of the sheet with nothing to scroll it. */
-  max-height: calc(var(--doc-rows, 24) * var(--lt-code-line) + var(--lt-space-4));
-  overflow: auto;
+  /* Not a scroller, whatever the name says. One scroll per document: the
+     viewer is as tall as what it holds (the tokenizer stops at
+     MAX_RENDERED_LINES and says so) and the page scrolls it. It used to cap
+     itself at a row count, which put a second wheel inside every panel that
+     showed a document, and each panel then overrode the cap one by one. */
   padding: var(--lt-space-2) 0;
   border: 1px solid var(--lt-border);
   border-radius: var(--lt-radius);
   background: var(--lt-surface-2);
 }
-.doc-scroll:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
 
 .doc-lines {
   margin: 0;
@@ -1249,15 +1300,32 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   box-shadow: var(--lt-shadow-overlay);
   animation: sheet-in var(--lt-dur-base) var(--lt-ease);
 }
+/* No horizontal displacement. The sheet is `right: 0`, so its right edge is
+   already flush with the frame's, and a 16px slide pushed the whole panel
+   outside the viewport for the length of the animation: the document measured
+   391 wide on a 375 frame, 784 on a 768 one and 1455 on a 1440 one, then
+   settled back. It is a sideways twitch on every open, and it is why the sheet
+   read as overhanging its frame. An inactive tab freezes an animation on its
+   first frame, where the offset is still applied, so the entrance measured as
+   though it were the resting geometry. Same entrance as the row chain. */
 @keyframes sheet-in {
-  from { transform: translateX(16px); opacity: 0.6; }
+  from { opacity: 0.6; transform: translateY(-6px); }
 }
 .sheet:focus-visible { outline: none; box-shadow: var(--lt-shadow-overlay), var(--lt-focus-ring-tight); }
 
+/* Pinned. The sheet is as tall as the document it shows (3845px for a real
+   configuration at 375), the page is the one scroller, and until this the
+   only way out of the sheet scrolled off the top with the first screenful:
+   the operator had to scroll back up to close it, or guess at Escape. It
+   holds itself to one deterministic height, because the document heading
+   pins directly under it and needs that height as a number. */
 .sheet-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   flex: none;
   display: flex;
-  min-height: var(--lt-preview-header-h);
+  min-height: var(--lt-sheet-head-h);
   align-items: center;
   justify-content: space-between;
   gap: var(--lt-space-3);
@@ -1269,7 +1337,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .sheet-sub {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--lt-space-1) var(--lt-space-2);
   margin: var(--lt-space-1) 0 0;
   color: var(--lt-fg-muted);
@@ -1279,13 +1347,13 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 }
 .sheet-sub code { color: var(--lt-fg); font-family: var(--lt-mono); font-size: var(--lt-text-xs); }
 .sheet-sub span,
-.sheet-sub code { min-width: 0; overflow-wrap: anywhere; }
+.sheet-sub code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .sheet-close {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   flex: none;
   border: 0;
   border-radius: var(--lt-radius-sm);
@@ -1513,13 +1581,24 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 }
 .output-tabs button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
+/* The one pinned strip in the sheet: the document's title and its copy action.
+   The page is the scroller and a rendered configuration runs for screens, so
+   without this the copy action was wherever the top of the document was. It
+   pins against the frame, which is the viewport; a direct child of the pane,
+   because sticky is bounded by its parent. */
 .output-heading {
+  position: sticky;
+  top: var(--lt-sheet-head-h);
+  z-index: 2;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--lt-space-3);
-  margin-top: var(--lt-space-3);
+  padding: var(--lt-space-3) 0;
+  border-bottom: 1px solid var(--lt-border);
+  background: var(--lt-surface);
 }
+.output-heading > div { min-width: 0; }
 .output-heading h3 { margin: 0; font-size: var(--lt-text-lg); line-height: var(--lt-leading-tight); }
 .output-description {
   margin: var(--lt-space-1) 0 0;
@@ -1592,31 +1671,12 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .preview-node-table td:first-child { overflow-wrap: anywhere; }
 .preview-node-table code { font-family: var(--lt-mono); font-size: var(--lt-text-xs); overflow-wrap: anywhere; }
 
-/* The output panel is the scroll surface here, so the document fills it rather
-   than capping at a row count and scrolling inside a scroller. */
-.sheet .result-doc { max-height: none; }
-.sheet .result-doc .doc-scroll { max-height: none; overflow: visible; }
-
 .sheet-headings { min-width: 0; }
 .result-more { margin: var(--lt-space-1) 0 0; color: var(--lt-fg-muted); font-size: var(--lt-text-xs); }
 
 .result-doc,
-.row-popover-document,
 .output-area { margin: 0; }
 
-.preview-evidence-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--lt-space-1) var(--lt-space-3);
-}
-.preview-evidence-title {
-  margin: 0;
-  color: var(--lt-fg);
-  font-size: var(--lt-text-sm);
-  font-weight: 600;
-}
 .preview-evidence-meta {
   margin: 0;
   color: var(--lt-fg-muted);
@@ -1824,9 +1884,9 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   .target-output-toolbar { position: static; }
   .output-tabs { max-width: 100%; overflow-x: auto; }
   .output-tabs button { min-height: 44px; }
-  .output-heading { align-items: flex-start; flex-direction: column; }
-  .output-actions { width: 100%; }
-  .output-actions .button { width: 100%; }
+  /* The pinned strip stays one line, title left and the copy action right,
+     so it costs the small screen one row and not four. */
+  .output-heading { align-items: center; }
   .target-workspace .button { min-height: 40px; }
   .evidence-rail { flex-wrap: wrap; overflow-x: visible; padding-bottom: var(--lt-space-1); }
   .preview-node-table th:first-child { width: 46%; }
@@ -1836,9 +1896,12 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   .section-heading { align-items: flex-start; flex-direction: column; }
   .tab-bar { overflow-x: auto; }
   .heading-actions { width: 100%; }
+  /* The table keeps its columns and scrolls sideways inside .rec-scroll, the
+     record column pinned. Scoped to that scroller: written bare, these rules
+     reached the files list too and ran its rows past the viewport. */
   .rec-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
-  .rec-head,
-  .rec {
+  .rec-scroll .rec-head,
+  .rec-scroll .rec {
     grid-template-columns:
       var(--lt-col-select) var(--lt-col-expand) 180px var(--lt-col-source) var(--lt-col-nodes) var(--lt-col-ops)
       var(--lt-col-published) var(--lt-col-status) var(--lt-rec-actions);
@@ -1848,10 +1911,10 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   /* The pinned cells paint over the grid gaps beside them (a negative
      right margin widens each box into the gap), so nothing scrolling under
      them shows through. */
-  .rec-select,
-  .rec-expand-cell,
-  .rec-body,
-  .rec-head > :nth-child(-n + 3) {
+  .rec-scroll .rec-select,
+  .rec-scroll .rec-expand-cell,
+  .rec-scroll .rec-body,
+  .rec-scroll .rec-head > :nth-child(-n + 3) {
     position: sticky;
     z-index: 1;
     box-sizing: content-box;
@@ -1859,21 +1922,62 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
     padding-right: var(--lt-space-3);
     background: inherit;
   }
-  .rec-select, .rec-head > :nth-child(1) { left: 0; }
-  .rec-expand-cell, .rec-head > :nth-child(2) { left: calc(var(--lt-col-select) + var(--lt-space-3)); }
-  .rec-body, .rec-head > :nth-child(3) {
+  .rec-scroll .rec-select, .rec-scroll .rec-head > :nth-child(1) { left: 0; }
+  .rec-scroll .rec-expand-cell, .rec-scroll .rec-head > :nth-child(2) { left: calc(var(--lt-col-select) + var(--lt-space-3)); }
+  .rec-scroll .rec-body, .rec-scroll .rec-head > :nth-child(3) {
     left: calc(var(--lt-col-select) + var(--lt-col-expand) + var(--lt-space-3) * 2);
     box-shadow: 1px 0 0 var(--lt-border);
   }
-  .rec-expand { border-radius: 0; }
-  .rec-head { background: var(--lt-bg); }
+  .rec-scroll .rec-expand { border-radius: 0; }
+  .rec-scroll .rec-head { background: var(--lt-bg); }
   /* The group spans the whole scroll width so its heading can pin. */
-  .rec-group { width: max-content; min-width: 100%; }
+  .rec-scroll .rec-group { width: max-content; min-width: 100%; }
   /* Sized to its words: a heading as wide as its section has no room to
      stick, so it would scroll away with the columns. */
-  .rec-group-head { position: sticky; left: 0; width: max-content; max-width: 100cqw; }
-  .rec-chain { position: sticky; left: 0; width: 100cqw; box-sizing: border-box; }
+  .rec-scroll .rec-group-head { position: sticky; left: 0; width: max-content; max-width: 100cqw; }
+  .rec-scroll .rec-chain { position: sticky; left: 0; width: 100cqw; box-sizing: border-box; }
   .rec-actions { opacity: 1; }
+
+  /* The files list fits the width instead, and the row stacks rather than
+     splitting: the name has the whole width on the first line, the actions
+     take the second, and the source line closes the row. Reserving a column
+     for the actions beside the name left the name 131px on a 375 frame, so a
+     100-character name rendered as "A deliberate…" above a source line
+     twice its width. Nothing here scrolls sideways: the three lines are the
+     row's height, which is what a narrow frame has to spend. */
+  .rec-files .rec-head,
+  .rec-files .rec {
+    grid-template-columns: var(--lt-col-select) var(--lt-col-kind) minmax(0, 1fr);
+  }
+  .rec-files .rec { padding-top: var(--lt-space-2); padding-bottom: var(--lt-space-2); row-gap: var(--lt-space-1); }
+  /* Tags sit beside a short name and drop under a long one. Sharing the
+     131px cell, the name and its tags were both cut to "A deliberat…" and
+     "p…", which names nothing. */
+  .rec-files .rec-body { grid-column: 3 / -1; grid-row: 1; flex-wrap: wrap; row-gap: 2px; }
+  /* Neither label has a column of its own any more. */
+  .rec-files .rec-head-source,
+  .rec-files .rec-head-spacer { display: none; }
+  /* The record reads first and is acted on second: name, then what it is
+     made of, then its controls. The actions came off the name's line, which
+     is the whole point; putting them between the name and its source facts
+     would split the two halves of one sentence. */
+  .rec-files .rec-status-cell {
+    grid-column: 3 / -1;
+    grid-row: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0 var(--lt-space-1);
+  }
+  .rec-files .rec-actions { grid-column: 3 / -1; grid-row: 3; }
+  /* Folded onto one line the two facts ran together as one sentence
+     ("Stored here nodes from merge-cd-openjobs"). The mark trails the phrase
+     it follows rather than leading the next one, so a line that wraps does
+     not open with what looks like a bullet. */
+  .rec-files .rec-status-cell > *:not(:last-child)::after { content: "\00a0\00b7"; }
+  .rec-files .rec-status,
+  .rec-files .rec-quota { overflow: visible; white-space: normal; }
+  /* The sheet's only dismiss is a finger target too. */
+  .sheet-close { width: 44px; height: 44px; }
   .graph-root-order li { align-items: flex-start; flex-direction: column; }
 }
 
@@ -2197,4 +2301,16 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .shares-table tbody tr:focus-within .shares-actions .button { opacity: 1; }
 @media (hover: none) {
   .shares-actions .button { opacity: 1; }
+}
+
+/* ── reduced motion ───────────────────────────────────────────────────────
+   Last, because a media query carries no extra specificity: written where the
+   animations are declared, these lose to the very rules they exist to switch
+   off. tokens.css already zeroes --lt-dur and --lt-dur-base here, so both of
+   these run for 0s either way; saying `none` makes that a rule rather than a
+   side effect of a token, and an animation written one day with a literal
+   duration then stands out as the one that was missed. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .rec-chain { animation: none; }
 }

@@ -11,9 +11,11 @@
  *
  * Two properties this surface has to keep. The numbers come from a CSS counter,
  * so selecting the document and copying it yields the document and not a column
- * of digits. And the viewer owns its scrolling: the previous preview removed the
- * editor's height ceiling, which left nothing between the document and the
- * sheet, so a long render simply ran off the bottom with no way to reach it.
+ * of digits. And it is not a scroller: one scroll per document (DESIGN-PROGRAM
+ * 1), so the viewer is as tall as what it holds and the page scrolls it. It
+ * used to cap itself at a row count and scroll inside, which put a second
+ * wheel inside every panel that showed a document. Growth is bounded by the
+ * tokenizer, which stops at MAX_RENDERED_LINES and says what it held back.
  */
 import { computed } from "vue";
 
@@ -24,24 +26,22 @@ const props = withDefaults(
   defineProps<{
     text: string;
     language?: EditorLanguage;
-    /** Visible height, in lines, before the viewer scrolls. */
-    rows?: number;
     ariaLabelledby?: string;
   }>(),
-  { language: "plain", rows: 24, ariaLabelledby: undefined },
+  { language: "plain", ariaLabelledby: undefined },
 );
 
 const parsed = computed(() => tokenizeDocument(props.text, props.language));
 </script>
 
 <template>
-  <div class="doc-view" :style="{ '--doc-rows': String(rows) }">
-    <!-- Focusable so a keyboard reader can scroll it, and labelled so what it
-         holds is announced rather than being an unnamed scrollable region. -->
+  <div class="doc-view">
+    <!-- Labelled so what it holds is announced as a named group. Not a tab
+         stop: nothing here scrolls, so a focusable box would be a stop that
+         does nothing. -->
     <div
       class="doc-scroll"
       data-document-view="true"
-      tabindex="0"
       role="group"
       :aria-labelledby="ariaLabelledby"
     >

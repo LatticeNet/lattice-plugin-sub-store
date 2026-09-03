@@ -1,6 +1,9 @@
 system-go/lattice-plugin-sub-store
 ui/node_modules/
 ui/dist/
+# Playwright run artifacts (the drive in ui/e2e).
+ui/test-results/
+ui/playwright-report/
 ui/*.tsbuildinfo
 ui/vite.config.js
 dist/

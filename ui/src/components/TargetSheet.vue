@@ -734,7 +734,14 @@ onBeforeUnmount(stopAllRequests);
               </button>
             </div>
 
-            <div class="output-heading">
+          </div>
+
+          <!-- The one pinned strip: the document's title and its copy action
+               stay in view while the page scrolls a long document under
+               them. A direct child of the pane, because sticky is bounded by
+               its parent and inside the toolbar it had nothing to stick
+               along. -->
+          <div class="output-heading">
               <div>
                 <h3 :id="viewMode === 'document' ? 'target-document-label' : 'target-nodes-label'">
                   <template v-if="viewMode === 'document'">
@@ -782,7 +789,6 @@ onBeforeUnmount(stopAllRequests);
                   <RefreshCw :size="14" aria-hidden="true" /> Retry
                 </LtButton>
               </div>
-            </div>
           </div>
 
           <section
@@ -839,7 +845,6 @@ onBeforeUnmount(stopAllRequests);
               class="result-doc"
               :text="rendered.content"
               :language="renderedLanguage"
-              :rows="24"
               :aria-labelledby="'target-document-label'"
             />
             <div v-else class="output-state">

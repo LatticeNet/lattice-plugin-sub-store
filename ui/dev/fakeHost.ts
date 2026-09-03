@@ -220,6 +220,32 @@ const records: StoredRecord[] = [
     ].join("\n"),
     process: [],
   },
+  {
+    // The long-name row and the long document, together: the name has to
+    // ellipse in a 375px row, and the rendered document has to run past a
+    // screen so the sheet is seen to grow with the page as the one scroller.
+    id: "tablet-config-long",
+    kind: "file",
+    name: "A deliberately long client configuration name for the tablet that has to truncate somewhere sensible",
+    tags: ["tablet", "backup"],
+    source: "local",
+    file_type: "config",
+    node_source: "merge-cd-openjobs",
+    content: [
+      "mixed-port: 7890",
+      "mode: rule",
+      "proxies: []",
+      "proxy-groups:",
+      "  - name: PROXY",
+      "    type: select",
+      "    include-all: true",
+      "rules:",
+      ...Array.from({ length: 60 }, (_, i) => `  - DOMAIN-SUFFIX,service-${String(i + 1).padStart(2, "0")}.example,PROXY`),
+      "  - MATCH,PROXY",
+      "",
+    ].join("\n"),
+    process: [{ type: "Remove Duplicate Filter" }],
+  },
 ];
 
 let settings: Record<string, unknown> = { default_target: "", default_ua: "" };

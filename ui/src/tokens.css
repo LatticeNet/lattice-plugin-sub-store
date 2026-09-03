@@ -68,15 +68,22 @@
   --lt-measure-form: 132ch;
   --lt-preview-control-w: 300px;
   --lt-preview-header-h: 64px;
+  /* The sheet header's own height. It is pinned, and the document heading
+     pins directly under it, so the second strip needs the first one's height
+     as a number. The header holds itself to it by keeping its subtitle on one
+     line. */
+  --lt-sheet-head-h: 76px;
 
   /* table density (comfortable default; compact swaps at runtime) */
   --lt-row-h: 40px;
   --lt-row-h-compact: 32px;
   --lt-control-h: 30px;
-  /* Four 26px icon buttons and their gaps. Pinned rather than left to `auto`
+  /* Four 32px icon buttons and their gaps. Pinned rather than left to `auto`
      so the status column lands on the same x in every row, whether a row shows
-     three actions or four. */
-  --lt-rec-actions: 112px;
+     three actions or four. 26px was under every touch-target guideline and
+     small for a mouse too; the buttons grow again to 44px on a narrow frame,
+     where they take a line of their own. */
+  --lt-rec-actions: 134px;
   --lt-control-h-sm: 24px;
   /* Controls read as controls, not pills (DESIGN-PROGRAM 1.x): 4px on
    * buttons, inputs and rows, 3px on the small ones. Badges keep their pill. */
