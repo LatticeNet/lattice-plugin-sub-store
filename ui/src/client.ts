@@ -231,6 +231,18 @@ export interface SubscriptionRecord {
   userinfo?: string;
   /** Set by migration only. The backend refuses to take this from a caller. */
   origin?: { source: string; kind: string; raw?: unknown };
+  /**
+   * Fingerprint of this record's editable content, computed by the backend on
+   * every read and every write. Send it back as `if_revision` on save to make
+   * the write conditional: a save whose revision no longer matches the stored
+   * record is refused rather than overwriting whatever arrived in between.
+   *
+   * Derived, so it moves when content moves and stays still through a
+   * background refresh, which only touches the fetch bookkeeping above.
+   */
+  revision?: string;
+  /** Set on a script file: the fingerprint of its separately stored program. */
+  script_digest?: string;
 }
 
 /**
@@ -291,9 +303,28 @@ export interface SubscriptionGetResponse {
   subscription: SubscriptionRecord;
 }
 
+/**
+ * Why a conditional save was refused.
+ *
+ * "stale": someone wrote to this record between the read and the save, and
+ * `subscription` is how it stands now, so the caller can diff it against the
+ * copy it read and say what actually changed. A script file's `content` is
+ * deliberately absent here rather than empty.
+ *
+ * "deleted": the record is gone, so saving would silently recreate it.
+ */
+export interface SubscriptionSaveConflict {
+  id: string;
+  reason: "stale" | "deleted";
+  revision?: string;
+  subscription?: SubscriptionRecord;
+}
+
 export interface SubscriptionSaveResponse {
   subscription: SubscriptionRecord;
   saved: boolean;
+  /** Present only when `saved` is false because the write was refused as stale. */
+  conflict?: SubscriptionSaveConflict;
 }
 
 export interface SubscriptionDeleteResponse {

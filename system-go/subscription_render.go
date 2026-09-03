@@ -546,6 +546,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		// nothing let an operator create or edit one.
 		var req struct {
 			Subscription subscriptionRecord `json:"subscription"`
+			// IfRevision is the revision the caller read before editing. When it
+			// is present the save is conditional: the stored record must still
+			// carry it, or the write is refused as stale.
+			//
+			// Optional on purpose. Import, migrate and backup restore write
+			// records they never read, and an older UI does not send it; all of
+			// them keep working exactly as before. Only the interactive edit
+			// path has a "before" to be stale against, and only it sends this.
+			IfRevision string `json:"if_revision,omitempty"`
 		}
 		if len(call.Payload) > 0 {
 			if err := json.Unmarshal(call.Payload, &req); err != nil {
@@ -580,10 +589,12 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		}
 		wasScript := false
 		found := false
+		var stored subscriptionRecord
 		for _, existing := range doc.Records {
 			if existing.ID != rec.ID {
 				continue
 			}
+			stored = existing
 			// Origin records where a record came from during migration. A caller
 			// must not be able to forge it, so it is preserved from the stored
 			// record rather than taken from the request.
@@ -601,6 +612,35 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			rec.Origin = nil
 			rec.LastFetchAt, rec.LastFetchOK = "", false
 			rec.LastError, rec.Userinfo = "", ""
+		}
+		// The conditional write. A blind full-record overwrite is a lost-update
+		// defect: two operators editing one record, or one operator editing a
+		// record a refresh or a restore has already moved, and the loser's work
+		// disappeared with nothing on screen to say it had happened.
+		//
+		// The comparison is against the document already in memory, so this
+		// costs no extra host round trip and the save stays inside its budget.
+		if req.IfRevision != "" {
+			if !found {
+				// Editing something that no longer exists. Saving would silently
+				// recreate a deleted record, which is its own kind of surprise,
+				// so it is refused and named as what it is.
+				return conflictResponse(rec.ID, "deleted", subscriptionRecord{}, "")
+			}
+			current := subscriptionRevision(stored)
+			if current != req.IfRevision {
+				// The stored record is handed back so the caller can say what
+				// changed. Only the caller can: it is the one holding the copy
+				// that was read, and the store has no memory of it.
+				out := withRevision(stored)
+				if isScriptFile(out) {
+					// Answering with a script file whose program is missing would
+					// make the diff claim the program was emptied. Better to say
+					// the program is not included than to describe it wrongly.
+					out.Content = ""
+				}
+				return conflictResponse(rec.ID, "stale", out, current)
+			}
 		}
 		saved, err := rt.saveSubscriptionInDoc(&doc, rec, wasScript)
 		if err != nil {
@@ -929,4 +969,31 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 	default:
 		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported method %q", call.Method))
 	}
+}
+
+// conflictResponse answers a refused conditional save.
+//
+// It is a successful call carrying `saved: false`, not a transport error. A
+// stale write is a legitimate outcome that the caller has to render and act on,
+// with structured data attached (the record as it stands now, and its current
+// revision); the error channel carries a string and would force the UI to parse
+// prose to find out what happened. `saved` is already the field the UI checks,
+// so a caller that does not understand `conflict` still refuses to claim the
+// write landed.
+func conflictResponse(id, reason string, current subscriptionRecord, revision string) latticeplugin.Response {
+	payload := map[string]any{
+		"id":     id,
+		"reason": reason,
+	}
+	if revision != "" {
+		payload["revision"] = revision
+	}
+	if current.ID != "" {
+		payload["subscription"] = current
+	}
+	body, err := json.Marshal(map[string]any{"saved": false, "conflict": payload})
+	if err != nil {
+		return latticeplugin.ErrorResponse(err)
+	}
+	return latticeplugin.RawResultResponse(body, "")
 }

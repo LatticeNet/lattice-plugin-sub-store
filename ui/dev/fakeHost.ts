@@ -316,13 +316,47 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
   "subscription/get": ({ subscription_id }) => {
     const found = records.find((r) => r.id === subscription_id);
     if (!found) throw new Error(`subscription "${subscription_id}" was not found`);
-    return { subscription: found };
+    // The real backend fingerprints every record it hands out, and the editor
+    // sends it back to make the save conditional. Without one here the dev
+    // harness would exercise the unconditional path only.
+    return { subscription: { ...found, revision: `rev-${found.id}-1` } };
   },
-  "subscription/save": ({ subscription }) => {
+  /**
+   * `?conflict=1` makes every save answer as though someone else had written to
+   * the record first. The lost-update path is the one that is impossible to
+   * reach by hand (it needs two operators, or a refresh landing in the seconds
+   * between a read and a save), so without a switch it never gets looked at.
+   *
+   * `?conflict=deleted` gives the other reason: the record went away.
+   */
+  "subscription/save": ({ subscription, if_revision }) => {
+    const mode = new URLSearchParams(window.location.search).get("conflict");
+    if (mode && if_revision) {
+      if (mode === "deleted") {
+        return { saved: false, conflict: { id: subscription.id, reason: "deleted" } };
+      }
+      const stored = records.find((r) => r.id === subscription.id);
+      return {
+        saved: false,
+        conflict: {
+          id: subscription.id,
+          reason: "stale",
+          revision: `rev-${subscription.id}-2`,
+          subscription: {
+            ...stored,
+            revision: `rev-${subscription.id}-2`,
+            display_name: "Renamed by the other operator",
+            remark: "They also left a note here explaining why they changed it",
+            ua: "ClashMetaForAndroid",
+            tags: ["paid", "eu", "reviewed"],
+          },
+        },
+      };
+    }
     const index = records.findIndex((r) => r.id === subscription.id);
     if (index === -1) records.push(subscription);
     else records[index] = subscription;
-    return { subscription, saved: true };
+    return { subscription: { ...subscription, revision: `rev-${subscription.id}-2` }, saved: true };
   },
   "subscription/delete": ({ subscription_id }) => {
     const index = records.findIndex((r) => r.id === subscription_id);

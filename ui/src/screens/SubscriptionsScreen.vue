@@ -22,6 +22,7 @@ import {
   Share2,
   SquareArrowOutUpRight,
   Trash2,
+  TriangleAlert,
   ListOrdered,
 } from "@lucide/vue";
 
@@ -392,14 +393,59 @@ function onCommonChange(next: CommonSettingsShape): void {
   draft.value.process = applyCommonSettings(draft.value.process as ChainStep[], next);
 }
 
+/**
+ * The normal save. Takes no argument on purpose: it is bound to the form's
+ * submit, which would hand it a SubmitEvent, and a truthy first argument here
+ * would have meant "force" and skipped the staleness check on every ordinary
+ * keyboard submit. Forcing goes through overwriteWithMine.
+ */
 async function submit(): Promise<void> {
+  await writeDraft(false);
+}
+
+async function writeDraft(force: boolean): Promise<void> {
   draft.value.tags = parseTags(tagText.value);
   draft.value.memberTags = parseTags(memberTagText.value);
-  const ok = await subs.save(draft.value);
+  const ok = await subs.save(draft.value, force);
   if (ok) {
     if (editingId.value) recount(editingId.value);
     cancelEdit();
   }
+}
+
+/**
+ * The three ways out of a save refused as stale, and none of them is automatic.
+ *
+ * A merge is not offered on purpose. This record holds an operator chain and a
+ * document; merging either without the operator reading both is how a
+ * plausible-looking configuration that nobody wrote reaches a client.
+ */
+
+/** Keep their version. The editor closes and the list reloads. */
+function discardMyEdit(): void {
+  subs.saveConflict.value = null;
+  cancelEdit();
+  void subs.load();
+}
+
+/**
+ * Reopen on their version, losing the local draft. Offered because when the
+ * changed fields are not the ones being edited, re-applying a small edit on top
+ * of the current record is both quick and correct.
+ */
+async function reopenOnCurrent(): Promise<void> {
+  const id = subs.saveConflict.value?.conflict.id ?? editingId.value;
+  subs.saveConflict.value = null;
+  if (!id) return;
+  cancelEdit();
+  await nextTick();
+  await startEdit(id);
+}
+
+/** Mine wins, deliberately, after seeing what it replaces. */
+async function overwriteWithMine(): Promise<void> {
+  subs.saveConflict.value = null;
+  await writeDraft(true);
 }
 
 /** The Source column: where a record's nodes come from, in three words. */
@@ -1341,6 +1387,58 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
       <div v-if="subs.actionError.value" class="alert" role="alert">
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
       </div>
+
+      <!--
+        A save refused because the record moved underneath it. Rendered where
+        the operator is, above the editor they are still holding, rather than
+        as a dialog: their work is on the screen behind it and covering that up
+        while asking whose version wins is the wrong way round. Nothing is
+        merged and nothing is discarded until they choose.
+      -->
+      <section v-if="subs.saveConflict.value" class="conflict-panel" role="alert" aria-labelledby="conflict-title">
+        <div class="conflict-panel__head">
+          <TriangleAlert :size="16" aria-hidden="true" />
+          <h3 id="conflict-title" class="conflict-panel__title">Your edit was not saved</h3>
+        </div>
+        <p class="conflict-panel__summary">{{ subs.saveConflict.value.summary }}</p>
+
+        <table v-if="subs.saveConflict.value.changes.length" class="conflict-table">
+          <thead>
+            <tr>
+              <th scope="col">Field</th>
+              <th scope="col">When you opened it</th>
+              <th scope="col">Now</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="change in subs.saveConflict.value.changes"
+              :key="change.label"
+              :class="{ 'is-contested': change.contested }"
+            >
+              <th scope="row">
+                {{ change.label }}
+                <span v-if="change.contested" class="conflict-tag">you edited this too</span>
+              </th>
+              <td class="mono">{{ change.before }}</td>
+              <td class="mono">{{ change.after }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="conflict-panel__actions">
+          <LtButton variant="primary" @click="reopenOnCurrent()">
+            Reopen on their version
+          </LtButton>
+          <LtButton @click="overwriteWithMine()">Replace theirs with mine</LtButton>
+          <LtButton @click="discardMyEdit()">Discard my edit</LtButton>
+        </div>
+        <p class="conflict-panel__note">
+          Reopening loses what you typed. Replacing loses what they wrote. Nothing here merges
+          the two, because an operator chain merged without being read is a configuration nobody
+          wrote.
+        </p>
+      </section>
 
       <nav class="editor-tabs" role="tablist" aria-label="Editor sections">
         <button
