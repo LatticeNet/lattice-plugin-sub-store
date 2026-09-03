@@ -1885,7 +1885,6 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
                   :is="rowAction(row, 'edit').disabled ? 'span' : 'button'"
                   :type="rowAction(row, 'edit').disabled ? undefined : 'button'"
                   class="rec-name"
-                  :class="{ 'has-tags': tagChips(row).shown.length > 0 }"
                   :title="nameTitle(row)"
                   @click="openRecord(row, $event)"
                 >

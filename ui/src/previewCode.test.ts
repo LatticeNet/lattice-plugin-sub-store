@@ -109,15 +109,21 @@ describe("rendered documents use the shared read-only code viewer", () => {
     // Neither pane scrolls on its own either.
     expect(decl).not.toMatch(/\.target-controls\s*\{[^}]*overflow-y:\s*auto/s);
     expect(decl).not.toMatch(/\.output-panel\s*\{[^}]*overflow-y:\s*auto/s);
-    // One strip is pinned, the document's title with its copy action, so a
-    // long document can be copied from wherever the reader is in it. Nothing
-    // else in the sheet is: three pinned layers over one scroller is what
-    // made the sheet feel nailed down while everything moved.
-    for (const rule of ["\\.sheet-head", "\\.target-controls", "\\.target-output-toolbar"]) {
+    // Two strips are pinned, and they stack. The sheet's own header, because
+    // the sheet is as tall as the document it shows and the only way out used
+    // to scroll off the top with the first screenful; and under it the
+    // document's title with its copy action, so a long document can be copied
+    // from wherever the reader is in it. Nothing else is: three pinned layers
+    // over one scroller is what made the sheet feel nailed down while
+    // everything moved.
+    for (const rule of ["\\.target-controls", "\\.target-output-toolbar"]) {
       const m = new RegExp(rule + "\\s*\\{[^}]*position:\\s*sticky", "s");
       expect(decl, rule + " is still pinned").not.toMatch(m);
     }
+    expect(decl).toMatch(/\.sheet-head\s*\{[^}]*position:\s*sticky/s);
     expect(decl).toMatch(/\.output-heading\s*\{[^}]*position:\s*sticky/s);
+    // The second strip clears the first rather than opening underneath it.
+    expect(decl).toMatch(/\.output-heading\s*\{[^}]*top:\s*var\(--lt-sheet-head-h\)/s);
     // Neither does the row drawer scroll inside itself.
     const drawer = source("components/lt/LtDrawer.vue").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(drawer).not.toMatch(/max-height:\s*\d/);

@@ -1331,7 +1331,6 @@ watch(host.init, (value) => {
                 <button
                   type="button"
                   class="rec-name"
-                  :class="{ 'has-tags': tagChips(item.tags, false).shown.length > 0 }"
                   :title="nameTitle(item)"
                   @click="openFileSheet(item, $event)"
                 >

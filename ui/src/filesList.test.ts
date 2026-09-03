@@ -31,7 +31,42 @@ describe("the files list fits the viewport", () => {
     }
     // The source cell is the row's second line under the name, not a column.
     expect(narrow).toMatch(/\.rec-files \.rec-status-cell \{[^}]*grid-column: 3 \/ -1/s);
-    expect(narrow).toMatch(/\.rec-files \.rec-head-source \{ display: none; \}/);
+    // Neither the source label nor the action spacer keeps a column here.
+    expect(narrow).toMatch(
+      /\.rec-files \.rec-head-source,\s*\.rec-files \.rec-head-spacer \{ display: none; \}/,
+    );
+  });
+
+  /**
+   * The sheet's entrance does not push it out of the frame.
+   *
+   * `.sheet` is `right: 0`, so its right edge is already flush with the frame's;
+   * a `translateX` entrance moved the whole panel outside for the length of the
+   * animation and the document grew by exactly that much (391 on a 375 frame).
+   * The browser drive in e2e/ measures it frame by frame; this is the guard CI
+   * can run, because CI has no browser.
+   */
+  it("opens the sheet without displacing it sideways", () => {
+    const frames = styles.match(/@keyframes sheet-in \{[^}]*\}/s);
+    expect(frames, "sheet-in keyframes are gone").not.toBeNull();
+    expect(frames![0]).not.toMatch(/translateX/);
+  });
+
+  /**
+   * The name track is capped, and capped with a fixed maximum.
+   *
+   * As `1fr` it took 878px on a 1440 frame and started SOURCE at x=995. The
+   * maximum has to be a length rather than a content keyword: each row is its
+   * own grid, and a content-sized track would give the row holding the long
+   * name a different template from its neighbours', so the columns would stop
+   * lining up down the list.
+   */
+  it("caps the name track without sizing it to its content", () => {
+    const rule = styles.match(/\.rec-files \.rec-head,\s*\.rec-files \.rec \{[^}]*\}/s);
+    expect(rule, "the files grid is gone").not.toBeNull();
+    const tracks = rule![0];
+    expect(tracks).toMatch(/minmax\(16rem, 48rem\)/);
+    expect(tracks).not.toMatch(/auto|max-content|fit-content/);
   });
 
   it("puts the whole name in the title and ellipses the cell", () => {
