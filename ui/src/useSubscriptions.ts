@@ -32,7 +32,9 @@ import {
   type SubscriptionRecord,
   type SubscriptionRenderResponse,
   type SubscriptionSaveResponse,
+  type SubscriptionSaveConflict,
 } from "./client";
+import { conflictChanges, conflictSummary, type FieldChange } from "./recordConflict";
 import { filePreviewSupport } from "./filePreview";
 import type { HostContext } from "./host";
 import { safeErrorMessage } from "./subStoreModel";
@@ -398,6 +400,20 @@ export function useSubscriptions(host: HostContext) {
   /** The record most recently read for editing, so a draft can be compared
    *  with what the server holds for it. */
   const lastRead = ref<SubscriptionRecord | null>(null);
+  /**
+   * The refused save, if the last one was refused as stale.
+   *
+   * Held rather than flattened into `actionError` because the screen renders it
+   * as a decision with buttons, not as a sentence: overwrite, reopen, or leave
+   * it alone. Cleared by the next save attempt and by reopening the record.
+   */
+  const saveConflict = ref<{
+    conflict: SubscriptionSaveConflict;
+    changes: FieldChange[];
+    summary: string;
+    /** The record the operator tried to write, kept so Overwrite can retry it. */
+    attempted: SubscriptionRecord;
+  } | null>(null);
   const graphOptions = ref<GraphOptionsResponse | null>(null);
   const graphOptionsLoading = ref(false);
 
@@ -509,8 +525,15 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
-  async function save(draft: SubscriptionDraft): Promise<boolean> {
+  /**
+   * Persist a draft. `force` re-sends the same write without the revision
+   * check, which is the operator's explicit "mine wins" after they have been
+   * shown what they would be replacing. It is never the default and never
+   * automatic.
+   */
+  async function save(draft: SubscriptionDraft, force = false): Promise<boolean> {
     if (!host.bridge || !canMutate.value || saving.value) return false;
+    saveConflict.value = null;
     const invalid = validateDraft(draft);
     if (invalid) {
       actionError.value = invalid;
@@ -589,14 +612,41 @@ export function useSubscriptions(host: HostContext) {
             : undefined,
         process: draft.process.length ? draft.process : undefined,
       };
+      // The conditional write. `if_revision` is the fingerprint the record
+      // carried when it was read, so the backend can refuse a save whose target
+      // has moved since. Omitted when there is nothing to be stale against: a
+      // create, or an edit of a record read by a build that returned no
+      // revision, in which case the save behaves exactly as it always did.
+      const ifRevision = force ? undefined : lastRead.value?.id === record.id ? lastRead.value.revision : undefined;
       const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {
         subscription: record,
+        ...(ifRevision ? { if_revision: ifRevision } : {}),
       }).promise;
+      if (!response.saved && response.conflict) {
+        // Not an error: the store did exactly what it was asked to. The
+        // operator now has a decision, and the screen renders it as one.
+        const current = response.conflict.subscription ?? null;
+        const changes = conflictChanges(lastRead.value, current, record);
+        saveConflict.value = {
+          conflict: response.conflict,
+          changes,
+          summary: response.conflict.reason === "deleted"
+            ? "This record was deleted while you had it open. Saving would create it again as a new record."
+            : conflictSummary(changes),
+          attempted: record,
+        };
+        return false;
+      }
       if (!response.saved) {
         actionError.value = "The server did not confirm the save, so this record may or may not have been written. Reload the list before saving again.";
         return false;
       }
       notice.value = `Saved ${record.name}.`;
+      // The saved record comes back with its new revision. Keeping it as the
+      // "last read" copy means a second save from the still-open editor is
+      // checked against what was just written rather than against the copy
+      // that is now one edit old, which would conflict with itself.
+      if (response.subscription) lastRead.value = response.subscription;
       await load();
       return true;
     } catch (cause) {
@@ -973,6 +1023,7 @@ export function useSubscriptions(host: HostContext) {
     loadError,
     actionError,
     notice,
+    saveConflict,
     saving,
     busyId,
     operators,
