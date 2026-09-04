@@ -53,6 +53,16 @@
   --info: oklch(0.6 0.14 240);
   --info-foreground: oklch(0.985 0.01 240);
 
+  /* The same three as ink. A status colour ships as a pair, and the fill is
+     sized for something to sit on it; written as text on a white card the
+     light-scheme amber reads 2.5:1 and the green 3.4:1, against the 4.5:1 a
+     12px status label needs. Every "expired", "published" and "never fetched"
+     in this lens is coloured text, so it takes the ink step. Measured on
+     --card: 5.6, 5.6 and 5.8:1. */
+  --success-text: oklch(0.5 0.14 150);
+  --warning-text: oklch(0.52 0.13 73);
+  --info-text: oklch(0.5 0.13 240);
+
   /* Radius. Four steps, and which one a thing takes follows its container
      level, not its component: 3 for inline marks, 4 for controls and rows, 6
      for inset blocks and floating menus, 8 for page panels and the side panel.
@@ -122,6 +132,27 @@
   /* Hover only. A resting border is `--border`; this one exists so a chip or a
      choice button can firm up under the cursor without changing colour. */
   --lt-border-strong: color-mix(in oklab, var(--border) 60%, var(--foreground) 40%);
+
+  /* The accent and the danger colour as INK, which is not the same colour as
+     the accent as a fill. `--primary` written as text on `--lt-accent-soft`
+     measures 2.9:1 on the palette the console actually paints, and worse on
+     three of the eleven the operator can pick; the active filter chip, the
+     tab count and the info badge are all that shape. Pulling the accent
+     towards the foreground until it reads keeps the hue and clears 4.9:1 on
+     the worst palette in the set, on both the soft fill and a plain card.
+     The console has no name for this because it publishes fills; a plugin that
+     writes a status or a filter in colour needs the ink. */
+  --lt-accent-ink: color-mix(in oklab, var(--primary) 55%, var(--foreground) 45%);
+  --lt-danger-ink: color-mix(in oklab, var(--destructive) 75%, var(--foreground) 25%);
+
+  /* Scrims. A veil DARKENS: that is what makes the page behind recede and the
+     panel in front read as in front. Mixing the foreground in did the opposite
+     on a dark console, where the foreground is near-white, so opening a panel
+     raised the whole page's luminance by roughly a third and the panel ended
+     up darker than the page it floats over. Black at two strengths instead,
+     the second for a modal, which covers rather than accompanies. */
+  --lt-scrim: oklch(0 0 0 / 24%);
+  --lt-scrim-strong: oklch(0 0 0 / 34%);
 
   /* measure. The frame is fluid to match the host's other pages, so a form or
    * a paragraph caps ITSELF in characters rather than the app capping in px. */
@@ -194,10 +225,29 @@
   --info: oklch(0.7 0.12 210);
   --info-foreground: oklch(0.16 0.02 210);
 
+  /* On this ground the fills already read as ink (7.5, 9.6 and 7.1:1 on
+     --card), so the ink step is the fill and a rule written once works in both
+     schemes. */
+  --success-text: oklch(0.706 0.15 156);
+  --warning-text: oklch(0.8 0.16 80);
+  --info-text: oklch(0.7 0.12 210);
+
   /* On a dark ground a shadow is nearly invisible and a light rim is what
      reads as "in front". */
   --shadow-overlay: 0 0 0 1px oklch(1 0 0 / 8%), 0 10px 32px -8px oklch(0 0 0 / 70%);
   --shadow-raised: 0 1px 2px oklch(0 0 0 / 40%);
+
+  /* The ink steps invert here: on a near-black surface the accent is already
+     light-on-dark, so it moves TOWARDS the foreground only far enough to carry
+     the three darkest accents in the palette set (violet is the floor, at
+     5.0:1 on its own soft fill). */
+  --lt-accent-ink: color-mix(in oklab, var(--primary) 80%, var(--foreground) 20%);
+  --lt-danger-ink: color-mix(in oklab, var(--destructive) 85%, var(--foreground) 15%);
+
+  /* A dark page needs more veil than a light one to read as pushed back: the
+     surfaces behind are already close in tone to the panel in front. */
+  --lt-scrim: oklch(0 0 0 / 45%);
+  --lt-scrim-strong: oklch(0 0 0 / 60%);
 }
 
 @media (prefers-reduced-motion: reduce) {

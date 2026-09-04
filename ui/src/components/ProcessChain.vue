@@ -480,7 +480,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
 /* Was a literal #f87171, which is a light-theme red pinned into a frame that
    inherits the console's palette. */
-.step-icon.is-danger { color: var(--destructive); }
+.step-icon.is-danger { color: var(--lt-danger-ink); }
 .step-icon.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
 
 .step-body {
@@ -567,7 +567,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
 .add-button:hover {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 
 .add-button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
@@ -576,7 +576,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   padding: 0 var(--space-1);
   border-radius: 999px;
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
   font-size: 9px;
   font-weight: 700;
 }

@@ -430,7 +430,7 @@ function setRaw(text: string): void {
 .op-tri button.is-active {
   border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 
 .op-switch {
@@ -472,7 +472,7 @@ function setRaw(text: string): void {
   background: transparent;
   color: var(--muted-foreground);
 }
-.op-pair-drop:hover { background: var(--lt-danger-soft); color: var(--destructive); }
+.op-pair-drop:hover { background: var(--lt-danger-soft); color: var(--lt-danger-ink); }
 .op-pair-drop:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
 .op-pair-add {
@@ -486,6 +486,6 @@ function setRaw(text: string): void {
   color: var(--foreground);
   font-size: var(--lt-text-xs);
 }
-.op-pair-add:hover { border-color: var(--primary); color: var(--primary); }
+.op-pair-add:hover { border-color: var(--primary); color: var(--lt-accent-ink); }
 .op-pair-add:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 </style>

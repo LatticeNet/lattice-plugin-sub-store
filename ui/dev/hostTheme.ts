@@ -7,14 +7,23 @@
  * spent a while showing a warm-neutral palette the console had already
  * dropped.
  *
- * These are the console's values, copied from `lattice-dashboard/src/style/
- * app.css`: light from its `:root`, dark from its `.dark`. They are applied
- * the way the bridge applies them, as inline custom properties on `<html>`
- * with `data-theme` and `color-scheme` set first, so the harness exercises the
- * real precedence: an inline property beats the plugin's own declaration, and
- * a name the host does not send falls back to it.
+ * These are the console's values, copied from `lattice-dashboard`: the surfaces
+ * and status colours from `src/style/app.css` (light from its `:root`, dark
+ * from its `.dark`), and the --primary family from `src/theme/palettes.ts`.
+ * That second source matters and was got wrong once: app.css's `:root` is only
+ * the pre-mount fallback, and the theme store repaints --primary, --ring and
+ * --primary-foreground inline from the default "teal" palette on the first
+ * frame. Copying the accent out of app.css sent indigo, so every light-mode
+ * pass judged chips, buttons, focus rings and the overlay tint against an
+ * accent production replaced -- which is the exact failure this file exists to
+ * prevent. app.css's `.dark` already carries teal, so only light was wrong.
  *
- * Token contract v2, 42 names. Keep this list and `src/tokens.css` in step;
+ * They are applied the way the bridge applies them, as inline custom properties
+ * on `<html>` with `data-theme` and `color-scheme` set first, so the harness
+ * exercises the real precedence: an inline property beats the plugin's own
+ * declaration, and a name the host does not send falls back to it.
+ *
+ * Token contract v2, 45 names. Keep this list and `src/tokens.css` in step;
  * `src/tokenContract.test.ts` fails if the plugin reads a name neither one
  * declares.
  */
@@ -58,17 +67,21 @@ const LIGHT: Record<string, string> = {
   "--accent": "oklch(0.95 0.014 279)",
   "--accent-foreground": "oklch(0.30 0.05 279)",
   "--border": "oklch(0.91 0.006 281)",
-  "--primary": "oklch(0.541 0.205 278.5)",
-  "--primary-foreground": "oklch(0.985 0.005 280)",
+  // PALETTES.teal.light, not app.css's :root. See the note at the top.
+  "--primary": "oklch(0.53 0.105 185)",
+  "--primary-foreground": "oklch(0.985 0.01 180)",
+  "--ring": "oklch(0.53 0.105 185)",
   "--destructive": "oklch(0.583 0.231 27.5)",
   "--destructive-foreground": "oklch(0.985 0.01 20)",
-  "--ring": "oklch(0.541 0.205 278.5)",
   "--success": "oklch(0.62 0.16 150)",
   "--success-foreground": "oklch(0.985 0.01 155)",
   "--warning": "oklch(0.72 0.16 73)",
   "--warning-foreground": "oklch(0.26 0.05 70)",
   "--info": "oklch(0.6 0.14 240)",
   "--info-foreground": "oklch(0.985 0.01 240)",
+  "--success-text": "oklch(0.5 0.14 150)",
+  "--warning-text": "oklch(0.52 0.13 73)",
+  "--info-text": "oklch(0.5 0.13 240)",
   "--shadow-overlay":
     "0 1px 2px oklch(0 0 0 / 6%), 0 8px 24px -6px oklch(0 0 0 / 12%), 0 4px 40px -4px color-mix(in oklab, var(--primary) 8%, transparent)",
   "--shadow-raised": "0 1px 2px oklch(0 0 0 / 5%)",
@@ -85,17 +98,21 @@ const DARK: Record<string, string> = {
   "--accent": "oklch(0.285 0.02 235)",
   "--accent-foreground": "oklch(0.97 0.004 240)",
   "--border": "oklch(1 0 0 / 9%)",
+  // PALETTES.teal.dark, which is also what app.css's .dark carries.
   "--primary": "oklch(0.81 0.13 180)",
   "--primary-foreground": "oklch(0.17 0.012 240)",
+  "--ring": "oklch(0.7 0.12 182)",
   "--destructive": "oklch(0.704 0.191 22.2)",
   "--destructive-foreground": "oklch(0.16 0.02 15)",
-  "--ring": "oklch(0.7 0.12 182)",
   "--success": "oklch(0.706 0.15 156)",
   "--success-foreground": "oklch(0.16 0.02 156)",
   "--warning": "oklch(0.8 0.16 80)",
   "--warning-foreground": "oklch(0.2 0.04 75)",
   "--info": "oklch(0.7 0.12 210)",
   "--info-foreground": "oklch(0.16 0.02 210)",
+  "--success-text": "oklch(0.706 0.15 156)",
+  "--warning-text": "oklch(0.8 0.16 80)",
+  "--info-text": "oklch(0.7 0.12 210)",
   "--shadow-overlay": "0 0 0 1px oklch(1 0 0 / 8%), 0 10px 32px -8px oklch(0 0 0 / 70%)",
   "--shadow-raised": "0 1px 2px oklch(0 0 0 / 40%)",
 };

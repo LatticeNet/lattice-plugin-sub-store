@@ -102,7 +102,9 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
      frame had no viewport to centre in; it has one now. */
   position: fixed;
   inset: 0;
-  background: color-mix(in oklab, var(--foreground) 32%, transparent);
+  /* Darkens, in both schemes. The foreground mix lightened the page on the
+     dark theme, so the dialog rendered darker than what it covered. */
+  background: var(--lt-scrim-strong);
   display: flex;
   align-items: flex-start;
   justify-content: center;

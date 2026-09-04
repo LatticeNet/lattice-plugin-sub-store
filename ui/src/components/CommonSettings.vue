@@ -137,7 +137,7 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
 .common-choices button.is-active {
   border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 
 .common-hint {

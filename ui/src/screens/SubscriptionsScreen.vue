@@ -1683,6 +1683,6 @@ watch(host.init, (value) => {
 .choice-row button.is-active {
   border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 </style>

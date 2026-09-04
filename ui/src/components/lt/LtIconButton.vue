@@ -37,7 +37,7 @@ defineProps<{
 .lt-iconbtn:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
 .lt-iconbtn:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .lt-iconbtn:disabled { opacity: 0.4; cursor: not-allowed; }
-.lt-iconbtn.danger:hover:not(:disabled) { background: var(--lt-danger-soft); color: var(--destructive); }
+.lt-iconbtn.danger:hover:not(:disabled) { background: var(--lt-danger-soft); color: var(--lt-danger-ink); }
 
 /* A finger, not a mouse. 26px was a quarter of the area a touch target needs,
    and four of them sat in a row 131px wide. */

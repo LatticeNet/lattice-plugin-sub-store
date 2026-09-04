@@ -32,7 +32,7 @@ defineProps<{
 }
 .lt-empty.k-error { border-color: var(--lt-danger-border); background: var(--lt-danger-soft); }
 .lt-empty-title { font-size: var(--lt-text-lg); font-weight: 600; color: var(--foreground); margin: 0; }
-.k-error .lt-empty-title { color: var(--destructive); }
+.k-error .lt-empty-title { color: var(--lt-danger-ink); }
 .lt-empty-detail {
   font-size: var(--text-body);
   line-height: var(--lt-leading);

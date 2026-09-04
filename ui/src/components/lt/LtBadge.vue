@@ -27,10 +27,10 @@ defineProps<{
   border: 1px solid transparent;
 }
 .lt-badge:not(.dot).tone-neutral { background: var(--lt-neutral-soft); color: var(--muted-foreground); }
-.lt-badge:not(.dot).tone-ok { background: var(--lt-ok-soft); color: var(--success); }
-.lt-badge:not(.dot).tone-warn { background: var(--lt-warn-soft); color: var(--warning); }
-.lt-badge:not(.dot).tone-danger { background: var(--lt-danger-soft); color: var(--destructive); }
-.lt-badge:not(.dot).tone-accent { background: color-mix(in oklab, var(--primary) 12%, var(--card) 88%); color: var(--primary); }
+.lt-badge:not(.dot).tone-ok { background: var(--lt-ok-soft); color: var(--success-text); }
+.lt-badge:not(.dot).tone-warn { background: var(--lt-warn-soft); color: var(--warning-text); }
+.lt-badge:not(.dot).tone-danger { background: var(--lt-danger-soft); color: var(--lt-danger-ink); }
+.lt-badge:not(.dot).tone-accent { background: color-mix(in oklab, var(--primary) 12%, var(--card) 88%); color: var(--lt-accent-ink); }
 .lt-badge.dot { padding: 0; background: none; color: var(--foreground); font-size: var(--lt-text-sm); }
 .lt-badge-dot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
 .tone-ok .lt-badge-dot { background: var(--success); }

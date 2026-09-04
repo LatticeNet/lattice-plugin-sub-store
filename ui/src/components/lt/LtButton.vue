@@ -39,6 +39,6 @@ defineProps<{
 .lt-btn.v-primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
 .lt-btn.v-primary:hover:not(:disabled) { background: color-mix(in oklab, var(--primary) 88%, black 12%); }
 .lt-btn.v-ghost:hover:not(:disabled) { background: var(--muted); }
-.lt-btn.v-danger { color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 35%, var(--border) 65%); }
+.lt-btn.v-danger { color: var(--lt-danger-ink); border-color: color-mix(in oklab, var(--destructive) 35%, var(--border) 65%); }
 .lt-btn.v-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
 </style>

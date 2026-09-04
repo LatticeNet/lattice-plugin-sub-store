@@ -83,7 +83,7 @@ body:has(.lt-batchbar) .workspace {
   place-items: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
   background: var(--card);
 }
 
@@ -140,8 +140,8 @@ body:has(.lt-batchbar) .workspace {
   font-variant-numeric: tabular-nums;
   line-height: 1.5;
 }
-.tab[data-active="true"] .tab-count { color: var(--primary); background: var(--lt-accent-soft); }
-.tab[data-active="true"] { color: var(--primary); border-bottom-color: var(--primary); }
+.tab[data-active="true"] .tab-count { color: var(--lt-accent-ink); background: var(--lt-accent-soft); }
+.tab[data-active="true"] { color: var(--lt-accent-ink); border-bottom-color: var(--primary); }
 .tab:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
 .configuration { padding: var(--space-5) 0 var(--space-5); }
@@ -178,12 +178,12 @@ body:has(.lt-batchbar) .workspace {
   font-size: var(--text-body);
   line-height: var(--lt-leading);
 }
-.alert > svg { flex: none; margin-top: 1px; color: var(--destructive); }
+.alert > svg { flex: none; margin-top: 1px; color: var(--lt-danger-ink); }
 
 .alert-ok {
   background: var(--lt-ok-soft);
 }
-.alert-ok > svg { color: var(--success); }
+.alert-ok > svg { color: var(--success-text); }
 
 /* An error under the control that produced it. It used to be bare red text
    with no room around it, which read as a typo rather than as a failure. */
@@ -222,10 +222,10 @@ body:has(.lt-batchbar) .workspace {
   line-height: 18px;
   white-space: nowrap;
 }
-.badge[data-tone="info"] { background: var(--lt-accent-soft); color: var(--primary); }
-.badge[data-tone="success"] { background: var(--lt-ok-soft); color: var(--success); }
-.badge[data-tone="warning"] { background: var(--lt-warn-soft); color: var(--warning); }
-.badge[data-tone="danger"] { background: var(--lt-danger-soft); color: var(--destructive); }
+.badge[data-tone="info"] { background: var(--lt-accent-soft); color: var(--lt-accent-ink); }
+.badge[data-tone="success"] { background: var(--lt-ok-soft); color: var(--success-text); }
+.badge[data-tone="warning"] { background: var(--lt-warn-soft); color: var(--warning-text); }
+.badge[data-tone="danger"] { background: var(--lt-danger-soft); color: var(--lt-danger-ink); }
 
 /* ── buttons ──────────────────────────────────────────────────────────────
    `button-danger` had no rule at all, so the batch-delete control on both list
@@ -252,7 +252,7 @@ body:has(.lt-batchbar) .workspace {
 .button-secondary:hover:not(:disabled) { background: var(--muted); border-color: var(--lt-border-strong); }
 .button-primary { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
 .button-primary:hover:not(:disabled) { background: color-mix(in oklab, var(--primary) 88%, #000 12%); }
-.button-danger { border-color: var(--lt-danger-border); color: var(--destructive); background: var(--card); }
+.button-danger { border-color: var(--lt-danger-border); color: var(--lt-danger-ink); background: var(--card); }
 .button-danger:hover:not(:disabled) { background: var(--lt-danger-soft); border-color: var(--destructive); }
 .button-compact { min-height: var(--lt-control-h-sm); padding: 0 var(--space-2); font-size: var(--lt-text-xs); }
 
@@ -261,7 +261,7 @@ body:has(.lt-batchbar) .workspace {
   border: 0;
   padding: 0 2px;
   background: none;
-  color: var(--primary);
+  color: var(--lt-accent-ink);
   font: inherit;
   font-size: inherit;
   text-decoration: underline;
@@ -416,7 +416,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   white-space: nowrap;
 }
 .lt-chip:hover { color: var(--foreground); border-color: var(--lt-border-strong); }
-.lt-chip.is-active { background: var(--lt-accent-soft); border-color: var(--primary); color: var(--primary); }
+.lt-chip.is-active { background: var(--lt-accent-soft); border-color: var(--primary); color: var(--lt-accent-ink); }
 .lt-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .lt-chip-sep { width: 1px; height: 16px; background: var(--border); margin: 0 var(--space-1); flex: none; }
 
@@ -440,7 +440,7 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   border: 0;
   border-radius: var(--radius-sm);
   background: none;
-  color: var(--primary);
+  color: var(--lt-accent-ink);
   font: inherit;
   font-size: var(--lt-text-sm);
 }
@@ -600,8 +600,8 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-kind { flex: none; margin-right: var(--space-1); color: var(--muted-foreground); vertical-align: -2px; }
 .rec-published-cell { min-width: 0; overflow: hidden; }
 .rec-published { display: block; font-size: var(--lt-text-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rec-published.is-ok { color: var(--success, var(--foreground)); }
-.rec-published.is-warn { color: var(--warning, var(--foreground)); }
+.rec-published.is-ok { color: var(--success-text, var(--foreground)); }
+.rec-published.is-warn { color: var(--warning-text, var(--foreground)); }
 .rec-published.is-neutral { color: var(--muted-foreground); }
 .rec-publish-link {
   padding: 0;
@@ -837,11 +837,11 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 }
 
 .rec-status { color: var(--muted-foreground); }
-.rec-status.is-danger { color: var(--destructive); }
-.rec-status.is-warn { color: var(--warning); }
-.rec-status.is-ok { color: var(--success); }
+.rec-status.is-danger { color: var(--lt-danger-ink); }
+.rec-status.is-warn { color: var(--warning-text); }
+.rec-status.is-ok { color: var(--success-text); }
 .rec-quota { color: var(--muted-foreground); white-space: normal; }
-.rec-quota.is-danger { color: var(--destructive); }
+.rec-quota.is-danger { color: var(--lt-danger-ink); }
 
 .rec-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: var(--lt-rec-actions); }
 
@@ -915,7 +915,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .rec-menu button:hover:not(:disabled) { background: var(--muted); }
 .rec-menu button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 .rec-menu button:disabled { opacity: 0.45; }
-.rec-menu button.is-danger { color: var(--destructive); }
+.rec-menu button.is-danger { color: var(--lt-danger-ink); }
 .rec-menu button.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
 /* Why a menu item is greyed out, in the menu itself rather than only in a
    title attribute that no touch device and no screen reader ever shows. */
@@ -1053,7 +1053,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 /* Chosen is a ring drawn inside the tile, not a border: the tile is an inset
    block and an inset block does not take a border. */
 .source.is-active { box-shadow: inset 0 0 0 1px var(--primary); background: var(--lt-accent-soft); }
-.source.is-active > svg { color: var(--primary); }
+.source.is-active > svg { color: var(--lt-accent-ink); }
 .source-title { grid-area: title; font-size: var(--text-body); font-weight: 600; }
 .source-detail { grid-area: detail; font-size: var(--lt-text-xs); line-height: var(--lt-leading); color: var(--muted-foreground); }
 
@@ -1226,11 +1226,11 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .tok { color: var(--muted-foreground); }
 .tok-plain { color: var(--muted-foreground); }
 .tok-host { color: var(--foreground); }
-.tok-name { color: var(--primary); }
+.tok-name { color: var(--lt-accent-ink); }
 .tok-key { color: var(--foreground); }
-.tok-string { color: var(--success); }
+.tok-string { color: var(--success-text); }
 .tok-number,
-.tok-literal { color: var(--warning); }
+.tok-literal { color: var(--warning-text); }
 .tok-comment { color: var(--muted-foreground); font-style: italic; }
 
 .output-dropped {
@@ -1319,7 +1319,11 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   position: fixed;
   inset: 0;
   z-index: var(--lt-z-panel);
-  background: color-mix(in oklab, var(--foreground) 24%, transparent);
+  /* A veil darkens. Mixing the foreground in inverted that on the dark theme,
+     where the foreground is near-white: opening this panel used to raise the
+     whole page's luminance and leave the panel darker than the page it floats
+     over. */
+  background: var(--lt-scrim);
 }
 
 .sheet {
@@ -1534,7 +1538,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .target-chip.is-active {
   border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 
 .target-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1558,8 +1562,8 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   font-size: var(--lt-text-sm);
   font-weight: 600;
 }
-.delivery-state.is-published { color: var(--success); }
-.delivery-state.is-unknown { color: var(--warning); }
+.delivery-state.is-published { color: var(--success-text); }
+.delivery-state.is-unknown { color: var(--warning-text); }
 .delivery-section .button { margin-top: var(--space-2); }
 
 .manual-copy {
@@ -1619,7 +1623,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .evidence-step { display: inline-flex; max-width: 100%; flex: none; align-items: baseline; gap: var(--space-1); }
 .evidence-step small { color: var(--muted-foreground); font: inherit; letter-spacing: 0.05em; }
 .evidence-step strong { min-width: 0; color: var(--foreground); font-weight: 650; overflow-wrap: anywhere; }
-.evidence-step:first-child strong { color: var(--primary); }
+.evidence-step:first-child strong { color: var(--lt-accent-ink); }
 .evidence-arrow { flex: none; color: var(--lt-border-strong); }
 
 .output-tabs {
@@ -1642,7 +1646,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .output-tabs button[aria-selected="true"] {
   border-color: var(--lt-accent-border);
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
   font-weight: 600;
 }
 .output-tabs button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
@@ -1806,7 +1810,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
    what the record list's groups already are, so they are the same control
    rather than a second one that means the same thing. Only the red count is
    new: a removal count is a number someone is looking for. */
-.rec-group-count[data-tone="danger"] { background: var(--lt-danger-soft); color: var(--destructive); }
+.rec-group-count[data-tone="danger"] { background: var(--lt-danger-soft); color: var(--lt-danger-ink); }
 .node-group-note { margin: 0 0 var(--space-1); color: var(--muted-foreground); font-size: var(--lt-text-xs); }
 
 /* ── row detail panels ────────────────────────────────────────────────────── */
@@ -2082,7 +2086,10 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   align-items: flex-start;
   justify-content: center;
   padding-top: 12vh;
-  background: color-mix(in oklab, var(--background) 70%, transparent);
+  /* The same veil the panel takes, one step stronger because a modal covers
+     the page rather than accompanying it. It was 70% of --background, which
+     washed the page towards white in the light theme instead of dimming it. */
+  background: var(--lt-scrim-strong);
 }
 
 .palette {
@@ -2134,7 +2141,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   cursor: pointer;
 }
 .palette-row[data-active="true"] { background: var(--muted); }
-.palette-row[data-danger="true"] .palette-label { color: var(--destructive); }
+.palette-row[data-danger="true"] .palette-label { color: var(--lt-danger-ink); }
 /* Kept in the list rather than hidden: an action missing from the palette
    reads as a feature this build does not have, when the truth is that this
    token cannot reach it. The reason takes the place of the hint. */
@@ -2380,8 +2387,8 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 .shares-path { max-width: 280px; overflow: hidden; text-overflow: ellipsis; font-size: var(--lt-text-xs); }
 .shares-table td.mono { font-size: var(--lt-text-xs); }
 .shares-state { font-size: var(--lt-text-xs); }
-.shares-state.is-ok { color: var(--success); }
-.shares-state.is-warn { color: var(--warning); }
+.shares-state.is-ok { color: var(--success-text); }
+.shares-state.is-warn { color: var(--warning-text); }
 .shares-actions { text-align: right; }
 .shares-actions .button + .button { margin-left: var(--space-2); }
 /* Row actions show on hover and focus, and stay where nothing can hover. */
@@ -2496,7 +2503,7 @@ tr.has-manual-copy > * {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--warning);
+  color: var(--warning-text);
 }
 .conflict-panel__title {
   margin: 0;
@@ -2542,7 +2549,7 @@ tr.has-manual-copy > * {
 .conflict-tag {
   display: block;
   margin-top: 2px;
-  color: var(--warning);
+  color: var(--warning-text);
   font-size: var(--lt-text-xs);
   font-weight: 600;
   white-space: nowrap;

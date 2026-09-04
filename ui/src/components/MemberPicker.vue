@@ -232,7 +232,7 @@ function describe(item: SubscriptionListItem): string {
 .picker-tags button.is-active {
   border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 
 .picker-bulk button { border-color: var(--border); }
@@ -279,7 +279,7 @@ function describe(item: SubscriptionListItem): string {
 .row-order {
   min-width: 18px;
   font-size: var(--lt-text-xs);
-  color: var(--primary);
+  color: var(--lt-accent-ink);
   font-variant-numeric: tabular-nums;
 }
 
