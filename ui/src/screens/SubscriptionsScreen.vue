@@ -30,7 +30,7 @@ import LtBadge from "../components/lt/LtBadge.vue";
 import LtButton from "../components/lt/LtButton.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import RecordMenu from "../components/RecordMenu.vue";
-import LtPanel from "../components/lt/LtPanel.vue";
+import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
@@ -41,7 +41,8 @@ import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId, type ResolvedAction } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
-import { useEditorExit } from "../useEditorExit";
+import { useRecordEditor } from "../useRecordEditor";
+import SubscriptionEditor from "../components/SubscriptionEditor.vue";
 
 import {
   CONVERT_TARGETS,
@@ -115,16 +116,23 @@ const MANAGED_TYPES = ["Quick Setting Operator", "Useless Filter"] as const;
 
 const host = useHost();
 const subs = useSubscriptions(host);
+
+/**
+ * The editor half. It lives in a composable because `editing` is what this
+ * screen routes on: the list and the editor are two states of one screen, and
+ * the screen owns the routing while SubscriptionEditor.vue owns what it draws.
+ */
+const editor = useRecordEditor({
+  host,
+  subs,
+  clearListState: () => clearTransientListState(),
+  onSaved: (id: string | null) => { if (id) recount(id); },
+});
+const { editing, editingId, startCreate, startEdit, exit } = editor;
 // The whole-store surface is here only for the empty state's migrate form: an
 // empty store is exactly when importing an existing Sub-Store is the next step.
 const ops = useSubscriptionOps(host);
 
-const editing = ref(false);
-const editingId = ref<string | null>(null);
-const draft = ref<SubscriptionDraft>(emptyDraft());
-const common = ref<CommonSettingsShape>(emptyCommonSettings());
-const tagText = ref("");
-const memberTagText = ref("");
 const tagFilter = ref("");
 const searchText = ref("");
 const kindFilter = ref<"" | "sub" | "collection">("");
@@ -142,55 +150,7 @@ const deleteBusy = ref(false);
 // Rows currently mid-operation (refresh or delete) render pending.
 const pendingIds = ref<Set<string>>(new Set());
 
-const isCollection = computed(() => draft.value.kind === KIND_COLLECTION);
-const draftError = computed(() => (editing.value ? validateDraft(draft.value) : ""));
-const canSave = computed(() => !draftError.value && !subs.saving.value);
-const canPreviewNow = computed(
-  () => subs.canPreview.value && !subs.previewing.value && !draftError.value,
-);
 
-/**
- * What the current preview covers. A cut preview has to say so on the result,
- * or the operator reads a partial node list as the record's real output. The
- * chain hands over the label it shows in the list, because chain indices and
- * list positions differ, settings-managed steps live in the same array but
- * are edited above, so a computed position would name a different step than
- * the one that was clicked.
- */
-const previewStepLabel = ref("");
-
-// ── explain the chain ───────────────────────────────────────────────────────
-// One partial run per enabled step, in order, reading the count after each;
-// then the whole chain again so the panel ends on the full result. The
-// engine does the work; this only asks the same question N times.
-const explaining = ref(false);
-const explanation = ref<ChainExplanation | null>(null);
-const explainable = computed(() => enabledStepIndexes(draft.value.process as ChainStep[]).length > 0);
-async function explainDraft(): Promise<void> {
-  if (explaining.value || !canPreviewNow.value) return;
-  explaining.value = true;
-  explanation.value = null;
-  const steps = draft.value.process as ChainStep[];
-  try {
-    const result = await explainChain(steps, async (upTo) => {
-      await subs.runPreview(draft.value, upTo);
-      if (!subs.preview.value || subs.previewError.value) throw new Error(subs.previewError.value || "Preview failed");
-      return subs.preview.value;
-    });
-    explanation.value = result;
-    // The last cut is the whole chain, so the pane already holds the full
-    // result and the partial-run label would be false.
-    if (result.complete) subs.previewStep.value = null;
-  } finally {
-    explaining.value = false;
-  }
-}
-watch(() => draft.value.process, () => { explanation.value = null; }, { deep: true });
-
-function previewUpToStep(index: number, label: string): void {
-  previewStepLabel.value = label;
-  void subs.runPreview(draft.value, index);
-}
 
 // Files live in the same store but on their own tab. Offering their tags here
 // would put a filter in front of the operator that selects nothing.
@@ -225,37 +185,7 @@ const singles = computed(() =>
 const collections = computed(() =>
   onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_COLLECTION && matchesFilter(i)),
 );
-/** Only subs can be members; a collection inside a collection would recurse. */
-const memberCandidates = computed(() =>
-  subs.items.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && i.id !== editingId.value),
-);
 
-const SOURCES = [
-  {
-    id: SOURCE_VPN_CORE,
-    title: "This fleet's nodes",
-    detail: "Reads the live vpn-core export. Nodes added or removed reach clients on refresh.",
-    icon: Server,
-  },
-  {
-    id: SOURCE_VPN_CORE_GRAPH,
-    title: "A converged path",
-    detail: "Composes selected applied line-chain roots in the exact order shown.",
-    icon: Layers,
-  },
-  {
-    id: SOURCE_REMOTE,
-    title: "A provider link",
-    detail: "Fetches an external subscription link and re-serves it through this record's operations.",
-    icon: Globe,
-  },
-  {
-    id: SOURCE_LOCAL,
-    title: "Nodes I paste",
-    detail: "URI list, base64, Clash YAML or sing-box JSON. The engine detects the format.",
-    icon: ClipboardPaste,
-  },
-] as const;
 
 function clearTransientListState(): void {
   // A pending confirm or an open drawer must not survive into the editor and
@@ -267,189 +197,8 @@ function clearTransientListState(): void {
   revealSource.hide();
 }
 
-function startCreate(kind: string): void {
-  clearTransientListState();
-  subs.clearMessages();
-  draft.value = emptyDraft();
-  draft.value.kind = kind;
-  if (kind === KIND_SUB) draft.value.source = SOURCE_VPN_CORE;
-  common.value = emptyCommonSettings();
-  tagText.value = "";
-  memberTagText.value = "";
-  editingId.value = null;
-  editorTab.value = "display";
-  editing.value = true;
-  markPristine();
-}
 
-async function startEdit(id: string): Promise<void> {
-  clearTransientListState();
-  subs.clearMessages();
-  const record = await subs.get(id);
-  if (!record) return;
-  draft.value = draftFromRecord(record);
-  // A record stored before the source was named still has url or content set.
-  if (!draft.value.source && draft.value.kind === KIND_SUB) {
-    draft.value.source = draft.value.url ? SOURCE_REMOTE : SOURCE_LOCAL;
-  }
-  common.value = readCommonSettings(draft.value.process as ChainStep[]);
-  tagText.value = draft.value.tags.join(", ");
-  memberTagText.value = draft.value.memberTags.join(", ");
-  editingId.value = id;
-  editorTab.value = "display";
-  editing.value = true;
-  if (draft.value.source === SOURCE_VPN_CORE_GRAPH) await loadGraphOptionsForDraft(false);
-  // After the graph options land, so loading them is not mistaken for an edit.
-  markPristine();
-  await host.resize();
-}
 
-async function selectSource(source: string): Promise<void> {
-  draft.value.source = source;
-  subs.preview.value = null;
-  if (source === SOURCE_VPN_CORE_GRAPH) await reloadGraphOptions();
-}
-
-async function reloadGraphOptions(): Promise<void> {
-  await loadGraphOptionsForDraft(true);
-}
-
-async function loadGraphOptionsForDraft(adopt: boolean): Promise<void> {
-  const loaded = await subs.loadGraphOptions();
-  if (!loaded || !subs.graphOptions.value) {
-    draft.value.optionsVersion = "";
-    return;
-  }
-  const options = subs.graphOptions.value;
-  const result = reconcileGraphDraftOptions(draft.value, options, adopt);
-  if (!adopt) {
-    if (result.stale) {
-      subs.actionError.value = "Graph options changed. Reload and review the identity and roots before saving.";
-    }
-    return;
-  }
-}
-
-function addGraphRoot(root: string): void {
-  if (!draft.value.entryRoots.includes(root)) draft.value.entryRoots.push(root);
-}
-
-function removeGraphRoot(index: number): void {
-  draft.value.entryRoots.splice(index, 1);
-}
-
-function moveGraphRoot(index: number, offset: number): void {
-  const next = index + offset;
-  if (next < 0 || next >= draft.value.entryRoots.length) return;
-  const [root] = draft.value.entryRoots.splice(index, 1);
-  draft.value.entryRoots.splice(next, 0, root);
-}
-
-function setGraphIdentity(identity: string): void {
-  draft.value.vpnIdentity = identity;
-}
-
-/**
- * The unsaved-edit guard. The snapshot is the serialised draft plus the text
- * fields that live outside it, because those are edits too. The rest of the
- * rule is shared with the Files editor (useEditorExit.ts) — a second screen
- * carrying its own copy is how the two silently stopped behaving the same.
- */
-const exit = useEditorExit({
-  editing,
-  fingerprint: () =>
-    JSON.stringify([draft.value, common.value, tagText.value, memberTagText.value]),
-  // Not a hand-written list any more. Every overlay registers while it is
-  // open, so the eighth one cannot be left out of this line the way the Files
-  // editor was left out of its own.
-  overlayOpen: () => overlayDepth() > 0,
-  leave: () => cancelEdit(),
-});
-const { discarding, markPristine } = exit;
-const editorDirty = exit.dirty;
-const leaveEditor = exit.leaveEditor;
-
-function cancelEdit(): void {
-  exit.reset();
-  editing.value = false;
-  editingId.value = null;
-  draft.value = emptyDraft();
-  subs.preview.value = null;
-  // Errors belong to the screen that raised them. A preview refused inside the
-  // editor used to follow the operator out to the list and sit above it as an
-  // unexplained alert about a draft no longer on screen. Only the errors go:
-  // a successful save reports "Saved ..." and then leaves through here, so
-  // clearing the notice too left the save with nothing to show for itself.
-  subs.clearErrors();
-}
-
-function parseTags(text: string): string[] {
-  return text
-    .split(/[,\n]/)
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-}
-
-/** The block writes into the chain; the chain stays the single source of truth. */
-function onCommonChange(next: CommonSettingsShape): void {
-  common.value = next;
-  draft.value.process = applyCommonSettings(draft.value.process as ChainStep[], next);
-}
-
-/**
- * The normal save. Takes no argument on purpose: it is bound to the form's
- * submit, which would hand it a SubmitEvent, and a truthy first argument here
- * would have meant "force" and skipped the staleness check on every ordinary
- * keyboard submit. Forcing goes through overwriteWithMine.
- */
-async function submit(): Promise<void> {
-  await writeDraft(false);
-}
-
-async function writeDraft(force: boolean): Promise<void> {
-  draft.value.tags = parseTags(tagText.value);
-  draft.value.memberTags = parseTags(memberTagText.value);
-  const ok = await subs.save(draft.value, force);
-  if (ok) {
-    if (editingId.value) recount(editingId.value);
-    cancelEdit();
-  }
-}
-
-/**
- * The three ways out of a save refused as stale, and none of them is automatic.
- *
- * A merge is not offered on purpose. This record holds an operator chain and a
- * document; merging either without the operator reading both is how a
- * plausible-looking configuration that nobody wrote reaches a client.
- */
-
-/** Keep their version. The editor closes and the list reloads. */
-function discardMyEdit(): void {
-  subs.saveConflict.value = null;
-  cancelEdit();
-  void subs.load();
-}
-
-/**
- * Reopen on their version, losing the local draft. Offered because when the
- * changed fields are not the ones being edited, re-applying a small edit on top
- * of the current record is both quick and correct.
- */
-async function reopenOnCurrent(): Promise<void> {
-  const id = subs.saveConflict.value?.conflict.id ?? editingId.value;
-  subs.saveConflict.value = null;
-  if (!id) return;
-  cancelEdit();
-  await nextTick();
-  await startEdit(id);
-}
-
-/** Mine wins, deliberately, after seeing what it replaces. */
-async function overwriteWithMine(): Promise<void> {
-  subs.saveConflict.value = null;
-  await writeDraft(true);
-}
 
 /** The Source column: where a record's nodes come from, in three words. */
 function describe(item: SubscriptionListItem): string {
@@ -865,49 +614,6 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   if (id === "delete") return requestDelete([row.id]);
 }
 
-/**
- * The editor's sections, split the way Sub-Store splits them: what the record
- * is called, what it is made of, and what is done to it. A single scroll of
- * eight fieldsets made the operator hunt for the one field they came to change
- * and buried the operator chain. The thing this plugin exists for, below
- * everything else.
- */
-type EditorTab = "display" | "content" | "operations";
-const editorTab = ref<EditorTab>("display");
-const EDITOR_TABS: { id: EditorTab; label: string }[] = [
-  { id: "display", label: "Display" },
-  { id: "content", label: "Content" },
-  { id: "operations", label: "Operations" },
-];
-
-/**
- * Which tab holds the field the current error is about.
- *
- * A tabbed form that reports "Give it a name." at the bottom of the Content tab
- * says what is wrong and not where: the name lives two tabs away and nothing
- * points at it. Every message except that one is about the source, so this is
- * read off the draft rather than by matching the message text.
- */
-const errorTab = computed<EditorTab | "">(() => {
-  if (!draftError.value) return "";
-  return draft.value.name.trim() ? "content" : "display";
-});
-
-/** The chain's size, shown on the tab so it is visible without opening it. */
-/**
- * What the Operations tab badge counts.
- *
- * The raw chain includes the steps the common-settings block above edits, which
- * the chain list deliberately hides. Counting those made the badge read
- * "Operations 1" over a panel saying "No operations" as soon as a quick setting
- * was turned on.
- */
-const chainCount = computed(
-  () =>
-    (draft.value.process as { type?: string }[]).filter(
-      (step) => !(MANAGED_TYPES as readonly string[]).includes(step?.type ?? ""),
-    ).length,
-);
 
 /** The preview/copy sheet: the one-click path to a client configuration. The
  *  whole row goes in, because the sheet's shape depends on what the record is
@@ -1286,7 +992,12 @@ async function publishFromDrawer(destination: string, method: string, format: st
  * ask the console to navigate there. The origin is the one the bridge pinned
  * from the frame URL, re-read here rather than trusted from a second source.
  */
-const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
+// Guarded because the panel now reads it as a prop on every render rather
+// than inside a v-if in its body, and this screen is rendered without a
+// window in the SSR contract test.
+const shareOrigin = computed(() =>
+  hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash),
+);
 
 /**
  * The console's share view takes a record name only for its create form; an
@@ -1349,16 +1060,6 @@ onMounted(() => {
 watch(host.init, (value) => {
   if (value) void loadAll();
 });
-
-watch(() => draft.value.vpnIdentity, (identity, previous) => {
-  if (draft.value.source !== SOURCE_VPN_CORE_GRAPH || identity === previous || !subs.graphOptions.value) return;
-  const allowed = new Set(subs.graphOptions.value.roots.filter((root) => root.selectable && root.eligible_identity_ids.includes(identity)).map((root) => root.line_uuid));
-  const before = draft.value.entryRoots.length;
-  draft.value.entryRoots = draft.value.entryRoots.filter((root) => allowed.has(root));
-  if (before !== draft.value.entryRoots.length) {
-    subs.actionError.value = "Some selected roots were removed because they are not eligible for this identity.";
-  }
-});
 </script>
 
 <template>
@@ -1366,437 +1067,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
-    <section v-if="editing" class="configuration editor-shell" aria-labelledby="editor-title">
-      <nav class="lt-breadcrumb" aria-label="Breadcrumb">
-        <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
-          <ChevronLeft :size="14" aria-hidden="true" /> Subscriptions
-        </button>
-        <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
-        <span class="lt-breadcrumb-here" aria-current="page">
-          {{ editingId ? draft.displayName || draft.name || editingId : (isCollection ? "New combination" : "New subscription") }}
-        </span>
-      </nav>
-      <div class="section-heading">
-        <div>
-          <h2 id="editor-title">
-            {{ editingId ? "Edit" : "New" }}
-            {{ isCollection ? "combination" : "subscription" }}
-            <!-- The draft survives a switch to another lens and back; this
-                 says so on return, so an edit is not mistaken for saved. -->
-            <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
-          </h2>
-          <p v-if="isCollection">
-            Merges several subscriptions and processes the merged result as one.
-          </p>
-          <p v-else>One source of nodes, processed and served.</p>
-        </div>
-      </div>
-
-      <div v-if="subs.actionError.value" class="alert" role="alert">
-        <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
-      </div>
-
-      <!--
-        A save refused because the record moved underneath it. Rendered where
-        the operator is, above the editor they are still holding, rather than
-        as a dialog: their work is on the screen behind it and covering that up
-        while asking whose version wins is the wrong way round. Nothing is
-        merged and nothing is discarded until they choose.
-      -->
-      <section v-if="subs.saveConflict.value" class="conflict-panel" role="alert" aria-labelledby="conflict-title">
-        <div class="conflict-panel__head">
-          <TriangleAlert :size="16" aria-hidden="true" />
-          <h3 id="conflict-title" class="conflict-panel__title">Your edit was not saved</h3>
-        </div>
-        <p class="conflict-panel__summary">{{ subs.saveConflict.value.summary }}</p>
-
-        <table v-if="subs.saveConflict.value.changes.length" class="conflict-table">
-          <thead>
-            <tr>
-              <th scope="col">Field</th>
-              <th scope="col">When you opened it</th>
-              <th scope="col">Now</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="change in subs.saveConflict.value.changes"
-              :key="change.label"
-              :class="{ 'is-contested': change.contested }"
-            >
-              <th scope="row">
-                {{ change.label }}
-                <span v-if="change.contested" class="conflict-tag">you edited this too</span>
-              </th>
-              <td class="mono">{{ change.before }}</td>
-              <td class="mono">{{ change.after }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="conflict-panel__actions">
-          <LtButton variant="primary" @click="reopenOnCurrent()">
-            Reopen on their version
-          </LtButton>
-          <LtButton @click="overwriteWithMine()">Replace theirs with mine</LtButton>
-          <LtButton @click="discardMyEdit()">Discard my edit</LtButton>
-        </div>
-        <p class="conflict-panel__note">
-          Reopening loses what you typed. Replacing loses what they wrote. Nothing here merges
-          the two, because an operator chain merged without being read is a configuration nobody
-          wrote.
-        </p>
-      </section>
-
-      <nav class="editor-tabs" role="tablist" aria-label="Editor sections">
-        <button
-          v-for="tab in EDITOR_TABS"
-          :key="tab.id"
-          type="button"
-          role="tab"
-          class="editor-tab"
-          :aria-selected="editorTab === tab.id"
-          :data-active="editorTab === tab.id"
-          @click="editorTab = tab.id"
-        >
-          {{ tab.label }}
-          <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
-          <span
-            v-if="errorTab === tab.id && editorTab !== tab.id"
-            class="editor-tab-flag"
-            :title="draftError"
-            aria-label="This section has a problem"
-          />
-        </button>
-      </nav>
-
-      <div class="editor-layout">
-      <form class="editor-main" @submit.prevent="submit">
-      <fieldset v-show="editorTab === 'display'" class="editor-group">
-        <legend>Basics</legend>
-        <div class="form-grid">
-        <label class="field field-wide">
-          <span class="field-label">Name</span>
-          <input
-            v-model="draft.name"
-            type="text"
-            autocomplete="off"
-            :placeholder="isCollection ? 'Everything' : 'Home nodes'"
-          />
-          <span class="field-optional">
-            <template v-if="editingId">
-              Stored as <code>{{ editingId }}</code>. Renaming is safe. A published share keeps
-              working.
-            </template>
-            <template v-else>The only thing you have to fill in.</template>
-          </span>
-        </label>
-
-        <label class="field">
-          <span class="field-label">Display name <span class="field-optional">(optional)</span></span>
-          <input v-model="draft.displayName" type="text" autocomplete="off" placeholder="Home" />
-          <span class="field-optional">Shown in the list instead of the name.</span>
-        </label>
-
-        <label class="field">
-          <span class="field-label">Tags</span>
-          <input
-            v-model="tagText"
-            type="text"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="home, backup"
-          />
-          <span class="field-optional">Used to group, filter, and gather by.</span>
-        </label>
-
-        <label class="field field-wide">
-          <span class="field-label">Note</span>
-          <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
-        </label>
-        </div>
-      </fieldset>
-
-      <fieldset v-show="editorTab === 'content'" class="editor-group">
-        <legend>{{ isCollection ? "What it gathers" : "Where the nodes come from" }}</legend>
-        <div class="form-grid">
-        <!-- ── sub: where the nodes come from ─────────────────────────── -->
-        <div v-if="!isCollection" class="field field-wide">
-          <!-- These cards are a single choice, so they carry the semantics of
-               one: a radiogroup whose selected member is announced, not a row
-               of buttons distinguishable only by tint. -->
-          <div class="source-grid" role="radiogroup" aria-label="Where the nodes come from">
-            <button
-              v-for="option in SOURCES"
-              :key="option.id"
-              type="button"
-              role="radio"
-              :aria-checked="draft.source === option.id"
-              :class="['source', { 'is-active': draft.source === option.id }]"
-              @click="selectSource(option.id)"
-            >
-              <component :is="option.icon" :size="17" aria-hidden="true" />
-              <span class="source-title">{{ option.title }}</span>
-              <span class="source-detail">{{ option.detail }}</span>
-            </button>
-          </div>
-        </div>
-
-        <label v-if="!isCollection && draft.source === SOURCE_VPN_CORE" class="field field-wide">
-          <span class="field-label">Limit to one VPN user</span>
-          <input
-            v-model="draft.vpnIdentity"
-            type="text"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="Leave empty to include everyone's nodes"
-          />
-          <span class="field-optional">
-            The export returns every node this fleet serves. Naming a proxy user narrows it to
-            theirs, useful when one share is meant for one person.
-          </span>
-        </label>
-
-        <GraphSubscriptionEditor
-          v-if="!isCollection && draft.source === SOURCE_VPN_CORE_GRAPH"
-          :draft="draft"
-          :options="subs.graphOptions.value"
-          :loading="subs.graphOptionsLoading.value"
-          :read-only="!subs.canMutate.value"
-          @reload="reloadGraphOptions"
-          @identity="setGraphIdentity"
-          @add="addGraphRoot"
-          @remove="removeGraphRoot"
-          @move="moveGraphRoot"
-        />
-
-        <template v-if="!isCollection && draft.source === SOURCE_REMOTE">
-          <!-- The link carries the provider's token, so it reads masked and
-               shows whole only while it is being edited or revealed. -->
-          <div class="field field-wide">
-            <span class="field-label">Provider link</span>
-            <MaskedUrlInput
-              v-model="draft.url"
-              aria-label="Provider link"
-              placeholder="The subscription link your provider gave you"
-            />
-            <span class="field-optional">Shown masked after the host; the record keeps the whole link.</span>
-          </div>
-          <label class="field">
-            <span class="field-label">User agent</span>
-            <input v-model="draft.ua" type="text" autocomplete="off" placeholder="Optional" />
-            <span class="field-optional">
-              Some providers return a different list per client. Set this if yours does.
-            </span>
-          </label>
-        </template>
-
-        <div v-if="!isCollection && draft.source === SOURCE_LOCAL" class="field field-wide">
-          <span id="draft-nodes-label" class="field-label">Nodes</span>
-          <CodeEditor
-            aria-labelledby="draft-nodes-label"
-            v-model="draft.content"
-            language="plain"
-            :rows="12"
-            placeholder="Paste node links, a base64 blob, Clash YAML, or sing-box JSON"
-          />
-          <span class="field-optional">
-            Mixed lists work. One node per line for link formats.
-          </span>
-        </div>
-
-        <!-- ── collection: what it gathers ────────────────────────────── -->
-        <template v-if="isCollection">
-          <div class="field field-wide">
-            <span class="field-label">Choose subscriptions</span>
-            <MemberPicker
-              :candidates="memberCandidates"
-              :selected="draft.members"
-              @update:selected="draft.members = $event"
-            />
-          </div>
-
-          <label class="field field-wide">
-            <span class="field-label">…and everything tagged</span>
-            <input
-              v-model="memberTagText"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="home, backup"
-            />
-            <span class="field-optional">
-              Gathering by tag means a new subscription joins by being tagged, without editing
-              this combination.
-            </span>
-          </label>
-
-          <div class="field field-wide">
-            <span class="field-label">If a member cannot be fetched</span>
-            <div class="choice-row">
-              <button
-                type="button"
-                :class="{ 'is-active': draft.failureMode !== FAILURE_SKIP }"
-                @click="draft.failureMode = FAILURE_STRICT"
-              >
-                Fail the whole thing
-              </button>
-              <button
-                type="button"
-                :class="{ 'is-active': draft.failureMode === FAILURE_SKIP }"
-                @click="draft.failureMode = FAILURE_SKIP"
-              >
-                Skip it and serve the rest
-              </button>
-            </div>
-            <span class="field-optional">
-              Failing is the safer default: serving only the survivors reaches a client as “those
-              nodes were removed”, and it deletes them. Skipping is right when one flaky provider
-              should not take down a large combination.
-            </span>
-          </div>
-        </template>
-
-        </div>
-      </fieldset>
-
-      <fieldset v-show="editorTab === 'content'" class="editor-group">
-        <legend>Output</legend>
-        <div class="form-grid">
-        <label class="field">
-          <span class="field-label">Client format</span>
-          <select v-model="draft.target" class="select">
-            <option value="">Decide from the client that asks</option>
-            <option v-for="target in CONVERT_TARGETS" :key="target.id" :value="target.id">
-              {{ target.label }}
-            </option>
-          </select>
-          <span class="field-optional">
-            Left automatic, Surge gets Surge and Clash gets Clash from one URL.
-          </span>
-        </label>
-
-        </div>
-      </fieldset>
-
-      <div v-show="editorTab === 'operations'" class="editor-block">
-        <CommonSettingsBlock :model-value="common" @update:model-value="onCommonChange" />
-      </div>
-
-      <div v-show="editorTab === 'operations'" class="editor-block">
-          <ProcessChain
-            :steps="(draft.process as ChainStep[])"
-            :catalog="subs.operators.value"
-            :catalog-state="subs.operatorsState.value"
-            :managed-types="MANAGED_TYPES"
-            :can-preview-step="canPreviewNow"
-            :previewing-step="subs.previewing.value ? subs.previewStep.value : null"
-            @update:steps="draft.process = $event"
-            @preview-step="previewUpToStep"
-          />
-          <span v-if="isCollection" class="field-optional">
-            Each member runs its own operations first; these run over everything merged.
-          </span>
-      </div>
-
-        <!-- Deliberately not sticky. The frame is a viewport now, so it could
-             be, but a bar pinned over a form this tall covers a field for the
-             whole time it is being filled in. Save belongs at the end of the
-             form; what needed to stay in view was the preview, and that is the
-             pane beside it. -->
-        <div class="editor-actions">
-          <!-- The failure belongs next to the button that produced it: this
-               form is long, and a banner at the top is off-screen from the
-               click that triggered it. -->
-          <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
-          <!-- Clickable, because the field it names is usually on another tab. -->
-          <button
-            v-else-if="draftError"
-            type="button"
-            class="field-error field-error-jump"
-            :title="`Go to the ${EDITOR_TABS.find((t) => t.id === errorTab)?.label} section`"
-            @click="editorTab = errorTab || editorTab"
-          >
-            {{ draftError }}
-          </button>
-          <button class="button button-secondary" type="button" @click="leaveEditor">Cancel</button>
-          <button class="button button-primary" type="submit" :disabled="!canSave || !subs.canMutate.value">
-            <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
-            Save
-          </button>
-        </div>
-      </form>
-
-      <!-- What this record would produce, beside the form that decides it. The
-           frame is a viewport now, so the pane can stay in view while a long
-           form scrolls under it. Below the breakpoint it becomes the last block
-           instead: a sticky column in a 375px frame is a column that covers the
-           form. -->
-      <aside class="editor-side" aria-labelledby="editor-preview-title">
-        <div class="editor-side-head">
-          <h3 id="editor-preview-title">Source and result</h3>
-          <div class="editor-side-actions">
-            <button
-              class="button button-secondary"
-              type="button"
-              :disabled="!canPreviewNow || !explainable || explaining"
-              :title="!explainable ? 'Add an operation first; there is nothing to explain' : (draftError || 'Run the chain one operation at a time and say what each one kept')"
-              @click="explainDraft()"
-            >
-              <LoaderCircle v-if="explaining" :size="16" class="spin" aria-hidden="true" />
-              <ListOrdered v-else :size="16" aria-hidden="true" />
-              Explain chain
-            </button>
-            <button
-              class="button button-secondary"
-              type="button"
-              :disabled="!canPreviewNow || explaining"
-              :title="draftError || 'Run the chain and show the nodes it produces'"
-              @click="subs.runPreview(draft)"
-            >
-              <LoaderCircle v-if="subs.previewing.value && !explaining" :size="16" class="spin" aria-hidden="true" />
-              <Eye v-else :size="16" aria-hidden="true" />
-              {{ subs.preview.value ? "Refresh" : "Preview" }}
-            </button>
-          </div>
-        </div>
-
-        <!-- What the preview could not do as asked and did instead: a read
-             session previewing a saved record's stored source. -->
-        <p v-if="subs.preview.value && subs.previewNote.value" class="editor-side-note is-note" role="status">
-          {{ subs.previewNote.value }}
-        </p>
-        <SubscriptionPreviewSummary
-          v-if="subs.preview.value"
-          :preview="subs.preview.value"
-          :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
-          :deltas="explanation?.deltas ?? []"
-          :dropped-by="explanation?.droppedBy"
-        />
-        <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert">
-          {{ subs.previewError.value }}
-        </p>
-        <p v-else-if="draftError" class="editor-side-note">{{ draftError }}</p>
-        <p v-else class="editor-side-note">
-          Nothing run yet. Preview walks the chain over this draft without saving it, so the
-          operations can be checked before anyone else sees them.
-        </p>
-      </aside>
-      </div>
-
-      <!-- Leaving with unsaved changes. It lives inside the editor because that
-           is the only screen it can be asked from: parked next to the list's
-           dialogs it was never rendered while the editor was up, and the exit
-           silently did nothing at all. -->
-      <LtConfirmDialog
-        :open="discarding"
-        title="Leave without saving? The changes you made to this record are not stored yet and will be lost."
-        verb="Discard changes"
-        :names="[draft.displayName || draft.name || (editingId ?? 'this record')]"
-        @confirm="cancelEdit()"
-        @cancel="discarding = false"
-      />
-    </section>
+    <SubscriptionEditor v-if="editing" :editor="editor" :subs="subs" />
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
     <section v-else class="configuration" aria-labelledby="subs-title">
@@ -2330,57 +1601,20 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
         @close="closeTargetSheet()"
       />
 
-      <LtPanel :open="!!drawer" :title="drawerTitle" :return-focus-to="drawerTrigger" @close="closeDrawer()">
-        <template v-if="drawer?.mode === 'preview'">
-          <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
-            <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
-          </p>
-          <p v-else-if="subs.rowPreview.value?.error" class="row-popover-error" role="alert">
-            {{ subs.rowPreview.value.error }}
-          </p>
-          <template v-else-if="subs.rowPreview.value">
-            <p class="row-popover-note">
-              {{ subs.rowPreview.value.count }} node(s) once its operations run
-            </p>
-            <NodeRows :nodes="subs.rowPreview.value.nodes" />
-            <p v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length" class="row-popover-note">
-              …and {{ subs.rowPreview.value.count - subs.rowPreview.value.nodes.length }} more
-            </p>
-          </template>
-        </template>
-
-        <SubscriptionPublishControl
-          v-else-if="drawer?.mode === 'publish'"
-          :saved="true"
-          :read-only="!subs.canMutate.value"
-          :busy="subs.busyId.value === drawer.id"
-          :error="subs.actionError.value"
-          @publish="publishFromDrawer"
-        />
-
-        <template v-else-if="drawer?.mode === 'share'">
-          <p v-if="drawerItem && publishedOf(drawerItem).tone === 'warn'" class="row-popover-copy">
-            {{ publishedOf(drawerItem).title }} Renewing or enabling it happens in the
-            dashboard, under <strong>Networking → Subscription Shares</strong>.
-          </p>
-          <template v-else>
-            <p class="row-popover-copy">
-              Nothing here is reachable until a share is published for it. Shares live in the
-              dashboard, under <strong>Networking → Subscription Shares</strong>.
-            </p>
-            <p class="row-popover-note">Already published? The Shares lens shows its link.</p>
-          </template>
-          <div v-if="shareOrigin && drawerItem" class="empty-actions">
-            <LtButton variant="primary" @click="openShares(drawerItem)">
-              <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
-            </LtButton>
-          </div>
-          <p v-else class="row-popover-note">
-            This frame cannot ask the console to navigate, open Networking → Subscription Shares
-            yourself.
-          </p>
-        </template>
-      </LtPanel>
+      <SubscriptionPanel
+        :open="!!drawer"
+        :mode="drawer?.mode ?? null"
+        :title="drawerTitle"
+        :item="drawerItem ?? null"
+        :subs="subs"
+        :busy-id="subs.busyId.value"
+        :published="drawerItem ? publishedOf(drawerItem) : null"
+        :share-origin="shareOrigin"
+        :return-focus-to="drawerTrigger"
+        @close="closeDrawer()"
+        @publish="publishFromDrawer"
+        @open-shares="openShares"
+      />
 
       <LtConfirmDialog
         :open="deleting.length > 0"

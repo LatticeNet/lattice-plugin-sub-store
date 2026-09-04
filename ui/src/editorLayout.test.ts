@@ -2,7 +2,15 @@ import { readFileSync } from "node:fs";
 import { parse } from "vue/compiler-sfc";
 import { describe, expect, it } from "vitest";
 
-const screen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
+// The subscriptions editor is its own component now, with its state in
+// useRecordEditor; the screen routes between it and the list. These assertions
+// are about the editor, so they read the three files as one.
+const editorView = readFileSync(new URL("./components/SubscriptionEditor.vue", import.meta.url), "utf8");
+const screen = [
+  readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8"),
+  readFileSync(new URL("./useRecordEditor.ts", import.meta.url), "utf8"),
+  editorView,
+].join("\n");
 const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8");
 
 /** CSS with its comments removed, for assertions about declarations. */
@@ -56,7 +64,7 @@ describe("the record editor and its compare panel", () => {
   });
 
   it("gives the pane the control that fills it, once", () => {
-    const editor = screen.slice(screen.indexOf('<section v-if="editing"'));
+    const editor = editorView;
     const aside = editor.slice(editor.indexOf('<aside class="editor-side"'), editor.indexOf("</aside>"));
     expect(aside).toContain("subs.runPreview(draft)");
     // Two buttons for one job is two places to look when nothing happens.
@@ -68,7 +76,7 @@ describe("the record editor and its compare panel", () => {
     // The control moved into the pane, so a failure that only reached the save
     // row at the bottom of a long form was one the operator could cause and
     // never see.
-    const editor = screen.slice(screen.indexOf('<section v-if="editing"'));
+    const editor = editorView;
     const aside = editor.slice(editor.indexOf('<aside class="editor-side"'), editor.indexOf("</aside>"));
     expect(aside).toMatch(/subs\.previewError\.value/);
     expect(aside).toContain('role="alert"');

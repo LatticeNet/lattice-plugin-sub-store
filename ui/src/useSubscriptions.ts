@@ -1061,3 +1061,7 @@ export function useSubscriptions(host: HostContext) {
     clearErrors,
   };
 }
+
+/** The one store both the list and the editor read; each is handed the same
+ *  instance rather than constructing its own. */
+export type UseSubscriptions = ReturnType<typeof useSubscriptions>;
