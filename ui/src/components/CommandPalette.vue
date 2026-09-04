@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, toRef, watch } from "vue";
 import { CornerDownLeft, Search } from "@lucide/vue";
 
 import type { SubscriptionListItem } from "../client";
@@ -10,6 +10,7 @@ import {
   type PaletteEntry,
 } from "../commandPalette";
 import { trapDialogTab } from "../dialogFocus";
+import { useOverlayRegistration } from "../useOverlayRegistration";
 import type { ActionCapabilities, ActionId } from "../recordActions";
 
 const props = defineProps<{
@@ -25,9 +26,11 @@ const emit = defineEmits<{
   command: [id: NonNullable<PaletteEntry["command"]>];
 }>();
 
+useOverlayRegistration(toRef(props, "open"), () => escape());
+
 /** Which actions the palette offers. Editing and deleting are what an operator
- *  comes here for; the drawer-bound ones stay on the row, where the drawer can
- *  anchor to something. */
+ *  comes here for; the panel-bound ones stay on the row, beside the record
+ *  they act on. */
 const OFFERED: readonly ActionId[] = ["edit", "output", "refresh", "duplicate", "delete"];
 
 const query = ref("");
@@ -111,17 +114,27 @@ function onKeydown(event: KeyboardEvent): void {
     choose(cursor.value);
     return;
   }
+  // The palette belongs to the shell and opens over the Shares and Settings
+  // lenses too, which bind no document keys, so it is the one overlay that
+  // answers Escape itself and stops it here rather than sending it to a
+  // handler that may not exist. It registers all the same, because what the
+  // editor guard needs to know is that something is layered over it.
   if (event.key === "Escape") {
     event.preventDefault();
-    // Escape steps back one level before it closes, so a mis-pick costs one
-    // key rather than the whole query.
-    if (chosen.value) {
-      chosen.value = null;
-      cursor.value = 0;
-      return;
-    }
-    emit("close");
+    event.stopPropagation();
+    escape();
   }
+}
+
+/** Escape steps back one level before it closes: a mis-pick costs one key
+ *  rather than the whole query. Also what the overlay stack calls. */
+function escape(): void {
+  if (chosen.value) {
+    chosen.value = null;
+    cursor.value = 0;
+    return;
+  }
+  emit("close");
 }
 </script>
 

@@ -180,8 +180,22 @@ describe("the palette's wiring", () => {
   });
 
   it("steps back a level before it closes", () => {
-    const escape = palette.slice(palette.indexOf('event.key === "Escape"'));
-    expect(escape.slice(0, 400)).toContain("chosen.value = null");
+    // Escape is routed through one function, because the palette answers the
+    // key two ways: pressed inside it, and called by the overlay stack.
+    expect(palette).toMatch(/function escape\(\): void \{[\s\S]{0,200}chosen\.value = null/);
+    const pressed = palette.slice(palette.indexOf('event.key === "Escape"'));
+    expect(pressed.slice(0, 500)).toContain("escape()");
+  });
+
+  it("answers its own Escape, because it outlives the screen that would", () => {
+    // The palette belongs to the shell and opens over the Shares and Settings
+    // lenses too, and those bind no document keys. It stops the key rather
+    // than letting it reach a handler that may not be there.
+    const pressed = palette.slice(palette.indexOf('event.key === "Escape"'));
+    expect(pressed.slice(0, 500)).toContain("event.stopPropagation()");
+    // It still registers, because what the editor guard needs to know is that
+    // something is layered over it.
+    expect(palette).toContain("useOverlayRegistration");
   });
 
   it("fits a frame narrower than it is", () => {

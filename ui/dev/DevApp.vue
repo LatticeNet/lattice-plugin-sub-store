@@ -4,57 +4,25 @@ import { ref, watchEffect } from "vue";
 import { provideHost } from "../src/host";
 import Shell from "../src/Shell.vue";
 import { createFakeHost } from "./fakeHost";
+import { applyHostTheme } from "./hostTheme";
 
 // The same shell the plugin ships, against a fake host.
 provideHost(createFakeHost());
 
 /**
- * The host injects design tokens through the bridge; the harness has no host,
- * so it applies representative values itself.
+ * The console publishes its whole chassis to the frame (token contract v2) and
+ * the harness has no console, so it sends the same payload itself.
  *
- * Without this the UI renders against its light fallbacks, and polishing it
- * would mean polishing colours the operator never sees. The dashboard is
- * dark-forward.
+ * It used to send ten approximate hexes and nothing else, so a harness
+ * screenshot showed the plugin's own radius scale, its own spacing and its own
+ * hardcoded green and amber rather than the console's. Everything anyone
+ * polished here was a value the operator never sees. `dev/hostTheme.ts` holds
+ * the payload; it is applied the way the bridge applies it, as inline
+ * properties on <html>, so the precedence is the real one.
  */
-// The console's palette: slate neutrals and one teal accent. These are the
-// host's values, not the plugin's; the plugin only ever reads the tokens. The
-// harness briefly painted a warm-neutral, terracotta variant that the console
-// itself no longer uses, so the plugin looked orange in the one place anyone
-// polishes it. Restored to what the operator actually sees.
-const DARK: Record<string, string> = {
-  "--background": "#0d1117",
-  "--foreground": "#e9eef5",
-  "--card": "#161c26",
-  "--border": "#242d3a",
-  "--muted": "#1a212c",
-  "--muted-foreground": "#8b96a5",
-  "--primary": "#2dd4bf",
-  "--primary-foreground": "#04211d",
-  "--destructive": "#f87171",
-  "--ring": "#2dd4bf",
-};
-
-const LIGHT: Record<string, string> = {
-  "--background": "#f7f8f9",
-  "--foreground": "#17191c",
-  "--card": "#ffffff",
-  "--border": "#d9dde2",
-  "--muted": "#f1f3f5",
-  "--muted-foreground": "#656d76",
-  "--primary": "#1769aa",
-  "--primary-foreground": "#ffffff",
-  "--destructive": "#c43838",
-  "--ring": "#1769aa",
-};
-
 const dark = ref(true);
 
-watchEffect(() => {
-  const tokens = dark.value ? DARK : LIGHT;
-  for (const [name, value] of Object.entries(tokens)) {
-    document.documentElement.style.setProperty(name, value);
-  }
-});
+watchEffect(() => applyHostTheme(dark.value ? "dark" : "light"));
 </script>
 
 <template>
@@ -69,7 +37,10 @@ watchEffect(() => {
 .dev-bar {
   position: sticky;
   top: 0;
-  z-index: 50;
+  /* Under the overlays on purpose: the panel is fixed 12px from the frame top
+     in production, and a harness bar painted over it would hide the geometry
+     this harness exists to show. */
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;

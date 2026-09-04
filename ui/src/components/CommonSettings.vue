@@ -82,12 +82,12 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
 .common {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-3);
+  gap: var(--space-3);
   max-width: var(--lt-measure-form);
-  padding: var(--lt-space-4);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
 }
 
 .common h3 {
@@ -100,15 +100,15 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
   display: grid;
   grid-template-columns: minmax(160px, 220px) 1fr;
   grid-template-areas: "label choices" "hint hint";
-  gap: var(--lt-space-1) var(--lt-space-4);
+  gap: var(--space-1) var(--space-4);
   align-items: center;
 }
 
-.common-row + .common-row { padding-top: var(--lt-space-3); border-top: 1px solid var(--lt-border); }
+.common-row + .common-row { padding-top: var(--space-3); border-top: 1px solid var(--border); }
 
 .common-label {
   grid-area: label;
-  font-size: var(--lt-text-md);
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
@@ -116,26 +116,26 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
   grid-area: choices;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
 }
 
 .common-choices button {
   height: var(--lt-control-h);
-  padding: 0 var(--lt-space-3);
-  border: 1px solid var(--lt-border);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--lt-bg);
-  color: var(--lt-fg-muted);
+  background: var(--background);
+  color: var(--muted-foreground);
   font-size: var(--lt-text-sm);
 }
 
-.common-choices button:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.common-choices button:hover { color: var(--foreground); border-color: var(--lt-border-strong); }
 .common-choices button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .common-choices button.is-active {
-  border-color: var(--lt-accent);
+  border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--lt-accent);
+  color: var(--primary);
 }
 
 .common-hint {
@@ -143,7 +143,7 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
   max-width: var(--lt-measure-prose);
   font-size: var(--lt-text-xs);
   line-height: var(--lt-leading);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 
 @media (max-width: 620px) {

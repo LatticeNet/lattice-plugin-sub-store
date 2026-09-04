@@ -65,14 +65,17 @@ describe("the editor screens delegate their exits", () => {
     }
   });
 
-  it("reports every overlay that owns Escape", () => {
-    // The discard confirm is the guard's own and is not named here.
-    expect(screen).toMatch(
-      /overlayOpen: \(\) => deleting\.value\.length > 0 \|\| !!drawer\.value \|\| !!targetSheet\.value/,
-    );
-    expect(files).toMatch(
-      /overlayOpen: \(\) =>[\s\S]{0,160}!!deleteTargets\.value[\s\S]{0,160}!!drawer\.value/,
-    );
+  it("reads what is layered from the stack, not from a hand-written list", () => {
+    // Each screen used to name its own overlays here, and the second screen to
+    // grow one forgot: the Files editor shipped with no guard at all. Every
+    // overlay registers with overlayStack while it is open now, so this line
+    // cannot fall behind the screen it describes. The discard confirm is the
+    // guard's own and is still not counted here.
+    expect(screen).toMatch(/overlayOpen: \(\) => overlayDepth\(\) > 0/);
+    expect(files).toMatch(/overlayOpen: \(\) => overlayDepth\(\) > 0/);
+    for (const text of [screen, files]) {
+      expect(text).toContain('from "../overlayStack"');
+    }
   });
 
   it("snapshots each editor against the fields that screen can edit", () => {

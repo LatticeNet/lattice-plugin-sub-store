@@ -19,11 +19,11 @@ defineProps<{ rows?: number; columns?: number }>();
 <style scoped>
 .lt-skeleton-row {
   display: flex;
-  gap: var(--lt-space-4);
+  gap: var(--space-4);
   align-items: center;
-  height: var(--lt-row-h);
-  border-bottom: 1px solid var(--lt-border);
-  padding: 0 var(--lt-space-3);
+  height: var(--row-h);
+  border-bottom: 1px solid var(--border);
+  padding: 0 var(--space-3);
 }
 .lt-skeleton-cell {
   height: 10px;

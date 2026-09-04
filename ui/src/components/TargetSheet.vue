@@ -7,7 +7,7 @@
  * has admin access. Redacted pipeline nodes remain a separate diagnostic view
  * for read-scoped sessions and for operators checking the chain.
  */
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, toRef, watch } from "vue";
 import { Check, Copy, Link, LoaderCircle, RefreshCw, X } from "@lucide/vue";
 
 import DocumentView from "./DocumentView.vue";
@@ -27,6 +27,7 @@ import {
 } from "../client";
 import { publishStateFor, type PublishState } from "../shareState";
 import { trapDialogTab } from "../dialogFocus";
+import { useOverlayRegistration } from "../useOverlayRegistration";
 import { isFileRecord } from "../filePreview";
 import { useHost } from "../host";
 import { copyText } from "../hostClipboard";
@@ -39,12 +40,14 @@ import { safeErrorMessage } from "../subStoreModel";
 
 const props = defineProps<{
   open: boolean;
-  /** Retained while row callers finish removing document-coordinate anchors. */
-  anchorTop?: number;
   record: SubscriptionListItem | null;
 }>();
 
 const emit = defineEmits<{ (e: "close"): void }>();
+
+// The panel registers while it is open; the visible screen's one document
+// handler closes the top of the stack. Escape is not answered in here.
+useOverlayRegistration(toRef(props, "open"), () => emit("close"));
 const host = useHost();
 
 type ViewMode = "document" | "nodes";
@@ -547,11 +550,10 @@ onBeforeUnmount(stopAllRequests);
       ref="sheet"
       tabindex="-1"
       class="sheet target-workspace"
+      data-size="output"
       role="dialog"
       aria-modal="true"
       :aria-label="`${isFile ? 'Document preview' : 'Client output'} for ${recordName}`"
-      :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
-      @keydown.esc.stop="close"
       @keydown.tab="onTab"
     >
       <header class="sheet-head">

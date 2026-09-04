@@ -98,13 +98,17 @@ describe("rendered documents use the shared read-only code viewer", () => {
    */
   // One scroller per document (DESIGN-PROGRAM 1). The sheet used to be a
   // fixed frame with three scrollers inside it, and reaching a row meant
-  // guessing which one owned the wheel. It is a panel in the document now:
-  // its height is its content and the document scrolls it.
-  it("is a panel the document scrolls, not a scroller of its own", () => {
+  // guessing which one owned the wheel. There is still exactly one; which
+  // element owns it is what changed. It was the page, back when the panel was
+  // positioned in document coordinates because the frame had no viewport. The
+  // frame is a viewport now, the panel is fixed inside it, and a fixed panel
+  // that is as tall as a 3,845px configuration is a panel with most of itself
+  // off screen. So the panel owns the wheel, and nothing inside it does.
+  it("is one scroller with two pinned strips, and nothing else scrolls", () => {
     const decl = styles.replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(decl).toMatch(/\.sheet\s*\{[^}]*position:\s*absolute/s);
+    expect(decl).toMatch(/\.sheet\s*\{[^}]*position:\s*fixed/s);
+    expect(decl).toMatch(/\.sheet\s*\{[^}]*overflow-y:\s*auto/s);
     expect(decl).not.toMatch(/\.sheet\s*\{[^}]*overflow:\s*hidden/s);
-    expect(decl).not.toMatch(/\.sheet\s*\{[^}]*max-height/s);
     expect(decl).not.toMatch(/\.sheet-scrim\s*\{[^}]*overflow-y:\s*auto/s);
     // Neither pane scrolls on its own either.
     expect(decl).not.toMatch(/\.target-controls\s*\{[^}]*overflow-y:\s*auto/s);
@@ -124,15 +128,18 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(decl).toMatch(/\.output-heading\s*\{[^}]*position:\s*sticky/s);
     // The second strip clears the first rather than opening underneath it.
     expect(decl).toMatch(/\.output-heading\s*\{[^}]*top:\s*var\(--lt-sheet-head-h\)/s);
-    // Neither does the row drawer scroll inside itself.
-    const drawer = source("components/lt/LtDrawer.vue").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(drawer).not.toMatch(/max-height:\s*\d/);
-    expect(drawer).not.toMatch(/overflow-y:\s*auto/);
+    // Nor does the panel body: the panel is the scroller, its body is not a
+    // second one inside it.
+    expect(decl).not.toMatch(/\.sheet-body\s*\{[^}]*overflow-y:\s*auto/s);
+    expect(decl).not.toMatch(/\.sheet-body\s*\{[^}]*max-height/s);
   });
 
   it("gives the preview workspace a dominant evidence pane", () => {
-    // A right-side panel wide enough for the rail and an 80-column document.
-    expect(styles).toMatch(/\.sheet\s*\{[^}]*width:\s*min\(960px, 100%\)/s);
+    // A right-side panel wide enough for the rail and an 80-column document,
+    // inset from the frame edge by one step so its shadow has room to land.
+    expect(styles).toMatch(/\.sheet\s*\{[^}]*width:\s*min\(960px, calc\(100% - var\(--space-3\) \* 2\)\)/s);
+    // Record work is the same panel at a form's width.
+    expect(styles).toMatch(/\.sheet\[data-size="record"\]\s*\{[^}]*width:\s*min\(440px/s);
     expect(styles).toMatch(/\.target-workspace-body\s*\{[^}]*grid-template-columns/s);
   });
 

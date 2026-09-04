@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, toRef, watch } from "vue";
 import LtButton from "./LtButton.vue";
+
+import { useOverlayRegistration } from "../../useOverlayRegistration";
 
 /**
  * Two-step destructive confirmation. The dialog restates every affected
@@ -22,12 +24,14 @@ const props = withDefaults(
      */
     consequences?: string[];
     busy?: boolean;
-    /** Document-space position; the frame is not a viewport (see overlayAnchor). */
-    anchorTop?: number;
   }>(),
   { consequences: () => [] },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
+
+// A modal opens over a panel and Escape closes exactly this one; the stack
+// says so, so nothing here has to stop the key from travelling.
+useOverlayRegistration(toRef(props, "open"), () => emit("cancel"));
 
 const typed = ref("");
 const dialog = ref<HTMLElement | null>(null);
@@ -49,12 +53,12 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
 
 <template>
   <!--
-    The `.stop` on the Escape handler below is load-bearing, not tidiness. The
-    screens also listen for Escape on the document, to step back out of a row
-    or an editor. Without it, one Escape on the "leave without saving?" dialog
-    cancelled the dialog AND then reached the screen, which saw no overlay
-    open, saw the draft still dirty, and raised the same dialog again: the
-    dialog could not be dismissed from the keyboard at all.
+    No Escape handler here on purpose. One press used to cancel this dialog AND
+    then reach the screen, which saw a dirty draft and raised the same dialog
+    again, so every overlay grew a `.stop` and the screens grew hand-written
+    lists of what counted as open. The overlay stack replaced both: this dialog
+    registers while it is open and the screen's one document handler closes the
+    top of the stack.
   -->
   <div v-if="open" class="lt-dialog-backdrop" @click.self="emit('cancel')">
     <div
@@ -64,8 +68,6 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
       aria-modal="true"
       tabindex="-1"
       :aria-label="title"
-      :style="{ '--overlay-anchor-top': `${anchorTop ?? 0}px` }"
-      @keydown.esc.stop="emit('cancel')"
     >
       <p class="lt-dialog-title">{{ title }}</p>
       <ul class="lt-dialog-names">
@@ -95,65 +97,65 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
 
 <style scoped>
 .lt-dialog-backdrop {
-  /* Absolute against .workspace, which is the document; see the note on
-     .workspace in styles.css for why `inset: 0` alone is not enough. */
-  position: absolute;
+  /* Fixed to the frame, which is the visible window. It was absolute against
+     the document and pushed down by the click's Y, because a content-sized
+     frame had no viewport to centre in; it has one now. */
+  position: fixed;
   inset: 0;
-  background: color-mix(in oklab, var(--lt-fg) 32%, transparent);
+  background: color-mix(in oklab, var(--foreground) 32%, transparent);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  /* Anchored to the click rather than to a fraction of a "viewport" that is
-     really the frame's own content height. */
-  padding-top: var(--overlay-anchor-top, 24px);
-  z-index: 60;
+  padding: 12vh var(--space-4) var(--space-4);
+  overflow-y: auto;
+  z-index: var(--lt-z-modal);
 }
 .lt-dialog {
   width: min(440px, calc(100vw - 32px));
   outline: none;
-  background: var(--lt-surface);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  padding: var(--lt-space-4);
-  box-shadow: 0 12px 32px color-mix(in oklab, var(--lt-fg) 18%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
+  /* A modal takes the host dialog's step, which is one below a page panel. */
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-overlay);
 }
-.lt-dialog-title { margin: 0 0 var(--lt-space-3); font-size: var(--lt-text-md); font-weight: 600; }
+.lt-dialog-title { margin: 0 0 var(--space-3); font-size: var(--text-body); font-weight: 600; }
 .lt-dialog-names {
-  margin: 0 0 var(--lt-space-3);
-  padding: var(--lt-space-2) var(--lt-space-3);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
   list-style: none;
   max-height: 160px;
   overflow: auto;
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-surface-2);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
   font-size: var(--lt-text-sm);
 }
-.lt-dialog-names .mono { font-family: var(--lt-mono); }
+.lt-dialog-names .mono { font-family: var(--font-mono); }
 /* Consequences are a warning, not a kill list, and must not read as things
    about to be deleted. */
 .lt-dialog-names.is-consequence {
-  border-color: var(--lt-warn-border);
   background: var(--lt-warn-soft);
 }
 .lt-dialog-subtitle {
-  margin: 0 0 var(--lt-space-1);
-  color: var(--lt-fg-muted);
+  margin: 0 0 var(--space-1);
+  color: var(--muted-foreground);
   font-size: var(--lt-text-xs);
   font-weight: 600;
 }
-.lt-dialog-arm { display: block; font-size: var(--lt-text-sm); color: var(--lt-fg-muted); margin-bottom: var(--lt-space-3); }
+.lt-dialog-arm { display: block; font-size: var(--lt-text-sm); color: var(--muted-foreground); margin-bottom: var(--space-3); }
 .lt-dialog-input {
   display: block;
-  margin-top: var(--lt-space-1);
+  margin-top: var(--space-1);
   width: 90px;
   font: inherit;
-  padding: var(--lt-space-1) var(--lt-space-2);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-bg);
-  color: var(--lt-fg);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--foreground);
 }
 .lt-dialog-input:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-.lt-dialog-actions { display: flex; justify-content: flex-end; gap: var(--lt-space-2); }
+.lt-dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
 </style>

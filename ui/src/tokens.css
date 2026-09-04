@@ -1,65 +1,127 @@
-/* Plugin-scope design tokens, derived from host variables with honest
- * fallbacks. Everything the lt- component layer consumes lives here; screens
- * never hardcode a color, a step of the spacing scale, or a type size.
+/* Design tokens.
  *
- * The frame is embedded in the console and inherits its theme through these
- * host variables. A literal color anywhere below the "semantic status" block
- * is a bug: it renders a light-mode box on a dark console. */
+ * The frame runs inside the console and the console owns the design system.
+ * Under token contract v2 it publishes its whole chassis to the frame, not
+ * just eleven colours: surfaces and ink, status semantics, four radius steps,
+ * both row heights, the seven spacing steps, the mono stack and two type
+ * sizes, two shadows, two durations and one curve. The bridge writes those as
+ * inline custom properties on this document's <html>, and an inline property
+ * beats anything declared here.
+ *
+ * So the stylesheet lays out on the console's own names, and this file is two
+ * things and nothing else:
+ *
+ *   1. Fallbacks for the published names, in force only when no host sends
+ *      them: the dev harness with the theme message off, and a console older
+ *      than the contract. The values are the console's own, so the plugin
+ *      looks the same either way; they are not a second palette to maintain.
+ *      The dark set below is keyed off `data-theme`, which the bridge sets on
+ *      <html> before it writes a single token.
+ *
+ *   2. The handful of values the console has no name for, which stay `--lt-`:
+ *      derivations of a published colour (the soft fills, the hover border),
+ *      the type steps between body and heading, the column grid, the measures,
+ *      and the motion aliases. Nothing here is a colour of the plugin's own.
+ *
+ * Motion is aliased rather than used directly for one reason: reduced motion
+ * has to be able to zero the durations, and a stylesheet cannot override the
+ * host's inline property. `--lt-dur` is ours, so the media query at the bottom
+ * still wins. */
 :root {
-  /* surfaces */
-  --lt-bg: var(--background, #ffffff);
-  --lt-surface: var(--card, #ffffff);
-  --lt-surface-2: color-mix(in oklab, var(--card, #ffffff) 96%, var(--foreground, #111827) 4%);
-  --lt-border: var(--border, #e5e7eb);
-  --lt-border-strong: color-mix(in oklab, var(--border, #e5e7eb) 60%, var(--foreground, #111827) 40%);
-  /* A shadow stays dark in both themes. Deriving it from foreground turns the
-   * dark theme's overlays into a white halo. */
-  --lt-shadow-ink: #000;
+  /* ── published names: fallbacks, light ───────────────────────────────── */
+  --background: oklch(0.99 0.0015 280);
+  --foreground: oklch(0.21 0.02 281);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 281);
+  --muted: oklch(0.965 0.006 280);
+  --muted-foreground: oklch(0.524 0.022 281);
+  --accent: oklch(0.95 0.014 279);
+  --accent-foreground: oklch(0.30 0.05 279);
+  --border: oklch(0.91 0.006 281);
+  --primary: oklch(0.541 0.205 278.5);
+  --primary-foreground: oklch(0.985 0.005 280);
+  --destructive: oklch(0.583 0.231 27.5);
+  --destructive-foreground: oklch(0.985 0.01 20);
+  --ring: oklch(0.541 0.205 278.5);
 
-  /* ink */
-  --lt-fg: var(--foreground, #111827);
-  --lt-fg-muted: var(--muted-foreground, #6b7280);
-  --lt-accent: var(--primary, #2563eb);
-  --lt-accent-contrast: var(--primary-foreground, #ffffff);
-  --lt-accent-soft: color-mix(in oklab, var(--lt-accent) 12%, var(--lt-surface) 88%);
-  --lt-accent-border: color-mix(in oklab, var(--lt-accent) 45%, var(--lt-border) 55%);
+  /* Status. These are the tokens the old bridge did not carry, so this lens
+     hardcoded a green and an amber that were right in one theme only. */
+  --success: oklch(0.62 0.16 150);
+  --success-foreground: oklch(0.985 0.01 155);
+  --warning: oklch(0.72 0.16 73);
+  --warning-foreground: oklch(0.26 0.05 70);
+  --info: oklch(0.6 0.14 240);
+  --info-foreground: oklch(0.985 0.01 240);
 
-  /* semantic status: the only colors that may carry meaning, and the only
-   * literals in this file. Each has a soft fill mixed into the CURRENT
-   * surface, so the fill follows the host theme instead of fighting it. */
-  --lt-ok: #16a34a;
-  --lt-warn: #d97706;
-  --lt-danger: var(--destructive, #dc2626);
-  --lt-ok-soft: color-mix(in oklab, var(--lt-ok) 12%, var(--lt-surface) 88%);
-  --lt-warn-soft: color-mix(in oklab, var(--lt-warn) 12%, var(--lt-surface) 88%);
-  --lt-danger-soft: color-mix(in oklab, var(--lt-danger) 12%, var(--lt-surface) 88%);
-  --lt-neutral-soft: color-mix(in oklab, var(--lt-fg) 7%, var(--lt-surface) 93%);
-  --lt-ok-border: color-mix(in oklab, var(--lt-ok) 40%, var(--lt-border) 60%);
-  --lt-warn-border: color-mix(in oklab, var(--lt-warn) 40%, var(--lt-border) 60%);
-  --lt-danger-border: color-mix(in oklab, var(--lt-danger) 40%, var(--lt-border) 60%);
+  /* Radius. Four steps, and which one a thing takes follows its container
+     level, not its component: 3 for inline marks, 4 for controls and rows, 6
+     for inset blocks and floating menus, 8 for page panels and the side panel.
+     Nothing else, no literal px, and no corner-only radius. */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius: 4px;
 
-  /* type. Inherit the console's stack exactly; naming a face here would make
-   * the frame the one panel in the product set in a different typeface. */
+  --row-h: 40px;
+  --row-h-compact: 32px;
+
+  /* Spacing. 12 inside a row, 16 inside a panel and between page blocks, 24
+     between editor columns. The 20px step this file used to carry is gone: it
+     sat between 16 and 24 and made the difference between a form gap and a
+     block gap unreadable. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+  --text-body: 14px;
+  --text-mono: 12px;
+
+  --shadow-overlay:
+    0 1px 2px oklch(0 0 0 / 6%),
+    0 8px 24px -6px oklch(0 0 0 / 12%),
+    0 4px 40px -4px color-mix(in oklab, var(--primary) 8%, transparent);
+  --shadow-raised: 0 1px 2px oklch(0 0 0 / 5%);
+
+  --duration-fast: 100ms;
+  --duration-base: 200ms;
+  --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* ── plugin-local: derivations and things the console has no name for ── */
+
+  /* Type. The console publishes body and mono; the steps in between are this
+     lens's own. Naming a face here would make the frame the one panel in the
+     product set in a different typeface, so the sans stack is the console's,
+     restated for the harness and inherited everywhere else. */
   --lt-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
-  --lt-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
   --lt-text-xs: 12px;
   --lt-text-sm: 13px;
-  --lt-text-md: 14px;
   --lt-text-lg: 16px;
   --lt-text-xl: 20px;
   --lt-leading-tight: 1.25;
   --lt-leading: 1.5;
   --lt-code-line: 1.6em;
 
-  /* rhythm: one 4px scale. Nothing lays out on a number that is not here. */
-  --lt-space-1: 4px;
-  --lt-space-2: 8px;
-  --lt-space-3: 12px;
-  --lt-space-4: 16px;
-  --lt-space-5: 20px;
-  --lt-space-6: 24px;
-  --lt-space-8: 32px;
+  /* Soft fills, each mixed into the CURRENT surface so it follows the host
+     theme instead of fighting it. */
+  --lt-accent-soft: color-mix(in oklab, var(--primary) 12%, var(--card) 88%);
+  --lt-accent-border: color-mix(in oklab, var(--primary) 45%, var(--border) 55%);
+  --lt-ok-soft: color-mix(in oklab, var(--success) 12%, var(--card) 88%);
+  --lt-warn-soft: color-mix(in oklab, var(--warning) 12%, var(--card) 88%);
+  --lt-danger-soft: color-mix(in oklab, var(--destructive) 12%, var(--card) 88%);
+  --lt-neutral-soft: color-mix(in oklab, var(--foreground) 7%, var(--card) 93%);
+  --lt-ok-border: color-mix(in oklab, var(--success) 40%, var(--border) 60%);
+  --lt-warn-border: color-mix(in oklab, var(--warning) 40%, var(--border) 60%);
+  --lt-danger-border: color-mix(in oklab, var(--destructive) 40%, var(--border) 60%);
+  /* Hover only. A resting border is `--border`; this one exists so a chip or a
+     choice button can firm up under the cursor without changing colour. */
+  --lt-border-strong: color-mix(in oklab, var(--border) 60%, var(--foreground) 40%);
 
   /* measure. The frame is fluid to match the host's other pages, so a form or
    * a paragraph caps ITSELF in characters rather than the app capping in px. */
@@ -68,52 +130,70 @@
   --lt-measure-form: 132ch;
   --lt-preview-control-w: 300px;
   --lt-preview-header-h: 64px;
-  /* The sheet header's own height. It is pinned, and the document heading
+  /* The side panel's own header height. It is pinned, and the document heading
      pins directly under it, so the second strip needs the first one's height
      as a number. The header holds itself to it by keeping its subtitle on one
      line. */
   --lt-sheet-head-h: 76px;
 
-  /* table density (comfortable default; compact swaps at runtime) */
-  --lt-row-h: 40px;
-  --lt-row-h-compact: 32px;
   --lt-control-h: 30px;
   /* Four 32px icon buttons and their gaps. Pinned rather than left to `auto`
      so the status column lands on the same x in every row, whether a row shows
-     three actions or four. 26px was under every touch-target guideline and
-     small for a mouse too; the buttons grow again to 44px on a narrow frame,
-     where they take a line of their own. */
+     three actions or four. */
   --lt-rec-actions: 134px;
   --lt-control-h-sm: 24px;
-  /* Controls read as controls, not pills (DESIGN-PROGRAM 1.x): 4px on
-   * buttons, inputs and rows, 3px on the small ones. Badges keep their pill.
-   *
-   * The third step exists because two did not. Every surface here, from a 3px
-   * chip to a full-height sheet, was cut at 3 or 4px, and a large panel with a
-   * control's radius is what makes this lens read harder-edged than vpn-core
-   * and netguard beside it. Those two both give a panel the next step up
-   * (netguard's `--ng-radius-lg`, 6px) while keeping controls tight, so a
-   * panel, a sheet, a dialog and a table container take `-lg` here and nothing
-   * smaller than a panel is allowed to. */
-  --lt-radius: 4px;
-  --lt-radius-sm: 3px;
-  --lt-radius-lg: 6px;
 
   /* focus. One ring, on every focusable thing; a keyboard operator in a data
    * tool navigates by it. */
-  --lt-focus-ring: 0 0 0 2px var(--lt-bg), 0 0 0 4px color-mix(in oklab, var(--lt-accent) 70%, transparent);
-  --lt-focus-ring-tight: 0 0 0 2px color-mix(in oklab, var(--lt-accent) 70%, transparent);
+  --lt-focus-ring: 0 0 0 2px var(--background), 0 0 0 4px color-mix(in oklab, var(--ring) 70%, transparent);
+  --lt-focus-ring-tight: 0 0 0 2px color-mix(in oklab, var(--ring) 70%, transparent);
 
-  /* elevation: overlays only. Nothing in the flow is raised, and the one
-   * shadow is tinted with the accent rather than neutral black. */
-  --lt-shadow-overlay: 0 12px 32px color-mix(in oklab, var(--lt-accent) 6%, color-mix(in oklab, var(--lt-shadow-ink) 40%, transparent));
+  /* Stacking. Three levels and nothing between them: inline chrome that sits
+     with its row, one side panel, and the two modals. Every overlay in the
+     lens takes one of these, so "what is on top" is answered by the list
+     rather than by seven numbers spread over five files. */
+  --lt-z-inline: 10;
+  --lt-z-panel: 20;
+  --lt-z-modal: 30;
 
   /* motion: two durations and one curve. Fast for hover, focus and pressed;
-   * base for expand, collapse, sheet and tab changes; expo-out, so a change
+   * base for expand, collapse, panel and tab changes; expo-out, so a change
    * starts at once and settles. Nothing loops and nothing moves without a job. */
-  --lt-ease: cubic-bezier(0.19, 1, 0.22, 1);
-  --lt-dur: 100ms;
-  --lt-dur-base: 200ms;
+  --lt-ease: var(--ease-out, cubic-bezier(0.19, 1, 0.22, 1));
+  --lt-dur: var(--duration-fast, 100ms);
+  --lt-dur-base: var(--duration-base, 200ms);
+}
+
+/* Fallbacks again, for a dark console that does not send the contract. The
+   bridge sets data-theme before it writes tokens, so this block is what an
+   older host leaves in force; a current host overrides every line of it. */
+:root[data-theme="dark"] {
+  --background: oklch(0.155 0.012 240);
+  --foreground: oklch(0.97 0.004 240);
+  --card: oklch(0.195 0.014 240);
+  --card-foreground: oklch(0.97 0.004 240);
+  --muted: oklch(0.255 0.014 240);
+  --muted-foreground: oklch(0.705 0.012 240);
+  --accent: oklch(0.285 0.02 235);
+  --accent-foreground: oklch(0.97 0.004 240);
+  --border: oklch(1 0 0 / 9%);
+  --primary: oklch(0.81 0.13 180);
+  --primary-foreground: oklch(0.17 0.012 240);
+  --destructive: oklch(0.704 0.191 22.2);
+  --destructive-foreground: oklch(0.16 0.02 15);
+  --ring: oklch(0.7 0.12 182);
+
+  --success: oklch(0.706 0.15 156);
+  --success-foreground: oklch(0.16 0.02 156);
+  --warning: oklch(0.8 0.16 80);
+  --warning-foreground: oklch(0.2 0.04 75);
+  --info: oklch(0.7 0.12 210);
+  --info-foreground: oklch(0.16 0.02 210);
+
+  /* On a dark ground a shadow is nearly invisible and a light rim is what
+     reads as "in front". */
+  --shadow-overlay: 0 0 0 1px oklch(1 0 0 / 8%), 0 10px 32px -8px oklch(0 0 0 / 70%);
+  --shadow-raised: 0 1px 2px oklch(0 0 0 / 40%);
 }
 
 @media (prefers-reduced-motion: reduce) {

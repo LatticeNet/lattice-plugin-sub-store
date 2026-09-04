@@ -30,7 +30,8 @@ import LtBadge from "../components/lt/LtBadge.vue";
 import LtButton from "../components/lt/LtButton.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import RecordMenu from "../components/RecordMenu.vue";
-import LtDrawer from "../components/lt/LtDrawer.vue";
+import LtPanel from "../components/lt/LtPanel.vue";
+import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
@@ -41,7 +42,6 @@ import TargetSheet from "../components/TargetSheet.vue";
 import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId, type ResolvedAction } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
-import { anchorTopFrom } from "../overlayAnchor";
 
 import {
   CONVERT_TARGETS,
@@ -359,7 +359,10 @@ const exit = useEditorExit({
   editing,
   fingerprint: () =>
     JSON.stringify([draft.value, common.value, tagText.value, memberTagText.value]),
-  overlayOpen: () => deleting.value.length > 0 || !!drawer.value || !!targetSheet.value,
+  // Not a hand-written list any more. Every overlay registers while it is
+  // open, so the eighth one cannot be left out of this line the way the Files
+  // editor was left out of its own.
+  overlayOpen: () => overlayDepth() > 0,
   leave: () => cancelEdit(),
 });
 const { discarding, markPristine } = exit;
@@ -713,13 +716,25 @@ function onDocumentClick(event: MouseEvent): void {
   if (target?.closest("[data-row-menu]")) return;
   closeRowMenu();
 }
+/**
+ * The one Escape arbiter for this screen, in the order the operator built the
+ * stack in: the topmost overlay, then the row menu, then the open row, then
+ * the editor.
+ *
+ * Every overlay used to answer the key itself with `@keydown.esc.stop`, and
+ * the `.stop` was the only thing keeping one press from closing a dialog and
+ * then re-raising it from the screen underneath. They register with
+ * overlayStack now and none of them handles the key, so there is exactly one
+ * decision and adding an eighth overlay cannot forget to join it.
+ */
 function onDocumentKeydown(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
+  if (closeTopOverlay()) return;
   if (openMenuId.value) {
     closeRowMenu();
     return;
   }
-  if (expandedId.value && !editing.value && !drawer.value && !targetSheet.value && !deleting.value.length) {
+  if (expandedId.value && !editing.value) {
     collapseRow();
     return;
   }
@@ -847,7 +862,7 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   }
   if (id === "publish") return openDrawer("publish", row.id, event);
   if (id === "duplicate") return void subs.duplicate(row.id);
-  if (id === "delete") return requestDelete([row.id], event);
+  if (id === "delete") return requestDelete([row.id]);
 }
 
 /**
@@ -899,18 +914,12 @@ const chainCount = computed(
  *  (a file has no client to pick) and not only on its id. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
 const targetSheetTrigger = ref<HTMLElement | null>(null);
-/**
- * Where overlays used to open. The host once sized the frame to the content,
- * so an overlay had to be placed at the click rather than centred in a frame
- * whose top might be far above the fold. The frame is a viewport now and the
- * scrim is fixed, so this value is inert; it is still computed and passed
- * because the drawer has not been converted yet and retiring the machinery is
- * the frame owner's to schedule.
- */
-const overlayAnchor = ref(32);
+/** What opened the panel, so focus goes back there when it closes. The panel
+ *  is told rather than measuring an event, which is what the retired anchoring
+ *  model was doing with the same click. */
+const drawerTrigger = ref<HTMLElement | null>(null);
 function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
   openMenuId.value = "";
-  overlayAnchor.value = anchorTopFrom(event);
   targetSheetTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
   targetSheet.value = row;
 }
@@ -1120,8 +1129,7 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-function requestDelete(ids: string[], event?: Event): void {
-  overlayAnchor.value = anchorTopFrom(event);
+function requestDelete(ids: string[]): void {
   deleting.value = ids;
 }
 
@@ -1252,7 +1260,7 @@ const drawerTitle = computed(() => {
 });
 
 function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
-  overlayAnchor.value = anchorTopFrom(event);
+  drawerTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
   drawer.value = { mode, id };
   if (mode === "preview" && subs.rowPreview.value?.id !== id) {
     void subs.toggleRowPreview(id);
@@ -1781,7 +1789,6 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
            dialogs it was never rendered while the editor was up, and the exit
            silently did nothing at all. -->
       <LtConfirmDialog
-        :anchor-top="overlayAnchor"
         :open="discarding"
         title="Leave without saving? The changes you made to this record are not stored yet and will be lost."
         verb="Discard changes"
@@ -2034,7 +2041,7 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             type="button"
             :disabled="action.disabled"
             :title="action.reason || undefined"
-            @click="requestDelete(selectedVisible.map((row) => row.id), $event)"
+            @click="requestDelete(selectedVisible.map((row) => row.id))"
           >
             <Trash2 :size="14" aria-hidden="true" />
             {{ action.label }} {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
@@ -2319,12 +2326,11 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 
       <TargetSheet
         :open="!!targetSheet"
-        :anchor-top="overlayAnchor"
         :record="targetSheet"
         @close="closeTargetSheet()"
       />
 
-      <LtDrawer :open="!!drawer" :title="drawerTitle" :anchor-top="overlayAnchor" @close="closeDrawer()">
+      <LtPanel :open="!!drawer" :title="drawerTitle" :return-focus-to="drawerTrigger" @close="closeDrawer()">
         <template v-if="drawer?.mode === 'preview'">
           <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
             <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
@@ -2374,10 +2380,9 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
             yourself.
           </p>
         </template>
-      </LtDrawer>
+      </LtPanel>
 
       <LtConfirmDialog
-        :anchor-top="overlayAnchor"
         :open="deleting.length > 0"
         :title="deleteTitle"
         verb="Delete"
@@ -2399,12 +2404,12 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--lt-danger);
+  background: var(--destructive);
 }
 
 .field-error-jump {
   border: 0;
-  border-left: 2px solid var(--lt-danger);
+  border-left: 2px solid var(--destructive);
   font: inherit;
   font-size: var(--lt-text-sm);
   text-align: left;
@@ -2424,26 +2429,26 @@ watch(() => draft.value.vpnIdentity, (identity, previous) => {
 .choice-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--lt-space-1);
-  margin-top: var(--lt-space-1);
+  gap: var(--space-1);
+  margin-top: var(--space-1);
 }
 
 .choice-row button {
   height: var(--lt-control-h);
-  padding: 0 var(--lt-space-3);
-  border: 1px solid var(--lt-border);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--lt-bg);
-  color: var(--lt-fg-muted);
+  background: var(--background);
+  color: var(--muted-foreground);
   font-size: var(--lt-text-sm);
 }
 
-.choice-row button:hover { color: var(--lt-fg); border-color: var(--lt-border-strong); }
+.choice-row button:hover { color: var(--foreground); border-color: var(--lt-border-strong); }
 .choice-row button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .choice-row button.is-active {
-  border-color: var(--lt-accent);
+  border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--lt-accent);
+  color: var(--primary);
 }
 </style>

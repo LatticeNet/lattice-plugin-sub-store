@@ -39,7 +39,7 @@ describe("the record editor and its compare panel", () => {
   it("pins a pane only where it has a column", () => {
     const wide = styles.slice(styles.indexOf("@container (min-width: 1180px)"));
     expect(wide).toMatch(/\.editor-side\s*\{[^}]*position:\s*sticky/s);
-    expect(wide).toMatch(/\.editor-side\s*\{[^}]*top:\s*var\(--lt-space-4\)/s);
+    expect(wide).toMatch(/\.editor-side\s*\{[^}]*top:\s*var\(--space-4\)/s);
     // Not in the base rules: sticky in a narrow frame is a column covering the
     // form it is there to explain. Comments are stripped first — this asserts
     // about declarations, and a comment quoting one is prose.

@@ -8,7 +8,7 @@ import { copyText } from "../hostClipboard";
 import { useSubscriptionOps } from "../useSubscriptionOps";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
-import { anchorTopFrom } from "../overlayAnchor";
+import { useOverlayEscape } from "../useOverlayEscape";
 
 const host = useHost();
 const ops = useSubscriptionOps(host);
@@ -86,7 +86,9 @@ async function copyExported(): Promise<void> {
  * here there is nothing worth confirming either.
  */
 const restoreConfirm = ref(false);
-const overlayAnchor = ref(32);
+
+// This screen has one overlay and no other use for Escape.
+useOverlayEscape();
 
 interface BackupEnvelope {
   version?: unknown;
@@ -126,8 +128,7 @@ const restoreNames = computed(() => {
   ];
 });
 
-function requestRestore(event?: Event): void {
-  overlayAnchor.value = anchorTopFrom(event);
+function requestRestore(): void {
   restoreConfirm.value = true;
 }
 
@@ -352,7 +353,7 @@ watch(host.init, (value) => {
         type="button"
         :disabled="!canRestore"
         :title="ops.canImport.value ? undefined : 'This session cannot restore a backup. Either the installed bundle does not declare that method, or your token lacks the scope.'"
-        @click="requestRestore($event)"
+        @click="requestRestore()"
       >
         <Upload :size="16" aria-hidden="true" /> Restore
       </button>
@@ -360,7 +361,6 @@ watch(host.init, (value) => {
 
     <LtConfirmDialog
       :open="restoreConfirm"
-      :anchor-top="overlayAnchor"
       title="Restore this backup? Every record in the envelope overwrites the stored one with the same id, and that cannot be undone from here."
       verb="Restore"
       :names="restoreNames"
@@ -374,17 +374,17 @@ watch(host.init, (value) => {
 <style scoped>
 .report {
   max-width: var(--lt-measure-form);
-  margin-top: var(--lt-space-4);
-  padding: var(--lt-space-3);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface);
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
 }
 
 .report-line {
-  margin: 0 0 var(--lt-space-1);
+  margin: 0 0 var(--space-1);
   font-size: var(--lt-text-sm);
 }
 
-.report-line + .node-list { margin-bottom: var(--lt-space-3); }
+.report-line + .node-list { margin-bottom: var(--space-3); }
 </style>

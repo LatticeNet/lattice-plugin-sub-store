@@ -62,10 +62,10 @@ function cspNonce(): string {
 
 const chrome = EditorView.theme({
   "&": {
-    backgroundColor: "var(--lt-surface)",
-    color: "var(--lt-fg)",
-    border: "1px solid var(--lt-border)",
-    borderRadius: "var(--lt-radius, 6px)",
+    backgroundColor: "var(--card)",
+    color: "var(--foreground)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md, 6px)",
     fontSize: "var(--lt-text-sm)",
   },
   "&.cm-focused": {
@@ -73,35 +73,35 @@ const chrome = EditorView.theme({
     borderColor: "var(--ring, #2c77b8)",
   },
   ".cm-content": {
-    fontFamily: "var(--lt-mono)",
-    caretColor: "var(--lt-fg)",
+    fontFamily: "var(--font-mono)",
+    caretColor: "var(--foreground)",
     minHeight: "inherit",
   },
   ".cm-gutters": {
-    backgroundColor: "var(--lt-surface-2)",
-    color: "var(--lt-fg-muted)",
+    backgroundColor: "var(--muted)",
+    color: "var(--muted-foreground)",
     border: "none",
-    borderRight: "1px solid var(--lt-border)",
+    borderRight: "1px solid var(--border)",
     fontSize: "var(--lt-text-xs)",
     userSelect: "none",
   },
-  ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--lt-fg)" },
+  ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--foreground)" },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
     backgroundColor: "color-mix(in srgb, var(--ring, #2c77b8) 28%, transparent)",
   },
-  ".cm-cursor": { borderLeftColor: "var(--lt-fg)" },
-  ".cm-placeholder": { color: "var(--lt-fg-muted)" },
+  ".cm-cursor": { borderLeftColor: "var(--foreground)" },
+  ".cm-placeholder": { color: "var(--muted-foreground)" },
 });
 
 /** Semantic colors only. The same discipline as the rest of the plugin. */
 const highlight = HighlightStyle.define([
-  { tag: [tags.keyword, tags.operatorKeyword], color: "var(--lt-accent)" },
-  { tag: [tags.string, tags.special(tags.string)], color: "var(--lt-ok)" },
-  { tag: [tags.number, tags.bool, tags.null], color: "var(--lt-warn)" },
-  { tag: [tags.comment], color: "var(--lt-fg-muted)", fontStyle: "italic" },
-  { tag: [tags.propertyName, tags.definition(tags.propertyName)], color: "var(--lt-fg)" },
-  { tag: [tags.function(tags.variableName), tags.function(tags.propertyName)], color: "var(--lt-accent)" },
-  { tag: [tags.invalid], color: "var(--lt-danger)" },
+  { tag: [tags.keyword, tags.operatorKeyword], color: "var(--primary)" },
+  { tag: [tags.string, tags.special(tags.string)], color: "var(--success)" },
+  { tag: [tags.number, tags.bool, tags.null], color: "var(--warning)" },
+  { tag: [tags.comment], color: "var(--muted-foreground)", fontStyle: "italic" },
+  { tag: [tags.propertyName, tags.definition(tags.propertyName)], color: "var(--foreground)" },
+  { tag: [tags.function(tags.variableName), tags.function(tags.propertyName)], color: "var(--primary)" },
+  { tag: [tags.invalid], color: "var(--destructive)" },
 ]);
 
 export interface EditorHandle {
