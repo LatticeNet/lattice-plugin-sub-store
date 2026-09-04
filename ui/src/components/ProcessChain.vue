@@ -524,9 +524,10 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
 .add-block {
   padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--background);
+  /* Inset in the editor panel: a surface step, not a second border. */
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
 }
 
 .add-label {

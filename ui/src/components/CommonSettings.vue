@@ -85,9 +85,11 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
   gap: var(--space-3);
   max-width: var(--lt-measure-form);
   padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--card);
+  /* An inset block of the editor panel, so a --muted step rather than a second
+     border inside a bordered panel. */
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
 }
 
 .common h3 {

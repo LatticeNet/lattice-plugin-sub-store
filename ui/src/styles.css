@@ -1458,6 +1458,10 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
 
 .target-controls {
   min-width: 0;
+  /* Full height of the panel, not of its own content. The panel is fixed to
+     the frame now, so a content-height rail leaves its fill and its rule
+     stopping in the middle of a tall panel. */
+  align-self: stretch;
   padding: var(--space-4);
   border-right: 1px solid var(--border);
   background: var(--muted);
@@ -2302,7 +2306,17 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   white-space: nowrap;
 }
 
-.shares-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+/* The same page panel the record lists take, so the three lenses read as one
+   product rather than as a table on a bare page beside two tables in a box. */
+.shares-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+}
 
 .shares-table {
   width: 100%;
@@ -2319,6 +2333,8 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   vertical-align: middle;
   white-space: nowrap;
 }
+.shares-table tbody tr:last-child td,
+.shares-table tbody tr:last-child th { border-bottom: 0; }
 .shares-table thead th {
   height: var(--row-h-compact);
   color: var(--muted-foreground);
@@ -2334,7 +2350,7 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
   position: sticky;
   left: 0;
   z-index: 1;
-  background: var(--background);
+  background: var(--card);
   box-shadow: 1px 0 0 var(--border);
 }
 .shares-table tbody tr:hover th:first-child { background: var(--muted); }
