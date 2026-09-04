@@ -81,36 +81,36 @@ defineExpose({ selectAll });
 .lt-manual-copy {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-1);
-  margin-top: var(--lt-space-2);
-  padding: var(--lt-space-2);
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding: var(--space-2);
   border: 1px solid var(--lt-warn-border);
   border-left-width: 3px;
-  border-radius: var(--lt-radius);
+  border-radius: var(--radius-md);
   background: var(--lt-warn-soft);
 }
 .lt-manual-copy__note {
   margin: 0;
-  color: var(--lt-fg);
+  color: var(--foreground);
   font-size: var(--lt-text-xs);
   line-height: var(--lt-leading);
 }
 .lt-manual-copy__note kbd {
   padding: 0 4px;
   border: 1px solid var(--lt-border-strong);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-surface);
-  font-family: var(--lt-mono);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font-family: var(--font-mono);
   font-size: 11px;
 }
 .lt-manual-copy__field {
   width: 100%;
-  padding: var(--lt-space-1) var(--lt-space-2);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius-sm);
-  background: var(--lt-surface);
-  color: var(--lt-fg);
-  font-family: var(--lt-mono);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: var(--font-mono);
   font-size: var(--lt-text-xs);
   line-height: var(--lt-leading);
 }

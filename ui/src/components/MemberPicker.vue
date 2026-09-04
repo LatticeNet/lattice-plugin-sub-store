@@ -189,18 +189,18 @@ function describe(item: SubscriptionListItem): string {
 .picker {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-2);
-  padding: var(--lt-space-3);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-bg);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
 }
 
 .picker-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--lt-space-3);
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
@@ -208,34 +208,34 @@ function describe(item: SubscriptionListItem): string {
 .picker-bulk {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
 }
 
 .picker-tags button,
 .picker-bulk button {
   height: var(--lt-control-h-sm);
-  padding: 0 var(--lt-space-3);
+  padding: 0 var(--space-3);
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
   font-size: var(--lt-text-xs);
 }
 
 .picker-tags button:hover,
-.picker-bulk button:hover:not(:disabled) { color: var(--lt-fg); }
+.picker-bulk button:hover:not(:disabled) { color: var(--foreground); }
 
 .picker-tags button:focus-visible,
 .picker-bulk button:focus-visible,
 .row-move button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .picker-tags button.is-active {
-  border-color: var(--lt-accent);
+  border-color: var(--primary);
   background: var(--lt-accent-soft);
-  color: var(--lt-accent);
+  color: var(--lt-accent-ink);
 }
 
-.picker-bulk button { border-color: var(--lt-border); }
+.picker-bulk button { border-color: var(--border); }
 .picker-bulk button:disabled { opacity: 0.45; }
 
 .picker-chosen,
@@ -256,10 +256,10 @@ function describe(item: SubscriptionListItem): string {
 .row {
   display: flex;
   align-items: center;
-  gap: var(--lt-space-2);
-  padding: var(--lt-space-1) var(--lt-space-2);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border: 1px solid transparent;
-  border-radius: var(--lt-radius-sm);
+  border-radius: var(--radius-sm);
 }
 
 .row.is-chosen {
@@ -267,33 +267,33 @@ function describe(item: SubscriptionListItem): string {
   background: var(--lt-accent-soft);
 }
 
-.row:hover { background: var(--lt-surface-2); }
+.row:hover { background: var(--muted); }
 .row.is-chosen:hover { background: var(--lt-accent-soft); }
 
 .row-grip {
   display: inline-flex;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
   cursor: grab;
 }
 
 .row-order {
   min-width: 18px;
   font-size: var(--lt-text-xs);
-  color: var(--lt-accent);
+  color: var(--lt-accent-ink);
   font-variant-numeric: tabular-nums;
 }
 
 .row-main {
   display: flex;
   align-items: center;
-  gap: var(--lt-space-2);
+  gap: var(--space-2);
   flex: 1;
   min-width: 0;
   cursor: pointer;
 }
 
 .row-name {
-  font-size: var(--lt-text-md);
+  font-size: var(--text-body);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -302,25 +302,25 @@ function describe(item: SubscriptionListItem): string {
 
 .row-meta {
   font-size: var(--lt-text-xs);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
   white-space: nowrap;
   flex: none;
 }
 
 .row-tags {
   display: flex;
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
   flex-wrap: wrap;
   flex: none;
 }
 
 .row-tag {
-  padding: 0 var(--lt-space-2);
+  padding: 0 var(--space-2);
   border-radius: 999px;
   background: var(--lt-neutral-soft);
   font-size: var(--lt-text-xs);
   line-height: 18px;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 
 .row-move { display: flex; gap: 2px; flex: none; }
@@ -332,17 +332,17 @@ function describe(item: SubscriptionListItem): string {
   width: 24px;
   height: 24px;
   border: 0;
-  border-radius: var(--lt-radius-sm);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 
-.row-move button:hover:not(:disabled) { background: var(--lt-surface-2); color: var(--lt-fg); }
+.row-move button:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
 .row-move button:disabled { opacity: 0.35; }
 
 .picker-note {
   margin: 0;
   font-size: var(--lt-text-xs);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 </style>

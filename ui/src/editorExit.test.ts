@@ -34,7 +34,15 @@ describe("leaving the record editor", () => {
 
 import { readFileSync } from "node:fs";
 
-const screen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
+// The subscriptions editor is three files: the screen routes between the list
+// and the editor, useRecordEditor holds the draft and the guard, and
+// SubscriptionEditor.vue draws it. What these tests guard is a property of the
+// editor, not of a file, so they read the three as one. The Files editor is
+// still one screen and is checked as it stands.
+const subsScreen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
+const subsEditorState = readFileSync(new URL("./useRecordEditor.ts", import.meta.url), "utf8");
+const subsEditorView = readFileSync(new URL("./components/SubscriptionEditor.vue", import.meta.url), "utf8");
+const screen = [subsScreen, subsEditorState, subsEditorView].join("\n");
 const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
 
 // Both screens have a record editor, and the second one to grow it is where a
@@ -65,14 +73,16 @@ describe("the editor screens delegate their exits", () => {
     }
   });
 
-  it("reports every overlay that owns Escape", () => {
-    // The discard confirm is the guard's own and is not named here.
-    expect(screen).toMatch(
-      /overlayOpen: \(\) => deleting\.value\.length > 0 \|\| !!drawer\.value \|\| !!targetSheet\.value/,
-    );
-    expect(files).toMatch(
-      /overlayOpen: \(\) =>[\s\S]{0,160}!!deleteTargets\.value[\s\S]{0,160}!!drawer\.value/,
-    );
+  it("reads what is layered from the stack, not from a hand-written list", () => {
+    // Each screen used to name its own overlays here, and the second screen to
+    // grow one forgot: the Files editor shipped with no guard at all. Every
+    // overlay registers with overlayStack while it is open now, so this line
+    // cannot fall behind the screen it describes. The discard confirm is the
+    // guard's own and is still not counted here.
+    expect(screen).toMatch(/overlayOpen: \(\) => overlayDepth\(\) > 0/);
+    expect(files).toMatch(/overlayOpen: \(\) => overlayDepth\(\) > 0/);
+    expect(subsEditorState).toContain('from "./overlayStack"');
+    expect(files).toContain('from "../overlayStack"');
   });
 
   it("snapshots each editor against the fields that screen can edit", () => {
@@ -92,10 +102,15 @@ describe("the editor screens delegate their exits", () => {
   // editor was up, so the exit silently did nothing at all. The tests passed:
   // every piece existed, in the wrong place.
   it("keeps the confirm inside the only screen that can ask it", () => {
-    const editor = screen.slice(screen.indexOf('<section v-if="editing"'));
-    const listStart = editor.indexOf('<section v-else class="configuration"');
-    const editorOnly = listStart > 0 ? editor.slice(0, listStart) : editor;
-    expect(editorOnly, "the discard confirm is outside the editor section").toContain(
+    // It now cannot be anywhere else: the editor is its own component and the
+    // screen renders that component only while editing. The check is that it
+    // has not drifted back out to the screen beside the list's dialogs.
+    expect(subsEditorView, "the discard confirm left the editor").toContain(':open="discarding"');
+    expect(subsScreen, "the discard confirm is back beside the list").not.toContain(':open="discarding"');
+    const filesEditor = files.slice(files.indexOf('<section v-if="editing"'));
+    const listStart = filesEditor.indexOf('<section v-else class="configuration"');
+    const editorOnly = listStart > 0 ? filesEditor.slice(0, listStart) : filesEditor;
+    expect(editorOnly, "the discard confirm is outside the Files editor section").toContain(
       ':open="discarding"',
     );
   });

@@ -37,6 +37,7 @@ import {
 } from "../client";
 import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
+import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { tagChips } from "../rowStatus";
 import { collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
@@ -53,7 +54,7 @@ import {
 } from "../useSubscriptions";
 import LtBadge from "../components/lt/LtBadge.vue";
 import LtButton from "../components/lt/LtButton.vue";
-import LtDrawer from "../components/lt/LtDrawer.vue";
+import LtPanel from "../components/lt/LtPanel.vue";
 import LtIconButton from "../components/lt/LtIconButton.vue";
 import LtBatchBar from "../components/lt/LtBatchBar.vue";
 import LtToolbar from "../components/lt/LtToolbar.vue";
@@ -67,7 +68,6 @@ import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import LtEmptyState from "../components/lt/LtEmptyState.vue";
-import { anchorTopFrom } from "../overlayAnchor";
 import type { EditorLanguage } from "../codemirror";
 import {
   editorLanguageForFileType,
@@ -179,9 +179,6 @@ const canPreviewNow = computed(
 
 const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
 
-/** Overlay anchoring. Inert for the sheet, which the viewport frame centres on
- *  screen; the drawer still reads it (see overlayAnchor). */
-const overlayAnchor = ref(32);
 /** The preview/copy sheet. A file is exactly the thing you hand to a client. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
 const targetSheetTrigger = ref<HTMLElement | null>(null);
@@ -246,7 +243,6 @@ function toggleSelectAll(): void {
 
 function openFileSheet(item: SubscriptionListItem, event?: Event): void {
   closeRowMenu();
-  overlayAnchor.value = anchorTopFrom(event);
   targetSheetTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
   targetSheet.value = item;
 }
@@ -265,9 +261,8 @@ function toggleSelected(id: string): void {
   selectedIds.value = next;
 }
 
-function requestDelete(ids: string[], event?: Event): void {
+function requestDelete(ids: string[]): void {
   closeRowMenu();
-  overlayAnchor.value = anchorTopFrom(event);
   const names = ids.map((id) => {
     const file = allFiles.value.find((entry) => entry.id === id);
     return file ? file.display_name || file.name : id;
@@ -391,8 +386,11 @@ function onDocumentClick(event: MouseEvent): void {
   openFileMenuId.value = "";
 }
 
+/** The one Escape arbiter for this screen; see the sibling tab for why every
+ *  overlay stopped answering the key itself. */
 function onDocumentKeydown(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
+  if (closeTopOverlay()) return;
   if (openFileMenuId.value) {
     closeRowMenu();
     return;
@@ -414,6 +412,8 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * one-scroller rule.
  */
 const drawer = ref<{ mode: "share"; id: string } | null>(null);
+/** What opened the panel, so focus returns there on close. */
+const drawerTrigger = ref<HTMLElement | null>(null);
 
 const drawerItem = computed(() =>
   drawer.value ? allFiles.value.find((file) => file.id === drawer.value?.id) : undefined,
@@ -426,7 +426,7 @@ const drawerTitle = computed(() => {
 
 function openDrawer(mode: "share", id: string, event?: Event): void {
   closeRowMenu();
-  overlayAnchor.value = anchorTopFrom(event);
+  drawerTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
   drawer.value = { mode, id };
 }
 
@@ -571,7 +571,7 @@ function runRowAction(id: ActionId, item: SubscriptionListItem, event: MouseEven
   if (id === "output") return openFileSheet(item, event);
   if (id === "share") return openDrawer("share", item.id, event);
   if (id === "duplicate") return void subs.duplicate(item.id);
-  if (id === "delete") return requestDelete([item.id], event);
+  if (id === "delete") return requestDelete([item.id]);
 }
 
 /**
@@ -638,8 +638,9 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
 const exit = useEditorExit({
   editing,
   fingerprint: () => JSON.stringify([draft.value, tagText.value, queryParamText.value]),
-  overlayOpen: () =>
-    !!deleteTargets.value || !!drawer.value || !!targetSheet.value || !!openFileMenuId.value,
+  // The registered depth, not a hand-written list: this screen is where such a
+  // list was forgotten in the first place.
+  overlayOpen: () => overlayDepth() > 0 || !!openFileMenuId.value,
   leave: () => cancelEdit(),
 });
 const { discarding, markPristine } = exit;
@@ -1133,7 +1134,6 @@ watch(host.init, (value) => {
       <!-- Leaving with unsaved changes. It lives inside the editor because that
            is the only screen it can be asked from. -->
       <LtConfirmDialog
-        :anchor-top="overlayAnchor"
         :open="discarding"
         title="Leave without saving? The changes you made to this file are not stored yet and will be lost."
         verb="Discard changes"
@@ -1257,7 +1257,7 @@ watch(host.init, (value) => {
             type="button"
             :disabled="action.disabled"
             :title="action.reason || undefined"
-            @click="requestDelete(selectedVisible.map((file) => file.id), $event)"
+            @click="requestDelete(selectedVisible.map((file) => file.id))"
           >
             <Trash2 :size="14" aria-hidden="true" />
             {{ action.label }} {{ selectedCount }} file{{ selectedCount === 1 ? "" : "s" }}
@@ -1432,14 +1432,13 @@ watch(host.init, (value) => {
 
       <TargetSheet
         :open="!!targetSheet"
-        :anchor-top="overlayAnchor"
         :record="targetSheet"
         @close="closeTargetSheet()"
       />
 
-      <!-- One drawer, as on the sibling tab, for the share guidance. The
-           document is the sheet's; see the drawer state above. -->
-      <LtDrawer :open="!!drawer" :title="drawerTitle" :anchor-top="overlayAnchor" @close="closeDrawer()">
+      <!-- One panel, as on the sibling tab, for the share guidance. The
+           document is the sheet's; see the panel state above. -->
+      <LtPanel :open="!!drawer" :title="drawerTitle" :return-focus-to="drawerTrigger" @close="closeDrawer()">
         <template v-if="drawer?.mode === 'share'">
           <p class="row-popover-copy">
             Nothing here is reachable until a share is published for it. Shares live in the
@@ -1456,11 +1455,10 @@ watch(host.init, (value) => {
             yourself.
           </p>
         </template>
-      </LtDrawer>
+      </LtPanel>
 
       <LtConfirmDialog
         :open="!!deleteTargets"
-        :anchor-top="overlayAnchor"
         :title="(deleteTargets?.ids.length ?? 0) === 1
           ? 'Delete this file? Any share published for it keeps existing and starts returning nothing.'
           : `Delete ${deleteTargets?.ids.length ?? 0} files? Any shares published for them keep existing and start returning nothing.`"

@@ -351,14 +351,14 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 .chain {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-3);
+  gap: var(--space-3);
 }
 
 .chain-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--lt-space-3);
+  gap: var(--space-3);
 }
 
 .chain-head h3 {
@@ -369,23 +369,23 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
 .chain-count {
   font-size: var(--lt-text-sm);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 
 .chain-list {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .chain-step {
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
 }
 
 /* A disabled step stays legible. It is kept precisely so it can be read and
@@ -393,39 +393,39 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
    and the "off" badge carry the state instead. */
 .chain-step.is-off {
   border-style: dashed;
-  background: var(--lt-bg);
+  background: var(--background);
 }
 
 .step-bar {
   display: flex;
   align-items: center;
-  gap: var(--lt-space-2);
-  padding: var(--lt-space-1) var(--lt-space-2);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
 }
 
 .step-grip {
   display: inline-flex;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
   cursor: grab;
 }
 
 .step-title {
   display: flex;
   align-items: center;
-  gap: var(--lt-space-2);
+  gap: var(--space-2);
   flex: 1;
   min-width: 0;
-  padding: var(--lt-space-1) var(--lt-space-1);
+  padding: var(--space-1) var(--space-1);
   border: 0;
-  border-radius: var(--lt-radius-sm);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
-  font-size: var(--lt-text-md);
+  font-size: var(--text-body);
   font-weight: 600;
   text-align: left;
 }
 
-.step-title:hover { background: var(--lt-surface-2); }
+.step-title:hover { background: var(--muted); }
 .step-title:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .step-label {
@@ -454,10 +454,10 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 .step-toggle {
   display: inline-flex;
   align-items: center;
-  gap: var(--lt-space-1);
-  margin-right: var(--lt-space-1);
+  gap: var(--space-1);
+  margin-right: var(--space-1);
   font-size: var(--lt-text-xs);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -469,93 +469,94 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   width: 26px;
   height: 26px;
   border: 0;
-  border-radius: var(--lt-radius-sm);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 
-.step-icon:hover:not(:disabled) { background: var(--lt-surface-2); color: var(--lt-fg); }
+.step-icon:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
 .step-icon:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 .step-icon:disabled { opacity: 0.35; }
 
 /* Was a literal #f87171, which is a light-theme red pinned into a frame that
    inherits the console's palette. */
-.step-icon.is-danger { color: var(--lt-danger); }
+.step-icon.is-danger { color: var(--lt-danger-ink); }
 .step-icon.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
 
 .step-body {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-3);
-  padding: var(--lt-space-1) var(--lt-space-3) var(--lt-space-3);
-  border-top: 1px solid var(--lt-border);
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3) var(--space-3);
+  border-top: 1px solid var(--border);
 }
 
 .step-name {
   display: flex;
   flex-direction: column;
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
   max-width: var(--lt-measure-field);
   font-size: var(--lt-text-sm);
   font-weight: 600;
-  color: var(--lt-fg);
+  color: var(--foreground);
 }
 
 .step-name input {
   min-height: 32px;
-  padding: var(--lt-space-1) var(--lt-space-2);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-bg);
-  color: var(--lt-fg);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--foreground);
   font-weight: 400;
   outline: none;
 }
-.step-name input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--lt-accent); }
+.step-name input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--primary); }
 
 .chain-empty {
   margin: 0;
-  padding: var(--lt-space-3);
-  border: 1px dashed var(--lt-border);
-  border-radius: var(--lt-radius);
+  padding: var(--space-3);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
   font-size: var(--lt-text-sm);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 
 .add-block {
-  padding: var(--lt-space-3);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-bg);
+  padding: var(--space-3);
+  /* Inset in the editor panel: a surface step, not a second border. */
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
 }
 
 .add-label {
-  margin: 0 0 var(--lt-space-2);
+  margin: 0 0 var(--space-2);
   font-size: var(--lt-text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 
 .add-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
 }
 
 .add-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--lt-space-1);
+  gap: var(--space-1);
   /* Fixed height so a two-word label does not make its whole row taller than
      the others. The grid reads as a set of equals or it reads as a mess. */
   min-height: 38px;
-  padding: var(--lt-space-1) var(--lt-space-2);
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-surface);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
   color: inherit;
   font-size: var(--lt-text-sm);
   font-weight: 600;
@@ -565,17 +566,17 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 }
 
 .add-button:hover {
-  border-color: var(--lt-accent);
-  color: var(--lt-accent);
+  border-color: var(--primary);
+  color: var(--lt-accent-ink);
 }
 
 .add-button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .add-tag {
-  padding: 0 var(--lt-space-1);
+  padding: 0 var(--space-1);
   border-radius: 999px;
   background: var(--lt-accent-soft);
-  color: var(--lt-accent);
+  color: var(--lt-accent-ink);
   font-size: 9px;
   font-weight: 700;
 }
@@ -583,6 +584,6 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 .add-waiting {
   margin: 0;
   font-size: var(--lt-text-sm);
-  color: var(--lt-fg-muted);
+  color: var(--muted-foreground);
 }
 </style>

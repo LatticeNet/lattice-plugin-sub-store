@@ -14,11 +14,11 @@
 .lt-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--lt-space-3);
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: var(--lt-space-3);
+  margin-bottom: var(--space-3);
 }
 .lt-toolbar-search { flex: 0 1 260px; min-width: 180px; }
-.lt-toolbar-filters { display: flex; align-items: center; gap: var(--lt-space-1); flex-wrap: wrap; flex: 1; }
-.lt-toolbar-controls { display: flex; align-items: center; gap: var(--lt-space-2); margin-left: auto; }
+.lt-toolbar-filters { display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; flex: 1; }
+.lt-toolbar-controls { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
 </style>

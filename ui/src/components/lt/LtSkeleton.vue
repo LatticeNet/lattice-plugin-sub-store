@@ -17,13 +17,23 @@ defineProps<{ rows?: number; columns?: number }>();
 </template>
 
 <style scoped>
+/* The panel the loaded list will be in, so the container does not appear from
+   nowhere when the rows land. A skeleton whose shape is not the shape of the
+   answer is a skeleton that has to be redrawn. */
+.lt-skeleton {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  overflow: hidden;
+}
+.lt-skeleton-row:last-child { border-bottom: 0; }
 .lt-skeleton-row {
   display: flex;
-  gap: var(--lt-space-4);
+  gap: var(--space-4);
   align-items: center;
-  height: var(--lt-row-h);
-  border-bottom: 1px solid var(--lt-border);
-  padding: 0 var(--lt-space-3);
+  height: var(--row-h);
+  border-bottom: 1px solid var(--border);
+  padding: 0 var(--space-3);
 }
 .lt-skeleton-cell {
   height: 10px;

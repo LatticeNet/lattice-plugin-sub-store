@@ -12,7 +12,7 @@ import { provideHost, type HostContext } from "./host";
 import { emptyDraft } from "./useSubscriptions";
 import { SOURCE_VPN_CORE_GRAPH, type GraphOptionsResponse } from "./client";
 
-const screenSource = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
+const screenSource = readFileSync(new URL("./components/SubscriptionEditor.vue", import.meta.url), "utf8");
 const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8");
 const rootA = "11111111-1111-4111-8111-111111111111";
 const rootB = "22222222-2222-4222-8222-222222222222";
