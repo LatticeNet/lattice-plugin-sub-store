@@ -59,6 +59,14 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   position: relative;
 }
 
+/* Room under the last row for the selection bar, which is pinned to the foot of
+   the frame while a selection exists. It is added at the END of the page, so
+   nothing the operator is aiming at moves: the rows keep their positions and
+   only the scrollable tail grows. */
+body:has(.lt-batchbar) .workspace {
+  padding-bottom: calc(var(--space-6) + var(--lt-batchbar-h));
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -2294,15 +2302,27 @@ button.rec-name:hover .rec-name-text { text-decoration: underline; }
    column is a value on every row; at any width it keeps its columns and
    scrolls sideways inside itself with the record column pinned. */
 
+/* Text for a screen reader and for nothing else.
+   It is pinned to the origin of its containing block on purpose. Left at its
+   static position, an absolutely positioned box keeps the coordinate it would
+   have had in flow but takes its containing block from the nearest POSITIONED
+   ancestor, which here is the workspace rather than the scroller it sits in.
+   So the "Actions" heading of the shares table, whose static x is 575 inside a
+   488px-wide horizontal scroller, escaped that scroller's clip and gave the
+   whole document 200px of phantom horizontal scroll at 375: swiping the table
+   sideways slid the page instead. At 0,0 it is inside every containing block
+   it can land in and extends none of them. `clip-path` rather than the
+   deprecated `clip`, which is why the negative margin is gone with it. */
 .visually-hidden {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
-  margin: -1px;
   padding: 0;
   border: 0;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
