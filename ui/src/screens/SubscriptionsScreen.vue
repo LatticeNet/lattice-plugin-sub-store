@@ -303,14 +303,18 @@ function toggleSelectAll(): void {
 
 /**
  * Records fold under their kind, the way lines fold under nodes on the Lines
- * page: one group row for subscriptions and one for combinations, each with
- * its count and a summary sentence, each collapsible on its own.
+ * page: one group row for single subscriptions and one for combinations, each
+ * with its count and a summary sentence, each collapsible on its own.
+ *
+ * The lens tab above reads "Subscriptions 7" and means every record on this
+ * lens; the group of records that are not combinations is named for what
+ * distinguishes it, so the same word does not count two sets on one screen.
  */
 const groups = computed(() => {
   const singleRows = filteredRows.value.filter((row) => (row.kind || KIND_SUB) !== KIND_COLLECTION);
   const collectionRows = filteredRows.value.filter((row) => (row.kind || KIND_SUB) === KIND_COLLECTION);
   return [
-    { id: "subs", label: "Subscriptions", rows: singleRows },
+    { id: "subs", label: "Single subscriptions", rows: singleRows },
     { id: "collections", label: "Combinations", rows: collectionRows },
   ]
     .filter((group) => group.rows.length > 0)
@@ -400,7 +404,7 @@ async function toggleRowMenu(id: string): Promise<void> {
   // A menu that opens without focus is a menu Escape cannot close and arrow
   // keys cannot reach, which is most of what `role="menu"` promises.
   await nextTick();
-  document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] .rec-menu button:not(:disabled)`)?.focus();
+  document.querySelector<HTMLElement>(`.rec-menu[data-row-menu="${cssEscape(id)}"] button:not(:disabled)`)?.focus();
 }
 
 /** Up and down walk the open menu; Escape is handled at the document. */

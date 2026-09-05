@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CircleAlert, ChevronLeft, Eye, ListOrdered, LoaderCircle, TriangleAlert } from "@lucide/vue";
+import { PcCount, PcLensTab, PcLensTabs, PcPanel, PcPanelBody, PcPanelHeader } from "@latticenet/plugin-bridge/chassis";
 
 import CodeEditor from "./CodeEditor.vue";
 import CommonSettingsBlock from "./CommonSettings.vue";
@@ -26,6 +27,13 @@ import type { RecordEditor } from "../useRecordEditor";
 /**
  * One record, open for editing: the breadcrumb, the stale-save compare panel,
  * the three tabs, the operator chain and the preview pane beside it.
+ *
+ * It is drawn in the chassis vocabulary the list uses: the section tabs are
+ * the same pill tabs as the lens tabs above them, and each section is the
+ * same bordered panel with a bold title, a description and a count as the
+ * Records card. The editor had kept an underline tab bar and small-caps
+ * fieldset legends from before the chassis, so one click from the list put
+ * two tab shapes and two panel shapes on one screen.
  *
  * It draws the editor and owns nothing else. The state is `useRecordEditor`,
  * created by the screen, because `editing` is what the screen routes on: the
@@ -162,32 +170,28 @@ const {
       </p>
     </section>
 
-    <nav class="editor-tabs" role="tablist" aria-label="Editor sections">
-      <button
+    <PcLensTabs v-model="editorTab" label="Editor sections">
+      <PcLensTab
         v-for="tab in EDITOR_TABS"
         :key="tab.id"
-        type="button"
-        role="tab"
-        class="editor-tab"
-        :aria-selected="editorTab === tab.id"
-        :data-active="editorTab === tab.id"
-        @click="editorTab = tab.id"
+        :value="tab.id"
+        :count="tab.id === 'operations' && chainCount ? chainCount : null"
       >
         {{ tab.label }}
-        <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
         <span
           v-if="errorTab === tab.id && editorTab !== tab.id"
           class="editor-tab-flag"
           :title="draftError"
           aria-label="This section has a problem"
         />
-      </button>
-    </nav>
+      </PcLensTab>
+    </PcLensTabs>
 
     <div class="editor-layout">
     <form class="editor-main" @submit.prevent="submit">
-    <fieldset v-show="editorTab === 'display'" class="editor-group">
-      <legend>Basics</legend>
+    <PcPanel v-show="editorTab === 'display'" class="editor-group" role="group" label="Basics">
+      <PcPanelHeader title="Basics" description="How the record is named, tagged and listed." />
+      <PcPanelBody>
       <div class="form-grid">
       <label class="field field-wide">
         <span class="field-label">Name</span>
@@ -229,10 +233,20 @@ const {
         <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
       </label>
       </div>
-    </fieldset>
+      </PcPanelBody>
+    </PcPanel>
 
-    <fieldset v-show="editorTab === 'content'" class="editor-group">
-      <legend>{{ isCollection ? "What it gathers" : "Where the nodes come from" }}</legend>
+    <PcPanel
+      v-show="editorTab === 'content'"
+      class="editor-group"
+      role="group"
+      :label="isCollection ? 'What it gathers' : 'Where the nodes come from'"
+    >
+      <PcPanelHeader
+        :title="isCollection ? 'What it gathers' : 'Where the nodes come from'"
+        :description="isCollection ? 'Which subscriptions are merged, and what happens when one of them cannot be fetched.' : 'The source this record reads its nodes from.'"
+      />
+      <PcPanelBody>
       <div class="form-grid">
       <!-- ── sub: where the nodes come from ─────────────────────────── -->
       <div v-if="!isCollection" class="field field-wide">
@@ -372,10 +386,12 @@ const {
       </template>
 
       </div>
-    </fieldset>
+      </PcPanelBody>
+    </PcPanel>
 
-    <fieldset v-show="editorTab === 'content'" class="editor-group">
-      <legend>Output</legend>
+    <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" label="Output">
+      <PcPanelHeader title="Output" description="The client format the record is served as." />
+      <PcPanelBody>
       <div class="form-grid">
       <label class="field">
         <span class="field-label">Client format</span>
@@ -391,13 +407,19 @@ const {
       </label>
 
       </div>
-    </fieldset>
+      </PcPanelBody>
+    </PcPanel>
 
-    <div v-show="editorTab === 'operations'" class="editor-block">
+    <PcPanel v-show="editorTab === 'operations'" class="editor-group" role="group" label="Operations">
+      <PcPanelHeader title="Operations" description="The common settings first, then the chain, run in order over every node.">
+        <PcCount v-if="chainCount" :value="chainCount" :label="`${chainCount} operation${chainCount === 1 ? '' : 's'} in the chain`" />
+      </PcPanelHeader>
+      <PcPanelBody>
+      <div class="editor-block">
       <CommonSettingsBlock :model-value="common" @update:model-value="onCommonChange" />
-    </div>
+      </div>
 
-    <div v-show="editorTab === 'operations'" class="editor-block">
+      <div class="editor-block">
         <ProcessChain
           :steps="(draft.process as ChainStep[])"
           :catalog="subs.operators.value"
@@ -411,7 +433,9 @@ const {
         <span v-if="isCollection" class="field-optional">
           Each member runs its own operations first; these run over everything merged.
         </span>
-    </div>
+      </div>
+      </PcPanelBody>
+    </PcPanel>
 
       <!-- Deliberately not sticky. The frame is a viewport now, so it could
            be, but a bar pinned over a form this tall covers a field for the
@@ -446,10 +470,8 @@ const {
          form scrolls under it. Below the breakpoint it becomes the last block
          instead: a sticky column in a 375px frame is a column that covers the
          form. -->
-    <aside class="editor-side" aria-labelledby="editor-preview-title">
-      <div class="editor-side-head">
-        <h3 id="editor-preview-title">Source and result</h3>
-        <div class="editor-side-actions">
+    <PcPanel class="editor-side" role="complementary" label="Source and result">
+      <PcPanelHeader title="Source and result">
           <button
             class="button button-secondary"
             type="button"
@@ -472,8 +494,8 @@ const {
             <Eye v-else :size="16" aria-hidden="true" />
             {{ subs.preview.value ? "Refresh" : "Preview" }}
           </button>
-        </div>
-      </div>
+      </PcPanelHeader>
+      <PcPanelBody>
 
       <!-- What the preview could not do as asked and did instead: a read
            session previewing a saved record's stored source. -->
@@ -495,7 +517,8 @@ const {
         Nothing run yet. Preview walks the chain over this draft without saving it, so the
         operations can be checked before anyone else sees them.
       </p>
-    </aside>
+      </PcPanelBody>
+    </PcPanel>
     </div>
 
     <!-- Leaving with unsaved changes. It lives inside the editor because that

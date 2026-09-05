@@ -187,3 +187,32 @@ test.describe("reduced motion", () => {
     expect(timed).toEqual([]);
   });
 });
+
+test.describe("row menu", () => {
+  test.use({ viewport: { width: 1440, height: 1100 } });
+
+  // The chassis pins every actions cell with its own stacking context, so a
+  // menu drawn inside the cell was painted over by the rows beneath it: the
+  // first row's menu showed three of its seven items. Every item must be the
+  // thing under the pointer at its own centre, on a row that has rows below.
+  test("every item of the first row's menu is on top", async ({ page }) => {
+    await openSubscriptions(page);
+    await page.locator('[data-row-menu="cdcd-self-host"] button').first().click();
+    await page.locator(".rec-menu").waitFor();
+    const covered = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".rec-menu [role=menuitem]")]
+        .filter((item) => {
+          const box = item.getBoundingClientRect();
+          const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+          return !(hit === item || item.contains(hit));
+        })
+        .map((item) => item.textContent!.trim()),
+    );
+    expect(covered).toEqual([]);
+    // Right edges flush with the trigger, and the menu inside the frame.
+    const trigger = (await page.locator('[data-row-menu="cdcd-self-host"] button').first().boundingBox())!;
+    const menu = (await page.locator(".rec-menu").boundingBox())!;
+    expect(Math.abs(menu.x + menu.width - (trigger.x + trigger.width))).toBeLessThanOrEqual(1);
+    expect(menu.y).toBeGreaterThanOrEqual(trigger.y + trigger.height);
+  });
+});

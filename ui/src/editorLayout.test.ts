@@ -52,20 +52,22 @@ describe("the record editor and its compare panel", () => {
     // form it is there to explain. Comments are stripped first — this asserts
     // about declarations, and a comment quoting one is prose.
     const narrow = styles.slice(0, styles.indexOf("@container (min-width: 1180px)"));
-    const sideRule = narrow.slice(narrow.indexOf(".editor-side {"), narrow.indexOf(".editor-side-head"));
+    const sideRule = narrow.slice(narrow.indexOf(".editor-side {"), narrow.indexOf(".editor-side .pc-panel-header"));
     expect(withoutComments(sideRule)).not.toContain("position: sticky");
   });
 
   it("keeps the panel's heading whole beside its buttons", () => {
     // "Source and result" broke as "Source and / result" beside two buttons
-    // at 375px; the buttons wrap under it instead.
-    expect(styles).toMatch(/\.editor-side-head\s*\{[^}]*flex-wrap:\s*wrap/s);
-    expect(styles).toMatch(/\.editor-side-head h3\s*\{[^}]*white-space:\s*nowrap/s);
+    // at 375px; the buttons wrap under it instead. The pane is a chassis
+    // panel now, whose header wraps its end slot; the heading itself is the
+    // one thing we still pin.
+    expect(styles).toMatch(/\.editor-side \.pc-panel-header h2\s*\{[^}]*white-space:\s*nowrap/s);
+    expect(editorView).toContain('<PcPanel class="editor-side" role="complementary" label="Source and result">');
   });
 
   it("gives the pane the control that fills it, once", () => {
     const editor = editorView;
-    const aside = editor.slice(editor.indexOf('<aside class="editor-side"'), editor.indexOf("</aside>"));
+    const aside = editor.slice(editor.indexOf('<PcPanel class="editor-side"'), editor.indexOf("</PcPanel>", editor.indexOf('<PcPanel class="editor-side"')));
     expect(aside).toContain("subs.runPreview(draft)");
     // Two buttons for one job is two places to look when nothing happens.
     expect((editor.match(/subs\.runPreview\(draft\)/g) ?? []).length).toBe(1);
@@ -77,7 +79,7 @@ describe("the record editor and its compare panel", () => {
     // row at the bottom of a long form was one the operator could cause and
     // never see.
     const editor = editorView;
-    const aside = editor.slice(editor.indexOf('<aside class="editor-side"'), editor.indexOf("</aside>"));
+    const aside = editor.slice(editor.indexOf('<PcPanel class="editor-side"'), editor.indexOf("</PcPanel>", editor.indexOf('<PcPanel class="editor-side"')));
     expect(aside).toMatch(/subs\.previewError\.value/);
     expect(aside).toContain('role="alert"');
     const composable = readFileSync(new URL("./useSubscriptions.ts", import.meta.url), "utf8");
@@ -168,13 +170,15 @@ describe("the two record editors are the same shape", () => {
     }
   });
 
-  // A fieldset with no section is a field the operator cannot reach.
-  it("gives every fieldset in the files editor a section", () => {
-    const opens = files.match(/<fieldset[^>]*>/g) ?? [];
+  // A section panel with no tab is a field the operator cannot reach. The
+  // panels are the chassis's (PcPanel), the same card the list uses.
+  it("gives every section panel in the files editor a tab", () => {
+    const opens = files.match(/<PcPanel[^>]*class="editor-group"[^>]*>/g) ?? [];
     expect(opens.length).toBeGreaterThan(3);
     for (const tag of opens) {
-      expect(tag, "fieldset without a section: " + tag).toMatch(/v-show="editorTab === '(display|content|operations)'"/);
+      expect(tag, "section without a tab: " + tag).toMatch(/v-show="editorTab === '(display|content|operations)'"/);
     }
+    expect(files).not.toContain("<fieldset");
   });
 
   // The files pane is 520px of rendered configuration, and the only pane

@@ -20,9 +20,12 @@ import {
   PcCount,
   PcEmptyState,
   PcKindChip,
+  PcLensTab,
+  PcLensTabs,
   PcNameCell,
   PcNotice,
   PcPanel,
+  PcPanelBody,
   PcPanelHeader,
   PcRow,
   PcSelectCell,
@@ -367,7 +370,7 @@ async function toggleFileMenu(id: string): Promise<void> {
   await host.resize();
   if (!opening) return;
   await nextTick();
-  document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] .rec-menu button:not(:disabled)`)?.focus();
+  document.querySelector<HTMLElement>(`.rec-menu[data-row-menu="${cssEscape(id)}"] button:not(:disabled)`)?.focus();
 }
 
 function onRowMenuKeydown(event: KeyboardEvent): void {
@@ -801,27 +804,22 @@ watch(host.init, (value) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
       </div>
 
-      <nav class="editor-tabs" role="tablist" aria-label="Editor sections">
-        <button
+      <PcLensTabs v-model="editorTab" label="Editor sections">
+        <PcLensTab
           v-for="tab in EDITOR_TABS"
           :key="tab.id"
-          type="button"
-          role="tab"
-          class="editor-tab"
-          :aria-selected="editorTab === tab.id"
-          :data-active="editorTab === tab.id"
-          @click="editorTab = tab.id"
+          :value="tab.id"
+          :count="tab.id === 'operations' && chainCount ? chainCount : null"
         >
           {{ tab.label }}
-          <span v-if="tab.id === 'operations' && chainCount" class="editor-tab-count">{{ chainCount }}</span>
           <span
             v-if="errorTab === tab.id && editorTab !== tab.id"
             class="editor-tab-flag"
             :title="draftError"
             aria-label="This section has a problem"
           />
-        </button>
-      </nav>
+        </PcLensTab>
+      </PcLensTabs>
 
       <!-- Form and evidence side by side, the same layout the subscription
            editor uses. The pane is wider here because the evidence is: a node
@@ -830,8 +828,9 @@ watch(host.init, (value) => {
            substance. -->
       <div class="editor-layout" data-pane="wide">
       <form class="editor-main" @submit.prevent="submit">
-        <fieldset v-show="editorTab === 'display'" class="editor-group">
-          <legend>Basics</legend>
+        <PcPanel v-show="editorTab === 'display'" class="editor-group" role="group" label="Basics">
+          <PcPanelHeader title="Basics" description="How the file is named, tagged and listed." />
+          <PcPanelBody>
           <div class="form-grid">
             <label class="field field-wide">
               <span class="field-label">Name</span>
@@ -872,10 +871,12 @@ watch(host.init, (value) => {
               </span>
             </label>
           </div>
-        </fieldset>
+          </PcPanelBody>
+        </PcPanel>
 
-        <fieldset v-show="editorTab === 'content'" class="editor-group">
-          <legend>What kind of file</legend>
+        <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" label="What kind of file">
+          <PcPanelHeader title="What kind of file" description="Plain text served as written, a template with a proxy list, or a script." />
+          <PcPanelBody>
           <div class="form-grid">
             <div class="field field-wide">
               <div class="source-grid">
@@ -893,10 +894,12 @@ watch(host.init, (value) => {
               </div>
             </div>
           </div>
-        </fieldset>
+          </PcPanelBody>
+        </PcPanel>
 
-        <fieldset v-show="editorTab === 'content'" class="editor-group">
-          <legend>{{ isScript ? "The program" : isPlain ? "The text" : "The template" }}</legend>
+        <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" :label="isScript ? 'The program' : isPlain ? 'The text' : 'The template'">
+          <PcPanelHeader :title="isScript ? 'The program' : isPlain ? 'The text' : 'The template'" :description="isScript ? 'What runs when a client asks for this file.' : isPlain ? 'What is served, exactly as written.' : 'What is served, with its proxy list filled in from the source below.'" />
+          <PcPanelBody>
           <div class="form-grid">
             <div v-if="!isScript" class="field field-wide">
               <div class="source-grid">
@@ -973,10 +976,12 @@ watch(host.init, (value) => {
               </span>
             </div>
           </div>
-        </fieldset>
+          </PcPanelBody>
+        </PcPanel>
 
-        <fieldset v-if="!isPlain" v-show="editorTab === 'content'" class="editor-group">
-          <legend>Where its nodes come from</legend>
+        <PcPanel v-if="!isPlain" v-show="editorTab === 'content'" class="editor-group" role="group" label="Where its nodes come from">
+          <PcPanelHeader title="Where its nodes come from" description="The subscription whose nodes fill the proxy list." />
+          <PcPanelBody>
           <div class="form-grid">
             <label class="field field-wide">
               <span class="field-label">Node source</span>
@@ -1009,10 +1014,12 @@ watch(host.init, (value) => {
               </span>
             </label>
           </div>
-        </fieldset>
+          </PcPanelBody>
+        </PcPanel>
 
-        <fieldset v-if="isScript" v-show="editorTab === 'content'" class="editor-group">
-          <legend>What the script can read</legend>
+        <PcPanel v-if="isScript" v-show="editorTab === 'content'" class="editor-group" role="group" label="What the script can read">
+          <PcPanelHeader title="What the script can read" description="The settings handed to the script, and the request parameters it may read." />
+          <PcPanelBody>
           <div class="form-grid">
             <label class="field field-wide">
               <span class="field-label">Settings <span class="field-optional">($arguments)</span></span>
@@ -1042,12 +1049,16 @@ watch(host.init, (value) => {
               </span>
             </label>
           </div>
-        </fieldset>
+          </PcPanelBody>
+        </PcPanel>
 
         <!-- A program does the whole job, including anything an operator chain
              would have done. Offering one as well would ask which runs first. -->
-        <fieldset v-if="!isScript" v-show="editorTab === 'operations'" class="editor-group">
-          <legend>Operations</legend>
+        <PcPanel v-if="!isScript" v-show="editorTab === 'operations'" class="editor-group" role="group" label="Operations">
+          <PcPanelHeader title="Operations" description="Run in order over the nodes before they are placed into the document.">
+            <PcCount v-if="chainCount" :value="chainCount" :label="`${chainCount} operation${chainCount === 1 ? '' : 's'} in the chain`" />
+          </PcPanelHeader>
+          <PcPanelBody>
           <ProcessChain
             :steps="(draft.process as ChainStep[])"
             :catalog="subs.operators.value"
@@ -1066,7 +1077,8 @@ watch(host.init, (value) => {
               Operations run over the nodes before they are placed into the configuration.
             </template>
           </p>
-        </fieldset>
+          </PcPanelBody>
+        </PcPanel>
 
         <div class="editor-actions">
           <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
@@ -1079,9 +1091,12 @@ watch(host.init, (value) => {
         </div>
       </form>
 
-      <aside class="editor-side" aria-labelledby="file-editor-preview-label">
-        <div class="editor-side-head">
-          <h3 id="file-editor-preview-label">What a client receives</h3>
+      <PcPanel class="editor-side" role="complementary" label="What a client receives">
+        <!-- The chassis header, written out: the rendered document below is
+             labelled by this heading, and the component gives its h2 no id. -->
+        <header class="pc-panel-header">
+          <div><h2 id="file-editor-preview-label">What a client receives</h2></div>
+          <div class="pc-panel-header-end">
           <button
             class="button button-secondary"
             type="button"
@@ -1097,7 +1112,9 @@ watch(host.init, (value) => {
             <Eye v-else :size="16" aria-hidden="true" />
             {{ subs.preview.value?.document ? "Refresh" : "Preview" }}
           </button>
-        </div>
+          </div>
+        </header>
+        <PcPanelBody>
 
         <template v-if="subs.preview.value?.document">
           <p class="preview-evidence-meta">
@@ -1124,7 +1141,8 @@ watch(host.init, (value) => {
           Nothing run yet. Preview renders this draft without saving it, so the document can be
           read before anyone else receives it.
         </p>
-      </aside>
+        </PcPanelBody>
+      </PcPanel>
       </div>
 
       <!-- Leaving with unsaved changes. It lives inside the editor because that
