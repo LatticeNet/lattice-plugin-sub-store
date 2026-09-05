@@ -1,27 +1,40 @@
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from "vue";
 import {
-  ChevronDown,
+  Braces,
   ChevronLeft,
-  ChevronsRight,
   CircleAlert,
-  RefreshCw,
-  CircleCheck,
   ClipboardPaste,
-  CopyPlus,
-  Ellipsis,
   Eye,
   FileCode,
   FileText,
   Globe,
-  Braces,
   LoaderCircle,
-  Pencil,
-  Plus,
-  Share2,
   SquareArrowOutUpRight,
   Trash2,
 } from "@lucide/vue";
+import {
+  PcActionsCell,
+  PcBatchBar,
+  PcButton,
+  PcCount,
+  PcEmptyState,
+  PcKindChip,
+  PcNameCell,
+  PcNotice,
+  PcPanel,
+  PcPanelHeader,
+  PcRow,
+  PcSelectCell,
+  PcSidePanel,
+  PcSkeleton,
+  PcStateDot,
+  PcStatePill,
+  PcTable,
+  PcTagList,
+  PcTd,
+  PcTh,
+} from "@latticenet/plugin-bridge/chassis";
 
 import {
   FILE_TYPE_CONFIG,
@@ -40,7 +53,10 @@ import { useHost } from "../host";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { tagChips } from "../rowStatus";
-import { collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
+import { matchesQuery, normalizeQuery } from "../recordSearch";
+import { publishStateFor, stateTone } from "../shareState";
+import { useLensChrome } from "../lensChrome";
+import { useShares } from "../useShares";
 import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
@@ -52,12 +68,6 @@ import {
   validateDraft,
   type SubscriptionDraft,
 } from "../useSubscriptions";
-import LtBadge from "../components/lt/LtBadge.vue";
-import LtButton from "../components/lt/LtButton.vue";
-import LtPanel from "../components/lt/LtPanel.vue";
-import LtIconButton from "../components/lt/LtIconButton.vue";
-import LtBatchBar from "../components/lt/LtBatchBar.vue";
-import LtToolbar from "../components/lt/LtToolbar.vue";
 import CodeEditor from "../components/CodeEditor.vue";
 import MaskedUrlInput from "../components/MaskedUrlInput.vue";
 import DocumentView from "../components/DocumentView.vue";
@@ -66,8 +76,6 @@ import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import RecordMenu from "../components/RecordMenu.vue";
-import LtSkeleton from "../components/lt/LtSkeleton.vue";
-import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import type { EditorLanguage } from "../codemirror";
 import {
   editorLanguageForFileType,
@@ -190,27 +198,33 @@ const deleteBusy = ref(false);
 /** Rows mid-operation render pending rather than silently unresponsive. */
 const pendingIds = ref<Set<string>>(new Set());
 
-const searchText = ref("");
-const typeFilter = ref<"" | typeof FILE_TYPE_CONFIG | typeof FILE_TYPE_PLAIN | typeof FILE_TYPE_SCRIPT>("");
-const tagFilter = ref("");
-
-const allTags = computed(() => collectTags(allFiles.value));
+/** The toolbar's search lives in the shell; this lens filters on it. */
+const chrome = useLensChrome();
+const searchText = chrome.search;
 
 /**
- * Files get the same search predicate as subscriptions.
- *
- * This screen offers tag chips but its own search never looked at tags, so
- * typing a tag name returned nothing while clicking the chip for the same tag
- * returned rows. One predicate, in recordSearch, for both screens.
+ * Files get the same search predicate as subscriptions: one predicate, in
+ * recordSearch, so a name, an id, a remark and a tag all match here too.
  */
 const files = computed(() => {
   const query = normalizeQuery(searchText.value);
-  return allFiles.value.filter((file) => {
-    if (typeFilter.value && knownFileType(file.file_type) !== typeFilter.value) return false;
-    if (!matchesTag(file, tagFilter.value)) return false;
-    return matchesQuery(file, query);
-  });
+  return allFiles.value.filter((file) => matchesQuery(file, query));
 });
+
+/** Whether anyone can fetch a file: the host's share list, folded onto the row. */
+const shareStore = useShares(host);
+function publishedOf(item: SubscriptionListItem) {
+  return publishStateFor(shareStore.shares.value, item.id);
+}
+const tone = stateTone;
+
+/** What a file is, for the kind chip beside its name. */
+function kindLabel(item: SubscriptionListItem): string {
+  const type = knownFileType(item.file_type);
+  if (type === FILE_TYPE_SCRIPT) return "script";
+  if (type === FILE_TYPE_PLAIN) return "plain text";
+  return "configuration";
+}
 
 /** The store holds no files at all, which is a different situation from a
  *  filter that matched nothing and needs different copy and different actions.
@@ -218,12 +232,10 @@ const files = computed(() => {
  *  showed the first-run "paste your Mihomo config" panel. */
 const storeEmpty = computed(() => allFiles.value.length === 0);
 
-const filtersActive = computed(() => !!searchText.value.trim() || !!typeFilter.value || !!tagFilter.value);
+const filtersActive = computed(() => !!searchText.value.trim());
 
 function clearFilters(): void {
   searchText.value = "";
-  typeFilter.value = "";
-  tagFilter.value = "";
 }
 
 /** What the batch controls report and act on: only rows that exist and are on
@@ -312,27 +324,15 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-/** Grouped by what the file IS, which is how an operator looks for one. */
-const fileGroups = computed(() => {
-  const groups: { id: string; label: string; rows: SubscriptionListItem[] }[] = [
-    { id: FILE_TYPE_CONFIG, label: "Client configurations", rows: [] },
-    { id: FILE_TYPE_SCRIPT, label: "Built by a script", rows: [] },
-    { id: FILE_TYPE_PLAIN, label: "Plain text", rows: [] },
-  ];
-  for (const file of files.value) {
-    const group = groups.find((entry) => entry.id === knownFileType(file.file_type));
-    (group ?? groups[0]!).rows.push(file);
-  }
-  return groups.filter((group) => group.rows.length > 0);
-});
-
-const collapsedGroups = ref<Set<string>>(new Set());
-function toggleGroup(id: string): void {
-  const next = new Set(collapsedGroups.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  collapsedGroups.value = next;
-}
+/** The lens tells the shell when its editor is up and how many rows are selected. */
+watch(
+  [editing, selectedCount],
+  ([isEditing, count]) => {
+    chrome.lenses.files.editing = isEditing;
+    chrome.lenses.files.selected = count;
+  },
+  { immediate: true },
+);
 
 // ── row menu ────────────────────────────────────────────────────────────────
 
@@ -516,7 +516,7 @@ function nodeSourceMissing(item: SubscriptionListItem): boolean {
  * the id (what ties a file to a share) the way the sibling tab does it.
  */
 function nameTitle(item: SubscriptionListItem): string {
-  return `${item.id}. Show the document ${item.display_name || item.name} serves`;
+  return `${item.id}. ${item.display_name || item.name}`;
 }
 
 /**
@@ -524,11 +524,6 @@ function nameTitle(item: SubscriptionListItem): string {
  * five capabilities the sibling screen reports, so "why is that greyed out"
  * has one answer across both.
  */
-/** How many files this tab holds, or null while that is not yet known. */
-const listed = computed(() =>
-  !host.init.value || subs.loadError.value || subs.state.value === "loading" ? null : allFiles.value.length,
-);
-
 const actionCaps = computed<ActionCapabilities>(() => ({
   ready: !!host.init.value,
   mutate: subs.canMutate.value,
@@ -726,6 +721,7 @@ async function submit(): Promise<void> {
  * arrived, so loading in `onMounted` alone silently no-ops and never retries.
  */
 async function loadAll(): Promise<void> {
+  void shareStore.load();
   await subs.load();
   await subs.loadOperators();
 }
@@ -1144,291 +1140,190 @@ watch(host.init, (value) => {
     </section>
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
-    <section v-else class="configuration" aria-labelledby="files-title">
-      <div class="section-heading">
-        <div>
-          <h2 id="files-title">Files</h2>
-          <p>
-            A configuration you keep, with its nodes kept current. Publish one from the dashboard
-            under Networking to give it a URL.
-          </p>
-        </div>
-        <div class="heading-actions">
-          <!-- "0 / 256" during a load is a claim, not an unknown. -->
-          <span class="badge mono" :title="listed !== null
-            ? `${listed} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`
-            : subs.loadError.value
-              ? `Unknown: the list could not be read. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`
-              : `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`">
-            {{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}
-          </span>
-          <LtButton
-            variant="primary"
-            :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
-            :title="subs.atRecordLimit.value
-              ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
-              : !subs.canMutate.value ? 'This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.' : ''"
-            @click="startCreate()"
-          >
-            <Plus :size="14" aria-hidden="true" /> New file
-          </LtButton>
-        </div>
-      </div>
+    <section v-else class="lens" aria-labelledby="files-title">
+      <h2 id="files-title" class="pc-sr-only">Files</h2>
 
-      <div v-if="subs.actionError.value" class="alert" role="alert">
-        <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
-      </div>
-      <div v-else-if="subs.notice.value" class="alert alert-ok" role="status">
-        <CircleCheck :size="16" aria-hidden="true" /> {{ subs.notice.value }}
-      </div>
+      <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
+      <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
 
-      <LtSkeleton v-if="!host.init.value || subs.state.value === 'loading'" :rows="4" :columns="4" />
+      <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" label="Loading files">
+        <PcSkeleton :count="4" label="Loading the files" />
+      </PcPanel>
 
-      <LtEmptyState
-        v-else-if="subs.loadError.value"
-        kind="error"
-        title="The list could not be loaded"
-        :detail="subs.loadError.value"
-      >
-        <LtButton variant="primary" @click="loadAll()">Retry</LtButton>
-      </LtEmptyState>
+      <template v-else-if="subs.loadError.value">
+        <PcNotice tone="danger" title="The list could not be loaded">
+          {{ subs.loadError.value }}
+          <template #actions><PcButton compact @click="loadAll()">Try again</PcButton></template>
+        </PcNotice>
+        <PcPanel label="Files">
+          <PcEmptyState kind="error" title="Nothing could be loaded">
+            <p>This is not an empty store, it is an unanswered question.</p>
+          </PcEmptyState>
+        </PcPanel>
+      </template>
 
       <!-- An empty store and a filter that matched nothing are different
-           situations. They shared one branch, so searching for a name that did
-           not exist answered with the first-run panel and its "add a
-           configuration" button, and the "Nothing matches" state below could
-           never render at all. -->
-      <LtEmptyState
-        v-else-if="storeEmpty"
-        title="No files yet"
-        detail="Paste the Mihomo config you already run. Lattice keeps your rules and groups and replaces only the proxy list, from whichever subscription you point it at, so nodes can change without you editing anything."
-      >
-        <LtButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate()">
-          <FileCode :size="14" aria-hidden="true" /> Add a configuration
-        </LtButton>
-        <LtButton :disabled="!subs.canMutate.value" @click="startCreate(FILE_TYPE_PLAIN)">
-          <FileText :size="14" aria-hidden="true" /> New plain-text file
-        </LtButton>
-      </LtEmptyState>
+           situations with different copy and different actions. -->
+      <PcPanel v-else-if="storeEmpty" label="Files">
+        <PcEmptyState title="No files yet">
+          <template #icon><FileCode :size="26" aria-hidden="true" /></template>
+          <p>
+            Paste the Mihomo config you already run. Lattice keeps your rules and groups and replaces
+            only the proxy list, from whichever subscription you point it at, so nodes can change
+            without you editing anything.
+          </p>
+          <template #actions>
+            <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate()">
+              <template #icon><FileCode :size="15" aria-hidden="true" /></template>
+              Add a configuration
+            </PcButton>
+            <PcButton :disabled="!subs.canMutate.value" @click="startCreate(FILE_TYPE_PLAIN)">
+              <template #icon><FileText :size="15" aria-hidden="true" /></template>
+              New plain-text file
+            </PcButton>
+          </template>
+        </PcEmptyState>
+      </PcPanel>
 
       <template v-else>
-        <LtToolbar>
-          <template #search>
-            <input
-              v-model="searchText"
-              class="lt-search"
-              type="search"
-              placeholder="Filter by name, id, remark, tag"
-              aria-label="Filter files"
-            />
-          </template>
-          <template #filters>
-            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === '' }" :aria-pressed="typeFilter === ''" @click="typeFilter = ''">All kinds</button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === FILE_TYPE_CONFIG }" :aria-pressed="typeFilter === FILE_TYPE_CONFIG" @click="typeFilter = FILE_TYPE_CONFIG">
-              <FileCode :size="12" aria-hidden="true" /> Configurations
-            </button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === FILE_TYPE_SCRIPT }" :aria-pressed="typeFilter === FILE_TYPE_SCRIPT" @click="typeFilter = FILE_TYPE_SCRIPT">
-              <Braces :size="12" aria-hidden="true" /> Scripts
-            </button>
-            <button type="button" class="lt-chip" :class="{ 'is-active': typeFilter === FILE_TYPE_PLAIN }" :aria-pressed="typeFilter === FILE_TYPE_PLAIN" @click="typeFilter = FILE_TYPE_PLAIN">
-              <FileText :size="12" aria-hidden="true" /> Plain text
-            </button>
-            <template v-if="allTags.length">
-              <span class="lt-chip-sep" aria-hidden="true" />
-              <button type="button" class="lt-chip" :class="{ 'is-active': tagFilter === '' }" :aria-pressed="tagFilter === ''" @click="tagFilter = ''">All tags</button>
-              <button
-                v-for="tag in allTags"
-                :key="tag"
-                type="button"
-                class="lt-chip"
-                :class="{ 'is-active': tagFilter === tag }"
-                :aria-pressed="tagFilter === tag"
-                @click="tagFilter = tag"
-              >{{ tag }}</button>
-            </template>
-          </template>
-        </LtToolbar>
-
-        <LtBatchBar :count="selectedCount" @clear="selectedIds = new Set()">
-          <button
-            v-for="action in batchActions"
-            :key="action.id"
-            class="button button-danger button-compact"
-            type="button"
-            :disabled="action.disabled"
-            :title="action.reason || undefined"
-            @click="requestDelete(selectedVisible.map((file) => file.id))"
-          >
-            <Trash2 :size="14" aria-hidden="true" />
-            {{ action.label }} {{ selectedCount }} file{{ selectedCount === 1 ? "" : "s" }}
-          </button>
-        </LtBatchBar>
-
         <!-- A write can succeed and its trailing reload still fail. The rows
-             below are then the last good read. This strip used to REPLACE the
-             list, so the one message saying "showing the last good read" was
-             the only thing left on screen and there was nothing to show. -->
-        <p v-if="subs.staleError.value" class="stale-strip" role="status">
-          Showing the last good read. The newest reload failed ({{ subs.staleError.value }}).
-        </p>
+             below are then the last good read. -->
+        <PcNotice v-if="subs.staleError.value" tone="warning" title="Showing the last good read">
+          The newest reload failed ({{ subs.staleError.value }}).
+        </PcNotice>
 
-        <LtEmptyState
-          v-if="!files.length"
-          kind="no-results"
-          title="Nothing matches"
-          detail="No file matches the current search and filters."
-        >
-          <LtButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</LtButton>
-        </LtEmptyState>
-
-        <template v-else>
-        <!-- Its own grid (.rec-files), not the sibling table's. That grid's
-             column tokens live on .rec-scroll, so borrowed without it the
-             template was invalid: every cell stacked into one column, and at
-             375 the sibling's max-content rule ran the row 636px wide. -->
-        <div class="rec-files">
-        <div class="rec-head" aria-hidden="true">
-          <label class="rec-select" :title="`Select all ${files.length} shown files`">
-            <input
-              type="checkbox"
-              :checked="allVisibleSelected"
-              :indeterminate.prop="selectedCount > 0 && !allVisibleSelected"
-              :aria-label="`Select all ${files.length} shown files`"
-              @change="toggleSelectAll()"
-            />
-          </label>
-          <span />
-          <span>File</span>
-          <span class="rec-head-source">Source</span>
-          <span class="rec-head-spacer" />
-        </div>
-
-        <section v-for="group in fileGroups" :key="group.id" class="rec-group">
-          <button
-            type="button"
-            class="rec-group-head"
-            :aria-expanded="!collapsedGroups.has(group.id)"
-            @click="toggleGroup(group.id)"
+        <PcPanel label="Files">
+          <PcPanelHeader
+            title="Files"
+            description="A configuration you keep, with its nodes kept current. Publish one from the console under Networking to give it a URL."
           >
-            <ChevronDown
-              :size="14"
-              class="rec-group-caret"
-              :class="{ 'is-collapsed': collapsedGroups.has(group.id) }"
-              aria-hidden="true"
+            <PcCount
+              :value="`${files.length} file${files.length === 1 ? '' : 's'}`"
+              :label="`${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`"
             />
-            <span>{{ group.label }}</span>
-            <span class="rec-group-count">{{ group.rows.length }}</span>
-          </button>
+          </PcPanelHeader>
 
-          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list">
-            <li
-              v-for="item in group.rows"
-              :key="item.id"
-              class="rec"
-              :class="{ 'is-pending': pendingIds.has(item.id), 'is-selected': selectedIds.has(item.id) }"
-            >
-              <label class="rec-select" :title="`Select ${item.name}`" @click.stop>
-                <input
-                  type="checkbox"
+          <PcEmptyState v-if="!files.length" kind="no-match" title="No file matches that search">
+            <p>Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.</p>
+            <template #actions>
+              <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear the search</PcButton>
+            </template>
+          </PcEmptyState>
+
+          <!-- One row per file: what it is, where its template comes from, where
+               its nodes come from, and whether anyone can fetch it. -->
+          <PcTable v-else :min-width="960" label="Files">
+            <template #head>
+              <PcSelectCell
+                header
+                :checked="allVisibleSelected"
+                :indeterminate="selectedCount > 0 && !allVisibleSelected"
+                :label="`Select all ${files.length} shown files`"
+                @change="toggleSelectAll()"
+              />
+              <PcTh name>File</PcTh>
+              <PcTh>Source</PcTh>
+              <PcTh>Nodes</PcTh>
+              <PcTh numeric>Operations</PcTh>
+              <PcTh>Published</PcTh>
+              <PcTh actions>Actions</PcTh>
+            </template>
+            <tbody>
+              <PcRow
+                v-for="item in files"
+                :key="item.id"
+                :id="`rec-${item.id}`"
+                :selected="selectedIds.has(item.id)"
+                :class="{ 'is-pending': pendingIds.has(item.id) }"
+              >
+                <PcSelectCell
                   :checked="selectedIds.has(item.id)"
-                  :aria-label="`Select ${item.name}`"
+                  :label="`Select ${item.name}`"
                   @change="toggleSelected(item.id)"
                 />
-              </label>
 
-              <span class="rec-icon" aria-hidden="true">
-                <FileText v-if="item.file_type === FILE_TYPE_PLAIN" :size="17" />
-                <Braces v-else-if="item.file_type === FILE_TYPE_SCRIPT" :size="17" />
-                <FileCode v-else :size="17" />
-              </span>
+                <PcNameCell :name="item.display_name || item.name" :id="item.id" :title="nameTitle(item)">
+                  <template #after>
+                    <PcKindChip :label="kindLabel(item)" />
+                    <PcTagList v-if="tagChips(item.tags, false).all.length" :tags="tagChips(item.tags, false).all" :max="2" />
+                  </template>
+                  <template #status>
+                    <PcStatePill :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" :title="publishedOf(item).title" />
+                  </template>
+                </PcNameCell>
 
-              <div class="rec-body">
-                <!-- The name opens the client sheet, as on the sibling screen:
-                     the daily job is "give me this for my client". The name
-                     takes the slack and ellipses; the kind is the group
-                     heading and the icon, so the row does not repeat it. -->
-                <button
-                  type="button"
-                  class="rec-name"
-                  :title="nameTitle(item)"
-                  @click="openFileSheet(item, $event)"
-                >
-                  <span class="rec-name-text">{{ item.display_name || item.name }}</span>
-                </button>
-                <span v-if="tagChips(item.tags, false).shown.length" class="rec-tags" :title="tagChips(item.tags, false).all.join(', ')">
-                  <LtBadge v-for="tag in tagChips(item.tags, false).shown" :key="tag" tone="neutral">{{ tag }}</LtBadge>
-                  <LtBadge v-if="tagChips(item.tags, false).more" tone="neutral">+{{ tagChips(item.tags, false).more }}</LtBadge>
-                </span>
-              </div>
+                <!-- Where its template comes from, which is the one thing that
+                     decides whether Refresh does anything. -->
+                <PcTd label="Source">
+                  <span class="cell-muted">{{ item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here" }}</span>
+                </PcTd>
 
-              <!-- Same column the sibling tab puts refresh state in. A file's
-                   equivalent fact is where its template comes from, which is
-                   the one thing that decides whether Refresh does anything.
-                   At 375 this cell drops under the name as the row's second
-                   line rather than pushing the row past the viewport. -->
-              <div class="rec-status-cell">
-                <span class="rec-status">{{ item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here" }}</span>
-                <!-- One line for the nodes: where they come from and how many
-                     operations run on them. Two lines is the row's height. -->
-                <span
-                  v-if="item.node_source || item.step_count"
-                  class="rec-quota"
-                  :class="{ 'is-danger': nodeSourceMissing(item) }"
+                <!-- Where its proxy list comes from. A file pointing at a record
+                     that is no longer in the store cannot serve at all, and used
+                     to look exactly like one that can. -->
+                <PcTd
+                  label="Nodes"
                   :title="nodeSourceMissing(item)
                     ? `This file draws its proxy list from ${item.node_source}, which is not in the store. Serving it fails until the source is restored or the file points somewhere else.`
-                    : [
-                      item.node_source ? `Its proxy list comes from ${sourceName(item.node_source)}` : '',
-                      item.step_count ? `${item.step_count} operation(s) run on its nodes before the document is served${item.disabled_step_count ? `, ${item.disabled_step_count} switched off` : ''}` : '',
-                    ].filter(Boolean).join('. ')"
+                    : item.node_source ? `Its proxy list comes from ${sourceName(item.node_source)}` : 'Served exactly as written; no proxy list is filled in.'"
                 >
-                  <template v-if="nodeSourceMissing(item)">node source {{ item.node_source }} is gone</template>
-                  <template v-else-if="item.node_source">nodes from {{ sourceName(item.node_source) }}</template>
-                  <template v-if="item.step_count"><template v-if="item.node_source"> · </template>{{ item.step_count }} operation(s)<template v-if="item.disabled_step_count">, {{ item.disabled_step_count }} off</template></template>
-                </span>
-              </div>
+                  <PcStateDot v-if="nodeSourceMissing(item)" tone="error" :label="`source ${item.node_source} is gone`" />
+                  <span v-else-if="item.node_source" class="cell-muted">from {{ sourceName(item.node_source) }}</span>
+                  <span v-else class="cell-muted">as written</span>
+                </PcTd>
 
-              <div class="rec-actions" @click.stop>
-                <LtIconButton
-                  v-if="item.source === SOURCE_REMOTE"
-                  :label="`Refresh ${item.name} from its template URL`"
-                  :disabled="rowAction(item, 'refresh').disabled || pendingIds.has(item.id)"
-                  :title="rowAction(item, 'refresh').reason || undefined"
-                  @click="runRowAction('refresh', item, $event)"
+                <PcTd
+                  label="Operations"
+                  numeric
+                  mono
+                  :title="item.step_count ? `${item.step_count} operation(s) run on its nodes before the document is served${item.disabled_step_count ? `, ${item.disabled_step_count} switched off` : ''}` : 'No operations run on its nodes.'"
                 >
-                  <RefreshCw :size="15" :class="pendingIds.has(item.id) ? 'spin' : ''" aria-hidden="true" />
-                </LtIconButton>
-                <LtIconButton
-                  :label="`Edit ${item.name}`"
-                  :disabled="rowAction(item, 'edit').disabled"
-                  :title="rowAction(item, 'edit').reason || undefined"
-                  @click="runRowAction('edit', item, $event)"
-                >
-                  <Pencil :size="15" aria-hidden="true" />
-                </LtIconButton>
-                <LtIconButton
-                  :label="`Show document for ${item.name}`"
-                  :disabled="rowAction(item, 'output').disabled"
-                  :title="rowAction(item, 'output').reason || undefined"
-                  @click="openFileSheet(item, $event)"
-                >
-                  <ChevronsRight :size="15" aria-hidden="true" />
-                </LtIconButton>
-                <RecordMenu
-                  :data-row-menu="item.id"
-                  :name="item.name"
-                  :actions="menuActionsFor(item)"
-                  :open="openFileMenuId === item.id"
-                  @toggle="toggleFileMenu(item.id)"
-                  @run="(id, event) => runRowAction(id, item, event)"
-                  @keydown="onRowMenuKeydown"
-                />
-              </div>
-            </li>
-          </ul>
-        </section>
-        </div>
-        </template>
+                  {{ item.step_count }}<span v-if="item.disabled_step_count" class="cell-muted"> ({{ item.disabled_step_count }} off)</span>
+                </PcTd>
+
+                <PcTd label="Published" stack="state">
+                  <PcStatePill :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" :title="publishedOf(item).title" />
+                </PcTd>
+
+                <PcActionsCell>
+                  <PcButton
+                    compact
+                    :disabled="rowAction(item, 'edit').disabled"
+                    :title="rowAction(item, 'edit').reason || rowAction(item, 'edit').title"
+                    @click="runRowAction('edit', item, $event)"
+                  >
+                    Open
+                  </PcButton>
+                  <RecordMenu
+                    :data-row-menu="item.id"
+                    :name="item.name"
+                    :actions="menuActionsFor(item)"
+                    :open="openFileMenuId === item.id"
+                    @toggle="toggleFileMenu(item.id)"
+                    @run="(id, event) => runRowAction(id, item, event)"
+                    @keydown="onRowMenuKeydown"
+                  />
+                </PcActionsCell>
+              </PcRow>
+            </tbody>
+          </PcTable>
+        </PcPanel>
       </template>
+
+      <PcBatchBar :count="selectedCount" noun="selected" @clear="selectedIds = new Set()">
+        <PcButton
+          v-for="action in batchActions"
+          :key="action.id"
+          variant="danger"
+          compact
+          :disabled="action.disabled"
+          :title="action.reason || undefined"
+          @click="requestDelete(selectedVisible.map((file) => file.id))"
+        >
+          <template #icon><Trash2 :size="13" aria-hidden="true" /></template>
+          {{ action.label }} {{ selectedCount }} file{{ selectedCount === 1 ? "" : "s" }}
+        </PcButton>
+      </PcBatchBar>
 
       <TargetSheet
         :open="!!targetSheet"
@@ -1436,9 +1331,9 @@ watch(host.init, (value) => {
         @close="closeTargetSheet()"
       />
 
-      <!-- One panel, as on the sibling tab, for the share guidance. The
-           document is the sheet's; see the panel state above. -->
-      <LtPanel :open="!!drawer" :title="drawerTitle" :return-focus-to="drawerTrigger" @close="closeDrawer()">
+      <!-- One side panel, as on the sibling tab, for the share guidance. The
+           document is the sheet's. -->
+      <PcSidePanel :open="!!drawer" :title="drawerTitle" size="record" :return-focus-to="drawerTrigger" @close="closeDrawer()">
         <template v-if="drawer?.mode === 'share'">
           <p class="row-popover-copy">
             Nothing here is reachable until a share is published for it. Shares live in the
@@ -1446,16 +1341,17 @@ watch(host.init, (value) => {
           </p>
           <p class="row-popover-note">Already published? The Shares view shows its link.</p>
           <div v-if="shareOrigin && drawerItem" class="empty-actions">
-            <LtButton variant="primary" @click="openShares(drawerItem.name)">
-              <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
-            </LtButton>
+            <PcButton variant="primary" @click="openShares(drawerItem.name)">
+              <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
+              Open Shares view
+            </PcButton>
           </div>
           <p v-else class="row-popover-note">
             This frame cannot ask the console to navigate, open Networking → Subscription Shares
             yourself.
           </p>
         </template>
-      </LtPanel>
+      </PcSidePanel>
 
       <LtConfirmDialog
         :open="!!deleteTargets"

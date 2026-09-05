@@ -350,6 +350,9 @@ interface Catalogue {
   loadError: Ref<string>;
   /** A failed background reload: the rows on screen are the last good ones. */
   staleError: Ref<string>;
+  /** A read already in flight is joined, not repeated: the shell and the
+   *  visible lens both ask for the list when the handshake lands. */
+  inFlight: Promise<void> | null;
 }
 
 /**
@@ -368,15 +371,56 @@ function catalogueFor(host: HostContext): Catalogue {
     items: ref<SubscriptionListItem[]>([]),
     loadError: ref(""),
     staleError: ref(""),
+    inFlight: null,
   };
   catalogues.set(host, fresh);
   return fresh;
 }
 
-/** Records as they were last read, for readers that do not edit them. */
+/**
+ * Read the catalogue from the host. A first read shows the loading state; a
+ * reload behind rows already on screen is silent, and if it fails the rows
+ * stay and `staleError` says they are the last good read.
+ */
+function readCatalogue(host: HostContext, catalogue: Catalogue): Promise<void> {
+  if (catalogue.inFlight) return catalogue.inFlight;
+  if (!host.bridge || !host.available(BINDINGS.subList)) return Promise.resolve();
+  catalogue.inFlight = readCatalogueOnce(host, catalogue).finally(() => {
+    catalogue.inFlight = null;
+  });
+  return catalogue.inFlight;
+}
+
+async function readCatalogueOnce(host: HostContext, catalogue: Catalogue): Promise<void> {
+  const { state, items, loadError, staleError } = catalogue;
+  if (!host.bridge) return;
+  const silent = state.value === "ready";
+  if (!silent) state.value = "loading";
+  loadError.value = "";
+  staleError.value = "";
+  try {
+    const response = await callMethod<SubscriptionListResponse>(host.bridge, BINDINGS.subList, {}).promise;
+    items.value = response.subscriptions ?? [];
+    state.value = "ready";
+  } catch (cause) {
+    const message = safeErrorMessage(cause, "Subscriptions could not be loaded");
+    if (silent) {
+      staleError.value = message;
+    } else {
+      state.value = "error";
+      loadError.value = message;
+    }
+  } finally {
+    await host.resize();
+  }
+}
+
+/** Records as they were last read, for readers that do not edit them. The
+ *  shell's Refresh reads them again through `reload`. */
 export function recordCatalogue(host: HostContext) {
-  const { state, items, loadError } = catalogueFor(host);
-  return { state, items, loadError };
+  const catalogue = catalogueFor(host);
+  const { state, items, loadError } = catalogue;
+  return { state, items, loadError, reload: () => readCatalogue(host, catalogue) };
 }
 
 export function useSubscriptions(host: HostContext) {
@@ -441,27 +485,8 @@ export function useSubscriptions(host: HostContext) {
    * reports through `staleError`, which the screen shows as a strip above rows
    * that are still exactly what the server last sent.
    */
-  async function load(): Promise<void> {
-    if (!host.bridge || !available.value) return;
-    const silent = state.value === "ready";
-    if (!silent) state.value = "loading";
-    loadError.value = "";
-    staleError.value = "";
-    try {
-      const response = await callMethod<SubscriptionListResponse>(host.bridge, BINDINGS.subList, {}).promise;
-      items.value = response.subscriptions ?? [];
-      state.value = "ready";
-    } catch (cause) {
-      const message = safeErrorMessage(cause, "Subscriptions could not be loaded");
-      if (silent) {
-        staleError.value = message;
-      } else {
-        state.value = "error";
-        loadError.value = message;
-      }
-    } finally {
-      await host.resize();
-    }
+  function load(): Promise<void> {
+    return readCatalogue(host, catalogueFor(host));
   }
 
   async function loadOperators(): Promise<void> {

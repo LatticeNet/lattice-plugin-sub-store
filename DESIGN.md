@@ -49,7 +49,7 @@
 
 ## Components
 
-- Existing components to reuse: `CodeEditor`, `TargetSheet`, `ProcessChain`, and the `Lt*` component layer
+- Existing components to reuse: `CodeEditor`, `TargetSheet`, `ProcessChain`, the plugin chassis (`@latticenet/plugin-bridge/chassis`) for the page skeleton, and the remaining `Lt*` components (confirm dialog, copy, manual copy)
 - New/changed components: `TargetSheet` becomes the Client Output Workspace; `CodeEditor` remains the single lazy editor and viewer implementation
 - Variants and states: editable and read-only preview, lazy-load textarea fallback, known and plain languages, truncated and complete output
 - Token/component ownership: host variables enter through `ui/src/tokens.css`; screens consume `--lt-*`; `CodeEditor` owns CodeMirror assembly and the lazy chunk boundary

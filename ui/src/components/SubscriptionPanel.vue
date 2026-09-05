@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { LoaderCircle, SquareArrowOutUpRight } from "@lucide/vue";
+import { PcButton, PcSidePanel } from "@latticenet/plugin-bridge/chassis";
 
 import NodeRows from "./NodeRows.vue";
 import SubscriptionPublishControl from "./SubscriptionPublishControl";
-import LtButton from "./lt/LtButton.vue";
-import LtPanel from "./lt/LtPanel.vue";
 import type { SubscriptionListItem } from "../client";
 import type { PublishState } from "../shareState";
 import type { UseSubscriptions } from "../useSubscriptions";
@@ -18,7 +17,8 @@ import type { UseSubscriptions } from "../useSubscriptions";
  * and as three v-else-if branches inside the list screen the only way to see
  * what a panel could contain was to read the screen. Each mode is what it
  * shows and nothing else; the record, the store and the published state are
- * handed in.
+ * handed in. The surface itself is the chassis's side panel, the same one every
+ * plugin frame docks a record form into.
  */
 defineProps<{
   mode: "preview" | "publish" | "share" | null;
@@ -42,7 +42,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <LtPanel :open="open" :title="title" :return-focus-to="returnFocusTo" @close="emit('close')">
+  <PcSidePanel :open="open" :title="title" size="record" :return-focus-to="returnFocusTo" @close="emit('close')">
     <template v-if="mode === 'preview'">
       <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
         <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
@@ -83,14 +83,15 @@ const emit = defineEmits<{
         <p class="row-popover-note">Already published? The Shares lens shows its link.</p>
       </template>
       <div v-if="shareOrigin && item" class="empty-actions">
-        <LtButton variant="primary" @click="emit('openShares', item)">
-          <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open Shares view
-        </LtButton>
+        <PcButton variant="primary" @click="emit('openShares', item)">
+          <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
+          Open Shares view
+        </PcButton>
       </div>
       <p v-else class="row-popover-note">
         This frame cannot ask the console to navigate, open Networking → Subscription Shares
         yourself.
       </p>
     </template>
-  </LtPanel>
+  </PcSidePanel>
 </template>

@@ -97,7 +97,9 @@ describe("vpn-core graph editor component contract", () => {
     });
     const html = await renderToString(app);
     expect(html).toContain("Subscriptions");
-    expect(html).toMatch(/<button[^>]+disabled[^>]*>.*New/s);
+    // The list is empty for this host, so the empty state's create button is
+    // the one record action on screen, and read-only disables it.
+    expect(html).toMatch(/<button[^>]+disabled[^>]*>[^<]*(<[^>]+>[^<]*)*Add this fleet/s);
   });
 
   it("SSR consumes the exact Go preview wire names and exposes fresh graph authority", async () => {

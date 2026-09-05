@@ -366,7 +366,7 @@ describe("the record catalogue", () => {
     await subs.load();
     const catalogue = recordCatalogue(host);
     expect(catalogue.items.value).toEqual(subs.items.value);
-    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError"]);
+    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError", "reload"]);
   });
 });
 

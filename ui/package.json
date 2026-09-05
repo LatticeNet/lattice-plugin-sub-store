@@ -1,6 +1,6 @@
 {
   "name": "@latticenet/plugin-sub-store-ui",
-  "version": "0.13.0-alpha.32",
+  "version": "0.13.0-alpha.33",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
     "@codemirror/legacy-modes": "^6.5.3",
     "@codemirror/state": "^6.7.1",
     "@codemirror/view": "^6.43.9",
-    "@latticenet/plugin-bridge": "0.1.0-alpha.1",
+    "@latticenet/plugin-bridge": "file:vendor/latticenet-plugin-bridge-0.1.0-alpha.2.tgz",
     "@lezer/highlight": "^1.2.3",
     "@lucide/vue": "^1.24.0",
     "vue": "^3.5.22"

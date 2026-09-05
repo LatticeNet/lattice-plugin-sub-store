@@ -5,36 +5,34 @@ const SRC = new URL(".", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, SRC), "utf8");
 
 /**
- * The Files list fits 375 (DESIGN-PROGRAM 1, the 375 rules, and section 4).
+ * The Files lens is the chassis's table card, the same one the Subscriptions
+ * lens and the Lines page draw, rather than a grid of its own.
  *
- * It borrowed the subscriptions table's rows, whose column tokens live on
- * .rec-scroll. Without that ancestor the grid template was invalid, so every
- * cell stacked into one column, and the table's max-content rule under 760px
- * ran each row 636px wide: the document scrolled sideways to 687px on a 375px
- * screen. Two guards: the list has a grid of its own, and the table's sideways
- * rules stay scoped to its scroller.
+ * It had its own grid once, borrowed from the sibling table without the
+ * ancestor its column tokens lived on, so every cell stacked into one column
+ * and the document scrolled sideways to 687px on a 375px screen. The chassis
+ * owns the narrow forms now: a pinned name column under 720px and a stacked
+ * row under 480px, both measured on the Lines page.
  */
-describe("the files list fits the viewport", () => {
+describe("the files list is the chassis table", () => {
   const styles = read("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
   const screen = read("screens/FilesScreen.vue");
 
-  it("has a grid of its own", () => {
-    expect(screen).toContain('<div class="rec-files">');
-    expect(styles).toMatch(/\.rec-files \.rec-head,\s*\.rec-files \.rec \{[^}]*grid-template-columns/s);
+  it("draws the chassis card and table, with no grid of its own", () => {
+    expect(screen).toContain("<PcPanel");
+    expect(screen).toMatch(/<PcTable v-else :min-width="\d+" label="Files">/);
+    expect(screen).not.toContain("rec-files");
+    expect(styles).not.toContain(".rec-files");
+    expect(styles).not.toContain("grid-template-columns:\n    var(--lt-col-select)");
   });
 
-  it("keeps the table's sideways scroll to the table", () => {
-    const narrow = styles.slice(styles.indexOf("@media (max-width: 760px)"));
-    for (const m of narrow.matchAll(/([^{}]+)\{[^}]*width:\s*max-content/g)) {
+  it("keeps no sideways scroll rule outside a scroller", () => {
+    // The table wrap is the only thing allowed to scroll sideways, and it is
+    // the chassis's; nothing in this sheet widens a row past the frame.
+    for (const m of styles.matchAll(/([^{}]+)\{[^}]*width:\s*max-content/g)) {
       const selector = m[1]!.trim();
-      expect(selector, selector + " widens rows outside .rec-scroll").toMatch(/^\.rec-scroll /);
+      expect(selector, selector + " widens rows outside a scroller").toMatch(/^\.pc-batch-bar|^\.lt-batchbar/);
     }
-    // The source cell is the row's second line under the name, not a column.
-    expect(narrow).toMatch(/\.rec-files \.rec-status-cell \{[^}]*grid-column: 3 \/ -1/s);
-    // Neither the source label nor the action spacer keeps a column here.
-    expect(narrow).toMatch(
-      /\.rec-files \.rec-head-source,\s*\.rec-files \.rec-head-spacer \{ display: none; \}/,
-    );
   });
 
   /**
@@ -52,32 +50,20 @@ describe("the files list fits the viewport", () => {
     expect(frames![0]).not.toMatch(/translateX/);
   });
 
-  /**
-   * The name track is capped, and capped with a fixed maximum.
-   *
-   * As `1fr` it took 878px on a 1440 frame and started SOURCE at x=995. The
-   * maximum has to be a length rather than a content keyword: each row is its
-   * own grid, and a content-sized track would give the row holding the long
-   * name a different template from its neighbours', so the columns would stop
-   * lining up down the list.
-   */
-  it("caps the name track without sizing it to its content", () => {
-    const rule = styles.match(/\.rec-files \.rec-head,\s*\.rec-files \.rec \{[^}]*\}/s);
-    expect(rule, "the files grid is gone").not.toBeNull();
-    const tracks = rule![0];
-    expect(tracks).toMatch(/minmax\(16rem, 48rem\)/);
-    expect(tracks).not.toMatch(/auto|max-content|fit-content/);
+  it("puts the whole name and the id in the title", () => {
+    expect(screen).toMatch(/<PcNameCell :name="item\.display_name \|\| item\.name" :id="item\.id" :title="nameTitle\(item\)"/);
+    expect(screen).toMatch(/function nameTitle[\s\S]*?item\.display_name \|\| item\.name/);
   });
 
-  it("puts the whole name in the title and ellipses the cell", () => {
-    expect(screen).toMatch(/class="rec-name"[\s\S]*?:title="nameTitle\(item\)"/);
-    expect(screen).toMatch(/function nameTitle[\s\S]*?item\.display_name \|\| item\.name/);
-    expect(styles).toMatch(/\.rec-name-text \{[^}]*text-overflow: ellipsis/);
+  it("says what a file is on its row, since the rows are not grouped by kind", () => {
+    expect(screen).toContain('<PcKindChip :label="kindLabel(item)" />');
+    expect(screen).toMatch(/function kindLabel[\s\S]*?"configuration"/);
   });
 
   it("opens one document surface from every entry", () => {
-    // The name, the » and the row menu all open the sheet. The drawer kept a
-    // second viewer, capped at eight lines and scrolling inside itself.
+    // The row menu's "Show document" and the palette open the sheet. The
+    // drawer kept a second viewer, capped at eight lines and scrolling inside
+    // itself.
     expect(screen).toMatch(/if \(id === "output"\) return openFileSheet\(item, event\);/);
     expect(screen).not.toContain("row-popover-document");
     expect(screen).not.toMatch(/mode: "preview"/);

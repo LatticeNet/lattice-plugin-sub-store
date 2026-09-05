@@ -1,43 +1,36 @@
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from "vue";
+import { Library, LoaderCircle, Server, Trash2 } from "@lucide/vue";
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronsRight,
-  CircleAlert,
-  CircleCheck,
-  ClipboardPaste,
-  CopyPlus,
-  Ellipsis,
-  Eye,
-  Globe,
-  Layers,
-  Library,
-  LoaderCircle,
-  Pencil,
-  Plus,
-  Send,
-  RefreshCw,
-  Server,
-  Share2,
-  SquareArrowOutUpRight,
-  Trash2,
-  TriangleAlert,
-  ListOrdered,
-} from "@lucide/vue";
+  PcActionsCell,
+  PcBatchBar,
+  PcButton,
+  PcCount,
+  PcDetailRow,
+  PcEmptyState,
+  PcGroupRow,
+  PcKindChip,
+  PcNameCell,
+  PcNotice,
+  PcPanel,
+  PcPanelHeader,
+  PcRow,
+  PcSelectCell,
+  PcSkeleton,
+  PcStateDot,
+  PcStatePill,
+  PcTable,
+  PcTagList,
+  PcTd,
+  PcTh,
+  useExpandSet,
+} from "@latticenet/plugin-bridge/chassis";
 
-import LtBadge from "../components/lt/LtBadge.vue";
-import LtButton from "../components/lt/LtButton.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
-import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
-import LtIconButton from "../components/lt/LtIconButton.vue";
-import LtBatchBar from "../components/lt/LtBatchBar.vue";
-import LtSkeleton from "../components/lt/LtSkeleton.vue";
-import LtToolbar from "../components/lt/LtToolbar.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId, type ResolvedAction } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
@@ -61,9 +54,10 @@ import {
 import { useHost } from "../host";
 import { copyText } from "../hostClipboard";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
-import { UNTAGGED, collectTags, matchesQuery, matchesTag, normalizeQuery } from "../recordSearch";
+import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { formatRelativeTime, formatTraffic, parseUserinfo, tagChips as tagChipsOf } from "../rowStatus";
-import { publishStateFor, refreshStateFor } from "../shareState";
+import { publishStateFor, refreshStateFor, stateTone } from "../shareState";
+import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
 import {
   cutChain,
@@ -76,7 +70,6 @@ import {
 import { createNodeCountQueue, nodeCountLabel, nodeCountTitle } from "../nodeCounts";
 import { maskUrl } from "../urlMask";
 import { useReveal } from "../reveal";
-import MaskedUrlInput from "../components/MaskedUrlInput.vue";
 import { safeErrorMessage } from "../subStoreModel";
 import {
   BINDINGS,
@@ -133,9 +126,22 @@ const { editing, editingId, startCreate, startEdit, exit } = editor;
 // empty store is exactly when importing an existing Sub-Store is the next step.
 const ops = useSubscriptionOps(host);
 
-const tagFilter = ref("");
-const searchText = ref("");
-const kindFilter = ref<"" | "sub" | "collection">("");
+// ── published shares ────────────────────────────────────────────────────────
+// The host's share list, the one copy the Shares lens and the lens switch
+// read too, folded onto each row. `undefined` until it has been read, so the
+// column can say "not yet" rather than "not published" while the call is in
+// flight.
+const shareStore = useShares(host);
+const shares = shareStore.shares;
+const sharesError = shareStore.error;
+function publishedOf(item: SubscriptionListItem) {
+  return publishStateFor(shares.value, item.id);
+}
+
+/** The toolbar's search and sort live in the shell; this lens filters on them. */
+const chrome = useLensChrome();
+const searchText = chrome.search;
+const sortKey = chrome.sort;
 const publishDestination = ref("");
 const publishMethod = ref("PUT");
 const publishFormat = ref("plain");
@@ -152,40 +158,17 @@ const pendingIds = ref<Set<string>>(new Set());
 
 
 
-// Files live in the same store but on their own tab. Offering their tags here
-// would put a filter in front of the operator that selects nothing.
+// Files live in the same store but on their own tab.
 const onThisTab = computed(() =>
   subs.items.value.filter((i) => (i.kind || KIND_SUB) !== KIND_FILE),
 );
 
-const allTags = computed(() => collectTags(onThisTab.value));
-
-/** Tag and search both live in recordSearch, so the chip counts and the rows
- *  can never disagree about what "matching" means. */
-function matchesFilter(item: SubscriptionListItem): boolean {
-  return matchesTag(item, tagFilter.value);
-}
-
-/** Offered only when there is something it would select. */
-const hasUntagged = computed(() => onThisTab.value.some((i) => (i.tags ?? []).length === 0));
-
-const filtersActive = computed(
-  () => !!searchText.value.trim() || !!tagFilter.value || !!kindFilter.value,
-);
+/** The search is the one filter left: it matches names, ids, remarks and tags. */
+const filtersActive = computed(() => !!searchText.value.trim());
 
 function clearFilters(): void {
   searchText.value = "";
-  tagFilter.value = "";
-  kindFilter.value = "";
 }
-
-const singles = computed(() =>
-  onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && matchesFilter(i)),
-);
-const collections = computed(() =>
-  onThisTab.value.filter((i) => (i.kind || KIND_SUB) === KIND_COLLECTION && matchesFilter(i)),
-);
-
 
 function clearTransientListState(): void {
   // A pending confirm or an open drawer must not survive into the editor and
@@ -258,9 +241,6 @@ function trafficOf(item: SubscriptionListItem): string {
  * is the default because the question that brings someone here is usually
  * "what did I just change" or "what has stopped refreshing".
  */
-type SortKey = "recent" | "name" | "status";
-const sortKey = ref<SortKey>("recent");
-
 /** Selection for batch delete; deleting 40 stale imports one dialog at a time
  *  is how an operator ends up not cleaning up at all. */
 const selectedIds = ref<Set<string>>(new Set());
@@ -273,32 +253,8 @@ function toggleSelected(id: string): void {
 
 const unsortedRows = computed(() => {
   const query = normalizeQuery(searchText.value);
-  return onThisTab.value.filter((item) => {
-    if (!matchesFilter(item)) return false;
-    if (kindFilter.value && (item.kind || KIND_SUB) !== (kindFilter.value === "collection" ? KIND_COLLECTION : KIND_SUB)) {
-      return false;
-    }
-    return matchesQuery(item, query);
-  });
+  return onThisTab.value.filter((item) => matchesQuery(item, query));
 });
-
-/**
- * Chip counts reflect the search too.
- *
- * They used to apply the tag filter but not the search box, so typing left
- * "Subs (12)" sitting above a list of two, two ways of narrowing the same list
- * telling the operator different things.
- */
-const searchedRows = computed(() => {
-  const query = normalizeQuery(searchText.value);
-  return onThisTab.value.filter((item) => matchesFilter(item) && matchesQuery(item, query));
-});
-const visibleSingles = computed(
-  () => searchedRows.value.filter((item) => (item.kind || KIND_SUB) === KIND_SUB).length,
-);
-const visibleCollections = computed(
-  () => searchedRows.value.filter((item) => item.kind === KIND_COLLECTION).length,
-);
 
 /** Rank for the status sort: what needs attention first. */
 function statusWeight(item: SubscriptionListItem): number {
@@ -346,32 +302,65 @@ function toggleSelectAll(): void {
 }
 
 /**
- * Records are shown as a grouped list, the way Sub-Store shows them: one
- * section for single subscriptions and one for combinations, each collapsible
- * and carrying its own count.
- *
- * This replaced a dense table whose fixed column widths could not hold real
- * data: inside the console's frame a name like "merge-cd-openjobs" wrapped
- * onto three lines, its tags spilled into the neighbouring column, and two
- * columns (Status, Quota) were "Never refreshed" and "-" for every row. A
- * table earns its columns by having values in them; this data does not.
+ * Records fold under their kind, the way lines fold under nodes on the Lines
+ * page: one group row for subscriptions and one for combinations, each with
+ * its count and a summary sentence, each collapsible on its own.
  */
 const groups = computed(() => {
-  const singles = filteredRows.value.filter((row) => (row.kind || KIND_SUB) !== KIND_COLLECTION);
-  const collections = filteredRows.value.filter((row) => (row.kind || KIND_SUB) === KIND_COLLECTION);
+  const singleRows = filteredRows.value.filter((row) => (row.kind || KIND_SUB) !== KIND_COLLECTION);
+  const collectionRows = filteredRows.value.filter((row) => (row.kind || KIND_SUB) === KIND_COLLECTION);
   return [
-    { id: "subs", label: "Subscriptions", rows: singles },
-    { id: "collections", label: "Combinations", rows: collections },
-  ].filter((group) => group.rows.length > 0);
+    { id: "subs", label: "Subscriptions", rows: singleRows },
+    { id: "collections", label: "Combinations", rows: collectionRows },
+  ]
+    .filter((group) => group.rows.length > 0)
+    .map((group) => ({ ...group, summary: groupSummary(group.rows) }));
 });
 
-const collapsedGroups = ref<Set<string>>(new Set());
-function toggleGroup(id: string): void {
-  const next = new Set(collapsedGroups.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  collapsedGroups.value = next;
+/** "5 records · 2 published", or only the count while the share list is unread. */
+function groupSummary(rows: SubscriptionListItem[]): string {
+  const count = `${rows.length} record${rows.length === 1 ? "" : "s"}`;
+  if (shares.value === undefined) return count;
+  const published = rows.filter((row) => publishStateFor(shares.value, row.id).tone === "ok").length;
+  return `${count} · ${published} published`;
 }
+
+/**
+ * Which groups are open. Both by default: a store of a handful of records is
+ * a page, not a scroll, and two closed shelves would hide everything the
+ * operator came for. A search opens every group that still has rows, and
+ * clearing it restores the operator's own set.
+ */
+const openGroups = useExpandSet(["subs", "collections"]);
+watch(
+  () => (filtersActive.value ? groups.value.map((group) => group.id) : null),
+  (forced) => openGroups.override(forced),
+  { immediate: true },
+);
+function groupOpen(id: string): boolean {
+  return openGroups.isOpen(id);
+}
+function toggleGroup(id: string): void {
+  openGroups.toggle(id);
+}
+
+/** What the record card's count badge says and what its title explains. */
+const countLabel = computed(() => `${filteredRows.value.length} record${filteredRows.value.length === 1 ? "" : "s"}`);
+const countTitle = computed(() =>
+  filtersActive.value
+    ? `${filteredRows.value.length} of ${onThisTab.value.length} records match. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
+    : `${onThisTab.value.length} records here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`,
+);
+
+/** The lens tells the shell when its editor is up and how many rows are selected. */
+watch(
+  [editing, () => selectedVisible.value.length],
+  ([isEditing, count]) => {
+    chrome.lenses.subscriptions.editing = isEditing;
+    chrome.lenses.subscriptions.selected = count;
+  },
+  { immediate: true },
+);
 
 /** Which record's per-row menu is open; only ever one. */
 const openMenuId = ref("");
@@ -497,15 +486,6 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * to answer "why is that greyed out", rather than an inline expression per
  * control that drifts from its neighbours.
  */
-/**
- * How many records this tab holds, or null while that is not known: before
- * the host answers, during a load, and after a load that failed. The last
- * case printed "0 / 256" over the error, a count of records it never saw.
- */
-const listed = computed(() =>
-  !host.init.value || subs.loadError.value || subs.state.value === "loading" ? null : onThisTab.value.length,
-);
-
 const actionCaps = computed<ActionCapabilities>(() => ({
   ready: !!host.init.value,
   mutate: subs.canMutate.value,
@@ -515,7 +495,12 @@ const actionCaps = computed<ActionCapabilities>(() => ({
   publish: subs.canPublish.value,
 }));
 
-const MENU_ACTIONS = ["preview", "share", "publish", "duplicate", "delete"] as const;
+/**
+ * The row keeps one text button, Open, and folds every other verb into its
+ * menu, the way a Lines row keeps Evidence and a menu. Client output and
+ * Refresh were icon buttons on the row; they are the first two items now.
+ */
+const MENU_ACTIONS = ["output", "refresh", "preview", "share", "publish", "duplicate", "delete"] as const;
 
 function menuActionsFor(row: SubscriptionListItem) {
   return actionsFor(row, actionCaps.value, MENU_ACTIONS).map((action) =>
@@ -546,17 +531,16 @@ function tagChips(row: SubscriptionListItem) {
 }
 
 /**
- * The name opens the record where this session can edit it. Where it cannot,
- * the name is text: a button that opens nothing is worse than none, and the
- * » at the row's end still gives the client output.
+ * The title on the name: the id that ties a row to a share, and what Open
+ * does or why it cannot.
  */
-function openRecord(row: SubscriptionListItem, event: MouseEvent): void {
-  if (!rowAction(row, "edit").disabled) runRowAction("edit", row, event);
-}
 function nameTitle(row: SubscriptionListItem): string {
   const edit = rowAction(row, "edit");
   return edit.disabled ? `${row.id}. ${edit.reason}` : `${row.id}. Open ${row.display_name || row.name}`;
 }
+
+/** The chassis's tone for a row verdict. */
+const tone = stateTone;
 
 /**
  * What the selection can carry. A batch is allowed only where every record in
@@ -637,28 +621,9 @@ function closeTargetSheet(): void {
   void nextTick(() => trigger?.focus());
 }
 
-function sourceTone(item: SubscriptionListItem): "neutral" | "accent" {
-  return item.source === SOURCE_VPN_CORE || item.source === SOURCE_VPN_CORE_GRAPH ? "accent" : "neutral";
-}
-
 function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" | "neutral"; label: string; title?: string } {
   return refreshStateFor(item);
 }
-
-// ── published shares ────────────────────────────────────────────────────────
-// The host's share list, the one copy the Shares lens and the lens switch
-// read too, folded onto each row. `undefined` until it has been read, so the
-// column can say "not yet" rather than "not published" while the call is in
-// flight.
-const shareStore = useShares(host);
-const shares = shareStore.shares;
-const sharesError = shareStore.error;
-function publishedOf(item: SubscriptionListItem) {
-  return publishStateFor(shares.value, item.id);
-}
-const publishedCount = computed(() => shares.value === undefined
-  ? null
-  : filteredRows.value.filter((row) => publishStateFor(shares.value, row.id).tone === "ok").length);
 
 // ── node counts ─────────────────────────────────────────────────────────────
 // The server keeps no count from the last preview or fetch (`list` carries
@@ -751,7 +716,7 @@ function collapseRow(): void {
   revealSource.hide();
   if (id) {
     void nextTick(() => {
-      document.querySelector<HTMLElement>(`[data-expand="${cssEscape(id)}"]`)?.focus();
+      document.querySelector<HTMLElement>(`#rec-${cssEscape(id)} .pc-toggle`)?.focus();
     });
   }
   void host.resize();
@@ -1070,530 +1035,334 @@ watch(host.init, (value) => {
     <SubscriptionEditor v-if="editing" :editor="editor" :subs="subs" />
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
-    <section v-else class="configuration" aria-labelledby="subs-title">
-      <div class="section-heading">
-        <div>
-          <h2 id="subs-title">Subscriptions</h2>
-          <!-- Nothing to sum up while the list is unread or unreadable: a failed
-               load used to print "None of these records is published" over the
-               error, a verdict about records it never saw. -->
-          <p v-if="subs.loadError.value || publishedCount === null">
-            A record reaches a client only through a share, published in the console under Networking.
-          </p>
-          <p v-else-if="publishedCount === 0">
-            None of these records is published: no client can fetch any of them until a share exists
-            for it, in the console under Networking.
-          </p>
-          <p v-else>
-            {{ publishedCount }} of {{ filteredRows.length }} shown records {{ publishedCount === 1 ? 'is' : 'are' }} published; the rest reach no client until a share exists.
-          </p>
-        </div>
-        <div class="heading-actions">
-          <!-- While the list is still coming this said "0 / 256", which is a
-               claim and not an unknown: an operator glancing at a slow load
-               was told the store was empty. An em-dash says nothing yet. -->
-          <span
-            class="badge mono"
-            :title="listed !== null
-              ? `${listed} shown here. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
-              : subs.loadError.value
-                ? `Unknown: the list could not be read. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
-                : `Counting. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`"
-          >{{ listed ?? "—" }} / {{ MAX_SUBSCRIPTION_RECORDS }}</span>
-          <LtButton
-            variant="primary"
-            :disabled="!subs.canMutate.value || subs.atRecordLimit.value"
-            :title="subs.atRecordLimit.value
-              ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
-              : !subs.canMutate.value ? 'This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.' : ''"
-            @click="startCreate(KIND_SUB)"
-          >
-            <Plus :size="14" aria-hidden="true" /> New subscription
-          </LtButton>
-          <LtButton
-            :disabled="!subs.canMutate.value || subs.atRecordLimit.value || !singles.length"
-            :title="!singles.length
-              ? 'Create a subscription first. There is nothing to combine'
-              : subs.atRecordLimit.value
-                ? `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`
-                : !subs.canMutate.value ? 'This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.' : ''"
-            @click="startCreate(KIND_COLLECTION)"
-          >
-            <Layers :size="14" aria-hidden="true" /> New combination
-          </LtButton>
-        </div>
-      </div>
+    <section v-else class="lens" aria-labelledby="subs-title">
+      <h2 id="subs-title" class="pc-sr-only">Subscriptions</h2>
 
-      <div v-if="subs.actionError.value" class="alert" role="alert">
-        <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
-      </div>
-      <div v-else-if="subs.notice.value" class="alert alert-ok" role="status">
-        <CircleCheck :size="16" aria-hidden="true" /> {{ subs.notice.value }}
-      </div>
-      <div v-if="migrateSummary" class="alert alert-ok" role="status">
-        <CircleCheck :size="16" aria-hidden="true" /> {{ migrateSummary }}
-      </div>
+      <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
+      <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
+      <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
 
       <!--
-        A batch delete that stopped part way. The error alert above already
+        A batch delete that stopped part way. The error notice above already
         says why the one record failed; this says what that means for the
         other eleven, which is the part the operator cannot work out alone.
       -->
-      <div v-if="deleteRemainder" class="partial-strip" role="status">
-        <div class="partial-strip__head">
-          <span class="partial-strip__label">
-            {{ deleteRemainder.done.length }} deleted,
-            1 failed,
-            {{ deleteRemainder.pending.length }} not attempted
-          </span>
-          <div class="partial-strip__actions">
-            <LtButton
-              v-if="deleteRemainder.pending.length || deleteRemainder.failed"
-              size="sm"
-              variant="primary"
-              @click="retryDeleteRemainder()"
-            >
-              Retry the {{ deleteRemainder.pending.length + 1 }} that remain
-            </LtButton>
-            <LtButton size="sm" @click="deleteRemainder = null">Dismiss</LtButton>
-          </div>
-        </div>
-        <p class="partial-strip__note">
-          The run stopped at
-          <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>
-          so nothing after it was touched. The records below are still here and
-          still selected.
-        </p>
+      <PcNotice
+        v-if="deleteRemainder"
+        tone="warning"
+        :title="`${deleteRemainder.done.length} deleted, 1 failed, ${deleteRemainder.pending.length} not attempted`"
+      >
+        The run stopped at <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>, so nothing after
+        it was touched. These records are still here and still selected:
         <ul class="partial-strip__names">
-          <li v-for="name in namesFor([deleteRemainder.failed, ...deleteRemainder.pending])" :key="name" class="mono">
+          <li v-for="name in namesFor([deleteRemainder.failed, ...deleteRemainder.pending])" :key="name" class="pc-mono">
             {{ name }}
           </li>
         </ul>
-      </div>
+        <template #actions>
+          <PcButton compact @click="retryDeleteRemainder()">
+            Retry the {{ deleteRemainder.pending.length + 1 }} that remain
+          </PcButton>
+          <PcButton compact @click="deleteRemainder = null">Dismiss</PcButton>
+        </template>
+      </PcNotice>
 
       <!--
-        A copy that the clipboard refused. Sits with the other status strips
-        rather than inside the row, because the row list re-sorts and a reveal
+        A copy that the clipboard refused. Sits with the other notices rather
+        than inside the row, because the row list re-sorts and a reveal
         anchored to a row would move out from under the operator mid-copy.
       -->
       <div v-if="manualShareLink" class="manual-copy-strip">
         <div class="manual-copy-strip__head">
           <span class="manual-copy-strip__label">Link for {{ manualShareLink.label }}</span>
-          <LtButton size="sm" @click="manualShareLink = null">Dismiss</LtButton>
+          <PcButton compact @click="manualShareLink = null">Dismiss</PcButton>
         </div>
         <LtManualCopy :value="manualShareLink.value" subject="link" />
       </div>
 
-      <LtSkeleton v-if="!host.init.value || subs.state.value === 'loading'" :rows="6" :columns="5" />
+      <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" label="Loading subscriptions">
+        <PcSkeleton :count="6" label="Loading the subscriptions" />
+      </PcPanel>
 
-      <LtEmptyState
-        v-else-if="subs.loadError.value"
-        kind="error"
-        title="The list could not be loaded"
-        :detail="subs.loadError.value"
-      >
-        <LtButton variant="primary" @click="loadAll()">Retry</LtButton>
-      </LtEmptyState>
+      <template v-else-if="subs.loadError.value">
+        <PcNotice tone="danger" title="The list could not be loaded">
+          {{ subs.loadError.value }}
+          <template #actions><PcButton compact @click="loadAll()">Try again</PcButton></template>
+        </PcNotice>
+        <PcPanel label="Subscriptions">
+          <PcEmptyState kind="error" title="Nothing could be loaded">
+            <p>This is not an empty store, it is an unanswered question.</p>
+          </PcEmptyState>
+        </PcPanel>
+      </template>
 
-      <LtEmptyState
-        v-else-if="storeEmpty"
-        title="No subscriptions yet"
-        detail="Start with your own fleet: one subscription reading this deployment's vpn-core nodes."
-      >
-        <LtButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
-          <Server :size="14" aria-hidden="true" /> Add this fleet's nodes
-        </LtButton>
+      <PcPanel v-else-if="storeEmpty" label="Subscriptions">
+        <PcEmptyState title="No subscriptions yet">
+          <template #icon><Library :size="26" aria-hidden="true" /></template>
+          <p>Start with your own fleet: one subscription reading this deployment's vpn-core nodes.</p>
+          <template #actions>
+            <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
+              <template #icon><Server :size="15" aria-hidden="true" /></template>
+              Add this fleet's nodes
+            </PcButton>
 
-        <!-- An empty store is exactly when importing from an existing Sub-Store
-             is the right move. This form used to be gated on the store being
-             empty while living inside the branch that only renders when it is
-             not, so it could never appear at all. -->
-        <div v-if="ops.canMigrate.value" class="empty-secondary">
-          <span class="field-label">Already running a standalone Sub-Store?</span>
-          <form class="empty-inline-form" @submit.prevent="runMigrate">
-            <input
-              v-model="migrateUrl"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="Its base URL"
-              aria-label="Standalone Sub-Store base URL"
-            />
-            <button class="button button-secondary" type="submit" :disabled="ops.busy.value || !migrateUrl.trim()">
-              <LoaderCircle v-if="ops.busy.value" :size="15" class="spin" aria-hidden="true" />
-              Import from it
-            </button>
-          </form>
-          <p class="row-popover-note">
-            Importing publishes nothing. Each subscription stays unserved until you share it.
-          </p>
-          <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
-        </div>
-      </LtEmptyState>
+            <!-- An empty store is exactly when importing from an existing
+                 Sub-Store is the right move. -->
+            <div v-if="ops.canMigrate.value" class="empty-secondary">
+              <span class="field-label">Already running a standalone Sub-Store?</span>
+              <form class="empty-inline-form" @submit.prevent="runMigrate">
+                <input
+                  v-model="migrateUrl"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Its base URL"
+                  aria-label="Standalone Sub-Store base URL"
+                />
+                <PcButton type="submit" :busy="ops.busy.value" :disabled="!migrateUrl.trim()">Import from it</PcButton>
+              </form>
+              <p class="row-popover-note">
+                Importing publishes nothing. Each subscription stays unserved until you share it.
+              </p>
+              <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
+            </div>
+          </template>
+        </PcEmptyState>
+      </PcPanel>
 
       <template v-else>
-        <LtToolbar>
-          <template #search>
-            <input
-              v-model="searchText"
-              class="lt-search"
-              type="search"
-              placeholder="Filter by name, id, remark"
-              aria-label="Filter subscriptions"
-            />
-          </template>
-          <template #filters>
-            <button
-              type="button"
-              class="lt-chip"
-              :class="{ 'is-active': kindFilter === '' }"
-              :aria-pressed="kindFilter === ''"
-              @click="kindFilter = ''"
-            >All kinds</button>
-            <button
-              type="button"
-              class="lt-chip"
-              :class="{ 'is-active': kindFilter === 'sub' }"
-              :aria-pressed="kindFilter === 'sub'"
-              @click="kindFilter = 'sub'"
-            >
-              <Library :size="12" aria-hidden="true" /> Subscriptions ({{ visibleSingles }})
-            </button>
-            <button
-              type="button"
-              class="lt-chip"
-              :class="{ 'is-active': kindFilter === 'collection' }"
-              :aria-pressed="kindFilter === 'collection'"
-              @click="kindFilter = 'collection'"
-            >
-              <Layers :size="12" aria-hidden="true" /> Combinations ({{ visibleCollections }})
-            </button>
-            <span class="lt-chip-sep" aria-hidden="true" />
-            <label class="lt-sort">
-              <span class="lt-sort-label">Sort</span>
-              <select v-model="sortKey" class="select select-compact" aria-label="Sort records">
-                <option value="recent">Recently refreshed</option>
-                <option value="name">Name</option>
-                <option value="status">Needs attention</option>
-              </select>
-            </label>
-            <span v-if="allTags.length || hasUntagged" class="lt-chip-sep" aria-hidden="true" />
-            <button v-if="allTags.length || hasUntagged" type="button" class="lt-chip" :class="{ 'is-active': tagFilter === '' }" @click="tagFilter = ''">All tags</button>
-            <button
-              v-for="tag in allTags"
-              :key="tag"
-              type="button"
-              class="lt-chip"
-              :class="{ 'is-active': tagFilter === tag }"
-              @click="tagFilter = tag"
-            >
-              {{ tag }}
-            </button>
-            <button
-              v-if="hasUntagged"
-              type="button"
-              class="lt-chip"
-              :class="{ 'is-active': tagFilter === UNTAGGED }"
-              @click="tagFilter = UNTAGGED"
-            >
-              Untagged
-            </button>
-          </template>
-        </LtToolbar>
-
-        <!-- The bar names the count it will act on, and that count is the
-             intersection with what is on screen: a stale id from a filtered or
-             already-deleted row must never be part of what Delete promises. -->
-        <LtBatchBar :count="selectedCount" @clear="selectedIds = new Set()">
-          <button
-            v-for="action in batchActions"
-            :key="action.id"
-            class="button button-danger button-compact"
-            type="button"
-            :disabled="action.disabled"
-            :title="action.reason || undefined"
-            @click="requestDelete(selectedVisible.map((row) => row.id))"
-          >
-            <Trash2 :size="14" aria-hidden="true" />
-            {{ action.label }} {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
-          </button>
-        </LtBatchBar>
-
         <!-- A write can succeed and its trailing reload still fail. The rows
              below are then the last good read, and saying so beats either
              blanking them or pretending they are current. -->
-        <p v-if="subs.staleError.value" class="stale-strip" role="status">
-          Showing the last good read. The newest reload failed ({{ subs.staleError.value }}).
-        </p>
+        <PcNotice v-if="subs.staleError.value" tone="warning" title="Showing the last good read">
+          The newest reload failed ({{ subs.staleError.value }}).
+        </PcNotice>
 
-        <LtEmptyState
-          v-if="!filteredRows.length"
-          kind="no-results"
-          title="Nothing matches"
-          detail="No record matches the current search and filters."
-        >
-          <LtButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</LtButton>
-        </LtEmptyState>
-
-        <template v-else>
-        <!-- One table, one row per record, columns the operator scans for:
-             what feeds it, how many nodes go in and come out, how many
-             operations, whether anyone can fetch it, when it was last fetched.
-             At a narrow width the table keeps its columns and scrolls sideways
-             inside itself, with the record column pinned. -->
-        <!-- A table in role, so each cell is announced under its column. It
-             stays a grid of divs rather than a <table>: each row is its own
-             grid so the chain can open under it and the record column can pin
-             at a narrow width, neither of which table layout gives. -->
-        <div class="rec-scroll" role="table" aria-label="Subscriptions and combinations">
-        <div class="rec-head" role="row">
-          <label class="rec-select" role="columnheader" :title="`Select all ${filteredRows.length} shown records`">
-            <input
-              type="checkbox"
-              :checked="allVisibleSelected"
-              :indeterminate.prop="selectedCount > 0 && !allVisibleSelected"
-              :aria-label="`Select all ${filteredRows.length} shown records`"
-              @change="toggleSelectAll()"
-            />
-          </label>
-          <!-- Named by attribute, not hidden text: an absolutely positioned
-               span here escaped the scroller and widened the page at 375px. -->
-          <span role="columnheader" aria-label="Expand" />
-          <span class="rec-head-record" role="columnheader">Record</span>
-          <span role="columnheader">Source</span>
-          <span class="rec-head-nodes" role="columnheader" title="Nodes in and out of the chain, from the last preview run">Nodes</span>
-          <span class="rec-head-ops" role="columnheader">Operations</span>
-          <span class="rec-head-published" role="columnheader">Published</span>
-          <span class="rec-head-status" role="columnheader">Last fetch</span>
-          <span class="rec-head-spacer" role="columnheader" aria-label="Actions" />
-        </div>
-
-        <div v-for="group in groups" :key="group.id" class="rec-group" role="rowgroup">
-          <div role="row">
-          <div role="cell" aria-colspan="9">
-          <button
-            type="button"
-            class="rec-group-head"
-            :aria-expanded="!collapsedGroups.has(group.id)"
-            @click="toggleGroup(group.id)"
+        <PcPanel label="Records">
+          <PcPanelHeader
+            title="Records"
+            description="One row per record, folded under its kind. A combination is a set of subscriptions merged into one output."
           >
-            <ChevronDown
-              :size="14"
-              class="rec-group-caret"
-              :class="{ 'is-collapsed': collapsedGroups.has(group.id) }"
-              aria-hidden="true"
-            />
-            <Layers v-if="group.id === 'collections'" :size="14" aria-hidden="true" />
-            <span>{{ group.label }}</span>
-            <span class="rec-group-count">{{ group.rows.length }}</span>
-          </button>
-          </div>
-          </div>
+            <PcCount :value="countLabel" :label="countTitle" />
+          </PcPanelHeader>
 
-          <ul v-if="!collapsedGroups.has(group.id)" class="rec-list" role="presentation">
-            <li
-              v-for="row in group.rows"
-              :key="row.id"
-              class="rec"
-              role="row"
-              :class="{ 'is-pending': pendingIds.has(row.id), 'is-selected': selectedIds.has(row.id), 'is-open': expandedId === row.id }"
-            >
-              <label class="rec-select" role="cell" :title="`Select ${row.name}`" @click.stop>
-                <input
-                  type="checkbox"
-                  :checked="selectedIds.has(row.id)"
-                  :aria-label="`Select ${row.name}`"
-                  @change="toggleSelected(row.id)"
-                />
-              </label>
+          <PcEmptyState v-if="!filteredRows.length" kind="no-match" title="No record matches that search">
+            <p>Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.</p>
+            <template #actions>
+              <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear the search</PcButton>
+            </template>
+          </PcEmptyState>
 
-              <!-- Opens the chain under the row. A button, so Enter and Space
-                   toggle it natively; Escape is handled at the document. -->
-              <div class="rec-expand-cell" role="cell">
-              <button
-                type="button"
-                class="rec-expand"
-                :data-expand="row.id"
-                :aria-expanded="expandedId === row.id"
-                :aria-controls="`rec-chain-${row.id}`"
-                :aria-label="`${expandedId === row.id ? 'Collapse' : 'Expand'} ${row.name}: its operations and what each one kept`"
-                @click="toggleRow(row.id)"
-              >
-                <ChevronDown
-                  :size="14"
-                  class="rec-group-caret"
-                  :class="{ 'is-collapsed': expandedId !== row.id }"
-                  aria-hidden="true"
-                />
-              </button>
-              </div>
+          <!-- One table, one row per record under its kind, columns the operator
+               scans for: what feeds it, how many nodes go in and come out, how
+               many operations, whether anyone can fetch it, when it was last
+               fetched. A row's chevron opens its operations as rows beneath it. -->
+          <PcTable v-else :min-width="1040" label="Subscriptions and combinations">
+            <template #head>
+              <PcSelectCell
+                header
+                :checked="allVisibleSelected"
+                :indeterminate="selectedCount > 0 && !allVisibleSelected"
+                :label="`Select all ${filteredRows.length} shown records`"
+                @change="toggleSelectAll()"
+              />
+              <PcTh name>Record</PcTh>
+              <PcTh>Source</PcTh>
+              <PcTh numeric>Nodes</PcTh>
+              <PcTh numeric>Operations</PcTh>
+              <PcTh>Published</PcTh>
+              <PcTh>Last fetch</PcTh>
+              <PcTh actions>Actions</PcTh>
+            </template>
 
-              <div class="rec-body" role="cell">
-                <!-- The name opens the record; the » at the row's end is the
-                     client output. Both opened the sheet, so the click an
-                     operator makes most duplicated a button and none reached
-                     the editor. Text, not a button, where this session cannot
-                     edit. The id is what ties a row to a share, and it is the
-                     first thing truncated, so it rides in the title. -->
-                <component
-                  :is="rowAction(row, 'edit').disabled ? 'span' : 'button'"
-                  :type="rowAction(row, 'edit').disabled ? undefined : 'button'"
-                  class="rec-name"
-                  :title="nameTitle(row)"
-                  @click="openRecord(row, $event)"
+            <tbody v-for="group in groups" :key="group.id">
+              <PcGroupRow :expanded="groupOpen(group.id)">
+                <td class="pc-select" data-stack="actions" />
+                <PcNameCell
+                  :name="group.label"
+                  :expanded="groupOpen(group.id)"
+                  :controls="`rec-${group.rows[0]!.id}`"
+                  @toggle="toggleGroup(group.id)"
                 >
-                  <Layers v-if="(row.kind || KIND_SUB) === KIND_COLLECTION" :size="14" class="rec-kind" aria-hidden="true" />
-                  <Library v-else :size="14" class="rec-kind" aria-hidden="true" />
-                  <span class="rec-name-text">{{ row.display_name || row.name }}</span>
-                </component>
-                <span v-if="tagChips(row).shown.length" class="rec-tags" :title="tagChips(row).all.join(', ')">
-                  <LtBadge v-for="tag in tagChips(row).shown" :key="tag" tone="neutral">{{ tag }}</LtBadge>
-                  <LtBadge v-if="tagChips(row).more" tone="neutral">+{{ tagChips(row).more }}</LtBadge>
-                </span>
-              </div>
+                  <template #after><PcCount :value="group.rows.length" /></template>
+                </PcNameCell>
+                <PcTd :colspan="5" stack="summary"><span class="pc-group-summary">{{ group.summary }}</span></PcTd>
+                <PcActionsCell />
+              </PcGroupRow>
 
-              <span class="rec-source" role="cell" :title="row.remark || describe(row)">{{ describe(row) }}</span>
+              <template v-if="groupOpen(group.id)">
+                <template v-for="row in group.rows" :key="row.id">
+                  <PcRow
+                    :id="`rec-${row.id}`"
+                    :selected="selectedIds.has(row.id)"
+                    :open="expandedId === row.id"
+                    :class="{ 'is-pending': pendingIds.has(row.id) }"
+                  >
+                    <PcSelectCell
+                      :checked="selectedIds.has(row.id)"
+                      :label="`Select ${row.name}`"
+                      @change="toggleSelected(row.id)"
+                    />
 
-              <!-- "in → out" from the last preview run this session made for
-                   the row, "?" until one has. The title says which run and
-                   when. -->
-              <span class="rec-nodes mono" role="cell" :title="nodesTitle(row)">{{ nodesOf(row) }}</span>
-
-              <span class="rec-ops mono" role="cell" :title="row.target ? `Always rendered for ${row.target}` : undefined">
-                {{ row.step_count }}<template v-if="row.disabled_step_count"> <span class="rec-ops-off">({{ row.disabled_step_count }} off)</span></template>
-              </span>
-
-              <!-- Whether anyone can fetch this record. The banner above said
-                   "nothing is reachable until you publish a share" and no row
-                   said which rows that was true of. -->
-              <div class="rec-published-cell" role="cell" @click.stop>
-                <span
-                  v-if="publishedOf(row).slug"
-                  :class="`rec-published mono is-${publishedOf(row).tone}`"
-                  :title="publishedOf(row).title"
-                >{{ publishedOf(row).label }}</span>
-                <button
-                  v-else-if="shares !== undefined"
-                  type="button"
-                  class="rec-publish-link"
-                  :title="publishedOf(row).title + ' Opens the share form in the console.'"
-                  :disabled="rowAction(row, 'share').disabled"
-                  @click="runRowAction('share', row, $event)"
-                >{{ publishedOf(row).label }}</button>
-                <span v-else class="rec-published is-neutral" :title="sharesError || publishedOf(row).title">{{ publishedOf(row).label }}</span>
-              </div>
-
-              <div class="rec-status-cell" role="cell">
-                <span
-                  :class="`rec-status is-${statusOf(row).tone}`"
-                  :title="statusOf(row).title"
-                >{{ statusOf(row).label }}</span>
-                <span v-if="trafficOf(row)" class="rec-quota">{{ trafficOf(row) }}</span>
-              </div>
-
-              <div class="rec-actions" role="cell" @click.stop>
-                <LtIconButton
-                  :label="`Refresh ${row.name}`"
-                  :disabled="rowAction(row, 'refresh').disabled"
-                  :title="rowAction(row, 'refresh').reason || undefined"
-                  @click="runRowAction('refresh', row, $event)"
-                >
-                  <RefreshCw :size="15" aria-hidden="true" />
-                </LtIconButton>
-                <LtIconButton
-                  :label="`Edit ${row.name}`"
-                  :disabled="rowAction(row, 'edit').disabled"
-                  :title="rowAction(row, 'edit').reason || undefined"
-                  @click="runRowAction('edit', row, $event)"
-                >
-                  <Pencil :size="15" aria-hidden="true" />
-                </LtIconButton>
-                <LtIconButton
-                  :label="`Client output for ${row.name}`"
-                  :disabled="rowAction(row, 'output').disabled"
-                  :title="rowAction(row, 'output').reason || undefined"
-                  @click="runRowAction('output', row, $event)"
-                >
-                  <ChevronsRight :size="15" aria-hidden="true" />
-                </LtIconButton>
-                <RecordMenu
-                  :data-row-menu="row.id"
-                  :name="row.name"
-                  :actions="menuActionsFor(row)"
-                  :open="openMenuId === row.id"
-                  @toggle="toggleRowMenu(row.id)"
-                  @run="(id, event) => runRowAction(id, row, event)"
-                  @keydown="onRowMenuKeydown"
-                />
-              </div>
-
-              <!-- The chain, read in place: each operation with what it kept,
-                   and the nodes the chain removed with the operation that
-                   removed each. -->
-              <div
-                v-if="expandedId === row.id"
-                :id="`rec-chain-${row.id}`"
-                class="rec-chain"
-                role="cell"
-                aria-colspan="9"
-              >
-                <p v-if="rowChain?.loading" class="rec-chain-note" role="status">
-                  <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Reading the record…
-                </p>
-                <template v-else-if="rowChain?.record">
-                  <p class="rec-chain-source">
-                    <span class="rec-chain-eyebrow">Source</span>
-                    <span>{{ describe(row) }}</span>
-                    <!-- The provider link, masked after the host: the token
-                         rides in its query string. Reveal shows it for a
-                         minute. -->
-                    <template v-if="rowChain.record.url">
-                      <code class="rec-chain-url" :title="revealSource.on.value ? 'Masks itself again after a minute' : 'Masked: the query string carries the provider token'">{{ revealSource.on.value ? rowChain.record.url : maskUrl(rowChain.record.url) }}</code>
-                      <button type="button" class="rec-reveal" @click="revealSource.toggle()">
-                        {{ revealSource.on.value ? "Hide" : "Reveal" }}
-                      </button>
-                    </template>
-                  </p>
-                  <p v-if="rowChain.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
-                  <ol v-if="chainSteps.length" class="rec-chain-list" aria-label="Operations, in order">
-                    <li
-                      v-for="(step, index) in chainSteps"
-                      :key="index"
-                      :class="{ 'is-off': step.disabled, 'is-cut': /^kept/.test(chainDeltaText(index)) }"
+                    <!-- The chevron opens the chain under the row: a real
+                         button, so Enter and Space toggle it; Escape is handled
+                         at the document. The id rides in the title, because it
+                         is what ties a row to a share and the first thing
+                         truncated. -->
+                    <PcNameCell
+                      :name="row.display_name || row.name"
+                      :id="row.id"
+                      :level="1"
+                      :title="nameTitle(row)"
+                      :expanded="expandedId === row.id"
+                      :controls="`rec-chain-${row.id}`"
+                      @toggle="toggleRow(row.id)"
                     >
-                      <span class="rec-chain-label">{{ stepLabelOf(step, index) }}</span>
-                      <span class="rec-chain-delta mono">{{ chainDeltaText(index) }}</span>
-                    </li>
-                  </ol>
-                  <p v-else class="rec-chain-note">
-                    No operations. The nodes are served as the source provides them<template v-if="rowChain.explanation?.final">: {{ rowChain.explanation.final.node_count }} of them</template>.
-                  </p>
-                  <p v-if="chainIsCombination && chainSteps.length" class="rec-chain-note">
-                    The engine runs a combination's operations over its members' merged output and reports one result<template v-if="rowChain.explanation?.final">, {{ rowChain.explanation.final.node_count }} nodes</template>; per-operation counts exist for a subscription only.
-                  </p>
-                  <p v-else-if="!subs.canPreview.value && chainSteps.length" class="rec-chain-note">
-                    This session cannot run a preview, so what each operation kept is unknown.
-                  </p>
-                  <ul v-if="chainDropped.length" class="rec-chain-dropped" aria-label="Nodes the chain removed">
-                    <li v-for="(node, index) in chainDropped" :key="`${node.name}-${index}`">
-                      <span class="rec-chain-dropped-name" :title="node.name">{{ node.name }}</span>
-                      <span v-if="node.server" class="mono rec-chain-dropped-endpoint">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
-                      <span class="rec-chain-dropped-by">removed by {{ droppedBy(node) }}</span>
-                    </li>
-                    <li v-if="rowChain.explanation?.final?.dropped_truncated" class="rec-chain-note">
-                      Naming the first {{ chainDropped.length }} of {{ rowChain.explanation.final.dropped_count }}.
-                    </li>
-                  </ul>
-                </template>
-                <p v-else-if="rowChain?.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-        </div>
-        </template>
+                      <template v-if="tagChips(row).all.length" #after>
+                        <PcTagList :tags="tagChips(row).all" :max="2" />
+                      </template>
+                      <template #status>
+                        <PcStatePill :tone="tone(publishedOf(row).tone)" :label="publishedOf(row).label" :title="publishedOf(row).title" />
+                        <PcStateDot :tone="tone(statusOf(row).tone)" :label="statusOf(row).label" :title="statusOf(row).title" />
+                      </template>
+                    </PcNameCell>
 
+                    <PcTd label="Source" :title="row.remark || describe(row)"><span class="cell-muted">{{ describe(row) }}</span></PcTd>
+
+                    <!-- "in → out" from the last preview run this session made
+                         for the row, "?" until one has. The title says which
+                         run and when. -->
+                    <PcTd label="Nodes" numeric mono :title="nodesTitle(row)">{{ nodesOf(row) }}</PcTd>
+
+                    <PcTd label="Operations" numeric mono :title="row.target ? `Always rendered for ${row.target}` : undefined">
+                      {{ row.step_count }}<span v-if="row.disabled_step_count" class="cell-muted"> ({{ row.disabled_step_count }} off)</span>
+                    </PcTd>
+
+                    <!-- Whether anyone can fetch this record: the host's share
+                         list, folded onto the row. -->
+                    <PcTd label="Published" stack="state">
+                      <PcStatePill
+                        :tone="tone(publishedOf(row).tone)"
+                        :label="publishedOf(row).label"
+                        :title="shares === undefined ? sharesError || publishedOf(row).title : publishedOf(row).title"
+                      />
+                    </PcTd>
+
+                    <PcTd label="Last fetch" stack="state">
+                      <PcStateDot :tone="tone(statusOf(row).tone)" :label="statusOf(row).label" :title="statusOf(row).title" />
+                      <small v-if="trafficOf(row)" :title="trafficOf(row)">{{ trafficOf(row) }}</small>
+                    </PcTd>
+
+                    <PcActionsCell>
+                      <PcButton
+                        compact
+                        :disabled="rowAction(row, 'edit').disabled"
+                        :title="rowAction(row, 'edit').reason || rowAction(row, 'edit').title"
+                        @click="runRowAction('edit', row, $event)"
+                      >
+                        Open
+                      </PcButton>
+                      <RecordMenu
+                        :data-row-menu="row.id"
+                        :name="row.name"
+                        :actions="menuActionsFor(row)"
+                        :open="openMenuId === row.id"
+                        @toggle="toggleRowMenu(row.id)"
+                        @run="(id, event) => runRowAction(id, row, event)"
+                        @keydown="onRowMenuKeydown"
+                      />
+                    </PcActionsCell>
+                  </PcRow>
+
+                  <!-- The chain, read in place: one row per operation with what
+                       it kept, then the source and the nodes the chain removed
+                       with the operation that removed each. -->
+                  <template v-if="expandedId === row.id">
+                    <PcRow
+                      v-for="(step, index) in chainSteps"
+                      :key="`${row.id}-${index}`"
+                      :id="index === 0 ? `rec-chain-${row.id}` : undefined"
+                      :class="{ 'is-off': step.disabled }"
+                    >
+                      <td class="pc-select" data-stack="actions" />
+                      <PcNameCell :name="stepLabelOf(step, index)" :level="2" :sub="`operation ${index + 1}`">
+                        <template v-if="step.disabled" #after><PcKindChip label="off" title="Switched off: the chain skips this operation" /></template>
+                      </PcNameCell>
+                      <PcTd label="Source" />
+                      <PcTd label="Nodes" numeric mono>{{ chainDeltaText(index) }}</PcTd>
+                      <PcTd label="Operations" numeric mono>{{ index + 1 }} of {{ chainSteps.length }}</PcTd>
+                      <PcTd label="Published" />
+                      <PcTd label="Last fetch" />
+                      <PcActionsCell />
+                    </PcRow>
+                    <PcDetailRow :colspan="8" :id="chainSteps.length ? undefined : `rec-chain-${row.id}`">
+                      <p v-if="rowChain?.loading" class="rec-chain-note" role="status">
+                        <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Reading the record…
+                      </p>
+                      <template v-else-if="rowChain?.record">
+                        <p class="rec-chain-source">
+                          <span class="rec-chain-eyebrow">Source</span>
+                          <span>{{ describe(row) }}</span>
+                          <!-- The provider link, masked after the host: the token
+                               rides in its query string. Reveal shows it for a
+                               minute. -->
+                          <template v-if="rowChain.record.url">
+                            <code class="rec-chain-url" :title="revealSource.on.value ? 'Masks itself again after a minute' : 'Masked: the query string carries the provider token'">{{ revealSource.on.value ? rowChain.record.url : maskUrl(rowChain.record.url) }}</code>
+                            <button type="button" class="rec-reveal" @click="revealSource.toggle()">
+                              {{ revealSource.on.value ? "Hide" : "Reveal" }}
+                            </button>
+                          </template>
+                        </p>
+                        <p v-if="rowChain.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
+                        <p v-if="!chainSteps.length" class="rec-chain-note">
+                          No operations. The nodes are served as the source provides them<template v-if="rowChain.explanation?.final">: {{ rowChain.explanation.final.node_count }} of them</template>.
+                        </p>
+                        <p v-if="chainIsCombination && chainSteps.length" class="rec-chain-note">
+                          The engine runs a combination's operations over its members' merged output and reports one result<template v-if="rowChain.explanation?.final">, {{ rowChain.explanation.final.node_count }} nodes</template>; per-operation counts exist for a subscription only.
+                        </p>
+                        <p v-else-if="!subs.canPreview.value && chainSteps.length" class="rec-chain-note">
+                          This session cannot run a preview, so what each operation kept is unknown.
+                        </p>
+                        <ul v-if="chainDropped.length" class="rec-chain-dropped" aria-label="Nodes the chain removed">
+                          <li v-for="(node, index) in chainDropped" :key="`${node.name}-${index}`">
+                            <span class="rec-chain-dropped-name" :title="node.name">{{ node.name }}</span>
+                            <span v-if="node.server" class="mono rec-chain-dropped-endpoint">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
+                            <span class="rec-chain-dropped-by">removed by {{ droppedBy(node) }}</span>
+                          </li>
+                          <li v-if="rowChain.explanation?.final?.dropped_truncated" class="rec-chain-note">
+                            Naming the first {{ chainDropped.length }} of {{ rowChain.explanation.final.dropped_count }}.
+                          </li>
+                        </ul>
+                      </template>
+                      <p v-else-if="rowChain?.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
+                    </PcDetailRow>
+                  </template>
+                </template>
+              </template>
+            </tbody>
+          </PcTable>
+        </PcPanel>
       </template>
+
+      <!-- The bar names the count it will act on, and that count is the
+           intersection with what is on screen: a stale id from a filtered or
+           already-deleted row must never be part of what Delete promises. It
+           floats over the foot of the frame, out of the document flow, so the
+           rows never move under the cursor. -->
+      <PcBatchBar :count="selectedCount" noun="selected" @clear="selectedIds = new Set()">
+        <PcButton
+          v-for="action in batchActions"
+          :key="action.id"
+          variant="danger"
+          compact
+          :disabled="action.disabled"
+          :title="action.reason || undefined"
+          @click="requestDelete(selectedVisible.map((row) => row.id))"
+        >
+          <template #icon><Trash2 :size="13" aria-hidden="true" /></template>
+          {{ action.label }} {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
+        </PcButton>
+      </PcBatchBar>
 
       <TargetSheet
         :open="!!targetSheet"
@@ -1629,60 +1398,3 @@ watch(host.init, (value) => {
     </section>
   </template>
 </template>
-
-<style scoped>
-/* A tab whose section holds the problem. A dot, not a colour swap: the tab is
-   still a tab, and colour alone would say nothing to anyone who cannot see it
-   (hence the title and the label). */
-.editor-tab-flag {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--destructive);
-}
-
-.field-error-jump {
-  border: 0;
-  border-left: 2px solid var(--destructive);
-  font: inherit;
-  font-size: var(--lt-text-sm);
-  text-align: left;
-  cursor: pointer;
-}
-.field-error-jump:hover { text-decoration: underline; }
-.field-error-jump:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-
-/* The toolbar, chip and breadcrumb rules that used to live here now sit in
-   styles.css. They were scoped, and the Files screen used the same class
-   names, so its search box and every filter chip rendered as raw user-agent
-   controls: white boxes in a dark toolbar. What is left below is genuinely
-   this screen's own. */
-
-/* A two-way choice where both sides need their consequence spelled out, so
-   neither is a default the reader can skip. */
-.choice-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin-top: var(--space-1);
-}
-
-.choice-row button {
-  height: var(--lt-control-h);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--background);
-  color: var(--muted-foreground);
-  font-size: var(--lt-text-sm);
-}
-
-.choice-row button:hover { color: var(--foreground); border-color: var(--lt-border-strong); }
-.choice-row button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
-
-.choice-row button.is-active {
-  border-color: var(--primary);
-  background: var(--lt-accent-soft);
-  color: var(--lt-accent-ink);
-}
-</style>

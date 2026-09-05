@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CopyPlus, Ellipsis, Eye, Link, Share2, Trash2, Upload } from "@lucide/vue";
+import { CopyPlus, Ellipsis, Eye, Link, RefreshCw, Share2, Trash2, Upload } from "@lucide/vue";
+import { PcIconButton } from "@latticenet/plugin-bridge/chassis";
 
-import LtIconButton from "./lt/LtIconButton.vue";
 import type { ResolvedAction } from "../recordActions";
 
 const props = defineProps<{
@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 /** Declarations name an icon; the mapping to a component lives here so the
  *  registry stays free of imports and can be tested without Vue. */
-const ICONS = { eye: Eye, share: Share2, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2 } as const;
+const ICONS = { eye: Eye, share: Share2, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
 
 function iconFor(name: string) {
   return ICONS[name as keyof typeof ICONS] ?? Eye;
@@ -41,14 +41,15 @@ const reasons = () => [...new Set(props.actions.filter((a) => a.disabled).map((a
 
 <template>
   <div class="rec-menu-wrap">
-    <LtIconButton
+    <PcIconButton
       :label="`More actions for ${name}`"
+      bordered
       :aria-haspopup="true"
       :aria-expanded="open"
       @click="emit('toggle')"
     >
       <Ellipsis :size="15" aria-hidden="true" />
-    </LtIconButton>
+    </PcIconButton>
     <div v-if="open" class="rec-menu" role="menu" @keydown="emit('keydown', $event)">
       <button
         v-for="action in safe()"

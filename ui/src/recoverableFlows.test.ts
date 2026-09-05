@@ -29,7 +29,6 @@ describe("Escape closes exactly the top of the stack", () => {
   // closes the top of the stack and stops there.
   it.each([
     "components/lt/LtConfirmDialog.vue",
-    "components/lt/LtPanel.vue",
     "components/TargetSheet.vue",
   ])("%s registers instead of answering the key itself", (file) => {
     const text = source(`./${file}`);
@@ -53,31 +52,28 @@ describe("Escape closes exactly the top of the stack", () => {
   it("leaves the selection bar out of the stack", () => {
     // The batch bar is not an overlay: it takes no scrim, it dismisses nothing,
     // and Escape inside it clears a selection, which is a gesture scoped to the
-    // bar rather than a layer to close. It keeps its own scoped handler for
-    // exactly that reason.
-    const text = source("./components/lt/LtBatchBar.vue");
-    expect(text).toMatch(/@keydown\.esc\.stop=/);
-    expect(text).not.toContain("useOverlayRegistration");
+    // bar rather than a layer to close. The chassis's bar keeps its own scoped
+    // handler for exactly that reason; the screens draw that bar and no other.
+    for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"]) {
+      const text = source(`./${file}`);
+      expect(text, file).toContain("<PcBatchBar");
+      expect(text, file).not.toContain("LtBatchBar");
+    }
   });
 
   it("appears without moving the rows the selection is being made in", () => {
-    // It used to be `position: relative` in the flow above the list, so ticking
-    // the first checkbox inserted a 42px block and dropped every row 42px in
-    // the same frame, with no transition. The row pitch is 40px, so the point
-    // the cursor was aiming at for the second row now held the checkbox just
-    // ticked, and the second click cleared the first selection instead of
-    // adding to it: two rows could not be selected by clicking two checkboxes.
-    // Out of the flow, that cannot happen whatever the bar's height.
-    const style = /<style scoped>([\s\S]*)<\/style>/.exec(source("./components/lt/LtBatchBar.vue"))![1]!;
-    const rule = /\.lt-batchbar\s*\{([^}]*)\}/.exec(style.replace(/\/\*[\s\S]*?\*\//g, ""))![1]!;
-    expect(rule).toMatch(/position:\s*fixed/);
-    expect(rule, "in the flow again, and the rows move under the cursor").not.toMatch(
-      /position:\s*(relative|static|sticky)/,
-    );
-    // And the page keeps room for it at its foot, so the bar never covers the
-    // last row it is acting on.
-    const styles = source("./styles.css");
-    expect(styles).toMatch(/body:has\(\.lt-batchbar\)\s*\.workspace\s*\{[^}]*padding-bottom/);
+    // The bar used to sit in the flow above the list, so ticking the first
+    // checkbox inserted a 42px block and dropped every row 42px in the same
+    // frame: the point the cursor was aiming at for the second row now held
+    // the checkbox just ticked. The chassis's bar is fixed to the frame, and
+    // the page keeps room for it at its foot so it never covers the last row
+    // it is acting on: each lens reports its selection and the shell hands
+    // that to the workspace.
+    const shell = source("./Shell.vue");
+    expect(shell).toContain('<PcWorkspace :batch="lens.selected > 0">');
+    for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"]) {
+      expect(source(`./${file}`), file).toMatch(/chrome\.lenses\.(subscriptions|files)\.selected = count/);
+    }
   });
 });
 
