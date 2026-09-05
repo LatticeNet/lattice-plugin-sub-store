@@ -168,14 +168,6 @@
   --lt-sheet-head-h: 76px;
 
   --lt-control-h: 30px;
-  /* The selection bar floats over the foot of the list rather than sitting in
-     the flow above it, so the page keeps a bar's worth of room under its last
-     row. See the rule in styles.css. */
-  --lt-batchbar-h: 46px;
-  /* Four 32px icon buttons and their gaps. Pinned rather than left to `auto`
-     so the status column lands on the same x in every row, whether a row shows
-     three actions or four. */
-  --lt-rec-actions: 134px;
   --lt-control-h-sm: 24px;
 
   /* focus. One ring, on every focusable thing; a keyboard operator in a data

@@ -1,0 +1,13 @@
+{
+  "package": "@latticenet/plugin-bridge",
+  "version": "0.1.0-alpha.2",
+  "file": "latticenet-plugin-bridge-0.1.0-alpha.2.tgz",
+  "sha256": "ea2050e2f83d3e101e4b4b84e85e957c1debfe4c9b098b5622054e0e80948f69",
+  "source": {
+    "repo": "git@github.com:LatticeNet/lattice-plugin-bridge.git",
+    "branch": "feat/plugin-chassis",
+    "commit": "66559da66c1fa1e27a9cb47680b2993ac4ef2bec"
+  },
+  "why": "The chassis this page is built on has not been published to the registry yet. Until it is, the build is vendored as an npm pack of the commit named here, and scripts/vendor-bridge.mjs is the only way to replace it; vendorBridge.test.ts fails when the tarball and this record disagree.",
+  "retire": "When @latticenet/plugin-bridge publishes a version carrying the chassis, point package.json at that version, delete ui/vendor, delete scripts/vendor-bridge.mjs and src/vendorBridge.test.ts, and re-adopt the bundle digest."
+}

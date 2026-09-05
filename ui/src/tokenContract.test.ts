@@ -270,23 +270,6 @@ describe("the scrims darken", () => {
   });
 });
 
-describe("screen-reader text stays out of the layout", () => {
-  it("pins to the origin of its containing block", () => {
-    // At its static position it keeps the x it would have had in flow while
-    // taking its containing block from the nearest positioned ancestor. The
-    // shares table's "Actions" heading therefore escaped that table's
-    // horizontal scroller and gave the whole page 200px of phantom scroll at
-    // 375: swiping the table sideways slid the page instead.
-    const rule = /\.visually-hidden\s*\{([^}]*)\}/.exec(styles.replace(/\/\*[\s\S]*?\*\//g, ""));
-    expect(rule).not.toBeNull();
-    expect(rule![1]).toMatch(/position:\s*absolute/);
-    expect(rule![1]).toMatch(/top:\s*0/);
-    expect(rule![1]).toMatch(/left:\s*0/);
-    expect(rule![1]).toMatch(/clip-path:\s*inset\(50%\)/);
-    expect(rule![1], "clip is deprecated and clip-path already does it").not.toMatch(/[^-]clip:/);
-  });
-});
-
 describe("the dev harness sends what the console sends", () => {
   // The harness is where every Gate 2 pass on this lens happens, so a payload
   // that differs from production means the colours signed off are not the

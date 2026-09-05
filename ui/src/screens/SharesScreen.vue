@@ -1,17 +1,34 @@
 <script setup lang="ts">
 import { computed, onActivated, onMounted, ref, watch } from "vue";
-import { CircleAlert, Copy, SquareArrowOutUpRight } from "@lucide/vue";
+import { Copy, SquareArrowOutUpRight } from "@lucide/vue";
+import {
+  PcActionsCell,
+  PcButton,
+  PcCount,
+  PcEmptyState,
+  PcIconButton,
+  PcKindChip,
+  PcNameCell,
+  PcNotice,
+  PcPanel,
+  PcPanelHeader,
+  PcRow,
+  PcSkeleton,
+  PcStatePill,
+  PcTable,
+  PcTd,
+  PcTh,
+} from "@latticenet/plugin-bridge/chassis";
 
-import LtButton from "../components/lt/LtButton.vue";
-import LtEmptyState from "../components/lt/LtEmptyState.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
-import LtSkeleton from "../components/lt/LtSkeleton.vue";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubStoreShareRow, type SubscriptionListItem } from "../client";
 import { copyText } from "../hostClipboard";
 import { useHost } from "../host";
+import { useLensChrome } from "../lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "../navigate";
+import { normalizeQuery } from "../recordSearch";
 import { formatRelativeTime } from "../rowStatus";
-import { shareStateOf } from "../shareState";
+import { shareStateOf, stateTone } from "../shareState";
 import { useShares } from "../useShares";
 import { useSubscriptions } from "../useSubscriptions";
 
@@ -24,6 +41,8 @@ import { useSubscriptions } from "../useSubscriptions";
 const host = useHost();
 const store = useShares(host);
 const subs = useSubscriptions(host);
+const chrome = useLensChrome();
+const search = chrome.search;
 
 interface ShareLine {
   share: SubStoreShareRow;
@@ -33,7 +52,7 @@ interface ShareLine {
 
 const now = ref(Date.now());
 
-const lines = computed<ShareLine[]>(() =>
+const allLines = computed<ShareLine[]>(() =>
   (store.shares.value ?? [])
     .map((share) => ({
       share,
@@ -42,6 +61,17 @@ const lines = computed<ShareLine[]>(() =>
     }))
     .sort((a, b) => recordName(a).localeCompare(recordName(b)) || a.share.slug.localeCompare(b.share.slug)),
 );
+
+/** The toolbar's search, matched against the record, the slug and the format. */
+const lines = computed(() => {
+  const query = normalizeQuery(chrome.search.value);
+  if (!query) return allLines.value;
+  return allLines.value.filter((line) =>
+    [recordName(line), line.share.subscription_id, line.share.slug, line.share.default_format ?? "", line.state.label]
+      .some((value) => value.toLowerCase().includes(query)),
+  );
+});
+const filtersActive = computed(() => !!chrome.search.value.trim());
 
 function recordName(line: ShareLine): string {
   return line.record ? line.record.display_name || line.record.name : line.share.subscription_id;
@@ -72,9 +102,9 @@ function expiryOf(share: SubStoreShareRow): { label: string; title: string } {
   return { label: days <= 1 ? "within a day" : `in ${days} days`, title: `Expires ${iso}.` };
 }
 
-/** How many lines say what, for the heading. */
+/** How many lines say what, for the card's count. */
 const summary = computed(() => {
-  const all = lines.value;
+  const all = allLines.value;
   const live = all.filter((line) => line.state.tone === "ok").length;
   return { total: all.length, live, dead: all.length - live };
 });
@@ -86,13 +116,13 @@ const summary = computed(() => {
  * and the heading then said "No share exists yet, so no client can fetch any
  * record here" directly above the error alert saying the list could not be
  * read. Absent is not zero: an unanswered question must not be rendered as a
- * confident count. The sibling record list already draws this distinction.
+ * confident count.
  */
 const listed = computed(() => {
   if (!host.init.value) return null;
   if (store.loading.value && store.shares.value === undefined) return null;
   if (store.error.value && store.shares.value === undefined) return null;
-  return lines.value.length;
+  return allLines.value.length;
 });
 
 // ── copying and navigating ───────────────────────────────────────────────────
@@ -101,11 +131,9 @@ const copiedId = ref("");
 /**
  * The share whose link could not be copied, if any.
  *
- * One at a time, and the reveal sits above the table with the other status
- * strips rather than in a row of its own. A cell inside this table cannot hold
- * it: the table scrolls sideways below about 900px, so at 375 the reveal
- * scrolled out of view and the operator was left with a clipped half-sentence
- * and a truncated URL, which is worse than the failure it recovers from.
+ * One at a time, and the reveal sits above the table with the other notices
+ * rather than in a row of its own: the table scrolls sideways below about
+ * 900px, so at 375 a reveal inside it scrolled out of view.
  */
 const manualCopyId = ref("");
 let copiedTimer: ReturnType<typeof setTimeout> | undefined;
@@ -130,13 +158,13 @@ async function copyLink(line: ShareLine): Promise<void> {
 
 /** The link the reveal is showing, so the strip and the list cannot disagree. */
 const manualCopyValue = computed(() => {
-  const line = lines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
+  const line = allLines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
   return line ? line.share.url || line.share.path : "";
 });
 
 /** Which share the reveal belongs to, named so the strip is not ambiguous. */
 const manualCopyLabel = computed(() => {
-  const line = lines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
+  const line = allLines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
   return line ? `${recordName(line)} · /${line.share.slug}` : "";
 });
 
@@ -174,135 +202,142 @@ watch(host.init, (value) => {
 </script>
 
 <template>
-  <section class="configuration" aria-labelledby="shares-title">
-    <div class="section-heading">
-      <div>
-        <h2 id="shares-title">Shares</h2>
-        <p v-if="listed === null">Every link a client can subscribe to, read from the console.</p>
-        <p v-else-if="!listed">No share exists yet, so no client can fetch any record here.</p>
-        <p v-else>
-          {{ summary.live }} of {{ summary.total }} share{{ summary.total === 1 ? "" : "s" }} {{ summary.live === 1 ? "is" : "are" }} live<template v-if="summary.dead">; {{ summary.dead }} {{ summary.dead === 1 ? "is" : "are" }} disabled or expired and {{ summary.dead === 1 ? "returns" : "return" }} nothing</template>.
-        </p>
-      </div>
-      <div class="heading-actions">
-        <span class="badge mono" :title="listed === null ? 'Counting.' : `${listed} share${listed === 1 ? '' : 's'} on this deployment.`">{{ listed ?? "—" }}</span>
-        <LtButton
-          variant="primary"
-          :disabled="!origin"
-          :title="origin ? 'Shares are created in the console under Networking.' : 'This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.'"
-          @click="openInNetworking()"
-        >
-          <SquareArrowOutUpRight :size="14" aria-hidden="true" /> Open in Networking
-        </LtButton>
-      </div>
-    </div>
+  <section class="lens" aria-labelledby="shares-title">
+    <h2 id="shares-title" class="pc-sr-only">Shares</h2>
 
-    <div v-if="store.error.value" class="alert" role="alert">
-      <CircleAlert :size="16" aria-hidden="true" /> {{ store.error.value }}
-    </div>
-    <div v-else-if="notice" class="alert alert-ok" role="status">{{ notice }}</div>
+    <PcNotice v-if="store.error.value && store.shares.value !== undefined" tone="warning" title="Showing the last good read">
+      The newest reload failed ({{ store.error.value }}).
+    </PcNotice>
+    <PcNotice v-else-if="notice" tone="success">{{ notice }}</PcNotice>
 
     <div v-if="manualCopyId && manualCopyValue" class="manual-copy-strip">
       <div class="manual-copy-strip__head">
         <span class="manual-copy-strip__label">Link for {{ manualCopyLabel }}</span>
-        <LtButton size="sm" @click="manualCopyId = ''">Dismiss</LtButton>
+        <PcButton compact @click="manualCopyId = ''">Dismiss</PcButton>
       </div>
       <LtManualCopy :value="manualCopyValue" subject="link" />
     </div>
 
-    <LtSkeleton v-if="listed === null && !store.error.value" :rows="4" :columns="5" />
+    <PcPanel v-if="listed === null && !store.error.value" label="Loading shares">
+      <PcSkeleton :count="4" label="Loading the shares" />
+    </PcPanel>
 
     <!--
-      A permission wall is still a place the operator can leave. This used to be
-      the one state on the screen with no way forward at all: a sentence, and
-      nothing to press. The console's own share list does not need this frame's
-      scope, so pointing at it is a real route to the thing they came for.
+      A permission wall is still a place the operator can leave. The console's
+      own share list does not need this frame's scope, so pointing at it is a
+      real route to the thing they came for.
     -->
-    <LtEmptyState
-      v-else-if="!store.available.value"
-      kind="error"
-      title="This session cannot read the share list"
-      detail="The installed bundle does not declare shares.list, or your token lacks substore:admin and proxy:admin. Shares themselves still exist; this lens just cannot read them."
-    >
-      <LtButton
-        variant="primary"
-        :disabled="!origin"
-        :title="origin ? 'The console lists the same shares under Networking.' : 'This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.'"
-        @click="openInNetworking()"
+    <PcPanel v-else-if="!store.available.value" label="Shares">
+      <PcEmptyState kind="permission" title="This session cannot read the share list">
+        <p>
+          The installed bundle does not declare <span class="pc-mono">shares.list</span>, or your token
+          lacks <span class="pc-mono">substore:admin</span> and <span class="pc-mono">proxy:admin</span>.
+          Shares themselves still exist; this lens just cannot read them.
+        </p>
+        <template #actions>
+          <PcButton
+            variant="primary"
+            :disabled="!origin"
+            :title="origin ? 'The console lists the same shares under Networking.' : 'This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.'"
+            @click="openInNetworking()"
+          >
+            <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
+            Open in Networking
+          </PcButton>
+        </template>
+      </PcEmptyState>
+    </PcPanel>
+
+    <template v-else-if="store.error.value && store.shares.value === undefined">
+      <PcNotice tone="danger" title="The share list could not be read">
+        {{ store.error.value }}
+        <template #actions><PcButton compact @click="loadAll()">Try again</PcButton></template>
+      </PcNotice>
+      <PcPanel label="Shares">
+        <PcEmptyState kind="error" title="Nothing could be loaded">
+          <p>This is not an empty share list, it is an unanswered question.</p>
+        </PcEmptyState>
+      </PcPanel>
+    </template>
+
+    <PcPanel v-else label="Shares">
+      <PcPanelHeader
+        title="Shares"
+        description="Every link a client can subscribe to, read from the console. A share is created and changed there, under Networking."
       >
-        <SquareArrowOutUpRight :size="14" aria-hidden="true" /> Open in Networking
-      </LtButton>
-    </LtEmptyState>
+        <PcCount
+          :value="summary.total ? `${summary.live} of ${summary.total} live` : 'none'"
+          :label="summary.dead ? `${summary.dead} disabled or expired and returning nothing.` : 'Every share here is live.'"
+        />
+      </PcPanelHeader>
 
-    <LtEmptyState
-      v-else-if="store.error.value"
-      kind="error"
-      title="The share list could not be read"
-      :detail="store.error.value"
-    >
-      <LtButton variant="primary" @click="loadAll()">Retry</LtButton>
-    </LtEmptyState>
+      <PcEmptyState v-if="!allLines.length" title="Nothing is shared">
+        <p>
+          Publish a share for a record in the console under Networking, then Subscription Shares,
+          and it appears here with its link.
+        </p>
+      </PcEmptyState>
 
-    <LtEmptyState
-      v-else-if="!lines.length"
-      title="Nothing is shared"
-      detail="Publish a share for a record in the console under Networking, then Subscription Shares, and it appears here with its link."
-    />
+      <PcEmptyState v-else-if="!lines.length" kind="no-match" title="No share matches that search">
+        <p>No record, slug or format here matches <span class="pc-mono">{{ search.trim() }}</span>.</p>
+        <template #actions>
+          <PcButton :disabled="!filtersActive" @click="search = ''">Clear the search</PcButton>
+        </template>
+      </PcEmptyState>
 
-    <!-- A real table: the columns are values on every row. It keeps its
-         columns at any width and scrolls sideways inside itself, with the
-         record column pinned. -->
-    <div v-else class="shares-scroll">
-      <table class="shares-table">
-        <thead>
-          <tr>
-            <th scope="col">Record</th>
-            <th scope="col">Share</th>
-            <th scope="col">Format</th>
-            <th scope="col">Expires</th>
-            <th scope="col">State</th>
-            <th scope="col"><span class="visually-hidden">Actions</span></th>
-          </tr>
-        </thead>
+      <!-- A real table: the columns are values on every row. -->
+      <PcTable v-else :min-width="900" label="Shares">
+        <template #head>
+          <PcTh name>Record</PcTh>
+          <PcTh>Share</PcTh>
+          <PcTh>Format</PcTh>
+          <PcTh>Expires</PcTh>
+          <PcTh>State</PcTh>
+          <PcTh actions>Actions</PcTh>
+        </template>
         <tbody>
-          <tr
+          <PcRow
             v-for="line in lines"
             :key="line.share.share_id"
-            :class="[`is-${line.state.tone}`, { 'has-manual-copy': manualCopyId === line.share.share_id }]"
+            :selected="manualCopyId === line.share.share_id"
           >
-            <th scope="row" class="shares-record">
-              <span class="shares-record-name" :title="line.share.subscription_id">{{ recordName(line) }}</span>
-              <span class="shares-record-kind">{{ line.record ? kindOf(line) : "record not in this store" }}</span>
-            </th>
-            <td class="mono shares-path" :title="`Slug ${line.share.slug}. The token is not shown; Copy link copies the whole link.`">{{ maskedPath(line.share) }}</td>
-            <td class="mono">{{ line.share.default_format || "as the client asks" }}</td>
-            <td class="mono" :title="expiryOf(line.share).title">{{ expiryOf(line.share).label }}</td>
-            <td>
-              <span :class="`shares-state is-${line.state.tone}`" :title="line.state.title">{{ line.state.label }}</span>
-            </td>
-            <td class="shares-actions">
-              <button
-                type="button"
-                class="button button-secondary button-compact"
+            <PcNameCell :name="recordName(line)" :id="line.share.subscription_id" :title="line.share.subscription_id">
+              <template #after>
+                <PcKindChip v-if="line.record" :label="kindOf(line)" />
+                <PcKindChip v-else label="not in this store" title="The record behind this share is not in this store any more." />
+              </template>
+              <template #status>
+                <PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" />
+              </template>
+            </PcNameCell>
+            <PcTd label="Share" mono :title="`Slug ${line.share.slug}. The token is not shown; Copy link copies the whole link.`">{{ maskedPath(line.share) }}</PcTd>
+            <PcTd label="Format" mono>{{ line.share.default_format || "as the client asks" }}</PcTd>
+            <PcTd label="Expires" mono :title="expiryOf(line.share).title">{{ expiryOf(line.share).label }}</PcTd>
+            <PcTd label="State" stack="state">
+              <PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" />
+            </PcTd>
+            <PcActionsCell>
+              <PcButton
+                compact
                 :disabled="!line.share.url && !line.share.path"
                 :title="line.share.url ? 'Copy the link a client subscribes to' : 'The server did not report its public base; the path alone is copied'"
                 @click="copyLink(line)"
               >
-                <Copy :size="13" aria-hidden="true" /> {{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}
-              </button>
-              <button
-                type="button"
-                class="button button-secondary button-compact"
+                <template #icon><Copy :size="13" aria-hidden="true" /></template>
+                {{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}
+              </PcButton>
+              <PcIconButton
+                label="Open in Networking, where this share is changed"
+                bordered
                 :disabled="!origin"
-                title="Opens Networking → Subscription Shares in the console, where this share is changed"
                 @click="openInNetworking()"
               >
-                <SquareArrowOutUpRight :size="13" aria-hidden="true" /> Open in Networking
-              </button>
-            </td>
-          </tr>
+                <SquareArrowOutUpRight :size="15" aria-hidden="true" />
+              </PcIconButton>
+            </PcActionsCell>
+          </PcRow>
         </tbody>
-      </table>
-    </div>
+      </PcTable>
+    </PcPanel>
   </section>
 </template>

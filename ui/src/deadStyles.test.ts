@@ -22,6 +22,7 @@ const BUILT_AT_RUNTIME: { prefix: string; why: string }[] = [
   { prefix: "cm-", why: "CodeMirror's own classes; we theme what the library creates." },
   { prefix: "tok-", why: "DocumentView builds `tok tok-${token.kind}` per token." },
   { prefix: "is-", why: "Row status and chips build `is-${tone}` from the record." },
+  { prefix: "pc-", why: "The plugin chassis renders these classes; this sheet only refines them for this lens." },
 ];
 
 const SRC = new URL(".", import.meta.url);
@@ -84,11 +85,12 @@ describe("the stylesheet has no orphans", () => {
  * Before this they could only be produced by breaking something on purpose and
  * putting it back, so in practice nobody looked: the load error, the empty
  * store and the read-only session were written once and never seen again.
- * Walking them found the count badge asserting "0 / 256" during a load — a
+ * Walking them found the count badge asserting "0 / 256" during a load, a
  * claim, where the honest answer was that it did not know yet.
  */
 describe("every state is reachable in the harness", () => {
   const host = readFileSync(new URL("../dev/fakeHost.ts", SRC), "utf8");
+  const shell = readFileSync(new URL("./Shell.vue", SRC), "utf8");
   const screens = [
     readFileSync(new URL("./screens/SubscriptionsScreen.vue", SRC), "utf8"),
     readFileSync(new URL("./screens/FilesScreen.vue", SRC), "utf8"),
@@ -113,10 +115,16 @@ describe("every state is reachable in the harness", () => {
   });
 
   it("does not claim a count it does not have yet", () => {
+    // The stat strip is a skeleton until the catalogue has landed, and every
+    // tile reads from lists that are empty until then; the lens tabs carry no
+    // count at all until the list has been read.
+    expect(shell).toMatch(/const ready = computed\(\(\) => catalogue\.state\.value === "ready"\)/);
+    expect(shell).toContain(`<PcSkeleton v-if="!ready && catalogue.state.value !== 'error'" variant="strip"`);
+    expect(shell).toContain('<PcStatStrip v-else-if="ready"');
+    expect(shell).toMatch(/subscriptions: ready\.value \? records\.value\.length : null/);
+    // The lenses show a skeleton, not an empty table, while the list is coming.
     for (const screen of screens) {
-      expect(screen).toMatch(/const listed = computed\(/);
-      expect(screen).toMatch(/state\.value === "loading" \? null/);
-      expect(screen).toContain('{{ listed ?? "—" }}');
+      expect(screen).toMatch(/v-if="!host\.init\.value \|\| subs\.state\.value === 'loading'"[\s\S]{0,80}<PcSkeleton/);
     }
   });
 });

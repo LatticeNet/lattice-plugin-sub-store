@@ -16,6 +16,14 @@ import { maskUrlsIn } from "./urlMask";
 
 export type Tone = "ok" | "warn" | "danger" | "neutral";
 
+/** The chassis's name for a tone, for the state dot and pill it draws. */
+export function stateTone(tone: Tone): "healthy" | "warning" | "error" | "neutral" {
+  if (tone === "ok") return "healthy";
+  if (tone === "warn") return "warning";
+  if (tone === "danger") return "error";
+  return "neutral";
+}
+
 export interface PublishState {
   tone: Tone;
   /** Short cell text: the slug, or the one word that says why there is none. */

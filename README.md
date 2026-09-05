@@ -188,7 +188,16 @@ Latest.
 
 `cd ui && npm run dev` opens a harness at `/dev.html` that mounts the real
 screens against a fake host with canned records: five subscriptions, two
-combinations, and three files, one per file type.
+combinations, and four files. `/dev-frame.html` shows the same harness inside a
+frame of a fixed width, 375 by 812 unless `?w=` and `?h=` say otherwise, so a
+review at a phone width or at 1440 does not depend on the browser window; every
+other query parameter is handed through to the harness.
+
+The page is the shared plugin chassis from `@latticenet/plugin-bridge/chassis`
+(page header, proof line, stat strip, toolbar with the lens tabs, the table card
+with its group rows), the same skeleton the vpn-core Lines page draws. Until
+the chassis is published, `ui/package.json` points the dependency at the packed
+build in `ui/vendor/`; swap it back to a registry version once one exists.
 
 It exists because the plugin UI is otherwise unviewable outside a dashboard, and
 while it was unviewable, an operator picker that rendered empty and a data load
