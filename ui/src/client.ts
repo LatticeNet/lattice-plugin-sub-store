@@ -455,7 +455,9 @@ export interface SubscriptionSettings {
 export interface MigrationReport {
   imported: string[];
   skipped: Record<string, string>;
-  [key: string]: unknown;
+  unavailable?: Record<string, string>;
+  truncated?: boolean;
+  total?: number;
 }
 
 export interface BackupExportResponse {

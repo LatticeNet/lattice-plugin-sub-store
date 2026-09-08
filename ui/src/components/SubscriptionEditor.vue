@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { CircleAlert, ChevronLeft, Eye, ListOrdered, LoaderCircle, TriangleAlert } from "@lucide/vue";
-import { PcCount, PcLensTab, PcLensTabs, PcPanel, PcPanelBody, PcPanelHeader } from "@latticenet/plugin-bridge/chassis";
+import { PcCount, PcPanel, PcPanelBody, PcPanelHeader } from "@latticenet/plugin-bridge/chassis";
 
 import CodeEditor from "./CodeEditor.vue";
+import EditorSectionTabs from "./EditorSectionTabs.vue";
 import CommonSettingsBlock from "./CommonSettings.vue";
 import GraphSubscriptionEditor from "./GraphSubscriptionEditor.vue";
 import MaskedUrlInput from "./MaskedUrlInput.vue";
@@ -28,12 +29,10 @@ import type { RecordEditor } from "../useRecordEditor";
  * One record, open for editing: the breadcrumb, the stale-save compare panel,
  * the three tabs, the operator chain and the preview pane beside it.
  *
- * It is drawn in the chassis vocabulary the list uses: the section tabs are
- * the same pill tabs as the lens tabs above them, and each section is the
- * same bordered panel with a bold title, a description and a count as the
- * Records card. The editor had kept an underline tab bar and small-caps
- * fieldset legends from before the chassis, so one click from the list put
- * two tab shapes and two panel shapes on one screen.
+ * It is drawn in the chassis vocabulary the list uses: each section is the
+ * same bordered panel as the list card, but the section tabs are a quieter
+ * underline bar so one click from the list does not put two pill tab shapes
+ * on one screen.
  *
  * It draws the editor and owns nothing else. The state is `useRecordEditor`,
  * created by the screen, because `editing` is what the screen routes on: the
@@ -85,6 +84,10 @@ const {
   errorTab,
   chainCount,
 } = props.editor;
+
+function setEditorTab(id: string): void {
+  if (id === "display" || id === "content" || id === "operations") editorTab.value = id;
+}
 </script>
 
 <template>
@@ -170,22 +173,18 @@ const {
       </p>
     </section>
 
-    <PcLensTabs v-model="editorTab" label="Editor sections">
-      <PcLensTab
-        v-for="tab in EDITOR_TABS"
-        :key="tab.id"
-        :value="tab.id"
-        :count="tab.id === 'operations' && chainCount ? chainCount : null"
-      >
-        {{ tab.label }}
-        <span
-          v-if="errorTab === tab.id && editorTab !== tab.id"
-          class="editor-tab-flag"
-          :title="draftError"
-          aria-label="This section has a problem"
-        />
-      </PcLensTab>
-    </PcLensTabs>
+    <EditorSectionTabs
+      :model-value="editorTab"
+      label="Editor sections"
+      :tabs="EDITOR_TABS.map((tab) => ({
+        id: tab.id,
+        label: tab.label,
+        count: tab.id === 'operations' && chainCount ? chainCount : null,
+      }))"
+      :error-tab="errorTab"
+      :error-title="draftError"
+      @update:model-value="setEditorTab"
+    />
 
     <div class="editor-layout">
     <form class="editor-main" @submit.prevent="submit">
@@ -437,11 +436,7 @@ const {
       </PcPanelBody>
     </PcPanel>
 
-      <!-- Deliberately not sticky. The frame is a viewport now, so it could
-           be, but a bar pinned over a form this tall covers a field for the
-           whole time it is being filled in. Save belongs at the end of the
-           form; what needed to stay in view was the preview, and that is the
-           pane beside it. -->
+      <!-- Sticky so Save stays reachable while a long form scrolls. -->
       <div class="editor-actions">
         <!-- The failure belongs next to the button that produced it: this
              form is long, and a banner at the top is off-screen from the

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
-import { FileCode, Layers, Library, Link2, Plus, RefreshCw, Search, Settings, SquareArrowOutUpRight, Store } from "@lucide/vue";
+import { ChevronDown, FileCode, Layers, Library, Link2, Plus, RefreshCw, Search, Settings, SquareArrowOutUpRight, Store } from "@lucide/vue";
 import {
   PcButton,
   PcIconButton,
@@ -9,10 +9,6 @@ import {
   PcNotice,
   PcPageHeader,
   PcProofLine,
-  PcSearchField,
-  PcSkeleton,
-  PcStatCard,
-  PcStatStrip,
   PcToolbar,
   PcWorkspace,
   useDocumentQueryState,
@@ -33,18 +29,17 @@ import SettingsScreen from "./screens/SettingsScreen.vue";
 import SharesScreen from "./screens/SharesScreen.vue";
 import { createLensChrome, provideLensChrome, type TabId } from "./lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
-import { formatRelativeTime } from "./rowStatus";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { useShares } from "./useShares";
 
 /**
  * The plugin's page, with no knowledge of how the host is reached.
  *
- * It is the shared plugin chassis, part by part: the page header with the
- * plugin badge and Refresh, the proof line, the stat strip, the toolbar with
- * the lens tabs, the one search field and the page's primary action, and then
- * the lens itself, which draws the table card. Split out of App.vue so the same
- * screens can be mounted against a fake host in `dev/`.
+ * It is the shared plugin chassis, part by part: a quiet page header with
+ * Refresh as an icon, the proof line (counts included), the toolbar with the
+ * lens tabs, Cmd+K and one primary Add, and then the lens itself, which draws
+ * the resource list. Split out of App.vue so the same screens can be mounted
+ * against a fake host in `dev/`.
  */
 
 const host = useHost();
@@ -106,9 +101,10 @@ const activeScreen = computed(
 
 /** The toolbar state the visible lens filters on, and what it reports back. */
 const chrome = createLensChrome();
+chrome.openLens = (tab) => {
+  activeTab.value = tab;
+};
 provideLensChrome(chrome);
-const search = chrome.search;
-const sort = chrome.sort;
 const lens = computed(() => chrome.lenses[activeTab.value]);
 /** Inside an editor the list controls make no sense; the tabs stay. */
 const editing = computed(() => lens.value.editing);
@@ -144,9 +140,8 @@ const tabCounts = computed<Record<TabId, number | null>>(() => ({
 }));
 
 /**
- * The stat strip, from the same two lists. Every tile is a fact about the
- * store as last read; nothing here is a claim about records the shell has not
- * seen, which is why the strip is a skeleton until the catalogue has landed.
+ * Live-share and published counts, from the same two lists the lenses render.
+ * They land in the proof line rather than a strip of tiles.
  */
 const shareFacts = computed(() => {
   const shares = shareStore.shares.value;
@@ -160,15 +155,6 @@ const publishedRecords = computed(() =>
     ? null
     : records.value.filter((item) => publishStateFor(shareStore.shares.value, item.id).tone === "ok").length,
 );
-const budgetLeft = computed(() => Math.max(0, MAX_SUBSCRIPTION_RECORDS - catalogue.items.value.length));
-const lastFetch = computed(() => {
-  const newest = catalogue.items.value
-    .map((item) => item.last_fetch_at ?? "")
-    .filter(Boolean)
-    .sort()
-    .at(-1);
-  return newest ? formatRelativeTime(newest) : "";
-});
 
 /** When the catalogue or the share list was last read, for the proof line. */
 const observedAt = ref("");
@@ -187,12 +173,18 @@ const proof = computed(() => {
   if (shares) parts.push(`${shares.live} share${shares.live === 1 ? "" : "s"} live`);
   return parts;
 });
+/** Warning ink only when the store has records and none of them is live. */
+const publishedLabel = computed(() => {
+  if (!ready.value || publishedRecords.value === null) return "";
+  return `${publishedRecords.value} published`;
+});
+const publishedWarn = computed(() => publishedRecords.value === 0 && records.value.length > 0);
 
 /**
- * The shell reads both lists itself when the handshake lands, so the stat
- * strip and the proof line are true whichever lens opened first: a frame
- * opened on Settings would otherwise wait for a catalogue no lens asked for.
- * A lens asking at the same moment joins the same read.
+ * The shell reads both lists itself when the handshake lands, so the proof
+ * line is true whichever lens opened first: a frame opened on Settings would
+ * otherwise wait for a catalogue no lens asked for. A lens asking at the same
+ * moment joins the same read.
  */
 watch(host.init, (value) => {
   if (!value) return;
@@ -213,6 +205,32 @@ async function refresh(): Promise<void> {
 }
 
 const paletteOpen = ref(false);
+const addMenuOpen = ref(false);
+const addMenuAnchor = ref<HTMLElement | null>(null);
+const addMenuPlace = ref<{ top: string; right: string } | null>(null);
+
+function placeAddMenu(): void {
+  const rect = addMenuAnchor.value?.getBoundingClientRect();
+  if (!rect) return;
+  addMenuPlace.value = {
+    top: `${rect.bottom + window.scrollY + 4}px`,
+    right: `${document.documentElement.clientWidth - rect.right - window.scrollX}px`,
+  };
+}
+
+function closeAddMenu(): void {
+  addMenuOpen.value = false;
+  addMenuPlace.value = null;
+}
+
+function toggleAddMenu(): void {
+  addMenuOpen.value = !addMenuOpen.value;
+  if (addMenuOpen.value) {
+    placeAddMenu();
+  } else {
+    addMenuPlace.value = null;
+  }
+}
 
 /**
  * The capabilities the palette reasons with.
@@ -242,7 +260,6 @@ const caps = computed<ActionCapabilities>(() => {
  * record budget is spent) stays, disabled, with the reason as its title.
  */
 const atRecordLimit = computed(() => ready.value && catalogue.items.value.length >= MAX_SUBSCRIPTION_RECORDS);
-const NEEDS_MUTATE = "This session cannot create or delete records here. Either the installed bundle does not declare those methods, or your token lacks the scope.";
 const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
 const canCreate = computed(() => caps.value.ready && caps.value.mutate);
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
@@ -262,13 +279,42 @@ function openPalette(): void {
  * by a shortcut is a feature most operators never find.
  */
 function onKeydown(event: KeyboardEvent): void {
+  if (event.key === "Escape" && addMenuOpen.value) {
+    closeAddMenu();
+    return;
+  }
   if (event.key !== "k" || !(event.metaKey || event.ctrlKey)) return;
   event.preventDefault();
   paletteOpen.value = !paletteOpen.value;
 }
 
-onMounted(() => document.addEventListener("keydown", onKeydown));
-onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
+function onDocumentClick(event: MouseEvent): void {
+  if (!addMenuOpen.value) return;
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("[data-add-menu]")) return;
+  closeAddMenu();
+}
+
+onMounted(() => {
+  document.addEventListener("keydown", onKeydown);
+  document.addEventListener("click", onDocumentClick, true);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("keydown", onKeydown);
+  document.removeEventListener("click", onDocumentClick, true);
+});
+watch(activeTab, () => {
+  closeAddMenu();
+  fadeLens();
+});
+
+const lensFading = ref(false);
+function fadeLens(): void {
+  lensFading.value = false;
+  requestAnimationFrame(() => {
+    lensFading.value = true;
+  });
+}
 
 function runFromPalette(record: SubscriptionListItem, action: ActionId): void {
   activeTab.value = record.kind === "file" ? "files" : "subscriptions";
@@ -276,6 +322,7 @@ function runFromPalette(record: SubscriptionListItem, action: ActionId): void {
 }
 
 function runCommand(command: PaletteCommandId): void {
+  closeAddMenu();
   activeTab.value = command === "new-file" ? "files" : "subscriptions";
   intent.value = { command };
 }
@@ -285,35 +332,37 @@ function openShares(): void {
   postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
 }
 
-const searchPlaceholder: Record<TabId, string> = {
-  subscriptions: "Filter by name, id, remark, tag",
-  files: "Filter by name, id, remark, tag",
-  shares: "Filter by record, slug, format",
-  settings: "",
-};
+const comboDisabled = computed(() => atRecordLimit.value || !singles.value.length);
+const comboTitle = computed(() =>
+  !singles.value.length
+    ? "Create a subscription first. There is nothing to combine"
+    : atRecordLimit.value
+      ? LIMIT_REASON
+      : "Merge several subscriptions and process the result as one",
+);
 </script>
 
 <template>
   <PcWorkspace :batch="lens.selected > 0">
     <PcPageHeader
       title="Sub-Store"
-      badge="Sub-Store plugin"
       description="Store subscriptions, process them, and publish them from Lattice itself."
     >
       <template #icon><Store :size="19" aria-hidden="true" /></template>
       <template #actions>
-        <PcButton
-          :busy="refreshing"
+        <PcIconButton
+          label="Read the record catalogue and the share list again"
+          bordered
           :disabled="!host.init.value"
-          title="Read the record catalogue and the share list again"
           @click="refresh()"
         >
-          <template #icon><RefreshCw :size="15" aria-hidden="true" /></template>
-          Refresh
-        </PcButton>
+          <RefreshCw :size="15" :class="{ spin: refreshing }" aria-hidden="true" />
+        </PcIconButton>
       </template>
       <template #proof>
-        <PcProofLine :segments="proof" :refreshing="refreshing" />
+        <PcProofLine :segments="proof" :refreshing="refreshing">
+          <span v-if="publishedLabel" class="proof-seg" :class="{ 'is-warn': publishedWarn }">· {{ publishedLabel }}</span>
+        </PcProofLine>
       </template>
     </PcPageHeader>
 
@@ -323,30 +372,6 @@ const searchPlaceholder: Record<TabId, string> = {
       <PcNotice v-if="host.bootError.value" tone="danger" title="The console refused the handshake">
         {{ host.bootError.value }}
       </PcNotice>
-
-      <template v-if="!editing">
-        <!-- A skeleton while the catalogue is coming; nothing at all when the
-             read failed, since the lens below says so and a strip of tiles
-             would have to claim counts the shell never saw. -->
-        <PcSkeleton v-if="!ready && catalogue.state.value !== 'error'" variant="strip" :count="5" label="Loading the store summary" />
-        <PcStatStrip v-else-if="ready" :count="5" label="Store summary">
-          <PcStatCard label="Records" :value="records.length" :note="`${budgetLeft} of ${MAX_SUBSCRIPTION_RECORDS} budget left, shared with files`" />
-          <PcStatCard
-            label="Published"
-            :value="publishedRecords === null ? 'n/a' : `${publishedRecords} of ${records.length}`"
-            :note="publishedRecords === null ? (shareStore.available.value ? 'share list not read yet' : 'this session cannot read shares') : publishedRecords === 0 && records.length ? 'no client can fetch any record yet' : 'records a client can fetch'"
-            :tone="publishedRecords === null ? 'neutral' : publishedRecords === 0 && records.length ? 'warning' : undefined"
-          />
-          <PcStatCard label="Files" :value="files.length" note="documents served as written" />
-          <PcStatCard
-            label="Shares"
-            :value="shareFacts ? `${shareFacts.live} live` : 'n/a'"
-            :note="shareFacts ? (shareFacts.dead ? `${shareFacts.dead} disabled or expired` : 'none disabled or expired') : 'share list not read'"
-            :tone="shareFacts ? undefined : 'neutral'"
-          />
-          <PcStatCard label="Last fetch" :value="lastFetch || 'n/a'" note="newest provider read" :tone="lastFetch ? undefined : 'neutral'" />
-        </PcStatStrip>
-      </template>
 
       <PcToolbar label="Sub-Store lenses">
         <template #tabs>
@@ -362,33 +387,7 @@ const searchPlaceholder: Record<TabId, string> = {
             </PcLensTab>
           </PcLensTabs>
         </template>
-        <template v-if="!editing && activeTab !== 'settings'" #search>
-          <PcSearchField v-model="search" :placeholder="searchPlaceholder[activeTab]" :label="`Filter ${activeTab}`" />
-        </template>
-        <template v-if="!editing && activeTab === 'subscriptions'" #note>
-          <label class="toolbar-sort">
-            <span>Sort</span>
-            <select v-model="sort" class="pc-select" aria-label="Sort records">
-              <option value="recent">Recently refreshed</option>
-              <option value="name">Name</option>
-              <option value="status">Needs attention</option>
-            </select>
-          </label>
-          <span v-if="ready && !canCreate" :title="NEEDS_MUTATE">This session cannot create records here.</span>
-        </template>
-        <template v-else-if="!editing && activeTab === 'files' && ready && !canCreate" #note>
-          <span :title="NEEDS_MUTATE">This session cannot create records here.</span>
-        </template>
-        <template #secondary>
-          <PcButton
-            v-if="!editing && activeTab === 'subscriptions' && canCreate"
-            :disabled="atRecordLimit || !singles.length"
-            :title="!singles.length ? 'Create a subscription first. There is nothing to combine' : atRecordLimit ? LIMIT_REASON : 'Merge several subscriptions and process the result as one'"
-            @click="runCommand('new-collection')"
-          >
-            <template #icon><Layers :size="15" aria-hidden="true" /></template>
-            New combination
-          </PcButton>
+        <template v-if="!editing" #secondary>
           <!-- Not only a shortcut: a palette reachable only by Cmd+K is one most
                operators never find. Outside the tablist, because a button in
                there announces itself as a tab and joins the arrow-key order. -->
@@ -397,10 +396,24 @@ const searchPlaceholder: Record<TabId, string> = {
           </PcIconButton>
         </template>
         <template v-if="!editing && activeTab === 'subscriptions' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'One source of nodes, processed and served'" @click="runCommand('new-subscription')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New subscription
-          </PcButton>
+          <div class="add-split" data-add-menu>
+            <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'One source of nodes, processed and served'" @click="runCommand('new-subscription')">
+              <template #icon><Plus :size="15" aria-hidden="true" /></template>
+              New subscription
+            </PcButton>
+            <button
+              ref="addMenuAnchor"
+              class="add-split-caret"
+              type="button"
+              :aria-expanded="addMenuOpen"
+              aria-haspopup="menu"
+              :aria-label="comboTitle"
+              :title="comboTitle"
+              @click="toggleAddMenu()"
+            >
+              <ChevronDown :size="14" aria-hidden="true" />
+            </button>
+          </div>
         </template>
         <template v-else-if="!editing && activeTab === 'files' && canCreate" #primary>
           <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'A document served as it is, with its proxy list kept in step'" @click="runCommand('new-file')">
@@ -408,7 +421,7 @@ const searchPlaceholder: Record<TabId, string> = {
             New file
           </PcButton>
         </template>
-        <template v-else-if="activeTab === 'shares'" #primary>
+        <template v-else-if="!editing && activeTab === 'shares'" #primary>
           <PcButton
             variant="primary"
             :disabled="!shareOrigin"
@@ -426,11 +439,39 @@ const searchPlaceholder: Record<TabId, string> = {
            fragment, where Vue drops them: aria-controls pointed at nothing, and
            there was no tabpanel at all. The ids are the ones the lens tabs
            point at. -->
-      <div :id="`pc-panel-${activeTab}`" class="lens-panel" role="tabpanel" :aria-labelledby="`pc-tab-${activeTab}`" tabindex="-1">
+      <div
+        :id="`pc-panel-${activeTab}`"
+        class="lens-panel"
+        :class="{ 'is-fading': lensFading }"
+        role="tabpanel"
+        :aria-labelledby="`pc-tab-${activeTab}`"
+        tabindex="-1"
+      >
         <KeepAlive>
           <component :is="activeScreen" />
         </KeepAlive>
       </div>
+      <Teleport to="body">
+        <div
+          v-if="addMenuOpen"
+          class="rec-menu add-split-menu"
+          role="menu"
+          data-add-menu
+          :style="addMenuPlace ?? undefined"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            :disabled="comboDisabled"
+            :title="comboTitle"
+            @click="runCommand('new-collection')"
+          >
+            <Layers :size="14" aria-hidden="true" />
+            New combination
+          </button>
+          <p v-if="comboDisabled" class="rec-menu-note">{{ comboTitle }}</p>
+        </div>
+      </Teleport>
       <CommandPalette
         :open="paletteOpen"
         :records="catalogue.items.value"

@@ -3,6 +3,7 @@ import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMoun
 import {
   Braces,
   ChevronLeft,
+  ChevronRight,
   CircleAlert,
   ClipboardPaste,
   Eye,
@@ -14,29 +15,21 @@ import {
   Trash2,
 } from "@lucide/vue";
 import {
-  PcActionsCell,
   PcBatchBar,
   PcButton,
   PcCount,
   PcEmptyState,
   PcKindChip,
-  PcLensTab,
-  PcLensTabs,
-  PcNameCell,
   PcNotice,
   PcPanel,
   PcPanelBody,
   PcPanelHeader,
-  PcRow,
-  PcSelectCell,
+  PcSearchField,
   PcSidePanel,
   PcSkeleton,
   PcStateDot,
   PcStatePill,
-  PcTable,
   PcTagList,
-  PcTd,
-  PcTh,
 } from "@latticenet/plugin-bridge/chassis";
 
 import {
@@ -74,10 +67,12 @@ import {
 import CodeEditor from "../components/CodeEditor.vue";
 import MaskedUrlInput from "../components/MaskedUrlInput.vue";
 import DocumentView from "../components/DocumentView.vue";
+import EditorSectionTabs from "../components/EditorSectionTabs.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import RecKindTabs from "../components/RecKindTabs.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import type { EditorLanguage } from "../codemirror";
 import {
@@ -188,7 +183,55 @@ const canPreviewNow = computed(
     draftPreview.value.supported,
 );
 
+const chrome = useLensChrome();
+const searchText = chrome.search;
+
 const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
+
+type FileKindFilter = "all" | "config" | "script" | "plain";
+const kindFilter = ref<FileKindFilter>("all");
+const expandedId = ref("");
+
+function fileKindOf(item: SubscriptionListItem): Exclude<FileKindFilter, "all"> {
+  const type = knownFileType(item.file_type);
+  if (type === FILE_TYPE_SCRIPT) return "script";
+  if (type === FILE_TYPE_PLAIN) return "plain";
+  return "config";
+}
+
+function setKindFilter(id: string): void {
+  if (id === "all" || id === "config" || id === "script" || id === "plain") kindFilter.value = id;
+}
+
+/**
+ * Files get the same search predicate as subscriptions: one predicate, in
+ * recordSearch, so a name, an id, a remark and a tag all match here too.
+ */
+const searchedFiles = computed(() => {
+  const query = normalizeQuery(searchText.value);
+  return allFiles.value.filter((file) => matchesQuery(file, query));
+});
+
+const kindCounts = computed(() => {
+  const rows = searchedFiles.value;
+  return {
+    all: rows.length,
+    config: rows.filter((file) => fileKindOf(file) === "config").length,
+    script: rows.filter((file) => fileKindOf(file) === "script").length,
+    plain: rows.filter((file) => fileKindOf(file) === "plain").length,
+  };
+});
+const kindTabs = computed(() => [
+  { id: "all", label: "All", count: kindCounts.value.all },
+  { id: "config", label: "Configuration", count: kindCounts.value.config },
+  { id: "script", label: "Script", count: kindCounts.value.script },
+  { id: "plain", label: "Plain", count: kindCounts.value.plain },
+]);
+
+const files = computed(() => {
+  if (kindFilter.value === "all") return searchedFiles.value;
+  return searchedFiles.value.filter((file) => fileKindOf(file) === kindFilter.value);
+});
 
 /** The preview/copy sheet. A file is exactly the thing you hand to a client. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
@@ -200,19 +243,6 @@ const deleteTargets = ref<{ ids: string[]; names: string[] } | null>(null);
 const deleteBusy = ref(false);
 /** Rows mid-operation render pending rather than silently unresponsive. */
 const pendingIds = ref<Set<string>>(new Set());
-
-/** The toolbar's search lives in the shell; this lens filters on it. */
-const chrome = useLensChrome();
-const searchText = chrome.search;
-
-/**
- * Files get the same search predicate as subscriptions: one predicate, in
- * recordSearch, so a name, an id, a remark and a tag all match here too.
- */
-const files = computed(() => {
-  const query = normalizeQuery(searchText.value);
-  return allFiles.value.filter((file) => matchesQuery(file, query));
-});
 
 /** Whether anyone can fetch a file: the host's share list, folded onto the row. */
 const shareStore = useShares(host);
@@ -235,11 +265,57 @@ function kindLabel(item: SubscriptionListItem): string {
  *  showed the first-run "paste your Mihomo config" panel. */
 const storeEmpty = computed(() => allFiles.value.length === 0);
 
-const filtersActive = computed(() => !!searchText.value.trim());
+const filtersActive = computed(() => !!searchText.value.trim() || kindFilter.value !== "all");
 
 function clearFilters(): void {
   searchText.value = "";
+  kindFilter.value = "all";
 }
+
+function opsOf(item: SubscriptionListItem): string {
+  const n = item.step_count;
+  const label = `${n} op${n === 1 ? "" : "s"}`;
+  return item.disabled_step_count ? `${label} (${item.disabled_step_count} off)` : label;
+}
+
+function sourceOf(item: SubscriptionListItem): string {
+  return item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here";
+}
+
+function nodesFact(item: SubscriptionListItem): string {
+  if (nodeSourceMissing(item)) return `source ${item.node_source} is gone`;
+  if (item.node_source) return `from ${sourceName(item.node_source)}`;
+  return "as written";
+}
+
+function collapseRow(): void {
+  const id = expandedId.value;
+  expandedId.value = "";
+  if (id) {
+    void nextTick(() => {
+      document.querySelector<HTMLElement>(`#rec-${cssEscape(id)} .rec-ident`)?.focus();
+    });
+  }
+}
+
+function toggleRow(id: string): void {
+  if (expandedId.value === id) collapseRow();
+  else expandedId.value = id;
+}
+
+function onIdentKeydown(event: KeyboardEvent, id: string): void {
+  if (event.key === "ArrowRight" && expandedId.value !== id) {
+    event.preventDefault();
+    toggleRow(id);
+  } else if (event.key === "ArrowLeft" && expandedId.value === id) {
+    event.preventDefault();
+    collapseRow();
+  }
+}
+
+watch(files, (rows) => {
+  if (expandedId.value && !rows.some((row) => row.id === expandedId.value)) expandedId.value = "";
+});
 
 /** What the batch controls report and act on: only rows that exist and are on
  *  screen. A stale id from a filtered or already-deleted row must never be
@@ -396,6 +472,10 @@ function onDocumentKeydown(event: KeyboardEvent): void {
   if (closeTopOverlay()) return;
   if (openFileMenuId.value) {
     closeRowMenu();
+    return;
+  }
+  if (expandedId.value && !editing.value) {
+    collapseRow();
     return;
   }
   // Escape is how every other surface in this frame steps back, and the editor
@@ -611,6 +691,10 @@ const EDITOR_TABS: { id: EditorTab; label: string }[] = [
   { id: "operations", label: "Operations" },
 ];
 
+function setEditorTab(id: string): void {
+  if (id === "display" || id === "content" || id === "operations") editorTab.value = id;
+}
+
 /**
  * Which section holds the invalid field. A form that says what is wrong and not
  * where is worse behind tabs than in a single scroll: the name lives two tabs
@@ -649,6 +733,7 @@ function clearTransientListState(): void {
   openFileMenuId.value = "";
   drawer.value = null;
   deleteTargets.value = null;
+  expandedId.value = "";
 }
 
 function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
@@ -804,22 +889,18 @@ watch(host.init, (value) => {
         <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
       </div>
 
-      <PcLensTabs v-model="editorTab" label="Editor sections">
-        <PcLensTab
-          v-for="tab in EDITOR_TABS"
-          :key="tab.id"
-          :value="tab.id"
-          :count="tab.id === 'operations' && chainCount ? chainCount : null"
-        >
-          {{ tab.label }}
-          <span
-            v-if="errorTab === tab.id && editorTab !== tab.id"
-            class="editor-tab-flag"
-            :title="draftError"
-            aria-label="This section has a problem"
-          />
-        </PcLensTab>
-      </PcLensTabs>
+      <EditorSectionTabs
+        :model-value="editorTab"
+        label="Editor sections"
+        :tabs="EDITOR_TABS.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          count: tab.id === 'operations' && chainCount ? chainCount : null,
+        }))"
+        :error-tab="errorTab"
+        :error-title="draftError"
+        @update:model-value="setEditorTab"
+      />
 
       <!-- Form and evidence side by side, the same layout the subscription
            editor uses. The pane is wider here because the evidence is: a node
@@ -1211,120 +1292,148 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel label="Files">
-          <PcPanelHeader
-            title="Files"
-            description="A configuration you keep, with its nodes kept current. Publish one from the console under Networking to give it a URL."
-          >
-            <PcCount
-              :value="`${files.length} file${files.length === 1 ? '' : 's'}`"
-              :label="`${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`"
-            />
-          </PcPanelHeader>
+          <div class="rec-list" aria-label="Files">
+            <RecKindTabs :model-value="kindFilter" label="File kind" :tabs="kindTabs" @update:model-value="setKindFilter" />
 
-          <PcEmptyState v-if="!files.length" kind="no-match" title="No file matches that search">
-            <p>Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.</p>
-            <template #actions>
-              <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear the search</PcButton>
-            </template>
-          </PcEmptyState>
-
-          <!-- One row per file: what it is, where its template comes from, where
-               its nodes come from, and whether anyone can fetch it. -->
-          <PcTable v-else :min-width="960" label="Files">
-            <template #head>
-              <PcSelectCell
-                header
-                :checked="allVisibleSelected"
-                :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                :label="`Select all ${files.length} shown files`"
-                @change="toggleSelectAll()"
+            <div class="rec-tools">
+              <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter files" />
+              <PcCount
+                :value="`${files.length} file${files.length === 1 ? '' : 's'}`"
+                :label="`${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`"
               />
-              <PcTh name>File</PcTh>
-              <PcTh>Source</PcTh>
-              <PcTh>Nodes</PcTh>
-              <PcTh numeric>Operations</PcTh>
-              <PcTh>Published</PcTh>
-              <PcTh actions>Actions</PcTh>
-            </template>
-            <tbody>
-              <PcRow
-                v-for="item in files"
-                :key="item.id"
-                :id="`rec-${item.id}`"
-                :selected="selectedIds.has(item.id)"
-                :class="{ 'is-pending': pendingIds.has(item.id) }"
-              >
-                <PcSelectCell
-                  :checked="selectedIds.has(item.id)"
-                  :label="`Select ${item.name}`"
-                  @change="toggleSelected(item.id)"
+              <p v-if="!subs.canMutate.value" class="rec-list-note">This session cannot create records here.</p>
+            </div>
+
+            <PcEmptyState
+              v-if="!files.length"
+              kind="no-match"
+              :title="searchText.trim() ? 'No file matches that search' : 'No files of that kind here'"
+            >
+              <p v-if="searchText.trim()">Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.</p>
+              <p v-else>Nothing in this store is that kind of file yet.</p>
+              <template #actions>
+                <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
+              </template>
+            </PcEmptyState>
+
+            <template v-else>
+            <div class="rec-list-head">
+              <label class="rec-check">
+                <input
+                  type="checkbox"
+                  :checked="allVisibleSelected"
+                  :indeterminate="selectedCount > 0 && !allVisibleSelected"
+                  :aria-label="`Select all ${files.length} shown files`"
+                  @change="toggleSelectAll()"
                 />
+              </label>
+              <div class="rec-head-main">
+                <span>File</span>
+                <span class="rec-col-nodes">Source</span>
+                <span class="rec-col-status">Status</span>
+                <span class="rec-col-when">Operations</span>
+              </div>
+              <span class="rec-head-actions" aria-hidden="true" />
+              <span class="rec-col-chevron" aria-hidden="true" />
+            </div>
 
-                <PcNameCell :name="item.display_name || item.name" :id="item.id" :title="nameTitle(item)">
-                  <template #after>
-                    <PcKindChip :label="kindLabel(item)" />
-                    <PcTagList v-if="tagChips(item.tags, false).all.length" :tags="tagChips(item.tags, false).all" :max="2" />
-                  </template>
-                  <template #status>
-                    <PcStatePill :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" :title="publishedOf(item).title" />
-                  </template>
-                </PcNameCell>
-
-                <!-- Where its template comes from, which is the one thing that
-                     decides whether Refresh does anything. -->
-                <PcTd label="Source">
-                  <span class="cell-muted">{{ item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here" }}</span>
-                </PcTd>
-
-                <!-- Where its proxy list comes from. A file pointing at a record
-                     that is no longer in the store cannot serve at all, and used
-                     to look exactly like one that can. -->
-                <PcTd
-                  label="Nodes"
-                  :title="nodeSourceMissing(item)
-                    ? `This file draws its proxy list from ${item.node_source}, which is not in the store. Serving it fails until the source is restored or the file points somewhere else.`
-                    : item.node_source ? `Its proxy list comes from ${sourceName(item.node_source)}` : 'Served exactly as written; no proxy list is filled in.'"
-                >
-                  <PcStateDot v-if="nodeSourceMissing(item)" tone="error" :label="`source ${item.node_source} is gone`" />
-                  <span v-else-if="item.node_source" class="cell-muted">from {{ sourceName(item.node_source) }}</span>
-                  <span v-else class="cell-muted">as written</span>
-                </PcTd>
-
-                <PcTd
-                  label="Operations"
-                  numeric
-                  mono
-                  :title="item.step_count ? `${item.step_count} operation(s) run on its nodes before the document is served${item.disabled_step_count ? `, ${item.disabled_step_count} switched off` : ''}` : 'No operations run on its nodes.'"
-                >
-                  {{ item.step_count }}<span v-if="item.disabled_step_count" class="cell-muted"> ({{ item.disabled_step_count }} off)</span>
-                </PcTd>
-
-                <PcTd label="Published" stack="state">
-                  <PcStatePill :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" :title="publishedOf(item).title" />
-                </PcTd>
-
-                <PcActionsCell>
-                  <PcButton
-                    compact
-                    :disabled="rowAction(item, 'edit').disabled"
-                    :title="rowAction(item, 'edit').reason || rowAction(item, 'edit').title"
-                    @click="runRowAction('edit', item, $event)"
+            <ul class="rec-rows">
+              <li
+                v-for="item in files"
+                :id="`rec-${item.id}`"
+                :key="item.id"
+                class="rec-row"
+                :class="{ 'is-pending': pendingIds.has(item.id) }"
+                :data-open="expandedId === item.id ? 'true' : undefined"
+                :data-menu="openFileMenuId === item.id ? 'true' : undefined"
+                :data-selected="selectedIds.has(item.id) ? 'true' : undefined"
+              >
+                <div class="rec-row-bar">
+                  <label class="rec-check">
+                    <input
+                      type="checkbox"
+                      :checked="selectedIds.has(item.id)"
+                      :aria-label="`Select ${item.name}`"
+                      @change="toggleSelected(item.id)"
+                    />
+                  </label>
+                  <button
+                    class="rec-ident"
+                    type="button"
+                    :title="nameTitle(item)"
+                    :aria-expanded="expandedId === item.id ? 'true' : 'false'"
+                    :aria-controls="`rec-file-${item.id}`"
+                    @click="toggleRow(item.id)"
+                    @keydown="onIdentKeydown($event, item.id)"
                   >
-                    Open
-                  </PcButton>
-                  <RecordMenu
-                    :data-row-menu="item.id"
-                    :name="item.name"
-                    :actions="menuActionsFor(item)"
-                    :open="openFileMenuId === item.id"
-                    @toggle="toggleFileMenu(item.id)"
-                    @run="(id, event) => runRowAction(id, item, event)"
-                    @keydown="onRowMenuKeydown"
-                  />
-                </PcActionsCell>
-              </PcRow>
-            </tbody>
-          </PcTable>
+                    <span class="rec-col-name">
+                      <span class="rec-ident-name">{{ item.display_name || item.name }}</span>
+                      <PcKindChip v-if="kindFilter === 'all'" :label="kindLabel(item)" />
+                      <PcTagList v-if="tagChips(item.tags, false).all.length" :tags="tagChips(item.tags, false).all" :max="2" />
+                      <span class="rec-ident-meta">
+                        <span>{{ sourceOf(item) }}</span>
+                        <span v-if="item.id !== (item.display_name || item.name)" class="rec-ident-id">{{ item.id }}</span>
+                      </span>
+                    </span>
+                    <span class="rec-col-nodes">{{ sourceOf(item) }}</span>
+                    <span class="rec-col-status">
+                      <PcStatePill :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" :title="publishedOf(item).title" />
+                    </span>
+                    <span class="rec-col-when">{{ opsOf(item) }}</span>
+                  </button>
+                  <div class="rec-row-actions">
+                    <span class="rec-open">
+                      <PcButton
+                        compact
+                        :disabled="rowAction(item, 'edit').disabled"
+                        :title="rowAction(item, 'edit').reason || rowAction(item, 'edit').title"
+                        @click="runRowAction('edit', item, $event)"
+                      >
+                        Open
+                      </PcButton>
+                    </span>
+                    <RecordMenu
+                      :data-row-menu="item.id"
+                      :name="item.name"
+                      :actions="menuActionsFor(item)"
+                      :open="openFileMenuId === item.id"
+                      @toggle="toggleFileMenu(item.id)"
+                      @run="(id, event) => runRowAction(id, item, event)"
+                      @keydown="onRowMenuKeydown"
+                    />
+                  </div>
+                  <button
+                    class="rec-expand"
+                    type="button"
+                    :aria-expanded="expandedId === item.id ? 'true' : 'false'"
+                    :aria-controls="`rec-file-${item.id}`"
+                    :aria-label="expandedId === item.id ? `Hide facts for ${item.display_name || item.name}` : `Show facts for ${item.display_name || item.name}`"
+                    @click="toggleRow(item.id)"
+                  >
+                    <ChevronRight class="rec-chevron" :size="16" aria-hidden="true" />
+                  </button>
+                </div>
+                <div class="rec-well" :data-open="expandedId === item.id ? 'true' : undefined">
+                  <div class="rec-well-inner">
+                    <div v-if="expandedId === item.id" :id="`rec-file-${item.id}`" class="rec-detail">
+                      <dl class="rec-file-facts">
+                        <dt>Source</dt>
+                        <dd>{{ sourceOf(item) }}</dd>
+                        <dt>Nodes</dt>
+                        <dd>
+                          <PcStateDot v-if="nodeSourceMissing(item)" tone="error" :label="nodesFact(item)" />
+                          <template v-else>{{ nodesFact(item) }}</template>
+                        </dd>
+                        <dt>Operations</dt>
+                        <dd>{{ opsOf(item) }}</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+            </template>
+          </div>
         </PcPanel>
       </template>
 

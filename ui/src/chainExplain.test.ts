@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { describeDelta, enabledStepIndexes, explainChain, foldRuns, nodeKey, stepDeltas, stepLabelOf } from "./chainExplain";
+import { describeDelta, enabledStepIndexes, explainChain, foldRuns, groupDropped, nodeKey, stepDeltas, stepLabelOf } from "./chainExplain";
 import type { SubscriptionPreviewResponse } from "./client";
 import type { ChainStep } from "./components/ProcessChain.vue";
 
@@ -86,5 +86,23 @@ describe("running the chain one operation at a time", () => {
     expect(nodeKey({ name: "renamed", type: "ss", was: "hk-01" })).toBe("hk-01");
     expect(nodeKey({ name: "plain", type: "ss" })).toBe("plain");
     expect(foldRuns(steps, [], false)).toEqual({ deltas: [], droppedBy: new Map(), final: null, complete: false });
+  });
+
+  it("groups dropped nodes by the operation that removed them, reason once", () => {
+    const nodes = [
+      { name: "us-01", type: "ss", server: "us.example", port: "443" },
+      { name: "us-02", type: "ss", server: "us2.example", port: "443" },
+      { name: "sg-01", type: "ss", server: "sg.example", port: "443" },
+    ];
+    const droppedBy = new Map([
+      ["us.example:443", "1. Region filter"],
+      ["us2.example:443", "1. Region filter"],
+      ["sg.example:443", "4. Append Subscription"],
+    ]);
+    expect(groupDropped(nodes, droppedBy)).toEqual([
+      { label: "1. Region filter", nodes: [nodes[0], nodes[1]] },
+      { label: "4. Append Subscription", nodes: [nodes[2]] },
+    ]);
+    expect(groupDropped(nodes, new Map())).toEqual([{ label: "the chain", nodes }]);
   });
 });

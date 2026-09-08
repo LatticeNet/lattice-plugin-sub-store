@@ -5,45 +5,33 @@ const SRC = new URL(".", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, SRC), "utf8");
 
 /**
- * The Files lens is the chassis's table card, the same one the Subscriptions
- * lens and the Lines page draw, rather than a grid of its own.
- *
- * It had its own grid once, borrowed from the sibling table without the
- * ancestor its column tokens lived on, so every cell stacked into one column
- * and the document scrolled sideways to 687px on a 375px screen. The chassis
- * owns the narrow forms now: a pinned name column under 720px and a stacked
- * row under 480px, both measured on the Lines page.
+ * Files and Shares sit on the same resource-list chassis as Subscriptions.
+ * They had been PcTable, so switching lenses changed personality.
  */
-describe("the files list is the chassis table", () => {
+describe("the files list is a resource list, not a table", () => {
   const styles = read("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
   const screen = read("screens/FilesScreen.vue");
+  const shares = read("screens/SharesScreen.vue");
 
-  it("draws the chassis card and table, with no grid of its own", () => {
+  it("draws rec-list, with no PcTable", () => {
     expect(screen).toContain("<PcPanel");
-    expect(screen).toMatch(/<PcTable v-else :min-width="\d+" label="Files">/);
+    expect(screen).toContain('class="rec-list"');
+    expect(screen).toContain("<RecKindTabs");
+    expect(screen).not.toContain("PcTable");
     expect(screen).not.toContain("rec-files");
     expect(styles).not.toContain(".rec-files");
     expect(styles).not.toContain("grid-template-columns:\n    var(--lt-col-select)");
+    expect(shares).toContain('class="rec-list"');
+    expect(shares).not.toContain("PcTable");
   });
 
   it("keeps no sideways scroll rule outside a scroller", () => {
-    // The table wrap is the only thing allowed to scroll sideways, and it is
-    // the chassis's; nothing in this sheet widens a row past the frame.
     for (const m of styles.matchAll(/([^{}]+)\{[^}]*width:\s*max-content/g)) {
       const selector = m[1]!.trim();
       expect(selector, selector + " widens rows outside a scroller").toMatch(/^\.pc-batch-bar|^\.lt-batchbar/);
     }
   });
 
-  /**
-   * The sheet's entrance does not push it out of the frame.
-   *
-   * `.sheet` is `right: 0`, so its right edge is already flush with the frame's;
-   * a `translateX` entrance moved the whole panel outside for the length of the
-   * animation and the document grew by exactly that much (391 on a 375 frame).
-   * The browser drive in e2e/ measures it frame by frame; this is the guard CI
-   * can run, because CI has no browser.
-   */
   it("opens the sheet without displacing it sideways", () => {
     const frames = styles.match(/@keyframes sheet-in \{[^}]*\}/s);
     expect(frames, "sheet-in keyframes are gone").not.toBeNull();
@@ -51,19 +39,27 @@ describe("the files list is the chassis table", () => {
   });
 
   it("puts the whole name and the id in the title", () => {
-    expect(screen).toMatch(/<PcNameCell :name="item\.display_name \|\| item\.name" :id="item\.id" :title="nameTitle\(item\)"/);
+    expect(screen).toContain(":title=\"nameTitle(item)\"");
     expect(screen).toMatch(/function nameTitle[\s\S]*?item\.display_name \|\| item\.name/);
+    expect(screen).toContain('class="rec-ident-name"');
   });
 
-  it("says what a file is on its row, since the rows are not grouped by kind", () => {
-    expect(screen).toContain('<PcKindChip :label="kindLabel(item)" />');
+  it("says what a file is on All, and filters kind with tabs", () => {
+    expect(screen).toContain('<PcKindChip v-if="kindFilter === \'all\'" :label="kindLabel(item)" />');
     expect(screen).toMatch(/function kindLabel[\s\S]*?"configuration"/);
+    expect(screen).toContain('label: "Configuration"');
+    expect(screen).toContain('label: "Script"');
+    expect(screen).toContain('label: "Plain"');
+  });
+
+  it("opens a facts well, not a fake chain, with Open on the row", () => {
+    expect(screen).toContain('class="rec-file-facts"');
+    expect(screen).toContain('class="rec-open"');
+    expect(screen).not.toContain("<RecordChainDetail");
+    expect(screen).not.toContain('class="rec-detail-bar"');
   });
 
   it("opens one document surface from every entry", () => {
-    // The row menu's "Show document" and the palette open the sheet. The
-    // drawer kept a second viewer, capped at eight lines and scrolling inside
-    // itself.
     expect(screen).toMatch(/if \(id === "output"\) return openFileSheet\(item, event\);/);
     expect(screen).not.toContain("row-popover-document");
     expect(screen).not.toMatch(/mode: "preview"/);

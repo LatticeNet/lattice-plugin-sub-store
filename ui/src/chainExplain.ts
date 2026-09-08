@@ -81,6 +81,36 @@ export function nodeKey(node: SubscriptionPreviewNode): string {
   return node.was ?? node.name;
 }
 
+export interface DroppedGroup {
+  /** The operation label, or "the chain" when the run could not say. */
+  label: string;
+  nodes: SubscriptionPreviewNode[];
+}
+
+/**
+ * Dropped nodes grouped by the operation that first removed them, in the
+ * order those operations appear in the dropped list. The reason is the group
+ * heading, so it is not repeated on every name.
+ */
+export function groupDropped(
+  nodes: readonly SubscriptionPreviewNode[],
+  droppedBy: ReadonlyMap<string, string>,
+): DroppedGroup[] {
+  const order: string[] = [];
+  const buckets = new Map<string, SubscriptionPreviewNode[]>();
+  for (const node of nodes) {
+    const label = droppedBy.get(nodeKey(node)) ?? "the chain";
+    let bucket = buckets.get(label);
+    if (!bucket) {
+      bucket = [];
+      buckets.set(label, bucket);
+      order.push(label);
+    }
+    bucket.push(node);
+  }
+  return order.map((label) => ({ label, nodes: buckets.get(label)! }));
+}
+
 export interface StepRun {
   index: number;
   label: string;

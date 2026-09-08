@@ -3,12 +3,12 @@ import { inject, provide, reactive, ref, type InjectionKey, type Ref } from "vue
 /**
  * What the shell's chrome and the lens behind it share.
  *
- * The toolbar (lens tabs, the one search field, the sort, the page's primary
- * action) belongs to the shell, because it is the same row on every lens. The
- * list it filters belongs to the lens. Rather than each lens drawing a toolbar
- * of its own, which is how four plugin pages came to differ in every toolbar
- * detail, the shell provides the state and the visible lens reads it. In the
- * other direction each lens reports the two facts that reshape the chrome:
+ * The toolbar (lens tabs, Cmd+K, the page's one primary Add) belongs to the
+ * shell, because it is the same row on every lens. Search and sort belong to
+ * the list card. Rather than each lens drawing a toolbar of its own, which is
+ * how four plugin pages came to differ in every toolbar detail, the shell
+ * provides the filter state and the visible lens reads it. In the other
+ * direction each lens reports the two facts that reshape the chrome:
  * whether it is inside its editor, where the list controls make no sense, and
  * how many rows are selected, so the page keeps room under its last row for
  * the selection bar.
@@ -25,6 +25,8 @@ export interface LensChrome {
   search: Ref<string>;
   sort: Ref<SortKey>;
   lenses: Record<TabId, LensReport>;
+  /** Switch the visible lens. No-op outside the shell. */
+  openLens: (tab: TabId) => void;
 }
 
 const KEY: InjectionKey<LensChrome> = Symbol("lattice-lens-chrome");
@@ -39,6 +41,7 @@ export function createLensChrome(): LensChrome {
       shares: { editing: false, selected: 0 },
       settings: { editing: false, selected: 0 },
     }),
+    openLens: () => {},
   };
 }
 
