@@ -252,7 +252,7 @@ watch(host.init, (value) => {
                 <span class="field-label">Running Sub-Store</span>
                 <MaskedUrlInput
                   v-model="migrateUrl"
-                  placeholder="http://127.0.0.1:19876/ followed by the API path, or the UI address with ?api="
+                  placeholder="Backend URL, or the official UI address with ?api="
                   aria-label="Running Sub-Store backend URL"
                 />
                 <span class="field-optional">

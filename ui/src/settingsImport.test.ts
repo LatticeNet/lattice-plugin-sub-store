@@ -24,6 +24,10 @@ describe("import from a running Sub-Store uses migrate, not a second path", () =
     expect(empty).toContain("migrateParsed.value.origin");
   });
 
+  it("does not put an http URL in the settings template, which would fail verify:build", () => {
+    expect(settings).not.toMatch(/https?:\/\//);
+  });
+
   it("keeps backup restore as the envelope path, separate from migrate", () => {
     expect(settings).toContain("Backup envelope");
     expect(settings).toContain("importBackup");
