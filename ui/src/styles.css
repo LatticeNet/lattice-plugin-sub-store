@@ -266,7 +266,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 }
 .field-label-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 
-.field > input,
+.field > input:not([type="checkbox"]),
 .field .masked-url input,
 .select,
 .code-area {
@@ -277,7 +277,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   background: var(--card);
   outline: none;
 }
-.field > input, .field .masked-url input, .select { min-height: 32px; padding: var(--space-1) var(--space-2); }
+.field > input:not([type="checkbox"]), .field .masked-url input, .select { min-height: 32px; padding: var(--space-1) var(--space-2); }
 .code-area {
   padding: var(--space-2);
   font-family: var(--font-mono);
@@ -285,18 +285,25 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   line-height: var(--lt-code-line);
   resize: vertical;
 }
-.field > input:focus-visible,
+.field > input:not([type="checkbox"]):focus-visible,
 .field .masked-url input:focus-visible,
 .select:focus-visible,
 .code-area:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--primary); }
-.field > input::placeholder, .field .masked-url input::placeholder, .code-area::placeholder { color: var(--muted-foreground); }
+.field > input:not([type="checkbox"])::placeholder, .field .masked-url input::placeholder, .code-area::placeholder { color: var(--muted-foreground); }
 
 .select-compact { min-height: var(--lt-control-h-sm); padding: 0 var(--space-1); font-size: var(--lt-text-xs); max-width: 14em; }
 
 /* A checkbox reads as one control with its label, not as a box floating above
    a paragraph. */
 .checkbox-field { flex-direction: row; align-items: flex-start; gap: var(--space-2); }
-.checkbox-field > input { margin-top: 3px; }
+.checkbox-field > input {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  min-height: 0;
+  padding: 0;
+  margin-top: 3px;
+}
 .checkbox-field > span { display: flex; flex-direction: column; gap: 2px; }
 
 /* Checkboxes.
@@ -524,6 +531,13 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   align-items: center;
   min-width: 0;
 }
+/* Shares columns are Record / Format / State / Expires. Format is a phrase
+   ("as the client asks"), not a node count, so it cannot sit in the 5.5rem
+   Nodes track the other lists use. */
+.rec-list[data-kind="shares"] .rec-head-main,
+.rec-list[data-kind="shares"] .rec-ident {
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 13rem) 5.5rem 5.5rem;
+}
 .rec-check {
   display: grid;
   place-items: center;
@@ -591,6 +605,11 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .rec-col-nodes,
 .rec-col-when { color: var(--muted-foreground); font-size: var(--lt-text-xs); white-space: nowrap; }
 .rec-col-nodes.mono { font-variant-numeric: tabular-nums; color: var(--foreground); }
+.rec-list[data-kind="shares"] .rec-col-nodes {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .rec-col-status { min-width: 0; }
 .rec-col-chevron { width: 1.25rem; }
 .rec-expand {
@@ -663,7 +682,9 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .add-split { width: 100%; }
   .add-split > .pc-button { flex: 1; }
   .rec-head-main,
-  .rec-ident {
+  .rec-ident,
+  .rec-list[data-kind="shares"] .rec-head-main,
+  .rec-list[data-kind="shares"] .rec-ident {
     grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
   }
   .rec-col-nodes,

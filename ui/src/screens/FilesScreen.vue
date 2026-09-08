@@ -691,9 +691,23 @@ const EDITOR_TABS: { id: EditorTab; label: string }[] = [
   { id: "operations", label: "Operations" },
 ];
 
+/**
+ * A script is the whole job, including anything an operator chain would have
+ * done. Offering Operations as well would ask which runs first, and the
+ * panel is already hidden for scripts. The tab stays for config (node chain)
+ * and plain text (response chain).
+ */
+const editorTabs = computed(() =>
+  isScript.value ? EDITOR_TABS.filter((tab) => tab.id !== "operations") : EDITOR_TABS,
+);
+
 function setEditorTab(id: string): void {
   if (id === "display" || id === "content" || id === "operations") editorTab.value = id;
 }
+
+watch(isScript, (script) => {
+  if (script && editorTab.value === "operations") editorTab.value = "content";
+});
 
 /**
  * Which section holds the invalid field. A form that says what is wrong and not
@@ -892,7 +906,7 @@ watch(host.init, (value) => {
       <EditorSectionTabs
         :model-value="editorTab"
         label="Editor sections"
-        :tabs="EDITOR_TABS.map((tab) => ({
+        :tabs="editorTabs.map((tab) => ({
           id: tab.id,
           label: tab.label,
           count: tab.id === 'operations' && chainCount ? chainCount : null,

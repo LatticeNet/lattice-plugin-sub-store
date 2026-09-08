@@ -151,13 +151,23 @@ describe("the two record editors are the same shape", () => {
   const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
 
   it("splits both editors into the same sections", () => {
-    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FilesScreen.vue", files]] as const) {
-      expect(source, name).toMatch(
-        /EDITOR_TABS[\s\S]{0,220}id: "display"[\s\S]{0,80}id: "content"[\s\S]{0,80}id: "operations"/,
-      );
-      expect(source, name + " opens on a section nobody chose").toContain('editorTab = ref<EditorTab>("display")');
-      expect(source, name + " keeps the last record's section").toMatch(/editorTab\.value = "display";/);
-    }
+    expect(screen).toMatch(
+      /EDITOR_TABS[\s\S]{0,220}id: "display"[\s\S]{0,80}id: "content"[\s\S]{0,80}id: "operations"/,
+    );
+    expect(screen).toContain('editorTab = ref<EditorTab>("display")');
+    expect(screen).toMatch(/editorTab\.value = "display";/);
+    expect(editorView).toContain(":tabs=\"EDITOR_TABS.map");
+
+    expect(files).toMatch(
+      /EDITOR_TABS[\s\S]{0,220}id: "display"[\s\S]{0,80}id: "content"[\s\S]{0,80}id: "operations"/,
+    );
+    expect(files).toContain('editorTab = ref<EditorTab>("display")');
+    expect(files).toMatch(/editorTab\.value = "display";/);
+    // A script is the whole job. The Operations panel is already hidden for
+    // that type, so the tab is too. Config and plain keep the chain.
+    expect(files).toContain("isScript.value ? EDITOR_TABS.filter((tab) => tab.id !== \"operations\")");
+    expect(files).toContain(":tabs=\"editorTabs.map");
+    expect(files).toMatch(/if \(script && editorTab\.value === "operations"\) editorTab\.value = "content"/);
   });
 
   // A form that says what is wrong and not where is worse behind tabs than in
@@ -183,6 +193,7 @@ describe("the two record editors are the same shape", () => {
     for (const tag of opens) {
       expect(tag, "section without a tab: " + tag).toMatch(/v-show="editorTab === '(display|content|operations)'"/);
     }
+    expect(files).toContain('v-if="!isScript" v-show="editorTab === \'operations\'"');
     expect(files).not.toContain("<fieldset");
   });
 
@@ -200,5 +211,29 @@ describe("the two record editors are the same shape", () => {
     // block that covers the form under it.
     const base = styles.slice(0, styles.indexOf("@container (min-width: 1180px)"));
     expect(base).toMatch(/\.editor-side\s*\{[^}]*position:\s*static/s);
+  });
+});
+
+describe("a checkbox inside a field stays a square", () => {
+  const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+  const css = withoutComments(styles);
+
+  it("keeps field text inputs full width without stretching a checkbox", () => {
+    expect(css).toMatch(/\.field > input:not\(\[type="checkbox"\]\)/);
+    expect(css).not.toMatch(/\.field > input,/);
+    expect(css).not.toMatch(/\.field > input \{/);
+    expect(css).toMatch(
+      /\.checkbox-field > input\s*\{[^}]*flex:\s*none[^}]*width:\s*15px[^}]*height:\s*15px[^}]*min-height:\s*0[^}]*padding:\s*0/s,
+    );
+  });
+
+  it("keeps the download control, the only checkbox that lives in a field", () => {
+    expect(files).toContain('class="field field-wide checkbox-field"');
+    expect(files).toContain('v-model="draft.download"');
+    expect(files).toContain('type="checkbox"');
+    expect(files).toContain("Save rather than show");
+    const fieldCheckboxes = files.match(/class="[^"]*field[^"]*"[\s\S]{0,80}type="checkbox"/g) ?? [];
+    expect(fieldCheckboxes.length).toBe(1);
+    expect(fieldCheckboxes[0]).toContain("checkbox-field");
   });
 });
