@@ -163,10 +163,15 @@ describe("the two record editors are the same shape", () => {
   // A form that says what is wrong and not where is worse behind tabs than in
   // a single scroll: the field is two sections away and nothing points at it.
   it("points at the section holding the invalid field", () => {
+    const tabs = readFileSync(new URL("./components/EditorSectionTabs.vue", import.meta.url), "utf8");
+    expect(tabs).toContain('class="editor-tab-flag"');
+    expect(tabs).toContain("errorTab === tab.id && modelValue !== tab.id");
     for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FilesScreen.vue", files]] as const) {
       expect(source, name).toMatch(/const errorTab = computed/);
-      expect(source, name).toContain('v-if="errorTab === tab.id && editorTab !== tab.id"');
-      expect(source, name).toContain('class="editor-tab-flag"');
+      expect(source, name).toContain("<EditorSectionTabs");
+      expect(source, name).toContain(':error-tab="errorTab"');
+      expect(source, name).not.toContain("PcLensTabs");
+      expect(source, name).not.toContain("PcLensTab");
     }
   });
 

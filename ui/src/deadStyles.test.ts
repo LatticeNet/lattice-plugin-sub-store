@@ -115,12 +115,12 @@ describe("every state is reachable in the harness", () => {
   });
 
   it("does not claim a count it does not have yet", () => {
-    // The stat strip is a skeleton until the catalogue has landed, and every
-    // tile reads from lists that are empty until then; the lens tabs carry no
-    // count at all until the list has been read.
+    // Counts live on the proof line and the lens badges, both withheld until
+    // the catalogue has been read. A tile strip used to invent zeros.
     expect(shell).toMatch(/const ready = computed\(\(\) => catalogue\.state\.value === "ready"\)/);
-    expect(shell).toContain(`<PcSkeleton v-if="!ready && catalogue.state.value !== 'error'" variant="strip"`);
-    expect(shell).toContain('<PcStatStrip v-else-if="ready"');
+    expect(shell).not.toContain("PcStatStrip");
+    expect(shell).not.toContain("PcStatCard");
+    expect(shell).toContain("waiting for the record catalogue");
     expect(shell).toMatch(/subscriptions: ready\.value \? records\.value\.length : null/);
     // The lenses show a skeleton, not an empty table, while the list is coming.
     for (const screen of screens) {

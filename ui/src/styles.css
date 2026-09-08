@@ -52,20 +52,66 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .section-heading h2 { margin: 0; font-size: var(--lt-text-lg); font-weight: 650; line-height: var(--lt-leading-tight); letter-spacing: -0.01em; }
 
 /* ── lens layout ──────────────────────────────────────────────────────────
-   The shell draws the chassis (header, proof line, stat strip, toolbar); a
-   lens draws the blocks under it, stacked one step apart like the shell's own
-   children. The tab panel is a plain wrapper so those blocks keep the rhythm. */
+   The shell draws the chassis (header, proof line, toolbar); a lens draws
+   the blocks under it, stacked one step apart like the shell's own children.
+   The tab panel is a plain wrapper so those blocks keep the rhythm. */
 
 .lens > * + * { margin-top: var(--space-4); }
 .lens-panel:focus-visible { outline: none; }
+.lens-panel.is-fading { animation: lens-in var(--lt-dur-base) var(--lt-ease); }
+@keyframes lens-in { from { opacity: 0; } }
 
-/* The sort select sits in the toolbar's note slot beside its label. */
+/* The sort select sits in the list tools beside its label. */
 .toolbar-sort { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--muted-foreground); font-size: var(--lt-text-xs); }
 .toolbar-sort .pc-select { min-height: 30px; padding-top: 3px; padding-bottom: 3px; }
 
-/* Secondary text inside a table cell: the source description, "(2 off)". One
-   line, like every other cell; a wrapped value breaks the row rhythm. */
-.cell-muted { color: var(--muted-foreground); font-size: var(--lt-text-sm); white-space: nowrap; }
+.rec-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.rec-tools .pc-search { max-width: 280px; }
+.rec-list-note {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-xs);
+}
+
+/* Published count in the proof line: warning ink only when none are live. */
+.proof-seg.is-warn { color: var(--warning-text); }
+
+/* One primary Add, with a caret for New combination. */
+.add-split {
+  display: inline-flex;
+  align-items: stretch;
+  position: relative;
+}
+.add-split > .pc-button {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.add-split-caret {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--primary);
+  border-left: 1px solid color-mix(in oklab, var(--primary-foreground) 28%, var(--primary));
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  cursor: pointer;
+}
+.add-split-caret:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--primary) 88%, #000 12%);
+}
+.add-split-caret:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.add-split-caret:disabled { opacity: 0.5; cursor: not-allowed; }
+.add-split-menu { transform-origin: top right; }
 
 /* A record name is free text and can run to a hundred characters; a table
    column takes the width of its widest unwrapped cell, so without a cap one
@@ -81,15 +127,15 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .pc-table[data-stacked="true"] td.pc-select { order: -1; flex: 0 0 auto; }
 .pc-table[data-stacked="true"] .pc-name-line { flex-wrap: wrap; }
 
-/* The search shares its row with four tabs, a sort, two actions and the
-   palette entry, so it takes less than the chassis's 420px or the primary
-   action wraps under the row at 1440. */
+/* The search lives in the list card. On a narrow frame it takes the row. */
 .pc-toolbar .pc-search { max-width: 300px; }
 
 /* Mid-operation. Not a spinner over the row: the row is still readable and
    still true, it just cannot be acted on until the call returns. */
-.pc-row.is-pending > td { opacity: 0.55; }
-.pc-row.is-pending .pc-row-actions { pointer-events: none; }
+.pc-row.is-pending > td,
+.rec-row.is-pending { opacity: 0.55; }
+.pc-row.is-pending .pc-row-actions,
+.rec-row.is-pending .rec-row-actions { pointer-events: none; }
 /* An operation the chain skips. */
 .pc-row.is-off .pc-name strong { color: var(--muted-foreground); text-decoration: line-through; }
 
@@ -179,7 +225,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   font-weight: 600;
   white-space: nowrap;
   background: transparent;
-  transition: background-color var(--lt-dur) var(--lt-ease), border-color var(--lt-dur) var(--lt-ease);
+  transition: background-color var(--lt-dur) var(--lt-ease), border-color var(--lt-dur) var(--lt-ease), transform 100ms ease-out;
 }
 .button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .button-secondary { border-color: var(--border); color: var(--foreground); background: var(--card); }
@@ -301,6 +347,35 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 
 .form-actions { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); flex-wrap: wrap; }
 
+.settings-card { min-width: 0; }
+.settings-section {
+  padding: var(--space-4);
+}
+.settings-section + .settings-section {
+  border-top: 1px solid var(--border);
+}
+.settings-h {
+  margin: 0;
+  font-size: var(--lt-text-lg);
+  font-weight: 620;
+}
+.settings-lead {
+  margin: var(--space-1) 0 var(--space-4);
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+}
+.settings-commit {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+
 /* ── list toolbar ─────────────────────────────────────────────────────────
    These lived in SubscriptionsScreen's SCOPED block while the Files screen
    used the same class names. Scoped styles carry a per-component attribute, so
@@ -350,8 +425,14 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   text-align: left;
 }
 .empty-inline-form { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
-.empty-inline-form > input {
+.empty-inline-form > input,
+.empty-inline-form > .masked-url {
   flex: 1 1 240px;
+  min-width: 0;
+}
+.empty-inline-form > .masked-url { max-width: none; }
+.empty-inline-form > input,
+.empty-inline-form .masked-url input {
   min-height: var(--lt-control-h);
   padding: 0 var(--space-2);
   border: 1px solid var(--border);
@@ -360,12 +441,243 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   background: var(--background);
   outline: none;
 }
-.empty-inline-form > input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--primary); }
+.empty-inline-form > input:focus-visible,
+.empty-inline-form .masked-url input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--primary); }
+
+/* ── record list ──────────────────────────────────────────────────────────
+   Cloudflare resource-list interaction on Lattice tokens: kind is an
+   underline tab, not a nested shelf; a row is one object; Open then kebab
+   then chevron. The chain is a compact well (proof and steps). Open lives
+   on the row, the way official Sub-Store keeps a pen on the card. */
+.rec-kind {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.rec-kind button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) 0 calc(var(--space-3) - 2px);
+  border: 0;
+  color: var(--muted-foreground);
+  background: transparent;
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.rec-kind button:hover { color: var(--foreground); }
+.rec-kind button[aria-selected="true"] { color: var(--foreground); }
+.rec-kind button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-kind-ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--primary);
+  pointer-events: none;
+  transition: transform 150ms var(--lt-ease), width 150ms var(--lt-ease);
+}
+
+.rec-list { min-width: 0; }
+.rec-list-head,
+.rec-row-bar {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto 1.25rem;
+  gap: var(--space-2);
+  align-items: center;
+  padding: 0 var(--space-3);
+}
+.rec-list[data-select="false"] .rec-list-head,
+.rec-list[data-select="false"] .rec-row-bar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.rec-list[data-expand="false"] .rec-list-head,
+.rec-list[data-expand="false"] .rec-row-bar {
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+}
+.rec-list[data-select="false"][data-expand="false"] .rec-list-head,
+.rec-list[data-select="false"][data-expand="false"] .rec-row-bar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.rec-list[data-expand="false"] .rec-ident { cursor: default; }
+.rec-list-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  min-height: var(--row-h-compact);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+}
+.rec-head-main,
+.rec-ident {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.5rem minmax(7rem, 9.5rem) 6rem;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+}
+.rec-check {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.rec-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.rec-head-actions { min-width: 2.25rem; }
+
+.rec-rows { margin: 0; padding: 0; list-style: none; }
+.rec-row { border-top: 1px solid var(--border); }
+.rec-row-bar { min-height: var(--row-h); }
+.rec-row:hover .rec-row-bar { background: var(--muted); }
+.rec-row[data-selected="true"] .rec-row-bar { background: color-mix(in oklab, var(--primary) 8%, var(--muted)); }
+.rec-row[data-open="true"] .rec-row-bar { background: var(--pc-open-surface, var(--muted)); }
+
+.rec-ident {
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.rec-ident:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-col-name {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--space-2);
+}
+.rec-ident-name {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec-ident-meta {
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-xs);
+}
+.rec-ident-id {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec-ident-ops { font-variant-numeric: tabular-nums; }
+.rec-col-nodes,
+.rec-col-when { color: var(--muted-foreground); font-size: var(--lt-text-xs); white-space: nowrap; }
+.rec-col-nodes.mono { font-variant-numeric: tabular-nums; color: var(--foreground); }
+.rec-col-status { min-width: 0; }
+.rec-col-chevron { width: 1.25rem; }
+.rec-expand {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: var(--row-h);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.rec-expand:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-chevron {
+  justify-self: end;
+  color: var(--muted-foreground);
+  transition: transform var(--lt-dur) var(--lt-ease);
+}
+.rec-expand[aria-expanded="true"] .rec-chevron { transform: rotate(90deg); }
+
+.rec-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+.rec-open { flex: none; }
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1100px) {
+  .rec-row-actions .rec-menu-wrap {
+    opacity: 0;
+    transition: opacity var(--lt-dur) var(--lt-ease);
+  }
+  .rec-row:hover .rec-menu-wrap,
+  .rec-row:focus-within .rec-menu-wrap,
+  .rec-row[data-menu="true"] .rec-menu-wrap,
+  .rec-row[data-open="true"] .rec-menu-wrap { opacity: 1; }
+}
+
+/* Instant open: animating grid 0fr/1fr against async preview height is the
+   snap the official card never does. The well is compact (proof + steps);
+   dropped names wait for a cut. */
+.rec-well { display: none; }
+.rec-well[data-open="true"] { display: block; }
+
+.rec-detail {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--pc-open-surface, var(--muted));
+}
+.rec-file-facts {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-sm);
+}
+.rec-file-facts dt {
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rec-file-facts dd { margin: 0 0 var(--space-2); color: var(--foreground); }
+
+@media (max-width: 640px) {
+  .rec-tools .pc-search { max-width: none; flex: 1 1 100%; }
+  .add-split { width: 100%; }
+  .add-split > .pc-button { flex: 1; }
+  .rec-head-main,
+  .rec-ident {
+    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
+  }
+  .rec-col-nodes,
+  .rec-col-when { display: none; }
+  .rec-ident-ops { display: none; }
+}
 
 /* ── chain detail ─────────────────────────────────────────────────────────
-   The chain, read in place under its row: the operations are rows of the
-   table; the source line, the notes and the nodes the chain removed sit in
-   the detail row after them. */
+   One pane under the row, not extra table rows. The chain is a process with
+   count deltas; dropped names are grouped by the operation that removed
+   them and paged, so the reason is not repeated on every line. */
+.rec-chain-pane { min-width: 0; }
+.rec-detail .rec-chain-pane { margin-top: 0; }
+
 .rec-chain-note {
   margin: 0;
   color: var(--muted-foreground);
@@ -377,14 +689,92 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   color: var(--foreground);
 }
 .rec-chain-note + .rec-chain-note { margin-top: var(--space-2); }
-/* The detail row carries no top padding of its own; its first line does. */
-.pc-detail-row > td > :first-child { margin-top: var(--space-3); }
+
+.rec-chain-proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-3);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+.rec-chain-proof-count {
+  color: var(--foreground);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+}
+
+.rec-chain-steps {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+.rec-chain-steps li + li { border-top: 1px solid var(--border); }
+.rec-chain-step {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto auto;
+  gap: var(--space-2);
+  align-items: baseline;
+  width: 100%;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+button.rec-chain-step { cursor: pointer; }
+button.rec-chain-step:hover { background: var(--muted); }
+button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-chain-steps li.is-off .rec-chain-step { color: var(--muted-foreground); }
+.rec-chain-steps li.is-cut .rec-chain-step { color: var(--foreground); }
+.rec-chain-steps li.is-selected .rec-chain-step {
+  background: var(--lt-accent-soft);
+  box-shadow: inset 2px 0 0 var(--lt-accent-border);
+}
+.rec-chain-idx {
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+.rec-chain-steps li.is-cut .rec-chain-idx { color: var(--lt-accent-ink); }
+.rec-chain-name { min-width: 0; font-size: var(--lt-text-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-chain-spark {
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.rec-chain-steps li.is-cut .rec-chain-spark { color: var(--foreground); }
+.rec-chain-verb {
+  font-size: var(--lt-text-xs);
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.rec-chain-steps li.is-cut .rec-chain-verb { color: var(--foreground); }
+
+@media (max-width: 640px) {
+  .rec-chain-step { grid-template-columns: 2.25rem minmax(0, 1fr); }
+  .rec-chain-spark,
+  .rec-chain-verb { grid-column: 2; }
+}
+
 .rec-chain-source {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-1) var(--space-2);
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-3);
   color: var(--muted-foreground);
 }
 .rec-chain-eyebrow {
@@ -406,20 +796,83 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 }
 .rec-reveal:hover { color: var(--foreground); }
 .rec-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
-.rec-chain-dropped {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(36ch, 100%), 1fr));
-  gap: 2px var(--space-5);
-  margin: var(--space-3) 0 0;
-  padding: 0;
-  list-style: none;
+
+.rec-chain-dropped { min-width: 0; }
+.rec-chain-dropped-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+.rec-chain-dropped-head h4 {
+  margin: 0;
   font-size: var(--lt-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--muted-foreground);
 }
-.rec-chain-dropped li { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); min-width: 0; }
-.rec-chain-dropped > .rec-chain-note { grid-column: 1 / -1; }
-.rec-chain-dropped-name { color: var(--foreground); text-decoration: line-through; }
-.rec-chain-dropped-by::before { content: "· "; }
+.rec-chain-dropped-count {
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+.rec-chain-dropped-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+}
+.rec-chain-group {
+  padding: 0 var(--space-2);
+  min-height: var(--lt-control-h-sm);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: var(--lt-text-xs);
+}
+.rec-chain-group:hover { border-color: var(--lt-border-strong); color: var(--foreground); }
+.rec-chain-group:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.rec-chain-group.is-current {
+  border-color: var(--lt-accent-border);
+  background: var(--lt-accent-soft);
+  color: var(--foreground);
+}
+.rec-chain-dropped-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--lt-text-sm);
+}
+.rec-chain-dropped-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 12rem);
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--border);
+}
+.rec-chain-dropped-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.rec-chain-dropped-endpoint {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: end;
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-xs);
+}
 
 .rec-menu-wrap { display: inline-flex; }
 
@@ -439,6 +892,11 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   color: var(--foreground);
   font-size: var(--text-body);
   line-height: var(--lt-leading);
+  transform-origin: top right;
+  animation: menu-in var(--lt-dur) var(--lt-ease);
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: scale(0.95); }
 }
 
 .rec-menu button {
@@ -495,9 +953,9 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .editor-block + .editor-block { margin-top: var(--space-4); }
 
 .editor-actions {
-  /* The frame now has a real scrollport, so sticky is available to the S-B
-     detail layout. This S-A form remains single-column and keeps its actions at
-     the end rather than introducing that navigation change early. */
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -507,12 +965,46 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   margin-top: var(--space-2);
   padding: var(--space-3) 0;
   border-top: 1px solid var(--border);
+  background: var(--background);
 }
 .editor-actions .field-error { margin-right: auto; }
 
-/* The section tabs are the chassis lens tabs (PcLensTabs), the same pill
-   group as the toolbar's. They were an underline bar 60px under the pills. */
-.editor-shell > .pc-lens-tabs { margin: 0 0 var(--space-4); }
+/* Quieter than the page's PcLensTabs pills: a hairline underline bar. */
+.ed-tabs {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0 0 var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.ed-tab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) 0 calc(var(--space-2) - 2px);
+  border: 0;
+  color: var(--muted-foreground);
+  background: transparent;
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.ed-tab:hover { color: var(--foreground); }
+.ed-tab[aria-selected="true"] { color: var(--foreground); }
+.ed-tab:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
+.ed-tabs-ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--primary);
+  pointer-events: none;
+  transform: translateX(0);
+  transition: transform 150ms var(--ease-out), width 150ms var(--ease-out);
+}
 
 /* A section holding the invalid field, seen from another section: a dot in
    the tab, in the warning ink, beside the label. */
@@ -1633,6 +2125,24 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    duration then stands out as the one that was missed. */
 @media (prefers-reduced-motion: reduce) {
   .sheet { animation: none; }
+  .lens-panel.is-fading { animation: none; }
+  .rec-menu { animation: none; }
+  .rec-well,
+  .rec-detail { transition: none; }
+  .rec-kind-ink,
+  .ed-tabs-ink { transition: none; }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .button:active:not(:disabled),
+  .pc-button:active:not(:disabled),
+  .pc-icon-button:active:not(:disabled),
+  .rec-kind button:active,
+  .ed-tab:active,
+  .add-split-caret:active:not(:disabled),
+  .rec-expand:active {
+    transform: scale(0.97);
+  }
 }
 
 /* The clipboard fallback strip on the record list. It is not an error state:

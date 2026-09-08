@@ -6,24 +6,24 @@ import { expect, test, type Page } from "@playwright/test";
  *
  * Every assertion here stands in for a measurement someone took by hand and
  * wrote up as a finding: the document that scrolled sideways at 375, the
- * primary action that wrapped under the toolbar at 1440, the name that pushed
- * the Actions column over the Published column. A regression reads as the
- * same sentence the review did.
+ * primary action that wrapped under the toolbar at 1440, the name that
+ * shoved the actions off the row. A regression reads as the same sentence
+ * the review did.
  */
 
 async function openSubscriptions(page: Page): Promise<void> {
   await page.goto("/dev.html");
-  await page.locator(".pc-table .pc-row").first().waitFor();
+  await page.locator(".rec-row").first().waitFor();
 }
 
 async function openFiles(page: Page): Promise<void> {
   await page.goto("/dev.html?lens=files");
-  await page.locator(".pc-table .pc-row").first().waitFor();
+  await page.locator(".rec-list .rec-row").first().waitFor();
 }
 
 /** The row whose name is deliberately too long. */
 function longRow(page: Page) {
-  return page.locator(".pc-row", { hasText: "A deliberately long" }).first();
+  return page.locator(".rec-row, .pc-row", { hasText: "A deliberately long" }).first();
 }
 
 test.describe("375", () => {
@@ -33,13 +33,11 @@ test.describe("375", () => {
     await openSubscriptions(page);
     const frame = page.viewportSize()!.width;
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(frame);
-    // The stacked form of the row, not eleven columns squeezed into 375px.
-    await expect(page.locator(".pc-table").first()).toHaveAttribute("data-stacked", "true");
-    await page.locator("#rec-openjobs-host .pc-toggle").click();
+    await expect(page.locator(".rec-list")).toBeVisible();
+    await expect(page.locator(".pc-table")).toHaveCount(0);
+    await page.locator("#rec-openjobs-host .rec-ident").click();
     await page.locator("#rec-chain-openjobs-host").waitFor();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(frame);
-    // The sheet opens from the row menu and stays inside the frame for every
-    // frame of its entrance.
     await page.locator('[data-row-menu="openjobs-host"] button').click();
     const seen = await page.evaluate(async () => {
       const doc = document.documentElement;
@@ -65,8 +63,6 @@ test.describe("375", () => {
   test("the selection bar floats inside the frame and the rows do not move", async ({ page }) => {
     await openSubscriptions(page);
     const row = page.locator("#rec-cdcd-self-host");
-    // Document coordinates: the click scrolls the row into view, and a
-    // viewport box would report that scroll as the row moving.
     const top = () => row.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
     const before = await top();
     await row.locator("input[type=checkbox]").click();
@@ -82,9 +78,10 @@ test.describe("375", () => {
 
   test("the files list stacks the same way", async ({ page }) => {
     await openFiles(page);
-    await expect(page.locator(".pc-table").first()).toHaveAttribute("data-stacked", "true");
+    await expect(page.locator(".rec-list")).toBeVisible();
+    await expect(page.locator(".pc-table")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375);
-    const name = (await longRow(page).locator(".pc-name strong").boundingBox())!;
+    const name = (await longRow(page).locator(".rec-ident-name").boundingBox())!;
     expect(Math.round(name.x + name.width)).toBeLessThanOrEqual(375);
   });
 });
@@ -92,16 +89,11 @@ test.describe("375", () => {
 test.describe("700", () => {
   test.use({ viewport: { width: 700, height: 900 } });
 
-  test("the table scrolls sideways inside its card with the record column pinned", async ({ page }) => {
+  test("the list stays inside the frame", async ({ page }) => {
     await openSubscriptions(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(700);
-    const wrap = page.locator(".pc-table-wrap").first();
-    const [scrollWidth, clientWidth] = await wrap.evaluate((el) => [el.scrollWidth, el.clientWidth]);
-    expect(scrollWidth).toBeGreaterThan(clientWidth);
-    const name = page.locator("#rec-openjobs-host td.pc-name");
-    expect(await name.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
-    const actions = page.locator("#rec-openjobs-host td.pc-actions");
-    expect(await actions.evaluate((el) => getComputedStyle(el).position)).toBe("static");
+    const item = (await page.locator("#rec-openjobs-host").boundingBox())!;
+    expect(Math.round(item.x + item.width)).toBeLessThanOrEqual(700);
   });
 });
 
@@ -113,37 +105,34 @@ test.describe("1440", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
     const tabs = (await page.locator(".pc-lens-tabs").boundingBox())!;
     const primary = (await page.getByRole("button", { name: "New subscription" }).boundingBox())!;
-    // Wrapped under the row, the primary action sat 40px below the tabs.
     expect(Math.abs(primary.y + primary.height / 2 - (tabs.y + tabs.height / 2))).toBeLessThan(4);
   });
 
-  test("a long name is capped so the columns keep their places", async ({ page }) => {
+  test("a long name ellipses instead of shoving actions off the row", async ({ page }) => {
     await openSubscriptions(page);
-    const name = (await longRow(page).locator(".pc-toggle > strong").boundingBox())!;
-    expect(name.width).toBeLessThanOrEqual(380);
-    const wrap = page.locator(".pc-table-wrap").first();
-    const [scrollWidth, clientWidth] = await wrap.evaluate((el) => [el.scrollWidth, el.clientWidth]);
-    expect(scrollWidth).toBe(clientWidth);
-    // The Published header is not under the sticky Actions column.
-    const published = (await page.locator("th", { hasText: "Published" }).boundingBox())!;
-    const actions = (await page.locator("th.pc-actions").boundingBox())!;
-    expect(published.x + published.width).toBeLessThanOrEqual(actions.x + 1);
+    const name = (await longRow(page).locator(".rec-ident-name").boundingBox())!;
+    const actions = (await longRow(page).locator(".rec-row-actions").boundingBox())!;
+    const ident = (await longRow(page).locator(".rec-ident").boundingBox())!;
+    expect(Math.round(ident.x + ident.width)).toBeLessThanOrEqual(Math.round(actions.x) + 1);
+    expect(name.width).toBeLessThan(ident.width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
   });
 
-  test("records fold under their kind and a record folds its chain", async ({ page }) => {
+  test("kind is a tab and a record folds its chain", async ({ page }) => {
     await openSubscriptions(page);
-    const rows = page.locator(".pc-table .pc-row");
-    const before = await rows.count();
-    await page.locator(".pc-group-row .pc-toggle", { hasText: "Subscriptions" }).click();
-    expect(await rows.count()).toBeLessThan(before);
-    await page.locator(".pc-group-row .pc-toggle", { hasText: "Subscriptions" }).click();
-    expect(await rows.count()).toBe(before);
-    const toggle = page.locator("#rec-openjobs-host .pc-toggle");
+    const items = page.locator(".rec-row");
+    const before = await items.count();
+    await page.getByRole("tab", { name: "Single" }).click();
+    expect(await items.count()).toBeLessThan(before);
+    await page.getByRole("tab", { name: "All" }).click();
+    expect(await items.count()).toBe(before);
+    const toggle = page.locator("#rec-openjobs-host .rec-ident");
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
-    // The record is read first, then its operations land as rows.
-    await expect.poll(() => rows.count()).toBeGreaterThan(before);
-    // Escape closes the open row and hands focus back to its toggle.
+    await page.locator("#rec-chain-openjobs-host .rec-chain-steps").waitFor();
+    expect(await items.count()).toBe(before);
+    expect(await page.locator("#rec-chain-openjobs-host .rec-chain-steps").count()).toBe(1);
+    await expect(page.locator("#rec-openjobs-host .rec-open")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(toggle).toBeFocused();
@@ -151,21 +140,14 @@ test.describe("1440", () => {
 
   test("the files list keeps its columns on one row each", async ({ page }) => {
     await openFiles(page);
-    const wrap = page.locator(".pc-table-wrap").first();
-    const [scrollWidth, clientWidth] = await wrap.evaluate((el) => [el.scrollWidth, el.clientWidth]);
-    expect(scrollWidth).toBe(clientWidth);
-    const first = page.locator(".pc-table .pc-row").first();
-    const box = (await first.boundingBox())!;
-    // Two lines, name over id: the design's row, not a wrapped source cell.
-    expect(box.height).toBeLessThanOrEqual(44);
+    await expect(page.locator(".pc-table")).toHaveCount(0);
+    const first = page.locator(".rec-list .rec-row").first();
+    const box = (await first.locator(".rec-row-bar").boundingBox())!;
+    expect(box.height).toBeLessThanOrEqual(48);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
   });
 });
 
-/**
- * Both entrances run on the motion tokens, which tokens.css zeroes under
- * reduced motion; the stylesheet names them anyway, and this holds that to be
- * true rather than trusting a duration token to stay 0ms.
- */
 test.describe("reduced motion", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -173,7 +155,7 @@ test.describe("reduced motion", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openSubscriptions(page);
     expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
-    await page.locator("#rec-openjobs-host .pc-toggle").click();
+    await page.locator("#rec-openjobs-host .rec-ident").click();
     await page.locator("#rec-chain-openjobs-host").waitFor();
     await page.locator('[data-row-menu="openjobs-host"] button').click();
     await page.locator(".rec-menu button", { hasText: "Client output" }).click();
@@ -191,10 +173,6 @@ test.describe("reduced motion", () => {
 test.describe("row menu", () => {
   test.use({ viewport: { width: 1440, height: 1100 } });
 
-  // The chassis pins every actions cell with its own stacking context, so a
-  // menu drawn inside the cell was painted over by the rows beneath it: the
-  // first row's menu showed three of its seven items. Every item must be the
-  // thing under the pointer at its own centre, on a row that has rows below.
   test("every item of the first row's menu is on top", async ({ page }) => {
     await openSubscriptions(page);
     await page.locator('[data-row-menu="cdcd-self-host"] button').first().click();
@@ -209,7 +187,6 @@ test.describe("row menu", () => {
         .map((item) => item.textContent!.trim()),
     );
     expect(covered).toEqual([]);
-    // Right edges flush with the trigger, and the menu inside the frame.
     const trigger = (await page.locator('[data-row-menu="cdcd-self-host"] button').first().boundingBox())!;
     const menu = (await page.locator(".rec-menu").boundingBox())!;
     expect(Math.abs(menu.x + menu.width - (trigger.x + trigger.width))).toBeLessThanOrEqual(1);

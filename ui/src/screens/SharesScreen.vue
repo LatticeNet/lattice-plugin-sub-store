@@ -2,25 +2,19 @@
 import { computed, onActivated, onMounted, ref, watch } from "vue";
 import { Copy, SquareArrowOutUpRight } from "@lucide/vue";
 import {
-  PcActionsCell,
   PcButton,
   PcCount,
   PcEmptyState,
-  PcIconButton,
   PcKindChip,
-  PcNameCell,
   PcNotice,
   PcPanel,
-  PcPanelHeader,
-  PcRow,
+  PcSearchField,
   PcSkeleton,
   PcStatePill,
-  PcTable,
-  PcTd,
-  PcTh,
 } from "@latticenet/plugin-bridge/chassis";
 
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
+import RecKindTabs from "../components/RecKindTabs.vue";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubStoreShareRow, type SubscriptionListItem } from "../client";
 import { copyText } from "../hostClipboard";
 import { useHost } from "../host";
@@ -62,16 +56,48 @@ const allLines = computed<ShareLine[]>(() =>
     .sort((a, b) => recordName(a).localeCompare(recordName(b)) || a.share.slug.localeCompare(b.share.slug)),
 );
 
-/** The toolbar's search, matched against the record, the slug and the format. */
-const lines = computed(() => {
-  const query = normalizeQuery(chrome.search.value);
+const searchedLines = computed(() => {
+  const query = normalizeQuery(search.value);
   if (!query) return allLines.value;
   return allLines.value.filter((line) =>
     [recordName(line), line.share.subscription_id, line.share.slug, line.share.default_format ?? "", line.state.label]
       .some((value) => value.toLowerCase().includes(query)),
   );
 });
-const filtersActive = computed(() => !!chrome.search.value.trim());
+
+type ShareKindFilter = "all" | "live" | "dead";
+const kindFilter = ref<ShareKindFilter>("all");
+
+function isLive(line: ShareLine): boolean {
+  return line.state.tone === "ok";
+}
+
+function setKindFilter(id: string): void {
+  if (id === "all" || id === "live" || id === "dead") kindFilter.value = id;
+}
+
+const kindCounts = computed(() => {
+  const rows = searchedLines.value;
+  const live = rows.filter(isLive).length;
+  return { all: rows.length, live, dead: rows.length - live };
+});
+const kindTabs = computed(() => [
+  { id: "all", label: "All", count: kindCounts.value.all },
+  { id: "live", label: "Live", count: kindCounts.value.live },
+  { id: "dead", label: "Disabled or expired", count: kindCounts.value.dead },
+]);
+
+const lines = computed(() => {
+  if (kindFilter.value === "all") return searchedLines.value;
+  if (kindFilter.value === "live") return searchedLines.value.filter(isLive);
+  return searchedLines.value.filter((line) => !isLive(line));
+});
+const filtersActive = computed(() => !!search.value.trim() || kindFilter.value !== "all");
+
+function clearFilters(): void {
+  search.value = "";
+  kindFilter.value = "all";
+}
 
 function recordName(line: ShareLine): string {
   return line.record ? line.record.display_name || line.record.name : line.share.subscription_id;
@@ -261,83 +287,81 @@ watch(host.init, (value) => {
     </template>
 
     <PcPanel v-else label="Shares">
-      <PcPanelHeader
-        title="Shares"
-        description="Every link a client can subscribe to, read from the console. A share is created and changed there, under Networking."
-      >
-        <PcCount
-          :value="summary.total ? `${summary.live} of ${summary.total} live` : 'none'"
-          :label="summary.dead ? `${summary.dead} disabled or expired and returning nothing.` : 'Every share here is live.'"
-        />
-      </PcPanelHeader>
+      <div v-if="!allLines.length">
+        <PcEmptyState title="Nothing is shared">
+          <p>
+            Publish a share for a record in the console under Networking, then Subscription Shares,
+            and it appears here with its link.
+          </p>
+        </PcEmptyState>
+      </div>
+      <div v-else class="rec-list" data-select="false" data-expand="false" aria-label="Shares">
+        <RecKindTabs :model-value="kindFilter" label="Share kind" :tabs="kindTabs" @update:model-value="setKindFilter" />
+        <div class="rec-tools">
+          <PcSearchField v-model="search" placeholder="Filter by record, slug, format" label="Filter shares" />
+          <PcCount
+            :value="summary.total ? `${summary.live} of ${summary.total} live` : 'none'"
+            :label="summary.dead ? `${summary.dead} disabled or expired and returning nothing.` : 'Every share here is live.'"
+          />
+        </div>
 
-      <PcEmptyState v-if="!allLines.length" title="Nothing is shared">
-        <p>
-          Publish a share for a record in the console under Networking, then Subscription Shares,
-          and it appears here with its link.
-        </p>
-      </PcEmptyState>
+        <PcEmptyState v-if="!lines.length" kind="no-match" title="No share matches that search">
+          <p>No record, slug or format here matches <span class="pc-mono">{{ search.trim() }}</span>.</p>
+          <template #actions>
+            <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
+          </template>
+        </PcEmptyState>
 
-      <PcEmptyState v-else-if="!lines.length" kind="no-match" title="No share matches that search">
-        <p>No record, slug or format here matches <span class="pc-mono">{{ search.trim() }}</span>.</p>
-        <template #actions>
-          <PcButton :disabled="!filtersActive" @click="search = ''">Clear the search</PcButton>
-        </template>
-      </PcEmptyState>
-
-      <!-- A real table: the columns are values on every row. -->
-      <PcTable v-else :min-width="900" label="Shares">
-        <template #head>
-          <PcTh name>Record</PcTh>
-          <PcTh>Share</PcTh>
-          <PcTh>Format</PcTh>
-          <PcTh>Expires</PcTh>
-          <PcTh>State</PcTh>
-          <PcTh actions>Actions</PcTh>
-        </template>
-        <tbody>
-          <PcRow
+        <template v-else>
+        <div class="rec-list-head">
+          <div class="rec-head-main">
+            <span>Record</span>
+            <span class="rec-col-nodes">Format</span>
+            <span class="rec-col-status">State</span>
+            <span class="rec-col-when">Expires</span>
+          </div>
+          <span class="rec-head-actions" aria-hidden="true" />
+        </div>
+        <ul class="rec-rows">
+          <li
             v-for="line in lines"
+            :id="`rec-${line.share.share_id}`"
             :key="line.share.share_id"
-            :selected="manualCopyId === line.share.share_id"
+            class="rec-row"
+            :data-selected="manualCopyId === line.share.share_id ? 'true' : undefined"
           >
-            <PcNameCell :name="recordName(line)" :id="line.share.subscription_id" :title="line.share.subscription_id">
-              <template #after>
-                <PcKindChip v-if="line.record" :label="kindOf(line)" />
-                <PcKindChip v-else label="not in this store" title="The record behind this share is not in this store any more." />
-              </template>
-              <template #status>
-                <PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" />
-              </template>
-            </PcNameCell>
-            <PcTd label="Share" mono :title="`Slug ${line.share.slug}. The token is not shown; Copy link copies the whole link.`">{{ maskedPath(line.share) }}</PcTd>
-            <PcTd label="Format" mono>{{ line.share.default_format || "as the client asks" }}</PcTd>
-            <PcTd label="Expires" mono :title="expiryOf(line.share).title">{{ expiryOf(line.share).label }}</PcTd>
-            <PcTd label="State" stack="state">
-              <PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" />
-            </PcTd>
-            <PcActionsCell>
-              <PcButton
-                compact
-                :disabled="!line.share.url && !line.share.path"
-                :title="line.share.url ? 'Copy the link a client subscribes to' : 'The server did not report its public base; the path alone is copied'"
-                @click="copyLink(line)"
-              >
-                <template #icon><Copy :size="13" aria-hidden="true" /></template>
-                {{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}
-              </PcButton>
-              <PcIconButton
-                label="Open in Networking, where this share is changed"
-                bordered
-                :disabled="!origin"
-                @click="openInNetworking()"
-              >
-                <SquareArrowOutUpRight :size="15" aria-hidden="true" />
-              </PcIconButton>
-            </PcActionsCell>
-          </PcRow>
-        </tbody>
-      </PcTable>
+            <div class="rec-row-bar">
+              <div class="rec-ident" :title="line.share.subscription_id">
+                <span class="rec-col-name">
+                  <span class="rec-ident-name">{{ recordName(line) }}</span>
+                  <PcKindChip v-if="kindFilter === 'all' && line.record" :label="kindOf(line)" />
+                  <PcKindChip v-else-if="kindFilter === 'all' && !line.record" label="not in this store" title="The record behind this share is not in this store any more." />
+                  <span class="rec-ident-meta">
+                    <span class="rec-ident-id" :title="`Slug ${line.share.slug}. The token is not shown; Copy link copies the whole link.`">{{ maskedPath(line.share) }}</span>
+                  </span>
+                </span>
+                <span class="rec-col-nodes mono">{{ line.share.default_format || "as the client asks" }}</span>
+                <span class="rec-col-status">
+                  <PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" />
+                </span>
+                <span class="rec-col-when" :title="expiryOf(line.share).title">{{ expiryOf(line.share).label }}</span>
+              </div>
+              <div class="rec-row-actions">
+                <PcButton
+                  compact
+                  :disabled="!line.share.url && !line.share.path"
+                  :title="line.share.url ? 'Copy the link a client subscribes to' : 'The server did not report its public base; the path alone is copied'"
+                  @click="copyLink(line)"
+                >
+                  <template #icon><Copy :size="13" aria-hidden="true" /></template>
+                  {{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}
+                </PcButton>
+              </div>
+            </div>
+          </li>
+        </ul>
+        </template>
+      </div>
     </PcPanel>
   </section>
 </template>

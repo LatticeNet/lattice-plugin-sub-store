@@ -1,23 +1,32 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { Download, Upload } from "@lucide/vue";
-import { PcButton, PcNotice, PcPanel, PcPanelBody, PcPanelHeader, PcSkeleton } from "@latticenet/plugin-bridge/chassis";
+import { PcButton, PcNotice, PcPanel, PcSkeleton } from "@latticenet/plugin-bridge/chassis";
 
 import { CONVERT_TARGETS } from "../client";
 import { useHost } from "../host";
 import { copyText } from "../hostClipboard";
+import { useLensChrome } from "../lensChrome";
+import { describeSubStoreBase, resolveSubStoreBase } from "../migrateUrl";
 import { useSubscriptionOps } from "../useSubscriptionOps";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import MaskedUrlInput from "../components/MaskedUrlInput.vue";
 import { useOverlayEscape } from "../useOverlayEscape";
 
 const host = useHost();
 const ops = useSubscriptionOps(host);
+const chrome = useLensChrome();
 
 const defaultTarget = ref("");
 const defaultUa = ref("");
 /** Whether the stored settings have actually been read. */
 const settingsReady = computed(() => ops.state.value === "ready");
 const migrateUrl = ref("");
+const migrateConfirm = ref(false);
+const migrateParsed = computed(() => describeSubStoreBase(migrateUrl.value));
+const migrateConfirmNames = computed(() =>
+  migrateParsed.value.ok ? [`The Sub-Store at ${migrateParsed.value.origin}`] : [],
+);
 const backupText = ref("");
 const exported = ref("");
 
@@ -36,6 +45,24 @@ async function saveSettings(): Promise<void> {
     default_target: defaultTarget.value || undefined,
     default_ua: defaultUa.value || undefined,
   });
+}
+
+function requestMigrate(): void {
+  const parsed = migrateParsed.value;
+  if (!parsed.ok) {
+    ops.actionError.value = parsed.reason;
+    return;
+  }
+  migrateConfirm.value = true;
+}
+
+async function runMigrate(): Promise<void> {
+  migrateConfirm.value = false;
+  await ops.migrate(resolveSubStoreBase(migrateUrl.value));
+}
+
+function viewImported(): void {
+  chrome.openLens("subscriptions");
 }
 
 async function doExport(): Promise<void> {
@@ -87,7 +114,8 @@ async function copyExported(): Promise<void> {
  */
 const restoreConfirm = ref(false);
 
-// This screen has one overlay and no other use for Escape.
+// Escape closes the top overlay. This screen has two confirms (import and restore)
+// and no other use for the key.
 useOverlayEscape();
 
 interface BackupEnvelope {
@@ -164,174 +192,221 @@ watch(host.init, (value) => {
     <PcNotice v-if="ops.actionError.value" tone="danger">{{ ops.actionError.value }}</PcNotice>
     <PcNotice v-else-if="ops.notice.value" tone="success">{{ ops.notice.value }}</PcNotice>
 
-    <PcPanel label="Defaults">
-      <PcPanelHeader title="Defaults" description="Applied to subscriptions that do not set their own." />
-      <PcPanelBody>
-        <p v-if="!ops.canReadSettings.value" class="permission-note">
-          This session cannot read Sub-Store settings. Either the installed bundle does not declare
-          those methods, or your token lacks the scope.
-        </p>
+    <PcPanel label="Settings">
+      <div class="settings-card">
+        <section class="settings-section" aria-labelledby="settings-defaults-title">
+          <h3 id="settings-defaults-title" class="settings-h">Defaults</h3>
+          <p class="settings-lead">Applied to subscriptions that do not set their own.</p>
 
-        <PcNotice v-else-if="ops.loadError.value" tone="danger" title="The settings could not be read">
-          {{ ops.loadError.value }}
-          <template #actions><PcButton compact @click="ops.loadSettings()">Try again</PcButton></template>
-        </PcNotice>
+          <p v-if="!ops.canReadSettings.value" class="permission-note">
+            This session cannot read Sub-Store settings. Either the installed bundle does not declare
+            those methods, or your token lacks the scope.
+          </p>
 
-        <!-- The controls used to render immediately, empty, while the stored values
-             were still in flight, indistinguishable from "nothing is set". -->
-        <PcSkeleton v-else-if="!settingsReady" :count="2" label="Loading the defaults" />
+          <PcNotice v-else-if="ops.loadError.value" tone="danger" title="The settings could not be read">
+            {{ ops.loadError.value }}
+            <template #actions><PcButton compact @click="ops.loadSettings()">Try again</PcButton></template>
+          </PcNotice>
 
-        <template v-else>
-          <div class="form-grid">
-            <label class="field">
-              <span class="field-label">Default target</span>
-              <select v-model="defaultTarget" class="select">
-                <option value="">No conversion</option>
-                <option v-for="target in CONVERT_TARGETS" :key="target.id" :value="target.id">
-                  {{ target.label }}
-                </option>
-              </select>
-            </label>
+          <!-- The controls used to render immediately, empty, while the stored values
+               were still in flight, indistinguishable from "nothing is set". -->
+          <PcSkeleton v-else-if="!settingsReady" :count="2" label="Loading the defaults" />
 
-            <label class="field">
-              <span class="field-label">Default user agent</span>
-              <input v-model="defaultUa" type="text" autocomplete="off" placeholder="Optional" />
-            </label>
-          </div>
+          <template v-else>
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">Default target</span>
+                <select v-model="defaultTarget" class="select">
+                  <option value="">No conversion</option>
+                  <option v-for="target in CONVERT_TARGETS" :key="target.id" :value="target.id">
+                    {{ target.label }}
+                  </option>
+                </select>
+              </label>
 
+              <label class="field">
+                <span class="field-label">Default user agent</span>
+                <input v-model="defaultUa" type="text" autocomplete="off" placeholder="Optional" />
+              </label>
+            </div>
+          </template>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-import-title">
+          <h3 id="settings-import-title" class="settings-h">Import from a running Sub-Store</h3>
+          <p class="settings-lead">
+            Paste the official UI address, or the backend URL after ?api=. The control plane fetches
+            it. A Sub-Store that exists only on this laptop at 127.0.0.1 is not that URL unless the
+            server can open that origin too. The origin alone is refused: the path after the port is
+            the API secret, used for this import only.
+          </p>
+
+          <p v-if="!ops.canMigrate.value" class="permission-note">
+            This session cannot import from another Sub-Store. Either the installed bundle does not
+            declare that method, or your token lacks the scope.
+          </p>
+
+          <template v-else>
+            <div class="form-grid">
+              <label class="field field-wide">
+                <span class="field-label">Running Sub-Store</span>
+                <MaskedUrlInput
+                  v-model="migrateUrl"
+                  placeholder="http://127.0.0.1:19876/ followed by the API path, or the UI address with ?api="
+                  aria-label="Running Sub-Store backend URL"
+                />
+                <span class="field-optional">
+                  Importing writes subscriptions, combinations and files as imported-* records. It
+                  publishes nothing. Re-running replaces those ids rather than duplicating them.
+                </span>
+                <span v-if="migrateUrl.trim() && !migrateParsed.ok" class="field-error" role="status">
+                  {{ migrateParsed.reason }}
+                </span>
+                <span v-else-if="migrateParsed.ok" class="field-optional">
+                  Will import from <code>{{ migrateParsed.origin }}</code>. The API path stays masked.
+                </span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <PcButton :busy="ops.busy.value" :disabled="!migrateParsed.ok" @click="requestMigrate()">
+                Import from this Sub-Store
+              </PcButton>
+            </div>
+
+            <LtConfirmDialog
+              :open="migrateConfirm"
+              title="Import from this Sub-Store? The records it lists are written here as imported-* ids. Re-running replaces those ids. Nothing is published."
+              verb="Import"
+              :names="migrateConfirmNames"
+              :busy="ops.busy.value"
+              @cancel="migrateConfirm = false"
+              @confirm="runMigrate()"
+            />
+
+            <!-- The report used to render every imported id as its own bordered card,
+                 so a 40-record import produced 40 boxes. It is a list of ids. -->
+            <div v-if="ops.report.value" class="report">
+              <p class="report-line">
+                Imported <strong>{{ ops.report.value.imported?.length ?? 0 }}</strong> record(s)
+                <template v-if="ops.report.value.total"> of {{ ops.report.value.total }} listed</template>.
+                They land on Subscriptions and Files, tagged migrated. A share is a separate decision.
+              </p>
+              <div class="form-actions" v-if="ops.report.value.imported?.length">
+                <PcButton compact @click="viewImported()">View imported records</PcButton>
+              </div>
+              <ul v-if="ops.report.value.imported?.length" class="node-list">
+                <li v-for="id in ops.report.value.imported" :key="id" class="node-row">
+                  <span class="node-name mono" :title="id">{{ id }}</span>
+                  <span class="node-meta">imported</span>
+                </li>
+              </ul>
+              <template v-if="ops.report.value.skipped && Object.keys(ops.report.value.skipped).length">
+                <p class="report-line">
+                  Skipped <strong>{{ Object.keys(ops.report.value.skipped).length }}</strong>.
+                </p>
+                <ul class="node-list">
+                  <li v-for="(reason, id) in ops.report.value.skipped" :key="id" class="node-row">
+                    <span class="node-name mono" :title="String(id)">{{ id }}</span>
+                    <span class="node-meta" :title="String(reason)">{{ reason }}</span>
+                  </li>
+                </ul>
+              </template>
+              <template v-if="ops.report.value.unavailable && Object.keys(ops.report.value.unavailable).length">
+                <p class="report-line">
+                  The source did not answer
+                  <strong>{{ Object.keys(ops.report.value.unavailable).length }}</strong>
+                  endpoint(s). Combinations or files may be missing.
+                </p>
+                <ul class="node-list">
+                  <li v-for="(reason, id) in ops.report.value.unavailable" :key="id" class="node-row">
+                    <span class="node-name mono" :title="String(id)">{{ id }}</span>
+                    <span class="node-meta" :title="String(reason)">{{ reason }}</span>
+                  </li>
+                </ul>
+              </template>
+              <p v-if="ops.report.value.truncated" class="report-line" role="status">
+                The source listed more records than one import will take. What landed is above; the rest
+                was not written.
+              </p>
+            </div>
+          </template>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-backup-title">
+          <h3 id="settings-backup-title" class="settings-h">Backup envelope</h3>
+          <p class="settings-lead">
+            A versioned copy of this plugin's store, not the official Sub-Store gist backup. Restore
+            writes by id and leaves records the envelope does not mention.
+          </p>
           <div class="form-actions">
-            <PcButton variant="primary" :busy="ops.saving.value" :disabled="!ops.canWriteSettings.value" @click="saveSettings">
-              {{ ops.saving.value ? "Saving…" : "Save defaults" }}
+            <PcButton :disabled="!ops.canExport.value || ops.busy.value" @click="doExport">
+              <template #icon><Download :size="15" aria-hidden="true" /></template>
+              Export
             </PcButton>
+            <PcButton v-if="exported" compact @click="copyExported">Copy</PcButton>
           </div>
-        </template>
-      </PcPanelBody>
-    </PcPanel>
 
-    <PcPanel label="Migrate from a standalone Sub-Store">
-      <PcPanelHeader title="Migrate from a standalone Sub-Store" description="Reads an existing instance and copies its subscriptions in." />
-      <PcPanelBody>
-        <p v-if="!ops.canMigrate.value" class="permission-note">
-          This session cannot import from another Sub-Store. Either the installed bundle does not
-          declare that method, or your token lacks the scope.
-        </p>
-
-        <template v-else>
           <div class="form-grid">
+            <label v-if="exported" class="field field-wide">
+              <span class="field-label">Exported backup</span>
+              <textarea ref="exportField" class="code-area" rows="6" readonly :value="exported"></textarea>
+            </label>
+
             <label class="field field-wide">
-              <span class="field-label">Sub-Store base URL</span>
-              <input
-                v-model="migrateUrl"
-                type="text"
-                autocomplete="off"
+              <span class="field-label">Restore from a backup</span>
+              <textarea
+                v-model="backupText"
+                class="code-area"
+                rows="6"
                 spellcheck="false"
-                placeholder="Base URL of the running Sub-Store"
-              />
+                placeholder="Paste an exported envelope"
+              ></textarea>
               <span class="field-optional">
-                Importing publishes nothing. Each subscription stays unserved until you create a share
-                for it, so the cutover is a decision per subscription rather than a side effect.
+                Restoring adds and replaces subscriptions by id. A truncated or hand-edited envelope is
+                refused rather than partially applied.
+              </span>
+              <!-- Said before the click, not after: the button is otherwise live over
+                   text that cannot possibly restore. -->
+              <span v-if="backupText.trim() && !parsedBackup.ok" class="field-error" role="status">
+                {{ parsedBackup.reason }}
+              </span>
+              <span v-else-if="parsedBackup.ok" class="field-optional">
+                This envelope holds {{ parsedBackup.count }} record(s), version
+                <code>{{ parsedBackup.version }}</code>.
               </span>
             </label>
           </div>
 
           <div class="form-actions">
-            <PcButton :busy="ops.busy.value" :disabled="!migrateUrl.trim()" @click="ops.migrate(migrateUrl)">
-              Import subscriptions
+            <PcButton
+              destructive
+              :disabled="!canRestore"
+              :title="ops.canImport.value ? undefined : 'This session cannot restore a backup. Either the installed bundle does not declare that method, or your token lacks the scope.'"
+              @click="requestRestore()"
+            >
+              <template #icon><Upload :size="15" aria-hidden="true" /></template>
+              Restore
             </PcButton>
           </div>
 
-          <!-- The report used to render every imported id as its own bordered card,
-               so a 40-record import produced 40 boxes. It is a list of ids. -->
-          <div v-if="ops.report.value" class="report">
-            <p class="report-line">
-              Imported <strong>{{ ops.report.value.imported?.length ?? 0 }}</strong> record(s).
-            </p>
-            <ul v-if="ops.report.value.imported?.length" class="node-list">
-              <li v-for="id in ops.report.value.imported" :key="id" class="node-row">
-                <span class="node-name mono" :title="id">{{ id }}</span>
-                <span class="node-meta">imported</span>
-              </li>
-            </ul>
-            <template v-if="ops.report.value.skipped && Object.keys(ops.report.value.skipped).length">
-              <p class="report-line">
-                Skipped <strong>{{ Object.keys(ops.report.value.skipped).length }}</strong>.
-              </p>
-              <ul class="node-list">
-                <li v-for="(reason, id) in ops.report.value.skipped" :key="id" class="node-row">
-                  <span class="node-name mono" :title="String(id)">{{ id }}</span>
-                  <span class="node-meta" :title="String(reason)">{{ reason }}</span>
-                </li>
-              </ul>
-            </template>
-          </div>
-        </template>
-      </PcPanelBody>
-    </PcPanel>
+          <LtConfirmDialog
+            :open="restoreConfirm"
+            title="Restore this backup? Every record in the envelope overwrites the stored one with the same id, and that cannot be undone from here."
+            verb="Restore"
+            :names="restoreNames"
+            :busy="ops.busy.value"
+            @cancel="restoreConfirm = false"
+            @confirm="runRestore()"
+          />
+        </section>
 
-    <PcPanel label="Backup and restore">
-      <PcPanelHeader title="Backup and restore" description="A versioned envelope you can keep outside the server." />
-      <PcPanelBody>
-        <div class="form-actions">
-          <PcButton :disabled="!ops.canExport.value || ops.busy.value" @click="doExport">
-            <template #icon><Download :size="15" aria-hidden="true" /></template>
-            Export
-          </PcButton>
-          <PcButton v-if="exported" compact @click="copyExported">Copy</PcButton>
-        </div>
-
-        <div class="form-grid">
-          <label v-if="exported" class="field field-wide">
-            <span class="field-label">Exported backup</span>
-            <textarea ref="exportField" class="code-area" rows="6" readonly :value="exported"></textarea>
-          </label>
-
-          <label class="field field-wide">
-            <span class="field-label">Restore from a backup</span>
-            <textarea
-              v-model="backupText"
-              class="code-area"
-              rows="6"
-              spellcheck="false"
-              placeholder="Paste an exported envelope"
-            ></textarea>
-            <span class="field-optional">
-              Restoring adds and replaces subscriptions by id. A truncated or hand-edited envelope is
-              refused rather than partially applied.
-            </span>
-            <!-- Said before the click, not after: the button is otherwise live over
-                 text that cannot possibly restore. -->
-            <span v-if="backupText.trim() && !parsedBackup.ok" class="field-error" role="status">
-              {{ parsedBackup.reason }}
-            </span>
-            <span v-else-if="parsedBackup.ok" class="field-optional">
-              This envelope holds {{ parsedBackup.count }} record(s), version
-              <code>{{ parsedBackup.version }}</code>.
-            </span>
-          </label>
-        </div>
-
-        <div class="form-actions">
-          <PcButton
-            destructive
-            :disabled="!canRestore"
-            :title="ops.canImport.value ? undefined : 'This session cannot restore a backup. Either the installed bundle does not declare that method, or your token lacks the scope.'"
-            @click="requestRestore()"
-          >
-            <template #icon><Upload :size="15" aria-hidden="true" /></template>
-            Restore
+        <div class="settings-commit">
+          <PcButton variant="primary" :busy="ops.saving.value" :disabled="!ops.canWriteSettings.value || !settingsReady" @click="saveSettings">
+            {{ ops.saving.value ? "Saving…" : "Save defaults" }}
           </PcButton>
         </div>
-
-        <LtConfirmDialog
-          :open="restoreConfirm"
-          title="Restore this backup? Every record in the envelope overwrites the stored one with the same id, and that cannot be undone from here."
-          verb="Restore"
-          :names="restoreNames"
-          :busy="ops.busy.value"
-          @cancel="restoreConfirm = false"
-          @confirm="runRestore()"
-        />
-      </PcPanelBody>
+      </div>
     </PcPanel>
   </div>
 </template>

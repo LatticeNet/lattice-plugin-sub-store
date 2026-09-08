@@ -1,32 +1,24 @@
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from "vue";
-import { Library, LoaderCircle, Server, Trash2 } from "@lucide/vue";
+import { ChevronRight, Library, Server, Trash2 } from "@lucide/vue";
 import {
-  PcActionsCell,
   PcBatchBar,
   PcButton,
   PcCount,
-  PcDetailRow,
   PcEmptyState,
-  PcGroupRow,
   PcKindChip,
-  PcNameCell,
   PcNotice,
   PcPanel,
-  PcPanelHeader,
-  PcRow,
-  PcSelectCell,
+  PcSearchField,
   PcSkeleton,
   PcStateDot,
   PcStatePill,
-  PcTable,
   PcTagList,
-  PcTd,
-  PcTh,
-  useExpandSet,
 } from "@latticenet/plugin-bridge/chassis";
 
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
+import RecordChainDetail from "../components/RecordChainDetail.vue";
+import RecKindTabs from "../components/RecKindTabs.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
@@ -63,18 +55,17 @@ import {
   cutChain,
   enabledStepIndexes,
   explainChain,
-  nodeKey,
-  stepLabelOf,
   type ChainExplanation,
 } from "../chainExplain";
 import { createNodeCountQueue, nodeCountLabel, nodeCountTitle } from "../nodeCounts";
 import { maskUrl } from "../urlMask";
+import MaskedUrlInput from "../components/MaskedUrlInput.vue";
+import { describeSubStoreBase, resolveSubStoreBase } from "../migrateUrl";
 import { useReveal } from "../reveal";
 import { safeErrorMessage } from "../subStoreModel";
 import {
   BINDINGS,
   callMethod,
-  type SubscriptionPreviewNode,
   type SubscriptionPreviewResponse,
   type SubscriptionRecord,
 } from "../client";
@@ -94,7 +85,7 @@ import {
   type CommonSettings as CommonSettingsShape,
 } from "../commonSettings";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
-import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
+import { type ChainStep } from "../components/ProcessChain.vue";
 import CodeEditor from "../components/CodeEditor.vue";
 import CommonSettingsBlock from "../components/CommonSettings.vue";
 import MemberPicker from "../components/MemberPicker.vue";
@@ -138,7 +129,7 @@ function publishedOf(item: SubscriptionListItem) {
   return publishStateFor(shares.value, item.id);
 }
 
-/** The toolbar's search and sort live in the shell; this lens filters on them. */
+/** The list's search and sort live in this card; the shell only keeps Add. */
 const chrome = useLensChrome();
 const searchText = chrome.search;
 const sortKey = chrome.sort;
@@ -147,6 +138,11 @@ const publishMethod = ref("PUT");
 const publishFormat = ref("plain");
 const migrateUrl = ref("");
 const migrateSummary = ref("");
+const migrateConfirm = ref(false);
+const migrateParsed = computed(() => describeSubStoreBase(migrateUrl.value));
+const migrateConfirmNames = computed(() =>
+  migrateParsed.value.ok ? [`The Sub-Store at ${migrateParsed.value.origin}`] : [],
+);
 
 // One drawer at a time carries all row-scoped work; one dialog carries every
 // destructive confirmation, single or batch.
@@ -163,11 +159,21 @@ const onThisTab = computed(() =>
   subs.items.value.filter((i) => (i.kind || KIND_SUB) !== KIND_FILE),
 );
 
-/** The search is the one filter left: it matches names, ids, remarks and tags. */
-const filtersActive = computed(() => !!searchText.value.trim());
+/** Kind is a tab, not a nested shelf. Search still matches names, ids, remarks and tags. */
+const kindFilter = ref<"all" | "single" | "combo">("all");
+const filtersActive = computed(() => !!searchText.value.trim() || kindFilter.value !== "all");
+
+function setKindFilter(id: string): void {
+  if (id === "all" || id === "single" || id === "combo") kindFilter.value = id;
+}
 
 function clearFilters(): void {
   searchText.value = "";
+  kindFilter.value = "all";
+}
+
+function isCombo(item: SubscriptionListItem): boolean {
+  return (item.kind || KIND_SUB) === KIND_COLLECTION;
 }
 
 function clearTransientListState(): void {
@@ -207,7 +213,17 @@ const storeEmpty = computed(() => onThisTab.value.length === 0);
 
 async function runMigrate(): Promise<void> {
   migrateSummary.value = "";
-  const ok = await ops.migrate(migrateUrl.value);
+  const parsed = migrateParsed.value;
+  if (!parsed.ok) {
+    ops.actionError.value = parsed.reason;
+    return;
+  }
+  migrateConfirm.value = true;
+}
+
+async function confirmMigrate(): Promise<void> {
+  migrateConfirm.value = false;
+  const ok = await ops.migrate(resolveSubStoreBase(migrateUrl.value));
   if (!ok) return;
   await subs.load();
   // The report names what was imported by id; counting those ids by kind is
@@ -256,6 +272,17 @@ const unsortedRows = computed(() => {
   return onThisTab.value.filter((item) => matchesQuery(item, query));
 });
 
+const kindCounts = computed(() => {
+  const rows = unsortedRows.value;
+  const combo = rows.filter(isCombo).length;
+  return { all: rows.length, single: rows.length - combo, combo };
+});
+const kindTabs = computed(() => [
+  { id: "all", label: "All", count: kindCounts.value.all },
+  { id: "single", label: "Single", count: kindCounts.value.single },
+  { id: "combo", label: "Combinations", count: kindCounts.value.combo },
+]);
+
 /** Rank for the status sort: what needs attention first. */
 function statusWeight(item: SubscriptionListItem): number {
   const tone = statusOf(item).tone;
@@ -266,7 +293,10 @@ function statusWeight(item: SubscriptionListItem): number {
 }
 
 const filteredRows = computed(() => {
-  const rows = [...unsortedRows.value];
+  let rows = unsortedRows.value;
+  if (kindFilter.value === "single") rows = rows.filter((row) => !isCombo(row));
+  if (kindFilter.value === "combo") rows = rows.filter(isCombo);
+  rows = [...rows];
   if (sortKey.value === "name") {
     rows.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
   } else if (sortKey.value === "status") {
@@ -301,51 +331,14 @@ function toggleSelectAll(): void {
     : new Set(filteredRows.value.map((row) => row.id));
 }
 
-/**
- * Records fold under their kind, the way lines fold under nodes on the Lines
- * page: one group row for single subscriptions and one for combinations, each
- * with its count and a summary sentence, each collapsible on its own.
- *
- * The lens tab above reads "Subscriptions 7" and means every record on this
- * lens; the group of records that are not combinations is named for what
- * distinguishes it, so the same word does not count two sets on one screen.
- */
-const groups = computed(() => {
-  const singleRows = filteredRows.value.filter((row) => (row.kind || KIND_SUB) !== KIND_COLLECTION);
-  const collectionRows = filteredRows.value.filter((row) => (row.kind || KIND_SUB) === KIND_COLLECTION);
-  return [
-    { id: "subs", label: "Single subscriptions", rows: singleRows },
-    { id: "collections", label: "Combinations", rows: collectionRows },
-  ]
-    .filter((group) => group.rows.length > 0)
-    .map((group) => ({ ...group, summary: groupSummary(group.rows) }));
-});
-
-/** "5 records · 2 published", or only the count while the share list is unread. */
-function groupSummary(rows: SubscriptionListItem[]): string {
-  const count = `${rows.length} record${rows.length === 1 ? "" : "s"}`;
-  if (shares.value === undefined) return count;
-  const published = rows.filter((row) => publishStateFor(shares.value, row.id).tone === "ok").length;
-  return `${count} · ${published} published`;
+function opsOf(row: SubscriptionListItem): string {
+  const n = row.step_count;
+  const label = `${n} op${n === 1 ? "" : "s"}`;
+  return row.disabled_step_count ? `${label} (${row.disabled_step_count} off)` : label;
 }
 
-/**
- * Which groups are open. Both by default: a store of a handful of records is
- * a page, not a scroll, and two closed shelves would hide everything the
- * operator came for. A search opens every group that still has rows, and
- * clearing it restores the operator's own set.
- */
-const openGroups = useExpandSet(["subs", "collections"]);
-watch(
-  () => (filtersActive.value ? groups.value.map((group) => group.id) : null),
-  (forced) => openGroups.override(forced),
-  { immediate: true },
-);
-function groupOpen(id: string): boolean {
-  return openGroups.isOpen(id);
-}
-function toggleGroup(id: string): void {
-  openGroups.toggle(id);
+function updatedOf(row: SubscriptionListItem): string {
+  return row.last_fetch_at ? formatRelativeTime(row.last_fetch_at) || "n/a" : "n/a";
 }
 
 /** What the record card's count badge says and what its title explains. */
@@ -500,9 +493,8 @@ const actionCaps = computed<ActionCapabilities>(() => ({
 }));
 
 /**
- * The row keeps one text button, Open, and folds every other verb into its
- * menu, the way a Lines row keeps Evidence and a menu. Client output and
- * Refresh were icon buttons on the row; they are the first two items now.
+ * The row keeps Open on its trailing edge, the way official Sub-Store keeps a
+ * pen on the card, and folds every other verb into its menu.
  */
 const MENU_ACTIONS = ["output", "refresh", "preview", "share", "publish", "duplicate", "delete"] as const;
 
@@ -535,12 +527,11 @@ function tagChips(row: SubscriptionListItem) {
 }
 
 /**
- * The title on the name: the id that ties a row to a share, and what Open
- * does or why it cannot.
+ * The title on the name: the id that ties a row to a share. Open is its own
+ * control; this button discloses the chain.
  */
 function nameTitle(row: SubscriptionListItem): string {
-  const edit = rowAction(row, "edit");
-  return edit.disabled ? `${row.id}. ${edit.reason}` : `${row.id}. Open ${row.display_name || row.name}`;
+  return `${row.id}. ${row.display_name || row.name}. Show the chain.`;
 }
 
 /** The chassis's tone for a row verdict. */
@@ -680,6 +671,7 @@ interface RowChain {
 const expandedId = ref("");
 const rowChain = ref<RowChain | null>(null);
 const revealSource = useReveal();
+const emptyDroppedBy = new Map<string, string>();
 
 const chainSteps = computed<ChainStep[]>(() => {
   const record = rowChain.value?.record;
@@ -688,30 +680,6 @@ const chainSteps = computed<ChainStep[]>(() => {
   return (Array.isArray(process) ? process : []) as ChainStep[];
 });
 const chainIsCombination = computed(() => (rowChain.value?.record?.kind || KIND_SUB) === KIND_COLLECTION);
-const chainDropped = computed(() => rowChain.value?.explanation?.final?.dropped ?? []);
-
-function chainDeltaText(index: number): string {
-  const chain = rowChain.value;
-  const step = chainSteps.value[index];
-  if (!step || !chain) return "";
-  if (step.disabled) return "off";
-  if (chainIsCombination.value) return "";
-  const delta = chain.explanation?.deltas.find((entry) => entry.index === index);
-  if (delta) {
-    if (delta.after === delta.before) return `${delta.after}, none removed`;
-    if (delta.after < delta.before) return `kept ${delta.after} of ${delta.before}`;
-    return `${delta.before} became ${delta.after}`;
-  }
-  if (chain.running === index) return "running…";
-  if (!subs.canPreview.value) return "";
-  if (chain.explanation) return chain.explanation.complete ? "" : "not run";
-  return "…";
-}
-
-/** Which operation removed a node, by the key the runs are folded on. */
-function droppedBy(node: SubscriptionPreviewNode): string {
-  return rowChain.value?.explanation?.droppedBy.get(nodeKey(node)) ?? "the chain";
-}
 
 function collapseRow(): void {
   const id = expandedId.value;
@@ -720,7 +688,7 @@ function collapseRow(): void {
   revealSource.hide();
   if (id) {
     void nextTick(() => {
-      document.querySelector<HTMLElement>(`#rec-${cssEscape(id)} .pc-toggle`)?.focus();
+      document.querySelector<HTMLElement>(`#rec-${cssEscape(id)} .rec-ident`)?.focus();
     });
   }
   void host.resize();
@@ -784,6 +752,24 @@ async function toggleRow(id: string): Promise<void> {
     await host.resize();
   }
 }
+
+function onIdentKeydown(event: KeyboardEvent, id: string): void {
+  if (event.key === "ArrowRight" && expandedId.value !== id) {
+    event.preventDefault();
+    void toggleRow(id);
+  } else if (event.key === "ArrowLeft" && expandedId.value === id) {
+    event.preventDefault();
+    collapseRow();
+  }
+}
+
+watch(filteredRows, (rows) => {
+  if (expandedId.value && !rows.some((row) => row.id === expandedId.value)) {
+    expandedId.value = "";
+    rowChain.value = null;
+    revealSource.hide();
+  }
+});
 
 // ── row + batch operations ──────────────────────────────────────────────────
 
@@ -1115,20 +1101,30 @@ watch(host.init, (value) => {
             <div v-if="ops.canMigrate.value" class="empty-secondary">
               <span class="field-label">Already running a standalone Sub-Store?</span>
               <form class="empty-inline-form" @submit.prevent="runMigrate">
-                <input
+                <MaskedUrlInput
                   v-model="migrateUrl"
-                  type="text"
-                  autocomplete="off"
-                  spellcheck="false"
-                  placeholder="Its base URL"
-                  aria-label="Standalone Sub-Store base URL"
+                  placeholder="Backend URL, or the official UI address with ?api="
+                  aria-label="Running Sub-Store backend URL"
                 />
-                <PcButton type="submit" :busy="ops.busy.value" :disabled="!migrateUrl.trim()">Import from it</PcButton>
+                <PcButton type="submit" :busy="ops.busy.value" :disabled="!migrateParsed.ok">Import from it</PcButton>
               </form>
               <p class="row-popover-note">
-                Importing publishes nothing. Each subscription stays unserved until you share it.
+                Paste the official UI address or the backend URL after ?api=. The control plane fetches
+                it, so a Sub-Store that exists only on this laptop at 127.0.0.1 is unreachable unless
+                the server can open that origin. The path is the API secret, used for this import only.
+                Importing publishes nothing.
               </p>
+              <p v-if="migrateUrl.trim() && !migrateParsed.ok" class="row-popover-error" role="status">{{ migrateParsed.reason }}</p>
               <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
+              <LtConfirmDialog
+                :open="migrateConfirm"
+                title="Import from this Sub-Store? The records it lists are written here as imported-* ids. Re-running replaces those ids. Nothing is published."
+                verb="Import"
+                :names="migrateConfirmNames"
+                :busy="ops.busy.value"
+                @cancel="migrateConfirm = false"
+                @confirm="confirmMigrate()"
+              />
             </div>
           </template>
         </PcEmptyState>
@@ -1142,122 +1138,122 @@ watch(host.init, (value) => {
           The newest reload failed ({{ subs.staleError.value }}).
         </PcNotice>
 
-        <PcPanel label="Records">
-          <PcPanelHeader
-            title="Records"
-            description="One row per record, folded under its kind. A combination is a set of subscriptions merged into one output."
-          >
-            <PcCount :value="countLabel" :label="countTitle" />
-          </PcPanelHeader>
+        <PcPanel label="Subscriptions">
+          <div class="rec-list" aria-label="Subscriptions and combinations">
+            <RecKindTabs :model-value="kindFilter" label="Record kind" :tabs="kindTabs" @update:model-value="setKindFilter" />
 
-          <PcEmptyState v-if="!filteredRows.length" kind="no-match" title="No record matches that search">
-            <p>Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.</p>
-            <template #actions>
-              <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear the search</PcButton>
-            </template>
-          </PcEmptyState>
+            <div class="rec-tools">
+              <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter subscriptions" />
+              <label class="toolbar-sort">
+                <span>Sort</span>
+                <select v-model="sortKey" class="pc-select" aria-label="Sort records">
+                  <option value="recent">Recently refreshed</option>
+                  <option value="name">Name</option>
+                  <option value="status">Needs attention</option>
+                </select>
+              </label>
+              <PcCount :value="countLabel" :label="countTitle" />
+              <p v-if="!subs.canMutate.value" class="rec-list-note">This session cannot create records here.</p>
+            </div>
 
-          <!-- One table, one row per record under its kind, columns the operator
-               scans for: what feeds it, how many nodes go in and come out, how
-               many operations, whether anyone can fetch it, when it was last
-               fetched. A row's chevron opens its operations as rows beneath it. -->
-          <PcTable v-else :min-width="1040" label="Subscriptions and combinations">
-            <template #head>
-              <PcSelectCell
-                header
-                :checked="allVisibleSelected"
-                :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                :label="`Select all ${filteredRows.length} shown records`"
-                @change="toggleSelectAll()"
-              />
-              <PcTh name>Record</PcTh>
-              <PcTh>Source</PcTh>
-              <PcTh numeric>Nodes</PcTh>
-              <PcTh numeric>Operations</PcTh>
-              <PcTh>Published</PcTh>
-              <PcTh>Last fetch</PcTh>
-              <PcTh actions>Actions</PcTh>
-            </template>
+            <PcEmptyState
+              v-if="!filteredRows.length"
+              kind="no-match"
+              :title="searchText.trim() ? 'No record matches that search' : kindFilter === 'combo' ? 'No combinations here' : 'No single subscriptions here'"
+            >
+              <p v-if="searchText.trim()">
+                Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.
+              </p>
+              <p v-else-if="kindFilter === 'combo'">This store has no combinations yet.</p>
+              <p v-else>This store has no single subscriptions yet.</p>
+              <template #actions>
+                <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
+              </template>
+            </PcEmptyState>
 
-            <tbody v-for="group in groups" :key="group.id">
-              <PcGroupRow :expanded="groupOpen(group.id)">
-                <td class="pc-select" data-stack="actions" />
-                <PcNameCell
-                  :name="group.label"
-                  :expanded="groupOpen(group.id)"
-                  :controls="`rec-${group.rows[0]!.id}`"
-                  @toggle="toggleGroup(group.id)"
-                >
-                  <template #after><PcCount :value="group.rows.length" /></template>
-                </PcNameCell>
-                <PcTd :colspan="5" stack="summary"><span class="pc-group-summary">{{ group.summary }}</span></PcTd>
-                <PcActionsCell />
-              </PcGroupRow>
+            <template v-else>
+            <div class="rec-list-head">
+              <label class="rec-check">
+                <input
+                  type="checkbox"
+                  :checked="allVisibleSelected"
+                  :indeterminate="selectedCount > 0 && !allVisibleSelected"
+                  :aria-label="`Select all ${filteredRows.length} shown records`"
+                  @change="toggleSelectAll()"
+                />
+              </label>
+              <div class="rec-head-main">
+                <span>Record</span>
+                <span class="rec-col-nodes">Nodes</span>
+                <span class="rec-col-status">Status</span>
+                <span class="rec-col-when">Updated</span>
+              </div>
+              <span class="rec-head-actions" aria-hidden="true" />
+              <span class="rec-col-chevron" aria-hidden="true" />
+            </div>
 
-              <template v-if="groupOpen(group.id)">
-                <template v-for="row in group.rows" :key="row.id">
-                  <PcRow
-                    :id="`rec-${row.id}`"
-                    :selected="selectedIds.has(row.id)"
-                    :open="expandedId === row.id"
-                    :class="{ 'is-pending': pendingIds.has(row.id) }"
-                  >
-                    <PcSelectCell
+            <ul class="rec-rows">
+              <li
+                v-for="row in filteredRows"
+                :id="`rec-${row.id}`"
+                :key="row.id"
+                class="rec-row"
+                :class="{ 'is-pending': pendingIds.has(row.id) }"
+                :data-open="expandedId === row.id ? 'true' : undefined"
+                :data-menu="openMenuId === row.id ? 'true' : undefined"
+                :data-selected="selectedIds.has(row.id) ? 'true' : undefined"
+              >
+                <div class="rec-row-bar">
+                  <label class="rec-check">
+                    <input
+                      type="checkbox"
                       :checked="selectedIds.has(row.id)"
-                      :label="`Select ${row.name}`"
+                      :aria-label="`Select ${row.name}`"
                       @change="toggleSelected(row.id)"
                     />
-
-                    <!-- The chevron opens the chain under the row: a real
-                         button, so Enter and Space toggle it; Escape is handled
-                         at the document. The id rides in the title, because it
-                         is what ties a row to a share and the first thing
-                         truncated. -->
-                    <PcNameCell
-                      :name="row.display_name || row.name"
-                      :id="row.id"
-                      :level="1"
-                      :title="nameTitle(row)"
-                      :expanded="expandedId === row.id"
-                      :controls="`rec-chain-${row.id}`"
-                      @toggle="toggleRow(row.id)"
-                    >
-                      <template v-if="tagChips(row).all.length" #after>
-                        <PcTagList :tags="tagChips(row).all" :max="2" />
-                      </template>
-                      <template #status>
-                        <PcStatePill :tone="tone(publishedOf(row).tone)" :label="publishedOf(row).label" :title="publishedOf(row).title" />
-                        <PcStateDot :tone="tone(statusOf(row).tone)" :label="statusOf(row).label" :title="statusOf(row).title" />
-                      </template>
-                    </PcNameCell>
-
-                    <PcTd label="Source" :title="row.remark || describe(row)"><span class="cell-muted">{{ describe(row) }}</span></PcTd>
-
-                    <!-- "in → out" from the last preview run this session made
-                         for the row, "?" until one has. The title says which
-                         run and when. -->
-                    <PcTd label="Nodes" numeric mono :title="nodesTitle(row)">{{ nodesOf(row) }}</PcTd>
-
-                    <PcTd label="Operations" numeric mono :title="row.target ? `Always rendered for ${row.target}` : undefined">
-                      {{ row.step_count }}<span v-if="row.disabled_step_count" class="cell-muted"> ({{ row.disabled_step_count }} off)</span>
-                    </PcTd>
-
-                    <!-- Whether anyone can fetch this record: the host's share
-                         list, folded onto the row. -->
-                    <PcTd label="Published" stack="state">
+                  </label>
+                  <button
+                    class="rec-ident"
+                    type="button"
+                    :title="nameTitle(row)"
+                    :aria-expanded="expandedId === row.id ? 'true' : 'false'"
+                    :aria-controls="`rec-chain-${row.id}`"
+                    @click="toggleRow(row.id)"
+                    @keydown="onIdentKeydown($event, row.id)"
+                  >
+                    <span class="rec-col-name">
+                      <span class="rec-ident-name">{{ row.display_name || row.name }}</span>
+                      <PcKindChip
+                        v-if="kindFilter === 'all' && isCombo(row)"
+                        label="Combination"
+                        tone="info"
+                      />
+                      <PcTagList v-if="tagChips(row).all.length" :tags="tagChips(row).all" :max="2" />
+                      <span class="rec-ident-meta">
+                        <span :title="row.remark || describe(row)">{{ describe(row) }}</span>
+                        <span v-if="row.id !== (row.display_name || row.name)" class="rec-ident-id">{{ row.id }}</span>
+                        <span v-if="trafficOf(row)" :title="trafficOf(row)">{{ trafficOf(row) }}</span>
+                        <span class="rec-ident-ops" :title="row.target ? `Always rendered for ${row.target}` : undefined">{{ opsOf(row) }}</span>
+                      </span>
+                    </span>
+                    <span class="rec-col-nodes mono" :title="nodesTitle(row)">{{ nodesOf(row) }}</span>
+                    <span class="rec-col-status">
                       <PcStatePill
                         :tone="tone(publishedOf(row).tone)"
                         :label="publishedOf(row).label"
                         :title="shares === undefined ? sharesError || publishedOf(row).title : publishedOf(row).title"
                       />
-                    </PcTd>
-
-                    <PcTd label="Last fetch" stack="state">
-                      <PcStateDot :tone="tone(statusOf(row).tone)" :label="statusOf(row).label" :title="statusOf(row).title" />
-                      <small v-if="trafficOf(row)" :title="trafficOf(row)">{{ trafficOf(row) }}</small>
-                    </PcTd>
-
-                    <PcActionsCell>
+                    </span>
+                    <span class="rec-col-when">
+                      <PcStateDot
+                        :tone="tone(statusOf(row).tone)"
+                        :label="updatedOf(row)"
+                        :title="statusOf(row).title || statusOf(row).label"
+                      />
+                    </span>
+                  </button>
+                  <div class="rec-row-actions">
+                    <span class="rec-open">
                       <PcButton
                         compact
                         :disabled="rowAction(row, 'edit').disabled"
@@ -1266,85 +1262,57 @@ watch(host.init, (value) => {
                       >
                         Open
                       </PcButton>
-                      <RecordMenu
-                        :data-row-menu="row.id"
-                        :name="row.name"
-                        :actions="menuActionsFor(row)"
-                        :open="openMenuId === row.id"
-                        @toggle="toggleRowMenu(row.id)"
-                        @run="(id, event) => runRowAction(id, row, event)"
-                        @keydown="onRowMenuKeydown"
+                    </span>
+                    <RecordMenu
+                      :data-row-menu="row.id"
+                      :name="row.name"
+                      :actions="menuActionsFor(row)"
+                      :open="openMenuId === row.id"
+                      @toggle="toggleRowMenu(row.id)"
+                      @run="(id, event) => runRowAction(id, row, event)"
+                      @keydown="onRowMenuKeydown"
+                    />
+                  </div>
+                  <button
+                    class="rec-expand"
+                    type="button"
+                    :aria-expanded="expandedId === row.id ? 'true' : 'false'"
+                    :aria-controls="`rec-chain-${row.id}`"
+                    :aria-label="expandedId === row.id ? `Hide the chain for ${row.display_name || row.name}` : `Show the chain for ${row.display_name || row.name}`"
+                    @click="toggleRow(row.id)"
+                  >
+                    <ChevronRight class="rec-chevron" :size="16" aria-hidden="true" />
+                  </button>
+                </div>
+                <div class="rec-well" :data-open="expandedId === row.id ? 'true' : undefined">
+                  <div class="rec-well-inner">
+                    <div v-if="expandedId === row.id" :id="`rec-chain-${row.id}`" class="rec-detail">
+                      <RecordChainDetail
+                        :loading="!!rowChain?.loading"
+                        :error="rowChain?.error || ''"
+                        :source-kind="describe(row)"
+                        :url="rowChain?.record?.url || ''"
+                        :url-revealed="revealSource.on.value"
+                        :url-masked="rowChain?.record?.url ? maskUrl(rowChain.record.url) : ''"
+                        :steps="chainSteps"
+                        :deltas="rowChain?.explanation?.deltas || []"
+                        :dropped="rowChain?.explanation?.final?.dropped || []"
+                        :dropped-by="rowChain?.explanation?.droppedBy ?? emptyDroppedBy"
+                        :dropped-count="rowChain?.explanation?.final?.dropped_count || 0"
+                        :dropped-truncated="!!rowChain?.explanation?.final?.dropped_truncated"
+                        :is-combination="chainIsCombination"
+                        :can-preview="subs.canPreview.value"
+                        :running="rowChain?.running ?? null"
+                        :final="rowChain?.explanation?.final || null"
+                        @reveal="revealSource.toggle()"
                       />
-                    </PcActionsCell>
-                  </PcRow>
-
-                  <!-- The chain, read in place: one row per operation with what
-                       it kept, then the source and the nodes the chain removed
-                       with the operation that removed each. -->
-                  <template v-if="expandedId === row.id">
-                    <PcRow
-                      v-for="(step, index) in chainSteps"
-                      :key="`${row.id}-${index}`"
-                      :id="index === 0 ? `rec-chain-${row.id}` : undefined"
-                      :class="{ 'is-off': step.disabled }"
-                    >
-                      <td class="pc-select" data-stack="actions" />
-                      <PcNameCell :name="stepLabelOf(step, index)" :level="2" :sub="`operation ${index + 1}`">
-                        <template v-if="step.disabled" #after><PcKindChip label="off" title="Switched off: the chain skips this operation" /></template>
-                      </PcNameCell>
-                      <PcTd label="Source" />
-                      <PcTd label="Nodes" numeric mono>{{ chainDeltaText(index) }}</PcTd>
-                      <PcTd label="Operations" numeric mono>{{ index + 1 }} of {{ chainSteps.length }}</PcTd>
-                      <PcTd label="Published" />
-                      <PcTd label="Last fetch" />
-                      <PcActionsCell />
-                    </PcRow>
-                    <PcDetailRow :colspan="8" :id="chainSteps.length ? undefined : `rec-chain-${row.id}`">
-                      <p v-if="rowChain?.loading" class="rec-chain-note" role="status">
-                        <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Reading the record…
-                      </p>
-                      <template v-else-if="rowChain?.record">
-                        <p class="rec-chain-source">
-                          <span class="rec-chain-eyebrow">Source</span>
-                          <span>{{ describe(row) }}</span>
-                          <!-- The provider link, masked after the host: the token
-                               rides in its query string. Reveal shows it for a
-                               minute. -->
-                          <template v-if="rowChain.record.url">
-                            <code class="rec-chain-url" :title="revealSource.on.value ? 'Masks itself again after a minute' : 'Masked: the query string carries the provider token'">{{ revealSource.on.value ? rowChain.record.url : maskUrl(rowChain.record.url) }}</code>
-                            <button type="button" class="rec-reveal" @click="revealSource.toggle()">
-                              {{ revealSource.on.value ? "Hide" : "Reveal" }}
-                            </button>
-                          </template>
-                        </p>
-                        <p v-if="rowChain.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
-                        <p v-if="!chainSteps.length" class="rec-chain-note">
-                          No operations. The nodes are served as the source provides them<template v-if="rowChain.explanation?.final">: {{ rowChain.explanation.final.node_count }} of them</template>.
-                        </p>
-                        <p v-if="chainIsCombination && chainSteps.length" class="rec-chain-note">
-                          The engine runs a combination's operations over its members' merged output and reports one result<template v-if="rowChain.explanation?.final">, {{ rowChain.explanation.final.node_count }} nodes</template>; per-operation counts exist for a subscription only.
-                        </p>
-                        <p v-else-if="!subs.canPreview.value && chainSteps.length" class="rec-chain-note">
-                          This session cannot run a preview, so what each operation kept is unknown.
-                        </p>
-                        <ul v-if="chainDropped.length" class="rec-chain-dropped" aria-label="Nodes the chain removed">
-                          <li v-for="(node, index) in chainDropped" :key="`${node.name}-${index}`">
-                            <span class="rec-chain-dropped-name" :title="node.name">{{ node.name }}</span>
-                            <span v-if="node.server" class="mono rec-chain-dropped-endpoint">{{ node.port ? `${node.server}:${node.port}` : node.server }}</span>
-                            <span class="rec-chain-dropped-by">removed by {{ droppedBy(node) }}</span>
-                          </li>
-                          <li v-if="rowChain.explanation?.final?.dropped_truncated" class="rec-chain-note">
-                            Naming the first {{ chainDropped.length }} of {{ rowChain.explanation.final.dropped_count }}.
-                          </li>
-                        </ul>
-                      </template>
-                      <p v-else-if="rowChain?.error" class="rec-chain-note is-error" role="alert">{{ rowChain.error }}</p>
-                    </PcDetailRow>
-                  </template>
-                </template>
-              </template>
-            </tbody>
-          </PcTable>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+            </template>
+          </div>
         </PcPanel>
       </template>
 

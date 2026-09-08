@@ -66,6 +66,37 @@ const OPERATORS = [
 
 const SCRIPTING = new Set(["Script Operator", "Script Filter"]);
 
+/**
+ * 建材市场 in production is 166 in, 25 out after Regex filter. The generic
+ * eight-node harness cannot exercise paging or the grouped drop list.
+ */
+function jiancaiPreview(operatorCount: number) {
+  const regions = ["亚洲", "欧洲", "美洲", "非洲", "澳洲", "香港", "日本", "新加坡"];
+  const all = Array.from({ length: 166 }, (_, i) => {
+    const region = regions[i % regions.length]!;
+    const n = String(i + 1).padStart(2, "0");
+    return {
+      name: `${region}${n}${i % 4 === 0 ? "(推荐)" : ""}`,
+      type: "ss",
+      server: `n${String(i).padStart(3, "0")}.edge.example`,
+      port: "443",
+    };
+  });
+  // Quick settings (cut 1) keeps everyone; Regex filter (cut 2+) keeps 25.
+  const keptCount = operatorCount <= 1 ? all.length : 25;
+  const kept = all.slice(0, keptCount);
+  const droppedAll = all.slice(keptCount);
+  const named = droppedAll.slice(0, 40);
+  return {
+    nodes: kept,
+    node_count: kept.length,
+    source_node_count: all.length,
+    dropped: named,
+    dropped_count: droppedAll.length,
+    dropped_truncated: named.length < droppedAll.length,
+  };
+}
+
 /** Shaped like the owner's actual deployment, names included.
  *  The names matter: real records carry CJK ("建材市场") and long hyphenated
  *  ids ("openjobs-host-trojan"), and a row tuned only against "Home nodes"
@@ -125,9 +156,15 @@ const records: StoredRecord[] = [
     display_name: "建材市场机场节点",
     remark: "备用线路，仅在主线路不可用时启用",
     tags: ["backup", "备用"],
-    source: "local",
-    content: "vless://11111111-1111-1111-1111-111111111111@a.example:443#node-a",
-    process: [],
+    source: "remote",
+    url: "https://vip.ding202507.xyz/api/v1/client/subscribe?token=jiancai-harness-token&flag=clash",
+    last_fetch_at: new Date(Date.now() - 4 * 86400 * 1000).toISOString(),
+    last_fetch_ok: true,
+    process: [
+      { type: "Quick Setting Operator", args: { udp: true } },
+      { type: "Regex Filter", args: { value: ["香港|HK"], keep: true } },
+      { type: "Regex Delete Operator", args: { value: ["过期|expire"] } },
+    ],
   },
   {
     id: "a-deliberately-long-record-id-that-has-to-truncate-somewhere",
@@ -441,6 +478,7 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     // it, so the list's own count reflects each record's chain too.
     const stored = ((found?.process ?? []) as { disabled?: boolean }[]).filter((step) => !step.disabled);
     const steps = Array.isArray(operators) ? operators.length : stored.length;
+    if (found?.id === "jiancai-shichang") return jiancaiPreview(steps);
     // Eight nodes in, and the chain takes some out. The harness used to list
     // six and claim a source of eight, so the two nodes the count said were
     // removed did not exist and the pane could not be checked against them.
