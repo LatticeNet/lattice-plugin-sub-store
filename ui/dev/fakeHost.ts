@@ -628,6 +628,16 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
         path: "/sub/phone/filetokenfiletokenfiletokenfiletok",
         url: "https://lattice.example/sub/phone/filetokenfiletokenfiletokenfiletok",
       },
+      {
+        // No pinned format: the list writes "as the client asks", which is
+        // longer than the Nodes column the shares row used to reuse.
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev-ask",
+        slug: "cd-ask",
+        enabled: true,
+        path: "/sub/cd-ask/asktokenasktokenasktokenasktokenas",
+        url: "https://lattice.example/sub/cd-ask/asktokenasktokenasktokenasktokenas",
+      },
     ],
   }),
   /**

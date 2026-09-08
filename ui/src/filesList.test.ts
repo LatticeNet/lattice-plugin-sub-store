@@ -65,3 +65,29 @@ describe("the files list is a resource list, not a table", () => {
     expect(screen).not.toMatch(/mode: "preview"/);
   });
 });
+
+describe("the shares list does not reuse the nodes column width", () => {
+  const styles = read("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  const shares = read("screens/SharesScreen.vue");
+
+  it("gives shares its own column template and clips format overflow", () => {
+    expect(shares).toContain('data-kind="shares"');
+    expect(shares).toContain("as the client asks");
+    expect(styles).toMatch(
+      /\.rec-list\[data-kind="shares"\] \.rec-head-main[\s\S]{0,80}\.rec-list\[data-kind="shares"\] \.rec-ident\s*\{[^}]*minmax\(10rem, 13rem\)/s,
+    );
+    expect(styles).toMatch(
+      /\.rec-list\[data-kind="shares"\] \.rec-col-nodes\s*\{[^}]*overflow:\s*hidden[^}]*text-overflow:\s*ellipsis/s,
+    );
+  });
+
+  it("keeps State as its own cell when Format and Expires drop at 640px", () => {
+    const narrow = styles.slice(styles.indexOf("@media (max-width: 640px)"));
+    expect(narrow).toMatch(
+      /\.rec-list\[data-kind="shares"\] \.rec-head-main[\s\S]{0,80}\.rec-list\[data-kind="shares"\] \.rec-ident\s*\{[^}]*minmax\(0, 1fr\) minmax\(5\.5rem, auto\)/s,
+    );
+    expect(narrow).toMatch(/\.rec-col-nodes[\s\S]{0,40}\.rec-col-when \{ display: none; \}/);
+    expect(shares).toContain('class="rec-col-status"');
+    expect(shares).toContain("<PcStatePill");
+  });
+});

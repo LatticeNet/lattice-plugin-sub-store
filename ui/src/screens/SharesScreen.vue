@@ -295,7 +295,7 @@ watch(host.init, (value) => {
           </p>
         </PcEmptyState>
       </div>
-      <div v-else class="rec-list" data-select="false" data-expand="false" aria-label="Shares">
+      <div v-else class="rec-list" data-kind="shares" data-select="false" data-expand="false" aria-label="Shares">
         <RecKindTabs :model-value="kindFilter" label="Share kind" :tabs="kindTabs" @update:model-value="setKindFilter" />
         <div class="rec-tools">
           <PcSearchField v-model="search" placeholder="Filter by record, slug, format" label="Filter shares" />
@@ -340,7 +340,7 @@ watch(host.init, (value) => {
                     <span class="rec-ident-id" :title="`Slug ${line.share.slug}. The token is not shown; Copy link copies the whole link.`">{{ maskedPath(line.share) }}</span>
                   </span>
                 </span>
-                <span class="rec-col-nodes mono">{{ line.share.default_format || "as the client asks" }}</span>
+                <span class="rec-col-nodes mono" :title="line.share.default_format || 'as the client asks'">{{ line.share.default_format || "as the client asks" }}</span>
                 <span class="rec-col-status">
                   <PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" />
                 </span>
