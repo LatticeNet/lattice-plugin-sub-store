@@ -15,12 +15,21 @@
 
 export const NAVIGATE_MESSAGE_TYPE = "lattice:navigate";
 
-/** The dashboard's share management view, where an existing share is changed. */
-export const SHARES_LIST_ROUTE = "/network/subscription-shares";
+/**
+ * The dashboard's share management view, where an existing share is changed.
+ *
+ * Shares live on Platform > Publishing's share lens since console a94
+ * (DESIGN-PROGRAM-2026-09 section 9, Decision A); the console's bridge
+ * allowlist admits `origin`, `create` and `for` on that path and nothing else.
+ * The retired `/network/subscription-shares` path still redirects there, so a
+ * console older than a94 is not a concern, but the console keeps that redirect
+ * only until this release is what production runs.
+ */
+export const SHARES_LIST_ROUTE = "/platform/publishing?origin=share";
 
 /** The same view, pre-opened on the create form. */
 export function sharesRoute(recordName: string): string {
-  return `/network/subscription-shares?create=1&for=${encodeURIComponent(recordName)}`;
+  return `${SHARES_LIST_ROUTE}&create=1&for=${encodeURIComponent(recordName)}`;
 }
 
 /**

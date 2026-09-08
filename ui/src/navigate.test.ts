@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { hostOriginFromHash, NAVIGATE_MESSAGE_TYPE, postNavigate, sharesRoute } from "./navigate";
+import { hostOriginFromHash, NAVIGATE_MESSAGE_TYPE, postNavigate, SHARES_LIST_ROUTE, sharesRoute } from "./navigate";
 
 describe("hostOriginFromHash", () => {
   it("reads the origin the bridge pinned", () => {
@@ -25,8 +25,14 @@ describe("hostOriginFromHash", () => {
 });
 
 describe("sharesRoute", () => {
-  it("points at the Shares view with the create form open for the record", () => {
-    expect(sharesRoute("Home nodes")).toBe("/network/subscription-shares?create=1&for=Home%20nodes");
+  it("points at Publishing's share lens with the create form open for the record", () => {
+    expect(sharesRoute("Home nodes")).toBe("/platform/publishing?origin=share&create=1&for=Home%20nodes");
+  });
+
+  it("uses only the three query keys the console's bridge allowlist admits on that path", () => {
+    const keys = [...new URL(sharesRoute("x"), "https://console.example.com").searchParams.keys()];
+    expect(keys.sort()).toEqual(["create", "for", "origin"]);
+    expect(SHARES_LIST_ROUTE).toBe("/platform/publishing?origin=share");
   });
 });
 
@@ -38,7 +44,7 @@ describe("postNavigate", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         type: NAVIGATE_MESSAGE_TYPE,
-        route: "/network/subscription-shares?create=1&for=Home%20nodes",
+        route: "/platform/publishing?origin=share&create=1&for=Home%20nodes",
       },
       "https://console.example.com",
     );
