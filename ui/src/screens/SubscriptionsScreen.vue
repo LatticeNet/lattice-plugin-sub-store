@@ -1105,7 +1105,7 @@ watch(host.init, (value) => {
                   <PcTh width="150px">Last fetch</PcTh>
                 </template>
                 <PcTh width="190px">Used by</PcTh>
-                <PcTh actions width="48px"><span class="pc-sr-only">Actions</span></PcTh>
+                <PcTh actions width="48px" aria-label="Actions" />
               </template>
               <tbody>
                 <PcRow

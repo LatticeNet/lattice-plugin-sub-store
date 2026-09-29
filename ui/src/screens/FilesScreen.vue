@@ -1354,7 +1354,7 @@ watch(host.init, (value) => {
                 <PcTh width="200px">Renders</PcTh>
                 <PcTh width="190px">Published</PcTh>
                 <PcTh width="120px">Type</PcTh>
-                <PcTh actions width="48px"><span class="pc-sr-only">Actions</span></PcTh>
+                <PcTh actions width="48px" aria-label="Actions" />
               </template>
               <tbody>
                 <PcRow

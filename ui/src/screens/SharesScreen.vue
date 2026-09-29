@@ -333,7 +333,7 @@ watch(host.init, (value) => {
             <PcTh width="150px">Format</PcTh>
             <PcTh width="150px">Expiry</PcTh>
             <PcTh width="110px">State</PcTh>
-            <PcTh actions width="120px"><span class="pc-sr-only">Actions</span></PcTh>
+            <PcTh actions width="120px" aria-label="Actions" />
           </template>
           <tbody>
             <PcRow
