@@ -1,19 +1,22 @@
 import { expect, test, type Page } from "@playwright/test";
 
+// The editor drives run on the hand-made set, which has the file shapes they
+// were written against (a config, a script, a plain file).
 async function openFiles(page: Page): Promise<void> {
-  await page.goto("/dev.html?lens=files");
-  await page.locator(".rec-list .rec-row").first().waitFor();
+  await page.goto("/dev.html?fixture=canned&view=files");
+  await page.locator(".layer-row").first().waitFor();
 }
 
 async function openShares(page: Page): Promise<void> {
-  await page.goto("/dev.html?lens=shares");
-  await page.locator(".rec-list .rec-row").first().waitFor();
+  await page.goto("/dev.html?fixture=canned&view=shares");
+  await page.locator(".layer-row").first().waitFor();
 }
 
+/** Row, then the side panel's Edit: the one path into the editor from a table. */
 async function openFile(page: Page, name: string): Promise<void> {
   await openFiles(page);
-  const row = page.locator(".rec-row", { hasText: name }).first();
-  await row.getByRole("button", { name: "Open" }).click();
+  await page.locator(".row-open", { hasText: name }).first().click();
+  await page.locator(".pc-side-panel").getByRole("button", { name: "Edit" }).click();
   await page.getByRole("heading", { name: /file/i }).waitFor();
 }
 
@@ -56,14 +59,13 @@ test.describe("1440 files editor and shares", () => {
     await expect(page.getByText("Document operations")).toBeVisible();
   });
 
-  test("share format does not paint over the live pill, and Copy link works", async ({ page }) => {
+  test("a share row keeps format and state in their own cells, and Copy link works", async ({ page }) => {
     await openShares(page);
-    const ident = page.locator(".rec-ident", { hasText: "as the client asks" }).first();
-    await expect(ident).toBeVisible();
-    const format = (await ident.locator(".rec-col-nodes").boundingBox())!;
-    const state = (await ident.locator(".rec-col-status").boundingBox())!;
+    const row = page.locator(".layer-row", { hasText: "as the client asks" }).first();
+    await expect(row).toBeVisible();
+    const format = (await row.locator("td", { hasText: "as the client asks" }).boundingBox())!;
+    const state = (await row.locator(".pc-state-pill").boundingBox())!;
     expect(Math.round(format.x + format.width)).toBeLessThanOrEqual(Math.round(state.x) + 1);
-    const row = page.locator(".rec-row", { hasText: "as the client asks" }).first();
     await row.getByRole("button", { name: "Copy link" }).click();
     await expect(row.getByRole("button", { name: "Copied" }).or(page.getByText("Link for"))).toBeVisible();
   });
@@ -72,16 +74,14 @@ test.describe("1440 files editor and shares", () => {
 test.describe("375 shares", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test("the live pill stays in its own cell and does not cover the name", async ({ page }) => {
+  test("the table scrolls inside itself and Copy link stays reachable", async ({ page }) => {
     await openShares(page);
-    const ident = page.locator(".rec-ident", { hasText: "cd-ask" }).first();
-    await expect(ident).toBeVisible();
-    const name = (await ident.locator(".rec-ident-name").boundingBox())!;
-    const state = (await ident.locator(".rec-col-status").boundingBox())!;
-    expect(Math.round(name.x + name.width)).toBeLessThanOrEqual(Math.round(state.x) + 1);
-    await expect(ident.locator(".rec-col-nodes")).toBeHidden();
-    const row = page.locator(".rec-row", { hasText: "cd-ask" }).first();
-    await row.getByRole("button", { name: "Copy link" }).click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375);
+    const row = page.locator(".layer-row", { hasText: "cd-ask" }).first();
+    await expect(row.locator("td.pc-name")).toBeVisible();
+    const copy = row.getByRole("button", { name: "Copy link" });
+    await copy.scrollIntoViewIfNeeded();
+    await copy.click();
     await expect(row.getByRole("button", { name: "Copied" }).or(page.getByText("Link for"))).toBeVisible();
   });
 });
