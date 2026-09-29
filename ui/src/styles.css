@@ -2325,6 +2325,8 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 @media (max-width: 620px) {
   .attention-item { grid-template-columns: auto minmax(0, 1fr); padding-top: var(--space-2); padding-bottom: var(--space-2); }
   .attention-item > .pc-button { grid-column: 2; justify-self: start; }
+  /* The claim wraps to several lines here; the dot belongs to its first. */
+  .attention-item > .pc-state-dot { align-self: start; margin-top: 5px; }
   .peek-facts, .record-facts { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
   .peek-facts dd, .record-facts dd { margin-bottom: var(--space-2); }
   .record-actions { width: 100%; margin-left: 0; }
