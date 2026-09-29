@@ -28,6 +28,20 @@ const KEY_PATTERN = /^[a-z][a-z0-9_]{0,23}$/;
 
 export type PageState = Record<string, string>;
 
+/**
+ * Keys the console keeps for itself (sign-in redirects, SSO and MFA). They
+ * never cross the bridge in either direction, and no key of this page's state
+ * may be one of them.
+ */
+export const RESERVED_STATE_KEYS: ReadonlySet<string> = new Set([
+  "redirect", "next", "code", "state", "token", "sso_error", "totp_challenge", "mfa",
+]);
+
+/** A state without the reserved keys, whichever side it came from. */
+export function withoutReserved(state: PageState): PageState {
+  return Object.fromEntries(Object.entries(state).filter(([key]) => !RESERVED_STATE_KEYS.has(key)));
+}
+
 /** The contract's rules, whole or nothing: null when any entry breaks one. */
 export function validPageState(value: unknown): PageState | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -201,7 +215,7 @@ export function stateMessage(nonce: string, state: PageState): { type: string; n
  * message, behind the same checks the client applies: the parent window, the
  * pinned host origin, the frame's nonce. A host that predates the contract
  * sends no `pageState` and the page opens on its defaults; one whose state
- * breaks the rules gets the same.
+ * breaks the rules gets the same. A reserved key is dropped on the way in.
  */
 export function listenForInitPageState(
   win: Window,
@@ -213,7 +227,7 @@ export function listenForInitPageState(
     if (event.source !== win.parent || event.origin !== hostOrigin) return;
     const data = event.data as Record<string, unknown> | null;
     if (!data || typeof data !== "object" || data.nonce !== nonce || data.type !== "lattice.host.init") return;
-    onState(validPageState(data.pageState) ?? {});
+    onState(withoutReserved(validPageState(data.pageState) ?? {}));
   };
   win.addEventListener("message", onMessage);
   return () => win.removeEventListener("message", onMessage);

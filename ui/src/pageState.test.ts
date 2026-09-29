@@ -4,6 +4,7 @@ import { addressForState, pageStateFromAddress, stateRateLimit } from "../dev/co
 import {
   MAX_STATE_VALUE,
   PAGE_STATE_MESSAGE,
+  RESERVED_STATE_KEYS,
   canonicalState,
   createStateSender,
   decodeShellState,
@@ -119,6 +120,20 @@ describe("the shell's state on the wire", () => {
     expect(decodeShellState({ lens: "constructor" }).view).toBe("overview");
   });
 
+  it("never uses a key the console reserves", () => {
+    expect([...RESERVED_STATE_KEYS].sort()).toEqual(["code", "mfa", "next", "redirect", "sso_error", "state", "token", "totp_challenge"]);
+    const everything = state({
+      view: "files", open: "x", q: "x", sort: "name", published: "no", origin: "local", type: "script", link: "dead",
+    });
+    const keys = new Set<string>();
+    for (const view of ["overview", "sources", "combinations", "files", "shares", "settings"] as const) {
+      for (const key of Object.keys(encodeShellState({ ...everything, view }))) keys.add(key);
+      for (const key of Object.keys(encodeShellState({ ...everything, view, record: "r", from: view }))) keys.add(key);
+    }
+    expect([...keys].sort()).toEqual(["link", "open", "origin", "published", "q", "record", "sort", "type", "view"]);
+    for (const key of keys) expect(RESERVED_STATE_KEYS.has(key)).toBe(false);
+  });
+
   it("canonicalises key order", () => {
     expect(canonicalState({ b: "2", a: "1" })).toBe(canonicalState({ a: "1", b: "2" }));
   });
@@ -215,6 +230,14 @@ describe("the page state in init", () => {
     expect(heard).toEqual([{ view: "files", open: "for-cdcd-loon" }]);
   });
 
+  it("drops a reserved key that arrives anyway", () => {
+    const { win, parent, deliver } = frame();
+    const heard: Record<string, string>[] = [];
+    listenForInitPageState(win, NONCE, ORIGIN, (value) => heard.push(value));
+    deliver({ source: parent as Window, origin: ORIGIN, data: init({ pageState: { view: "files", redirect: "/x", token: "t" } }) });
+    expect(heard).toEqual([{ view: "files" }]);
+  });
+
   it("reads an older console's init, or a state that breaks the rules, as empty", () => {
     const { win, parent, deliver } = frame();
     const heard: Record<string, string>[] = [];
@@ -250,7 +273,8 @@ describe("the harness console", () => {
   it("hands over its query without the harness switches, one key at a time", () => {
     expect(pageStateFromAddress("?fixture=large&theme=dark&state=empty&conflict=1&view=files&published=no")).toEqual({ view: "files", published: "no" });
     expect(pageStateFromAddress("?view=files&View=x&q=" + "x".repeat(300))).toEqual({ view: "files" });
-    expect(pageStateFromAddress("?view=files&view=shares")).toEqual({ view: "files" });
+    expect(pageStateFromAddress("?view=files&view=shares&open=x")).toEqual({ open: "x" });
+    expect(pageStateFromAddress("?view=files&redirect=%2Fhome&next=a&code=1&token=t&sso_error=e&totp_challenge=c&mfa=1")).toEqual({ view: "files" });
     expect(pageStateFromAddress("?constructor=x")).toEqual({ constructor: "x" });
     expect(pageStateFromAddress("")).toEqual({});
   });
@@ -259,6 +283,10 @@ describe("the harness console", () => {
     expect(addressForState("?fixture=large&view=files&published=no", { view: "shares", link: "dead" })).toBe("?fixture=large&view=shares&link=dead");
     expect(addressForState("?fixture=large&view=files", {})).toBe("?fixture=large");
     expect(addressForState("?view=files", {})).toBe("");
+  });
+
+  it("keeps the console's reserved keys and never takes one from the page", () => {
+    expect(addressForState("?redirect=%2Fhome&view=files", { view: "shares", token: "t" })).toBe("?redirect=%2Fhome&view=shares");
   });
 
   it("drops a message that breaks the rules", () => {

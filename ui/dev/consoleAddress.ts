@@ -1,4 +1,4 @@
-import { MAX_STATE_KEYS, validPageState, type PageState } from "../src/pageState";
+import { MAX_STATE_KEYS, RESERVED_STATE_KEYS, validPageState, withoutReserved, type PageState } from "../src/pageState";
 
 /**
  * The console's half of the page-state contract, as the dev harness plays it.
@@ -17,15 +17,23 @@ import { MAX_STATE_KEYS, validPageState, type PageState } from "../src/pageState
  */
 const HARNESS_PARAMS = new Set(["fixture", "theme", "state", "conflict"]);
 
+/** What the console keeps in its address and never hands across. */
+function staysWithConsole(key: string): boolean {
+  return HARNESS_PARAMS.has(key) || RESERVED_STATE_KEYS.has(key);
+}
+
 /**
  * What the console hands over as `pageState`: its route's query, filtered by
- * the contract's rules one key at a time, the harness switches left out.
+ * the contract's rules one key at a time. The harness switches and the
+ * reserved keys stay behind, and a key that appears twice is dropped, since
+ * neither value is the one the page wrote.
  */
 export function pageStateFromAddress(search: string): PageState {
+  const params = new URLSearchParams(search);
   const out: PageState = {};
-  for (const [key, value] of new URLSearchParams(search)) {
-    if (HARNESS_PARAMS.has(key) || Object.hasOwn(out, key) || Object.keys(out).length >= MAX_STATE_KEYS) continue;
-    const single = validPageState({ [key]: value });
+  for (const key of new Set(params.keys())) {
+    if (staysWithConsole(key) || params.getAll(key).length > 1 || Object.keys(out).length >= MAX_STATE_KEYS) continue;
+    const single = validPageState({ [key]: params.get(key) });
     if (single) Object.assign(out, single);
   }
   return out;
@@ -33,7 +41,7 @@ export function pageStateFromAddress(search: string): PageState {
 
 /**
  * The address the console writes for a state message: the harness switches
- * as they were, then the state, with the fragment kept. Null when the message
+ * and reserved keys as they were, then the state without any reserved key. Null when the message
  * breaks the contract's rules, which drops it whole.
  */
 export function addressForState(search: string, state: unknown): string | null {
@@ -41,9 +49,11 @@ export function addressForState(search: string, state: unknown): string | null {
   if (!valid) return null;
   const next = new URLSearchParams();
   for (const [key, value] of new URLSearchParams(search)) {
-    if (HARNESS_PARAMS.has(key)) next.append(key, value);
+    if (staysWithConsole(key)) next.append(key, value);
   }
-  for (const [key, value] of Object.entries(valid)) next.set(key, value);
+  for (const [key, value] of Object.entries(withoutReserved(valid))) {
+    if (!HARNESS_PARAMS.has(key)) next.set(key, value);
+  }
   const query = next.toString();
   return query ? `?${query}` : "";
 }
