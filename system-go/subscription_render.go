@@ -484,6 +484,11 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			LastFetchOK *bool  `json:"last_fetch_ok,omitempty"`
 			LastError   string `json:"last_error,omitempty"`
 			Userinfo    string `json:"userinfo,omitempty"`
+			// The same header, parsed: bytes used up and down, the provider's
+			// total, and the expiry in unix seconds. Each is present only when
+			// the provider sent it and it parsed, so the overview and the sources
+			// table can draw traffic and expiry without a `get` per row.
+			providerUsage
 		}
 		views := make([]view, 0, len(records))
 		for _, rec := range records {
@@ -507,6 +512,9 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				ok := rec.LastFetchOK
 				entry.LastFetchAt, entry.LastFetchOK = rec.LastFetchAt, &ok
 				entry.LastError, entry.Userinfo = rec.LastError, rec.Userinfo
+			}
+			if rec.Userinfo != "" {
+				entry.providerUsage = parseProviderUsage(rec.Userinfo)
 			}
 			views = append(views, entry)
 		}
