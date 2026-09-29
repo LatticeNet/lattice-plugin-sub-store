@@ -2,6 +2,8 @@ import { ref } from "vue";
 
 import { BINDINGS, type MethodBinding } from "../src/client";
 import type { HostContext } from "../src/host";
+import { parseUserinfo } from "../src/rowStatus";
+import { fixture, fixtureName, type Fixture, type ShareRow, type StoredRecord } from "./fixtures";
 
 /**
  * A stand-in for the dashboard host, for looking at the UI in a browser.
@@ -14,35 +16,6 @@ import type { HostContext } from "../src/host";
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
 
-interface StoredRecord {
-  id: string;
-  kind?: string;
-  name: string;
-  display_name?: string;
-  remark?: string;
-  tags?: string[];
-  source?: string;
-  vpn_identity?: string;
-  entry_roots?: string[];
-  graph_options_version?: string;
-  url?: string;
-  content?: string;
-  ua?: string;
-  members?: string[];
-  member_tags?: string[];
-  failure_mode?: string;
-  target?: string;
-  file_type?: string;
-  node_source?: string;
-  query_params?: string[];
-  arguments?: Record<string, string>;
-  process?: unknown[];
-  origin?: unknown;
-  last_fetch_at?: string;
-  last_fetch_ok?: boolean;
-  last_error?: string;
-  userinfo?: string;
-}
 
 const OPERATORS = [
   "Add Proxies From Subscription Operator",
@@ -103,7 +76,8 @@ function jiancaiPreview(operatorCount: number) {
  *  hides every truncation and line-height bug those produce. The fetch
  *  bookkeeping spans its three states too, one sub with traffic, one whose last
  *  refresh failed, one never fetched, so the row status has something to say. */
-const records: StoredRecord[] = [
+function cannedRecords(): StoredRecord[] {
+  return [
   {
     id: "cdcd-self-host",
     name: "cdcd-self-host",
@@ -283,9 +257,129 @@ const records: StoredRecord[] = [
     ].join("\n"),
     process: [{ type: "Remove Duplicate Filter" }],
   },
-];
+  ];
+}
+
+/** The canned set's shares, one per state the Shares lens and the sheet can show. */
+function cannedShares(records: StoredRecord[]): ShareRow[] {
+  return [
+      {
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev",
+        slug: "cd-self",
+        enabled: true,
+        default_format: "plain",
+        path: "/sub/cd-self/devtokendevtokendevtokendevtoken",
+        url: "https://lattice.example/sub/cd-self/devtokendevtokendevtokendevtoken",
+      },
+      {
+        // A second share on the same record, switched off: the Shares lens
+        // and the Published column have to tell "disabled" from "expired".
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev-off",
+        slug: "cd-self-old",
+        enabled: false,
+        default_format: "plain",
+        expires_at: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
+        path: "/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
+        url: "https://lattice.example/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
+      },
+      {
+        // Enabled but past its expiry: reachable in the list, dead to a client.
+        subscription_id: "openjobs-host",
+        share_id: "sh-dev-expired",
+        slug: "openjobs",
+        enabled: true,
+        default_format: "clash",
+        expires_at: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
+        path: "/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
+        url: "https://lattice.example/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
+      },
+      {
+        // A published FILE too. Without one the file sheet's link branch is
+        // unreachable here, and that branch is the one that must NOT pin a
+        // client onto the URL: the serve path ignores ?target= for a file.
+        subscription_id: "phone-config",
+        share_id: "sh-dev-file",
+        slug: "phone",
+        enabled: true,
+        default_format: "plain",
+        path: "/sub/phone/filetokenfiletokenfiletokenfiletok",
+        url: "https://lattice.example/sub/phone/filetokenfiletokenfiletokenfiletok",
+      },
+      {
+        // No pinned format: the list writes "as the client asks", which is
+        // longer than the Nodes column the shares row used to reuse.
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev-ask",
+        slug: "cd-ask",
+        enabled: true,
+        path: "/sub/cd-ask/asktokenasktokenasktokenasktokenas",
+        url: "https://lattice.example/sub/cd-ask/asktokenasktokenasktokenasktokenas",
+      },
+  ];
+}
+
+function cannedFixture(): Fixture {
+  const records = cannedRecords();
+  return { records, shares: cannedShares(records), counts: { "jiancai-shichang": [166, 25] } };
+}
+
+/**
+ * Which record set the harness serves, from `?fixture=` (production unless
+ * named). The whole set is built once per page load, so an edit made in the
+ * harness survives until the reload, the way a store does.
+ */
+const active: Fixture = fixture(fixtureName(window.location.search), cannedFixture);
+const records = active.records;
 
 let settings: Record<string, unknown> = { default_target: "", default_ua: "" };
+
+/**
+ * The figures the plugin parses out of the provider header since 0.14. The
+ * harness answers the new wire shape, so the UI's own fallback parse is the
+ * path only an older plugin exercises.
+ */
+function usageOf(userinfo: string | undefined): Record<string, number> {
+  const parsed = parseUserinfo(userinfo);
+  if (!parsed) return {};
+  const out: Record<string, number> = {};
+  for (const [key, value] of Object.entries(parsed)) {
+    if (typeof value !== "number") continue;
+    if (key === "expire" && value === 0) continue;
+    out[key] = Math.trunc(value);
+  }
+  return out;
+}
+
+/**
+ * A preview whose counts are the record's own (production's 86 in, 78 out),
+ * with a chain cut part way through answering proportionally, so the per-step
+ * delta strip has a number to print at every step.
+ */
+function countedPreview(counts: [number, number], cut: number, total: number, label: string) {
+  const [source, result] = counts;
+  const done = total <= 0 ? 1 : Math.min(1, cut / total);
+  const kept = Math.round(source - (source - result) * done);
+  const all = Array.from({ length: source }, (_, i) => ({
+    name: `${label} ${String(i + 1).padStart(3, "0")}`,
+    type: i % 3 === 0 ? "trojan" : "vless",
+    server: `n${String(i).padStart(3, "0")}.edge.example`,
+    port: i % 2 === 0 ? "443" : "8443",
+  }));
+  const nodes = all.slice(0, Math.min(kept, 200));
+  const droppedAll = all.slice(kept);
+  const named = droppedAll.slice(0, 40);
+  return {
+    nodes,
+    node_count: kept,
+    source_node_count: source,
+    truncated: kept > nodes.length,
+    dropped: named,
+    dropped_count: droppedAll.length,
+    dropped_truncated: named.length < droppedAll.length,
+  };
+}
 
 function listView(rec: StoredRecord) {
   const steps = (rec.process ?? []) as { disabled?: boolean }[];
@@ -318,6 +412,7 @@ function listView(rec: StoredRecord) {
           userinfo: rec.userinfo,
         }
       : {}),
+    ...usageOf(rec.userinfo),
   };
 }
 
@@ -479,6 +574,8 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     const stored = ((found?.process ?? []) as { disabled?: boolean }[]).filter((step) => !step.disabled);
     const steps = Array.isArray(operators) ? operators.length : stored.length;
     if (found?.id === "jiancai-shichang") return jiancaiPreview(steps);
+    const counts = found ? active.counts[found.id] : undefined;
+    if (found && counts) return countedPreview(counts, steps, stored.length, found.name);
     // Eight nodes in, and the chain takes some out. The harness used to list
     // six and claim a source of eight, so the two nodes the count said were
     // removed did not exist and the pane could not be checked against them.
@@ -582,64 +679,11 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
    * link, and the "no published share" note on everything else. The
    * subscription's slug matches the owner's deployment.
    */
-  "shares/list": () => ({
-    shares: [
-      {
-        subscription_id: records[0]?.id ?? "sub-1",
-        share_id: "sh-dev",
-        slug: "cd-self",
-        enabled: true,
-        default_format: "plain",
-        path: "/sub/cd-self/devtokendevtokendevtokendevtoken",
-        url: "https://lattice.example/sub/cd-self/devtokendevtokendevtokendevtoken",
-      },
-      {
-        // A second share on the same record, switched off: the Shares lens
-        // and the Published column have to tell "disabled" from "expired".
-        subscription_id: records[0]?.id ?? "sub-1",
-        share_id: "sh-dev-off",
-        slug: "cd-self-old",
-        enabled: false,
-        default_format: "plain",
-        expires_at: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
-        path: "/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
-        url: "https://lattice.example/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
-      },
-      {
-        // Enabled but past its expiry: reachable in the list, dead to a client.
-        subscription_id: "openjobs-host",
-        share_id: "sh-dev-expired",
-        slug: "openjobs",
-        enabled: true,
-        default_format: "clash",
-        expires_at: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
-        path: "/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
-        url: "https://lattice.example/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
-      },
-      {
-        // A published FILE too. Without one the file sheet's link branch is
-        // unreachable here, and that branch is the one that must NOT pin a
-        // client onto the URL: the serve path ignores ?target= for a file.
-        subscription_id: "phone-config",
-        share_id: "sh-dev-file",
-        slug: "phone",
-        enabled: true,
-        default_format: "plain",
-        path: "/sub/phone/filetokenfiletokenfiletokenfiletok",
-        url: "https://lattice.example/sub/phone/filetokenfiletokenfiletokenfiletok",
-      },
-      {
-        // No pinned format: the list writes "as the client asks", which is
-        // longer than the Nodes column the shares row used to reuse.
-        subscription_id: records[0]?.id ?? "sub-1",
-        share_id: "sh-dev-ask",
-        slug: "cd-ask",
-        enabled: true,
-        path: "/sub/cd-ask/asktokenasktokenasktokenasktokenas",
-        url: "https://lattice.example/sub/cd-ask/asktokenasktokenasktokenasktokenas",
-      },
-    ],
-  }),
+  "shares/list": () => {
+    if (harnessState() === "sharesfail") throw new Error("the share list could not be read (harness ?state=sharesfail)");
+    if (harnessState() === "empty") return { shares: [] };
+    return { shares: active.shares };
+  },
   /**
    * Publish pushes the rendered document at a destination the operator names.
    * The manifest declares it, so the row menu offers it; the harness had no
@@ -690,11 +734,11 @@ function delay<T>(value: T): Promise<T> {
  * `?state=slow` is deliberately not instant — a skeleton that flashes past is a
  * skeleton nobody has actually judged.
  */
-export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale" | "noadmin";
+export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale" | "noadmin" | "sharesfail";
 
 export function harnessState(): HarnessState {
   const asked = new URLSearchParams(window.location.search).get("state");
-  const known: HarnessState[] = ["ok", "empty", "error", "slow", "readonly", "stale", "noadmin"];
+  const known: HarnessState[] = ["ok", "empty", "error", "slow", "readonly", "stale", "noadmin", "sharesfail"];
   return (known as string[]).includes(asked ?? "") ? (asked as HarnessState) : "ok";
 }
 
