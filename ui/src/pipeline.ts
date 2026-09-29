@@ -263,7 +263,7 @@ function prefixesOf(name: string): string[] {
 // ── lineage ──────────────────────────────────────────────────────────────────
 
 export interface LineageNode {
-  /** The record id, or `share:<share_id>` for a share. */
+  /** The record id, or for a share the id in `Lineage.shareNodes`. */
   id: string;
   stage: Stage;
   label: string;
@@ -299,10 +299,20 @@ export interface Lineage {
   /** Direct neighbours, by node id. */
   upstream: Map<string, string[]>;
   downstream: Map<string, string[]>;
+  /** Each share's node id, by share id. */
+  shareNodes: Map<string, string>;
 }
 
-export function shareNodeId(share: SubStoreShareRow): string {
-  return `share:${share.share_id}`;
+/**
+ * A share's node id: `share:<share_id>`, with the prefix repeated until no
+ * node already holds it. Record ids are free text, so a record may well be
+ * called `share:sh-1`; without this a share would take that record's place on
+ * the map, and the record's edges would lead to the share.
+ */
+export function shareNodeId(share: SubStoreShareRow, taken: { has(id: string): boolean } = new Set<string>()): string {
+  let id = `share:${share.share_id}`;
+  while (taken.has(id)) id = `share:${id}`;
+  return id;
 }
 
 /**
@@ -361,8 +371,10 @@ export function buildLineage(
       else link({ from: ref, to: item.id, via: "node-source" });
     }
   }
+  const shareNodes = new Map<string, string>();
   for (const share of shares ?? []) {
-    const id = shareNodeId(share);
+    const id = shareNodeId(share, nodes);
+    shareNodes.set(share.share_id, id);
     nodes.set(id, { id, stage: "share", label: `/${share.slug}`, share });
     if (byId.has(share.subscription_id)) link({ from: share.subscription_id, to: id, via: "share" });
     else broken.push({ owner: id, ref: share.subscription_id, via: "share", reason: "no longer exists" });
@@ -375,7 +387,7 @@ export function buildLineage(
     (upstream.get(edge.to) ?? upstream.set(edge.to, []).get(edge.to)!).push(edge.from);
   }
 
-  return { nodes, columns: orderColumns(nodes, upstream, downstream), edges, broken, upstream, downstream };
+  return { nodes, columns: orderColumns(nodes, upstream, downstream), edges, broken, upstream, downstream, shareNodes };
 }
 
 function kindWord(kind: string | undefined): string {

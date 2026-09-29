@@ -172,7 +172,7 @@ describe("the lineage graph", () => {
     expect(lineage.columns.source).toHaveLength(5);
     expect(lineage.columns.combination).toHaveLength(2);
     expect(lineage.columns.file).toHaveLength(16);
-    expect(lineage.columns.share).toEqual([shareNodeId(shares[0]!)]);
+    expect(lineage.columns.share).toEqual([lineage.shareNodes.get(shares[0]!.share_id)]);
     expect(lineage.broken).toEqual([]);
   });
 
@@ -181,9 +181,24 @@ describe("the lineage graph", () => {
     expect(into("imported-col-merge-cd-openjobs")).toEqual(["imported-cdcd-self-host", "imported-openjobs-host"]);
     expect(into("imported-col-merge-openjobs")).toEqual(["imported-openjobs-host"]);
     expect(into("imported-file-for-cdcd-loon")).toEqual(["imported-col-merge-cd-openjobs"]);
-    expect(into(shareNodeId(shares[0]!))).toEqual(["imported-file-for-cdcd-loon"]);
+    expect(into(lineage.shareNodes.get(shares[0]!.share_id)!)).toEqual(["imported-file-for-cdcd-loon"]);
     // Two member edges, two plus one, twelve node sources and the share.
     expect(lineage.edges).toHaveLength(3 + 13 + 1);
+  });
+
+  it("keeps a share and a record called share:<its id> apart", () => {
+    const share = { ...shares[0]!, share_id: "sh-1", subscription_id: "imported-openjobs-host" };
+    const clash = item({ id: "share:sh-1", kind: "collection", members: ["imported-openjobs-host"] });
+    const clashing = buildLineage([...items, clash], [share]);
+    const node = clashing.shareNodes.get("sh-1")!;
+    expect(node).not.toBe("share:sh-1");
+    expect(clashing.nodes.get("share:sh-1")?.stage).toBe("combination");
+    expect(clashing.nodes.get(node)?.stage).toBe("share");
+    expect(clashing.upstream.get("share:sh-1")).toEqual(["imported-openjobs-host"]);
+    expect(clashing.upstream.get(node)).toEqual(["imported-openjobs-host"]);
+    expect(clashing.columns.combination).toContain("share:sh-1");
+    expect(clashing.columns.share).toEqual([node]);
+    expect(shareNodeId(share, new Set(["share:sh-1", "share:share:sh-1"]))).toBe("share:share:share:sh-1");
   });
 
   it("orders sources by the combination they feed", () => {
@@ -219,7 +234,7 @@ describe("the lineage graph", () => {
     expect(path.has("imported-cdcd-self-host")).toBe(true);
     expect(path.has("imported-openjobs-host")).toBe(true);
     expect(path.has("imported-file-for-cdcd-stash")).toBe(true);
-    expect(path.has(shareNodeId(shares[0]!))).toBe(true);
+    expect(path.has(lineage.shareNodes.get(shares[0]!.share_id)!)).toBe(true);
     expect(path.has("imported-col-merge-openjobs")).toBe(false);
     expect(path.has("imported-file-for-openjobs-loon")).toBe(false);
     // Upstream of a file walks back through its combination to the sources.

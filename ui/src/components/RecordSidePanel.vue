@@ -57,7 +57,7 @@ function nameOf(id: string): string {
 
 const upstream = computed(() => props.pipe.lineage.value.upstream.get(props.id) ?? []);
 const downstreamRecords = computed(() =>
-  (props.pipe.lineage.value.downstream.get(props.id) ?? []).filter((id) => !id.startsWith("share:")),
+  (props.pipe.lineage.value.downstream.get(props.id) ?? []).filter((id) => props.pipe.lineage.value.nodes.get(id)?.stage !== "share"),
 );
 const broken = computed(() => props.pipe.lineage.value.broken.filter((ref) => ref.owner === props.id));
 const shares = computed(() => (props.pipe.shares.value ?? []).filter((share) => share.subscription_id === props.id));
