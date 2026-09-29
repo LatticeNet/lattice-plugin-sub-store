@@ -92,11 +92,11 @@ describe("vpn-core graph editor component contract", () => {
     const app = createSSRApp({
       setup() {
         provideHost(host);
-        return () => h(SubscriptionsScreen);
+        return () => h(SubscriptionsScreen, { kind: "sub" });
       },
     });
     const html = await renderToString(app);
-    expect(html).toContain("Subscriptions");
+    expect(html).toContain("Sources");
     // The list is empty for this host, so the empty state's create button is
     // the one record action on screen, and read-only disables it.
     expect(html).toMatch(/<button[^>]+disabled[^>]*>[^<]*(<[^>]+>[^<]*)*Add this fleet/s);

@@ -150,7 +150,10 @@ describe("the palette's wiring", () => {
   });
 
   it("reads the shared catalogue rather than loading its own list", () => {
-    expect(shell).toContain("recordCatalogue(host)");
+    // usePipeline reads the one shared catalogue (recordCatalogue) with the
+    // share list and the node counts; it never loads a list of its own.
+    expect(shell).toContain("const pipe = usePipeline(host);");
+    expect(shell).toContain("const catalogue = pipe.catalogue;");
     expect(shell).not.toContain("useSubscriptions(");
   });
 
@@ -158,7 +161,7 @@ describe("the palette's wiring", () => {
     // The shell cannot open another screen's drawer; it posts an intent and
     // switches tabs.
     expect(shell).toMatch(/intent\.value = \{ recordId: record\.id, action \}/);
-    expect(shell).toMatch(/activeTab\.value = record\.kind === "file" \? "files" : "subscriptions"/);
+    expect(shell).toContain("chrome.openLens(viewOfKind(record.kind));");
   });
 
   it("tells assistive tech which row is active", () => {

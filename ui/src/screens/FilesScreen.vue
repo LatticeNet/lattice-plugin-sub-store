@@ -24,12 +24,16 @@ import {
   PcPanel,
   PcPanelBody,
   PcPanelHeader,
+  PcRow,
   PcSearchField,
+  PcSelectCell,
   PcSidePanel,
   PcSkeleton,
   PcStateDot,
   PcStatePill,
+  PcTable,
   PcTagList,
+  PcTh,
 } from "@latticenet/plugin-bridge/chassis";
 
 import {
@@ -48,7 +52,7 @@ import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
-import { tagChips } from "../rowStatus";
+import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
@@ -72,7 +76,6 @@ import EngineUnavailable from "../components/EngineUnavailable.vue";
 import ProcessChain, { type ChainStep } from "../components/ProcessChain.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
-import RecKindTabs from "../components/RecKindTabs.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import type { EditorLanguage } from "../codemirror";
 import {
@@ -190,17 +193,12 @@ const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_F
 
 type FileKindFilter = "all" | "config" | "script" | "plain";
 const kindFilter = ref<FileKindFilter>("all");
-const expandedId = ref("");
 
 function fileKindOf(item: SubscriptionListItem): Exclude<FileKindFilter, "all"> {
   const type = knownFileType(item.file_type);
   if (type === FILE_TYPE_SCRIPT) return "script";
   if (type === FILE_TYPE_PLAIN) return "plain";
   return "config";
-}
-
-function setKindFilter(id: string): void {
-  if (id === "all" || id === "config" || id === "script" || id === "plain") kindFilter.value = id;
 }
 
 /**
@@ -212,26 +210,56 @@ const searchedFiles = computed(() => {
   return allFiles.value.filter((file) => matchesQuery(file, query));
 });
 
-const kindCounts = computed(() => {
+/**
+ * The facets, on the address so a link (and the overview's "Review") lands
+ * on the same rows: whether a live share serves the file, and whether it was
+ * migrated. The migration marker is a facet rather than a chip on every row.
+ */
+const facets = chrome.facets;
+function isPublished(item: SubscriptionListItem): boolean {
+  return publishedOf(item).tone === "ok";
+}
+const facetCounts = computed(() => {
   const rows = searchedFiles.value;
+  const published = rows.filter(isPublished).length;
+  const migrated = rows.filter((file) => file.imported).length;
   return {
     all: rows.length,
+    published,
+    unpublished: rows.length - published,
+    migrated,
+    local: rows.length - migrated,
     config: rows.filter((file) => fileKindOf(file) === "config").length,
     script: rows.filter((file) => fileKindOf(file) === "script").length,
     plain: rows.filter((file) => fileKindOf(file) === "plain").length,
   };
 });
-const kindTabs = computed(() => [
-  { id: "all", label: "All", count: kindCounts.value.all },
-  { id: "config", label: "Configuration", count: kindCounts.value.config },
-  { id: "script", label: "Script", count: kindCounts.value.script },
-  { id: "plain", label: "Plain", count: kindCounts.value.plain },
-]);
 
-const files = computed(() => {
-  if (kindFilter.value === "all") return searchedFiles.value;
-  return searchedFiles.value.filter((file) => fileKindOf(file) === kindFilter.value);
-});
+const files = computed(() =>
+  searchedFiles.value.filter((file) => {
+    if (kindFilter.value !== "all" && fileKindOf(file) !== kindFilter.value) return false;
+    if (facets.published === "no" && isPublished(file)) return false;
+    if (facets.published === "yes" && !isPublished(file)) return false;
+    if (facets.origin === "migrated" && !file.imported) return false;
+    if (facets.origin === "local" && file.imported) return false;
+    return true;
+  }),
+);
+
+const lineage = computed(() => buildLineage(subs.items.value, shareStore.shares.value));
+
+/** The client a file is written for, from its name; empty with the reason when it does not say. */
+function clientOf(item: SubscriptionListItem): { text: string; title: string } {
+  const client = clientOfFile(item.name);
+  if (client) return { text: client.label, title: `The name says this file is for ${client.label}.` };
+  return { text: "", title: "The file's name does not name a client app, and a file stores no target of its own." };
+}
+
+function openRow(item: SubscriptionListItem, event: MouseEvent): void {
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("input, [data-row-menu], .rec-menu, .row-publish")) return;
+  chrome.openRecord(item.id);
+}
 
 /** The preview/copy sheet. A file is exactly the thing you hand to a client. */
 const targetSheet = ref<SubscriptionListItem | null>(null);
@@ -251,7 +279,7 @@ function publishedOf(item: SubscriptionListItem) {
 }
 const tone = stateTone;
 
-/** What a file is, for the kind chip beside its name. */
+/** What a file is, for the Type column. */
 function kindLabel(item: SubscriptionListItem): string {
   const type = knownFileType(item.file_type);
   if (type === FILE_TYPE_SCRIPT) return "script";
@@ -265,57 +293,20 @@ function kindLabel(item: SubscriptionListItem): string {
  *  showed the first-run "paste your Mihomo config" panel. */
 const storeEmpty = computed(() => allFiles.value.length === 0);
 
-const filtersActive = computed(() => !!searchText.value.trim() || kindFilter.value !== "all");
+const filtersActive = computed(() => !!searchText.value.trim() || kindFilter.value !== "all" || !!facets.published || !!facets.origin);
 
 function clearFilters(): void {
   searchText.value = "";
   kindFilter.value = "all";
+  facets.published = "";
+  facets.origin = "";
 }
 
-function opsOf(item: SubscriptionListItem): string {
-  const n = item.step_count;
-  const label = `${n} op${n === 1 ? "" : "s"}`;
-  return item.disabled_step_count ? `${label} (${item.disabled_step_count} off)` : label;
+function rendersOf(item: SubscriptionListItem): { text: string; title: string; missing: boolean } {
+  if (nodeSourceMissing(item)) return { text: item.node_source ?? "", title: `${item.node_source} is no longer in the store, so this file cannot render.`, missing: true };
+  if (item.node_source) return { text: sourceName(item.node_source), title: `Its proxy list is filled from ${sourceName(item.node_source)}.`, missing: false };
+  return { text: "", title: "Nothing: the document is served as written.", missing: false };
 }
-
-function sourceOf(item: SubscriptionListItem): string {
-  return item.source === SOURCE_REMOTE ? "Fetched from a link" : "Stored here";
-}
-
-function nodesFact(item: SubscriptionListItem): string {
-  if (nodeSourceMissing(item)) return `source ${item.node_source} is gone`;
-  if (item.node_source) return `from ${sourceName(item.node_source)}`;
-  return "as written";
-}
-
-function collapseRow(): void {
-  const id = expandedId.value;
-  expandedId.value = "";
-  if (id) {
-    void nextTick(() => {
-      document.querySelector<HTMLElement>(`#rec-${cssEscape(id)} .rec-ident`)?.focus();
-    });
-  }
-}
-
-function toggleRow(id: string): void {
-  if (expandedId.value === id) collapseRow();
-  else expandedId.value = id;
-}
-
-function onIdentKeydown(event: KeyboardEvent, id: string): void {
-  if (event.key === "ArrowRight" && expandedId.value !== id) {
-    event.preventDefault();
-    toggleRow(id);
-  } else if (event.key === "ArrowLeft" && expandedId.value === id) {
-    event.preventDefault();
-    collapseRow();
-  }
-}
-
-watch(files, (rows) => {
-  if (expandedId.value && !rows.some((row) => row.id === expandedId.value)) expandedId.value = "";
-});
 
 /** What the batch controls report and act on: only rows that exist and are on
  *  screen. A stale id from a filtered or already-deleted row must never be
@@ -474,10 +465,6 @@ function onDocumentKeydown(event: KeyboardEvent): void {
     closeRowMenu();
     return;
   }
-  if (expandedId.value && !editing.value) {
-    collapseRow();
-    return;
-  }
   // Escape is how every other surface in this frame steps back, and the editor
   // is a screen you enter, so it answers the same key. Who owns the key while
   // an overlay is up is decided in editorExit.ts.
@@ -621,7 +608,7 @@ const actionCaps = computed<ActionCapabilities>(() => ({
 // Publish is deliberately absent: this screen has no publish drawer, and the
 // registry offering an action a screen cannot carry out is worse than not
 // offering it. Adding the flow is a decision, not a wiring gap.
-const MENU_ACTIONS = ["output", "share", "duplicate", "delete"] as const;
+const MENU_ACTIONS = ["output", "duplicate", "delete"] as const;
 
 function menuActionsFor(item: SubscriptionListItem) {
   return actionsFor(item, actionCaps.value, MENU_ACTIONS);
@@ -747,7 +734,6 @@ function clearTransientListState(): void {
   openFileMenuId.value = "";
   drawer.value = null;
   deleteTargets.value = null;
-  expandedId.value = "";
 }
 
 function startCreate(fileType: string = FILE_TYPE_CONFIG): void {
@@ -1307,13 +1293,36 @@ watch(host.init, (value) => {
 
         <PcPanel label="Files">
           <div class="rec-list" aria-label="Files">
-            <RecKindTabs :model-value="kindFilter" label="File kind" :tabs="kindTabs" @update:model-value="setKindFilter" />
-
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter files" />
+              <label class="toolbar-sort">
+                <span>Published</span>
+                <select v-model="facets.published" class="pc-select" aria-label="Filter by whether a live share serves the file">
+                  <option value="">All {{ facetCounts.all }}</option>
+                  <option value="yes">Published {{ facetCounts.published }}</option>
+                  <option value="no">Not published {{ facetCounts.unpublished }}</option>
+                </select>
+              </label>
+              <label class="toolbar-sort">
+                <span>Type</span>
+                <select v-model="kindFilter" class="pc-select" aria-label="Filter by file type">
+                  <option value="all">All</option>
+                  <option value="config">Configuration {{ facetCounts.config }}</option>
+                  <option value="script">Script {{ facetCounts.script }}</option>
+                  <option value="plain">Plain {{ facetCounts.plain }}</option>
+                </select>
+              </label>
+              <label class="toolbar-sort">
+                <span>Origin</span>
+                <select v-model="facets.origin" class="pc-select" aria-label="Filter by where the file came from">
+                  <option value="">All</option>
+                  <option value="migrated">Migrated {{ facetCounts.migrated }}</option>
+                  <option value="local">Made here {{ facetCounts.local }}</option>
+                </select>
+              </label>
               <PcCount
-                :value="`${files.length} file${files.length === 1 ? '' : 's'}`"
-                :label="`${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`"
+                :value="plural(files.length, 'file')"
+                :label="`${files.length} of ${allFiles.length} files. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with subscriptions.`"
               />
               <p v-if="!subs.canMutate.value" class="rec-list-note">This session cannot create records here.</p>
             </div>
@@ -1321,132 +1330,93 @@ watch(host.init, (value) => {
             <PcEmptyState
               v-if="!files.length"
               kind="no-match"
-              :title="searchText.trim() ? 'No file matches that search' : 'No files of that kind here'"
+              :title="searchText.trim() ? 'No file matches that search' : 'No file matches these filters'"
             >
               <p v-if="searchText.trim()">Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.</p>
-              <p v-else>Nothing in this store is that kind of file yet.</p>
+              <p v-else-if="facets.published === 'no'">Every file here is published.</p>
+              <p v-else>Nothing in this store matches the filters above.</p>
               <template #actions>
                 <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
               </template>
             </PcEmptyState>
 
-            <template v-else>
-            <div class="rec-list-head">
-              <label class="rec-check">
-                <input
-                  type="checkbox"
+            <PcTable v-else :stacked="false" :min-width="860" label="Files" class="layer-table">
+              <template #head>
+                <PcSelectCell
+                  header
                   :checked="allVisibleSelected"
                   :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                  :aria-label="`Select all ${files.length} shown files`"
+                  :label="`Select all ${files.length} shown files`"
                   @change="toggleSelectAll()"
                 />
-              </label>
-              <div class="rec-head-main">
-                <span>File</span>
-                <span class="rec-col-nodes">Source</span>
-                <span class="rec-col-status">Status</span>
-                <span class="rec-col-when">Operations</span>
-              </div>
-              <span class="rec-head-actions" aria-hidden="true" />
-              <span class="rec-col-chevron" aria-hidden="true" />
-            </div>
-
-            <ul class="rec-rows">
-              <li
-                v-for="item in files"
-                :id="`rec-${item.id}`"
-                :key="item.id"
-                class="rec-row"
-                :class="{ 'is-pending': pendingIds.has(item.id) }"
-                :data-open="expandedId === item.id ? 'true' : undefined"
-                :data-menu="openFileMenuId === item.id ? 'true' : undefined"
-                :data-selected="selectedIds.has(item.id) ? 'true' : undefined"
-              >
-                <div class="rec-row-bar">
-                  <label class="rec-check">
-                    <input
-                      type="checkbox"
-                      :checked="selectedIds.has(item.id)"
-                      :aria-label="`Select ${item.name}`"
-                      @change="toggleSelected(item.id)"
-                    />
-                  </label>
-                  <button
-                    class="rec-ident"
-                    type="button"
-                    :title="nameTitle(item)"
-                    :aria-expanded="expandedId === item.id ? 'true' : 'false'"
-                    :aria-controls="`rec-file-${item.id}`"
-                    @click="toggleRow(item.id)"
-                    @keydown="onIdentKeydown($event, item.id)"
-                  >
-                    <span class="rec-col-name">
-                      <span class="rec-ident-name">{{ item.display_name || item.name }}</span>
-                      <PcKindChip v-if="kindFilter === 'all'" :label="kindLabel(item)" />
-                      <PcTagList v-if="tagChips(item.tags, false).all.length" :tags="tagChips(item.tags, false).all" :max="2" />
-                      <span class="rec-ident-meta">
-                        <span>{{ sourceOf(item) }}</span>
-                        <span v-if="item.id !== (item.display_name || item.name)" class="rec-ident-id">{{ item.id }}</span>
-                      </span>
-                    </span>
-                    <span class="rec-col-nodes">{{ sourceOf(item) }}</span>
-                    <span class="rec-col-status">
-                      <PcStatePill :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" :title="publishedOf(item).title" />
-                    </span>
-                    <span class="rec-col-when">{{ opsOf(item) }}</span>
-                  </button>
-                  <div class="rec-row-actions">
-                    <span class="rec-open">
-                      <PcButton
-                        compact
-                        :disabled="rowAction(item, 'edit').disabled"
-                        :title="rowAction(item, 'edit').reason || rowAction(item, 'edit').title"
-                        @click="runRowAction('edit', item, $event)"
-                      >
-                        Open
-                      </PcButton>
-                    </span>
-                    <RecordMenu
-                      :data-row-menu="item.id"
-                      :name="item.name"
-                      :actions="menuActionsFor(item)"
-                      :open="openFileMenuId === item.id"
-                      @toggle="toggleFileMenu(item.id)"
-                      @run="(id, event) => runRowAction(id, item, event)"
-                      @keydown="onRowMenuKeydown"
-                    />
-                  </div>
-                  <button
-                    class="rec-expand"
-                    type="button"
-                    :aria-expanded="expandedId === item.id ? 'true' : 'false'"
-                    :aria-controls="`rec-file-${item.id}`"
-                    :aria-label="expandedId === item.id ? `Hide facts for ${item.display_name || item.name}` : `Show facts for ${item.display_name || item.name}`"
-                    @click="toggleRow(item.id)"
-                  >
-                    <ChevronRight class="rec-chevron" :size="16" aria-hidden="true" />
-                  </button>
-                </div>
-                <div class="rec-well" :data-open="expandedId === item.id ? 'true' : undefined">
-                  <div class="rec-well-inner">
-                    <div v-if="expandedId === item.id" :id="`rec-file-${item.id}`" class="rec-detail">
-                      <dl class="rec-file-facts">
-                        <dt>Source</dt>
-                        <dd>{{ sourceOf(item) }}</dd>
-                        <dt>Nodes</dt>
-                        <dd>
-                          <PcStateDot v-if="nodeSourceMissing(item)" tone="error" :label="nodesFact(item)" />
-                          <template v-else>{{ nodesFact(item) }}</template>
-                        </dd>
-                        <dt>Operations</dt>
-                        <dd>{{ opsOf(item) }}</dd>
-                      </dl>
+                <PcTh name>Name</PcTh>
+                <PcTh width="120px">Client</PcTh>
+                <PcTh width="200px">Renders</PcTh>
+                <PcTh width="190px">Published</PcTh>
+                <PcTh width="120px">Type</PcTh>
+                <PcTh actions width="48px"><span class="pc-sr-only">Actions</span></PcTh>
+              </template>
+              <tbody>
+                <PcRow
+                  v-for="item in files"
+                  :id="`rec-${item.id}`"
+                  :key="item.id"
+                  class="layer-row"
+                  :class="{ 'is-pending': pendingIds.has(item.id) }"
+                  :selected="selectedIds.has(item.id) || chrome.openId.value === item.id"
+                  @click="openRow(item, $event)"
+                >
+                  <PcSelectCell :checked="selectedIds.has(item.id)" :label="`Select ${item.name}`" @change="toggleSelected(item.id)" />
+                  <td class="pc-name" data-stack="name">
+                    <div class="pc-name-line">
+                      <button type="button" class="row-open" :title="nameTitle(item)" @click.stop="chrome.openRecord(item.id)">
+                        <strong>{{ item.display_name || item.name }}</strong>
+                      </button>
+                      <span v-if="item.tags?.length" class="pc-name-after"><PcTagList :tags="item.tags" :max="2" /></span>
                     </div>
-                  </div>
-                </div>
-              </li>
-            </ul>
-            </template>
+                    <small :title="item.remark || item.id">{{ item.remark || item.id }}</small>
+                  </td>
+                  <td data-stack="detail" data-label="Client" :title="clientOf(item).title"><span class="pc-td-body">{{ clientOf(item).text }}</span></td>
+                  <td data-stack="detail" data-label="Renders" :title="rendersOf(item).title">
+                    <span class="pc-td-body">
+                      <PcStateDot v-if="rendersOf(item).missing" tone="error" :label="`${rendersOf(item).text} is gone`" />
+                      <template v-else>{{ rendersOf(item).text }}</template>
+                    </span>
+                  </td>
+                  <td data-stack="detail" data-label="Published" :title="publishedOf(item).title">
+                    <span class="pc-td-body">
+                      <span v-if="publishedOf(item).slug" class="layer-share">
+                        <PcStateDot :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" />
+                      </span>
+                      <button
+                        v-else-if="shareOrigin && shareStore.shares.value !== undefined"
+                        type="button"
+                        class="row-publish"
+                        :title="`Open the console's share form for ${item.name}`"
+                        @click.stop="openShares(item.name)"
+                      >
+                        Publish
+                      </button>
+                      <span v-else-if="shareStore.shares.value !== undefined" class="layer-muted">not published</span>
+                    </span>
+                  </td>
+                  <td data-stack="detail" data-label="Type"><span class="pc-td-body">{{ kindLabel(item) }}</span></td>
+                  <td class="pc-actions" data-stack="actions">
+                    <div class="pc-row-actions">
+                      <RecordMenu
+                        :data-row-menu="item.id"
+                        :name="item.name"
+                        :actions="menuActionsFor(item)"
+                        :open="openFileMenuId === item.id"
+                        @toggle="toggleFileMenu(item.id)"
+                        @run="(id, event) => runRowAction(id, item, event)"
+                        @keydown="onRowMenuKeydown"
+                      />
+                    </div>
+                  </td>
+                </PcRow>
+              </tbody>
+            </PcTable>
           </div>
         </PcPanel>
       </template>

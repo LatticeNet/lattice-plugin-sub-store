@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from "vue";
-import { ChevronRight, Library, Server, Trash2 } from "@lucide/vue";
+import { Layers, Library, Server, Trash2 } from "@lucide/vue";
 import {
   PcBatchBar,
   PcButton,
@@ -9,16 +9,17 @@ import {
   PcKindChip,
   PcNotice,
   PcPanel,
+  PcRow,
   PcSearchField,
+  PcSelectCell,
   PcSkeleton,
   PcStateDot,
-  PcStatePill,
+  PcTable,
   PcTagList,
+  PcTh,
 } from "@latticenet/plugin-bridge/chassis";
 
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
-import RecordChainDetail from "../components/RecordChainDetail.vue";
-import RecKindTabs from "../components/RecKindTabs.vue";
 import RecordMenu from "../components/RecordMenu.vue";
 import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
@@ -47,28 +48,25 @@ import { useHost } from "../host";
 import { copyText } from "../hostClipboard";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
-import { formatRelativeTime, formatTraffic, parseUserinfo, tagChips as tagChipsOf } from "../rowStatus";
 import { publishStateFor, refreshStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
-import {
-  cutChain,
-  enabledStepIndexes,
-  explainChain,
-  type ChainExplanation,
-} from "../chainExplain";
-import { createNodeCountQueue, nodeCountLabel, nodeCountTitle } from "../nodeCounts";
-import { maskUrl } from "../urlMask";
+import { nodeCountLabel, nodeCountTitle } from "../nodeCounts";
+import { useNodeCounts } from "../useNodeCounts";
 import MaskedUrlInput from "../components/MaskedUrlInput.vue";
+import UsageBar from "../components/UsageBar.vue";
 import { describeSubStoreBase, resolveSubStoreBase } from "../migrateUrl";
-import { useReveal } from "../reveal";
-import { safeErrorMessage } from "../subStoreModel";
 import {
-  BINDINGS,
-  callMethod,
-  type SubscriptionPreviewResponse,
-  type SubscriptionRecord,
-} from "../client";
+  buildLineage,
+  formatExpiry,
+  isProviderLink,
+  plural,
+  providerFigures,
+  recordLabel,
+  sourceKindLabel,
+  usedBy,
+  type ViewId,
+} from "../pipeline";
 import {
   draftFromRecord,
   emptyDraft,
@@ -100,6 +98,16 @@ const MANAGED_TYPES = ["Quick Setting Operator", "Useless Filter"] as const;
 
 const host = useHost();
 const subs = useSubscriptions(host);
+
+/**
+ * One screen for two layers. Sources and Combinations are the same store,
+ * the same editor and the same row verbs; what differs is which records the
+ * table holds and which columns mean something for them.
+ */
+const props = defineProps<{ kind: "sub" | "collection" }>();
+const isComboLayer = computed(() => props.kind === KIND_COLLECTION);
+const viewId = computed<ViewId>(() => (isComboLayer.value ? "combinations" : "sources"));
+const noun = computed(() => (isComboLayer.value ? "combination" : "source"));
 
 /**
  * The editor half. It lives in a composable because `editing` is what this
@@ -154,26 +162,31 @@ const pendingIds = ref<Set<string>>(new Set());
 
 
 
-// Files live in the same store but on their own tab.
+// The records this layer lists: one kind, never files.
 const onThisTab = computed(() =>
-  subs.items.value.filter((i) => (i.kind || KIND_SUB) !== KIND_FILE),
+  subs.items.value.filter((i) => ((i.kind || KIND_SUB) === KIND_COLLECTION) === isComboLayer.value && i.kind !== KIND_FILE),
 );
 
-/** Kind is a tab, not a nested shelf. Search still matches names, ids, remarks and tags. */
-const kindFilter = ref<"all" | "single" | "combo">("all");
-const filtersActive = computed(() => !!searchText.value.trim() || kindFilter.value !== "all");
-
-function setKindFilter(id: string): void {
-  if (id === "all" || id === "single" || id === "combo") kindFilter.value = id;
+/**
+ * The migration marker is a facet, not a chip on every row: production's
+ * records are all migrated, and a chip on all of them says nothing about any
+ * one. The facet lives on the address (`?origin=migrated`).
+ */
+const originFilter = chrome.facets;
+function originMatches(item: SubscriptionListItem): boolean {
+  if (originFilter.origin === "migrated") return item.imported;
+  if (originFilter.origin === "local") return !item.imported;
+  return true;
 }
+const originCounts = computed(() => {
+  const migrated = onThisTab.value.filter((item) => item.imported).length;
+  return { all: onThisTab.value.length, migrated, local: onThisTab.value.length - migrated };
+});
+const filtersActive = computed(() => !!searchText.value.trim() || !!originFilter.origin);
 
 function clearFilters(): void {
   searchText.value = "";
-  kindFilter.value = "all";
-}
-
-function isCombo(item: SubscriptionListItem): boolean {
-  return (item.kind || KIND_SUB) === KIND_COLLECTION;
+  originFilter.origin = "";
 }
 
 function clearTransientListState(): void {
@@ -181,29 +194,11 @@ function clearTransientListState(): void {
   // reappear when the operator comes back to the list.
   deleting.value = [];
   drawer.value = null;
-  expandedId.value = "";
-  rowChain.value = null;
-  revealSource.hide();
 }
 
 
 
 
-/** The Source column: where a record's nodes come from, in three words. */
-function describe(item: SubscriptionListItem): string {
-  if ((item.kind || KIND_SUB) === KIND_COLLECTION) {
-    const byId = item.members?.length ?? 0;
-    const byTag = item.member_tags?.length ?? 0;
-    const parts: string[] = [];
-    if (byId) parts.push(`${byId} member${byId === 1 ? "" : "s"}`);
-    if (byTag) parts.push(`${byTag} tag${byTag === 1 ? "" : "s"}`);
-    return parts.length ? parts.join(", ") : "No members yet";
-  }
-  if (item.source === SOURCE_VPN_CORE) return "This fleet's nodes";
-  if (item.source === SOURCE_VPN_CORE_GRAPH) return "Converged graph path";
-  if (item.source === SOURCE_LOCAL) return "Pasted nodes";
-  return item.has_url ? "Provider link" : "Pasted nodes";
-}
 
 // ── empty state: guidance, not a dead end ───────────────────────────────────
 
@@ -242,10 +237,6 @@ async function confirmMigrate(): Promise<void> {
 // ── row status ──────────────────────────────────────────────────────────────
 
 
-/** The provider's quota line, compact; "" when there is nothing honest to say. */
-function trafficOf(item: SubscriptionListItem): string {
-  return formatTraffic(parseUserinfo(item.userinfo));
-}
 
 // ── table ───────────────────────────────────────────────────────────────────
 
@@ -272,16 +263,6 @@ const unsortedRows = computed(() => {
   return onThisTab.value.filter((item) => matchesQuery(item, query));
 });
 
-const kindCounts = computed(() => {
-  const rows = unsortedRows.value;
-  const combo = rows.filter(isCombo).length;
-  return { all: rows.length, single: rows.length - combo, combo };
-});
-const kindTabs = computed(() => [
-  { id: "all", label: "All", count: kindCounts.value.all },
-  { id: "single", label: "Single", count: kindCounts.value.single },
-  { id: "combo", label: "Combinations", count: kindCounts.value.combo },
-]);
 
 /** Rank for the status sort: what needs attention first. */
 function statusWeight(item: SubscriptionListItem): number {
@@ -293,11 +274,8 @@ function statusWeight(item: SubscriptionListItem): number {
 }
 
 const filteredRows = computed(() => {
-  let rows = unsortedRows.value;
-  if (kindFilter.value === "single") rows = rows.filter((row) => !isCombo(row));
-  if (kindFilter.value === "combo") rows = rows.filter(isCombo);
-  rows = [...rows];
-  if (sortKey.value === "name") {
+  const rows = unsortedRows.value.filter(originMatches);
+  if (sortKey.value === "name" || (isComboLayer.value && sortKey.value === "recent")) {
     rows.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
   } else if (sortKey.value === "status") {
     rows.sort((a, b) => statusWeight(a) - statusWeight(b) || a.name.localeCompare(b.name));
@@ -337,12 +315,9 @@ function opsOf(row: SubscriptionListItem): string {
   return row.disabled_step_count ? `${label} (${row.disabled_step_count} off)` : label;
 }
 
-function updatedOf(row: SubscriptionListItem): string {
-  return row.last_fetch_at ? formatRelativeTime(row.last_fetch_at) || "n/a" : "n/a";
-}
 
 /** What the record card's count badge says and what its title explains. */
-const countLabel = computed(() => `${filteredRows.value.length} record${filteredRows.value.length === 1 ? "" : "s"}`);
+const countLabel = computed(() => plural(filteredRows.value.length, noun.value));
 const countTitle = computed(() =>
   filtersActive.value
     ? `${filteredRows.value.length} of ${onThisTab.value.length} records match. The ${MAX_SUBSCRIPTION_RECORDS} record budget is shared with files.`
@@ -353,8 +328,8 @@ const countTitle = computed(() =>
 watch(
   [editing, () => selectedVisible.value.length],
   ([isEditing, count]) => {
-    chrome.lenses.subscriptions.editing = isEditing;
-    chrome.lenses.subscriptions.selected = count;
+    chrome.lenses[viewId.value].editing = isEditing;
+    chrome.lenses[viewId.value].selected = count;
   },
   { immediate: true },
 );
@@ -469,10 +444,6 @@ function onDocumentKeydown(event: KeyboardEvent): void {
     closeRowMenu();
     return;
   }
-  if (expandedId.value && !editing.value) {
-    collapseRow();
-    return;
-  }
   // Escape is how every other surface in this frame steps back, and the editor
   // is a screen you enter, so it answers the same key. Who owns the key while
   // an overlay is up is decided in editorExit.ts.
@@ -493,10 +464,11 @@ const actionCaps = computed<ActionCapabilities>(() => ({
 }));
 
 /**
- * The row keeps Open on its trailing edge, the way official Sub-Store keeps a
- * pen on the card, and folds every other verb into its menu.
+ * One affordance per row: the row opens the side panel, and this one menu
+ * holds the verbs that act on the record without opening it. Preview,
+ * publishing and editing live on the panel and the record page.
  */
-const MENU_ACTIONS = ["output", "refresh", "preview", "share", "publish", "duplicate", "delete"] as const;
+const MENU_ACTIONS = ["output", "refresh", "duplicate", "delete"] as const;
 
 function menuActionsFor(row: SubscriptionListItem) {
   return actionsFor(row, actionCaps.value, MENU_ACTIONS).map((action) =>
@@ -521,17 +493,9 @@ function shareActionFor(row: SubscriptionListItem, action: ResolvedAction): Reso
   return action;
 }
 
-/** The tags a row shows: two, then "+N", the whole list in the title. */
-function tagChips(row: SubscriptionListItem) {
-  return tagChipsOf(row.tags, row.imported);
-}
-
-/**
- * The title on the name: the id that ties a row to a share. Open is its own
- * control; this button discloses the chain.
- */
+/** The name opens the peek; the id is its title so a row can be tied to a share. */
 function nameTitle(row: SubscriptionListItem): string {
-  return `${row.id}. ${row.display_name || row.name}. Show the chain.`;
+  return `${row.id}. Show it in the side panel.`;
 }
 
 /** The chassis's tone for a row verdict. */
@@ -560,14 +524,15 @@ const intent = recordIntent(host);
 watch(
   intent,
   (value) => {
-    if (isCommandIntent(value) && value.command !== "new-file") {
+    const mine = isComboLayer.value ? "new-collection" : "new-subscription";
+    if (isCommandIntent(value) && value.command === mine) {
       claimIntent(intent, () => true);
-      startCreate(value.command === "new-collection" ? KIND_COLLECTION : KIND_SUB);
+      startCreate(isComboLayer.value ? KIND_COLLECTION : KIND_SUB);
       return;
     }
     if (!isRecordIntent(value)) return;
-    const row = subs.items.value.find((item) => item.id === value.recordId);
-    if (!row || row.kind === KIND_FILE) return;
+    const row = onThisTab.value.find((item) => item.id === value.recordId);
+    if (!row) return;
     claimIntent(intent, () => true);
     runRowAction(value.action, row, new MouseEvent("click"));
   },
@@ -628,15 +593,7 @@ function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" 
 // read-scoped `preview` the row's eye uses. The rows render first and print
 // "?" until their count lands; a preview of a provider link fetches the
 // provider, exactly as the eye does.
-const counts = createNodeCountQueue((id) => {
-  if (!host.bridge) return Promise.reject(new Error("The console is not connected"));
-  return callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, { subscription_id: id })
-    .promise.catch((cause) => {
-      // The reason is shown in the cell's title, so it goes through the same
-      // redaction every other error does: a fetch failure quotes the link.
-      throw new Error(safeErrorMessage(cause, "Preview failed"));
-    });
-});
+const counts = useNodeCounts(host);
 watch(
   () => (subs.canPreview.value && !editing.value ? filteredRows.value.map((row) => row.id) : []),
   (ids) => counts.request(ids),
@@ -654,122 +611,59 @@ function recount(id: string): void {
   if (subs.canPreview.value && filteredRows.value.some((row) => row.id === id)) counts.request([id]);
 }
 
-// ── inline chain ────────────────────────────────────────────────────────────
-// A row expands to its operations and what each one kept, so the chain can be
-// read without opening the editor. The list item carries only counts, so the
-// record is read on expand and the chain explained the way the editor does:
-// one partial run per enabled operation. One row at a time; Escape collapses.
-interface RowChain {
-  id: string;
-  loading: boolean;
-  error: string;
-  record: SubscriptionRecord | null;
-  explanation: ChainExplanation | null;
-  /** The chain position being previewed right now. */
-  running: number | null;
-}
-const expandedId = ref("");
-const rowChain = ref<RowChain | null>(null);
-const revealSource = useReveal();
-const emptyDroppedBy = new Map<string, string>();
+// ── columns ─────────────────────────────────────────────────────────────────
+// What each column says, and why a cell is empty when it is: a blank cell
+// with its reason on hover, never a printed n/a.
 
-const chainSteps = computed<ChainStep[]>(() => {
-  const record = rowChain.value?.record;
-  if (!record) return [];
-  const process = Array.isArray(record.process) && record.process.length ? record.process : record.operators;
-  return (Array.isArray(process) ? process : []) as ChainStep[];
-});
-const chainIsCombination = computed(() => (rowChain.value?.record?.kind || KIND_SUB) === KIND_COLLECTION);
+const lineage = computed(() => buildLineage(subs.items.value, shares.value));
 
-function collapseRow(): void {
-  const id = expandedId.value;
-  expandedId.value = "";
-  rowChain.value = null;
-  revealSource.hide();
-  if (id) {
-    void nextTick(() => {
-      document.querySelector<HTMLElement>(`#rec-${cssEscape(id)} .rec-ident`)?.focus();
-    });
-  }
-  void host.resize();
+function usedByOf(row: SubscriptionListItem): { text: string; title: string } {
+  const used = usedBy(lineage.value, row.id);
+  const parts: string[] = [];
+  if (used.combinations.length) parts.push(plural(used.combinations.length, "combination"));
+  if (used.files.length) parts.push(plural(used.files.length, "file"));
+  if (used.shares.length) parts.push(plural(used.shares.length, "share"));
+  if (!parts.length) return { text: "", title: `Nothing uses this ${noun.value}: no combination, file or share draws from it.` };
+  const names = [...used.combinations, ...used.files].map((id) => {
+    const item = subs.items.value.find((entry) => entry.id === id);
+    return item ? recordLabel(item) : id;
+  });
+  return { text: parts.join(", "), title: names.join(", ") };
 }
 
-async function toggleRow(id: string): Promise<void> {
-  if (expandedId.value === id) {
-    collapseRow();
-    return;
-  }
-  expandedId.value = id;
-  revealSource.hide();
-  rowChain.value = { id, loading: true, error: "", record: null, explanation: null, running: null };
-  await host.resize();
-  const record = await subs.get(id);
-  if (expandedId.value !== id) return;
-  if (!record) {
-    rowChain.value = { id, loading: false, error: subs.actionError.value || "The record could not be read", record: null, explanation: null, running: null };
-    subs.actionError.value = "";
-    return;
-  }
-  rowChain.value = { id, loading: false, error: "", record, explanation: null, running: null };
-  // Work on the ref's own proxy, not the object handed to it: writes through
-  // a plain copy would render nothing, and the copy never equals the proxy.
-  const chain = rowChain.value;
-  await host.resize();
-  const bridge = host.bridge;
-  if (!bridge || !subs.canPreview.value) return;
-  const steps = chainSteps.value;
-  const current = () => rowChain.value?.id === id && expandedId.value === id;
-  try {
-    if ((record.kind || KIND_SUB) === KIND_COLLECTION || !enabledStepIndexes(steps).length) {
-      // The engine runs a combination's operations over its members' merged
-      // output and reports one result, and a chain with nothing enabled has
-      // nothing to account for: one whole run answers both.
-      const result = await callMethod<SubscriptionPreviewResponse>(bridge, BINDINGS.subPreview, { subscription_id: id }).promise;
-      if (!current()) return;
-      chain.explanation = { deltas: [], droppedBy: new Map(), final: result, complete: true };
-      counts.record(id, result);
-      return;
-    }
-    const explanation = await explainChain(steps, async (upTo) => {
-      if (!current()) throw new Error("collapsed");
-      chain.running = upTo;
-      try {
-        return await callMethod<SubscriptionPreviewResponse>(bridge, BINDINGS.subPreview, {
-          subscription_id: id,
-          operators: cutChain(steps, upTo),
-        }).promise;
-      } catch (cause) {
-        if (current()) chain.error = safeErrorMessage(cause, "Preview failed");
-        throw cause;
-      } finally {
-        chain.running = null;
-      }
-    });
-    if (!current()) return;
-    chain.explanation = explanation;
-    if (explanation.complete && explanation.final) counts.record(id, explanation.final);
-  } finally {
-    await host.resize();
-  }
+function membersOf(row: SubscriptionListItem): { text: string; title: string; missing: number } {
+  const resolved = lineage.value.upstream.get(row.id) ?? [];
+  const missing = lineage.value.broken.filter((ref) => ref.owner === row.id);
+  const names = resolved.map((id) => {
+    const item = subs.items.value.find((entry) => entry.id === id);
+    return item ? recordLabel(item) : id;
+  });
+  const shown = names.slice(0, 2).join(", ") + (names.length > 2 ? ` +${names.length - 2}` : "");
+  const title = [
+    ...names,
+    ...missing.map((ref) => `${ref.ref} (${ref.reason})`),
+    ...(row.member_tags?.length ? [`and every source tagged ${row.member_tags.join(", ")}`] : []),
+  ].join(", ");
+  return { text: shown, title, missing: missing.length };
 }
 
-function onIdentKeydown(event: KeyboardEvent, id: string): void {
-  if (event.key === "ArrowRight" && expandedId.value !== id) {
-    event.preventDefault();
-    void toggleRow(id);
-  } else if (event.key === "ArrowLeft" && expandedId.value === id) {
-    event.preventDefault();
-    collapseRow();
-  }
+function stepsOf(row: SubscriptionListItem): string {
+  return row.disabled_step_count ? `${row.step_count} (${row.disabled_step_count} off)` : String(row.step_count);
 }
 
-watch(filteredRows, (rows) => {
-  if (expandedId.value && !rows.some((row) => row.id === expandedId.value)) {
-    expandedId.value = "";
-    rowChain.value = null;
-    revealSource.hide();
-  }
-});
+const NOT_A_PROVIDER = "Only a provider link reports traffic and expiry. This source's nodes are already in hand.";
+const NOT_FETCHED = "Only a provider link is refreshed. This source's nodes are already in hand.";
+
+function figuresOf(row: SubscriptionListItem) {
+  return isProviderLink(row) ? providerFigures(row) : null;
+}
+
+function openRow(row: SubscriptionListItem, event: MouseEvent): void {
+  // The checkbox and the menu are controls of their own inside the row.
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("input, [data-row-menu], .rec-menu")) return;
+  chrome.openRecord(row.id);
+}
 
 // ── row + batch operations ──────────────────────────────────────────────────
 
@@ -1025,8 +919,8 @@ watch(host.init, (value) => {
     <SubscriptionEditor v-if="editing" :editor="editor" :subs="subs" />
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
-    <section v-else class="lens" aria-labelledby="subs-title">
-      <h2 id="subs-title" class="pc-sr-only">Subscriptions</h2>
+    <section v-else class="lens" :aria-labelledby="`${viewId}-title`">
+      <h2 :id="`${viewId}-title`" class="pc-sr-only">{{ isComboLayer ? "Combinations" : "Sources" }}</h2>
 
       <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
       <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
@@ -1070,8 +964,8 @@ watch(host.init, (value) => {
         <LtManualCopy :value="manualShareLink.value" subject="link" />
       </div>
 
-      <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" label="Loading subscriptions">
-        <PcSkeleton :count="6" label="Loading the subscriptions" />
+      <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" :label="`Loading ${noun}s`">
+        <PcSkeleton :count="6" :label="`Loading the ${noun}s`" />
       </PcPanel>
 
       <template v-else-if="subs.loadError.value">
@@ -1079,15 +973,31 @@ watch(host.init, (value) => {
           {{ subs.loadError.value }}
           <template #actions><PcButton compact @click="loadAll()">Try again</PcButton></template>
         </PcNotice>
-        <PcPanel label="Subscriptions">
+        <PcPanel :label="isComboLayer ? 'Combinations' : 'Sources'">
           <PcEmptyState kind="error" title="Nothing could be loaded">
             <p>This is not an empty store, it is an unanswered question.</p>
           </PcEmptyState>
         </PcPanel>
       </template>
 
-      <PcPanel v-else-if="storeEmpty" label="Subscriptions">
-        <PcEmptyState title="No subscriptions yet">
+      <PcPanel v-else-if="storeEmpty && isComboLayer" label="Combinations">
+        <PcEmptyState title="No combinations yet">
+          <template #icon><Layers :size="26" aria-hidden="true" /></template>
+          <p>A combination merges several sources and runs one chain over the result, so a file can render all of them at once.</p>
+          <template #actions>
+            <PcButton
+              :disabled="!subs.canMutate.value || !subs.items.value.some((item) => (item.kind || KIND_SUB) === KIND_SUB)"
+              :title="subs.items.value.some((item) => (item.kind || KIND_SUB) === KIND_SUB) ? undefined : 'Create a source first. There is nothing to combine'"
+              @click="startCreate(KIND_COLLECTION)"
+            >
+              New combination
+            </PcButton>
+          </template>
+        </PcEmptyState>
+      </PcPanel>
+
+      <PcPanel v-else-if="storeEmpty" label="Sources">
+        <PcEmptyState title="No sources yet">
           <template #icon><Library :size="26" aria-hidden="true" /></template>
           <p>Start with your own fleet: one subscription reading this deployment's vpn-core nodes.</p>
           <template #actions>
@@ -1138,13 +1048,19 @@ watch(host.init, (value) => {
           The newest reload failed ({{ subs.staleError.value }}).
         </PcNotice>
 
-        <PcPanel label="Subscriptions">
-          <div class="rec-list" aria-label="Subscriptions and combinations">
-            <RecKindTabs :model-value="kindFilter" label="Record kind" :tabs="kindTabs" @update:model-value="setKindFilter" />
-
+        <PcPanel :label="isComboLayer ? 'Combinations' : 'Sources'">
+          <div class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'">
             <div class="rec-tools">
-              <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter subscriptions" />
+              <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" :label="`Filter ${noun}s`" />
               <label class="toolbar-sort">
+                <span>Origin</span>
+                <select v-model="originFilter.origin" class="pc-select" aria-label="Filter by where the record came from">
+                  <option value="">All {{ originCounts.all }}</option>
+                  <option value="migrated">Migrated {{ originCounts.migrated }}</option>
+                  <option value="local">Made here {{ originCounts.local }}</option>
+                </select>
+              </label>
+              <label v-if="!isComboLayer" class="toolbar-sort">
                 <span>Sort</span>
                 <select v-model="sortKey" class="pc-select" aria-label="Sort records">
                   <option value="recent">Recently refreshed</option>
@@ -1159,159 +1075,98 @@ watch(host.init, (value) => {
             <PcEmptyState
               v-if="!filteredRows.length"
               kind="no-match"
-              :title="searchText.trim() ? 'No record matches that search' : kindFilter === 'combo' ? 'No combinations here' : 'No single subscriptions here'"
+              :title="searchText.trim() ? 'No record matches that search' : `No ${noun}s match that filter`"
             >
               <p v-if="searchText.trim()">
                 Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.
               </p>
-              <p v-else-if="kindFilter === 'combo'">This store has no combinations yet.</p>
-              <p v-else>This store has no single subscriptions yet.</p>
+              <p v-else>None of the {{ plural(onThisTab.length, noun) }} here {{ originFilter.origin === "migrated" ? "was migrated" : "was made here" }}.</p>
               <template #actions>
                 <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
               </template>
             </PcEmptyState>
 
-            <template v-else>
-            <div class="rec-list-head">
-              <label class="rec-check">
-                <input
-                  type="checkbox"
+            <PcTable v-else :stacked="false" :min-width="isComboLayer ? 760 : 1040" :label="isComboLayer ? 'Combinations' : 'Sources'" class="layer-table">
+              <template #head>
+                <PcSelectCell
+                  header
                   :checked="allVisibleSelected"
                   :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                  :aria-label="`Select all ${filteredRows.length} shown records`"
+                  :label="`Select all ${filteredRows.length} shown records`"
                   @change="toggleSelectAll()"
                 />
-              </label>
-              <div class="rec-head-main">
-                <span>Record</span>
-                <span class="rec-col-nodes">Nodes</span>
-                <span class="rec-col-status">Status</span>
-                <span class="rec-col-when">Updated</span>
-              </div>
-              <span class="rec-head-actions" aria-hidden="true" />
-              <span class="rec-col-chevron" aria-hidden="true" />
-            </div>
-
-            <ul class="rec-rows">
-              <li
-                v-for="row in filteredRows"
-                :id="`rec-${row.id}`"
-                :key="row.id"
-                class="rec-row"
-                :class="{ 'is-pending': pendingIds.has(row.id) }"
-                :data-open="expandedId === row.id ? 'true' : undefined"
-                :data-menu="openMenuId === row.id ? 'true' : undefined"
-                :data-selected="selectedIds.has(row.id) ? 'true' : undefined"
-              >
-                <div class="rec-row-bar">
-                  <label class="rec-check">
-                    <input
-                      type="checkbox"
-                      :checked="selectedIds.has(row.id)"
-                      :aria-label="`Select ${row.name}`"
-                      @change="toggleSelected(row.id)"
-                    />
-                  </label>
-                  <button
-                    class="rec-ident"
-                    type="button"
-                    :title="nameTitle(row)"
-                    :aria-expanded="expandedId === row.id ? 'true' : 'false'"
-                    :aria-controls="`rec-chain-${row.id}`"
-                    @click="toggleRow(row.id)"
-                    @keydown="onIdentKeydown($event, row.id)"
-                  >
-                    <span class="rec-col-name">
-                      <span class="rec-ident-name">{{ row.display_name || row.name }}</span>
-                      <PcKindChip
-                        v-if="kindFilter === 'all' && isCombo(row)"
-                        label="Combination"
-                        tone="info"
-                      />
-                      <PcTagList v-if="tagChips(row).all.length" :tags="tagChips(row).all" :max="2" />
-                      <span class="rec-ident-meta">
-                        <span :title="row.remark || describe(row)">{{ describe(row) }}</span>
-                        <span v-if="row.id !== (row.display_name || row.name)" class="rec-ident-id">{{ row.id }}</span>
-                        <span v-if="trafficOf(row)" :title="trafficOf(row)">{{ trafficOf(row) }}</span>
-                        <span class="rec-ident-ops" :title="row.target ? `Always rendered for ${row.target}` : undefined">{{ opsOf(row) }}</span>
+                <PcTh name>Name</PcTh>
+                <PcTh v-if="!isComboLayer" width="120px">Kind</PcTh>
+                <PcTh v-else width="220px">Members</PcTh>
+                <PcTh numeric width="96px">Nodes</PcTh>
+                <PcTh numeric width="72px">Steps</PcTh>
+                <template v-if="!isComboLayer">
+                  <PcTh width="200px">Provider</PcTh>
+                  <PcTh width="150px">Last fetch</PcTh>
+                </template>
+                <PcTh width="190px">Used by</PcTh>
+                <PcTh actions width="48px"><span class="pc-sr-only">Actions</span></PcTh>
+              </template>
+              <tbody>
+                <PcRow
+                  v-for="row in filteredRows"
+                  :id="`rec-${row.id}`"
+                  :key="row.id"
+                  class="layer-row"
+                  :class="{ 'is-pending': pendingIds.has(row.id) }"
+                  :selected="selectedIds.has(row.id) || chrome.openId.value === row.id"
+                  @click="openRow(row, $event)"
+                >
+                  <PcSelectCell :checked="selectedIds.has(row.id)" :label="`Select ${row.name}`" @change="toggleSelected(row.id)" />
+                  <td class="pc-name" data-stack="name">
+                    <div class="pc-name-line">
+                      <button type="button" class="row-open" :title="nameTitle(row)" @click.stop="chrome.openRecord(row.id)">
+                        <strong>{{ row.display_name || row.name }}</strong>
+                      </button>
+                      <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="2" /></span>
+                    </div>
+                    <small :title="row.remark || row.id">{{ row.remark || row.id }}</small>
+                  </td>
+                  <td v-if="!isComboLayer" data-stack="detail" data-label="Kind"><span class="pc-td-body">{{ sourceKindLabel(row) }}</span></td>
+                  <td v-else data-stack="detail" data-label="Members" :title="membersOf(row).title">
+                    <span class="pc-td-body layer-members">
+                      <span class="layer-members-names">{{ membersOf(row).text }}</span>
+                      <PcStateDot v-if="membersOf(row).missing" tone="error" :label="`${membersOf(row).missing} missing`" />
+                    </span>
+                  </td>
+                  <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes" :title="nodesTitle(row)"><span class="pc-td-body">{{ nodesOf(row) }}</span></td>
+                  <td class="pc-numeric pc-mono" data-stack="detail" data-label="Steps" :title="row.target ? `Always rendered for ${row.target}` : undefined"><span class="pc-td-body">{{ stepsOf(row) }}</span></td>
+                  <template v-if="!isComboLayer">
+                    <td data-stack="detail" data-label="Provider" :title="figuresOf(row) ? undefined : NOT_A_PROVIDER">
+                      <span v-if="figuresOf(row)" class="pc-td-body layer-provider">
+                        <UsageBar :figures="figuresOf(row)!" />
+                        <span v-if="formatExpiry(figuresOf(row), Date.now())" class="layer-expiry">{{ formatExpiry(figuresOf(row), Date.now()) }}</span>
                       </span>
-                    </span>
-                    <span class="rec-col-nodes mono" :title="nodesTitle(row)">{{ nodesOf(row) }}</span>
-                    <span class="rec-col-status">
-                      <PcStatePill
-                        :tone="tone(publishedOf(row).tone)"
-                        :label="publishedOf(row).label"
-                        :title="shares === undefined ? sharesError || publishedOf(row).title : publishedOf(row).title"
-                      />
-                    </span>
-                    <span class="rec-col-when">
-                      <PcStateDot
-                        :tone="tone(statusOf(row).tone)"
-                        :label="updatedOf(row)"
-                        :title="statusOf(row).title || statusOf(row).label"
-                      />
-                    </span>
-                  </button>
-                  <div class="rec-row-actions">
-                    <span class="rec-open">
-                      <PcButton
-                        compact
-                        :disabled="rowAction(row, 'edit').disabled"
-                        :title="rowAction(row, 'edit').reason || rowAction(row, 'edit').title"
-                        @click="runRowAction('edit', row, $event)"
-                      >
-                        Open
-                      </PcButton>
-                    </span>
-                    <RecordMenu
-                      :data-row-menu="row.id"
-                      :name="row.name"
-                      :actions="menuActionsFor(row)"
-                      :open="openMenuId === row.id"
-                      @toggle="toggleRowMenu(row.id)"
-                      @run="(id, event) => runRowAction(id, row, event)"
-                      @keydown="onRowMenuKeydown"
-                    />
-                  </div>
-                  <button
-                    class="rec-expand"
-                    type="button"
-                    :aria-expanded="expandedId === row.id ? 'true' : 'false'"
-                    :aria-controls="`rec-chain-${row.id}`"
-                    :aria-label="expandedId === row.id ? `Hide the chain for ${row.display_name || row.name}` : `Show the chain for ${row.display_name || row.name}`"
-                    @click="toggleRow(row.id)"
-                  >
-                    <ChevronRight class="rec-chevron" :size="16" aria-hidden="true" />
-                  </button>
-                </div>
-                <div class="rec-well" :data-open="expandedId === row.id ? 'true' : undefined">
-                  <div class="rec-well-inner">
-                    <div v-if="expandedId === row.id" :id="`rec-chain-${row.id}`" class="rec-detail">
-                      <RecordChainDetail
-                        :loading="!!rowChain?.loading"
-                        :error="rowChain?.error || ''"
-                        :source-kind="describe(row)"
-                        :url="rowChain?.record?.url || ''"
-                        :url-revealed="revealSource.on.value"
-                        :url-masked="rowChain?.record?.url ? maskUrl(rowChain.record.url) : ''"
-                        :steps="chainSteps"
-                        :deltas="rowChain?.explanation?.deltas || []"
-                        :dropped="rowChain?.explanation?.final?.dropped || []"
-                        :dropped-by="rowChain?.explanation?.droppedBy ?? emptyDroppedBy"
-                        :dropped-count="rowChain?.explanation?.final?.dropped_count || 0"
-                        :dropped-truncated="!!rowChain?.explanation?.final?.dropped_truncated"
-                        :is-combination="chainIsCombination"
-                        :can-preview="subs.canPreview.value"
-                        :running="rowChain?.running ?? null"
-                        :final="rowChain?.explanation?.final || null"
-                        @reveal="revealSource.toggle()"
+                      <span v-else-if="isProviderLink(row)" class="pc-td-body layer-muted" title="The provider has not sent traffic figures, or the link has not been refreshed yet.">not reported</span>
+                    </td>
+                    <td data-stack="detail" data-label="Last fetch" :title="isProviderLink(row) ? undefined : NOT_FETCHED">
+                      <span v-if="isProviderLink(row)" class="pc-td-body">
+                        <PcStateDot :tone="tone(statusOf(row).tone)" :label="statusOf(row).label" :title="statusOf(row).title || statusOf(row).label" />
+                      </span>
+                    </td>
+                  </template>
+                  <td data-stack="detail" data-label="Used by" :title="usedByOf(row).title"><span class="pc-td-body">{{ usedByOf(row).text }}</span></td>
+                  <td class="pc-actions" data-stack="actions">
+                    <div class="pc-row-actions">
+                      <RecordMenu
+                        :data-row-menu="row.id"
+                        :name="row.name"
+                        :actions="menuActionsFor(row)"
+                        :open="openMenuId === row.id"
+                        @toggle="toggleRowMenu(row.id)"
+                        @run="(id, event) => runRowAction(id, row, event)"
+                        @keydown="onRowMenuKeydown"
                       />
                     </div>
-                  </div>
-                </div>
-              </li>
-            </ul>
-            </template>
+                  </td>
+                </PcRow>
+              </tbody>
+            </PcTable>
           </div>
         </PcPanel>
       </template>

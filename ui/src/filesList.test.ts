@@ -5,24 +5,45 @@ const SRC = new URL(".", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, SRC), "utf8");
 
 /**
- * Files and Shares sit on the same resource-list chassis as Subscriptions.
- * They had been PcTable, so switching lenses changed personality.
+ * Files and Shares are L1 collections on the same table chassis as Sources:
+ * columns that mean something for the kind, the first one sticky, one
+ * affordance per row (design 22, section 4).
  */
-describe("the files list is a resource list, not a table", () => {
+describe("the files layer is a table of what each file renders and whether it is served", () => {
   const styles = read("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
   const screen = read("screens/FilesScreen.vue");
-  const shares = read("screens/SharesScreen.vue");
 
-  it("draws rec-list, with no PcTable", () => {
-    expect(screen).toContain("<PcPanel");
-    expect(screen).toContain('class="rec-list"');
-    expect(screen).toContain("<RecKindTabs");
-    expect(screen).not.toContain("PcTable");
-    expect(screen).not.toContain("rec-files");
-    expect(styles).not.toContain(".rec-files");
-    expect(styles).not.toContain("grid-template-columns:\n    var(--lt-col-select)");
-    expect(shares).toContain('class="rec-list"');
-    expect(shares).not.toContain("PcTable");
+  it("keeps its columns at every width", () => {
+    expect(screen).toMatch(/<PcTable v-else :stacked="false"/);
+    for (const column of ["Name", "Client", "Renders", "Published", "Type"]) {
+      expect(screen, column).toMatch(new RegExp(`<PcTh[^>]*>${column}</PcTh>`));
+    }
+    expect(screen).not.toContain("RecKindTabs");
+  });
+
+  it("offers Publish where a file has no share, and filters on it from the address", () => {
+    expect(screen).toContain('class="row-publish"');
+    expect(screen).toContain('@click.stop="openShares(item.name)"');
+    expect(screen).toContain('v-model="facets.published"');
+    expect(screen).toContain('if (facets.published === "no" && isPublished(file)) return false;');
+  });
+
+  it("reads the client from the name and says why when it cannot", () => {
+    expect(screen).toContain("const client = clientOfFile(item.name);");
+    expect(screen).toContain("does not name a client app");
+  });
+
+  it("opens the side panel from the row, with the menu the only other control", () => {
+    expect(screen).toContain('@click="openRow(item, $event)"');
+    expect(screen.match(/<RecordMenu/g)).toHaveLength(1);
+    expect(screen).toContain('const MENU_ACTIONS = ["output", "duplicate", "delete"] as const;');
+    expect(screen).not.toContain('class="rec-open"');
+    expect(screen).not.toContain('class="rec-file-facts"');
+  });
+
+  it("puts the whole name and the id in the title", () => {
+    expect(screen).toContain(':title="nameTitle(item)"');
+    expect(screen).toMatch(/function nameTitle[\s\S]*?item\.display_name \|\| item\.name/);
   });
 
   it("keeps no sideways scroll rule outside a scroller", () => {
@@ -38,27 +59,6 @@ describe("the files list is a resource list, not a table", () => {
     expect(frames![0]).not.toMatch(/translateX/);
   });
 
-  it("puts the whole name and the id in the title", () => {
-    expect(screen).toContain(":title=\"nameTitle(item)\"");
-    expect(screen).toMatch(/function nameTitle[\s\S]*?item\.display_name \|\| item\.name/);
-    expect(screen).toContain('class="rec-ident-name"');
-  });
-
-  it("says what a file is on All, and filters kind with tabs", () => {
-    expect(screen).toContain('<PcKindChip v-if="kindFilter === \'all\'" :label="kindLabel(item)" />');
-    expect(screen).toMatch(/function kindLabel[\s\S]*?"configuration"/);
-    expect(screen).toContain('label: "Configuration"');
-    expect(screen).toContain('label: "Script"');
-    expect(screen).toContain('label: "Plain"');
-  });
-
-  it("opens a facts well, not a fake chain, with Open on the row", () => {
-    expect(screen).toContain('class="rec-file-facts"');
-    expect(screen).toContain('class="rec-open"');
-    expect(screen).not.toContain("<RecordChainDetail");
-    expect(screen).not.toContain('class="rec-detail-bar"');
-  });
-
   it("opens one document surface from every entry", () => {
     expect(screen).toMatch(/if \(id === "output"\) return openFileSheet\(item, event\);/);
     expect(screen).not.toContain("row-popover-document");
@@ -66,28 +66,21 @@ describe("the files list is a resource list, not a table", () => {
   });
 });
 
-describe("the shares list does not reuse the nodes column width", () => {
-  const styles = read("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
+describe("the shares layer is the list from the client's side", () => {
   const shares = read("screens/SharesScreen.vue");
 
-  it("gives shares its own column template and clips format overflow", () => {
-    expect(shares).toContain('data-kind="shares"');
+  it("has the design's columns and keeps them at every width", () => {
+    expect(shares).toMatch(/<PcTable v-else :stacked="false"/);
+    for (const column of ["Path", "Record", "Format", "Expiry", "State"]) {
+      expect(shares, column).toMatch(new RegExp(`<PcTh[^>]*>${column}</PcTh>`));
+    }
     expect(shares).toContain("as the client asks");
-    expect(styles).toMatch(
-      /\.rec-list\[data-kind="shares"\] \.rec-head-main[\s\S]{0,80}\.rec-list\[data-kind="shares"\] \.rec-ident\s*\{[^}]*minmax\(10rem, 13rem\)/s,
-    );
-    expect(styles).toMatch(
-      /\.rec-list\[data-kind="shares"\] \.rec-col-nodes\s*\{[^}]*overflow:\s*hidden[^}]*text-overflow:\s*ellipsis/s,
-    );
+    expect(shares).toContain("<PcStatePill");
   });
 
-  it("keeps State as its own cell when Format and Expires drop at 640px", () => {
-    const narrow = styles.slice(styles.indexOf("@media (max-width: 640px)"));
-    expect(narrow).toMatch(
-      /\.rec-list\[data-kind="shares"\] \.rec-head-main[\s\S]{0,80}\.rec-list\[data-kind="shares"\] \.rec-ident\s*\{[^}]*minmax\(0, 1fr\) minmax\(5\.5rem, auto\)/s,
-    );
-    expect(narrow).toMatch(/\.rec-col-nodes[\s\S]{0,40}\.rec-col-when \{ display: none; \}/);
-    expect(shares).toContain('class="rec-col-status"');
-    expect(shares).toContain("<PcStatePill");
+  it("keeps Copy link as the row's one verb and opens the record behind it", () => {
+    expect(shares).toContain('{{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}');
+    expect(shares).toContain('@click="openRow(line, $event)"');
+    expect(shares).toContain("if (line.record) chrome.openRecord(line.record.id);");
   });
 });

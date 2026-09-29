@@ -72,7 +72,7 @@ describe("Escape closes exactly the top of the stack", () => {
     const shell = source("./Shell.vue");
     expect(shell).toContain('<PcWorkspace :batch="lens.selected > 0">');
     for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"]) {
-      expect(source(`./${file}`), file).toMatch(/chrome\.lenses\.(subscriptions|files)\.selected = count/);
+      expect(source(`./${file}`), file).toMatch(/chrome\.lenses(\[viewId\.value\]|\.files)\.selected = count/);
     }
   });
 });
