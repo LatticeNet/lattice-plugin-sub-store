@@ -61,8 +61,13 @@ export interface ProviderFigures {
 
 /**
  * What the provider says about this subscription, or null when it said
- * nothing. The plugin parses the header from 0.14 on; an older plugin sends
- * only the header, and the same figures come out of it here.
+ * nothing.
+ *
+ * A runtime that parses the header marks the row (`userinfo_parsed`), and its
+ * figures are then the whole answer: a field it left out was refused, and
+ * parsing the header again here would bring that field back. Only a row with
+ * neither the marker nor a parsed field, from a runtime older than the parse,
+ * is read here, by the same rules (parseUserinfo).
  */
 export function providerFigures(item: SubscriptionListItem): ProviderFigures | null {
   const parsed: ProviderFigures = {};
@@ -75,11 +80,8 @@ export function providerFigures(item: SubscriptionListItem): ProviderFigures | n
     }
   }
   if (seen) return parsed;
-  const legacy = parseUserinfo(item.userinfo);
-  if (!legacy) return null;
-  // The old parser keeps an expire of zero; providers send it to mean never.
-  if (legacy.expire === 0) delete legacy.expire;
-  return legacy;
+  if (item.userinfo_parsed) return null;
+  return parseUserinfo(item.userinfo);
 }
 
 /** Upload plus download: what the subscriber has consumed. */

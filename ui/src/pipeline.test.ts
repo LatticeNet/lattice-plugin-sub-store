@@ -62,10 +62,20 @@ describe("provider figures", () => {
     expect(figures).toEqual({ upload: 1, download: 2, total: 10, expire: 1893456000 });
   });
 
-  it("falls back to the verbatim header from an older plugin, and drops a zero expiry", () => {
+  it("falls back to the verbatim header only from a runtime older than the parse", () => {
     expect(providerFigures(item({ id: "p", userinfo: "upload=1; download=2; total=10; expire=0" }))).toEqual({ upload: 1, download: 2, total: 10 });
+    expect(providerFigures(item({ id: "p", userinfo: "expire=1893456000000" }))).toEqual({ expire: 1893456000 });
     expect(providerFigures(item({ id: "p" }))).toBeNull();
     expect(providerFigures(item({ id: "p", userinfo: "plan=pro" }))).toBeNull();
+  });
+
+  it("never brings back a field the runtime refused", () => {
+    // The runtime dropped every field (negative, past int64) and said so.
+    expect(providerFigures(item({ id: "p", userinfo: "upload=-1; total=99999999999999999999", userinfo_parsed: true }))).toBeNull();
+    // It kept total and refused download; the header is not read for download.
+    expect(providerFigures(item({ id: "p", userinfo: "download=-5; total=100", total: 100, userinfo_parsed: true }))).toEqual({ total: 100 });
+    // Even a header the fallback would read is left alone once the runtime answered.
+    expect(providerFigures(item({ id: "p", userinfo: "total=100", userinfo_parsed: true }))).toBeNull();
   });
 
   it("measures usage against the total and nothing else", () => {

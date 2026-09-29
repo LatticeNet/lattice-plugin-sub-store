@@ -4,9 +4,9 @@
  * Two small formatters, kept pure so the row template stays declarative:
  *  - formatRelativeTime turns the record's RFC3339 last_fetch_at into
  *    "refreshed 3h ago"-style copy;
- *  - parseUserinfo + formatTraffic turn the provider's subscription-userinfo
- *    header ("upload=…; download=…; total=…; expire=…") into a compact quota
- *    summary, guarding providers that send junk.
+ *  - parseUserinfo reads the provider's subscription-userinfo header
+ *    ("upload=…; download=…; total=…; expire=…") for a runtime too old to
+ *    parse it itself, by the runtime's own rules.
  */
 
 /**
@@ -48,30 +48,53 @@ export interface Userinfo {
   upload?: number;
   download?: number;
   total?: number;
-  /** Seconds since epoch, as the header carries it. */
+  /** Seconds since epoch. */
   expire?: number;
 }
 
+/** The runtime's number grammar (system-go/subscription_userinfo.go), exactly. */
+const USAGE_NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+/** Unix seconds do not reach 1e12 before the year 33658; a value this large is milliseconds. */
+const EXPIRE_MILLIS_THRESHOLD = 1e12;
+/** 2^63: byte counts past it do not exist in any quota, and the runtime refuses them. */
+const MAX_INT64 = 2 ** 63;
+const USERINFO_KEYS = new Set(["upload", "download", "total", "expire"]);
+
 /**
- * The header is a query-string-shaped list: "upload=1; download=2; total=3".
- * Providers are inconsistent about spacing and key order, and some omit keys,
- * anything that does not parse as a non-negative number is dropped rather than
- * formatted as NaN.
+ * The provider's header, parsed by the same rules the runtime applies
+ * (parseProviderUsage). The UI only needs this for a runtime older than that
+ * parse; the cases both sides must agree on live in
+ * system-go/testdata/userinfo_cases.json.
+ *
+ * Keys in any case, `;` or `,` between pairs, spaces anywhere, values
+ * optionally quoted and written as plain decimals (a fraction or an exponent
+ * is truncated). A negative, non-decimal or past-int64 value drops that field
+ * and a later valid value for the same key may still fill it; otherwise the
+ * first valid value wins. An expire of zero means "never" and is left out, and
+ * one in milliseconds is scaled to seconds. Null when nothing parsed.
  */
 export function parseUserinfo(raw: string | undefined): Userinfo | null {
   if (!raw) return null;
   const out: Userinfo = {};
   let seen = false;
-  for (const pair of raw.split(";")) {
-    const eq = pair.indexOf("=");
-    if (eq <= 0) continue;
-    const key = pair.slice(0, eq).trim().toLowerCase();
-    const value = Number(pair.slice(eq + 1).trim());
-    if (!Number.isFinite(value) || value < 0) continue;
-    if (key === "upload" || key === "download" || key === "total" || key === "expire") {
-      out[key] = value;
-      seen = true;
+  for (const field of raw.split(/[;,]/)) {
+    const eq = field.indexOf("=");
+    if (eq < 0) continue;
+    const key = field.slice(0, eq).trim().toLowerCase();
+    if (!USERINFO_KEYS.has(key)) continue;
+    const text = field.slice(eq + 1).trim().replace(/^["']+|["']+$/g, "");
+    if (!USAGE_NUMBER.test(text)) continue;
+    const value = Number(text);
+    if (!Number.isFinite(value) || value < 0 || value >= MAX_INT64) continue;
+    let number = Math.trunc(value) + 0;
+    const slot = key as keyof Userinfo;
+    if (slot === "expire") {
+      if (number === 0) continue;
+      if (number >= EXPIRE_MILLIS_THRESHOLD) number = Math.trunc(number / 1000);
     }
+    if (out[slot] !== undefined) continue;
+    out[slot] = number;
+    seen = true;
   }
   return seen ? out : null;
 }
@@ -89,24 +112,3 @@ export function formatBytes(bytes: number): string {
   return `${rounded} ${units[unit]}`;
 }
 
-/**
- * "used / total · until 2026-09-01" for the row, or "" when there is nothing
- * honest to say. Used is upload + download, what the subscriber has consumed
- * of the provider's total.
- */
-export function formatTraffic(info: Userinfo | null): string {
-  if (!info) return "";
-  const used = (info.upload ?? 0) + (info.download ?? 0);
-  const parts: string[] = [];
-  if (info.total !== undefined && info.total > 0) {
-    parts.push(`${formatBytes(used)} / ${formatBytes(info.total)}`);
-  } else if (used > 0) {
-    parts.push(`${formatBytes(used)} used`);
-  }
-  if (info.expire !== undefined && info.expire > 0) {
-    // The header carries seconds; a millisecond reading would render a date in
-    // the year 57000.
-    parts.push(`until ${new Date(info.expire * 1000).toISOString().slice(0, 10)}`);
-  }
-  return parts.join(" · ");
-}

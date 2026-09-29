@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -33,7 +34,7 @@ const expireMillisThreshold = 1e12
 // tolerant by design: keys in any case and order, spaces around separators and
 // `=`, a comma instead of a semicolon, quoted values, and numbers written as
 // floats or in exponent form (`1.5E10`). What it will not do is guess. A
-// negative, non-finite or non-numeric value drops that field; a key it does not
+// negative, non-finite or non-decimal value drops that field; a key it does not
 // know is ignored; the first valid value for a key wins over a later repeat.
 // An `expire` of zero is dropped because providers send it to mean "does not
 // expire", and one large enough to be milliseconds is scaled to seconds.
@@ -77,12 +78,19 @@ func parseProviderUsage(raw string) providerUsage {
 	return out
 }
 
+// usageNumberPattern is the one number grammar the header gets, on both sides:
+// an optional sign, digits with an optional fraction, an optional exponent.
+// strconv alone would also take Go literal forms (`1_000`, `0x1p4`, `Inf`)
+// that no provider sends and that the UI's fallback parser (ui/src/rowStatus.ts)
+// would read differently.
+var usageNumberPattern = regexp.MustCompile(`^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$`)
+
 // parseUsageNumber accepts a non-negative integer or float, optionally quoted,
 // and returns it truncated to a whole number. Byte counts past 2^63 do not
 // exist in any real quota, so a value that large is refused rather than wrapped.
 func parseUsageNumber(text string) (int64, bool) {
 	text = strings.Trim(strings.TrimSpace(text), `"'`)
-	if text == "" {
+	if !usageNumberPattern.MatchString(text) {
 		return 0, false
 	}
 	if n, err := strconv.ParseInt(text, 10, 64); err == nil {

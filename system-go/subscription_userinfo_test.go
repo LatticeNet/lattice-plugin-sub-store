@@ -2,105 +2,42 @@ package main
 
 import (
 	"encoding/json"
+	"os"
+	"reflect"
 	"testing"
 )
 
-func usageValue(p *int64) any {
-	if p == nil {
-		return nil
-	}
-	return *p
-}
-
+// The cases live in testdata so the UI's fallback parser (rowStatus.ts, for a
+// runtime older than this parse) is held to the same answers.
 func TestParseProviderUsage(t *testing.T) {
-	type want struct{ upload, download, total, expire any }
-	cases := []struct {
-		name string
-		raw  string
-		want want
-	}{
-		{
-			name: "the usual shape",
-			raw:  "upload=3221225472; download=25769803776; total=536870912000; expire=1893456000",
-			want: want{int64(3221225472), int64(25769803776), int64(536870912000), int64(1893456000)},
-		},
-		{
-			name: "no spaces, keys out of order",
-			raw:  "total=100;expire=1893456000;download=20;upload=10",
-			want: want{int64(10), int64(20), int64(100), int64(1893456000)},
-		},
-		{
-			name: "spaces around every separator and mixed case keys",
-			raw:  "  Upload = 1 ;DOWNLOAD= 2 ;  Total =3 ; Expire=1893456000 ",
-			want: want{int64(1), int64(2), int64(3), int64(1893456000)},
-		},
-		{
-			name: "commas instead of semicolons, a trailing separator",
-			raw:  "upload=1, download=2, total=3,",
-			want: want{int64(1), int64(2), int64(3), nil},
-		},
-		{
-			name: "missing fields stay missing",
-			raw:  "total=107374182400",
-			want: want{nil, nil, int64(107374182400), nil},
-		},
-		{
-			name: "floats and exponent form are truncated",
-			raw:  "upload=1.5; download=2.9E3; total=1.073741824e10",
-			want: want{int64(1), int64(2900), int64(10737418240), nil},
-		},
-		{
-			name: "quoted values",
-			raw:  `upload="5"; total='10'`,
-			want: want{int64(5), nil, int64(10), nil},
-		},
-		{
-			name: "garbage values drop only their own field",
-			raw:  "upload=abc; download=-5; total=NaN; expire=Inf; upload=7",
-			want: want{int64(7), nil, nil, nil},
-		},
-		{
-			name: "the first valid value for a key wins",
-			raw:  "total=10; total=20",
-			want: want{nil, nil, int64(10), nil},
-		},
-		{
-			name: "expire of zero means never and is left out",
-			raw:  "total=10; expire=0",
-			want: want{nil, nil, int64(10), nil},
-		},
-		{
-			name: "expire in milliseconds is scaled to seconds",
-			raw:  "expire=1893456000000",
-			want: want{nil, nil, nil, int64(1893456000)},
-		},
-		{
-			name: "unknown keys and pairs without a value are ignored",
-			raw:  "plan=pro; total; =5; upload=1",
-			want: want{int64(1), nil, nil, nil},
-		},
-		{
-			name: "a value past int64 is refused, not wrapped",
-			raw:  "total=99999999999999999999; download=1e30",
-			want: want{nil, nil, nil, nil},
-		},
-		{
-			name: "empty header",
-			raw:  "",
-			want: want{nil, nil, nil, nil},
-		},
-		{
-			name: "not a userinfo header at all",
-			raw:  "<html>502 Bad Gateway</html>",
-			want: want{nil, nil, nil, nil},
-		},
+	raw, err := os.ReadFile("testdata/userinfo_cases.json")
+	if err != nil {
+		t.Fatalf("read cases: %v", err)
 	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := parseProviderUsage(tc.raw)
-			seen := want{usageValue(got.Upload), usageValue(got.Download), usageValue(got.Total), usageValue(got.Expire)}
-			if seen != tc.want {
-				t.Fatalf("parseProviderUsage(%q) = %+v, want %+v", tc.raw, seen, tc.want)
+	var table struct {
+		Cases []struct {
+			Name string           `json:"name"`
+			Raw  string           `json:"raw"`
+			Want map[string]int64 `json:"want"`
+		} `json:"cases"`
+	}
+	if err := json.Unmarshal(raw, &table); err != nil {
+		t.Fatalf("decode cases: %v", err)
+	}
+	if len(table.Cases) == 0 {
+		t.Fatal("no cases")
+	}
+	for _, tc := range table.Cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			got := parseProviderUsage(tc.Raw)
+			seen := map[string]int64{}
+			for key, value := range map[string]*int64{"upload": got.Upload, "download": got.Download, "total": got.Total, "expire": got.Expire} {
+				if value != nil {
+					seen[key] = *value
+				}
+			}
+			if !reflect.DeepEqual(seen, tc.Want) && !(len(seen) == 0 && len(tc.Want) == 0) {
+				t.Fatalf("parseProviderUsage(%q) = %v, want %v", tc.Raw, seen, tc.Want)
 			}
 		})
 	}
@@ -169,6 +106,37 @@ func TestListOmitsUsageThatDoesNotParse(t *testing.T) {
 	for _, key := range []string{"upload", "download", "total", "expire"} {
 		if _, present := row[key]; present {
 			t.Fatalf("an unparseable header produced %s: %v", key, row)
+		}
+	}
+	// The marker still says the runtime parsed it, so the UI does not read
+	// the header again and bring back what this parser refused.
+	if got := string(row["userinfo_parsed"]); got != "true" {
+		t.Fatalf("userinfo_parsed = %q, want true (row %v)", got, row)
+	}
+}
+
+// The figures sit under the same gate as the header they come from: a record
+// that was never fetched reports neither, and no marker, even when the stored
+// document carries a header (a restore, or a store written by hand).
+func TestListReportsUsageOnlyForAFetchedRecord(t *testing.T) {
+	rt, _ := newFetchRuntime(t)
+	doc := subscriptionRecordsDocument{Version: 1, Records: []subscriptionRecord{
+		{ID: "unfetched", URL: "https://provider.invalid/sub", Userinfo: "upload=1; download=2; total=100; expire=1893456000"},
+	}}
+	if err := rt.saveSubscriptionRecords(doc); err != nil {
+		t.Fatalf("write store: %v", err)
+	}
+	var listed struct {
+		Subscriptions []map[string]json.RawMessage `json:"subscriptions"`
+	}
+	decodeResult(t, callSubscription(t, rt, "list", map[string]any{}), &listed)
+	if len(listed.Subscriptions) != 1 {
+		t.Fatalf("list = %v, want one row", listed.Subscriptions)
+	}
+	row := listed.Subscriptions[0]
+	for _, key := range []string{"userinfo", "userinfo_parsed", "upload", "download", "total", "expire"} {
+		if _, present := row[key]; present {
+			t.Fatalf("a record never fetched carries %s: %v", key, row)
 		}
 	}
 }

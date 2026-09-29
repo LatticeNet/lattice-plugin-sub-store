@@ -360,20 +360,14 @@ const records = active.records;
 let settings: Record<string, unknown> = { default_target: "", default_ua: "" };
 
 /**
- * The figures the plugin parses out of the provider header since 0.14. The
- * harness answers the new wire shape, so the UI's own fallback parse is the
- * path only an older plugin exercises.
+ * The figures the runtime parses out of the provider header. parseUserinfo
+ * follows the runtime's rules exactly (the shared cases are in
+ * system-go/testdata/userinfo_cases.json), so the harness can answer the
+ * runtime's wire shape, marker included, and the UI's fallback parse stays the
+ * path only an older runtime exercises.
  */
 function usageOf(userinfo: string | undefined): Record<string, number> {
-  const parsed = parseUserinfo(userinfo);
-  if (!parsed) return {};
-  const out: Record<string, number> = {};
-  for (const [key, value] of Object.entries(parsed)) {
-    if (typeof value !== "number") continue;
-    if (key === "expire" && value === 0) continue;
-    out[key] = Math.trunc(value);
-  }
-  return out;
+  return { ...(parseUserinfo(userinfo) ?? {}) };
 }
 
 /**
@@ -431,9 +425,9 @@ function listView(rec: StoredRecord) {
           last_fetch_ok: rec.last_fetch_ok ?? false,
           last_error: rec.last_error,
           userinfo: rec.userinfo,
+          ...(rec.userinfo ? { ...usageOf(rec.userinfo), userinfo_parsed: true } : {}),
         }
       : {}),
-    ...usageOf(rec.userinfo),
   };
 }
 

@@ -489,6 +489,13 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			// the provider sent it and it parsed, so the overview and the sources
 			// table can draw traffic and expiry without a `get` per row.
 			providerUsage
+			// UserinfoParsed is true on every row that carries the header, and
+			// says the figures above are this runtime's whole answer: a field
+			// missing beside it was refused (negative, past int64, not a
+			// number), and the UI must not parse the header again and bring it
+			// back. A runtime without it predates the parse, and the UI falls
+			// back to reading the header itself.
+			UserinfoParsed bool `json:"userinfo_parsed,omitempty"`
 		}
 		views := make([]view, 0, len(records))
 		for _, rec := range records {
@@ -512,9 +519,13 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				ok := rec.LastFetchOK
 				entry.LastFetchAt, entry.LastFetchOK = rec.LastFetchAt, &ok
 				entry.LastError, entry.Userinfo = rec.LastError, rec.Userinfo
-			}
-			if rec.Userinfo != "" {
-				entry.providerUsage = parseProviderUsage(rec.Userinfo)
+				// Under the same gate as the header: figures from a record
+				// that was never fetched would describe a fetch that never
+				// happened.
+				if rec.Userinfo != "" {
+					entry.providerUsage = parseProviderUsage(rec.Userinfo)
+					entry.UserinfoParsed = true
+				}
 			}
 			views = append(views, entry)
 		}

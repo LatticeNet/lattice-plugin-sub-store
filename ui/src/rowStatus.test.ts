@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBytes, formatRelativeTime, formatTraffic, parseUserinfo, tagChips } from "./rowStatus";
+import { readFileSync } from "node:fs";
+
+import { formatBytes, formatRelativeTime, parseUserinfo, tagChips } from "./rowStatus";
 
 const NOW = Date.parse("2026-08-10T12:00:00Z");
 
@@ -25,26 +27,28 @@ describe("formatRelativeTime", () => {
   });
 });
 
-describe("parseUserinfo", () => {
-  it("reads the four known keys regardless of spacing and case", () => {
-    expect(parseUserinfo("upload=1; download=2; Total=3; expire=1893456000")).toEqual({
-      upload: 1,
-      download: 2,
-      total: 3,
-      expire: 1893456000,
+/**
+ * The runtime's cases, read from where its own test reads them, so the UI's
+ * fallback and the runtime's parser cannot drift apart unnoticed.
+ */
+const USERINFO_CASES = JSON.parse(
+  readFileSync(new URL("../../system-go/testdata/userinfo_cases.json", import.meta.url), "utf8"),
+) as { cases: { name: string; raw: string; want: Record<string, number> }[] };
+
+describe("parseUserinfo, by the runtime's rules", () => {
+  it("has the shared cases to check", () => {
+    expect(USERINFO_CASES.cases.length).toBeGreaterThan(10);
+  });
+
+  for (const tc of USERINFO_CASES.cases) {
+    it(tc.name, () => {
+      const want = Object.keys(tc.want).length ? tc.want : null;
+      expect(parseUserinfo(tc.raw)).toEqual(want);
     });
-  });
+  }
 
-  it("drops junk rather than formatting it", () => {
-    expect(parseUserinfo("upload=abc; total=-5; download=7")).toEqual({ download: 7 });
-    expect(parseUserinfo("upload; =3; =; download=4")).toEqual({ download: 4 });
-  });
-
-  it("returns null when there is nothing usable", () => {
+  it("returns null for no header at all", () => {
     expect(parseUserinfo(undefined)).toBeNull();
-    expect(parseUserinfo("")).toBeNull();
-    expect(parseUserinfo("garbage")).toBeNull();
-    expect(parseUserinfo("unknown=1")).toBeNull();
   });
 });
 
@@ -54,20 +58,6 @@ describe("formatBytes", () => {
     expect(formatBytes(1024)).toBe("1 KB");
     expect(formatBytes(1536)).toBe("1.5 KB");
     expect(formatBytes(500 * 1024 * 1024 * 1024)).toBe("500 GB");
-  });
-});
-
-describe("formatTraffic", () => {
-  it("combines used and total, then expiry", () => {
-    const info = parseUserinfo("upload=1073741824; download=2147483648; total=536870912000; expire=1893456000");
-    expect(formatTraffic(info)).toBe("3 GB / 500 GB · until 2030-01-01");
-  });
-
-  it("shows what it has and stays silent about the rest", () => {
-    expect(formatTraffic({ total: 1073741824 })).toBe("0 B / 1 GB");
-    expect(formatTraffic({ upload: 5, download: 7 })).toBe("12 B used");
-    expect(formatTraffic(null)).toBe("");
-    expect(formatTraffic({})).toBe("");
   });
 });
 
