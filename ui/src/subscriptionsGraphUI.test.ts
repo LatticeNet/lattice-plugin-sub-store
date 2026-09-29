@@ -88,6 +88,8 @@ describe("vpn-core graph editor component contract", () => {
       bootError: ref(""),
       available: (binding) => binding.method !== "save" && binding.method !== "delete",
       resize: async () => {},
+      pageState: ref({}),
+      sendState: () => {},
     };
     const app = createSSRApp({
       setup() {

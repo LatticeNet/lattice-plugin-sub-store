@@ -19,6 +19,8 @@ function sharesHost(reply: () => Promise<unknown>, available = true) {
     bootError: ref(""),
     available: () => available,
     resize: async () => {},
+    pageState: ref({}),
+    sendState: () => {},
   };
   return { host, count: () => calls };
 }

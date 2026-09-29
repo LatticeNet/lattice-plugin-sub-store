@@ -2,6 +2,8 @@ import { ref } from "vue";
 
 import { BINDINGS, type MethodBinding } from "../src/client";
 import type { HostContext } from "../src/host";
+import type { PageState } from "../src/pageState";
+import { addressForState, pageStateFromAddress, stateRateLimit } from "./consoleAddress";
 import { parseUserinfo } from "../src/rowStatus";
 import { fixture, fixtureName, type Fixture, type ShareRow, type StoredRecord } from "./fixtures";
 
@@ -763,10 +765,15 @@ export function harnessState(): HarnessState {
 export function createFakeHost(): HostContext {
   const init = ref<any>();
   const bootError = ref("");
+  const pageState = ref<PageState>({});
+  const allowState = stateRateLimit();
 
   // The handshake lands late on purpose: a screen that loads before it and
   // never retries is the bug this harness exists to make visible.
   setTimeout(() => {
+    // Like the console: the address's query is the page state, read at the
+    // handshake, so a reload of this tab lands where the page last said.
+    pageState.value = pageStateFromAddress(window.location.search);
     init.value = {
       version: "1",
       pluginId: "latticenet.sub-store",
@@ -853,6 +860,18 @@ export function createFakeHost(): HostContext {
           contract.service === target.service && contract.methods.includes(target.method),
       ) === true,
     resize: async () => {},
+    pageState,
+    // What the console does with `lattice.plugin.state`: validate, count
+    // against the budget, and replace the query with history replace, never
+    // push. Cloned first, as postMessage would, so a reactive proxy fails
+    // here the way it would fail in production.
+    sendState: (state) => {
+      const cloned = structuredClone(state);
+      if (!allowState()) return;
+      const query = addressForState(window.location.search, cloned);
+      if (query === null) return;
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query}${window.location.hash}`);
+    },
   };
 }
 

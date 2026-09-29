@@ -221,6 +221,8 @@ function mountSheet(options: {
       return true;
     },
     resize: async () => {},
+    pageState: ref({}),
+    sendState: () => {},
   };
   const record: SubscriptionListItem = {
     id: "openjobs-host",

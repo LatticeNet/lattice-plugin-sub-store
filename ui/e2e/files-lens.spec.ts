@@ -92,7 +92,7 @@ test.describe("1440", () => {
     await expect(page.locator('[data-map-key="imported-cdcd-self-hostbak-20260820"]')).toHaveAttribute("data-state", "off");
     expect(await page.locator('.lineage-edge[data-on="true"]').count()).toBeGreaterThan(1);
     await expect(page.locator(".pc-side-panel h2")).toHaveText("openjobs-host");
-    expect(page.url()).toContain("open=imported-openjobs-host");
+    await expect(page).toHaveURL(/[?&]open=imported-openjobs-host(&|$)/);
   });
 
   test("a combination's peek links on to its members and the page", async ({ page }) => {
@@ -104,7 +104,7 @@ test.describe("1440", () => {
     await panel.getByRole("button", { name: "Open page" }).click();
     await expect(page.locator("#record-title")).toHaveText("openjobs-host");
     await expect(page.getByRole("tablist")).toHaveCount(1);
-    expect(page.url()).toContain("record=imported-openjobs-host");
+    await expect(page).toHaveURL(/[?&]record=imported-openjobs-host(&|$)/);
   });
 
   test("the record page masks a provider link and reveals it for a minute", async ({ page }) => {
@@ -138,7 +138,60 @@ test.describe("1440", () => {
     await open(page, "", ".attention-item");
     await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Review" }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
-    expect(page.url()).toContain("published=no");
+    await expect(page).toHaveURL(/[?&]published=no(&|$)/);
+  });
+});
+
+/**
+ * The page's state lives in the console's address, which the harness plays
+ * with its own address bar (dev/consoleAddress.ts): the fake console hands the
+ * query over at the handshake and writes every state message back into it.
+ * A reload of this tab is therefore the console reload an operator does.
+ */
+test.describe("page state in the console address", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("a reload lands on the same layer, filter, search and peek", async ({ page }) => {
+    await open(page, "?fixture=production", ".attention-item");
+    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Review" }).click();
+    await expect(page.locator(".layer-row")).toHaveCount(15);
+    await page.getByRole("searchbox", { name: "Filter files" }).fill("loon");
+    await expect(page.locator(".layer-row")).toHaveCount(3);
+    await page.locator(".layer-row", { hasText: "for-openjobs-loon" }).locator(".row-open").click();
+    await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
+    await expect(page).toHaveURL(/[?&]open=imported-file-for-openjobs-loon(&|$)/);
+    const url = new URL(page.url());
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      fixture: "production",
+      view: "files",
+      open: "imported-file-for-openjobs-loon",
+      q: "loon",
+      published: "no",
+    });
+
+    await page.reload();
+    await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
+    await expect(page.getByRole("tab", { name: /Files/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("searchbox", { name: "Filter files" })).toHaveValue("loon");
+    await expect(page.locator(".layer-row")).toHaveCount(3);
+    // The reload did not rewrite the address it landed on.
+    expect(new URL(page.url()).search).toBe(url.search);
+  });
+
+  test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
+    await open(page, "?view=combinations", ".layer-row");
+    await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
+    await page.locator(".pc-side-panel").getByRole("button", { name: "Open page" }).click();
+    await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
+    await expect(page).toHaveURL(/[?&]record=imported-col-merge-openjobs(&|$)/);
+    await expect(page).toHaveURL(/[?&]view=combinations(&|$)/);
+    await expect(page).not.toHaveURL(/[?&]open=/);
+
+    await page.reload();
+    await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
+    await page.locator(".record-crumbs").getByRole("button", { name: "Combinations" }).click();
+    await expect(page.locator(".layer-row").first()).toBeVisible();
+    await expect(page).toHaveURL(/\?view=combinations$/);
   });
 });
 

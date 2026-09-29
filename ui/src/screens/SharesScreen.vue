@@ -71,7 +71,13 @@ const searchedLines = computed(() => {
 });
 
 type ShareKindFilter = "all" | "live" | "dead";
-const kindFilter = ref<ShareKindFilter>("all");
+/** The shell keeps it (as `link`), so a reload or a pasted link lands filtered. */
+const kindFilter = computed<ShareKindFilter>({
+  get: () => (chrome.facets.link === "live" || chrome.facets.link === "dead" ? chrome.facets.link : "all"),
+  set: (value) => {
+    chrome.facets.link = value === "all" ? "" : value;
+  },
+});
 
 function isLive(line: ShareLine): boolean {
   return line.state.tone === "ok";

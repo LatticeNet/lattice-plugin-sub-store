@@ -192,7 +192,13 @@ const searchText = chrome.search;
 const allFiles = computed(() => subs.items.value.filter((i) => i.kind === KIND_FILE));
 
 type FileKindFilter = "all" | "config" | "script" | "plain";
-const kindFilter = ref<FileKindFilter>("all");
+/** The shell keeps it (as `type`), so a reload or a pasted link lands filtered. */
+const kindFilter = computed<FileKindFilter>({
+  get: () => (["config", "script", "plain"].includes(chrome.facets.type) ? (chrome.facets.type as FileKindFilter) : "all"),
+  set: (value) => {
+    chrome.facets.type = value === "all" ? "" : value;
+  },
+});
 
 function fileKindOf(item: SubscriptionListItem): Exclude<FileKindFilter, "all"> {
   const type = knownFileType(item.file_type);

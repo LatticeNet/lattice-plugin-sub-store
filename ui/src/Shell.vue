@@ -11,7 +11,6 @@ import {
   PcProofLine,
   PcToolbar,
   PcWorkspace,
-  useDocumentQueryState,
 } from "@latticenet/plugin-bridge/chassis";
 
 import { useHandshakeTimeout } from "./handshakeTimeout";
@@ -31,6 +30,7 @@ import SettingsScreen from "./screens/SettingsScreen.vue";
 import SharesScreen from "./screens/SharesScreen.vue";
 import { createLensChrome, provideLensChrome, type Facets, type TabId } from "./lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
+import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
 import { VIEW_IDS, viewOfKind } from "./pipeline";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
@@ -79,57 +79,61 @@ const tabs: Layer[] = [
 const TAB_IDS = new Set<string>(VIEW_IDS);
 
 /**
- * Where the operator is, on the document query, so a link can carry the
- * layer, the open record and the facet being discussed. Reading and writing
- * are guarded: the frame runs in an opaque-origin sandbox where a history
- * write may be refused, and a refused write must cost nothing. `?lens=` is
- * the address this page used before its layers, and still lands.
+ * Where the operator is: the layer, the open record, the filters. It lives in
+ * the console's address, not the frame's, because the console rebuilds the
+ * frame URL with no query on every reload; the bridge hands it over at the
+ * handshake and takes it back, debounced, whenever it changes (see
+ * pageState.ts). Nothing is sent before the handshake's state is applied, so
+ * the defaults the page paints while it waits never overwrite the address the
+ * operator reloaded.
  */
-const query = useDocumentQueryState();
-function readParam(key: string): string {
-  try {
-    return query.read(key)[0] ?? "";
-  } catch {
-    return "";
-  }
-}
-function writeParam(key: string, value: string): void {
-  try {
-    query.write(key, value ? [value] : []);
-  } catch {
-    // A sandbox that refuses history writes keeps the state in memory only.
-  }
-}
-const LEGACY_LENS: Record<string, TabId> = { subscriptions: "sources", files: "files", shares: "shares", settings: "settings" };
-function viewFromQuery(): TabId {
-  const asked = readParam("view");
-  if (TAB_IDS.has(asked)) return asked as TabId;
-  return LEGACY_LENS[readParam("lens")] ?? "overview";
-}
-
-const activeTab = ref<TabId>(viewFromQuery());
-const recordId = ref(readParam("record"));
+const activeTab = ref<TabId>("overview");
+const recordId = ref("");
 /**
  * The layer a record page was opened from, for its back link. Empty when the
  * page was the landing (a shared link): back then goes to the layer that
  * lists the record.
  */
-const recordFrom = ref<string>(recordId.value ? "" : activeTab.value);
+const recordFrom = ref<string>("");
 
 /** The toolbar state the visible layer filters on, and what it reports back. */
 const chrome = createLensChrome();
-chrome.openId.value = readParam("open");
-chrome.facets.published = readParam("published");
-chrome.facets.origin = readParam("origin");
 
-watch(activeTab, (tab) => {
-  writeParam("view", tab === "overview" ? "" : tab);
-  writeParam("lens", "");
+const shellState = computed<ShellState>(() => ({
+  view: activeTab.value,
+  record: recordId.value,
+  from: recordFrom.value,
+  open: chrome.openId.value,
+  q: chrome.search.value,
+  sort: chrome.sort.value,
+  published: chrome.facets.published,
+  origin: chrome.facets.origin,
+  type: chrome.facets.type,
+  link: chrome.facets.link,
+}));
+
+function applyState(state: ShellState): void {
+  activeTab.value = state.view;
+  recordId.value = state.record;
+  recordFrom.value = state.from;
+  chrome.openId.value = state.open;
+  chrome.search.value = state.q;
+  chrome.sort.value = state.sort;
+  Object.assign(chrome.facets, { published: state.published, origin: state.origin, type: state.type, link: state.link });
+}
+
+const stateSender = createStateSender((state) => host.sendState(state));
+const stateApplied = ref(false);
+watch(host.init, (value) => {
+  if (!value || stateApplied.value) return;
+  stateSender.seed(host.pageState.value);
+  applyState(decodeShellState(host.pageState.value));
+  stateApplied.value = true;
+}, { immediate: true });
+watch(shellState, (state) => {
+  if (stateApplied.value) stateSender.push(encodeShellState(state));
 });
-watch(recordId, (id) => writeParam("record", id));
-watch(() => chrome.openId.value, (id) => writeParam("open", id));
-watch(() => chrome.facets.published, (value) => writeParam("published", value));
-watch(() => chrome.facets.origin, (value) => writeParam("origin", value));
+onBeforeUnmount(() => stateSender.dispose());
 
 chrome.openLens = (tab, facets?: Partial<Facets>) => {
   recordId.value = "";
@@ -137,6 +141,8 @@ chrome.openLens = (tab, facets?: Partial<Facets>) => {
   if (facets) {
     chrome.facets.published = facets.published ?? "";
     chrome.facets.origin = facets.origin ?? "";
+    chrome.facets.type = facets.type ?? "";
+    chrome.facets.link = facets.link ?? "";
   }
 };
 chrome.openRecord = (id) => {

@@ -4,6 +4,8 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
 import { provideHost } from "./host";
+import { hostOriginFromHash } from "./navigate";
+import { listenForInitPageState, stateMessage, type PageState } from "./pageState";
 import { safeErrorMessage } from "./subStoreModel";
 import Shell from "./Shell.vue";
 
@@ -16,8 +18,23 @@ import Shell from "./Shell.vue";
 
 const init = ref<HostInit>();
 const bootError = ref("");
+const pageState = ref<PageState>({});
 
 let bridge: BridgeClient | undefined;
+/** The origin the bridge pins; the state message goes nowhere else. */
+const hostOrigin = hostOriginFromHash(window.location.hash);
+const hashNonce = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("lattice_nonce") ?? "";
+/**
+ * Registered before the client's own listener. The browser runs microtasks
+ * between two listeners of one message, so a listener added after the client
+ * would hear init only once the shell had already reacted to it, without the
+ * page state.
+ */
+let stopPageState: (() => void) | undefined = hostOrigin && hashNonce
+  ? listenForInitPageState(window, hashNonce, hostOrigin, (state) => {
+      pageState.value = state;
+    })
+  : undefined;
 try {
   bridge = new BridgeClient({
     window,
@@ -36,6 +53,8 @@ try {
       );
     });
 } catch (cause) {
+  stopPageState?.();
+  stopPageState = undefined;
   bootError.value = safeErrorMessage(
     cause,
     "This page could not open a channel to the console.",
@@ -56,6 +75,11 @@ provideHost({
       (contract) => contract.service === target.service && contract.methods.includes(target.method),
     ) === true,
   resize,
+  pageState,
+  sendState: (state: PageState) => {
+    if (!bridge || !hostOrigin) return;
+    window.parent.postMessage(stateMessage(bridge.nonce, state), hostOrigin);
+  },
 });
 
 let observer: ResizeObserver | undefined;
@@ -69,6 +93,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   observer?.disconnect();
+  stopPageState?.();
   bridge?.dispose();
 });
 </script>

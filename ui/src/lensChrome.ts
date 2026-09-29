@@ -16,9 +16,9 @@ import type { ViewId } from "./pipeline";
  * the selection bar.
  *
  * Navigation lives here too, because every layer needs it and only the shell
- * owns the address: opening a record in the side panel (`?open=`), on its own
- * page (`?record=`), or switching layer with a facet already applied
- * (`?view=files&published=no`).
+ * holds the page state the console keeps in its address: opening a record in
+ * the side panel (`open`), on its own page (`record`), or switching layer with
+ * a facet already applied (`view=files&published=no`).
  */
 export type TabId = ViewId;
 export type SortKey = "recent" | "name" | "status";
@@ -34,6 +34,10 @@ export interface Facets {
   published: string;
   /** Every table: "migrated" keeps imported records, "local" the ones made here. */
   origin: string;
+  /** Files: "config", "script" or "plain". */
+  type: string;
+  /** Shares: "live" keeps the links a client gets something from, "dead" the rest. */
+  link: string;
 }
 
 export interface LensChrome {
@@ -61,7 +65,7 @@ export function createLensChrome(): LensChrome {
   return {
     search: ref(""),
     sort: ref("recent"),
-    facets: reactive({ published: "", origin: "" }),
+    facets: reactive({ published: "", origin: "", type: "", link: "" }),
     lenses: reactive({
       overview: report(),
       sources: report(),

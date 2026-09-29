@@ -21,14 +21,18 @@ describe("the layers", () => {
       "shares:Shares",
       "settings:Settings",
     ]);
-    expect(shell).toContain('return LEGACY_LENS[readParam("lens")] ?? "overview";');
+    expect(shell).toContain('const activeTab = ref<TabId>("overview");');
   });
 
-  it("mirror the layer, the peek and the record page in the address", () => {
-    expect(shell).toContain('writeParam("view", tab === "overview" ? "" : tab);');
-    expect(shell).toContain('watch(recordId, (id) => writeParam("record", id));');
-    expect(shell).toContain('watch(() => chrome.openId.value, (id) => writeParam("open", id));');
-    expect(shell).toContain('watch(() => chrome.facets.published, (value) => writeParam("published", value));');
+  it("keep the layer, the peek and the record page in the console's address, not the frame's", () => {
+    // The console hands the state over at the handshake and the shell hands
+    // every change back; pageState.test.ts covers the wire itself.
+    expect(shell).toContain("applyState(decodeShellState(host.pageState.value));");
+    expect(shell).toContain("if (stateApplied.value) stateSender.push(encodeShellState(state));");
+    expect(shell).toContain("createStateSender((state) => host.sendState(state))");
+    // The frame's own query does not survive a console reload, so the shell
+    // no longer writes it.
+    expect(shell).not.toContain("useDocumentQueryState");
   });
 
   it("give way to the record page's own tab row", () => {
