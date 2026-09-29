@@ -313,13 +313,17 @@ function largeFixture(): Fixture {
           }
         : {}),
     });
-    counts[id] = [40 + i * 3, 30 + i * 2];
+    // A source without a chain hands on every node; the rest run the Regex
+    // filter first, which is the only step here that removes any.
+    counts[id] = i % 4 === 0 ? [40 + i * 3, 40 + i * 3] : [40 + i * 3, 30 + i * 2];
   }
   for (let c = 0; c < 12; c += 1) {
     const id = `combo-${String(c + 1).padStart(2, "0")}`;
     const members = [0, 1, 2].map((k) => `src-${String(((c * 3 + k) % 40) + 1).padStart(2, "0")}`);
     records.push({ id, kind: "collection", name: `merge-team-${String(c + 1).padStart(2, "0")}`, members, member_tags: c % 4 === 0 ? [regions[c % regions.length]!] : [], process: [] });
-    counts[id] = [300 + c * 10, 280 + c * 10];
+    // A combination with no chain of its own is its members, every node.
+    const total = members.reduce((sum, member) => sum + (counts[member]?.[1] ?? 0), 0);
+    counts[id] = [total, total];
   }
   const people = ["alice", "bob", "carol", "dave", "erin", "frank", "grace", "heidi", "ivan", "judy", "mallory", "niaj"];
   const clients = ["loon", "stash", "egern", "shadowrocket", "surge", "clash", "mihomo", "sing-box", "qx", "v2ray", "surfboard", "loon-lite", "stash-ipad", "egern-mac", "surge-mac"];

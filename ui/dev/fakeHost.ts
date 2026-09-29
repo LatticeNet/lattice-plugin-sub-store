@@ -40,10 +40,34 @@ const OPERATORS = [
 const SCRIPTING = new Set(["Script Operator", "Script Filter"]);
 
 /**
+ * Whether an operation can change how many nodes there are. In Sub-Store the
+ * filters decide which nodes stay; every operator (rename, regex delete, sort,
+ * flags, quick settings) rewrites the nodes it is given and hands all of them
+ * on. The harness used to take nodes away at every step, so the delta strip
+ * read "Regex rename: kept 72 of 119", which the real engine never says.
+ */
+function removesNodes(step: unknown): boolean {
+  const type = (step as { type?: unknown } | null)?.type;
+  return typeof type === "string" && type.endsWith("Filter");
+}
+
+/**
+ * How many of `source` nodes are left after the operations in `ran`, when the
+ * record's whole chain turns `source` into `result`. The removal is shared
+ * among the chain's filters in order; every other operation keeps its count.
+ */
+function countAfter(chain: readonly unknown[], ran: readonly unknown[], source: number, result: number): number {
+  const filters = chain.filter(removesNodes).length;
+  if (filters === 0) return source;
+  const done = Math.min(filters, ran.filter(removesNodes).length);
+  return source - Math.round(((source - result) * done) / filters);
+}
+
+/**
  * 建材市场 in production is 166 in, 25 out after Regex filter. The generic
  * eight-node harness cannot exercise paging or the grouped drop list.
  */
-function jiancaiPreview(operatorCount: number) {
+function jiancaiPreview(keptCount: number) {
   const regions = ["亚洲", "欧洲", "美洲", "非洲", "澳洲", "香港", "日本", "新加坡"];
   const all = Array.from({ length: 166 }, (_, i) => {
     const region = regions[i % regions.length]!;
@@ -55,8 +79,6 @@ function jiancaiPreview(operatorCount: number) {
       port: "443",
     };
   });
-  // Quick settings (cut 1) keeps everyone; Regex filter (cut 2+) keeps 25.
-  const keptCount = operatorCount <= 1 ? all.length : 25;
   const kept = all.slice(0, keptCount);
   const droppedAll = all.slice(keptCount);
   const named = droppedAll.slice(0, 40);
@@ -353,14 +375,11 @@ function usageOf(userinfo: string | undefined): Record<string, number> {
 }
 
 /**
- * A preview whose counts are the record's own (production's 86 in, 78 out),
- * with a chain cut part way through answering proportionally, so the per-step
- * delta strip has a number to print at every step.
+ * A preview whose counts are the record's own (production's 86 in, 78 out).
+ * A chain cut part way through has run some of the filters, and `kept` says
+ * how many nodes they left (see countAfter).
  */
-function countedPreview(counts: [number, number], cut: number, total: number, label: string) {
-  const [source, result] = counts;
-  const done = total <= 0 ? 1 : Math.min(1, cut / total);
-  const kept = Math.round(source - (source - result) * done);
+function countedPreview(source: number, kept: number, label: string) {
   const all = Array.from({ length: source }, (_, i) => ({
     name: `${label} ${String(i + 1).padStart(3, "0")}`,
     type: i % 3 === 0 ? "trojan" : "vless",
@@ -572,10 +591,10 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     // at all. No operators means the stored chain, the way the plugin reads
     // it, so the list's own count reflects each record's chain too.
     const stored = ((found?.process ?? []) as { disabled?: boolean }[]).filter((step) => !step.disabled);
-    const steps = Array.isArray(operators) ? operators.length : stored.length;
-    if (found?.id === "jiancai-shichang") return jiancaiPreview(steps);
+    const ran: unknown[] = Array.isArray(operators) ? operators : stored;
+    if (found?.id === "jiancai-shichang") return jiancaiPreview(countAfter(stored, ran, 166, 25));
     const counts = found ? active.counts[found.id] : undefined;
-    if (found && counts) return countedPreview(counts, steps, stored.length, found.name);
+    if (found && counts) return countedPreview(counts[0], countAfter(stored, ran, counts[0], counts[1]), found.name);
     // Eight nodes in, and the chain takes some out. The harness used to list
     // six and claim a source of eight, so the two nodes the count said were
     // removed did not exist and the pane could not be checked against them.
@@ -589,13 +608,12 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       { name: "🇷🇺 Moscow 01", type: "ss", server: "svo-01.edge.example", port: "8388" },
       { name: "🇮🇷 Tehran 01", type: "ss", server: "thr-01.edge.example", port: "8388" },
     ];
-    // A cut preview sends fewer operators, so the count shrinks per step:
-    // otherwise the per-step preview looks identical at every step and the
-    // screen cannot be checked at all.
-    const keptCount = Math.max(1, all.length - steps);
+    // Each filter in the run takes one node away and every other operation
+    // keeps them all, so a cut preview says which filter removed what.
+    const keptCount = Math.max(1, all.length - ran.filter(removesNodes).length);
     // The renaming operator is the first step, so its mark only survives while
     // that step is still in the run.
-    const kept = all.slice(0, keptCount).map((node) => (steps > 0 ? node : { ...node, was: undefined }));
+    const kept = all.slice(0, keptCount).map((node) => (ran.length > 0 ? node : { ...node, was: undefined }));
     const dropped = all.slice(keptCount);
     return {
       nodes: kept,

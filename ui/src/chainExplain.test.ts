@@ -25,7 +25,7 @@ describe("chain explanation", () => {
     expect(deltas.map((d) => [d.index, d.before, d.after])).toEqual([[0, 48, 31], [2, 31, 31], [3, 31, 43]]);
     expect(deltas.map(describeDelta)).toEqual([
       "1. Region filter: kept 31 of 48",
-      "3. tidy names: 31 nodes, none removed",
+      "3. tidy names: kept all 31",
       "4. Append Subscription: 31 became 43",
     ]);
   });
@@ -63,7 +63,7 @@ describe("running the chain one operation at a time", () => {
     expect(explanation.final).toBe(answers[3]);
     expect(explanation.deltas.map(describeDelta)).toEqual([
       "1. Region filter: kept 3 of 4",
-      "3. tidy names: 3 nodes, none removed",
+      "3. tidy names: kept all 3",
       "4. Append Subscription: kept 2 of 3",
     ]);
     expect(explanation.droppedBy.get("us.example:443")).toBe("1. Region filter");

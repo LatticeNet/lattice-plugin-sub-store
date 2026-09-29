@@ -63,9 +63,13 @@ export function stepDeltas(steps: readonly ChainStep[], sourceCount: number, cou
   return out;
 }
 
-/** One sentence per operation, the way the strip prints it. */
+/**
+ * One sentence per operation, the way the strip prints it. A rename, a sort
+ * or a flag step hands on every node it is given, and says so in the words
+ * the record page uses ("kept all") rather than as a count to compare.
+ */
 export function describeDelta(delta: StepDelta): string {
-  if (delta.after === delta.before) return `${delta.label}: ${delta.after} nodes, none removed`;
+  if (delta.after === delta.before) return `${delta.label}: kept all ${delta.after}`;
   if (delta.after < delta.before) return `${delta.label}: kept ${delta.after} of ${delta.before}`;
   return `${delta.label}: ${delta.before} became ${delta.after}`;
 }
