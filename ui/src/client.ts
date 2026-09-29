@@ -276,6 +276,16 @@ export interface SubscriptionListItem {
   last_fetch_ok?: boolean;
   last_error?: string;
   userinfo?: string;
+  /**
+   * The same header parsed by the plugin: bytes up and down, the provider's
+   * total, and the expiry in unix seconds. Each is present only when the
+   * provider sent it and it parsed. A plugin older than 0.14 sends none of
+   * them, and the UI parses `userinfo` itself instead.
+   */
+  upload?: number;
+  download?: number;
+  total?: number;
+  expire?: number;
 }
 
 export const KIND_SUB = "sub";
