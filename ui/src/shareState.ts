@@ -24,6 +24,16 @@ export function stateTone(tone: Tone): "healthy" | "warning" | "error" | "neutra
   return "neutral";
 }
 
+/**
+ * The link a client fetches for a share: the absolute URL when the console
+ * sent one, the path otherwise. Every copy-link control reads it here, so the
+ * table, the Shares layer, the side panel and the record page copy the same
+ * string.
+ */
+export function shareLinkOf(share: SubStoreShareRow): string {
+  return share.url || share.path || "";
+}
+
 export interface PublishState {
   tone: Tone;
   /** Short cell text: the slug, or the one word that says why there is none. */

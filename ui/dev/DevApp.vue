@@ -20,14 +20,25 @@ provideHost(createFakeHost());
  * the payload; it is applied the way the bridge applies it, as inline
  * properties on <html>, so the precedence is the real one.
  */
-const dark = ref(true);
+/**
+ * `?theme=light` or `?theme=dark` picks the scheme; without it the harness
+ * follows the system, so a headless capture asked for light gets light.
+ */
+function initialDark(): boolean {
+  const asked = new URLSearchParams(window.location.search).get("theme");
+  if (asked === "light") return false;
+  if (asked === "dark") return true;
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
+}
+const dark = ref(initialDark());
+const fixture = new URLSearchParams(window.location.search).get("fixture") || "production";
 
 watchEffect(() => applyHostTheme(dark.value ? "dark" : "light"));
 </script>
 
 <template>
   <div class="dev-bar">
-    <span>dev harness, fake host, canned records</span>
+    <span>dev harness, fake host, {{ fixture }} records</span>
     <button type="button" @click="dark = !dark">{{ dark ? "Light" : "Dark" }}</button>
   </div>
   <Shell />

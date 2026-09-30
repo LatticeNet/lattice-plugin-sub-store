@@ -1,68 +1,61 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * The record lenses on the plugin chassis, driven at the widths a design
- * review uses.
+ * The layers of design 22, driven at the widths a design review uses.
  *
- * Every assertion here stands in for a measurement someone took by hand and
- * wrote up as a finding: the document that scrolled sideways at 375, the
- * primary action that wrapped under the toolbar at 1440, the name that
- * shoved the actions off the row. A regression reads as the same sentence
- * the review did.
+ * Every assertion stands in for a measurement a review takes by hand: the
+ * overview fitting one screen, the map lighting one path, the table keeping
+ * its columns at 375 with the name pinned, the side panel becoming a sheet,
+ * the record page carrying the only tab row. A regression reads as the same
+ * sentence the review would write.
  */
 
-async function openSubscriptions(page: Page): Promise<void> {
-  await page.goto("/dev.html");
-  await page.locator(".rec-row").first().waitFor();
+async function open(page: Page, query: string, ready: string): Promise<void> {
+  await page.goto(`/dev.html${query}`);
+  await page.locator(ready).first().waitFor();
 }
 
-async function openFiles(page: Page): Promise<void> {
-  await page.goto("/dev.html?lens=files");
-  await page.locator(".rec-list .rec-row").first().waitFor();
-}
-
-/** The row whose name is deliberately too long. */
-function longRow(page: Page) {
-  return page.locator(".rec-row, .pc-row", { hasText: "A deliberately long" }).first();
-}
+const docWidth = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth);
 
 test.describe("375", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test("the document never scrolls sideways, with a row open or a sheet up", async ({ page }) => {
-    await openSubscriptions(page);
-    const frame = page.viewportSize()!.width;
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(frame);
-    await expect(page.locator(".rec-list")).toBeVisible();
-    await expect(page.locator(".pc-table")).toHaveCount(0);
-    await page.locator("#rec-openjobs-host .rec-ident").click();
-    await page.locator("#rec-chain-openjobs-host").waitFor();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(frame);
-    await page.locator('[data-row-menu="openjobs-host"] button').click();
-    const seen = await page.evaluate(async () => {
-      const doc = document.documentElement;
-      const item = [...document.querySelectorAll<HTMLButtonElement>(".rec-menu button")].find((b) => b.textContent!.includes("Client output"))!;
-      let max = 0;
-      item.click();
-      await new Promise<void>((resolve) => {
-        const started = performance.now();
-        const tick = () => {
-          max = Math.max(max, doc.scrollWidth);
-          if (performance.now() - started < 600) requestAnimationFrame(tick);
-          else resolve();
-        };
-        requestAnimationFrame(tick);
-      });
-      return max;
-    });
-    expect(seen).toBe(frame);
-    const close = (await page.locator(".sheet-close").boundingBox())!;
-    expect(Math.round(close.x + close.width)).toBeLessThanOrEqual(frame);
+  test("the overview becomes stage lists and never scrolls sideways", async ({ page }) => {
+    await open(page, "", ".lineage-stages");
+    await expect(page.locator(".lineage-canvas")).toHaveCount(0);
+    await expect(page.locator(".lineage-feeds").first()).toBeVisible();
+    expect(await docWidth(page)).toBe(375);
+  });
+
+  test("a table keeps its columns and scrolls inside itself, name pinned", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    expect(await docWidth(page)).toBe(375);
+    const wrap = page.locator(".pc-table-wrap").first();
+    const name = page.locator(".layer-row td.pc-name").first();
+    await wrap.evaluate((el) => (el.scrollLeft = 400));
+    const box = (await name.boundingBox())!;
+    const wrapBox = (await wrap.boundingBox())!;
+    expect(Math.round(box.x)).toBeLessThanOrEqual(Math.round(wrapBox.x) + 1);
+    await expect(page.locator(".layer-row").first().locator("td", { hasText: /Provider link|Pasted nodes/ })).toHaveCount(1);
+  });
+
+  test("the side panel is a full-height sheet", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    await page.locator(".row-open", { hasText: "建材市场" }).click();
+    const panel = page.locator(".pc-side-panel");
+    await expect(panel).toBeVisible();
+    const box = (await panel.boundingBox())!;
+    // Full width, and the frame's height less the chassis's inset at the top.
+    expect(Math.round(box.width)).toBe(375);
+    expect(box.height).toBeGreaterThanOrEqual(812 - 24);
+    await expect(panel.getByText("410 GB of 500 GB", { exact: false })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
   });
 
   test("the selection bar floats inside the frame and the rows do not move", async ({ page }) => {
-    await openSubscriptions(page);
-    const row = page.locator("#rec-cdcd-self-host");
+    await open(page, "?view=sources", ".layer-row");
+    const row = page.locator(".layer-row").nth(1);
     const top = () => row.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
     const before = await top();
     await row.locator("input[type=checkbox]").click();
@@ -75,89 +68,143 @@ test.describe("375", () => {
     expect(Math.round(box.y + box.height)).toBeLessThanOrEqual(frame.height);
     expect(await top()).toBe(before);
   });
-
-  test("the files list stacks the same way", async ({ page }) => {
-    await openFiles(page);
-    await expect(page.locator(".rec-list")).toBeVisible();
-    await expect(page.locator(".pc-table")).toHaveCount(0);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375);
-    const name = (await longRow(page).locator(".rec-ident-name").boundingBox())!;
-    expect(Math.round(name.x + name.width)).toBeLessThanOrEqual(375);
-  });
-});
-
-test.describe("700", () => {
-  test.use({ viewport: { width: 700, height: 900 } });
-
-  test("the list stays inside the frame", async ({ page }) => {
-    await openSubscriptions(page);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(700);
-    const item = (await page.locator("#rec-openjobs-host").boundingBox())!;
-    expect(Math.round(item.x + item.width)).toBeLessThanOrEqual(700);
-  });
 });
 
 test.describe("1440", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("the toolbar is one row and the page never scrolls sideways", async ({ page }) => {
-    await openSubscriptions(page);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
+  test("the overview fits one screen and the toolbar is one row", async ({ page }) => {
+    await open(page, "", ".lineage-chip");
+    expect(await docWidth(page)).toBe(1440);
+    const map = (await page.locator(".overview-map").boundingBox())!;
+    expect(map.y + map.height).toBeLessThanOrEqual(900);
     const tabs = (await page.locator(".pc-lens-tabs").boundingBox())!;
     const primary = (await page.getByRole("button", { name: "New subscription" }).boundingBox())!;
     expect(Math.abs(primary.y + primary.height / 2 - (tabs.y + tabs.height / 2))).toBeLessThan(4);
+    await expect(page.getByText("15 files are not published")).toBeVisible();
   });
 
-  test("a long name ellipses instead of shoving actions off the row", async ({ page }) => {
-    await openSubscriptions(page);
-    const name = (await longRow(page).locator(".rec-ident-name").boundingBox())!;
-    const actions = (await longRow(page).locator(".rec-row-actions").boundingBox())!;
-    const ident = (await longRow(page).locator(".rec-ident").boundingBox())!;
-    expect(Math.round(ident.x + ident.width)).toBeLessThanOrEqual(Math.round(actions.x) + 1);
-    expect(name.width).toBeLessThan(ident.width);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
+  test("selecting a chip lights its path, dims the rest and opens the peek", async ({ page }) => {
+    await open(page, "", ".lineage-chip");
+    await page.locator('[data-map-key="imported-openjobs-host"]').click();
+    await expect(page.locator('[data-map-key="imported-openjobs-host"]')).toHaveAttribute("data-state", "selected");
+    await expect(page.locator('[data-map-key="imported-col-merge-openjobs"]')).toHaveAttribute("data-state", "on");
+    await expect(page.locator('[data-map-key="imported-cdcd-self-hostbak-20260820"]')).toHaveAttribute("data-state", "off");
+    expect(await page.locator('.lineage-edge[data-on="true"]').count()).toBeGreaterThan(1);
+    await expect(page.locator(".pc-side-panel h2")).toHaveText("openjobs-host");
+    await expect(page).toHaveURL(/[?&]open=imported-openjobs-host(&|$)/);
   });
 
-  test("kind is a tab and a record folds its chain", async ({ page }) => {
-    await openSubscriptions(page);
-    const items = page.locator(".rec-row");
-    const before = await items.count();
-    await page.getByRole("tab", { name: "Single" }).click();
-    expect(await items.count()).toBeLessThan(before);
-    await page.getByRole("tab", { name: "All" }).click();
-    expect(await items.count()).toBe(before);
-    const toggle = page.locator("#rec-openjobs-host .rec-ident");
-    await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-expanded", "true");
-    await page.locator("#rec-chain-openjobs-host .rec-chain-steps").waitFor();
-    expect(await items.count()).toBe(before);
-    expect(await page.locator("#rec-chain-openjobs-host .rec-chain-steps").count()).toBe(1);
-    await expect(page.locator("#rec-openjobs-host .rec-open")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(toggle).toHaveAttribute("aria-expanded", "false");
-    await expect(toggle).toBeFocused();
+  test("a combination's peek links on to its members and the page", async ({ page }) => {
+    await open(page, "?view=combinations", ".layer-row");
+    await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
+    const panel = page.locator(".pc-side-panel");
+    await panel.getByRole("button", { name: "openjobs-host" }).first().click();
+    await expect(panel.locator("h2")).toHaveText("openjobs-host");
+    await panel.getByRole("button", { name: "Open page" }).click();
+    await expect(page.locator("#record-title")).toHaveText("openjobs-host");
+    await expect(page.getByRole("tablist")).toHaveCount(1);
+    await expect(page).toHaveURL(/[?&]record=imported-openjobs-host(&|$)/);
   });
 
-  test("the files list keeps its columns on one row each", async ({ page }) => {
-    await openFiles(page);
-    await expect(page.locator(".pc-table")).toHaveCount(0);
-    const first = page.locator(".rec-list .rec-row").first();
-    const box = (await first.locator(".rec-row-bar").boundingBox())!;
+  test("the record page masks a provider link and reveals it for a minute", async ({ page }) => {
+    await open(page, "?record=imported-unnamed", "#record-title");
+    await page.getByRole("tab", { name: "Source" }).click();
+    const link = page.locator(".record-url code");
+    await expect(link).toHaveText("https://vip.ding202507.xyz/…?…");
+    await page.getByRole("button", { name: "Reveal for 60s" }).click();
+    await expect(link).toContainText("token=");
+    await page.getByRole("button", { name: /Sources/ }).click();
+    await expect(page.locator(".layer-row").first()).toBeVisible();
+  });
+
+  test("a long name ellipses instead of shoving columns off the row", async ({ page }) => {
+    await open(page, "?fixture=canned&view=sources", ".layer-row");
+    const row = page.locator(".layer-row", { hasText: "A deliberately long" }).first();
+    const name = (await row.locator(".row-open strong").boundingBox())!;
+    const cell = (await row.locator("td.pc-name").boundingBox())!;
+    expect(name.width).toBeLessThanOrEqual(cell.width);
+    expect(await docWidth(page)).toBe(1440);
+  });
+
+  test("the files table keeps one line per row", async ({ page }) => {
+    await open(page, "?view=files", ".layer-row");
+    const box = (await page.locator(".layer-row").first().boundingBox())!;
     expect(box.height).toBeLessThanOrEqual(48);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
+    expect(await docWidth(page)).toBe(1440);
+  });
+
+  test("Review on the overview lands on the unpublished files", async ({ page }) => {
+    await open(page, "", ".attention-item");
+    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Review" }).click();
+    await expect(page.locator(".layer-row")).toHaveCount(15);
+    await expect(page).toHaveURL(/[?&]published=no(&|$)/);
+  });
+});
+
+/**
+ * The page's state lives in the console's address, which the harness plays
+ * with its own address bar (dev/consoleAddress.ts): the fake console hands the
+ * query over at the handshake and writes every state message back into it.
+ * A reload of this tab is therefore the console reload an operator does.
+ */
+test.describe("page state in the console address", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("a reload lands on the same layer, filter, search and peek", async ({ page }) => {
+    await open(page, "?fixture=production", ".attention-item");
+    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Review" }).click();
+    await expect(page.locator(".layer-row")).toHaveCount(15);
+    await page.getByRole("searchbox", { name: "Filter files" }).fill("loon");
+    await expect(page.locator(".layer-row")).toHaveCount(3);
+    await page.locator(".layer-row", { hasText: "for-openjobs-loon" }).locator(".row-open").click();
+    await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
+    await expect(page).toHaveURL(/[?&]open=imported-file-for-openjobs-loon(&|$)/);
+    const url = new URL(page.url());
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      fixture: "production",
+      view: "files",
+      open: "imported-file-for-openjobs-loon",
+      q: "loon",
+      published: "no",
+    });
+
+    await page.reload();
+    await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
+    await expect(page.getByRole("tab", { name: /Files/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("searchbox", { name: "Filter files" })).toHaveValue("loon");
+    await expect(page.locator(".layer-row")).toHaveCount(3);
+    // The reload did not rewrite the address it landed on.
+    expect(new URL(page.url()).search).toBe(url.search);
+  });
+
+  test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
+    await open(page, "?view=combinations", ".layer-row");
+    await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
+    await page.locator(".pc-side-panel").getByRole("button", { name: "Open page" }).click();
+    await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
+    await expect(page).toHaveURL(/[?&]record=imported-col-merge-openjobs(&|$)/);
+    await expect(page).toHaveURL(/[?&]view=combinations(&|$)/);
+    await expect(page).not.toHaveURL(/[?&]open=/);
+
+    await page.reload();
+    await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
+    await page.locator(".record-crumbs").getByRole("button", { name: "Combinations" }).click();
+    await expect(page.locator(".layer-row").first()).toBeVisible();
+    await expect(page).toHaveURL(/\?view=combinations$/);
   });
 });
 
 test.describe("reduced motion", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("nothing in the sheet or the row chain animates", async ({ page }) => {
+  test("nothing on the map or in the sheet animates", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await openSubscriptions(page);
+    await open(page, "", ".lineage-chip");
     expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
-    await page.locator("#rec-openjobs-host .rec-ident").click();
-    await page.locator("#rec-chain-openjobs-host").waitFor();
-    await page.locator('[data-row-menu="openjobs-host"] button').click();
+    await page.locator('[data-map-key="imported-openjobs-host"]').click();
+    await page.goto("/dev.html?view=sources");
+    await page.locator('[data-row-menu="imported-openjobs-host"] button').click();
     await page.locator(".rec-menu button", { hasText: "Client output" }).click();
     await page.locator(".sheet").waitFor();
     const timed = await page.evaluate(() =>
@@ -174,8 +221,10 @@ test.describe("row menu", () => {
   test.use({ viewport: { width: 1440, height: 1100 } });
 
   test("every item of the first row's menu is on top", async ({ page }) => {
-    await openSubscriptions(page);
-    await page.locator('[data-row-menu="cdcd-self-host"] button').first().click();
+    await open(page, "?view=sources", ".layer-row");
+    const id = await page.locator(".layer-row").first().getAttribute("id");
+    const recordId = id!.replace(/^rec-/, "");
+    await page.locator(`[data-row-menu="${recordId}"] button`).first().click();
     await page.locator(".rec-menu").waitFor();
     const covered = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>(".rec-menu [role=menuitem]")]
@@ -187,9 +236,11 @@ test.describe("row menu", () => {
         .map((item) => item.textContent!.trim()),
     );
     expect(covered).toEqual([]);
-    const trigger = (await page.locator('[data-row-menu="cdcd-self-host"] button').first().boundingBox())!;
+    const trigger = (await page.locator(`[data-row-menu="${recordId}"] button`).first().boundingBox())!;
     const menu = (await page.locator(".rec-menu").boundingBox())!;
     expect(Math.abs(menu.x + menu.width - (trigger.x + trigger.width))).toBeLessThanOrEqual(1);
     expect(menu.y).toBeGreaterThanOrEqual(trigger.y + trigger.height);
+    // Opening the menu must not also open the side panel behind it.
+    await expect(page.locator(".pc-side-panel")).toHaveCount(0);
   });
 });

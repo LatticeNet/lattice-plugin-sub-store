@@ -1,4 +1,4 @@
-import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionListItem } from "./client";
+import { BINDINGS, KIND_COLLECTION, KIND_FILE, KIND_SUB, type MethodBinding, type SubscriptionListItem } from "./client";
 
 /**
  * What can be done to a record, declared once.
@@ -38,6 +38,26 @@ export interface ActionCapabilities {
   preview: boolean;
   render: boolean;
   publish: boolean;
+}
+
+/**
+ * What this session may do, read once from the handshake and the signed
+ * manifest. The tables, the side panel, the record page and the palette all
+ * gate on this one answer, so a verb cannot be enabled in one place and
+ * refused in another.
+ */
+export function actionCapabilities(host: {
+  init: { value: unknown };
+  available: (binding: MethodBinding) => boolean;
+}): ActionCapabilities {
+  return {
+    ready: !!host.init.value,
+    mutate: host.available(BINDINGS.subSave) && host.available(BINDINGS.subDelete),
+    fetch: host.available(BINDINGS.subProbe),
+    preview: host.available(BINDINGS.subPreview),
+    render: host.available(BINDINGS.subRender),
+    publish: host.available(BINDINGS.subPublish),
+  };
 }
 
 export interface ActionDeclaration {
@@ -240,4 +260,72 @@ export function batchActionsFor(
       disabled: reason !== "",
     };
   });
+}
+
+/**
+ * The row menu: the verbs that act on a record without opening it. The same
+ * list wherever a record is shown (a table row, the side panel, the record
+ * page), so a record opened from a pasted link can still be refreshed,
+ * copied or deleted without going back to its table. The kind filters it: a
+ * file has nothing to refresh.
+ */
+export const ROW_MENU_ACTIONS: readonly ActionId[] = ["output", "refresh", "duplicate", "delete"];
+
+export function rowMenuFor(record: SubscriptionListItem, caps: ActionCapabilities): ResolvedAction[] {
+  return actionsFor(record, caps, ROW_MENU_ACTIONS);
+}
+
+export interface DeletePrompt {
+  title: string;
+  /** What is being deleted; the operator types their count to arm a batch. */
+  names: string[];
+  /** Records that break as a consequence. Listed, not counted. */
+  consequences: string[];
+}
+
+/**
+ * The confirm dialog's words for deleting `ids`, the same from every surface.
+ *
+ * The records that break are found rather than described: a combination
+ * names its parts in `members`, and a file draws its nodes from
+ * `node_source`, so the warning lists the actual names, and a record with no
+ * dependents carries no warning about dependents. Files have none (nothing
+ * may draw from a file), so a set of files gets the shorter sentence.
+ */
+export function deletePrompt(ids: readonly string[], items: readonly SubscriptionListItem[]): DeletePrompt {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const label = (item: SubscriptionListItem) => item.display_name || item.name;
+  const names = ids.map((id) => {
+    const item = byId.get(id);
+    return item ? label(item) : id;
+  });
+  const count = ids.length;
+  const one = count === 1;
+  if (count > 0 && ids.every((id) => byId.get(id)?.kind === KIND_FILE)) {
+    return {
+      title: one
+        ? "Delete this file? Any share published for it keeps existing and starts returning nothing."
+        : `Delete ${count} files? Any shares published for them keep existing and start returning nothing.`,
+      names,
+      consequences: [],
+    };
+  }
+  const doomed = new Set(ids);
+  const consequences: string[] = [];
+  for (const item of items) {
+    if (doomed.has(item.id)) continue;
+    if ((item.members ?? []).some((member) => doomed.has(member))) {
+      consequences.push(`${label(item)}  (combination, loses a member)`);
+    } else if (item.node_source && doomed.has(item.node_source)) {
+      consequences.push(`${label(item)}  (file, loses its node source)`);
+    }
+  }
+  const subject = one ? "this record" : `${count} records`;
+  const object = one ? "it" : "them";
+  const shares = `Any share published for ${object} keeps existing and starts returning nothing.`;
+  if (!consequences.length) return { title: `Delete ${subject}? Nothing else in this store points at ${object}. ${shares}`, names, consequences };
+  const breaks = consequences.length === 1
+    ? `1 other record in this store points at ${object} and stops working`
+    : `${consequences.length} other records in this store point at ${object} and stop working`;
+  return { title: `Delete ${subject}? ${breaks} until you edit them, listed below. ${shares}`, names, consequences };
 }

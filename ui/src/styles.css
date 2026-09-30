@@ -132,10 +132,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 /* Mid-operation. Not a spinner over the row: the row is still readable and
    still true, it just cannot be acted on until the call returns. */
-.pc-row.is-pending > td,
-.rec-row.is-pending { opacity: 0.55; }
-.pc-row.is-pending .pc-row-actions,
-.rec-row.is-pending .rec-row-actions { pointer-events: none; }
+.pc-row.is-pending > td { opacity: 0.55; }
+.pc-row.is-pending .pc-row-actions { pointer-events: none; }
 /* An operation the chain skips. */
 .pc-row.is-off .pc-name strong { color: var(--muted-foreground); text-decoration: line-through; }
 
@@ -451,245 +449,15 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .empty-inline-form > input:focus-visible,
 .empty-inline-form .masked-url input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--primary); }
 
-/* ── record list ──────────────────────────────────────────────────────────
-   Cloudflare resource-list interaction on Lattice tokens: kind is an
-   underline tab, not a nested shelf; a row is one object; Open then kebab
-   then chevron. The chain is a compact well (proof and steps). Open lives
-   on the row, the way official Sub-Store keeps a pen on the card. */
-.rec-kind {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  padding: 0 var(--space-4);
-  border-bottom: 1px solid var(--border);
-}
-.rec-kind button {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin: 0;
-  padding: var(--space-3) 0 calc(var(--space-3) - 2px);
-  border: 0;
-  color: var(--muted-foreground);
-  background: transparent;
-  font: inherit;
-  font-size: var(--lt-text-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.rec-kind button:hover { color: var(--foreground); }
-.rec-kind button[aria-selected="true"] { color: var(--foreground); }
-.rec-kind button:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
-.rec-kind-ink {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--primary);
-  pointer-events: none;
-  transition: transform 150ms var(--lt-ease), width 150ms var(--lt-ease);
-}
-
 .rec-list { min-width: 0; }
-.rec-list-head,
-.rec-row-bar {
-  display: grid;
-  grid-template-columns: 1.75rem minmax(0, 1fr) auto 1.25rem;
-  gap: var(--space-2);
-  align-items: center;
-  padding: 0 var(--space-3);
-}
-.rec-list[data-select="false"] .rec-list-head,
-.rec-list[data-select="false"] .rec-row-bar {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-.rec-list[data-expand="false"] .rec-list-head,
-.rec-list[data-expand="false"] .rec-row-bar {
-  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
-}
-.rec-list[data-select="false"][data-expand="false"] .rec-list-head,
-.rec-list[data-select="false"][data-expand="false"] .rec-row-bar {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-.rec-list[data-expand="false"] .rec-ident { cursor: default; }
-.rec-list-head {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  min-height: var(--row-h-compact);
-  background: var(--muted);
-  color: var(--muted-foreground);
-  font-size: var(--lt-text-xs);
-  font-weight: 600;
-}
-.rec-head-main,
-.rec-ident {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 5.5rem minmax(7rem, 9.5rem) 6rem;
-  gap: var(--space-2);
-  align-items: center;
-  min-width: 0;
-}
-/* Shares columns are Record / Format / State / Expires. Format is a phrase
-   ("as the client asks"), not a node count, so it cannot sit in the 5.5rem
-   Nodes track the other lists use. */
-.rec-list[data-kind="shares"] .rec-head-main,
-.rec-list[data-kind="shares"] .rec-ident {
-  grid-template-columns: minmax(0, 1fr) minmax(10rem, 13rem) 5.5rem 5.5rem;
-}
-.rec-check {
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-}
-.rec-check input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: var(--primary);
-}
-.rec-head-actions { min-width: 2.25rem; }
-
-.rec-rows { margin: 0; padding: 0; list-style: none; }
-.rec-row { border-top: 1px solid var(--border); }
-.rec-row-bar { min-height: var(--row-h); }
-.rec-row:hover .rec-row-bar { background: var(--muted); }
-.rec-row[data-selected="true"] .rec-row-bar { background: color-mix(in oklab, var(--primary) 8%, var(--muted)); }
-.rec-row[data-open="true"] .rec-row-bar { background: var(--pc-open-surface, var(--muted)); }
-
-.rec-ident {
-  margin: 0;
-  padding: 2px 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  color: inherit;
-  background: transparent;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.rec-ident:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
-.rec-col-name {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px var(--space-2);
-}
-.rec-ident-name {
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.rec-ident-meta {
-  display: flex;
-  flex: 1 1 100%;
-  min-width: 0;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
-  color: var(--muted-foreground);
-  font-size: var(--lt-text-xs);
-}
-.rec-ident-id {
-  overflow: hidden;
-  font-family: var(--font-mono);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.rec-ident-ops { font-variant-numeric: tabular-nums; }
-.rec-col-nodes,
-.rec-col-when { color: var(--muted-foreground); font-size: var(--lt-text-xs); white-space: nowrap; }
-.rec-col-nodes.mono { font-variant-numeric: tabular-nums; color: var(--foreground); }
-.rec-list[data-kind="shares"] .rec-col-nodes {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.rec-col-status { min-width: 0; }
-.rec-col-chevron { width: 1.25rem; }
-.rec-expand {
-  display: grid;
-  place-items: center;
-  width: 1.25rem;
-  height: var(--row-h);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--muted-foreground);
-  cursor: pointer;
-}
-.rec-expand:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
-.rec-chevron {
-  justify-self: end;
-  color: var(--muted-foreground);
-  transition: transform var(--lt-dur) var(--lt-ease);
-}
-.rec-expand[aria-expanded="true"] .rec-chevron { transform: rotate(90deg); }
-
-.rec-row-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-1);
-}
-.rec-open { flex: none; }
-
-@media (hover: hover) and (pointer: fine) and (min-width: 1100px) {
-  .rec-row-actions .rec-menu-wrap {
-    opacity: 0;
-    transition: opacity var(--lt-dur) var(--lt-ease);
-  }
-  .rec-row:hover .rec-menu-wrap,
-  .rec-row:focus-within .rec-menu-wrap,
-  .rec-row[data-menu="true"] .rec-menu-wrap,
-  .rec-row[data-open="true"] .rec-menu-wrap { opacity: 1; }
-}
-
-/* Instant open: animating grid 0fr/1fr against async preview height is the
-   snap the official card never does. The well is compact (proof + steps);
-   dropped names wait for a cut. */
-.rec-well { display: none; }
-.rec-well[data-open="true"] { display: block; }
-
-.rec-detail {
-  min-width: 0;
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  border-top: 1px solid var(--border);
-  background: var(--pc-open-surface, var(--muted));
-}
-.rec-file-facts {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  color: var(--muted-foreground);
-  font-size: var(--lt-text-sm);
-}
-.rec-file-facts dt {
-  font-family: var(--font-mono);
-  font-size: var(--lt-text-xs);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.rec-file-facts dd { margin: 0 0 var(--space-2); color: var(--foreground); }
 
 @media (max-width: 640px) {
   .rec-tools .pc-search { max-width: none; flex: 1 1 100%; }
   .add-split { width: 100%; }
   .add-split > .pc-button { flex: 1; }
-  .rec-head-main,
-  .rec-ident,
-  .rec-list[data-kind="shares"] .rec-head-main,
-  .rec-list[data-kind="shares"] .rec-ident {
-    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
-  }
-  .rec-col-nodes,
-  .rec-col-when { display: none; }
-  .rec-ident-ops { display: none; }
+  
+  
+  
 }
 
 /* ── chain detail ─────────────────────────────────────────────────────────
@@ -697,7 +465,6 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
    count deltas; dropped names are grouped by the operation that removed
    them and paged, so the reason is not repeated on every line. */
 .rec-chain-pane { min-width: 0; }
-.rec-detail .rec-chain-pane { margin-top: 0; }
 
 .rec-chain-note {
   margin: 0;
@@ -1244,7 +1011,6 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 }
 .output-dropped p { margin: 0; min-width: 0; flex: 1; }
 .output-dropped button { flex: none; }
-
 
 .doc-truncated {
   margin: var(--space-2) 0 0;
@@ -2148,9 +1914,8 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   .sheet { animation: none; }
   .lens-panel.is-fading { animation: none; }
   .rec-menu { animation: none; }
-  .rec-well,
-  .rec-detail { transition: none; }
-  .rec-kind-ink,
+  
+  
   .ed-tabs-ink { transition: none; }
 }
 
@@ -2158,10 +1923,8 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   .button:active:not(:disabled),
   .pc-button:active:not(:disabled),
   .pc-icon-button:active:not(:disabled),
-  .rec-kind button:active,
   .ed-tab:active,
-  .add-split-caret:active:not(:disabled),
-  .rec-expand:active {
+  .add-split-caret:active:not(:disabled) {
     transform: scale(0.97);
   }
 }
@@ -2301,4 +2064,283 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   }
   .conflict-table td:nth-of-type(1)::before { content: "when you opened it"; }
   .conflict-table td:nth-of-type(2)::before { content: "now"; }
+}
+
+/* ── layers (design 22) ───────────────────────────────────────────────────
+   Overview, the lineage map, the side panel peek, the record page and the
+   collection tables. Surfaces and ink are the host's; the accent marks the
+   selection and nothing else; semantic colour says only what a word beside
+   it already says. */
+
+.record-page > * + * { margin-top: var(--space-4); }
+
+/* Attention: a claim, the dot that grades it, the action that clears it. */
+.attention-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.attention-head h2 { margin: 0; font-size: var(--text-body); font-weight: 650; letter-spacing: -0.01em; }
+.attention-list { margin: 0; padding: 0; list-style: none; }
+.attention-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--row-h, 40px);
+  padding: var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.attention-item:last-child { border-bottom: 0; }
+.attention-more { padding: var(--space-2) var(--space-4); border-top: 1px solid var(--border); }
+.attention-claim {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading-tight);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+button.attention-claim:hover { text-decoration: underline; text-underline-offset: 2px; }
+button.attention-claim:focus-visible { outline: none; border-radius: var(--radius-sm); box-shadow: var(--lt-focus-ring-tight); }
+
+/* The lineage map. Four columns with room between them for the edges. */
+.lineage { margin: 0; }
+.lineage-canvas {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-7);
+  padding: var(--space-4);
+}
+/* Painted first, so the columns (positioned, later in the document) sit over it without a stacking level of their own. */
+.lineage-edges { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.lineage-edge {
+  fill: none;
+  stroke: var(--lt-border-strong);
+  stroke-width: 1.25;
+  opacity: 0.75;
+  transition: opacity var(--lt-dur-base) var(--lt-ease), stroke var(--lt-dur) var(--lt-ease);
+}
+.lineage-edge[data-tag="true"] { stroke-dasharray: 4 3; }
+.lineage-edge[data-on="true"] { stroke: var(--primary); stroke-width: 2; opacity: 1; }
+.lineage-edge[data-on="false"] { opacity: 0.12; }
+.lineage-col { position: relative; display: flex; min-width: 0; flex-direction: column; gap: 6px; }
+.lineage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.lineage-head-count { font-variant-numeric: tabular-nums; }
+.lineage-none { margin: 0; color: var(--muted-foreground); font-size: var(--lt-text-xs); }
+.lineage-chip {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: var(--lt-text-sm);
+  text-align: left;
+  transition: opacity var(--lt-dur-base) var(--lt-ease), border-color var(--lt-dur) var(--lt-ease), background-color var(--lt-dur) var(--lt-ease);
+}
+.lineage-chip:hover { border-color: var(--lt-border-strong); }
+.lineage-chip:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.lineage-chip[data-member="true"] { width: calc(100% - var(--space-4)); height: 28px; margin-left: var(--space-4); font-size: var(--lt-text-xs); }
+.lineage-chip[data-state="selected"] { border-color: var(--primary); background: var(--lt-accent-soft); }
+.lineage-chip[data-state="on"] { border-color: var(--lt-accent-border); }
+.lineage-chip[data-state="off"],
+.lineage-entry[data-state="off"] { opacity: 0.38; }
+.lineage-chevron { flex: 0 0 auto; color: var(--muted-foreground); transition: transform var(--lt-dur) var(--lt-ease); }
+.lineage-chip[aria-expanded="true"] .lineage-chevron { transform: rotate(90deg); }
+.lineage-dot { flex: 0 0 auto; }
+.lineage-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lineage-chip[data-kind="group"] .lineage-name { font-family: var(--font-mono); font-size: var(--lt-text-xs); }
+.lineage-figure {
+  flex: 0 0 auto;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Below 640px: stage lists, each record with what it feeds under it. */
+.lineage-stages { display: grid; gap: var(--space-4); padding: var(--space-3); }
+.lineage-list { display: flex; margin: 0; padding: 0; flex-direction: column; gap: 6px; list-style: none; }
+.lineage-entry { min-width: 0; transition: opacity var(--lt-dur-base) var(--lt-ease); }
+.lineage-entry[data-member="true"] { padding-left: var(--space-4); }
+.lineage-entry[data-member="true"] .lineage-chip { width: 100%; margin-left: 0; }
+.lineage-feeds {
+  margin: 2px 0 0 var(--space-5);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* The side panel peek: identity, state, then facts as label and value. */
+.peek { padding: var(--space-4); }
+.peek-state { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.peek-id { min-width: 0; color: var(--muted-foreground); font-family: var(--font-mono); font-size: var(--lt-text-xs); overflow-wrap: anywhere; }
+.peek-why { margin: var(--space-2) 0 0; color: var(--muted-foreground); font-size: var(--lt-text-sm); overflow-wrap: anywhere; }
+.peek-facts {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  font-size: var(--lt-text-sm);
+}
+.peek-facts dt { padding-top: 1px; color: var(--muted-foreground); font-size: var(--lt-text-xs); font-weight: 600; }
+.peek-facts dd { min-width: 0; margin: 0; }
+.peek-mono { font-family: var(--font-mono); font-size: var(--lt-text-xs); font-variant-numeric: tabular-nums; }
+.peek-note { color: var(--muted-foreground); font-family: var(--lt-font); font-size: var(--lt-text-xs); }
+.peek-mono .peek-note,
+.peek-links .peek-note { margin-left: 6px; }
+.peek-links { display: flex; margin: 0; padding: 0; flex-direction: column; gap: var(--space-1); list-style: none; }
+.peek-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lt-accent-ink);
+  font-size: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+.peek-link:hover { text-decoration-color: currentColor; }
+.peek-link:focus-visible { outline: none; border-radius: var(--radius-sm); box-shadow: var(--lt-focus-ring-tight); }
+.peek-broken { color: var(--lt-danger-ink); font-family: var(--font-mono); font-size: var(--lt-text-xs); overflow-wrap: anywhere; }
+.peek-broken > span { color: var(--muted-foreground); font-family: var(--lt-font); }
+.peek-usage { display: flex; flex-direction: column; gap: var(--space-1); }
+.peek-publish { margin-top: var(--space-2); }
+/* A share on one line: the path, its state, its copy button at the end. */
+.peek-share { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.peek-share .pc-button { margin-left: auto; }
+.peek > .pc-notice,
+.peek > .lt-manual-copy { margin-bottom: var(--space-3); }
+
+/* What a delete from the side panel or the record page did, said on the layer
+   it returned to. */
+.shell-flash { margin-bottom: var(--space-3); }
+
+/* The record page: its own header, its own one tab row. */
+.record-crumbs { display: flex; }
+.record-head { display: grid; gap: 6px; }
+.record-title-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.record-title-line h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--lt-text-xl);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: var(--lt-leading-tight);
+  overflow-wrap: anywhere;
+}
+.record-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-left: auto; }
+.record-lineage { margin: 0; color: var(--muted-foreground); font-size: var(--lt-text-sm); overflow-wrap: anywhere; }
+.record-facts { grid-template-columns: 150px minmax(0, 1fr); margin: 0; }
+/* The compare panel was drawn for the editor's side pane, as an inset box.
+   On the page it is the panel's body, so it drops the second frame. */
+.record-body .preview-summary { max-width: none; margin-top: 0; padding: 0; background: none; }
+.record-body .compare-table .node-meta { overflow-wrap: anywhere; }
+.record-url { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.record-url code {
+  min-width: 0;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  overflow-wrap: anywhere;
+}
+.record-shares { margin: 0; padding: 0; list-style: none; }
+.record-shares li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+.record-shares li:last-child { border-bottom: 0; }
+
+/* Collection tables: the row opens the peek; the name is its keyboard entry. */
+.layer-row { cursor: pointer; }
+.row-open {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+.row-open:focus-visible { outline: none; border-radius: var(--radius-sm); box-shadow: var(--lt-focus-ring-tight); }
+.row-open:hover strong { text-decoration: underline; text-underline-offset: 2px; }
+.layer-provider { display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+.layer-expiry { color: var(--muted-foreground); font-family: var(--font-mono); font-size: var(--lt-text-xs); }
+.layer-muted { color: var(--muted-foreground); font-size: var(--lt-text-xs); }
+.layer-members,
+.layer-record { display: flex; min-width: 0; align-items: center; gap: 6px; }
+.layer-members-names,
+.layer-record-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-publish {
+  height: var(--lt-control-h-sm);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+}
+.row-publish:hover { border-color: var(--lt-border-strong); }
+.row-publish:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
+/* Provider traffic: a bar the width of a word, and the percentage in mono. */
+.usage { display: inline-flex; align-items: center; gap: 6px; }
+.usage-bar { width: 72px; height: 6px; flex: 0 0 auto; }
+.usage-track { fill: var(--muted); }
+.usage-fill { fill: var(--muted-foreground); }
+.usage[data-tone="warning"] .usage-fill { fill: var(--warning); }
+.usage[data-tone="danger"] .usage-fill { fill: var(--destructive); }
+.usage-figure { font-family: var(--font-mono); font-size: var(--lt-text-xs); font-variant-numeric: tabular-nums; }
+.usage[data-tone="warning"] .usage-figure { color: var(--warning-text); }
+.usage[data-tone="danger"] .usage-figure { color: var(--lt-danger-ink); }
+
+@media (max-width: 620px) {
+  .attention-item { grid-template-columns: auto minmax(0, 1fr); padding-top: var(--space-2); padding-bottom: var(--space-2); }
+  .attention-item > .pc-button { grid-column: 2; justify-self: start; }
+  /* The claim wraps to several lines here; the dot belongs to its first. */
+  .attention-item > .pc-state-dot { align-self: start; margin-top: 5px; }
+  .peek-facts, .record-facts { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+  .peek-facts dd, .record-facts dd { margin-bottom: var(--space-2); }
+  .record-actions { width: 100%; margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lineage-edge, .lineage-chip, .lineage-entry, .lineage-chevron { transition: none; }
 }

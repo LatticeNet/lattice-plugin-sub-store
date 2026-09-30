@@ -52,6 +52,8 @@ function subscriptionHost(responses: Record<string, unknown>, available: (method
     bootError: ref(""),
     available: (binding) => available(binding.method),
     resize: async () => {},
+    pageState: ref({}),
+    sendState: () => {},
   };
   return { host, calls };
 }
@@ -696,6 +698,8 @@ function stubHost(handlers: Record<string, (payload: any) => unknown>): HostCont
     bootError: ref(""),
     available: () => true,
     resize: async () => {},
+    pageState: ref({}),
+    sendState: () => {},
   };
 }
 

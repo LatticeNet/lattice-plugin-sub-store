@@ -1,29 +1,55 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const screen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
 const shell = readFileSync(new URL("./Shell.vue", import.meta.url), "utf8");
-const tabs = readFileSync(new URL("./components/RecKindTabs.vue", import.meta.url), "utf8");
+const page = readFileSync(new URL("./screens/RecordPage.vue", import.meta.url), "utf8");
 
 /**
- * One word, one set.
- *
- * The toolbar's first lens tab reads "Subscriptions 7" and means every record
- * on the lens. Kind is a second tablist: All / Single / Combinations. Single
- * must not reuse the lens word, or an operator scanning counts reads 7 then
- * 5 and cannot tell which set is which.
+ * The layering rule (design 22, section 2): an area has one tab row for its
+ * layers, mirrored in the address; there is never a second tab row inside
+ * the first. A record page has tabs of its own, so it replaces the layer row
+ * rather than stacking under it.
  */
-describe("the kind filter", () => {
-  it("does not reuse the lens tab's word for a subset of the lens", () => {
-    expect(shell).toContain('{ id: "subscriptions", label: "Subscriptions"');
-    expect(tabs).toContain('class="rec-kind"');
-    expect(screen).toContain('id === "single"');
-    expect(screen).toContain('id === "combo"');
-    expect(screen).not.toMatch(/kindFilter = 'subscriptions'/);
-    const start = screen.indexOf("const kindTabs");
-    const kind = screen.slice(start, screen.indexOf("];", start));
-    expect(kind).toContain("Single");
-    expect(kind).toContain("Combinations");
-    expect(kind).not.toContain("Subscriptions");
+describe("the layers", () => {
+  it("are six, in the design's order, Overview first and the default", () => {
+    const ids = [...shell.matchAll(/\{ id: "(\w+)", label: "([\w ]+)", icon:/g)].map((m) => `${m[1]}:${m[2]}`);
+    expect(ids).toEqual([
+      "overview:Overview",
+      "sources:Sources",
+      "combinations:Combinations",
+      "files:Files",
+      "shares:Shares",
+      "settings:Settings",
+    ]);
+    expect(shell).toContain('const activeTab = ref<TabId>("overview");');
+  });
+
+  it("keep the layer, the peek and the record page in the console's address, not the frame's", () => {
+    // The console hands the state over at the handshake and the shell hands
+    // every change back; pageState.test.ts covers the wire itself.
+    expect(shell).toContain("applyState(decodeShellState(host.pageState.value));");
+    expect(shell).toContain("if (stateApplied.value) stateSender.push(encodeShellState(state));");
+    expect(shell).toContain("createStateSender((state) => host.sendState(state))");
+    // The frame's own query does not survive a console reload, so the shell
+    // no longer writes it.
+    expect(shell).not.toContain("useDocumentQueryState");
+  });
+
+  it("give way to the record page's own tab row", () => {
+    expect(shell).toContain('<PcToolbar v-if="!recordId" label="Sub-Store layers">');
+    expect(shell.match(/<PcLensTabs/g)).toHaveLength(1);
+    expect(page.match(/<PcLensTabs/g)).toHaveLength(1);
+  });
+
+  it("name the record page's tabs the way the design does, Output for files only", () => {
+    expect(page).toContain('? [{ id: "output", label: "Output" }]');
+    expect(page).toContain(': [{ id: "nodes", label: "Nodes" }]');
+    expect(page).toContain('{ id: "steps", label: "Steps" }, { id: "source", label: "Source" }, { id: "publishing", label: "Publishing" }');
+  });
+
+  it("mask a provider link after the host and reveal it for sixty seconds", () => {
+    expect(page).toContain("{{ reveal.on.value ? url : maskUrl(url) }}");
+    expect(page).toContain("const reveal = useReveal();");
+    expect(page).toContain("Reveal for 60s");
   });
 });

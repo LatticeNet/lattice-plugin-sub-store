@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionListItem } from "./client";
+import { BINDINGS, type MethodBinding } from "./client";
 import {
   RECORD_ACTIONS,
+  ROW_MENU_ACTIONS,
+  actionCapabilities,
   actionsFor,
   batchActionsFor,
+  deletePrompt,
+  rowMenuFor,
   type ActionCapabilities,
 } from "./recordActions";
 
@@ -140,12 +145,9 @@ describe("the screens ask the registry rather than re-deciding", () => {
     ["FilesScreen.vue", readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8")],
   ] as const;
 
-  it("builds its capabilities once, from the hook", () => {
+  it("builds its capabilities once, from the shared reader", () => {
     for (const [name, source] of screens) {
-      expect(source, name).toMatch(/const actionCaps = computed<ActionCapabilities>/);
-      for (const key of ["mutate", "fetch", "preview", "render", "publish"]) {
-        expect(source, name + " never reports " + key).toContain(key + ": subs.can");
-      }
+      expect(source, name).toContain("const actionCaps = computed<ActionCapabilities>(() => actionCapabilities(host));");
     }
   });
 
@@ -180,5 +182,54 @@ describe("the screens ask the registry rather than re-deciding", () => {
       expect(source, name).toMatch(/function runRowAction\(id: ActionId/);
       expect(source, name).toContain("RecordMenu");
     }
+  });
+});
+
+describe("one reader of capabilities, one row menu, one delete prompt", () => {
+  const host = (missing: MethodBinding[] = [], ready = true) => ({
+    init: { value: ready ? {} : null },
+    available: (binding: MethodBinding) => !missing.includes(binding),
+  });
+
+  it("reads each capability from its own method", () => {
+    expect(actionCapabilities(host())).toEqual(caps());
+    expect(actionCapabilities(host([BINDINGS.subDelete])).mutate).toBe(false);
+    expect(actionCapabilities(host([BINDINGS.subProbe])).fetch).toBe(false);
+    expect(actionCapabilities(host([BINDINGS.subPreview])).preview).toBe(false);
+    expect(actionCapabilities(host([BINDINGS.subRender])).render).toBe(false);
+    expect(actionCapabilities(host([BINDINGS.subPublish])).publish).toBe(false);
+    expect(actionCapabilities(host([], false)).ready).toBe(false);
+  });
+
+  it("gives every surface the same menu, filtered by kind", () => {
+    const sub = rowMenuFor(record({ has_url: true }), caps()).map((a) => a.id);
+    expect(sub).toEqual(actionsFor(record({ has_url: true }), caps(), ROW_MENU_ACTIONS).map((a) => a.id));
+    expect(rowMenuFor(record({ kind: KIND_FILE }), caps()).map((a) => a.id)).not.toContain("refresh");
+    // A read-only session sees the same items, disabled with a reason.
+    const readOnly = rowMenuFor(record(), caps({ mutate: false }));
+    const del = readOnly.find((a) => a.id === "delete");
+    expect(del?.disabled).toBe(true);
+    expect(del?.reason).toBeTruthy();
+  });
+
+  it("names the records a delete breaks and keeps them out of the names", () => {
+    const items = [
+      record({ id: "a", name: "openjobs-host" }),
+      record({ id: "c", name: "merge-openjobs", kind: KIND_COLLECTION, members: ["a"] }),
+      record({ id: "f", name: "for-openjobs-loon", kind: KIND_FILE, node_source: "a" }),
+      record({ id: "b", name: "alone" }),
+    ];
+    const breaking = deletePrompt(["a"], items);
+    expect(breaking.names).toEqual(["openjobs-host"]);
+    expect(breaking.consequences).toEqual([
+      "merge-openjobs  (combination, loses a member)",
+      "for-openjobs-loon  (file, loses its node source)",
+    ]);
+    expect(breaking.title).toContain("2 other records in this store point at it");
+    const quiet = deletePrompt(["b"], items);
+    expect(quiet.consequences).toEqual([]);
+    expect(quiet.title).toContain("Nothing else in this store points at it");
+    const files = deletePrompt(["f"], items);
+    expect(files.title).toMatch(/^Delete this file\?/);
   });
 });

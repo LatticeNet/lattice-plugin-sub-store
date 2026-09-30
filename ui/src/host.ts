@@ -2,6 +2,7 @@ import { inject, provide, type InjectionKey, type Ref } from "vue";
 
 import { canCall, type BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
+import type { PageState } from "./pageState";
 
 /**
  * Host context. The one bridge instance owned by the shell (App.vue), handed
@@ -16,6 +17,13 @@ export interface HostContext {
   available: (target: MethodBinding) => boolean;
   /** Re-measure the document and tell the host to fit the frame. */
   resize: () => Promise<void>;
+  /**
+   * The page state the console's address held at the handshake, set no later
+   * than `init`. Empty from a console that predates the contract.
+   */
+  pageState: Ref<PageState>;
+  /** Hand the page's full state to the console, which keeps it in its address. */
+  sendState: (state: PageState) => void;
 }
 
 const HOST_KEY: InjectionKey<HostContext> = Symbol("lattice-plugin-host");

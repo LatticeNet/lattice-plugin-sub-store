@@ -1,0 +1,24 @@
+{
+  "about": "Provider subscription-userinfo headers and what they parse to. Read by system-go/subscription_userinfo_test.go and ui/src/rowStatus.test.ts, so the runtime's parser and the UI's fallback for an older runtime give the same answer. A key missing from want means the field is left out.",
+  "cases": [
+    { "name": "the usual shape", "raw": "upload=3221225472; download=25769803776; total=536870912000; expire=1893456000", "want": { "upload": 3221225472, "download": 25769803776, "total": 536870912000, "expire": 1893456000 } },
+    { "name": "no spaces, keys out of order", "raw": "total=100;expire=1893456000;download=20;upload=10", "want": { "upload": 10, "download": 20, "total": 100, "expire": 1893456000 } },
+    { "name": "spaces around every separator and mixed case keys", "raw": "  Upload = 1 ;DOWNLOAD= 2 ;  Total =3 ; Expire=1893456000 ", "want": { "upload": 1, "download": 2, "total": 3, "expire": 1893456000 } },
+    { "name": "commas instead of semicolons, a trailing separator", "raw": "upload=1, download=2, total=3,", "want": { "upload": 1, "download": 2, "total": 3 } },
+    { "name": "missing fields stay missing", "raw": "total=107374182400", "want": { "total": 107374182400 } },
+    { "name": "floats and exponent form are truncated", "raw": "upload=1.5; download=2.9E3; total=1.073741824e10", "want": { "upload": 1, "download": 2900, "total": 10737418240 } },
+    { "name": "quoted values", "raw": "upload=\"5\"; total='10'", "want": { "upload": 5, "total": 10 } },
+    { "name": "garbage values drop only their own field", "raw": "upload=abc; download=-5; total=NaN; expire=Inf; upload=7", "want": { "upload": 7 } },
+    { "name": "a negative value is refused, not read as zero", "raw": "upload=-1; download=-0.5; total=100", "want": { "total": 100 } },
+    { "name": "the first valid value for a key wins", "raw": "total=10; total=20", "want": { "total": 10 } },
+    { "name": "a refused value does not block a later valid one", "raw": "total=-1; total=20", "want": { "total": 20 } },
+    { "name": "expire of zero means never and is left out", "raw": "total=10; expire=0", "want": { "total": 10 } },
+    { "name": "expire in milliseconds is scaled to seconds", "raw": "expire=1893456000000", "want": { "expire": 1893456000 } },
+    { "name": "expire in milliseconds with a remainder truncates", "raw": "expire=1893456000999", "want": { "expire": 1893456000 } },
+    { "name": "unknown keys and pairs without a value are ignored", "raw": "plan=pro; total; =5; upload=1", "want": { "upload": 1 } },
+    { "name": "a value past int64 is refused, not wrapped", "raw": "total=99999999999999999999; download=1e30", "want": {} },
+    { "name": "number spellings other than decimal are refused", "raw": "upload=0x10; download=0b101; total=1_000", "want": {} },
+    { "name": "empty header", "raw": "", "want": {} },
+    { "name": "not a userinfo header at all", "raw": "<html>502 Bad Gateway</html>", "want": {} }
+  ]
+}

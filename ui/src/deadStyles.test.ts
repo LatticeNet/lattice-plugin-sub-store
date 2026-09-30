@@ -121,7 +121,8 @@ describe("every state is reachable in the harness", () => {
     expect(shell).not.toContain("PcStatStrip");
     expect(shell).not.toContain("PcStatCard");
     expect(shell).toContain("waiting for the record catalogue");
-    expect(shell).toMatch(/subscriptions: ready\.value \? records\.value\.length : null/);
+    expect(shell).toMatch(/sources: ready\.value \? singles\.value\.length : null/);
+    expect(shell).toMatch(/files: ready\.value \? files\.value\.length : null/);
     // The lenses show a skeleton, not an empty table, while the list is coming.
     for (const screen of screens) {
       expect(screen).toMatch(/v-if="!host\.init\.value \|\| subs\.state\.value === 'loading'"[\s\S]{0,80}<PcSkeleton/);

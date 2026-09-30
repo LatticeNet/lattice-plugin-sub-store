@@ -2,6 +2,10 @@ import { ref } from "vue";
 
 import { BINDINGS, type MethodBinding } from "../src/client";
 import type { HostContext } from "../src/host";
+import type { PageState } from "../src/pageState";
+import { addressForState, pageStateFromAddress, stateRateLimit } from "./consoleAddress";
+import { parseUserinfo } from "../src/rowStatus";
+import { fixture, fixtureName, type Fixture, type ShareRow, type StoredRecord } from "./fixtures";
 
 /**
  * A stand-in for the dashboard host, for looking at the UI in a browser.
@@ -14,35 +18,6 @@ import type { HostContext } from "../src/host";
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
 
-interface StoredRecord {
-  id: string;
-  kind?: string;
-  name: string;
-  display_name?: string;
-  remark?: string;
-  tags?: string[];
-  source?: string;
-  vpn_identity?: string;
-  entry_roots?: string[];
-  graph_options_version?: string;
-  url?: string;
-  content?: string;
-  ua?: string;
-  members?: string[];
-  member_tags?: string[];
-  failure_mode?: string;
-  target?: string;
-  file_type?: string;
-  node_source?: string;
-  query_params?: string[];
-  arguments?: Record<string, string>;
-  process?: unknown[];
-  origin?: unknown;
-  last_fetch_at?: string;
-  last_fetch_ok?: boolean;
-  last_error?: string;
-  userinfo?: string;
-}
 
 const OPERATORS = [
   "Add Proxies From Subscription Operator",
@@ -67,10 +42,34 @@ const OPERATORS = [
 const SCRIPTING = new Set(["Script Operator", "Script Filter"]);
 
 /**
+ * Whether an operation can change how many nodes there are. In Sub-Store the
+ * filters decide which nodes stay; every operator (rename, regex delete, sort,
+ * flags, quick settings) rewrites the nodes it is given and hands all of them
+ * on. The harness used to take nodes away at every step, so the delta strip
+ * read "Regex rename: kept 72 of 119", which the real engine never says.
+ */
+function removesNodes(step: unknown): boolean {
+  const type = (step as { type?: unknown } | null)?.type;
+  return typeof type === "string" && type.endsWith("Filter");
+}
+
+/**
+ * How many of `source` nodes are left after the operations in `ran`, when the
+ * record's whole chain turns `source` into `result`. The removal is shared
+ * among the chain's filters in order; every other operation keeps its count.
+ */
+function countAfter(chain: readonly unknown[], ran: readonly unknown[], source: number, result: number): number {
+  const filters = chain.filter(removesNodes).length;
+  if (filters === 0) return source;
+  const done = Math.min(filters, ran.filter(removesNodes).length);
+  return source - Math.round(((source - result) * done) / filters);
+}
+
+/**
  * 建材市场 in production is 166 in, 25 out after Regex filter. The generic
  * eight-node harness cannot exercise paging or the grouped drop list.
  */
-function jiancaiPreview(operatorCount: number) {
+function jiancaiPreview(keptCount: number) {
   const regions = ["亚洲", "欧洲", "美洲", "非洲", "澳洲", "香港", "日本", "新加坡"];
   const all = Array.from({ length: 166 }, (_, i) => {
     const region = regions[i % regions.length]!;
@@ -82,8 +81,6 @@ function jiancaiPreview(operatorCount: number) {
       port: "443",
     };
   });
-  // Quick settings (cut 1) keeps everyone; Regex filter (cut 2+) keeps 25.
-  const keptCount = operatorCount <= 1 ? all.length : 25;
   const kept = all.slice(0, keptCount);
   const droppedAll = all.slice(keptCount);
   const named = droppedAll.slice(0, 40);
@@ -103,7 +100,8 @@ function jiancaiPreview(operatorCount: number) {
  *  hides every truncation and line-height bug those produce. The fetch
  *  bookkeeping spans its three states too, one sub with traffic, one whose last
  *  refresh failed, one never fetched, so the row status has something to say. */
-const records: StoredRecord[] = [
+function cannedRecords(): StoredRecord[] {
+  return [
   {
     id: "cdcd-self-host",
     name: "cdcd-self-host",
@@ -283,9 +281,120 @@ const records: StoredRecord[] = [
     ].join("\n"),
     process: [{ type: "Remove Duplicate Filter" }],
   },
-];
+  ];
+}
+
+/** The canned set's shares, one per state the Shares lens and the sheet can show. */
+function cannedShares(records: StoredRecord[]): ShareRow[] {
+  return [
+      {
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev",
+        slug: "cd-self",
+        enabled: true,
+        default_format: "plain",
+        path: "/sub/cd-self/devtokendevtokendevtokendevtoken",
+        url: "https://lattice.example/sub/cd-self/devtokendevtokendevtokendevtoken",
+      },
+      {
+        // A second share on the same record, switched off: the Shares lens
+        // and the Published column have to tell "disabled" from "expired".
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev-off",
+        slug: "cd-self-old",
+        enabled: false,
+        default_format: "plain",
+        expires_at: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
+        path: "/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
+        url: "https://lattice.example/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
+      },
+      {
+        // Enabled but past its expiry: reachable in the list, dead to a client.
+        subscription_id: "openjobs-host",
+        share_id: "sh-dev-expired",
+        slug: "openjobs",
+        enabled: true,
+        default_format: "clash",
+        expires_at: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
+        path: "/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
+        url: "https://lattice.example/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
+      },
+      {
+        // A published FILE too. Without one the file sheet's link branch is
+        // unreachable here, and that branch is the one that must NOT pin a
+        // client onto the URL: the serve path ignores ?target= for a file.
+        subscription_id: "phone-config",
+        share_id: "sh-dev-file",
+        slug: "phone",
+        enabled: true,
+        default_format: "plain",
+        path: "/sub/phone/filetokenfiletokenfiletokenfiletok",
+        url: "https://lattice.example/sub/phone/filetokenfiletokenfiletokenfiletok",
+      },
+      {
+        // No pinned format: the list writes "as the client asks", which is
+        // longer than the Nodes column the shares row used to reuse.
+        subscription_id: records[0]?.id ?? "sub-1",
+        share_id: "sh-dev-ask",
+        slug: "cd-ask",
+        enabled: true,
+        path: "/sub/cd-ask/asktokenasktokenasktokenasktokenas",
+        url: "https://lattice.example/sub/cd-ask/asktokenasktokenasktokenasktokenas",
+      },
+  ];
+}
+
+function cannedFixture(): Fixture {
+  const records = cannedRecords();
+  return { records, shares: cannedShares(records), counts: { "jiancai-shichang": [166, 25] } };
+}
+
+/**
+ * Which record set the harness serves, from `?fixture=` (production unless
+ * named). The whole set is built once per page load, so an edit made in the
+ * harness survives until the reload, the way a store does.
+ */
+const active: Fixture = fixture(fixtureName(window.location.search), cannedFixture);
+const records = active.records;
 
 let settings: Record<string, unknown> = { default_target: "", default_ua: "" };
+
+/**
+ * The figures the runtime parses out of the provider header. parseUserinfo
+ * follows the runtime's rules exactly (the shared cases are in
+ * system-go/testdata/userinfo_cases.json), so the harness can answer the
+ * runtime's wire shape, marker included, and the UI's fallback parse stays the
+ * path only an older runtime exercises.
+ */
+function usageOf(userinfo: string | undefined): Record<string, number> {
+  return { ...(parseUserinfo(userinfo) ?? {}) };
+}
+
+/**
+ * A preview whose counts are the record's own (production's 86 in, 78 out).
+ * A chain cut part way through has run some of the filters, and `kept` says
+ * how many nodes they left (see countAfter).
+ */
+function countedPreview(source: number, kept: number, label: string) {
+  const all = Array.from({ length: source }, (_, i) => ({
+    name: `${label} ${String(i + 1).padStart(3, "0")}`,
+    type: i % 3 === 0 ? "trojan" : "vless",
+    server: `n${String(i).padStart(3, "0")}.edge.example`,
+    port: i % 2 === 0 ? "443" : "8443",
+  }));
+  const nodes = all.slice(0, Math.min(kept, 200));
+  const droppedAll = all.slice(kept);
+  const named = droppedAll.slice(0, 40);
+  return {
+    nodes,
+    node_count: kept,
+    source_node_count: source,
+    truncated: kept > nodes.length,
+    dropped: named,
+    dropped_count: droppedAll.length,
+    dropped_truncated: named.length < droppedAll.length,
+  };
+}
 
 function listView(rec: StoredRecord) {
   const steps = (rec.process ?? []) as { disabled?: boolean }[];
@@ -316,6 +425,7 @@ function listView(rec: StoredRecord) {
           last_fetch_ok: rec.last_fetch_ok ?? false,
           last_error: rec.last_error,
           userinfo: rec.userinfo,
+          ...(rec.userinfo ? { ...usageOf(rec.userinfo), userinfo_parsed: true } : {}),
         }
       : {}),
   };
@@ -477,8 +587,10 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     // at all. No operators means the stored chain, the way the plugin reads
     // it, so the list's own count reflects each record's chain too.
     const stored = ((found?.process ?? []) as { disabled?: boolean }[]).filter((step) => !step.disabled);
-    const steps = Array.isArray(operators) ? operators.length : stored.length;
-    if (found?.id === "jiancai-shichang") return jiancaiPreview(steps);
+    const ran: unknown[] = Array.isArray(operators) ? operators : stored;
+    if (found?.id === "jiancai-shichang") return jiancaiPreview(countAfter(stored, ran, 166, 25));
+    const counts = found ? active.counts[found.id] : undefined;
+    if (found && counts) return countedPreview(counts[0], countAfter(stored, ran, counts[0], counts[1]), found.name);
     // Eight nodes in, and the chain takes some out. The harness used to list
     // six and claim a source of eight, so the two nodes the count said were
     // removed did not exist and the pane could not be checked against them.
@@ -492,13 +604,12 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
       { name: "🇷🇺 Moscow 01", type: "ss", server: "svo-01.edge.example", port: "8388" },
       { name: "🇮🇷 Tehran 01", type: "ss", server: "thr-01.edge.example", port: "8388" },
     ];
-    // A cut preview sends fewer operators, so the count shrinks per step:
-    // otherwise the per-step preview looks identical at every step and the
-    // screen cannot be checked at all.
-    const keptCount = Math.max(1, all.length - steps);
+    // Each filter in the run takes one node away and every other operation
+    // keeps them all, so a cut preview says which filter removed what.
+    const keptCount = Math.max(1, all.length - ran.filter(removesNodes).length);
     // The renaming operator is the first step, so its mark only survives while
     // that step is still in the run.
-    const kept = all.slice(0, keptCount).map((node) => (steps > 0 ? node : { ...node, was: undefined }));
+    const kept = all.slice(0, keptCount).map((node) => (ran.length > 0 ? node : { ...node, was: undefined }));
     const dropped = all.slice(keptCount);
     return {
       nodes: kept,
@@ -582,64 +693,11 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
    * link, and the "no published share" note on everything else. The
    * subscription's slug matches the owner's deployment.
    */
-  "shares/list": () => ({
-    shares: [
-      {
-        subscription_id: records[0]?.id ?? "sub-1",
-        share_id: "sh-dev",
-        slug: "cd-self",
-        enabled: true,
-        default_format: "plain",
-        path: "/sub/cd-self/devtokendevtokendevtokendevtoken",
-        url: "https://lattice.example/sub/cd-self/devtokendevtokendevtokendevtoken",
-      },
-      {
-        // A second share on the same record, switched off: the Shares lens
-        // and the Published column have to tell "disabled" from "expired".
-        subscription_id: records[0]?.id ?? "sub-1",
-        share_id: "sh-dev-off",
-        slug: "cd-self-old",
-        enabled: false,
-        default_format: "plain",
-        expires_at: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
-        path: "/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
-        url: "https://lattice.example/sub/cd-self-old/oldtokenoldtokenoldtokenoldtokenol",
-      },
-      {
-        // Enabled but past its expiry: reachable in the list, dead to a client.
-        subscription_id: "openjobs-host",
-        share_id: "sh-dev-expired",
-        slug: "openjobs",
-        enabled: true,
-        default_format: "clash",
-        expires_at: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
-        path: "/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
-        url: "https://lattice.example/sub/openjobs/expiredtokenexpiredtokenexpiredtok",
-      },
-      {
-        // A published FILE too. Without one the file sheet's link branch is
-        // unreachable here, and that branch is the one that must NOT pin a
-        // client onto the URL: the serve path ignores ?target= for a file.
-        subscription_id: "phone-config",
-        share_id: "sh-dev-file",
-        slug: "phone",
-        enabled: true,
-        default_format: "plain",
-        path: "/sub/phone/filetokenfiletokenfiletokenfiletok",
-        url: "https://lattice.example/sub/phone/filetokenfiletokenfiletokenfiletok",
-      },
-      {
-        // No pinned format: the list writes "as the client asks", which is
-        // longer than the Nodes column the shares row used to reuse.
-        subscription_id: records[0]?.id ?? "sub-1",
-        share_id: "sh-dev-ask",
-        slug: "cd-ask",
-        enabled: true,
-        path: "/sub/cd-ask/asktokenasktokenasktokenasktokenas",
-        url: "https://lattice.example/sub/cd-ask/asktokenasktokenasktokenasktokenas",
-      },
-    ],
-  }),
+  "shares/list": () => {
+    if (harnessState() === "sharesfail") throw new Error("the share list could not be read (harness ?state=sharesfail)");
+    if (harnessState() === "empty") return { shares: [] };
+    return { shares: active.shares };
+  },
   /**
    * Publish pushes the rendered document at a destination the operator names.
    * The manifest declares it, so the row menu offers it; the harness had no
@@ -690,21 +748,26 @@ function delay<T>(value: T): Promise<T> {
  * `?state=slow` is deliberately not instant — a skeleton that flashes past is a
  * skeleton nobody has actually judged.
  */
-export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale" | "noadmin";
+export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale" | "noadmin" | "sharesfail";
 
 export function harnessState(): HarnessState {
   const asked = new URLSearchParams(window.location.search).get("state");
-  const known: HarnessState[] = ["ok", "empty", "error", "slow", "readonly", "stale", "noadmin"];
+  const known: HarnessState[] = ["ok", "empty", "error", "slow", "readonly", "stale", "noadmin", "sharesfail"];
   return (known as string[]).includes(asked ?? "") ? (asked as HarnessState) : "ok";
 }
 
 export function createFakeHost(): HostContext {
   const init = ref<any>();
   const bootError = ref("");
+  const pageState = ref<PageState>({});
+  const allowState = stateRateLimit();
 
   // The handshake lands late on purpose: a screen that loads before it and
   // never retries is the bug this harness exists to make visible.
   setTimeout(() => {
+    // Like the console: the address's query is the page state, read at the
+    // handshake, so a reload of this tab lands where the page last said.
+    pageState.value = pageStateFromAddress(window.location.search);
     init.value = {
       version: "1",
       pluginId: "latticenet.sub-store",
@@ -791,6 +854,18 @@ export function createFakeHost(): HostContext {
           contract.service === target.service && contract.methods.includes(target.method),
       ) === true,
     resize: async () => {},
+    pageState,
+    // What the console does with `lattice.plugin.state`: validate, count
+    // against the budget, and replace the query with history replace, never
+    // push. Cloned first, as postMessage would, so a reactive proxy fails
+    // here the way it would fail in production.
+    sendState: (state) => {
+      const cloned = structuredClone(state);
+      if (!allowState()) return;
+      const query = addressForState(window.location.search, cloned);
+      if (query === null) return;
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query}${window.location.hash}`);
+    },
   };
 }
 
