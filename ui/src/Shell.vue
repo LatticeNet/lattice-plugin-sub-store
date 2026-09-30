@@ -31,6 +31,7 @@ import SharesScreen from "./screens/SharesScreen.vue";
 import { createLensChrome, provideLensChrome, type Facets, type TabId } from "./lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
+import { useObservedAge } from "./observedAge";
 import { VIEW_IDS, viewOfKind } from "./pipeline";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
@@ -225,11 +226,15 @@ const publishedRecords = computed(() =>
     : records.value.filter((item) => publishStateFor(shareStore.shares.value, item.id).tone === "ok").length,
 );
 
-/** When the catalogue or the share list was last read, for the proof line. */
-const observedAt = ref("");
+/**
+ * When the catalogue or the share list was last read, for the proof line:
+ * "observed 13s ago", as the console says it, with the absolute time in the
+ * line's title.
+ */
+const observedAt = ref<number>();
+const observed = useObservedAge(() => observedAt.value);
 function stamp(): void {
-  const now = new Date();
-  observedAt.value = [now.getHours(), now.getMinutes(), now.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":");
+  observedAt.value = Date.now();
 }
 watch(() => catalogue.items.value, () => { if (ready.value) stamp(); }, { flush: "sync" });
 watch(() => shareStore.shares.value, (value) => { if (value) stamp(); });
@@ -237,7 +242,7 @@ watch(() => shareStore.shares.value, (value) => { if (value) stamp(); });
 const proof = computed(() => {
   if (catalogue.state.value === "error") return ["the record catalogue could not be read"];
   if (!ready.value) return ["waiting for the record catalogue"];
-  const parts = [`observed at ${observedAt.value || "..."}`, `${records.value.length} records`];
+  const parts = [observed.age.value ? `observed ${observed.age.value} ago` : "reading", `${records.value.length} records`];
   const shares = shareFacts.value;
   if (shares) parts.push(`${shares.live} share${shares.live === 1 ? "" : "s"} live`);
   else if (shareStore.error.value) parts.push("share list unread");
@@ -466,7 +471,7 @@ const comboTitle = computed(() =>
         </PcButton>
       </template>
       <template #proof>
-        <PcProofLine :segments="proof" :refreshing="refreshing">
+        <PcProofLine :segments="proof" :refreshing="refreshing" :title="observed.title.value || undefined">
           <span v-if="publishedLabel" class="proof-seg" :class="{ 'is-warn': publishedWarn }">· {{ publishedLabel }}</span>
         </PcProofLine>
       </template>
