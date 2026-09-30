@@ -287,6 +287,24 @@ test.describe("page state in the console address", () => {
   });
 });
 
+for (const width of [1440, 375]) {
+  test.describe(`layer row at ${width}`, () => {
+    test.use({ viewport: { width, height: 900 } });
+
+    test("the layer row never scrolls up and down, and the selected underline meets the hairline", async ({ page }) => {
+      await open(page, "?fixture=production", ".ss-layer-tabs");
+      const row = await page.evaluate(() => {
+        const tabs = document.querySelector<HTMLElement>(".ss-layer-tabs")!;
+        const bar = document.querySelector<HTMLElement>(".ss-layer-bar")!.getBoundingClientRect();
+        const selected = tabs.querySelector<HTMLElement>('[aria-selected="true"]')!.getBoundingClientRect();
+        return { overflow: tabs.scrollHeight - tabs.clientHeight, gap: bar.bottom - selected.bottom };
+      });
+      expect(row.overflow).toBe(0);
+      if (width > 620) expect(Math.abs(row.gap)).toBeLessThan(0.5);
+    });
+  });
+}
+
 test.describe("reduced motion", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
