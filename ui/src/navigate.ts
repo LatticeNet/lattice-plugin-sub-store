@@ -27,9 +27,13 @@ export const NAVIGATE_MESSAGE_TYPE = "lattice:navigate";
  */
 export const SHARES_LIST_ROUTE = "/platform/publishing?origin=share";
 
-/** The same view, pre-opened on the create form. */
-export function sharesRoute(recordName: string): string {
-  return `${SHARES_LIST_ROUTE}&create=1&for=${encodeURIComponent(recordName)}`;
+/**
+ * The same view, pre-opened on the create form for one record. Pass the
+ * record's id: the console matches `for` against ids and names, and an id is
+ * the one that cannot name two records.
+ */
+export function sharesRoute(record: string): string {
+  return `${SHARES_LIST_ROUTE}&create=1&for=${encodeURIComponent(record)}`;
 }
 
 /**

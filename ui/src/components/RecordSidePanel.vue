@@ -118,7 +118,7 @@ const client = computed(() => (record.value && kind.value === KIND_FILE ? client
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
 function publish(): void {
   if (!shareOrigin.value || !record.value) return;
-  postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(record.value.name), shareOrigin.value);
+  postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(record.value.id), shareOrigin.value);
 }
 </script>
 
@@ -136,7 +136,6 @@ function publish(): void {
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
         <PcKindChip v-if="record.imported" label="migrated" title="Imported from a standalone Sub-Store" />
-        <span class="peek-id" :title="`Record id ${record.id}`">{{ record.id }}</span>
       </div>
       <!-- The reason behind a broken state; a warning's facts are in the list below. -->
       <p v-if="health.tone === 'error'" class="peek-why">{{ health.title }}</p>
@@ -144,7 +143,7 @@ function publish(): void {
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">
           <dt>Nodes</dt>
-          <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span class="peek-note">in → out</span></dd>
+          <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span v-if="pipe.nodes(id).includes('→')" class="peek-note">in → out</span></dd>
           <dt>Operations</dt>
           <dd>{{ steps }}</dd>
         </template>
@@ -218,7 +217,7 @@ function publish(): void {
           </ul>
           <span v-else class="peek-note">Not published, so no client can fetch it</span>
           <PcButton v-if="shareOrigin && pipe.shares.value !== undefined" compact class="peek-publish" @click="publish()">
-            {{ shares.length ? "Open in Networking" : "Publish" }}
+            {{ shares.length ? "Open in Publishing" : "Publish" }}
           </PcButton>
         </dd>
 

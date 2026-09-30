@@ -697,7 +697,10 @@ export function useSubscriptions(host: HostContext) {
         return false;
       }
       // Deleting the definition does not retract anything already published.
-      notice.value = `Deleted ${id}. Deleting the definition does not retract anything already published: if a share exists for it, remove that in the dashboard under Networking.`;
+      // Named as the operator knows it, not by its id.
+      const gone = items.value.find((entry) => entry.id === id);
+      const label = gone ? gone.display_name || gone.name : "The record";
+      notice.value = `Deleted ${label}. Deleting the definition does not retract anything already published: if a share exists for it, remove that in the console under Platform → Publishing.`;
       await load();
       return true;
     } catch (cause) {

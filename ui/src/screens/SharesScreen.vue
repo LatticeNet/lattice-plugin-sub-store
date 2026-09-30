@@ -32,7 +32,7 @@ import { useSubscriptions } from "../useSubscriptions";
 /**
  * The record list from the client's side: every share the host serves, the
  * record behind it, its format, expiry and whether a client fetching it gets
- * anything. Shares are created and changed in the console under Networking;
+ * anything. Shares are created and changed in the console under Platform → Publishing;
  * this lens reads them and points there.
  */
 const host = useHost();
@@ -218,7 +218,7 @@ const origin = computed(() => hostOriginFromHash(window.location.hash));
 function openInNetworking(): void {
   if (!origin.value) return;
   postNavigate(window, SHARES_LIST_ROUTE, origin.value);
-  notice.value = "Asked the console to open Networking → Subscription Shares.";
+  notice.value = "Asked the console to open Platform → Publishing.";
 }
 
 // ── loading ──────────────────────────────────────────────────────────────────
@@ -276,11 +276,11 @@ watch(host.init, (value) => {
           <PcButton
             variant="primary"
             :disabled="!origin"
-            :title="origin ? 'The console lists the same shares under Networking.' : 'This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.'"
+            :title="origin ? 'The console lists the same shares under Platform → Publishing.' : 'This frame cannot ask the console to navigate; open Platform → Publishing yourself.'"
             @click="openInNetworking()"
           >
             <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-            Open in Networking
+            Open in Publishing
           </PcButton>
         </template>
       </PcEmptyState>
@@ -302,7 +302,7 @@ watch(host.init, (value) => {
       <div v-if="!allLines.length">
         <PcEmptyState title="Nothing is shared">
           <p>
-            Publish a share for a record in the console under Networking, then Subscription Shares,
+            Publish a share for a record in the console under Platform, then Publishing,
             and it appears here with its link.
           </p>
         </PcEmptyState>

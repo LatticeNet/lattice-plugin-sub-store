@@ -13,6 +13,7 @@ import {
 import AttentionList from "../components/AttentionList.vue";
 import LineageMap from "../components/LineageMap.vue";
 import { useHost } from "../host";
+import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { useLensChrome } from "../lensChrome";
 import type { AttentionItem } from "../pipeline";
 import { usePipeline } from "../usePipeline";
@@ -51,7 +52,17 @@ watch(
   { immediate: true },
 );
 
+/** The console's origin, when this frame may ask it to navigate. */
+const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
+
 function act(item: AttentionItem): void {
+  if (item.action.publish) {
+    // The share form, opened on the file. Without a console to ask, the
+    // file's panel, which says where shares are made.
+    if (shareOrigin.value) postNavigate(window, sharesRoute(item.action.publish), shareOrigin.value);
+    else chrome.openRecord(item.action.publish);
+    return;
+  }
   if (item.action.recordId) {
     chrome.openRecord(item.action.recordId);
     return;

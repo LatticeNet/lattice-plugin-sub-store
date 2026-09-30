@@ -591,7 +591,7 @@ onBeforeUnmount(stopAllRequests);
               <p v-if="shareVerdict?.tone === 'ok'" class="delivery-state is-published">Published as /{{ share.slug }}</p>
               <template v-else>
                 <p class="delivery-state is-unknown">Share {{ shareVerdict?.label }}</p>
-                <p class="control-note">{{ shareVerdict?.title }} Renew it under Networking.</p>
+                <p class="control-note">{{ shareVerdict?.title }} Renew it under Platform → Publishing.</p>
               </template>
               <LtButton :disabled="copyingLink" @click="copyLink()">
                 <LoaderCircle v-if="copyingLink" :size="14" class="spin" aria-hidden="true" />
@@ -603,7 +603,7 @@ onBeforeUnmount(stopAllRequests);
             <template v-else>
               <p class="delivery-state">Not published</p>
               <p class="control-note">
-                Copy document still works. Publish under Networking to create a stable URL.
+                Copy document still works. Publish under Platform → Publishing to create a stable URL.
               </p>
             </template>
             <LtManualCopy v-if="shownLink" :value="shownLink" subject="link" />

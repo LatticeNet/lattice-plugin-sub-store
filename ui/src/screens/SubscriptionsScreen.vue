@@ -230,7 +230,7 @@ async function confirmMigrate(): Promise<void> {
   migrateSummary.value =
     `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s)` +
     (skipped ? `, and skipped ${skipped}` : "") +
-    ". Nothing is published yet, so publish a share under Networking, then Subscription Shares, to make them reachable.";
+    ". Nothing is published yet, so publish a share under Platform, then Publishing, to make them reachable.";
   migrateUrl.value = "";
 }
 
@@ -564,7 +564,7 @@ function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" 
 // in its reply), so the NODES column is computed here: lazily, once per
 // record per session, two previews in flight at a time, through the same
 // read-scoped `preview` the row's eye uses. The rows render first and print
-// "?" until their count lands; a preview of a provider link fetches the
+// "counting" until their count lands; a preview of a provider link fetches the
 // provider, exactly as the eye does.
 const counts = useNodeCounts(host);
 watch(
@@ -779,10 +779,10 @@ const shareOrigin = computed(() =>
  */
 function openShares(record: SubscriptionListItem): void {
   if (!shareOrigin.value) return;
-  const route = publishedOf(record).shares.length ? SHARES_LIST_ROUTE : sharesRoute(record.name);
+  const route = publishedOf(record).shares.length ? SHARES_LIST_ROUTE : sharesRoute(record.id);
   postNavigate(window, route, shareOrigin.value);
   closeDrawer();
-  subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+  subs.notice.value = "Asked the console to open Platform → Publishing.";
 }
 
 /**
@@ -1049,7 +1049,9 @@ watch(host.init, (value) => {
                       </button>
                       <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="2" /></span>
                     </div>
-                    <small :title="row.remark || row.id">{{ row.remark || row.id }}</small>
+                    <!-- The remark, when there is one. Not the id: a migrated record's id is
+                         `imported-` and its name again, noise under every row. -->
+                    <small v-if="row.remark" :title="row.remark">{{ row.remark }}</small>
                   </td>
                   <td v-if="!isComboLayer" data-stack="detail" data-label="Kind"><span class="pc-td-body">{{ sourceKindLabel(row) }}</span></td>
                   <td v-else data-stack="detail" data-label="Members" :title="membersOf(row).title">

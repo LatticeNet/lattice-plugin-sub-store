@@ -12,7 +12,7 @@
  */
 import type { SubStoreShareRow, SubscriptionListItem } from "./client";
 import { formatRelativeTime } from "./rowStatus";
-import { maskUrlsIn } from "./urlMask";
+import { refreshFailureText } from "./urlMask";
 
 export type Tone = "ok" | "warn" | "danger" | "neutral";
 
@@ -112,8 +112,8 @@ export function refreshStateFor(item: SubscriptionListItem, now: number = Date.n
     // that is the row an operator is looking for.
     const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, now) : "";
     // The server trims the reason, and the reason quotes the link it fetched;
-    // the title masks it after the host like every other read view.
-    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: maskUrlsIn(item.last_error || "The last refresh failed") };
+    // the title keeps only the link's host, as the attention list does.
+    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: refreshFailureText(item.last_error) || "The last refresh failed" };
   }
   if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
   const relative = formatRelativeTime(item.last_fetch_at, now);

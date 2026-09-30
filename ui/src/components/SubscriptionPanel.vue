@@ -73,12 +73,12 @@ const emit = defineEmits<{
     <template v-else-if="mode === 'share'">
       <p v-if="item && published?.tone === 'warn'" class="row-popover-copy">
         {{ published.title }} Renewing or enabling it happens in the
-        dashboard, under <strong>Networking → Subscription Shares</strong>.
+        dashboard, under <strong>Platform → Publishing</strong>.
       </p>
       <template v-else>
         <p class="row-popover-copy">
           Nothing here is reachable until a share is published for it. Shares live in the
-          dashboard, under <strong>Networking → Subscription Shares</strong>.
+          dashboard, under <strong>Platform → Publishing</strong>.
         </p>
         <p class="row-popover-note">Already published? The Shares lens shows its link.</p>
       </template>
@@ -89,7 +89,7 @@ const emit = defineEmits<{
         </PcButton>
       </div>
       <p v-else class="row-popover-note">
-        This frame cannot ask the console to navigate, open Networking → Subscription Shares
+        This frame cannot ask the console to navigate, open Platform → Publishing
         yourself.
       </p>
     </template>

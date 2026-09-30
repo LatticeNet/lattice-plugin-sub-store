@@ -23,7 +23,9 @@ describe("the files layer is a table of what each file renders and whether it is
 
   it("offers Publish where a file has no share, and filters on it from the address", () => {
     expect(screen).toContain('class="row-publish"');
-    expect(screen).toContain('@click.stop="openShares(item.name)"');
+    // The form opens on the file itself, by id; the console matches ids and names.
+    expect(screen).toContain('@click.stop="openShares(item)"');
+    expect(screen).toContain("postNavigate(window, sharesRoute(item.id), shareOrigin.value);");
     expect(screen).toContain('v-model="facets.published"');
     expect(screen).toContain('if (facets.published === "no" && isPublished(file)) return false;');
   });

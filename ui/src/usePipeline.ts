@@ -74,7 +74,7 @@ export function usePipeline(host: HostContext) {
     return recordHealth(record, lineage.value, shares.value, now.value, previewOf(id));
   }
 
-  /** "86 → 78", "…" while counting, "?" when nothing answered. Files have none. */
+  /** "86 → 78", "counting" while a preview runs, "unknown" when none answered. Files have none. */
   function nodes(id: string): string {
     const record = item(id);
     if (!record || record.kind === KIND_FILE) return "";

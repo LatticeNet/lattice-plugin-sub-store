@@ -115,11 +115,12 @@ const tagText = ref("");
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
 
-function openShares(recordName: string): void {
+/** Publish: the console's share form, opened on this file. Nothing is created until it is saved there. */
+function openShares(item: SubscriptionListItem): void {
   if (!shareOrigin.value) return;
-  postNavigate(window, sharesRoute(recordName), shareOrigin.value);
+  postNavigate(window, sharesRoute(item.id), shareOrigin.value);
   closeDrawer();
-  subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+  subs.notice.value = `Asked the console to open its share form for ${item.display_name || item.name}. The file is published once the share is saved there.`;
 }
 
 const isPlain = computed(() => draft.value.fileType === FILE_TYPE_PLAIN);
@@ -628,7 +629,9 @@ function runRowAction(id: ActionId, item: SubscriptionListItem, event: MouseEven
   if (id === "edit") return void startEdit(item.id);
   if (id === "refresh") return void refreshRow(item.id);
   if (id === "output") return openFileSheet(item, event);
-  if (id === "share") return openDrawer("share", item.id, event);
+  // Publish opens the share form itself where the frame can ask the console
+  // to navigate; the drawer, which says where shares live, is for when it cannot.
+  if (id === "share") return shareOrigin.value ? openShares(item) : openDrawer("share", item.id, event);
   if (id === "duplicate") return void subs.duplicate(item.id);
   if (id === "delete") return requestDelete([item.id]);
 }
@@ -1368,7 +1371,7 @@ watch(host.init, (value) => {
                       </button>
                       <span v-if="item.tags?.length" class="pc-name-after"><PcTagList :tags="item.tags" :max="2" /></span>
                     </div>
-                    <small :title="item.remark || item.id">{{ item.remark || item.id }}</small>
+                    <small v-if="item.remark" :title="item.remark">{{ item.remark }}</small>
                   </td>
                   <td data-stack="detail" data-label="Client" :title="clientOf(item).title"><span class="pc-td-body">{{ clientOf(item).text }}</span></td>
                   <td data-stack="detail" data-label="Renders" :title="rendersOf(item).title">
@@ -1386,8 +1389,8 @@ watch(host.init, (value) => {
                         v-else-if="shareOrigin && shareStore.shares.value !== undefined"
                         type="button"
                         class="row-publish"
-                        :title="`Open the console's share form for ${item.name}`"
-                        @click.stop="openShares(item.name)"
+                        :title="`Open the console's share form for ${item.display_name || item.name}, with this file chosen`"
+                        @click.stop="openShares(item)"
                       >
                         Publish
                       </button>
@@ -1442,17 +1445,17 @@ watch(host.init, (value) => {
         <template v-if="drawer?.mode === 'share'">
           <p class="row-popover-copy">
             Nothing here is reachable until a share is published for it. Shares live in the
-            dashboard, under <strong>Networking → Subscription Shares</strong>.
+            dashboard, under <strong>Platform → Publishing</strong>.
           </p>
           <p class="row-popover-note">Already published? The Shares view shows its link.</p>
           <div v-if="shareOrigin && drawerItem" class="empty-actions">
-            <PcButton variant="primary" @click="openShares(drawerItem.name)">
+            <PcButton variant="primary" @click="openShares(drawerItem)">
               <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-              Open Shares view
+              Open the share form
             </PcButton>
           </div>
           <p v-else class="row-popover-note">
-            This frame cannot ask the console to navigate, open Networking → Subscription Shares
+            This frame cannot ask the console to navigate, open Platform → Publishing
             yourself.
           </p>
         </template>

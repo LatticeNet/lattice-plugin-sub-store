@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 
 import { provideHost } from "../src/host";
 import Shell from "../src/Shell.vue";
@@ -34,11 +34,27 @@ const dark = ref(initialDark());
 const fixture = new URLSearchParams(window.location.search).get("fixture") || "production";
 
 watchEffect(() => applyHostTheme(dark.value ? "dark" : "light"));
+
+/**
+ * Where the plugin asked the console to go. The real console routes itself;
+ * the harness has nowhere to go, so it says what it was asked and keeps the
+ * list on `window.__navigations` for a drive to read.
+ */
+const navigated = ref("");
+function onMessage(event: MessageEvent): void {
+  const data = event.data as { type?: unknown; route?: unknown } | null;
+  if (event.origin !== window.location.origin || data?.type !== "lattice:navigate" || typeof data.route !== "string") return;
+  navigated.value = data.route;
+  const log = ((window as unknown as { __navigations?: string[] }).__navigations ??= []);
+  log.push(data.route);
+}
+onMounted(() => window.addEventListener("message", onMessage));
+onBeforeUnmount(() => window.removeEventListener("message", onMessage));
 </script>
 
 <template>
   <div class="dev-bar">
-    <span>dev harness, fake host, {{ fixture }} records</span>
+    <span>dev harness, fake host, {{ fixture }} records<template v-if="navigated"> · console asked to open <code>{{ navigated }}</code></template></span>
     <button type="button" @click="dark = !dark">{{ dark ? "Light" : "Dark" }}</button>
   </div>
   <Shell />

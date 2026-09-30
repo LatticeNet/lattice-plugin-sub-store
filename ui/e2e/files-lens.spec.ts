@@ -92,7 +92,7 @@ test.describe("1440", () => {
     await expect(page.locator('[data-map-key="imported-cdcd-self-hostbak-20260820"]')).toHaveAttribute("data-state", "off");
     expect(await page.locator('.lineage-edge[data-on="true"]').count()).toBeGreaterThan(1);
     await expect(page.locator(".pc-side-panel h2")).toHaveText("openjobs-host");
-    await expect(page).toHaveURL(/[?&]open=imported-openjobs-host(&|$)/);
+    await expect(page).toHaveURL(/[?&]open=imported-openjobs-host(&|#|$)/);
   });
 
   test("a combination's peek links on to its members and the page", async ({ page }) => {
@@ -104,7 +104,7 @@ test.describe("1440", () => {
     await panel.getByRole("button", { name: "Open page" }).click();
     await expect(page.locator("#record-title")).toHaveText("openjobs-host");
     await expect(page.getByRole("tablist")).toHaveCount(1);
-    await expect(page).toHaveURL(/[?&]record=imported-openjobs-host(&|$)/);
+    await expect(page).toHaveURL(/[?&]record=imported-openjobs-host(&|#|$)/);
   });
 
   test("the record page masks a provider link and reveals it for a minute", async ({ page }) => {
@@ -134,11 +134,17 @@ test.describe("1440", () => {
     expect(await docWidth(page)).toBe(1440);
   });
 
-  test("Review on the overview lands on the unpublished files", async ({ page }) => {
+  test("Show them on the overview lands on the unpublished files, each with its Publish", async ({ page }) => {
     await open(page, "", ".attention-item");
-    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Review" }).click();
+    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Show them" }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
-    await expect(page).toHaveURL(/[?&]published=no(&|$)/);
+    await expect(page).toHaveURL(/[?&]published=no(&|#|$)/);
+    // Each row's Publish asks the console for its share form, on that file.
+    await page.locator(".layer-row", { hasText: "for-openjobs-loon" }).getByRole("button", { name: "Publish" }).click();
+    // A posted message lands on a later task, so the log is polled.
+    await expect
+      .poll(() => page.evaluate(() => ((window as unknown as { __navigations?: string[] }).__navigations ?? []).at(-1)))
+      .toBe("/platform/publishing?origin=share&create=1&for=imported-file-for-openjobs-loon");
   });
 });
 
@@ -153,13 +159,13 @@ test.describe("page state in the console address", () => {
 
   test("a reload lands on the same layer, filter, search and peek", async ({ page }) => {
     await open(page, "?fixture=production", ".attention-item");
-    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Review" }).click();
+    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Show them" }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
     await page.getByRole("searchbox", { name: "Filter files" }).fill("loon");
     await expect(page.locator(".layer-row")).toHaveCount(3);
     await page.locator(".layer-row", { hasText: "for-openjobs-loon" }).locator(".row-open").click();
     await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
-    await expect(page).toHaveURL(/[?&]open=imported-file-for-openjobs-loon(&|$)/);
+    await expect(page).toHaveURL(/[?&]open=imported-file-for-openjobs-loon(&|#|$)/);
     const url = new URL(page.url());
     expect(Object.fromEntries(url.searchParams)).toEqual({
       fixture: "production",
@@ -183,15 +189,15 @@ test.describe("page state in the console address", () => {
     await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
     await page.locator(".pc-side-panel").getByRole("button", { name: "Open page" }).click();
     await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
-    await expect(page).toHaveURL(/[?&]record=imported-col-merge-openjobs(&|$)/);
-    await expect(page).toHaveURL(/[?&]view=combinations(&|$)/);
+    await expect(page).toHaveURL(/[?&]record=imported-col-merge-openjobs(&|#|$)/);
+    await expect(page).toHaveURL(/[?&]view=combinations(&|#|$)/);
     await expect(page).not.toHaveURL(/[?&]open=/);
 
     await page.reload();
     await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
     await page.locator(".record-crumbs").getByRole("button", { name: "Combinations" }).click();
     await expect(page.locator(".layer-row").first()).toBeVisible();
-    await expect(page).toHaveURL(/\?view=combinations$/);
+    await expect(page).toHaveURL(/\?view=combinations(#|$)/);
   });
 });
 
