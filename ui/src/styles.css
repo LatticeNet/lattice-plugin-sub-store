@@ -83,6 +83,41 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* Published count in the proof line: warning ink only when none are live. */
 .proof-seg.is-warn { color: var(--warning-text); }
 
+/* ── layer tabs and the header's actions ──────────────────────────────────
+   The layers are one underline row, the one vpn-core draws (design 23
+   section 3.4), drawn over the chassis tablist so its arrow keys and panel
+   ids stay. The row's hairline runs the full width, and the selected tab's
+   underline sits on it. Below 620px the row becomes a segmented control that
+   scrolls sideways, as vpn-core's does. */
+.ss-layer-bar { align-items: center; border-bottom: 1px solid var(--border); }
+.ss-layer-tabs.pc-lens-tabs { display: flex; align-self: stretch; align-items: flex-end; gap: var(--space-1); max-width: 100%; overflow-x: auto; padding: 0; border: 0; border-radius: 0; background: transparent; scrollbar-width: thin; }
+.ss-layer-tabs .pc-lens-tab { flex: 0 0 auto; min-height: 36px; gap: 6px; margin-bottom: -1px; padding: var(--space-2) var(--space-3); border: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--muted-foreground); background: transparent; box-shadow: none; font-size: var(--lt-text-sm); font-weight: 600; }
+.ss-layer-tabs .pc-lens-tab:hover { color: var(--foreground); }
+.ss-layer-tabs .pc-lens-tab[aria-selected="true"] { color: var(--foreground); background: transparent; box-shadow: none; border-bottom-color: var(--primary); }
+.ss-layer-tabs .pc-lens-tab:focus-visible { outline: 2px solid var(--ring, var(--primary)); outline-offset: -2px; border-radius: var(--radius-sm); }
+.ss-layer-tabs .pc-count { color: var(--muted-foreground); }
+.ss-layer-tabs .pc-lens-tab[aria-selected="true"] .pc-count { color: var(--foreground); }
+/* The primary action shares the row; it keeps clear of the hairline. */
+.ss-layer-bar > :not(.ss-layer-tabs):not(.pc-toolbar-spacer) { margin-block: var(--space-1); }
+
+@media (max-width: 620px) {
+  .ss-layer-bar { border-bottom: 0; }
+  .ss-layer-tabs.pc-lens-tabs { gap: 0; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); }
+  .ss-layer-tabs .pc-lens-tab { flex: 0 0 auto; min-height: 30px; margin: 0; padding: 4px var(--space-3); border: 0; border-radius: calc(var(--radius-md) - 2px); }
+  .ss-layer-tabs .pc-lens-tab[aria-selected="true"] { background: var(--muted); box-shadow: inset 0 0 0 1px var(--border); }
+
+  /* The title line keeps Search and Refresh; the description goes under it
+     across the header. They used to take a full row each before any content. */
+  .ss-header.pc-page-header { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ss-header > .pc-title-copy { display: contents; }
+  .ss-header > .pc-title-mark { grid-row: 1; }
+  .ss-header .pc-title-line { grid-column: 2; grid-row: 1; min-width: 0; }
+  .ss-header .pc-title-copy > p { grid-column: 1 / -1; grid-row: 2; margin-top: 0; }
+  .ss-header > .pc-header-actions { grid-column: 3; grid-row: 1; }
+  .ss-header > .pc-header-actions > .pc-button { width: auto; }
+  .ss-header > .pc-page-proof { grid-row: 3; }
+}
+
 /* One primary Add, with a caret for New combination. */
 .add-split {
   display: inline-flex;
@@ -2174,6 +2209,12 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .lineage-dot { flex: 0 0 auto; }
 .lineage-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lineage-chip[data-kind="group"] .lineage-name { font-family: var(--font-mono); font-size: var(--lt-text-xs); }
+/* "N more": the rest of a column, folded. A quieter chip, never a record. */
+.lineage-chip[data-kind="more"] { border-style: dashed; background: transparent; color: var(--muted-foreground); font-size: var(--lt-text-xs); font-weight: 600; }
+.lineage-chip[data-kind="more"]:hover { color: var(--foreground); }
+.lineage-chip[data-kind="more"][data-state="off"] { opacity: 0.6; }
+/* Above a dense map: which edges are drawn, so a missing one is not read as a missing dependency. */
+.lineage-note { margin: 0; padding: var(--space-3) var(--space-4) 0; color: var(--muted-foreground); font-size: var(--lt-text-xs); line-height: 1.5; }
 .lineage-figure {
   flex: 0 0 auto;
   color: var(--muted-foreground);

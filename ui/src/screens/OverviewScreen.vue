@@ -70,6 +70,19 @@ function act(item: AttentionItem): void {
   if (item.action.view) chrome.openLens(item.action.view, item.action.facet);
 }
 
+/** The map's nodes the attention list names: records, and shares by their node. */
+const attentionNodes = computed(() => {
+  const out: string[] = [];
+  for (const entry of pipe.attention.value) {
+    if (entry.recordId) out.push(entry.recordId);
+    if (entry.key.startsWith("share:")) {
+      const node = pipe.lineage.value.shareNodes.get(entry.key.slice("share:".length));
+      if (node) out.push(node);
+    }
+  }
+  return [...new Set(out)];
+});
+
 const countable = computed(() => [...pipe.lineage.value.columns.source, ...pipe.lineage.value.columns.combination]);
 watch(countable, (ids) => pipe.requestCounts(ids), { immediate: true });
 
@@ -142,7 +155,7 @@ watch(host.init, (value) => {
         >
           <PcButton v-if="selected" compact @click="selected = ''">Clear selection</PcButton>
         </PcPanelHeader>
-        <LineageMap :lineage="pipe.lineage.value" :facts="pipe.chipFacts" :selected="selected" @select="select" />
+        <LineageMap :lineage="pipe.lineage.value" :facts="pipe.chipFacts" :selected="selected" :attention="attentionNodes" @select="select" />
       </PcPanel>
     </template>
   </section>

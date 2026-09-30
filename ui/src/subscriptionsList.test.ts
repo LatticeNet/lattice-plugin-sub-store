@@ -15,8 +15,8 @@ describe("the sources and combinations layers are tables with one affordance per
   const shell = read("Shell.vue");
 
   it("is one screen for two layers, split by kind", () => {
-    expect(shell).toMatch(/\{ id: "sources", label: "Sources", icon: Library, screen: SubscriptionsScreen, props: \{ kind: KIND_SUB \} \}/);
-    expect(shell).toMatch(/\{ id: "combinations", label: "Combinations", icon: Layers, screen: SubscriptionsScreen, props: \{ kind: KIND_COLLECTION \} \}/);
+    expect(shell).toMatch(/\{ id: "sources", label: "Sources", screen: SubscriptionsScreen, props: \{ kind: KIND_SUB \} \}/);
+    expect(shell).toMatch(/\{ id: "combinations", label: "Combinations", screen: SubscriptionsScreen, props: \{ kind: KIND_COLLECTION \} \}/);
     expect(screen).toContain('defineProps<{ kind: "sub" | "collection" }>()');
     // Kind is the layer now, so there is no second tab row inside it.
     expect(screen).not.toContain("RecKindTabs");

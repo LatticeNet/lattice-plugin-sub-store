@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
-import { ChevronDown, FileCode, Layers, Library, Link2, Plus, RefreshCw, Search, Settings, SquareArrowOutUpRight, Store, Workflow } from "@lucide/vue";
+import { ChevronDown, FileCode, Layers, Plus, RefreshCw, Search, SquareArrowOutUpRight, Store } from "@lucide/vue";
 import {
   PcButton,
   PcIconButton,
@@ -59,22 +59,26 @@ const standalone = computed(
   () => !host.init.value && (handshakeExpired.value || !!host.bootError.value),
 );
 
+/**
+ * The layers, as one underline row like vpn-core's (design 23 section 3.4):
+ * a layer is a place in the page, so it reads as a tab under the header, not
+ * as a boxed pill with an icon. Pills stay for modes inside a layer.
+ */
 interface Layer {
   id: TabId;
   label: string;
-  icon: Component;
   screen: Component;
   props?: Record<string, unknown>;
 }
 
 const tabs: Layer[] = [
-  { id: "overview", label: "Overview", icon: Workflow, screen: OverviewScreen },
-  { id: "sources", label: "Sources", icon: Library, screen: SubscriptionsScreen, props: { kind: KIND_SUB } },
-  { id: "combinations", label: "Combinations", icon: Layers, screen: SubscriptionsScreen, props: { kind: KIND_COLLECTION } },
-  { id: "files", label: "Files", icon: FileCode, screen: FilesScreen },
+  { id: "overview", label: "Overview", screen: OverviewScreen },
+  { id: "sources", label: "Sources", screen: SubscriptionsScreen, props: { kind: KIND_SUB } },
+  { id: "combinations", label: "Combinations", screen: SubscriptionsScreen, props: { kind: KIND_COLLECTION } },
+  { id: "files", label: "Files", screen: FilesScreen },
   // The record list from the client's side: every link the console serves.
-  { id: "shares", label: "Shares", icon: Link2, screen: SharesScreen },
-  { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },
+  { id: "shares", label: "Shares", screen: SharesScreen },
+  { id: "settings", label: "Settings", screen: SettingsScreen },
 ];
 const TAB_IDS = new Set<string>(VIEW_IDS);
 
@@ -312,7 +316,7 @@ const atRecordLimit = computed(() => ready.value && catalogue.items.value.length
 const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
 const canCreate = computed(() => caps.value.ready && caps.value.mutate);
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
-const NO_ORIGIN = "This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.";
+const NO_ORIGIN = "This frame cannot ask the console to navigate; open Platform → Publishing yourself.";
 
 function openPalette(): void {
   paletteOpen.value = true;
@@ -431,19 +435,35 @@ const comboTitle = computed(() =>
 <template>
   <PcWorkspace :batch="lens.selected > 0">
     <PcPageHeader
+      class="ss-header"
       title="Sub-Store"
       description="Build subscriptions from sources, render them for each client, and publish them from Lattice itself."
     >
       <template #icon><Store :size="19" aria-hidden="true" /></template>
       <template #actions>
+        <!-- Search is page-wide (every layer's records), so it sits with
+             Refresh in the header rather than in one layer's toolbar. On a
+             phone both stay on the title line instead of a row each. -->
         <PcIconButton
-          label="Read the record catalogue and the share list again"
+          class="tab-search"
+          label="Search records and actions (Cmd+K)"
           bordered
+          :disabled="standalone"
+          @click="openPalette()"
+        >
+          <Search :size="15" aria-hidden="true" />
+        </PcIconButton>
+        <!-- Labelled, as vpn-core's is: an icon alone did not say what it reads again. -->
+        <PcButton
+          class="header-refresh"
+          :busy="refreshing"
           :disabled="!host.init.value"
+          title="Read the record catalogue and the share list again"
           @click="refresh()"
         >
-          <RefreshCw :size="15" :class="{ spin: refreshing }" aria-hidden="true" />
-        </PcIconButton>
+          <template #icon><RefreshCw :size="15" aria-hidden="true" /></template>
+          Refresh
+        </PcButton>
       </template>
       <template #proof>
         <PcProofLine :segments="proof" :refreshing="refreshing">
@@ -461,27 +481,17 @@ const comboTitle = computed(() =>
 
       <!-- A record's own page has its own tab row; the layer tabs give way to
            it rather than stacking a second row above. -->
-      <PcToolbar v-if="!recordId" label="Sub-Store layers">
+      <PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">
         <template #tabs>
-          <PcLensTabs v-model="activeTab" label="Sub-Store layers">
+          <PcLensTabs v-model="activeTab" class="ss-layer-tabs" label="Sub-Store layers">
             <PcLensTab
               v-for="tab in tabs"
               :key="tab.id"
               :value="tab.id"
               :label="tab.label"
               :count="tabCounts[tab.id]"
-            >
-              <template #icon><component :is="tab.icon" :size="14" aria-hidden="true" /></template>
-            </PcLensTab>
+            />
           </PcLensTabs>
-        </template>
-        <template v-if="!editing" #secondary>
-          <!-- Not only a shortcut: a palette reachable only by Cmd+K is one most
-               operators never find. Outside the tablist, because a button in
-               there announces itself as a tab and joins the arrow-key order. -->
-          <PcIconButton class="tab-search" label="Search records and actions (Cmd+K)" bordered @click="openPalette()">
-            <Search :size="15" aria-hidden="true" />
-          </PcIconButton>
         </template>
         <template v-if="!editing && activeTab === 'overview' && canCreate" #primary>
           <div class="add-split" data-add-menu>
@@ -525,11 +535,11 @@ const comboTitle = computed(() =>
           <PcButton
             variant="primary"
             :disabled="!shareOrigin"
-            :title="shareOrigin ? 'Shares are created in the console under Networking.' : NO_ORIGIN"
+            :title="shareOrigin ? 'Shares are created in the console under Platform → Publishing.' : NO_ORIGIN"
             @click="openShares()"
           >
             <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-            Open in Networking
+            Open in Publishing
           </PcButton>
         </template>
       </PcToolbar>

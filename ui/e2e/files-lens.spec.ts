@@ -27,6 +27,17 @@ test.describe("375", () => {
     expect(await docWidth(page)).toBe(375);
   });
 
+  test("Search and Refresh sit on the title line, not a row each before the content", async ({ page }) => {
+    await open(page, "", ".lineage-stages");
+    const title = (await page.locator(".ss-header h1").boundingBox())!;
+    for (const name of ["Search records and actions (Cmd+K)", "Refresh"]) {
+      const box = (await page.locator(".ss-header").getByRole("button", { name }).boundingBox())!;
+      expect(Math.abs(box.y + box.height / 2 - (title.y + title.height / 2)), name).toBeLessThan(8);
+      expect(box.width, name).toBeLessThan(160);
+    }
+    expect(await docWidth(page)).toBe(375);
+  });
+
   test("a table keeps its columns and scrolls inside itself, name pinned", async ({ page }) => {
     await open(page, "?view=sources", ".layer-row");
     expect(await docWidth(page)).toBe(375);
@@ -82,6 +93,56 @@ test.describe("1440", () => {
     const primary = (await page.getByRole("button", { name: "New subscription" }).boundingBox())!;
     expect(Math.abs(primary.y + primary.height / 2 - (tabs.y + tabs.height / 2))).toBeLessThan(4);
     await expect(page.getByText("15 files are not published")).toBeVisible();
+  });
+
+  test("the 256-record store is one picture: folded, capped, and drawn as paths", async ({ page }) => {
+    await open(page, "?fixture=large", ".lineage-chip");
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(height).toBeLessThan(1400);
+    for (const column of await page.locator("[data-map-col]").all()) {
+      expect(await column.locator(".lineage-chip").count()).toBeLessThanOrEqual(8);
+    }
+    await expect(page.locator(".lineage-note")).toContainText("the attention list names");
+    // Selected, only that record's path is drawn.
+    await page.locator('[data-map-key^="group:source:"]').first().click();
+    await expect(page.locator(".lineage-note")).toContainText("Showing the selected path");
+    await expect(page.locator('.lineage-edge[data-on="false"]')).toHaveCount(0);
+    expect(await page.locator('.lineage-edge[data-on="true"]').count()).toBeGreaterThan(0);
+  });
+
+  test("an edge that skips a column never runs along a chip", async ({ page }) => {
+    await open(page, "", ".lineage-chip");
+    await expect.poll(() => page.locator(".lineage-edge").count()).toBeGreaterThan(0);
+    // Every horizontal run under the combinations column keeps clear of its chips.
+    const clearance = await page.evaluate(() => {
+      const canvas = document.querySelector(".lineage-canvas")!.getBoundingClientRect();
+      const column = document.querySelectorAll("[data-map-col]")[1]!;
+      const chips = [...column.querySelectorAll("[data-map-key]")].map((chip) => chip.getBoundingClientRect());
+      const left = column.getBoundingClientRect().left - canvas.left;
+      const right = column.getBoundingClientRect().right - canvas.left;
+      let worst = Number.POSITIVE_INFINITY;
+      let crossing = 0;
+      for (const path of document.querySelectorAll<SVGPathElement>(".lineage-edge")) {
+        const length = path.getTotalLength();
+        // Only an edge that passes the column: it starts left of it and ends right of it.
+        if (!(path.getPointAtLength(0).x < left && path.getPointAtLength(length).x > right)) continue;
+        crossing += 1;
+        for (let at = 0; at <= length; at += 2) {
+          const point = path.getPointAtLength(at);
+          if (point.x < left || point.x > right) continue;
+          for (const chip of chips) {
+            const top = chip.top - canvas.top;
+            const bottom = chip.bottom - canvas.top;
+            const gap = point.y < top ? top - point.y : point.y > bottom ? point.y - bottom : 0;
+            worst = Math.min(worst, gap);
+          }
+        }
+      }
+      return { worst, crossing };
+    });
+    // Production has sources rendered straight into files, so some edge does cross.
+    expect(clearance.crossing).toBeGreaterThan(0);
+    expect(clearance.worst).toBeGreaterThanOrEqual(16);
   });
 
   test("selecting a chip lights its path, dims the rest and opens the peek", async ({ page }) => {
