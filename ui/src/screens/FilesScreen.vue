@@ -1366,7 +1366,7 @@ watch(host.init, (value) => {
                   <PcSelectCell :checked="selectedIds.has(item.id)" :label="`Select ${item.name}`" @change="toggleSelected(item.id)" />
                   <td class="pc-name" data-stack="name">
                     <div class="pc-name-line">
-                      <button type="button" class="row-open" :title="nameTitle(item)" @click.stop="chrome.openRecord(item.id)">
+                      <button type="button" class="row-open" :data-record-open="item.id" :title="nameTitle(item)" @click.stop="chrome.openRecord(item.id)">
                         <strong>{{ item.display_name || item.name }}</strong>
                       </button>
                       <span v-if="item.tags?.length" class="pc-name-after"><PcTagList :tags="item.tags" :max="2" /></span>

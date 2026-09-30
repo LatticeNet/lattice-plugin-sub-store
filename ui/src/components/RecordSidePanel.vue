@@ -29,6 +29,24 @@ import UsageBar from "./UsageBar.vue";
  * do not need the table; every other write stays behind Edit.
  */
 const props = defineProps<{ id: string; pipe: Pipeline; canEdit: boolean }>();
+
+/*
+ * From 768px the panel sits beside the table and the rows stay live, so a
+ * click on another row swaps the record without closing the panel. Closing
+ * then returns focus to that record's row or map chip, not to whatever opened
+ * the panel first. A fresh open leaves it to the chassis, which returns focus
+ * to the opener (a row, an attention item, the palette).
+ */
+const returnTarget = ref<HTMLElement | null>(null);
+function rowFor(id: string): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  const key = CSS.escape(id);
+  return document.querySelector<HTMLElement>(`[data-record-open="${key}"]`) ?? document.querySelector<HTMLElement>(`[data-map-key="${key}"]`);
+}
+watch(() => props.id, (id, previous) => {
+  if (id && previous && id !== previous) returnTarget.value = rowFor(id);
+  else if (id && !previous) returnTarget.value = null;
+}, { flush: "post" });
 const emit = defineEmits<{
   close: [];
   open: [id: string];
@@ -128,6 +146,7 @@ function publish(): void {
     :title="record ? record.display_name || record.name : ''"
     :description="kindLabel"
     close-label="Close the side panel"
+    :return-focus-to="returnTarget"
     @close="emit('close')"
   >
     <div v-if="record" class="peek">

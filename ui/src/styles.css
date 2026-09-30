@@ -2386,3 +2386,15 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 @media (prefers-reduced-motion: reduce) {
   .lineage-edge, .lineage-chip, .lineage-entry, .lineage-chevron { transition: none; }
 }
+
+/* ── the side panel beside the table ──────────────────────────────────────
+   From 768px a side panel sits beside the collection (design 23, 3.5; the
+   2026-09-30 design review decision for every plugin): no scrim, and the
+   rows around it stay live, so a click on another row swaps the record.
+   Below 768px it stays a modal, full-height sheet. The chassis still marks
+   the panel aria-modal and keeps Tab inside it; that changes in
+   plugin-bridge, not here. */
+@media (min-width: 768px) {
+  .pc-overlay[data-kind="panel"] { background: transparent; pointer-events: none; }
+  .pc-overlay[data-kind="panel"] > .pc-side-panel { pointer-events: auto; }
+}

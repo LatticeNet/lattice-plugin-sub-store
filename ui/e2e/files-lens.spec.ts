@@ -20,6 +20,13 @@ const docWidth = (page: Page) => page.evaluate(() => document.documentElement.sc
 test.describe("375", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
+  test("the side panel stays a modal sheet on a phone", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    await page.locator("[data-record-open]").first().click();
+    await expect(page.locator(".pc-side-panel")).toBeVisible();
+    await expect(page.locator(".pc-overlay[data-kind=panel]")).toHaveCSS("pointer-events", "auto");
+  });
+
   test("the overview becomes stage lists and never scrolls sideways", async ({ page }) => {
     await open(page, "", ".lineage-stages");
     await expect(page.locator(".lineage-canvas")).toHaveCount(0);
@@ -268,6 +275,24 @@ test.describe("page state in the console address", () => {
     // Opening a column's "N more" keeps the map drawn as paths.
     await page.locator('[data-map-key^="more:"]').first().click();
     await expect(page.locator(".lineage-note")).toContainText("the attention list names");
+  });
+
+  test("from 768px the rows stay live beside the side panel: a click swaps the record, Escape returns to its row", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    const rows = page.locator("[data-record-open]");
+    const first = (await rows.nth(0).getAttribute("data-record-open"))!;
+    const third = (await rows.nth(2).getAttribute("data-record-open"))!;
+    await rows.nth(0).click();
+    const title = page.locator(".pc-side-panel h2");
+    const firstName = (await title.textContent())!;
+    await expect(page.locator(".pc-overlay[data-kind=panel]")).toHaveCSS("pointer-events", "none");
+    await rows.nth(2).click();
+    await expect(title).not.toHaveText(firstName);
+    await expect(page).toHaveURL(new RegExp(`[?&]open=${third}(&|#|$)`));
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".pc-side-panel")).toHaveCount(0);
+    await expect(page.locator(`[data-record-open="${third}"]`)).toBeFocused();
+    expect(first).not.toBe(third);
   });
 
   test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
