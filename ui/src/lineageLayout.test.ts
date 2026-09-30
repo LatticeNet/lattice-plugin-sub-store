@@ -1,9 +1,10 @@
+import { computed, nextTick, ref, shallowRef } from "vue";
 import { describe, expect, it } from "vitest";
 
 import type { SubscriptionListItem } from "./client";
 import { failingFixture, largeFixture, productionFixture, type Fixture, type StoredRecord } from "../dev/fixtures";
-import { COLUMN_CAP, DENSE_EDGES, drawnEdges, layoutLineage, moreKey, paintedEdges, type LayoutOptions } from "./lineageLayout";
-import { buildLineage, pathOf, type Lineage } from "./pipeline";
+import { COLUMN_CAP, DENSE_EDGES, drawnEdges, isDense, layoutLineage, moreKey, openSelectedGroup, paintedEdges, type LayoutOptions } from "./lineageLayout";
+import { buildLineage, pathOf, STAGES, type Lineage } from "./pipeline";
 
 /** What the plugin's `list` answers for a stored record, as the pipeline tests build it. */
 function row(rec: StoredRecord): SubscriptionListItem {
@@ -29,6 +30,12 @@ function lineageOf(fixture: Fixture): Lineage {
   return buildLineage(fixture.records.map(row), fixture.shares);
 }
 
+/** Every group key a lineage folds, from a layout that folds nothing. */
+function STAGE_GROUPS(lineage: Lineage): string[] {
+  const all = layoutLineage(lineage, { openGroups: new Set(), expanded: new Set(["source", "combination", "file", "share"]), pinned: new Set() });
+  return Object.values(all.columns).flat().filter((item) => item.kind === "group").map((item) => item.key);
+}
+
 const rest = (over: Partial<LayoutOptions> = {}): LayoutOptions => ({ openGroups: new Set(), expanded: new Set(), pinned: new Set(), ...over });
 
 describe("production keeps the map it had", () => {
@@ -43,11 +50,10 @@ describe("production keeps the map it had", () => {
   });
 
   it("is sparse, so every dependency is painted at rest", () => {
+    expect(lineage.edges).toHaveLength(17);
+    expect(isDense(lineage)).toBe(false);
     const edges = drawnEdges(lineage, layout.anchor, null, new Set());
-    const painted = paintedEdges(edges, false);
-    expect(painted.dense).toBe(false);
-    expect(painted.edges).toHaveLength(edges.length);
-    expect(edges.length).toBeLessThanOrEqual(DENSE_EDGES);
+    expect(paintedEdges(edges, false, isDense(lineage))).toHaveLength(edges.length);
   });
 });
 
@@ -89,17 +95,80 @@ describe("the 256-record budget stays one picture", () => {
   });
 
   it("is dense, so at rest it paints only the attention paths and, selected, only that path", () => {
-    const provider = "src-01";
-    const attention = pathOf(lineage, provider);
-    const edges = drawnEdges(lineage, layout.anchor, null, attention);
-    expect(edges.length).toBeGreaterThan(DENSE_EDGES);
-    const atRest = paintedEdges(edges, false);
-    expect(atRest.dense).toBe(true);
-    expect(atRest.edges.length).toBeGreaterThan(0);
-    expect(atRest.edges.every((edge) => edge.attention)).toBe(true);
+    expect(lineage.edges.length).toBeGreaterThan(DENSE_EDGES);
+    expect(isDense(lineage)).toBe(true);
+    const attention = pathOf(lineage, "src-01");
+    const atRest = paintedEdges(drawnEdges(lineage, layout.anchor, null, attention), false, true);
+    expect(atRest.length).toBeGreaterThan(0);
+    expect(atRest.every((edge) => edge.attention)).toBe(true);
     const lit = pathOf(lineage, "combo-05");
-    const selected = paintedEdges(drawnEdges(lineage, layout.anchor, lit, attention), true);
-    expect(selected.edges.length).toBeGreaterThan(0);
-    expect(selected.edges.every((edge) => edge.on)).toBe(true);
+    const selected = paintedEdges(drawnEdges(lineage, layout.anchor, lit, attention), true, true);
+    expect(selected.length).toBeGreaterThan(0);
+    expect(selected.every((edge) => edge.on)).toBe(true);
+  });
+
+  it("stays as dense or sparse as the store is, however much is opened", () => {
+    // Density is counted on the store before anything folds, so the layout
+    // cannot move it: every group open, every column expanded, same answer.
+    const everything = layoutLineage(lineage, rest({
+      openGroups: new Set(STAGE_GROUPS(lineage)),
+      expanded: new Set(["source", "combination", "file", "share"]),
+    }));
+    expect(drawnEdges(lineage, everything.anchor, null, new Set()).length).toBeGreaterThan(drawnEdges(lineage, layout.anchor, null, new Set()).length);
+    expect(isDense(lineage)).toBe(true);
+    const small = lineageOf(productionFixture());
+    const opened = layoutLineage(small, rest({ openGroups: new Set(STAGE_GROUPS(small)), expanded: new Set(["file"]) }));
+    expect(drawnEdges(small, opened.anchor, null, new Set()).length).toBeGreaterThan(0);
+    expect(isDense(small)).toBe(false);
+  });
+
+  it("draws a record the attention list names inside a folded group, and leaves the group folded", () => {
+    const pinned = layoutLineage(lineage, rest({ pinned: new Set(["src-01"]) }));
+    const group = pinned.columns.source.find((item) => item.kind === "group" && item.ids.includes("src-01"))!;
+    expect(group.open).toBe(false);
+    expect(pinned.columns.source.find((item) => item.key === "src-01")).toMatchObject({ kind: "node", member: true });
+    expect(pinned.anchor.get("src-01")).toBe("src-01");
+    const neighbour = group.ids.find((id) => id !== "src-01")!;
+    expect(pinned.anchor.get(neighbour)).toBe(group.key);
+  });
+
+  it("counts each drawn member as a row, so six pinned providers still leave the column at the cap", () => {
+    const six = new Set(["src-01", "src-10", "src-16", "src-31", "src-34", "src-40"]);
+    const layout = layoutLineage(lineage, rest({ pinned: six }));
+    expect(layout.columns.source).toHaveLength(COLUMN_CAP);
+    for (const id of six) expect(layout.anchor.get(id)).toBe(id);
+    expect(layout.columns.source.at(-1)).toMatchObject({ kind: "more" });
+    // Opening a group draws all of it and folds nothing else away.
+    const group = layout.columns.source.find((item) => item.kind === "group")!;
+    const opened = layoutLineage(lineage, rest({ pinned: six, openGroups: new Set([group.key]) }));
+    expect(opened.hidden.source).toBe(layout.hidden.source);
+  });
+});
+
+describe("the group a selection sits in", () => {
+  const nothingOpen = (lineage: Lineage) => layoutLineage(lineage, { openGroups: new Set(), expanded: new Set(STAGES), pinned: new Set() }).groupOf;
+
+  it("opens once the store that holds the record arrives after the selection", async () => {
+    const lineage = shallowRef<Lineage>(buildLineage([], []));
+    const selected = ref("src-06");
+    const openGroups = ref(new Set<string>());
+    const stop = openSelectedGroup(() => selected.value, () => nothingOpen(lineage.value), openGroups);
+    expect([...openGroups.value]).toEqual([]);
+    lineage.value = lineageOf(largeFixture());
+    await nextTick();
+    expect([...openGroups.value]).toEqual(["group:source:pasted-uk"]);
+    stop();
+  });
+
+  it("opens for a selection made after the store, and leaves other open groups open", async () => {
+    const lineage = shallowRef<Lineage>(lineageOf(largeFixture()));
+    const groupOf = computed(() => nothingOpen(lineage.value));
+    const selected = ref("");
+    const openGroups = ref(new Set(["group:source:provider"]));
+    const stop = openSelectedGroup(() => selected.value, () => groupOf.value, openGroups);
+    selected.value = "src-06";
+    await nextTick();
+    expect([...openGroups.value].sort()).toEqual(["group:source:pasted-uk", "group:source:provider"]);
+    stop();
   });
 });

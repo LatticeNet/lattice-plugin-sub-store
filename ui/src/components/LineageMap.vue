@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { ChevronRight } from "@lucide/vue";
 import { PcStateDot, useMediaQuery } from "@latticenet/plugin-bridge/chassis";
 
-import { drawnEdges, layoutLineage, paintedEdges, type MapItem } from "../lineageLayout";
+import { drawnEdges, isDense, layoutLineage, openSelectedGroup, paintedEdges, type MapItem } from "../lineageLayout";
 import { pathOf, plural, STAGES, type Lineage, type Stage } from "../pipeline";
 
 /**
@@ -90,16 +90,9 @@ const lit = computed<Set<string> | null>(() => {
   return pathOf(props.lineage, key);
 });
 
-// A record selected from elsewhere (the side panel, a table, the palette)
-// opens the group it sits in, or it would be lit inside a folded chip.
-watch(
-  () => props.selected,
-  (key) => {
-    const group = groupMembers.value.groupOf.get(key);
-    if (group && !openGroups.value.has(group)) openGroups.value = new Set([...openGroups.value, group]);
-  },
-  { immediate: true },
-);
+// A record selected from elsewhere (the side panel, a table, the palette, a
+// link) opens the group it sits in, or it would be lit inside a folded chip.
+openSelectedGroup(() => props.selected, () => groupMembers.value.groupOf, openGroups);
 
 const layout = computed(() =>
   layoutLineage(props.lineage, {
@@ -135,12 +128,14 @@ const columnOf = computed(() => {
 });
 
 const allEdges = computed(() => drawnEdges(props.lineage, layout.value.anchor, lit.value, attentionPath.value));
-const painted = computed(() => paintedEdges(allEdges.value, !!lit.value));
+/** Decided by the store, so opening a group or a column never changes which edges are drawn. */
+const dense = computed(() => isDense(props.lineage));
+const painted = computed(() => paintedEdges(allEdges.value, !!lit.value, dense.value));
 
 /** Said once above a dense map, so an absent edge never reads as an absent dependency. */
 const note = computed(() => {
-  if (!painted.value.dense) return "";
-  const total = allEdges.value.length;
+  if (!dense.value) return "";
+  const total = props.lineage.edges.length;
   if (lit.value) return `Showing the selected path. ${total} dependencies in all; clear the selection to see the paths that need attention.`;
   if (attentionIds.value.length) {
     return `Showing the paths of the ${plural(attentionIds.value.length, "record")} the attention list names, not all ${total} dependencies. Select a record to see its path.`;
@@ -264,7 +259,7 @@ function measure(): void {
   let lanes = 0;
   let deepest = 0;
   const out: typeof paths.value = [];
-  for (const edge of painted.value.edges) {
+  for (const edge of painted.value) {
     const a = boxes.get(edge.from);
     const b = boxes.get(edge.to);
     if (!a || !b) continue;
@@ -370,7 +365,7 @@ function chipTitle(item: MapItem): string {
       <svg
         class="lineage-edges"
         role="img"
-        :aria-label="`${painted.edges.length} of ${allEdges.length} dependencies drawn${lit ? `, ${allEdges.filter((e) => e.on).length} on the selected path` : ''}`"
+        :aria-label="`${painted.length} of ${lineage.edges.length} dependencies drawn${lit ? `, ${allEdges.filter((e) => e.on).length} on the selected path` : ''}`"
         :width="size.width"
         :height="size.height"
         :viewBox="`0 0 ${size.width || 1} ${size.height || 1}`"

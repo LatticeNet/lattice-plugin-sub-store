@@ -11,20 +11,31 @@
  *    Sources and combinations fold only in a column longer than the cap,
  *    because folding three combinations into `merge-*` hides which one is
  *    broken. Shares never fold: each is one URL, named for one client.
- * 2. Each column shows at most `COLUMN_CAP` entries and folds the rest into
- *    one "N more" item that opens the column in place. The selected record's
- *    path and the records the attention list names are never folded away.
- * 3. A map with more dependencies than `DENSE_EDGES` stops drawing all of
- *    them. At rest it draws the paths of the records that need attention;
- *    with a record selected, that record's path. Below the threshold it draws
- *    everything, as before, and dims what is off the selected path.
+ * 2. Each column shows at most `COLUMN_CAP` rows at rest and folds the rest
+ *    into one "N more" item that opens the column in place. The selected
+ *    record and the records the attention list names are never folded away:
+ *    one inside a folded group is drawn under it, as a row of its own, and
+ *    the rest of the group stays folded.
+ * 3. A store with more dependencies than `DENSE_EDGES` is drawn as paths: at
+ *    rest those of the records that need attention, with a record selected
+ *    that record's. Density is a fact about the store, counted on its
+ *    dependencies before anything folds, so opening a group or a column never
+ *    flips the map from all edges to paths. A sparse store draws everything,
+ *    as before, and dims what is off the selected path.
  */
+
+import { watch, type Ref, type WatchStopHandle } from "vue";
 
 import { groupByPrefix, STAGES, type Lineage, type Stage } from "./pipeline";
 
 export const COLUMN_CAP = 8;
-/** Above this many drawn dependencies the map draws paths, not everything. */
+/** Above this many dependencies in the store the map draws paths, not everything. */
 export const DENSE_EDGES = 30;
+
+/** Whether a store is drawn as paths. Production's 23 records hold 17 dependencies. */
+export function isDense(lineage: Pick<Lineage, "edges">): boolean {
+  return lineage.edges.length > DENSE_EDGES;
+}
 
 export type MapItemKind = "node" | "group" | "more";
 
@@ -103,17 +114,21 @@ export function layoutLineage(lineage: Lineage, options: LayoutOptions): MapLayo
       if (entry.kind === "group") for (const id of entry.ids) groupOf.set(id, entry.key);
     }
 
+    // The rows an entry takes: itself, and under a group each pinned member,
+    // which is drawn even while the group is folded. What an operator opens
+    // is not counted, so opening a group never folds its neighbours away.
+    const rows = (entry: Entry) => 1 + (entry.kind === "group" ? entry.ids.filter((id) => options.pinned.has(id)).length : 0);
     const expanded = options.expanded.has(stage);
-    const over = entries.length > cap;
+    const over = entries.reduce((sum, entry) => sum + rows(entry), 0) > cap;
     let visible = entries;
     let folded: Entry[] = [];
     if (over && !expanded) {
-      // One slot goes to "more". Pinned entries (the selection, the records
-      // the attention list names) take their slots first, wherever they sit,
+      // One row goes to "more". Pinned entries (the selection, the records
+      // the attention list names) take their rows first, wherever they sit,
       // and the first of the rest fill what is left, so a column stays at the
-      // cap unless more than that is pinned. Order is kept.
+      // cap unless its pinned records alone need more. Order is kept.
       const pinned = entries.filter((entry) => entry.ids.some((id) => options.pinned.has(id)));
-      const budget = Math.max(0, cap - 1 - pinned.length);
+      const budget = Math.max(0, cap - 1 - pinned.reduce((sum, entry) => sum + rows(entry), 0));
       const keep = new Set([...pinned, ...entries.filter((entry) => !pinned.includes(entry)).slice(0, budget)]);
       visible = entries.filter((entry) => keep.has(entry));
       folded = entries.filter((entry) => !keep.has(entry));
@@ -129,8 +144,12 @@ export function layoutLineage(lineage: Lineage, options: LayoutOptions): MapLayo
       const open = options.openGroups.has(entry.key);
       items.push({ key: entry.key, kind: "group", stage, ids: entry.ids, label: entry.label, open });
       for (const id of entry.ids) {
-        anchor.set(id, open ? id : entry.key);
-        if (open) items.push({ key: id, kind: "node", stage, ids: [id], label: labelOf(id), member: true });
+        // Open: every member. Folded: only the pinned ones, so a record that
+        // needs attention is drawn itself without unfolding its fourteen
+        // neighbours.
+        const drawn = open || options.pinned.has(id);
+        anchor.set(id, drawn ? id : entry.key);
+        if (drawn) items.push({ key: id, kind: "node", stage, ids: [id], label: labelOf(id), member: true });
       }
     }
     const hiddenIds = folded.flatMap((entry) => entry.ids);
@@ -180,11 +199,31 @@ export function drawnEdges(lineage: Lineage, anchor: ReadonlyMap<string, string>
 }
 
 /**
- * The edges the map paints. A sparse map paints all of them; a dense one
+ * The edges the map paints. A sparse store paints all of them; a dense one
  * paints the selected path, or at rest the attention paths.
  */
-export function paintedEdges(edges: readonly DrawnEdge[], lit: boolean): { edges: DrawnEdge[]; dense: boolean } {
-  const dense = edges.length > DENSE_EDGES;
-  if (!dense) return { edges: [...edges], dense };
-  return { edges: edges.filter((edge) => (lit ? edge.on : edge.attention)), dense };
+export function paintedEdges(edges: readonly DrawnEdge[], lit: boolean, dense: boolean): DrawnEdge[] {
+  if (!dense) return [...edges];
+  return edges.filter((edge) => (lit ? edge.on : edge.attention));
+}
+
+/**
+ * Opens the group the selected record sits in, as selecting a member on the
+ * map does. The group map is watched as well as the selection: a new record
+ * or a link can set the selection before the store that holds the record is
+ * read, and its group is only known once it is.
+ */
+export function openSelectedGroup(
+  selected: () => string,
+  groupOf: () => ReadonlyMap<string, string>,
+  openGroups: Ref<Set<string>>,
+): WatchStopHandle {
+  return watch(
+    [selected, groupOf],
+    ([key, groups]) => {
+      const group = key ? groups.get(key) : undefined;
+      if (group && !openGroups.value.has(group)) openGroups.value = new Set([...openGroups.value, group]);
+    },
+    { immediate: true },
+  );
 }

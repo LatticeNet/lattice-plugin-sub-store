@@ -245,6 +245,31 @@ test.describe("page state in the console address", () => {
     expect(new URL(page.url()).search).toBe(url.search);
   });
 
+  test("a link to a record inside a folded group opens the group, though the store arrives after the link", async ({ page }) => {
+    // The address sets the selection at the handshake; the store is read
+    // after. src-06 sits in pasted-uk-*, which opens as it does for a
+    // selection made on the page, so its neighbour src-14 is drawn too.
+    const group = page.locator('[data-map-key="group:source:pasted-uk"]');
+    for (const step of ["load", "reload"]) {
+      if (step === "load") await open(page, "?fixture=large&open=src-06", ".lineage-chip");
+      else await page.reload();
+      await expect(group, step).toHaveAttribute("aria-expanded", "true");
+      await expect(page.locator('[data-map-key="src-06"]'), step).toBeVisible();
+      await expect(page.locator('[data-map-key="src-14"]'), step).toBeVisible();
+      await expect(page.locator(".lineage-note"), step).toContainText("Showing the selected path");
+    }
+  });
+
+  test("a record the attention list names is drawn itself, and its group stays folded", async ({ page }) => {
+    await open(page, "?fixture=large", ".lineage-chip");
+    // src-01's last refresh failed; it sits in the folded provider group.
+    await expect(page.locator('[data-map-key="src-01"]')).toBeVisible();
+    await expect(page.locator('[data-map-key="src-04"]')).toHaveCount(0);
+    // Opening a column's "N more" keeps the map drawn as paths.
+    await page.locator('[data-map-key^="more:"]').first().click();
+    await expect(page.locator(".lineage-note")).toContainText("the attention list names");
+  });
+
   test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
     await open(page, "?view=combinations", ".layer-row");
     await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
