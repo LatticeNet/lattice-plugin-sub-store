@@ -101,5 +101,16 @@ jobs:
           test "$digest_one" = "$expected"
           cmp -s "$RUNNER_TEMP/sub-store-1.tar.gz" "$RUNNER_TEMP/sub-store-2.tar.gz"
 
+      - name: publish canonical bundle
+        # The deterministic pack above is the digest authority (darwin and
+        # arm64 containers do not reproduce it), so the signing ceremony
+        # downloads these exact bytes instead of rebuilding and hoping.
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-bundle
+          path: |
+            ${{ runner.temp }}/sub-store-1.tar.gz
+          retention-days: 30
+
       - name: git diff check
         run: git diff --check
