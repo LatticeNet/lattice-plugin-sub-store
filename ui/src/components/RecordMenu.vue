@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CopyPlus, Ellipsis, Eye, Link, RefreshCw, Share2, Trash2, Upload } from "@lucide/vue";
+import { CopyPlus, Ellipsis, Eye, Link, RefreshCw, SquareArrowOutUpRight, Trash2, Upload } from "@lucide/vue";
 import { PcIconButton } from "@latticenet/plugin-bridge/chassis";
 import { onBeforeUnmount, ref, watch } from "vue";
 
@@ -34,7 +34,8 @@ const emit = defineEmits<{
 
 /** Declarations name an icon; the mapping to a component lives here so the
  *  registry stays free of imports and can be tested without Vue. */
-const ICONS = { eye: Eye, share: Share2, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
+/* Publish… opens the console's share form, so its icon points out of the frame. */
+const ICONS = { eye: Eye, share: SquareArrowOutUpRight, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
 
 function iconFor(name: string) {
   return ICONS[name as keyof typeof ICONS] ?? Eye;

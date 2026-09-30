@@ -604,7 +604,7 @@ const actionCaps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
 // The row menu is the one every surface carries (rowMenuFor); a file has no
 // node preview and nothing to refresh, and the registry decides that from the
-// record's kind. Publish is deliberately absent: the console owns shares.
+// record's kind. It leads with Publish…, which opens the console's share form.
 function menuActionsFor(item: SubscriptionListItem) {
   return rowMenuFor(item, actionCaps.value);
 }
@@ -1385,14 +1385,18 @@ watch(host.init, (value) => {
                       <span v-if="publishedOf(item).slug" class="layer-share">
                         <PcStateDot :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" />
                       </span>
+                      <!-- The column is a state. Publish… lives in the row menu; only the
+                           not-published view, where publishing is the task, keeps a
+                           button in the row for one click per file. -->
                       <button
-                        v-else-if="shareOrigin && shareStore.shares.value !== undefined"
+                        v-else-if="facets.published === 'no' && shareOrigin && shareStore.shares.value !== undefined"
                         type="button"
                         class="row-publish"
+                        :aria-label="`Publish ${item.display_name || item.name}…`"
                         :title="`Open the console's share form for ${item.display_name || item.name}, with this file chosen`"
                         @click.stop="openShares(item)"
                       >
-                        Publish
+                        Publish…
                       </button>
                       <span v-else-if="shareStore.shares.value !== undefined" class="layer-muted">not published</span>
                     </span>
@@ -1419,6 +1423,18 @@ watch(host.init, (value) => {
       </template>
 
       <PcBatchBar :count="selectedCount" noun="selected" @clear="selectedIds = new Set()">
+        <!-- The console's share form takes one file, so one selected file can be
+             handed over and a larger selection is told why it cannot. -->
+        <PcButton
+          v-if="selectedCount === 1"
+          compact
+          :aria-label="`Publish ${selectedVisible[0]!.display_name || selectedVisible[0]!.name}…`"
+          @click="runRowAction('share', selectedVisible[0]!, $event)"
+        >
+          <template #icon><SquareArrowOutUpRight :size="13" aria-hidden="true" /></template>
+          Publish…
+        </PcButton>
+        <span v-else class="batch-note">Publish one file at a time: the console's share form takes one.</span>
         <PcButton
           v-for="action in batchActions"
           :key="action.id"

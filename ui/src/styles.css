@@ -2362,6 +2362,7 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 }
 .row-publish:hover { border-color: var(--lt-border-strong); }
 .row-publish:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+.batch-note { color: var(--muted-foreground); font-size: var(--lt-text-xs); }
 
 /* Provider traffic: a bar the width of a word, and the percentage in mono. */
 .usage { display: inline-flex; align-items: center; gap: 6px; }

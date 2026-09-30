@@ -270,9 +270,18 @@ export function batchActionsFor(
  * file has nothing to refresh.
  */
 export const ROW_MENU_ACTIONS: readonly ActionId[] = ["output", "refresh", "duplicate", "delete"];
+/**
+ * A file's menu leads with Publish…, the verb a file exists for: the
+ * Published column states whether it is published, and the menu is where
+ * the operator acts on that. The ellipsis says it opens the console's form.
+ */
+export const FILE_ROW_MENU_ACTIONS: readonly ActionId[] = ["share", ...ROW_MENU_ACTIONS];
 
 export function rowMenuFor(record: SubscriptionListItem, caps: ActionCapabilities): ResolvedAction[] {
-  return actionsFor(record, caps, ROW_MENU_ACTIONS);
+  if (kindOf(record) !== KIND_FILE) return actionsFor(record, caps, ROW_MENU_ACTIONS);
+  // The registry's order, with Publish… moved to the front.
+  const actions = actionsFor(record, caps, FILE_ROW_MENU_ACTIONS);
+  return [...actions.filter((action) => action.id === "share"), ...actions.filter((action) => action.id !== "share")];
 }
 
 export interface DeletePrompt {

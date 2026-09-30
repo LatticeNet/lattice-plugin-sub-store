@@ -205,6 +205,10 @@ describe("one reader of capabilities, one row menu, one delete prompt", () => {
     const sub = rowMenuFor(record({ has_url: true }), caps()).map((a) => a.id);
     expect(sub).toEqual(actionsFor(record({ has_url: true }), caps(), ROW_MENU_ACTIONS).map((a) => a.id));
     expect(rowMenuFor(record({ kind: KIND_FILE }), caps()).map((a) => a.id)).not.toContain("refresh");
+    // A file's menu leads with Publish…, which opens the console's form; a source's does not carry it.
+    expect(rowMenuFor(record({ kind: KIND_FILE }), caps()).map((a) => a.id)).toEqual(["share", "output", "duplicate", "delete"]);
+    expect(rowMenuFor(record({ kind: KIND_FILE }), caps())[0]!.label).toBe("Publish…");
+    expect(rowMenuFor(record({ has_url: true }), caps()).map((a) => a.id)).not.toContain("share");
     // A read-only session sees the same items, disabled with a reason.
     const readOnly = rowMenuFor(record(), caps({ mutate: false }));
     const del = readOnly.find((a) => a.id === "delete");

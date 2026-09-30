@@ -207,12 +207,40 @@ test.describe("1440", () => {
     await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Show them" }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
     await expect(page).toHaveURL(/[?&]published=no(&|#|$)/);
-    // Each row's Publish asks the console for its share form, on that file.
-    await page.locator(".layer-row", { hasText: "for-openjobs-loon" }).getByRole("button", { name: "Publish" }).click();
+    // On this view each row keeps a Publish… named after its file, which asks
+    // the console for its share form on that file.
+    await page.getByRole("button", { name: "Publish for-openjobs-loon…", exact: true }).click();
     // A posted message lands on a later task, so the log is polled.
     await expect
       .poll(() => page.evaluate(() => ((window as unknown as { __navigations?: string[] }).__navigations ?? []).at(-1)))
       .toBe("/platform/publishing?origin=share&create=1&for=imported-file-for-openjobs-loon");
+  });
+});
+
+test.describe("publishing and deleting files", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("the Published column is a state and Publish… leads each file's menu", async ({ page }) => {
+    await open(page, "?view=files", ".layer-row");
+    await expect(page.locator(".row-publish")).toHaveCount(0);
+    await expect(page.locator(".layer-row", { hasText: "for-openjobs-loon" }).getByText("not published")).toBeVisible();
+    await page.locator('[data-row-menu="imported-file-for-openjobs-loon"] button').first().click();
+    const items = page.locator(".rec-menu [role=menuitem]");
+    await expect(items.first()).toHaveText("Publish…");
+    await items.first().click();
+    await expect
+      .poll(() => page.evaluate(() => ((window as unknown as { __navigations?: string[] }).__navigations ?? []).at(-1)))
+      .toBe("/platform/publishing?origin=share&create=1&for=imported-file-for-openjobs-loon");
+  });
+
+  test("the bulk bar hands one file to the share form and says why not more", async ({ page }) => {
+    await open(page, "?view=files&published=no", ".layer-row");
+    const boxes = page.locator(".layer-row input[type=checkbox]");
+    await boxes.nth(0).check();
+    await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish .+…$/ })).toBeVisible();
+    await boxes.nth(1).check();
+    await expect(page.locator(".pc-batch-bar")).toContainText("Publish one file at a time");
+    await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish / })).toHaveCount(0);
   });
 });
 
