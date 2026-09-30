@@ -62,7 +62,8 @@ export function publishStateFor(shares: readonly SubStoreShareRow[] | undefined,
   const first = live[0] ?? mine[0];
   if (live.length) {
     const more = live.length > 1 ? ` and ${live.length - 1} more` : "";
-    return { tone: "ok", label: `/${first.slug}`, title: `Served at ${first.path}${more}.`, slug: first.slug, shares: mine };
+    // By slug: the path carries the share's token, and a hover title is no place for it.
+    return { tone: "ok", label: `/${first.slug}`, title: `Served at /${first.slug}${more}.`, slug: first.slug, shares: mine };
   }
   const why = mine.some((share) => expired(share, now)) ? "expired" : "disabled";
   return {
@@ -88,7 +89,7 @@ export function shareStateOf(share: SubStoreShareRow, now: number = Date.now()):
   if (!share.enabled) {
     return { tone: "warn", label: "disabled", title: "Switched off in the console: a client that fetches it gets nothing." };
   }
-  return { tone: "ok", label: "live", title: `Served at ${share.path}.` };
+  return { tone: "ok", label: "live", title: `Served at /${share.slug}.` };
 }
 
 export interface RefreshState {

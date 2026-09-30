@@ -242,6 +242,20 @@ test.describe("publishing and deleting files", () => {
     await expect(page.locator(".pc-batch-bar")).toContainText("Publish one file at a time");
     await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish / })).toHaveCount(0);
   });
+
+  test("deleting a file a live share serves names the share and asks for the file's name", async ({ page }) => {
+    await open(page, "?view=files", ".layer-row");
+    await page.locator('[data-row-menu="imported-file-for-cdcd-loon"] button').first().click();
+    await page.locator(".rec-menu [role=menuitem]", { hasText: "Delete" }).click();
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toContainText("/cdcd stops serving: it publishes for-cdcd-loon");
+    const confirm = dialog.getByRole("button", { name: "Delete", exact: true });
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole("textbox").fill("for-cdcd-loo");
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole("textbox").fill("for-cdcd-loon");
+    await expect(confirm).toBeEnabled();
+  });
 });
 
 /**

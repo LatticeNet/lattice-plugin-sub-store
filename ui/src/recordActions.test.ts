@@ -1,3 +1,4 @@
+import type { SubStoreShareRow } from "./client";
 import { describe, expect, it } from "vitest";
 
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionListItem } from "./client";
@@ -235,5 +236,52 @@ describe("one reader of capabilities, one row menu, one delete prompt", () => {
     expect(quiet.title).toContain("Nothing else in this store points at it");
     const files = deletePrompt(["f"], items);
     expect(files.title).toMatch(/^Delete this file\?/);
+  });
+
+  it("names the live shares a delete changes, and asks for the name when one record breaks one", () => {
+    const items = [
+      record({ id: "a", name: "openjobs-host" }),
+      record({ id: "b", name: "cdcd-self-host" }),
+      record({ id: "c", name: "merge-openjobs", kind: KIND_COLLECTION, members: ["a", "b"] }),
+      record({ id: "f", name: "for-openjobs-loon", kind: KIND_FILE, node_source: "a" }),
+      record({ id: "g", name: "for-cdcd-loon", kind: KIND_FILE, node_source: "c" }),
+      record({ id: "h", name: "for-idle", kind: KIND_FILE, node_source: "b" }),
+    ];
+    const share = (subscription_id: string, slug: string, extra: Partial<SubStoreShareRow> = {}): SubStoreShareRow => ({
+      subscription_id, share_id: `s-${slug}`, slug, enabled: true, path: `/sub/${slug}/SECRETTOKEN`, ...extra,
+    });
+    const shares = [
+      share("g", "cdcd"),
+      share("f", "loon"),
+      share("h", "off", { enabled: false }),
+      share("h", "old", { expires_at: "2020-01-01T00:00:00Z" }),
+    ];
+    // The file itself: its share stops serving, and its name arms the delete.
+    const file = deletePrompt(["g"], items, shares);
+    expect(file.served).toEqual(["/cdcd stops serving: it publishes for-cdcd-loon"]);
+    expect(file.confirmText).toBe("for-cdcd-loon");
+    expect(file.title).toContain("A live share changes");
+    // A source: the file it feeds directly stops; the file behind the combination serves fewer nodes.
+    const source = deletePrompt(["a"], items, shares);
+    expect(source.served).toEqual([
+      "/cdcd serves fewer nodes: it publishes for-cdcd-loon, which draws from what is deleted",
+      "/loon stops serving: it publishes for-openjobs-loon, which loses its node source",
+    ]);
+    expect(source.confirmText).toBe("openjobs-host");
+    // Disabled and expired shares already serve nothing: no line, no typing.
+    const idle = deletePrompt(["h"], items, shares);
+    expect(idle.served).toEqual([]);
+    expect(idle.confirmText).toBe("");
+    expect(idle.title).toContain("No live share serves it");
+    // A batch keeps the count rule; the list is still named.
+    const batch = deletePrompt(["f", "g"], items, shares);
+    expect(batch.served).toHaveLength(2);
+    expect(batch.confirmText).toBe("");
+    // The path carries the share's token; the dialog names the slug only.
+    expect([...file.served, ...source.served, ...batch.served].join(" ")).not.toContain("SECRETTOKEN");
+    // Unread shares: the dialog says it cannot tell.
+    const unread = deletePrompt(["g"], items);
+    expect(unread.served).toEqual([]);
+    expect(unread.title).toContain("The share list is unread");
   });
 });

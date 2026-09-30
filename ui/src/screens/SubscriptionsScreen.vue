@@ -665,7 +665,7 @@ function requestDelete(ids: string[]): void {
  * The dialog's words, from the one builder every surface uses (deletePrompt):
  * the records that break are listed by name, not described.
  */
-const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value));
+const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value, shares.value));
 
 /**
  * What a partly-finished batch delete left behind.
@@ -1144,6 +1144,8 @@ watch(host.init, (value) => {
         verb="Delete"
         :names="deleteDialog.names"
         :consequences="deleteDialog.consequences"
+        :served="deleteDialog.served"
+        :confirm-text="deleteDialog.confirmText"
         :busy="deleteBusy"
         @confirm="runDelete()"
         @cancel="deleting = []"

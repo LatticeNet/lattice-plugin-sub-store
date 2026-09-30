@@ -1,4 +1,5 @@
-import { BINDINGS, KIND_COLLECTION, KIND_FILE, KIND_SUB, type MethodBinding, type SubscriptionListItem } from "./client";
+import { BINDINGS, KIND_COLLECTION, KIND_FILE, KIND_SUB, type MethodBinding, type SubStoreShareRow, type SubscriptionListItem } from "./client";
+import { shareStateOf } from "./shareState";
 
 /**
  * What can be done to a record, declared once.
@@ -290,6 +291,57 @@ export interface DeletePrompt {
   names: string[];
   /** Records that break as a consequence. Listed, not counted. */
   consequences: string[];
+  /**
+   * Live shares the delete changes, by path: what breaks outside Lattice,
+   * for clients that fetch them (design 23, 3.8). Empty when none does or
+   * when the share list is unread.
+   */
+  served: string[];
+  /** What the operator types to arm a one-record delete that changes a live share; "" when nothing needs typing. */
+  confirmText: string;
+}
+
+/**
+ * The live shares a delete reaches, each as one line. A share on a deleted
+ * record, or on a file that loses its node source, stops serving. A share on
+ * a file that draws from a combination losing a member keeps serving, with
+ * fewer nodes. Downstream is followed to the end: a combination that loses a
+ * member feeds its change to the files that draw from it.
+ */
+function servedBy(doomed: ReadonlySet<string>, items: readonly SubscriptionListItem[], shares: readonly SubStoreShareRow[], now: number): string[] {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const label = (id: string) => {
+    const item = byId.get(id);
+    return item ? item.display_name || item.name : id;
+  };
+  const broken = new Set(doomed);
+  const changed = new Set<string>();
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const item of items) {
+      if (broken.has(item.id)) continue;
+      const source = item.node_source ?? "";
+      if (item.kind === KIND_FILE && source && broken.has(source)) {
+        broken.add(item.id);
+        grew = true;
+      } else if (!changed.has(item.id) && ((source && changed.has(source)) || (item.members ?? []).some((member) => broken.has(member) || changed.has(member)))) {
+        changed.add(item.id);
+        grew = true;
+      }
+    }
+  }
+  const lines: string[] = [];
+  for (const share of shares) {
+    if (shareStateOf(share, now).label !== "live") continue;
+    const id = share.subscription_id;
+    // By slug, as the Published column names it: the path carries the
+    // share's token, and a dialog is no place to print a credential.
+    const path = `/${share.slug}`;
+    if (doomed.has(id)) lines.push(`${path} stops serving: it publishes ${label(id)}`);
+    else if (broken.has(id)) lines.push(`${path} stops serving: it publishes ${label(id)}, which loses its node source`);
+    else if (changed.has(id)) lines.push(`${path} serves fewer nodes: it publishes ${label(id)}, which draws from what is deleted`);
+  }
+  return lines;
 }
 
 /**
@@ -300,8 +352,18 @@ export interface DeletePrompt {
  * `node_source`, so the warning lists the actual names, and a record with no
  * dependents carries no warning about dependents. Files have none (nothing
  * may draw from a file), so a set of files gets the shorter sentence.
+ *
+ * With the share list read, the live shares the delete changes are named by
+ * path, and a one-record delete that changes one asks for the record's name
+ * to be typed: it breaks something outside Lattice. A batch already asks for
+ * its count. Unread, the dialog says it cannot tell.
  */
-export function deletePrompt(ids: readonly string[], items: readonly SubscriptionListItem[]): DeletePrompt {
+export function deletePrompt(
+  ids: readonly string[],
+  items: readonly SubscriptionListItem[],
+  shares?: readonly SubStoreShareRow[],
+  now: number = Date.now(),
+): DeletePrompt {
   const byId = new Map(items.map((item) => [item.id, item]));
   const label = (item: SubscriptionListItem) => item.display_name || item.name;
   const names = ids.map((id) => {
@@ -310,16 +372,18 @@ export function deletePrompt(ids: readonly string[], items: readonly Subscriptio
   });
   const count = ids.length;
   const one = count === 1;
-  if (count > 0 && ids.every((id) => byId.get(id)?.kind === KIND_FILE)) {
-    return {
-      title: one
-        ? "Delete this file? Any share published for it keeps existing and starts returning nothing."
-        : `Delete ${count} files? Any shares published for them keep existing and start returning nothing.`,
-      names,
-      consequences: [],
-    };
-  }
   const doomed = new Set(ids);
+  const served = shares ? servedBy(doomed, items, shares, now) : [];
+  const confirmText = one && served.length ? names[0]! : "";
+  const object = one ? "it" : "them";
+  const sharesNote = !shares
+    ? `The share list is unread, so the shares that serve ${object} cannot be named.`
+    : served.length
+      ? `${served.length === 1 ? "A live share changes" : `${served.length} live shares change`} for the clients that fetch ${served.length === 1 ? "it" : "them"}, listed below.`
+      : `No live share serves ${object} or anything drawn from ${object}.`;
+  if (count > 0 && ids.every((id) => byId.get(id)?.kind === KIND_FILE)) {
+    return { title: `${one ? "Delete this file?" : `Delete ${count} files?`} ${sharesNote}`, names, consequences: [], served, confirmText };
+  }
   const consequences: string[] = [];
   for (const item of items) {
     if (doomed.has(item.id)) continue;
@@ -330,11 +394,9 @@ export function deletePrompt(ids: readonly string[], items: readonly Subscriptio
     }
   }
   const subject = one ? "this record" : `${count} records`;
-  const object = one ? "it" : "them";
-  const shares = `Any share published for ${object} keeps existing and starts returning nothing.`;
-  if (!consequences.length) return { title: `Delete ${subject}? Nothing else in this store points at ${object}. ${shares}`, names, consequences };
+  if (!consequences.length) return { title: `Delete ${subject}? Nothing else in this store points at ${object}. ${sharesNote}`, names, consequences, served, confirmText };
   const breaks = consequences.length === 1
     ? `1 other record in this store points at ${object} and stops working`
     : `${consequences.length} other records in this store point at ${object} and stop working`;
-  return { title: `Delete ${subject}? ${breaks} until you edit them, listed below. ${shares}`, names, consequences };
+  return { title: `Delete ${subject}? ${breaks} until you edit them, listed below. ${sharesNote}`, names, consequences, served, confirmText };
 }

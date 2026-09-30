@@ -7,7 +7,9 @@ import { useOverlayRegistration } from "../../useOverlayRegistration";
 /**
  * Two-step destructive confirmation. The dialog restates every affected
  * resource by name; when more than one is affected the operator must type the
- * count to arm the confirm button, reading the list is the point.
+ * count to arm the confirm button, reading the list is the point. When one
+ * record's delete breaks something outside Lattice (a live share), the
+ * operator types its name instead (design 23, 3.8).
  */
 const props = withDefaults(
   defineProps<{
@@ -23,9 +25,13 @@ const props = withDefaults(
      * number of records it would damage. Listed, not counted.
      */
     consequences?: string[];
+    /** What changes outside Lattice: live shares, by path. */
+    served?: string[];
+    /** Typed to arm the confirm instead of the count; "" when the count rule applies. */
+    confirmText?: string;
     busy?: boolean;
   }>(),
-  { consequences: () => [] },
+  { consequences: () => [], served: () => [], confirmText: "" },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
@@ -47,8 +53,11 @@ watch(
     dialog.value?.focus();
   },
 );
-const needsTyping = computed(() => props.names.length > 1);
-const armed = computed(() => !needsTyping.value || typed.value.trim() === String(props.names.length));
+const needsTyping = computed(() => props.names.length > 1 || !!props.confirmText);
+const armed = computed(() => {
+  if (props.confirmText) return typed.value.trim() === props.confirmText;
+  return !needsTyping.value || typed.value.trim() === String(props.names.length);
+});
 </script>
 
 <template>
@@ -81,7 +90,17 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
           <li v-for="note in consequences" :key="note" class="mono">{{ note }}</li>
         </ul>
       </template>
-      <label v-if="needsTyping" class="lt-dialog-arm">
+      <template v-if="served.length">
+        <p class="lt-dialog-subtitle">Clients fetching {{ served.length === 1 ? "this share" : "these shares" }} see the change:</p>
+        <ul class="lt-dialog-names is-consequence">
+          <li v-for="line in served" :key="line" class="mono">{{ line }}</li>
+        </ul>
+      </template>
+      <label v-if="confirmText" class="lt-dialog-arm">
+        To confirm, type the name: {{ confirmText }}
+        <input v-model="typed" class="lt-dialog-input" autocomplete="off" spellcheck="false" />
+      </label>
+      <label v-else-if="needsTyping" class="lt-dialog-arm">
         To confirm, type the number of items listed above: {{ names.length }}
         <input v-model="typed" class="lt-dialog-input" inputmode="numeric" autocomplete="off" />
       </label>

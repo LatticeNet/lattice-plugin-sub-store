@@ -94,7 +94,7 @@ function report(ok: boolean): void {
 const sheetFor = ref<SubscriptionListItem | null>(null);
 const deleting = ref(false);
 const deleteBusy = ref(false);
-const prompt = computed(() => deletePrompt(deleting.value ? [props.id] : [], props.pipe.items.value));
+const prompt = computed(() => deletePrompt(deleting.value ? [props.id] : [], props.pipe.items.value, props.pipe.shareStore.shares.value));
 
 async function run(id: ActionId): Promise<void> {
   const item = record.value;
@@ -157,6 +157,8 @@ async function confirmDelete(): Promise<void> {
     verb="Delete"
     :names="prompt.names"
     :consequences="prompt.consequences"
+    :served="prompt.served"
+    :confirm-text="prompt.confirmText"
     :busy="deleteBusy"
     @confirm="confirmDelete()"
     @cancel="deleting = false"

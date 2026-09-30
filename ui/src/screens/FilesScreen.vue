@@ -356,7 +356,7 @@ function requestDelete(ids: string[]): void {
 }
 
 /** The dialog's words, from the one builder every surface uses. */
-const deleteDialog = computed(() => deletePrompt(deleteTargets.value?.ids ?? [], subs.items.value));
+const deleteDialog = computed(() => deletePrompt(deleteTargets.value?.ids ?? [], subs.items.value, shareStore.shares.value));
 
 /**
  * Stop on the first failure rather than ploughing through the rest.
@@ -1483,6 +1483,8 @@ watch(host.init, (value) => {
         verb="Delete"
         :names="deleteDialog.names"
         :consequences="deleteDialog.consequences"
+        :served="deleteDialog.served"
+        :confirm-text="deleteDialog.confirmText"
         :busy="deleteBusy"
         @cancel="deleteTargets = null"
         @confirm="confirmDelete()"

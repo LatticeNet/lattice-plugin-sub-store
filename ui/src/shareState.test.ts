@@ -25,7 +25,8 @@ describe("publishStateFor", () => {
     expect(publishStateFor([share({ expires_at: "2026-09-01T00:00:00Z" })], "cdcd-self-host", NOW)).toMatchObject({ tone: "warn", label: "/cd-self expired" });
     const mixed = publishStateFor([share({ enabled: false }), share({ share_id: "sh-2", slug: "cd-self-live" })], "cdcd-self-host", NOW);
     expect(mixed).toMatchObject({ tone: "ok", label: "/cd-self-live" });
-    expect(mixed.title).toBe("Served at /sub/cd-self/tok.");
+    // The slug, never the path: the path carries the token.
+    expect(mixed.title).toBe("Served at /cd-self-live.");
   });
 });
 
