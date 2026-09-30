@@ -84,9 +84,10 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .proof-seg.is-warn { color: var(--warning-text); }
 
 /* ── layer tabs and the header's actions ──────────────────────────────────
-   The layers are one underline row, the one vpn-core draws (design 23
-   section 3.4), drawn over the chassis tablist so its arrow keys and panel
-   ids stay. The row's hairline runs the full width, and the selected tab's
+   chassis-workaround: PcLensTabs are boxed and carry icons. The layers are
+   one underline row, the one vpn-core draws (design 23 section 3.4), drawn
+   over the chassis tablist so its arrow keys and panel ids stay. Remove
+   once plugin-bridge has a layer variant of PcLensTabs (planned for wave 3). The row's hairline runs the full width, and the selected tab's
    underline covers it. Both are inset shadows, not borders: a tab pulled
    down over a border with a negative margin hangs 1px out of the sideways
    scroller and makes it scroll up and down by that pixel. Below 620px the row becomes a segmented control that
@@ -2388,12 +2389,16 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 }
 
 /* ── the side panel beside the table ──────────────────────────────────────
-   From 768px a side panel sits beside the collection (design 23, 3.5; the
-   2026-09-30 design review decision for every plugin): no scrim, and the
-   rows around it stay live, so a click on another row swaps the record.
-   Below 768px it stays a modal, full-height sheet. The chassis still marks
-   the panel aria-modal and keeps Tab inside it; that changes in
-   plugin-bridge, not here. */
+   chassis-workaround: PcSidePanel is always modal. From 768px a side panel
+   sits beside the collection (design 23, 3.5; the 2026-09-30 design review
+   decision for every plugin): no scrim, and the rows around it stay live,
+   so a click on another row swaps the record. Below 768px it stays a modal,
+   full-height sheet. This is CSS only: the panel still says aria-modal and
+   keeps Tab inside it, so keyboard and screen-reader behaviour is modal as
+   before. Remove once plugin-bridge gives PcSidePanel a non-modal form (a
+   modal prop, or automatic at min-width 768px): no scrim, pointer events
+   through the .pc-overlay wrapper, aria-modal false or role=complementary
+   with a label, no Tab wrap, Escape and focus return kept. */
 @media (min-width: 768px) {
   .pc-overlay[data-kind="panel"] { background: transparent; pointer-events: none; }
   .pc-overlay[data-kind="panel"] > .pc-side-panel { pointer-events: auto; }
