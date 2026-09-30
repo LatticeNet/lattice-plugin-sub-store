@@ -25,7 +25,7 @@ import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import TargetSheet from "../components/TargetSheet.vue";
-import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId, type ResolvedAction } from "../recordActions";
+import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useRecordEditor } from "../useRecordEditor";
 import SubscriptionEditor from "../components/SubscriptionEditor.vue";
@@ -48,7 +48,7 @@ import { useHost } from "../host";
 import { copyText } from "../hostClipboard";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
-import { publishStateFor, refreshStateFor, stateTone } from "../shareState";
+import { publishStateFor, refreshStateFor, shareLinkOf, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
 import { nodeCountLabel, nodeCountTitle } from "../nodeCounts";
@@ -454,43 +454,16 @@ function onDocumentKeydown(event: KeyboardEvent): void {
  * to answer "why is that greyed out", rather than an inline expression per
  * control that drifts from its neighbours.
  */
-const actionCaps = computed<ActionCapabilities>(() => ({
-  ready: !!host.init.value,
-  mutate: subs.canMutate.value,
-  fetch: subs.canFetch.value,
-  preview: subs.canPreview.value,
-  render: subs.canRender.value,
-  publish: subs.canPublish.value,
-}));
+const actionCaps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
 /**
  * One affordance per row: the row opens the side panel, and this one menu
- * holds the verbs that act on the record without opening it. Preview,
- * publishing and editing live on the panel and the record page.
+ * holds the verbs that act on the record without opening it (rowMenuFor, the
+ * same list the side panel and the record page carry). Preview, publishing
+ * and editing live on the panel and the record page.
  */
-const MENU_ACTIONS = ["output", "refresh", "duplicate", "delete"] as const;
-
 function menuActionsFor(row: SubscriptionListItem) {
-  return actionsFor(row, actionCaps.value, MENU_ACTIONS).map((action) =>
-    action.id === "share" ? shareActionFor(row, action) : action,
-  );
-}
-
-/**
- * The share item named by what it will do for this row. A record with no
- * share gets published, a live share gets its link copied, a dead one gets
- * renewed in the console. The menu said "Share…" for all three and left the
- * operator to find out which.
- */
-function shareActionFor(row: SubscriptionListItem, action: ResolvedAction): ResolvedAction {
-  const state = publishedOf(row);
-  if (state.tone === "ok") {
-    return { ...action, label: "Copy share link", icon: "link", title: `Copies the link a client fetches, ${state.label}.` };
-  }
-  if (state.tone === "warn") {
-    return { ...action, label: "Renew share…", title: `${state.title} Renewing it happens in the console, under Networking.` };
-  }
-  return action;
+  return rowMenuFor(row, actionCaps.value);
 }
 
 /** The name opens the peek; the id is its title so a row can be tied to a share. */
@@ -688,60 +661,11 @@ function requestDelete(ids: string[]): void {
   deleting.value = ids;
 }
 
-const deletingNames = computed(() => namesFor(deleting.value));
-
 /**
- * The records that break if this delete goes ahead, found rather than described.
- *
- * The dialog already warned, in general terms, that "any combination that
- * includes it stops rendering". Every reference it was talking about is
- * computable from the list already on screen: a combination names its parts in
- * `members`, and a file draws its nodes from `node_source`. So the warning is
- * now the actual names, and a record with no dependents no longer carries a
- * warning about dependents it does not have.
+ * The dialog's words, from the one builder every surface uses (deletePrompt):
+ * the records that break are listed by name, not described.
  */
-const deleteDependents = computed(() => {
-  const doomed = new Set(deleting.value);
-  if (!doomed.size) return [] as Array<{ name: string; because: string }>;
-  const found: Array<{ name: string; because: string }> = [];
-  for (const item of subs.items.value) {
-    if (doomed.has(item.id)) continue;
-    const label = item.display_name || item.name;
-    if ((item.members ?? []).some((member) => doomed.has(member))) {
-      found.push({ name: label, because: "combination, loses a member" });
-      continue;
-    }
-    if (item.node_source && doomed.has(item.node_source)) {
-      found.push({ name: label, because: "file, loses its node source" });
-    }
-  }
-  return found;
-});
-
-/**
- * What will break, phrased for the dialog's second list. Kept out of `names`
- * because `names` is what the operator types the count of to arm the confirm,
- * and these records are not being deleted.
- */
-const deleteConsequences = computed(() =>
-  deleteDependents.value.map((entry) => `${entry.name}  (${entry.because})`),
-);
-
-const deleteTitle = computed(() => {
-  const count = deleting.value.length;
-  const one = count === 1;
-  const subject = one ? "this record" : `${count} records`;
-  const object = one ? "it" : "them";
-  const dependents = deleteDependents.value.length;
-  const shares = one
-    ? "Any share published for it keeps existing and starts returning nothing."
-    : "Any share published for them keeps existing and starts returning nothing.";
-  if (!dependents) return `Delete ${subject}? Nothing else in this store points at ${object}. ${shares}`;
-  const breaks = dependents === 1
-    ? `1 other record in this store points at ${object} and stops working`
-    : `${dependents} other records in this store point at ${object} and stop working`;
-  return `Delete ${subject}? ${breaks} until you edit them, listed below. ${shares}`;
-});
+const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value));
 
 /**
  * What a partly-finished batch delete left behind.
@@ -873,7 +797,7 @@ async function copyShareLink(row: SubscriptionListItem): Promise<void> {
   const state = publishedOf(row);
   const share = state.shares.find((candidate) => candidate.slug === state.slug);
   if (!share) return;
-  const link = share.url || share.path;
+  const link = shareLinkOf(share);
   if (!link) return;
   manualShareLink.value = null;
   if (await copyText(link)) {
@@ -1214,10 +1138,10 @@ watch(host.init, (value) => {
 
       <LtConfirmDialog
         :open="deleting.length > 0"
-        :title="deleteTitle"
+        :title="deleteDialog.title"
         verb="Delete"
-        :names="deletingNames"
-        :consequences="deleteConsequences"
+        :names="deleteDialog.names"
+        :consequences="deleteDialog.consequences"
         :busy="deleteBusy"
         @confirm="runDelete()"
         @cancel="deleting = []"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
-import { PcButton, PcKindChip, PcSidePanel, PcStateDot } from "@latticenet/plugin-bridge/chassis";
+import { computed, ref, watch } from "vue";
+import { PcButton, PcKindChip, PcNotice, PcSidePanel, PcStateDot } from "@latticenet/plugin-bridge/chassis";
 
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB } from "../client";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
@@ -10,21 +10,52 @@ import {
   formatUsage,
   isProviderLink,
   providerFigures,
+  reachingShares,
   sourceKindLabel,
 } from "../pipeline";
 import type { Pipeline } from "../usePipeline";
-import { refreshStateFor, stateTone } from "../shareState";
+import { copyText } from "../hostClipboard";
+import { refreshStateFor, shareLinkOf, stateTone } from "../shareState";
+import LtManualCopy from "./lt/LtManualCopy.vue";
+import RecordActions from "./RecordActions.vue";
 import UsageBar from "./UsageBar.vue";
 
 /**
  * L2 peek: one record beside the layer it was opened from, addressable as
  * `?open=<id>`. Identity, state, the figures that matter for its kind, what it
  * draws from and what it feeds (each a link to that record's own peek), and
- * two ways on: the full page, or the editor. It changes nothing by itself;
- * every write stays behind Edit or the row menu.
+ * two ways on: the full page, or the editor. Its footer carries the table
+ * row's menu (RecordActions), so refreshing, copying, exporting and deleting
+ * do not need the table; every other write stays behind Edit.
  */
 const props = defineProps<{ id: string; pipe: Pipeline; canEdit: boolean }>();
-const emit = defineEmits<{ close: []; open: [id: string]; page: [id: string]; edit: [id: string] }>();
+const emit = defineEmits<{
+  close: [];
+  open: [id: string];
+  page: [id: string];
+  edit: [id: string];
+  /** The record was deleted from the panel's menu. */
+  deleted: [kind: string, text: string];
+}>();
+
+/** What the menu's last action did, until another record is shown. */
+const status = ref<{ text: string; tone: "success" | "danger" } | null>(null);
+/** A share link the clipboard refused, shown to copy by hand. */
+const manualLink = ref("");
+watch(
+  () => props.id,
+  () => {
+    status.value = null;
+    manualLink.value = "";
+  },
+);
+
+/** The share-copy path every surface uses: the clipboard, or the link on screen. */
+async function copyShare(link: string): Promise<void> {
+  manualLink.value = "";
+  if (await copyText(link)) status.value = { text: "Copied the link.", tone: "success" };
+  else manualLink.value = link;
+}
 
 const record = computed(() => (props.id ? props.pipe.item(props.id) : undefined));
 const kind = computed(() => record.value?.kind || KIND_SUB);
@@ -61,6 +92,17 @@ const downstreamRecords = computed(() =>
 );
 const broken = computed(() => props.pipe.lineage.value.broken.filter((ref) => ref.owner === props.id));
 const shares = computed(() => (props.pipe.shares.value ?? []).filter((share) => share.subscription_id === props.id));
+/* Shares that serve this record through what it feeds, for a record no share
+ * names itself: "/cdcd, via merge-cd-openjobs and for-cdcd-loon". */
+const reachedThrough = computed(() =>
+  reachingShares(props.pipe.lineage.value, props.id)
+    .filter((reach) => reach.via.length)
+    .map((reach) => {
+      const node = props.pipe.lineage.value.nodes.get(reach.share);
+      const off = node?.share && !node.share.enabled ? " (disabled)" : "";
+      return { key: reach.share, label: `${node?.label ?? reach.share}${off}`, via: reach.via.map(nameOf).join(" → ") };
+    }),
+);
 
 const steps = computed(() => {
   const item = record.value;
@@ -89,6 +131,8 @@ function publish(): void {
     @close="emit('close')"
   >
     <div v-if="record" class="peek">
+      <PcNotice v-if="status" :tone="status.tone">{{ status.text }}</PcNotice>
+      <LtManualCopy v-if="manualLink" :value="manualLink" subject="link" />
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
         <PcKindChip v-if="record.imported" label="migrated" title="Imported from a standalone Sub-Store" />
@@ -161,9 +205,15 @@ function publish(): void {
             <span class="peek-note">{{ pipe.shareStore.error.value || "The share list has not been read" }}</span>
           </template>
           <ul v-else-if="shares.length" class="peek-links">
-            <li v-for="share in shares" :key="share.share_id" class="peek-mono">
-              /{{ share.slug }}
+            <li v-for="share in shares" :key="share.share_id" class="peek-share">
+              <span class="peek-mono">/{{ share.slug }}</span>
               <span class="peek-note">{{ pipe.liveShares(id).includes(share) ? "live" : share.enabled ? "expired" : "disabled" }}</span>
+              <PcButton v-if="shareLinkOf(share)" compact @click="copyShare(shareLinkOf(share))">Copy link</PcButton>
+            </li>
+          </ul>
+          <ul v-else-if="reachedThrough.length" class="peek-links">
+            <li v-for="reach in reachedThrough" :key="reach.key" class="peek-share">
+              <span class="peek-note">Not published itself; clients get it through <span class="peek-mono">{{ reach.label }}</span>, via {{ reach.via }}</span>
             </li>
           </ul>
           <span v-else class="peek-note">Not published, so no client can fetch it</span>
@@ -184,6 +234,13 @@ function publish(): void {
     </div>
 
     <template #footer>
+      <RecordActions
+        v-if="record"
+        :id="id"
+        :pipe="pipe"
+        @status="(text, tone) => (status = { text, tone })"
+        @deleted="(kind, text) => emit('deleted', kind, text)"
+      />
       <PcButton :disabled="!canEdit" :title="canEdit ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
       <PcButton variant="primary" @click="emit('page', id)">Open page</PcButton>
     </template>

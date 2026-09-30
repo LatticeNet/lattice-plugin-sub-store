@@ -12,6 +12,7 @@ import {
   groupByPrefix,
   pathOf,
   providerFigures,
+  reachingShares,
   recordHealth,
   shareNodeId,
   usageRatio,
@@ -167,6 +168,18 @@ describe("the client a file is for", () => {
 describe("the lineage graph", () => {
   const { items, shares } = rows(productionFixture());
   const lineage = buildLineage(items, shares);
+
+  it("follows a source to the share that serves it, with the records between", () => {
+    const share = lineage.shareNodes.get(shares[0]!.share_id)!;
+    expect(reachingShares(lineage, "imported-openjobs-host")).toEqual([
+      { share, via: ["imported-col-merge-cd-openjobs", "imported-file-for-cdcd-loon"] },
+    ]);
+    expect(reachingShares(lineage, "imported-file-for-cdcd-loon")).toEqual([{ share, via: [] }]);
+    // The backup copy feeds nothing, so no client can reach it.
+    expect(lineage.nodes.has("imported-cdcd-self-hostbak-20260820")).toBe(true);
+    expect(lineage.downstream.get("imported-cdcd-self-hostbak-20260820") ?? []).toEqual([]);
+    expect(reachingShares(lineage, "imported-cdcd-self-hostbak-20260820")).toEqual([]);
+  });
 
   it("puts every record and the share in its column", () => {
     expect(lineage.columns.source).toHaveLength(5);

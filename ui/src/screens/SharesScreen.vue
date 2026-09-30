@@ -25,7 +25,7 @@ import { useLensChrome } from "../lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "../navigate";
 import { normalizeQuery } from "../recordSearch";
 import { formatRelativeTime } from "../rowStatus";
-import { shareStateOf, stateTone } from "../shareState";
+import { shareLinkOf, shareStateOf, stateTone } from "../shareState";
 import { useShares } from "../useShares";
 import { useSubscriptions } from "../useSubscriptions";
 
@@ -176,7 +176,7 @@ const copiedId = ref("");
 const manualCopyId = ref("");
 let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 async function copyLink(line: ShareLine): Promise<void> {
-  const link = line.share.url || line.share.path;
+  const link = shareLinkOf(line.share);
   if (!link) return;
   manualCopyId.value = "";
   if (await copyText(link)) {
@@ -197,7 +197,7 @@ async function copyLink(line: ShareLine): Promise<void> {
 /** The link the reveal is showing, so the strip and the list cannot disagree. */
 const manualCopyValue = computed(() => {
   const line = allLines.value.find((candidate) => candidate.share.share_id === manualCopyId.value);
-  return line ? line.share.url || line.share.path : "";
+  return line ? shareLinkOf(line.share) : "";
 });
 
 /** Which share the reveal belongs to, named so the strip is not ambiguous. */

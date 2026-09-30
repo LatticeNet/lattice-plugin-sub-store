@@ -57,7 +57,7 @@ import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
-import { actionsFor, batchActionsFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import {
@@ -273,7 +273,7 @@ const targetSheetTrigger = ref<HTMLElement | null>(null);
 /** Selection for batch delete; the record limit is 256 and deleting one at a
  *  time was the only way out of a bad import. */
 const selectedIds = ref<Set<string>>(new Set());
-const deleteTargets = ref<{ ids: string[]; names: string[] } | null>(null);
+const deleteTargets = ref<{ ids: string[] } | null>(null);
 const deleteBusy = ref(false);
 /** Rows mid-operation render pending rather than silently unresponsive. */
 const pendingIds = ref<Set<string>>(new Set());
@@ -351,12 +351,11 @@ function toggleSelected(id: string): void {
 
 function requestDelete(ids: string[]): void {
   closeRowMenu();
-  const names = ids.map((id) => {
-    const file = allFiles.value.find((entry) => entry.id === id);
-    return file ? file.display_name || file.name : id;
-  });
-  deleteTargets.value = { ids, names };
+  deleteTargets.value = { ids };
 }
+
+/** The dialog's words, from the one builder every surface uses. */
+const deleteDialog = computed(() => deletePrompt(deleteTargets.value?.ids ?? [], subs.items.value));
 
 /**
  * Stop on the first failure rather than ploughing through the rest.
@@ -600,24 +599,13 @@ function nameTitle(item: SubscriptionListItem): string {
  * five capabilities the sibling screen reports, so "why is that greyed out"
  * has one answer across both.
  */
-const actionCaps = computed<ActionCapabilities>(() => ({
-  ready: !!host.init.value,
-  mutate: subs.canMutate.value,
-  fetch: subs.canFetch.value,
-  preview: subs.canPreview.value,
-  render: subs.canRender.value,
-  publish: subs.canPublish.value,
-}));
+const actionCaps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
-// A file has no node preview and nothing to refresh: the registry decides that
-// from the record's kind, so this names the menu's slots and not the rules.
-// Publish is deliberately absent: this screen has no publish drawer, and the
-// registry offering an action a screen cannot carry out is worse than not
-// offering it. Adding the flow is a decision, not a wiring gap.
-const MENU_ACTIONS = ["output", "duplicate", "delete"] as const;
-
+// The row menu is the one every surface carries (rowMenuFor); a file has no
+// node preview and nothing to refresh, and the registry decides that from the
+// record's kind. Publish is deliberately absent: the console owns shares.
 function menuActionsFor(item: SubscriptionListItem) {
-  return actionsFor(item, actionCaps.value, MENU_ACTIONS);
+  return rowMenuFor(item, actionCaps.value);
 }
 
 /** What the selection can carry; blocked if any record in it refuses. */
@@ -1472,11 +1460,10 @@ watch(host.init, (value) => {
 
       <LtConfirmDialog
         :open="!!deleteTargets"
-        :title="(deleteTargets?.ids.length ?? 0) === 1
-          ? 'Delete this file? Any share published for it keeps existing and starts returning nothing.'
-          : `Delete ${deleteTargets?.ids.length ?? 0} files? Any shares published for them keep existing and start returning nothing.`"
+        :title="deleteDialog.title"
         verb="Delete"
-        :names="deleteTargets?.names ?? []"
+        :names="deleteDialog.names"
+        :consequences="deleteDialog.consequences"
         :busy="deleteBusy"
         @cancel="deleteTargets = null"
         @confirm="confirmDelete()"

@@ -16,6 +16,7 @@ import { useHost } from "../host";
 import { useLensChrome } from "../lensChrome";
 import type { AttentionItem } from "../pipeline";
 import { usePipeline } from "../usePipeline";
+import { useOverlayEscape } from "../useOverlayEscape";
 
 /**
  * L0, the default layer: what is wrong first, then the one picture.
@@ -28,6 +29,9 @@ import { usePipeline } from "../usePipeline";
  */
 const host = useHost();
 const chrome = useLensChrome();
+// Escape closes the side panel a chip opened. The record tables arbitrate the
+// key themselves; this screen has no other use for it, like Shares.
+useOverlayEscape();
 const pipe = usePipeline(host);
 
 const selected = ref("");

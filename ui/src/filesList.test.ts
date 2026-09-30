@@ -36,7 +36,9 @@ describe("the files layer is a table of what each file renders and whether it is
   it("opens the side panel from the row, with the menu the only other control", () => {
     expect(screen).toContain('@click="openRow(item, $event)"');
     expect(screen.match(/<RecordMenu/g)).toHaveLength(1);
-    expect(screen).toContain('const MENU_ACTIONS = ["output", "duplicate", "delete"] as const;');
+    // The row menu is the shared one (rowMenuFor), the same list the side
+    // panel and the record page carry; a file simply has nothing to refresh.
+    expect(screen).toContain("return rowMenuFor(item, actionCaps.value);");
     expect(screen).not.toContain('class="rec-open"');
     expect(screen).not.toContain('class="rec-file-facts"');
   });

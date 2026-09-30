@@ -465,6 +465,35 @@ export function pathOf(lineage: Lineage, id: string): Set<string> {
   return out;
 }
 
+/**
+ * The shares a record reaches through what it feeds, each with the records in
+ * between, nearest first. A source that no share names directly can still be
+ * what a client receives: openjobs-host feeds merge-cd-openjobs, which
+ * for-cdcd-loon renders, which /cdcd serves. Saying such a record is "not
+ * published" would contradict the lit path on the map.
+ */
+export function reachingShares(lineage: Lineage, id: string): Array<{ share: string; via: string[] }> {
+  const previous = new Map<string, string>();
+  const seen = new Set<string>([id]);
+  const queue = [id];
+  const found: string[] = [];
+  while (queue.length) {
+    const current = queue.shift()!;
+    for (const next of lineage.downstream.get(current) ?? []) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      previous.set(next, current);
+      if (lineage.nodes.get(next)?.stage === "share") found.push(next);
+      else queue.push(next);
+    }
+  }
+  return found.map((share) => {
+    const via: string[] = [];
+    for (let step = previous.get(share); step && step !== id; step = previous.get(step)) via.unshift(step);
+    return { share, via };
+  });
+}
+
 /** Everything downstream of a record, split the way a sentence names them. */
 export function usedBy(lineage: Lineage, id: string): { combinations: string[]; files: string[]; shares: string[] } {
   const out = { combinations: [] as string[], files: [] as string[], shares: [] as string[] };

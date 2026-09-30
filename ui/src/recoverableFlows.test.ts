@@ -118,23 +118,17 @@ describe("a batch delete that stops part way says so", () => {
 describe("the delete confirm names what it will break", () => {
   const text = source("./screens/SubscriptionsScreen.vue");
 
-  it("finds dependents instead of describing them in general terms", () => {
-    expect(text).toContain("deleteDependents");
-    // A combination names its parts; a file names its node source. Both are
-    // computable from the list already on screen.
-    expect(text).toMatch(/item\.members \?\? \[\]/);
-    expect(text).toContain("item.node_source && doomed.has(item.node_source)");
-  });
-
-  it("says nothing points at it when nothing does", () => {
-    expect(text).toContain("Nothing else in this store points at ${object}");
+  // The words come from deletePrompt, shared with the side panel and the
+  // record page and tested with real records in recordActions.test.ts.
+  it("takes its words from the one builder every surface uses", () => {
+    expect(text).toContain("deletePrompt(deleting.value, subs.items.value)");
   });
 
   // Regression: folding the dependents into `names` inflated the typed-arming
   // count, so deleting one record asked the operator to type 4.
   it("keeps consequences out of the list the arming count is taken from", () => {
-    expect(text).toContain(':names="deletingNames"');
-    expect(text).toContain(':consequences="deleteConsequences"');
+    expect(text).toContain(':names="deleteDialog.names"');
+    expect(text).toContain(':consequences="deleteDialog.consequences"');
   });
 });
 
@@ -163,5 +157,32 @@ describe("no copy site talks to the clipboard directly", () => {
     "components/lt/LtCopyButton.vue",
   ])("%s goes through hostClipboard", (file) => {
     expect(source(`./${file}`)).not.toContain("navigator.clipboard");
+  });
+});
+
+describe("every screen that opens the side panel lets Escape close it", () => {
+  // The panel is on the overlay stack, but a stack only closes when a screen
+  // listens for the key. The record tables arbitrate it themselves; the
+  // screens with no other use for Escape bind the shared listener. The
+  // overview had neither, so a panel opened from the lineage map stayed open.
+  it("binds the shared listener on the screens that do not arbitrate the key", () => {
+    for (const name of ["./screens/OverviewScreen.vue", "./screens/SharesScreen.vue", "./screens/SettingsScreen.vue", "./screens/RecordPage.vue"]) {
+      expect(source(name), name).toMatch(/^useOverlayEscape\(\);$/m);
+    }
+  });
+});
+
+describe("the record page can open after the handshake", () => {
+  // The id watcher runs load() during setup once the handshake is in (the
+  // usual path: "Open page" from the side panel). load() resets `rendered`;
+  // declared below it, the page threw "Cannot access 'rendered' before
+  // initialization" and never loaded the record.
+  it("declares everything load() touches before load()", () => {
+    const text = source("./screens/RecordPage.vue");
+    const load = text.indexOf("async function load(");
+    for (const name of ["const reveal =", "const chain =", "const tab =", "const readAt =", "const rendered ="]) {
+      expect(text.indexOf(name), name).toBeGreaterThan(-1);
+      expect(text.indexOf(name), name).toBeLessThan(load);
+    }
   });
 });

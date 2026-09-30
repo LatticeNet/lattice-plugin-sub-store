@@ -18,7 +18,7 @@ import { useHost } from "./host";
 import CommandPalette from "./components/CommandPalette.vue";
 import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
-import type { ActionCapabilities, ActionId } from "./recordActions";
+import { actionCapabilities, type ActionCapabilities, type ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS, type SubscriptionListItem } from "./client";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
@@ -164,7 +164,7 @@ const current = computed<{ key: string; screen: Component; props: Record<string,
     return {
       key: "record",
       screen: RecordPage,
-      props: { id: recordId.value, from: recordFrom.value, onBack: backFromRecord, onEdit: editRecord },
+      props: { id: recordId.value, from: recordFrom.value, onBack: backFromRecord, onEdit: editRecord, onDeleted: deletedFromPage },
     };
   }
   const tab = tabs.find((entry) => entry.id === activeTab.value) ?? tabs[0]!;
@@ -298,25 +298,8 @@ function toggleAddMenu(): void {
   }
 }
 
-/**
- * The capabilities the palette reasons with.
- *
- * The shell does not hold a subscriptions hook and should not grow one to ask
- * five booleans, so it reads the same manifest the hook does. `available` is
- * the host's own answer about what the signed bundle declares.
- */
-const caps = computed<ActionCapabilities>(() => {
-  const declared = (service: string, method: string) => host.available({ service, method, status: "active" });
-  const S = "latticenet.sub-store/subscription";
-  return {
-    ready: !!host.init.value,
-    mutate: declared(S, "save") && declared(S, "delete"),
-    fetch: declared(S, "probe"),
-    preview: declared(S, "preview"),
-    render: declared(S, "render"),
-    publish: declared(S, "publish"),
-  };
-});
+/** The capabilities the palette reasons with: the same answer the rows and panels gate on. */
+const caps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
 /**
  * The page's one primary action per layer, and why it may be missing.
@@ -400,6 +383,27 @@ function editRecord(id: string): void {
   chrome.openId.value = "";
   chrome.openLens(viewOfKind(record.kind));
   intent.value = { recordId: id, action: "edit" };
+}
+
+/**
+ * A record deleted from its own page or from the side panel. The page goes to
+ * the table that listed the record; the panel closes over the layer it was
+ * opened from. Either way the outcome is said on that layer, since the
+ * surface that ran the delete is gone.
+ */
+const flash = ref<{ text: string; view: TabId } | null>(null);
+watch(activeTab, (tab) => {
+  if (flash.value && flash.value.view !== tab) flash.value = null;
+});
+function deletedFromPage(kind: string, text: string): void {
+  const view = viewOfKind(kind);
+  recordId.value = "";
+  activeTab.value = view;
+  flash.value = text ? { text, view } : null;
+}
+function deletedFromPanel(_kind: string, text: string): void {
+  chrome.openId.value = "";
+  flash.value = text ? { text, view: activeTab.value } : null;
 }
 
 function backFromRecord(): void {
@@ -543,6 +547,15 @@ const comboTitle = computed(() =>
         :aria-labelledby="recordId ? undefined : `pc-tab-${activeTab}`"
         tabindex="-1"
       >
+        <PcNotice
+          v-if="flash && !recordId && flash.view === activeTab"
+          class="shell-flash"
+          tone="success"
+          dismissible
+          @dismiss="flash = null"
+        >
+          {{ flash.text }}
+        </PcNotice>
         <KeepAlive>
           <component :is="current.screen" :key="current.key" v-bind="current.props" />
         </KeepAlive>
@@ -556,6 +569,7 @@ const comboTitle = computed(() =>
         @open="(id) => (chrome.openId.value = id)"
         @page="(id) => chrome.openPage(id)"
         @edit="editRecord"
+        @deleted="deletedFromPanel"
       />
 
       <Teleport to="body">

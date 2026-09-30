@@ -2234,6 +2234,15 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .peek-broken > span { color: var(--muted-foreground); font-family: var(--lt-font); }
 .peek-usage { display: flex; flex-direction: column; gap: var(--space-1); }
 .peek-publish { margin-top: var(--space-2); }
+/* A share on one line: the path, its state, its copy button at the end. */
+.peek-share { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.peek-share .pc-button { margin-left: auto; }
+.peek > .pc-notice,
+.peek > .lt-manual-copy { margin-bottom: var(--space-3); }
+
+/* What a delete from the side panel or the record page did, said on the layer
+   it returned to. */
+.shell-flash { margin-bottom: var(--space-3); }
 
 /* The record page: its own header, its own one tab row. */
 .record-crumbs { display: flex; }

@@ -22,6 +22,7 @@ import DocumentView from "../components/DocumentView.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import RecordChainDetail from "../components/RecordChainDetail.vue";
 import SubscriptionPreviewSummary from "../components/SubscriptionPreviewSummary.vue";
+import RecordActions from "../components/RecordActions.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import UsageBar from "../components/UsageBar.vue";
 import { useHost } from "../host";
@@ -40,7 +41,7 @@ import {
 } from "../pipeline";
 import { editorLanguageForContentType } from "../previewLanguage";
 import { formatRelativeTime } from "../rowStatus";
-import { refreshStateFor, shareStateOf, stateTone } from "../shareState";
+import { refreshStateFor, shareLinkOf, shareStateOf, stateTone } from "../shareState";
 import { safeErrorMessage } from "../subStoreModel";
 import { maskUrl } from "../urlMask";
 import { useReveal } from "../reveal";
@@ -60,7 +61,18 @@ import { useSubscriptions } from "../useSubscriptions";
  * is the document a client receives. Publishing is every share of it.
  */
 const props = defineProps<{ id: string; from: string }>();
-const emit = defineEmits<{ back: []; edit: [id: string] }>();
+const emit = defineEmits<{
+  back: [];
+  edit: [id: string];
+  /** Deleted from this page's menu; the shell goes to the record's table. */
+  deleted: [kind: string, text: string];
+}>();
+
+/** What the row menu's last action did, until dismissed or another record opens. */
+const actionStatus = ref<{ text: string; tone: "success" | "danger" } | null>(null);
+watch(() => props.id, () => {
+  actionStatus.value = null;
+});
 
 const host = useHost();
 const chrome = useLensChrome();
@@ -85,6 +97,9 @@ const tabs = computed(() => {
   return list;
 });
 
+/* Declared before load(): the watcher below runs load() during setup once
+ * the handshake is in, and load() resets this. */
+const rendered = ref<{ output: SubscriptionRenderResponse | null; error: string; busy: boolean }>({ output: null, error: "", busy: false });
 const readAt = ref("");
 async function load(): Promise<void> {
   if (!props.id) return;
@@ -167,7 +182,6 @@ const client = computed(() => (item.value && isFile.value ? clientOfFile(item.va
 // ── output (files) ──────────────────────────────────────────────────────────
 
 const canRender = computed(() => host.available(BINDINGS.subRender));
-const rendered = ref<{ output: SubscriptionRenderResponse | null; error: string; busy: boolean }>({ output: null, error: "", busy: false });
 async function renderOutput(): Promise<void> {
   if (!host.bridge || !canRender.value) return;
   rendered.value = { output: null, error: "", busy: true };
@@ -246,6 +260,14 @@ const outputSheet = ref(false);
           <div class="record-actions">
             <PcButton v-if="subs.canRender.value" @click="outputSheet = true">Client output</PcButton>
             <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
+            <!-- The table row's menu, so a record opened from a link can be
+                 refreshed, copied or deleted without going back first. -->
+            <RecordActions
+              :id="id"
+              :pipe="pipe"
+              @status="(text, tone) => (actionStatus = { text, tone })"
+              @deleted="(kind, text) => emit('deleted', kind, text)"
+            />
           </div>
         </div>
         <p class="record-lineage">
@@ -262,6 +284,7 @@ const outputSheet = ref(false);
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 
+      <PcNotice v-if="actionStatus" :tone="actionStatus.tone" dismissible @dismiss="actionStatus = null">{{ actionStatus.text }}</PcNotice>
       <PcNotice v-if="copiedNote" tone="success" dismissible @dismiss="copiedNote = ''">{{ copiedNote }}</PcNotice>
       <div v-if="manualCopy" class="manual-copy-strip">
         <div class="manual-copy-strip__head">
@@ -434,7 +457,7 @@ const outputSheet = ref(false);
                 <PcStateDot :tone="stateTone(shareStateOf(share, pipe.now.value).tone)" :label="shareStateOf(share, pipe.now.value).label" :title="shareStateOf(share, pipe.now.value).title" />
                 <span class="peek-note">{{ share.default_format ? `as ${share.default_format}` : "as the client asks" }}</span>
                 <span v-if="share.expires_at" class="peek-note">until {{ share.expires_at.slice(0, 10) }}</span>
-                <PcButton compact @click="copyLink(share.url || share.path)">Copy link</PcButton>
+                <PcButton compact :disabled="!shareLinkOf(share)" @click="copyLink(shareLinkOf(share))">Copy link</PcButton>
               </li>
             </ul>
           </PcPanelBody>
