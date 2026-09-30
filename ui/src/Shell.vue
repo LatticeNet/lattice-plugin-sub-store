@@ -32,6 +32,7 @@ import { createLensChrome, provideLensChrome, type Facets, type TabId } from "./
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
 import { useObservedAge } from "./observedAge";
+import { vRevealSelected } from "./layerTabs";
 import { VIEW_IDS, viewOfKind } from "./pipeline";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
@@ -488,7 +489,7 @@ const comboTitle = computed(() =>
            it rather than stacking a second row above. -->
       <PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">
         <template #tabs>
-          <PcLensTabs v-model="activeTab" class="ss-layer-tabs" label="Sub-Store layers">
+          <PcLensTabs v-model="activeTab" v-reveal-selected="activeTab" class="ss-layer-tabs" label="Sub-Store layers">
             <PcLensTab
               v-for="tab in tabs"
               :key="tab.id"

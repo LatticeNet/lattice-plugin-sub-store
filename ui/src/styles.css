@@ -98,7 +98,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .ss-layer-tabs .pc-lens-tab:hover { color: var(--foreground); }
 .ss-layer-tabs .pc-lens-tab[aria-selected="true"] { color: var(--foreground); background: transparent; box-shadow: inset 0 -2px 0 var(--primary); }
 .ss-layer-tabs .pc-lens-tab:focus-visible { outline: 2px solid var(--ring, var(--primary)); outline-offset: -2px; border-radius: var(--radius-sm); }
-.ss-layer-tabs .pc-count { color: var(--muted-foreground); }
+/* vpn-core's count pill: 10px at weight 650, against the chassis's 11/600. */
+.ss-layer-tabs .pc-count { color: var(--muted-foreground); font-size: 10px; font-weight: 650; }
 .ss-layer-tabs .pc-lens-tab[aria-selected="true"] .pc-count { color: var(--foreground); }
 /* The primary action shares the row; it keeps clear of the hairline. */
 .ss-layer-bar > :not(.ss-layer-tabs):not(.pc-toolbar-spacer) { margin-block: var(--space-1); }

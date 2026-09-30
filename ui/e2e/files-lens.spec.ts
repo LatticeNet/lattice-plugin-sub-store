@@ -20,6 +20,21 @@ const docWidth = (page: Page) => page.evaluate(() => document.documentElement.sc
 test.describe("375", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
+  test("the selected layer tab is scrolled into view, on load and on change", async ({ page }) => {
+    const inView = () => page.evaluate(() => {
+      const row = document.querySelector(".ss-layer-tabs")!.getBoundingClientRect();
+      const tab = document.querySelector('.ss-layer-tabs [aria-selected="true"]')!.getBoundingClientRect();
+      return tab.left >= row.left && tab.right <= row.right;
+    });
+    for (const view of ["files", "shares", "settings"]) {
+      await open(page, `?view=${view}`, ".ss-layer-tabs");
+      await expect.poll(inView, view).toBe(true);
+    }
+    await page.getByRole("tab", { name: /Overview/ }).click();
+    await expect.poll(inView, "back to overview").toBe(true);
+    expect(await docWidth(page)).toBe(375);
+  });
+
   test("the side panel stays a modal sheet on a phone", async ({ page }) => {
     await open(page, "?view=sources", ".layer-row");
     await page.locator("[data-record-open]").first().click();
