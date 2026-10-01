@@ -67,7 +67,7 @@ function act(item: AttentionItem): void {
     chrome.openRecord(item.action.recordId);
     return;
   }
-  if (item.action.view) chrome.openLens(item.action.view, item.action.facet, { focus: true });
+  if (item.action.view) chrome.openLens(item.action.view, item.action.facet, { search: item.action.search, focus: true });
 }
 
 /** The map's nodes the attention list names: records, and shares by their node. */

@@ -305,6 +305,19 @@ describe("the attention rules", () => {
     expect(found.at(-1)).toMatchObject({ tone: "neutral", claim: "merge-spare is not used by any file or share" });
   });
 
+  it("names each item's record, and points a share's Review at that share", () => {
+    const { items, shares } = rows(failingFixture());
+    const found = attentionItems({ items, shares, lineage: buildLineage(items, shares), now: Date.now() });
+    const byKey = new Map(found.map((entry) => [entry.key, entry]));
+    // The name the operator knows, for tooltips; never the stored id.
+    expect(byKey.get("fetch:imported-openjobs-host-trojan")!.recordName).toBe("openjobs-host-trojan");
+    expect(byKey.get("provider:imported-unnamed")!.recordName).toBe("建材市场");
+    expect(byKey.get("files:unpublished")!.recordName).toBeUndefined();
+    // Review lands on Shares narrowed to the share the claim names.
+    expect(byKey.get("share:sh-oj-loon")!.action).toEqual({ label: "Review", view: "shares", search: "oj-loon" });
+    expect(byKey.get("share:sh-oj-stash")!.action).toEqual({ label: "Review", view: "shares", search: "oj-stash" });
+  });
+
   it("publishes a single unpublished file in one click", () => {
     const { items, shares } = rows(productionFixture());
     // Publish every file but one.

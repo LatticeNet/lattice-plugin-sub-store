@@ -534,11 +534,15 @@ export interface AttentionItem {
   claim: string;
   /** The record that proves it, opened in the side panel. */
   recordId?: string;
+  /** That record's name, for anything that points at it; ids stay out of copy. */
+  recordName?: string;
   /**
    * The action that clears it. `publish` names a file whose fix is the
    * console's share form, opened on it: the one click that publishes it.
+   * `search` narrows the layer it opens to the thing the claim names (one
+   * share, by its slug).
    */
-  action: { label: string; recordId?: string; view?: ViewId; facet?: Record<string, string>; publish?: string };
+  action: { label: string; recordId?: string; view?: ViewId; facet?: Record<string, string>; publish?: string; search?: string };
 }
 
 export interface AttentionInput {
@@ -636,7 +640,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
         key: `orphan:${owner}`,
         tone: "danger",
         claim: `Share ${node.label} publishes ${ref0(refs)}, which no longer exists, so it serves nothing`,
-        action: { label: "Review", view: "shares" },
+        action: { label: "Review", view: "shares", search: node.share?.slug },
       });
     }
   }
@@ -698,7 +702,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
           at <= now
             ? `Share /${share.slug} for ${record} ${when}, and clients fetching it get nothing`
             : `Share /${share.slug} for ${record} ${when}`,
-        action: { label: "Review", view: "shares" },
+        action: { label: "Review", view: "shares", search: share.slug },
       });
     }
   }
@@ -706,7 +710,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
   return out
     .map((item, index) => ({ item, index }))
     .sort((a, b) => TONE_ORDER[a.item.tone] - TONE_ORDER[b.item.tone] || a.index - b.index)
-    .map(({ item }) => item);
+    .map(({ item }) => (item.recordId ? { ...item, recordName: name(item.recordId) } : item));
 }
 
 function ref0(refs: BrokenRef[]): string {

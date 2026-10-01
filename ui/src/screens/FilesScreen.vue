@@ -653,7 +653,7 @@ function nodeSourceMissing(item: SubscriptionListItem): boolean {
  * the id (what ties a file to a share) the way the sibling tab does it.
  */
 function nameTitle(item: SubscriptionListItem): string {
-  return `${item.id}. ${item.display_name || item.name}`;
+  return `Show ${item.display_name || item.name} in the side panel`;
 }
 
 /**

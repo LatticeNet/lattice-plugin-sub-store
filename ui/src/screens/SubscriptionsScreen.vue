@@ -471,9 +471,9 @@ function menuActionsFor(row: SubscriptionListItem) {
   return rowMenuFor(row, actionCaps.value);
 }
 
-/** The name opens the peek; the id is its title so a row can be tied to a share. */
+/** The name opens the peek. Shares name their records now, so the stored id stays out of the title. */
 function nameTitle(row: SubscriptionListItem): string {
-  return `${row.id}. Show it in the side panel.`;
+  return `Show ${row.display_name || row.name} in the side panel`;
 }
 
 /** The chassis's tone for a row verdict. */

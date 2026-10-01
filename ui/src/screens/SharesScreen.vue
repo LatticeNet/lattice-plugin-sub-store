@@ -357,7 +357,7 @@ watch(host.init, (value) => {
                 <div class="pc-name-line"><strong class="pc-mono">/{{ line.share.slug }}</strong></div>
                 <small>{{ maskedPath(line.share) }}</small>
               </td>
-              <td data-stack="detail" data-label="Record" :title="line.share.subscription_id">
+              <td data-stack="detail" data-label="Record" :title="recordName(line)">
                 <span class="pc-td-body layer-record">
                   <span class="layer-record-name">{{ recordName(line) }}</span>
                   <PcKindChip v-if="line.record" :label="kindOf(line)" />
