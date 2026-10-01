@@ -1802,9 +1802,15 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 .palette-row[data-danger="true"] .palette-label { color: var(--lt-danger-ink); }
 /* Kept in the list rather than hidden: an action missing from the palette
    reads as a feature this build does not have, when the truth is that this
-   token cannot reach it. The reason takes the place of the hint. */
-.palette-row[data-disabled="true"] { cursor: not-allowed; opacity: 0.65; }
+   token cannot reach it. The reason takes the place of the hint.
+   The reason is why the row is kept, so only the name is dimmed and the
+   reason wraps instead of ending in an ellipsis. Dimming the whole row left
+   it at 2.6:1 in light, and "The record catalogue is still being read,
+   so..." was cut after the first clause at 1440 and after three words at
+   375. */
+.palette-row[data-disabled="true"] { cursor: not-allowed; }
 .palette-row[data-disabled="true"] .palette-label { color: var(--muted-foreground); }
+.palette-row[data-disabled="true"] .palette-meta { white-space: normal; }
 
 /* The name may shrink, but not below what identifies the record: a row is
    name plus context, and losing the name entirely leaves the context

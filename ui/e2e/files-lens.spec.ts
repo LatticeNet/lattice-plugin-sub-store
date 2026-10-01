@@ -238,6 +238,15 @@ test.describe("1440", () => {
       await expect(page.getByRole("option", { name })).toHaveAttribute("aria-disabled", "true");
       await expect(page.getByRole("option", { name })).toContainText("still being read");
     }
+    // The reason is read whole, not cut off by an ellipsis, here and on a phone,
+    // and at body-text contrast on the highlighted row, the lowest of the three.
+    const reasons = page.locator('.palette-row[data-disabled="true"] .palette-meta');
+    await expect(reasons).toHaveCount(3);
+    expect(await contrastOf(page, '.palette-row[data-active="true"] .palette-meta')).toBeGreaterThanOrEqual(4.5);
+    const clipped = () => reasons.evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth).length);
+    expect(await clipped()).toBe(0);
+    await page.setViewportSize({ width: 375, height: 812 });
+    expect(await clipped()).toBe(0);
   });
 
   test("the 256-record store is one picture: folded, capped, and drawn as paths", async ({ page }) => {
