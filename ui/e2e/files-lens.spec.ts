@@ -428,6 +428,24 @@ test.describe("the large store's files, fifty a page", () => {
     await expect(footer(page)).toHaveCount(0);
   });
 
+  test("select all on one page leaves the rows selected on another page alone", async ({ page }) => {
+    await open(page, "?view=files&fixture=large", ".layer-row");
+    const selectAll = page.getByRole("checkbox", { name: "Select all 50 shown files" });
+    await selectAll.check();
+    await footer(page).getByRole("button", { name: "Next" }).click();
+    await expect(footer(page)).toContainText("Files 51 to 100 of 180");
+    await expect(selectAll).not.toBeChecked();
+    await selectAll.check();
+    await expect(page.locator(".pc-batch-bar")).toContainText("50");
+    // Clearing this page through select all keeps page 1's rows selected.
+    await selectAll.uncheck();
+    await expect(page.locator(".pc-batch-bar")).toHaveCount(0);
+    await footer(page).getByRole("button", { name: "Previous" }).click();
+    await expect(footer(page)).toContainText("Files 1 to 50 of 180");
+    await expect(selectAll).toBeChecked();
+    await expect(page.locator(".pc-batch-bar")).toContainText("50");
+  });
+
   test("a link to a file on a later page turns to that page", async ({ page }) => {
     await open(page, "?view=files&fixture=large&open=file-ivan-loon", ".layer-row");
     await expect(page.locator("#rec-file-ivan-loon")).toBeVisible();

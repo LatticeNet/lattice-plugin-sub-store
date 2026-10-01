@@ -1966,7 +1966,10 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 /* chassis-workaround: PcPagination wraps Next alone onto a second line at
    375. On a phone the range takes the first line and Previous, the page and
    Next share the second. Remove once the chassis footer lays itself out at
-   phone width. */
+   phone width. The range is found the way the chassis stylesheet finds it
+   (its first span child), so a reorder in plugin-bridge breaks both rules at
+   once; the e2e drive "the files footer puts the range on its own line"
+   fails on it. The lasting fix is a class on the range in plugin-bridge. */
 @media (max-width: 620px) {
   .pc-pagination > span:first-child { flex-basis: 100%; }
 }

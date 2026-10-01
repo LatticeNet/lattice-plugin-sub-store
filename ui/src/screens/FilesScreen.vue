@@ -55,7 +55,7 @@ import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
-import { pageHolding, pageRows } from "../paging";
+import { pageHolding, toggleShown, usePages } from "../paging";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
@@ -220,6 +220,17 @@ const searchedFiles = computed(() => {
 });
 
 /**
+ * Whether anyone can fetch a file: the host's share list, folded onto the
+ * row. Declared before the filters that read it: the paging watches evaluate
+ * the rows during setup, and a filter on Published reaching a store declared
+ * further down threw there.
+ */
+const shareStore = useShares(host);
+function publishedOf(item: SubscriptionListItem) {
+  return publishStateFor(shareStore.shares.value, item.id);
+}
+
+/**
  * The facets, on the address so a link (and the overview's "Review") lands
  * on the same rows: whether a live share serves the file, and whether it was
  * migrated. The migration marker is a facet rather than a chip on every row.
@@ -258,14 +269,16 @@ const files = computed(() =>
 /**
  * Fifty files a page, as vpn-core pages its identities. The large store's
  * 160 files were one 7,590 px page with no way to the last row but
- * scrolling. A filter or a search starts again on page 1.
+ * scrolling. A filter or a search starts again on page 1. The table has no
+ * sort of its own (the shell's sort orders Sources and Combinations), so
+ * nothing else reorders the rows under a page.
  */
 const FILES_PAGE = 50;
-const page = ref(1);
-const table = computed(() => pageRows(files.value, page.value, FILES_PAGE));
-watch(() => [searchText.value, kindFilter.value, facets.published, facets.origin], () => {
-  page.value = 1;
-});
+const { page, table } = usePages(
+  () => files.value,
+  FILES_PAGE,
+  () => [searchText.value, kindFilter.value, facets.published, facets.origin],
+);
 /**
  * A panel opened from a link or from the Overview shows its row: turn to the
  * page that holds it. The catalogue can land after the link, so this runs
@@ -317,11 +330,6 @@ const deleteBusy = ref(false);
 /** Rows mid-operation render pending rather than silently unresponsive. */
 const pendingIds = ref<Set<string>>(new Set());
 
-/** Whether anyone can fetch a file: the host's share list, folded onto the row. */
-const shareStore = useShares(host);
-function publishedOf(item: SubscriptionListItem) {
-  return publishStateFor(shareStore.shares.value, item.id);
-}
 const tone = stateTone;
 
 /** What a file is, for the Type column. */
@@ -363,10 +371,9 @@ const allVisibleSelected = computed(
   () => table.value.rows.length > 0 && selectedCount.value === table.value.rows.length,
 );
 
+/** Select all acts on this page only, and leaves what is selected on other pages alone. */
 function toggleSelectAll(): void {
-  selectedIds.value = allVisibleSelected.value
-    ? new Set()
-    : new Set(table.value.rows.map((file) => file.id));
+  selectedIds.value = toggleShown(selectedIds.value, table.value.rows.map((file) => file.id));
 }
 
 function openFileSheet(item: SubscriptionListItem, event?: Event): void {
