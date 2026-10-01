@@ -77,12 +77,23 @@ export function publishStateFor(shares: readonly SubStoreShareRow[] | undefined,
 
 export interface ShareState {
   tone: Tone;
-  label: "live" | "disabled" | "expired";
+  label: "live" | "disabled" | "expired" | "serves nothing";
   title: string;
 }
 
-/** One share's own verdict, the way the Shares lens prints it. */
-export function shareStateOf(share: SubStoreShareRow, now: number = Date.now()): ShareState {
+/**
+ * One share's own verdict, the way the Shares lens prints it.
+ *
+ * `recordKnown` is false when the record catalogue has been read and the
+ * share's record is not in it. Such a share is still enabled in the console,
+ * and it used to read "live" in green and count towards "1 share live" right
+ * after its file was deleted, while a client fetching it got nothing. It is
+ * the worst state a share can be in, so it is checked first.
+ */
+export function shareStateOf(share: SubStoreShareRow, now: number = Date.now(), recordKnown = true): ShareState {
+  if (!recordKnown) {
+    return { tone: "danger", label: "serves nothing", title: "Its record is not in this store any more, so a client that fetches it gets nothing. Remove it, or point it at another record, under Platform → Publishing." };
+  }
   if (expired(share, now)) {
     return { tone: "warn", label: "expired", title: "Past its expiry: a client that fetches it gets nothing." };
   }

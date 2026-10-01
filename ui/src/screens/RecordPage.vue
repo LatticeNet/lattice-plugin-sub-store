@@ -65,7 +65,7 @@ const emit = defineEmits<{
   back: [];
   edit: [id: string];
   /** Deleted from this page's menu; the shell goes to the record's table. */
-  deleted: [kind: string, text: string];
+  deleted: [kind: string, text: string, shares: string[]];
 }>();
 
 /** What the row menu's last action did, until dismissed or another record opens. */
@@ -266,7 +266,7 @@ const outputSheet = ref(false);
               :id="id"
               :pipe="pipe"
               @status="(text, tone) => (actionStatus = { text, tone })"
-              @deleted="(kind, text) => emit('deleted', kind, text)"
+              @deleted="(kind, text, broken) => emit('deleted', kind, text, broken)"
             />
           </div>
         </div>

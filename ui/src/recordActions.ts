@@ -400,3 +400,29 @@ export function deletePrompt(
     : `${consequences.length} other records in this store point at ${object} and stop working`;
   return { title: `Delete ${subject}? ${breaks} until you edit them, listed below. ${sharesNote}`, names, consequences, served, confirmText };
 }
+
+/**
+ * The live shares that publish `id` itself, as paths ("/cdcd"); undefined
+ * when the share list is unread. These are the shares a delete leaves
+ * serving nothing.
+ */
+export function ownLiveShares(id: string, shares: readonly SubStoreShareRow[] | undefined, now: number = Date.now()): string[] | undefined {
+  if (!shares) return undefined;
+  return shares.filter((share) => share.subscription_id === id && shareStateOf(share, now).label === "live").map((share) => `/${share.slug}`);
+}
+
+/**
+ * What a finished delete says. A share is not removed with its record: it
+ * stays in the console and serves nothing, so the notice names it and says
+ * where to deal with it. With the share list unread it cannot name one and
+ * says so; with none, it says only what was deleted.
+ */
+export function deletedNotice(label: string, ownShares: readonly string[] | undefined): string {
+  if (!ownShares) {
+    return `Deleted ${label}. The share list is unread, so any share that published it cannot be named; one would still exist and serve nothing until it is removed under Platform → Publishing.`;
+  }
+  if (!ownShares.length) return `Deleted ${label}.`;
+  const one = ownShares.length === 1;
+  const paths = ownShares.join(", ");
+  return `Deleted ${label}. ${paths} still ${one ? "exists" : "exist"} and now ${one ? "serves" : "serve"} nothing: remove ${one ? "it" : "them"}, or point ${one ? "it" : "them"} at another record, under Platform → Publishing.`;
+}

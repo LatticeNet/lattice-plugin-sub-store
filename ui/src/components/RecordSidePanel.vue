@@ -74,8 +74,8 @@ const emit = defineEmits<{
   open: [id: string];
   page: [id: string];
   edit: [id: string];
-  /** The record was deleted from the panel's menu. */
-  deleted: [kind: string, text: string];
+  /** The record was deleted from the panel's menu; `shares` are the ones it left serving nothing. */
+  deleted: [kind: string, text: string, shares: string[]];
 }>();
 
 /** What the menu's last action did, until another record is shown. */
@@ -279,7 +279,7 @@ function publish(): void {
         :id="id"
         :pipe="pipe"
         @status="(text, tone) => (status = { text, tone })"
-        @deleted="(kind, text) => emit('deleted', kind, text)"
+        @deleted="(kind, text, broken) => emit('deleted', kind, text, broken)"
       />
       <PcButton :disabled="!canEdit" :title="canEdit ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
       <PcButton variant="primary" @click="emit('page', id)">Open page</PcButton>

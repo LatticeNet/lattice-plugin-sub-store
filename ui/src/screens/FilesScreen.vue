@@ -52,7 +52,7 @@ import {
 import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
-import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { pageHolding, toggleShown, usePages } from "../paging";
@@ -61,7 +61,7 @@ import { forwardSelectCellClick, isSelectCell } from "../selectCell";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
-import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import {
@@ -118,6 +118,10 @@ const tagText = ref("");
  * from the frame URL, re-read here rather than trusted from a second source.
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
+/** The console's share list, where a share a delete left serving nothing is removed or repointed. */
+function openPublishing(): void {
+  if (shareOrigin.value) postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
+}
 
 /** Publish: the console's share form, opened on this file. Nothing is created until it is saved there. */
 function openShares(item: SubscriptionListItem): void {
@@ -424,7 +428,7 @@ async function confirmDelete(): Promise<void> {
   try {
     for (const id of target.ids) {
       markPending(id, true);
-      const ok = await subs.remove(id);
+      const ok = await subs.remove(id, ownLiveShares(id, shareStore.shares.value));
       markPending(id, false);
       if (!ok) break;
       removed += 1;
@@ -1295,7 +1299,12 @@ watch(host.init, (value) => {
       <h2 id="files-title" class="pc-sr-only">Files</h2>
 
       <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
-      <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
+      <PcNotice v-else-if="subs.notice.value" tone="success">
+        {{ subs.notice.value }}
+        <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
+          <PcButton compact @click="openPublishing()">Open in Publishing</PcButton>
+        </template>
+      </PcNotice>
 
       <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" label="Loading files">
         <PcSkeleton :count="4" label="Loading the files" />

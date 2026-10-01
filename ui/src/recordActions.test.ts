@@ -10,6 +10,8 @@ import {
   actionsFor,
   batchActionsFor,
   deletePrompt,
+  deletedNotice,
+  ownLiveShares,
   rowMenuFor,
   type ActionCapabilities,
 } from "./recordActions";
@@ -283,5 +285,35 @@ describe("one reader of capabilities, one row menu, one delete prompt", () => {
     const unread = deletePrompt(["g"], items);
     expect(unread.served).toEqual([]);
     expect(unread.title).toContain("The share list is unread");
+  });
+});
+
+describe("what a finished delete says about the shares it leaves", () => {
+  const now = Date.parse("2026-10-01T00:00:00Z");
+  const share = (over: Partial<SubStoreShareRow>): SubStoreShareRow =>
+    ({ share_id: over.slug ?? "x", subscription_id: "f1", slug: "cdcd", path: "/sub/cdcd/tok", enabled: true, ...over }) as SubStoreShareRow;
+
+  it("names only the live shares that publish the record itself", () => {
+    const shares = [
+      share({ slug: "cdcd" }),
+      share({ slug: "old", enabled: false }),
+      share({ slug: "gone", expires_at: "2026-09-01T00:00:00Z" }),
+      share({ slug: "other", subscription_id: "f2" }),
+    ];
+    expect(ownLiveShares("f1", shares, now)).toEqual(["/cdcd"]);
+    expect(ownLiveShares("f3", shares, now)).toEqual([]);
+    expect(ownLiveShares("f1", undefined, now)).toBeUndefined();
+  });
+
+  it("names the share left serving nothing and where it is dealt with", () => {
+    expect(deletedNotice("for-cdcd-loon", ["/cdcd"])).toBe(
+      "Deleted for-cdcd-loon. /cdcd still exists and now serves nothing: remove it, or point it at another record, under Platform → Publishing.",
+    );
+    expect(deletedNotice("x", ["/a", "/b"])).toContain("/a, /b still exist and now serve nothing: remove them");
+  });
+
+  it("says only what was deleted when no share published it, and says it cannot tell when the list is unread", () => {
+    expect(deletedNotice("for-cdcd-egern", [])).toBe("Deleted for-cdcd-egern.");
+    expect(deletedNotice("x", undefined)).toMatch(/share list is unread/);
   });
 });

@@ -257,7 +257,9 @@ const shareFacts = computed(() => {
   const shares = shareStore.shares.value;
   if (!shares) return null;
   const now = Date.now();
-  const live = shares.filter((share) => shareStateOf(share, now).tone === "ok").length;
+  // A share whose record is gone serves nothing, enabled or not.
+  const known = new Set(records.value.map((item) => item.id));
+  const live = shares.filter((share) => shareStateOf(share, now, !ready.value || known.has(share.subscription_id)).tone === "ok").length;
   return { total: shares.length, live, dead: shares.length - live };
 });
 const publishedRecords = computed(() =>
@@ -464,19 +466,19 @@ function editRecord(id: string): void {
  * opened from. Either way the outcome is said on that layer, since the
  * surface that ran the delete is gone.
  */
-const flash = ref<{ text: string; view: TabId } | null>(null);
+const flash = ref<{ text: string; view: TabId; shares: string[] } | null>(null);
 watch(activeTab, (tab) => {
   if (flash.value && flash.value.view !== tab) flash.value = null;
 });
-function deletedFromPage(kind: string, text: string): void {
+function deletedFromPage(kind: string, text: string, shares: string[] = []): void {
   const view = viewOfKind(kind);
   recordId.value = "";
   activeTab.value = view;
-  flash.value = text ? { text, view } : null;
+  flash.value = text ? { text, view, shares } : null;
 }
-function deletedFromPanel(_kind: string, text: string): void {
+function deletedFromPanel(_kind: string, text: string, shares: string[] = []): void {
   chrome.openId.value = "";
-  flash.value = text ? { text, view: activeTab.value } : null;
+  flash.value = text ? { text, view: activeTab.value, shares } : null;
   // The panel's opener was the deleted record's row or chip.
   settleFocus();
 }
@@ -632,6 +634,9 @@ function openShares(): void {
           @dismiss="flash = null"
         >
           {{ flash.text }}
+          <template v-if="flash.shares.length && shareOrigin" #actions>
+            <PcButton compact @click="openShares()">Open in Publishing</PcButton>
+          </template>
         </PcNotice>
         <KeepAlive>
           <component :is="current.screen" :key="current.key" v-bind="current.props" />

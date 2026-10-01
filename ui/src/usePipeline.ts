@@ -98,11 +98,11 @@ export function usePipeline(host: HostContext) {
       // Expired serves nothing: broken. Switched off is a choice: neutral.
       // Live but running out inside the attention window: warning.
       const share = node.share;
-      const state = shareStateOf(share, now.value);
+      const state = shareStateOf(share, now.value, !!item(share.subscription_id));
       const at = share.expires_at ? Date.parse(share.expires_at) : Number.NaN;
       const soon = Number.isFinite(at) && at > now.value && at - now.value <= EXPIRY_WARN_DAYS * 86_400_000;
       const tone: ChipFacts["tone"] =
-        state.label === "expired" ? "error" : state.label === "disabled" ? "neutral" : soon ? "warning" : "healthy";
+        state.label === "expired" || state.label === "serves nothing" ? "error" : state.label === "disabled" ? "neutral" : soon ? "warning" : "healthy";
       return {
         tone,
         state: soon ? `${state.label}, ${formatExpiry({ expire: Math.floor(at / 1000) }, now.value)}` : state.label,

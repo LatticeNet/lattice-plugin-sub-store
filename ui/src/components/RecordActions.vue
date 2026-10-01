@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 
 import { KIND_SUB, type SubscriptionListItem } from "../client";
 import { useHost } from "../host";
-import { actionCapabilities, deletePrompt, rowMenuFor, type ActionId } from "../recordActions";
+import { actionCapabilities, deletePrompt, ownLiveShares, rowMenuFor, type ActionId } from "../recordActions";
 import { useOverlayRegistration } from "../useOverlayRegistration";
 import type { Pipeline } from "../usePipeline";
 import { useSubscriptions } from "../useSubscriptions";
@@ -26,8 +26,8 @@ import TargetSheet from "./TargetSheet.vue";
  */
 const props = defineProps<{ id: string; pipe: Pipeline }>();
 const emit = defineEmits<{
-  /** The record is gone. The kind says which table it was listed in. */
-  deleted: [kind: string, text: string];
+  /** The record is gone. The kind says which table it was listed in; `shares` are the ones it left serving nothing. */
+  deleted: [kind: string, text: string, shares: string[]];
   /** What the last action did, to show beside the record. */
   status: [text: string, tone: "success" | "danger"];
 }>();
@@ -129,9 +129,9 @@ async function confirmDelete(): Promise<void> {
   const kind = record.value?.kind || KIND_SUB;
   deleteBusy.value = true;
   try {
-    const ok = await subs.remove(props.id);
+    const ok = await subs.remove(props.id, ownLiveShares(props.id, props.pipe.shareStore.shares.value));
     deleting.value = false;
-    if (ok) emit("deleted", kind, subs.notice.value);
+    if (ok) emit("deleted", kind, subs.notice.value, [...subs.brokenShares.value]);
     else report(false);
   } finally {
     deleteBusy.value = false;

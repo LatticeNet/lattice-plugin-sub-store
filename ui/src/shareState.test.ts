@@ -57,4 +57,10 @@ describe("one share's own verdict", () => {
     // Expired wins over disabled: the expiry is the reason a client gets nothing.
     expect(shareStateOf({ ...base, enabled: false, expires_at: "2026-09-01T00:00:00Z" }, now).label).toBe("expired");
   });
+
+  it("serves nothing when its record is gone, enabled or not, and is never counted live", () => {
+    expect(shareStateOf({ ...base, enabled: true }, now, false)).toMatchObject({ tone: "danger", label: "serves nothing" });
+    expect(shareStateOf({ ...base, enabled: false, expires_at: "2026-09-01T00:00:00Z" }, now, false).label).toBe("serves nothing");
+    expect(shareStateOf({ ...base, enabled: true }, now, true).label).toBe("live");
+  });
 });

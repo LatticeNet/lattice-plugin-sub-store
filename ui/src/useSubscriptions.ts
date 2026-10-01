@@ -1,6 +1,6 @@
 import { cutChain } from "./chainExplain";
 import type { ChainStep } from "./components/ProcessChain.vue";
-import { computed, ref, type Ref } from "vue";
+import { computed, ref, watch, type Ref } from "vue";
 
 import {
   BINDINGS,
@@ -35,6 +35,7 @@ import {
   type SubscriptionSaveConflict,
 } from "./client";
 import { conflictChanges, conflictSummary, type FieldChange } from "./recordConflict";
+import { deletedNotice } from "./recordActions";
 import { filePreviewSupport } from "./filePreview";
 import type { HostContext } from "./host";
 import { safeErrorMessage } from "./subStoreModel";
@@ -683,7 +684,23 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
-  async function remove(id: string): Promise<boolean> {
+  /**
+   * The shares the last delete left serving nothing, while its notice is the
+   * one on screen; a screen offers "Open in Publishing" beside it. Any other
+   * notice clears them.
+   */
+  const brokenShares = ref<string[]>([]);
+  let brokenNotice = "";
+  watch(notice, (text) => {
+    if (text !== brokenNotice) brokenShares.value = [];
+  });
+
+  /**
+   * `ownShares` are the live shares that publish this record itself
+   * (ownLiveShares), undefined when the share list is unread; the notice
+   * names them.
+   */
+  async function remove(id: string, ownShares?: readonly string[]): Promise<boolean> {
     if (!host.bridge || !canMutate.value) return false;
     actionError.value = "";
     notice.value = "";
@@ -700,7 +717,9 @@ export function useSubscriptions(host: HostContext) {
       // Named as the operator knows it, not by its id.
       const gone = items.value.find((entry) => entry.id === id);
       const label = gone ? gone.display_name || gone.name : "The record";
-      notice.value = `Deleted ${label}. Deleting the definition does not retract anything already published: if a share exists for it, remove that in the console under Platform → Publishing.`;
+      brokenNotice = deletedNotice(label, ownShares);
+      brokenShares.value = [...(ownShares ?? [])];
+      notice.value = brokenNotice;
       await load();
       return true;
     } catch (cause) {
@@ -1051,6 +1070,7 @@ export function useSubscriptions(host: HostContext) {
     loadError,
     actionError,
     notice,
+    brokenShares,
     saveConflict,
     saving,
     busyId,

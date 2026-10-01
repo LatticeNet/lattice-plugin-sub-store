@@ -25,7 +25,7 @@ import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import TargetSheet from "../components/TargetSheet.vue";
-import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
 import { forwardSelectCellClick, isSelectCell } from "../selectCell";
@@ -699,7 +699,7 @@ async function runDelete(): Promise<void> {
     for (let index = 0; index < queue.length; index += 1) {
       const id = queue[index]!;
       markPending(id, true);
-      const ok = await subs.remove(id);
+      const ok = await subs.remove(id, ownLiveShares(id, shares.value));
       markPending(id, false);
       if (ok) {
         done.push(id);
@@ -796,6 +796,11 @@ function openShares(record: SubscriptionListItem): void {
   subs.notice.value = "Asked the console to open Platform → Publishing.";
 }
 
+/** The console's share list, where a share a delete left serving nothing is removed or repointed. */
+function openPublishing(): void {
+  if (shareOrigin.value) postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
+}
+
 /**
  * The link this row's live share serves, when it could not be put on the
  * clipboard. Held here rather than in the row so the reveal survives the row
@@ -858,7 +863,12 @@ watch(host.init, (value) => {
       <h2 :id="`${viewId}-title`" class="pc-sr-only">{{ isComboLayer ? "Combinations" : "Sources" }}</h2>
 
       <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
-      <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
+      <PcNotice v-else-if="subs.notice.value" tone="success">
+        {{ subs.notice.value }}
+        <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
+          <PcButton compact @click="openPublishing()">Open in Publishing</PcButton>
+        </template>
+      </PcNotice>
       <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
 
       <!--
