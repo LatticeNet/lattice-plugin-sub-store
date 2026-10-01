@@ -17,6 +17,47 @@ async function open(page: Page, query: string, ready: string): Promise<void> {
 
 const docWidth = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth);
 
+/**
+ * The contrast of an element's text against the first opaque background
+ * behind it, with every opacity on the way multiplied in. Colours go through
+ * a canvas so oklch tokens come back as sRGB.
+ */
+function contrastOf(page: Page, selector: string): Promise<number> {
+  return page.evaluate((sel) => {
+    const el = document.querySelector<HTMLElement>(sel)!;
+    const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+    const rgba = (css: string): [number, number, number, number] => {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = "#000";
+      ctx.fillStyle = css;
+      ctx.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+      return [r!, g!, b!, a! / 255];
+    };
+    let opacity = 1;
+    let bg: [number, number, number, number] | null = null;
+    for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+      const style = getComputedStyle(node);
+      opacity *= Number(style.opacity);
+      const fill = rgba(style.backgroundColor);
+      if (!bg && fill[3] > 0.99) bg = fill;
+    }
+    const back = bg ?? [255, 255, 255, 1];
+    const ink = rgba(getComputedStyle(el).color);
+    const alpha = ink[3] * opacity;
+    const seen = ink.slice(0, 3).map((c, i) => c * alpha + back[i]! * (1 - alpha));
+    const lum = (rgb: number[]) => {
+      const [r, g, b] = rgb.map((v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+    };
+    const [hi, lo] = [lum(seen), lum(back.slice(0, 3))].sort((a, b) => b - a);
+    return (hi! + 0.05) / (lo! + 0.05);
+  }, selector);
+}
+
 test.describe("375", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
@@ -178,6 +219,54 @@ test.describe("1440", () => {
     await expect(page).toHaveURL(/[?&]open=imported-openjobs-host(&|#|$)/);
   });
 
+  for (const theme of ["light", "dark"]) {
+    test(`off the selected path a chip's label keeps its ink and only the dot dims (${theme})`, async ({ page }) => {
+      await open(page, `?theme=${theme}`, ".lineage-chip");
+      await page.locator('[data-map-key="imported-openjobs-host"]').click();
+      const off = '[data-map-key="imported-cdcd-self-hostbak-20260820"]';
+      await expect(page.locator(off)).toHaveAttribute("data-state", "off");
+      await expect(page.locator(off)).toHaveCSS("opacity", "1");
+      await expect(page.locator(`${off} .lineage-dot`)).toHaveCSS("opacity", "0.38");
+      expect(await contrastOf(page, `${off} .lineage-name`)).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
+  test("at rest, strands to different files rise in different places, and strands to one file share one", async ({ page }) => {
+    await open(page, "", ".lineage-chip");
+    await expect.poll(() => page.locator(".lineage-edge").count()).toBeGreaterThan(0);
+    const risers = await page.evaluate(() => {
+      const canvas = document.querySelector(".lineage-canvas")!.getBoundingClientRect();
+      const cols = [...document.querySelectorAll("[data-map-col]")].map((col) => col.getBoundingClientRect());
+      const gapLeft = cols[1]!.right - canvas.left;
+      const gapRight = cols[2]!.left - canvas.left;
+      const out: Array<{ end: number; x: number }> = [];
+      for (const path of document.querySelectorAll<SVGPathElement>(".lineage-edge")) {
+        const length = path.getTotalLength();
+        const start = path.getPointAtLength(0);
+        const end = path.getPointAtLength(length);
+        // Only a strand from a source that skips the combinations column into a file.
+        if (!(start.x < cols[1]!.left - canvas.left && end.x >= gapRight - 2 && end.x < cols[2]!.right - canvas.left)) continue;
+        // The riser: the rightmost point inside the gap before the files that is
+        // away from the final run and its corner (the lane enters the gap from
+        // the left and turns up or down there).
+        let x = Number.NEGATIVE_INFINITY;
+        for (let at = 0; at <= length; at += 1) {
+          const point = path.getPointAtLength(at);
+          if (point.x > gapLeft && point.x < gapRight && Math.abs(point.y - end.y) > 12) x = Math.max(x, point.x);
+        }
+        if (Number.isFinite(x)) out.push({ end: Math.round(end.y), x: Math.round(x * 10) / 10 });
+      }
+      return out;
+    });
+    const byTarget = new Map<number, Set<number>>();
+    for (const riser of risers) byTarget.set(riser.end, (byTarget.get(riser.end) ?? new Set()).add(riser.x));
+    // Production has three sources rendered straight into files, so there are several targets.
+    expect(byTarget.size).toBeGreaterThan(1);
+    for (const [end, xs] of byTarget) expect(xs.size, `target at y ${end}`).toBe(1);
+    const xs = [...byTarget.values()].map((set) => [...set][0]!).sort((a, b) => a - b);
+    for (let i = 1; i < xs.length; i += 1) expect(xs[i]! - xs[i - 1]!).toBeGreaterThanOrEqual(3);
+  });
+
   test("a combination's peek links on to its members and the page", async ({ page }) => {
     await open(page, "?view=combinations", ".layer-row");
     await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
@@ -329,6 +418,14 @@ test.describe("page state in the console address", () => {
     // src-01's last refresh failed; it sits in the folded provider group.
     await expect(page.locator('[data-map-key="src-01"]')).toBeVisible();
     await expect(page.locator('[data-map-key="src-04"]')).toHaveCount(0);
+    // Its folded group says how many more are inside than the ones drawn under it.
+    const group = page.locator('[data-map-key^="group:source:"][aria-expanded="false"]', { has: page.locator('text=/more inside$/') }).first();
+    await expect(group.locator(".lineage-figure")).toHaveText(/^\d+ more inside$/);
+    // The folded rows count with a noun, and the files row counts families as well as files.
+    await expect(page.locator('[data-map-key="more:file"] .lineage-name')).toHaveText(/^\d+ more famil(y|ies)(?: and \d+ files?)?, \d+ files$/);
+    for (const more of await page.locator('[data-map-key^="more:"]').all()) {
+      await expect(more).toHaveAccessibleName(/^\d+ more [a-z]/);
+    }
     // Opening a column's "N more" keeps the map drawn as paths.
     await page.locator('[data-map-key^="more:"]').first().click();
     await expect(page.locator(".lineage-note")).toContainText("the attention list names");

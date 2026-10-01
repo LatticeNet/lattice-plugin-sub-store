@@ -2206,8 +2206,15 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .lineage-chip[data-member="true"] { width: calc(100% - var(--space-4)); height: 28px; margin-left: var(--space-4); font-size: var(--lt-text-xs); }
 .lineage-chip[data-state="selected"] { border-color: var(--primary); background: var(--lt-accent-soft); }
 .lineage-chip[data-state="on"] { border-color: var(--lt-accent-border); }
+/* Off the selected path: the dot, the chevron and the strands dim; the label
+   stays readable in muted ink at full opacity (5.4:1 light), because the
+   chip is still a button. Opacity on the whole chip took it to 2.4:1. */
 .lineage-chip[data-state="off"],
-.lineage-entry[data-state="off"] { opacity: 0.38; }
+.lineage-entry[data-state="off"] .lineage-chip { color: var(--muted-foreground); border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+.lineage-chip[data-state="off"] .lineage-dot,
+.lineage-chip[data-state="off"] .lineage-chevron,
+.lineage-entry[data-state="off"] .lineage-dot,
+.lineage-entry[data-state="off"] .lineage-chevron { opacity: 0.38; }
 .lineage-chevron { flex: 0 0 auto; color: var(--muted-foreground); transition: transform var(--lt-dur) var(--lt-ease); }
 .lineage-chip[aria-expanded="true"] .lineage-chevron { transform: rotate(90deg); }
 .lineage-dot { flex: 0 0 auto; }
@@ -2216,7 +2223,6 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 /* "N more": the rest of a column, folded. A quieter chip, never a record. */
 .lineage-chip[data-kind="more"] { border-style: dashed; background: transparent; color: var(--muted-foreground); font-size: var(--lt-text-xs); font-weight: 600; }
 .lineage-chip[data-kind="more"]:hover { color: var(--foreground); }
-.lineage-chip[data-kind="more"][data-state="off"] { opacity: 0.6; }
 /* Above a dense map: which edges are drawn, so a missing one is not read as a missing dependency. */
 .lineage-note { margin: 0; padding: var(--space-3) var(--space-4) 0; color: var(--muted-foreground); font-size: var(--lt-text-xs); line-height: 1.5; }
 .lineage-figure {

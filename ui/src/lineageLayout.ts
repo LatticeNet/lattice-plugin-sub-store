@@ -26,7 +26,7 @@
 
 import { watch, type Ref, type WatchStopHandle } from "vue";
 
-import { groupByPrefix, STAGES, type Lineage, type Stage } from "./pipeline";
+import { groupByPrefix, plural, STAGES, type Lineage, type Stage } from "./pipeline";
 
 export const COLUMN_CAP = 8;
 /** Above this many dependencies in the store the map draws paths, not everything. */
@@ -50,6 +50,23 @@ export interface MapItem {
   open?: boolean;
   /** A member drawn under its open group. */
   member?: boolean;
+  /** A folded group: how many of its members are drawn under it anyway (the pinned ones). */
+  shown?: number;
+}
+
+const NOUN: Record<Stage, string> = { source: "source", combination: "combination", file: "file", share: "share" };
+
+/**
+ * What a column's "N more" says. The rows above it are records and
+ * families, so it counts both: "5 more families, 75 files" rather than a
+ * bare "75 more" beside rows of fifteen, and never a number without a noun
+ * ("26 more sources"), because the button's text is its accessible name.
+ */
+export function moreLabel(stage: Stage, total: number, families: number, singles: number): string {
+  const noun = NOUN[stage];
+  if (!families) return `${total} more ${total === 1 ? noun : `${noun}s`}`;
+  const kinds = `${families} more ${families === 1 ? "family" : "families"}${singles ? ` and ${plural(singles, noun)}` : ""}`;
+  return `${kinds}, ${plural(total, noun)}`;
 }
 
 export interface MapLayout {
@@ -142,7 +159,8 @@ export function layoutLineage(lineage: Lineage, options: LayoutOptions): MapLayo
         continue;
       }
       const open = options.openGroups.has(entry.key);
-      items.push({ key: entry.key, kind: "group", stage, ids: entry.ids, label: entry.label, open });
+      const shown = open ? undefined : entry.ids.filter((id) => options.pinned.has(id)).length || undefined;
+      items.push({ key: entry.key, kind: "group", stage, ids: entry.ids, label: entry.label, open, shown });
       for (const id of entry.ids) {
         // Open: every member. Folded: only the pinned ones, so a record that
         // needs attention is drawn itself without unfolding its fourteen
@@ -155,7 +173,8 @@ export function layoutLineage(lineage: Lineage, options: LayoutOptions): MapLayo
     const hiddenIds = folded.flatMap((entry) => entry.ids);
     hiddenCount[stage] = hiddenIds.length;
     if (hiddenIds.length) {
-      items.push({ key: moreKey(stage), kind: "more", stage, ids: hiddenIds, label: `${hiddenIds.length} more`, open: false });
+      const families = folded.filter((entry) => entry.kind === "group").length;
+      items.push({ key: moreKey(stage), kind: "more", stage, ids: hiddenIds, label: moreLabel(stage, hiddenIds.length, families, folded.length - families), open: false });
       for (const id of hiddenIds) anchor.set(id, moreKey(stage));
     } else if (over && expanded) {
       items.push({ key: moreKey(stage), kind: "more", stage, ids: [], label: "Show fewer", open: true });

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SubscriptionListItem } from "./client";
 import { failingFixture, largeFixture, productionFixture, type Fixture, type StoredRecord } from "../dev/fixtures";
-import { COLUMN_CAP, DENSE_EDGES, drawnEdges, isDense, layoutLineage, moreKey, openSelectedGroup, paintedEdges, type LayoutOptions } from "./lineageLayout";
+import { COLUMN_CAP, DENSE_EDGES, drawnEdges, isDense, layoutLineage, moreKey, moreLabel, openSelectedGroup, paintedEdges, type LayoutOptions } from "./lineageLayout";
 import { buildLineage, pathOf, STAGES, type Lineage } from "./pipeline";
 
 /** What the plugin's `list` answers for a stored record, as the pipeline tests build it. */
@@ -76,7 +76,7 @@ describe("the 256-record budget stays one picture", () => {
     expect(layout.columns.source.some((item) => item.kind === "group")).toBe(true);
     expect(layout.columns.combination).toEqual([expect.objectContaining({ kind: "group", label: "merge-team-*", ids: expect.any(Array) })]);
     const more = layout.columns.share.at(-1)!;
-    expect(more).toMatchObject({ key: moreKey("share"), kind: "more", label: `${layout.hidden.share} more` });
+    expect(more).toMatchObject({ key: moreKey("share"), kind: "more", label: `${layout.hidden.share} more shares` });
     // Every record is drawn somewhere: itself, its group, or its column's "more".
     for (const id of lineage.nodes.keys()) expect(layout.anchor.has(id), id).toBe(true);
   });
@@ -170,5 +170,27 @@ describe("the group a selection sits in", () => {
     await nextTick();
     expect([...openGroups.value].sort()).toEqual(["group:source:pasted-uk", "group:source:provider"]);
     stop();
+  });
+});
+
+describe("what the folded rows say", () => {
+  it("counts families and records with a noun, never a bare number", () => {
+    expect(moreLabel("file", 75, 5, 0)).toBe("5 more families, 75 files");
+    expect(moreLabel("file", 47, 3, 2)).toBe("3 more families and 2 files, 47 files");
+    expect(moreLabel("source", 26, 0, 26)).toBe("26 more sources");
+    expect(moreLabel("share", 1, 0, 1)).toBe("1 more share");
+  });
+
+  it("says how many of a folded group's members are drawn under it", () => {
+    const lineage = lineageOf(largeFixture());
+    const six = new Set(["src-01", "src-10", "src-16", "src-31", "src-34", "src-40"]);
+    const layout = layoutLineage(lineage, rest({ pinned: six }));
+    const group = layout.columns.source.find((item) => item.kind === "group" && item.ids.includes("src-01"))!;
+    expect(group).toMatchObject({ open: false, shown: 6 });
+    expect(group.ids).toHaveLength(14);
+    const opened = layoutLineage(lineage, rest({ pinned: six, openGroups: new Set([group.key]) }));
+    expect(opened.columns.source.find((item) => item.key === group.key)!.shown).toBeUndefined();
+    const more = layout.columns.file.at(-1)!;
+    expect(more.label).toMatch(/^\d+ more famil(y|ies), \d+ files$/);
   });
 });

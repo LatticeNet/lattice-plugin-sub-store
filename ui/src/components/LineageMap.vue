@@ -161,6 +161,11 @@ function factsOf(item: MapItem): ChipFacts {
   const warnings = facts.filter((f) => f.tone === "warning").length;
   const worst = facts.find((f) => f.tone === "error") ?? facts.find((f) => f.tone === "warning");
   const toggle = item.open ? "Fold them" : "Show them";
+  // A folded group whose attention members are drawn under it says what is
+  // still inside, or it reads as holding only those.
+  const inside = item.shown ? item.ids.length - item.shown : 0;
+  const figureOf = () => (inside ? `${inside} more inside` : plural(item.ids.length, noun));
+  const drawnNote = inside ? ` ${item.shown} drawn below because the attention list names them, ${inside} more inside.` : "";
   if (item.stage === "file") {
     const published = facts.filter((f) => f.tone === "healthy").length;
     // Healthy only when every file in the group is served: one published file
@@ -169,8 +174,8 @@ function factsOf(item: MapItem): ChipFacts {
     return {
       tone: worst?.tone ?? (all ? "healthy" : "neutral"),
       state: worst?.state ?? (all ? "all published" : `${published} of ${item.ids.length} published`),
-      figure: plural(item.ids.length, noun),
-      title: `${plural(item.ids.length, noun)} named ${item.label}, ${published} published. ${toggle}.`,
+      figure: figureOf(),
+      title: `${plural(item.ids.length, noun)} named ${item.label}, ${published} published.${drawnNote} ${toggle}.`,
     };
   }
   const healthy = facts.every((f) => f.tone === "healthy");
@@ -178,8 +183,8 @@ function factsOf(item: MapItem): ChipFacts {
   return {
     tone: worst?.tone ?? (healthy ? "healthy" : "neutral"),
     state: worst ? `${trouble} of ${item.ids.length} need attention` : healthy ? "all ok" : `${plural(item.ids.length, noun)}`,
-    figure: plural(item.ids.length, noun),
-    title: `${plural(item.ids.length, noun)} named ${item.label}${trouble ? `, ${trouble} with a problem` : ""}. ${toggle}.`,
+    figure: figureOf(),
+    title: `${plural(item.ids.length, noun)} named ${item.label}${trouble ? `, ${trouble} with a problem` : ""}.${drawnNote} ${toggle}.`,
   };
 }
 
@@ -235,6 +240,14 @@ const laneRoom = ref(0);
 /** How far below a column's last chip a lane runs, and how far apart lanes are. */
 const LANE_CLEAR = 20;
 const LANE_STEP = 8;
+/** How far apart the drops and risers of different records sit in a gap. */
+const RISER_STEP = 6;
+
+/** x in a gap for the `index`th of `count` records, centred, kept inside the gap. */
+function spread(centre: number, width: number, index: number, count: number): number {
+  const step = Math.min(RISER_STEP, width / (count + 1));
+  return centre + (index - (count - 1) / 2) * step;
+}
 
 function measure(): void {
   const root = canvas.value;
@@ -256,9 +269,19 @@ function measure(): void {
     };
   });
   const f = (n: number) => n.toFixed(1);
-  let lanes = 0;
   let deepest = 0;
   const out: typeof paths.value = [];
+  // An edge that skips a column gets a lane and a riser of its target's own,
+  // and a drop of its source's own, so strands to different files never share
+  // a trunk; strands to the same file do, because they end in the same place.
+  const skipping = painted.value.filter((edge) => {
+    const from = columnOf.value.get(edge.from) ?? 0;
+    return (columnOf.value.get(edge.to) ?? from + 1) - from > 1;
+  });
+  const order = (keys: string[]) => new Map([...new Set(keys)].map((key, index) => [key, index]));
+  const targets = order(skipping.map((edge) => edge.to));
+  const sources = order(skipping.map((edge) => edge.from));
+  const laneOf = new Map<string, number>();
   for (const edge of painted.value) {
     const a = boxes.get(edge.from);
     const b = boxes.get(edge.to);
@@ -276,15 +299,18 @@ function measure(): void {
       // turn up in the gap before the target's. One lane per such edge.
       const skipped = cols.slice(from + 1, to);
       const clear = Math.max(...skipped.map((c) => c.bottom)) + LANE_CLEAR;
-      // Already below every skipped chip: stay level. Otherwise take a lane.
+      // Already below every skipped chip: stay level. Otherwise take the
+      // target's lane.
       let lane = y1;
       if (y1 < clear) {
-        lane = clear + lanes * LANE_STEP;
-        lanes += 1;
+        if (!laneOf.has(edge.to)) laneOf.set(edge.to, laneOf.size);
+        lane = clear + laneOf.get(edge.to)! * LANE_STEP;
       }
       deepest = Math.max(deepest, lane);
-      const gapA = (cols[from]!.right + skipped[0]!.left) / 2;
-      const gapB = (skipped[skipped.length - 1]!.right + cols[to]!.left) / 2;
+      const widthA = skipped[0]!.left - cols[from]!.right;
+      const widthB = cols[to]!.left - skipped[skipped.length - 1]!.right;
+      const gapA = spread((cols[from]!.right + skipped[0]!.left) / 2, widthA, sources.get(edge.from) ?? 0, sources.size);
+      const gapB = spread((skipped[skipped.length - 1]!.right + cols[to]!.left) / 2, widthB, targets.get(edge.to) ?? 0, targets.size);
       d = orthogonalPath([[x1, y1], [gapA, y1], [gapA, lane], [gapB, lane], [gapB, y2], [x2, y2]], 10);
     } else {
       const dx = Math.max(24, (x2 - x1) / 2);
