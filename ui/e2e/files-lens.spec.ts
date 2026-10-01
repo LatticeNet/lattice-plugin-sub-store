@@ -426,6 +426,18 @@ test.describe("touch at 375", () => {
       expect((await item.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
   });
+
+  test("the files footer puts the range on its own line, with 44px Previous and Next under it", async ({ page }) => {
+    await open(page, "?view=files&fixture=large", ".pc-pagination");
+    const footer = page.locator(".pc-pagination");
+    const range = (await footer.locator("> span").first().boundingBox())!;
+    const previous = (await footer.getByRole("button", { name: "Previous" }).boundingBox())!;
+    const next = (await footer.getByRole("button", { name: "Next" }).boundingBox())!;
+    expect(previous.y).toBeGreaterThan(range.y + range.height - 1);
+    expect(Math.abs(next.y - previous.y)).toBeLessThan(1);
+    for (const box of [previous, next]) expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+    expect(await docWidth(page)).toBe(375);
+  });
 });
 
 test.describe("publishing and deleting files", () => {

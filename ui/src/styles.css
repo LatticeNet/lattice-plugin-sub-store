@@ -1960,6 +1960,15 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   .row-publish { min-height: 44px; padding: 0 var(--space-3); }
   .rec-menu-wrap .pc-icon-button { width: 44px; height: 44px; }
   .rec-menu button { min-height: 44px; }
+  .pc-pagination .pc-button { min-height: 44px; }
+}
+
+/* chassis-workaround: PcPagination wraps Next alone onto a second line at
+   375. On a phone the range takes the first line and Previous, the page and
+   Next share the second. Remove once the chassis footer lays itself out at
+   phone width. */
+@media (max-width: 620px) {
+  .pc-pagination > span:first-child { flex-basis: 100%; }
 }
 
 /* ── reduced motion ───────────────────────────────────────────────────────
