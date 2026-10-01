@@ -52,7 +52,15 @@ describe("what the palette lists", () => {
     const entries = paletteEntries("", RECORDS, caps());
     expect(entries.find((e) => e.key === "record:work-col")?.hint).toContain("Combination");
     expect(entries.find((e) => e.key === "record:phone-file")?.hint).toContain("File");
-    expect(entries.find((e) => e.key === "record:home-sub")?.hint).toContain("home-sub");
+    expect(entries.find((e) => e.key === "record:home-sub")?.hint).toBe("Source");
+  });
+
+  it("never prints the stored id, and gives the stored name under a display name", () => {
+    const imported = [record({ id: "imported-unnamed", name: "jiancai", display_name: "建材市场" })];
+    const [entry] = paletteEntries("", imported, caps());
+    expect(entry?.label).toBe("建材市场");
+    expect(entry?.hint).toBe("Source · jiancai");
+    expect(entry?.hint).not.toContain("imported-unnamed");
   });
 
   it("prefers the display name, which is what the list shows", () => {

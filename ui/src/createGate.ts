@@ -35,7 +35,7 @@ export const UNREAD_REASON =
 export const READING_REASON =
   "The record catalogue is still being read, so the record budget and the names in use are not known yet";
 export const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
-export const NO_SOURCE_REASON = "Create a subscription first. There is nothing to combine";
+export const NO_SOURCE_REASON = "Create a source first. There is nothing to combine";
 
 /** Why the store cannot take any new record right now; empty when it can. */
 export function storeBlock(catalogue: CatalogueView, limit = MAX_SUBSCRIPTION_RECORDS): string {
@@ -74,7 +74,7 @@ interface LayerCreate {
 
 const SUBSCRIPTION: LayerCreate = {
   command: "new-subscription",
-  label: "New subscription",
+  label: "New source",
   hint: "One source of nodes, processed and served",
 };
 
@@ -85,7 +85,7 @@ const LAYER_CREATE: Partial<Record<ViewId, LayerCreate>> = {
   combinations: {
     command: "new-collection",
     label: "New combination",
-    hint: "Merge several subscriptions and process the result as one",
+    hint: "Merge several sources and process the result as one",
   },
   files: {
     command: "new-file",

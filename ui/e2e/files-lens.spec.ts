@@ -157,7 +157,7 @@ test.describe("1440", () => {
     expect(map.y + map.height).toBeLessThanOrEqual(900);
     // As vpn-core places its own: in the header, on Refresh's line, to its right.
     const refresh = (await page.locator(".ss-header").getByRole("button", { name: "Refresh" }).boundingBox())!;
-    const primary = (await page.locator(".ss-header").getByRole("button", { name: "New subscription" }).boundingBox())!;
+    const primary = (await page.locator(".ss-header").getByRole("button", { name: "New source" }).boundingBox())!;
     expect(Math.abs(primary.y + primary.height / 2 - (refresh.y + refresh.height / 2))).toBeLessThan(2);
     expect(primary.x).toBeGreaterThan(refresh.x + refresh.width);
     // The tab row holds the layers and nothing else.
@@ -168,7 +168,7 @@ test.describe("1440", () => {
   test("each layer's own create action takes the header's place", async ({ page }) => {
     await open(page, "?view=sources", ".layer-row");
     const header = page.locator(".ss-header");
-    for (const [tab, name] of [["Sources", "New subscription"], ["Combinations", "New combination"], ["Files", "New file"], ["Shares", "Open in Publishing"]] as const) {
+    for (const [tab, name] of [["Sources", "New source"], ["Combinations", "New combination"], ["Files", "New file"], ["Shares", "Open in Publishing"]] as const) {
       await page.getByRole("tab", { name: new RegExp(`^${tab}`) }).click();
       await expect(header.locator(".ss-head-primary"), tab).toHaveCount(1);
       await expect(header.locator(".ss-head-primary"), tab).toContainText(name);
@@ -189,9 +189,9 @@ test.describe("1440", () => {
   test("with the record catalogue unread, create stays in place and is disabled with the reason", async ({ page }) => {
     await open(page, "?state=error", ".ss-header .ss-head-primary");
     const header = page.locator(".ss-header");
-    await expect(header.getByRole("button", { name: "New subscription" })).toBeDisabled();
+    await expect(header.getByRole("button", { name: "New source" })).toBeDisabled();
     await expect(header.getByRole("button", { name: "More things to create" })).toBeDisabled();
-    await expect(header.getByRole("button", { name: "New subscription" })).toHaveAttribute("title", /could not be read.*Refresh first/);
+    await expect(header.getByRole("button", { name: "New source" })).toHaveAttribute("title", /could not be read.*Refresh first/);
     await page.getByRole("tab", { name: /^Files/ }).click();
     await expect(header.getByRole("button", { name: "New file" })).toBeDisabled();
     // The palette's create commands carry the same reason, written out.
@@ -211,7 +211,7 @@ test.describe("1440", () => {
       w.__gone = 0;
       w.__titles = [];
       const primary = () =>
-        [...document.querySelectorAll<HTMLButtonElement>(".ss-header button")].find((el) => el.textContent?.includes("New subscription"));
+        [...document.querySelectorAll<HTMLButtonElement>(".ss-header button")].find((el) => el.textContent?.includes("New source"));
       new MutationObserver(() => {
         const el = primary();
         if (!el) w.__gone += 1;
@@ -223,7 +223,7 @@ test.describe("1440", () => {
     await expect.poll(async () => (await titles()).some((title) => /still being read/.test(title))).toBe(true);
     await expect.poll(async () => (await titles()).at(-1)).toMatch(/could not be read/);
     expect(await page.evaluate(() => (window as unknown as { __gone: number }).__gone)).toBe(0);
-    await expect(header.getByRole("button", { name: "New subscription" })).toBeDisabled();
+    await expect(header.getByRole("button", { name: "New source" })).toBeDisabled();
   });
 
   test("before the first read lands, the palette offers create disabled with the reason", async ({ page }) => {
@@ -234,7 +234,7 @@ test.describe("1440", () => {
     await expect(header.locator(".ss-head-primary")).toHaveCount(0);
     await header.getByRole("button", { name: "Search records and actions (Cmd+K)" }).click();
     await page.locator(".palette-input").getByRole("combobox").fill("new");
-    for (const name of [/New subscription/, /New combination/, /New file/]) {
+    for (const name of [/New source/, /New combination/, /New file/]) {
       await expect(page.getByRole("option", { name })).toHaveAttribute("aria-disabled", "true");
       await expect(page.getByRole("option", { name })).toContainText("still being read");
     }
@@ -472,7 +472,7 @@ test.describe("touch at 375", () => {
     const targets = [
       header.getByRole("button", { name: "Search records and actions (Cmd+K)" }),
       header.getByRole("button", { name: "Refresh" }),
-      header.getByRole("button", { name: "New subscription" }),
+      header.getByRole("button", { name: "New source" }),
       header.getByRole("button", { name: "More things to create" }),
     ];
     for (const target of targets) {

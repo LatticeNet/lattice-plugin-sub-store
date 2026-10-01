@@ -149,7 +149,7 @@ const steps = computed(() => {
   if (!item) return "";
   const n = item.step_count;
   if (!n) return "none";
-  return `${n} operation${n === 1 ? "" : "s"}${item.disabled_step_count ? `, ${item.disabled_step_count} off` : ""}`;
+  return `${n} step${n === 1 ? "" : "s"}${item.disabled_step_count ? `, ${item.disabled_step_count} off` : ""}`;
 });
 
 const refresh = computed(() => (record.value && isProviderLink(record.value) ? refreshStateFor(record.value, props.pipe.now.value) : null));
@@ -185,7 +185,7 @@ function publish(): void {
         <template v-if="kind !== KIND_FILE">
           <dt>Nodes</dt>
           <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span v-if="pipe.nodes(id).includes('→')" class="peek-note">in → out</span></dd>
-          <dt>Operations</dt>
+          <dt>Steps</dt>
           <dd>{{ steps }}</dd>
         </template>
 

@@ -668,7 +668,7 @@ function openShares(): void {
             type="button"
             role="menuitem"
             :disabled="!!blocks['new-collection']"
-            :title="blocks['new-collection'] || 'Merge several subscriptions and process the result as one'"
+            :title="blocks['new-collection'] || 'Merge several sources and process the result as one'"
             @click="runCommand('new-collection')"
           >
             <Layers :size="14" aria-hidden="true" />

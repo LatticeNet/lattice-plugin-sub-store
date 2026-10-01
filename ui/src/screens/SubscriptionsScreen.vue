@@ -852,7 +852,7 @@ watch(host.init, (value) => {
 </script>
 
 <template>
-  <EngineUnavailable v-if="host.init.value && !subs.available.value" feature="Subscriptions" />
+  <EngineUnavailable v-if="host.init.value && !subs.available.value" feature="Sources" />
 
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
@@ -944,7 +944,7 @@ watch(host.init, (value) => {
       <PcPanel v-else-if="storeEmpty" label="Sources">
         <PcEmptyState title="No sources yet">
           <template #icon><Library :size="26" aria-hidden="true" /></template>
-          <p>Start with your own fleet: one subscription reading this deployment's vpn-core nodes.</p>
+          <p>Start with your own fleet: one source reading this deployment's vpn-core nodes.</p>
           <template #actions>
             <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
               <template #icon><Server :size="15" aria-hidden="true" /></template>

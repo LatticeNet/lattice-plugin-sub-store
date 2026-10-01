@@ -119,7 +119,7 @@ function kindOf(line: ShareLine): string {
   const kind = line.record?.kind || KIND_SUB;
   if (kind === KIND_COLLECTION) return "combination";
   if (kind === KIND_FILE) return "file";
-  return "subscription";
+  return "source";
 }
 
 /** The share path with its token masked: the slug identifies it, the token

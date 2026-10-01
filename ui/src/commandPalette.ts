@@ -56,7 +56,7 @@ const NEEDS_MUTATE =
 export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   {
     id: "new-subscription",
-    label: "New subscription",
+    label: "New source",
     hint: "One source of nodes",
     tab: "subscriptions",
     blocked: (caps) => (caps.mutate ? "" : NEEDS_MUTATE),
@@ -64,7 +64,7 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   {
     id: "new-collection",
     label: "New combination",
-    hint: "Several subscriptions served as one",
+    hint: "Several sources served as one",
     tab: "subscriptions",
     blocked: (caps) => (caps.mutate ? "" : NEEDS_MUTATE),
   },
@@ -81,10 +81,20 @@ function tabFor(record: SubscriptionListItem): PaletteTab {
   return record.kind === KIND_FILE ? "files" : "subscriptions";
 }
 
+/*
+ * What a record row says under its name: the kind, and the stored name when
+ * the label is a display name. It printed the stored id, which for an import
+ * is "imported-unnamed" under 建材市场 and tells the operator nothing.
+ */
+function hintFor(record: SubscriptionListItem): string {
+  const label = record.display_name?.trim() || record.name;
+  return label === record.name ? describe(record) : `${describe(record)} · ${record.name}`;
+}
+
 function describe(record: SubscriptionListItem): string {
   if (record.kind === KIND_FILE) return "File";
   if (record.kind === KIND_COLLECTION) return "Combination";
-  return "Subscription";
+  return "Source";
 }
 
 /**
@@ -113,7 +123,7 @@ export function paletteEntries(
       kind: "record",
       key: "record:" + record.id,
       label: record.display_name?.trim() || record.name,
-      hint: `${describe(record)} · ${record.id}`,
+      hint: hintFor(record),
       tab: tabFor(record),
       record,
       disabled: false,

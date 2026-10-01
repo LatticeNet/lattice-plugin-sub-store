@@ -67,8 +67,8 @@ describe("whether the store can take a new record", () => {
 
 describe("the header's create action", () => {
   it("names each layer's own verb, the Overview's as a split button", () => {
-    expect(header("overview")).toMatchObject({ command: "new-subscription", label: "New subscription", menu: true, disabled: false });
-    expect(header("sources")).toMatchObject({ command: "new-subscription", label: "New subscription", menu: false });
+    expect(header("overview")).toMatchObject({ command: "new-subscription", label: "New source", menu: true, disabled: false });
+    expect(header("sources")).toMatchObject({ command: "new-subscription", label: "New source", menu: false });
     expect(header("combinations")).toMatchObject({ command: "new-collection", label: "New combination", menu: false });
     expect(header("files")).toMatchObject({ command: "new-file", label: "New file", menu: false });
     expect(header("files")?.title).toBe("A document served as it is, with its proxy list kept in step");

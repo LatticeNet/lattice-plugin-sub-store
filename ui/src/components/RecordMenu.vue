@@ -122,7 +122,7 @@ onBeforeUnmount(unlisten);
 <template>
   <div ref="anchor" class="rec-menu-wrap" v-bind="$attrs">
     <PcIconButton
-      :label="`More actions for ${name}`"
+      :label="`Actions for ${name}`"
       bordered
       :aria-haspopup="true"
       :aria-expanded="open"
