@@ -47,6 +47,28 @@ watch(() => props.id, (id, previous) => {
   if (id && previous && id !== previous) returnTarget.value = rowFor(id);
   else if (id && !previous) returnTarget.value = null;
 }, { flush: "post" });
+
+/*
+ * A panel restored from the address (a reload onto `?open=`, a pasted link)
+ * opened with nothing focused, so the chassis had no opener to give focus
+ * back to and Escape left it on <body>, although the record's row or chip
+ * was on screen. Read at the moment the panel opens, before it takes focus;
+ * on close such a panel hands focus to that row or chip.
+ */
+let openedWithoutOpener = false;
+watch(
+  () => !!props.id && !!props.pipe.item(props.id),
+  (open, was) => {
+    if (!open || was) return;
+    const active = typeof document === "undefined" ? null : document.activeElement;
+    openedWithoutOpener = !active || active === document.body;
+  },
+  { flush: "sync" },
+);
+function close(): void {
+  if (openedWithoutOpener && !returnTarget.value) returnTarget.value = rowFor(props.id);
+  emit("close");
+}
 const emit = defineEmits<{
   close: [];
   open: [id: string];
@@ -147,7 +169,7 @@ function publish(): void {
     :description="kindLabel"
     close-label="Close the side panel"
     :return-focus-to="returnTarget"
-    @close="emit('close')"
+    @close="close()"
   >
     <div v-if="record" class="peek">
       <PcNotice v-if="status" :tone="status.tone">{{ status.text }}</PcNotice>

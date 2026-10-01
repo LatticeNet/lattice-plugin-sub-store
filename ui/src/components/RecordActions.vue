@@ -99,7 +99,7 @@ const prompt = computed(() => deletePrompt(deleting.value ? [props.id] : [], pro
 async function run(id: ActionId): Promise<void> {
   const item = record.value;
   if (!item) return;
-  close(id !== "output" && id !== "delete");
+  close(id !== "output");
   if (id === "output") {
     sheetFor.value = item;
     return;

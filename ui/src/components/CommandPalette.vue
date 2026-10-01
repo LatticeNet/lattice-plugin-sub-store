@@ -53,10 +53,30 @@ const rows = computed<{ key: string; label: string; hint: string; disabled: bool
       : entries.value.map((e) => ({ key: e.key, label: e.label, hint: e.hint, disabled: e.disabled, reason: e.reason, danger: false })),
 );
 
+/*
+ * What had focus when the palette opened: the filter field Cmd+K was pressed
+ * in, or the search button. Dismissing the palette (Escape, a click on the
+ * scrim) gives focus back there; it fell to <body> before. Choosing a command
+ * or an action does not: the operator is going somewhere else, and the place
+ * they land (the editor, a dialog, the row) takes focus.
+ */
+let opener: HTMLElement | null = null;
+let dismissed = true;
 watch(
   () => props.open,
-  async (open) => {
-    if (!open) return;
+  async (open, was) => {
+    if (!open) {
+      if (!was) return;
+      const target = dismissed ? opener : null;
+      opener = null;
+      await nextTick();
+      const active = document.activeElement;
+      if ((!active || active === document.body) && target?.isConnected) target.focus();
+      return;
+    }
+    const active = document.activeElement;
+    opener = active instanceof HTMLElement && active !== document.body ? active : null;
+    dismissed = true;
     query.value = "";
     cursor.value = 0;
     chosen.value = null;
@@ -73,6 +93,7 @@ function choose(index: number): void {
   const row = rows.value[index];
   if (!row || row.disabled) return;
   if (chosen.value) {
+    dismissed = false;
     emit("run", chosen.value, row.key as ActionId);
     emit("close");
     return;
@@ -80,6 +101,7 @@ function choose(index: number): void {
   const entry = entries.value[index];
   if (!entry) return;
   if (entry.kind === "command" && entry.command) {
+    dismissed = false;
     emit("command", entry.command);
     emit("close");
     return;

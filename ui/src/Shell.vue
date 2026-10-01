@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
 import { ChevronDown, FileCode, Layers, Plus, RefreshCw, Search, SquareArrowOutUpRight, Store } from "@lucide/vue";
 import {
   PcButton,
@@ -29,7 +29,7 @@ import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
 import FilesScreen from "./screens/FilesScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
 import SharesScreen from "./screens/SharesScreen.vue";
-import { createLensChrome, provideLensChrome, type Facets, type TabId } from "./lensChrome";
+import { createLensChrome, provideLensChrome, type Facets, type LensOpenOptions, type TabId } from "./lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
 import { useObservedAge } from "./observedAge";
@@ -142,7 +142,7 @@ watch(shellState, (state) => {
 });
 onBeforeUnmount(() => stateSender.dispose());
 
-chrome.openLens = (tab, facets?: Partial<Facets>) => {
+chrome.openLens = (tab, facets?: Partial<Facets>, options?: LensOpenOptions) => {
   recordId.value = "";
   activeTab.value = tab;
   if (facets) {
@@ -151,6 +151,10 @@ chrome.openLens = (tab, facets?: Partial<Facets>) => {
     chrome.facets.type = facets.type ?? "";
     chrome.facets.link = facets.link ?? "";
   }
+  if (options?.search !== undefined) chrome.search.value = options.search;
+  // The control that sent the operator here was on the layer that just left
+  // the screen, and focus went to <body> with it.
+  if (options?.focus) void nextTick(() => focusLayer());
 };
 chrome.openRecord = (id) => {
   chrome.openId.value = id;
@@ -162,9 +166,40 @@ chrome.openPage = (id) => {
 };
 provideLensChrome(chrome);
 
+/* ── where the keyboard lands ───────────────────────────────────────────────
+ * A control that removes itself (a layer switch from an attention item, a
+ * palette action, a delete from the side panel) left focus on <body>, the top
+ * of the frame. These put it on the layer the operator was sent to. */
+const lensPanel = ref<HTMLElement | null>(null);
+function focusFree(): boolean {
+  const active = document.activeElement;
+  return !active || active === document.body;
+}
+function focusLayer(): void {
+  lensPanel.value?.focus();
+}
+/** After an action has had its turn: the place it opened, else the record's row, else the layer. */
+function settleFocus(recordId?: string): void {
+  setTimeout(() => {
+    if (!focusFree()) return;
+    const row = recordId ? document.querySelector<HTMLElement>(`[data-record-open="${CSS.escape(recordId)}"]`) : null;
+    (row ?? lensPanel.value)?.focus();
+  });
+}
+
 const lens = computed(() => chrome.lenses[activeTab.value]);
 /** Inside an editor the list controls make no sense; the tabs stay. */
 const editing = computed(() => lens.value.editing);
+/*
+ * An editor that opens (from a row menu, the palette, a create command)
+ * replaces the control that opened it. Its heading takes focus, so the
+ * keyboard starts at the top of the form.
+ */
+watch(editing, async (now) => {
+  if (!now) return;
+  await nextTick();
+  if (focusFree()) lensPanel.value?.querySelector<HTMLElement>(".editor-shell [data-editor-title]")?.focus();
+});
 
 const current = computed<{ key: string; screen: Component; props: Record<string, unknown> }>(() => {
   if (recordId.value) {
@@ -404,12 +439,14 @@ function fadeLens(): void {
 function runFromPalette(record: SubscriptionListItem, action: ActionId): void {
   chrome.openLens(viewOfKind(record.kind));
   intent.value = { recordId: record.id, action };
+  settleFocus(record.id);
 }
 
 function runCommand(command: PaletteCommandId): void {
   closeAddMenu();
   chrome.openLens(command === "new-file" ? "files" : command === "new-collection" ? "combinations" : "sources");
   intent.value = { command };
+  settleFocus();
 }
 
 /** The editor belongs to the layer that lists the record; the page hands over. */
@@ -440,6 +477,21 @@ function deletedFromPage(kind: string, text: string): void {
 function deletedFromPanel(_kind: string, text: string): void {
   chrome.openId.value = "";
   flash.value = text ? { text, view: activeTab.value } : null;
+  // The panel's opener was the deleted record's row or chip.
+  settleFocus();
+}
+
+/** Home and End on the layer row; the chassis walks it with the arrows only. */
+function onLayerKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Home" && event.key !== "End") return;
+  if (!(event.target instanceof Element) || !event.target.closest("[role='tab']")) return;
+  const tabs = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[role='tab']")];
+  const next = event.key === "Home" ? tabs[0] : tabs[tabs.length - 1];
+  if (!next) return;
+  event.preventDefault();
+  const value = next.dataset.value;
+  if (value && TAB_IDS.has(value)) activeTab.value = value as TabId;
+  next.focus();
 }
 
 function backFromRecord(): void {
@@ -546,7 +598,7 @@ function openShares(): void {
            it rather than stacking a second row above. -->
       <PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">
         <template #tabs>
-          <PcLensTabs v-model="activeTab" v-reveal-selected="revealKey" class="ss-layer-tabs" label="Sub-Store layers">
+          <PcLensTabs v-model="activeTab" v-reveal-selected="revealKey" class="ss-layer-tabs" label="Sub-Store layers" @keydown="onLayerKeydown">
             <PcLensTab
               v-for="tab in tabs"
               :key="tab.id"
@@ -565,6 +617,7 @@ function openShares(): void {
            point at. -->
       <div
         :id="recordId ? 'record-page' : `pc-panel-${activeTab}`"
+        ref="lensPanel"
         class="lens-panel"
         :class="{ 'is-fading': lensFading }"
         :role="recordId ? undefined : 'tabpanel'"

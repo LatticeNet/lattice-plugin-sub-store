@@ -80,6 +80,29 @@ function unlisten(): void {
   window.removeEventListener("resize", position);
 }
 
+/*
+ * The keys a menu owns beyond the arrows the screen walks it with: Home and
+ * End jump to the first and last item (and must not scroll the frame), and
+ * Tab leaves the menu the way Escape does, closed, with focus back on the
+ * trigger rather than on the next item while the menu stays open.
+ */
+function onKeydown(event: KeyboardEvent): void {
+  const menu = event.currentTarget as HTMLElement;
+  if (event.key === "Home" || event.key === "End") {
+    event.preventDefault();
+    const items = [...menu.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")];
+    (event.key === "Home" ? items[0] : items[items.length - 1])?.focus();
+    return;
+  }
+  if (event.key === "Tab") {
+    event.preventDefault();
+    anchor.value?.querySelector<HTMLElement>("button")?.focus();
+    emit("toggle");
+    return;
+  }
+  emit("keydown", event);
+}
+
 watch(
   () => props.open,
   (open) => {
@@ -109,7 +132,7 @@ onBeforeUnmount(unlisten);
     </PcIconButton>
   </div>
   <Teleport to="body">
-    <div v-if="open" class="rec-menu" role="menu" v-bind="$attrs" :style="place ?? undefined" @keydown="emit('keydown', $event)">
+    <div v-if="open" class="rec-menu" role="menu" v-bind="$attrs" :style="place ?? undefined" @keydown="onKeydown">
       <button
         v-for="action in safe()"
         :key="action.id"

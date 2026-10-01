@@ -56,6 +56,7 @@ import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { pageHolding, toggleShown, usePages } from "../paging";
+import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
@@ -416,18 +417,25 @@ async function confirmDelete(): Promise<void> {
   const target = deleteTargets.value;
   if (!target) return;
   deleteBusy.value = true;
+  // Read before the rows go: the row that will sit where they were.
+  const anchor = anchorAfterDelete(files.value.map((file) => file.id), target.ids);
+  let removed = 0;
   try {
     for (const id of target.ids) {
       markPending(id, true);
       const ok = await subs.remove(id);
       markPending(id, false);
       if (!ok) break;
+      removed += 1;
     }
   } finally {
     deleteBusy.value = false;
     deleteTargets.value = null;
     selectedIds.value = new Set();
   }
+  if (!removed) return;
+  await nextTick();
+  focusRowAfterDelete(listTop.value, anchor);
 }
 
 function markPending(id: string, on: boolean): void {
@@ -918,7 +926,7 @@ watch(host.init, (value) => {
       </nav>
       <div class="section-heading">
         <div>
-          <h2 id="file-editor-title">
+          <h2 id="file-editor-title" tabindex="-1" data-editor-title>
             {{ editingId ? "Edit" : "New" }} file
             <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
           </h2>
@@ -1543,6 +1551,7 @@ watch(host.init, (value) => {
         :consequences="deleteDialog.consequences"
         :served="deleteDialog.served"
         :confirm-text="deleteDialog.confirmText"
+        :focus-record="deleteTargets?.ids[0] ?? ''"
         :busy="deleteBusy"
         @cancel="deleteTargets = null"
         @confirm="confirmDelete()"

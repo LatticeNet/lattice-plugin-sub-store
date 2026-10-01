@@ -67,7 +67,7 @@ function act(item: AttentionItem): void {
     chrome.openRecord(item.action.recordId);
     return;
   }
-  if (item.action.view) chrome.openLens(item.action.view, item.action.facet);
+  if (item.action.view) chrome.openLens(item.action.view, item.action.facet, { focus: true });
 }
 
 /** The map's nodes the attention list names: records, and shares by their node. */
@@ -131,8 +131,8 @@ watch(host.init, (value) => {
           render them into a file for each client, and publish the file as a share.
         </p>
         <template #actions>
-          <PcButton @click="chrome.openLens('sources')">Go to Sources</PcButton>
-          <PcButton @click="chrome.openLens('settings')">Import from a Sub-Store</PcButton>
+          <PcButton @click="chrome.openLens('sources', undefined, { focus: true })">Go to Sources</PcButton>
+          <PcButton @click="chrome.openLens('settings', undefined, { focus: true })">Import from a Sub-Store</PcButton>
         </template>
       </PcEmptyState>
     </PcPanel>

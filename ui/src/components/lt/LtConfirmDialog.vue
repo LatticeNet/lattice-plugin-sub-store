@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, toRef, watch } from "vue";
 import LtButton from "./LtButton.vue";
 
+import { trapDialogTab } from "../../dialogFocus";
 import { useOverlayRegistration } from "../../useOverlayRegistration";
 
 /**
@@ -30,8 +31,14 @@ const props = withDefaults(
     /** Typed to arm the confirm instead of the count; "" when the count rule applies. */
     confirmText?: string;
     busy?: boolean;
+    /**
+     * The record whose row takes focus back when nothing had focus as the
+     * dialog opened: a delete chosen in the command palette, which closed
+     * before the dialog appeared.
+     */
+    focusRecord?: string;
   }>(),
-  { consequences: () => [], served: () => [], confirmText: "" },
+  { consequences: () => [], served: () => [], confirmText: "", focusRecord: "" },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
@@ -41,18 +48,48 @@ useOverlayRegistration(toRef(props, "open"), () => emit("cancel"));
 
 const typed = ref("");
 const dialog = ref<HTMLElement | null>(null);
+/*
+ * What had focus when the dialog took it: a row menu's trigger (the menu has
+ * already handed focus back by then), a panel's Delete, the batch bar. Escape
+ * and Cancel give it back, so the keyboard is never dropped on <body>. After a
+ * confirmed delete that control has usually gone with its row, and the screen
+ * moves focus to the next row instead; nothing here competes with that,
+ * because focus is only restored while nothing else holds it.
+ */
+let opener: HTMLElement | null = null;
 watch(
   () => props.open,
-  async (open) => {
+  async (open, was) => {
     typed.value = "";
-    if (!open) return;
+    if (!open) {
+      if (!was) return;
+      const target = opener;
+      opener = null;
+      await nextTick();
+      const active = document.activeElement;
+      const free = !active || active === document.body;
+      if (free && target?.isConnected) target.focus();
+      return;
+    }
     // Escape only reaches a handler on a focused element, and a destructive
     // dialog the operator cannot dismiss with Escape is the worst one to get
     // wrong.
     await nextTick();
+    const active = document.activeElement;
+    opener = active instanceof HTMLElement && active !== document.body && !dialog.value?.contains(active) ? active : null;
+    if (!opener && props.focusRecord) opener = document.querySelector<HTMLElement>(`[data-record-open="${CSS.escape(props.focusRecord)}"]`);
     dialog.value?.focus();
   },
 );
+
+/*
+ * The dialog is aria-modal, so Tab stays inside it: past the last control it
+ * went to <body>, then to the page behind the scrim, and in the console out
+ * of the frame altogether.
+ */
+function onKeydown(event: KeyboardEvent): void {
+  if (dialog.value) trapDialogTab(event, dialog.value);
+}
 const needsTyping = computed(() => props.names.length > 1 || !!props.confirmText);
 const armed = computed(() => {
   if (props.confirmText) return typed.value.trim() === props.confirmText;
@@ -77,6 +114,7 @@ const armed = computed(() => {
       aria-modal="true"
       tabindex="-1"
       :aria-label="title"
+      @keydown="onKeydown"
     >
       <p class="lt-dialog-title">{{ title }}</p>
       <ul class="lt-dialog-names">

@@ -103,7 +103,7 @@ function setEditorTab(id: string): void {
     </nav>
     <div class="section-heading">
       <div>
-        <h2 id="editor-title">
+        <h2 id="editor-title" tabindex="-1" data-editor-title>
           {{ editingId ? "Edit" : "New" }}
           {{ isCollection ? "combination" : "subscription" }}
           <!-- The draft survives a switch to another lens and back; this

@@ -27,6 +27,7 @@ import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
+import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
 import { useRecordEditor } from "../useRecordEditor";
 import SubscriptionEditor from "../components/SubscriptionEditor.vue";
 
@@ -333,6 +334,9 @@ watch(
   },
   { immediate: true },
 );
+
+/** The table, so a delete can hand focus to the row that takes the deleted one's place. */
+const listRoot = ref<HTMLElement | null>(null);
 
 /** Which record's per-row menu is open; only ever one. */
 const openMenuId = ref("");
@@ -688,6 +692,8 @@ async function runDelete(): Promise<void> {
   deleteRemainder.value = null;
   const queue = [...deleting.value];
   const done: string[] = [];
+  // Read before the rows go: the row that will sit where they were.
+  const anchor = anchorAfterDelete(filteredRows.value.map((row) => row.id), queue);
   try {
     for (let index = 0; index < queue.length; index += 1) {
       const id = queue[index]!;
@@ -714,6 +720,10 @@ async function runDelete(): Promise<void> {
     // the second half of the same bug: the records that were never attempted
     // had to be found again by hand.
     if (!deleteRemainder.value) selectedIds.value = new Set();
+    if (done.length) {
+      await nextTick();
+      focusRowAfterDelete(listRoot.value, anchor);
+    }
   }
 }
 
@@ -973,7 +983,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel :label="isComboLayer ? 'Combinations' : 'Sources'">
-          <div class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'">
+          <div ref="listRoot" class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" :label="`Filter ${noun}s`" />
               <label class="toolbar-sort">
@@ -1146,6 +1156,7 @@ watch(host.init, (value) => {
         :consequences="deleteDialog.consequences"
         :served="deleteDialog.served"
         :confirm-text="deleteDialog.confirmText"
+        :focus-record="deleting[0] ?? ''"
         :busy="deleteBusy"
         @confirm="runDelete()"
         @cancel="deleting = []"

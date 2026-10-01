@@ -40,13 +40,23 @@ export interface Facets {
   link: string;
 }
 
+export interface LensOpenOptions {
+  search?: string;
+  focus?: boolean;
+}
+
 export interface LensChrome {
   search: Ref<string>;
   sort: Ref<SortKey>;
   facets: Facets;
   lenses: Record<TabId, LensReport>;
-  /** Switch the visible layer, optionally with facets applied. No-op outside the shell. */
-  openLens: (tab: TabId, facets?: Partial<Facets>) => void;
+  /**
+   * Switch the visible layer, optionally with facets applied. No-op outside
+   * the shell. `search` fills the layer's filter field (an attention item
+   * naming one share narrows Shares to it); `focus` moves the keyboard to the
+   * layer that opened, for a control that leaves the screen it was on.
+   */
+  openLens: (tab: TabId, facets?: Partial<Facets>, options?: LensOpenOptions) => void;
   /** Peek at a record in the side panel. */
   openRecord: (id: string) => void;
   /** The record's own page. */
