@@ -101,8 +101,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* vpn-core's count pill: 10px at weight 650, against the chassis's 11/600. */
 .ss-layer-tabs .pc-count { color: var(--muted-foreground); font-size: 10px; font-weight: 650; }
 .ss-layer-tabs .pc-lens-tab[aria-selected="true"] .pc-count { color: var(--foreground); }
-/* The primary action shares the row; it keeps clear of the hairline. */
-.ss-layer-bar > :not(.ss-layer-tabs):not(.pc-toolbar-spacer) { margin-block: var(--space-1); }
+/* Search and Refresh, then the layer's primary action, as vpn-core orders its header. */
+.ss-head-tools { display: flex; align-items: center; gap: var(--space-2); }
 
 @media (max-width: 620px) {
   .ss-layer-bar { box-shadow: none; }
@@ -111,15 +111,18 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   .ss-layer-tabs .pc-lens-tab[aria-selected="true"] { background: var(--muted); box-shadow: inset 0 0 0 1px var(--border); }
 
   /* The title line keeps Search and Refresh; the description goes under it
-     across the header. They used to take a full row each before any content. */
+     across the header. They used to take a full row each before any content.
+     The primary action takes the row under the description, full width, as
+     vpn-core's does at this width; the proof line follows whatever is there. */
   .ss-header.pc-page-header { grid-template-columns: auto minmax(0, 1fr) auto; }
-  .ss-header > .pc-title-copy { display: contents; }
+  .ss-header > .pc-title-copy,
+  .ss-header > .pc-header-actions { display: contents; }
   .ss-header > .pc-title-mark { grid-row: 1; }
   .ss-header .pc-title-line { grid-column: 2; grid-row: 1; min-width: 0; }
   .ss-header .pc-title-copy > p { grid-column: 1 / -1; grid-row: 2; margin-top: 0; }
-  .ss-header > .pc-header-actions { grid-column: 3; grid-row: 1; }
-  .ss-header > .pc-header-actions > .pc-button { width: auto; }
-  .ss-header > .pc-page-proof { grid-row: 3; }
+  .ss-header .ss-head-tools { grid-column: 3; grid-row: 1; }
+  .ss-header .ss-head-primary { grid-column: 1 / -1; grid-row: 3; width: 100%; }
+  .ss-header > .pc-page-proof { grid-row: auto; }
 }
 
 /* One primary Add, with a caret for New combination. */

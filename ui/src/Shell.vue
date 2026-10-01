@@ -321,6 +321,36 @@ const caps = computed<ActionCapabilities>(() => actionCapabilities(host));
 const atRecordLimit = computed(() => ready.value && catalogue.items.value.length >= MAX_SUBSCRIPTION_RECORDS);
 const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
 const canCreate = computed(() => caps.value.ready && caps.value.mutate);
+/**
+ * The catalogue read failed. Create stays in its place, disabled, because
+ * the record budget and the names already in use are unknown until a read
+ * lands; Refresh is the way out.
+ */
+const catalogueUnread = computed(() => catalogue.state.value === "error");
+const UNREAD_REASON = "The record catalogue could not be read, so the record budget and the names in use are unknown. Refresh first";
+/**
+ * The layer's list was read and is empty. Its empty state carries the
+ * create action, so the header does not repeat it (design 23 section 3.7).
+ */
+const layerEmpty = computed(() => {
+  if (!ready.value) return false;
+  if (activeTab.value === "overview") return records.value.length === 0;
+  if (activeTab.value === "sources") return singles.value.length === 0;
+  if (activeTab.value === "combinations") return combos.value.length === 0;
+  if (activeTab.value === "files") return files.value.length === 0;
+  return false;
+});
+/**
+ * Where the layer's create action shows: in the header after Refresh, as
+ * vpn-core places its own, once the catalogue is read (or its read failed,
+ * which leaves it disabled), never on a record page, in an editor, or over
+ * an empty layer.
+ */
+const showCreate = computed(
+  () => !recordId.value && !editing.value && canCreate.value && (ready.value || catalogueUnread.value) && !layerEmpty.value,
+);
+const createBlocked = computed(() => catalogueUnread.value || atRecordLimit.value);
+const createReason = (why: string) => (catalogueUnread.value ? UNREAD_REASON : atRecordLimit.value ? LIMIT_REASON : why);
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
 const NO_ORIGIN = "This frame cannot ask the console to navigate; open Platform → Publishing yourself.";
 
@@ -428,13 +458,15 @@ function openShares(): void {
   postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
 }
 
-const comboDisabled = computed(() => atRecordLimit.value || !singles.value.length);
+const comboDisabled = computed(() => createBlocked.value || !singles.value.length);
 const comboTitle = computed(() =>
-  !singles.value.length
-    ? "Create a subscription first. There is nothing to combine"
-    : atRecordLimit.value
-      ? LIMIT_REASON
-      : "Merge several subscriptions and process the result as one",
+  catalogueUnread.value
+    ? UNREAD_REASON
+    : !singles.value.length
+      ? "Create a subscription first. There is nothing to combine"
+      : atRecordLimit.value
+        ? LIMIT_REASON
+        : "Merge several subscriptions and process the result as one",
 );
 </script>
 
@@ -450,25 +482,72 @@ const comboTitle = computed(() =>
         <!-- Search is page-wide (every layer's records), so it sits with
              Refresh in the header rather than in one layer's toolbar. On a
              phone both stay on the title line instead of a row each. -->
-        <PcIconButton
-          class="tab-search"
-          label="Search records and actions (Cmd+K)"
-          bordered
-          :disabled="standalone"
-          @click="openPalette()"
-        >
-          <Search :size="15" aria-hidden="true" />
-        </PcIconButton>
-        <!-- Labelled, as vpn-core's is: an icon alone did not say what it reads again. -->
+        <div class="ss-head-tools">
+          <PcIconButton
+            class="tab-search"
+            label="Search records and actions (Cmd+K)"
+            bordered
+            :disabled="standalone"
+            @click="openPalette()"
+          >
+            <Search :size="15" aria-hidden="true" />
+          </PcIconButton>
+          <!-- Labelled, as vpn-core's is: an icon alone did not say what it reads again. -->
+          <PcButton
+            class="header-refresh"
+            :busy="refreshing"
+            :disabled="!host.init.value"
+            title="Read the record catalogue and the share list again"
+            @click="refresh()"
+          >
+            <template #icon><RefreshCw :size="15" aria-hidden="true" /></template>
+            Refresh
+          </PcButton>
+        </div>
+        <!-- The layer's one primary action, after Refresh, where vpn-core puts
+             its own. On a phone it takes a row of its own under the
+             description. -->
+        <div v-if="showCreate && activeTab === 'overview'" class="ss-head-primary add-split" data-add-menu>
+          <PcButton variant="primary" :disabled="createBlocked" :title="createReason('One source of nodes, processed and served')" @click="runCommand('new-subscription')">
+            <template #icon><Plus :size="15" aria-hidden="true" /></template>
+            New subscription
+          </PcButton>
+          <button
+            ref="addMenuAnchor"
+            class="add-split-caret"
+            type="button"
+            :disabled="catalogueUnread"
+            :aria-expanded="addMenuOpen"
+            aria-haspopup="menu"
+            aria-label="More things to create"
+            :title="catalogueUnread ? UNREAD_REASON : 'More things to create'"
+            @click="toggleAddMenu()"
+          >
+            <ChevronDown :size="14" aria-hidden="true" />
+          </button>
+        </div>
+        <PcButton v-else-if="showCreate && activeTab === 'sources'" class="ss-head-primary" variant="primary" :disabled="createBlocked" :title="createReason('One source of nodes, processed and served')" @click="runCommand('new-subscription')">
+          <template #icon><Plus :size="15" aria-hidden="true" /></template>
+          New subscription
+        </PcButton>
+        <PcButton v-else-if="showCreate && activeTab === 'combinations'" class="ss-head-primary" variant="primary" :disabled="comboDisabled" :title="comboTitle" @click="runCommand('new-collection')">
+          <template #icon><Plus :size="15" aria-hidden="true" /></template>
+          New combination
+        </PcButton>
+        <PcButton v-else-if="showCreate && activeTab === 'files'" class="ss-head-primary" variant="primary" :disabled="createBlocked" :title="createReason('A document served as it is, with its proxy list kept in step')" @click="runCommand('new-file')">
+          <template #icon><Plus :size="15" aria-hidden="true" /></template>
+          New file
+        </PcButton>
         <PcButton
-          class="header-refresh"
-          :busy="refreshing"
-          :disabled="!host.init.value"
-          title="Read the record catalogue and the share list again"
-          @click="refresh()"
+          v-else-if="!standalone && !recordId && !editing && activeTab === 'shares'"
+          class="ss-head-primary"
+          variant="primary"
+          :disabled="!shareOrigin"
+          :title="shareOrigin ? 'Shares are created in the console under Platform → Publishing.' : NO_ORIGIN"
+          @click="openShares()"
         >
-          <template #icon><RefreshCw :size="15" aria-hidden="true" /></template>
-          Refresh
+          <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
+          Open in Publishing
         </PcButton>
       </template>
       <template #proof>
@@ -498,55 +577,6 @@ const comboTitle = computed(() =>
               :count="tabCounts[tab.id]"
             />
           </PcLensTabs>
-        </template>
-        <template v-if="!editing && activeTab === 'overview' && canCreate" #primary>
-          <div class="add-split" data-add-menu>
-            <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'One source of nodes, processed and served'" @click="runCommand('new-subscription')">
-              <template #icon><Plus :size="15" aria-hidden="true" /></template>
-              New subscription
-            </PcButton>
-            <button
-              ref="addMenuAnchor"
-              class="add-split-caret"
-              type="button"
-              :aria-expanded="addMenuOpen"
-              aria-haspopup="menu"
-              aria-label="More things to create"
-              title="More things to create"
-              @click="toggleAddMenu()"
-            >
-              <ChevronDown :size="14" aria-hidden="true" />
-            </button>
-          </div>
-        </template>
-        <template v-else-if="!editing && activeTab === 'sources' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'One source of nodes, processed and served'" @click="runCommand('new-subscription')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New subscription
-          </PcButton>
-        </template>
-        <template v-else-if="!editing && activeTab === 'combinations' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="comboDisabled" :title="comboTitle" @click="runCommand('new-collection')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New combination
-          </PcButton>
-        </template>
-        <template v-else-if="!editing && activeTab === 'files' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'A document served as it is, with its proxy list kept in step'" @click="runCommand('new-file')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New file
-          </PcButton>
-        </template>
-        <template v-else-if="!editing && activeTab === 'shares'" #primary>
-          <PcButton
-            variant="primary"
-            :disabled="!shareOrigin"
-            :title="shareOrigin ? 'Shares are created in the console under Platform → Publishing.' : NO_ORIGIN"
-            @click="openShares()"
-          >
-            <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-            Open in Publishing
-          </PcButton>
         </template>
       </PcToolbar>
 

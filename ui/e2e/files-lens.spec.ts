@@ -147,15 +147,50 @@ test.describe("375", () => {
 test.describe("1440", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("the overview fits one screen and the toolbar is one row", async ({ page }) => {
+  test("the overview fits one screen, and the primary action sits in the header after Refresh", async ({ page }) => {
     await open(page, "", ".lineage-chip");
     expect(await docWidth(page)).toBe(1440);
     const map = (await page.locator(".overview-map").boundingBox())!;
     expect(map.y + map.height).toBeLessThanOrEqual(900);
-    const tabs = (await page.locator(".pc-lens-tabs").boundingBox())!;
-    const primary = (await page.getByRole("button", { name: "New subscription" }).boundingBox())!;
-    expect(Math.abs(primary.y + primary.height / 2 - (tabs.y + tabs.height / 2))).toBeLessThan(4);
+    // As vpn-core places its own: in the header, on Refresh's line, to its right.
+    const refresh = (await page.locator(".ss-header").getByRole("button", { name: "Refresh" }).boundingBox())!;
+    const primary = (await page.locator(".ss-header").getByRole("button", { name: "New subscription" }).boundingBox())!;
+    expect(Math.abs(primary.y + primary.height / 2 - (refresh.y + refresh.height / 2))).toBeLessThan(2);
+    expect(primary.x).toBeGreaterThan(refresh.x + refresh.width);
+    // The tab row holds the layers and nothing else.
+    await expect(page.locator(".ss-layer-bar").getByRole("button", { name: /New / })).toHaveCount(0);
     await expect(page.getByText("15 files are not published")).toBeVisible();
+  });
+
+  test("each layer's own create action takes the header's place", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    const header = page.locator(".ss-header");
+    for (const [tab, name] of [["Sources", "New subscription"], ["Combinations", "New combination"], ["Files", "New file"], ["Shares", "Open in Publishing"]] as const) {
+      await page.getByRole("tab", { name: new RegExp(`^${tab}`) }).click();
+      await expect(header.locator(".ss-head-primary"), tab).toHaveCount(1);
+      await expect(header.locator(".ss-head-primary"), tab).toContainText(name);
+    }
+    await page.getByRole("tab", { name: /^Settings/ }).click();
+    await expect(header.locator(".ss-head-primary")).toHaveCount(0);
+  });
+
+  test("an empty store leaves create to the empty state, and the header does not repeat it", async ({ page }) => {
+    for (const view of ["", "?view=sources", "?view=combinations", "?view=files"]) {
+      await open(page, `${view ? `${view}&` : "?"}state=empty`, ".pc-empty");
+      await expect(page.locator(".ss-header .ss-head-primary"), view || "overview").toHaveCount(0);
+    }
+    await open(page, "?state=empty", ".pc-empty");
+    await expect(page.getByRole("button", { name: "Go to Sources" })).toBeVisible();
+  });
+
+  test("with the record catalogue unread, create stays in place and is disabled with the reason", async ({ page }) => {
+    await open(page, "?state=error", ".ss-header .ss-head-primary");
+    const header = page.locator(".ss-header");
+    await expect(header.getByRole("button", { name: "New subscription" })).toBeDisabled();
+    await expect(header.getByRole("button", { name: "More things to create" })).toBeDisabled();
+    await expect(header.getByRole("button", { name: "New subscription" })).toHaveAttribute("title", /could not be read.*Refresh first/);
+    await page.getByRole("tab", { name: /^Files/ }).click();
+    await expect(header.getByRole("button", { name: "New file" })).toBeDisabled();
   });
 
   test("the 256-record store is one picture: folded, capped, and drawn as paths", async ({ page }) => {
