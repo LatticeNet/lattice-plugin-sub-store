@@ -1945,6 +1945,23 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 .masked-url-reveal:hover { color: var(--foreground); }
 .masked-url-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
 
+/* ── touch ────────────────────────────────────────────────────────────────
+   44px targets on a coarse pointer, as vpn-core sizes its own (design 23
+   wave 1 decision). At 375 the search icon was 30x30, the split button's
+   chevron 30x37 and a row's Publish 76x24. Refresh and the primary action
+   share the search icon's row and take its height. The row menu's trigger
+   and items count as targets too. Widths stay on a fine pointer. */
+@media (pointer: coarse) {
+  .ss-head-tools .tab-search { width: 44px; height: 44px; }
+  .ss-head-tools .header-refresh,
+  .ss-head-primary.pc-button,
+  .add-split > .pc-button { min-height: 44px; }
+  .add-split-caret { width: 44px; min-height: 44px; }
+  .row-publish { min-height: 44px; padding: 0 var(--space-3); }
+  .rec-menu-wrap .pc-icon-button { width: 44px; height: 44px; }
+  .rec-menu button { min-height: 44px; }
+}
+
 /* ── reduced motion ───────────────────────────────────────────────────────
    Last, because a media query carries no extra specificity: written where the
    animations are declared, these lose to the very rules they exist to switch

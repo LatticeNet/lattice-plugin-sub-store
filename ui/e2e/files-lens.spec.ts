@@ -389,6 +389,45 @@ test.describe("the large store's files, fifty a page", () => {
   });
 });
 
+test.describe("touch at 375", () => {
+  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+
+  test("search, Refresh, the primary and its chevron, a row's Publish and its menu are 44px targets", async ({ page }) => {
+    await open(page, "", ".ss-header .ss-head-primary");
+    const header = page.locator(".ss-header");
+    const targets = [
+      header.getByRole("button", { name: "Search records and actions (Cmd+K)" }),
+      header.getByRole("button", { name: "Refresh" }),
+      header.getByRole("button", { name: "New subscription" }),
+      header.getByRole("button", { name: "More things to create" }),
+    ];
+    for (const target of targets) {
+      const box = (await target.boundingBox())!;
+      expect(Math.min(box.width, box.height), await target.getAttribute("aria-label") ?? await target.innerText()).toBeGreaterThanOrEqual(44);
+    }
+    // Search and Refresh stay on the title line; the primary takes the row under the description.
+    const title = (await header.locator("h1").boundingBox())!;
+    const search = (await targets[0]!.boundingBox())!;
+    expect(Math.abs(search.y + search.height / 2 - (title.y + title.height / 2))).toBeLessThan(8);
+    const description = (await header.locator(".pc-title-copy > p").boundingBox())!;
+    expect((await targets[2]!.boundingBox())!.y).toBeGreaterThan(description.y + description.height - 1);
+    expect(await docWidth(page)).toBe(375);
+
+    await open(page, "?view=files&published=no", ".layer-row");
+    const row = page.locator(".layer-row").first();
+    for (const target of [row.locator(".row-publish"), row.locator("[data-row-menu] button").first()]) {
+      const box = (await target.boundingBox())!;
+      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+    }
+    await row.locator("[data-row-menu] button").first().click();
+    // The menu scales in; measure it where it comes to rest.
+    await page.locator(".rec-menu").evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+    for (const item of await page.locator(".rec-menu [role=menuitem]").all()) {
+      expect((await item.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+});
+
 test.describe("publishing and deleting files", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
