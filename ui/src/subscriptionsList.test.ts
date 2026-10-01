@@ -72,23 +72,23 @@ describe("the page chassis is a quiet Cloudflare header, not a KPI strip", () =>
 
   it("offers one primary action per layer, the overview's with the other kinds in its menu", () => {
     expect(shell).toMatch(/class="[^"]*\badd-split"/);
-    expect(shell).toContain("New subscription");
     expect(shell).toContain("runCommand('new-collection')");
     expect(shell).toContain("runCommand('new-file')");
     expect(shell).toContain("add-split-menu");
     expect(shell).not.toContain("PcSearchField");
   });
 
-  it("puts the primary action in the header after Refresh, never in the tab row", () => {
-    const actions = shell.slice(shell.indexOf("<template #actions>"), shell.indexOf("<template #proof>"));
-    for (const verb of ["New subscription", "New combination", "New file", "Open in Publishing"]) expect(actions, verb).toContain(verb);
-    expect(actions.indexOf("header-refresh")).toBeLessThan(actions.indexOf("ss-head-primary"));
-    expect(shell).not.toContain("#primary");
+  it("renders the create rules from createGate rather than deciding them", () => {
+    // Which verb, when it shows and why it is disabled are tested in createGate.test.ts.
+    expect(shell).toContain("headerCreate({ tab: activeTab.value, catalogue: catalogueView.value");
+    expect(shell).toContain('const blocks = computed(() => createBlocks(catalogueView.value));');
+    expect(shell).toContain(':create-blocked="blocks"');
   });
 
-  it("leaves create to an empty layer's empty state, and disables it while the catalogue is unread", () => {
-    expect(shell).toContain("!layerEmpty.value");
-    expect(shell).toContain('const catalogueUnread = computed(() => catalogue.state.value === "error");');
-    expect(shell).toContain(':disabled="catalogueUnread"');
+  it("puts the primary action in the header after Refresh, never in the tab row", () => {
+    const actions = shell.slice(shell.indexOf("<template #actions>"), shell.indexOf("<template #proof>"));
+    for (const control of ["{{ head.label }}", "Open in Publishing"]) expect(actions, control).toContain(control);
+    expect(actions.indexOf("header-refresh")).toBeLessThan(actions.indexOf("ss-head-primary"));
+    expect(shell).not.toContain("#primary");
   });
 });

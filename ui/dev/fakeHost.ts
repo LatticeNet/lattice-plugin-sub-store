@@ -833,9 +833,17 @@ export function createFakeHost(): HostContext {
       }
       const key = `${service.split("/").pop()}/${method}`;
       const handler = HANDLERS[key];
-      const promise = handler
-        ? delay(handler((payload ?? {}) as any) as T)
-        : Promise.reject(new Error(`the dev harness has no answer for ${key}`));
+      if (!handler) return { promise: Promise.reject(new Error(`the dev harness has no answer for ${key}`)), cancel: () => {} };
+      // A refusal comes back after the same latency as an answer, as it does
+      // over the host transport. Thrown straight out of the call, it settled
+      // in the tick the read began, so the loading state between a retry and
+      // its failure was never painted here.
+      let promise: Promise<T>;
+      try {
+        promise = delay(handler((payload ?? {}) as any) as T);
+      } catch (cause) {
+        promise = delay(undefined).then(() => Promise.reject(cause));
+      }
       return { promise, cancel: () => {} };
     },
     resize() {},

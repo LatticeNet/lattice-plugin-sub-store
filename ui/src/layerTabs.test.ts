@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { revealSelectedTab, vRevealSelected, type TabRow } from "./layerTabs";
+import { revealKeyOf, revealSelectedTab, vRevealSelected, type TabRow } from "./layerTabs";
 
 /** A 341px row starting at x 16 whose selected tab sits at [left, right] on screen. */
 function row(left: number, right: number, selected = true): TabRow & { scrollLeft: number } {
@@ -52,11 +52,37 @@ describe("the selected layer tab", () => {
 });
 
 describe("the Sub-Store layer row", () => {
-  const shell = readFileSync(new URL("./Shell.vue", import.meta.url), "utf8");
+  // The order of the shell's tabs: overview, sources, combinations, files, shares, settings.
+  const unread = [null, null, null, null, null, null];
+  const read = [null, 12, 3, 180, 40, null];
 
   it("reveals again when the tab counts are first read, not when a count changes its number", () => {
     // The counts land after a reload has applied ?view= and widen every tab.
+    expect(revealKeyOf("files", unread)).not.toBe(revealKeyOf("files", read));
+    expect(revealKeyOf("files", read)).toBe(revealKeyOf("files", [null, 13, 3, 179, 41, null]));
+    // The share list lands on its own; that widens Shares, so it counts too.
+    expect(revealKeyOf("files", [null, 12, 3, 180, null, null])).not.toBe(revealKeyOf("files", read));
+    // A zero is a read count, not an unread one.
+    expect(revealKeyOf("files", [null, 0, 0, 0, 0, null])).toBe(revealKeyOf("files", read));
+  });
+
+  it("reveals when the layer changes", () => {
+    expect(revealKeyOf("files", read)).not.toBe(revealKeyOf("shares", read));
+  });
+
+  it("drives the directive: a re-render with the same key leaves a swiped row where it is", () => {
+    const el = row(337, 421) as unknown as HTMLElement & { scrollLeft: number };
+    const updated = vRevealSelected.updated as (el: HTMLElement, binding: { value: string; oldValue: string }) => void;
+    el.scrollLeft = 0;
+    updated(el, { value: revealKeyOf("files", read), oldValue: revealKeyOf("files", [null, 13, 3, 179, 41, null]) });
+    expect(el.scrollLeft).toBe(0);
+    updated(el, { value: revealKeyOf("files", read), oldValue: revealKeyOf("files", unread) });
+    expect(el.scrollLeft).toBeGreaterThan(0);
+  });
+
+  it("is what the shell binds the row to", () => {
+    const shell = readFileSync(new URL("./Shell.vue", import.meta.url), "utf8");
     expect(shell).toContain('v-reveal-selected="revealKey"');
-    expect(shell).toContain('tabCounts.value[tab.id] === null ? "-" : "#"');
+    expect(shell).toContain("revealKeyOf(activeTab.value, tabs.map((tab) => tabCounts.value[tab.id]))");
   });
 });

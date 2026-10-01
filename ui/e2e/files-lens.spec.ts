@@ -201,6 +201,45 @@ test.describe("1440", () => {
     await expect(page.getByRole("option", { name: /New file/ })).toContainText("could not be read");
   });
 
+  test("a retry after a failed read keeps the disabled create in place, so the header does not jump", async ({ page }) => {
+    await open(page, "?state=error", ".ss-header .ss-head-primary");
+    const header = page.locator(".ss-header");
+    // Watch the primary for the whole retry: every time it leaves the page,
+    // and every title it carries.
+    await page.evaluate(() => {
+      const w = window as unknown as { __gone: number; __titles: string[] };
+      w.__gone = 0;
+      w.__titles = [];
+      const primary = () =>
+        [...document.querySelectorAll<HTMLButtonElement>(".ss-header button")].find((el) => el.textContent?.includes("New subscription"));
+      new MutationObserver(() => {
+        const el = primary();
+        if (!el) w.__gone += 1;
+        else if (w.__titles.at(-1) !== el.title) w.__titles.push(el.title);
+      }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["title"] });
+    });
+    await header.getByRole("button", { name: "Refresh" }).click();
+    const titles = () => page.evaluate(() => (window as unknown as { __titles: string[] }).__titles);
+    await expect.poll(async () => (await titles()).some((title) => /still being read/.test(title))).toBe(true);
+    await expect.poll(async () => (await titles()).at(-1)).toMatch(/could not be read/);
+    expect(await page.evaluate(() => (window as unknown as { __gone: number }).__gone)).toBe(0);
+    await expect(header.getByRole("button", { name: "New subscription" })).toBeDisabled();
+  });
+
+  test("before the first read lands, the palette offers create disabled with the reason", async ({ page }) => {
+    await open(page, "?state=slow", ".ss-header");
+    const header = page.locator(".ss-header");
+    // The handshake has landed (Refresh is live); the catalogue never does.
+    await expect(header.getByRole("button", { name: "Refresh" })).toBeEnabled();
+    await expect(header.locator(".ss-head-primary")).toHaveCount(0);
+    await header.getByRole("button", { name: "Search records and actions (Cmd+K)" }).click();
+    await page.locator(".palette-input").getByRole("combobox").fill("new");
+    for (const name of [/New subscription/, /New combination/, /New file/]) {
+      await expect(page.getByRole("option", { name })).toHaveAttribute("aria-disabled", "true");
+      await expect(page.getByRole("option", { name })).toContainText("still being read");
+    }
+  });
+
   test("the 256-record store is one picture: folded, capped, and drawn as paths", async ({ page }) => {
     await open(page, "?fixture=large", ".lineage-chip");
     const height = await page.evaluate(() => document.documentElement.scrollHeight);

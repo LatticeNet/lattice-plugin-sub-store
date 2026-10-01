@@ -7,6 +7,7 @@ import {
   moveSelection,
   paletteActionsFor,
   paletteEntries,
+  type PaletteCommandId,
   type PaletteEntry,
 } from "../commandPalette";
 import { trapDialogTab } from "../dialogFocus";
@@ -17,8 +18,8 @@ const props = defineProps<{
   open: boolean;
   records: SubscriptionListItem[];
   caps: ActionCapabilities;
-  /** Why create is blocked right now (the catalogue is unread); empty when it is not. */
-  createBlocked?: string;
+  /** Why each create command is blocked right now (createGate.ts); empty where it is not. */
+  createBlocked?: string | Partial<Record<PaletteCommandId, string>>;
 }>();
 
 const emit = defineEmits<{

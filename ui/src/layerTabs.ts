@@ -12,7 +12,8 @@
  * Only the row scrolls. scrollIntoView would also scroll the page and, in a
  * frame, the console around it.
  *
- * The same file as lattice-plugin-vpn-core/ui/src/layerTabs.ts.
+ * revealSelectedTab and the directive are the same as
+ * lattice-plugin-vpn-core/ui/src/layerTabs.ts; revealKeyOf is Sub-Store's.
  */
 import type { ObjectDirective } from "vue";
 
@@ -42,3 +43,15 @@ export const vRevealSelected: ObjectDirective<HTMLElement, string> = {
     if (binding.value !== binding.oldValue) revealSelectedTab(el);
   },
 };
+
+/**
+ * What the Sub-Store row passes to `v-reveal-selected`: the selected layer,
+ * plus which tabs have a count yet. The counts land about half a second after
+ * a reload has applied ?view=, and widening every tab at once pushed Files
+ * (and Shares) back past a phone's edge, so the row reveals once more when a
+ * count goes from unread to read. A count that only changes its number keeps
+ * the key, and does not move a row the operator is swiping through.
+ */
+export function revealKeyOf(active: string, counts: readonly (number | null | undefined)[]): string {
+  return `${active}:${counts.map((count) => (count === null || count === undefined ? "-" : "#")).join("")}`;
+}

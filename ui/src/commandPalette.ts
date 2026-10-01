@@ -93,15 +93,18 @@ function describe(record: SubscriptionListItem): string {
  * actually names once something has been typed.
  *
  * `createBlocked` is why the store cannot take a new record right now (the
- * record catalogue could not be read), the same reason the header's create
- * action carries. A session that may not create says that instead.
+ * record catalogue is unread or still being read, the record budget is spent,
+ * or there is nothing to combine), the same reasons the header's create
+ * action and the add menu carry (createGate.ts). One string applies to every
+ * command; a map gives each command its own. A session that may not create
+ * says that instead.
  */
 export function paletteEntries(
   query: string,
   records: readonly SubscriptionListItem[],
   caps: ActionCapabilities,
   limit = 20,
-  createBlocked = "",
+  createBlocked: string | Partial<Record<PaletteCommandId, string>> = "",
 ): PaletteEntry[] {
   const q = normalizeQuery(query);
   const matched = records
@@ -120,7 +123,7 @@ export function paletteEntries(
   const commands = PALETTE_COMMANDS.filter(
     (command) => !q || command.label.toLowerCase().includes(q) || command.hint.toLowerCase().includes(q),
   ).map<PaletteEntry>((command) => {
-    const reason = command.blocked(caps) || createBlocked;
+    const reason = command.blocked(caps) || (typeof createBlocked === "string" ? createBlocked : createBlocked[command.id] ?? "");
     return {
       kind: "command",
       key: "command:" + command.id,

@@ -20,7 +20,8 @@ import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
 import { actionCapabilities, type ActionCapabilities, type ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
-import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS, type SubscriptionListItem } from "./client";
+import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionListItem } from "./client";
+import { createBlocks, headerCreate, type CatalogueView } from "./createGate";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
 import OverviewScreen from "./screens/OverviewScreen.vue";
 import RecordPage from "./screens/RecordPage.vue";
@@ -32,7 +33,7 @@ import { createLensChrome, provideLensChrome, type Facets, type TabId } from "./
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
 import { useObservedAge } from "./observedAge";
-import { vRevealSelected } from "./layerTabs";
+import { revealKeyOf, vRevealSelected } from "./layerTabs";
 import { VIEW_IDS, viewOfKind } from "./pipeline";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
@@ -210,14 +211,8 @@ const tabCounts = computed<Record<TabId, number | null>>(() => ({
   settings: null,
 }));
 
-/**
- * When the layer row scrolls its selected tab into view: on a layer change,
- * and once more when a tab's count goes from unread to read. The counts land
- * about half a second after a reload has applied ?view=, and widening every
- * tab pushed Files (and Shares) back past a phone's edge. A count that only
- * changes its number does not move the row again.
- */
-const revealKey = computed(() => `${activeTab.value}:${tabs.map((tab) => (tabCounts.value[tab.id] === null ? "-" : "#")).join("")}`);
+/** When the layer row scrolls its selected tab into view (layerTabs.ts revealKeyOf). */
+const revealKey = computed(() => revealKeyOf(activeTab.value, tabs.map((tab) => tabCounts.value[tab.id])));
 
 /**
  * Live-share and published counts, from the same two lists the layers render.
@@ -321,45 +316,37 @@ function toggleAddMenu(): void {
 const caps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
 /**
- * The page's one primary action per layer, and why it may be missing.
- *
- * A verb the session may not perform is absent, not disabled, and the reason
- * takes its place as a note; a verb the store cannot take right now (the
- * record budget is spent) stays, disabled, with the reason as its title.
+ * Whether the last catalogue read that finished failed, with none succeeding
+ * since. A retry sets the state back to "loading"; this keeps the header's
+ * disabled create in place through it rather than dropping the row and
+ * adding it back.
  */
-const atRecordLimit = computed(() => ready.value && catalogue.items.value.length >= MAX_SUBSCRIPTION_RECORDS);
-const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
-const canCreate = computed(() => caps.value.ready && caps.value.mutate);
-/**
- * The catalogue read failed. Create stays in its place, disabled, because
- * the record budget and the names already in use are unknown until a read
- * lands; Refresh is the way out.
- */
-const catalogueUnread = computed(() => catalogue.state.value === "error");
-const UNREAD_REASON = "The record catalogue could not be read, so the record budget and the names in use are unknown. Refresh first";
-/**
- * The layer's list was read and is empty. Its empty state carries the
- * create action, so the header does not repeat it (design 23 section 3.7).
- */
-const layerEmpty = computed(() => {
-  if (!ready.value) return false;
-  if (activeTab.value === "overview") return records.value.length === 0;
-  if (activeTab.value === "sources") return singles.value.length === 0;
-  if (activeTab.value === "combinations") return combos.value.length === 0;
-  if (activeTab.value === "files") return files.value.length === 0;
-  return false;
-});
-/**
- * Where the layer's create action shows: in the header after Refresh, as
- * vpn-core places its own, once the catalogue is read (or its read failed,
- * which leaves it disabled), never on a record page, in an editor, or over
- * an empty layer.
- */
-const showCreate = computed(
-  () => !recordId.value && !editing.value && canCreate.value && (ready.value || catalogueUnread.value) && !layerEmpty.value,
+const catalogueFailed = ref(false);
+watch(
+  () => catalogue.state.value,
+  (state) => {
+    if (state === "error") catalogueFailed.value = true;
+    else if (state === "ready") catalogueFailed.value = false;
+  },
+  { immediate: true, flush: "sync" },
 );
-const createBlocked = computed(() => catalogueUnread.value || atRecordLimit.value);
-const createReason = (why: string) => (catalogueUnread.value ? UNREAD_REASON : atRecordLimit.value ? LIMIT_REASON : why);
+const catalogueView = computed<CatalogueView>(() => ({
+  state: catalogue.state.value,
+  failed: catalogueFailed.value,
+  records: catalogue.items.value,
+}));
+/**
+ * The page's one primary action per layer, in the header after Refresh, as
+ * vpn-core places its own; the rules are in createGate.ts. A verb the session
+ * may not perform is absent; a verb the store cannot take right now (the
+ * catalogue is unread, the record budget is spent) stays, disabled, with the
+ * reason as its title.
+ */
+const head = computed(() =>
+  headerCreate({ tab: activeTab.value, catalogue: catalogueView.value, caps: caps.value, covered: !!recordId.value || editing.value }),
+);
+/** Why each create command is blocked, for the add menu and the palette. */
+const blocks = computed(() => createBlocks(catalogueView.value));
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
 const NO_ORIGIN = "This frame cannot ask the console to navigate; open Platform → Publishing yourself.";
 
@@ -467,16 +454,6 @@ function openShares(): void {
   postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
 }
 
-const comboDisabled = computed(() => createBlocked.value || !singles.value.length);
-const comboTitle = computed(() =>
-  catalogueUnread.value
-    ? UNREAD_REASON
-    : !singles.value.length
-      ? "Create a subscription first. There is nothing to combine"
-      : atRecordLimit.value
-        ? LIMIT_REASON
-        : "Merge several subscriptions and process the result as one",
-);
 </script>
 
 <template>
@@ -516,36 +493,28 @@ const comboTitle = computed(() =>
         <!-- The layer's one primary action, after Refresh, where vpn-core puts
              its own. On a phone it takes a row of its own under the
              description. -->
-        <div v-if="showCreate && activeTab === 'overview'" class="ss-head-primary add-split" data-add-menu>
-          <PcButton variant="primary" :disabled="createBlocked" :title="createReason('One source of nodes, processed and served')" @click="runCommand('new-subscription')">
+        <div v-if="head?.menu" class="ss-head-primary add-split" data-add-menu>
+          <PcButton variant="primary" :disabled="head.disabled" :title="head.title" @click="runCommand(head.command)">
             <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New subscription
+            {{ head.label }}
           </PcButton>
           <button
             ref="addMenuAnchor"
             class="add-split-caret"
             type="button"
-            :disabled="catalogueUnread"
+            :disabled="head.menuDisabled"
             :aria-expanded="addMenuOpen"
             aria-haspopup="menu"
             aria-label="More things to create"
-            :title="catalogueUnread ? UNREAD_REASON : 'More things to create'"
+            :title="head.menuDisabled ? head.title : 'More things to create'"
             @click="toggleAddMenu()"
           >
             <ChevronDown :size="14" aria-hidden="true" />
           </button>
         </div>
-        <PcButton v-else-if="showCreate && activeTab === 'sources'" class="ss-head-primary" variant="primary" :disabled="createBlocked" :title="createReason('One source of nodes, processed and served')" @click="runCommand('new-subscription')">
+        <PcButton v-else-if="head" class="ss-head-primary" variant="primary" :disabled="head.disabled" :title="head.title" @click="runCommand(head.command)">
           <template #icon><Plus :size="15" aria-hidden="true" /></template>
-          New subscription
-        </PcButton>
-        <PcButton v-else-if="showCreate && activeTab === 'combinations'" class="ss-head-primary" variant="primary" :disabled="comboDisabled" :title="comboTitle" @click="runCommand('new-collection')">
-          <template #icon><Plus :size="15" aria-hidden="true" /></template>
-          New combination
-        </PcButton>
-        <PcButton v-else-if="showCreate && activeTab === 'files'" class="ss-head-primary" variant="primary" :disabled="createBlocked" :title="createReason('A document served as it is, with its proxy list kept in step')" @click="runCommand('new-file')">
-          <template #icon><Plus :size="15" aria-hidden="true" /></template>
-          New file
+          {{ head.label }}
         </PcButton>
         <PcButton
           v-else-if="!standalone && !recordId && !editing && activeTab === 'shares'"
@@ -638,8 +607,8 @@ const comboTitle = computed(() =>
           <button
             type="button"
             role="menuitem"
-            :disabled="comboDisabled"
-            :title="comboTitle"
+            :disabled="!!blocks['new-collection']"
+            :title="blocks['new-collection'] || 'Merge several subscriptions and process the result as one'"
             @click="runCommand('new-collection')"
           >
             <Layers :size="14" aria-hidden="true" />
@@ -648,21 +617,21 @@ const comboTitle = computed(() =>
           <button
             type="button"
             role="menuitem"
-            :disabled="createBlocked"
-            :title="createReason('A client file rendered from a source or combination')"
+            :disabled="!!blocks['new-file']"
+            :title="blocks['new-file'] || 'A client file rendered from a source or combination'"
             @click="runCommand('new-file')"
           >
             <FileCode :size="14" aria-hidden="true" />
             New file
           </button>
-          <p v-if="comboDisabled" class="rec-menu-note">{{ comboTitle }}</p>
+          <p v-if="blocks['new-collection']" class="rec-menu-note">{{ blocks['new-collection'] }}</p>
         </div>
       </Teleport>
       <CommandPalette
         :open="paletteOpen"
         :records="catalogue.items.value"
         :caps="caps"
-        :create-blocked="catalogueUnread ? UNREAD_REASON : ''"
+        :create-blocked="blocks"
         @close="paletteOpen = false"
         @run="runFromPalette"
         @command="runCommand"

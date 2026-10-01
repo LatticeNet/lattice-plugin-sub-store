@@ -9,6 +9,7 @@ import {
   paletteEntries,
   PALETTE_COMMANDS,
 } from "./commandPalette";
+import { NO_SOURCE_REASON, READING_REASON, createBlocks } from "./createGate";
 import type { ActionCapabilities } from "./recordActions";
 
 function record(over: Partial<SubscriptionListItem> = {}): SubscriptionListItem {
@@ -82,6 +83,18 @@ describe("what the palette lists", () => {
     const scope = paletteEntries("new", RECORDS, caps({ mutate: false }), 20, unread).filter((e) => e.kind === "command");
     expect(scope[0]?.reason).toContain("token lacks the scope");
     expect(paletteEntries("new", RECORDS, caps()).filter((e) => e.kind === "command").some((e) => e.disabled)).toBe(false);
+  });
+
+  it("blocks create while the first read is in flight, and gives each command the gate's own reason", () => {
+    // Cmd+K before the catalogue lands: the budget and the names are unknown.
+    const reading = paletteEntries("new", [], caps(), 20, createBlocks({ state: "loading", failed: false, records: [] }));
+    expect(reading.every((e) => e.disabled && e.reason === READING_REASON)).toBe(true);
+    // Read, with files only: a combination has nothing to combine, the others may go ahead.
+    const filesOnly = createBlocks({ state: "ready", failed: false, records: [{ kind: "file" }] });
+    const byCommand = new Map(paletteEntries("new", [], caps(), 20, filesOnly).map((e) => [e.command, e]));
+    expect(byCommand.get("new-collection")).toMatchObject({ disabled: true, reason: NO_SOURCE_REASON });
+    expect(byCommand.get("new-subscription")?.disabled).toBe(false);
+    expect(byCommand.get("new-file")?.disabled).toBe(false);
   });
 });
 
