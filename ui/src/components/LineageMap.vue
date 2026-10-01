@@ -4,6 +4,7 @@ import { ChevronRight } from "@lucide/vue";
 import { PcStateDot, useMediaQuery } from "@latticenet/plugin-bridge/chassis";
 
 import { drawnEdges, isDense, layoutLineage, openSelectedGroup, paintedEdges, type MapItem } from "../lineageLayout";
+import { overlayDepth } from "../overlayStack";
 import { pathOf, plural, STAGES, type Lineage, type Stage } from "../pipeline";
 
 /**
@@ -225,7 +226,17 @@ function onChip(item: MapItem): void {
     else next.add(item.key);
     openGroups.value = next;
   }
-  emit("select", item.key === props.selected && item.kind === "node" ? "" : item.key);
+  // A chip always selects. It used to toggle, so after the panel closed with
+  // the path still lit, the next click on the same chip put the path out
+  // instead of bringing the record back. The path is cleared with Escape on
+  // the map, a click on empty map space, or Clear selection.
+  emit("select", item.key);
+}
+
+/** Escape on the map puts the lit path out, once nothing is layered over it. */
+function onMapKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !props.selected || overlayDepth() > 0) return;
+  emit("select", "");
 }
 
 // ── geometry ────────────────────────────────────────────────────────────────
@@ -384,7 +395,7 @@ function chipTitle(item: MapItem): string {
 </script>
 
 <template>
-  <figure class="lineage" :aria-label="summary" :data-lit="lit ? 'true' : undefined">
+  <figure class="lineage" :aria-label="summary" :data-lit="lit ? 'true' : undefined" @keydown="onMapKeydown">
     <p v-if="note && !narrow" class="lineage-note">{{ note }}</p>
     <!-- Wide: four columns and the edges between them. -->
     <div v-if="!narrow" ref="canvas" class="lineage-canvas" :style="laneRoom ? { paddingBottom: `calc(var(--space-4) + ${laneRoom}px)` } : undefined" @click.self="emit('select', '')">
