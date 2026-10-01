@@ -284,6 +284,8 @@ const { page, table } = usePages(
   () => files.value,
   FILES_PAGE,
   () => [searchText.value, kindFilter.value, facets.published, facets.origin],
+  // The shell keeps the page in the address, so a reload lands on it.
+  { page: chrome.page, ready: () => subs.state.value === "ready" },
 );
 /**
  * A panel opened from a link or from the Overview shows its row: turn to the

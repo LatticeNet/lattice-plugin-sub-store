@@ -32,6 +32,21 @@ export function pageHolding(index: number, pageSize: number): number {
   return Math.floor(index / Math.max(1, Math.trunc(pageSize) || 1)) + 1;
 }
 
+export interface PagesOptions {
+  /**
+   * The page number, when something else keeps it too: the shell carries the
+   * Files page in the console's address, so a reload lands on the same page.
+   */
+  page?: Ref<number>;
+  /**
+   * Whether the rows have been read. Until then neither rule below runs: the
+   * table is empty because nothing has arrived, not because the rows went,
+   * and the filters a reload restores are not the operator changing them.
+   * Clamping or restarting then threw away the page the address asked for.
+   */
+  ready?: () => boolean;
+}
+
 /**
  * A screen's page of `rows`. A change in `restartOn` (a search, a filter)
  * turns back to page 1. When the rows shrink under the page on screen (rows
@@ -42,14 +57,21 @@ export function usePages<T>(
   rows: () => readonly T[],
   pageSize: number,
   restartOn?: () => unknown,
+  options: PagesOptions = {},
 ): { page: Ref<number>; table: ComputedRef<Page<T>> } {
-  const page = ref(1);
+  const page = options.page ?? ref(1);
+  const ready = options.ready ?? (() => true);
   const table = computed(() => pageRows(rows(), page.value, pageSize));
-  if (restartOn) watch(restartOn, () => { page.value = 1; });
-  watch(() => table.value.page, (clamped) => {
-    if (clamped !== page.value) page.value = clamped;
+  if (restartOn) watch(restartOn, () => { if (ready()) page.value = 1; });
+  watch([() => table.value.page, ready], ([clamped, isReady]) => {
+    if (isReady && clamped !== page.value) page.value = clamped;
   });
   return { page, table };
+}
+
+/** A page number off the wire: a positive whole number, or 1. */
+export function pageFromState(value: string | undefined): number {
+  return value && /^[1-9][0-9]{0,4}$/.test(value) ? Number(value) : 1;
 }
 
 /**

@@ -1,7 +1,7 @@
 import { nextTick, ref } from "vue";
 import { describe, expect, it } from "vitest";
 
-import { pageHolding, pageRows, toggleShown, usePages } from "./paging";
+import { pageFromState, pageHolding, pageRows, toggleShown, usePages } from "./paging";
 
 const rows = Array.from({ length: 160 }, (_, index) => index);
 
@@ -66,6 +66,50 @@ describe("a screen's page number", () => {
     rowsRef.value = rowsRef.value.slice(0, 151);
     await nextTick();
     expect(page.value).toBe(4);
+  });
+});
+
+describe("a page restored from the address", () => {
+  it("keeps the restored page while the rows are unread, and clamps once they land", async () => {
+    const list = ref<number[]>([]);
+    const loaded = ref(false);
+    const shared = ref(3);
+    const { page, table } = usePages(() => list.value, 50, undefined, { page: shared, ready: () => loaded.value });
+    await nextTick();
+    // Nothing read yet: the table shows its one empty page, the number waits.
+    expect(table.value.page).toBe(1);
+    expect(page.value).toBe(3);
+    list.value = Array.from({ length: 180 }, (_, index) => index);
+    loaded.value = true;
+    await nextTick();
+    expect(table.value).toMatchObject({ page: 3, from: 101, to: 150 });
+    expect(shared.value).toBe(3);
+    list.value = list.value.slice(0, 60);
+    await nextTick();
+    expect(shared.value).toBe(2);
+  });
+
+  it("does not restart on the filters a reload applies before the rows land", async () => {
+    const list = ref<number[]>([]);
+    const loaded = ref(false);
+    const query = ref("");
+    const shared = ref(3);
+    usePages(() => list.value, 50, () => query.value, { page: shared, ready: () => loaded.value });
+    query.value = "alice";
+    await nextTick();
+    expect(shared.value).toBe(3);
+    list.value = Array.from({ length: 180 }, (_, index) => index);
+    loaded.value = true;
+    await nextTick();
+    query.value = "bob";
+    await nextTick();
+    expect(shared.value).toBe(1);
+  });
+
+  it("reads a page number off the wire, and anything else as 1", () => {
+    expect(pageFromState("3")).toBe(3);
+    expect(pageFromState(undefined)).toBe(1);
+    for (const bad of ["", "0", "-2", "1.5", "03", "abc", "999999"]) expect(pageFromState(bad), bad).toBe(1);
   });
 });
 

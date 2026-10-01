@@ -117,6 +117,7 @@ const shellState = computed<ShellState>(() => ({
   origin: chrome.facets.origin,
   type: chrome.facets.type,
   link: chrome.facets.link,
+  page: chrome.page.value,
 }));
 
 function applyState(state: ShellState): void {
@@ -127,6 +128,7 @@ function applyState(state: ShellState): void {
   chrome.search.value = state.q;
   chrome.sort.value = state.sort;
   Object.assign(chrome.facets, { published: state.published, origin: state.origin, type: state.type, link: state.link });
+  chrome.page.value = state.page;
 }
 
 const stateSender = createStateSender((state) => host.sendState(state));

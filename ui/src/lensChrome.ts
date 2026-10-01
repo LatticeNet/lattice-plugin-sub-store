@@ -63,6 +63,8 @@ export interface LensChrome {
   openPage: (id: string) => void;
   /** The record the side panel shows, "" when it is closed. */
   openId: Ref<string>;
+  /** The Files table's page; carried in the address so a reload lands on it. */
+  page: Ref<number>;
 }
 
 const KEY: InjectionKey<LensChrome> = Symbol("lattice-lens-chrome");
@@ -88,6 +90,7 @@ export function createLensChrome(): LensChrome {
     openRecord: () => {},
     openPage: () => {},
     openId: ref(""),
+    page: ref(1),
   };
 }
 
