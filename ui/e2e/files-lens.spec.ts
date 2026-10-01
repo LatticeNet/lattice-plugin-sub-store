@@ -194,6 +194,11 @@ test.describe("1440", () => {
     await expect(header.getByRole("button", { name: "New subscription" })).toHaveAttribute("title", /could not be read.*Refresh first/);
     await page.getByRole("tab", { name: /^Files/ }).click();
     await expect(header.getByRole("button", { name: "New file" })).toBeDisabled();
+    // The palette's create commands carry the same reason, written out.
+    await header.getByRole("button", { name: "Search records and actions (Cmd+K)" }).click();
+    await page.locator(".palette-input").getByRole("combobox").fill("new");
+    await expect(page.getByRole("option", { name: /New file/ })).toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByRole("option", { name: /New file/ })).toContainText("could not be read");
   });
 
   test("the 256-record store is one picture: folded, capped, and drawn as paths", async ({ page }) => {

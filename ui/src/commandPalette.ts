@@ -91,12 +91,17 @@ function describe(record: SubscriptionListItem): string {
  * Level one. Records first, because the palette is opened to reach a record far
  * more often than to create one; commands follow, and only those the query
  * actually names once something has been typed.
+ *
+ * `createBlocked` is why the store cannot take a new record right now (the
+ * record catalogue could not be read), the same reason the header's create
+ * action carries. A session that may not create says that instead.
  */
 export function paletteEntries(
   query: string,
   records: readonly SubscriptionListItem[],
   caps: ActionCapabilities,
   limit = 20,
+  createBlocked = "",
 ): PaletteEntry[] {
   const q = normalizeQuery(query);
   const matched = records
@@ -115,7 +120,7 @@ export function paletteEntries(
   const commands = PALETTE_COMMANDS.filter(
     (command) => !q || command.label.toLowerCase().includes(q) || command.hint.toLowerCase().includes(q),
   ).map<PaletteEntry>((command) => {
-    const reason = command.blocked(caps);
+    const reason = command.blocked(caps) || createBlocked;
     return {
       kind: "command",
       key: "command:" + command.id,

@@ -17,6 +17,8 @@ const props = defineProps<{
   open: boolean;
   records: SubscriptionListItem[];
   caps: ActionCapabilities;
+  /** Why create is blocked right now (the catalogue is unread); empty when it is not. */
+  createBlocked?: string;
 }>();
 
 const emit = defineEmits<{
@@ -39,7 +41,7 @@ const cursor = ref(0);
 const chosen = ref<SubscriptionListItem | null>(null);
 const input = ref<HTMLInputElement | null>(null);
 
-const entries = computed(() => paletteEntries(query.value, props.records, props.caps));
+const entries = computed(() => paletteEntries(query.value, props.records, props.caps, undefined, props.createBlocked ?? ""));
 const actions = computed(() =>
   chosen.value ? paletteActionsFor(chosen.value, props.caps, OFFERED) : [],
 );

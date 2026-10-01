@@ -648,8 +648,8 @@ const comboTitle = computed(() =>
           <button
             type="button"
             role="menuitem"
-            :disabled="atRecordLimit"
-            :title="atRecordLimit ? LIMIT_REASON : 'A client file rendered from a source or combination'"
+            :disabled="createBlocked"
+            :title="createReason('A client file rendered from a source or combination')"
             @click="runCommand('new-file')"
           >
             <FileCode :size="14" aria-hidden="true" />
@@ -662,6 +662,7 @@ const comboTitle = computed(() =>
         :open="paletteOpen"
         :records="catalogue.items.value"
         :caps="caps"
+        :create-blocked="catalogueUnread ? UNREAD_REASON : ''"
         @close="paletteOpen = false"
         @run="runFromPalette"
         @command="runCommand"

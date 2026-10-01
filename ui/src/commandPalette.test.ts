@@ -74,6 +74,15 @@ describe("what the palette lists", () => {
     expect(create.every((e) => e.disabled)).toBe(true);
     expect(create[0]?.reason).toContain("token lacks the scope");
   });
+
+  it("disables create with the header's reason while the catalogue is unread, and a missing scope still says so first", () => {
+    const unread = "The record catalogue could not be read";
+    const blocked = paletteEntries("new", RECORDS, caps(), 20, unread).filter((e) => e.kind === "command");
+    expect(blocked.every((e) => e.disabled && e.reason === unread)).toBe(true);
+    const scope = paletteEntries("new", RECORDS, caps({ mutate: false }), 20, unread).filter((e) => e.kind === "command");
+    expect(scope[0]?.reason).toContain("token lacks the scope");
+    expect(paletteEntries("new", RECORDS, caps()).filter((e) => e.kind === "command").some((e) => e.disabled)).toBe(false);
+  });
 });
 
 describe("what the palette offers for a chosen record", () => {
