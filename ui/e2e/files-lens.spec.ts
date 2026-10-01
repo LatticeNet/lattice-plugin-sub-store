@@ -321,6 +321,39 @@ test.describe("1440", () => {
   });
 });
 
+test.describe("the large store's files, fifty a page", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  const footer = (page: Page) => page.locator(".pc-pagination");
+
+  test("pages by fifty, lands on the top of the next page, and a filter starts again on page 1", async ({ page }) => {
+    await open(page, "?view=files&fixture=large", ".layer-row");
+    await expect(page.locator(".layer-row")).toHaveCount(50);
+    await expect(footer(page)).toContainText("Files 1 to 50 of 180");
+    await expect(footer(page)).toContainText("Page 1 of 4");
+    await footer(page).getByRole("button", { name: "Next" }).click();
+    await expect(footer(page)).toContainText("Files 51 to 100 of 180");
+    // Next sat under the last row; the new page shows from its top.
+    const top = await page.locator(".rec-list").evaluate((el) => el.getBoundingClientRect().top);
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top).toBeLessThan(900);
+    // Select all takes the rows on screen, and the bar counts those.
+    await page.getByRole("checkbox", { name: "Select all 50 shown files" }).check();
+    await expect(page.locator(".pc-batch-bar")).toContainText("50");
+    await page.locator(".pc-batch-bar").getByRole("button", { name: "Clear" }).click();
+    await page.getByRole("searchbox", { name: "Filter files" }).fill("alice");
+    await expect(page.locator(".layer-row")).toHaveCount(15);
+    await expect(footer(page)).toHaveCount(0);
+  });
+
+  test("a link to a file on a later page turns to that page", async ({ page }) => {
+    await open(page, "?view=files&fixture=large&open=file-ivan-loon", ".layer-row");
+    await expect(page.locator("#rec-file-ivan-loon")).toBeVisible();
+    await expect(footer(page)).not.toContainText("Page 1 of");
+    await expect(page.locator(".pc-side-panel h2")).toHaveText("for-ivan-loon");
+  });
+});
+
 test.describe("publishing and deleting files", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 

@@ -21,6 +21,7 @@ import {
   PcEmptyState,
   PcKindChip,
   PcNotice,
+  PcPagination,
   PcPanel,
   PcPanelBody,
   PcPanelHeader,
@@ -54,6 +55,7 @@ import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
+import { pageHolding, pageRows } from "../paging";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
@@ -253,6 +255,42 @@ const files = computed(() =>
   }),
 );
 
+/**
+ * Fifty files a page, as vpn-core pages its identities. The large store's
+ * 160 files were one 7,590 px page with no way to the last row but
+ * scrolling. A filter or a search starts again on page 1.
+ */
+const FILES_PAGE = 50;
+const page = ref(1);
+const table = computed(() => pageRows(files.value, page.value, FILES_PAGE));
+watch(() => [searchText.value, kindFilter.value, facets.published, facets.origin], () => {
+  page.value = 1;
+});
+/**
+ * A panel opened from a link or from the Overview shows its row: turn to the
+ * page that holds it. The catalogue can land after the link, so this runs
+ * again when the list is first read.
+ */
+watch(
+  () => [chrome.openId.value, subs.state.value === "ready"] as const,
+  ([id]) => {
+    if (!id || table.value.rows.some((file) => file.id === id)) return;
+    const holder = pageHolding(files.value.findIndex((file) => file.id === id), FILES_PAGE);
+    if (holder) page.value = holder;
+  },
+  { immediate: true },
+);
+/** Next from the footer lands on the top of the new page, not on its last rows. */
+const listTop = ref<HTMLElement | null>(null);
+function turnPage(next: number): void {
+  page.value = next;
+  void nextTick(() => {
+    const top = listTop.value?.getBoundingClientRect().top;
+    // Only the frame's own document scrolls; the console around it stays put.
+    if (top !== undefined && top < 0) window.scrollTo({ top: window.scrollY + top - 8 });
+  });
+}
+
 const lineage = computed(() => buildLineage(subs.items.value, shareStore.shares.value));
 
 /** The client a file is written for, from its name; empty with the reason when it does not say. */
@@ -316,18 +354,19 @@ function rendersOf(item: SubscriptionListItem): { text: string; title: string; m
 }
 
 /** What the batch controls report and act on: only rows that exist and are on
- *  screen. A stale id from a filtered or already-deleted row must never be
- *  part of what Delete promises. */
-const selectedVisible = computed(() => files.value.filter((file) => selectedIds.value.has(file.id)));
+ *  screen, which with paging means this page. A stale id from a filtered,
+ *  paged-away or already-deleted row must never be part of what Delete
+ *  promises; it comes back checked when its row is shown again. */
+const selectedVisible = computed(() => table.value.rows.filter((file) => selectedIds.value.has(file.id)));
 const selectedCount = computed(() => selectedVisible.value.length);
 const allVisibleSelected = computed(
-  () => files.value.length > 0 && selectedCount.value === files.value.length,
+  () => table.value.rows.length > 0 && selectedCount.value === table.value.rows.length,
 );
 
 function toggleSelectAll(): void {
   selectedIds.value = allVisibleSelected.value
     ? new Set()
-    : new Set(files.value.map((file) => file.id));
+    : new Set(table.value.rows.map((file) => file.id));
 }
 
 function openFileSheet(item: SubscriptionListItem, event?: Event): void {
@@ -1289,7 +1328,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel label="Files">
-          <div class="rec-list" aria-label="Files">
+          <div ref="listTop" class="rec-list" aria-label="Files">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter files" />
               <label class="toolbar-sort">
@@ -1343,7 +1382,7 @@ watch(host.init, (value) => {
                   header
                   :checked="allVisibleSelected"
                   :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                  :label="`Select all ${files.length} shown files`"
+                  :label="`Select all ${table.rows.length} shown files`"
                   @change="toggleSelectAll()"
                 />
                 <PcTh name>Name</PcTh>
@@ -1355,7 +1394,7 @@ watch(host.init, (value) => {
               </template>
               <tbody>
                 <PcRow
-                  v-for="item in files"
+                  v-for="item in table.rows"
                   :id="`rec-${item.id}`"
                   :key="item.id"
                   class="layer-row"
@@ -1418,6 +1457,18 @@ watch(host.init, (value) => {
                 </PcRow>
               </tbody>
             </PcTable>
+            <!-- More than a page: a footer, as vpn-core's Users has. Fewer and there is none. -->
+            <PcPagination
+              v-if="table.pages > 1"
+              :page="table.page"
+              :pages="table.pages"
+              :from="table.from"
+              :to="table.to"
+              :total="table.total"
+              noun="Files"
+              label="Files pagination"
+              @update:page="turnPage"
+            />
           </div>
         </PcPanel>
       </template>
