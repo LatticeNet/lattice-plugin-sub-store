@@ -57,6 +57,7 @@ import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { pageHolding, toggleShown, usePages } from "../paging";
 import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
+import { forwardSelectCellClick, isSelectCell } from "../selectCell";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
@@ -316,7 +317,7 @@ function clientOf(item: SubscriptionListItem): { text: string; title: string } {
 
 function openRow(item: SubscriptionListItem, event: MouseEvent): void {
   const target = event.target as HTMLElement | null;
-  if (target?.closest("input, [data-row-menu], .rec-menu, .row-publish")) return;
+  if (isSelectCell(target) || target?.closest("input, [data-row-menu], .rec-menu, .row-publish")) return;
   chrome.openRecord(item.id);
 }
 
@@ -1343,7 +1344,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel label="Files">
-          <div ref="listTop" class="rec-list" aria-label="Files">
+          <div ref="listTop" class="rec-list" aria-label="Files" @click="forwardSelectCellClick">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter files" />
               <label class="toolbar-sort">

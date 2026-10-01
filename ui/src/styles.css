@@ -1954,24 +1954,6 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 .masked-url-reveal:hover { color: var(--foreground); }
 .masked-url-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
 
-/* ── touch ────────────────────────────────────────────────────────────────
-   44px targets on a coarse pointer, as vpn-core sizes its own (design 23
-   wave 1 decision). At 375 the search icon was 30x30, the split button's
-   chevron 30x37 and a row's Publish 76x24. Refresh and the primary action
-   share the search icon's row and take its height. The row menu's trigger
-   and items count as targets too. Widths stay on a fine pointer. */
-@media (pointer: coarse) {
-  .ss-head-tools .tab-search { width: 44px; height: 44px; }
-  .ss-head-tools .header-refresh,
-  .ss-head-primary.pc-button,
-  .add-split > .pc-button { min-height: 44px; }
-  .add-split-caret { width: 44px; min-height: 44px; }
-  .row-publish { min-height: 44px; padding: 0 var(--space-3); }
-  .rec-menu-wrap .pc-icon-button { width: 44px; height: 44px; }
-  .rec-menu button { min-height: 44px; }
-  .pc-pagination .pc-button { min-height: 44px; }
-}
-
 /* chassis-workaround: PcPagination wraps Next alone onto a second line at
    375. On a phone the range takes the first line and Previous, the page and
    Next share the second. Remove once the chassis footer lays itself out at
@@ -2451,4 +2433,52 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 @media (min-width: 768px) {
   .pc-overlay[data-kind="panel"] { background: transparent; pointer-events: none; }
   .pc-overlay[data-kind="panel"] > .pc-side-panel { pointer-events: auto; }
+}
+
+/* ── touch ────────────────────────────────────────────────────────────────
+   44px targets on a coarse pointer, as vpn-core sizes its own (design 23
+   wave 1 decision). At 375 the search icon was 30x30, the split button's
+   chevron 30x37 and a row's Publish 76x24. Refresh and the primary action
+   share the search icon's row and take its height. The row menu's trigger
+   and items count as targets too. Widths stay on a fine pointer. This block
+   is the last in the file: it overrides heights the component rules above
+   set at the same specificity (the map chip's 30px, for one), and source
+   order is what decides between them. */
+@media (pointer: coarse) {
+  .ss-head-tools .tab-search { width: 44px; height: 44px; }
+  .ss-head-tools .header-refresh,
+  .ss-head-primary.pc-button,
+  .add-split > .pc-button { min-height: 44px; }
+  .add-split-caret { width: 44px; min-height: 44px; }
+  .row-publish { min-height: 44px; padding: 0 var(--space-3); }
+  .rec-menu-wrap .pc-icon-button { width: 44px; height: 44px; }
+  .rec-menu button { min-height: 44px; }
+  .pc-pagination .pc-button { min-height: 44px; }
+  /* The rest of what a thumb reaches at 375 (the 2026-10-01 review measured
+     each one): the layer tabs (30 tall), the attention actions (28), the map
+     chips (30), the filter field (36) and selects (30), Shares' Copy link
+     (28), and in the side panel its close (30x30, the only way out on touch),
+     Publish (29), Edit and Open page (37) and the relation links (20 tall,
+     24 apart). The confirm dialog's buttons and typed field were 30. These
+     are class rules, not a global one, and they are not in a layer: the
+     chassis sets these controls' own heights unlayered, and a layered rule
+     loses to those whatever its specificity. */
+  .ss-layer-tabs .pc-lens-tab { min-height: 44px; }
+  .attention-item .pc-button,
+  .attention-more .pc-button { min-height: 44px; }
+  .lineage-chip { height: 44px; }
+  .rec-tools .pc-search input,
+  .rec-tools .pc-select { min-height: 44px; }
+  .layer-row .pc-row-actions .pc-button { min-height: 44px; }
+  .pc-side-panel > header .pc-icon-button { width: 44px; height: 44px; }
+  .pc-side-panel > footer .pc-button,
+  .peek .pc-button { min-height: 44px; }
+  .peek-link { display: inline-flex; min-height: 44px; align-items: center; }
+  .peek-links { gap: 0; }
+  .lt-dialog-actions .lt-btn { min-height: 44px; padding-inline: var(--space-4); }
+  .lt-dialog-input { min-height: 44px; }
+  /* A row's checkbox is 16px; the whole cell selects (selectCell.ts) and is
+     a thumb wide. */
+  .layer-table td.pc-select,
+  .layer-table th.pc-select { min-width: 48px; padding-right: 0; cursor: pointer; }
 }

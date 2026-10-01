@@ -136,7 +136,7 @@ const armed = computed(() => {
       </template>
       <label v-if="confirmText" class="lt-dialog-arm">
         To confirm, type the name: {{ confirmText }}
-        <input v-model="typed" class="lt-dialog-input" autocomplete="off" spellcheck="false" />
+        <input v-model="typed" class="lt-dialog-input is-name" autocomplete="off" spellcheck="false" />
       </label>
       <label v-else-if="needsTyping" class="lt-dialog-arm">
         To confirm, type the number of items listed above: {{ names.length }}
@@ -215,6 +215,8 @@ const armed = computed(() => {
   background: var(--background);
   color: var(--foreground);
 }
+/* A name is typed whole, so its field is as wide as the dialog; a count fits in 90px. */
+.lt-dialog-input.is-name { width: 100%; font-family: var(--font-mono); }
 .lt-dialog-input:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .lt-dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
 </style>
