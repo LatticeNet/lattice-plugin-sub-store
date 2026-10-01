@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { revealSelectedTab, vRevealSelected, type TabRow } from "./layerTabs";
@@ -47,5 +48,15 @@ describe("the selected layer tab", () => {
     expect(el.scrollLeft).toBe(0);
     updated(el, { value: "attention", oldValue: "lines" });
     expect(el.scrollLeft).toBeGreaterThan(0);
+  });
+});
+
+describe("the Sub-Store layer row", () => {
+  const shell = readFileSync(new URL("./Shell.vue", import.meta.url), "utf8");
+
+  it("reveals again when the tab counts are first read, not when a count changes its number", () => {
+    // The counts land after a reload has applied ?view= and widen every tab.
+    expect(shell).toContain('v-reveal-selected="revealKey"');
+    expect(shell).toContain('tabCounts.value[tab.id] === null ? "-" : "#"');
   });
 });

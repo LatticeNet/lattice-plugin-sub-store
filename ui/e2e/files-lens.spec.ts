@@ -69,6 +69,9 @@ test.describe("375", () => {
     });
     for (const view of ["files", "shares", "settings"]) {
       await open(page, `?view=${view}`, ".ss-layer-tabs");
+      // The counts land after the layer is applied and widen every tab, so
+      // the tab has to be in view once they are all there, not only before.
+      await expect(page.locator(".ss-layer-tabs .pc-count"), view).toHaveCount(4);
       await expect.poll(inView, view).toBe(true);
     }
     await page.getByRole("tab", { name: /Overview/ }).click();

@@ -211,6 +211,15 @@ const tabCounts = computed<Record<TabId, number | null>>(() => ({
 }));
 
 /**
+ * When the layer row scrolls its selected tab into view: on a layer change,
+ * and once more when a tab's count goes from unread to read. The counts land
+ * about half a second after a reload has applied ?view=, and widening every
+ * tab pushed Files (and Shares) back past a phone's edge. A count that only
+ * changes its number does not move the row again.
+ */
+const revealKey = computed(() => `${activeTab.value}:${tabs.map((tab) => (tabCounts.value[tab.id] === null ? "-" : "#")).join("")}`);
+
+/**
  * Live-share and published counts, from the same two lists the layers render.
  * They land in the proof line rather than a strip of tiles.
  */
@@ -568,7 +577,7 @@ const comboTitle = computed(() =>
            it rather than stacking a second row above. -->
       <PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">
         <template #tabs>
-          <PcLensTabs v-model="activeTab" v-reveal-selected="activeTab" class="ss-layer-tabs" label="Sub-Store layers">
+          <PcLensTabs v-model="activeTab" v-reveal-selected="revealKey" class="ss-layer-tabs" label="Sub-Store layers">
             <PcLensTab
               v-for="tab in tabs"
               :key="tab.id"
