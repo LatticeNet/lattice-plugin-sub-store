@@ -129,8 +129,12 @@ type manifestInterface struct {
 
 func TestManifestKeepsCredentialBearingSubscriptionMethodsOnAdminScope(t *testing.T) {
 	want := map[string][]string{
-		"fetch":   {"substore:admin"},
-		"render":  {"substore:admin"},
+		"fetch":  {"substore:admin"},
+		"render": {"substore:admin"},
+		// convert returns only what the caller sent, reshaped, but what the
+		// core sends is one identity's credentials; it is declared at the
+		// render path's scope, which is the core's own.
+		"convert": {"substore:admin"},
 		"probe":   {"substore:read"},
 		"preview": {"substore:read"},
 	}
@@ -185,6 +189,13 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// 2026-08-11); 10s timed out every script-file render. The warm-engine
 		// follow-up should let this come back down.
 		pluginID + "/subscription/render": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 76},
+		// 2026-10-02: convert is the stateless converter for per-identity
+		// links. Zero host calls is the point: the runner then refuses any KV
+		// or network access, so the method cannot read or keep state even by
+		// mistake. stdout matches render's because the document is the same
+		// size; the timeout is render's because a call that lands while the
+		// worker's warm runtime is still booting takes the isolated path.
+		pluginID + "/subscription/convert": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
 		// fetch carries a provider's whole response, so its stdout budget is the
 		// 8 MiB the fetch path itself caps at. host_calls is 70: every record kind
 		// resolves its variable content at refresh — a script file's read (2), the

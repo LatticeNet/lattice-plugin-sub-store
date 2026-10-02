@@ -214,6 +214,19 @@
           }
         },
         {
+          "name": "convert",
+          "effect": "read",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 6291456,
+            "stderr_bytes": 65536,
+            "host_calls": 0
+          }
+        },
+        {
           "name": "operators",
           "effect": "read",
           "scopes": [

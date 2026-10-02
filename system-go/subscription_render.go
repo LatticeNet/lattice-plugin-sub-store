@@ -1052,6 +1052,12 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "convert":
+		out, err := rt.convertSubscription(call.Payload)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(out), "")
 	case "render":
 		var req struct {
 			SubscriptionID string `json:"subscription_id"`
