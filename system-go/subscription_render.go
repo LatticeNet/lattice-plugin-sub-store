@@ -30,6 +30,11 @@ type renderResult struct {
 	// decides which of them it is willing to send; the plugin only reports what
 	// the document said it wanted.
 	Headers map[string]string `json:"headers,omitempty"`
+	// Target is the client this document was produced for, after the explicit
+	// target, a format that names a client, the record's pin and the UA class
+	// were weighed. The core can label the response from it instead of
+	// guessing from the request. Empty for a file, which has no target.
+	Target string `json:"target,omitempty"`
 }
 
 // subscriptionProbeResult is the browser-safe refresh view. Provider bytes,
@@ -56,6 +61,26 @@ var uaClassTargets = map[string]string{
 	"clash":        "Clash",
 	"singbox":      "sing-box",
 	"egern":        "Egern",
+}
+
+// formatTargets are the core's formats that name a client rather than an
+// envelope. lattice-server accepts ?format=clash, clash-meta and sing-box on
+// every share (normalizeProxySubscriptionFormat); before this, a plugin share
+// refused clash and clash-meta outright and answered the 404 decoy. clash maps
+// to ClashMeta as it does for the core's own proxy-user shares, which render
+// both through the same Clash Meta writer.
+var formatTargets = map[string]string{
+	"clash":      "ClashMeta",
+	"clash-meta": "ClashMeta",
+	"clashmeta":  "ClashMeta",
+	"clash.meta": "ClashMeta",
+	"sing-box":   "sing-box",
+	"singbox":    "sing-box",
+}
+
+// formatTarget is the client a format names, or "" for an envelope format.
+func formatTarget(format string) string {
+	return formatTargets[strings.ToLower(strings.TrimSpace(format))]
 }
 
 // subscriptionTarget picks the engine target for one render. An explicit target
@@ -117,6 +142,16 @@ func resolveRenderTarget(rec subscriptionRecord, explicit, uaClass string) strin
 	return subscriptionTarget(rec, uaClass)
 }
 
+// requestTarget is the client a render request names explicitly: ?target=
+// first, then a format that names a client. Both come from the URL, so both
+// outrank the record's pin and the UA class.
+func requestTarget(req subscriptionRenderRequest) string {
+	if t := strings.TrimSpace(req.Target); t != "" {
+		return t
+	}
+	return formatTarget(req.Format)
+}
+
 // renderSubscription produces the body the core will serve.
 //
 // It refuses to return empty content. The core refuses an empty body too, and
@@ -163,14 +198,16 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
+	target := resolveRenderTarget(rec, requestTarget(req), uaClass)
+
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		output, err := rt.renderCollection(rec, resolveRenderTarget(rec, req.Target, uaClass), req.Options, raw)
+		output, err := rt.renderCollection(rec, target, req.Options, raw)
 		if err != nil {
 			return renderResult{}, err
 		}
-		body, contentType, err := encodeSubscriptionOutput(output, format)
+		body, contentType, err := encodeSubscriptionOutput(output, format, target)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -178,7 +215,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		if err != nil {
 			return renderResult{}, err
 		}
-		return renderResult{Content: body, ContentType: contentType, Headers: headers}, nil
+		return renderResult{Content: body, ContentType: contentType, Headers: headers, Target: target}, nil
 	}
 
 	// The core hands back the snapshot it holds for this subscription. Inline
@@ -213,7 +250,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	}
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       source,
-		Target:    resolveRenderTarget(rec, req.Target, uaClass),
+		Target:    target,
 		Operators: operators,
 		Options:   req.Options,
 		Explain:   req.Explain,
@@ -225,7 +262,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{}, fmt.Errorf("subscription %q converted to empty content", subscriptionID)
 	}
 
-	body, contentType, err := encodeSubscriptionOutput(converted.Output, format)
+	body, contentType, err := encodeSubscriptionOutput(converted.Output, format, target)
 	if err != nil {
 		return renderResult{}, err
 	}
@@ -237,6 +274,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		Content:     body,
 		ContentType: contentType,
 		Headers:     headers,
+		Target:      target,
 
 		NodeCount:        explainedNodeCount(req.Explain, converted.NodeCount),
 		DroppedNodeCount: converted.UnsupportedNodeCount,
@@ -305,18 +343,46 @@ func (rt *runtime) applyResponseChain(rec subscriptionRecord, body, contentType 
 	return out.Body, headers, nil
 }
 
-// encodeSubscriptionOutput applies the core's transport format to the engine's
-// output. Target decides what the config says; format decides how it is carried.
-func encodeSubscriptionOutput(output, format string) (string, string, error) {
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "", "base64":
-		return base64.StdEncoding.EncodeToString([]byte(output)), "text/plain; charset=utf-8", nil
-	case "plain":
-		return output, "text/plain; charset=utf-8", nil
-	case "sing-box", "singbox":
-		return output, "application/json; charset=utf-8", nil
+// encodeSubscriptionOutput carries the engine's output to the client that will
+// read it. Target decides what the document says; the format only decides
+// whether a URI list travels inside the classic base64 envelope.
+//
+// Every client gets its own native document. The base64 envelope belongs to
+// exactly one target, the URI list, because that is the only document whose
+// importers expect one; YAML, JSON and Surge-style configurations are returned
+// as the producer wrote them, and V2Ray's producer already emits its base64
+// list. "base64" and an empty format both mean this client-native default (the
+// core sends "base64" for a share left at automatic); "plain" asks for the bare
+// list even for URI. The formats that name a client (clash, clash-meta,
+// sing-box) were turned into a target before this point and are carried
+// natively. Wrapping every target, as this did before, served YAML and JSON as
+// base64 text no client could read.
+func encodeSubscriptionOutput(output, format, target string) (string, string, error) {
+	contentType := targetContentType(target)
+	switch normalized := strings.ToLower(strings.TrimSpace(format)); {
+	case normalized == "" || normalized == "base64":
+		if target == "URI" {
+			return base64.StdEncoding.EncodeToString([]byte(output)), contentType, nil
+		}
+		return output, contentType, nil
+	case normalized == "plain" || formatTarget(normalized) != "":
+		return output, contentType, nil
 	default:
 		return "", "", fmt.Errorf("unsupported subscription format %q", format)
+	}
+}
+
+// targetContentType names what a target's document is. It mirrors the core's
+// own table (subscriptionResponseContentType in lattice-server), so the type the
+// plugin reports and the type the client receives never disagree.
+func targetContentType(target string) string {
+	switch target {
+	case "sing-box", "JSON":
+		return "application/json; charset=utf-8"
+	case "Clash", "ClashMeta", "Stash":
+		return "text/yaml; charset=utf-8"
+	default:
+		return "text/plain; charset=utf-8"
 	}
 }
 

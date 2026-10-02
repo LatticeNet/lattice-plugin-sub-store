@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -68,6 +69,38 @@ func testEngineWithHeadroom() *subStoreEngine {
 	engine := newEmbeddedSubStoreEngine()
 	engine.limits.Timeout = 2 * time.Minute
 	return engine
+}
+
+var (
+	sharedWarmEngineOnce sync.Once
+	sharedWarmEngine     *subStoreEngine
+	sharedWarmEngineErr  error
+)
+
+// sharedWarmTestEngine is one prewarmed engine for tests whose engine work is
+// incidental to what they assert. A fresh engine pays a cold boot per test,
+// about 3 s here and about 12 s under -race, and the system suite already runs
+// close to CI's timeout under -race. Parse and produce keep nothing between
+// calls, and anything with user JavaScript runs on its own isolated runtime,
+// so the tests sharing it cannot see each other. A test that inspects or
+// instruments the warm runtime builds its own engine.
+func sharedWarmTestEngine(t *testing.T) *subStoreEngine {
+	t.Helper()
+	sharedWarmEngineOnce.Do(func() {
+		sharedWarmEngine = testEngineWithHeadroom()
+		sharedWarmEngineErr = sharedWarmEngine.prewarm()
+	})
+	if sharedWarmEngineErr != nil {
+		t.Fatalf("prewarm shared test engine: %v", sharedWarmEngineErr)
+	}
+	return sharedWarmEngine
+}
+
+// newWarmKVRuntime is newKVRuntime on the shared prewarmed engine.
+func newWarmKVRuntime(t *testing.T) (*runtime, *kvHostCaller) {
+	t.Helper()
+	host := newKVHostCaller()
+	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
 }
 
 func TestSubscriptionRecordRoundTrip(t *testing.T) {

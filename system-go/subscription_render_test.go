@@ -47,7 +47,7 @@ func TestSubscriptionTargetPrefersTheRecord(t *testing.T) {
 func TestEncodeSubscriptionOutput(t *testing.T) {
 	const output = "vless://example"
 
-	body, ct, err := encodeSubscriptionOutput(output, "base64")
+	body, ct, err := encodeSubscriptionOutput(output, "base64", "URI")
 	if err != nil {
 		t.Fatalf("base64: %v", err)
 	}
@@ -61,16 +61,24 @@ func TestEncodeSubscriptionOutput(t *testing.T) {
 
 	// An absent format must behave as the default rather than as an error: the
 	// core sends the share's default, which may itself be empty.
-	if _, _, err := encodeSubscriptionOutput(output, ""); err != nil {
-		t.Fatalf("empty format rejected: %v", err)
+	if body, _, err := encodeSubscriptionOutput(output, "", "URI"); err != nil || body == output {
+		t.Fatalf("empty format must be the client-native default (base64 for URI): %q %v", body, err)
 	}
 
-	body, _, err = encodeSubscriptionOutput(output, "plain")
+	body, _, err = encodeSubscriptionOutput(output, "plain", "URI")
 	if err != nil || body != output {
 		t.Fatalf("plain: %q %v", body, err)
 	}
 
-	_, ct, err = encodeSubscriptionOutput(`{"outbounds":[]}`, "sing-box")
+	// The envelope is the URI list's alone: a document any other client reads
+	// is carried as its producer wrote it, whatever the format says.
+	const yaml = "proxies:\n  - {name: a, type: ss}\n"
+	body, ct, err = encodeSubscriptionOutput(yaml, "base64", "ClashMeta")
+	if err != nil || body != yaml || !strings.Contains(ct, "yaml") {
+		t.Fatalf("base64 + ClashMeta must stay YAML: %q %q %v", body, ct, err)
+	}
+
+	_, ct, err = encodeSubscriptionOutput(`{"outbounds":[]}`, "sing-box", "sing-box")
 	if err != nil {
 		t.Fatalf("sing-box: %v", err)
 	}
@@ -78,7 +86,7 @@ func TestEncodeSubscriptionOutput(t *testing.T) {
 		t.Fatalf("sing-box content type = %q", ct)
 	}
 
-	if _, _, err := encodeSubscriptionOutput(output, "nonsense"); err == nil {
+	if _, _, err := encodeSubscriptionOutput(output, "nonsense", "URI"); err == nil {
 		t.Fatal("an unknown format was accepted")
 	}
 }
