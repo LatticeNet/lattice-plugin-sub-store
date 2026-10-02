@@ -34,7 +34,7 @@ func shareFleetFixture(n int) string {
 // per-client link the console handed out was broken this way unless the
 // operator had picked "plain".
 func TestRenderServesEachClientItsNativeEncoding(t *testing.T) {
-	rt, _ := newKVRuntime(t)
+	rt, _ := newWarmKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s", Name: "s", Content: shareFleetFixture(4)}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestRenderServesEachClientItsNativeEncoding(t *testing.T) {
 // render failure (and the 404 decoy) it answered before. ?format=sing-box names
 // a client the same way. An explicit ?target= still wins.
 func TestRenderFormatThatNamesAClientPicksThatTarget(t *testing.T) {
-	rt, _ := newKVRuntime(t)
+	rt, _ := newWarmKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s", Name: "s", Content: shareFleetFixture(2)}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -123,5 +123,28 @@ func TestRenderFormatThatNamesAClientPicksThatTarget(t *testing.T) {
 		if tc.want == "ClashMeta" && !strings.Contains(out.Content, `"type":"vless"`) {
 			t.Fatalf("format %q lost the VLESS nodes: %q", tc.format, head(out.Content, 120))
 		}
+	}
+}
+
+// Clash Verge Rev, FlClash and anything else built on mihomo understand VLESS
+// and Hysteria2. The core classifies them as "clashmeta" and the plugin must
+// render ClashMeta for that class; legacy "clash" stays Clash.
+func TestUAClassClashMetaRendersClashMeta(t *testing.T) {
+	if got := subscriptionTarget(subscriptionRecord{}, "clashmeta"); got != "ClashMeta" {
+		t.Fatalf("class clashmeta resolved to %q, want ClashMeta", got)
+	}
+	if got := subscriptionTarget(subscriptionRecord{}, "clash"); got != "Clash" {
+		t.Fatalf("class clash resolved to %q, want Clash", got)
+	}
+	rt, _ := newWarmKVRuntime(t)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "s", Name: "s", Content: shareFleetFixture(3)}); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "s", Format: "base64", UAClass: "clashmeta"})
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	if !strings.Contains(out.Content, `"type":"vless"`) || !strings.Contains(out.Content, `"type":"hysteria2"`) {
+		t.Fatalf("a mihomo client lost the fleet's nodes: %q", head(out.Content, 160))
 	}
 }

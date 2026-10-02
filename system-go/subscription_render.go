@@ -52,12 +52,19 @@ type subscriptionProbeResult struct {
 // uaClassTargets maps the core's bounded client classification onto the engine's
 // client target. It is used only when a subscription does not name its own
 // target, so an operator who has chosen one is never overridden by a header.
+//
+// clashmeta is every client built on mihomo (Clash Verge Rev, FlClash, mihomo
+// itself, anything announcing clash.meta or meta). The core matches it before
+// plain clash, following upstream Sub-Store's user-agent table. It must map to
+// ClashMeta: legacy Clash carries neither VLESS nor Hysteria2, which is this
+// fleet, so those clients received "proxies:\n" and deleted their nodes.
 var uaClassTargets = map[string]string{
 	"surge":        "Surge",
 	"loon":         "Loon",
 	"quantumultx":  "QX",
 	"stash":        "Stash",
 	"shadowrocket": "Shadowrocket",
+	"clashmeta":    "ClashMeta",
 	"clash":        "Clash",
 	"singbox":      "sing-box",
 	"egern":        "Egern",
