@@ -135,7 +135,7 @@ func canonicalGraphResponseForIdentity(t *testing.T, identityID string, roots []
 func newVPNCoreGraphRuntime(t *testing.T, response json.RawMessage) (*runtime, *vpnCoreGraphHost) {
 	t.Helper()
 	host := &vpnCoreGraphHost{kvHostCaller: newKVHostCaller(), response: response}
-	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
+	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
 }
 
 func TestVPNCoreGraphComposesOrderedRootsWithOneHostCall(t *testing.T) {
@@ -734,7 +734,7 @@ func TestVPNCoreGraphSaveRejectsStaleOrIneligibleSelectionWithoutPersistence(t *
 }
 
 func TestLegacyVPNCoreFetchDoesNotInventGraphProvenance(t *testing.T) {
-	host := newVPNCoreHost("vless://legacy")
+	host := newVPNCoreHost("ss://YWVzLTEyOC1nY206cHc@192.0.2.14:8388#legacy")
 	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "legacy", Source: subscriptionSourceVPNCore, VPNIdentity: "identity"}); err != nil {
 		t.Fatal(err)

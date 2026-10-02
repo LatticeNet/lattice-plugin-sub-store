@@ -183,6 +183,14 @@ type subStoreConversionResult struct {
 	// costs extra produce calls, which the serve path has no reason to pay.
 	UnsupportedNodeCount int      `json:"unsupported_node_count"`
 	UnsupportedProtocols []string `json:"unsupported_protocols,omitempty"`
+	// ZeroNodes is true when the document carries no node for this client:
+	// the chain left nothing, or the producer's output equals what it writes
+	// for an empty list. Producers emit a non-empty skeleton for zero nodes
+	// ("proxies:\n", an empty sing-box object), so an empty-body check alone
+	// cannot see this, and a client that receives such a document deletes
+	// every node it had. Computed on every call; it costs one produce of an
+	// empty list.
+	ZeroNodes bool `json:"zero_nodes"`
 }
 
 type subStoreResponseTransformResult struct {
@@ -198,6 +206,7 @@ type subStoreCoreConversionResult struct {
 	NodeCount            int      `json:"node_count"`
 	UnsupportedNodeCount int      `json:"unsupported_node_count"`
 	UnsupportedProtocols []string `json:"unsupported_protocols"`
+	ZeroNodes            bool     `json:"zero_nodes"`
 	Output               string   `json:"output"`
 }
 
@@ -255,7 +264,71 @@ func (engine *subStoreEngine) convert(req subStoreConversionRequest) (result sub
 
 		UnsupportedNodeCount: coreResult.UnsupportedNodeCount,
 		UnsupportedProtocols: coreResult.UnsupportedProtocols,
+		ZeroNodes:            coreResult.ZeroNodes,
 	}, nil
+}
+
+// countNodes parses node text and reports how many nodes the engine found,
+// without producing any client document. The refresh path uses it to tell a
+// subscription from a provider's error page before the body replaces the last
+// good snapshot.
+func (engine *subStoreEngine) countNodes(raw string) (int, error) {
+	counts, err := engine.countNodesEach([]string{raw})
+	if err != nil {
+		return 0, err
+	}
+	return counts[0], nil
+}
+
+// countNodesEach parses each text on its own and reports each one's node
+// count, in a single engine call. A combination's refresh counts all of its
+// members at once: while a fresh worker's warm runtime is still booting every
+// call takes the isolated path, and one call per member would put a large
+// combination's refresh at risk of its time budget. Parsing runs no user
+// JavaScript, so once warm it answers from the warm runtime.
+func (engine *subStoreEngine) countNodesEach(raws []string) (counts []int, err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = redactSubStoreEnginePanic(recovered)
+		}
+	}()
+	if strings.TrimSpace(engine.coreJS) == "" {
+		return nil, fmt.Errorf("Sub-Store core bundle is empty")
+	}
+	if len(raws) == 0 {
+		return []int{}, nil
+	}
+	encoded, err := json.Marshal(raws)
+	if err != nil {
+		return nil, fmt.Errorf("encode raw subscriptions: %w", err)
+	}
+	script := fmt.Sprintf(`(function() {
+  const raws = %s;
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
+  if (!core || typeof core.parse !== "function") {
+    throw new Error("Sub-Store core must expose parse(raw)");
+  }
+  const counts = raws.map(function (raw) {
+    const proxies = core.parse(raw);
+    return Array.isArray(proxies) ? proxies.length : 0;
+  });
+  return JSON.stringify({ counts: counts });
+})()`, encoded)
+	rawResult, err := engine.runCoreScript("count", "lattice-substore-count.js", script)
+	if err != nil {
+		return nil, err
+	}
+	var out struct {
+		Counts []int `json:"counts"`
+	}
+	if err := json.Unmarshal([]byte(rawResult), &out); err != nil {
+		return nil, fmt.Errorf("decode Sub-Store node counts: %w", err)
+	}
+	if len(out.Counts) != len(raws) {
+		return nil, fmt.Errorf("Sub-Store counted %d sources, want %d", len(out.Counts), len(raws))
+	}
+	return out.Counts, nil
 }
 
 func (engine *subStoreEngine) transformResponse(req subStoreResponseTransformRequest) (result subStoreResponseTransformResult, err error) {
@@ -680,6 +753,17 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   if (typeof output !== "string") {
     throw new Error("Sub-Store produce(proxies, target, env) must return a string");
   }
+  // What this producer writes for no nodes at all. A document equal to it
+  // carries nothing for this client, however many bytes it has.
+  let empty = null;
+  try {
+    empty = core.produce([], target, "external", produceOptions);
+  } catch (err) {
+    empty = null;
+  }
+  const zeroNodes = proxies.length === 0 ||
+    output.trim() === "" ||
+    (typeof empty === "string" && output.trim() === empty.trim());
   // Which nodes this client could not carry.
   //
   // Every producer keeps its own support rules inside itself and declares them
@@ -698,12 +782,6 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
       everything = output;
     }
     if (everything !== output) {
-      let empty = null;
-      try {
-        empty = core.produce([], target, "external", produceOptions);
-      } catch (err) {
-        empty = null;
-      }
       if (empty !== null) {
         for (const proxy of proxies) {
           let alone = null;
@@ -727,6 +805,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
     node_count: proxies.length,
     unsupported_node_count: unsupportedCount,
     unsupported_protocols: unsupportedTypes.sort(),
+    zero_nodes: zeroNodes,
     output,
   });
 })()`, prefix, raw, target, operators, options, explain, processBlock), nil

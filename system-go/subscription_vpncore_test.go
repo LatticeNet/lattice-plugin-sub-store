@@ -42,11 +42,11 @@ func (h *vpnCoreHost) call(method string, params any) (json.RawMessage, error) {
 func newVPNCoreRuntime(t *testing.T, links ...string) (*runtime, *vpnCoreHost) {
 	t.Helper()
 	host := newVPNCoreHost(links...)
-	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
+	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
 }
 
 func TestVPNCoreSubscriptionFetchesTheExport(t *testing.T) {
-	rt, host := newVPNCoreRuntime(t, "vless://one", "vless://two")
+	rt, host := newVPNCoreRuntime(t, "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one", "ss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two")
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "fleet", Name: "Fleet", Source: subscriptionSourceVPNCore,
 	}); err != nil {
@@ -57,7 +57,7 @@ func TestVPNCoreSubscriptionFetchesTheExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetch: %v", err)
 	}
-	if out.Raw != "vless://one\nvless://two" {
+	if out.Raw != "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one\nss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two" {
 		t.Fatalf("fetch did not return the export: %q", out.Raw)
 	}
 	if len(host.rpcCalls) != 1 {
@@ -74,7 +74,7 @@ func TestVPNCoreSubscriptionFetchesTheExport(t *testing.T) {
 // A vpn-core record has no URL, and requiring one would make the source
 // unusable — that requirement is what the old code path enforced.
 func TestVPNCoreSubscriptionNeedsNoURL(t *testing.T) {
-	rt, _ := newVPNCoreRuntime(t, "vless://one")
+	rt, _ := newVPNCoreRuntime(t, "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "fleet", Source: subscriptionSourceVPNCore,
 	}); err != nil {
@@ -86,7 +86,7 @@ func TestVPNCoreSubscriptionNeedsNoURL(t *testing.T) {
 }
 
 func TestVPNCoreIdentityFilterReachesTheExport(t *testing.T) {
-	rt, host := newVPNCoreRuntime(t, "vless://one")
+	rt, host := newVPNCoreRuntime(t, "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "one-user", Source: subscriptionSourceVPNCore, VPNIdentity: "user-42",
 	}); err != nil {
@@ -102,7 +102,7 @@ func TestVPNCoreIdentityFilterReachesTheExport(t *testing.T) {
 }
 
 func TestVPNCoreOmitsIdentityWhenUnset(t *testing.T) {
-	rt, host := newVPNCoreRuntime(t, "vless://one")
+	rt, host := newVPNCoreRuntime(t, "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	if err := rt.saveSubscription(subscriptionRecord{ID: "all", Source: subscriptionSourceVPNCore}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -152,7 +152,7 @@ func TestVPNCoreRendersOnFirstRequestWithNoSnapshot(t *testing.T) {
 }
 
 func TestVPNCoreFetchFailureIsReported(t *testing.T) {
-	rt, host := newVPNCoreRuntime(t, "vless://one")
+	rt, host := newVPNCoreRuntime(t, "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.failWith = errAsHostFailure()
 	if err := rt.saveSubscription(subscriptionRecord{ID: "fleet", Source: subscriptionSourceVPNCore}); err != nil {
 		t.Fatalf("save: %v", err)

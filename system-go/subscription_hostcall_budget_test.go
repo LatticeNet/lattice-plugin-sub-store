@@ -57,7 +57,7 @@ func (host *graphBudgetHost) call(method string, params any) (json.RawMessage, e
 func newGraphBudgetRuntime(t *testing.T) (*runtime, *graphBudgetHost) {
 	t.Helper()
 	host := &graphBudgetHost{t: t, kvHostCaller: newKVHostCaller(), compose: canonicalGraphResponseForIdentity(t, "identity-a", []string{graphRootA}), options: canonicalGraphOptionsResponse(t)}
-	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
+	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
 }
 
 func seedGraphBudgetStore(t *testing.T, rt *runtime) {
@@ -217,7 +217,7 @@ func (c *budgetCountingHost) call(method string, params any) (json.RawMessage, e
 func newCountingRuntime(t *testing.T) (*runtime, *budgetCountingHost) {
 	t.Helper()
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
+	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
 }
 
 // Seed records shared by the scenarios: one of each source shape, a collection

@@ -71,12 +71,12 @@ func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
 func newFetchRuntime(t *testing.T) (*runtime, *httpKVHost) {
 	t.Helper()
 	host := &httpKVHost{kvHostCaller: newKVHostCaller(), status: 200}
-	return &runtime{host: host}, host
+	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
 }
 
 func TestFetchReturnsBodyAndTrafficHeader(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one\nvless://two")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one\nss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two")
 	host.header = map[string]string{"Subscription-Userinfo": "upload=1; download=2; total=3"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", Name: "p", URL: "https://provider.invalid/sub", UA: "Surge/2000"}); err != nil {
 		t.Fatalf("save: %v", err)
@@ -101,7 +101,7 @@ func TestFetchReturnsBodyAndTrafficHeader(t *testing.T) {
 // client shows as its remaining quota.
 func TestFetchFindsTrafficHeaderRegardlessOfCase(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.header = map[string]string{"subscription-userinfo": "upload=5"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)
@@ -170,7 +170,7 @@ func TestFetchErrorsRedactTheProviderURL(t *testing.T) {
 
 func TestFetchRequiresAURL(t *testing.T) {
 	rt, _ := newFetchRuntime(t)
-	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", Content: "vless://inline"}); err != nil {
+	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", Content: "ss://YWVzLTEyOC1nY206cHc@192.0.2.12:8388#inline"}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 	if _, err := rt.fetchSubscription("s1"); err == nil {

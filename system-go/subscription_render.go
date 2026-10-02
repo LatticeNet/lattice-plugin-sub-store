@@ -35,6 +35,31 @@ type renderResult struct {
 	// were weighed. The core can label the response from it instead of
 	// guessing from the request. Empty for a file, which has no target.
 	Target string `json:"target,omitempty"`
+	// ZeroNodes is reported only to a caller that asked to explain: the
+	// document carries no node for this client, and the serve path refuses it
+	// with zeroNodesForTargetCode. The console still receives the document so
+	// it can say why.
+	ZeroNodes bool `json:"zero_nodes,omitempty"`
+}
+
+// Stable codes the core can match in an error text to pick an audit reason.
+// The plugin's error channel is a string, so the code leads the message.
+const (
+	// zeroNodesForTargetCode: the rendered document carries no node for the
+	// client that would receive it.
+	zeroNodesForTargetCode = "zero_nodes_for_target"
+	// providerNoNodesCode: a refresh read a source that yielded no nodes (an
+	// error page, a login wall, a document that is not a subscription). The
+	// fetch fails, so the core keeps its last good snapshot.
+	providerNoNodesCode = "provider_no_nodes"
+)
+
+func zeroNodesForTargetError(label, target string) error {
+	return fmt.Errorf("%s: %s has no node the %s client can carry; refusing to serve a document that would make the client delete its nodes", zeroNodesForTargetCode, label, target)
+}
+
+func providerNoNodesError(label string) error {
+	return fmt.Errorf("%s: %s yielded no nodes; it is not treated as a subscription, so the last good snapshot stays", providerNoNodesCode, label)
 }
 
 // subscriptionProbeResult is the browser-safe refresh view. Provider bytes,
@@ -210,19 +235,11 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		output, err := rt.renderCollection(rec, target, req.Options, raw)
+		converted, err := rt.renderCollectionResult(rec, target, req.Options, raw, req.Explain)
 		if err != nil {
 			return renderResult{}, err
 		}
-		body, contentType, err := encodeSubscriptionOutput(output, format, target)
-		if err != nil {
-			return renderResult{}, err
-		}
-		body, headers, err := rt.applyResponseChain(rec, body, contentType)
-		if err != nil {
-			return renderResult{}, err
-		}
-		return renderResult{Content: body, ContentType: contentType, Headers: headers, Target: target}, nil
+		return rt.finishNodeRender(rec, "collection "+quoteLabel(subscriptionID), target, format, req.Explain, converted)
 	}
 
 	// The core hands back the snapshot it holds for this subscription. Inline
@@ -265,28 +282,50 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	if err != nil {
 		return renderResult{}, err
 	}
-	if strings.TrimSpace(converted.Output) == "" {
-		return renderResult{}, fmt.Errorf("subscription %q converted to empty content", subscriptionID)
-	}
+	return rt.finishNodeRender(rec, "subscription "+quoteLabel(subscriptionID), target, format, req.Explain, converted)
+}
 
+func quoteLabel(id string) string { return fmt.Sprintf("%q", id) }
+
+// finishNodeRender turns one conversion into the reply for a node-list record
+// (a subscription or a combination): refuse a document that carries no node
+// for this client, carry it in the client's native encoding, then run the
+// record's response chain.
+//
+// The refusal is the serve path's. A caller that asked to explain (the
+// console) gets the document and the flag instead, because the console's job
+// is to show why the link would be refused; the path that serves clients never
+// sets explain.
+func (rt *runtime) finishNodeRender(rec subscriptionRecord, label, target, format string, explain bool, converted subStoreConversionResult) (renderResult, error) {
+	if converted.ZeroNodes && !explain {
+		return renderResult{}, zeroNodesForTargetError(label, target)
+	}
+	if strings.TrimSpace(converted.Output) == "" && !explain {
+		return renderResult{}, fmt.Errorf("%s converted to empty content", label)
+	}
 	body, contentType, err := encodeSubscriptionOutput(converted.Output, format, target)
 	if err != nil {
 		return renderResult{}, err
 	}
-	body, headers, err := rt.applyResponseChain(rec, body, contentType)
+	result := renderResult{
+		ContentType: contentType,
+		Target:      target,
+
+		NodeCount:        explainedNodeCount(explain, converted.NodeCount),
+		DroppedNodeCount: converted.UnsupportedNodeCount,
+		DroppedProtocols: converted.UnsupportedProtocols,
+	}
+	if converted.ZeroNodes {
+		// Only reachable when explaining. The response chain is not run over a
+		// document that will never be served.
+		result.Content, result.ZeroNodes = body, true
+		return result, nil
+	}
+	result.Content, result.Headers, err = rt.applyResponseChain(rec, body, contentType)
 	if err != nil {
 		return renderResult{}, err
 	}
-	return renderResult{
-		Content:     body,
-		ContentType: contentType,
-		Headers:     headers,
-		Target:      target,
-
-		NodeCount:        explainedNodeCount(req.Explain, converted.NodeCount),
-		DroppedNodeCount: converted.UnsupportedNodeCount,
-		DroppedProtocols: converted.UnsupportedProtocols,
-	}, nil
+	return result, nil
 }
 
 // explainedNodeCount reports the chain's node count only to a caller that asked

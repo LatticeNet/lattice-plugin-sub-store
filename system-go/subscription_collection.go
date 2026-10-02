@@ -71,17 +71,45 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 // upstream semantics and the reason it matters: a per-sub rename or region
 // filter has to apply to that sub's nodes, not to everything the collection
 // happens to gather.
+//
+// A member whose source yields no nodes at all (a provider's error page, a
+// login wall) is a failed member, not an empty one: the collection's failure
+// mode decides what happens next, and a strict refresh fails so the core keeps
+// its last good snapshot. A member whose own chain filters every node away
+// still contributes nothing, as before.
 func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) {
-	raw, err := rt.resolveSubContent(member)
+	raw, needsCount, err := rt.memberNodes(member)
 	if err != nil {
 		return "", err
 	}
+	if needsCount {
+		if err := rt.requireNodes(memberLabel(member), raw); err != nil {
+			return "", err
+		}
+	}
+	return raw, nil
+}
+
+func memberLabel(member subscriptionRecord) string {
+	return fmt.Sprintf("subscription %q", member.ID)
+}
+
+// memberNodes resolves one member and runs its own chain, leaving the node
+// count of an unchained member to the caller: needsCount is true when the text
+// came back as it arrived, so a combination can confirm all of its members in
+// one engine call. A chained member's count is already known from its
+// conversion.
+func (rt *runtime) memberNodes(member subscriptionRecord) (raw string, needsCount bool, err error) {
+	raw, err = rt.resolveSubContent(member)
+	if err != nil {
+		return "", false, err
+	}
 	operators, err := enabledOperators(member)
 	if err != nil {
-		return "", fmt.Errorf("subscription %q: %w", member.ID, err)
+		return "", false, fmt.Errorf("%s: %w", memberLabel(member), err)
 	}
 	if len(operators) == 0 {
-		return raw, nil
+		return raw, true, nil
 	}
 	// URI is the merge format: it is the one target that round-trips through a
 	// second conversion, which is what merging then converting again requires.
@@ -91,9 +119,12 @@ func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) 
 		Operators: operators,
 	})
 	if err != nil {
-		return "", fmt.Errorf("subscription %q: %w", member.ID, err)
+		return "", false, fmt.Errorf("%s: %w", memberLabel(member), err)
 	}
-	return converted.Output, nil
+	if converted.SourceNodeCount == 0 {
+		return "", false, providerNoNodesError(memberLabel(member))
+	}
+	return converted.Output, false, nil
 }
 
 func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) bool {
@@ -108,6 +139,19 @@ func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) b
 // per-member work — only the collection's own chain. An empty one renders
 // live, which is how previews and unsaved drafts work.
 func (rt *runtime) renderCollection(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string) (string, error) {
+	converted, err := rt.renderCollectionResult(rec, target, options, snapshotRaw, false)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(converted.Output) == "" {
+		return "", fmt.Errorf("collection %q converted to empty content", rec.ID)
+	}
+	return converted.Output, nil
+}
+
+// renderCollectionResult is renderCollection's whole answer: the document plus
+// the counts and the zero-node flag the serve path decides on.
+func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool) (subStoreConversionResult, error) {
 	merged := ""
 	if strings.TrimSpace(snapshotRaw) != "" {
 		var snap snapshotArtifacts
@@ -127,11 +171,11 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, target string, optio
 	if merged == "" {
 		members, err := rt.collectionMembers(rec)
 		if err != nil {
-			return "", err
+			return subStoreConversionResult{}, err
 		}
 		chained, err := rt.chainMembers(rec, members)
 		if err != nil {
-			return "", err
+			return subStoreConversionResult{}, err
 		}
 		parts := make([]string, 0, len(chained))
 		for _, member := range chained {
@@ -142,19 +186,13 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, target string, optio
 
 	operators, err := enabledOperators(rec)
 	if err != nil {
-		return "", fmt.Errorf("collection %q: %w", rec.ID, err)
+		return subStoreConversionResult{}, fmt.Errorf("collection %q: %w", rec.ID, err)
 	}
-	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
+	return rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       merged,
 		Target:    target,
 		Operators: operators,
 		Options:   options,
+		Explain:   explain,
 	})
-	if err != nil {
-		return "", err
-	}
-	if strings.TrimSpace(converted.Output) == "" {
-		return "", fmt.Errorf("collection %q converted to empty content", rec.ID)
-	}
-	return converted.Output, nil
 }

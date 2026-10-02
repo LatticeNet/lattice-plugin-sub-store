@@ -59,8 +59,33 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	case kindFile:
 		return rt.fetchFileSnapshot(rec)
 	default:
-		return rt.fetchRecordContent(rec)
+		out, err := rt.fetchRecordContent(rec)
+		if err != nil {
+			return fetchResult{}, err
+		}
+		if err := rt.requireNodes(fmt.Sprintf("subscription %q", rec.ID), out.Raw); err != nil {
+			return fetchResult{}, err
+		}
+		return out, nil
 	}
+}
+
+// requireNodes refuses node text the engine finds no node in.
+//
+// The refresh path used to accept any non-empty 2xx body, so a provider's
+// "429 Too Many Requests" page replaced the last good snapshot and then
+// rendered to "proxies:\n" for every Clash-family client. Failing the fetch
+// instead keeps the core on the snapshot it already has (served stale), and the
+// record's bookkeeping says why.
+func (rt *runtime) requireNodes(label, raw string) error {
+	count, err := rt.subStoreEngine().countNodes(raw)
+	if err != nil {
+		return fmt.Errorf("%s: %w", label, err)
+	}
+	if count == 0 {
+		return providerNoNodesError(label)
+	}
+	return nil
 }
 
 // snapshotArtifacts is the serialized variable content of a collection or a
@@ -96,26 +121,69 @@ func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) (fetchResult,
 // collection's failure mode. Shared by the collection snapshot and the live
 // render paths so the two can never drift apart.
 func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, error) {
-	out := make([]fileScriptMember, 0, len(members))
+	type resolvedMember struct {
+		member     subscriptionRecord
+		raw        string
+		needsCount bool
+		dropped    bool
+	}
+	resolved := make([]resolvedMember, 0, len(members))
 	skipped := make([]string, 0)
+	// fail applies the collection's failure mode to one member.
+	//
+	// Strict is the default because serving only the survivors reaches a
+	// client as "those nodes were removed", and the client acts on that by
+	// deleting them. Skipping is available because one dead provider should
+	// not take down a large collection, but it is a choice the operator
+	// makes, not one made for them. Graph members are never skippable: their
+	// composition is authoritative, and silently serving a graph collection
+	// without them would misrepresent it.
+	fail := func(member subscriptionRecord, err error) error {
+		if !collectionMemberFailureIsSkippable(rec, member) {
+			return fmt.Errorf("collection %q: %w", rec.ID, err)
+		}
+		skipped = append(skipped, member.ID)
+		return nil
+	}
 	for _, member := range members {
-		raw, err := rt.renderMemberNodes(member)
+		raw, needsCount, err := rt.memberNodes(member)
 		if err != nil {
-			// Strict is the default because serving only the survivors reaches a
-			// client as "those nodes were removed", and the client acts on that
-			// by deleting them. Skipping is available because one dead provider
-			// should not take down a large collection — but it is a choice the
-			// operator makes, not one made for them. Graph members are never
-			// skippable: their composition is authoritative, and silently
-			// serving a graph collection without them would misrepresent it.
-			if !collectionMemberFailureIsSkippable(rec, member) {
-				return nil, fmt.Errorf("collection %q: %w", rec.ID, err)
+			if err := fail(member, err); err != nil {
+				return nil, err
 			}
-			skipped = append(skipped, member.ID)
 			continue
 		}
-		if strings.TrimSpace(raw) != "" {
-			out = append(out, fileScriptMember{SubName: memberSubName(member), Raw: raw})
+		resolved = append(resolved, resolvedMember{member: member, raw: raw, needsCount: needsCount})
+	}
+	// A member whose source parses to no nodes (a provider's error page) is a
+	// failed member, not an empty one. Every unchained member is counted in
+	// one engine call rather than one call per member.
+	var texts []string
+	var at []int
+	for i, entry := range resolved {
+		if entry.needsCount {
+			texts, at = append(texts, entry.raw), append(at, i)
+		}
+	}
+	if len(texts) > 0 {
+		counts, err := rt.subStoreEngine().countNodesEach(texts)
+		if err != nil {
+			return nil, fmt.Errorf("collection %q: %w", rec.ID, err)
+		}
+		for j, i := range at {
+			if counts[j] > 0 {
+				continue
+			}
+			if err := fail(resolved[i].member, providerNoNodesError(memberLabel(resolved[i].member))); err != nil {
+				return nil, err
+			}
+			resolved[i].dropped = true
+		}
+	}
+	out := make([]fileScriptMember, 0, len(resolved))
+	for _, entry := range resolved {
+		if !entry.dropped && strings.TrimSpace(entry.raw) != "" {
+			out = append(out, fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.raw})
 		}
 	}
 	// Every member failing is not "skip the failures" — it is a collection with
