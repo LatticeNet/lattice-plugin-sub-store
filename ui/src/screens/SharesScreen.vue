@@ -24,7 +24,7 @@ import { useHost } from "../host";
 import { useLensChrome } from "../lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "../navigate";
 import { normalizeQuery } from "../recordSearch";
-import { formatRelativeTime } from "../rowStatus";
+import { formatExpiry } from "../pipeline";
 import { shareLinkOf, shareStateOf, stateTone } from "../shareState";
 import { useShares } from "../useShares";
 import { useSubscriptions } from "../useSubscriptions";
@@ -32,7 +32,7 @@ import { useSubscriptions } from "../useSubscriptions";
 /**
  * The record list from the client's side: every share the host serves, the
  * record behind it, its format, expiry and whether a client fetching it gets
- * anything. Shares are created and changed in the console under Networking;
+ * anything. Shares are created and changed in the console under Platform → Publishing;
  * this lens reads them and points there.
  */
 const host = useHost();
@@ -56,7 +56,7 @@ const allLines = computed<ShareLine[]>(() =>
     .map((share) => ({
       share,
       record: subs.items.value.find((item) => item.id === share.subscription_id),
-      state: shareStateOf(share, now.value),
+      state: shareStateOf(share, now.value, subs.state.value !== "ready" || subs.items.value.some((item) => item.id === share.subscription_id)),
     }))
     .sort((a, b) => recordName(a).localeCompare(recordName(b)) || a.share.slug.localeCompare(b.share.slug)),
 );
@@ -119,7 +119,7 @@ function kindOf(line: ShareLine): string {
   const kind = line.record?.kind || KIND_SUB;
   if (kind === KIND_COLLECTION) return "combination";
   if (kind === KIND_FILE) return "file";
-  return "subscription";
+  return "source";
 }
 
 /** The share path with its token masked: the slug identifies it, the token
@@ -130,14 +130,17 @@ function maskedPath(share: SubStoreShareRow): string {
   return at >= 0 ? `${share.path.slice(0, at + marker.length)}…` : share.path;
 }
 
+/*
+ * Through the one expiry formatter the attention list, Sources and the side
+ * panel use. This column rounded up and abbreviated on its own, so one share
+ * read "expires in 3 days" in attention and "in 4 days" here.
+ */
 function expiryOf(share: SubStoreShareRow): { label: string; title: string } {
   if (!share.expires_at) return { label: "never", title: "This share has no expiry." };
   const at = Date.parse(share.expires_at);
   if (!Number.isFinite(at)) return { label: share.expires_at, title: "The expiry could not be read as a date." };
   const iso = new Date(at).toISOString().slice(0, 10);
-  if (at <= now.value) return { label: `expired ${formatRelativeTime(share.expires_at, now.value)}`, title: `Expired ${iso}.` };
-  const days = Math.ceil((at - now.value) / 86_400_000);
-  return { label: days <= 1 ? "within a day" : `in ${days} days`, title: `Expires ${iso}.` };
+  return { label: formatExpiry({ expire: Math.floor(at / 1000) }, now.value), title: `${at <= now.value ? "Expired" : "Expires"} ${iso}.` };
 }
 
 /** How many lines say what, for the card's count. */
@@ -218,7 +221,7 @@ const origin = computed(() => hostOriginFromHash(window.location.hash));
 function openInNetworking(): void {
   if (!origin.value) return;
   postNavigate(window, SHARES_LIST_ROUTE, origin.value);
-  notice.value = "Asked the console to open Networking → Subscription Shares.";
+  notice.value = "Asked the console to open Platform → Publishing.";
 }
 
 // ── loading ──────────────────────────────────────────────────────────────────
@@ -276,11 +279,11 @@ watch(host.init, (value) => {
           <PcButton
             variant="primary"
             :disabled="!origin"
-            :title="origin ? 'The console lists the same shares under Networking.' : 'This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.'"
+            :title="origin ? 'The console lists the same shares under Platform → Publishing.' : 'This frame cannot ask the console to navigate; open Platform → Publishing yourself.'"
             @click="openInNetworking()"
           >
             <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-            Open in Networking
+            Open in Publishing
           </PcButton>
         </template>
       </PcEmptyState>
@@ -302,7 +305,7 @@ watch(host.init, (value) => {
       <div v-if="!allLines.length">
         <PcEmptyState title="Nothing is shared">
           <p>
-            Publish a share for a record in the console under Networking, then Subscription Shares,
+            Publish a share for a record in the console under Platform, then Publishing,
             and it appears here with its link.
           </p>
         </PcEmptyState>
@@ -315,12 +318,12 @@ watch(host.init, (value) => {
             <select :value="kindFilter" class="pc-select" aria-label="Filter by whether a client gets anything" @change="setKindFilter(($event.target as HTMLSelectElement).value)">
               <option value="all">All {{ kindCounts.all }}</option>
               <option value="live">Live {{ kindCounts.live }}</option>
-              <option value="dead">Disabled or expired {{ kindCounts.dead }}</option>
+              <option value="dead">Serving nothing {{ kindCounts.dead }}</option>
             </select>
           </label>
           <PcCount
             :value="summary.total ? `${summary.live} of ${summary.total} live` : 'none'"
-            :label="summary.dead ? `${summary.dead} disabled or expired and returning nothing.` : 'Every share here is live.'"
+            :label="summary.dead ? `${summary.dead} returning nothing: disabled, expired, or without a record.` : 'Every share here is live.'"
           />
         </div>
 
@@ -354,7 +357,7 @@ watch(host.init, (value) => {
                 <div class="pc-name-line"><strong class="pc-mono">/{{ line.share.slug }}</strong></div>
                 <small>{{ maskedPath(line.share) }}</small>
               </td>
-              <td data-stack="detail" data-label="Record" :title="line.share.subscription_id">
+              <td data-stack="detail" data-label="Record" :title="recordName(line)">
                 <span class="pc-td-body layer-record">
                   <span class="layer-record-name">{{ recordName(line) }}</span>
                   <PcKindChip v-if="line.record" :label="kindOf(line)" />

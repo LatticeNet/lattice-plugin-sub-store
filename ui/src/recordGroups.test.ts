@@ -12,7 +12,8 @@ const page = readFileSync(new URL("./screens/RecordPage.vue", import.meta.url), 
  */
 describe("the layers", () => {
   it("are six, in the design's order, Overview first and the default", () => {
-    const ids = [...shell.matchAll(/\{ id: "(\w+)", label: "([\w ]+)", icon:/g)].map((m) => `${m[1]}:${m[2]}`);
+    // No icon per layer: the row is vpn-core's underline row (design 23 section 3.4).
+    const ids = [...shell.matchAll(/\{ id: "(\w+)", label: "([\w ]+)", screen:/g)].map((m) => `${m[1]}:${m[2]}`);
     expect(ids).toEqual([
       "overview:Overview",
       "sources:Sources",
@@ -36,7 +37,7 @@ describe("the layers", () => {
   });
 
   it("give way to the record page's own tab row", () => {
-    expect(shell).toContain('<PcToolbar v-if="!recordId" label="Sub-Store layers">');
+    expect(shell).toContain('<PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">');
     expect(shell.match(/<PcLensTabs/g)).toHaveLength(1);
     expect(page.match(/<PcLensTabs/g)).toHaveLength(1);
   });

@@ -3,25 +3,32 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { ChevronRight } from "@lucide/vue";
 import { PcStateDot, useMediaQuery } from "@latticenet/plugin-bridge/chassis";
 
-import { groupByPrefix, pathOf, plural, STAGES, type Lineage, type Stage } from "../pipeline";
+import { drawnEdges, isDense, layoutLineage, openSelectedGroup, paintedEdges, type MapItem } from "../lineageLayout";
+import { overlayDepth } from "../overlayStack";
+import { pathOf, plural, STAGES, type Lineage, type Stage } from "../pipeline";
 
 /**
  * The overview's one picture: sources, combinations, files and shares as four
  * columns, one chip per record, and an edge for every dependency a record
  * declares. Selecting a chip lights its whole path, upstream and downstream,
- * and dims the rest, so "which link does this phone fetch" and "what breaks
- * if this provider dies" are both one click.
+ * so "which link does this phone fetch" and "what breaks if this provider
+ * dies" are both one click.
  *
- * Files named for a person (`for-openjobs-loon`, `for-openjobs-stash`) fold
- * into one chip per person when three or more share the prefix; the chip
- * opens in place. Below 640px the columns become stage lists with each
- * record's downstream written under it, because four columns of chips do
- * not fit a phone and a sideways-scrolling picture is not a picture.
+ * It stays one picture at any size (lineageLayout.ts): records that share a
+ * name prefix fold into one chip, each column shows at most eight entries and
+ * folds the rest into "N more", and a map with many dependencies draws paths
+ * rather than all of them: the attention list's at rest, the selected one
+ * otherwise. Production's 23 records are drawn whole, as before.
+ *
+ * An edge that skips a column runs in a lane below that column's chips, clear
+ * of them, and turns in the gaps between columns; it never runs along a chip.
+ * Below 640px the columns become stage lists with each record's downstream
+ * written under it, because four columns of chips do not fit a phone.
  */
 export interface ChipFacts {
   tone: "healthy" | "warning" | "error" | "neutral";
   state: string;
-  /** Mono figure on the chip: "166→25", "…", "/cdcd". */
+  /** Mono figure on the chip: "166→25", "counting", "/cdcd". */
   figure: string;
   title: string;
 }
@@ -29,8 +36,10 @@ export interface ChipFacts {
 const props = defineProps<{
   lineage: Lineage;
   facts: (id: string) => ChipFacts;
-  /** The selected node id, or a group key (`group:<prefix>`); "" for none. */
+  /** The selected node id, or a group key; "" for none. */
   selected: string;
+  /** Node ids the attention list names; their paths are the map at rest. */
+  attention?: readonly string[];
 }>();
 
 const emit = defineEmits<{ select: [key: string] }>();
@@ -41,100 +50,75 @@ const STAGE_LABEL: Record<Stage, string> = {
   file: "Files",
   share: "Shares",
 };
-
-interface DisplayItem {
-  key: string;
-  kind: "node" | "group";
-  /** Node ids this item stands for: one, or a group's members. */
-  ids: string[];
-  label: string;
-  /** For a group: whether its members are drawn under it. */
-  open?: boolean;
-  /** For a member drawn under its open group. */
-  member?: boolean;
-}
+const STAGE_NOUN: Record<Stage, string> = { source: "source", combination: "combination", file: "file", share: "share" };
 
 const openGroups = ref(new Set<string>());
+const expanded = ref(new Set<Stage>());
 
-const fileEntries = computed(() =>
-  groupByPrefix(props.lineage.columns.file, (id) => props.lineage.nodes.get(id)?.item?.name ?? id),
-);
-
-/** Which group a file belongs to, by node id. */
-const groupOf = computed(() => {
-  const out = new Map<string, string>();
-  for (const entry of fileEntries.value) {
-    if (entry.kind === "group") for (const id of entry.members) out.set(id, `group:${entry.prefix}`);
-  }
+const attentionIds = computed(() => (props.attention ?? []).filter((id) => props.lineage.nodes.has(id)));
+const attentionPath = computed(() => {
+  const out = new Set<string>();
+  for (const id of attentionIds.value) for (const on of pathOf(props.lineage, id)) out.add(on);
   return out;
 });
 
-// A record selected from elsewhere (the side panel, a table, the palette)
-// opens the group it sits in, or it would be lit inside a folded chip.
-watch(
-  () => props.selected,
-  (key) => {
-    const group = groupOf.value.get(key);
-    if (group && !openGroups.value.has(group)) openGroups.value = new Set([...openGroups.value, group]);
-  },
-  { immediate: true },
-);
-
-const columns = computed<Record<Stage, DisplayItem[]>>(() => {
-  const node = (id: string, member = false): DisplayItem => ({
-    key: id,
-    kind: "node",
-    ids: [id],
-    label: props.lineage.nodes.get(id)?.label ?? id,
-    member,
-  });
-  const files: DisplayItem[] = [];
-  for (const entry of fileEntries.value) {
-    if (entry.kind === "single") {
-      files.push(node(entry.member));
-      continue;
-    }
-    const key = `group:${entry.prefix}`;
-    const open = openGroups.value.has(key);
-    files.push({ key, kind: "group", ids: entry.members, label: entry.label, open });
-    if (open) for (const id of entry.members) files.push(node(id, true));
-  }
-  return {
-    source: props.lineage.columns.source.map((id) => node(id)),
-    combination: props.lineage.columns.combination.map((id) => node(id)),
-    file: files,
-    share: props.lineage.columns.share.map((id) => node(id)),
-  };
+/** Groups by key, from a layout that folds nothing, so a group key always resolves. */
+const groupMembers = computed(() => {
+  const all = layoutLineage(props.lineage, { openGroups: new Set(), expanded: new Set(STAGES), pinned: new Set() });
+  const out = new Map<string, string[]>();
+  for (const stage of STAGES) for (const item of all.columns[stage]) if (item.kind === "group") out.set(item.key, item.ids);
+  return { members: out, groupOf: all.groupOf };
 });
 
-/** Where a node is drawn: itself, or the folded group standing in for it. */
-function anchorOf(id: string): string {
-  const group = groupOf.value.get(id);
-  return group && !openGroups.value.has(group) ? group : id;
-}
+/** The node ids the selection stands for: one record, or a group's members. */
+const selectedIds = computed<string[]>(() => {
+  const key = props.selected;
+  if (!key) return [];
+  return groupMembers.value.members.get(key) ?? (props.lineage.nodes.has(key) ? [key] : []);
+});
 
 /** The lit path: the selection's own path, or the union of a group's. */
 const lit = computed<Set<string> | null>(() => {
   const key = props.selected;
   if (!key) return null;
-  if (key.startsWith("group:")) {
-    const members = fileEntries.value.find((entry) => entry.kind === "group" && `group:${entry.prefix}` === key);
-    if (!members || members.kind !== "group") return null;
+  const members = groupMembers.value.members.get(key);
+  if (members) {
     const out = new Set<string>();
-    for (const id of members.members) for (const on of pathOf(props.lineage, id)) out.add(on);
+    for (const id of members) for (const on of pathOf(props.lineage, id)) out.add(on);
     return out;
   }
   if (!props.lineage.nodes.has(key)) return null;
   return pathOf(props.lineage, key);
 });
 
-function itemState(item: DisplayItem): "selected" | "on" | "off" | undefined {
+// A record selected from elsewhere (the side panel, a table, the palette, a
+// link) opens the group it sits in, or it would be lit inside a folded chip.
+openSelectedGroup(() => props.selected, () => groupMembers.value.groupOf, openGroups);
+
+const layout = computed(() =>
+  layoutLineage(props.lineage, {
+    openGroups: openGroups.value,
+    expanded: expanded.value,
+    // The selection and the records attention names stay drawn. The rest of a
+    // selected path keeps the caps: an edge into a folded entry ends at its
+    // column's "more", which says the path goes on in there.
+    pinned: new Set([...selectedIds.value, ...attentionIds.value]),
+  }),
+);
+const columns = computed(() => layout.value.columns);
+
+const labelOf = computed(() => {
+  const out = new Map<string, string>();
+  for (const stage of STAGES) for (const item of columns.value[stage]) out.set(item.key, item.label);
+  return out;
+});
+
+function itemState(item: MapItem): "selected" | "on" | "off" | undefined {
   if (!lit.value) return undefined;
   if (item.key === props.selected) return "selected";
   return item.ids.some((id) => lit.value!.has(id)) ? "on" : "off";
 }
 
-/** The edges between drawn items, one per pair, whatever folded into them. */
 /** The column each drawn item sits in, so an edge knows which columns it skips. */
 const columnOf = computed(() => {
   const out = new Map<string, number>();
@@ -144,63 +128,115 @@ const columnOf = computed(() => {
   return out;
 });
 
-const drawnEdges = computed(() => {
-  const seen = new Map<string, { from: string; to: string; tag: boolean; on: boolean }>();
-  for (const edge of props.lineage.edges) {
-    const from = anchorOf(edge.from);
-    const to = anchorOf(edge.to);
-    const key = `${from}\u0000${to}`;
-    const on = !!lit.value && lit.value.has(edge.from) && lit.value.has(edge.to);
-    const existing = seen.get(key);
-    if (existing) {
-      existing.on ||= on;
-      existing.tag &&= edge.via === "tag";
-      continue;
-    }
-    seen.set(key, { from, to, tag: edge.via === "tag", on });
+const allEdges = computed(() => drawnEdges(props.lineage, layout.value.anchor, lit.value, attentionPath.value));
+/** Decided by the store, so opening a group or a column never changes which edges are drawn. */
+const dense = computed(() => isDense(props.lineage));
+const painted = computed(() => paintedEdges(allEdges.value, !!lit.value, dense.value));
+
+/** Said once above a dense map, so an absent edge never reads as an absent dependency. */
+const note = computed(() => {
+  if (!dense.value) return "";
+  const total = props.lineage.edges.length;
+  if (lit.value) return `Showing the selected path. ${total} dependencies in all; clear the selection to see the paths that need attention.`;
+  if (attentionIds.value.length) {
+    return `Showing the paths of the ${plural(attentionIds.value.length, "record")} the attention list names, not all ${total} dependencies. Select a record to see its path.`;
   }
-  return [...seen.values()];
+  return `${total} dependencies are too many to draw at once. Select a record to see its path.`;
 });
 
 // ── facts per drawn item ────────────────────────────────────────────────────
 
-function factsOf(item: DisplayItem): ChipFacts {
+function factsOf(item: MapItem): ChipFacts {
   if (item.kind === "node") return props.facts(item.key);
+  if (item.kind === "more") {
+    return {
+      tone: "neutral",
+      state: "",
+      figure: "",
+      title: item.open ? "Fold this column back to its first entries." : `${plural(item.ids.length, STAGE_NOUN[item.stage])} not shown. Show every one.`,
+    };
+  }
+  const noun = STAGE_NOUN[item.stage];
   const facts = item.ids.map((id) => props.facts(id));
+  const errors = facts.filter((f) => f.tone === "error").length;
+  const warnings = facts.filter((f) => f.tone === "warning").length;
   const worst = facts.find((f) => f.tone === "error") ?? facts.find((f) => f.tone === "warning");
-  const published = facts.filter((f) => f.tone === "healthy").length;
-  // Healthy only when every file in the group is served: one published file
-  // out of nine is not a green group.
-  const all = published === item.ids.length;
+  const toggle = item.open ? "Fold them" : "Show them";
+  // A folded group whose attention members are drawn under it says what is
+  // still inside, or it reads as holding only those.
+  const inside = item.shown ? item.ids.length - item.shown : 0;
+  const figureOf = () => (inside ? `${inside} more inside` : plural(item.ids.length, noun));
+  const drawnNote = inside ? ` ${item.shown} drawn below because the attention list names them, ${inside} more inside.` : "";
+  if (item.stage === "file") {
+    const published = facts.filter((f) => f.tone === "healthy").length;
+    // Healthy only when every file in the group is served: one published file
+    // out of nine is not a green group.
+    const all = published === item.ids.length;
+    return {
+      tone: worst?.tone ?? (all ? "healthy" : "neutral"),
+      state: worst?.state ?? (all ? "all published" : `${published} of ${item.ids.length} published`),
+      figure: figureOf(),
+      title: `${plural(item.ids.length, noun)} named ${item.label}, ${published} published.${drawnNote} ${toggle}.`,
+    };
+  }
+  const healthy = facts.every((f) => f.tone === "healthy");
+  const trouble = errors + warnings;
   return {
-    tone: worst?.tone ?? (all ? "healthy" : "neutral"),
-    state: worst?.state ?? (all ? "all published" : `${published} of ${item.ids.length} published`),
-    figure: plural(item.ids.length, "file"),
-    title: `${plural(item.ids.length, "file")} named ${item.label}, ${published} published. ${item.open ? "Fold them" : "Show them"}.`,
+    tone: worst?.tone ?? (healthy ? "healthy" : "neutral"),
+    state: worst ? `${trouble} of ${item.ids.length} need attention` : healthy ? "all ok" : `${plural(item.ids.length, noun)}`,
+    figure: figureOf(),
+    title: `${plural(item.ids.length, noun)} named ${item.label}${trouble ? `, ${trouble} with a problem` : ""}.${drawnNote} ${toggle}.`,
   };
 }
 
-function nameOf(id: string): string {
-  return props.lineage.nodes.get(id)?.label ?? id;
-}
-
-/** What an item feeds, for the stage lists: "merge-cd-openjobs, for-cdcd-self-use". */
-function feeds(item: DisplayItem): string[] {
-  const out = new Set<string>();
+/**
+ * What an item feeds, for the stage lists: "merge-cd-openjobs, for-cdcd-*".
+ * Records folded under a column's "more" are counted, not named, and the
+ * count is only the ones this item feeds: "2 more shares".
+ */
+function feeds(item: MapItem): string[] {
+  const shown = new Set<string>();
+  const folded = new Map<string, Set<string>>();
   for (const id of item.ids) {
-    for (const to of props.lineage.downstream.get(id) ?? []) out.add(anchorOf(to));
+    for (const to of props.lineage.downstream.get(id) ?? []) {
+      const at = layout.value.anchor.get(to) ?? to;
+      if (at.startsWith("more:")) (folded.get(at) ?? folded.set(at, new Set()).get(at)!).add(to);
+      else shown.add(at);
+    }
   }
-  return [...out].map((key) => (key.startsWith("group:") ? `${key.slice(6)}-*` : nameOf(key)));
+  const named = [...shown].map((key) => labelOf.value.get(key) ?? props.lineage.nodes.get(key)?.label ?? key);
+  for (const [key, ids] of folded) {
+    const stage = key.slice("more:".length) as Stage;
+    named.push(`${ids.size} more ${ids.size === 1 ? STAGE_NOUN[stage] : `${STAGE_NOUN[stage]}s`}`);
+  }
+  return named;
 }
 
-function onChip(item: DisplayItem): void {
+function onChip(item: MapItem): void {
+  if (item.kind === "more") {
+    const next = new Set(expanded.value);
+    if (next.has(item.stage)) next.delete(item.stage);
+    else next.add(item.stage);
+    expanded.value = next;
+    return;
+  }
   if (item.kind === "group") {
     const next = new Set(openGroups.value);
     if (next.has(item.key)) next.delete(item.key);
     else next.add(item.key);
     openGroups.value = next;
   }
-  emit("select", item.key === props.selected && item.kind === "node" ? "" : item.key);
+  // A chip always selects. It used to toggle, so after the panel closed with
+  // the path still lit, the next click on the same chip put the path out
+  // instead of bringing the record back. The path is cleared with Escape on
+  // the map, a click on empty map space, or Clear selection.
+  emit("select", item.key);
+}
+
+/** Escape on the map puts the lit path out, once nothing is layered over it. */
+function onMapKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !props.selected || overlayDepth() > 0) return;
+  emit("select", "");
 }
 
 // ── geometry ────────────────────────────────────────────────────────────────
@@ -209,6 +245,20 @@ const narrow = useMediaQuery("(max-width: 640px)");
 const canvas = ref<HTMLElement | null>(null);
 const paths = ref<Array<{ d: string; on: boolean; tag: boolean; key: string }>>([]);
 const size = ref({ width: 0, height: 0 });
+/** Room under the columns for the lanes of edges that skip a column. */
+const laneRoom = ref(0);
+
+/** How far below a column's last chip a lane runs, and how far apart lanes are. */
+const LANE_CLEAR = 20;
+const LANE_STEP = 8;
+/** How far apart the drops and risers of different records sit in a gap. */
+const RISER_STEP = 6;
+
+/** x in a gap for the `index`th of `count` records, centred, kept inside the gap. */
+function spread(centre: number, width: number, index: number, count: number): number {
+  const step = Math.min(RISER_STEP, width / (count + 1));
+  return centre + (index - (count - 1) / 2) * step;
+}
 
 function measure(): void {
   const root = canvas.value;
@@ -220,23 +270,30 @@ function measure(): void {
   size.value = { width: base.width, height: base.height };
   const boxes = new Map<string, DOMRect>();
   for (const el of root.querySelectorAll<HTMLElement>("[data-map-key]")) boxes.set(el.dataset.mapKey!, el.getBoundingClientRect());
-  // Each column's box and the band its chips occupy, so an edge that skips a
-  // column (a source rendered straight into a file) can go round the chips
-  // instead of vanishing under one and reading as if it ended there.
   const cols = [...root.querySelectorAll<HTMLElement>("[data-map-col]")].map((el) => {
     const box = el.getBoundingClientRect();
     const chips = [...el.querySelectorAll<HTMLElement>("[data-map-key]")].map((chip) => chip.getBoundingClientRect());
     return {
       left: box.left - base.left,
       right: box.right - base.left,
-      top: chips.length ? Math.min(...chips.map((c) => c.top)) - base.top : Number.POSITIVE_INFINITY,
-      bottom: chips.length ? Math.max(...chips.map((c) => c.bottom)) - base.top : Number.NEGATIVE_INFINITY,
+      bottom: chips.length ? Math.max(...chips.map((c) => c.bottom)) - base.top : 0,
     };
   });
   const f = (n: number) => n.toFixed(1);
-  const lanes = new Map<number, number>();
+  let deepest = 0;
   const out: typeof paths.value = [];
-  for (const edge of drawnEdges.value) {
+  // An edge that skips a column gets a lane and a riser of its target's own,
+  // and a drop of its source's own, so strands to different files never share
+  // a trunk; strands to the same file do, because they end in the same place.
+  const skipping = painted.value.filter((edge) => {
+    const from = columnOf.value.get(edge.from) ?? 0;
+    return (columnOf.value.get(edge.to) ?? from + 1) - from > 1;
+  });
+  const order = (keys: string[]) => new Map([...new Set(keys)].map((key, index) => [key, index]));
+  const targets = order(skipping.map((edge) => edge.to));
+  const sources = order(skipping.map((edge) => edge.from));
+  const laneOf = new Map<string, number>();
+  for (const edge of painted.value) {
     const a = boxes.get(edge.from);
     const b = boxes.get(edge.to);
     if (!a || !b) continue;
@@ -248,30 +305,71 @@ function measure(): void {
     const to = columnOf.value.get(edge.to) ?? from + 1;
     let d: string;
     if (to - from > 1 && cols[from + 1] && cols[to - 1]) {
+      // Skipping a column: turn down in the gap after the source's column,
+      // cross under every skipped column's last chip with room to spare, and
+      // turn up in the gap before the target's. One lane per such edge.
       const skipped = cols.slice(from + 1, to);
-      const top = Math.min(...skipped.map((c) => c.top));
-      const bottom = Math.max(...skipped.map((c) => c.bottom));
-      // Stay at the source's height when that is already clear of the chips;
-      // otherwise run in a lane under them, one lane per such edge.
+      const clear = Math.max(...skipped.map((c) => c.bottom)) + LANE_CLEAR;
+      // Already below every skipped chip: stay level. Otherwise take the
+      // target's lane.
       let lane = y1;
-      if (y1 > top - 6 && y1 < bottom + 6) {
-        const n = lanes.get(from) ?? 0;
-        lanes.set(from, n + 1);
-        lane = bottom + 12 + n * 6;
+      if (y1 < clear) {
+        if (!laneOf.has(edge.to)) laneOf.set(edge.to, laneOf.size);
+        lane = clear + laneOf.get(edge.to)! * LANE_STEP;
       }
-      const xa = skipped[0]!.left - 8;
-      const xb = skipped[skipped.length - 1]!.right + 8;
-      const da = Math.max(16, (xa - x1) / 2);
-      const db = Math.max(16, (x2 - xb) / 2);
-      d = `M${f(x1)} ${f(y1)} C${f(x1 + da)} ${f(y1)} ${f(xa - da)} ${f(lane)} ${f(xa)} ${f(lane)} L${f(xb)} ${f(lane)} C${f(xb + db)} ${f(lane)} ${f(x2 - db)} ${f(y2)} ${f(x2)} ${f(y2)}`;
+      deepest = Math.max(deepest, lane);
+      const widthA = skipped[0]!.left - cols[from]!.right;
+      const widthB = cols[to]!.left - skipped[skipped.length - 1]!.right;
+      const gapA = spread((cols[from]!.right + skipped[0]!.left) / 2, widthA, sources.get(edge.from) ?? 0, sources.size);
+      const gapB = spread((skipped[skipped.length - 1]!.right + cols[to]!.left) / 2, widthB, targets.get(edge.to) ?? 0, targets.size);
+      d = orthogonalPath([[x1, y1], [gapA, y1], [gapA, lane], [gapB, lane], [gapB, y2], [x2, y2]], 10);
     } else {
       const dx = Math.max(24, (x2 - x1) / 2);
       d = `M${f(x1)} ${f(y1)} C${f(x1 + dx)} ${f(y1)} ${f(x2 - dx)} ${f(y2)} ${f(x2)} ${f(y2)}`;
     }
     out.push({ key: `${edge.from}>${edge.to}`, on: edge.on, tag: edge.tag, d });
   }
-  // Lit edges last, so they are painted over the dimmed ones they cross.
+  // The canvas grows to hold its lowest lane rather than clip it.
+  const contentBottom = base.height - laneRoom.value;
+  const need = deepest ? Math.max(0, Math.ceil(deepest + 12 - contentBottom)) : 0;
+  if (need !== laneRoom.value) laneRoom.value = need;
+  // Lit edges last, so they are painted over the ones they cross.
   paths.value = out.sort((p, q) => Number(p.on) - Number(q.on));
+}
+
+/**
+ * A polyline through the given points with each corner rounded, skipping
+ * points that do not turn. The radius shrinks on a short segment so a corner
+ * never overshoots the next one.
+ */
+function orthogonalPath(points: Array<[number, number]>, radius: number): string {
+  const f = (n: number) => n.toFixed(1);
+  const pts = points.filter((point, index) => {
+    const prev = points[index - 1];
+    return !prev || prev[0] !== point[0] || prev[1] !== point[1];
+  });
+  const turns = pts.filter((point, index) => {
+    if (index === 0 || index === pts.length - 1) return true;
+    const a = pts[index - 1]!;
+    const b = pts[index + 1]!;
+    return !((a[0] === point[0] && point[0] === b[0]) || (a[1] === point[1] && point[1] === b[1]));
+  });
+  let d = `M${f(turns[0]![0])} ${f(turns[0]![1])}`;
+  for (let index = 1; index < turns.length - 1; index += 1) {
+    const [px, py] = turns[index - 1]!;
+    const [cx, cy] = turns[index]!;
+    const [nx, ny] = turns[index + 1]!;
+    const inLen = Math.hypot(cx - px, cy - py);
+    const outLen = Math.hypot(nx - cx, ny - cy);
+    const r = Math.min(radius, inLen / 2, outLen / 2);
+    const ax = cx - ((cx - px) / (inLen || 1)) * r;
+    const ay = cy - ((cy - py) / (inLen || 1)) * r;
+    const bx = cx + ((nx - cx) / (outLen || 1)) * r;
+    const by = cy + ((ny - cy) / (outLen || 1)) * r;
+    d += ` L${f(ax)} ${f(ay)} Q${f(cx)} ${f(cy)} ${f(bx)} ${f(by)}`;
+  }
+  const last = turns[turns.length - 1]!;
+  return `${d} L${f(last[0])} ${f(last[1])}`;
 }
 
 let observer: ResizeObserver | undefined;
@@ -283,23 +381,28 @@ onMounted(() => {
   void nextTick(measure);
 });
 onBeforeUnmount(() => observer?.disconnect());
-watch([columns, drawnEdges, narrow], () => void nextTick(measure), { flush: "post" });
+watch([columns, painted, narrow, canvas], () => void nextTick(measure), { flush: "post" });
 
 const summary = computed(() => {
   const c = props.lineage.columns;
   const edges = props.lineage.edges.length;
   return `Lineage: ${plural(c.source.length, "source")}, ${plural(c.combination.length, "combination")}, ${plural(c.file.length, "file")}, ${plural(c.share.length, "share")}, ${edges} ${edges === 1 ? "dependency" : "dependencies"}`;
 });
+
+function chipTitle(item: MapItem): string {
+  return item.kind === "more" ? factsOf(item).title : `${item.label}. ${factsOf(item).title}`;
+}
 </script>
 
 <template>
-  <figure class="lineage" :aria-label="summary" :data-lit="lit ? 'true' : undefined">
+  <figure class="lineage" :aria-label="summary" :data-lit="lit ? 'true' : undefined" @keydown="onMapKeydown">
+    <p v-if="note && !narrow" class="lineage-note">{{ note }}</p>
     <!-- Wide: four columns and the edges between them. -->
-    <div v-if="!narrow" ref="canvas" class="lineage-canvas" @click.self="emit('select', '')">
+    <div v-if="!narrow" ref="canvas" class="lineage-canvas" :style="laneRoom ? { paddingBottom: `calc(var(--space-4) + ${laneRoom}px)` } : undefined" @click.self="emit('select', '')">
       <svg
         class="lineage-edges"
         role="img"
-        :aria-label="`${drawnEdges.length} dependencies between the columns${lit ? `, ${drawnEdges.filter((e) => e.on).length} on the selected path` : ''}`"
+        :aria-label="`${painted.length} of ${lineage.edges.length} dependencies drawn${lit ? `, ${allEdges.filter((e) => e.on).length} on the selected path` : ''}`"
         :width="size.width"
         :height="size.height"
         :viewBox="`0 0 ${size.width || 1} ${size.height || 1}`"
@@ -328,13 +431,13 @@ const summary = computed(() => {
           :data-kind="item.kind"
           :data-member="item.member ? 'true' : undefined"
           :data-state="itemState(item)"
-          :aria-pressed="item.key === selected ? 'true' : 'false'"
-          :aria-expanded="item.kind === 'group' ? (item.open ? 'true' : 'false') : undefined"
-          :title="`${item.label}. ${factsOf(item).title}`"
+          :aria-pressed="item.kind === 'more' ? undefined : item.key === selected ? 'true' : 'false'"
+          :aria-expanded="item.kind === 'node' ? undefined : item.open ? 'true' : 'false'"
+          :title="chipTitle(item)"
           @click="onChip(item)"
         >
           <ChevronRight v-if="item.kind === 'group'" class="lineage-chevron" :size="13" aria-hidden="true" />
-          <PcStateDot :tone="factsOf(item).tone" :label="''" :title="factsOf(item).state" class="lineage-dot" />
+          <PcStateDot v-if="item.kind !== 'more'" :tone="factsOf(item).tone" :label="''" :title="factsOf(item).state" class="lineage-dot" />
           <span class="lineage-name">{{ item.label }}</span>
           <span v-if="factsOf(item).figure" class="lineage-figure">{{ factsOf(item).figure }}</span>
         </button>
@@ -361,17 +464,17 @@ const summary = computed(() => {
               type="button"
               class="lineage-chip"
               :data-kind="item.kind"
-              :aria-pressed="item.key === selected ? 'true' : 'false'"
-              :aria-expanded="item.kind === 'group' ? (item.open ? 'true' : 'false') : undefined"
-              :title="`${item.label}. ${factsOf(item).title}`"
+              :aria-pressed="item.kind === 'more' ? undefined : item.key === selected ? 'true' : 'false'"
+              :aria-expanded="item.kind === 'node' ? undefined : item.open ? 'true' : 'false'"
+              :title="chipTitle(item)"
               @click="onChip(item)"
             >
               <ChevronRight v-if="item.kind === 'group'" class="lineage-chevron" :size="13" aria-hidden="true" />
-              <PcStateDot :tone="factsOf(item).tone" :label="''" :title="factsOf(item).state" class="lineage-dot" />
+              <PcStateDot v-if="item.kind !== 'more'" :tone="factsOf(item).tone" :label="''" :title="factsOf(item).state" class="lineage-dot" />
               <span class="lineage-name">{{ item.label }}</span>
               <span v-if="factsOf(item).figure" class="lineage-figure">{{ factsOf(item).figure }}</span>
             </button>
-            <p v-if="feeds(item).length && !(item.kind === 'group' && item.open)" class="lineage-feeds">
+            <p v-if="item.kind !== 'more' && feeds(item).length && !(item.kind === 'group' && item.open)" class="lineage-feeds">
               <span aria-hidden="true">→ </span><span class="pc-sr-only">feeds </span>{{ feeds(item).join(", ") }}
             </p>
           </li>

@@ -9,6 +9,7 @@ import {
   paletteEntries,
   PALETTE_COMMANDS,
 } from "./commandPalette";
+import { NO_SOURCE_REASON, READING_REASON, createBlocks } from "./createGate";
 import type { ActionCapabilities } from "./recordActions";
 
 function record(over: Partial<SubscriptionListItem> = {}): SubscriptionListItem {
@@ -51,7 +52,15 @@ describe("what the palette lists", () => {
     const entries = paletteEntries("", RECORDS, caps());
     expect(entries.find((e) => e.key === "record:work-col")?.hint).toContain("Combination");
     expect(entries.find((e) => e.key === "record:phone-file")?.hint).toContain("File");
-    expect(entries.find((e) => e.key === "record:home-sub")?.hint).toContain("home-sub");
+    expect(entries.find((e) => e.key === "record:home-sub")?.hint).toBe("Source");
+  });
+
+  it("never prints the stored id, and gives the stored name under a display name", () => {
+    const imported = [record({ id: "imported-unnamed", name: "jiancai", display_name: "建材市场" })];
+    const [entry] = paletteEntries("", imported, caps());
+    expect(entry?.label).toBe("建材市场");
+    expect(entry?.hint).toBe("Source · jiancai");
+    expect(entry?.hint).not.toContain("imported-unnamed");
   });
 
   it("prefers the display name, which is what the list shows", () => {
@@ -73,6 +82,27 @@ describe("what the palette lists", () => {
     expect(create).toHaveLength(PALETTE_COMMANDS.length);
     expect(create.every((e) => e.disabled)).toBe(true);
     expect(create[0]?.reason).toContain("token lacks the scope");
+  });
+
+  it("disables create with the header's reason while the catalogue is unread, and a missing scope still says so first", () => {
+    const unread = "The record catalogue could not be read";
+    const blocked = paletteEntries("new", RECORDS, caps(), 20, unread).filter((e) => e.kind === "command");
+    expect(blocked.every((e) => e.disabled && e.reason === unread)).toBe(true);
+    const scope = paletteEntries("new", RECORDS, caps({ mutate: false }), 20, unread).filter((e) => e.kind === "command");
+    expect(scope[0]?.reason).toContain("token lacks the scope");
+    expect(paletteEntries("new", RECORDS, caps()).filter((e) => e.kind === "command").some((e) => e.disabled)).toBe(false);
+  });
+
+  it("blocks create while the first read is in flight, and gives each command the gate's own reason", () => {
+    // Cmd+K before the catalogue lands: the budget and the names are unknown.
+    const reading = paletteEntries("new", [], caps(), 20, createBlocks({ state: "loading", failed: false, records: [] }));
+    expect(reading.every((e) => e.disabled && e.reason === READING_REASON)).toBe(true);
+    // Read, with files only: a combination has nothing to combine, the others may go ahead.
+    const filesOnly = createBlocks({ state: "ready", failed: false, records: [{ kind: "file" }] });
+    const byCommand = new Map(paletteEntries("new", [], caps(), 20, filesOnly).map((e) => [e.command, e]));
+    expect(byCommand.get("new-collection")).toMatchObject({ disabled: true, reason: NO_SOURCE_REASON });
+    expect(byCommand.get("new-subscription")?.disabled).toBe(false);
+    expect(byCommand.get("new-file")?.disabled).toBe(false);
   });
 });
 

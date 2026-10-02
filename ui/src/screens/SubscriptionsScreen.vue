@@ -25,8 +25,10 @@ import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import TargetSheet from "../components/TargetSheet.vue";
-import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
+import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
+import { forwardSelectCellClick, isSelectCell } from "../selectCell";
 import { useRecordEditor } from "../useRecordEditor";
 import SubscriptionEditor from "../components/SubscriptionEditor.vue";
 
@@ -230,7 +232,7 @@ async function confirmMigrate(): Promise<void> {
   migrateSummary.value =
     `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s)` +
     (skipped ? `, and skipped ${skipped}` : "") +
-    ". Nothing is published yet, so publish a share under Networking, then Subscription Shares, to make them reachable.";
+    ". Nothing is published yet, so publish a share under Platform, then Publishing, to make them reachable.";
   migrateUrl.value = "";
 }
 
@@ -333,6 +335,9 @@ watch(
   },
   { immediate: true },
 );
+
+/** The table, so a delete can hand focus to the row that takes the deleted one's place. */
+const listRoot = ref<HTMLElement | null>(null);
 
 /** Which record's per-row menu is open; only ever one. */
 const openMenuId = ref("");
@@ -466,9 +471,9 @@ function menuActionsFor(row: SubscriptionListItem) {
   return rowMenuFor(row, actionCaps.value);
 }
 
-/** The name opens the peek; the id is its title so a row can be tied to a share. */
+/** The name opens the peek. Shares name their records now, so the stored id stays out of the title. */
 function nameTitle(row: SubscriptionListItem): string {
-  return `${row.id}. Show it in the side panel.`;
+  return `Show ${row.display_name || row.name} in the side panel`;
 }
 
 /** The chassis's tone for a row verdict. */
@@ -564,7 +569,7 @@ function statusOf(item: SubscriptionListItem): { tone: "ok" | "warn" | "danger" 
 // in its reply), so the NODES column is computed here: lazily, once per
 // record per session, two previews in flight at a time, through the same
 // read-scoped `preview` the row's eye uses. The rows render first and print
-// "?" until their count lands; a preview of a provider link fetches the
+// "counting" until their count lands; a preview of a provider link fetches the
 // provider, exactly as the eye does.
 const counts = useNodeCounts(host);
 watch(
@@ -634,7 +639,7 @@ function figuresOf(row: SubscriptionListItem) {
 function openRow(row: SubscriptionListItem, event: MouseEvent): void {
   // The checkbox and the menu are controls of their own inside the row.
   const target = event.target as HTMLElement | null;
-  if (target?.closest("input, [data-row-menu], .rec-menu")) return;
+  if (isSelectCell(target) || target?.closest("input, [data-row-menu], .rec-menu")) return;
   chrome.openRecord(row.id);
 }
 
@@ -665,7 +670,7 @@ function requestDelete(ids: string[]): void {
  * The dialog's words, from the one builder every surface uses (deletePrompt):
  * the records that break are listed by name, not described.
  */
-const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value));
+const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value, shares.value));
 
 /**
  * What a partly-finished batch delete left behind.
@@ -688,11 +693,13 @@ async function runDelete(): Promise<void> {
   deleteRemainder.value = null;
   const queue = [...deleting.value];
   const done: string[] = [];
+  // Read before the rows go: the row that will sit where they were.
+  const anchor = anchorAfterDelete(filteredRows.value.map((row) => row.id), queue);
   try {
     for (let index = 0; index < queue.length; index += 1) {
       const id = queue[index]!;
       markPending(id, true);
-      const ok = await subs.remove(id);
+      const ok = await subs.remove(id, ownLiveShares(id, shares.value));
       markPending(id, false);
       if (ok) {
         done.push(id);
@@ -714,6 +721,10 @@ async function runDelete(): Promise<void> {
     // the second half of the same bug: the records that were never attempted
     // had to be found again by hand.
     if (!deleteRemainder.value) selectedIds.value = new Set();
+    if (done.length) {
+      await nextTick();
+      focusRowAfterDelete(listRoot.value, anchor);
+    }
   }
 }
 
@@ -779,10 +790,15 @@ const shareOrigin = computed(() =>
  */
 function openShares(record: SubscriptionListItem): void {
   if (!shareOrigin.value) return;
-  const route = publishedOf(record).shares.length ? SHARES_LIST_ROUTE : sharesRoute(record.name);
+  const route = publishedOf(record).shares.length ? SHARES_LIST_ROUTE : sharesRoute(record.id);
   postNavigate(window, route, shareOrigin.value);
   closeDrawer();
-  subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+  subs.notice.value = "Asked the console to open Platform → Publishing.";
+}
+
+/** The console's share list, where a share a delete left serving nothing is removed or repointed. */
+function openPublishing(): void {
+  if (shareOrigin.value) postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
 }
 
 /**
@@ -836,7 +852,7 @@ watch(host.init, (value) => {
 </script>
 
 <template>
-  <EngineUnavailable v-if="host.init.value && !subs.available.value" feature="Subscriptions" />
+  <EngineUnavailable v-if="host.init.value && !subs.available.value" feature="Sources" />
 
   <template v-else>
     <!-- ── editor ───────────────────────────────────────────────────────── -->
@@ -847,7 +863,12 @@ watch(host.init, (value) => {
       <h2 :id="`${viewId}-title`" class="pc-sr-only">{{ isComboLayer ? "Combinations" : "Sources" }}</h2>
 
       <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
-      <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
+      <PcNotice v-else-if="subs.notice.value" tone="success">
+        {{ subs.notice.value }}
+        <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
+          <PcButton compact @click="openPublishing()">Open in Publishing</PcButton>
+        </template>
+      </PcNotice>
       <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
 
       <!--
@@ -923,7 +944,7 @@ watch(host.init, (value) => {
       <PcPanel v-else-if="storeEmpty" label="Sources">
         <PcEmptyState title="No sources yet">
           <template #icon><Library :size="26" aria-hidden="true" /></template>
-          <p>Start with your own fleet: one subscription reading this deployment's vpn-core nodes.</p>
+          <p>Start with your own fleet: one source reading this deployment's vpn-core nodes.</p>
           <template #actions>
             <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="startCreate(KIND_SUB)">
               <template #icon><Server :size="15" aria-hidden="true" /></template>
@@ -973,7 +994,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel :label="isComboLayer ? 'Combinations' : 'Sources'">
-          <div class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'">
+          <div ref="listRoot" class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'" @click="forwardSelectCellClick">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" :label="`Filter ${noun}s`" />
               <label class="toolbar-sort">
@@ -1044,12 +1065,14 @@ watch(host.init, (value) => {
                   <PcSelectCell :checked="selectedIds.has(row.id)" :label="`Select ${row.name}`" @change="toggleSelected(row.id)" />
                   <td class="pc-name" data-stack="name">
                     <div class="pc-name-line">
-                      <button type="button" class="row-open" :title="nameTitle(row)" @click.stop="chrome.openRecord(row.id)">
+                      <button type="button" class="row-open" :data-record-open="row.id" :title="nameTitle(row)" @click.stop="chrome.openRecord(row.id)">
                         <strong>{{ row.display_name || row.name }}</strong>
                       </button>
                       <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="2" /></span>
                     </div>
-                    <small :title="row.remark || row.id">{{ row.remark || row.id }}</small>
+                    <!-- The remark, when there is one. Not the id: a migrated record's id is
+                         `imported-` and its name again, noise under every row. -->
+                    <small v-if="row.remark" :title="row.remark">{{ row.remark }}</small>
                   </td>
                   <td v-if="!isComboLayer" data-stack="detail" data-label="Kind"><span class="pc-td-body">{{ sourceKindLabel(row) }}</span></td>
                   <td v-else data-stack="detail" data-label="Members" :title="membersOf(row).title">
@@ -1142,6 +1165,9 @@ watch(host.init, (value) => {
         verb="Delete"
         :names="deleteDialog.names"
         :consequences="deleteDialog.consequences"
+        :served="deleteDialog.served"
+        :confirm-text="deleteDialog.confirmText"
+        :focus-record="deleting[0] ?? ''"
         :busy="deleteBusy"
         @confirm="runDelete()"
         @cancel="deleting = []"

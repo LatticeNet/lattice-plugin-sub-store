@@ -94,24 +94,24 @@ function setEditorTab(id: string): void {
   <section class="configuration editor-shell" aria-labelledby="editor-title">
     <nav class="lt-breadcrumb" aria-label="Breadcrumb">
       <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
-        <ChevronLeft :size="14" aria-hidden="true" /> Subscriptions
+        <ChevronLeft :size="14" aria-hidden="true" /> {{ isCollection ? "Combinations" : "Sources" }}
       </button>
       <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
       <span class="lt-breadcrumb-here" aria-current="page">
-        {{ editingId ? draft.displayName || draft.name || editingId : (isCollection ? "New combination" : "New subscription") }}
+        {{ editingId ? draft.displayName || draft.name || editingId : (isCollection ? "New combination" : "New source") }}
       </span>
     </nav>
     <div class="section-heading">
       <div>
-        <h2 id="editor-title">
+        <h2 id="editor-title" tabindex="-1" data-editor-title>
           {{ editingId ? "Edit" : "New" }}
-          {{ isCollection ? "combination" : "subscription" }}
+          {{ isCollection ? "combination" : "source" }}
           <!-- The draft survives a switch to another lens and back; this
                says so on return, so an edit is not mistaken for saved. -->
           <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
         </h2>
         <p v-if="isCollection">
-          Merges several subscriptions and processes the merged result as one.
+          Merges several sources and processes the merged result as one.
         </p>
         <p v-else>One source of nodes, processed and served.</p>
       </div>

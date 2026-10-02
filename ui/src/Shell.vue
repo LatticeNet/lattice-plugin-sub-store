@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
-import { ChevronDown, FileCode, Layers, Library, Link2, Plus, RefreshCw, Search, Settings, SquareArrowOutUpRight, Store, Workflow } from "@lucide/vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
+import { ChevronDown, FileCode, Layers, Plus, RefreshCw, Search, SquareArrowOutUpRight, Store } from "@lucide/vue";
 import {
   PcButton,
   PcIconButton,
@@ -20,7 +20,8 @@ import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
 import { actionCapabilities, type ActionCapabilities, type ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
-import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS, type SubscriptionListItem } from "./client";
+import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionListItem } from "./client";
+import { createBlocks, headerCreate, type CatalogueView } from "./createGate";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
 import OverviewScreen from "./screens/OverviewScreen.vue";
 import RecordPage from "./screens/RecordPage.vue";
@@ -28,9 +29,11 @@ import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
 import FilesScreen from "./screens/FilesScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
 import SharesScreen from "./screens/SharesScreen.vue";
-import { createLensChrome, provideLensChrome, type Facets, type TabId } from "./lensChrome";
+import { createLensChrome, provideLensChrome, type Facets, type LensOpenOptions, type TabId } from "./lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
+import { useObservedAge } from "./observedAge";
+import { revealKeyOf, vRevealSelected } from "./layerTabs";
 import { VIEW_IDS, viewOfKind } from "./pipeline";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
@@ -59,22 +62,26 @@ const standalone = computed(
   () => !host.init.value && (handshakeExpired.value || !!host.bootError.value),
 );
 
+/**
+ * The layers, as one underline row like vpn-core's (design 23 section 3.4):
+ * a layer is a place in the page, so it reads as a tab under the header, not
+ * as a boxed pill with an icon. Pills stay for modes inside a layer.
+ */
 interface Layer {
   id: TabId;
   label: string;
-  icon: Component;
   screen: Component;
   props?: Record<string, unknown>;
 }
 
 const tabs: Layer[] = [
-  { id: "overview", label: "Overview", icon: Workflow, screen: OverviewScreen },
-  { id: "sources", label: "Sources", icon: Library, screen: SubscriptionsScreen, props: { kind: KIND_SUB } },
-  { id: "combinations", label: "Combinations", icon: Layers, screen: SubscriptionsScreen, props: { kind: KIND_COLLECTION } },
-  { id: "files", label: "Files", icon: FileCode, screen: FilesScreen },
+  { id: "overview", label: "Overview", screen: OverviewScreen },
+  { id: "sources", label: "Sources", screen: SubscriptionsScreen, props: { kind: KIND_SUB } },
+  { id: "combinations", label: "Combinations", screen: SubscriptionsScreen, props: { kind: KIND_COLLECTION } },
+  { id: "files", label: "Files", screen: FilesScreen },
   // The record list from the client's side: every link the console serves.
-  { id: "shares", label: "Shares", icon: Link2, screen: SharesScreen },
-  { id: "settings", label: "Settings", icon: Settings, screen: SettingsScreen },
+  { id: "shares", label: "Shares", screen: SharesScreen },
+  { id: "settings", label: "Settings", screen: SettingsScreen },
 ];
 const TAB_IDS = new Set<string>(VIEW_IDS);
 
@@ -110,6 +117,7 @@ const shellState = computed<ShellState>(() => ({
   origin: chrome.facets.origin,
   type: chrome.facets.type,
   link: chrome.facets.link,
+  page: chrome.page.value,
 }));
 
 function applyState(state: ShellState): void {
@@ -120,6 +128,7 @@ function applyState(state: ShellState): void {
   chrome.search.value = state.q;
   chrome.sort.value = state.sort;
   Object.assign(chrome.facets, { published: state.published, origin: state.origin, type: state.type, link: state.link });
+  chrome.page.value = state.page;
 }
 
 const stateSender = createStateSender((state) => host.sendState(state));
@@ -135,7 +144,7 @@ watch(shellState, (state) => {
 });
 onBeforeUnmount(() => stateSender.dispose());
 
-chrome.openLens = (tab, facets?: Partial<Facets>) => {
+chrome.openLens = (tab, facets?: Partial<Facets>, options?: LensOpenOptions) => {
   recordId.value = "";
   activeTab.value = tab;
   if (facets) {
@@ -144,6 +153,10 @@ chrome.openLens = (tab, facets?: Partial<Facets>) => {
     chrome.facets.type = facets.type ?? "";
     chrome.facets.link = facets.link ?? "";
   }
+  if (options?.search !== undefined) chrome.search.value = options.search;
+  // The control that sent the operator here was on the layer that just left
+  // the screen, and focus went to <body> with it.
+  if (options?.focus) void nextTick(() => focusLayer());
 };
 chrome.openRecord = (id) => {
   chrome.openId.value = id;
@@ -155,9 +168,40 @@ chrome.openPage = (id) => {
 };
 provideLensChrome(chrome);
 
+/* ── where the keyboard lands ───────────────────────────────────────────────
+ * A control that removes itself (a layer switch from an attention item, a
+ * palette action, a delete from the side panel) left focus on <body>, the top
+ * of the frame. These put it on the layer the operator was sent to. */
+const lensPanel = ref<HTMLElement | null>(null);
+function focusFree(): boolean {
+  const active = document.activeElement;
+  return !active || active === document.body;
+}
+function focusLayer(): void {
+  lensPanel.value?.focus();
+}
+/** After an action has had its turn: the place it opened, else the record's row, else the layer. */
+function settleFocus(recordId?: string): void {
+  setTimeout(() => {
+    if (!focusFree()) return;
+    const row = recordId ? document.querySelector<HTMLElement>(`[data-record-open="${CSS.escape(recordId)}"]`) : null;
+    (row ?? lensPanel.value)?.focus();
+  });
+}
+
 const lens = computed(() => chrome.lenses[activeTab.value]);
 /** Inside an editor the list controls make no sense; the tabs stay. */
 const editing = computed(() => lens.value.editing);
+/*
+ * An editor that opens (from a row menu, the palette, a create command)
+ * replaces the control that opened it. Its heading takes focus, so the
+ * keyboard starts at the top of the form.
+ */
+watch(editing, async (now) => {
+  if (!now) return;
+  await nextTick();
+  if (focusFree()) lensPanel.value?.querySelector<HTMLElement>(".editor-shell [data-editor-title]")?.focus();
+});
 
 const current = computed<{ key: string; screen: Component; props: Record<string, unknown> }>(() => {
   if (recordId.value) {
@@ -204,6 +248,9 @@ const tabCounts = computed<Record<TabId, number | null>>(() => ({
   settings: null,
 }));
 
+/** When the layer row scrolls its selected tab into view (layerTabs.ts revealKeyOf). */
+const revealKey = computed(() => revealKeyOf(activeTab.value, tabs.map((tab) => tabCounts.value[tab.id])));
+
 /**
  * Live-share and published counts, from the same two lists the layers render.
  * They land in the proof line rather than a strip of tiles.
@@ -212,7 +259,9 @@ const shareFacts = computed(() => {
   const shares = shareStore.shares.value;
   if (!shares) return null;
   const now = Date.now();
-  const live = shares.filter((share) => shareStateOf(share, now).tone === "ok").length;
+  // A share whose record is gone serves nothing, enabled or not.
+  const known = new Set(records.value.map((item) => item.id));
+  const live = shares.filter((share) => shareStateOf(share, now, !ready.value || known.has(share.subscription_id)).tone === "ok").length;
   return { total: shares.length, live, dead: shares.length - live };
 });
 const publishedRecords = computed(() =>
@@ -221,11 +270,15 @@ const publishedRecords = computed(() =>
     : records.value.filter((item) => publishStateFor(shareStore.shares.value, item.id).tone === "ok").length,
 );
 
-/** When the catalogue or the share list was last read, for the proof line. */
-const observedAt = ref("");
+/**
+ * When the catalogue or the share list was last read, for the proof line:
+ * "observed 13s ago", as the console says it, with the absolute time in the
+ * line's title.
+ */
+const observedAt = ref<number>();
+const observed = useObservedAge(() => observedAt.value);
 function stamp(): void {
-  const now = new Date();
-  observedAt.value = [now.getHours(), now.getMinutes(), now.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":");
+  observedAt.value = Date.now();
 }
 watch(() => catalogue.items.value, () => { if (ready.value) stamp(); }, { flush: "sync" });
 watch(() => shareStore.shares.value, (value) => { if (value) stamp(); });
@@ -233,7 +286,7 @@ watch(() => shareStore.shares.value, (value) => { if (value) stamp(); });
 const proof = computed(() => {
   if (catalogue.state.value === "error") return ["the record catalogue could not be read"];
   if (!ready.value) return ["waiting for the record catalogue"];
-  const parts = [`observed at ${observedAt.value || "..."}`, `${records.value.length} records`];
+  const parts = [observed.age.value ? `observed ${observed.age.value} ago` : "reading", `${records.value.length} records`];
   const shares = shareFacts.value;
   if (shares) parts.push(`${shares.live} share${shares.live === 1 ? "" : "s"} live`);
   else if (shareStore.error.value) parts.push("share list unread");
@@ -302,17 +355,39 @@ function toggleAddMenu(): void {
 const caps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
 /**
- * The page's one primary action per layer, and why it may be missing.
- *
- * A verb the session may not perform is absent, not disabled, and the reason
- * takes its place as a note; a verb the store cannot take right now (the
- * record budget is spent) stays, disabled, with the reason as its title.
+ * Whether the last catalogue read that finished failed, with none succeeding
+ * since. A retry sets the state back to "loading"; this keeps the header's
+ * disabled create in place through it rather than dropping the row and
+ * adding it back.
  */
-const atRecordLimit = computed(() => ready.value && catalogue.items.value.length >= MAX_SUBSCRIPTION_RECORDS);
-const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
-const canCreate = computed(() => caps.value.ready && caps.value.mutate);
+const catalogueFailed = ref(false);
+watch(
+  () => catalogue.state.value,
+  (state) => {
+    if (state === "error") catalogueFailed.value = true;
+    else if (state === "ready") catalogueFailed.value = false;
+  },
+  { immediate: true, flush: "sync" },
+);
+const catalogueView = computed<CatalogueView>(() => ({
+  state: catalogue.state.value,
+  failed: catalogueFailed.value,
+  records: catalogue.items.value,
+}));
+/**
+ * The page's one primary action per layer, in the header after Refresh, as
+ * vpn-core places its own; the rules are in createGate.ts. A verb the session
+ * may not perform is absent; a verb the store cannot take right now (the
+ * catalogue is unread, the record budget is spent) stays, disabled, with the
+ * reason as its title.
+ */
+const head = computed(() =>
+  headerCreate({ tab: activeTab.value, catalogue: catalogueView.value, caps: caps.value, covered: !!recordId.value || editing.value }),
+);
+/** Why each create command is blocked, for the add menu and the palette. */
+const blocks = computed(() => createBlocks(catalogueView.value));
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
-const NO_ORIGIN = "This frame cannot ask the console to navigate; open Networking → Subscription Shares yourself.";
+const NO_ORIGIN = "This frame cannot ask the console to navigate; open Platform → Publishing yourself.";
 
 function openPalette(): void {
   paletteOpen.value = true;
@@ -368,12 +443,14 @@ function fadeLens(): void {
 function runFromPalette(record: SubscriptionListItem, action: ActionId): void {
   chrome.openLens(viewOfKind(record.kind));
   intent.value = { recordId: record.id, action };
+  settleFocus(record.id);
 }
 
 function runCommand(command: PaletteCommandId): void {
   closeAddMenu();
   chrome.openLens(command === "new-file" ? "files" : command === "new-collection" ? "combinations" : "sources");
   intent.value = { command };
+  settleFocus();
 }
 
 /** The editor belongs to the layer that lists the record; the page hands over. */
@@ -391,19 +468,34 @@ function editRecord(id: string): void {
  * opened from. Either way the outcome is said on that layer, since the
  * surface that ran the delete is gone.
  */
-const flash = ref<{ text: string; view: TabId } | null>(null);
+const flash = ref<{ text: string; view: TabId; shares: string[] } | null>(null);
 watch(activeTab, (tab) => {
   if (flash.value && flash.value.view !== tab) flash.value = null;
 });
-function deletedFromPage(kind: string, text: string): void {
+function deletedFromPage(kind: string, text: string, shares: string[] = []): void {
   const view = viewOfKind(kind);
   recordId.value = "";
   activeTab.value = view;
-  flash.value = text ? { text, view } : null;
+  flash.value = text ? { text, view, shares } : null;
 }
-function deletedFromPanel(_kind: string, text: string): void {
+function deletedFromPanel(_kind: string, text: string, shares: string[] = []): void {
   chrome.openId.value = "";
-  flash.value = text ? { text, view: activeTab.value } : null;
+  flash.value = text ? { text, view: activeTab.value, shares } : null;
+  // The panel's opener was the deleted record's row or chip.
+  settleFocus();
+}
+
+/** Home and End on the layer row; the chassis walks it with the arrows only. */
+function onLayerKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Home" && event.key !== "End") return;
+  if (!(event.target instanceof Element) || !event.target.closest("[role='tab']")) return;
+  const tabs = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[role='tab']")];
+  const next = event.key === "Home" ? tabs[0] : tabs[tabs.length - 1];
+  if (!next) return;
+  event.preventDefault();
+  const value = next.dataset.value;
+  if (value && TAB_IDS.has(value)) activeTab.value = value as TabId;
+  next.focus();
 }
 
 function backFromRecord(): void {
@@ -418,35 +510,82 @@ function openShares(): void {
   postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
 }
 
-const comboDisabled = computed(() => atRecordLimit.value || !singles.value.length);
-const comboTitle = computed(() =>
-  !singles.value.length
-    ? "Create a subscription first. There is nothing to combine"
-    : atRecordLimit.value
-      ? LIMIT_REASON
-      : "Merge several subscriptions and process the result as one",
-);
 </script>
 
 <template>
   <PcWorkspace :batch="lens.selected > 0">
     <PcPageHeader
+      class="ss-header"
       title="Sub-Store"
       description="Build subscriptions from sources, render them for each client, and publish them from Lattice itself."
     >
       <template #icon><Store :size="19" aria-hidden="true" /></template>
       <template #actions>
-        <PcIconButton
-          label="Read the record catalogue and the share list again"
-          bordered
-          :disabled="!host.init.value"
-          @click="refresh()"
+        <!-- Search is page-wide (every layer's records), so it sits with
+             Refresh in the header rather than in one layer's toolbar. On a
+             phone both stay on the title line instead of a row each. -->
+        <div class="ss-head-tools">
+          <PcIconButton
+            class="tab-search"
+            label="Search records and actions (Cmd+K)"
+            bordered
+            :disabled="standalone"
+            @click="openPalette()"
+          >
+            <Search :size="15" aria-hidden="true" />
+          </PcIconButton>
+          <!-- Labelled, as vpn-core's is: an icon alone did not say what it reads again. -->
+          <PcButton
+            class="header-refresh"
+            :busy="refreshing"
+            :disabled="!host.init.value"
+            title="Read the record catalogue and the share list again"
+            @click="refresh()"
+          >
+            <template #icon><RefreshCw :size="15" aria-hidden="true" /></template>
+            Refresh
+          </PcButton>
+        </div>
+        <!-- The layer's one primary action, after Refresh, where vpn-core puts
+             its own. On a phone it takes a row of its own under the
+             description. -->
+        <div v-if="head?.menu" class="ss-head-primary add-split" data-add-menu>
+          <PcButton variant="primary" :disabled="head.disabled" :title="head.title" @click="runCommand(head.command)">
+            <template #icon><Plus :size="15" aria-hidden="true" /></template>
+            {{ head.label }}
+          </PcButton>
+          <button
+            ref="addMenuAnchor"
+            class="add-split-caret"
+            type="button"
+            :disabled="head.menuDisabled"
+            :aria-expanded="addMenuOpen"
+            aria-haspopup="menu"
+            aria-label="More things to create"
+            :title="head.menuDisabled ? head.title : 'More things to create'"
+            @click="toggleAddMenu()"
+          >
+            <ChevronDown :size="14" aria-hidden="true" />
+          </button>
+        </div>
+        <PcButton v-else-if="head" class="ss-head-primary" variant="primary" :disabled="head.disabled" :title="head.title" @click="runCommand(head.command)">
+          <template #icon><Plus :size="15" aria-hidden="true" /></template>
+          {{ head.label }}
+        </PcButton>
+        <PcButton
+          v-else-if="!standalone && !recordId && !editing && activeTab === 'shares'"
+          class="ss-head-primary"
+          variant="primary"
+          :disabled="!shareOrigin"
+          :title="shareOrigin ? 'Shares are created in the console under Platform → Publishing.' : NO_ORIGIN"
+          @click="openShares()"
         >
-          <RefreshCw :size="15" :class="{ spin: refreshing }" aria-hidden="true" />
-        </PcIconButton>
+          <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
+          Open in Publishing
+        </PcButton>
       </template>
       <template #proof>
-        <PcProofLine :segments="proof" :refreshing="refreshing">
+        <PcProofLine :segments="proof" :refreshing="refreshing" :title="observed.title.value || undefined">
           <span v-if="publishedLabel" class="proof-seg" :class="{ 'is-warn': publishedWarn }">· {{ publishedLabel }}</span>
         </PcProofLine>
       </template>
@@ -461,76 +600,17 @@ const comboTitle = computed(() =>
 
       <!-- A record's own page has its own tab row; the layer tabs give way to
            it rather than stacking a second row above. -->
-      <PcToolbar v-if="!recordId" label="Sub-Store layers">
+      <PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">
         <template #tabs>
-          <PcLensTabs v-model="activeTab" label="Sub-Store layers">
+          <PcLensTabs v-model="activeTab" v-reveal-selected="revealKey" class="ss-layer-tabs" label="Sub-Store layers" @keydown="onLayerKeydown">
             <PcLensTab
               v-for="tab in tabs"
               :key="tab.id"
               :value="tab.id"
               :label="tab.label"
               :count="tabCounts[tab.id]"
-            >
-              <template #icon><component :is="tab.icon" :size="14" aria-hidden="true" /></template>
-            </PcLensTab>
+            />
           </PcLensTabs>
-        </template>
-        <template v-if="!editing" #secondary>
-          <!-- Not only a shortcut: a palette reachable only by Cmd+K is one most
-               operators never find. Outside the tablist, because a button in
-               there announces itself as a tab and joins the arrow-key order. -->
-          <PcIconButton class="tab-search" label="Search records and actions (Cmd+K)" bordered @click="openPalette()">
-            <Search :size="15" aria-hidden="true" />
-          </PcIconButton>
-        </template>
-        <template v-if="!editing && activeTab === 'overview' && canCreate" #primary>
-          <div class="add-split" data-add-menu>
-            <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'One source of nodes, processed and served'" @click="runCommand('new-subscription')">
-              <template #icon><Plus :size="15" aria-hidden="true" /></template>
-              New subscription
-            </PcButton>
-            <button
-              ref="addMenuAnchor"
-              class="add-split-caret"
-              type="button"
-              :aria-expanded="addMenuOpen"
-              aria-haspopup="menu"
-              aria-label="More things to create"
-              title="More things to create"
-              @click="toggleAddMenu()"
-            >
-              <ChevronDown :size="14" aria-hidden="true" />
-            </button>
-          </div>
-        </template>
-        <template v-else-if="!editing && activeTab === 'sources' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'One source of nodes, processed and served'" @click="runCommand('new-subscription')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New subscription
-          </PcButton>
-        </template>
-        <template v-else-if="!editing && activeTab === 'combinations' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="comboDisabled" :title="comboTitle" @click="runCommand('new-collection')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New combination
-          </PcButton>
-        </template>
-        <template v-else-if="!editing && activeTab === 'files' && canCreate" #primary>
-          <PcButton variant="primary" :disabled="atRecordLimit" :title="atRecordLimit ? LIMIT_REASON : 'A document served as it is, with its proxy list kept in step'" @click="runCommand('new-file')">
-            <template #icon><Plus :size="15" aria-hidden="true" /></template>
-            New file
-          </PcButton>
-        </template>
-        <template v-else-if="!editing && activeTab === 'shares'" #primary>
-          <PcButton
-            variant="primary"
-            :disabled="!shareOrigin"
-            :title="shareOrigin ? 'Shares are created in the console under Networking.' : NO_ORIGIN"
-            @click="openShares()"
-          >
-            <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-            Open in Networking
-          </PcButton>
         </template>
       </PcToolbar>
 
@@ -541,6 +621,7 @@ const comboTitle = computed(() =>
            point at. -->
       <div
         :id="recordId ? 'record-page' : `pc-panel-${activeTab}`"
+        ref="lensPanel"
         class="lens-panel"
         :class="{ 'is-fading': lensFading }"
         :role="recordId ? undefined : 'tabpanel'"
@@ -555,6 +636,9 @@ const comboTitle = computed(() =>
           @dismiss="flash = null"
         >
           {{ flash.text }}
+          <template v-if="flash.shares.length && shareOrigin" #actions>
+            <PcButton compact @click="openShares()">Open in Publishing</PcButton>
+          </template>
         </PcNotice>
         <KeepAlive>
           <component :is="current.screen" :key="current.key" v-bind="current.props" />
@@ -583,8 +667,8 @@ const comboTitle = computed(() =>
           <button
             type="button"
             role="menuitem"
-            :disabled="comboDisabled"
-            :title="comboTitle"
+            :disabled="!!blocks['new-collection']"
+            :title="blocks['new-collection'] || 'Merge several sources and process the result as one'"
             @click="runCommand('new-collection')"
           >
             <Layers :size="14" aria-hidden="true" />
@@ -593,20 +677,21 @@ const comboTitle = computed(() =>
           <button
             type="button"
             role="menuitem"
-            :disabled="atRecordLimit"
-            :title="atRecordLimit ? LIMIT_REASON : 'A client file rendered from a source or combination'"
+            :disabled="!!blocks['new-file']"
+            :title="blocks['new-file'] || 'A client file rendered from a source or combination'"
             @click="runCommand('new-file')"
           >
             <FileCode :size="14" aria-hidden="true" />
             New file
           </button>
-          <p v-if="comboDisabled" class="rec-menu-note">{{ comboTitle }}</p>
+          <p v-if="blocks['new-collection']" class="rec-menu-note">{{ blocks['new-collection'] }}</p>
         </div>
       </Teleport>
       <CommandPalette
         :open="paletteOpen"
         :records="catalogue.items.value"
         :caps="caps"
+        :create-blocked="blocks"
         @close="paletteOpen = false"
         @run="runFromPalette"
         @command="runCommand"

@@ -23,7 +23,7 @@ import {
   type SubscriptionListItem,
 } from "./client";
 import { formatBytes, formatRelativeTime, parseUserinfo } from "./rowStatus";
-import { maskUrlsIn } from "./urlMask";
+import { maskUrlsIn, refreshFailureText } from "./urlMask";
 
 export type Stage = "source" | "combination" | "file" | "share";
 export const STAGES: readonly Stage[] = ["source", "combination", "file", "share"];
@@ -534,8 +534,15 @@ export interface AttentionItem {
   claim: string;
   /** The record that proves it, opened in the side panel. */
   recordId?: string;
-  /** The action that clears it. */
-  action: { label: string; recordId?: string; view?: ViewId; facet?: Record<string, string> };
+  /** That record's name, for anything that points at it; ids stay out of copy. */
+  recordName?: string;
+  /**
+   * The action that clears it. `publish` names a file whose fix is the
+   * console's share form, opened on it: the one click that publishes it.
+   * `search` narrows the layer it opens to the thing the claim names (one
+   * share, by its slug).
+   */
+  action: { label: string; recordId?: string; view?: ViewId; facet?: Record<string, string>; publish?: string; search?: string };
 }
 
 export interface AttentionInput {
@@ -568,7 +575,8 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
     if ((item.kind || KIND_SUB) !== KIND_SUB) continue;
     if (item.last_fetch_ok === false) {
       const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, now) : "";
-      const why = item.last_error ? `: ${maskUrlsIn(item.last_error)}` : "";
+      const reason = refreshFailureText(item.last_error);
+      const why = reason ? `: ${reason}` : "";
       out.push({
         key: `fetch:${item.id}`,
         tone: "danger",
@@ -632,7 +640,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
         key: `orphan:${owner}`,
         tone: "danger",
         claim: `Share ${node.label} publishes ${ref0(refs)}, which no longer exists, so it serves nothing`,
-        action: { label: "Review", view: "shares" },
+        action: { label: "Review", view: "shares", search: node.share?.slug },
       });
     }
   }
@@ -664,14 +672,19 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
     const unpublished = files.filter((file) => !live.has(file.id));
     if (unpublished.length) {
       const all = unpublished.length === files.length;
+      const one = unpublished.length === 1 ? unpublished[0]! : undefined;
       out.push({
         key: "files:unpublished",
         tone: "warning",
-        claim:
-          unpublished.length === 1
-            ? `${recordLabel(unpublished[0]!)} is not published, so no client can fetch it`
-            : `${all ? "No file is" : `${unpublished.length} files are not`} published, so no client can fetch ${all ? "any of them" : "them"}`,
-        action: { label: "Review", view: "files", facet: { published: "no" } },
+        claim: one
+          ? `${recordLabel(one)} is not published, so no client can fetch it`
+          : `${all ? "No file is" : `${unpublished.length} files are not`} published, so no client can fetch ${all ? "any of them" : "them"}`,
+        // One file: Publish opens the share form on it. Several: the Files
+        // layer narrowed to them, where each row carries its own Publish.
+        recordId: one?.id,
+        action: one
+          ? { label: "Publish", publish: one.id }
+          : { label: "Show them", view: "files", facet: { published: "no" } },
       });
     }
     for (const share of shares) {
@@ -689,7 +702,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
           at <= now
             ? `Share /${share.slug} for ${record} ${when}, and clients fetching it get nothing`
             : `Share /${share.slug} for ${record} ${when}`,
-        action: { label: "Review", view: "shares" },
+        action: { label: "Review", view: "shares", search: share.slug },
       });
     }
   }
@@ -697,7 +710,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
   return out
     .map((item, index) => ({ item, index }))
     .sort((a, b) => TONE_ORDER[a.item.tone] - TONE_ORDER[b.item.tone] || a.index - b.index)
-    .map(({ item }) => item);
+    .map(({ item }) => (item.recordId ? { ...item, recordName: name(item.recordId) } : item));
 }
 
 function ref0(refs: BrokenRef[]): string {
@@ -744,7 +757,7 @@ export function recordHealth(
   }
   if (kind === KIND_SUB) {
     if (item.last_fetch_ok === false) {
-      return { tone: "error", label: "refresh failed", title: maskUrlsIn(item.last_error || "The last refresh failed.") };
+      return { tone: "error", label: "refresh failed", title: refreshFailureText(item.last_error) || "The last refresh failed." };
     }
     const figures = providerFigures(item);
     const days = daysUntilExpiry(figures, now);

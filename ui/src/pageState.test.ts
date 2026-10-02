@@ -63,6 +63,11 @@ describe("the shell's state on the wire", () => {
     ],
     ["Shares that serve nothing", state({ view: "shares", link: "dead" }), { view: "shares", link: "dead" }],
     [
+      "page 3 of Files, searched",
+      state({ view: "files", q: "alice", page: 3 }),
+      { view: "files", q: "alice", page: "3" },
+    ],
+    [
       "a record page opened from filtered Files",
       state({ view: "files", record: "for-cdcd-loon", from: "files", published: "no" }),
       { view: "files", record: "for-cdcd-loon", published: "no" },
@@ -92,6 +97,13 @@ describe("the shell's state on the wire", () => {
     const shell = state({ view: "sources", published: "no", type: "script", link: "dead", origin: "local" });
     expect(encodeShellState(shell)).toEqual({ view: "sources", origin: "local" });
     expect(encodeShellState(state({ view: "overview", q: "stale", origin: "local" }))).toEqual({});
+  });
+
+  it("carries the page only for Files, and never page 1", () => {
+    expect(encodeShellState(state({ view: "files", page: 1 }))).toEqual({ view: "files" });
+    expect(encodeShellState(state({ view: "sources", page: 3 }))).toEqual({ view: "sources" });
+    expect(encodeShellState(state({ view: "files", record: "a", from: "files", page: 3 }))).toEqual({ view: "files", record: "a" });
+    expect(decodeShellState({ view: "files", page: "0" }).page).toBe(1);
   });
 
   it("leaves out the default sort and a closed panel", () => {

@@ -88,10 +88,10 @@ describe("the node-count queue", () => {
 describe("what the cell says", () => {
   const now = Date.parse("2026-09-02T04:00:00Z");
 
-  it("prints a question mark until something has answered", () => {
-    expect(nodeCountLabel(undefined)).toBe("?");
-    expect(nodeCountLabel({ status: "queued" })).toBe("…");
-    expect(nodeCountLabel({ status: "failed", reason: "x", at: now })).toBe("?");
+  it("says counting while a preview runs and unknown until one answers", () => {
+    expect(nodeCountLabel(undefined)).toBe("unknown");
+    expect(nodeCountLabel({ status: "queued" })).toBe("counting");
+    expect(nodeCountLabel({ status: "failed", reason: "x", at: now })).toBe("unknown");
     expect(nodeCountTitle(undefined, true)).toBe("Not counted yet.");
     expect(nodeCountTitle(undefined, false)).toContain("cannot run a preview");
   });

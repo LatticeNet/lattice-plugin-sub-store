@@ -65,7 +65,7 @@ const emit = defineEmits<{
   back: [];
   edit: [id: string];
   /** Deleted from this page's menu; the shell goes to the record's table. */
-  deleted: [kind: string, text: string];
+  deleted: [kind: string, text: string, shares: string[]];
 }>();
 
 /** What the row menu's last action did, until dismissed or another record opens. */
@@ -218,7 +218,7 @@ const shares = computed(() => (pipe.shares.value ?? []).filter((share) => share.
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
 function publish(): void {
   if (!shareOrigin.value || !item.value) return;
-  postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(item.value.name), shareOrigin.value);
+  postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(item.value.id), shareOrigin.value);
   copiedNote.value = "Asked the console to open its share form.";
 }
 async function copyLink(link: string): Promise<void> {
@@ -266,7 +266,7 @@ const outputSheet = ref(false);
               :id="id"
               :pipe="pipe"
               @status="(text, tone) => (actionStatus = { text, tone })"
-              @deleted="(kind, text) => emit('deleted', kind, text)"
+              @deleted="(kind, text, broken) => emit('deleted', kind, text, broken)"
             />
           </div>
         </div>
@@ -445,8 +445,8 @@ const outputSheet = ref(false);
 
         <!-- Publishing -->
         <PcPanel v-else label="Publishing">
-          <PcPanelHeader title="Shares" description="A share is the link a client fetches. Shares are created and changed in the console under Networking.">
-            <PcButton v-if="shareOrigin" compact @click="publish()">{{ shares.length ? "Open in Networking" : "Publish" }}</PcButton>
+          <PcPanelHeader title="Shares" description="A share is the link a client fetches. Shares are created and changed in the console under Platform → Publishing.">
+            <PcButton v-if="shareOrigin" compact @click="publish()">{{ shares.length ? "Open in Publishing" : "Publish" }}</PcButton>
           </PcPanelHeader>
           <PcPanelBody>
             <p v-if="pipe.shares.value === undefined" class="rec-chain-note">{{ pipe.shareStore.error.value || "The share list has not been read yet." }}</p>

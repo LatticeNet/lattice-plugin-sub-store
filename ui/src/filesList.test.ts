@@ -23,7 +23,9 @@ describe("the files layer is a table of what each file renders and whether it is
 
   it("offers Publish where a file has no share, and filters on it from the address", () => {
     expect(screen).toContain('class="row-publish"');
-    expect(screen).toContain('@click.stop="openShares(item.name)"');
+    // The form opens on the file itself, by id; the console matches ids and names.
+    expect(screen).toContain('@click.stop="openShares(item)"');
+    expect(screen).toContain("postNavigate(window, sharesRoute(item.id), shareOrigin.value);");
     expect(screen).toContain('v-model="facets.published"');
     expect(screen).toContain('if (facets.published === "no" && isPublished(file)) return false;');
   });
@@ -59,6 +61,17 @@ describe("the files layer is a table of what each file renders and whether it is
     const frames = styles.match(/@keyframes sheet-in \{[^}]*\}/s);
     expect(frames, "sheet-in keyframes are gone").not.toBeNull();
     expect(frames![0]).not.toMatch(/translateX/);
+  });
+
+  it("pages by fifty, and selects and deletes only the rows on screen", () => {
+    // The large store's 180 files were one 7,590 px page. The paging and
+    // select-all rules are tested in paging.test.ts; this is the wiring.
+    expect(screen).toContain("const FILES_PAGE = 50;");
+    expect(screen).toMatch(/usePages\(\s*\(\) => files\.value,\s*FILES_PAGE,/);
+    expect(screen).toContain('v-for="item in table.rows"');
+    expect(screen).toMatch(/<PcPagination\s+v-if="table\.pages > 1"/);
+    expect(screen).toContain("table.value.rows.filter((file) => selectedIds.value.has(file.id))");
+    expect(screen).toContain("toggleShown(selectedIds.value, table.value.rows.map((file) => file.id))");
   });
 
   it("opens one document surface from every entry", () => {

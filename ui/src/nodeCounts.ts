@@ -101,12 +101,16 @@ function ready(reply: NodeCountReply, at: number): NodeCountState {
   return { status: "ready", source: reply.source_node_count ?? result, result, at };
 }
 
-/** The cell text: "48 → 31", "…" while counting, "?" until something answers. */
+/**
+ * The cell text: "48 → 31", "counting" while a preview runs, "unknown" when
+ * none has answered. Words, not glyphs: an ellipsis in a count column read
+ * as a number cut short, and a question mark as a fault.
+ */
 export function nodeCountLabel(state: NodeCountState | undefined): string {
-  if (!state) return "?";
+  if (!state) return "unknown";
   if (state.status === "ready") return `${state.source} → ${state.result}`;
-  if (state.status === "failed") return "?";
-  return "…";
+  if (state.status === "failed") return "unknown";
+  return "counting";
 }
 
 /** Which run the cell's number came from and when, or why there is none. */

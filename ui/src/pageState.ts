@@ -1,3 +1,4 @@
+import { pageFromState } from "./paging";
 import { VIEW_IDS, type ViewId } from "./pipeline";
 import type { SortKey } from "./lensChrome";
 
@@ -79,6 +80,8 @@ export interface ShellState {
   origin: string;
   type: string;
   link: string;
+  /** The Files table's page; 1 is left out of the address. */
+  page: number;
 }
 
 type FacetKey = "q" | "sort" | "published" | "origin" | "type" | "link";
@@ -111,7 +114,7 @@ const LEGACY_LENS: Record<string, ViewId> = { subscriptions: "sources", files: "
 const VIEWS = new Set<string>(VIEW_IDS);
 
 export function defaultShellState(): ShellState {
-  return { view: "overview", record: "", from: "", open: "", q: "", sort: "recent", published: "", origin: "", type: "", link: "" };
+  return { view: "overview", record: "", from: "", open: "", q: "", sort: "recent", published: "", origin: "", type: "", link: "", page: 1 };
 }
 
 /** The shell's state as the wire carries it: unset and default values are left out. */
@@ -134,6 +137,8 @@ export function encodeShellState(state: ShellState): PageState {
     if (key === "sort" && state.sort === "recent") continue;
     put(key, state[key]);
   }
+  // The page of the one paged table, while that table is what is on screen.
+  if (table === "files" && !state.record && state.page > 1) put("page", String(state.page));
   return out;
 }
 
@@ -148,6 +153,7 @@ export function decodeShellState(state: PageState): ShellState {
   if (out.record) out.from = view ?? "";
   else out.open = state.open ?? "";
   out.q = state.q ?? "";
+  out.page = pageFromState(state.page);
   for (const key of Object.keys(FACET_VALUES) as (keyof typeof FACET_VALUES)[]) {
     const value = state[key] ?? "";
     if (FACET_VALUES[key].includes(value)) (out as unknown as Record<string, string>)[key] = value;

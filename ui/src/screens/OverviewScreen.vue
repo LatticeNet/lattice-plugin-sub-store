@@ -13,6 +13,7 @@ import {
 import AttentionList from "../components/AttentionList.vue";
 import LineageMap from "../components/LineageMap.vue";
 import { useHost } from "../host";
+import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { useLensChrome } from "../lensChrome";
 import type { AttentionItem } from "../pipeline";
 import { usePipeline } from "../usePipeline";
@@ -51,13 +52,36 @@ watch(
   { immediate: true },
 );
 
+/** The console's origin, when this frame may ask it to navigate. */
+const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
+
 function act(item: AttentionItem): void {
+  if (item.action.publish) {
+    // The share form, opened on the file. Without a console to ask, the
+    // file's panel, which says where shares are made.
+    if (shareOrigin.value) postNavigate(window, sharesRoute(item.action.publish), shareOrigin.value);
+    else chrome.openRecord(item.action.publish);
+    return;
+  }
   if (item.action.recordId) {
     chrome.openRecord(item.action.recordId);
     return;
   }
-  if (item.action.view) chrome.openLens(item.action.view, item.action.facet);
+  if (item.action.view) chrome.openLens(item.action.view, item.action.facet, { search: item.action.search, focus: true });
 }
+
+/** The map's nodes the attention list names: records, and shares by their node. */
+const attentionNodes = computed(() => {
+  const out: string[] = [];
+  for (const entry of pipe.attention.value) {
+    if (entry.recordId) out.push(entry.recordId);
+    if (entry.key.startsWith("share:")) {
+      const node = pipe.lineage.value.shareNodes.get(entry.key.slice("share:".length));
+      if (node) out.push(node);
+    }
+  }
+  return [...new Set(out)];
+});
 
 const countable = computed(() => [...pipe.lineage.value.columns.source, ...pipe.lineage.value.columns.combination]);
 watch(countable, (ids) => pipe.requestCounts(ids), { immediate: true });
@@ -107,8 +131,8 @@ watch(host.init, (value) => {
           render them into a file for each client, and publish the file as a share.
         </p>
         <template #actions>
-          <PcButton @click="chrome.openLens('sources')">Go to Sources</PcButton>
-          <PcButton @click="chrome.openLens('settings')">Import from a Sub-Store</PcButton>
+          <PcButton @click="chrome.openLens('sources', undefined, { focus: true })">Go to Sources</PcButton>
+          <PcButton @click="chrome.openLens('settings', undefined, { focus: true })">Import from a Sub-Store</PcButton>
         </template>
       </PcEmptyState>
     </PcPanel>
@@ -131,7 +155,7 @@ watch(host.init, (value) => {
         >
           <PcButton v-if="selected" compact @click="selected = ''">Clear selection</PcButton>
         </PcPanelHeader>
-        <LineageMap :lineage="pipe.lineage.value" :facts="pipe.chipFacts" :selected="selected" @select="select" />
+        <LineageMap :lineage="pipe.lineage.value" :facts="pipe.chipFacts" :selected="selected" :attention="attentionNodes" @select="select" />
       </PcPanel>
     </template>
   </section>

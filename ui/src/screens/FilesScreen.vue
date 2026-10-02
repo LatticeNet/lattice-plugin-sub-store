@@ -21,6 +21,7 @@ import {
   PcEmptyState,
   PcKindChip,
   PcNotice,
+  PcPagination,
   PcPanel,
   PcPanelBody,
   PcPanelHeader,
@@ -51,13 +52,16 @@ import {
 import { filePreviewSupport } from "../filePreview";
 import { useHost } from "../host";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
-import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
+import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
+import { pageHolding, toggleShown, usePages } from "../paging";
+import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
+import { forwardSelectCellClick, isSelectCell } from "../selectCell";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
-import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
+import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { useEditorExit } from "../useEditorExit";
 import {
@@ -114,12 +118,17 @@ const tagText = ref("");
  * from the frame URL, re-read here rather than trusted from a second source.
  */
 const shareOrigin = computed(() => hostOriginFromHash(window.location.hash));
+/** The console's share list, where a share a delete left serving nothing is removed or repointed. */
+function openPublishing(): void {
+  if (shareOrigin.value) postNavigate(window, SHARES_LIST_ROUTE, shareOrigin.value);
+}
 
-function openShares(recordName: string): void {
+/** Publish: the console's share form, opened on this file. Nothing is created until it is saved there. */
+function openShares(item: SubscriptionListItem): void {
   if (!shareOrigin.value) return;
-  postNavigate(window, sharesRoute(recordName), shareOrigin.value);
+  postNavigate(window, sharesRoute(item.id), shareOrigin.value);
   closeDrawer();
-  subs.notice.value = "Asked the console to open Networking → Subscription Shares.";
+  subs.notice.value = `Asked the console to open its share form for ${item.display_name || item.name}. The file is published once the share is saved there.`;
 }
 
 const isPlain = computed(() => draft.value.fileType === FILE_TYPE_PLAIN);
@@ -217,6 +226,17 @@ const searchedFiles = computed(() => {
 });
 
 /**
+ * Whether anyone can fetch a file: the host's share list, folded onto the
+ * row. Declared before the filters that read it: the paging watches evaluate
+ * the rows during setup, and a filter on Published reaching a store declared
+ * further down threw there.
+ */
+const shareStore = useShares(host);
+function publishedOf(item: SubscriptionListItem) {
+  return publishStateFor(shareStore.shares.value, item.id);
+}
+
+/**
  * The facets, on the address so a link (and the overview's "Review") lands
  * on the same rows: whether a live share serves the file, and whether it was
  * migrated. The migration marker is a facet rather than a chip on every row.
@@ -252,6 +272,46 @@ const files = computed(() =>
   }),
 );
 
+/**
+ * Fifty files a page, as vpn-core pages its identities. The large store's
+ * 160 files were one 7,590 px page with no way to the last row but
+ * scrolling. A filter or a search starts again on page 1. The table has no
+ * sort of its own (the shell's sort orders Sources and Combinations), so
+ * nothing else reorders the rows under a page.
+ */
+const FILES_PAGE = 50;
+const { page, table } = usePages(
+  () => files.value,
+  FILES_PAGE,
+  () => [searchText.value, kindFilter.value, facets.published, facets.origin],
+  // The shell keeps the page in the address, so a reload lands on it.
+  { page: chrome.page, ready: () => subs.state.value === "ready" },
+);
+/**
+ * A panel opened from a link or from the Overview shows its row: turn to the
+ * page that holds it. The catalogue can land after the link, so this runs
+ * again when the list is first read.
+ */
+watch(
+  () => [chrome.openId.value, subs.state.value === "ready"] as const,
+  ([id]) => {
+    if (!id || table.value.rows.some((file) => file.id === id)) return;
+    const holder = pageHolding(files.value.findIndex((file) => file.id === id), FILES_PAGE);
+    if (holder) page.value = holder;
+  },
+  { immediate: true },
+);
+/** Next from the footer lands on the top of the new page, not on its last rows. */
+const listTop = ref<HTMLElement | null>(null);
+function turnPage(next: number): void {
+  page.value = next;
+  void nextTick(() => {
+    const top = listTop.value?.getBoundingClientRect().top;
+    // Only the frame's own document scrolls; the console around it stays put.
+    if (top !== undefined && top < 0) window.scrollTo({ top: window.scrollY + top - 8 });
+  });
+}
+
 const lineage = computed(() => buildLineage(subs.items.value, shareStore.shares.value));
 
 /** The client a file is written for, from its name; empty with the reason when it does not say. */
@@ -263,7 +323,7 @@ function clientOf(item: SubscriptionListItem): { text: string; title: string } {
 
 function openRow(item: SubscriptionListItem, event: MouseEvent): void {
   const target = event.target as HTMLElement | null;
-  if (target?.closest("input, [data-row-menu], .rec-menu, .row-publish")) return;
+  if (isSelectCell(target) || target?.closest("input, [data-row-menu], .rec-menu, .row-publish")) return;
   chrome.openRecord(item.id);
 }
 
@@ -278,11 +338,6 @@ const deleteBusy = ref(false);
 /** Rows mid-operation render pending rather than silently unresponsive. */
 const pendingIds = ref<Set<string>>(new Set());
 
-/** Whether anyone can fetch a file: the host's share list, folded onto the row. */
-const shareStore = useShares(host);
-function publishedOf(item: SubscriptionListItem) {
-  return publishStateFor(shareStore.shares.value, item.id);
-}
 const tone = stateTone;
 
 /** What a file is, for the Type column. */
@@ -315,18 +370,18 @@ function rendersOf(item: SubscriptionListItem): { text: string; title: string; m
 }
 
 /** What the batch controls report and act on: only rows that exist and are on
- *  screen. A stale id from a filtered or already-deleted row must never be
- *  part of what Delete promises. */
-const selectedVisible = computed(() => files.value.filter((file) => selectedIds.value.has(file.id)));
+ *  screen, which with paging means this page. A stale id from a filtered,
+ *  paged-away or already-deleted row must never be part of what Delete
+ *  promises; it comes back checked when its row is shown again. */
+const selectedVisible = computed(() => table.value.rows.filter((file) => selectedIds.value.has(file.id)));
 const selectedCount = computed(() => selectedVisible.value.length);
 const allVisibleSelected = computed(
-  () => files.value.length > 0 && selectedCount.value === files.value.length,
+  () => table.value.rows.length > 0 && selectedCount.value === table.value.rows.length,
 );
 
+/** Select all acts on this page only, and leaves what is selected on other pages alone. */
 function toggleSelectAll(): void {
-  selectedIds.value = allVisibleSelected.value
-    ? new Set()
-    : new Set(files.value.map((file) => file.id));
+  selectedIds.value = toggleShown(selectedIds.value, table.value.rows.map((file) => file.id));
 }
 
 function openFileSheet(item: SubscriptionListItem, event?: Event): void {
@@ -355,7 +410,7 @@ function requestDelete(ids: string[]): void {
 }
 
 /** The dialog's words, from the one builder every surface uses. */
-const deleteDialog = computed(() => deletePrompt(deleteTargets.value?.ids ?? [], subs.items.value));
+const deleteDialog = computed(() => deletePrompt(deleteTargets.value?.ids ?? [], subs.items.value, shareStore.shares.value));
 
 /**
  * Stop on the first failure rather than ploughing through the rest.
@@ -369,18 +424,25 @@ async function confirmDelete(): Promise<void> {
   const target = deleteTargets.value;
   if (!target) return;
   deleteBusy.value = true;
+  // Read before the rows go: the row that will sit where they were.
+  const anchor = anchorAfterDelete(files.value.map((file) => file.id), target.ids);
+  let removed = 0;
   try {
     for (const id of target.ids) {
       markPending(id, true);
-      const ok = await subs.remove(id);
+      const ok = await subs.remove(id, ownLiveShares(id, shareStore.shares.value));
       markPending(id, false);
       if (!ok) break;
+      removed += 1;
     }
   } finally {
     deleteBusy.value = false;
     deleteTargets.value = null;
     selectedIds.value = new Set();
   }
+  if (!removed) return;
+  await nextTick();
+  focusRowAfterDelete(listTop.value, anchor);
 }
 
 function markPending(id: string, on: boolean): void {
@@ -591,7 +653,7 @@ function nodeSourceMissing(item: SubscriptionListItem): boolean {
  * the id (what ties a file to a share) the way the sibling tab does it.
  */
 function nameTitle(item: SubscriptionListItem): string {
-  return `${item.id}. ${item.display_name || item.name}`;
+  return `Show ${item.display_name || item.name} in the side panel`;
 }
 
 /**
@@ -603,7 +665,7 @@ const actionCaps = computed<ActionCapabilities>(() => actionCapabilities(host));
 
 // The row menu is the one every surface carries (rowMenuFor); a file has no
 // node preview and nothing to refresh, and the registry decides that from the
-// record's kind. Publish is deliberately absent: the console owns shares.
+// record's kind. It leads with Publish…, which opens the console's share form.
 function menuActionsFor(item: SubscriptionListItem) {
   return rowMenuFor(item, actionCaps.value);
 }
@@ -628,7 +690,9 @@ function runRowAction(id: ActionId, item: SubscriptionListItem, event: MouseEven
   if (id === "edit") return void startEdit(item.id);
   if (id === "refresh") return void refreshRow(item.id);
   if (id === "output") return openFileSheet(item, event);
-  if (id === "share") return openDrawer("share", item.id, event);
+  // Publish opens the share form itself where the frame can ask the console
+  // to navigate; the drawer, which says where shares live, is for when it cannot.
+  if (id === "share") return shareOrigin.value ? openShares(item) : openDrawer("share", item.id, event);
   if (id === "duplicate") return void subs.duplicate(item.id);
   if (id === "delete") return requestDelete([item.id]);
 }
@@ -869,7 +933,7 @@ watch(host.init, (value) => {
       </nav>
       <div class="section-heading">
         <div>
-          <h2 id="file-editor-title">
+          <h2 id="file-editor-title" tabindex="-1" data-editor-title>
             {{ editingId ? "Edit" : "New" }} file
             <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
           </h2>
@@ -1237,7 +1301,12 @@ watch(host.init, (value) => {
       <h2 id="files-title" class="pc-sr-only">Files</h2>
 
       <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
-      <PcNotice v-else-if="subs.notice.value" tone="success">{{ subs.notice.value }}</PcNotice>
+      <PcNotice v-else-if="subs.notice.value" tone="success">
+        {{ subs.notice.value }}
+        <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
+          <PcButton compact @click="openPublishing()">Open in Publishing</PcButton>
+        </template>
+      </PcNotice>
 
       <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" label="Loading files">
         <PcSkeleton :count="4" label="Loading the files" />
@@ -1286,7 +1355,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel label="Files">
-          <div class="rec-list" aria-label="Files">
+          <div ref="listTop" class="rec-list" aria-label="Files" @click="forwardSelectCellClick">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter files" />
               <label class="toolbar-sort">
@@ -1340,7 +1409,7 @@ watch(host.init, (value) => {
                   header
                   :checked="allVisibleSelected"
                   :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                  :label="`Select all ${files.length} shown files`"
+                  :label="`Select all ${table.rows.length} shown files`"
                   @change="toggleSelectAll()"
                 />
                 <PcTh name>Name</PcTh>
@@ -1352,7 +1421,7 @@ watch(host.init, (value) => {
               </template>
               <tbody>
                 <PcRow
-                  v-for="item in files"
+                  v-for="item in table.rows"
                   :id="`rec-${item.id}`"
                   :key="item.id"
                   class="layer-row"
@@ -1363,12 +1432,12 @@ watch(host.init, (value) => {
                   <PcSelectCell :checked="selectedIds.has(item.id)" :label="`Select ${item.name}`" @change="toggleSelected(item.id)" />
                   <td class="pc-name" data-stack="name">
                     <div class="pc-name-line">
-                      <button type="button" class="row-open" :title="nameTitle(item)" @click.stop="chrome.openRecord(item.id)">
+                      <button type="button" class="row-open" :data-record-open="item.id" :title="nameTitle(item)" @click.stop="chrome.openRecord(item.id)">
                         <strong>{{ item.display_name || item.name }}</strong>
                       </button>
                       <span v-if="item.tags?.length" class="pc-name-after"><PcTagList :tags="item.tags" :max="2" /></span>
                     </div>
-                    <small :title="item.remark || item.id">{{ item.remark || item.id }}</small>
+                    <small v-if="item.remark" :title="item.remark">{{ item.remark }}</small>
                   </td>
                   <td data-stack="detail" data-label="Client" :title="clientOf(item).title"><span class="pc-td-body">{{ clientOf(item).text }}</span></td>
                   <td data-stack="detail" data-label="Renders" :title="rendersOf(item).title">
@@ -1382,14 +1451,18 @@ watch(host.init, (value) => {
                       <span v-if="publishedOf(item).slug" class="layer-share">
                         <PcStateDot :tone="tone(publishedOf(item).tone)" :label="publishedOf(item).label" />
                       </span>
+                      <!-- The column is a state. Publish… lives in the row menu; only the
+                           not-published view, where publishing is the task, keeps a
+                           button in the row for one click per file. -->
                       <button
-                        v-else-if="shareOrigin && shareStore.shares.value !== undefined"
+                        v-else-if="facets.published === 'no' && shareOrigin && shareStore.shares.value !== undefined"
                         type="button"
                         class="row-publish"
-                        :title="`Open the console's share form for ${item.name}`"
-                        @click.stop="openShares(item.name)"
+                        :aria-label="`Publish ${item.display_name || item.name}…`"
+                        :title="`Open the console's share form for ${item.display_name || item.name}, with this file chosen`"
+                        @click.stop="openShares(item)"
                       >
-                        Publish
+                        Publish…
                       </button>
                       <span v-else-if="shareStore.shares.value !== undefined" class="layer-muted">not published</span>
                     </span>
@@ -1411,11 +1484,35 @@ watch(host.init, (value) => {
                 </PcRow>
               </tbody>
             </PcTable>
+            <!-- More than a page: a footer, as vpn-core's Users has. Fewer and there is none. -->
+            <PcPagination
+              v-if="table.pages > 1"
+              :page="table.page"
+              :pages="table.pages"
+              :from="table.from"
+              :to="table.to"
+              :total="table.total"
+              noun="Files"
+              label="Files pagination"
+              @update:page="turnPage"
+            />
           </div>
         </PcPanel>
       </template>
 
       <PcBatchBar :count="selectedCount" noun="selected" @clear="selectedIds = new Set()">
+        <!-- The console's share form takes one file, so one selected file can be
+             handed over and a larger selection is told why it cannot. -->
+        <PcButton
+          v-if="selectedCount === 1"
+          compact
+          :aria-label="`Publish ${selectedVisible[0]!.display_name || selectedVisible[0]!.name}…`"
+          @click="runRowAction('share', selectedVisible[0]!, $event)"
+        >
+          <template #icon><SquareArrowOutUpRight :size="13" aria-hidden="true" /></template>
+          Publish…
+        </PcButton>
+        <span v-else class="batch-note">Publish one file at a time: the console's share form takes one.</span>
         <PcButton
           v-for="action in batchActions"
           :key="action.id"
@@ -1442,17 +1539,17 @@ watch(host.init, (value) => {
         <template v-if="drawer?.mode === 'share'">
           <p class="row-popover-copy">
             Nothing here is reachable until a share is published for it. Shares live in the
-            dashboard, under <strong>Networking → Subscription Shares</strong>.
+            dashboard, under <strong>Platform → Publishing</strong>.
           </p>
           <p class="row-popover-note">Already published? The Shares view shows its link.</p>
           <div v-if="shareOrigin && drawerItem" class="empty-actions">
-            <PcButton variant="primary" @click="openShares(drawerItem.name)">
+            <PcButton variant="primary" @click="openShares(drawerItem)">
               <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-              Open Shares view
+              Open the share form
             </PcButton>
           </div>
           <p v-else class="row-popover-note">
-            This frame cannot ask the console to navigate, open Networking → Subscription Shares
+            This frame cannot ask the console to navigate, open Platform → Publishing
             yourself.
           </p>
         </template>
@@ -1464,6 +1561,9 @@ watch(host.init, (value) => {
         verb="Delete"
         :names="deleteDialog.names"
         :consequences="deleteDialog.consequences"
+        :served="deleteDialog.served"
+        :confirm-text="deleteDialog.confirmText"
+        :focus-record="deleteTargets?.ids[0] ?? ''"
         :busy="deleteBusy"
         @cancel="deleteTargets = null"
         @confirm="confirmDelete()"

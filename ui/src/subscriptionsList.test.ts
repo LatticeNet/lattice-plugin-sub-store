@@ -15,8 +15,8 @@ describe("the sources and combinations layers are tables with one affordance per
   const shell = read("Shell.vue");
 
   it("is one screen for two layers, split by kind", () => {
-    expect(shell).toMatch(/\{ id: "sources", label: "Sources", icon: Library, screen: SubscriptionsScreen, props: \{ kind: KIND_SUB \} \}/);
-    expect(shell).toMatch(/\{ id: "combinations", label: "Combinations", icon: Layers, screen: SubscriptionsScreen, props: \{ kind: KIND_COLLECTION \} \}/);
+    expect(shell).toMatch(/\{ id: "sources", label: "Sources", screen: SubscriptionsScreen, props: \{ kind: KIND_SUB \} \}/);
+    expect(shell).toMatch(/\{ id: "combinations", label: "Combinations", screen: SubscriptionsScreen, props: \{ kind: KIND_COLLECTION \} \}/);
     expect(screen).toContain('defineProps<{ kind: "sub" | "collection" }>()');
     // Kind is the layer now, so there is no second tab row inside it.
     expect(screen).not.toContain("RecKindTabs");
@@ -71,11 +71,24 @@ describe("the page chassis is a quiet Cloudflare header, not a KPI strip", () =>
   });
 
   it("offers one primary action per layer, the overview's with the other kinds in its menu", () => {
-    expect(shell).toContain('class="add-split"');
-    expect(shell).toContain("New subscription");
+    expect(shell).toMatch(/class="[^"]*\badd-split"/);
     expect(shell).toContain("runCommand('new-collection')");
     expect(shell).toContain("runCommand('new-file')");
     expect(shell).toContain("add-split-menu");
     expect(shell).not.toContain("PcSearchField");
+  });
+
+  it("renders the create rules from createGate rather than deciding them", () => {
+    // Which verb, when it shows and why it is disabled are tested in createGate.test.ts.
+    expect(shell).toContain("headerCreate({ tab: activeTab.value, catalogue: catalogueView.value");
+    expect(shell).toContain('const blocks = computed(() => createBlocks(catalogueView.value));');
+    expect(shell).toContain(':create-blocked="blocks"');
+  });
+
+  it("puts the primary action in the header after Refresh, never in the tab row", () => {
+    const actions = shell.slice(shell.indexOf("<template #actions>"), shell.indexOf("<template #proof>"));
+    for (const control of ["{{ head.label }}", "Open in Publishing"]) expect(actions, control).toContain(control);
+    expect(actions.indexOf("header-refresh")).toBeLessThan(actions.indexOf("ss-head-primary"));
+    expect(shell).not.toContain("#primary");
   });
 });

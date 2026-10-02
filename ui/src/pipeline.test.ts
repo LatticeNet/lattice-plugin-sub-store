@@ -272,7 +272,8 @@ describe("the attention rules", () => {
     expect(found[0]).toMatchObject({ tone: "warning", recordId: "imported-unnamed" });
     expect(found[0]!.claim).toBe("建材市场: provider expires in 6 days, 82% of its traffic used");
     expect(found[1]!.claim).toBe("15 files are not published, so no client can fetch them");
-    expect(found[1]!.action).toEqual({ label: "Review", view: "files", facet: { published: "no" } });
+    // Fifteen files: the Files layer narrowed to them, each row with its own Publish.
+    expect(found[1]!.action).toEqual({ label: "Show them", view: "files", facet: { published: "no" } });
   });
 
   it("puts every failure first, worst tone first, and masks what the provider said", () => {
@@ -292,13 +293,41 @@ describe("the attention rules", () => {
     ]);
     const fetch = found[0]!;
     expect(fetch.tone).toBe("danger");
-    expect(fetch.claim).toContain("https://sub.example-provider.com/…?…");
-    expect(fetch.claim).not.toContain("token=");
+    // The provider by its host; no token, no link, and not the record's id again.
+    expect(fetch.claim).toMatch(/^openjobs-host-trojan failed its last refresh .*: provider returned status 503 from sub\.example-provider\.com$/);
+    expect(fetch.claim).not.toContain("token");
+    expect(fetch.claim).not.toContain("https://");
+    expect(fetch.claim).not.toContain("imported-openjobs-host-trojan");
     expect(found[1]!.claim).toContain("expired 2 days ago");
     expect(found[1]!.claim).toContain("110% of its traffic used");
     expect(found[2]!.claim).toBe("merge-openjobs names 1 member that does not resolve (imported-openjobs-host-old), and 5 files render it");
     expect(found[3]!.claim).toBe("for-loon-novpn renders imported-col-merge-retired, which no longer exists");
     expect(found.at(-1)).toMatchObject({ tone: "neutral", claim: "merge-spare is not used by any file or share" });
+  });
+
+  it("names each item's record, and points a share's Review at that share", () => {
+    const { items, shares } = rows(failingFixture());
+    const found = attentionItems({ items, shares, lineage: buildLineage(items, shares), now: Date.now() });
+    const byKey = new Map(found.map((entry) => [entry.key, entry]));
+    // The name the operator knows, for tooltips; never the stored id.
+    expect(byKey.get("fetch:imported-openjobs-host-trojan")!.recordName).toBe("openjobs-host-trojan");
+    expect(byKey.get("provider:imported-unnamed")!.recordName).toBe("建材市场");
+    expect(byKey.get("files:unpublished")!.recordName).toBeUndefined();
+    // Review lands on Shares narrowed to the share the claim names.
+    expect(byKey.get("share:sh-oj-loon")!.action).toEqual({ label: "Review", view: "shares", search: "oj-loon" });
+    expect(byKey.get("share:sh-oj-stash")!.action).toEqual({ label: "Review", view: "shares", search: "oj-stash" });
+  });
+
+  it("publishes a single unpublished file in one click", () => {
+    const { items, shares } = rows(productionFixture());
+    // Publish every file but one.
+    const files = items.filter((entry) => entry.kind === "file");
+    const live = files.slice(1).map((file, index) => ({ ...shares[0]!, share_id: `sh-${index}`, slug: `s${index}`, subscription_id: file.id }));
+    const found = attentionItems({ items, shares: live, lineage: buildLineage(items, live), now: Date.now() });
+    const item = found.find((entry) => entry.key === "files:unpublished")!;
+    expect(item.claim).toBe(`${files[0]!.name} is not published, so no client can fetch it`);
+    expect(item.action).toEqual({ label: "Publish", publish: files[0]!.id });
+    expect(item.recordId).toBe(files[0]!.id);
   });
 
   it("is empty for an empty store, and says so when the share list could not be read", () => {

@@ -121,7 +121,7 @@ describe("the delete confirm names what it will break", () => {
   // The words come from deletePrompt, shared with the side panel and the
   // record page and tested with real records in recordActions.test.ts.
   it("takes its words from the one builder every surface uses", () => {
-    expect(text).toContain("deletePrompt(deleting.value, subs.items.value)");
+    expect(text).toContain("deletePrompt(deleting.value, subs.items.value, shares.value)");
   });
 
   // Regression: folding the dependents into `names` inflated the typed-arming

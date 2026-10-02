@@ -25,7 +25,8 @@ describe("publishStateFor", () => {
     expect(publishStateFor([share({ expires_at: "2026-09-01T00:00:00Z" })], "cdcd-self-host", NOW)).toMatchObject({ tone: "warn", label: "/cd-self expired" });
     const mixed = publishStateFor([share({ enabled: false }), share({ share_id: "sh-2", slug: "cd-self-live" })], "cdcd-self-host", NOW);
     expect(mixed).toMatchObject({ tone: "ok", label: "/cd-self-live" });
-    expect(mixed.title).toBe("Served at /sub/cd-self/tok.");
+    // The slug, never the path: the path carries the token.
+    expect(mixed.title).toBe("Served at /cd-self-live.");
   });
 });
 
@@ -55,5 +56,11 @@ describe("one share's own verdict", () => {
     expect(shareStateOf({ ...base, enabled: true, expires_at: "2026-09-01T00:00:00Z" }, now)).toMatchObject({ tone: "warn", label: "expired" });
     // Expired wins over disabled: the expiry is the reason a client gets nothing.
     expect(shareStateOf({ ...base, enabled: false, expires_at: "2026-09-01T00:00:00Z" }, now).label).toBe("expired");
+  });
+
+  it("serves nothing when its record is gone, enabled or not, and is never counted live", () => {
+    expect(shareStateOf({ ...base, enabled: true }, now, false)).toMatchObject({ tone: "danger", label: "serves nothing" });
+    expect(shareStateOf({ ...base, enabled: false, expires_at: "2026-09-01T00:00:00Z" }, now, false).label).toBe("serves nothing");
+    expect(shareStateOf({ ...base, enabled: true }, now, true).label).toBe("live");
   });
 });

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CopyPlus, Ellipsis, Eye, Link, RefreshCw, Share2, Trash2, Upload } from "@lucide/vue";
+import { CopyPlus, Ellipsis, Eye, Link, RefreshCw, SquareArrowOutUpRight, Trash2, Upload } from "@lucide/vue";
 import { PcIconButton } from "@latticenet/plugin-bridge/chassis";
 import { onBeforeUnmount, ref, watch } from "vue";
 
@@ -34,7 +34,8 @@ const emit = defineEmits<{
 
 /** Declarations name an icon; the mapping to a component lives here so the
  *  registry stays free of imports and can be tested without Vue. */
-const ICONS = { eye: Eye, share: Share2, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
+/* Publish… opens the console's share form, so its icon points out of the frame. */
+const ICONS = { eye: Eye, share: SquareArrowOutUpRight, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
 
 function iconFor(name: string) {
   return ICONS[name as keyof typeof ICONS] ?? Eye;
@@ -79,6 +80,29 @@ function unlisten(): void {
   window.removeEventListener("resize", position);
 }
 
+/*
+ * The keys a menu owns beyond the arrows the screen walks it with: Home and
+ * End jump to the first and last item (and must not scroll the frame), and
+ * Tab leaves the menu the way Escape does, closed, with focus back on the
+ * trigger rather than on the next item while the menu stays open.
+ */
+function onKeydown(event: KeyboardEvent): void {
+  const menu = event.currentTarget as HTMLElement;
+  if (event.key === "Home" || event.key === "End") {
+    event.preventDefault();
+    const items = [...menu.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")];
+    (event.key === "Home" ? items[0] : items[items.length - 1])?.focus();
+    return;
+  }
+  if (event.key === "Tab") {
+    event.preventDefault();
+    anchor.value?.querySelector<HTMLElement>("button")?.focus();
+    emit("toggle");
+    return;
+  }
+  emit("keydown", event);
+}
+
 watch(
   () => props.open,
   (open) => {
@@ -98,7 +122,7 @@ onBeforeUnmount(unlisten);
 <template>
   <div ref="anchor" class="rec-menu-wrap" v-bind="$attrs">
     <PcIconButton
-      :label="`More actions for ${name}`"
+      :label="`Actions for ${name}`"
       bordered
       :aria-haspopup="true"
       :aria-expanded="open"
@@ -108,7 +132,7 @@ onBeforeUnmount(unlisten);
     </PcIconButton>
   </div>
   <Teleport to="body">
-    <div v-if="open" class="rec-menu" role="menu" v-bind="$attrs" :style="place ?? undefined" @keydown="emit('keydown', $event)">
+    <div v-if="open" class="rec-menu" role="menu" v-bind="$attrs" :style="place ?? undefined" @keydown="onKeydown">
       <button
         v-for="action in safe()"
         :key="action.id"

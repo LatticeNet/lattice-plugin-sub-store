@@ -29,13 +29,53 @@ import UsageBar from "./UsageBar.vue";
  * do not need the table; every other write stays behind Edit.
  */
 const props = defineProps<{ id: string; pipe: Pipeline; canEdit: boolean }>();
+
+/*
+ * From 768px the panel sits beside the table and the rows stay live, so a
+ * click on another row swaps the record without closing the panel. Closing
+ * then returns focus to that record's row or map chip, not to whatever opened
+ * the panel first. A fresh open leaves it to the chassis, which returns focus
+ * to the opener (a row, an attention item, the palette).
+ */
+const returnTarget = ref<HTMLElement | null>(null);
+function rowFor(id: string): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  const key = CSS.escape(id);
+  return document.querySelector<HTMLElement>(`[data-record-open="${key}"]`) ?? document.querySelector<HTMLElement>(`[data-map-key="${key}"]`);
+}
+watch(() => props.id, (id, previous) => {
+  if (id && previous && id !== previous) returnTarget.value = rowFor(id);
+  else if (id && !previous) returnTarget.value = null;
+}, { flush: "post" });
+
+/*
+ * A panel restored from the address (a reload onto `?open=`, a pasted link)
+ * opened with nothing focused, so the chassis had no opener to give focus
+ * back to and Escape left it on <body>, although the record's row or chip
+ * was on screen. Read at the moment the panel opens, before it takes focus;
+ * on close such a panel hands focus to that row or chip.
+ */
+let openedWithoutOpener = false;
+watch(
+  () => !!props.id && !!props.pipe.item(props.id),
+  (open, was) => {
+    if (!open || was) return;
+    const active = typeof document === "undefined" ? null : document.activeElement;
+    openedWithoutOpener = !active || active === document.body;
+  },
+  { flush: "sync" },
+);
+function close(): void {
+  if (openedWithoutOpener && !returnTarget.value) returnTarget.value = rowFor(props.id);
+  emit("close");
+}
 const emit = defineEmits<{
   close: [];
   open: [id: string];
   page: [id: string];
   edit: [id: string];
-  /** The record was deleted from the panel's menu. */
-  deleted: [kind: string, text: string];
+  /** The record was deleted from the panel's menu; `shares` are the ones it left serving nothing. */
+  deleted: [kind: string, text: string, shares: string[]];
 }>();
 
 /** What the menu's last action did, until another record is shown. */
@@ -109,7 +149,7 @@ const steps = computed(() => {
   if (!item) return "";
   const n = item.step_count;
   if (!n) return "none";
-  return `${n} operation${n === 1 ? "" : "s"}${item.disabled_step_count ? `, ${item.disabled_step_count} off` : ""}`;
+  return `${n} step${n === 1 ? "" : "s"}${item.disabled_step_count ? `, ${item.disabled_step_count} off` : ""}`;
 });
 
 const refresh = computed(() => (record.value && isProviderLink(record.value) ? refreshStateFor(record.value, props.pipe.now.value) : null));
@@ -118,7 +158,7 @@ const client = computed(() => (record.value && kind.value === KIND_FILE ? client
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
 function publish(): void {
   if (!shareOrigin.value || !record.value) return;
-  postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(record.value.name), shareOrigin.value);
+  postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(record.value.id), shareOrigin.value);
 }
 </script>
 
@@ -128,7 +168,8 @@ function publish(): void {
     :title="record ? record.display_name || record.name : ''"
     :description="kindLabel"
     close-label="Close the side panel"
-    @close="emit('close')"
+    :return-focus-to="returnTarget"
+    @close="close()"
   >
     <div v-if="record" class="peek">
       <PcNotice v-if="status" :tone="status.tone">{{ status.text }}</PcNotice>
@@ -136,7 +177,6 @@ function publish(): void {
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
         <PcKindChip v-if="record.imported" label="migrated" title="Imported from a standalone Sub-Store" />
-        <span class="peek-id" :title="`Record id ${record.id}`">{{ record.id }}</span>
       </div>
       <!-- The reason behind a broken state; a warning's facts are in the list below. -->
       <p v-if="health.tone === 'error'" class="peek-why">{{ health.title }}</p>
@@ -144,8 +184,8 @@ function publish(): void {
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">
           <dt>Nodes</dt>
-          <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span class="peek-note">in → out</span></dd>
-          <dt>Operations</dt>
+          <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span v-if="pipe.nodes(id).includes('→')" class="peek-note">in → out</span></dd>
+          <dt>Steps</dt>
           <dd>{{ steps }}</dd>
         </template>
 
@@ -218,7 +258,7 @@ function publish(): void {
           </ul>
           <span v-else class="peek-note">Not published, so no client can fetch it</span>
           <PcButton v-if="shareOrigin && pipe.shares.value !== undefined" compact class="peek-publish" @click="publish()">
-            {{ shares.length ? "Open in Networking" : "Publish" }}
+            {{ shares.length ? "Open in Publishing" : "Publish" }}
           </PcButton>
         </dd>
 
@@ -239,7 +279,7 @@ function publish(): void {
         :id="id"
         :pipe="pipe"
         @status="(text, tone) => (status = { text, tone })"
-        @deleted="(kind, text) => emit('deleted', kind, text)"
+        @deleted="(kind, text, broken) => emit('deleted', kind, text, broken)"
       />
       <PcButton :disabled="!canEdit" :title="canEdit ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
       <PcButton variant="primary" @click="emit('page', id)">Open page</PcButton>

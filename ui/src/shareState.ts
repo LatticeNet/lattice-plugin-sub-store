@@ -12,7 +12,7 @@
  */
 import type { SubStoreShareRow, SubscriptionListItem } from "./client";
 import { formatRelativeTime } from "./rowStatus";
-import { maskUrlsIn } from "./urlMask";
+import { refreshFailureText } from "./urlMask";
 
 export type Tone = "ok" | "warn" | "danger" | "neutral";
 
@@ -62,7 +62,8 @@ export function publishStateFor(shares: readonly SubStoreShareRow[] | undefined,
   const first = live[0] ?? mine[0];
   if (live.length) {
     const more = live.length > 1 ? ` and ${live.length - 1} more` : "";
-    return { tone: "ok", label: `/${first.slug}`, title: `Served at ${first.path}${more}.`, slug: first.slug, shares: mine };
+    // By slug: the path carries the share's token, and a hover title is no place for it.
+    return { tone: "ok", label: `/${first.slug}`, title: `Served at /${first.slug}${more}.`, slug: first.slug, shares: mine };
   }
   const why = mine.some((share) => expired(share, now)) ? "expired" : "disabled";
   return {
@@ -76,19 +77,30 @@ export function publishStateFor(shares: readonly SubStoreShareRow[] | undefined,
 
 export interface ShareState {
   tone: Tone;
-  label: "live" | "disabled" | "expired";
+  label: "live" | "disabled" | "expired" | "serves nothing";
   title: string;
 }
 
-/** One share's own verdict, the way the Shares lens prints it. */
-export function shareStateOf(share: SubStoreShareRow, now: number = Date.now()): ShareState {
+/**
+ * One share's own verdict, the way the Shares lens prints it.
+ *
+ * `recordKnown` is false when the record catalogue has been read and the
+ * share's record is not in it. Such a share is still enabled in the console,
+ * and it used to read "live" in green and count towards "1 share live" right
+ * after its file was deleted, while a client fetching it got nothing. It is
+ * the worst state a share can be in, so it is checked first.
+ */
+export function shareStateOf(share: SubStoreShareRow, now: number = Date.now(), recordKnown = true): ShareState {
+  if (!recordKnown) {
+    return { tone: "danger", label: "serves nothing", title: "Its record is not in this store any more, so a client that fetches it gets nothing. Remove it, or point it at another record, under Platform → Publishing." };
+  }
   if (expired(share, now)) {
     return { tone: "warn", label: "expired", title: "Past its expiry: a client that fetches it gets nothing." };
   }
   if (!share.enabled) {
     return { tone: "warn", label: "disabled", title: "Switched off in the console: a client that fetches it gets nothing." };
   }
-  return { tone: "ok", label: "live", title: `Served at ${share.path}.` };
+  return { tone: "ok", label: "live", title: `Served at /${share.slug}.` };
 }
 
 export interface RefreshState {
@@ -112,8 +124,8 @@ export function refreshStateFor(item: SubscriptionListItem, now: number = Date.n
     // that is the row an operator is looking for.
     const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, now) : "";
     // The server trims the reason, and the reason quotes the link it fetched;
-    // the title masks it after the host like every other read view.
-    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: maskUrlsIn(item.last_error || "The last refresh failed") };
+    // the title keeps only the link's host, as the attention list does.
+    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: refreshFailureText(item.last_error) || "The last refresh failed" };
   }
   if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
   const relative = formatRelativeTime(item.last_fetch_at, now);

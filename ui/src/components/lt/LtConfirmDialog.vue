@@ -2,12 +2,15 @@
 import { computed, nextTick, ref, toRef, watch } from "vue";
 import LtButton from "./LtButton.vue";
 
+import { trapDialogTab } from "../../dialogFocus";
 import { useOverlayRegistration } from "../../useOverlayRegistration";
 
 /**
  * Two-step destructive confirmation. The dialog restates every affected
  * resource by name; when more than one is affected the operator must type the
- * count to arm the confirm button, reading the list is the point.
+ * count to arm the confirm button, reading the list is the point. When one
+ * record's delete breaks something outside Lattice (a live share), the
+ * operator types its name instead (design 23, 3.8).
  */
 const props = withDefaults(
   defineProps<{
@@ -23,9 +26,19 @@ const props = withDefaults(
      * number of records it would damage. Listed, not counted.
      */
     consequences?: string[];
+    /** What changes outside Lattice: live shares, by path. */
+    served?: string[];
+    /** Typed to arm the confirm instead of the count; "" when the count rule applies. */
+    confirmText?: string;
     busy?: boolean;
+    /**
+     * The record whose row takes focus back when nothing had focus as the
+     * dialog opened: a delete chosen in the command palette, which closed
+     * before the dialog appeared.
+     */
+    focusRecord?: string;
   }>(),
-  { consequences: () => [] },
+  { consequences: () => [], served: () => [], confirmText: "", focusRecord: "" },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
@@ -35,20 +48,53 @@ useOverlayRegistration(toRef(props, "open"), () => emit("cancel"));
 
 const typed = ref("");
 const dialog = ref<HTMLElement | null>(null);
+/*
+ * What had focus when the dialog took it: a row menu's trigger (the menu has
+ * already handed focus back by then), a panel's Delete, the batch bar. Escape
+ * and Cancel give it back, so the keyboard is never dropped on <body>. After a
+ * confirmed delete that control has usually gone with its row, and the screen
+ * moves focus to the next row instead; nothing here competes with that,
+ * because focus is only restored while nothing else holds it.
+ */
+let opener: HTMLElement | null = null;
 watch(
   () => props.open,
-  async (open) => {
+  async (open, was) => {
     typed.value = "";
-    if (!open) return;
+    if (!open) {
+      if (!was) return;
+      const target = opener;
+      opener = null;
+      await nextTick();
+      const active = document.activeElement;
+      const free = !active || active === document.body;
+      if (free && target?.isConnected) target.focus();
+      return;
+    }
     // Escape only reaches a handler on a focused element, and a destructive
     // dialog the operator cannot dismiss with Escape is the worst one to get
     // wrong.
     await nextTick();
+    const active = document.activeElement;
+    opener = active instanceof HTMLElement && active !== document.body && !dialog.value?.contains(active) ? active : null;
+    if (!opener && props.focusRecord) opener = document.querySelector<HTMLElement>(`[data-record-open="${CSS.escape(props.focusRecord)}"]`);
     dialog.value?.focus();
   },
 );
-const needsTyping = computed(() => props.names.length > 1);
-const armed = computed(() => !needsTyping.value || typed.value.trim() === String(props.names.length));
+
+/*
+ * The dialog is aria-modal, so Tab stays inside it: past the last control it
+ * went to <body>, then to the page behind the scrim, and in the console out
+ * of the frame altogether.
+ */
+function onKeydown(event: KeyboardEvent): void {
+  if (dialog.value) trapDialogTab(event, dialog.value);
+}
+const needsTyping = computed(() => props.names.length > 1 || !!props.confirmText);
+const armed = computed(() => {
+  if (props.confirmText) return typed.value.trim() === props.confirmText;
+  return !needsTyping.value || typed.value.trim() === String(props.names.length);
+});
 </script>
 
 <template>
@@ -68,6 +114,7 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
       aria-modal="true"
       tabindex="-1"
       :aria-label="title"
+      @keydown="onKeydown"
     >
       <p class="lt-dialog-title">{{ title }}</p>
       <ul class="lt-dialog-names">
@@ -81,7 +128,17 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
           <li v-for="note in consequences" :key="note" class="mono">{{ note }}</li>
         </ul>
       </template>
-      <label v-if="needsTyping" class="lt-dialog-arm">
+      <template v-if="served.length">
+        <p class="lt-dialog-subtitle">Clients fetching {{ served.length === 1 ? "this share" : "these shares" }} see the change:</p>
+        <ul class="lt-dialog-names is-consequence">
+          <li v-for="line in served" :key="line" class="mono">{{ line }}</li>
+        </ul>
+      </template>
+      <label v-if="confirmText" class="lt-dialog-arm">
+        To confirm, type the name: {{ confirmText }}
+        <input v-model="typed" class="lt-dialog-input is-name" autocomplete="off" spellcheck="false" />
+      </label>
+      <label v-else-if="needsTyping" class="lt-dialog-arm">
         To confirm, type the number of items listed above: {{ names.length }}
         <input v-model="typed" class="lt-dialog-input" inputmode="numeric" autocomplete="off" />
       </label>
@@ -158,6 +215,8 @@ const armed = computed(() => !needsTyping.value || typed.value.trim() === String
   background: var(--background);
   color: var(--foreground);
 }
+/* A name is typed whole, so its field is as wide as the dialog; a count fits in 90px. */
+.lt-dialog-input.is-name { width: 100%; font-family: var(--font-mono); }
 .lt-dialog-input:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .lt-dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
 </style>
