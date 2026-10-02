@@ -145,7 +145,13 @@ type subStoreEngineLimits struct {
 }
 
 type subStoreConversionRequest struct {
-	Raw       string            `json:"raw"`
+	Raw string `json:"raw"`
+	// RawParts, when set, replaces Raw as the node source: each part is parsed
+	// on its own and the node lists are concatenated, which is how a
+	// combination merges members that arrive in different encodings. Joining
+	// them as text first lost whole members, because the engine recognises a
+	// base64 list or a YAML document only when it is the entire input.
+	RawParts  []string          `json:"raw_parts,omitempty"`
 	Target    string            `json:"target"`
 	Operators []json.RawMessage `json:"operators,omitempty"`
 	// Options is the produce() opts object — Sub-Store's own flag names, e.g.
@@ -696,9 +702,23 @@ func evalQuickJSStep(ctx *qjs.Context, file, code string) error {
 }
 
 func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
-	raw, err := json.Marshal(req.Raw)
+	rawText := req.Raw
+	if strings.TrimSpace(rawText) == "" && len(req.RawParts) > 0 {
+		// An operator chain still receives the source text it always did (a
+		// script operator may read it); parsing below uses the parts.
+		rawText = strings.Join(req.RawParts, "\n")
+	}
+	raw, err := json.Marshal(rawText)
 	if err != nil {
 		return "", fmt.Errorf("encode raw subscription: %w", err)
+	}
+	parts := req.RawParts
+	if parts == nil {
+		parts = []string{}
+	}
+	rawParts, err := json.Marshal(parts)
+	if err != nil {
+		return "", fmt.Errorf("encode raw subscription parts: %w", err)
 	}
 	target, err := json.Marshal(req.Target)
 	if err != nil {
@@ -731,6 +751,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	}
 	return fmt.Sprintf(`%s
   const raw = %s;
+  const rawParts = %s;
   const target = %s;
   const operators = %s || [];
   const produceOptions = %s || {};
@@ -740,9 +761,16 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   if (!core || typeof core.parse !== "function" || typeof core.produce !== "function") {
     throw new Error("Sub-Store core must expose parse(raw) and produce(proxies, target, env)");
   }
-  let proxies = core.parse(raw);
-  if (!Array.isArray(proxies)) {
-    throw new Error("Sub-Store parse(raw) must return an array");
+  // Each part is parsed on its own: the engine recognises a base64 list or a
+  // YAML document only when it is the whole input, so text-joined members in
+  // different encodings lost whole members.
+  let proxies = [];
+  for (const source of (rawParts.length > 0 ? rawParts : [raw])) {
+    const parsed = core.parse(source);
+    if (!Array.isArray(parsed)) {
+      throw new Error("Sub-Store parse(raw) must return an array");
+    }
+    for (const proxy of parsed) proxies.push(proxy);
   }
   const sourceNodeCount = proxies.length;
   if (!Array.isArray(operators)) {
@@ -808,7 +836,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
     zero_nodes: zeroNodes,
     output,
   });
-})()`, prefix, raw, target, operators, options, explain, processBlock), nil
+})()`, prefix, raw, rawParts, target, operators, options, explain, processBlock), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {

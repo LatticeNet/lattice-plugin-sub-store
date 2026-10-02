@@ -109,10 +109,14 @@ func (rt *runtime) memberNodes(member subscriptionRecord) (raw string, needsCoun
 		return "", false, fmt.Errorf("%s: %w", memberLabel(member), err)
 	}
 	if len(operators) == 0 {
+		// Returned as it arrived: the collection parses each member on its own,
+		// so a member's encoding never has to match its siblings'. Converting it
+		// to URI here would drop every node that format cannot express (HTTP,
+		// Snell, SSH), which a same-format combination serves today.
 		return raw, true, nil
 	}
-	// URI is the merge format: it is the one target that round-trips through a
-	// second conversion, which is what merging then converting again requires.
+	// URI carries a chained member: the chain's output has to be node text the
+	// collection can parse again.
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       raw,
 		Target:    "URI",
@@ -151,24 +155,29 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, target string, optio
 
 // renderCollectionResult is renderCollection's whole answer: the document plus
 // the counts and the zero-node flag the serve path decides on.
+//
+// Members are handed to the engine as separate parts, each parsed on its own,
+// and their node lists concatenated. Joining them as text and parsing once
+// lost whole members whenever their encodings differed (a URI list beside a
+// base64 list or a Clash document), and served the rest as complete. Parts
+// also cover a snapshot the core stored before this change, whose members are
+// provider bodies exactly as they arrived.
 func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool) (subStoreConversionResult, error) {
-	merged := ""
+	var parts []string
 	if strings.TrimSpace(snapshotRaw) != "" {
 		var snap snapshotArtifacts
 		if err := json.Unmarshal([]byte(snapshotRaw), &snap); err == nil {
-			parts := make([]string, 0, len(snap.Members))
 			for _, member := range snap.Members {
 				if trimmed := strings.TrimSpace(member.Raw); trimmed != "" {
 					parts = append(parts, trimmed)
 				}
 			}
-			merged = strings.Join(parts, "\n")
 		}
 		// A snapshot that does not decode or carries nothing is not a reason to
 		// fail the serve: fall through to the live path rather than deny a
 		// client its nodes.
 	}
-	if merged == "" {
+	if len(parts) == 0 {
 		members, err := rt.collectionMembers(rec)
 		if err != nil {
 			return subStoreConversionResult{}, err
@@ -177,11 +186,9 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 		if err != nil {
 			return subStoreConversionResult{}, err
 		}
-		parts := make([]string, 0, len(chained))
 		for _, member := range chained {
 			parts = append(parts, member.Raw)
 		}
-		merged = strings.Join(parts, "\n")
 	}
 
 	operators, err := enabledOperators(rec)
@@ -189,7 +196,7 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 		return subStoreConversionResult{}, fmt.Errorf("collection %q: %w", rec.ID, err)
 	}
 	return rt.subStoreEngine().convert(subStoreConversionRequest{
-		Raw:       merged,
+		RawParts:  parts,
 		Target:    target,
 		Operators: operators,
 		Options:   options,
