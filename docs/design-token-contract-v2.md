@@ -1,6 +1,6 @@
 # Design brief: token contract v2 and Sub-Store simplification
 
-Status: design only. No product code, no manifest change, no release. Written 2026-09-03 against `origin/integration` at 3b7127f (sub-store 0.13.0-alpha.31 bound), with the dashboard, bridge, vpn-core, netguard, wireguard and server sources read at the line ranges cited. Nothing in this document was driven in a browser; every "reads as" claim is from the stylesheet and the component source, and the Gate 2 checklist at the end is where those claims get paid for.
+Status (2026-10-02): the token contract shipped as plugin-bridge `src/bridge.ts` ("Token contract v2"), and the Sub-Store lens moved onto the shared chassis in design 23 wave 1. Section 7's share verbs are not built: the server registers only `list` for the Sub-Store shares service (lattice-server `internal/server/server_substore_plugins.go`), so creating or rotating a share from the plugin is still open. Originally: design only. No product code, no manifest change, no release. Written 2026-09-03 against `origin/integration` at 3b7127f (sub-store 0.13.0-alpha.31 bound), with the dashboard, bridge, vpn-core, netguard, wireguard and server sources read at the line ranges cited. Nothing in this document was driven in a browser; every "reads as" claim is from the stylesheet and the component source, and the Gate 2 checklist at the end is where those claims get paid for.
 
 This is the first file under `docs/`; the directory did not exist before this brief.
 
