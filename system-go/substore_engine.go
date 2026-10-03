@@ -200,8 +200,9 @@ type subStoreConversionResult struct {
 	// for an empty list. Producers emit a non-empty skeleton for zero nodes
 	// ("proxies:\n", an empty sing-box object), so an empty-body check alone
 	// cannot see this, and a client that receives such a document deletes
-	// every node it had. Computed on every call; it costs one produce of an
-	// empty list.
+	// every node it had. Computed on every call; the producer's empty document
+	// is produced only when the output is short enough to be it
+	// (subStoreMaxEmptyDocumentBytes).
 	ZeroNodes bool `json:"zero_nodes"`
 	// CarrierLostNodeCount and CarrierLostProtocols are the nodes the chain
 	// kept that the URI output does not carry, when the request asked for a
@@ -718,6 +719,14 @@ func evalQuickJSStep(ctx *qjs.Context, file, code string) error {
 	return err
 }
 
+// subStoreMaxEmptyDocumentBytes bounds what a producer writes for an empty
+// node list. The conversion script compares an output with the producer's
+// empty document only when the output is no longer than this, so the common
+// serve path does not pay for a second produce. A pin that grew an empty
+// document past it would let a zero-node document through, which is why
+// TestEmptyDocumentsFitTheZeroNodeBound checks every target against it.
+const subStoreMaxEmptyDocumentBytes = 4096
+
 func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	rawText := req.Raw
 	if strings.TrimSpace(rawText) == "" && len(req.RawParts) > 0 {
@@ -804,16 +813,27 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
     throw new Error("Sub-Store produce(proxies, target, env) must return a string");
   }
   // What this producer writes for no nodes at all. A document equal to it
-  // carries nothing for this client, however many bytes it has.
-  let empty = null;
-  try {
-    empty = core.produce([], target, "external", produceOptions);
-  } catch (err) {
-    empty = null;
-  }
+  // carries nothing for this client, however many bytes it has. It is asked
+  // for only when the output could be it: every producer's empty document is
+  // a short skeleton ("proxies:", an empty sing-box object), and
+  // TestEmptyDocumentsFitTheZeroNodeBound holds each target to the bound, so
+  // a longer output carries at least one node and the serve path skips the
+  // extra produce.
+  let empty;
+  const emptyDocument = () => {
+    if (empty === undefined) {
+      try {
+        empty = core.produce([], target, "external", produceOptions);
+      } catch (err) {
+        empty = null;
+      }
+    }
+    return empty;
+  };
+  const trimmedOutput = output.trim();
   const zeroNodes = proxies.length === 0 ||
-    output.trim() === "" ||
-    (typeof empty === "string" && output.trim() === empty.trim());
+    trimmedOutput === "" ||
+    (trimmedOutput.length <= %d && typeof emptyDocument() === "string" && trimmedOutput === empty.trim());
   // Which nodes this client could not carry.
   //
   // Every producer keeps its own support rules inside itself and declares them
@@ -832,7 +852,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
       everything = output;
     }
     if (everything !== output) {
-      if (empty !== null) {
+      if (emptyDocument() !== null) {
         for (const proxy of proxies) {
           let alone = null;
           try {
@@ -894,7 +914,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
     carrier_lost_protocols: carrierLostTypes.sort(),
     output,
   });
-})()`, prefix, raw, rawParts, target, operators, options, explain, carrierCheck, processBlock), nil
+})()`, prefix, raw, rawParts, target, operators, options, explain, carrierCheck, processBlock, subStoreMaxEmptyDocumentBytes), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {

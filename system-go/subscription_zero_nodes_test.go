@@ -176,3 +176,53 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 		t.Fatalf("refreshing five unchained members took %d engine calls, want 1", calls)
 	}
 }
+
+// The conversion script compares an output with the producer's empty document
+// only when the output is at most subStoreMaxEmptyDocumentBytes long. That is
+// sound only while every producer's empty document fits the bound, under every
+// produce option the core can send. A pin whose producer grew past it would
+// let a zero-node document through, so this fails first.
+func TestEmptyDocumentsFitTheZeroNodeBound(t *testing.T) {
+	engine := sharedWarmTestEngine(t)
+	targets := make([]string, 0, len(subscriptionConvertTargets))
+	for target := range subscriptionConvertTargets {
+		targets = append(targets, target)
+	}
+	encoded, err := json.Marshal(targets)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err, served := engine.runWarm("probe", "lattice-test-empty-documents.js", `(function () {
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
+  const out = {};
+  for (const target of `+string(encoded)+`) {
+    for (const options of [{}, { "include-unsupported-proxy": true, "pretty-yaml": true }]) {
+      const document = core.produce([], target, "external", options);
+      const key = target + " " + JSON.stringify(options);
+      out[key] = typeof document === "string" ? document.trim().length : -1;
+    }
+  }
+  return JSON.stringify(out);
+})()`)
+	if err != nil || !served {
+		t.Fatalf("empty documents: served=%v err=%v", served, err)
+	}
+	var sizes map[string]int
+	if err := json.Unmarshal([]byte(raw), &sizes); err != nil {
+		t.Fatal(err)
+	}
+	if len(sizes) != 2*len(targets) {
+		t.Fatalf("measured %d empty documents, want %d", len(sizes), 2*len(targets))
+	}
+	largest := 0
+	for key, size := range sizes {
+		if size < 0 || size > subStoreMaxEmptyDocumentBytes {
+			t.Fatalf("%s: the empty document is %d bytes; the zero-node check only looks at outputs up to %d", key, size, subStoreMaxEmptyDocumentBytes)
+		}
+		if size > largest {
+			largest = size
+		}
+	}
+	t.Logf("largest empty document: %d bytes (bound %d)", largest, subStoreMaxEmptyDocumentBytes)
+}
