@@ -524,10 +524,11 @@ function onDocumentClick(event: MouseEvent): void {
 }
 
 /** The one Escape arbiter for this screen; see the sibling tab for why every
- *  overlay stopped answering the key itself. */
+ *  overlay stopped answering the key itself, and why closeTopOverlay is
+ *  handed the event. */
 function onDocumentKeydown(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
-  if (closeTopOverlay()) return;
+  if (closeTopOverlay(event)) return;
   if (openFileMenuId.value) {
     closeRowMenu();
     return;

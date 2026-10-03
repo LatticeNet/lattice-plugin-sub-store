@@ -434,7 +434,11 @@ function onDocumentClick(event: MouseEvent): void {
 /**
  * The one Escape arbiter for this screen, in the order the operator built the
  * stack in: the topmost overlay, then the row menu, then the open row, then
- * the editor.
+ * the editor. Beside the non-modal side panel (from 768px) the rows stay
+ * live, so a row menu can be opened after the panel: closeTopOverlay is
+ * handed the event, and an Escape from inside that menu or typed in the
+ * search field is left to them (the chassis's escapeBelongsToPage), so the
+ * menu closes below and the search field clears.
  *
  * Every overlay used to answer the key itself with `@keydown.esc.stop`, and
  * the `.stop` was the only thing keeping one press from closing a dialog and
@@ -444,7 +448,7 @@ function onDocumentClick(event: MouseEvent): void {
  */
 function onDocumentKeydown(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
-  if (closeTopOverlay()) return;
+  if (closeTopOverlay(event)) return;
   if (openMenuId.value) {
     closeRowMenu();
     return;

@@ -642,6 +642,34 @@ test.describe("page state in the console address", () => {
     expect(first).not.toBe(third);
   });
 
+  test("from 768px Escape in the search field keeps the open record, and a row menu opened beside it closes first", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    await page.locator("[data-record-open]").nth(0).click();
+    const panel = page.locator(".pc-side-panel");
+    await expect(panel).toHaveAttribute("role", "complementary");
+    const search = page.getByRole("searchbox", { name: /^Filter / });
+    await search.focus();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(1);
+    await expect(search).toBeFocused();
+
+    // The panel covers the actions column, so the operator reaches the next
+    // row's menu from the keyboard.
+    const trigger = page.getByRole("button", { name: /^Actions for / }).nth(1);
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    await menu.getByRole("menuitem").first().focus();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(panel).toHaveCount(1);
+    await expect(trigger).toBeFocused();
+    // From the row, Escape steps back out of the panel as before.
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  });
+
   test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
     await open(page, "?view=combinations", ".layer-row");
     await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
