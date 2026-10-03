@@ -118,15 +118,24 @@ func (rt *runtime) memberNodes(member subscriptionRecord) (raw string, needsCoun
 	// URI carries a chained member: the chain's output has to be node text the
 	// collection can parse again.
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
-		Raw:       raw,
-		Target:    "URI",
-		Operators: operators,
+		Raw:          raw,
+		Target:       "URI",
+		Operators:    operators,
+		CarrierCheck: true,
 	})
 	if err != nil {
 		return "", false, fmt.Errorf("%s: %w", memberLabel(member), err)
 	}
 	if converted.SourceNodeCount == 0 {
 		return "", false, providerNoNodesError(memberLabel(member))
+	}
+	// URI has no form for some protocols, so a chained member with HTTP, Snell
+	// or SSH nodes would lose them here while an unchained sibling keeps them.
+	// Serving the rest as the member's whole list is what the failure mode
+	// exists to prevent, so the member fails instead: strict refuses the
+	// refresh and keeps the last good snapshot, skip leaves the member out.
+	if converted.CarrierLostNodeCount > 0 {
+		return "", false, memberChainDropsNodesError(memberLabel(member), converted.CarrierLostNodeCount, converted.NodeCount, converted.CarrierLostProtocols)
 	}
 	return converted.Output, false, nil
 }

@@ -52,6 +52,11 @@ const (
 	// error page, a login wall, a document that is not a subscription). The
 	// fetch fails, so the core keeps its last good snapshot.
 	providerNoNodesCode = "provider_no_nodes"
+	// memberChainDropsNodesCode: a combination member's own steps kept nodes
+	// that cannot be handed on as URI links, which is how a member's processed
+	// nodes reach the combination. The member fails, and the combination's
+	// failure mode decides what happens next.
+	memberChainDropsNodesCode = "member_chain_drops_nodes"
 )
 
 func zeroNodesForTargetError(label, target string) error {
@@ -60,6 +65,10 @@ func zeroNodesForTargetError(label, target string) error {
 
 func providerNoNodesError(label string) error {
 	return fmt.Errorf("%s: %s yielded no nodes; it is not treated as a subscription, so the last good snapshot stays", providerNoNodesCode, label)
+}
+
+func memberChainDropsNodesError(label string, lost, kept int, protocols []string) error {
+	return fmt.Errorf("%s: %s keeps %d nodes after its own steps, and %d of them (%s) cannot be handed on as URI links; move those steps to the combination or remove them", memberChainDropsNodesCode, label, kept, lost, strings.Join(protocols, ", "))
 }
 
 // subscriptionProbeResult is the browser-safe refresh view. Provider bytes,

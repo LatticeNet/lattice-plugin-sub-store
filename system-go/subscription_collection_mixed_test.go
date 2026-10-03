@@ -137,3 +137,73 @@ func TestCollectionKeepsMembersWhoseNodesHaveNoURIForm(t *testing.T) {
 		t.Fatalf("a member was lost on the way through the merge: %q", out.Content)
 	}
 }
+
+// A member with its own steps reaches the combination as URI links, and URI
+// has no form for HTTP or Snell. Those nodes used to leave the member without
+// a word while an unchained sibling kept them, and the rest was served as the
+// member's whole list. The member now fails: strict refuses the refresh and
+// names what would be lost, skip leaves the member out. A chained member URI
+// carries in full is unaffected, and a node the core rejects for every client
+// does not count as lost.
+func TestChainedMemberThatURICannotCarryFailsPerFailureMode(t *testing.T) {
+	rt, _ := newWarmKVRuntime(t)
+	chain := []json.RawMessage{step(t, map[string]any{"type": "Useless Filter"})}
+	saveChained := func(id, content string) {
+		t.Helper()
+		if err := rt.saveSubscription(subscriptionRecord{ID: id, Name: id, Content: content, Process: chain}); err != nil {
+			t.Fatalf("save %s: %v", id, err)
+		}
+	}
+	saveCollection := func(id, failureMode string, members ...string) {
+		t.Helper()
+		if err := rt.saveSubscription(subscriptionRecord{ID: id, Kind: kindCollection, Name: id, Members: members, FailureMode: failureMode}); err != nil {
+			t.Fatalf("save %s: %v", id, err)
+		}
+	}
+	plain := shareFleetFixtureNoSS(1)
+	seedSub(t, rt, "plain", nil, plain)
+	saveChained("lossy", "snell-a = snell, 192.0.2.20, 443, psk=one, version=4\nhttp-b = http, 192.0.2.21, 8080, user, pass\nss-c = ss, 192.0.2.22, 8388, encrypt-method=aes-128-gcm, password=pw\n")
+
+	saveCollection("strict", "", "lossy", "plain")
+	_, err := rt.fetchSubscription("strict")
+	if err == nil {
+		t.Fatal("a strict combination served a chained member without its HTTP and Snell nodes")
+	}
+	for _, want := range []string{memberChainDropsNodesCode, `"lossy"`, "keeps 3 nodes", "2 of them", "http", "snell"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Fatalf("refusal %q does not say %q", err, want)
+		}
+	}
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "strict", Format: "plain", Target: "URI"}); err == nil || !strings.Contains(err.Error(), memberChainDropsNodesCode) {
+		t.Fatalf("live render of the strict combination: %v", err)
+	}
+
+	saveCollection("skip", failureModeSkip, "lossy", "plain")
+	snap, err := rt.fetchSubscription("skip")
+	if err != nil {
+		t.Fatalf("skip refresh: %v", err)
+	}
+	served, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "skip", Format: "plain", Target: "URI", Raw: snap.Raw})
+	if err != nil {
+		t.Fatalf("skip render: %v", err)
+	}
+	if got, want := countURINodes(served.Content), countURINodes(plain); got != want || strings.Contains(served.Content, "ss-c") {
+		t.Fatalf("skip mode must leave the whole lossy member out: served %d nodes, want %d: %q", got, want, served.Content)
+	}
+
+	saveChained("carried", strings.ReplaceAll(shareFleetFixtureNoSS(2), "node-", "chained-node-"))
+	reject := "vless://0000aaaa-1111-4222-8333-444455556666@192.0.2.30:443?encryption=none&security=reality&pbk=&sid=0a&sni=www.example.com&fp=chrome&type=tcp#no-public-key"
+	saveChained("with-invalid", "ss://"+base64.RawURLEncoding.EncodeToString([]byte("aes-128-gcm:pw"))+"@192.0.2.31:8388#ss-ok\n"+reject+"\n")
+	saveCollection("fine", "", "carried", "with-invalid", "plain")
+	snap, err = rt.fetchSubscription("fine")
+	if err != nil {
+		t.Fatalf("a chained member URI carries in full was refused: %v", err)
+	}
+	served, err = rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fine", Format: "plain", Target: "URI", Raw: snap.Raw})
+	if err != nil {
+		t.Fatalf("fine render: %v", err)
+	}
+	if got, want := countURINodes(served.Content), countURINodes(shareFleetFixtureNoSS(2))+1+countURINodes(plain); got != want || strings.Contains(served.Content, "no-public-key") {
+		t.Fatalf("fine served %d nodes, want %d: %q", got, want, served.Content)
+	}
+}

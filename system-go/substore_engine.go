@@ -163,6 +163,12 @@ type subStoreConversionRequest struct {
 	// The console sets it so a near-empty document can say why; the path that
 	// serves subscriptions to clients does not, and pays nothing for it.
 	Explain bool `json:"explain,omitempty"`
+	// CarrierCheck asks the engine to report the nodes the chain kept that a
+	// URI output could not write. A combination member with its own steps is
+	// handed on as URI links, and the URI producer has no form for several
+	// protocols (HTTP, Snell, SSH and others), so without this those nodes
+	// would leave the member without a word. Only meaningful with target URI.
+	CarrierCheck bool `json:"carrier_check,omitempty"`
 }
 
 type subStoreResponseTransformRequest struct {
@@ -197,6 +203,13 @@ type subStoreConversionResult struct {
 	// every node it had. Computed on every call; it costs one produce of an
 	// empty list.
 	ZeroNodes bool `json:"zero_nodes"`
+	// CarrierLostNodeCount and CarrierLostProtocols are the nodes the chain
+	// kept that the URI output does not carry, when the request asked for a
+	// carrier check. Nodes the core rejects for every client (a VLESS Reality
+	// node without a public key, for one) are not counted: no client would
+	// have received them anyway.
+	CarrierLostNodeCount int      `json:"carrier_lost_node_count"`
+	CarrierLostProtocols []string `json:"carrier_lost_protocols,omitempty"`
 }
 
 type subStoreResponseTransformResult struct {
@@ -213,6 +226,8 @@ type subStoreCoreConversionResult struct {
 	UnsupportedNodeCount int      `json:"unsupported_node_count"`
 	UnsupportedProtocols []string `json:"unsupported_protocols"`
 	ZeroNodes            bool     `json:"zero_nodes"`
+	CarrierLostNodeCount int      `json:"carrier_lost_node_count"`
+	CarrierLostProtocols []string `json:"carrier_lost_protocols"`
 	Output               string   `json:"output"`
 }
 
@@ -271,6 +286,8 @@ func (engine *subStoreEngine) convert(req subStoreConversionRequest) (result sub
 		UnsupportedNodeCount: coreResult.UnsupportedNodeCount,
 		UnsupportedProtocols: coreResult.UnsupportedProtocols,
 		ZeroNodes:            coreResult.ZeroNodes,
+		CarrierLostNodeCount: coreResult.CarrierLostNodeCount,
+		CarrierLostProtocols: coreResult.CarrierLostProtocols,
 	}, nil
 }
 
@@ -736,6 +753,10 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	if req.Explain {
 		explain = "true"
 	}
+	carrierCheck := "false"
+	if req.CarrierCheck {
+		carrierCheck = "true"
+	}
 	prefix := "(function() {"
 	processBlock := ""
 	if len(req.Operators) > 0 {
@@ -756,6 +777,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   const operators = %s || [];
   const produceOptions = %s || {};
   const explain = %s;
+  const carrierCheck = %s;
   const root = globalThis.SubStoreProxyUtils;
   const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   if (!core || typeof core.parse !== "function" || typeof core.produce !== "function") {
@@ -828,15 +850,51 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
       }
     }
   }
+  // Which nodes the chain kept that a URI carrier could not write.
+  //
+  // The URI producer writes one line per node it can express and drops the
+  // rest, so a line count below the node count means something was lost. The
+  // nodes the core rejects for every client are set aside first, by asking
+  // the JSON producer (which drops nothing itself) what survives the core's
+  // own filters; only the remainder that the URI producer cannot write
+  // counts as lost. The common path, where nothing was dropped, costs one
+  // split of the output.
+  const carrierLostTypes = [];
+  let carrierLostCount = 0;
+  if (carrierCheck && proxies.length > 0) {
+    const carried = output.split("\n").filter((line) => line.trim() !== "").length;
+    if (carried < proxies.length) {
+      let valid = proxies;
+      try {
+        valid = core.produce(proxies.slice(), "JSON", "internal", { "include-unsupported-proxy": true });
+      } catch (err) {
+        valid = proxies;
+      }
+      for (const proxy of Array.isArray(valid) ? valid : proxies) {
+        let line = "";
+        try {
+          line = core.produce([proxy], target, "external", produceOptions);
+        } catch (err) {
+          line = "";
+        }
+        if (typeof line === "string" && line.trim() !== "") continue;
+        carrierLostCount += 1;
+        const type = proxy && typeof proxy.type === "string" ? proxy.type : "unknown";
+        if (!carrierLostTypes.includes(type)) carrierLostTypes.push(type);
+      }
+    }
+  }
   return JSON.stringify({
     source_node_count: sourceNodeCount,
     node_count: proxies.length,
     unsupported_node_count: unsupportedCount,
     unsupported_protocols: unsupportedTypes.sort(),
     zero_nodes: zeroNodes,
+    carrier_lost_node_count: carrierLostCount,
+    carrier_lost_protocols: carrierLostTypes.sort(),
     output,
   });
-})()`, prefix, raw, rawParts, target, operators, options, explain, processBlock), nil
+})()`, prefix, raw, rawParts, target, operators, options, explain, carrierCheck, processBlock), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {
