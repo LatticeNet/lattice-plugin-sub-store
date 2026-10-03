@@ -37,7 +37,7 @@ describe("the layers", () => {
   });
 
   it("give way to the record page's own tab row", () => {
-    expect(shell).toContain('<PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">');
+    expect(shell).toContain('<PcLensTabs v-if="!recordId" v-model="activeTab" variant="layer" label="Sub-Store layers">');
     expect(shell.match(/<PcLensTabs/g)).toHaveLength(1);
     expect(page.match(/<PcLensTabs/g)).toHaveLength(1);
   });

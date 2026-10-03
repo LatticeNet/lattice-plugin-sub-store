@@ -9,7 +9,6 @@ import {
   PcNotice,
   PcPageHeader,
   PcProofLine,
-  PcToolbar,
   PcWorkspace,
 } from "@latticenet/plugin-bridge/chassis";
 
@@ -33,7 +32,6 @@ import { createLensChrome, provideLensChrome, type Facets, type LensOpenOptions,
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
 import { useObservedAge } from "./observedAge";
-import { revealKeyOf, vRevealSelected } from "./layerTabs";
 import { VIEW_IDS, viewOfKind } from "./pipeline";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
@@ -247,9 +245,6 @@ const tabCounts = computed<Record<TabId, number | null>>(() => ({
   shares: shareStore.shares.value ? shareStore.shares.value.length : null,
   settings: null,
 }));
-
-/** When the layer row scrolls its selected tab into view (layerTabs.ts revealKeyOf). */
-const revealKey = computed(() => revealKeyOf(activeTab.value, tabs.map((tab) => tabCounts.value[tab.id])));
 
 /**
  * Live-share and published counts, from the same two lists the layers render.
@@ -485,19 +480,6 @@ function deletedFromPanel(_kind: string, text: string, shares: string[] = []): v
   settleFocus();
 }
 
-/** Home and End on the layer row; the chassis walks it with the arrows only. */
-function onLayerKeydown(event: KeyboardEvent): void {
-  if (event.key !== "Home" && event.key !== "End") return;
-  if (!(event.target instanceof Element) || !event.target.closest("[role='tab']")) return;
-  const tabs = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[role='tab']")];
-  const next = event.key === "Home" ? tabs[0] : tabs[tabs.length - 1];
-  if (!next) return;
-  event.preventDefault();
-  const value = next.dataset.value;
-  if (value && TAB_IDS.has(value)) activeTab.value = value as TabId;
-  next.focus();
-}
-
 function backFromRecord(): void {
   const from = recordFrom.value as TabId;
   const own = viewOfKind(pipe.item(recordId.value)?.kind);
@@ -599,20 +581,18 @@ function openShares(): void {
       </PcNotice>
 
       <!-- A record's own page has its own tab row; the layer tabs give way to
-           it rather than stacking a second row above. -->
-      <PcToolbar v-if="!recordId" class="ss-layer-bar" label="Sub-Store layers">
-        <template #tabs>
-          <PcLensTabs v-model="activeTab" v-reveal-selected="revealKey" class="ss-layer-tabs" label="Sub-Store layers" @keydown="onLayerKeydown">
-            <PcLensTab
-              v-for="tab in tabs"
-              :key="tab.id"
-              :value="tab.id"
-              :label="tab.label"
-              :count="tabCounts[tab.id]"
-            />
-          </PcLensTabs>
-        </template>
-      </PcToolbar>
+           it rather than stacking a second row above. The chassis layer row
+           keeps the selected layer in view, again when a count lands, and
+           answers Home and End. -->
+      <PcLensTabs v-if="!recordId" v-model="activeTab" variant="layer" label="Sub-Store layers">
+        <PcLensTab
+          v-for="tab in tabs"
+          :key="tab.id"
+          :value="tab.id"
+          :label="tab.label"
+          :count="tabCounts[tab.id]"
+        />
+      </PcLensTabs>
 
       <!-- The panel attributes live on a real wrapper element.
            Passing them to <component :is> put them on a screen whose root is a
