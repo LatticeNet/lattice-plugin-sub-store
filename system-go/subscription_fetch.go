@@ -77,6 +77,14 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 // rendered to "proxies:\n" for every Clash-family client. Failing the fetch
 // instead keeps the core on the snapshot it already has (served stale), and the
 // record's bookkeeping says why.
+//
+// It applies to every plain subscription source, not only provider URLs. Pasted
+// content with no node in it and an empty provider account are refused the same
+// way, and on a first refresh, with no snapshot to fall back on, the record
+// shows the error instead of serving an empty list. A vpn-core graph source
+// passes through here too; its composition is a non-empty list of canonical
+// VLESS Reality URIs (validateVPNCoreGraphResponse), which the engine reads as
+// one node each (TestVPNCoreGraphCanonicalRawIsOneNodePerEntry).
 func (rt *runtime) requireNodes(label, raw string) error {
 	count, err := rt.subStoreEngine().countNodes(raw)
 	if err != nil {

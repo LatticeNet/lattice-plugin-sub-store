@@ -101,6 +101,11 @@ func canonicalGraphResponse(t *testing.T, roots []string) json.RawMessage {
 
 func canonicalGraphResponseForIdentity(t *testing.T, identityID string, roots []string) json.RawMessage {
 	t.Helper()
+	return canonicalGraphResponseWithALPN(t, identityID, roots, []string{})
+}
+
+func canonicalGraphResponseWithALPN(t *testing.T, identityID string, roots []string, alpn []string) json.RawMessage {
+	t.Helper()
 	manifest := model.SubscriptionSourceManifestV1{
 		Schema: model.SubscriptionSourceManifestSchemaV1, Renderer: model.SubscriptionSourceRendererV1,
 		Identity:   model.SubscriptionSourceManifestIdentity{ID: identityID, Generation: 3},
@@ -112,12 +117,15 @@ func canonicalGraphResponseForIdentity(t *testing.T, identityID string, roots []
 		manifest.Entries = append(manifest.Entries, model.SubscriptionSourceManifestEntry{
 			Root: root,
 			Endpoint: model.SubscriptionSourceManifestEndpoint{LineUUID: root, NodeID: "node", Label: label, Host: "entry.example.com", Port: 443,
-				SNI: "entry.example.com", Fingerprint: "chrome", ALPN: []string{}, PublicKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", ShortID: "0123456789abcdef", Flow: "xtls-rprx-vision"},
+				SNI: "entry.example.com", Fingerprint: "chrome", ALPN: append([]string{}, alpn...), PublicKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", ShortID: "0123456789abcdef", Flow: "xtls-rprx-vision"},
 			Path:     []model.SubscriptionSourceManifestEdge{},
 			Terminal: model.SubscriptionSourceManifestTerminal{LineUUID: root, Generation: uint64(i + 1), ObservationRevision: uint64(i + 1), Status: "converged"},
 		})
 		values := url.Values{"type": {"tcp"}, "encryption": {"none"}, "security": {"reality"}, "flow": {"xtls-rprx-vision"},
 			"pbk": {manifest.Entries[i].Endpoint.PublicKey}, "sid": {manifest.Entries[i].Endpoint.ShortID}, "sni": {manifest.Entries[i].Endpoint.SNI}, "fp": {manifest.Entries[i].Endpoint.Fingerprint}}
+		if len(alpn) > 0 {
+			values.Set("alpn", strings.Join(alpn, ","))
+		}
 		entries = append(entries, "vless://"+graphCredential(root)+"@"+net.JoinHostPort(manifest.Entries[i].Endpoint.Host, strconv.Itoa(manifest.Entries[i].Endpoint.Port))+"?"+values.Encode()+"#"+url.PathEscape(label))
 	}
 	manifestRaw, sourceVersion, err := model.CanonicalSubscriptionSourceManifest(manifest)
@@ -184,6 +192,42 @@ func TestVPNCoreGraphComposesOrderedRootsWithOneHostCall(t *testing.T) {
 	}
 	if wire.SourceVersion != expected.SourceVersion || string(wire.SourceManifest) != string(expected.SourceManifest) || wire.Raw != expected.Raw {
 		t.Fatalf("fetch RPC dropped graph authority: %+v", wire)
+	}
+}
+
+// Refresh refuses a source the engine finds no node in, and a graph
+// subscription takes that path too, so a graph's first refresh would fail if
+// the embedded parser ever stopped reading what vpn-core composes. The
+// composition cannot be anything else: validateVPNCoreGraphResponse accepts
+// only a non-empty list of entries, each byte-equal to the canonical VLESS
+// Reality URI its manifest endpoint dictates, and Raw must be exactly those
+// entries joined. This pins the other half: each canonical entry, with and
+// without ALPN, is exactly one node to the engine, and the refresh stores the
+// composition unchanged.
+func TestVPNCoreGraphCanonicalRawIsOneNodePerEntry(t *testing.T) {
+	roots := []string{graphRootA, graphRootB}
+	for _, alpn := range [][]string{{}, {"h2", "http/1.1"}} {
+		composed := canonicalGraphResponseWithALPN(t, "identity", roots, alpn)
+		var response vpnCoreGraphComposeResponse
+		if err := json.Unmarshal(composed, &response); err != nil {
+			t.Fatal(err)
+		}
+		request := vpnCoreGraphComposeRequest{SchemaVersion: 1, IdentityID: "identity", EntryRoots: roots}
+		if err := validateVPNCoreGraphResponse(response, request); err != nil {
+			t.Fatalf("alpn %v: fixture is not a canonical composition: %v", alpn, err)
+		}
+		rt, _ := newVPNCoreGraphRuntime(t, composed)
+		count, err := rt.subStoreEngine().countNodes(response.Raw)
+		if err != nil || count != len(roots) {
+			t.Fatalf("alpn %v: engine counted %d nodes (err %v) in %d canonical entries", alpn, count, err, len(roots))
+		}
+		if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: roots, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}); err != nil {
+			t.Fatal(err)
+		}
+		result, err := rt.fetchSubscription("graph")
+		if err != nil || result.Raw != response.Raw {
+			t.Fatalf("alpn %v: refresh err=%v stored=%q", alpn, err, head(result.Raw, 80))
+		}
 	}
 }
 
