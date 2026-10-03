@@ -28,7 +28,7 @@ import TargetSheet from "../components/TargetSheet.vue";
 import { actionCapabilities, actionsFor, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
 import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
 import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
-import { forwardSelectCellClick, isSelectCell } from "../selectCell";
+import { isSelectCell } from "../selectCell";
 import { useRecordEditor } from "../useRecordEditor";
 import SubscriptionEditor from "../components/SubscriptionEditor.vue";
 
@@ -994,7 +994,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel :label="isComboLayer ? 'Combinations' : 'Sources'">
-          <div ref="listRoot" class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'" @click="forwardSelectCellClick">
+          <div ref="listRoot" class="rec-list" :aria-label="isComboLayer ? 'Combinations' : 'Sources'">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" :label="`Filter ${noun}s`" />
               <label class="toolbar-sort">

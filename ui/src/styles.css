@@ -1932,17 +1932,6 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 .masked-url-reveal:hover { color: var(--foreground); }
 .masked-url-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
 
-/* chassis-workaround: PcPagination wraps Next alone onto a second line at
-   375. On a phone the range takes the first line and Previous, the page and
-   Next share the second. Remove once the chassis footer lays itself out at
-   phone width. The range is found the way the chassis stylesheet finds it
-   (its first span child), so a reorder in plugin-bridge breaks both rules at
-   once; the e2e drive "the files footer puts the range on its own line"
-   fails on it. The lasting fix is a class on the range in plugin-bridge. */
-@media (max-width: 620px) {
-  .pc-pagination > span:first-child { flex-basis: 100%; }
-}
-
 /* ── reduced motion ───────────────────────────────────────────────────────
    Last, because a media query carries no extra specificity: written where the
    animations are declared, these lose to the very rules they exist to switch
@@ -2395,22 +2384,6 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 
 @media (prefers-reduced-motion: reduce) {
   .lineage-edge, .lineage-chip, .lineage-entry, .lineage-chevron { transition: none; }
-}
-
-/* ── the side panel beside the table ──────────────────────────────────────
-   chassis-workaround: PcSidePanel is always modal. From 768px a side panel
-   sits beside the collection (design 23, 3.5; the 2026-09-30 design review
-   decision for every plugin): no scrim, and the rows around it stay live,
-   so a click on another row swaps the record. Below 768px it stays a modal,
-   full-height sheet. This is CSS only: the panel still says aria-modal and
-   keeps Tab inside it, so keyboard and screen-reader behaviour is modal as
-   before. Remove once plugin-bridge gives PcSidePanel a non-modal form (a
-   modal prop, or automatic at min-width 768px): no scrim, pointer events
-   through the .pc-overlay wrapper, aria-modal false or role=complementary
-   with a label, no Tab wrap, Escape and focus return kept. */
-@media (min-width: 768px) {
-  .pc-overlay[data-kind="panel"] { background: transparent; pointer-events: none; }
-  .pc-overlay[data-kind="panel"] > .pc-side-panel { pointer-events: auto; }
 }
 
 /* ── touch ────────────────────────────────────────────────────────────────
