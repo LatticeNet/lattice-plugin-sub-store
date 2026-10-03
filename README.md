@@ -195,9 +195,10 @@ other query parameter is handed through to the harness.
 
 The page is the shared plugin chassis from `@latticenet/plugin-bridge/chassis`
 (page header, proof line, stat strip, toolbar with the lens tabs, the table card
-with its group rows), the same skeleton the vpn-core Lines page draws. Until
-the chassis is published, `ui/package.json` points the dependency at the packed
-build in `ui/vendor/`; swap it back to a registry version once one exists.
+with its group rows), the same skeleton the vpn-core Lines page draws.
+`ui/package.json` pins `@latticenet/plugin-bridge` `0.2.0-alpha.1` from the
+package registry (GitHub Packages, `ui/.npmrc`); that version resolves once the
+bridge release is published, and until then `npm ci` cannot install it.
 
 It exists because the plugin UI is otherwise unviewable outside a dashboard, and
 while it was unviewable, an operator picker that rendered empty and a data load
