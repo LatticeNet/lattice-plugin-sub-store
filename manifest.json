@@ -11,9 +11,9 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.16.0-alpha.1",
+  "version": "0.16.0-alpha.2",
   "publisher": "latticenet",
-  "signature_ed25519": "9nBTjAMIPszUKF+am8wKiqVnHuerNR1oifgkXH04jZQoidk8mlGiP/UyXv0g9E1d4mXrQ+p9acBIQYRV28VOAw==",
+  "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
     "digest_sha256": "603803519fac3cf0d34fb6c8e4b6868e89e57c1edea61a3d12ae0671e6662ac2"
