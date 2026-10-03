@@ -197,7 +197,7 @@ test.describe("touch at 375", () => {
 
   test("the layer tabs, attention actions, map chips, filters and Copy link are 44px", async ({ page }) => {
     await open(page, "?fixture=failing", ".attention-item");
-    for (const selector of [".ss-layer-tabs [role=tab]", ".attention-item .pc-button", ".attention-more .pc-button", ".lineage-chip"]) {
+    for (const selector of ["[data-variant=layer] [role=tab]", ".attention-item .pc-button", ".attention-more .pc-button", ".lineage-chip"]) {
       for (const [name, side] of await shortSides(page, selector)) expect(side, `${selector} ${name}`).toBeGreaterThanOrEqual(44);
     }
     await open(page, "?view=files", ".layer-row");

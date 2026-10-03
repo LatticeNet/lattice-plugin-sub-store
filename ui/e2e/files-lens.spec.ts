@@ -63,15 +63,15 @@ test.describe("375", () => {
 
   test("the selected layer tab is scrolled into view, on load and on change", async ({ page }) => {
     const inView = () => page.evaluate(() => {
-      const row = document.querySelector(".ss-layer-tabs")!.getBoundingClientRect();
-      const tab = document.querySelector('.ss-layer-tabs [aria-selected="true"]')!.getBoundingClientRect();
+      const row = document.querySelector("[data-variant=layer]")!.getBoundingClientRect();
+      const tab = document.querySelector('[data-variant=layer] [aria-selected="true"]')!.getBoundingClientRect();
       return tab.left >= row.left && tab.right <= row.right;
     });
     for (const view of ["files", "shares", "settings"]) {
-      await open(page, `?view=${view}`, ".ss-layer-tabs");
+      await open(page, `?view=${view}`, "[data-variant=layer]");
       // The counts land after the layer is applied and widen every tab, so
       // the tab has to be in view once they are all there, not only before.
-      await expect(page.locator(".ss-layer-tabs .pc-count"), view).toHaveCount(4);
+      await expect(page.locator("[data-variant=layer] .pc-count"), view).toHaveCount(4);
       await expect.poll(inView, view).toBe(true);
     }
     await page.getByRole("tab", { name: /Overview/ }).click();
@@ -161,7 +161,7 @@ test.describe("1440", () => {
     expect(Math.abs(primary.y + primary.height / 2 - (refresh.y + refresh.height / 2))).toBeLessThan(2);
     expect(primary.x).toBeGreaterThan(refresh.x + refresh.width);
     // The tab row holds the layers and nothing else.
-    await expect(page.locator(".ss-layer-bar").getByRole("button", { name: /New / })).toHaveCount(0);
+    await expect(page.locator("[data-variant=layer]").getByRole("button", { name: /New / })).toHaveCount(0);
     await expect(page.getByText("15 files are not published")).toBeVisible();
   });
 
@@ -642,6 +642,34 @@ test.describe("page state in the console address", () => {
     expect(first).not.toBe(third);
   });
 
+  test("from 768px Escape in the search field keeps the open record, and a row menu opened beside it closes first", async ({ page }) => {
+    await open(page, "?view=sources", ".layer-row");
+    await page.locator("[data-record-open]").nth(0).click();
+    const panel = page.locator(".pc-side-panel");
+    await expect(panel).toHaveAttribute("role", "complementary");
+    const search = page.getByRole("searchbox", { name: /^Filter / });
+    await search.focus();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(1);
+    await expect(search).toBeFocused();
+
+    // The panel covers the actions column, so the operator reaches the next
+    // row's menu from the keyboard.
+    const trigger = page.getByRole("button", { name: /^Actions for / }).nth(1);
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    await menu.getByRole("menuitem").first().focus();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(panel).toHaveCount(1);
+    await expect(trigger).toBeFocused();
+    // From the row, Escape steps back out of the panel as before.
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  });
+
   test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
     await open(page, "?view=combinations", ".layer-row");
     await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
@@ -664,10 +692,11 @@ for (const width of [1440, 375]) {
     test.use({ viewport: { width, height: 900 } });
 
     test("the layer row never scrolls up and down, and the selected underline meets the hairline", async ({ page }) => {
-      await open(page, "?fixture=production", ".ss-layer-tabs");
+      await open(page, "?fixture=production", "[data-variant=layer]");
       const row = await page.evaluate(() => {
-        const tabs = document.querySelector<HTMLElement>(".ss-layer-tabs")!;
-        const bar = document.querySelector<HTMLElement>(".ss-layer-bar")!.getBoundingClientRect();
+        // The chassis layer row draws its own hairline, so the row is the bar.
+        const tabs = document.querySelector<HTMLElement>("[data-variant=layer]")!;
+        const bar = tabs.getBoundingClientRect();
         const selected = tabs.querySelector<HTMLElement>('[aria-selected="true"]')!.getBoundingClientRect();
         return { overflow: tabs.scrollHeight - tabs.clientHeight, gap: bar.bottom - selected.bottom };
       });

@@ -13,15 +13,18 @@ import type { SortKey } from "./lensChrome";
  * and back (wave CONTRACTS, "Plugin page state in the console address"):
  *
  *   host to plugin  `lattice.host.init` carries `pageState`, the query of the
- *                   console's plugin route, filtered by the rules below;
- *   plugin to host  `lattice.plugin.state` carries the full state, debounced,
- *                   and the console replaces its query with it.
+ *                   console's plugin route, filtered by the rules below, and
+ *                   the bridge client hands it over as HostInit.pageState;
+ *   plugin to host  BridgeClient.sendState posts `lattice.plugin.state` with
+ *                   the full state, debounced here, and the console replaces
+ *                   its query with it.
  *
  * Both sides apply the same rules, and anything outside them drops the whole
- * message rather than part of it.
+ * message rather than part of it. The bridge client (plugin-bridge 0.2.0)
+ * applies them on the wire; the copies below serve the shell's own encoding
+ * and the dev harness's console address.
  */
 
-export const PAGE_STATE_MESSAGE = "lattice.plugin.state";
 export const MAX_STATE_KEYS = 16;
 export const MAX_STATE_VALUE = 256;
 export const STATE_DEBOUNCE_MS = 250;
@@ -206,35 +209,4 @@ export function createStateSender(send: (state: PageState) => void, delayMs = ST
       pending = null;
     },
   };
-}
-
-/** The outbound message, exactly as the contract spells it. */
-export function stateMessage(nonce: string, state: PageState): { type: string; nonce: string; state: PageState } {
-  return { type: PAGE_STATE_MESSAGE, nonce, state };
-}
-
-/**
- * `pageState` off the host's init message.
- *
- * The bridge client this plugin vendors (0.1.0-alpha.2) rebuilds init from the
- * fields it knows and drops the rest, so the field is read here from the same
- * message, behind the same checks the client applies: the parent window, the
- * pinned host origin, the frame's nonce. A host that predates the contract
- * sends no `pageState` and the page opens on its defaults; one whose state
- * breaks the rules gets the same. A reserved key is dropped on the way in.
- */
-export function listenForInitPageState(
-  win: Window,
-  nonce: string,
-  hostOrigin: string,
-  onState: (state: PageState) => void,
-): () => void {
-  const onMessage = (event: MessageEvent) => {
-    if (event.source !== win.parent || event.origin !== hostOrigin) return;
-    const data = event.data as Record<string, unknown> | null;
-    if (!data || typeof data !== "object" || data.nonce !== nonce || data.type !== "lattice.host.init") return;
-    onState(withoutReserved(validPageState(data.pageState) ?? {}));
-  };
-  win.addEventListener("message", onMessage);
-  return () => win.removeEventListener("message", onMessage);
 }

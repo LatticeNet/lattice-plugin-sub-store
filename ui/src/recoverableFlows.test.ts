@@ -42,10 +42,12 @@ describe("Escape closes exactly the top of the stack", () => {
       const text = source(`./${file}`);
       const handler = text.slice(text.indexOf("function onDocumentKeydown"));
       const body = handler.slice(0, handler.indexOf("\n}"));
-      expect(body).toContain("closeTopOverlay()");
+      // Handed the event, so an Escape from the row menu or the search field
+      // beside a non-modal panel stays with them (escapeBelongsToPage).
+      expect(body).toContain("closeTopOverlay(event)");
       // First, not eventually: a row menu or an editor acting on a key that
       // belonged to the panel above it is the same bug in the other direction.
-      expect(body.indexOf("closeTopOverlay()")).toBeLessThan(body.indexOf("closeRowMenu()"));
+      expect(body.indexOf("closeTopOverlay(event)")).toBeLessThan(body.indexOf("closeRowMenu()"));
     },
   );
 

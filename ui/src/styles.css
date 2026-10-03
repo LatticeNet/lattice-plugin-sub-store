@@ -86,33 +86,11 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* Published count in the proof line: warning ink only when none are live. */
 .proof-seg.is-warn { color: var(--warning-text); }
 
-/* ── layer tabs and the header's actions ──────────────────────────────────
-   chassis-workaround: PcLensTabs are boxed and carry icons. The layers are
-   one underline row, the one vpn-core draws (design 23 section 3.4), drawn
-   over the chassis tablist so its arrow keys and panel ids stay. Remove
-   once plugin-bridge has a layer variant of PcLensTabs (planned for wave 3). The row's hairline runs the full width, and the selected tab's
-   underline covers it. Both are inset shadows, not borders: a tab pulled
-   down over a border with a negative margin hangs 1px out of the sideways
-   scroller and makes it scroll up and down by that pixel. Below 620px the row becomes a segmented control that
-   scrolls sideways, as vpn-core's does. */
-.ss-layer-bar { align-items: center; box-shadow: inset 0 -1px 0 var(--border); }
-.ss-layer-tabs.pc-lens-tabs { display: flex; align-self: stretch; align-items: flex-end; gap: var(--space-1); max-width: 100%; overflow-x: auto; padding: 0; border: 0; border-radius: 0; background: transparent; scrollbar-width: thin; }
-.ss-layer-tabs .pc-lens-tab { flex: 0 0 auto; min-height: 36px; gap: 6px; margin: 0; padding: var(--space-2) var(--space-3); border: 0; border-radius: 0; color: var(--muted-foreground); background: transparent; box-shadow: none; font-size: var(--lt-text-sm); font-weight: 600; }
-.ss-layer-tabs .pc-lens-tab:hover { color: var(--foreground); }
-.ss-layer-tabs .pc-lens-tab[aria-selected="true"] { color: var(--foreground); background: transparent; box-shadow: inset 0 -2px 0 var(--primary); }
-.ss-layer-tabs .pc-lens-tab:focus-visible { outline: 2px solid var(--ring, var(--primary)); outline-offset: -2px; border-radius: var(--radius-sm); }
-/* vpn-core's count pill: 10px at weight 650, against the chassis's 11/600. */
-.ss-layer-tabs .pc-count { color: var(--muted-foreground); font-size: 10px; font-weight: 650; }
-.ss-layer-tabs .pc-lens-tab[aria-selected="true"] .pc-count { color: var(--foreground); }
+/* ── the header's actions ───────────────────────────────────────────────── */
 /* Search and Refresh, then the layer's primary action, as vpn-core orders its header. */
 .ss-head-tools { display: flex; align-items: center; gap: var(--space-2); }
 
 @media (max-width: 620px) {
-  .ss-layer-bar { box-shadow: none; }
-  .ss-layer-tabs.pc-lens-tabs { gap: 0; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); }
-  .ss-layer-tabs .pc-lens-tab { flex: 0 0 auto; min-height: 30px; margin: 0; padding: 4px var(--space-3); border: 0; border-radius: calc(var(--radius-md) - 2px); }
-  .ss-layer-tabs .pc-lens-tab[aria-selected="true"] { background: var(--muted); box-shadow: inset 0 0 0 1px var(--border); }
-
   /* The title line keeps Search and Refresh; the description goes under it
      across the header. They used to take a full row each before any content.
      The primary action takes the row under the description, full width, as
@@ -1954,17 +1932,6 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 .masked-url-reveal:hover { color: var(--foreground); }
 .masked-url-reveal:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
 
-/* chassis-workaround: PcPagination wraps Next alone onto a second line at
-   375. On a phone the range takes the first line and Previous, the page and
-   Next share the second. Remove once the chassis footer lays itself out at
-   phone width. The range is found the way the chassis stylesheet finds it
-   (its first span child), so a reorder in plugin-bridge breaks both rules at
-   once; the e2e drive "the files footer puts the range on its own line"
-   fails on it. The lasting fix is a class on the range in plugin-bridge. */
-@media (max-width: 620px) {
-  .pc-pagination > span:first-child { flex-basis: 100%; }
-}
-
 /* ── reduced motion ───────────────────────────────────────────────────────
    Last, because a media query carries no extra specificity: written where the
    animations are declared, these lose to the very rules they exist to switch
@@ -2419,22 +2386,6 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
   .lineage-edge, .lineage-chip, .lineage-entry, .lineage-chevron { transition: none; }
 }
 
-/* ── the side panel beside the table ──────────────────────────────────────
-   chassis-workaround: PcSidePanel is always modal. From 768px a side panel
-   sits beside the collection (design 23, 3.5; the 2026-09-30 design review
-   decision for every plugin): no scrim, and the rows around it stay live,
-   so a click on another row swaps the record. Below 768px it stays a modal,
-   full-height sheet. This is CSS only: the panel still says aria-modal and
-   keeps Tab inside it, so keyboard and screen-reader behaviour is modal as
-   before. Remove once plugin-bridge gives PcSidePanel a non-modal form (a
-   modal prop, or automatic at min-width 768px): no scrim, pointer events
-   through the .pc-overlay wrapper, aria-modal false or role=complementary
-   with a label, no Tab wrap, Escape and focus return kept. */
-@media (min-width: 768px) {
-  .pc-overlay[data-kind="panel"] { background: transparent; pointer-events: none; }
-  .pc-overlay[data-kind="panel"] > .pc-side-panel { pointer-events: auto; }
-}
-
 /* ── touch ────────────────────────────────────────────────────────────────
    44px targets on a coarse pointer, as vpn-core sizes its own (design 23
    wave 1 decision). At 375 the search icon was 30x30, the split button's
@@ -2455,15 +2406,14 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
   .rec-menu button { min-height: 44px; }
   .pc-pagination .pc-button { min-height: 44px; }
   /* The rest of what a thumb reaches at 375 (the 2026-10-01 review measured
-     each one): the layer tabs (30 tall), the attention actions (28), the map
-     chips (30), the filter field (36) and selects (30), Shares' Copy link
-     (28), and in the side panel its close (30x30, the only way out on touch),
-     Publish (29), Edit and Open page (37) and the relation links (20 tall,
-     24 apart). The confirm dialog's buttons and typed field were 30. These
+     each one; the layer tabs are 44px in the chassis now): the attention
+     actions (28), the map chips (30), the filter field (36) and selects (30),
+     Shares' Copy link (28), and in the side panel its close (30x30, the only
+     way out on touch), Publish (29), Edit and Open page (37) and the
+     relation links (20 tall, 24 apart). The confirm dialog's buttons and typed field were 30. These
      are class rules, not a global one, and they are not in a layer: the
      chassis sets these controls' own heights unlayered, and a layered rule
      loses to those whatever its specificity. */
-  .ss-layer-tabs .pc-lens-tab { min-height: 44px; }
   .attention-item .pc-button,
   .attention-more .pc-button { min-height: 44px; }
   .lineage-chip { height: 44px; }

@@ -57,7 +57,7 @@ import { buildLineage, clientOfFile, plural } from "../pipeline";
 import { matchesQuery, normalizeQuery } from "../recordSearch";
 import { pageHolding, toggleShown, usePages } from "../paging";
 import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
-import { forwardSelectCellClick, isSelectCell } from "../selectCell";
+import { isSelectCell } from "../selectCell";
 import { publishStateFor, stateTone } from "../shareState";
 import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
@@ -524,10 +524,11 @@ function onDocumentClick(event: MouseEvent): void {
 }
 
 /** The one Escape arbiter for this screen; see the sibling tab for why every
- *  overlay stopped answering the key itself. */
+ *  overlay stopped answering the key itself, and why closeTopOverlay is
+ *  handed the event. */
 function onDocumentKeydown(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
-  if (closeTopOverlay()) return;
+  if (closeTopOverlay(event)) return;
   if (openFileMenuId.value) {
     closeRowMenu();
     return;
@@ -1355,7 +1356,7 @@ watch(host.init, (value) => {
         </PcNotice>
 
         <PcPanel label="Files">
-          <div ref="listTop" class="rec-list" aria-label="Files" @click="forwardSelectCellClick">
+          <div ref="listTop" class="rec-list" aria-label="Files">
             <div class="rec-tools">
               <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter files" />
               <label class="toolbar-sort">
