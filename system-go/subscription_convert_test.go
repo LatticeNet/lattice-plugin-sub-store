@@ -1,9 +1,12 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -104,9 +107,10 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 // nothing one call converts survives into another call's document. Twelve
 // converts with distinct credentials, cycling through targets so the same
 // producer runs back to back with different input, all on one warm runtime:
-// each document carries its own credentials and none of the others'. Then the
-// runtime itself is searched: no reachable global holds any of them, and the
-// runtime's only cross-call store (the script environment's in-memory
+// each document carries its own credentials and none of the others'. A fixed
+// reference input converts to the same bytes before and after those calls.
+// Then the runtime itself is searched: no reachable global holds any of them,
+// and the runtime's only cross-call store (the script environment's in-memory
 // $persistentStore) was never written.
 func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.T) {
 	engine := testEngineWithHeadroom()
@@ -134,15 +138,44 @@ func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.
 		pass := fmt.Sprintf("hy2k%02dz", i)
 		secrets[i] = []string{uuid, pass}
 	}
+	// Each call also carries a line no parser accepts, holding a third
+	// credential. The core reports such a line through $.error, and the
+	// console capture its OpenAPI constructor installs at bundle load hands
+	// that text to appendLogEntry: this is the path that would keep a
+	// credential in a log buffer if the log limit were ever above zero.
+	for i := 0; i < n; i++ {
+		secrets[i] = append(secrets[i], fmt.Sprintf("lost%02dq", i))
+	}
 	var all []string
 	for _, s := range secrets {
 		all = append(all, s...)
 	}
-	for i := 0; i < n; i++ {
-		uris := []string{
-			fmt.Sprintf("vless://%s@203.0.113.%d:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdefg&sid=0a&type=tcp#id-%02d", secrets[i][0], i+1, i),
-			fmt.Sprintf("hysteria2://%s@198.51.100.%d:8443?sni=h2.example.com#id-%02d-hy2", secrets[i][1], i+1, i),
+	callURIs := func(i int, s []string) []string {
+		return []string{
+			fmt.Sprintf("vless://%s@203.0.113.%d:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdefg&sid=0a&type=tcp#id-%02d", s[0], i+1, i),
+			fmt.Sprintf("hysteria2://%s@198.51.100.%d:8443?sni=h2.example.com#id-%02d-hy2", s[1], i+1, i),
+			"notaproxy://" + s[2],
 		}
+	}
+
+	// A fixed reference input, converted for every target before the calls
+	// and again after them, must come back byte for byte. Any state the core
+	// carried from one call into the next that changes a document (a name
+	// de-duplication counter, a cached node, a remembered option) shows up
+	// here, wherever in the bundle it lives, including closure scope the
+	// globalThis walk below cannot reach.
+	reference := []string{"0000ffff-1111-4222-8333-444455556666", "hy2refz", "lostrefq"}
+	all = append(all, reference...)
+	before := map[string]string{}
+	for _, target := range targets {
+		if _, done := before[target]; done {
+			continue
+		}
+		before[target] = decodeConvert(t, callConvert(t, rt, map[string]any{"uris": callURIs(99, reference), "target": target, "format": "plain"})).Content
+	}
+
+	for i := 0; i < n; i++ {
+		uris := callURIs(i, secrets[i])
 		out := decodeConvert(t, callConvert(t, rt, map[string]any{"uris": uris, "target": targets[i], "format": "plain"}))
 		document := out.Content
 		if targets[i] == "V2Ray" {
@@ -161,15 +194,24 @@ func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.
 		if carried == 0 {
 			t.Fatalf("call %d (%s) carries none of its own credentials: %q", i, targets[i], head(document, 160))
 		}
-		for j, other := range secrets {
+		if strings.Contains(document, secrets[i][2]) {
+			t.Fatalf("call %d (%s) served the unparseable line", i, targets[i])
+		}
+		for j, other := range append(secrets[:len(secrets):len(secrets)], reference) {
 			if j == i {
 				continue
 			}
 			for _, secret := range other {
 				if strings.Contains(document, secret) {
-					t.Fatalf("call %d (%s) carries call %d's credential %q", i, targets[i], j, secret)
+					t.Fatalf("call %d (%s) carries input %d's credential %q", i, targets[i], j, secret)
 				}
 			}
+		}
+	}
+	for target, want := range before {
+		got := decodeConvert(t, callConvert(t, rt, map[string]any{"uris": callURIs(99, reference), "target": target, "format": "plain"})).Content
+		if got != want {
+			t.Fatalf("%s: the reference document changed after %d other calls on the same runtime:\nbefore %q\nafter  %q", target, n, head(want, 200), head(got, 200))
 		}
 	}
 	warm, isolated := engine.pathCounts()
@@ -271,4 +313,53 @@ func TestManifestDeclaresConvertAsAStatelessAdminRead(t *testing.T) {
 		}
 	}
 	t.Fatal("manifest does not declare subscription/convert")
+}
+
+// convert stays on the warm runtime because the pinned core keeps no input
+// between calls, and the evidence for that is tied to one bundle: the
+// isolation test above, and the source audit in
+// tools/substore-core/state-audit.json, which lists every piece of
+// module-scope state on the parse and produce path with the reason it holds
+// no data. A re-pinned bundle has not been audited, so it fails here until
+// tools/substore-core/audit-state.mjs passes against the new pin and
+// state-audit.json names it.
+func TestEmbeddedCoreIsTheStateAuditedCore(t *testing.T) {
+	sum := sha256.Sum256([]byte(embeddedSubStoreCoreJS))
+	embedded := hex.EncodeToString(sum[:])
+	var pin struct {
+		Commit       string `json:"commit"`
+		OutputSHA256 string `json:"output_sha256"`
+	}
+	var audit struct {
+		Commit       string `json:"commit"`
+		OutputSHA256 string `json:"output_sha256"`
+		Reviewed     []struct {
+			File   string `json:"file"`
+			Kind   string `json:"kind"`
+			Reason string `json:"reason"`
+		} `json:"reviewed"`
+	}
+	for path, out := range map[string]any{"../tools/substore-core/pin.json": &pin, "../tools/substore-core/state-audit.json": &audit} {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(raw, out); err != nil {
+			t.Fatalf("%s: %v", path, err)
+		}
+	}
+	if embedded != pin.OutputSHA256 {
+		t.Fatalf("embedded core %s is not the pinned bundle %s", embedded, pin.OutputSHA256)
+	}
+	if audit.OutputSHA256 != embedded || audit.Commit != pin.Commit {
+		t.Fatalf("state-audit.json reviews %s at %s, but the embedded core is %s at %s; run tools/substore-core/audit-state.mjs against the new pin and review every finding before convert may share the warm runtime", audit.OutputSHA256, audit.Commit, embedded, pin.Commit)
+	}
+	if len(audit.Reviewed) == 0 {
+		t.Fatal("state-audit.json reviews nothing")
+	}
+	for _, entry := range audit.Reviewed {
+		if reason := strings.TrimSpace(entry.Reason); reason == "" || strings.HasPrefix(reason, "TODO") {
+			t.Fatalf("state-audit.json has no reason for the %s in %s", entry.Kind, entry.File)
+		}
+	}
 }

@@ -47,6 +47,9 @@ jobs:
       - name: test deterministic packer
         run: go test -race ./tools/pluginpack/...
 
+      - name: test Sub-Store core tooling
+        run: node --test tools/substore-core/build.test.mjs tools/substore-core/audit-state.test.mjs
+
       - name: install UI dependencies
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

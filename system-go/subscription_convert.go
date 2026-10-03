@@ -61,10 +61,11 @@ type subscriptionConvertResult struct {
 // store or network access outright. The request has no operator chain (an
 // operators field is an unknown field and is refused), so no user JavaScript
 // runs and the call qualifies for the warm runtime. And the only engine calls
-// are parse and produce, which keep no data between calls: the audit of the
-// pinned core and the twelve-call isolation test
-// (TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials) are what
-// that rests on. If either ever says otherwise, the fallback is
+// are parse and produce, which keep no data between calls: the source audit
+// of the pinned core (tools/substore-core/state-audit.json, bound to the
+// embedded bundle by TestEmbeddedCoreIsTheStateAuditedCore) and the twelve-call
+// isolation test (TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials)
+// are what that rests on. If either ever says otherwise, the fallback is
 // runIsolatedScript, at about 0.85 s per call locally.
 //
 // A document with no node for the client is refused with
