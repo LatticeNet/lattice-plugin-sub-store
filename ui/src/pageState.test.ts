@@ -3,15 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { addressForState, pageStateFromAddress, stateRateLimit } from "../dev/consoleAddress";
 import {
   MAX_STATE_VALUE,
-  PAGE_STATE_MESSAGE,
   RESERVED_STATE_KEYS,
   canonicalState,
   createStateSender,
   decodeShellState,
   defaultShellState,
   encodeShellState,
-  listenForInitPageState,
-  stateMessage,
   validPageState,
   type ShellState,
 } from "./pageState";
@@ -205,81 +202,10 @@ describe("the sender", () => {
     vi.advanceTimersByTime(1000);
     expect(sent).toEqual([]);
   });
-
-  it("spells the message the way the contract does", () => {
-    expect(stateMessage("n".repeat(24), { view: "files" })).toEqual({ type: PAGE_STATE_MESSAGE, nonce: "n".repeat(24), state: { view: "files" } });
-    expect(PAGE_STATE_MESSAGE).toBe("lattice.plugin.state");
-  });
 });
 
-describe("the page state in init", () => {
-  const NONCE = "nonce-0123456789abcdef";
-  const ORIGIN = "https://console.example";
-
-  function frame() {
-    const parent = {};
-    let listener: ((event: MessageEvent) => void) | undefined;
-    const win = {
-      parent,
-      addEventListener: (_type: string, fn: (event: MessageEvent) => void) => {
-        listener = fn;
-      },
-      removeEventListener: () => {
-        listener = undefined;
-      },
-    } as unknown as Window;
-    const deliver = (event: Partial<MessageEvent>) => listener?.(event as MessageEvent);
-    return { win, parent, deliver, listening: () => !!listener };
-  }
-
-  const init = (extra: Record<string, unknown>) => ({ type: "lattice.host.init", nonce: NONCE, version: "1", ...extra });
-
-  it("reads pageState from the host's init", () => {
-    const { win, parent, deliver } = frame();
-    const heard: Record<string, string>[] = [];
-    listenForInitPageState(win, NONCE, ORIGIN, (value) => heard.push(value));
-    deliver({ source: parent as Window, origin: ORIGIN, data: init({ pageState: { view: "files", open: "for-cdcd-loon" } }) });
-    expect(heard).toEqual([{ view: "files", open: "for-cdcd-loon" }]);
-  });
-
-  it("drops a reserved key that arrives anyway", () => {
-    const { win, parent, deliver } = frame();
-    const heard: Record<string, string>[] = [];
-    listenForInitPageState(win, NONCE, ORIGIN, (value) => heard.push(value));
-    deliver({ source: parent as Window, origin: ORIGIN, data: init({ pageState: { view: "files", redirect: "/x", token: "t" } }) });
-    expect(heard).toEqual([{ view: "files" }]);
-  });
-
-  it("reads an older console's init, or a state that breaks the rules, as empty", () => {
-    const { win, parent, deliver } = frame();
-    const heard: Record<string, string>[] = [];
-    listenForInitPageState(win, NONCE, ORIGIN, (value) => heard.push(value));
-    deliver({ source: parent as Window, origin: ORIGIN, data: init({}) });
-    deliver({ source: parent as Window, origin: ORIGIN, data: init({ pageState: { View: "files" } }) });
-    expect(heard).toEqual([{}, {}]);
-  });
-
-  it("ignores anything that is not the host's init to this frame", () => {
-    const { win, parent, deliver } = frame();
-    const heard: Record<string, string>[] = [];
-    listenForInitPageState(win, NONCE, ORIGIN, (value) => heard.push(value));
-    const pageState = { view: "files" };
-    deliver({ source: {} as Window, origin: ORIGIN, data: init({ pageState }) });
-    deliver({ source: parent as Window, origin: "https://evil.example", data: init({ pageState }) });
-    deliver({ source: parent as Window, origin: ORIGIN, data: { ...init({ pageState }), nonce: "other-nonce-0123456789" } });
-    deliver({ source: parent as Window, origin: ORIGIN, data: { ...init({ pageState }), type: "lattice.host.theme" } });
-    deliver({ source: parent as Window, origin: ORIGIN, data: null });
-    expect(heard).toEqual([]);
-  });
-
-  it("stops listening when asked", () => {
-    const { win, listening } = frame();
-    const stop = listenForInitPageState(win, NONCE, ORIGIN, () => {});
-    expect(listening()).toBe(true);
-    stop();
-    expect(listening()).toBe(false);
-  });
-});
+// The page state in init and the outbound message are the bridge client's
+// (HostInit.pageState, BridgeClient.sendState) and are tested there.
 
 describe("the harness console", () => {
   it("hands over its query without the harness switches, one key at a time", () => {
