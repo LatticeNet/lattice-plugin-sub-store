@@ -3,7 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
-import { provideHost } from "./host";
+import { adoptHandshake, provideHost } from "./host";
 import type { PageState } from "./pageState";
 import { safeErrorMessage } from "./subStoreModel";
 import Shell from "./Shell.vue";
@@ -27,19 +27,7 @@ try {
     expectedRoutes: ["sub-store"],
     idPrefix: "substore",
   });
-  bridge.init
-    .then((value) => {
-      // Before init, so the shell finds the address's state when it reacts to
-      // the handshake. Absent from a console that predates the contract.
-      pageState.value = value.pageState ?? {};
-      init.value = value;
-    })
-    .catch((cause) => {
-      bootError.value = safeErrorMessage(
-        cause,
-        "The console answered the handshake with a refusal and gave no reason.",
-      );
-    });
+  void adoptHandshake(bridge, { init, pageState, bootError });
 } catch (cause) {
   bootError.value = safeErrorMessage(
     cause,
