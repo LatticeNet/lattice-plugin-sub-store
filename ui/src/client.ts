@@ -521,7 +521,7 @@ export interface ConvertTarget {
 export const CONVERT_TARGETS: readonly ConvertTarget[] = [
   { id: "URI", label: "Universal (URI)", produces: "text" },
   { id: "Stash", label: "Stash", produces: "yaml", uaClass: "stash" },
-  { id: "ClashMeta", label: "mihomo", produces: "yaml" },
+  { id: "ClashMeta", label: "mihomo", produces: "yaml", uaClass: "clashmeta" },
   { id: "Egern", label: "Egern", produces: "yaml", uaClass: "egern" },
   { id: "Surfboard", label: "Surfboard", produces: "conf" },
   { id: "Surge", label: "Surge", produces: "conf", uaClass: "surge" },

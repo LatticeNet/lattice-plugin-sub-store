@@ -30,6 +30,45 @@ type renderResult struct {
 	// decides which of them it is willing to send; the plugin only reports what
 	// the document said it wanted.
 	Headers map[string]string `json:"headers,omitempty"`
+	// Target is the client this document was produced for, after the explicit
+	// target, a format that names a client, the record's pin and the UA class
+	// were weighed. The core can label the response from it instead of
+	// guessing from the request. Empty for a file, which has no target.
+	Target string `json:"target,omitempty"`
+	// ZeroNodes is reported only to a caller that asked to explain: the
+	// document carries no node for this client, and the serve path refuses it
+	// with zeroNodesForTargetCode. The console still receives the document so
+	// it can say why.
+	ZeroNodes bool `json:"zero_nodes,omitempty"`
+}
+
+// Stable codes the core can match in an error text to pick an audit reason.
+// The plugin's error channel is a string, so the code leads the message.
+const (
+	// zeroNodesForTargetCode: the rendered document carries no node for the
+	// client that would receive it.
+	zeroNodesForTargetCode = "zero_nodes_for_target"
+	// providerNoNodesCode: a refresh read a source that yielded no nodes (an
+	// error page, a login wall, a document that is not a subscription). The
+	// fetch fails, so the core keeps its last good snapshot.
+	providerNoNodesCode = "provider_no_nodes"
+	// memberChainDropsNodesCode: a combination member's own steps kept nodes
+	// that cannot be handed on as URI links, which is how a member's processed
+	// nodes reach the combination. The member fails, and the combination's
+	// failure mode decides what happens next.
+	memberChainDropsNodesCode = "member_chain_drops_nodes"
+)
+
+func zeroNodesForTargetError(label, target string) error {
+	return fmt.Errorf("%s: %s has no node the %s client can carry; refusing to serve a document that would make the client delete its nodes", zeroNodesForTargetCode, label, target)
+}
+
+func providerNoNodesError(label string) error {
+	return fmt.Errorf("%s: %s yielded no nodes; it is not treated as a subscription, so the last good snapshot stays", providerNoNodesCode, label)
+}
+
+func memberChainDropsNodesError(label string, lost, kept int, protocols []string) error {
+	return fmt.Errorf("%s: %s keeps %d nodes after its own steps, and %d of them (%s) cannot be handed on as URI links; move those steps to the combination or remove them", memberChainDropsNodesCode, label, kept, lost, strings.Join(protocols, ", "))
 }
 
 // subscriptionProbeResult is the browser-safe refresh view. Provider bytes,
@@ -47,15 +86,42 @@ type subscriptionProbeResult struct {
 // uaClassTargets maps the core's bounded client classification onto the engine's
 // client target. It is used only when a subscription does not name its own
 // target, so an operator who has chosen one is never overridden by a header.
+//
+// clashmeta is every client built on mihomo (Clash Verge Rev, FlClash, mihomo
+// itself, anything announcing clash.meta or meta). The core matches it before
+// plain clash, following upstream Sub-Store's user-agent table. It must map to
+// ClashMeta: legacy Clash carries neither VLESS nor Hysteria2, which is this
+// fleet, so those clients received "proxies:\n" and deleted their nodes.
 var uaClassTargets = map[string]string{
 	"surge":        "Surge",
 	"loon":         "Loon",
 	"quantumultx":  "QX",
 	"stash":        "Stash",
 	"shadowrocket": "Shadowrocket",
+	"clashmeta":    "ClashMeta",
 	"clash":        "Clash",
 	"singbox":      "sing-box",
 	"egern":        "Egern",
+}
+
+// formatTargets are the core's formats that name a client rather than an
+// envelope. lattice-server accepts ?format=clash, clash-meta and sing-box on
+// every share (normalizeProxySubscriptionFormat); before this, a plugin share
+// refused clash and clash-meta outright and answered the 404 decoy. clash maps
+// to ClashMeta as it does for the core's own proxy-user shares, which render
+// both through the same Clash Meta writer.
+var formatTargets = map[string]string{
+	"clash":      "ClashMeta",
+	"clash-meta": "ClashMeta",
+	"clashmeta":  "ClashMeta",
+	"clash.meta": "ClashMeta",
+	"sing-box":   "sing-box",
+	"singbox":    "sing-box",
+}
+
+// formatTarget is the client a format names, or "" for an envelope format.
+func formatTarget(format string) string {
+	return formatTargets[strings.ToLower(strings.TrimSpace(format))]
 }
 
 // subscriptionTarget picks the engine target for one render. An explicit target
@@ -117,6 +183,16 @@ func resolveRenderTarget(rec subscriptionRecord, explicit, uaClass string) strin
 	return subscriptionTarget(rec, uaClass)
 }
 
+// requestTarget is the client a render request names explicitly: ?target=
+// first, then a format that names a client. Both come from the URL, so both
+// outrank the record's pin and the UA class.
+func requestTarget(req subscriptionRenderRequest) string {
+	if t := strings.TrimSpace(req.Target); t != "" {
+		return t
+	}
+	return formatTarget(req.Format)
+}
+
 // renderSubscription produces the body the core will serve.
 //
 // It refuses to return empty content. The core refuses an empty body too, and
@@ -163,22 +239,16 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
+	target := resolveRenderTarget(rec, requestTarget(req), uaClass)
+
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		output, err := rt.renderCollection(rec, resolveRenderTarget(rec, req.Target, uaClass), req.Options, raw)
+		converted, err := rt.renderCollectionResult(rec, target, req.Options, raw, req.Explain)
 		if err != nil {
 			return renderResult{}, err
 		}
-		body, contentType, err := encodeSubscriptionOutput(output, format)
-		if err != nil {
-			return renderResult{}, err
-		}
-		body, headers, err := rt.applyResponseChain(rec, body, contentType)
-		if err != nil {
-			return renderResult{}, err
-		}
-		return renderResult{Content: body, ContentType: contentType, Headers: headers}, nil
+		return rt.finishNodeRender(rec, "collection "+quoteLabel(subscriptionID), target, format, req.Explain, converted)
 	}
 
 	// The core hands back the snapshot it holds for this subscription. Inline
@@ -213,7 +283,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	}
 	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
 		Raw:       source,
-		Target:    resolveRenderTarget(rec, req.Target, uaClass),
+		Target:    target,
 		Operators: operators,
 		Options:   req.Options,
 		Explain:   req.Explain,
@@ -221,27 +291,50 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	if err != nil {
 		return renderResult{}, err
 	}
-	if strings.TrimSpace(converted.Output) == "" {
-		return renderResult{}, fmt.Errorf("subscription %q converted to empty content", subscriptionID)
-	}
+	return rt.finishNodeRender(rec, "subscription "+quoteLabel(subscriptionID), target, format, req.Explain, converted)
+}
 
-	body, contentType, err := encodeSubscriptionOutput(converted.Output, format)
+func quoteLabel(id string) string { return fmt.Sprintf("%q", id) }
+
+// finishNodeRender turns one conversion into the reply for a node-list record
+// (a subscription or a combination): refuse a document that carries no node
+// for this client, carry it in the client's native encoding, then run the
+// record's response chain.
+//
+// The refusal is the serve path's. A caller that asked to explain (the
+// console) gets the document and the flag instead, because the console's job
+// is to show why the link would be refused; the path that serves clients never
+// sets explain.
+func (rt *runtime) finishNodeRender(rec subscriptionRecord, label, target, format string, explain bool, converted subStoreConversionResult) (renderResult, error) {
+	if converted.ZeroNodes && !explain {
+		return renderResult{}, zeroNodesForTargetError(label, target)
+	}
+	if strings.TrimSpace(converted.Output) == "" && !explain {
+		return renderResult{}, fmt.Errorf("%s converted to empty content", label)
+	}
+	body, contentType, err := encodeSubscriptionOutput(converted.Output, format, target)
 	if err != nil {
 		return renderResult{}, err
 	}
-	body, headers, err := rt.applyResponseChain(rec, body, contentType)
-	if err != nil {
-		return renderResult{}, err
-	}
-	return renderResult{
-		Content:     body,
+	result := renderResult{
 		ContentType: contentType,
-		Headers:     headers,
+		Target:      target,
 
-		NodeCount:        explainedNodeCount(req.Explain, converted.NodeCount),
+		NodeCount:        explainedNodeCount(explain, converted.NodeCount),
 		DroppedNodeCount: converted.UnsupportedNodeCount,
 		DroppedProtocols: converted.UnsupportedProtocols,
-	}, nil
+	}
+	if converted.ZeroNodes {
+		// Only reachable when explaining. The response chain is not run over a
+		// document that will never be served.
+		result.Content, result.ZeroNodes = body, true
+		return result, nil
+	}
+	result.Content, result.Headers, err = rt.applyResponseChain(rec, body, contentType)
+	if err != nil {
+		return renderResult{}, err
+	}
+	return result, nil
 }
 
 // explainedNodeCount reports the chain's node count only to a caller that asked
@@ -305,18 +398,46 @@ func (rt *runtime) applyResponseChain(rec subscriptionRecord, body, contentType 
 	return out.Body, headers, nil
 }
 
-// encodeSubscriptionOutput applies the core's transport format to the engine's
-// output. Target decides what the config says; format decides how it is carried.
-func encodeSubscriptionOutput(output, format string) (string, string, error) {
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "", "base64":
-		return base64.StdEncoding.EncodeToString([]byte(output)), "text/plain; charset=utf-8", nil
-	case "plain":
-		return output, "text/plain; charset=utf-8", nil
-	case "sing-box", "singbox":
-		return output, "application/json; charset=utf-8", nil
+// encodeSubscriptionOutput carries the engine's output to the client that will
+// read it. Target decides what the document says; the format only decides
+// whether a URI list travels inside the classic base64 envelope.
+//
+// Every client gets its own native document. The base64 envelope belongs to
+// exactly one target, the URI list, because that is the only document whose
+// importers expect one; YAML, JSON and Surge-style configurations are returned
+// as the producer wrote them, and V2Ray's producer already emits its base64
+// list. "base64" and an empty format both mean this client-native default (the
+// core sends "base64" for a share left at automatic); "plain" asks for the bare
+// list even for URI. The formats that name a client (clash, clash-meta,
+// sing-box) were turned into a target before this point and are carried
+// natively. Wrapping every target, as this did before, served YAML and JSON as
+// base64 text no client could read.
+func encodeSubscriptionOutput(output, format, target string) (string, string, error) {
+	contentType := targetContentType(target)
+	switch normalized := strings.ToLower(strings.TrimSpace(format)); {
+	case normalized == "" || normalized == "base64":
+		if target == "URI" {
+			return base64.StdEncoding.EncodeToString([]byte(output)), contentType, nil
+		}
+		return output, contentType, nil
+	case normalized == "plain" || formatTarget(normalized) != "":
+		return output, contentType, nil
 	default:
 		return "", "", fmt.Errorf("unsupported subscription format %q", format)
+	}
+}
+
+// targetContentType names what a target's document is. It mirrors the core's
+// own table (subscriptionResponseContentType in lattice-server), so the type the
+// plugin reports and the type the client receives never disagree.
+func targetContentType(target string) string {
+	switch target {
+	case "sing-box", "JSON":
+		return "application/json; charset=utf-8"
+	case "Clash", "ClashMeta", "Stash":
+		return "text/yaml; charset=utf-8"
+	default:
+		return "text/plain; charset=utf-8"
 	}
 }
 
@@ -940,6 +1061,12 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "convert":
+		out, err := rt.convertSubscription(call.Payload)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(out), "")
 	case "render":
 		var req struct {
 			SubscriptionID string `json:"subscription_id"`

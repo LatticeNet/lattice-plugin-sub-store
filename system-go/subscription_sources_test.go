@@ -13,7 +13,7 @@ func TestLocalSourcePrefersPastedContentOverAStaleURL(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "m", Name: "Manual", Source: subscriptionSourceLocal,
-		Content: "vless://pasted",
+		Content: "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted",
 		// Left behind by an earlier edit: the operator switched to pasting.
 		URL: "https://stale.invalid/sub",
 	}); err != nil {
@@ -24,7 +24,7 @@ func TestLocalSourcePrefersPastedContentOverAStaleURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
-	if got != "vless://pasted" {
+	if got != "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted" {
 		t.Fatalf("a manual subscription resolved to something else: %q", got)
 	}
 }
@@ -34,7 +34,7 @@ func TestLocalSourcePrefersPastedContentOverAStaleURL(t *testing.T) {
 func TestRefreshingAManualSubscriptionReturnsItsContent(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{
-		ID: "m", Name: "Manual", Source: subscriptionSourceLocal, Content: "vless://pasted",
+		ID: "m", Name: "Manual", Source: subscriptionSourceLocal, Content: "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted",
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestRefreshingAManualSubscriptionReturnsItsContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("refresh of a manual subscription failed: %v", err)
 	}
-	if out.Raw != "vless://pasted" {
+	if out.Raw != "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted" {
 		t.Fatalf("refresh returned %q", out.Raw)
 	}
 }
@@ -71,7 +71,7 @@ func TestRemoteSourceWithoutALinkSaysSo(t *testing.T) {
 func TestUnnamedSourceStillResolvesURLThenContent(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{
-		ID: "legacy", Name: "Legacy", Content: "vless://pasted",
+		ID: "legacy", Name: "Legacy", Content: "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted",
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestUnnamedSourceStillResolvesURLThenContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
-	if got != "vless://pasted" {
+	if got != "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted" {
 		t.Fatalf("legacy record resolved to %q", got)
 	}
 }

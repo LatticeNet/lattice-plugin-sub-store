@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.15.0-alpha.1",
+  "version": "0.16.0-alpha.1",
   "publisher": "latticenet",
-  "signature_ed25519": "7H8vbK+TyyEXashRyx2zKx3idHfi/cj6eCCbBKw6iQLgkdyOedZ5pdTHuEhHg3x7lhW0padBqXCt45AKSv3MAQ==",
+  "signature_ed25519": "",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "22de134f544c877c37ffa117b34692331761eadf1cfb065411afe5aded8f00b9"
+    "digest_sha256": "603803519fac3cf0d34fb6c8e4b6868e89e57c1edea61a3d12ae0671e6662ac2"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
@@ -211,6 +211,19 @@
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
             "host_calls": 76
+          }
+        },
+        {
+          "name": "convert",
+          "effect": "read",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 6291456,
+            "stderr_bytes": 65536,
+            "host_calls": 0
           }
         },
         {

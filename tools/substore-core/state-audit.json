@@ -1,0 +1,363 @@
+{
+  "commit": "48d83214ffe3e1de86a03d80247f2d8202885948",
+  "output_sha256": "994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b",
+  "files": [
+    "constants.js",
+    "core/app.js",
+    "core/proxy-utils/ech-utils.js",
+    "core/proxy-utils/index.js",
+    "core/proxy-utils/parsers/index.js",
+    "core/proxy-utils/parsers/peggy/loon.js",
+    "core/proxy-utils/parsers/peggy/qx.js",
+    "core/proxy-utils/parsers/peggy/surge.js",
+    "core/proxy-utils/parsers/peggy/trojan-uri.js",
+    "core/proxy-utils/preprocessors/index.js",
+    "core/proxy-utils/producers/clash.js",
+    "core/proxy-utils/producers/clashmeta.js",
+    "core/proxy-utils/producers/egern.js",
+    "core/proxy-utils/producers/index.js",
+    "core/proxy-utils/producers/loon.js",
+    "core/proxy-utils/producers/qx.js",
+    "core/proxy-utils/producers/shadowrocket.js",
+    "core/proxy-utils/producers/sing-box.js",
+    "core/proxy-utils/producers/stash.js",
+    "core/proxy-utils/producers/surfboard.js",
+    "core/proxy-utils/producers/surge.js",
+    "core/proxy-utils/producers/surgemac.js",
+    "core/proxy-utils/producers/uri.js",
+    "core/proxy-utils/producers/utils.js",
+    "core/proxy-utils/producers/v2ray.js",
+    "core/proxy-utils/transport-path.js",
+    "core/proxy-utils/vmess-security.js",
+    "core/proxy-utils/xhttp-utils.js",
+    "utils/debug-logs.js",
+    "utils/index.js",
+    "utils/yaml.js",
+    "vendor/open-api.js"
+  ],
+  "reviewed": [
+    {
+      "file": "constants.js",
+      "kind": "module-container",
+      "name": "GIST_DOWNLOAD_TOKEN_STRATEGIES",
+      "reason": "Read-only list of three option names; nothing writes it."
+    },
+    {
+      "file": "core/app.js",
+      "kind": "module-container",
+      "name": "$",
+      "reason": "The OpenAPI singleton, new OpenAPI(\"sub-store\"). Its cache holds only what $.write puts there, and parse and produce never call $.write. Every $.write ends in $persistentStore.write, which the isolation test spy counts (TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials)."
+    },
+    {
+      "file": "core/proxy-utils/index.js",
+      "kind": "module-container",
+      "name": "ageUtils",
+      "reason": "Object of three function references (age encrypt, decrypt, derivePublicKey); holds no data."
+    },
+    {
+      "file": "core/proxy-utils/index.js",
+      "kind": "module-container",
+      "name": "ProxyUtils",
+      "reason": "The exported API object of function references; holds no data and nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/loon.js",
+      "kind": "module-binding",
+      "name": "parser",
+      "reason": "Memoizes the parser peggy generates from the grammar text on first use. It holds generated code, never input; per-parse state (proxy, obfs, $) lives in the grammar's per-parse initializer and starts fresh on every parse."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/qx.js",
+      "kind": "module-binding",
+      "name": "parser",
+      "reason": "Memoizes the parser peggy generates from the grammar text on first use. It holds generated code, never input; per-parse state (proxy, obfs, $) lives in the grammar's per-parse initializer and starts fresh on every parse."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/surge.js",
+      "kind": "module-binding",
+      "name": "parser",
+      "reason": "Memoizes the parser peggy generates from the grammar text on first use. It holds generated code, never input; per-parse state (proxy, obfs, $) lives in the grammar's per-parse initializer and starts fresh on every parse."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/trojan-uri.js",
+      "kind": "module-container",
+      "name": "unsafePathSegments",
+      "reason": "Read-only set of the three property names $set refuses."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/trojan-uri.js",
+      "kind": "module-binding",
+      "name": "parser",
+      "reason": "Memoizes { parse: parseTrojan } on first use; holds a function reference, never input."
+    },
+    {
+      "file": "core/proxy-utils/producers/clashmeta.js",
+      "kind": "module-container",
+      "name": "ipVersions",
+      "reason": "Read-only table from Sub-Store ip-version names to the client's; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/producers/loon.js",
+      "kind": "module-container",
+      "name": "ipVersions",
+      "reason": "Read-only table from Sub-Store ip-version names to the client's; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/producers/sing-box.js",
+      "kind": "module-container",
+      "name": "ipVersions",
+      "reason": "Read-only table from Sub-Store ip-version names to the client's; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/producers/sing-box.js",
+      "kind": "module-container",
+      "name": "singBoxUtlsFingerprints",
+      "reason": "Read-only list of accepted uTLS fingerprints; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/producers/sing-box.js",
+      "kind": "module-container",
+      "name": "singBoxPacketEncodings",
+      "reason": "Read-only list of accepted packet encodings; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/producers/surge.js",
+      "kind": "module-container",
+      "name": "ipVersions",
+      "reason": "Read-only table from Sub-Store ip-version names to the client's; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/vmess-security.js",
+      "kind": "module-container",
+      "name": "VMESS_SECURITY_COMMON_VALUES",
+      "reason": "Read-only VMess cipher table, imported by parsers and producers; no importer writes it."
+    },
+    {
+      "file": "core/proxy-utils/vmess-security.js",
+      "kind": "module-container",
+      "name": "VMESS_SECURITY_CLASH_VALUES",
+      "reason": "Read-only VMess cipher table, imported by parsers and producers; no importer writes it."
+    },
+    {
+      "file": "core/proxy-utils/vmess-security.js",
+      "kind": "module-container",
+      "name": "VMESS_SECURITY_QX_METHOD_VALUES",
+      "reason": "Read-only VMess cipher table; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/vmess-security.js",
+      "kind": "module-container",
+      "name": "VMESS_SECURITY_ALIASES",
+      "reason": "Read-only VMess cipher alias table; nothing writes it."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-container",
+      "name": "LOG_LEVELS",
+      "reason": "Read-only list of console method names."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-container",
+      "name": "DEFAULT_IGNORED_SINGLE_LINE_LOG_MESSAGE_RES",
+      "reason": "Read-only list of patterns for log lines to drop."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-binding",
+      "name": "consoleCaptureInstalled",
+      "reason": "Set once when the OpenAPI constructor installs console capture at bundle load (vendor/open-api.js calls installConsoleLogCapture). A boolean, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-binding",
+      "name": "isAppendingConsoleLog",
+      "reason": "Re-entrancy flag set and cleared around appendLogEntry inside one console call. A boolean, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-binding",
+      "name": "cachedLogsMaxCount",
+      "reason": "Caches settings.logsMaxCount for one second. A number, no data. It is 0 on the warm runtime: DEFAULT_LOGS_MAX_COUNT is 0, and only the REST settings handlers (never run by the plugin) and user scripts (isolated runtime only) write settings. At 0, appendLogEntry returns before it formats or stores the message, so a credential in a \"Failed to parse line\" error is never kept."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-binding",
+      "name": "cachedLogsMaxCountExpiresAt",
+      "reason": "Expiry time for cachedLogsMaxCount. A number, no data."
+    },
+    {
+      "file": "utils/yaml.js",
+      "kind": "module-container",
+      "name": "DEFAULT_PARSE_OPTIONS",
+      "reason": "Read-only defaults spread into a fresh options object on every call; nothing writes it."
+    },
+    {
+      "file": "core/proxy-utils/index.js",
+      "kind": "ambient-store",
+      "line": "$options,",
+      "reason": "A parameter of process and processResponse, which convert never calls."
+    },
+    {
+      "file": "core/proxy-utils/index.js",
+      "kind": "ambient-store",
+      "line": "const localItem = findByName($.read(key), name);",
+      "reason": "Inside loadScriptItem (script operators), which convert never reaches."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/loon.js",
+      "kind": "module-write",
+      "name": "parser",
+      "line": "parser = peggy.generate(grammars);",
+      "reason": "Memoizes the parser peggy generates from the grammar text on first use. It holds generated code, never input; per-parse state (proxy, obfs, $) lives in the grammar's per-parse initializer and starts fresh on every parse."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/qx.js",
+      "kind": "module-write",
+      "name": "parser",
+      "line": "parser = peggy.generate(grammars);",
+      "reason": "Memoizes the parser peggy generates from the grammar text on first use. It holds generated code, never input; per-parse state (proxy, obfs, $) lives in the grammar's per-parse initializer and starts fresh on every parse."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/surge.js",
+      "kind": "module-write",
+      "name": "parser",
+      "line": "parser = peggy.generate(grammars);",
+      "reason": "Memoizes the parser peggy generates from the grammar text on first use. It holds generated code, never input; per-parse state (proxy, obfs, $) lives in the grammar's per-parse initializer and starts fresh on every parse."
+    },
+    {
+      "file": "core/proxy-utils/parsers/peggy/trojan-uri.js",
+      "kind": "module-write",
+      "name": "parser",
+      "line": "parser = {",
+      "reason": "Memoizes { parse: parseTrojan } on first use; holds a function reference, never input."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "consoleCaptureInstalled",
+      "line": "consoleCaptureInstalled = true;",
+      "reason": "Set once when the OpenAPI constructor installs console capture at bundle load (vendor/open-api.js calls installConsoleLogCapture). A boolean, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "isAppendingConsoleLog",
+      "line": "isAppendingConsoleLog = false;",
+      "reason": "Re-entrancy flag set and cleared around appendLogEntry inside one console call. A boolean, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "isAppendingConsoleLog",
+      "line": "isAppendingConsoleLog = true;",
+      "reason": "Re-entrancy flag set and cleared around appendLogEntry inside one console call. A boolean, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "cachedLogsMaxCount",
+      "line": "cachedLogsMaxCount = normalizeLogsMaxCount(settings.logsMaxCount);",
+      "reason": "Caches settings.logsMaxCount for one second. A number, no data. It is 0 on the warm runtime: DEFAULT_LOGS_MAX_COUNT is 0, and only the REST settings handlers (never run by the plugin) and user scripts (isolated runtime only) write settings. At 0, appendLogEntry returns before it formats or stores the message, so a credential in a \"Failed to parse line\" error is never kept."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "cachedLogsMaxCount",
+      "line": "cachedLogsMaxCount = null;",
+      "reason": "Caches settings.logsMaxCount for one second. A number, no data. It is 0 on the warm runtime: DEFAULT_LOGS_MAX_COUNT is 0, and only the REST settings handlers (never run by the plugin) and user scripts (isolated runtime only) write settings. At 0, appendLogEntry returns before it formats or stores the message, so a credential in a \"Failed to parse line\" error is never kept."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "cachedLogsMaxCountExpiresAt",
+      "line": "cachedLogsMaxCountExpiresAt = 0;",
+      "reason": "Expiry time for cachedLogsMaxCount. A number, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "module-write",
+      "name": "cachedLogsMaxCountExpiresAt",
+      "line": "cachedLogsMaxCountExpiresAt = now + LOGS_MAX_COUNT_CACHE_TTL_MS;",
+      "reason": "Expiry time for cachedLogsMaxCount. A number, no data."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "ambient-store",
+      "line": "$.write(JSON.stringify(Array.isArray(logs) ? logs : []), LOGS_KEY);",
+      "reason": "Persists captured console lines. Reached only when logsMaxCount is above 0 (see cachedLogsMaxCount); the write would land in $persistentStore.write, which the isolation test spy counts."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "ambient-store",
+      "line": "const raw = $.read(LOGS_KEY);",
+      "reason": "Reads the stored log; reached only when logsMaxCount is above 0."
+    },
+    {
+      "file": "utils/debug-logs.js",
+      "kind": "ambient-store",
+      "line": "const settings = $.read(SETTINGS_KEY) || {};",
+      "reason": "Reads settings.logsMaxCount, which nothing on the warm runtime writes."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "if (isLoon || isSurge) $persistentStore.write(data, this.name);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "if (isQX) $prefs.setValueForKey(data, this.name);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "return $persistentStore.read(key);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "return $persistentStore.write(data, key);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "return $persistentStore.write(null, key);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "return $prefs.removeValueForKey(key);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "return $prefs.setValueForKey(data, key);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "return $prefs.valueForKey(key);",
+      "reason": "A Surge, Loon or QX storage branch of OpenAPI. The plugin presents as Surge (system-go/substore_script_env.go), so these resolve to the script environment's in-memory $persistentStore; on the convert path nothing calls $.write or $.delete, and the isolation test spy counts every write."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "this.cache = JSON.parse($persistentStore.read(this.name) || '{}');",
+      "reason": "initCache, run once by the OpenAPI constructor at bundle load: reads the in-memory store, which is empty then."
+    },
+    {
+      "file": "vendor/open-api.js",
+      "kind": "ambient-store",
+      "line": "this.cache = JSON.parse($prefs.valueForKey(this.name) || '{}');",
+      "reason": "initCache, run once by the OpenAPI constructor at bundle load: reads the in-memory store, which is empty then."
+    }
+  ]
+}

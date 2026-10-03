@@ -48,12 +48,12 @@ func TestParseProviderUsage(t *testing.T) {
 // the provider never described carries none of them.
 func TestListCarriesParsedProviderUsage(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.header = map[string]string{"subscription-userinfo": "upload=10; download=20; total=100; expire=1893456000"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "provider", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if err := rt.saveSubscription(subscriptionRecord{ID: "pasted", Content: "vless://inline"}); err != nil {
+	if err := rt.saveSubscription(subscriptionRecord{ID: "pasted", Content: "ss://YWVzLTEyOC1nY206cHc@192.0.2.12:8388#inline"}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 	if res := fetchViaMethod(t, rt, "provider"); !res.OK {
@@ -90,7 +90,7 @@ func TestListCarriesParsedProviderUsage(t *testing.T) {
 // read as "the provider reported zero".
 func TestListOmitsUsageThatDoesNotParse(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.header = map[string]string{"Subscription-Userinfo": "plan=pro"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)

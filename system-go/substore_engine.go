@@ -145,7 +145,13 @@ type subStoreEngineLimits struct {
 }
 
 type subStoreConversionRequest struct {
-	Raw       string            `json:"raw"`
+	Raw string `json:"raw"`
+	// RawParts, when set, replaces Raw as the node source: each part is parsed
+	// on its own and the node lists are concatenated, which is how a
+	// combination merges members that arrive in different encodings. Joining
+	// them as text first lost whole members, because the engine recognises a
+	// base64 list or a YAML document only when it is the entire input.
+	RawParts  []string          `json:"raw_parts,omitempty"`
 	Target    string            `json:"target"`
 	Operators []json.RawMessage `json:"operators,omitempty"`
 	// Options is the produce() opts object — Sub-Store's own flag names, e.g.
@@ -157,6 +163,12 @@ type subStoreConversionRequest struct {
 	// The console sets it so a near-empty document can say why; the path that
 	// serves subscriptions to clients does not, and pays nothing for it.
 	Explain bool `json:"explain,omitempty"`
+	// CarrierCheck asks the engine to report the nodes the chain kept that a
+	// URI output could not write. A combination member with its own steps is
+	// handed on as URI links, and the URI producer has no form for several
+	// protocols (HTTP, Snell, SSH and others), so without this those nodes
+	// would leave the member without a word. Only meaningful with target URI.
+	CarrierCheck bool `json:"carrier_check,omitempty"`
 }
 
 type subStoreResponseTransformRequest struct {
@@ -183,6 +195,22 @@ type subStoreConversionResult struct {
 	// costs extra produce calls, which the serve path has no reason to pay.
 	UnsupportedNodeCount int      `json:"unsupported_node_count"`
 	UnsupportedProtocols []string `json:"unsupported_protocols,omitempty"`
+	// ZeroNodes is true when the document carries no node for this client:
+	// the chain left nothing, or the producer's output equals what it writes
+	// for an empty list. Producers emit a non-empty skeleton for zero nodes
+	// ("proxies:\n", an empty sing-box object), so an empty-body check alone
+	// cannot see this, and a client that receives such a document deletes
+	// every node it had. Computed on every call; the producer's empty document
+	// is produced only when the output is short enough to be it
+	// (subStoreMaxEmptyDocumentBytes).
+	ZeroNodes bool `json:"zero_nodes"`
+	// CarrierLostNodeCount and CarrierLostProtocols are the nodes the chain
+	// kept that the URI output does not carry, when the request asked for a
+	// carrier check. Nodes the core rejects for every client (a VLESS Reality
+	// node without a public key, for one) are not counted: no client would
+	// have received them anyway.
+	CarrierLostNodeCount int      `json:"carrier_lost_node_count"`
+	CarrierLostProtocols []string `json:"carrier_lost_protocols,omitempty"`
 }
 
 type subStoreResponseTransformResult struct {
@@ -198,6 +226,9 @@ type subStoreCoreConversionResult struct {
 	NodeCount            int      `json:"node_count"`
 	UnsupportedNodeCount int      `json:"unsupported_node_count"`
 	UnsupportedProtocols []string `json:"unsupported_protocols"`
+	ZeroNodes            bool     `json:"zero_nodes"`
+	CarrierLostNodeCount int      `json:"carrier_lost_node_count"`
+	CarrierLostProtocols []string `json:"carrier_lost_protocols"`
 	Output               string   `json:"output"`
 }
 
@@ -255,7 +286,73 @@ func (engine *subStoreEngine) convert(req subStoreConversionRequest) (result sub
 
 		UnsupportedNodeCount: coreResult.UnsupportedNodeCount,
 		UnsupportedProtocols: coreResult.UnsupportedProtocols,
+		ZeroNodes:            coreResult.ZeroNodes,
+		CarrierLostNodeCount: coreResult.CarrierLostNodeCount,
+		CarrierLostProtocols: coreResult.CarrierLostProtocols,
 	}, nil
+}
+
+// countNodes parses node text and reports how many nodes the engine found,
+// without producing any client document. The refresh path uses it to tell a
+// subscription from a provider's error page before the body replaces the last
+// good snapshot.
+func (engine *subStoreEngine) countNodes(raw string) (int, error) {
+	counts, err := engine.countNodesEach([]string{raw})
+	if err != nil {
+		return 0, err
+	}
+	return counts[0], nil
+}
+
+// countNodesEach parses each text on its own and reports each one's node
+// count, in a single engine call. A combination's refresh counts all of its
+// members at once: while a fresh worker's warm runtime is still booting every
+// call takes the isolated path, and one call per member would put a large
+// combination's refresh at risk of its time budget. Parsing runs no user
+// JavaScript, so once warm it answers from the warm runtime.
+func (engine *subStoreEngine) countNodesEach(raws []string) (counts []int, err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = redactSubStoreEnginePanic(recovered)
+		}
+	}()
+	if strings.TrimSpace(engine.coreJS) == "" {
+		return nil, fmt.Errorf("Sub-Store core bundle is empty")
+	}
+	if len(raws) == 0 {
+		return []int{}, nil
+	}
+	encoded, err := json.Marshal(raws)
+	if err != nil {
+		return nil, fmt.Errorf("encode raw subscriptions: %w", err)
+	}
+	script := fmt.Sprintf(`(function() {
+  const raws = %s;
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
+  if (!core || typeof core.parse !== "function") {
+    throw new Error("Sub-Store core must expose parse(raw)");
+  }
+  const counts = raws.map(function (raw) {
+    const proxies = core.parse(raw);
+    return Array.isArray(proxies) ? proxies.length : 0;
+  });
+  return JSON.stringify({ counts: counts });
+})()`, encoded)
+	rawResult, err := engine.runCoreScript("count", "lattice-substore-count.js", script)
+	if err != nil {
+		return nil, err
+	}
+	var out struct {
+		Counts []int `json:"counts"`
+	}
+	if err := json.Unmarshal([]byte(rawResult), &out); err != nil {
+		return nil, fmt.Errorf("decode Sub-Store node counts: %w", err)
+	}
+	if len(out.Counts) != len(raws) {
+		return nil, fmt.Errorf("Sub-Store counted %d sources, want %d", len(out.Counts), len(raws))
+	}
+	return out.Counts, nil
 }
 
 func (engine *subStoreEngine) transformResponse(req subStoreResponseTransformRequest) (result subStoreResponseTransformResult, err error) {
@@ -622,10 +719,32 @@ func evalQuickJSStep(ctx *qjs.Context, file, code string) error {
 	return err
 }
 
+// subStoreMaxEmptyDocumentBytes bounds what a producer writes for an empty
+// node list. The conversion script compares an output with the producer's
+// empty document only when the output is no longer than this, so the common
+// serve path does not pay for a second produce. A pin that grew an empty
+// document past it would let a zero-node document through, which is why
+// TestEmptyDocumentsFitTheZeroNodeBound checks every target against it.
+const subStoreMaxEmptyDocumentBytes = 4096
+
 func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
-	raw, err := json.Marshal(req.Raw)
+	rawText := req.Raw
+	if strings.TrimSpace(rawText) == "" && len(req.RawParts) > 0 {
+		// An operator chain still receives the source text it always did (a
+		// script operator may read it); parsing below uses the parts.
+		rawText = strings.Join(req.RawParts, "\n")
+	}
+	raw, err := json.Marshal(rawText)
 	if err != nil {
 		return "", fmt.Errorf("encode raw subscription: %w", err)
+	}
+	parts := req.RawParts
+	if parts == nil {
+		parts = []string{}
+	}
+	rawParts, err := json.Marshal(parts)
+	if err != nil {
+		return "", fmt.Errorf("encode raw subscription parts: %w", err)
 	}
 	target, err := json.Marshal(req.Target)
 	if err != nil {
@@ -643,6 +762,10 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	if req.Explain {
 		explain = "true"
 	}
+	carrierCheck := "false"
+	if req.CarrierCheck {
+		carrierCheck = "true"
+	}
 	prefix := "(function() {"
 	processBlock := ""
 	if len(req.Operators) > 0 {
@@ -658,18 +781,27 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	}
 	return fmt.Sprintf(`%s
   const raw = %s;
+  const rawParts = %s;
   const target = %s;
   const operators = %s || [];
   const produceOptions = %s || {};
   const explain = %s;
+  const carrierCheck = %s;
   const root = globalThis.SubStoreProxyUtils;
   const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   if (!core || typeof core.parse !== "function" || typeof core.produce !== "function") {
     throw new Error("Sub-Store core must expose parse(raw) and produce(proxies, target, env)");
   }
-  let proxies = core.parse(raw);
-  if (!Array.isArray(proxies)) {
-    throw new Error("Sub-Store parse(raw) must return an array");
+  // Each part is parsed on its own: the engine recognises a base64 list or a
+  // YAML document only when it is the whole input, so text-joined members in
+  // different encodings lost whole members.
+  let proxies = [];
+  for (const source of (rawParts.length > 0 ? rawParts : [raw])) {
+    const parsed = core.parse(source);
+    if (!Array.isArray(parsed)) {
+      throw new Error("Sub-Store parse(raw) must return an array");
+    }
+    for (const proxy of parsed) proxies.push(proxy);
   }
   const sourceNodeCount = proxies.length;
   if (!Array.isArray(operators)) {
@@ -680,6 +812,28 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   if (typeof output !== "string") {
     throw new Error("Sub-Store produce(proxies, target, env) must return a string");
   }
+  // What this producer writes for no nodes at all. A document equal to it
+  // carries nothing for this client, however many bytes it has. It is asked
+  // for only when the output could be it: every producer's empty document is
+  // a short skeleton ("proxies:", an empty sing-box object), and
+  // TestEmptyDocumentsFitTheZeroNodeBound holds each target to the bound, so
+  // a longer output carries at least one node and the serve path skips the
+  // extra produce.
+  let empty;
+  const emptyDocument = () => {
+    if (empty === undefined) {
+      try {
+        empty = core.produce([], target, "external", produceOptions);
+      } catch (err) {
+        empty = null;
+      }
+    }
+    return empty;
+  };
+  const trimmedOutput = output.trim();
+  const zeroNodes = proxies.length === 0 ||
+    trimmedOutput === "" ||
+    (trimmedOutput.length <= %d && typeof emptyDocument() === "string" && trimmedOutput === empty.trim());
   // Which nodes this client could not carry.
   //
   // Every producer keeps its own support rules inside itself and declares them
@@ -698,13 +852,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
       everything = output;
     }
     if (everything !== output) {
-      let empty = null;
-      try {
-        empty = core.produce([], target, "external", produceOptions);
-      } catch (err) {
-        empty = null;
-      }
-      if (empty !== null) {
+      if (emptyDocument() !== null) {
         for (const proxy of proxies) {
           let alone = null;
           try {
@@ -722,14 +870,51 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
       }
     }
   }
+  // Which nodes the chain kept that a URI carrier could not write.
+  //
+  // The URI producer writes one line per node it can express and drops the
+  // rest, so a line count below the node count means something was lost. The
+  // nodes the core rejects for every client are set aside first, by asking
+  // the JSON producer (which drops nothing itself) what survives the core's
+  // own filters; only the remainder that the URI producer cannot write
+  // counts as lost. The common path, where nothing was dropped, costs one
+  // split of the output.
+  const carrierLostTypes = [];
+  let carrierLostCount = 0;
+  if (carrierCheck && proxies.length > 0) {
+    const carried = output.split("\n").filter((line) => line.trim() !== "").length;
+    if (carried < proxies.length) {
+      let valid = proxies;
+      try {
+        valid = core.produce(proxies.slice(), "JSON", "internal", { "include-unsupported-proxy": true });
+      } catch (err) {
+        valid = proxies;
+      }
+      for (const proxy of Array.isArray(valid) ? valid : proxies) {
+        let line = "";
+        try {
+          line = core.produce([proxy], target, "external", produceOptions);
+        } catch (err) {
+          line = "";
+        }
+        if (typeof line === "string" && line.trim() !== "") continue;
+        carrierLostCount += 1;
+        const type = proxy && typeof proxy.type === "string" ? proxy.type : "unknown";
+        if (!carrierLostTypes.includes(type)) carrierLostTypes.push(type);
+      }
+    }
+  }
   return JSON.stringify({
     source_node_count: sourceNodeCount,
     node_count: proxies.length,
     unsupported_node_count: unsupportedCount,
     unsupported_protocols: unsupportedTypes.sort(),
+    zero_nodes: zeroNodes,
+    carrier_lost_node_count: carrierLostCount,
+    carrier_lost_protocols: carrierLostTypes.sort(),
     output,
   });
-})()`, prefix, raw, target, operators, options, explain, processBlock), nil
+})()`, prefix, raw, rawParts, target, operators, options, explain, carrierCheck, processBlock, subStoreMaxEmptyDocumentBytes), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {

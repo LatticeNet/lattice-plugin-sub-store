@@ -33,7 +33,7 @@ func storedRecord(t *testing.T, rt *runtime, id string) subscriptionRecord {
 
 func TestFetchMethodRecordsSuccessOnTheRecord(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one\nvless://two")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one\nss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two")
 	host.header = map[string]string{"Subscription-Userinfo": "upload=1; download=2; total=3"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)
@@ -104,7 +104,7 @@ func TestFetchMethodRecordsFailureOnTheRecord(t *testing.T) {
 // the last known ones — the row shows them next to the failure badge.
 func TestFetchFailureKeepsTheLastUserinfo(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.header = map[string]string{"Subscription-Userinfo": "total=3"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)
@@ -143,7 +143,7 @@ func TestFetchErrorIsCapped(t *testing.T) {
 // claim a fetched record was never refreshed.
 func TestSavePreservesFetchBookkeeping(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.header = map[string]string{"Subscription-Userinfo": "total=3"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)
@@ -166,14 +166,14 @@ func TestSavePreservesFetchBookkeeping(t *testing.T) {
 
 func TestListSurfacesFetchBookkeeping(t *testing.T) {
 	rt, host := newFetchRuntime(t)
-	host.body = []byte("vless://one")
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one")
 	host.header = map[string]string{"Subscription-Userinfo": "total=3"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", URL: "https://provider.invalid/sub"}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 	// A second record that is never fetched: its absence of bookkeeping must
 	// read as "never fetched", not as a failure.
-	if err := rt.saveSubscription(subscriptionRecord{ID: "s2", Content: "vless://inline"}); err != nil {
+	if err := rt.saveSubscription(subscriptionRecord{ID: "s2", Content: "ss://YWVzLTEyOC1nY206cHc@192.0.2.12:8388#inline"}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 	if res := fetchViaMethod(t, rt, "s1"); !res.OK {

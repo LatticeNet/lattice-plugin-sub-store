@@ -90,6 +90,7 @@ describe("client target catalog", () => {
     quantumultx: "QX",
     stash: "Stash",
     shadowrocket: "Shadowrocket",
+    clashmeta: "ClashMeta",
     clash: "Clash",
     singbox: "sing-box",
     egern: "Egern",
