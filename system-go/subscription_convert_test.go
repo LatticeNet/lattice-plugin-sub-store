@@ -86,6 +86,10 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 		// warm runtime; convert has no chain at all and says so.
 		{"operators", map[string]any{"uris": uris, "target": "URI", "operators": []any{}}, "unknown field"},
 		{"multi-line uri", map[string]any{"uris": []string{uris[0] + "\n" + uris[1]}, "target": "URI"}, "one line"},
+		// The plugin never sees a link's token: the core resolves the link and
+		// sends only the identity's own URIs. A token in the payload is an
+		// unknown field, refused before anything runs.
+		{"link token", map[string]any{"uris": uris, "target": "URI", "token": "lat$convert-token-sentinel"}, "unknown field"},
 		{"unknown format", map[string]any{"uris": uris, "target": "URI", "format": "zip"}, "format"},
 		// VLESS and Hysteria2 only, for a client that carries neither.
 		{"zero nodes for target", map[string]any{"uris": uris, "target": "Clash"}, zeroNodesForTargetCode},
@@ -98,6 +102,10 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 		}
 		if !strings.Contains(res.Error, tc.want) {
 			t.Fatalf("%s: error %q does not mention %q", tc.name, res.Error, tc.want)
+		}
+		// Errors reach the core's audit log; they never quote the input.
+		if strings.Contains(res.Error, "convert-token-sentinel") || strings.Contains(res.Error, uris[0]) {
+			t.Fatalf("%s: error quotes the input: %q", tc.name, res.Error)
 		}
 	}
 }
