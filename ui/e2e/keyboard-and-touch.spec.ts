@@ -226,3 +226,43 @@ test.describe("touch at 375", () => {
     await expect(box).not.toBeChecked();
   });
 });
+
+/**
+ * An overlay covers the frame from its top edge. One mounted after a stack's
+ * first block took the stack's 16px top margin, which on a fixed inset-0 box
+ * moves the top edge down: the panel, the palette, the output sheet's scrim
+ * and the confirm's backdrop each started 16px under the frame with the page
+ * showing through above them.
+ */
+for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 }]) {
+  test.describe(`overlays at ${viewport.width}`, () => {
+    test.use({ viewport });
+
+    async function covers(page: Page, selector: string): Promise<void> {
+      const box = (await page.locator(selector).boundingBox())!;
+      expect(box.y, `${selector} top`).toBe(0);
+      expect(Math.round(box.height), `${selector} height`).toBe(viewport.height);
+    }
+
+    async function fromRowMenu(page: Page, item: RegExp): Promise<void> {
+      await open(page, "?view=files", ".layer-row");
+      await page.getByRole("button", { name: "Actions for for-cdcd-loon", exact: true }).click();
+      await page.getByRole("menuitem", { name: item }).click();
+    }
+
+    test("the side panel, the palette, the output sheet and the confirm dialog start at the frame's top edge", async ({ page }) => {
+      await open(page, "?view=combinations&open=imported-col-merge-cd-openjobs", ".pc-side-panel");
+      await covers(page, ".pc-overlay");
+
+      await open(page, "?view=files", ".layer-row");
+      await page.keyboard.press("Control+k");
+      await covers(page, ".palette-scrim");
+
+      await fromRowMenu(page, /Show document/);
+      await covers(page, ".sheet-scrim");
+
+      await fromRowMenu(page, /Delete/);
+      await covers(page, ".lt-dialog-backdrop");
+    });
+  });
+}

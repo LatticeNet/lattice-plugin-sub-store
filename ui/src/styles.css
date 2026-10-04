@@ -60,6 +60,18 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
    The tab panel is a plain wrapper so those blocks keep the rhythm. */
 
 .lens > * + * { margin-top: var(--space-4); }
+/* An overlay is fixed to the frame and out of flow, so it takes no part in a
+   stack's rhythm. Mounted after a stack's first block it took the 16px top
+   margin anyway, and on a fixed inset-0 box that margin moves the top edge
+   down: measured at 1440 in the console frame, the palette's scrim, the
+   client output sheet's scrim and the delete confirm's backdrop each started
+   16px under the frame's top with the page showing through. Bridge
+   0.2.0-alpha.2 zeroes `.pc-workspace > .pc-overlay`; this covers the chassis
+   panels mounted inside a lens or the record page (Sources' and Files'
+   drawers) and this page's own overlays wherever they mount. Two classes, so
+   it holds whatever order the rules come in. */
+:is(.pc-workspace, .lens, .record-page) > :is(.palette-scrim, .sheet-scrim, .lt-dialog-backdrop),
+:is(.lens, .record-page) > .pc-overlay { margin: 0; }
 .lens-panel:focus-visible { outline: none; }
 .lens-panel.is-fading { animation: lens-in var(--lt-dur-base) var(--lt-ease); }
 @keyframes lens-in { from { opacity: 0; } }
