@@ -119,7 +119,11 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 // reference input converts to the same bytes before and after those calls.
 // Then the runtime itself is searched: no reachable global holds any of them,
 // and the runtime's only cross-call store (the script environment's in-memory
-// $persistentStore) was never written.
+// $persistentStore) was never written. That store is the only one because the
+// runtime has no filesystem to keep anything in: until the guest root was
+// sealed, the std and os modules could write files a later call could read,
+// which this globalThis walk cannot see. The sandbox tests
+// (substore_engine_sandbox_test.go) hold that line.
 func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.T) {
 	engine := testEngineWithHeadroom()
 	if err := engine.prewarm(); err != nil {
