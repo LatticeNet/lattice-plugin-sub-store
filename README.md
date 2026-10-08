@@ -130,6 +130,21 @@ Sub-Store `ProxyUtils` bundle. The pin is recorded in
 `2.36.22`, and bundle SHA-256
 `994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b`.
 
+Every QuickJS runtime the engine creates, the warm one and each per-call
+isolated one, is sealed before the core loads. The qjs wasm build publishes
+its `qjs:std`, `qjs:os` and `qjs:bjson` modules as `globalThis.std`, `os` and
+`bjson` and mounts a host directory read-write as the guest's `/`; the engine
+deletes those three globals and mounts a path that does not exist and cannot
+be created, so no script, the core included, can read, list or write a file,
+and the WASI environment is empty. The modules stay registered, so a dynamic
+`import("qjs:os")` still resolves, but it reaches nothing.
+`system-go/substore_engine_sandbox_test.go` asserts this from a call script, a
+user script operator and the core's own top level, on both runtimes. Both
+runtimes also carry an in-process deadline: the isolated runtime's context
+expires with the call, and a watchdog cancels the warm runtime's context and
+retires it, so a catastrophic regex or an oversized document on the scriptless
+path costs one call its budget, not the worker.
+
 Rebuild the pinned bundle with:
 
 ```sh

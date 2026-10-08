@@ -68,13 +68,22 @@ const warmBootRetryCooldown = 30 * time.Second
 // filters, response transformers, script files — runs there and the runtime
 // is discarded with the call.
 //
-// Interruption is asymmetric by measurement, not by choice: a hot loop inside
-// QuickJS-on-wazero ignores MaxExecutionTime and an asynchronous Close, so
-// the warm path carries no in-process deadline — the runner's invocation
-// budget bounds it by killing the worker, and the pool replaces the worker in
-// the background. The isolated path keeps the context-bound runtime
-// (CloseOnContextDone), whose deadline provably interrupts by closing the
-// module mid-call; the resulting library panic is recovered and redacted.
+// Both paths are bounded in process by the same mechanism, the one that
+// measurably interrupts QuickJS-on-wazero: every runtime is context-bound
+// (CloseOnContextDone), and cancelling the context closes the module
+// mid-call. MaxExecutionTime does nothing in the pinned qjs build (no
+// interrupt handler is installed), and an asynchronous Close does not stop a
+// hot loop. The isolated path cancels on a per-call deadline; the warm path
+// arms a per-call watchdog that cancels the warm runtime's context and
+// retires it (runWarm). A catastrophic regex over provider node names, or a
+// provider document too large to parse in time, therefore costs one call its
+// budget and the warm runtime a reboot, not the worker
+// (TestWarmEngineBoundsCatastrophicRegexOnScriptlessPath,
+// TestWarmEngineBoundsHugeYAMLOnScriptlessPath). The library panic a closed
+// module raises is recovered and redacted.
+//
+// Every runtime is also sealed before anything is evaluated in it
+// (newSubStoreQuickJSRuntime): no filesystem, no native-module globals.
 type subStoreEngine struct {
 	coreJS string
 	limits subStoreEngineLimits
@@ -435,15 +444,7 @@ func (engine *subStoreEngine) bootWarm() (err error) {
 	}
 	limits := engine.limits.withDefaults()
 	ctx, cancel := context.WithCancel(context.Background())
-	rt, newErr := qjs.New(qjs.Option{
-		Context:            ctx,
-		CloseOnContextDone: true,
-		MemoryLimit:        limits.MemoryLimit,
-		MaxStackSize:       limits.MaxStackSize,
-		GCThreshold:        limits.GCThreshold,
-		Stdout:             io.Discard,
-		Stderr:             io.Discard,
-	})
+	rt, newErr := newSubStoreQuickJSRuntime(ctx, limits)
 	if newErr != nil {
 		cancel()
 		return fmt.Errorf("create warm Sub-Store JS runtime: %w", newErr)
@@ -523,6 +524,74 @@ func (engine *subStoreEngine) ensureCoreBytecode(qctx *qjs.Context) []byte {
 		engine.mu.Unlock()
 	}
 	return cached
+}
+
+// subStoreGuestRoot is the host path every runtime mounts as the guest's "/".
+//
+// The pinned qjs always mounts one directory, read-write, at the guest root
+// (Option.CWD, defaulting to the process working directory) and offers no way
+// to mount nothing or to mount read-only. In a worker that default is the
+// generation directory holding the plugin's own artifact, and quickjs-libc's
+// std and os modules gave any script open, read, write and readdir on it; it
+// was also a store that outlived the call, which the warm runtime's state
+// audit could not see.
+//
+// This path does not exist and nothing can create it. wazero opens a mounted
+// root lazily and, while that open fails with ENOENT, answers every guest
+// path operation with EBADF before touching the host, so the guest cannot
+// make its own root; the host cannot either, because procfs refuses new
+// entries at its top level (and on macOS, where tests run, /proc is absent
+// from a read-only system volume). A root that fails any other way (ENOTDIR
+// below a device file, EACCES on a locked directory) makes wazero panic
+// inside the guest's call instead, which is why the path is a missing entry
+// rather than an unusable one. Nothing the engine runs reads a file: the core
+// and every call script arrive as strings or bytecode.
+const subStoreGuestRoot = "/proc/lattice-substore-no-filesystem"
+
+// subStoreSandboxSealShim removes the native-module globals the qjs build
+// installs at context creation (qjs:std, qjs:os and qjs:bjson as globalThis.std,
+// os and bjson). Neither the core nor any call script uses them; the timer
+// functions the same init copies from os (setTimeout and friends) stay, since
+// the core schedules with setTimeout. The modules themselves remain
+// registered, so a dynamic import can still name them, but with no guest
+// filesystem and an empty WASI environment (qjs passes none) they reach no
+// file and no variable. Deleting must leave each name undefined, or the
+// runtime is refused rather than run unsealed.
+const subStoreSandboxSealShim = `
+(function () {
+  for (const name of ["std", "os", "bjson"]) {
+    delete globalThis[name];
+    if (typeof globalThis[name] !== "undefined") {
+      throw new Error("cannot remove the " + name + " global");
+    }
+  }
+})();
+`
+
+// newSubStoreQuickJSRuntime creates every QuickJS runtime the engine uses,
+// warm or isolated, and seals it before the caller evaluates anything in it:
+// the guest root is subStoreGuestRoot and the native-module globals are gone,
+// so neither the core's top level nor any call or user script ever sees them.
+// The runtime is bound to ctx; cancelling it closes the module mid-call.
+func newSubStoreQuickJSRuntime(ctx context.Context, limits subStoreEngineLimits) (*qjs.Runtime, error) {
+	rt, err := qjs.New(qjs.Option{
+		CWD:                subStoreGuestRoot,
+		Context:            ctx,
+		CloseOnContextDone: true,
+		MemoryLimit:        limits.MemoryLimit,
+		MaxStackSize:       limits.MaxStackSize,
+		GCThreshold:        limits.GCThreshold,
+		Stdout:             io.Discard,
+		Stderr:             io.Discard,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := evalQuickJSStep(rt.Context(), "lattice-sandbox-seal.js", subStoreSandboxSealShim); err != nil {
+		closeQuickJSRuntime(rt)
+		return nil, fmt.Errorf("seal Sub-Store JS runtime: %w", err)
+	}
+	return rt, nil
 }
 
 // closeQuickJSRuntime closes a runtime whose module may already be broken.
@@ -606,9 +675,8 @@ func (engine *subStoreEngine) runWarm(stage, file, script string) (out string, e
 }
 
 // runIsolatedScript executes on a fresh runtime that dies with the call. This
-// is the only place user JavaScript ever runs, and the only path with an
-// in-process deadline: the context-bound runtime is the one interruption
-// mechanism that provably works.
+// is the only place user JavaScript ever runs. Its deadline is the call's
+// context: cancelling the context-bound runtime closes the module mid-call.
 func (engine *subStoreEngine) runIsolatedScript(stage, file, script string) (string, error) {
 	if strings.TrimSpace(engine.coreJS) == "" {
 		return "", fmt.Errorf("Sub-Store core bundle is empty")
@@ -620,15 +688,7 @@ func (engine *subStoreEngine) runIsolatedScript(stage, file, script string) (str
 	ctx, cancel := context.WithTimeout(context.Background(), limits.Timeout)
 	defer cancel()
 
-	rt, err := qjs.New(qjs.Option{
-		Context:            ctx,
-		CloseOnContextDone: true,
-		MemoryLimit:        limits.MemoryLimit,
-		MaxStackSize:       limits.MaxStackSize,
-		GCThreshold:        limits.GCThreshold,
-		Stdout:             io.Discard,
-		Stderr:             io.Discard,
-	})
+	rt, err := newSubStoreQuickJSRuntime(ctx, limits)
 	if err != nil {
 		return "", fmt.Errorf("create Sub-Store JS runtime: %w", err)
 	}
