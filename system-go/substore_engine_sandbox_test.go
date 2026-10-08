@@ -385,6 +385,10 @@ func TestWarmEngineBoundsCatastrophicRegexOnScriptlessPath(t *testing.T) {
 	if elapsed > engine.limits.Timeout+3*time.Second {
 		t.Fatalf("the warm call ran %s against a %s budget", elapsed, engine.limits.Timeout)
 	}
+	// The warm runtime is retired, so the next call boots an isolated one and
+	// loads the full core; under -race on a CI runner that alone outlasts the
+	// 2 s test budget, which belongs to the call under test.
+	engine.limits.Timeout = 30 * time.Second
 	after, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "URI"})
 	if err != nil || after.NodeCount != 1 {
 		t.Fatalf("engine did not answer after the bounded call: nodes=%d err=%v", after.NodeCount, err)
@@ -424,6 +428,10 @@ func TestWarmEngineBoundsHugeYAMLOnScriptlessPath(t *testing.T) {
 	if elapsed > engine.limits.Timeout+3*time.Second {
 		t.Fatalf("the warm call ran %s against a %s budget", elapsed, engine.limits.Timeout)
 	}
+	// The warm runtime is retired, so the next call boots an isolated one and
+	// loads the full core; under -race on a CI runner that alone outlasts the
+	// 2 s test budget, which belongs to the call under test.
+	engine.limits.Timeout = 30 * time.Second
 	after, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "URI"})
 	if err != nil || after.NodeCount != 1 {
 		t.Fatalf("engine did not answer after the bounded call: nodes=%d err=%v", after.NodeCount, err)
