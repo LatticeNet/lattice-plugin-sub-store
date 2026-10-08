@@ -5,8 +5,11 @@ import (
 	"crypto/sha256"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -574,6 +577,9 @@ const subStoreSandboxSealShim = `
 // so neither the core's top level nor any call or user script ever sees them.
 // The runtime is bound to ctx; cancelling it closes the module mid-call.
 func newSubStoreQuickJSRuntime(ctx context.Context, limits subStoreEngineLimits) (*qjs.Runtime, error) {
+	if err := checkSubStoreGuestRootAbsent(subStoreGuestRoot); err != nil {
+		return nil, err
+	}
 	rt, err := qjs.New(qjs.Option{
 		CWD:                subStoreGuestRoot,
 		Context:            ctx,
@@ -592,6 +598,22 @@ func newSubStoreQuickJSRuntime(ctx context.Context, limits subStoreEngineLimits)
 		return nil, fmt.Errorf("seal Sub-Store JS runtime: %w", err)
 	}
 	return rt, nil
+}
+
+// checkSubStoreGuestRootAbsent refuses to build a runtime when the guest root
+// exists on the host. The seal rests on that path being a missing entry; a
+// host where something did create it (procfs not mounted, a bind mount) would
+// hand every script a real directory again, so the engine fails closed
+// instead of running unsealed.
+func checkSubStoreGuestRootAbsent(path string) error {
+	_, err := os.Lstat(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err == nil {
+		return fmt.Errorf("Sub-Store JS sandbox root %s exists on this host; refusing to run scripts", path)
+	}
+	return fmt.Errorf("Sub-Store JS sandbox root %s cannot be checked: %w", path, err)
 }
 
 // closeQuickJSRuntime closes a runtime whose module may already be broken.

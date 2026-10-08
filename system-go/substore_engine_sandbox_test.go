@@ -218,6 +218,25 @@ func TestSandboxGuestRootDoesNotExist(t *testing.T) {
 	}
 }
 
+// The seal holds only while the guest root is missing on the host, so the
+// engine checks it before every runtime and refuses a root that exists.
+func TestSandboxRefusesAGuestRootThatExists(t *testing.T) {
+	present := t.TempDir()
+	if err := checkSubStoreGuestRootAbsent(present); err == nil {
+		t.Fatalf("checkSubStoreGuestRootAbsent(%s) = nil for an existing directory, want a refusal", present)
+	}
+	file := filepath.Join(present, "file")
+	if err := os.WriteFile(file, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkSubStoreGuestRootAbsent(file); err == nil {
+		t.Fatalf("checkSubStoreGuestRootAbsent(%s) = nil for an existing file, want a refusal", file)
+	}
+	if err := checkSubStoreGuestRootAbsent(filepath.Join(present, "missing")); err != nil {
+		t.Fatalf("checkSubStoreGuestRootAbsent(missing) = %v, want nil", err)
+	}
+}
+
 var sandboxCallScript = `(async function () {
 ` + sandboxProbeJS + `
   return JSON.stringify(await latticeSandboxProbe());
