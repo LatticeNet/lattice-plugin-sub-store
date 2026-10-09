@@ -13,39 +13,55 @@ import (
 // object is a JSON object whose keys are written in the order they were
 // first set, as an ECMAScript object literal built key by key is. Producers
 // use it wherever a specification fixes a key order (the vmess JSON form, the
-// VLESS xhttp extra).
+// VLESS xhttp extra, the sing-box entries). It is a slice rather than a map:
+// the objects producers build hold a few dozen keys at most, and a map per
+// object was most of the sing-box producer's allocations.
 type object struct {
-	keys []string
-	vals map[string]any
+	members []member
+}
+
+type member struct {
+	key string
+	val any
+}
+
+// newObject is an empty object with room for n members.
+func newObject(n int) *object { return &object{members: make([]member, 0, n)} }
+
+func (o *object) find(key string) int {
+	for i := range o.members {
+		if o.members[i].key == key {
+			return i
+		}
+	}
+	return -1
 }
 
 // set writes key. A new key is appended; an existing key keeps its position
 // and takes the new value.
 func (o *object) set(key string, v any) {
-	if o.vals == nil {
-		o.vals = map[string]any{}
+	if i := o.find(key); i >= 0 {
+		o.members[i].val = v
+		return
 	}
-	if _, ok := o.vals[key]; !ok {
-		o.keys = append(o.keys, key)
-	}
-	o.vals[key] = v
+	o.members = append(o.members, member{key, v})
 }
 
 func (o *object) get(key string) (any, bool) {
-	v, ok := o.vals[key]
-	return v, ok
+	if i := o.find(key); i >= 0 {
+		return o.members[i].val, true
+	}
+	return nil, false
 }
 
 // del removes key; the keys after it keep their order.
 func (o *object) del(key string) {
-	if _, ok := o.vals[key]; !ok {
-		return
+	if i := o.find(key); i >= 0 {
+		o.members = slices.Delete(o.members, i, i+1)
 	}
-	delete(o.vals, key)
-	o.keys = slices.DeleteFunc(o.keys, func(k string) bool { return k == key })
 }
 
-func (o *object) len() int { return len(o.keys) }
+func (o *object) len() int { return len(o.members) }
 
 // appendJSON appends v as ECMAScript's JSON.stringify(v) writes it, compact:
 // text escaped as nodemodel.AppendJSONString escapes it (so "<", ">", "&",
@@ -106,20 +122,34 @@ func appendJSONDepth(dst []byte, v any, gap, indent string, depth int) ([]byte, 
 		}
 		return append(newline(dst, gap, indent), ']'), nil
 	case map[string]any:
-		return appendMembers(dst, propertyOrder(x), func(k string) any { return x[k] }, gap, indent, depth)
+		return appendMembers(dst, nil, propertyOrder(x), x, gap, indent, depth)
 	case *object:
-		return appendMembers(dst, x.keys, func(k string) any { return x.vals[k] }, gap, indent, depth)
+		return appendMembers(dst, x.members, nil, nil, gap, indent, depth)
 	}
 	return nil, fmt.Errorf("producers: value of type %T is not part of the model", v)
 }
 
-func appendMembers(dst []byte, keys []string, value func(string) any, gap, indent string, depth int) ([]byte, error) {
-	if len(keys) == 0 {
+// appendMembers writes an object's members: members when they are given,
+// otherwise m's values under keys.
+func appendMembers(dst []byte, members []member, keys []string, m map[string]any, gap, indent string, depth int) ([]byte, error) {
+	n := len(members)
+	if members == nil {
+		n = len(keys)
+	}
+	if n == 0 {
 		return append(dst, "{}"...), nil
 	}
 	inner := indent + gap
 	dst = append(dst, '{')
-	for i, k := range keys {
+	for i := 0; i < n; i++ {
+		var k string
+		var v any
+		if members != nil {
+			k, v = members[i].key, members[i].val
+		} else {
+			k = keys[i]
+			v = m[k]
+		}
 		if i > 0 {
 			dst = append(dst, ',')
 		}
@@ -130,7 +160,7 @@ func appendMembers(dst []byte, keys []string, value func(string) any, gap, inden
 			dst = append(dst, ' ')
 		}
 		var err error
-		if dst, err = appendJSONDepth(dst, value(k), gap, inner, depth+1); err != nil {
+		if dst, err = appendJSONDepth(dst, v, gap, inner, depth+1); err != nil {
 			return nil, err
 		}
 	}

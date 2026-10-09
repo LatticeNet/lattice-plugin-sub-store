@@ -17,11 +17,10 @@ import (
 
 // The sing-box producer (specs/producers/singbox.md): a configuration
 // fragment {"outbounds": [...], "endpoints": [...]}. After the steps before
-// the producer, the ClashMeta producer's internal mode (ClashMetaInternal)
-// restores mihomo's field shapes, the shadow-tls plugin keys are put back,
-// and each node converts to one outbound, an outbound and its shadow-tls
-// helper, or one endpoint. A node that fails a row of the unsupported rule
-// yields nothing.
+// the producer, the ClashMeta producer's internal mode restores mihomo's
+// field shapes, the shadow-tls plugin keys are put back, and each node
+// converts to one outbound, an outbound and its shadow-tls helper, or one
+// endpoint. A node that fails a row of the unsupported rule yields nothing.
 //
 // Entries are written with tag, type, server and server_port first and then
 // the fields in the order they are set; the structural comparison sorts keys,
@@ -42,81 +41,89 @@ func (singBoxProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, targe
 	ps, dropped := prepare(nodes, target, "singbox", opts)
 	res := Result{Dropped: dropped}
 	include := opts.Truthy("include-unsupported-proxy")
-	in := make([]*nodemodel.Node, len(ps))
+	// Each list's entries, each one written after ",\n    ".
+	var outbounds, endpoints []byte
 	for i := range ps {
-		in[i] = ps[i].node
-	}
-	passed := ClashMetaInternal(in, opts)
-	var outbounds, endpoints [][]byte
-	for i, p := range ps {
-		received := p.node.Fields
-		f := passed[i].Fields
-		putBackShadowTLS(f, received)
-		entries, err := singBoxEntries(f, received, include)
-		var written [][]byte
+		p := &ps[i]
+		f := p.node.Fields
+		receivedOpts, _ := obj(f, "plugin-opts")
+		putBack := putBackShadowTLS(f)
+		// The internal mode ClashMetaInternal wraps, run on the steps' own
+		// copy of the node instead of a second one.
+		clashMetaTransform(p, true)
+		putBack()
+		entries, err := singBoxEntries(f, receivedOpts, include)
+		om, em := len(outbounds), len(endpoints)
 		for _, e := range entries {
 			if err != nil {
 				break
 			}
-			var b []byte
-			b, err = appendJSONIndent(nil, e, "    ")
-			written = append(written, b)
+			if t, _ := e.get("type"); t == "wireguard" || t == "tailscale" {
+				endpoints, err = appendEntry(endpoints, e)
+			} else {
+				outbounds, err = appendEntry(outbounds, e)
+			}
 		}
 		if err != nil {
+			outbounds, endpoints = outbounds[:om], endpoints[:em]
 			reason := ReasonFailed
 			if errors.Is(err, errNoSingBoxForm) {
 				reason = ReasonUnsupported
 			}
-			res.Dropped = append(res.Dropped, Dropped{Index: p.index, Type: typeOf(received), Reason: reason})
+			res.Dropped = append(res.Dropped, Dropped{Index: p.index, Type: typeOf(f), Reason: reason})
 			continue
-		}
-		for j, e := range entries {
-			if t, _ := e.get("type"); t == "wireguard" || t == "tailscale" {
-				endpoints = append(endpoints, written[j])
-			} else {
-				outbounds = append(outbounds, written[j])
-			}
 		}
 		res.Entries += len(entries)
 	}
 	sortDropped(res.Dropped)
-	out := append([]byte(`{`+"\n"+`  "outbounds": `), singBoxList(outbounds)...)
-	out = append(out, ",\n  \"endpoints\": "...)
-	out = append(append(out, singBoxList(endpoints)...), "\n}"...)
-	dst.Write(out)
+	dst.Grow(len(outbounds) + len(endpoints) + 64)
+	dst.WriteString("{\n  \"outbounds\": ")
+	writeEntryList(dst, outbounds)
+	dst.WriteString(",\n  \"endpoints\": ")
+	writeEntryList(dst, endpoints)
+	dst.WriteString("\n}")
 	return res, nil
 }
 
-// singBoxList writes entries already indented for the second level as the
-// list JSON.stringify(value, null, 2) writes at the first.
-func singBoxList(entries [][]byte) []byte {
-	if len(entries) == 0 {
-		return []byte("[]")
+// appendEntry appends ",", a line break and e indented for the second level.
+// On an error buf comes back as it was.
+func appendEntry(buf []byte, e *object) ([]byte, error) {
+	out, err := appendJSONIndent(append(buf, ",\n    "...), e, "    ")
+	if err != nil {
+		return buf, err
 	}
-	out := []byte("[")
-	for i, e := range entries {
-		if i > 0 {
-			out = append(out, ',')
-		}
-		out = append(append(out, "\n    "...), e...)
-	}
-	return append(out, "\n  ]"...)
+	return out, nil
 }
 
-// putBackShadowTLS is pipeline step 2: a node that entered the producer with
-// a shadow-tls plugin gets its plugin, plugin-opts and obfs-opts (or their
-// absence) back after the ClashMeta pass, undoing T1 and T10; the other
-// effects of T1 stay.
-func putBackShadowTLS(f, received map[string]any) {
-	if _, ok := shadowTLSPlugin(received); !ok {
+// writeEntryList writes entries from appendEntry as the list
+// JSON.stringify(value, null, 2) writes at the first level.
+func writeEntryList(dst *bytes.Buffer, entries []byte) {
+	if len(entries) == 0 {
+		dst.WriteString("[]")
 		return
 	}
-	f["plugin"] = received["plugin"]
-	f["plugin-opts"] = received["plugin-opts"]
-	if v, ok := received["obfs-opts"]; ok {
-		f["obfs-opts"] = v
-	} else {
-		delete(f, "obfs-opts")
+	dst.WriteByte('[')
+	dst.Write(entries[1:])
+	dst.WriteString("\n  ]")
+}
+
+// putBackShadowTLS is pipeline step 2. It records a shadow-tls node's
+// plugin, plugin-opts and obfs-opts (or their absence) before the ClashMeta
+// pass, and the function it returns writes them back after it, undoing T1
+// and T10; the other effects of T1 stay.
+func putBackShadowTLS(f map[string]any) func() {
+	if _, ok := shadowTLSPlugin(f); !ok {
+		return func() {}
+	}
+	plugin, opts := f["plugin"], f["plugin-opts"]
+	obfs, hadObfs := f["obfs-opts"]
+	return func() {
+		f["plugin"], f["plugin-opts"] = plugin, opts
+		if hadObfs {
+			f["obfs-opts"] = obfs
+		} else {
+			delete(f, "obfs-opts")
+		}
 	}
 }
 
@@ -134,9 +141,9 @@ func sbUnsupported(row, what string) error {
 
 // singBoxEntries converts one node after the ClashMeta pass: the unsupported
 // rule's rows F1 to F15 in order, then the per-type conversion, which applies
-// F16 to F19. received is the node as the producer received it, for the
-// plugin options' key order.
-func singBoxEntries(f, received map[string]any, include bool) ([]*object, error) {
+// F16 to F19. receivedOpts is plugin-opts as the producer received it, for
+// the order plugin_opts walks it in.
+func singBoxEntries(f, receivedOpts map[string]any, include bool) ([]*object, error) {
 	typ, _ := f["type"].(string)
 	st, hasST := shadowTLSBlock(f, typ)
 	enabled := hasST && shadowTLSEnabled(st)
@@ -199,7 +206,7 @@ func singBoxEntries(f, received map[string]any, include bool) ([]*object, error)
 	case "socks5":
 		entries, err = one(sbSocks(f))
 	case "ss":
-		entries, err = sbShadowsocks(f, received, st, hasST)
+		entries, err = sbShadowsocks(f, receivedOpts, st, hasST)
 	case "ssr":
 		entries, err = one(sbShadowsocksR(f))
 	case "snell":
@@ -327,7 +334,7 @@ func sbCopy(e *object, key string, f map[string]any, src string) {
 }
 
 func sbObject(kv ...any) *object {
-	o := &object{}
+	o := newObject(len(kv)/2 + 4)
 	for i := 0; i+1 < len(kv); i += 2 {
 		o.set(kv[i].(string), kv[i+1])
 	}
@@ -337,7 +344,7 @@ func sbObject(kv ...any) *object {
 // sbBase starts an entry: tag and type, then server and server_port for the
 // types that have them.
 func sbBase(f map[string]any, outType string, server bool) (*object, error) {
-	e := &object{}
+	e := newObject(16)
 	sbCopy(e, "tag", f, "name")
 	e.set("type", outType)
 	if server {
@@ -850,9 +857,9 @@ func sbWSHeaders(f, o map[string]any) (*object, error) {
 
 // unwrapSingles writes every one-element list in h as its element.
 func unwrapSingles(h *object) {
-	for _, k := range h.keys {
-		if l, ok := h.vals[k].([]any); ok && len(l) == 1 {
-			h.vals[k] = l[0]
+	for i, m := range h.members {
+		if l, ok := m.val.([]any); ok && len(l) == 1 {
+			h.members[i].val = l[0]
 		}
 	}
 }
@@ -1054,7 +1061,7 @@ func sbSetTLS(e *object, f map[string]any, typ string, h2 bool) error {
 
 // sbShadowsocks is the shadowsocks outbound with its plugin, or with a
 // shadow-tls plugin the chained outbound and its helper.
-func sbShadowsocks(f, received, st map[string]any, chained bool) ([]*object, error) {
+func sbShadowsocks(f, receivedOpts, st map[string]any, chained bool) ([]*object, error) {
 	if chained {
 		e := &object{}
 		sbCopy(e, "tag", f, "name")
@@ -1080,7 +1087,6 @@ func sbShadowsocks(f, received, st map[string]any, chained bool) ([]*object, err
 	if !set(f, "plugin") {
 		return []*object{e}, nil
 	}
-	receivedOpts, _ := obj(received, "plugin-opts")
 	po := sbPluginOpts(f, receivedOpts)
 	var entries []string
 	switch f["plugin"] {
@@ -1089,8 +1095,8 @@ func sbShadowsocks(f, received, st map[string]any, chained bool) ([]*object, err
 		if set(f, "obfs-host") {
 			po.set("host", f["obfs-host"])
 		}
-		for _, k := range po.keys {
-			switch v := po.vals[k]; k {
+		for _, m := range po.members {
+			switch k, v := m.key, m.val; k {
 			case "mode":
 				entries = append(entries, "obfs="+text(v))
 			case "host":
@@ -1107,8 +1113,8 @@ func sbShadowsocks(f, received, st map[string]any, chained bool) ([]*object, err
 		if set(f, "ws-path") {
 			po.set("path", f["ws-path"])
 		}
-		for _, k := range po.keys {
-			switch v := po.vals[k]; k {
+		for _, m := range po.members {
+			switch k, v := m.key, m.val; k {
 			case "tls":
 				if truthy(v) {
 					entries = append(entries, "tls")

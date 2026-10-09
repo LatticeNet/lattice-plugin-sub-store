@@ -65,7 +65,13 @@ type prepared struct {
 // ordered is the node's fields with their keys in keyOrder, for the
 // producers that write upstream's key order.
 func (p *prepared) ordered() *object {
-	return &object{keys: keyOrder(p.node.Fields, p.added), vals: p.node.Fields}
+	f := p.node.Fields
+	keys := keyOrder(f, p.added)
+	o := newObject(len(keys))
+	for _, k := range keys {
+		o.members = append(o.members, member{k, f[k]})
+	}
+	return o
 }
 
 // put writes a top-level field and records it as created when it is new.

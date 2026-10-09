@@ -82,21 +82,26 @@ func yamlValue(v any, depth int) (*yaml.Node, error) {
 		}
 		return n, nil
 	case map[string]any:
-		return yamlMapping(propertyOrder(x), x, depth)
+		keys := propertyOrder(x)
+		o := newObject(len(keys))
+		for _, k := range keys {
+			o.members = append(o.members, member{k, x[k]})
+		}
+		return yamlMapping(o, depth)
 	case *object:
-		return yamlMapping(x.keys, x.vals, depth)
+		return yamlMapping(x, depth)
 	}
 	return nil, fmt.Errorf("producers: value of type %T is not part of the model", v)
 }
 
-func yamlMapping(keys []string, m map[string]any, depth int) (*yaml.Node, error) {
-	n := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0, 2*len(keys))}
-	for _, k := range keys {
-		c, err := yamlValue(m[k], depth+1)
+func yamlMapping(o *object, depth int) (*yaml.Node, error) {
+	n := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0, 2*o.len())}
+	for _, m := range o.members {
+		c, err := yamlValue(m.val, depth+1)
 		if err != nil {
 			return nil, err
 		}
-		n.Content = append(n.Content, yamlString(k), c)
+		n.Content = append(n.Content, yamlString(m.key), c)
 	}
 	return n, nil
 }

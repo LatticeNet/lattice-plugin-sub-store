@@ -1094,8 +1094,8 @@ func anytlsLine(f map[string]any, added []string) (string, error) {
 	mergePieces(strings.Split(q, "&"))
 	mergePieces(extra)
 	pairs := make([]string, 0, merged.len())
-	for _, k := range merged.keys {
-		pairs = append(pairs, k+"="+merged.vals[k].(string))
+	for _, m := range merged.members {
+		pairs = append(pairs, m.key+"="+m.val.(string))
 	}
 	frag := ""
 	if i := strings.IndexByte(base, '#'); i >= 0 {
@@ -1434,8 +1434,8 @@ func downloadSettings(xo map[string]any) (*object, bool) {
 		xs.set("mode", xo["mode"])
 	}
 	inner := xhttpStructured(ds)
-	for _, k := range inner.keys {
-		xs.set(k, inner.vals[k])
+	for _, m := range inner.members {
+		xs.set(m.key, m.val)
 	}
 	if x, ok := xmux(ds); ok {
 		e := &object{}
