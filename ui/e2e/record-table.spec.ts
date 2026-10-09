@@ -281,6 +281,34 @@ for (const locale of LOCALES) {
         expect(await leftInEnglish(page, locale)).toEqual([]);
       });
 
+      test("paints no English word before the locale's table has arrived", async ({ page }) => {
+        test.skip(locale === "en", "English is the table the page ships with");
+        // Before every frame from the first, what that frame would show: any
+        // visible text that is an English string this locale translates. The
+        // harness's handshake lands 400 ms late, and the table loads after it.
+        await page.addInitScript((english) => {
+          const words = new Set(english);
+          const seen = new Set<string>();
+          (window as unknown as { __englishPainted: Set<string> }).__englishPainted = seen;
+          const sample = () => {
+            if (document.body) {
+              const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+              for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                const el = node.parentElement;
+                const text = (node.textContent ?? "").trim();
+                if (el && words.has(text) && !el.closest(".dev-bar") && el.checkVisibility({ visibilityProperty: true })) seen.add(text);
+              }
+            }
+            requestAnimationFrame(sample);
+          };
+          requestAnimationFrame(sample);
+        }, englishOnly(locale));
+        await open(page, "&fixture=states&manifest=s1", "record-row", locale);
+        await expect(page.locator("#pc-tab-records")).toHaveText(startsWith(t.layers.records));
+        const painted = await page.evaluate(() => [...(window as unknown as { __englishPainted: Set<string> }).__englishPainted]);
+        expect(painted).toEqual([]);
+      });
+
       test("the chain editor names every step whole beside its controls, and its pane keeps its buttons inside", async ({ page }) => {
         await open(page, "&fixture=states&manifest=s1", "record-row", locale);
         await rowNamed(page, "lookahead-provider").getByTestId("record-name").click();
