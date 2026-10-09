@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
+	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -109,7 +110,7 @@ func TestWorkerVmRSS(t *testing.T) {
 	uris := perfgen.URIs(4096)
 	for i := 1; i <= 3; i++ {
 		id := strconv.Itoa(i)
-		payload := mustJSON(callPayload{Service: pluginID + "/subscription", Method: "convert", Payload: mustJSON(subscriptionConvertRequest{URIs: uris, Target: "sing-box"})})
+		payload := mustJSON(callPayload{Service: pluginID + "/subscription", Method: "convert", Payload: mustJSON(model.ConvertRequest{URIs: uris, Target: "sing-box"})})
 		invoke := map[string]any{"protocol": 2, "kind": "invoke", "generation": 1, "invocation_id": id, "request": request{Action: latticeplugin.ActionCall, Payload: payload}}
 		start := time.Now()
 		if err := json.NewEncoder(stdin).Encode(invoke); err != nil {
