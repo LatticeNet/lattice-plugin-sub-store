@@ -103,7 +103,7 @@ const TABLE_WORDS = [
   ".rec-kind-label",
   "[data-testid=record-steps] small",
   "td[data-expiry] .pc-td-body",
-  "[data-testid=record-published] .layer-muted",
+  "[data-testid=record-published] .pc-td-body",
   "td.rec-fetch .pc-td-body",
   "[data-testid=record-flagged] .pc-state-dot",
   "[data-testid=record-missing]",

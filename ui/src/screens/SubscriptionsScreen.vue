@@ -1427,7 +1427,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                       /><template v-if="cell(row).kind.missing && !compact && cell(row).kind.detail"> · </template>{{ cell(row).kind.detail }}
                     </small>
                   </td>
-                  <td data-stack="state" :data-label="t.records.colPublished" :title="cell(row).published.title" data-testid="record-published">
+                  <td data-stack="state" class="rec-published" :data-label="t.records.colPublished" :title="cell(row).published.title" data-testid="record-published">
                     <span class="pc-td-body">
                       <span v-if="cell(row).published.slug" class="layer-share">
                         <PcStateDot :tone="tone(cell(row).published.tone)" :label="cell(row).published.label" />

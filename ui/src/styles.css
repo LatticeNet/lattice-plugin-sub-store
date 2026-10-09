@@ -2474,13 +2474,14 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
    reach into the cell's left padding rather than be cut. */
 .records-table td.rec-steps small { width: auto; min-width: 0; margin-left: -10px; }
 .records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) .layer-provider { flex-direction: column; align-items: flex-start; gap: 2px; }
-/* The last fetch may take the row's second line at full rows rather than cut
-   its time off ("Обновлено 12 ч назад"); compact rows keep one line, cut, with
-   the whole label in the dot's title. */
-.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) td.rec-fetch .pc-td-body,
-.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) td.rec-fetch .pc-state-dot { white-space: normal; }
-.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) td.rec-fetch .pc-state-dot { align-items: flex-start; line-height: 16px; }
-.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) td.rec-fetch .pc-state-dot::before { margin-top: 4.5px; }
+/* The last fetch and a share's state may take the row's second line at full
+   rows rather than cut their words off ("Обновлено 12 ч назад", "/oj-loon
+   expired"); compact rows keep one line, cut, with the whole label in the
+   cell's or the dot's title. */
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-td-body,
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-state-dot { white-space: normal; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-state-dot { align-items: flex-start; line-height: 16px; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-state-dot::before { margin-top: 4.5px; }
 /* Compact rows have one line, so the bar goes, as every other sub-line does. */
 .records-table .pc-table[data-density="compact"]:not([data-stacked="true"]) .layer-provider:has(> .layer-expiry) > .usage { display: none; }
 
