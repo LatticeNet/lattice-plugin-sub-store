@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -10,8 +11,10 @@ import (
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
+	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
 // dispatchRuntime is a store-backed runtime on an engine of its own, booted
@@ -441,5 +444,33 @@ func TestCollectionSnapshotWithoutMemberNodesRendersOnTheBundle(t *testing.T) {
 		if w, i := rt.engine.pathCounts(); w != warm || i != isolated+c.isolated {
 			t.Fatalf("%s: warm %d->%d isolated %d->%d, want %d isolated calls", c.name, warm, w, isolated, i, c.isolated)
 		}
+	}
+}
+
+// bodyHost is the in-memory store plus a provider that answers one body.
+type bodyHost struct {
+	*kvHostCaller
+	body string
+}
+
+func (h *bodyHost) call(method string, params any) (json.RawMessage, error) {
+	if method != latticeplugin.HostMethodHTTPDo {
+		return h.kvHostCaller.call(method, params)
+	}
+	return json.Marshal(map[string]any{"status_code": 200, "body_base64": base64.StdEncoding.EncodeToString([]byte(h.body))})
+}
+
+// A provider body past the raw bound the core keeps is refused with the
+// envelope's stated reason, snapshot_too_large, as it was before refresh
+// counted in Go, and not with the parser's bound, which is the same size.
+func TestOversizeProviderBodyIsRefusedAsTooLarge(t *testing.T) {
+	body := strings.Repeat(strings.Join(perfgen.URIs(1024), "\n")+"\n", 24)
+	if len(body) <= parse.MaxDocumentBytes {
+		t.Fatalf("body is %d bytes, not past the bound", len(body))
+	}
+	rt := &runtime{host: &bodyHost{kvHostCaller: newKVHostCaller(), body: body}, engine: sharedWarmTestEngine(t)}
+	savedRecord(t, rt, subscriptionRecord{ID: "big", Source: subscriptionSourceRemote, URL: "https://provider.example/big", UA: "x"})
+	if _, err := rt.fetchSubscription("big"); err == nil || !strings.HasPrefix(err.Error(), snapshotTooLargeCode+":") {
+		t.Fatalf("fetch of a %d-byte body = %v, want the %s refusal", len(body), err, snapshotTooLargeCode)
 	}
 }

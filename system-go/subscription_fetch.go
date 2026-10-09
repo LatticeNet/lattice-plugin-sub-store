@@ -9,6 +9,7 @@ import (
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -98,6 +99,13 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 			out.nodesIn = &count
 			env.NodesOmitted = nodesOmittedFallback
 			break
+		}
+		if len(out.Raw) > parse.MaxDocumentBytes {
+			// Past the raw bound the core keeps, which is also the parser's:
+			// the envelope refuses it with its stated reason, before a parse
+			// would refuse it with a less useful one.
+			_, err := encodeSnapshotEnvelope(env)
+			return fetchResult{}, err
 		}
 		nodes, err := requireNativeNodes(label, out.Raw)
 		if err != nil {
