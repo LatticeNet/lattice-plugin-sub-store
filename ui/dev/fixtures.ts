@@ -371,7 +371,8 @@ function largeFixture(): Fixture {
  * negative lookahead, the idiom the native engine cannot run and offers to
  * rewrite; a second flagged record whose pattern has no rewrite (a
  * backreference); and a source, a combination and a file whose names are long
- * in Latin and in CJK.
+ * in Latin and in CJK, the source with three tags and one of its two steps
+ * turned off, so the name's tag and the Steps column's second line are drawn.
  */
 const LONG_SOURCE = "imported-sub-long-name";
 function statesFixture(): Fixture {
@@ -408,7 +409,7 @@ function statesFixture(): Fixture {
       tags: ["长名称", "long-name", "provider"],
       source: "remote",
       url: "https://a-provider-with-a-long-host-name.example-subscriptions.invalid/api/v1/client/subscribe?token=longtokenlongtoken",
-      process: steps(2),
+      process: steps(2).map((step, index) => (index === 1 ? { ...(step as object), disabled: true } : step)),
       origin: migrated("subscription"),
       last_fetch_at: ago(9 * HOUR),
       last_fetch_ok: true,

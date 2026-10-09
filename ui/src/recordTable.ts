@@ -66,6 +66,9 @@ export const TEXT = {
   flagged: "regex rewrite",
   flaggedTitle:
     "A pattern in this record's chain uses lookaround or a backreference, which the native engine cannot run. It keeps rendering on the fallback path; editing the step offers a rewrite.",
+  steps: (count: number, off: number) => `${plural(count, "step")}${off ? `, ${off} turned off` : ""}.`,
+  stepsOff: (off: number) => `${off} off`,
+  stepsTarget: (target: string) => `Always rendered for ${target}.`,
   fileServedAsWritten: "served as written",
   fileFrom: (name: string) => `from ${name}`,
   fileFor: (client: string) => `for ${client}`,
@@ -263,7 +266,11 @@ export function lastFetchOf(item: SubscriptionListItem, now: number): RefreshSta
 export interface KindCell {
   /** What the record is, specifically: "Provider link", "Combination", "Script file". */
   label: string;
-  /** What it is connected to: its members, its node source, what uses it. */
+  /**
+   * What it is connected to: its members, its node source, what uses it. A
+   * file names its source before its client, because the name in the row
+   * usually says the client already and a narrow cell cuts the end.
+   */
   detail: string;
   title: string;
   /** References that answer nothing, drawn as an error dot in either density. */
@@ -292,7 +299,7 @@ export function kindOf(item: SubscriptionListItem, items: readonly SubscriptionL
     if (!source) {
       return {
         label,
-        detail: [forClient, TEXT.fileServedAsWritten].filter(Boolean).join(" · "),
+        detail: [TEXT.fileServedAsWritten, forClient].filter(Boolean).join(" · "),
         title: `Nothing fills it: the document is served as written.${clientTitle}`,
         missing: 0,
         missingLabel: "",
@@ -303,7 +310,7 @@ export function kindOf(item: SubscriptionListItem, items: readonly SubscriptionL
     }
     return {
       label,
-      detail: [forClient, TEXT.fileFrom(name(source))].filter(Boolean).join(" · "),
+      detail: [TEXT.fileFrom(name(source)), forClient].filter(Boolean).join(" · "),
       title: `Its proxy list is filled from ${name(source)}.${clientTitle}`,
       missing: 0,
       missingLabel: "",
@@ -331,6 +338,28 @@ export function kindOf(item: SubscriptionListItem, items: readonly SubscriptionL
     title: users.length ? `Feeds ${users.join(", ")}` : TEXT.usedByNothing("source"),
     missing: 0,
     missingLabel: "",
+  };
+}
+
+// ── steps ────────────────────────────────────────────────────────────────────
+
+export interface StepsCell {
+  count: string;
+  /** "1 off" under the count, or "" when every step runs. */
+  off: string;
+  title: string;
+}
+
+/**
+ * The chain's length, and how many of its steps are turned off on a line of
+ * their own, so the column stays narrow; the title says both in words.
+ */
+export function stepsOf(item: Pick<SubscriptionListItem, "step_count" | "disabled_step_count" | "target">): StepsCell {
+  const off = item.disabled_step_count || 0;
+  return {
+    count: String(item.step_count),
+    off: off ? TEXT.stepsOff(off) : "",
+    title: [TEXT.steps(item.step_count, off), item.target ? TEXT.stepsTarget(item.target) : ""].filter(Boolean).join(" "),
   };
 }
 

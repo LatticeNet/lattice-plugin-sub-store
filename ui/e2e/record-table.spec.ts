@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 /**
  * The Records table (design 28, S1): every state it draws, named by a test id
@@ -28,6 +28,29 @@ async function seriousViolations(page: Page): Promise<string[]> {
     .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
     .map((violation) => `${violation.id}: ${violation.nodes.map((node) => node.target.join(" ")).slice(0, 3).join(", ")}`);
 }
+
+/** The content is wider than the box: cut by an ellipsis, a clip, or a scroller. */
+const widerThanBox = (locator: Locator) => locator.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+
+/**
+ * The text's leading `prefix` is drawn inside the element's box, clear of the
+ * ellipsis (about one mono character) that a cut line ends in.
+ */
+const showsPrefix = (locator: Locator, prefix: string) =>
+  locator.evaluate((el, prefix) => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const at = (node.textContent ?? "").indexOf(prefix);
+      if (at < 0) continue;
+      const range = document.createRange();
+      range.setStart(node, at);
+      range.setEnd(node, at + prefix.length);
+      return range.getBoundingClientRect().right <= el.getBoundingClientRect().right - 8;
+    }
+    return false;
+  }, prefix);
+
+const LONG = "一个非常非常长的机场订阅名称用来检查截断与换行-and-a-very-long-latin-provider-subscription-name-as-well";
 
 const rowNamed = (page: Page, name: string) => page.getByTestId("record-row").filter({ has: page.getByTestId("record-name").getByText(name, { exact: true }) });
 const positionOf = (page: Page, name: string) => rowNamed(page, name).getByTestId("record-position");
@@ -90,13 +113,18 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 
         await expect(rowNamed(page, name).getByTestId("record-flagged"), name).toBeVisible();
       }
       await expect(rowNamed(page, "建材市场").getByTestId("record-flagged")).toHaveCount(0);
-      // Long names stay inside their cell and the page never scrolls sideways.
-      const long = page.getByTestId("record-name").filter({ hasText: "一个非常非常长的机场订阅名称" });
+      // A long name stays inside its own cell, with the whole name in the
+      // title, and the table fits its frame: neither the page nor the table's
+      // own wrapper scrolls sideways (the wrapper scrolls rather than the page
+      // when the table outgrows it, so the page width alone cannot tell).
+      const long = rowNamed(page, LONG).getByTestId("record-name");
       await long.scrollIntoViewIfNeeded();
       const name = (await long.boundingBox())!;
-      const table = (await page.getByTestId("records-table").boundingBox())!;
-      expect(name.x + name.width).toBeLessThanOrEqual(table.x + table.width + 1);
+      const cell = (await long.locator("xpath=ancestor::td[1]").boundingBox())!;
+      expect(name.x + name.width).toBeLessThanOrEqual(cell.x + cell.width + 1);
       await expect(long).toHaveAttribute("title", /一个非常非常长的机场订阅名称/);
+      if (viewport.width > 480) expect(await widerThanBox(long.locator("strong")), "the long name ends in an ellipsis").toBe(true);
+      expect(await widerThanBox(page.getByTestId("records-table")), "the table scrolls inside its wrapper").toBe(false);
       expect(await docWidth(page)).toBe(viewport.width);
       expect(await seriousViolations(page)).toEqual([]);
     });
@@ -126,6 +154,61 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 
     });
   });
 }
+
+test.describe("at 1440 every column keeps what it says", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("the name keeps its room, and the flag, the tag and each cell's facts stay whole", async ({ page }) => {
+    await open(page, "&fixture=states&manifest=s1", "record-row");
+    const table = page.getByTestId("records-table");
+    expect((await table.locator("th.pc-name").boundingBox())!.width).toBeGreaterThanOrEqual(360);
+    // A short flagged name is not cut for the marker beside it.
+    for (const name of ["lookahead-provider", "backreference-rename"]) {
+      expect(await widerThanBox(rowNamed(page, name).getByTestId("record-name").locator("strong")), name).toBe(false);
+    }
+    // A long name with three tags stays as tall as a name with a remark: one
+    // tag and a count, never a stack, and the kind icon stays on the name's line.
+    const longRow = rowNamed(page, LONG);
+    const twoLines = (await rowNamed(page, "lookahead-provider").boundingBox())!.height;
+    expect((await longRow.boundingBox())!.height).toBeLessThanOrEqual(twoLines + 1);
+    await expect(longRow.locator(".pc-tag")).toHaveText(["长名称", "+2"]);
+    const icon = (await longRow.locator(".rec-kind-icon").boundingBox())!;
+    const longName = (await longRow.getByTestId("record-name").boundingBox())!;
+    expect(Math.abs(icon.y + icon.height / 2 - (longName.y + longName.height / 2))).toBeLessThan(6);
+
+    // Kind: the name of the kind stays whole beside a reference that is gone,
+    // and a file names its source before its client.
+    const gone = rowNamed(page, "for-loon-novpn");
+    expect(await widerThanBox(gone.locator(".rec-kind-label"))).toBe(false);
+    await expect(gone.getByTestId("record-missing")).toHaveText("source gone");
+    expect(await showsPrefix(rowNamed(page, "for-cdcd-egern").locator(".rec-kind-sub"), "from merge-cd-openjobs")).toBe(true);
+
+    // Expiry and traffic: the date whole, the figure inside the cell.
+    const provider = rowNamed(page, "建材市场").locator("td[data-expiry]");
+    expect(await widerThanBox(provider.locator(".layer-expiry"))).toBe(false);
+    await expect(provider.locator(".usage-figure")).toHaveText("82%");
+    const figure = (await provider.locator(".usage-figure").boundingBox())!;
+    const expiryCell = (await provider.boundingBox())!;
+    expect(figure.x + figure.width).toBeLessThanOrEqual(expiryCell.x + expiryCell.width);
+
+    // Steps: the turned-off count on its own line, whole, and in words in the title.
+    const steps = longRow.getByTestId("record-steps");
+    await expect(steps).toHaveAttribute("title", "2 steps, 1 turned off.");
+    await expect(steps.locator("small")).toHaveText("1 off");
+    expect(await widerThanBox(steps.locator("small"))).toBe(false);
+  });
+
+  test("on a legacy store the counting word fits the node columns", async ({ page }) => {
+    await open(page, "&store=legacy&manifest=s1", "records-migrate");
+    // Read in the frame the word is drawn: the previews behind it finish within a second.
+    const counting = await page.waitForFunction(() => {
+      const cells = [...document.querySelectorAll('[data-testid="record-nodes-in"] .pc-td-body')];
+      const words = cells.filter((cell) => cell.textContent?.trim() === "counting");
+      return words.length ? words.map((cell) => cell.scrollWidth > cell.clientWidth + 1) : null;
+    });
+    expect(await counting.jsonValue()).not.toContain(true);
+  });
+});
 
 test.describe("at 375 the table is stacked rows", () => {
   test.use({ viewport: { width: 375, height: 812 } });
@@ -260,4 +343,5 @@ test.describe("a chain the native engine cannot run", () => {
     await expect(page.getByTestId("record-row").first()).toBeVisible();
     await expect(rowNamed(page, "lookahead-provider").getByTestId("record-flagged")).toHaveCount(0);
   });
+
 });

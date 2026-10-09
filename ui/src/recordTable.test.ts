@@ -17,6 +17,7 @@ import {
   nodeCountsOf,
   publishedOf,
   reorderBlock,
+  stepsOf,
 } from "./recordTable";
 
 const NOW = Date.parse("2026-10-09T08:00:00Z");
@@ -130,6 +131,7 @@ describe("the kind cell", () => {
     row({ id: "combo", kind: KIND_COLLECTION, name: "merge", members: ["src", "gone"] }),
     row({ id: "loon", kind: KIND_FILE, name: "for-cdcd-loon", file_type: "config", node_source: "combo" }),
     row({ id: "rules", kind: KIND_FILE, name: "rules", file_type: "plain" }),
+    row({ id: "clash", kind: KIND_FILE, name: "for-clash-rules", file_type: "plain" }),
     row({ id: "orphan", kind: KIND_FILE, name: "for-stash", file_type: "script", node_source: "retired" }),
   ];
   const lineage = buildLineage(items, undefined);
@@ -138,13 +140,25 @@ describe("the kind cell", () => {
   it("names what a record is and what it connects to", () => {
     expect(cell("src")).toMatchObject({ label: "Pasted nodes", detail: "feeds 1 combination", missing: 0 });
     expect(cell("combo")).toMatchObject({ label: "Combination", detail: "cdcd-self-host", missing: 1, missingLabel: "1 missing" });
-    expect(cell("loon")).toMatchObject({ label: "Configuration file", detail: "for Loon · from merge", missing: 0 });
     expect(cell("rules")).toMatchObject({ label: "Plain text file", detail: TEXT.fileServedAsWritten });
+  });
+
+  it("names a file's source before its client, so a narrow cell cuts the client the row's name already says", () => {
+    expect(cell("loon")).toMatchObject({ label: "Configuration file", detail: "from merge · for Loon", missing: 0 });
+    expect(cell("clash").detail).toBe(`${TEXT.fileServedAsWritten} · for Clash`);
   });
 
   it("marks a file whose node source is gone, and keeps the id in the title", () => {
     expect(cell("orphan")).toMatchObject({ label: "Script file", detail: "for Stash", missing: 1, missingLabel: TEXT.fileGone });
     expect(cell("orphan").title).toContain("retired is no longer in the store");
+  });
+});
+
+describe("the steps cell", () => {
+  it("puts the turned-off steps on a line of their own, and says both in the title", () => {
+    expect(stepsOf(row({ step_count: 2, disabled_step_count: 1 }))).toEqual({ count: "2", off: "1 off", title: "2 steps, 1 turned off." });
+    expect(stepsOf(row({ step_count: 1 }))).toEqual({ count: "1", off: "", title: "1 step." });
+    expect(stepsOf(row({ step_count: 3, target: "Surge" })).title).toBe("3 steps. Always rendered for Surge.");
   });
 });
 

@@ -75,6 +75,7 @@ import {
   nodeCountsOf,
   publishedOf,
   reorderBlock,
+  stepsOf,
   type KindFacet,
 } from "../recordTable";
 import { knownFileType, useSubscriptions } from "../useSubscriptions";
@@ -703,8 +704,9 @@ function recount(id: string): void {
   if (subs.canPreview.value && table.value.rows.some((row) => row.id === id && countsNeedPreview(row, subs.storeVersion.value))) counts.request([id]);
 }
 
-function stepsOf(row: SubscriptionListItem): string {
-  return row.disabled_step_count ? `${row.step_count} (${row.disabled_step_count} off)` : String(row.step_count);
+/** A count cell holds a figure, or a word ("counting", "unknown") drawn quieter than one. */
+function isFigure(text: string): boolean {
+  return /^\d/.test(text);
 }
 
 function kindIcon(row: SubscriptionListItem) {
@@ -1290,13 +1292,16 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                 />
                 <PcTh v-if="showRail" numeric width="56px">#</PcTh>
                 <PcTh name>Name</PcTh>
-                <PcTh width="180px">Kind</PcTh>
+                <!-- The name takes what these leave: 367px at 1440 with the
+                     order rail. Expiry and Steps put their second fact on a
+                     line of its own rather than widening the row. -->
+                <PcTh width="192px">Kind</PcTh>
                 <PcTh width="120px">Published</PcTh>
-                <PcTh numeric width="76px">Nodes in</PcTh>
-                <PcTh numeric width="88px">Nodes out</PcTh>
-                <PcTh numeric width="60px">Steps</PcTh>
-                <PcTh width="270px">Expiry and traffic</PcTh>
-                <PcTh width="168px">Last fetch</PcTh>
+                <PcTh numeric width="84px">Nodes in</PcTh>
+                <PcTh numeric width="84px">Nodes out</PcTh>
+                <PcTh numeric width="64px">Steps</PcTh>
+                <PcTh width="168px">Expiry and traffic</PcTh>
+                <PcTh width="152px">Last fetch</PcTh>
                 <PcTh actions width="48px" aria-label="Actions" />
               </template>
               <tbody>
@@ -1353,22 +1358,33 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                         <PcStateDot tone="warning" :label="TEXT.flagged" />
                         <span class="pc-sr-only">{{ TEXT.flaggedTitle }}</span>
                       </span>
-                      <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="2" /></span>
+                      <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="1" /></span>
                     </div>
                     <!-- The remark, when there is one. Not the id: a migrated
                          record's id is `imported-` and its name again. -->
                     <small v-if="row.remark" :title="row.remark">{{ row.remark }}</small>
                   </td>
                   <td data-stack="summary" data-label="Kind" :title="cell(row).kind.title" class="rec-kind-cell">
+                    <!-- A reference that answers nothing leads the second line,
+                         so the kind's name stays whole beside it; compact rows
+                         have no second line, so there it follows the name. -->
                     <span class="pc-td-body rec-kind-line">
                       <span class="rec-kind-label">{{ cell(row).kind.label }}</span>
                       <PcStateDot
-                        v-if="cell(row).kind.missing"
+                        v-if="cell(row).kind.missing && compact"
                         tone="error"
                         :label="cell(row).kind.missingLabel"
+                        data-testid="record-missing"
                       />
                     </span>
-                    <small v-if="cell(row).kind.detail">{{ cell(row).kind.detail }}</small>
+                    <small v-if="cell(row).kind.detail || (cell(row).kind.missing && !compact)" class="rec-kind-sub">
+                      <PcStateDot
+                        v-if="cell(row).kind.missing && !compact"
+                        tone="error"
+                        :label="cell(row).kind.missingLabel"
+                        data-testid="record-missing"
+                      /><template v-if="cell(row).kind.missing && !compact && cell(row).kind.detail"> · </template>{{ cell(row).kind.detail }}
+                    </small>
                   </td>
                   <td data-stack="state" data-label="Published" :title="cell(row).published.title" data-testid="record-published">
                     <span class="pc-td-body">
@@ -1394,21 +1410,23 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                   </td>
                   <template v-if="!stacked">
                     <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes in" :title="cell(row).counts.title" data-testid="record-nodes-in">
-                      <span class="pc-td-body">{{ cell(row).counts.in }}</span>
+                      <span class="pc-td-body" :class="{ 'layer-muted': !isFigure(cell(row).counts.in) }">{{ cell(row).counts.in }}</span>
                     </td>
                     <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes out" :title="cell(row).counts.title" data-testid="record-nodes-out">
-                      <span class="pc-td-body">{{ cell(row).counts.out }}</span>
+                      <span class="pc-td-body" :class="{ 'layer-muted': !isFigure(cell(row).counts.out) }">{{ cell(row).counts.out }}</span>
                     </td>
                   </template>
                   <td v-else data-stack="state" data-label="Nodes" :title="cell(row).counts.title" class="pc-mono rec-nodes-pair" data-testid="record-nodes">
                     {{ cell(row).counts.pair }}
                   </td>
-                  <td class="pc-numeric pc-mono" data-stack="detail" data-label="Steps" :title="row.target ? `Always rendered for ${row.target}` : undefined">
-                    <span class="pc-td-body">{{ stepsOf(row) }}</span>
+                  <td class="pc-numeric pc-mono rec-steps" data-stack="detail" data-label="Steps" :title="stepsOf(row).title" data-testid="record-steps">
+                    <span class="pc-td-body">{{ stepsOf(row).count }}</span>
+                    <small v-if="stepsOf(row).off">{{ stepsOf(row).off }}</small>
                   </td>
                   <td data-stack="state" data-label="Expiry and traffic" :title="cell(row).expiry.title" :data-expiry="cell(row).expiry.state">
-                    <!-- The expiry first: when the cell is short of room, the bar
-                         is what gives way, never the date. -->
+                    <!-- The expiry first, the bar under it at full rows: when the
+                         cell is short of room the bar is what gives way, never
+                         the date, and compact rows drop the bar. -->
                     <span v-if="cell(row).expiry.figures" class="pc-td-body layer-provider">
                       <span
                         v-if="cell(row).expiry.text"

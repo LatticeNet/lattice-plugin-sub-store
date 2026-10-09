@@ -2452,6 +2452,24 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .records-table .pc-table:not([data-stacked="true"]) td { overflow: hidden; }
 .records-table .pc-table:not([data-stacked="true"]) td .pc-td-body { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* The fixed layout bounds the name, so the 380px cap other tables need would
+   only cut a name short on a wide frame. The name takes its own width and the
+   flag and the tag follow it; one tag shows, never wrapping into a stack that
+   would make the row three lines tall, and it gives way before the name. */
+.records-table .pc-table:not([data-stacked="true"]) .pc-name-line > .row-open { flex: 0 1 auto; max-width: none; }
+.records-table .pc-table:not([data-stacked="true"]) .pc-name-after { flex: 0 0 auto; max-width: 40%; overflow: hidden; }
+.records-table .pc-name-after .pc-tag-list { flex-wrap: nowrap; }
+
+/* Second lines that sit in narrow columns: the turned-off steps under the
+   count, and the traffic bar under the expiry. The chassis floors a cell's
+   sub-line at 126px, which a 64px column would clip on the wrong side. */
+.records-table td.rec-steps small { width: auto; min-width: 0; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) .layer-provider { flex-direction: column; align-items: flex-start; gap: 2px; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) .layer-provider > * { max-width: 100%; line-height: 16px; }
+.records-table .pc-table:not([data-stacked="true"]) .layer-expiry { overflow: hidden; text-overflow: ellipsis; }
+/* Compact rows have one line, so the bar goes, as every other sub-line does. */
+.records-table .pc-table[data-density="compact"]:not([data-stacked="true"]) .layer-provider:has(> .layer-expiry) > .usage { display: none; }
+
 /* The order rail: the record's place in the store's manual order, in mono,
    and the grip that moves it. */
 .records-table td.rec-order { width: 56px; padding-right: var(--space-1); color: var(--muted-foreground); }
@@ -2489,6 +2507,9 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .rec-kind-label { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* A reference that answers nothing stays whole; the kind's name gives way. */
 .rec-kind-line > .pc-state-dot { flex: 0 0 auto; }
+/* On the second line it sits on the line's own box: an inline-flex that clips
+   aligns by its bottom edge and would make the row a pixel taller. */
+.rec-kind-sub > .pc-state-dot { vertical-align: top; line-height: 16px; }
 .rec-nodes-pair { font-size: var(--lt-text-xs); white-space: nowrap; }
 .layer-expiry[data-tone="warn"] { color: var(--warning-text); }
 .layer-expiry[data-tone="danger"] { color: var(--lt-danger-ink); }
