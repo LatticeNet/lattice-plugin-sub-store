@@ -1,29 +1,163 @@
 goos: linux
 goarch: amd64
 pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go
-cpu: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
-BenchmarkPipelineReality1000SingBox-4   	      61	  19023432 ns/op	 8202785 B/op	   61565 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      60	  19330138 ns/op	 8207985 B/op	   61566 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      62	  19122264 ns/op	 8207365 B/op	   61565 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      61	  18950241 ns/op	 8205839 B/op	   61566 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      62	  19830368 ns/op	 8202534 B/op	   61565 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      61	  19316065 ns/op	 8203918 B/op	   61565 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      63	  19003661 ns/op	 8203622 B/op	   61566 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      58	  19033311 ns/op	 8211076 B/op	   61567 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      62	  18937280 ns/op	 8209216 B/op	   61566 allocs/op
-BenchmarkPipelineReality1000SingBox-4   	      62	  19063860 ns/op	 8205653 B/op	   61566 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      15	  76142231 ns/op	33824472 B/op	  250717 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  76948199 ns/op	33829898 B/op	  250715 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  75884873 ns/op	33835018 B/op	  250717 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  76260332 ns/op	33835029 B/op	  250717 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  77388229 ns/op	33834855 B/op	  250716 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  75696709 ns/op	33834679 B/op	  250714 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  76214382 ns/op	33834958 B/op	  250717 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  76827034 ns/op	33826730 B/op	  250714 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  75583201 ns/op	33832361 B/op	  250717 allocs/op
-BenchmarkPipelineReality4096SingBox-4   	      14	  75789290 ns/op	33835026 B/op	  250717 allocs/op
+cpu: INTEL(R) XEON(R) PLATINUM 8573C
+BenchmarkPipelineReality1000SingBox-4   	     201	   5824492 ns/op	 4139039 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     207	   5718702 ns/op	 4137412 B/op	   22482 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     207	   5760463 ns/op	 4138728 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     207	   5960409 ns/op	 4138340 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     206	   5858475 ns/op	 4142485 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     207	   5786882 ns/op	 4137077 B/op	   22482 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     207	   5811119 ns/op	 4140296 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     205	   5814911 ns/op	 4140855 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     206	   5817490 ns/op	 4139103 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     205	   5752277 ns/op	 4137958 B/op	   22482 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      46	  23145385 ns/op	17039967 B/op	   90673 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      48	  22746047 ns/op	17038701 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      49	  22961055 ns/op	17037280 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      48	  23022195 ns/op	17037096 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      49	  22909756 ns/op	17038002 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      48	  22721793 ns/op	17037088 B/op	   90673 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      43	  23670942 ns/op	17044909 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      50	  23414237 ns/op	17037430 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      51	  23184060 ns/op	17039660 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      46	  23508890 ns/op	17039339 B/op	   90674 allocs/op
+BenchmarkParseReality1000-4             	     100	  10166993 ns/op	 4051524 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10105055 ns/op	 4051528 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10115432 ns/op	 4051527 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10145978 ns/op	 4051526 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10151959 ns/op	 4051526 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10111723 ns/op	 4051527 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10170951 ns/op	 4051528 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10142149 ns/op	 4051532 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10115117 ns/op	 4051525 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	     100	  10159164 ns/op	 4051529 B/op	   39075 allocs/op
+BenchmarkParseReality4096-4             	      27	  41687858 ns/op	16704690 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      28	  42228484 ns/op	16704700 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      26	  41073490 ns/op	16704697 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      28	  41377087 ns/op	16704685 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      27	  41653301 ns/op	16704701 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      28	  41410774 ns/op	16704692 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      27	  41374633 ns/op	16704699 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      28	  41429905 ns/op	16704690 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      26	  41170206 ns/op	16704695 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      26	  41504882 ns/op	16704705 B/op	  160032 allocs/op
 PASS
-ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go	22.728s
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go	59.631s
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/cmd/substore-conformance	0.003s
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel	0.002s
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/normalise	0.002s
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators	0.003s
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse	0.003s
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen	0.002s
+goos: linux
+goarch: amd64
+pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers
+cpu: INTEL(R) XEON(R) PLATINUM 8573C
+BenchmarkProduce4096/uri-4         	      63	  16393713 ns/op	10727250 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      61	  16411422 ns/op	10728612 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      66	  16249411 ns/op	10725361 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      62	  16376025 ns/op	10727921 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      61	  16449274 ns/op	10728615 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      73	  16331127 ns/op	10721553 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      62	  16337882 ns/op	10727920 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      73	  16604061 ns/op	10721557 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      63	  16368586 ns/op	10727249 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      63	  16331145 ns/op	10727255 B/op	  120369 allocs/op
+BenchmarkProduce4096/v2ray-4       	      56	  18146045 ns/op	14873140 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      66	  18164458 ns/op	14869054 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      56	  18075309 ns/op	14873138 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      64	  18045716 ns/op	14869704 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      66	  17929052 ns/op	14868970 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      58	  17943033 ns/op	14872191 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      67	  18130434 ns/op	14868626 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      56	  18004657 ns/op	14873137 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      64	  18628942 ns/op	14869705 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      55	  18182625 ns/op	14873645 B/op	  120383 allocs/op
+BenchmarkProduce4096/json-4        	      66	  18278859 ns/op	22187521 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      57	  18146657 ns/op	22193346 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      67	  17646230 ns/op	22186969 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      66	  17956393 ns/op	22187520 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      66	  18062506 ns/op	22187523 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      66	  17790746 ns/op	22187526 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      66	  17914628 ns/op	22187523 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      66	  18055493 ns/op	22187520 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      64	  18491652 ns/op	22188677 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      64	  18187984 ns/op	22188680 B/op	   37695 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20112667 ns/op	24196027 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20108428 ns/op	24196057 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20123184 ns/op	24196028 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      50	  20205155 ns/op	24202556 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20101702 ns/op	24196083 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20075512 ns/op	24196027 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20425418 ns/op	24196051 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20186298 ns/op	24196039 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      50	  20135498 ns/op	24202513 B/op	   90698 allocs/op
+BenchmarkProduce4096/singbox-4     	      58	  20217294 ns/op	24196049 B/op	   90699 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  21142060 ns/op	19464905 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  21244359 ns/op	19464899 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  21126698 ns/op	19464901 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  20951512 ns/op	19464900 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  20899163 ns/op	19464900 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  21283742 ns/op	19464900 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  20954437 ns/op	19464897 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      55	  21370319 ns/op	19465508 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      55	  21350111 ns/op	19465507 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      56	  21049184 ns/op	19464897 B/op	   46676 allocs/op
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers	58.772s
+goos: linux
+goarch: amd64
+pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go
+cpu: AMD EPYC 7763 64-Core Processor
+BenchmarkPipelineReality1000SingBox-4   	     136	   8940228 ns/op	 4132252 B/op	   22480 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     154	   7696767 ns/op	 4139219 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     159	   7513543 ns/op	 4138573 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     158	   7503121 ns/op	 4140409 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     156	   7551265 ns/op	 4141141 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     146	   7528767 ns/op	 4142464 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     151	   7428559 ns/op	 4141667 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     160	   7611616 ns/op	 4141603 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     160	   7423377 ns/op	 4141116 B/op	   22483 allocs/op
+BenchmarkPipelineReality1000SingBox-4   	     159	   7430456 ns/op	 4139740 B/op	   22483 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      36	  34169516 ns/op	17054466 B/op	   90675 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      36	  33379551 ns/op	17051437 B/op	   90675 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      34	  33398534 ns/op	17053988 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      34	  34615011 ns/op	17051726 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      34	  33383987 ns/op	17052929 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      34	  33681883 ns/op	17048546 B/op	   90674 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      31	  34654366 ns/op	17058665 B/op	   90675 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      32	  34222011 ns/op	17057028 B/op	   90675 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      33	  33759297 ns/op	17054430 B/op	   90675 allocs/op
+BenchmarkPipelineReality4096SingBox-4   	      38	  33288901 ns/op	17047086 B/op	   90674 allocs/op
+BenchmarkParseReality1000-4             	      86	  13092964 ns/op	 4051524 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      88	  13274079 ns/op	 4051522 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      87	  12983890 ns/op	 4051523 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      88	  13133227 ns/op	 4051520 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      90	  13100366 ns/op	 4051522 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      92	  13095895 ns/op	 4051524 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      87	  12950746 ns/op	 4051525 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      92	  13052410 ns/op	 4051525 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      84	  13296417 ns/op	 4051524 B/op	   39075 allocs/op
+BenchmarkParseReality1000-4             	      86	  13096700 ns/op	 4051520 B/op	   39075 allocs/op
+BenchmarkParseReality4096-4             	      21	  53136254 ns/op	16704693 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      20	  53518143 ns/op	16704708 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      21	  54702562 ns/op	16704718 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      21	  52763897 ns/op	16704700 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      21	  53157701 ns/op	16704689 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      22	  52834538 ns/op	16704691 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      21	  52916229 ns/op	16704704 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      21	  54442712 ns/op	16704696 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      20	  55305118 ns/op	16704695 B/op	  160032 allocs/op
+BenchmarkParseReality4096-4             	      21	  55311383 ns/op	16704697 B/op	  160032 allocs/op
+PASS
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go	65.455s
 PASS
 ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/cmd/substore-conformance	0.003s
 PASS
@@ -35,60 +169,60 @@ ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators	0.003s
 PASS
 ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse	0.003s
 PASS
-ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen	0.002s
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen	0.003s
 goos: linux
 goarch: amd64
 pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers
-cpu: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
-BenchmarkProduce4096/uri-4         	      52	  20660502 ns/op	10736050 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      52	  20656377 ns/op	10736050 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      51	  21486648 ns/op	10737040 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      50	  20813840 ns/op	10738064 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      50	  20681485 ns/op	10738064 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      57	  20559202 ns/op	10731635 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      50	  20701008 ns/op	10738171 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      56	  20851948 ns/op	10732448 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      49	  20725849 ns/op	10739132 B/op	  120369 allocs/op
-BenchmarkProduce4096/uri-4         	      49	  20704381 ns/op	10739131 B/op	  120369 allocs/op
-BenchmarkProduce4096/v2ray-4       	      45	  23124945 ns/op	14879862 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      51	  22802305 ns/op	14875835 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      50	  23332644 ns/op	14876444 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      51	  23244651 ns/op	14875839 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      52	  22754413 ns/op	14875253 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      46	  23298672 ns/op	14879118 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      51	  23160064 ns/op	14875834 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      51	  23147179 ns/op	14875836 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      45	  23127950 ns/op	14879860 B/op	  120383 allocs/op
-BenchmarkProduce4096/v2ray-4       	      50	  23258757 ns/op	14876444 B/op	  120383 allocs/op
-BenchmarkProduce4096/json-4        	      50	  23206998 ns/op	22199316 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      49	  23693678 ns/op	22200309 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      52	  22346592 ns/op	22197444 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      50	  23171302 ns/op	22199318 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      51	  23011152 ns/op	22198362 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      50	  23573000 ns/op	22199325 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      50	  23359390 ns/op	22199316 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      51	  22855465 ns/op	22198362 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      50	  23621869 ns/op	22199316 B/op	   37695 allocs/op
-BenchmarkProduce4096/json-4        	      49	  23797446 ns/op	22200309 B/op	   37695 allocs/op
-BenchmarkProduce4096/singbox-4     	      45	  26039251 ns/op	24207698 B/op	   90698 allocs/op
-BenchmarkProduce4096/singbox-4     	      42	  26412031 ns/op	24211588 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      39	  26279572 ns/op	24215869 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      45	  25978720 ns/op	24207798 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      45	  25976096 ns/op	24207743 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      45	  26052288 ns/op	24207800 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      42	  26158334 ns/op	24211577 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      44	  26276198 ns/op	24208998 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      39	  26245280 ns/op	24215894 B/op	   90699 allocs/op
-BenchmarkProduce4096/singbox-4     	      38	  26399357 ns/op	24217550 B/op	   90700 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      39	  26876115 ns/op	19479438 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      44	  26772644 ns/op	19473996 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      43	  27212065 ns/op	19474989 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      45	  26358939 ns/op	19473052 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      44	  26613298 ns/op	19473996 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      44	  26830757 ns/op	19473996 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      43	  27122773 ns/op	19474982 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      43	  27074797 ns/op	19474981 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      43	  27265089 ns/op	19474981 B/op	   46676 allocs/op
-BenchmarkProduce4096/clashmeta-4   	      44	  26419161 ns/op	19474009 B/op	   46676 allocs/op
+cpu: AMD EPYC 7763 64-Core Processor
+BenchmarkProduce4096/uri-4         	      44	  24938671 ns/op	10745210 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      40	  25573526 ns/op	10751163 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      42	  25717124 ns/op	10748177 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      45	  25670521 ns/op	10743883 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      40	  25788114 ns/op	10751162 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      40	  25414062 ns/op	10751168 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      45	  25946454 ns/op	10743895 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      42	  24951183 ns/op	10748045 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      46	  25203214 ns/op	10742622 B/op	  120369 allocs/op
+BenchmarkProduce4096/uri-4         	      42	  25362779 ns/op	10748042 B/op	  120369 allocs/op
+BenchmarkProduce4096/v2ray-4       	      38	  27360634 ns/op	14886172 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      44	  26743046 ns/op	14880637 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      37	  27304643 ns/op	14887262 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      43	  27339750 ns/op	14881454 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      37	  27595216 ns/op	14887260 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      43	  27359532 ns/op	14881455 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      39	  27603240 ns/op	14885131 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      37	  27877599 ns/op	14887261 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      38	  26896104 ns/op	14886162 B/op	  120383 allocs/op
+BenchmarkProduce4096/v2ray-4       	      36	  27799669 ns/op	14888419 B/op	  120383 allocs/op
+BenchmarkProduce4096/json-4        	      46	  25391028 ns/op	22203547 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      42	  25406058 ns/op	22208587 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      46	  25440161 ns/op	22203547 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      45	  25904564 ns/op	22204723 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      46	  25409255 ns/op	22203547 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      46	  25499634 ns/op	22203550 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      45	  26071891 ns/op	22204723 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      45	  26263928 ns/op	22204723 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      44	  26632377 ns/op	22205957 B/op	   37695 allocs/op
+BenchmarkProduce4096/json-4        	      44	  26596183 ns/op	22205952 B/op	   37695 allocs/op
+BenchmarkProduce4096/singbox-4     	      33	  32247803 ns/op	24226846 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      32	  31795068 ns/op	24229184 B/op	   90700 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31631403 ns/op	24219095 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31492877 ns/op	24219148 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31374580 ns/op	24219119 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31215701 ns/op	24219173 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31460733 ns/op	24219210 B/op	   90700 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31718669 ns/op	24219136 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      37	  31561640 ns/op	24219155 B/op	   90699 allocs/op
+BenchmarkProduce4096/singbox-4     	      32	  32117874 ns/op	24229040 B/op	   90698 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  29901277 ns/op	19479441 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  29885321 ns/op	19479438 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  29683214 ns/op	19479436 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  29755630 ns/op	19479436 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      33	  30594780 ns/op	19488143 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  30238621 ns/op	19479439 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      38	  30618444 ns/op	19480696 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  29312115 ns/op	19479436 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      38	  30569867 ns/op	19480699 B/op	   46676 allocs/op
+BenchmarkProduce4096/clashmeta-4   	      39	  29735629 ns/op	19479445 B/op	   46676 allocs/op
 PASS
-ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers	59.180s
+ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers	59.023s
