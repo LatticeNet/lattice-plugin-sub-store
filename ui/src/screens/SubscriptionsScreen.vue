@@ -22,7 +22,7 @@ import {
 
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
-import RecordMenu from "../components/RecordMenu.vue";
+import RecordMenu, { type RecordMove } from "../components/RecordMenu.vue";
 import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import TargetSheet from "../components/TargetSheet.vue";
 import SubscriptionEditor from "../components/SubscriptionEditor.vue";
@@ -59,7 +59,7 @@ import { useShares } from "../useShares";
 import { useNodeCounts } from "../useNodeCounts";
 import { describeSubStoreBase, resolveSubStoreBase } from "../migrateUrl";
 import { buildLineage, plural } from "../pipeline";
-import { dropMove, gapAt, stepMove } from "../recordOrder";
+import { dropMove, edgeScrollSpeed, gapAt, namedMove, stepMove, type MoveId } from "../recordOrder";
 import {
   KIND_FACETS,
   TEXT,
@@ -785,6 +785,36 @@ function moveStep(row: SubscriptionListItem, direction: -1 | 1): void {
   void commitOrder(row, next, true);
 }
 
+/**
+ * The row menu's moves, while the rows can be moved: up, down, and to either
+ * end of the rows shown, each off where the row already is. They run the
+ * same commit as a drag, so the announcement and the revert on refusal come
+ * with them; focus goes back to the menu's trigger, wherever the row lands.
+ */
+function movesFor(row: SubscriptionListItem): RecordMove[] {
+  if (!canMove.value) return [];
+  const at = sorted.value.findIndex((item) => item.id === row.id);
+  const top = at <= 0;
+  const bottom = at < 0 || at >= sorted.value.length - 1;
+  return [
+    { id: "up", label: TEXT.moveUp, title: TEXT.moveTitle, disabled: top },
+    { id: "down", label: TEXT.moveDown, title: TEXT.moveTitle, disabled: bottom },
+    { id: "top", label: TEXT.moveTop, title: TEXT.moveTitle, disabled: top },
+    { id: "bottom", label: TEXT.moveBottom, title: TEXT.moveTitle, disabled: bottom },
+  ];
+}
+function moveFromMenu(row: SubscriptionListItem, where: MoveId): void {
+  closeRowMenu();
+  if (!canMove.value) return;
+  const order = subs.items.value.map((item) => item.id);
+  const next = namedMove(order, sorted.value.map((item) => item.id), row.id, where);
+  if (!next) {
+    announce(TEXT.moveAtEdge(labelOf(row), where === "up" || where === "top" ? "top" : "bottom"));
+    return;
+  }
+  void commitOrder(row, next, false);
+}
+
 /** On the grip, the arrows move the row; anywhere in the row, Alt and the arrows do. */
 function onGripKeydown(row: SubscriptionListItem, event: KeyboardEvent): void {
   if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
@@ -804,8 +834,10 @@ function onRowKeydown(row: SubscriptionListItem, event: KeyboardEvent): void {
  * the rows it passes slide aside to open the gap it would land in, release
  * drops it there, and Escape or a cancelled pointer slides everything back.
  * Pointer events rather than HTML5 drag, so touch works and the row itself is
- * what moves, not a ghost image of it. Not reactive state: nothing in the
- * template reads it, and the transforms are written to the rows directly.
+ * what moves, not a ghost image of it. Held near the top or bottom of the
+ * window, the page scrolls under the row, so a drag reaches rows that were
+ * off screen when it began. Not reactive state: nothing in the template reads
+ * it, and the transforms are written to the rows directly.
  */
 interface DragState {
   id: string;
@@ -821,6 +853,10 @@ interface DragState {
   height: number;
   gap: number;
   moved: boolean;
+  /** The pointer's last height in the window, which the edge scroll keeps reading while it is held still. */
+  clientY: number;
+  /** The pending edge-scroll frame, 0 when none. */
+  frame: number;
 }
 let dragging: DragState | null = null;
 
@@ -852,6 +888,8 @@ function onGripPointerDown(row: SubscriptionListItem, event: PointerEvent): void
     height: own.height,
     gap: from,
     moved: false,
+    clientY: event.clientY,
+    frame: 0,
   };
   rowEl.classList.add("is-dragging");
   for (const el of rows) if (el !== rowEl) el.classList.add("is-making-room");
@@ -868,10 +906,12 @@ function makeRoom(state: DragState): void {
   });
 }
 
-function onGripPointerMove(event: PointerEvent): void {
-  const state = dragging;
-  if (!state || event.pointerId !== state.pointerId) return;
-  const dy = event.clientY + window.scrollY - state.startY;
+/**
+ * Put the lifted row under the pointer and open the gap it is over. Distances
+ * are in page coordinates, so a scroll since the drag began counts as travel.
+ */
+function follow(state: DragState): void {
+  const dy = state.clientY + window.scrollY - state.startY;
   if (Math.abs(dy) > 2) state.moved = true;
   state.rows[state.from]!.style.transform = `translateY(${dy}px)`;
   const gap = gapAt(state.middles, state.startMiddle + dy);
@@ -881,10 +921,33 @@ function onGripPointerMove(event: PointerEvent): void {
   }
 }
 
+/** One frame of scrolling while the row is held in an edge zone; it stops at the end of the page or out of the zone. */
+function edgeScroll(): void {
+  const state = dragging;
+  if (!state) return;
+  state.frame = 0;
+  const speed = edgeScrollSpeed(state.clientY, window.innerHeight);
+  if (!speed) return;
+  const before = window.scrollY;
+  window.scrollBy(0, speed);
+  if (window.scrollY === before) return;
+  follow(state);
+  state.frame = requestAnimationFrame(edgeScroll);
+}
+
+function onGripPointerMove(event: PointerEvent): void {
+  const state = dragging;
+  if (!state || event.pointerId !== state.pointerId) return;
+  state.clientY = event.clientY;
+  follow(state);
+  if (!state.frame && edgeScrollSpeed(state.clientY, window.innerHeight)) state.frame = requestAnimationFrame(edgeScroll);
+}
+
 function endDrag(drop: boolean): void {
   const state = dragging;
   if (!state) return;
   dragging = null;
+  if (state.frame) cancelAnimationFrame(state.frame);
   const lifted = state.rows[state.from]!;
   lifted.classList.remove("is-dragging");
   if (!drop && state.moved) {
@@ -1453,9 +1516,11 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                         :data-row-menu="row.id"
                         :name="row.name"
                         :actions="menuActionsFor(row)"
+                        :moves="movesFor(row)"
                         :open="openMenuId === row.id"
                         @toggle="toggleRowMenu(row.id)"
                         @run="(id, event) => runRowAction(id, row, event)"
+                        @move="(where) => moveFromMenu(row, where)"
                         @keydown="onRowMenuKeydown"
                       />
                     </div>

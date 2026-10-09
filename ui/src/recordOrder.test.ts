@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dropMove, gapAt, inStoreOrder, placeAfter, placeBefore, stepMove, withOrder } from "./recordOrder";
+import { EDGE_SPEED, EDGE_ZONE, dropMove, edgeScrollSpeed, gapAt, inStoreOrder, namedMove, placeAfter, placeBefore, stepMove, withOrder } from "./recordOrder";
 
 const ORDER = ["a", "b", "c", "d", "e"];
 
@@ -60,5 +60,50 @@ describe("one move, against the rows on screen", () => {
     expect(gapAt(middles, 59)).toBe(1);
     expect(gapAt(middles, 61)).toBe(2);
     expect(gapAt(middles, 140)).toBe(3);
+  });
+});
+
+describe("a move named from the row menu", () => {
+  const shown = ["b", "d"];
+
+  it("steps past the neighbour shown, or goes to either end of the rows shown", () => {
+    expect(namedMove(ORDER, ORDER, "c", "up")).toEqual(["a", "c", "b", "d", "e"]);
+    expect(namedMove(ORDER, ORDER, "c", "down")).toEqual(["a", "b", "d", "c", "e"]);
+    expect(namedMove(ORDER, ORDER, "c", "top")).toEqual(["c", "a", "b", "d", "e"]);
+    expect(namedMove(ORDER, ORDER, "c", "bottom")).toEqual(["a", "b", "d", "e", "c"]);
+  });
+
+  it("means the ends of what a filter shows, leaving the hidden rows where they are", () => {
+    expect(namedMove(ORDER, shown, "d", "top")).toEqual(["a", "d", "b", "c", "e"]);
+    expect(namedMove(ORDER, shown, "b", "bottom")).toEqual(["a", "c", "d", "b", "e"]);
+  });
+
+  it("is null for a row already at that end", () => {
+    expect(namedMove(ORDER, ORDER, "a", "top")).toBeNull();
+    expect(namedMove(ORDER, ORDER, "a", "up")).toBeNull();
+    expect(namedMove(ORDER, ORDER, "e", "bottom")).toBeNull();
+    expect(namedMove(ORDER, ORDER, "e", "down")).toBeNull();
+  });
+});
+
+describe("scrolling while a row is held near the edge", () => {
+  const height = 812;
+
+  it("does nothing away from the edges", () => {
+    expect(edgeScrollSpeed(EDGE_ZONE, height)).toBe(0);
+    expect(edgeScrollSpeed(400, height)).toBe(0);
+    expect(edgeScrollSpeed(height - EDGE_ZONE, height)).toBe(0);
+  });
+
+  it("goes faster the deeper the pointer is into a zone, up at the top and down at the bottom", () => {
+    expect(edgeScrollSpeed(height - 1, height)).toBeGreaterThan(edgeScrollSpeed(height - EDGE_ZONE + 4, height));
+    expect(edgeScrollSpeed(height - EDGE_ZONE + 4, height)).toBeGreaterThan(0);
+    expect(edgeScrollSpeed(2, height)).toBeLessThan(edgeScrollSpeed(EDGE_ZONE - 4, height));
+    expect(edgeScrollSpeed(EDGE_ZONE - 4, height)).toBeLessThan(0);
+  });
+
+  it("holds the top speed for a pointer past the edge", () => {
+    expect(edgeScrollSpeed(height + 300, height)).toBe(EDGE_SPEED);
+    expect(edgeScrollSpeed(-300, height)).toBe(-EDGE_SPEED);
   });
 });

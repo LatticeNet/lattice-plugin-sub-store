@@ -70,6 +70,37 @@ export function dropMove(order: readonly string[], shown: readonly string[], id:
   return placeBefore(order, id, shown[clamped]!);
 }
 
+/** The moves the row menu names, for a pointer that cannot drag far or a touch with no arrow keys. */
+export type MoveId = "up" | "down" | "top" | "bottom";
+
+/**
+ * A move named from the row menu: one step past the neighbour shown, or to
+ * either end of the rows shown, which may run past the page on screen. Null
+ * when the row is already there.
+ */
+export function namedMove(order: readonly string[], shown: readonly string[], id: string, where: MoveId): string[] | null {
+  if (where === "up" || where === "down") return stepMove(order, shown, id, where === "up" ? -1 : 1);
+  return dropMove(order, shown, id, where === "top" ? 0 : shown.length);
+}
+
+/** How near the window's edge a held row starts the page scrolling, in CSS pixels. */
+export const EDGE_ZONE = 48;
+/** The scroll per frame with the pointer at the edge or past it. */
+export const EDGE_SPEED = 18;
+
+/**
+ * How far to scroll this frame while a row is held at `y` in a window
+ * `height` tall: nothing outside the edge zones, faster the deeper into one
+ * the pointer goes, negative towards the top. A pointer past the edge (the
+ * grip holds the capture) scrolls at the top speed.
+ */
+export function edgeScrollSpeed(y: number, height: number): number {
+  const depth = y < EDGE_ZONE ? EDGE_ZONE - y : y > height - EDGE_ZONE ? y - (height - EDGE_ZONE) : 0;
+  if (depth <= 0) return 0;
+  const speed = Math.ceil((EDGE_SPEED * Math.min(depth, EDGE_ZONE)) / EDGE_ZONE);
+  return y < EDGE_ZONE ? -speed : speed;
+}
+
 /**
  * Which gap a pointer at `y` is over, given the vertical middle of every shown
  * row in drawing order: the first row whose middle lies below the pointer, or

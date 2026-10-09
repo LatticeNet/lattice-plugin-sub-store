@@ -233,6 +233,10 @@ test.describe("manual order", () => {
     await expect(page.getByTestId("record-grip")).toHaveCount(0);
     await expect(page.getByTestId("records-order-note")).toBeVisible();
     await expect(page.getByTestId("record-position").first()).toHaveText("1");
+    // Nor does the row menu offer the moves.
+    await page.getByTestId("record-row").first().getByRole("button", { name: /^Actions for / }).click();
+    await expect(page.getByRole("menu").getByRole("menuitem").first()).toBeVisible();
+    await expect(page.getByRole("menu").getByRole("menuitem", { name: "Move up" })).toHaveCount(0);
   });
 
   test("moves a row from the keyboard alone, announced, with focus kept on it", async ({ page }) => {
@@ -317,6 +321,58 @@ test.describe("manual order", () => {
     expect(await names(page)).toEqual(order);
     await expect(rowNamed(page, order[0]!).getByTestId("record-grip")).toBeFocused();
     expect(await seriousViolations(page)).toEqual([]);
+  });
+});
+
+test.describe("manual order on a phone", () => {
+  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
+
+  test("a row held at the bottom edge scrolls the page under it, and lands past what was on screen", async ({ page }) => {
+    await open(page, "&fixture=states&manifest=s1", "record-grip");
+    const order = await names(page);
+    const first = order[0]!;
+    // The first row near the top of the window, clear of the harness's bar.
+    const top = (await rowNamed(page, first).boundingBox())!.y;
+    await page.evaluate((by) => window.scrollBy(0, by), top - 80);
+    const tops = await Promise.all(order.map(async (name) => (await rowNamed(page, name).boundingBox())!.y));
+    const onScreen = tops.filter((y) => y < 812).length;
+    const before = await page.evaluate(() => window.scrollY);
+    const grip = (await rowNamed(page, first).getByTestId("record-grip").boundingBox())!;
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + grip.width / 2, 811, { steps: 10 });
+    // Held still at the edge, the page keeps scrolling under the row.
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBeGreaterThan(before + 400);
+    await page.mouse.up();
+    await expect(page.getByTestId("records-live")).toContainText(`Moved ${first} to position`);
+    expect(Number(await positionOf(page, first).innerText())).toBeGreaterThan(onScreen);
+  });
+
+  test("the row menu moves a record to either end and one step, from a tap, announced", async ({ page }) => {
+    await open(page, "&manifest=s1", "record-grip");
+    const first = (await names(page))[0]!;
+    const live = page.getByTestId("records-live");
+    const menu = page.getByRole("menu");
+    const trigger = () => rowNamed(page, first).getByRole("button", { name: `Actions for ${first}` });
+
+    await trigger().tap();
+    // At the top there is nowhere up to go.
+    await expect(menu.getByRole("menuitem", { name: "Move up" })).toBeDisabled();
+    await expect(menu.getByRole("menuitem", { name: "Move to top" })).toBeDisabled();
+    await menu.getByRole("menuitem", { name: "Move to bottom" }).tap();
+    await expect(live).toHaveText(`Moved ${first} to position 23 of 23.`);
+    expect((await names(page)).at(-1)).toBe(first);
+    await expect(trigger()).toBeFocused();
+
+    await trigger().tap();
+    await expect(menu.getByRole("menuitem", { name: "Move to bottom" })).toBeDisabled();
+    await menu.getByRole("menuitem", { name: "Move up" }).tap();
+    await expect(live).toHaveText(`Moved ${first} to position 22 of 23.`);
+
+    await trigger().tap();
+    await menu.getByRole("menuitem", { name: "Move to top" }).tap();
+    await expect(live).toHaveText(`Moved ${first} to position 1 of 23.`);
+    expect((await names(page))[0]).toBe(first);
   });
 });
 

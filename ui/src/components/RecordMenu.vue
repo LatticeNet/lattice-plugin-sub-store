@@ -1,9 +1,32 @@
 <script setup lang="ts">
-import { CopyPlus, Ellipsis, Eye, Link, RefreshCw, SquareArrowOutUpRight, Trash2, Upload } from "@lucide/vue";
+import {
+  ArrowDown,
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpToLine,
+  CopyPlus,
+  Ellipsis,
+  Eye,
+  Link,
+  RefreshCw,
+  SquareArrowOutUpRight,
+  Trash2,
+  Upload,
+} from "@lucide/vue";
 import { PcIconButton } from "@latticenet/plugin-bridge/chassis";
 import { onBeforeUnmount, ref, watch } from "vue";
 
 import type { ResolvedAction } from "../recordActions";
+import type { MoveId } from "../recordOrder";
+
+/** A place in the manual order the row can go, offered where the table allows reordering. */
+export interface RecordMove {
+  id: MoveId;
+  label: string;
+  title: string;
+  /** Already there: at the top for up and top, at the bottom for down and bottom. */
+  disabled: boolean;
+}
 
 /**
  * The trigger stays in the actions cell; the menu itself is rendered at the
@@ -24,11 +47,18 @@ const props = defineProps<{
   name: string;
   actions: ResolvedAction[];
   open: boolean;
+  /**
+   * The manual-order moves, when the table can reorder. A drag only reaches
+   * rows on screen and a phone has no arrow keys, so the menu is the path
+   * that reaches every position from any device.
+   */
+  moves?: RecordMove[];
 }>();
 
 const emit = defineEmits<{
   toggle: [];
   run: [id: ResolvedAction["id"], event: MouseEvent];
+  move: [id: MoveId];
   keydown: [event: KeyboardEvent];
 }>();
 
@@ -36,6 +66,7 @@ const emit = defineEmits<{
  *  registry stays free of imports and can be tested without Vue. */
 /* Publish… opens the console's share form, so its icon points out of the frame. */
 const ICONS = { eye: Eye, share: SquareArrowOutUpRight, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
+const MOVE_ICONS = { up: ArrowUp, down: ArrowDown, top: ArrowUpToLine, bottom: ArrowDownToLine } as const;
 
 function iconFor(name: string) {
   return ICONS[name as keyof typeof ICONS] ?? Eye;
@@ -145,6 +176,22 @@ onBeforeUnmount(unlisten);
         <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />
         {{ action.label }}
       </button>
+      <template v-if="moves?.length">
+        <span class="rec-menu-sep" role="separator" />
+        <button
+          v-for="move in moves"
+          :key="move.id"
+          type="button"
+          role="menuitem"
+          :disabled="move.disabled"
+          :title="move.title"
+          :data-move="move.id"
+          @click="emit('move', move.id)"
+        >
+          <component :is="MOVE_ICONS[move.id]" :size="14" aria-hidden="true" />
+          {{ move.label }}
+        </button>
+      </template>
       <template v-if="danger().length">
         <span class="rec-menu-sep" role="separator" />
         <button

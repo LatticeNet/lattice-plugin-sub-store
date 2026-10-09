@@ -85,6 +85,11 @@ export const TEXT = {
   gripHelp: "Arrow Up and Arrow Down move the record; with the pointer, drag it. Escape puts a dragged row back.",
   moved: (name: string, position: number, total: number) => `Moved ${name} to position ${position} of ${total}.`,
   moveAtEdge: (name: string, edge: "top" | "bottom") => `${name} is already at the ${edge} of the rows shown.`,
+  moveUp: "Move up",
+  moveDown: "Move down",
+  moveTop: "Move to top",
+  moveBottom: "Move to bottom",
+  moveTitle: "Among the rows shown; a filter keeps the hidden rows where they are.",
   reorderFailed: (reason: string) => `The new order was not saved (${reason}). The table shows the stored order again.`,
   migrateTitle: "This store still keeps every record in one document",
   migrateBody:
