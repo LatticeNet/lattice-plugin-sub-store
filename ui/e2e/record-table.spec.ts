@@ -151,6 +151,14 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 
       await expect(row.locator(".rec-kind-icon")).toHaveCount(0);
       await expect(row.getByTestId("record-flagged")).toBeVisible();
       await expect(page).toHaveURL(/[?&]density=compact(&|#|$)/);
+      // One line per cell: the traffic bar goes and the date stays, rather than
+      // the bar spilling past the cell's edge.
+      if (viewport.width > 480) {
+        const expiry = rowNamed(page, "建材市场").locator("td[data-expiry] .pc-td-body");
+        await expect(expiry.locator(".layer-expiry")).toHaveText("expires in 6 days");
+        await expect(expiry.locator(".usage")).toBeHidden();
+        expect(await widerThanBox(expiry)).toBe(false);
+      }
     });
   });
 }
@@ -192,9 +200,12 @@ test.describe("at 1440 every column keeps what it says", () => {
     const gone = rowNamed(page, "for-loon-novpn");
     expect(await widerThanBox(gone.locator(".rec-kind-label"))).toBe(false);
     await expect(gone.getByTestId("record-missing")).toHaveText("source gone");
+    expect((await gone.boundingBox())!.height, "the marker on the second line keeps the row's height").toBeLessThanOrEqual(twoLines);
     expect(await showsPrefix(rowNamed(page, "for-cdcd-egern").locator(".rec-kind-sub"), "from merge-cd-openjobs")).toBe(true);
 
-    // Expiry and traffic: the date whole, the figure inside the cell.
+    // Expiry and traffic: the date whole, the figure inside the cell, both
+    // lines inside a row of the usual height.
+    expect((await rowNamed(page, "建材市场").boundingBox())!.height).toBeLessThanOrEqual(twoLines);
     const provider = rowNamed(page, "建材市场").locator("td[data-expiry]");
     expect(await widerThanBox(provider.locator(".layer-expiry"))).toBe(false);
     await expect(provider.locator(".usage-figure")).toHaveText("82%");
