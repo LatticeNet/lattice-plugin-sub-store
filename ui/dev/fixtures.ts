@@ -371,8 +371,9 @@ function largeFixture(): Fixture {
  * negative lookahead, the idiom the native engine cannot run and offers to
  * rewrite; a second flagged record whose pattern has no rewrite (a
  * backreference); and a source, a combination and a file whose names are long
- * in Latin and in CJK, the source with three tags and one of its two steps
- * turned off, so the name's tag and the Steps column's second line are drawn.
+ * in Latin and in CJK, the source with three tags, the first itself long, and
+ * one of its two steps turned off, so the name's tag and the Steps column's
+ * second line are drawn.
  */
 const LONG_SOURCE = "imported-sub-long-name";
 function statesFixture(): Fixture {
@@ -406,7 +407,7 @@ function statesFixture(): Fixture {
       id: LONG_SOURCE,
       name: "一个非常非常长的机场订阅名称用来检查截断与换行-and-a-very-long-latin-provider-subscription-name-as-well",
       remark: "备注也很长：这条订阅的名字在一行里放不下，表格必须省略而不是把其他列挤出去，手机上必须换行而不是横向滚动。",
-      tags: ["长名称", "long-name", "provider"],
+      tags: ["长名称-a-tag-long-enough-to-crowd-the-name", "long-name", "provider"],
       source: "remote",
       url: "https://a-provider-with-a-long-host-name.example-subscriptions.invalid/api/v1/client/subscribe?token=longtokenlongtoken",
       process: steps(2).map((step, index) => (index === 1 ? { ...(step as object), disabled: true } : step)),

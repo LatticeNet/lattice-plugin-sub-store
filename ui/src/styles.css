@@ -2454,11 +2454,15 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 
 /* The fixed layout bounds the name, so the 380px cap other tables need would
    only cut a name short on a wide frame. The name takes its own width and the
-   flag and the tag follow it; one tag shows, never wrapping into a stack that
-   would make the row three lines tall, and it gives way before the name. */
+   flag and the tag follow it. One tag shows with its count, on one line: a
+   long tag ends in an ellipsis inside its share of the line (all of it on a
+   phone) rather than wrapping the count into a stack that would make the row
+   three lines tall, or pushing the row past the frame. */
 .records-table .pc-table:not([data-stacked="true"]) .pc-name-line > .row-open { flex: 0 1 auto; max-width: none; }
-.records-table .pc-table:not([data-stacked="true"]) .pc-name-after { flex: 0 0 auto; max-width: 40%; overflow: hidden; }
-.records-table .pc-name-after .pc-tag-list { flex-wrap: nowrap; }
+.records-table .pc-name-after { max-width: 100%; overflow: hidden; }
+.records-table .pc-table:not([data-stacked="true"]) .pc-name-after { flex: 0 0 auto; max-width: 40%; }
+.records-table .pc-name-after .pc-tag-list { min-width: 0; flex-wrap: nowrap; }
+.records-table .pc-name-after .pc-tag:not([title]) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Second lines that sit in narrow columns: the turned-off steps under the
    count, and the traffic bar under the expiry. The chassis floors a cell's

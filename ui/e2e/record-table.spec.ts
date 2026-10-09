@@ -162,16 +162,22 @@ test.describe("at 1440 every column keeps what it says", () => {
     await open(page, "&fixture=states&manifest=s1", "record-row");
     const table = page.getByTestId("records-table");
     expect((await table.locator("th.pc-name").boundingBox())!.width).toBeGreaterThanOrEqual(360);
-    // A short flagged name is not cut for the marker beside it.
+    // A short flagged name is not cut for the marker beside it, and the marker
+    // follows the name rather than the cell's far edge.
     for (const name of ["lookahead-provider", "backreference-rename"]) {
-      expect(await widerThanBox(rowNamed(page, name).getByTestId("record-name").locator("strong")), name).toBe(false);
+      const open = rowNamed(page, name).getByTestId("record-name");
+      expect(await widerThanBox(open.locator("strong")), name).toBe(false);
+      const nameBox = (await open.boundingBox())!;
+      const flag = (await rowNamed(page, name).getByTestId("record-flagged").boundingBox())!;
+      expect(flag.x - (nameBox.x + nameBox.width), name).toBeLessThan(16);
     }
-    // A long name with three tags stays as tall as a name with a remark: one
-    // tag and a count, never a stack, and the kind icon stays on the name's line.
+    // A long name with three tags, the first long itself, stays as tall as a
+    // name with a remark: one tag and a count on one line, never a stack, and
+    // the kind icon stays on the name's line.
     const longRow = rowNamed(page, LONG);
     const twoLines = (await rowNamed(page, "lookahead-provider").boundingBox())!.height;
     expect((await longRow.boundingBox())!.height).toBeLessThanOrEqual(twoLines + 1);
-    await expect(longRow.locator(".pc-tag")).toHaveText(["长名称", "+2"]);
+    await expect(longRow.locator(".pc-tag")).toHaveText(["长名称-a-tag-long-enough-to-crowd-the-name", "+2"]);
     const icon = (await longRow.locator(".rec-kind-icon").boundingBox())!;
     const longName = (await longRow.getByTestId("record-name").boundingBox())!;
     expect(Math.abs(icon.y + icon.height / 2 - (longName.y + longName.height / 2))).toBeLessThan(6);
@@ -199,6 +205,13 @@ test.describe("at 1440 every column keeps what it says", () => {
     const off = (await steps.locator("small").boundingBox())!;
     const stepsCell = (await steps.boundingBox())!;
     expect(off.x + off.width, "the second line ends inside its cell").toBeLessThanOrEqual(stepsCell.x + stepsCell.width);
+  });
+
+  test("on a wider frame a long name takes the room it has", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1000 });
+    await open(page, "&fixture=states&manifest=s1", "record-row");
+    const long = rowNamed(page, LONG).getByTestId("record-name").locator("strong");
+    expect((await long.boundingBox())!.width).toBeGreaterThan(380);
   });
 
   test("on a legacy store the counting word fits the node columns", async ({ page }) => {
