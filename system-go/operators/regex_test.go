@@ -41,6 +41,11 @@ func TestRegexFilterLinearTimeOn10MBInput(t *testing.T) {
 	// Each pattern fails on the trailing "!", so every one reads the whole
 	// name; on a backtracking engine each is exponential in its length.
 	patterns := []string{`^(a+)+$`, `(a|aa)+$`, `^(a|a?)+b`, `^(.*a){6}$`, `^(\w+\s?)*$`}
+	if raceDetector {
+		// The instrumented engine takes about 25 s for the first pattern's
+		// 11 MiB alone; the others are measured in every build without it.
+		patterns = patterns[:1]
+	}
 	timeOne := func(pattern string, size int) time.Duration {
 		step := `{"type":"Regex Filter","args":{"regex":[` + strconvQuote(pattern) + `],"keep":true}}`
 		plan := compileOne(t, step)

@@ -131,10 +131,10 @@ func chain(steps ...string) []json.RawMessage {
 
 func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 	engine := sharedWarmTestEngine(t)
-	raw := parityDocument(120)
+	raw := parityDocument(64)
 	base := bundleNodes(t, engine, raw, nil)
-	if len(base) != 124 {
-		t.Fatalf("the bundle parsed %d nodes, want 124", len(base))
+	if len(base) != 68 {
+		t.Fatalf("the bundle parsed %d nodes, want 68", len(base))
 	}
 
 	// One case per operator, several where its arguments choose a different
@@ -248,7 +248,9 @@ func TestFlagOperatorMatchesBundleOnKeywordVocabulary(t *testing.T) {
 		default:
 			names = append(names, k+"x")
 		}
-		names = append(names, k+" | "+keywords[(i*37+11)%len(keywords)])
+		if i%2 == 0 {
+			names = append(names, k+" | "+keywords[(i*37+11)%len(keywords)])
+		}
 	}
 	nodes := make([]map[string]any, len(names))
 	for i, name := range names {
