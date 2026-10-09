@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "nz-05.lskztiz.example.net",
+      "52475",
+      "chacha20-ietf-poly1305",
+      "6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b"
+    ],
+    "name": "CA-xde9a-47",
+    "params": {
+      "alterId": "0",
+      "fast-open": "false",
+      "transport": "tcp"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "mg-25.xclff6.example.com",
+      "17065",
+      "aes-128-gcm",
+      "c1a44a66-75d9-4db7-99e4-34d2a69bc33a"
+    ],
+    "name": "GB-rlvowq-05",
+    "params": {
+      "alterId": "1",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

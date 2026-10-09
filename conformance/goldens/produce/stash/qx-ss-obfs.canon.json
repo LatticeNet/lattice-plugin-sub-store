@@ -1,0 +1,64 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-256-gcm",
+      "name": "SG-qwr-38",
+      "password": "Uks1P5PqASwY6q",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "cdn.hp815.example.net",
+        "mode": "http",
+        "path": "/uqrnmcek"
+      },
+      "port": 16334,
+      "server": "z91-16.s91x2fd.example.net",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-gcm",
+      "name": "TW-v5vws1-72",
+      "password": "E6LyHSGUyZtgMP",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "img.tiqhalr80.example.com",
+        "mode": "tls"
+      },
+      "port": 42929,
+      "server": "nfx-29.succ.example.net",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-gcm",
+      "name": "HK-dh5m8-89",
+      "password": "9ncr9Hw6RY7GCb",
+      "plugin": "v2ray-plugin",
+      "plugin-opts": {
+        "host": "cdn.qw5vkkko.example.com",
+        "mode": "websocket",
+        "path": "/r4g5l"
+      },
+      "port": 36610,
+      "server": "qi5-25.efnvp.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-gcm",
+      "name": "NL-qajnh-75",
+      "password": "BDhjpjvfP0r9Nn",
+      "plugin": "v2ray-plugin",
+      "plugin-opts": {
+        "host": "img.f8ttbbe.example.net",
+        "mode": "websocket",
+        "path": "/syu/jw08g57qe",
+        "tls": true
+      },
+      "port": 53935,
+      "server": "ts-14.e6uxw.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

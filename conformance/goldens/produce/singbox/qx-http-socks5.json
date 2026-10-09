@@ -1,0 +1,35 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-rqk1jl-33",
+      "type": "http",
+      "server": "bkk-13.p8c5c.example.net",
+      "server_port": 8080,
+      "username": "wqmmnxz2",
+      "password": "dip7H3HbE83J"
+    },
+    {
+      "tag": "US-fs5t-40",
+      "type": "http",
+      "server": "cam-37.l9ng5.example.org",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xuix3v.example.org",
+        "insecure": false
+      },
+      "username": "jeafxl",
+      "password": "r0BQxK7uTqqg"
+    },
+    {
+      "tag": "JP-yqa-41",
+      "type": "socks",
+      "server": "aq-21.hay35e.example.net",
+      "server_port": 1080,
+      "version": "5",
+      "username": "r5ti",
+      "password": "unNYLsz7kUcn"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "DE-rnjso-15",
+    "host": "c5-11.ocg6mst.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.qb83s9o08.example.net"
+      ],
+      [
+        "path",
+        "/ucuhm923u"
+      ],
+      [
+        "sni",
+        "img.qb83s9o08.example.net"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Ss3l3GXlwJPI9BmQ"
+  }
+]

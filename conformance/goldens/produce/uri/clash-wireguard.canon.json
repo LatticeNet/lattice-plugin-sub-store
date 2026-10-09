@@ -1,0 +1,62 @@
+[
+  {
+    "fragment": "FR-u1vt2-98",
+    "host": "jk8-30.wwys8.example.org",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.7.0.2/32,fd00:7::2/128"
+      ],
+      [
+        "dns",
+        "198.51.100.214"
+      ],
+      [
+        "mtu",
+        "1280"
+      ],
+      [
+        "pre-shared-key",
+        "ea/6CsMprZpjtZJtXBDnVhPr8TFtbhkNagB1RlNAKAA="
+      ],
+      [
+        "publickey",
+        "2INb8aTAxDnTjtFZPu1cHNrvLO9oMJ7yXr6nlSPpn1g="
+      ],
+      [
+        "reserved",
+        "1,2,3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "X+7OWT+4zUaz8qCSCwSm03qXD+byM3usEXizq5PY+RM="
+  },
+  {
+    "fragment": "JP-fgs-23",
+    "host": "undefined",
+    "path": "/",
+    "port": "undefined",
+    "query": [
+      [
+        "address",
+        "10.8.0.2/32"
+      ],
+      [
+        "peers",
+        "[object Object]"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "MiN3ngGoB5Yphs1O1Xcwi2Ni65eG6yghKgih2eZPpms="
+  }
+]

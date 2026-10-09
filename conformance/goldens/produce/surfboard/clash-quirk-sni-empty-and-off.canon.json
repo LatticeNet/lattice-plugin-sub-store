@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "hs7-14.fbk5i4m.example.net",
+      "443"
+    ],
+    "name": "KR-jnlp-45",
+    "params": {
+      "password": "joCobve956pHGbOP",
+      "sni": "127.0.0.1",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "cm-29.o4a6p.example.org",
+      "443"
+    ],
+    "name": "US-udm43-99",
+    "params": {
+      "password": "rRZddt7F6fbdqRuD",
+      "sni": "127.0.0.1",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

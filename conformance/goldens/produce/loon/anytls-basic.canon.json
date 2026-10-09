@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "xe-34.w3hx.example.net",
+      "443",
+      "bm91bewnfciiwnoMmrKb"
+    ],
+    "name": "SG-hqzi-96",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "skip-cert-verify": "false",
+      "tls-name": "img.l2m9nw.example.com",
+      "tls-profile": "chrome",
+      "udp": "true"
+    },
+    "type": "anytls"
+  }
+]

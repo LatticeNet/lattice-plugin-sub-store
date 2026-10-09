@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "aa7-08.u4yp51.example.com",
+      "443",
+      "e28e1350-3afc-4ca2-a4eb-85c3163bb32b"
+    ],
+    "name": "JP-g2jm75-03",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "api.yfitrwjl.example.com",
+      "over-tls": "true",
+      "path": "/ndpw",
+      "skip-cert-verify": "false",
+      "tls-name": "api.yfitrwjl.example.com",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

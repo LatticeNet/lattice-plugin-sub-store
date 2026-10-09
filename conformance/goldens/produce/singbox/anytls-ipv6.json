@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-em7j3s-83",
+      "type": "anytls",
+      "server": "2001:db8:f051:f0e2::9775",
+      "server_port": 443,
+      "password": "aTLmH8rMvhzmoueREcQg",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.feai4.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,8 @@
+{
+  "id": "surge-snell",
+  "family": "surge",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Surge snell versions 3, 4 and 5 with obfs on version 3."
+}

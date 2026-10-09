@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"US-ies-50","port":443,"ports":"20000-30000","server":"rf-16.wjqitx5.example.org","skip-cert-verify":false,"sni":"www.ajvirme9a.example.net","type":"hysteria2","udp":true,"auth":"AXowQtwCJ2X7XBnVt6nk","fast-open":false}
+  - {"name":"TW-gsc0f-98","port":443,"ports":"20000-21000,23000,25000-26000","server":"jt-14.ysbkn7no.example.net","skip-cert-verify":false,"sni":"img.s5auoy5og.example.com","type":"hysteria2","udp":true,"auth":"TZcdqJu02bczukbFdJ4M","fast-open":false}

@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","flow":"xtls-rprx-vision","name":"AU-x15se-92","network":"tcp","port":443,"reality-opts":{"public-key":"DA9oMSTOMkBmqRO7ZvP9oWoNpP0tHqBvwj7ZX17GLUo","short-id":"bab52219"},"server":"hnp-23.vn41.example.com","tls":true,"type":"vless","udp":true,"uuid":"555e8ea6-0aa2-446f-89d6-75d1ee8e7875","servername":"api.xao43je5k8.example.net"}

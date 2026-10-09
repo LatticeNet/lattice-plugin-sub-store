@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "HK-hqqur-72",
+    "host": "h4b-38.ex4c4j.example.com",
+    "path": "",
+    "port": "11356",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Qjd6dGtHYzNWMnMxWDI=",
+    "userinfo_base64": "aes-128-gcm:B7ztkGc3V2s1X2"
+  }
+]

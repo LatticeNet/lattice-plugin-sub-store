@@ -1,0 +1,152 @@
+[
+  {
+    "args": [
+      "o0-15.sijz.example.com",
+      "16662"
+    ],
+    "name": "US pgma 01",
+    "params": {
+      "password": "XRc2Rhh9n0MNeD9Osn6p",
+      "port-hopping": "38000-40000",
+      "skip-cert-verify": "false",
+      "sni": "cdn.rea9jflnqu.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "198.19.55.70",
+      "36570"
+    ],
+    "name": "AU qc0u 02",
+    "params": {
+      "password": "Q5jqF6PQTCa32sfClqYv",
+      "port-hopping": "32000-38000",
+      "skip-cert-verify": "false",
+      "sni": "img.vscl1m.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "l2n-40.dgoj8hx.example.org",
+      "27704"
+    ],
+    "name": "FR lv8v 03",
+    "params": {
+      "password": "wIIFVONBOr8IMuYUnCZN",
+      "port-hopping": "25000-28000",
+      "skip-cert-verify": "false",
+      "sni": "api.lc30f36.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "yz-31.n6swpw.example.org",
+      "11883"
+    ],
+    "name": "GB et9g77w 04",
+    "params": {
+      "password": "2MYSf0Z3EFj2tRJB54M8",
+      "port-hopping": "37000-40000",
+      "skip-cert-verify": "false",
+      "sni": "img.qla2g.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "198.19.131.101",
+      "32863"
+    ],
+    "name": "KR eevkwok 05",
+    "params": {
+      "password": "LfdYQaW89EgxuquEBj4g",
+      "port-hopping": "33000-38000",
+      "skip-cert-verify": "false",
+      "sni": "www.e8zqu19l.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "z2-35.v20t.example.org",
+      "33661"
+    ],
+    "name": "GB wvgj8 06",
+    "params": {
+      "password": "ScZhJ4Nmy2sIo8e2EbCK",
+      "port-hopping": "34000-37000",
+      "skip-cert-verify": "false",
+      "sni": "static.gz4a1m.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "l5-40.vz2o.example.org",
+      "59282"
+    ],
+    "name": "SG z1ddg 07",
+    "params": {
+      "password": "riu7loizAoaCDcpiYrv6",
+      "port-hopping": "39000-44000",
+      "skip-cert-verify": "false",
+      "sni": "api.sf7nmsyq7.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "h2s-21.zwmeh.example.net",
+      "55515"
+    ],
+    "name": "TW ob20 08",
+    "params": {
+      "password": "7UCTFyxhU6piDOiAhUXz",
+      "salamander-password": "GRJrhJ3NmtFL0vrp",
+      "skip-cert-verify": "false",
+      "sni": "www.k2e5c3vwxn.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "198.19.72.54",
+      "40995"
+    ],
+    "name": "HK otl54y 09",
+    "params": {
+      "password": "zdOMu2dptuUZp2z4nZDk",
+      "salamander-password": "vLhwVop3iFArEYTg",
+      "skip-cert-verify": "false",
+      "sni": "img.h4oro21z.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "riz-17.q237m.example.com",
+      "49280"
+    ],
+    "name": "KR eiwqt 10",
+    "params": {
+      "password": "43tYkyhNFh9iS0V92bX0",
+      "salamander-password": "CqMwN7q1gAQVVf48",
+      "skip-cert-verify": "false",
+      "sni": "img.df9i3fo.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

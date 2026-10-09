@@ -1,0 +1,1 @@
+vless=fy-15.rele.example.com:443,method=none,password=b71a594d-c0f7-4382-b55d-ffaaefacfc1f,obfs=http,obfs-uri=/mxba,obfs-host=static.k844cgjqpc.example.org,udp-relay=true,tag=US-g9oft-73

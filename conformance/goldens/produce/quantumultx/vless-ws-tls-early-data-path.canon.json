@@ -1,0 +1,19 @@
+[
+  {
+    "address": "p7s-12.vxsga2t1.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "static.vslcfo.example.org",
+      "obfs-uri": "/xj1jlj/bmtb1lwh5",
+      "password": "cb22c8ff-3921-4bca-aa16-d8a21097e463",
+      "tag": "SG-rsvy-31",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.vslcfo.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

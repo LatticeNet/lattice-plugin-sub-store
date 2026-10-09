@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-hqzi-96",
+      "type": "anytls",
+      "server": "xe-34.w3hx.example.net",
+      "server_port": 443,
+      "password": "bm91bewnfciiwnoMmrKb",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.l2m9nw.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

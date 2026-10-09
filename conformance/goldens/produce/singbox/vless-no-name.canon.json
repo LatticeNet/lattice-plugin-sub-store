@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "cj-27.fm6khz.example.org",
+      "server_port": 443,
+      "tag": "VLESS cj-27.fm6khz.example.org:443",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "dBDBPiajTnd6TDJl5KmZPRDGJo58mXHiVYK6Q1vNB08",
+          "short_id": "c811e1a0"
+        },
+        "server_name": "api.af2ig.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "31284285-69fb-46f0-92da-19754ba10bf8"
+    }
+  ]
+}

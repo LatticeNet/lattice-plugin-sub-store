@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"CA-w6ys-30","server":"l5-09.xmmas.example.net","port":443,"user_id":"ab77cff5-961e-476f-98d3-a0ebed63aa20","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http2":{"path":"/rxtxr2ob","headers":{"Host":"static.b9eert.example.com"},"sni":"static.b9eert.example.com","skip_tls_verify":false}}}}

@@ -1,0 +1,17 @@
+[
+  {
+    "address": "in-09.lpf7.example.org:43566",
+    "args": [],
+    "params": {
+      "method": "aes-128-ctr",
+      "obfs": "http_post",
+      "obfs-host": "cdn.z35d7v5.example.net",
+      "password": "ykOLcACoPcSC",
+      "ssr-protocol": "auth_aes128_sha1",
+      "ssr-protocol-param": "8922:8Ak2P7eB",
+      "tag": "GB-ikyosn-89",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

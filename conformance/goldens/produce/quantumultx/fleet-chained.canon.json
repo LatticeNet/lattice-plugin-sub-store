@@ -1,0 +1,232 @@
+[
+  {
+    "address": "relay-01.mmsc1m.example.net:30000",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "bc1b8b9f-e08f-40f5-a777-c3060a7e9bea",
+      "reality-base64-pubkey": "jXU8hWbQ2AgTrLU3FXChfTbxwpWWk37BoPeRIYyLJB8",
+      "reality-hex-shortid": "48aa6ec7",
+      "tag": "FR-FR relay 01",
+      "tls-host": "cdn.irnxq6g.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-02.mmsc1m.example.net:30001",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "eba8aac2-3ea2-486e-9625-54b1c78536ea",
+      "reality-base64-pubkey": "0PK6rxcXlWDUyRWNlOki0m1OR1hFDgFUVJnRjH3XoOk",
+      "reality-hex-shortid": "61e15384",
+      "tag": "SG-TW relay 02",
+      "tls-host": "img.n2ofnzleru.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-03.mmsc1m.example.net:30002",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "b8674053-b830-4515-af17-e0c1522957dd",
+      "reality-base64-pubkey": "Ub5Y--DNzCQ0t-hn8VOH-INnZcoX7YQjLSBBCQ0pjYo",
+      "reality-hex-shortid": "569411ee",
+      "tag": "FR-GB relay 03",
+      "tls-host": "api.wwdm4kjo.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-01.mmsc1m.example.net:30003",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "872bc990-e685-47e7-a518-65a9e4cd070f",
+      "reality-base64-pubkey": "FKPxA4DEK9BVxEubeTVng8qypO0p6BR6-j05Cofry7g",
+      "reality-hex-shortid": "f11444f3",
+      "tag": "AU-TW relay 04",
+      "tls-host": "img.cbm6fw.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-02.mmsc1m.example.net:30004",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "06941f47-be6d-46fd-abc9-8f76fcc7681a",
+      "reality-base64-pubkey": "dpl8quLoGf333Vn6TWrtKCQ39-P-4YK6IcLUtHU-1lo",
+      "reality-hex-shortid": "761a031f",
+      "tag": "AU-SG relay 05",
+      "tls-host": "static.uutsxj.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-03.mmsc1m.example.net:30005",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "37951cda-38c0-4344-91c7-ed645e0cc2a5",
+      "reality-base64-pubkey": "apVRN0pBii1tamDAVn_skIuleJIKAEsUMjprDq-feNc",
+      "reality-hex-shortid": "28354921",
+      "tag": "US-JP relay 06",
+      "tls-host": "cdn.t4hctms4in.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-01.mmsc1m.example.net:30006",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "f205a91d-164b-44bd-9a66-34a19e10d99a",
+      "reality-base64-pubkey": "DkRBJzm9MaeyH7oQYyJr8ebdl36efgxzM7XaTjhbizs",
+      "reality-hex-shortid": "5c90a2c5",
+      "tag": "CA-SG relay 07",
+      "tls-host": "www.xyv8wo.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-02.mmsc1m.example.net:30007",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "9f883746-1ec1-42d6-9c21-982e81f6a3bb",
+      "reality-base64-pubkey": "vK7C8Z2NKqChurUlv8pdZ-WUcLegzkqSC86kNv5EVpI",
+      "reality-hex-shortid": "e556a097",
+      "tag": "NL-HK relay 08",
+      "tls-host": "api.eev1s41.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-03.mmsc1m.example.net:30008",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "336a86e8-a7ae-4049-95d4-3b75ed6e4a6f",
+      "reality-base64-pubkey": "H1uaqCqFfcv4ye56FcSVlDMMQ-HfJ153X5KKndE4hQY",
+      "reality-hex-shortid": "d08a3ff1",
+      "tag": "GB-TW relay 09",
+      "tls-host": "cdn.dalu74j97.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-01.mmsc1m.example.net:30009",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "57e09be9-598e-470a-a2cf-117ec062999f",
+      "reality-base64-pubkey": "j8jPTrR4p7l_2UkCFbGuJVk021kf6gZ2F_fnPbnSqOU",
+      "reality-hex-shortid": "40fe3a23",
+      "tag": "HK-KR relay 10",
+      "tls-host": "static.endjqahk.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-02.mmsc1m.example.net:30010",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "bd470fa3-40b2-4262-883c-9834b37f7dc5",
+      "reality-base64-pubkey": "CxibHmqQ9VlgBDILh3KKQg8qKErbQMJ3LTYAPxI-wKI",
+      "reality-hex-shortid": "31e64c93",
+      "tag": "CA-SG relay 11",
+      "tls-host": "www.jvyyer8b.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-03.mmsc1m.example.net:30011",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "8329d5a5-0f07-4196-bc6d-16597f7e849d",
+      "reality-base64-pubkey": "WlqYn5t5lETJpcRXb4vqLL1_fAx7t3MgPgNNb7laDJs",
+      "reality-hex-shortid": "614f5989",
+      "tag": "TW-HK relay 12",
+      "tls-host": "api.jre9i3fcz.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "relay-02.mmsc1m.example.net:30016",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "1aK4UZcb4qB4EeA3daT4",
+      "tag": "KR-TW relay 17",
+      "tls-host": "api.lpaj01.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  },
+  {
+    "address": "relay-03.mmsc1m.example.net:30017",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "v7cCms40kk8wSBg0m1Qx",
+      "tag": "HK-HK relay 18",
+      "tls-host": "cdn.mhxeluq.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "args": [
+      "oes-32.n24d5.example.net",
+      "443"
+    ],
+    "name": "AU-nmg-47",
+    "params": {
+      "skip-cert-verify": "true",
+      "sni": "cdn.ona5zaws.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "c9dbfd76-55c7-44c4-8994-6664aa738d1c",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"cdn.ona5zaws.example.org\"",
+      "ws-path": "/r17mh"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "mp-03.vjrfhp59.example.org",
+      "443"
+    ],
+    "name": "US-woc-03",
+    "params": {
+      "skip-cert-verify": "true",
+      "sni": "static.mf2uv0vj.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "3111cd1e-db1b-45c0-998d-ba3c52f64f32",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"static.mf2uv0vj.example.com\"",
+      "ws-path": "/ex9zeq2"
+    },
+    "type": "vmess"
+  }
+]

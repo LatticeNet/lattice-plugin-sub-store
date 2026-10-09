@@ -1,0 +1,23 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "VLESS cj-27.fm6khz.example.org:443",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "dBDBPiajTnd6TDJl5KmZPRDGJo58mXHiVYK6Q1vNB08",
+      "short-id": "c811e1a0"
+    },
+    "server": "cj-27.fm6khz.example.org",
+    "skip-cert-verify": false,
+    "sni": "api.af2ig.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "31284285-69fb-46f0-92da-19754ba10bf8"
+  }
+]

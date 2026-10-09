@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "zb-37.bkm1jc04.example.org",
+      "aid": "0",
+      "host": "cdn.ntdq7.example.org",
+      "id": "466e68b0-f500-4ae2-b943-fba35589f245",
+      "net": "ws",
+      "path": "/l9qryrkj",
+      "port": "443",
+      "ps": "KR-kqarv-32",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

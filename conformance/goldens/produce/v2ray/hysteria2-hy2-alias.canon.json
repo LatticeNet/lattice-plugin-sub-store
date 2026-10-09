@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "DE-vvhh0b-20",
+    "host": "qc5-23.ivrq3u.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.o88ob.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "7GLrM7cLUxbsgFrxj79Y"
+  }
+]

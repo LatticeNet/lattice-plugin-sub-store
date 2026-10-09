@@ -1,0 +1,1 @@
+shadowsocks=2001:db8:d7c0:51b0::dfb9:21991,method=aes-256-gcm,password=OFWOx4wLiW8zkv,udp-relay=true,tag=KR-uhyf-94

@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "NL-q8q-98",
+        "port": 443,
+        "security": "auto",
+        "server": "dj9-28.i9kdhan.example.com",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "img.zvk38q37.example.org"
+            },
+            "path": "/abv4ag6"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "2a2633f6-bffd-41e2-a5ed-a6e930144137"
+      }
+    }
+  ]
+}

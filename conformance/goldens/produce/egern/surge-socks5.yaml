@@ -1,0 +1,4 @@
+proxies:
+  - {"socks5":{"name":"TW-i2gfvc-26","server":"gvo-12.lih7p9at.example.org","port":1080,"username":"ghvuo5ft","password":"3PW2M7qZi7vb","tfo":false,"udp_relay":true}}
+  - {"socks5_tls":{"name":"CA-ygv-96","server":"k0z-07.alq6rzpv.example.org","port":443,"username":"q5myv","password":"mdJzWJBzn9uV","tfo":false,"udp_relay":true,"sni":"www.v376zlisy8.example.net","skip_tls_verify":true}}
+  - {"socks5":{"name":"NL-glmiy7-28","server":"192.0.2.224","port":1080,"tfo":false,"udp_relay":true}}

@@ -1,0 +1,12 @@
+[
+  {
+    "name": "NL-k3j6-95",
+    "password": "NVBxPabyTYwXnC8nXizj",
+    "port": 443,
+    "server": "fg-21.w02y.example.com",
+    "sni": "www.ppj9s1u06.example.org",
+    "tls": true,
+    "type": "anytls",
+    "udp": true
+  }
+]

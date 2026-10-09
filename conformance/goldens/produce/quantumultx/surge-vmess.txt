@@ -1,0 +1,1 @@
+vmess=pa-38.pn5io.example.org:34827,method=chacha20-poly1305,password=9baf1f26-b509-46b9-a4af-9617458cc1e4,aead=true,udp-relay=true,tag=GB-euqdb-55

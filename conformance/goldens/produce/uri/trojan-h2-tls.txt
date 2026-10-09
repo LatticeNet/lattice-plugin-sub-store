@@ -1,0 +1,1 @@
+trojan://8MvDkVYuovpuC6Dt@si-29.ur8s.example.com:443?sni=img.hgf27gzs.example.net&type=h2&path=%2Foufkn68i&alpn=h2%2Chttp%2F1.1&fp=chrome#AU-xt8c-70

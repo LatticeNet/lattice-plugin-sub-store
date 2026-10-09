@@ -1,0 +1,23 @@
+[
+  {
+    "args": [
+      "k4-29.dbrm.example.org",
+      "443",
+      "auto",
+      "f01fcc8c-d644-4e5c-9d5f-65cda7be0d62"
+    ],
+    "name": "KR-tuq-74",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "api.h0digvt.example.org",
+      "over-tls": "true",
+      "path": "/glnf",
+      "tls-name": "api.h0digvt.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

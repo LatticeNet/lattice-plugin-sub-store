@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "y66-38.inbufi2.example.net",
+      "aid": "0",
+      "id": "d586cf7b-aa1f-4314-84df-a94b6c7ffde4",
+      "net": "tcp",
+      "port": "443",
+      "ps": "DE-kmsvq4-78",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

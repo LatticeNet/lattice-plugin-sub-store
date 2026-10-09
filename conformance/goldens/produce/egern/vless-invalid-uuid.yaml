@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"JP-ltu-81","server":"qz-19.lub5ieg.example.net","port":443,"user_id":"RHOvcranpksM","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.uyhwdzq.example.com","skip_tls_verify":false}}}}

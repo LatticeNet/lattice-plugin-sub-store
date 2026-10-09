@@ -1,0 +1,7 @@
+{
+  "id": "base64-mime-wrapped",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "base64-wrapped",
+  "description": "Base64 wrapped at 76 columns, as MIME encoders emit it."
+}

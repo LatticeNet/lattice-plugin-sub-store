@@ -1,0 +1,1 @@
+ss://YWVzLTI1Ni1nY206MXN2czR6dXBGa1ZlYjg=@ui-27.g6d8.example.com:80/?plugin=v2ray-plugin%3Bobfs%3Dwebsocket%3Bmode%3Dwebsocket%3Bobfs-host%3Dwww.z9bm8s.example.net%3Bhost%3Dwww.z9bm8s.example.net%3Bpath%3D%2Feibuy&udp=1#GB-coc-94

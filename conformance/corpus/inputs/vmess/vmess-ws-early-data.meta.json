@@ -1,0 +1,9 @@
+{
+  "id": "vmess-ws-early-data",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "WebSocket path carrying ?ed=2048."
+}

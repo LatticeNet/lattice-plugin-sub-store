@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "fg-21.w02y.example.com",
+      "443",
+      "NVBxPabyTYwXnC8nXizj"
+    ],
+    "name": "NL-k3j6-95",
+    "params": {
+      "tls-name": "www.ppj9s1u06.example.org",
+      "udp": "true"
+    },
+    "type": "anytls"
+  }
+]

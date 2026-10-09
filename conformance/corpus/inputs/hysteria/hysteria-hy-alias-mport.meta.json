@@ -1,0 +1,9 @@
+{
+  "id": "hysteria-hy-alias-mport",
+  "family": "hysteria",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "scheme-alias",
+  "description": "The hy:// alias with mport."
+}

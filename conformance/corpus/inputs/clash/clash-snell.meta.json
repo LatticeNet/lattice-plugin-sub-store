@@ -1,0 +1,8 @@
+{
+  "id": "clash-snell",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Snell versions 1 to 5, with http and tls obfs on the older ones."
+}

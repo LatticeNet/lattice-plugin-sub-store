@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "SG-yyjrva-54",
+    "host": "d6y-20.oabma4i4.example.org",
+    "path": "/",
+    "port": "32468",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=http;obfs-host=api.fc9ofw.example.org"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206UFVxMEw0QWJnY21MclE=",
+    "userinfo_base64": "aes-128-gcm:PUq0L4AbgcmLrQ"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-tcp-reality",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "description": "mihomo vless proxy over tcp with security reality."
+}

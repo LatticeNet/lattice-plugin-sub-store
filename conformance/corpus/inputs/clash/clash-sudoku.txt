@@ -1,0 +1,10 @@
+proxies:
+  - name: US-xyt-17
+    type: sudoku
+    server: iv3-32.n3z3w.example.org
+    port: 18894
+    key: iCAikKXou6G6OcrUdQhoxCfb
+    aead-method: chacha20-poly1305
+    padding-min: 2
+    padding-max: 7
+    table-type: prefer_ascii

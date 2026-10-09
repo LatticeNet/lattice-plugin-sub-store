@@ -1,0 +1,1 @@
+shadowsocks=fh-22.ov6ov1.example.net:26877,method=aes-128-gcm,password=DrL9ISgTEl19He,obfs=http,obfs-host=api.tvsyc0.example.com,udp-relay=true,tag=JP-hhek-33

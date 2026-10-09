@@ -1,0 +1,1 @@
+ss://YWVzLTEyOC1nY206Uno3VzJkNmt5SVFtUWs@ha-30.mwovt.example.org:443?type=ws&host=api.zr0uvpv2.example.net&path=%2Fv7d7s30&security=tls&sni=api.zr0uvpv2.example.net&fp=chrome#FR-ylrg-19

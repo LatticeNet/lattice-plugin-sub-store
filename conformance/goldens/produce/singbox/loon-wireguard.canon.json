@@ -1,0 +1,33 @@
+{
+  "endpoints": [
+    {
+      "address": [
+        "10.7.0.2/32",
+        "fd00:7::2/128"
+      ],
+      "mtu": 1280,
+      "peers": [
+        {
+          "address": " gc-02.t78uot.example.org",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "pre_shared_key": " UbrD9CLCVGTVdH6tkE89VhNRy50rH47LAa3JhmjlaIo=",
+          "public_key": " 9sQp8VfbRvZW0G1lqX+e7jUp8lYUIDnF5gpwxy6jtf4=",
+          "reserved": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "private_key": " Jyn+vFrBzaYrx3g/qwJIVUhmsl43bauXB8WYCCliMBA=",
+      "system": false,
+      "tag": "TW-iwic9-12",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

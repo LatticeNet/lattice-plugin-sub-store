@@ -1,0 +1,9 @@
+{
+  "id": "vless-unicode-name",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "unicode-name",
+  "description": "CJK, Cyrillic and punctuation in the fragment."
+}

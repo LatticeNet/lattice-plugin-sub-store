@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"FR-r7y7-81","server":"bb8-01.l6d3.example.org","port":443,"user_id":"099e3a94-ac18-45fc-b68c-e1d7135dd02c","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/bahe5/d975jk","headers":{"Host":"img.lxr7dc.example.org"}}}}}

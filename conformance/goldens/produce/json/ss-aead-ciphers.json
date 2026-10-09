@@ -1,0 +1,52 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "NL-bew7t-52",
+    "password": "P6IxGSrp91dddREC",
+    "port": 14724,
+    "server": "r7q-36.br9cpq0n.example.org",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-192-gcm",
+    "name": "GB-x1b-29",
+    "password": "UclUOZFB7tf7Gtoq",
+    "port": 11346,
+    "server": "o4n-01.aqvoop.example.net",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-256-gcm",
+    "name": "FR-shmxl-33",
+    "password": "jFIDjLKCNvu3INCU",
+    "port": 19245,
+    "server": "z43-26.hhi7.example.com",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "chacha20-ietf-poly1305",
+    "name": "GB-ztv-60",
+    "password": "pAGvGtXSEsMymyTa",
+    "port": 25398,
+    "server": "uc-31.uyyxe4v.example.com",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "xchacha20-ietf-poly1305",
+    "name": "AU-bq5-72",
+    "password": "vgfKpblL5fU7TiTW",
+    "port": 13213,
+    "server": "pm-29.am4f.example.net",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  }
+]

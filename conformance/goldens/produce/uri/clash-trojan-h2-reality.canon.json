@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "GB-awkc9t-85",
+    "host": "rg-19.lbk8.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "path",
+        "/h389t/vx2hh7mu3j"
+      ],
+      [
+        "pbk",
+        "9EEwC_h3v-9sFWZoS8BMUuaMzNa9XziR7fqSikR-JN8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "021916ae"
+      ],
+      [
+        "sni",
+        "img.ijy1nfbt.example.net"
+      ],
+      [
+        "type",
+        "h2"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "rwplh9bxjD888I3D"
+  }
+]

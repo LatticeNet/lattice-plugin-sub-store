@@ -1,0 +1,9 @@
+{
+  "id": "vless-ipv4-server",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ipv4-literal",
+  "description": "IPv4 literal server with the SNI only in the query."
+}

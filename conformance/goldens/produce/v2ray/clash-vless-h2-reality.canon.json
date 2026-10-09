@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "TW-pw6ak-79",
+    "host": "fr-18.grd2uet.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.acc6925d.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/bn2gnu"
+      ],
+      [
+        "pbk",
+        "wIU2kfEdde_FxnYnQ7MiH7J-CMOkWO60_7ceoR8q78E"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "bde02f48"
+      ],
+      [
+        "sni",
+        "www.acc6925d.example.net"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "7f9c5fa6-1017-4302-98c3-bcb2289a2585"
+  }
+]

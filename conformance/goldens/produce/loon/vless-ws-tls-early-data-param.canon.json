@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "obn-39.yszi265.example.com",
+      "443",
+      "f968b5ca-0962-4746-94d1-21ce2d1268be"
+    ],
+    "name": "TW-y1oz-65",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "static.c2lmw.example.org",
+      "over-tls": "true",
+      "path": "/aa6ho/v3ap",
+      "skip-cert-verify": "false",
+      "tls-name": "static.c2lmw.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

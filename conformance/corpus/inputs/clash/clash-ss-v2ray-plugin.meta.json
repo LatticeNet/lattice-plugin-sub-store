@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-v2ray-plugin",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "plugin-v2ray",
+  "description": "Shadowsocks with v2ray-plugin websocket, tls and mux."
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "id2-31.cfpw.example.net:14729",
+    "args": [],
+    "params": {
+      "method": "2022-blake3-aes-256-gcm",
+      "password": "EWKRLbqKkrLmfPsRvWd5uJTj5kbWYatax0DDdbZtB/c=:nlVrFh4vj2g38X12H/jHY84zGfrHgdREZ832YLlTrbA=",
+      "tag": "US-xksb8-53",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

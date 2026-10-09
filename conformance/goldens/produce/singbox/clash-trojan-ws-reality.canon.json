@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "yiccfKubyAbJv2Cc",
+      "server": "yqk-19.r69bdev.example.org",
+      "server_port": 443,
+      "tag": "HK-mg7g7-33",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "UKq0zxqr7fQwypkT3_R8FEgH_q_SlbqrKVCH1qIwI9k",
+          "short_id": "e8a04321"
+        },
+        "server_name": "img.xbzfirh7.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.xbzfirh7.example.com"
+        },
+        "path": "/fiz5/ilveyth9g",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

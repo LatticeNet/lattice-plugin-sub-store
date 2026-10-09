@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "tau-38.aett40.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "static.rooc7abl.example.com",
+      "id": "4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93",
+      "net": "ws",
+      "path": "/kczba7vr",
+      "port": "443",
+      "ps": "TW-xhup-68",
+      "scy": "auto",
+      "sni": "static.rooc7abl.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

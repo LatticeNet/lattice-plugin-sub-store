@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "d91-21.hbwhds4.example.org",
+      "server_port": 443,
+      "tag": "GB-x1csc-65",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.kh7h2.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "www.kh7h2.example.org",
+        "path": "/p860m/zaq07601",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "858c0ac5-dd21-4605-9e82-2fb011f2b838"
+    }
+  ]
+}

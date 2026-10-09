@@ -1,0 +1,8 @@
+{
+  "id": "vless-grpc-none",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "grpc",
+  "security": "none",
+  "description": "VLESS share link over grpc with security none."
+}

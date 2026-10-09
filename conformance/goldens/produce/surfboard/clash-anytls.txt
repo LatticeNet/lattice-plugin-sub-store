@@ -1,0 +1,1 @@
+KR-w7e-46=anytls,hac-37.k2fe.example.com,443,password="CD4xeu8GaEFg9Uc7b2yO",sni="static.ggzzb0.example.net",skip-cert-verify=false,udp-relay=true

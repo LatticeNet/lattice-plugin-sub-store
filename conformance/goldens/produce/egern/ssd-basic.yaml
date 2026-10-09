@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"KR-fn5-71","method":"aes-128-gcm","server":"e8-24.czdpwx7v.example.net","port":41712,"password":"eQObS4ZKRCMB0Q","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"NL-vv8-63","method":"aes-128-gcm","server":"kfm-30.j86h.example.net","port":41712,"password":"eQObS4ZKRCMB0Q","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"NL-jh0-83","method":"aes-128-gcm","server":"198.51.100.128","port":41712,"password":"eQObS4ZKRCMB0Q","tfo":false,"udp_relay":true}}

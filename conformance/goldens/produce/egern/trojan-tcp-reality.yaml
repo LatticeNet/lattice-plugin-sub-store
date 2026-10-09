@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"FR-gg4he-79","server":"cl3-20.f1i93c.example.com","port":443,"password":"8siqyovoAYVDDHHY","tfo":false,"udp_relay":true,"sni":"img.zz8yf8k7.example.net","reality":{"public_key":"7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8","short_id":"fd7b5be3"}}}

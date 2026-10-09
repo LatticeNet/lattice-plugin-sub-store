@@ -1,0 +1,15 @@
+proxies:
+  - name: CA-xmcwy-91
+    type: vless
+    server: y2-31.xsea.example.net
+    port: 443
+    uuid: 319242a6-da46-498e-b7a4-2f1c17d0e0c5
+    tls: true
+    servername: cdn.hdptwe1.example.org
+    fingerprint: 30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09
+    dialer-proxy: HK-tf0-80
+    network: ws
+    ws-opts:
+      path: /s05tj
+      headers:
+        Host: www.nfuzg.example.net

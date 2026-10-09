@@ -1,0 +1,39 @@
+[
+  {
+    "address": "hs7-14.fbk5i4m.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "joCobve956pHGbOP",
+      "tag": "KR-jnlp-45",
+      "tls-host": "127.0.0.1",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "cm-29.o4a6p.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "rRZddt7F6fbdqRuD",
+      "tag": "US-udm43-99",
+      "tls-host": "127.0.0.1",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "oyc-16.u9lrca1q.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "72a8e00b-8c2d-4e2f-80fa-592feab63300",
+      "tag": "HK-av3-92",
+      "tls-host": "oyc-16.u9lrca1q.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

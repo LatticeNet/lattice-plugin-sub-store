@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "KR-lzb3o3-05",
+        "password": "6mUNbxAlL0UIUSWD",
+        "port": 443,
+        "server": "rnh-12.ruiiz.example.net",
+        "sni": "www.adclk43nua.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "host": "www.adclk43nua.example.com",
+          "path": "/nco4s"
+        }
+      }
+    }
+  ]
+}

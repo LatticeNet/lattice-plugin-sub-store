@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-s63s-21",
+      "type": "hysteria2",
+      "server": "bi-14.qievq7x.example.com",
+      "server_port": 443,
+      "password": "vCWyidJwQyfuWrJv4pzN",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.qj6n1.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

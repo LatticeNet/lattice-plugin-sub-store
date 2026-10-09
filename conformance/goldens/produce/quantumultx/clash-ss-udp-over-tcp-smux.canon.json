@@ -1,0 +1,14 @@
+[
+  {
+    "address": "zzt-26.y4jpnft5.example.org:12899",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "jQ2iqvOC7hkHUSoD",
+      "tag": "NL-fm2xz-53",
+      "udp-over-tcp": "sp.v2",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

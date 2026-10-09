@@ -1,0 +1,1 @@
+KR-tuq-74=vmess,k4-29.dbrm.example.org,443,auto,"f01fcc8c-d644-4e5c-9d5f-65cda7be0d62",transport=ws,path=/glnf,host=api.h0digvt.example.org,over-tls=true,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.h0digvt.example.org,alterId=0,udp=true

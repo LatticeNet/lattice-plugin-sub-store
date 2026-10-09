@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "fy-15.rele.example.com",
+      "443",
+      "b71a594d-c0f7-4382-b55d-ffaaefacfc1f"
+    ],
+    "name": "US-g9oft-73",
+    "params": {
+      "host": "static.k844cgjqpc.example.org",
+      "over-tls": "false",
+      "path": "/mxba",
+      "skip-cert-verify": "false",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

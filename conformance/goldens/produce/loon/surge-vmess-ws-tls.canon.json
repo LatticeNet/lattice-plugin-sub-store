@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "jz-02.c8w0o.example.net",
+      "443",
+      "auto",
+      "7ad81b79-8585-455e-bbbf-62760908d238"
+    ],
+    "name": "US-zxcd-56",
+    "params": {
+      "alterId": "0",
+      "host": "img.woqeq46.example.org",
+      "over-tls": "true",
+      "path": "/jfanvq6wu",
+      "skip-cert-verify": "false",
+      "tls-name": "img.woqeq46.example.org",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

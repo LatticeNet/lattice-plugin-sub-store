@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"GB-m175-12","server":"jwn-16.xzxs3g.example.org","port":80,"user_id":"662f3d29-2c17-4083-957f-1b994cae8b9a","tfo":false,"udp_relay":true,"transport":{"http1":{"path":"/rrozosr,/cotqh2vr","headers":{"Host":"api.llf804re.example.com,cdn.b7npvr.example.org"},"skip_tls_verify":false}}}}

@@ -1,0 +1,2 @@
+NL-wmkko5-50=trojan,ct-01.gktnpz.example.net,443,password=uY3bzTtZg5PWo0Gu,tls=true,sni="img.mfq6v7gy31.example.net",skip-cert-verify=true,udp-relay=true
+GB-g2r5-48=trojan,exp-37.msqhu.example.net,443,password=Q0TFWQNDf9Objj0W,ws=true,ws-path=/h1xonc/ytq25w0leh,ws-headers=Host:"www.lyoh8.example.net",tls=true,sni="www.lyoh8.example.net",udp-relay=true

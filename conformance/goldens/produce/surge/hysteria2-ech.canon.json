@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "gj-03.d3ejf.example.net",
+      "443"
+    ],
+    "name": "AU-rwg0qw-67",
+    "params": {
+      "password": "wNErEnwtwNG5ixk200VV",
+      "skip-cert-verify": "false",
+      "sni": "api.qutrl0x4py.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

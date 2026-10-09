@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-hy2-alias",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "scheme-alias",
+  "description": "The hy2:// scheme alias."
+}

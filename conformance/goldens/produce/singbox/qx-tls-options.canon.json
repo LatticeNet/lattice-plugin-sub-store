@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "dHxn6dCKqdRZFujk",
+      "server": "203.0.113.104",
+      "server_port": 443,
+      "tag": "GB-rc5go-89",
+      "tls": {
+        "certificate_sha256": [
+          "+fRx583bausSduoMOQgjnr20iiHQnC5jK5YE9hJqUYs="
+        ],
+        "enabled": true,
+        "insecure": true,
+        "server_name": "www.t7f0lpmk.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

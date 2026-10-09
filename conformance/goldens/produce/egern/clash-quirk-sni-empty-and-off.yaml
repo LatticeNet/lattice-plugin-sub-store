@@ -1,0 +1,4 @@
+proxies:
+  - {"trojan":{"name":"KR-jnlp-45","server":"hs7-14.fbk5i4m.example.net","port":443,"password":"joCobve956pHGbOP","tfo":false,"udp_relay":true,"sni":"127.0.0.1"}}
+  - {"trojan":{"name":"US-udm43-99","server":"cm-29.o4a6p.example.org","port":443,"password":"rRZddt7F6fbdqRuD","tfo":false,"udp_relay":true,"sni":"127.0.0.1"}}
+  - {"vless":{"name":"HK-av3-92","server":"oyc-16.u9lrca1q.example.org","port":443,"user_id":"72a8e00b-8c2d-4e2f-80fa-592feab63300","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"oyc-16.u9lrca1q.example.org"}}}}

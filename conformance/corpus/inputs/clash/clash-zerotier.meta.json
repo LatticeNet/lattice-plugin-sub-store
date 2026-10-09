@@ -1,0 +1,7 @@
+{
+  "id": "clash-zerotier",
+  "family": "clash",
+  "protocol": "zerotier",
+  "security": "none",
+  "description": "zerotier with a network id."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"AU-zxd838-69","password":"ushjygm7:KVGUTh8yVTWIts5R","port":443,"server":"mo-07.m625b9u.example.org","skip-cert-verify":false,"sni":"static.sskdxnvab.example.org","tfo":false,"type":"hysteria2","udp":true}

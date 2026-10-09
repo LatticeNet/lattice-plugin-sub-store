@@ -1,0 +1,9 @@
+{
+  "id": "surge-ss-obfs",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "obfs",
+  "description": "Surge ss with obfs http and tls, obfs-host and obfs-uri."
+}

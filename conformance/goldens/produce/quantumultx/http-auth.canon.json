@@ -1,0 +1,14 @@
+[
+  {
+    "address": "q6-02.rzkx1wg.example.org:8080",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "password": "CHzXFu3vME0v",
+      "tag": "US-r6m-13",
+      "udp-relay": "true",
+      "username": "lesmf"
+    },
+    "type": "http"
+  }
+]

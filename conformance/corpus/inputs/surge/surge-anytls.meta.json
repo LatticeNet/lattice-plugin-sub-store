@@ -1,0 +1,8 @@
+{
+  "id": "surge-anytls",
+  "family": "surge",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Surge anytls with reuse and sni."
+}

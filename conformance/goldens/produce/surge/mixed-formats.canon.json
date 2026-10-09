@@ -1,0 +1,67 @@
+[
+  {
+    "args": [
+      "br-26.hq2o538.example.net",
+      "443"
+    ],
+    "name": "JP-fckt-50",
+    "params": {
+      "password": "lFV1bVIWHZwLbmTy",
+      "sni": "img.z42yip5q6.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "u3d-32.d1kvbm.example.org",
+      "56005"
+    ],
+    "name": "SG-x0pl-12",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "rq8MrAoExA7lnu",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "zh-10.jyt81ic.example.com",
+      "443"
+    ],
+    "name": "GB-s1w-39",
+    "params": {
+      "sni": "static.jmolihi.example.net",
+      "tls": "true",
+      "username": "71238152-25a5-4919-af05-50046127840d",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "cze-20.sxdhx8.example.com",
+      "443"
+    ],
+    "name": "KR-logo1-06",
+    "params": {
+      "password": "XksBeWvF8IOR34qt1nH9",
+      "sni": "img.uzyhj.example.net"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "si-34.ge2k66hu.example.org",
+      "26289"
+    ],
+    "name": "SG-lui-26",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "VVGaOe4bC0fIF8",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

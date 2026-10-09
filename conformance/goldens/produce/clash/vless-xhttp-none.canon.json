@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "encryption": "none",
+      "name": "JP-hmq3o7-72",
+      "network": "xhttp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "qo-07.fsqxwcko.example.com",
+      "skip-cert-verify": false,
+      "tls": false,
+      "type": "vless",
+      "udp": true,
+      "uuid": "666e05bb-b202-4690-b49c-5f31a2054e2d",
+      "xhttp-opts": {
+        "host": "api.cp0bb8.example.com",
+        "mode": "auto",
+        "path": "/qs4yyl/f134d7cml"
+      }
+    }
+  ]
+}

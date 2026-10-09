@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "TW-p3zzj-91",
+    "host": "yv4-30.js8ob4v.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "host",
+        "static.ynpyk6s.example.net"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/qhpev8/oe3v9fez"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.ynpyk6s.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "6801b885-ba5e-4acc-8682-00d5bcb07dc3"
+  }
+]

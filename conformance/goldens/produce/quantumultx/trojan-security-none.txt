@@ -1,0 +1,1 @@
+trojan=d78-40.oq5eh33.example.net:443,password=nrZ4GoNApLRurSNH,over-tls=true,tls-host=d78-40.oq5eh33.example.net,udp-relay=true,tag=AU-ef8-23

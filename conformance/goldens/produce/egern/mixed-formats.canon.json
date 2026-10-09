@@ -1,0 +1,86 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "JP-kheg-39",
+        "port": 443,
+        "server": "vko-36.wx04c.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "T8pgaHBbnRSiQZ2WyKmcDmNNyPlTjbOQosj2Y_DDKwQ",
+              "short_id": "f55db336"
+            },
+            "skip_tls_verify": false,
+            "sni": "static.svxk81.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "56846b9c-0cc0-4e6f-858e-d8b398d5dc89"
+      }
+    },
+    {
+      "trojan": {
+        "name": "JP-fckt-50",
+        "password": "lFV1bVIWHZwLbmTy",
+        "port": 443,
+        "server": "br-26.hq2o538.example.net",
+        "sni": "img.z42yip5q6.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "SG-x0pl-12",
+        "password": "rq8MrAoExA7lnu",
+        "port": 56005,
+        "server": "u3d-32.d1kvbm.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "GB-s1w-39",
+        "port": 443,
+        "security": "none",
+        "server": "zh-10.jyt81ic.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "static.jmolihi.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "71238152-25a5-4919-af05-50046127840d"
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "XksBeWvF8IOR34qt1nH9",
+        "name": "KR-logo1-06",
+        "port": 443,
+        "server": "cze-20.sxdhx8.example.com",
+        "sni": "img.uzyhj.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "SG-lui-26",
+        "password": "VVGaOe4bC0fIF8",
+        "port": 26289,
+        "server": "si-34.ge2k66hu.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

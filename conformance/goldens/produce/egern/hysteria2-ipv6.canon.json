@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "yKKdrNLMv32PgMZuqlnp",
+        "name": "NL-cme-57",
+        "port": 34005,
+        "server": "2001:db8:b10a:ac00::f036",
+        "skip_tls_verify": true,
+        "sni": "cdn.lct1cm2ewi.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

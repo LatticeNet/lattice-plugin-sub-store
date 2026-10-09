@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"JP-hhek-33","method":"aes-128-gcm","server":"fh-22.ov6ov1.example.net","port":26877,"password":"DrL9ISgTEl19He","tfo":false,"udp_relay":true,"obfs":"http","obfs_host":"api.tvsyc0.example.com"}}

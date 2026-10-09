@@ -1,0 +1,1 @@
+FR-q12au1-90=anytls,y2-16.jnffzo.example.net,443,password="AqMA6wktK9PBJuK9gRNC",sni="www.j5ultdi1.example.com",skip-cert-verify=false,udp-relay=true

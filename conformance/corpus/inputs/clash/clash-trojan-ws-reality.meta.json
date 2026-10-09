@@ -1,0 +1,8 @@
+{
+  "id": "clash-trojan-ws-reality",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "ws",
+  "security": "reality",
+  "description": "mihomo trojan proxy over ws with security reality."
+}

@@ -1,0 +1,34 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-opo-77",
+      "type": "vless",
+      "server": "bu-22.u68e7.example.com",
+      "server_port": 443,
+      "uuid": "8716fe3b-7305-46ba-91eb-4cb9a984fb0a",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ipzjfg8.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "T3_rEwPJJ-F9B-y6jwjMQu7p0F-ijg9aJjgI_k977DY",
+          "short_id": "2ad1003c"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.ipzjfg8.example.net"
+        },
+        "path": "/yn3/cg1s"
+      }
+    }
+  ],
+  "endpoints": []
+}

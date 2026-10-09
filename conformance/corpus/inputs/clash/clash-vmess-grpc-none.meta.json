@@ -1,0 +1,8 @@
+{
+  "id": "clash-vmess-grpc-none",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "grpc",
+  "security": "none",
+  "description": "mihomo vmess proxy over grpc with security none."
+}

@@ -1,0 +1,10 @@
+proxies:
+  - name: JP-i90b-46
+    type: juicity
+    server: xnb-29.y0wjh.example.org
+    port: 443
+    uuid: 7a0e3e15-8d2e-4bec-b476-6693196053cb
+    password: eNE7xQ9dV5KlnUDf
+    sni: www.npmw6566x.example.com
+    congestion-control: bbr
+    skip-cert-verify: false

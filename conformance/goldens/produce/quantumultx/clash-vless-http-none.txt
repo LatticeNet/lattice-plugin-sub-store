@@ -1,0 +1,1 @@
+vless=nvo-13.tiyto.example.com:443,method=none,password=19ce9141-5472-4909-b9dd-56d673bcefcd,obfs=http,obfs-uri=/re7z2/lfj8lceb,obfs-host=cdn.flyi3.example.net,udp-relay=true,tag=KR-pml-30

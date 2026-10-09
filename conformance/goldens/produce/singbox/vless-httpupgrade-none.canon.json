@@ -1,0 +1,19 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "er-04.nu4t4.example.com",
+      "server_port": 443,
+      "tag": "AU-aqal8-16",
+      "transport": {
+        "headers": {},
+        "host": "cdn.p4mxqa.example.org",
+        "path": "/hpj/fschyhgoe",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "715d99f4-1696-4d44-bcc8-bc885b0e1d2f"
+    }
+  ]
+}

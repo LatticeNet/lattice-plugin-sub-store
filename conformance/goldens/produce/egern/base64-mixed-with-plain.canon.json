@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "HK-hqqur-72",
+        "password": "B7ztkGc3V2s1X2",
+        "port": 11356,
+        "server": "h4b-38.ex4c4j.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

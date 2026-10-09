@@ -1,0 +1,1 @@
+US-g9oft-73=vless,fy-15.rele.example.com,443,"b71a594d-c0f7-4382-b55d-ffaaefacfc1f",transport=http,path=/mxba,host=static.k844cgjqpc.example.org,over-tls=false,skip-cert-verify=false,udp=true

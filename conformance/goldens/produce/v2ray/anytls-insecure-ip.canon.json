@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "GB-uq8k-07",
+    "host": "198.51.100.140",
+    "path": "",
+    "port": "45821",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "insecure",
+        "1"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "M9Mlcffeicbj8UV6dfeJ"
+  }
+]

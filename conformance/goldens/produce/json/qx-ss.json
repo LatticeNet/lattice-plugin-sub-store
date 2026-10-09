@@ -1,0 +1,21 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "CA-gki4-71",
+    "password": "WCk5pgZGKDGMo1",
+    "port": 34163,
+    "server": "y5x-06.qsbxmtn.example.org",
+    "tfo": false,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "2022-blake3-aes-128-gcm",
+    "name": "GB-t54-55",
+    "password": "NIFm94rVMD3O2AH3m+kvdw==",
+    "port": 55339,
+    "server": "pl3-12.rvki6p41.example.com",
+    "type": "ss",
+    "udp": true
+  }
+]

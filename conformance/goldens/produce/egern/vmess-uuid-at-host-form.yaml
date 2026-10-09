@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"DE-x2v8vq-21","server":"dz-19.pgekzw8.example.org","port":443,"user_id":"0c589e64-b7b7-442c-b647-b37f1db0e7a5","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/g89/nipgxvfka","headers":{"Host":"cdn.oah4gm49.example.net"},"sni":"cdn.oah4gm49.example.net","skip_tls_verify":false}}}}

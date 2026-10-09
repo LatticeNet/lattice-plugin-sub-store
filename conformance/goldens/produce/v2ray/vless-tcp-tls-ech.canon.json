@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "GB-t9p-56",
+    "host": "uk-05.zeqc.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ech",
+        "Vr+JCeupCeH8nUII43fmZvMAW08aSjPecef/qlUi2oZ1ED/H0wXxM9P1qncTruDBU6zcMZfARZvUArzflfA4wbITJ4Ykt1B7"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.ycqp18r6p5.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1e63755b-a4fb-486a-9bf1-cfe455701da5"
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-cfb",
+      "password": "e5XX5LpSFAz7",
+      "server": "uo-31.vohqvdh2.example.net",
+      "server_port": 26672,
+      "tag": "SG-at22-37",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-cfb",
+      "password": "nmZltRLobntH",
+      "server": "np-08.baeops7.example.org",
+      "server_port": 33705,
+      "tag": "FR-wjypay-70",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-ctr",
+      "password": "nlpoz8gL0b9I",
+      "server": "pp0-31.brvt.example.net",
+      "server_port": 23086,
+      "tag": "JP-clgy1z-07",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "chacha20-ietf",
+      "password": "Rpv1f9EyDV8H",
+      "server": "fx-28.zpthid.example.net",
+      "server_port": 14978,
+      "tag": "US-f3qx-51",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "rc4-md5",
+      "password": "0aSo41OohzpA",
+      "server": "ceq-08.xcl70pi.example.org",
+      "server_port": 50721,
+      "tag": "TW-odzmu-72",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "none",
+      "password": "HtRQC4aUfvKA",
+      "server": "a8-24.ywoz.example.net",
+      "server_port": 36201,
+      "tag": "CA-gs6jqm-70",
+      "type": "shadowsocks"
+    }
+  ]
+}

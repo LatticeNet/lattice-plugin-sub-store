@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"NL-ch4-64","server":"cej-15.bkqvxt7.example.net","port":443,"user_id":"8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/xbne0","headers":{"Host":"static.vn1oixf1.example.org"},"sni":"static.vn1oixf1.example.org","skip_tls_verify":false}}}}

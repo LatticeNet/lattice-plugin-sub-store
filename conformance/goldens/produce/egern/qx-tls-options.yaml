@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"GB-rc5go-89","server":"203.0.113.104","port":443,"password":"dHxn6dCKqdRZFujk","tfo":false,"udp_relay":true,"sni":"www.t7f0lpmk.example.org","skip_tls_verify":true,"fingerprint_sha256":"f9f471e7cddb6aeb1276ea0c3908239ebdb48a21d09c2e632b9604f6126a518b"}}

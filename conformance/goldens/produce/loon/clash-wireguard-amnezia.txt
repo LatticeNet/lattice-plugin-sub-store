@@ -1,0 +1,1 @@
+SG-hzt-46=wireguard,interface-ip=10.9.0.2,private-key="FjZC9ZM/4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs=",peers=[{public-key="UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q+vw=",allowed-ips="0.0.0.0/0,::/0",endpoint=lj-17.ox6nx9zr.example.net:51820}]

@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "sb-07.yw88.example.net",
+      "17650",
+      "aes-128-gcm",
+      "z5WspQcJNHZLrl"
+    ],
+    "name": "CA-tf0-69",
+    "params": {
+      "fast-open": "false",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "nl-04.jgtvz5jf.example.net",
+      "59621",
+      "2022-blake3-aes-256-gcm",
+      "8NQWdu7foSa/JEy3qJHg+rfwAbZFQlGo18lRdRFDLZU="
+    ],
+    "name": "NL-jqprx9-50",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

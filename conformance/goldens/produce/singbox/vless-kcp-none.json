@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-lrtvt-76",
+      "type": "vless",
+      "server": "tk-21.xajh2ktf.example.net",
+      "server_port": 443,
+      "uuid": "41d1b28b-7459-4543-bfac-d7003b4f7aed",
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

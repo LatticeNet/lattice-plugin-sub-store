@@ -1,0 +1,19 @@
+[
+  {
+    "address": "sx-39.xuvbo.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "img.d6vdeaf.example.net",
+      "obfs-uri": "/xil2/s6dx",
+      "password": "62baade6-6b72-456c-bedc-186a64cfc946",
+      "tag": "GB-bh6-73",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.d6vdeaf.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

@@ -1,0 +1,2 @@
+GB-vndf-11=hysteria2,oe-33.qx39yxx.example.com,443,password="jy1zzeVtjPYW5WZ1d7c3",sni="api.y9rxi39v8j.example.org",skip-cert-verify=false,download-bandwidth=100
+KR-x2fuc-55=hysteria2,w6b-30.pbeu3.example.net,443,password="Ljm9RAIKKgkAVQ4Om3ES",port-hopping="20000-30000;31000",port-hopping-interval=30,salamander-password="RpvsakJ8xuuStgsm",sni="cdn.wq7zecq15c.example.net"

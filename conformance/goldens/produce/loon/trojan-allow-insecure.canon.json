@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "192.0.2.32",
+      "443",
+      "7WEAVSvZGNTkAgpl"
+    ],
+    "name": "KR-ptyg-62",
+    "params": {
+      "skip-cert-verify": "true",
+      "tls-name": "img.qx34w.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

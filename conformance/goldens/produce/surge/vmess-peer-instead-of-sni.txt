@@ -1,0 +1,1 @@
+JP-jo2-78=vmess,fwt-04.rega.example.com,443,username=3d0bd30a-5e31-4d2b-bc4d-7237cdd12157,ws=true,ws-path=/ntkx808b,ws-headers="Host:"api.pep8i.example.org"",vmess-aead=true,tls=true,sni="api.pep8i.example.org",alpn="h2,http/1.1"

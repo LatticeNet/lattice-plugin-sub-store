@@ -1,0 +1,7 @@
+{
+  "id": "mixed-last-parser-first",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "parser-order",
+  "description": "Loon lines after a Surge line of the same type, which exercises trying the last successful reader first."
+}

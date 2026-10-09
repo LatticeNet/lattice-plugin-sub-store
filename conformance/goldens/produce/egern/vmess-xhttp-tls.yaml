@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"NL-h78vw3-34","server":"u9q-33.g5pnn.example.com","port":443,"user_id":"b837354d-24b9-4e40-a7bd-36eaeb1b4a44","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.p974vl.example.org"}}}}

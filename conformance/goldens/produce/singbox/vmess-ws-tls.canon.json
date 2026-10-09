@@ -1,0 +1,34 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "k4-29.dbrm.example.org",
+      "server_port": 443,
+      "tag": "KR-tuq-74",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.h0digvt.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "api.h0digvt.example.org"
+        },
+        "path": "/glnf",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "f01fcc8c-d644-4e5c-9d5f-65cda7be0d62"
+    }
+  ]
+}

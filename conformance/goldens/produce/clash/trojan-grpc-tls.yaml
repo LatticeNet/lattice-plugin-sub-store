@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","grpc-opts":{"grpc-service-name":"nbzlyxga-snff"},"name":"TW-ucn-36","network":"grpc","password":"at4jdVnJQ4yIlNJJ","port":443,"server":"hul-38.huj9c209.example.com","sni":"cdn.go13h8jb1.example.net","type":"trojan","udp":true}

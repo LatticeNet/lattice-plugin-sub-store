@@ -1,0 +1,36 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "fj-09.fcx8god.example.org",
+      "server_port": 443,
+      "tag": "TW-mc3w0h-48",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.ubxoa09ik.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "early_data_header_name": "Sec-WebSocket-Protocol",
+        "headers": {
+          "Host": "api.ubxoa09ik.example.com"
+        },
+        "max_early_data": 2048,
+        "path": "/zx2t",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "3cf24b8e-2838-480e-ad27-03657ab28a13"
+    }
+  ]
+}

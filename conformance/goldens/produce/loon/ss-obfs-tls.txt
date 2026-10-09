@@ -1,0 +1,1 @@
+CA-bus8j-50=shadowsocks,o8-22.yd7la.example.com,41691,chacha20-ietf-poly1305,"DnDhyby4CUkV4H",obfs-name=tls,obfs-host=static.vrb8iyo.example.net,udp=true

@@ -1,0 +1,9 @@
+{
+  "id": "ss-shadow-tls-query",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "query-shadow-tls",
+  "description": "shadow-tls given as a Base64 JSON query value: unpadded URL-safe, then padded standard Base64 whose padding is percent-encoded."
+}

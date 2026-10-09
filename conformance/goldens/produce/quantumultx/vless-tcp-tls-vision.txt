@@ -1,0 +1,1 @@
+vless=jam-37.r0ecy.example.com:443,method=none,password=f8db7cb5-5151-4acc-b72c-ca55afc4022c,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.ooqjd.example.org,vless-flow=xtls-rprx-vision,udp-relay=true,tag=SG-qqz-51

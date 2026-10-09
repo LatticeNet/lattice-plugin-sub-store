@@ -1,0 +1,1 @@
+tuic://3007e77b-5b38-41a6-aaf1-fe9710eb4bfe:1UjuEMWE7CI63SWK@tz-12.a1opi5.example.com:443?alpn=h3&congestion_control=cubic&sni=www.b7u4wwuv.example.net&udp=true&udp_relay_mode=quic#TW-hstpqi-80

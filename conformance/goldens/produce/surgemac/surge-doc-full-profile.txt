@@ -1,0 +1,3 @@
+AU-tx3-71=ss,v5-05.qb5b.example.org,34588,encrypt-method=aes-128-gcm,password="i0Xuxu3C1Z8mZe",udp-relay=true
+TW-cdnh-17=trojan,bun-09.kwq8.example.net,443,password="RbyQZY56IcdRRx5v",tls=true,sni="cdn.bskwnh8rfx.example.com"
+DIRECT-ALIAS=direct

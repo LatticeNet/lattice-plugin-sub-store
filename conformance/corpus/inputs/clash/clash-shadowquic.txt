@@ -1,0 +1,11 @@
+proxies:
+  - name: NL-nswik-48
+    type: shadowquic
+    server: ir-15.e32tqt.example.org
+    port: 443
+    username: tc34tz
+    password: aVhmw1LMKhM7mC
+    server-name: www.doswd6p.example.org
+    alpn:
+      - h3
+    udp: true

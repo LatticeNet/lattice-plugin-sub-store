@@ -1,0 +1,8 @@
+{
+  "id": "vless-ws-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "reality",
+  "description": "VLESS share link over ws with security reality."
+}

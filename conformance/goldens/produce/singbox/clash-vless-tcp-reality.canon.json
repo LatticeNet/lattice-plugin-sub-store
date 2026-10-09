@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "server": "hnp-23.vn41.example.com",
+      "server_port": 443,
+      "tag": "AU-x15se-92",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "DA9oMSTOMkBmqRO7ZvP9oWoNpP0tHqBvwj7ZX17GLUo",
+          "short_id": "bab52219"
+        },
+        "server_name": "api.xao43je5k8.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "555e8ea6-0aa2-446f-89d6-75d1ee8e7875"
+    }
+  ]
+}

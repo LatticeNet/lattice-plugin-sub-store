@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "CA-nixq-24",
+      "password": "05eDffSebg6pvqS7baU1",
+      "port": 443,
+      "reuse": true,
+      "server": "rmq-28.tr5vrx1y.example.net",
+      "skip-cert-verify": false,
+      "sni": "cdn.sgclf.example.net",
+      "type": "anytls",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+KR-xu9-56=trojan,i5-38.wplgwp.example.net,443,"MeQWwGSYT5rbvAsd",tls-profile=chrome,sni=img.j92m5l.example.net,public-key="LWUwWsat9VWdMN6pB7bTcFjL2x2zY3C-fF8_PSjHwzc",short-id=93559da3,udp=true

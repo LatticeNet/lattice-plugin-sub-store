@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "urj-24.ji6pn83.example.org",
+      "52039"
+    ],
+    "name": "CA-tol-36",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "Wm8v66vvBpjFnF",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

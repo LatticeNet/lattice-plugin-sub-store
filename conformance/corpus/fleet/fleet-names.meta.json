@@ -1,0 +1,29 @@
+{
+  "id": "fleet-names",
+  "family": "fleet",
+  "description": "Names in CJK and Cyrillic, with URL-significant punctuation, spaces and long tails.",
+  "shape": "names",
+  "lines": 12,
+  "mix": [
+    {
+      "protocol": "hysteria2",
+      "count": 2
+    },
+    {
+      "protocol": "ss-2022",
+      "count": 2
+    },
+    {
+      "protocol": "trojan-tls",
+      "count": 2
+    },
+    {
+      "protocol": "tuic",
+      "count": 2
+    },
+    {
+      "protocol": "vless-reality-vision",
+      "count": 4
+    }
+  ]
+}

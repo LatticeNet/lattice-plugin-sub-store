@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "CA-xmcwy-91",
+    "host": "y2-31.xsea.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "www.nfuzg.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/s05tj"
+      ],
+      [
+        "pcs",
+        "30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.hdptwe1.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "319242a6-da46-498e-b7a4-2f1c17d0e0c5"
+  }
+]

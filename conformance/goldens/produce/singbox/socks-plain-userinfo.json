@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-m3vio-67",
+      "type": "socks",
+      "server": "xoh-25.q38e9.example.com",
+      "server_port": 53769,
+      "version": "5",
+      "username": "j�]�jԍ��y�!"
+    }
+  ],
+  "endpoints": []
+}

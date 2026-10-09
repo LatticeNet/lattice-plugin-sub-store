@@ -1,0 +1,1 @@
+vless=obn-39.yszi265.example.com:443,method=none,password=f968b5ca-0962-4746-94d1-21ce2d1268be,obfs=wss,obfs-uri=/aa6ho/v3ap,obfs-host=static.c2lmw.example.org,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.c2lmw.example.org,udp-relay=true,tag=TW-y1oz-65

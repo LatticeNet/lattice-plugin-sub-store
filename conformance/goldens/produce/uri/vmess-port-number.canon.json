@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "o0-12.dadt3a.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "d1842fe9-5aed-452a-a62f-b2a295668da1",
+      "net": "tcp",
+      "port": "49419",
+      "ps": "JP-vfw94-81",
+      "scy": "auto",
+      "sni": "api.et37x8lil.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

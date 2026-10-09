@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "KR-ptyg-62",
+    "host": "192.0.2.32",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "sni",
+        "img.qx34w.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "7WEAVSvZGNTkAgpl"
+  }
+]

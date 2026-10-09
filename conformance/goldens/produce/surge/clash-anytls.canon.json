@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "hac-37.k2fe.example.com",
+      "443"
+    ],
+    "name": "KR-w7e-46",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "password": "CD4xeu8GaEFg9Uc7b2yO",
+      "skip-cert-verify": "false",
+      "sni": "static.ggzzb0.example.net"
+    },
+    "type": "anytls"
+  }
+]

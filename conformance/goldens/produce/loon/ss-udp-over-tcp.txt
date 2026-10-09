@@ -1,0 +1,2 @@
+TW-sgo-07=shadowsocks,su-23.ysq8riu.example.com,41043,aes-256-gcm,"f1RgjVO49Z5wYF",udp=true
+TW-t0hv-35=shadowsocks,n4j-34.a620o39y.example.com,41982,aes-256-gcm,"2rCTNDZG2jMTLF"

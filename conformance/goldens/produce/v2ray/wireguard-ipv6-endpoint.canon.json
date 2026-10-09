@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "HK-dp0ugx-68",
+    "host": "2001:db8:5b5a:a2d4::b245",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.9.0.3/32,fd00:9::3/128"
+      ],
+      [
+        "publickey",
+        "vmwsGZrV3ufK4cHCr/lKFjjqnUIqnOCeGNFRXEbcC7k="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "vdhhZ+I3ibrW3tIzqUZc8uUjV/UK+G+DTgW0fxPBiMg="
+  }
+]

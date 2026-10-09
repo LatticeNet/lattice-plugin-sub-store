@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "TW-ygyta-67",
+        "port": 443,
+        "server": "rma-16.h25sggv.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.chlscz.example.org"
+            },
+            "path": "/j1zy0u/avd77h9av",
+            "skip_tls_verify": false,
+            "sni": "static.z0xp482.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3a8f9903-e409-4e47-95d6-f96b71ee33cb"
+      }
+    }
+  ]
+}

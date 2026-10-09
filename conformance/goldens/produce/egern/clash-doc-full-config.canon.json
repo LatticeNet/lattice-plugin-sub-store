@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "FR-rxs9-71",
+        "password": "TfwevtKu5necBwQa",
+        "port": 443,
+        "server": "gz6-27.nt3l3rl.example.com",
+        "sni": "img.yan934d.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "NL-nk245-43",
+        "port": 443,
+        "security": "auto",
+        "server": "mc6-21.oy1wum6m.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "4ada313e-c95d-437a-8322-4fedd24ee914"
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "AU-xcg-14",
+        "password": "485528",
+        "port": 19730,
+        "server": "vgz-03.wijo.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "NL-yspkh0-87",
+        "password": "70370695",
+        "port": 443,
+        "server": "frx-40.o7y8y1.example.org",
+        "sni": "static.mq1bb04d.example.net",
+        "tfo": false,
+        "udp_relay": false
+      }
+    }
+  ]
+}

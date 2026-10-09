@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-vhcg-10",
+      "type": "trojan",
+      "server": "198.51.100.141",
+      "server_port": 443,
+      "password": "tXTMeRxFYxRlodBY",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ynezx5akh.example.com",
+        "insecure": false,
+        "certificate_sha256": [
+          "qKKRb4AtXeu+jTG6P+ZKoImYVqMn1lMH/M5drfrbHCY="
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

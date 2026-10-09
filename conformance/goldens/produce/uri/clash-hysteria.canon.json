@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "DE-hfwjs3-70",
+    "host": "eem-03.omri2b2.example.org",
+    "path": "",
+    "port": "41261",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "auth",
+        "aAz3856ZQjqxVOTJ"
+      ],
+      [
+        "downmbps",
+        "200 Mbps"
+      ],
+      [
+        "obfsParam",
+        "HiQ2uYiYts"
+      ],
+      [
+        "peer",
+        "www.rsv0amup7.example.net"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30 Mbps"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

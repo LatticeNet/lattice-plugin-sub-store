@@ -1,0 +1,1 @@
+DE-w55-42=trojan,trr-05.cxu586h.example.com,443,password="mnPm4xaG59F4J9VO",ws=true,ws-path=/x225kbvr,ws-headers="Host:"api.s066ycl2.example.com"",tls=true,sni="api.s066ycl2.example.com"

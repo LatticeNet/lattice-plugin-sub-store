@@ -1,0 +1,9 @@
+proxies:
+  - name: HK-lcjr-25
+    type: h2-connect
+    server: vc-33.qqyb.example.org
+    port: 443
+    username: bltth
+    password: 8AbL4xRKqpAZ38
+    sni: img.yj14l8li.example.com
+    max-streams: 8

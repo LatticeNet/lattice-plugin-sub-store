@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-r7y7-81",
+      "type": "vmess",
+      "server": "bb8-01.l6d3.example.org",
+      "server_port": 443,
+      "uuid": "099e3a94-ac18-45fc-b68c-e1d7135dd02c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "img.lxr7dc.example.org"
+        },
+        "path": "/bahe5/d975jk"
+      }
+    }
+  ],
+  "endpoints": []
+}

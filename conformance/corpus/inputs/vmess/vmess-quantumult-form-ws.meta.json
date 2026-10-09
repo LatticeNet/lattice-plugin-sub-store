@@ -1,0 +1,9 @@
+{
+  "id": "vmess-quantumult-form-ws",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "quantumult-uri",
+  "description": "Quantumult form with obfs=wss and an obfs-path."
+}

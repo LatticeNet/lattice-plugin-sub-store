@@ -1,0 +1,29 @@
+[
+  {
+    "address": "ct-01.gktnpz.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "uY3bzTtZg5PWo0Gu",
+      "tag": "NL-wmkko5-50",
+      "tls-host": "img.mfq6v7gy31.example.net",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "exp-37.msqhu.example.net:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "www.lyoh8.example.net",
+      "obfs-uri": "/h1xonc/ytq25w0leh",
+      "password": "Q0TFWQNDf9Objj0W",
+      "tag": "GB-g2r5-48",
+      "tls-host": "www.lyoh8.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

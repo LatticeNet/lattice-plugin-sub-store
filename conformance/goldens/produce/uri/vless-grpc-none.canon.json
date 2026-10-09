@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "KR-vod-56",
+    "host": "d9-17.yf8t8fm.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "serviceName",
+        "zx7h-iwx"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "4999271a-4687-4103-be9b-b308c7f336c0"
+  }
+]

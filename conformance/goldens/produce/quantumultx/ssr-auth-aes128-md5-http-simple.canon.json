@@ -1,0 +1,17 @@
+[
+  {
+    "address": "y44-25.upfmkoug.example.org:51507",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "obfs": "http_simple",
+      "obfs-host": "cdn.tdzus3.example.org",
+      "password": "TcoqEFXQqroN",
+      "ssr-protocol": "auth_aes128_md5",
+      "ssr-protocol-param": "6455:ru4fAyUG",
+      "tag": "GB-k5on8-01",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"CA-zey-95","method":"aes-128-gcm","server":"e1-22.bfb12rc2.example.net","port":10502,"password":"GPUCzjamTorayo","tfo":false,"udp_relay":true,"block_quic":true,"ip_version":"v4_only"}}
+  - {"vmess":{"name":"KR-jpsq-90","server":"cd-20.poht.example.org","port":51894,"user_id":"66613e63-dc32-4b93-8350-1eec860bb5d0","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

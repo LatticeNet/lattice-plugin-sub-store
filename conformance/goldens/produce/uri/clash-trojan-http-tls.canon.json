@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "TW-s2u-29",
+    "host": "gi-20.mgnzx.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.mid588eb.example.com"
+      ],
+      [
+        "path",
+        "/xt3a"
+      ],
+      [
+        "sni",
+        "img.mid588eb.example.com"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "o28W1dYtBQkLXn8a"
+  }
+]

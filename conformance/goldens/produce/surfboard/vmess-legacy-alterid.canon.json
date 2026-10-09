@@ -1,0 +1,38 @@
+[
+  {
+    "args": [
+      "j2-19.cwijcz3a.example.org",
+      "443"
+    ],
+    "name": "CA-i0q-12",
+    "params": {
+      "sni": "api.n9922y2d.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "9aca4e50-f0b4-448c-9947-a35e1c2c5fe3",
+      "vmess-aead": "false",
+      "ws": "true",
+      "ws-headers": "Host:\"api.n9922y2d.example.org\"",
+      "ws-path": "/p5fr/fu0q3pivr4"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "sz5-34.s72v.example.org",
+      "443"
+    ],
+    "name": "TW-opyhr-47",
+    "params": {
+      "sni": "img.cwxheijao8.example.net",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "c3acc1ab-14d1-403a-8d33-ca2b7f4bb599",
+      "vmess-aead": "false",
+      "ws": "true",
+      "ws-headers": "Host:\"img.cwxheijao8.example.net\"",
+      "ws-path": "/go9ylvj"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,71 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "j4u-34.mklodu.example.org",
+      "server_port": 443,
+      "tag": "香港 ggo 01",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "ywc8QbzkvzDeisgx1X01csEFub2ePLPHqtk9PXEEVCk",
+          "short_id": "47b71eea"
+        },
+        "server_name": "www.vib8ecj.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "59c564e5-a872-4740-bd9b-b642bbb08342"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "ty3-18.sx3g3a.example.net",
+      "server_port": 443,
+      "tag": "Москва-jyya",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "DGUAyaxkBOgjd2EEPdaafI2BFBi_PY4sC9A1N_X6la8",
+          "short_id": "51a0fcdc"
+        },
+        "server_name": "api.rni6y1qd.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "58ef9d98-f954-40e9-b8d2-325b2653d432"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "kg0-03.hxvjre6.example.com",
+      "server_port": 443,
+      "tag": "a#b%c&d=e,f;g dlg",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "rxRd_nrAKDe4SWKIq4aZAWw4SHJ11SBEZ1KUki7J1ow",
+          "short_id": "aa078e35"
+        },
+        "server_name": "api.iughcpo.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "ab044b25-d72b-45b9-8d5e-e67638742b61"
+    }
+  ]
+}

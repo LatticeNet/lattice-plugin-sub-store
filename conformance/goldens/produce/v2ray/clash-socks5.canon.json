@@ -1,0 +1,22 @@
+[
+  {
+    "fragment": "KR-swmn6t-78",
+    "host": "br9-22.im7ld.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "b3RyMXU6MjBaSXBHc21leFVX",
+    "userinfo_base64": "otr1u:20ZIpGsmexUW"
+  },
+  {
+    "fragment": "NL-xy1-70",
+    "host": "fsg-07.hr6g.example.com",
+    "path": "",
+    "port": "443",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "cGlvenFiZ3I6R2xVcHZlbm1qWkNz",
+    "userinfo_base64": "piozqbgr:GlUpvenmjZCs"
+  }
+]

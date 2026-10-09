@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "DE-mpzqj-17",
+    "host": "ea-12.a5gk98h2.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "obfs",
+        "salamander"
+      ],
+      [
+        "obfs-password",
+        "xXQDOuEUnq5oxkX3"
+      ],
+      [
+        "sni",
+        "cdn.vw2osf1x3p.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "1IIiWOkEq6ROLNHa9ym5"
+  }
+]

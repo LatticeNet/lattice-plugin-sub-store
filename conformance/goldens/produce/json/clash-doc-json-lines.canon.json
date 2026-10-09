@@ -1,0 +1,41 @@
+[
+  {
+    "cipher": "aes-256-gcm",
+    "name": "CA-gfdgyx-54",
+    "password": "SYi2MlRJoQxEu7",
+    "port": 49167,
+    "server": "c9v-36.klvhza.example.com",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "grpc-opts": {
+      "grpc-service-name": "l00c-mswa"
+    },
+    "name": "TW-ieag-11",
+    "network": "grpc",
+    "port": 443,
+    "server": "ov-39.vux11.example.com",
+    "sni": "www.l7qmk.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "34e6bf5e-6d00-4dbb-8dd8-7dc663c6d67b"
+  },
+  {
+    "alpn": [
+      "h3"
+    ],
+    "congestion-controller": "cubic",
+    "name": "GB-bp8gu-20",
+    "password": "M6TyTbObXLPFClXw",
+    "port": 443,
+    "server": "zi-07.l48kavu.example.com",
+    "sni": "img.xogxm.example.com",
+    "tls": true,
+    "type": "tuic",
+    "udp": true,
+    "udp-relay-mode": "native",
+    "uuid": "fefe567f-b553-4594-80a8-74addab027e8"
+  }
+]

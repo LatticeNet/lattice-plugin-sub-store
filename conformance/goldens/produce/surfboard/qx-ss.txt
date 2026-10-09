@@ -1,0 +1,2 @@
+CA-gki4-71=ss,y5x-06.qsbxmtn.example.org,34163,encrypt-method=aes-128-gcm,password="WCk5pgZGKDGMo1",udp-relay=true
+GB-t54-55=ss,pl3-12.rvki6p41.example.com,55339,encrypt-method=2022-blake3-aes-128-gcm,password="NIFm94rVMD3O2AH3m+kvdw==",udp-relay=true

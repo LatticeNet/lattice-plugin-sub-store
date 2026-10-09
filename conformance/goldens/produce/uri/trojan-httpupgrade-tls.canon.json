@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "FR-fmqlb6-67",
+    "host": "ymv-36.itmcte7r.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.wsp2o90ur.example.org"
+      ],
+      [
+        "path",
+        "/ej2huafk9t"
+      ],
+      [
+        "sni",
+        "img.wsp2o90ur.example.org"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "gtHUSMIELp7dg7Rc"
+  }
+]

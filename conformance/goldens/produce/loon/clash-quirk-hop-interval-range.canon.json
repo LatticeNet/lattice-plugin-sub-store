@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ry-31.ngpamb5.example.net",
+      "443",
+      "xBfmvQnqwyT2k1d0tmXj"
+    ],
+    "name": "JP-wqjm9-26",
+    "params": {
+      "hop-interval": "15",
+      "server-ports": "20000-30000",
+      "tls-name": "cdn.ygqhz.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

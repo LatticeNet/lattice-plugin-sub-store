@@ -1,0 +1,2 @@
+KR-TW relay 17=anytls,relay-02.mmsc1m.example.net,30016,password="1aK4UZcb4qB4EeA3daT4",sni="api.lpaj01.example.org",skip-cert-verify=false,udp-relay=true
+HK-HK relay 18=anytls,relay-03.mmsc1m.example.net,30017,password="v7cCms40kk8wSBg0m1Qx",sni="cdn.mhxeluq.example.com",skip-cert-verify=false,udp-relay=true

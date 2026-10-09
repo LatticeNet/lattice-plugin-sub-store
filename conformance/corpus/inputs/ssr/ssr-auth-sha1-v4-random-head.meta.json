@@ -1,0 +1,8 @@
+{
+  "id": "ssr-auth-sha1-v4-random-head",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "ShadowsocksR link with protocol auth_sha1_v4 and obfs random_head."
+}

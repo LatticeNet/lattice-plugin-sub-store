@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"AU-em7j3s-83","server":"2001:db8:f051:f0e2::9775","port":443,"password":"aTLmH8rMvhzmoueREcQg","tfo":false,"udp_relay":true,"sni":"www.feai4.example.org","skip_tls_verify":false}}

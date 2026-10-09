@@ -1,0 +1,19 @@
+proxies:
+  - name: SG-hzt-46
+    type: wireguard
+    server: lj-17.ox6nx9zr.example.net
+    port: 51820
+    ip: 10.9.0.2
+    private-key: FjZC9ZM/4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs=
+    public-key: UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q+vw=
+    udp: true
+    amnezia-wg-option:
+      jc: 5
+      jmin: 50
+      jmax: 1000
+      s1: 0
+      s2: 0
+      h1: 1
+      h2: 2
+      h3: 3
+      h4: 4

@@ -1,0 +1,8 @@
+{
+  "id": "clash-masque-surge",
+  "family": "clash",
+  "protocol": "masque-surge",
+  "transport": "quic",
+  "security": "tls",
+  "description": "masque-surge with credentials."
+}

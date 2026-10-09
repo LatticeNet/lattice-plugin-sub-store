@@ -1,0 +1,33 @@
+[
+  {
+    "args": [
+      "oe-33.qx39yxx.example.com",
+      "443",
+      "jy1zzeVtjPYW5WZ1d7c3"
+    ],
+    "name": "GB-vndf-11",
+    "params": {
+      "download-bandwidth": "100",
+      "skip-cert-verify": "false",
+      "tls-name": "api.y9rxi39v8j.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "w6b-30.pbeu3.example.net",
+      "443",
+      "Ljm9RAIKKgkAVQ4Om3ES"
+    ],
+    "name": "KR-x2fuc-55",
+    "params": {
+      "hop-interval": "30",
+      "salamander-password": "RpvsakJ8xuuStgsm",
+      "server-ports": "20000-30000,31000",
+      "tls-name": "cdn.wq7zecq15c.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

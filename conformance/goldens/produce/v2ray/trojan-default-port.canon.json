@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "AU-uj6a-60",
+    "host": "sxl-01.jiyys7.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.x2tic.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "8RvhaFk0czErf7tJ"
+  }
+]

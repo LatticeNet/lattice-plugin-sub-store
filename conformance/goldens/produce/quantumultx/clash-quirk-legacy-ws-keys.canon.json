@@ -1,0 +1,18 @@
+[
+  {
+    "address": "ur-05.u0srua.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "img.rrs1s0l.example.com",
+      "obfs-uri": "/ze3athc",
+      "password": "5840f636-1f16-4327-8520-2c6d190b4fb9",
+      "tag": "KR-toisb-23",
+      "tls-host": "img.rrs1s0l.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "trojan-fingerprint-alpn",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "fingerprint",
+  "description": "fp and alpn on a TCP Trojan link."
+}

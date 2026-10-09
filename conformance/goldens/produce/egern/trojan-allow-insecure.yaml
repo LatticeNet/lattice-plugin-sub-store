@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"KR-ptyg-62","server":"192.0.2.32","port":443,"password":"7WEAVSvZGNTkAgpl","tfo":false,"udp_relay":true,"sni":"img.qx34w.example.net","skip_tls_verify":true}}

@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "GB-s63s-21",
+    "host": "bi-14.qievq7x.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.qj6n1.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "vCWyidJwQyfuWrJv4pzN"
+  }
+]

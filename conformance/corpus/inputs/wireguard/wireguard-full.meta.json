@@ -1,0 +1,8 @@
+{
+  "id": "wireguard-full",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "description": "Private key, peer public key, IPv4 and IPv6 address, reserved, MTU and pre-shared key."
+}

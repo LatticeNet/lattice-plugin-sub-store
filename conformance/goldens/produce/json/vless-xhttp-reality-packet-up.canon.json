@@ -1,0 +1,27 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "KR-pzy-50",
+    "network": "xhttp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "GaQQLTaDbZBklEhABjfRfIXnB8uC1cc9gHJyoRKtOvs",
+      "short-id": "24c79172"
+    },
+    "server": "wr-33.wkzwfs.example.net",
+    "skip-cert-verify": false,
+    "sni": "cdn.p44b7y.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "936cb29c-8253-4d54-9069-aa9e2e94cba7",
+    "xhttp-opts": {
+      "mode": "packet-up",
+      "path": "/z3p/p2qf33"
+    }
+  }
+]

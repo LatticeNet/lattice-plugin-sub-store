@@ -1,0 +1,13 @@
+[
+  {
+    "address": "urj-24.ji6pn83.example.org:52039",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "Wm8v66vvBpjFnF",
+      "tag": "CA-tol-36",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

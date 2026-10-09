@@ -1,0 +1,8 @@
+{
+  "id": "vmess-quic-none",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "quic",
+  "security": "none",
+  "description": "v2rayN JSON VMess link over quic with security none."
+}

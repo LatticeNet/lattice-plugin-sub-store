@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "US-rjv6bu-47",
+    "host": "2001:db8:7218:87a3::73e8",
+    "path": "",
+    "port": "31656",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "a883a092"
+      ],
+      [
+        "sni",
+        "static.snrh2o75bk.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "e1aa4ec7-6130-4dae-ae96-2b8d7023de93"
+  }
+]

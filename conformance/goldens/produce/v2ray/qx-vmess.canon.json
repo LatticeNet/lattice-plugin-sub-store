@@ -1,0 +1,36 @@
+[
+  {
+    "body": {
+      "add": "nz-05.lskztiz.example.net",
+      "aid": "0",
+      "id": "6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b",
+      "net": "tcp",
+      "port": "52475",
+      "ps": "CA-xde9a-47",
+      "scy": "chacha20-poly1305",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "mg-25.xclff6.example.com",
+      "aid": "1",
+      "id": "c1a44a66-75d9-4db7-99e4-34d2a69bc33a",
+      "net": "tcp",
+      "port": "17065",
+      "ps": "GB-rlvowq-05",
+      "scy": "aes-128-gcm",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

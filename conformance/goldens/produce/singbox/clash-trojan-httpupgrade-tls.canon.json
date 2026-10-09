@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "UGF4CIWxdW2hW0zo",
+      "server": "sva-34.ljiws45y.example.org",
+      "server_port": 443,
+      "tag": "GB-wf6mw-41",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.ub1g32.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "static.ub1g32.example.org",
+        "path": "/p2bpzcb",
+        "type": "httpupgrade"
+      },
+      "type": "trojan"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-fay-77",
+      "type": "vless",
+      "server": "e56-01.seeo45qf.example.net",
+      "server_port": 443,
+      "uuid": "6ca1dced-5ed7-4a6b-8dc7-ed9720264442",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.udpgihfrvr.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "method": "GET",
+        "path": "/jcn0",
+        "host": "cdn.udpgihfrvr.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

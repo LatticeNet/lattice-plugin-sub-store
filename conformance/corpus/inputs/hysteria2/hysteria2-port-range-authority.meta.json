@@ -1,0 +1,10 @@
+{
+  "id": "hysteria2-port-range-authority",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "port-hopping",
+  "description": "A port range in the authority instead of mport.",
+  "oracle_dependency": "math-random"
+}

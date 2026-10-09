@@ -1,0 +1,1 @@
+vmess=sz-12.bfsv3i.example.org:443,method=chacha20-poly1305,password=89ea35b3-b815-4c28-811f-5a628bf1fc26,obfs=wss,obfs-uri=/adww/ksgu1id9v,obfs-host=api.h8w3p.example.net,tls-host=api.h8w3p.example.net,aead=true,udp-relay=true,tag=KR-z6tb1-68

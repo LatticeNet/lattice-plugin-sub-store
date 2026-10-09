@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "aa-40.dp1puv.example.net",
+      "52725",
+      "aes-256-gcm",
+      "wtoWMi8it1w603vL"
+    ],
+    "name": "HK-olzp-81",
+    "params": {
+      "obfs-host": "static.v1d0c.example.org",
+      "obfs-name": "http",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "x1i-33.f9r5w.example.com",
+      "29794",
+      "aes-256-gcm",
+      "7PlXMjUk18NdUlCm"
+    ],
+    "name": "DE-w59nld-21",
+    "params": {
+      "obfs-host": "www.gsnwk4z3.example.net",
+      "obfs-name": "tls",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "c9v-36.klvhza.example.com",
+      "49167"
+    ],
+    "name": "CA-gfdgyx-54",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "password": "SYi2MlRJoQxEu7",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "zi-07.l48kavu.example.com",
+      "443"
+    ],
+    "name": "GB-bp8gu-20",
+    "params": {
+      "alpn": "h3",
+      "password": "M6TyTbObXLPFClXw",
+      "sni": "img.xogxm.example.com",
+      "udp-relay": "true",
+      "uuid": "fefe567f-b553-4594-80a8-74addab027e8"
+    },
+    "type": "tuic-v5"
+  }
+]

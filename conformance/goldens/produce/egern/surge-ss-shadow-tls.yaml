@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"KR-k7l6wk-28","method":"2022-blake3-aes-128-gcm","server":"gy-35.bb16wip1.example.org","port":443,"password":"ghMiarMyGPGfdKpB+sjHqg==","tfo":false,"udp_relay":true,"shadow_tls":{"password":"qfVPDOCMCDN7DozD","sni":"static.x76bjg.example.org"},"udp_port":13032}}

@@ -1,0 +1,1 @@
+KR-rx6-36=vless,yqq-20.shuir5.example.net,443,"d702451b-9c9f-4ca7-be10-aa5e190adc18",transport=tcp,over-tls=false,skip-cert-verify=false,udp=true

@@ -1,0 +1,36 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "TW-s3d7ct-14",
+        "port": 41631,
+        "psk": "WEL8Tz35Xhk4ci7EMfOz",
+        "server": "lo-09.pupzz.example.org",
+        "tfo": false,
+        "version": 1
+      }
+    },
+    {
+      "snell": {
+        "name": "US-ltp-81",
+        "obfs": "tls",
+        "obfs_host": "www.e4iyt7.example.com",
+        "port": 44320,
+        "psk": "eWLnfe6pLNLmW1AXnyON",
+        "server": "z6n-05.wlea.example.org",
+        "tfo": false,
+        "version": 2
+      }
+    },
+    {
+      "snell": {
+        "name": "GB-f2i-83",
+        "port": 53271,
+        "psk": "klNi1Sarnw5ldI7JXdBy",
+        "server": "qhy-35.c5qlq6n7.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

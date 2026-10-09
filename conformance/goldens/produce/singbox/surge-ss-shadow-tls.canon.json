@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "detour": "KR-k7l6wk-28_shadowtls",
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "ghMiarMyGPGfdKpB+sjHqg==",
+      "tag": "KR-k7l6wk-28",
+      "type": "shadowsocks"
+    },
+    {
+      "password": "qfVPDOCMCDN7DozD",
+      "server": "gy-35.bb16wip1.example.org",
+      "server_port": 443,
+      "tag": "KR-k7l6wk-28_shadowtls",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.x76bjg.example.org"
+      },
+      "type": "shadowtls",
+      "version": 3
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"GB-hrhuy-22","server":"euo-40.fr243lfo.example.org","port":443,"user_id":"9ae08100-542d-494f-8ada-9dcdea9f4cca","security":"chacha20-poly1305","tfo":false,"legacy":false,"udp_relay":true}}

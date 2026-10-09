@@ -1,0 +1,1 @@
+trojan=192.0.2.176:443,password=muju50zKO0N7ulsr,over-tls=true,tls-verification=false,tls-host=192.0.2.176,udp-relay=true,tag=DE-nsuz9v-24

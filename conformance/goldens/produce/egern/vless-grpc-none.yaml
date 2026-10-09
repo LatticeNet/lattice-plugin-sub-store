@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"KR-vod-56","server":"d9-17.yf8t8fm.example.org","port":443,"user_id":"4999271a-4687-4103-be9b-b308c7f336c0","tfo":false,"udp_relay":true,"transport":{"grpc":{"service_name":"zx7h-iwx","skip_tls_verify":false}}}}

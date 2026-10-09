@@ -1,0 +1,30 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-xw4dq-91",
+      "type": "trojan",
+      "server": "t0-08.l62su.example.com",
+      "server_port": 443,
+      "password": "ND3odCftR9mMzuUo",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.u6vgs2w.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Dp2sb_GVUHmJuH5CEPUc8taOhqqqSeZtLW8noVD-OFA",
+          "short_id": "7c92baa4"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "i1rf-n1p1n"
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "aq-35.vulb.example.net",
+      "22941"
+    ],
+    "name": "GB-olr-41",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "qByn83tZ4oGdGk",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "tf-16.x3ejb.example.com",
+      "443"
+    ],
+    "name": "TW-y1ya-22",
+    "params": {
+      "password": "oy52YBDBHXQ7wfCu",
+      "sni": "cdn.hn25j.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "v5-05.qb5b.example.org",
+      "34588",
+      "aes-128-gcm",
+      "i0Xuxu3C1Z8mZe"
+    ],
+    "name": "AU-tx3-71",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "bun-09.kwq8.example.net",
+      "443",
+      "RbyQZY56IcdRRx5v"
+    ],
+    "name": "TW-cdnh-17",
+    "params": {
+      "tls-name": "cdn.bskwnh8rfx.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

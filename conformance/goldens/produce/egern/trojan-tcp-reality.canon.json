@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "FR-gg4he-79",
+        "password": "8siqyovoAYVDDHHY",
+        "port": 443,
+        "reality": {
+          "public_key": "7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8",
+          "short_id": "fd7b5be3"
+        },
+        "server": "cl3-20.f1i93c.example.com",
+        "sni": "img.zz8yf8k7.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+GB-va61-64=tuic-v5,dp-23.ojwwxjul.example.net,443,uuid=4728e15e-50cf-48e9-bcf4-109a73b21ee5,password="ANynptDVg71WtZdX",alpn="h3",sni="cdn.vciwrfciu.example.net",skip-cert-verify=false,udp-relay=true

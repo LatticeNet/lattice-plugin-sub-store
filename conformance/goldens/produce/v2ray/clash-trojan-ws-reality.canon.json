@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "HK-mg7g7-33",
+    "host": "yqk-19.r69bdev.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.xbzfirh7.example.com"
+      ],
+      [
+        "path",
+        "/fiz5/ilveyth9g"
+      ],
+      [
+        "pbk",
+        "UKq0zxqr7fQwypkT3_R8FEgH_q_SlbqrKVCH1qIwI9k"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "e8a04321"
+      ],
+      [
+        "sni",
+        "img.xbzfirh7.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "yiccfKubyAbJv2Cc"
+  }
+]

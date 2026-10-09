@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "d3r-23.er9q6.example.net",
+      "aid": "0",
+      "host": "static.rf5mcrm8wm.example.org",
+      "id": "d45031ed-edbf-4630-9a7e-3ea25d35210d",
+      "net": "tcp",
+      "path": "/blc/cpyp",
+      "port": "443",
+      "ps": "KR-d8v6j-75",
+      "scy": "auto",
+      "tls": "",
+      "type": "http",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

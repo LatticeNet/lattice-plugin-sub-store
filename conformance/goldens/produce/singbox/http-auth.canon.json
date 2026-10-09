@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "CHzXFu3vME0v",
+      "server": "q6-02.rzkx1wg.example.org",
+      "server_port": 8080,
+      "tag": "US-r6m-13",
+      "type": "http",
+      "username": "lesmf"
+    }
+  ]
+}

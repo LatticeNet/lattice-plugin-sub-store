@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "lg-07.xzui.example.net",
+      "443"
+    ],
+    "name": "mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd",
+    "params": {
+      "password": "tS12JGdEI3SMujA8",
+      "sni": "static.e4wxoq3ut.example.org",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "w0q-19.g99tmx.example.org",
+      "443"
+    ],
+    "name": "jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo",
+    "params": {
+      "password": "9Ne0DCSG9uVx41KX",
+      "sni": "cdn.j1g6mm1mj.example.org",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "xi-15.j388.example.net",
+      "443"
+    ],
+    "name": "yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw",
+    "params": {
+      "password": "o2C17624t0c1iv6f",
+      "sni": "api.tlceuktr.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

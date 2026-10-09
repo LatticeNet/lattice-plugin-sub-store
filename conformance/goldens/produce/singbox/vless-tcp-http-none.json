@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-g9oft-73",
+      "type": "vless",
+      "server": "fy-15.rele.example.com",
+      "server_port": 443,
+      "uuid": "b71a594d-c0f7-4382-b55d-ffaaefacfc1f",
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "path": "/mxba",
+        "host": "static.k844cgjqpc.example.org"
+      }
+    }
+  ],
+  "endpoints": []
+}

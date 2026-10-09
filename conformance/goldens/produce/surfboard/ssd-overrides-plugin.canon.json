@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "h3a-14.by3uil1v.example.net",
+      "13435"
+    ],
+    "name": "US-bzxjjw-87",
+    "params": {
+      "encrypt-method": "chacha20-ietf-poly1305",
+      "password": "saTix03A7LqJTt",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

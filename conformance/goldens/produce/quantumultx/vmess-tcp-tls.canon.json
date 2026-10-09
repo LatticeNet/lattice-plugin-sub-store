@@ -1,0 +1,17 @@
+[
+  {
+    "address": "ei-13.y2nd0g.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "d6179057-84a8-4647-9d34-691ebf2c8e7e",
+      "tag": "TW-xk9-16",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.l24sjs8j.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

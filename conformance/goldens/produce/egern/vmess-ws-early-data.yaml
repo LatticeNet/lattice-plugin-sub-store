@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"TW-mc3w0h-48","server":"fj-09.fcx8god.example.org","port":443,"user_id":"3cf24b8e-2838-480e-ad27-03657ab28a13","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/zx2t","headers":{"Host":"api.ubxoa09ik.example.com"},"sni":"api.ubxoa09ik.example.com"}}}}

@@ -1,0 +1,1 @@
+HK-mnfi9-26=shadowsocksr,kd-06.gvlm.example.org,57200,aes-256-cfb,"37RbHUfiK5qZ",protocol=origin,obfs=plain,udp=true

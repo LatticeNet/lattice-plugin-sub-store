@@ -1,0 +1,9 @@
+{
+  "id": "ss-sip002-padded-base64",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "sip002-base64-padded",
+  "description": "SIP002 userinfo in standard padded Base64."
+}

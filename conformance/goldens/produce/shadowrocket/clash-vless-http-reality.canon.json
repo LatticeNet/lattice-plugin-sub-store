@@ -1,0 +1,31 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "http-opts": {
+        "headers": {
+          "Host": [
+            "cdn.i0k5x5o72b.example.org"
+          ]
+        },
+        "method": "GET",
+        "path": [
+          "/wx9v9ad4j7"
+        ]
+      },
+      "name": "US-nylb2q-40",
+      "network": "http",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "RKj201Nm5L7XtprMQE7RQFqzIasU04LCV5nQL0p6AlQ",
+        "short-id": "f2a8fc3f"
+      },
+      "server": "zf-02.xhdpfu.example.org",
+      "servername": "cdn.i0k5x5o72b.example.org",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "1ffa6856-dcf2-4d13-9853-3181f8d4fe4d"
+    }
+  ]
+}

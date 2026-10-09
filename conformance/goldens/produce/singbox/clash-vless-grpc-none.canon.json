@@ -1,0 +1,16 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "csz-34.vuda.example.com",
+      "server_port": 443,
+      "tag": "DE-zrg-71",
+      "transport": {
+        "service_name": "oobemkp-f98k5",
+        "type": "grpc"
+      },
+      "type": "vless",
+      "uuid": "bc410de2-5a75-4b93-a4ba-c8ee4485ba10"
+    }
+  ]
+}

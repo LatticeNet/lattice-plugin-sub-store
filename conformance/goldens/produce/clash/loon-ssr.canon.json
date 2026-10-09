@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "cipher": "chacha20-ietf",
+      "name": "FR-hyp1xj-35",
+      "obfs": "http_simple",
+      "obfs-param": "static.z29d1.example.net",
+      "password": "y8VYhN7CYhd6",
+      "port": 42879,
+      "protocol": "auth_aes128_md5",
+      "protocol-param": "403:zeSAwq",
+      "server": "tho-35.kq7ylba.example.org",
+      "type": "ssr",
+      "udp": true
+    }
+  ]
+}

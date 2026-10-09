@@ -1,0 +1,1 @@
+vless=y2-31.xsea.example.net:443,method=none,password=319242a6-da46-498e-b7a4-2f1c17d0e0c5,obfs=wss,obfs-uri=/s05tj,obfs-host=www.nfuzg.example.net,tls-cert-sha256=30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09,tls-host=cdn.hdptwe1.example.org,udp-relay=true,tag=CA-xmcwy-91

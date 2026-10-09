@@ -1,0 +1,8 @@
+{
+  "id": "loon-ssr",
+  "family": "loon",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Loon ShadowsocksR with protocol and obfs parameters."
+}

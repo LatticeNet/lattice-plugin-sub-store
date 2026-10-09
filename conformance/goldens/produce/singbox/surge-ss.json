@@ -1,0 +1,30 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-zj535x-53",
+      "type": "shadowsocks",
+      "server": "i5-18.p8ci.example.net",
+      "server_port": 12936,
+      "method": "aes-128-gcm",
+      "password": "ZLN8JTCnyC9vty"
+    },
+    {
+      "tag": "DE-e37-73",
+      "type": "shadowsocks",
+      "server": "t8-08.tv1tnm7j.example.net",
+      "server_port": 29530,
+      "method": "2022-blake3-aes-256-gcm",
+      "password": "3BaI3U+oiaQUQZ7EAiszUx40YJu0lpzPIYTA9XW/XW8=",
+      "tcp_fast_open": true
+    },
+    {
+      "tag": "KR-pfv-77",
+      "type": "shadowsocks",
+      "server": "bhl-34.c2qflj.example.com",
+      "server_port": 32980,
+      "method": "chacha20-ietf-poly1305",
+      "password": "9RnEZgZgVPFMwU"
+    }
+  ],
+  "endpoints": []
+}

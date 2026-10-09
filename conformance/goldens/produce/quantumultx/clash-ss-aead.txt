@@ -1,0 +1,4 @@
+shadowsocks=m6u-16.g97y5tav.example.org:47911,method=aes-128-gcm,password=EfioGItZtP7wLYMn,udp-relay=true,tag=SG-jh0f-07
+shadowsocks=qds-17.goiq4ag3.example.org:47885,method=chacha20-ietf-poly1305,password=nlTGgPUhQWw3bMbw,udp-relay=true,tag=US-r62-15
+shadowsocks=st-14.tvrbzrjl.example.net:21684,method=2022-blake3-aes-128-gcm,password=iPMlLeH2iF30UJL2j5+V9Q==,udp-relay=true,tag=CA-vrmh-72
+shadowsocks=rc1-02.u3nal2.example.com:53372,method=2022-blake3-aes-256-gcm,password=7agxqmwoU7bE0fIbuk5w7f0+M0gG5276auk7tf0NItc=,udp-relay=true,tag=GB-mtf6-36

@@ -1,0 +1,16 @@
+[
+  {
+    "address": "zh2-34.v0i498.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "x47D5mO8MxZGTHOg",
+      "tag": "FR-liz0ut-87",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.gm2apo.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

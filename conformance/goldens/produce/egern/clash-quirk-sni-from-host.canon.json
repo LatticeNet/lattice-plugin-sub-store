@@ -1,0 +1,36 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "AU-tfsez1-75",
+        "port": 443,
+        "security": "auto",
+        "server": "bee-29.xqbpipu.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "www.v9p5uc3.example.net"
+            },
+            "path": "/hdm/xo87z7i",
+            "sni": "www.v9p5uc3.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "848a9969-7aa2-456b-9da9-69e9f413df30"
+      }
+    },
+    {
+      "trojan": {
+        "name": "DE-pbrw-08",
+        "password": "50gcH1IrTZeRtSHn",
+        "port": 443,
+        "server": "xey-25.ohekj.example.net",
+        "sni": "xey-25.ohekj.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

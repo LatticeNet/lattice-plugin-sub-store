@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"TW-s3d7ct-14","port":41631,"psk":"WEL8Tz35Xhk4ci7EMfOz","server":"lo-09.pupzz.example.org","type":"snell","version":1}
+  - {"name":"US-ltp-81","obfs-opts":{"host":"www.e4iyt7.example.com","mode":"tls"},"port":44320,"psk":"eWLnfe6pLNLmW1AXnyON","server":"z6n-05.wlea.example.org","type":"snell","version":2}

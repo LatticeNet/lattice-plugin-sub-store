@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-256-gcm",
+        "name": "KR-fp9-11",
+        "password": "QsjbCL9G6dfT6l",
+        "port": 33510,
+        "server": "2001:db8:67ef:80::edf3",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

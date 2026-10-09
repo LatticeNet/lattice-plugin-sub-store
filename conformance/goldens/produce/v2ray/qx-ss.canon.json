@@ -1,0 +1,31 @@
+[
+  {
+    "fragment": "CA-gki4-71",
+    "host": "y5x-06.qsbxmtn.example.org",
+    "path": "",
+    "port": "34163",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206V0NrNXBnWkdLREdNbzE=",
+    "userinfo_base64": "aes-128-gcm:WCk5pgZGKDGMo1"
+  },
+  {
+    "fragment": "GB-t54-55",
+    "host": "pl3-12.rvki6p41.example.com",
+    "path": "",
+    "port": "55339",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:NIFm94rVMD3O2AH3m+kvdw=="
+  }
+]

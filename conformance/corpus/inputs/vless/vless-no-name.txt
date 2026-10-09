@@ -1,0 +1,1 @@
+vless://31284285-69fb-46f0-92da-19754ba10bf8@cj-27.fm6khz.example.org:443?encryption=none&security=reality&sni=api.af2ig.example.org&fp=chrome&pbk=dBDBPiajTnd6TDJl5KmZPRDGJo58mXHiVYK6Q1vNB08&sid=c811e1a0&spx=%2F&type=tcp

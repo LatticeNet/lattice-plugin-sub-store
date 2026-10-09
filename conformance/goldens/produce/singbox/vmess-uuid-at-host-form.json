@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-x2v8vq-21",
+      "type": "vmess",
+      "server": "dz-19.pgekzw8.example.org",
+      "server_port": 443,
+      "uuid": "0c589e64-b7b7-442c-b647-b37f1db0e7a5",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.oah4gm49.example.net",
+        "insecure": false
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "cdn.oah4gm49.example.net"
+        },
+        "path": "/g89/nipgxvfka"
+      }
+    }
+  ],
+  "endpoints": []
+}

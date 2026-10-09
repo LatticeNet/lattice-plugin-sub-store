@@ -1,0 +1,16 @@
+[
+  {
+    "address": "nvo-13.tiyto.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "http",
+      "obfs-host": "cdn.flyi3.example.net",
+      "obfs-uri": "/re7z2/lfj8lceb",
+      "password": "19ce9141-5472-4909-b9dd-56d673bcefcd",
+      "tag": "KR-pml-30",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

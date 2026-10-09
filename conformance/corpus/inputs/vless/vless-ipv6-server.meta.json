@@ -1,0 +1,9 @@
+{
+  "id": "vless-ipv6-server",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "ipv6-literal",
+  "description": "IPv6 literal server in brackets."
+}

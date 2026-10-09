@@ -1,0 +1,17 @@
+[
+  {
+    "address": "rv-14.nzag30.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "66f373aa-79e0-4754-ae9a-5aad2a7e4823",
+      "tag": "CA-mzhy-32",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "cdn.paznfzs.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

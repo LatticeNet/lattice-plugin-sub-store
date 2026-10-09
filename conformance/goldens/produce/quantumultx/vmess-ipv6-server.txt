@@ -1,0 +1,1 @@
+vmess=2001:db8:857e:9d0b::5799:443,method=chacha20-poly1305,password=647ab532-add4-42dc-a365-5b4707a42f62,aead=true,udp-relay=true,tag=CA-nay-24

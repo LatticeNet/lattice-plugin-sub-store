@@ -1,0 +1,68 @@
+[
+  {
+    "args": [
+      "kqh-06.uqh0u.example.net",
+      "8080"
+    ],
+    "name": "NL-h8a1-33",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "f4j-10.w9jum0.example.com",
+      "8080",
+      "g07jxnmb",
+      "ZdFAu1yrll0q"
+    ],
+    "name": "GB-kik2h-89",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "up-20.duyj.example.net",
+      "443",
+      "t37cot",
+      "falAnotdFH7q"
+    ],
+    "name": "GB-pk1-63",
+    "params": {
+      "skip-cert-verify": "true",
+      "sni": "www.l57hlg.example.org",
+      "udp-relay": "true"
+    },
+    "type": "https"
+  },
+  {
+    "args": [
+      "alj-33.xpvv6cx7.example.com",
+      "1080",
+      "uj1ml2dq",
+      "rCfg9lcjPcUp"
+    ],
+    "name": "GB-boqt-26",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "x4x-06.ybkk4r6c.example.org",
+      "443",
+      "oknlk",
+      "x3lm5Xvs7LV6"
+    ],
+    "name": "CA-a8gt-40",
+    "params": {
+      "sni": "static.rk9461.example.net",
+      "udp-relay": "true"
+    },
+    "type": "socks5-tls"
+  }
+]

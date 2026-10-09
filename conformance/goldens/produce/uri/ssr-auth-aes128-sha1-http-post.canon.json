@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "main": "in-09.lpf7.example.org:43566:auth_aes128_sha1:aes-128-ctr:http_post:eWtPTGNBQ29QY1ND",
+      "params": [
+        [
+          "obfsparam",
+          "cdn.z35d7v5.example.net"
+        ],
+        [
+          "protoparam",
+          "8922:8Ak2P7eB"
+        ],
+        [
+          "remarks",
+          "GB-ikyosn-89"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

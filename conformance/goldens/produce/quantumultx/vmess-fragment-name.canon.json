@@ -1,0 +1,14 @@
+[
+  {
+    "address": "sr-09.m6mi.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "35c16f41-6aaf-449b-a131-dbf28bb15d0f",
+      "tag": "SG-ljo-92",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

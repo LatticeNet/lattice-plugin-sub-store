@@ -1,0 +1,16 @@
+[
+  {
+    "body": {
+      "main": "zk-35.ikvj4vc.example.org:43618:origin:chacha20-ietf:plain:ZndYb2VvcTN5eW1i",
+      "params": [
+        [
+          "remarks",
+          "HK-qt9-55"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

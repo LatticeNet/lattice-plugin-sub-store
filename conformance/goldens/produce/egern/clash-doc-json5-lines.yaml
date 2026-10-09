@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"FR-z36pm-76","method":"aes-128-gcm","server":"yxc-13.y93b07h.example.net","port":31170,"password":"EA9fxeuWqVq6","tfo":false,"udp_relay":true}}
+  - {"trojan":{"name":"HK-trui-14","server":"sz-26.icrty1.example.net","port":443,"password":"isDtVJNKTKm3AVxl","tfo":false,"udp_relay":true,"sni":"api.o2pcyahkl3.example.com","skip_tls_verify":false}}

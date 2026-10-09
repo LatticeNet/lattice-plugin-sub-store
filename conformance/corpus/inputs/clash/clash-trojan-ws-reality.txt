@@ -1,0 +1,18 @@
+proxies:
+  - name: HK-mg7g7-33
+    type: trojan
+    server: yqk-19.r69bdev.example.org
+    port: 443
+    password: yiccfKubyAbJv2Cc
+    udp: true
+    tls: true
+    sni: img.xbzfirh7.example.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: UKq0zxqr7fQwypkT3_R8FEgH_q_SlbqrKVCH1qIwI9k
+      short-id: e8a04321
+    network: ws
+    ws-opts:
+      path: /fiz5/ilveyth9g
+      headers:
+        Host: img.xbzfirh7.example.com

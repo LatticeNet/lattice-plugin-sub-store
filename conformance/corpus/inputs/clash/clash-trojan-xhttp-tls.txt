@@ -1,0 +1,19 @@
+proxies:
+  - name: CA-h69-06
+    type: trojan
+    server: tjt-19.nsrz8c0.example.com
+    port: 443
+    password: sXWbICGuf14KW9WE
+    udp: true
+    tls: true
+    sni: cdn.h9dywa.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: xhttp
+    xhttp-opts:
+      path: /p1saz3vuw
+      host: cdn.h9dywa.example.net
+      mode: auto

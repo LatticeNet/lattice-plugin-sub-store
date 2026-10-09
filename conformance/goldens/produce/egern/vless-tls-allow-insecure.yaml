@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"CA-yfey-66","server":"qz-13.y0ltk.example.com","port":443,"user_id":"48a7baf3-16ad-478f-8e2e-74d287abc37b","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.xgty3hb.example.com","skip_tls_verify":true}}}}
+  - {"vless":{"name":"FR-ov7c4w-98","server":"tp-27.lzti78d.example.net","port":443,"user_id":"60c28923-6300-4bd5-b6fb-422aa3917feb","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.uzh18wpk67.example.com","skip_tls_verify":false}}}}

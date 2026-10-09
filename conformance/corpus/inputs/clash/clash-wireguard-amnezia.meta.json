@@ -1,0 +1,9 @@
+{
+  "id": "clash-wireguard-amnezia",
+  "family": "clash",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "amnezia",
+  "description": "WireGuard with amnezia-wg-option."
+}

@@ -1,0 +1,1 @@
+US-rjv6bu-47=vless,2001:db8:7218:87a3::73e8,31656,"e1aa4ec7-6130-4dae-ae96-2b8d7023de93",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,flow=xtls-rprx-vision,sni=static.snrh2o75bk.example.com,public-key="_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8",short-id=a883a092,udp=true

@@ -1,0 +1,142 @@
+[
+  {
+    "args": [
+      "c3-14.u2iu1.example.net",
+      "53033"
+    ],
+    "name": "HK wbnr2 71",
+    "params": {
+      "password": "qHHpkqDkyLWJ4AtxnLay",
+      "skip-cert-verify": "false",
+      "sni": "cdn.yoe0oi.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "mo-29.b9wruwh.example.net",
+      "35036"
+    ],
+    "name": "FR zyma6k 72",
+    "params": {
+      "password": "QDez8yPrqPl7wlbgmpwD",
+      "skip-cert-verify": "false",
+      "sni": "static.rlo04we7b0.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "z8h-30.vnhkutd.example.com",
+      "33215"
+    ],
+    "name": "TW lx072wc 73",
+    "params": {
+      "password": "M6RKDmQlYzCibDeHlrFy",
+      "skip-cert-verify": "false",
+      "sni": "cdn.d7u7od.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "ps3-09.g2zs.example.com",
+      "17526"
+    ],
+    "name": "CA etfh39 74",
+    "params": {
+      "password": "6mOzTLB7LdvI9YTgGSSd",
+      "skip-cert-verify": "false",
+      "sni": "cdn.fyc8nd35n.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "jwf-25.rj6y69d.example.org",
+      "53208"
+    ],
+    "name": "JP azbhu 75",
+    "params": {
+      "password": "Kpuz8vFTtz9ioAbtFhDy",
+      "skip-cert-verify": "false",
+      "sni": "www.vguaj50zht.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "ri-29.q9bxfj7.example.net",
+      "13176"
+    ],
+    "name": "FR njh5hs 76",
+    "params": {
+      "password": "iHcA8FQGuv9QfZl8H7zy",
+      "skip-cert-verify": "false",
+      "sni": "static.j570czx.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "z4s-40.o8g7.example.org",
+      "53272"
+    ],
+    "name": "CA o4zb4c 77",
+    "params": {
+      "alpn": "h3",
+      "password": "qHDh8ntoJjS2iy2L",
+      "sni": "api.xzwc6f.example.org",
+      "uuid": "dc139fdb-d4f3-4bd8-8fcf-7b7f73661af7"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "198.19.190.166",
+      "39529"
+    ],
+    "name": "TW xp7k 78",
+    "params": {
+      "alpn": "h3",
+      "password": "VFQZgg2CojheLpVY",
+      "sni": "api.ra88ntx3e.example.org",
+      "uuid": "eeba9add-2a93-401b-b80b-5ae13b4cae21"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "qmf-12.kfwhpe.example.net",
+      "22802"
+    ],
+    "name": "GB mxmd 79",
+    "params": {
+      "alpn": "h3",
+      "password": "wGvKsmlmULesSJnW",
+      "sni": "img.rppxb8.example.org",
+      "uuid": "392800b7-2f62-4155-9375-c17293cbc20e"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "vg-08.op9kz.example.com",
+      "57704"
+    ],
+    "name": "CA rm0syn 80",
+    "params": {
+      "alpn": "h3",
+      "password": "QGDow8i54iBvYIcx",
+      "sni": "api.fh002.example.com",
+      "uuid": "ae1f045b-f07d-4a9e-bc1f-71c8622e9f0c"
+    },
+    "type": "tuic-v5"
+  }
+]

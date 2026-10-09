@@ -1,0 +1,6 @@
+proxies:
+  - {"snell":{"name":"HK-rhm6-27","server":"ra-32.h0tg9ic.example.org","port":48974,"psk":"6Q4HRMpMpQCcCXIuY8tH","version":1,"obfs":"http","obfs_host":"cdn.c63carmp78.example.com","tfo":false}}
+  - {"snell":{"name":"GB-kqh1gc-35","server":"pm-08.opgo1xb.example.net","port":59047,"psk":"gyR7URAUQAEbWH7sPU9e","version":2,"obfs":"http","obfs_host":"api.bel58blvlj.example.net","tfo":false}}
+  - {"snell":{"name":"CA-ev71-65","server":"bm-26.r14jdl4e.example.com","port":58173,"psk":"n9DfzukgsdkhYkLycGRK","version":3,"udp_relay":true,"obfs":"http","obfs_host":"www.g0pcoj.example.com","tfo":false}}
+  - {"snell":{"name":"JP-o1zi-67","server":"o5q-03.m5u4.example.net","port":16923,"psk":"ICuSeaJfGTwP5kRTgkrh","version":4,"udp_relay":true,"tfo":false}}
+  - {"snell":{"name":"SG-x2h44-62","server":"n9-39.sw475vr.example.org","port":27700,"psk":"eR2nBQ7LjZmeB66nHlNr","version":5,"udp_relay":true,"tfo":false}}

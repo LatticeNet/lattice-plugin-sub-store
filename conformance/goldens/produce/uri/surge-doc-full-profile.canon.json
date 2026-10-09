@@ -1,0 +1,35 @@
+[
+  {
+    "fragment": "AU-tx3-71",
+    "host": "v5-05.qb5b.example.org",
+    "path": "",
+    "port": "34588",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206aTBYdXh1M0MxWjhtWmU=",
+    "userinfo_base64": "aes-128-gcm:i0Xuxu3C1Z8mZe"
+  },
+  {
+    "fragment": "TW-cdnh-17",
+    "host": "bun-09.kwq8.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.bskwnh8rfx.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "RbyQZY56IcdRRx5v"
+  }
+]

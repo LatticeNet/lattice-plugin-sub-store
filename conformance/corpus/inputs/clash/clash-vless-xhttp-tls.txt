@@ -1,0 +1,19 @@
+proxies:
+  - name: JP-n0pf-17
+    type: vless
+    server: ct-25.lvja6mh.example.com
+    port: 443
+    uuid: 5d254087-2029-445c-85ed-488c866a03de
+    udp: true
+    tls: true
+    servername: api.j2ev7yw.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: xhttp
+    xhttp-opts:
+      path: /v80xi1is9w
+      host: api.j2ev7yw.example.com
+      mode: auto

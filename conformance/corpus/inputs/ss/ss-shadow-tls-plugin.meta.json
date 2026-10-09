@@ -1,0 +1,9 @@
+{
+  "id": "ss-shadow-tls-plugin",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "plugin-shadow-tls",
+  "description": "shadow-tls given as a SIP003 plugin string, version 3."
+}

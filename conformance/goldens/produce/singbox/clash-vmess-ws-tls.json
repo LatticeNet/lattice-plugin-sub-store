@@ -1,0 +1,34 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-xhup-68",
+      "type": "vmess",
+      "server": "tau-38.aett40.example.net",
+      "server_port": 443,
+      "uuid": "4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.rooc7abl.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.rooc7abl.example.com"
+        },
+        "path": "/kczba7vr"
+      }
+    }
+  ],
+  "endpoints": []
+}

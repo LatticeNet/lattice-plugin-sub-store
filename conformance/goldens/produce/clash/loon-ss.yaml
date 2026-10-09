@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"CA-tf0-69","password":"z5WspQcJNHZLrl","port":17650,"server":"sb-07.yw88.example.net","tfo":false,"type":"ss","udp":true}

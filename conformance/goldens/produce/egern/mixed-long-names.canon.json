@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd",
+        "password": "tS12JGdEI3SMujA8",
+        "port": 443,
+        "server": "lg-07.xzui.example.net",
+        "sni": "static.e4wxoq3ut.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo",
+        "password": "9Ne0DCSG9uVx41KX",
+        "port": 443,
+        "server": "w0q-19.g99tmx.example.org",
+        "sni": "cdn.j1g6mm1mj.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw",
+        "password": "o2C17624t0c1iv6f",
+        "port": 443,
+        "server": "xi-15.j388.example.net",
+        "sni": "api.tlceuktr.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

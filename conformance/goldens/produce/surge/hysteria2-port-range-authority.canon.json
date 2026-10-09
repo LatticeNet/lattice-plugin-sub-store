@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ff5-28.t7an.example.org",
+      "20000"
+    ],
+    "name": "HK-ejulo-15",
+    "params": {
+      "password": "EYnXrPpHMB0HZlxIMDfT",
+      "port-hopping": "20000-30000",
+      "skip-cert-verify": "false",
+      "sni": "static.vse2b5.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

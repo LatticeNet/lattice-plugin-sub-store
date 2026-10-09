@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "FR-ajaf6-93",
+        "password": "2b9zg3OPu2JaJ6xT",
+        "port": 443,
+        "port_hopping": "20000-30000",
+        "port_hopping_interval": 30,
+        "server": "ot5-06.htbmu.example.net",
+        "sni": "api.we7fbrswnx.example.net",
+        "uuid": "b1d7c103-a53e-4c59-a49c-59e698ca7b41"
+      }
+    }
+  ]
+}

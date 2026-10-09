@@ -1,0 +1,9 @@
+{
+  "id": "vless-xhttp-download-settings",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-download-settings",
+  "description": "XHTTP packet-up with an extra JSON carrying downloadSettings on a second host over TLS."
+}

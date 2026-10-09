@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "US-gv8d-49",
+        "port": 443,
+        "security": "auto",
+        "server": "gtx-40.blera0o.example.net",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "service_name": "z9r672v-vjih0c",
+            "skip_tls_verify": false,
+            "sni": "www.jrmm477.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "fd4efde6-4152-4d96-9d0f-70c45c2d67f2"
+      }
+    }
+  ]
+}

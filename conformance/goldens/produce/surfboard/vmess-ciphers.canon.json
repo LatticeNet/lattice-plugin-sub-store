@@ -1,0 +1,86 @@
+[
+  {
+    "args": [
+      "z3-24.jfke.example.net",
+      "443"
+    ],
+    "name": "JP-ppcq89-80",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "ce07d7cc-26d3-449a-86fc-6e8ab886b24c",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "cc-35.jg3aqv.example.net",
+      "443"
+    ],
+    "name": "FR-nmudfw-61",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "5effff97-93b7-4844-935c-d3db48a3cb23",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "bn6-21.w1kc71bz.example.com",
+      "443"
+    ],
+    "name": "NL-v3tw-05",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "c6ba407d-4f74-4b37-b37f-cfb2be550d4f",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "s63-29.nz70.example.com",
+      "443"
+    ],
+    "name": "HK-g5t4-39",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "daf10bb1-b10a-4fb5-b126-54731df8df13",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "eb-36.mw37.example.org",
+      "443"
+    ],
+    "name": "KR-gnw-02",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "a455556c-1557-41d1-9f19-3eb3f30ee137",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "rz-14.f0p7h.example.org",
+      "443"
+    ],
+    "name": "GB-ran39-34",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "4d9a4d42-35d2-4cbd-9c0e-c9875d4dad26",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

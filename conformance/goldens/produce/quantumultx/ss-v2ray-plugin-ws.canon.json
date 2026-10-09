@@ -1,0 +1,16 @@
+[
+  {
+    "address": "ui-27.g6d8.example.com:80",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "ws",
+      "obfs-host": "www.z9bm8s.example.net",
+      "obfs-uri": "/eibuy",
+      "password": "1svs4zupFkVeb8",
+      "tag": "GB-coc-94",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

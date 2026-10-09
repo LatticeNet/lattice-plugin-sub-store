@@ -1,0 +1,1 @@
+FR-ajaf6-93=tuic-v5,ot5-06.htbmu.example.net,443,uuid=b1d7c103-a53e-4c59-a49c-59e698ca7b41,password="2b9zg3OPu2JaJ6xT",alpn="h3",port-hopping="20000-30000",port-hopping-interval=30,sni="api.we7fbrswnx.example.net",udp-relay=true

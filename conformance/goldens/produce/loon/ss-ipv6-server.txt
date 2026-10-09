@@ -1,0 +1,1 @@
+KR-uhyf-94=shadowsocks,2001:db8:d7c0:51b0::dfb9,21991,aes-256-gcm,"OFWOx4wLiW8zkv",udp=true

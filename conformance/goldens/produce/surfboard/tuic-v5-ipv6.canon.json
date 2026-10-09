@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "2001:db8:5dea:9676::65f4",
+      "443"
+    ],
+    "name": "AU-dshc6-86",
+    "params": {
+      "alpn": "h3",
+      "password": "GMbMPBfBRzCF7krc",
+      "sni": "static.vz9cc.example.org",
+      "udp-relay": "true",
+      "uuid": "3d6086b8-489d-4975-955a-5055bdc30044"
+    },
+    "type": "tuic-v5"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"DE-mpzqj-17","server":"ea-12.a5gk98h2.example.net","port":443,"auth":"1IIiWOkEq6ROLNHa9ym5","tfo":false,"udp_relay":true,"sni":"cdn.vw2osf1x3p.example.com","skip_tls_verify":false,"obfs":"salamander","obfs_password":"xXQDOuEUnq5oxkX3"}}

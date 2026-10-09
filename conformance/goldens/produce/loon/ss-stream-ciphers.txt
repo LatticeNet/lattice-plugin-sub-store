@@ -1,0 +1,5 @@
+SG-at22-37=shadowsocks,uo-31.vohqvdh2.example.net,26672,aes-128-cfb,"e5XX5LpSFAz7",udp=true
+FR-wjypay-70=shadowsocks,np-08.baeops7.example.org,33705,aes-256-cfb,"nmZltRLobntH",udp=true
+JP-clgy1z-07=shadowsocks,pp0-31.brvt.example.net,23086,aes-256-ctr,"nlpoz8gL0b9I",udp=true
+US-f3qx-51=shadowsocks,fx-28.zpthid.example.net,14978,chacha20-ietf,"Rpv1f9EyDV8H",udp=true
+TW-odzmu-72=shadowsocks,ceq-08.xcl70pi.example.org,50721,rc4-md5,"0aSo41OohzpA",udp=true

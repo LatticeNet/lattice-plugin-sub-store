@@ -1,0 +1,9 @@
+{
+  "id": "ss-v2ray-plugin-wss-mux",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "plugin-v2ray",
+  "description": "v2ray-plugin with tls, mux and an option without a value."
+}

@@ -1,0 +1,1 @@
+hysteria://sa-22.w5fx9ur.example.org:443?auth=vs8zlZsoihB8rO1z&downmbps=50&mport=20000-25000&protocol=udp&peer=www.u7sud70.example.org&udp=true&upmbps=10#GB-ede-02

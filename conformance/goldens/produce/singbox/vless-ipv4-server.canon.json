@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "203.0.113.48",
+      "server_port": 8443,
+      "tag": "US-uz1w8a-26",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.chcyg0.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "www.chcyg0.example.org"
+        },
+        "path": "/ogd6r7489",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "946ca19d-458d-4607-a30c-d7d5c6af849a"
+    }
+  ]
+}

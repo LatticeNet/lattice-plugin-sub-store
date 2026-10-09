@@ -1,0 +1,13 @@
+[
+  {
+    "ca": "-----BEGIN CERTIFICATE-----\nc96O2w+xR9ZCYy7pWQtUYnmDfJqDk580Ax3k84btl47SrELW+aPMovzz8SH8/rZs\n-----END CERTIFICATE-----",
+    "name": "HK-kwthi-57",
+    "password": "soBI9Lybh4kHpw",
+    "port": 1194,
+    "proto": "udp",
+    "server": "fk-15.noi8u77.example.net",
+    "type": "openvpn",
+    "udp": true,
+    "username": "yhrm"
+  }
+]

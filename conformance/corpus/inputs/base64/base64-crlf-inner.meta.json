@@ -1,0 +1,7 @@
+{
+  "id": "base64-crlf-inner",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "crlf",
+  "description": "Base64 of links joined with CRLF."
+}

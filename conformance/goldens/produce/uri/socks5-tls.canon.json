@@ -1,0 +1,12 @@
+[
+  {
+    "fragment": "NL-dzsr6-04",
+    "host": "q7-18.vcxv4ay.example.net",
+    "path": "",
+    "port": "443",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "dG5oOG11OTpyVW0xeHhPVk5kMHA=",
+    "userinfo_base64": "tnh8mu9:rUm1xxOVNd0p"
+  }
+]

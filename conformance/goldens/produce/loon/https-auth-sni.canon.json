@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "gav-13.l5s0ra.example.com",
+      "443",
+      "owy7rh",
+      "0WqVo2egBAnO"
+    ],
+    "name": "AU-f5qjs-75",
+    "params": {
+      "sni": "gav-13.l5s0ra.example.com"
+    },
+    "type": "https"
+  }
+]

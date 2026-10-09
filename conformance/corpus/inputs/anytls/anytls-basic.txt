@@ -1,0 +1,1 @@
+anytls://bm91bewnfciiwnoMmrKb@xe-34.w3hx.example.net:443/?sni=img.l2m9nw.example.com&fp=chrome&alpn=h2%2Chttp%2F1.1&insecure=0#SG-hqzi-96

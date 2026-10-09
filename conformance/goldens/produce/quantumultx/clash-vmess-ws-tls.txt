@@ -1,0 +1,1 @@
+vmess=tau-38.aett40.example.net:443,method=chacha20-poly1305,password=4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93,obfs=wss,obfs-uri=/kczba7vr,obfs-host=static.rooc7abl.example.com,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.rooc7abl.example.com,aead=true,udp-relay=true,tag=TW-xhup-68

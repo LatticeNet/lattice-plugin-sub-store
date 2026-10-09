@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-xksb8-53",
+      "type": "shadowsocks",
+      "server": "id2-31.cfpw.example.net",
+      "server_port": 14729,
+      "method": "2022-blake3-aes-256-gcm",
+      "password": "EWKRLbqKkrLmfPsRvWd5uJTj5kbWYatax0DDdbZtB/c=:nlVrFh4vj2g38X12H/jHY84zGfrHgdREZ832YLlTrbA="
+    }
+  ],
+  "endpoints": []
+}

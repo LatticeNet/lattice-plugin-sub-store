@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-sqdso-56",
+      "type": "vless",
+      "server": "qkn-04.k5pm3f.example.net",
+      "server_port": 443,
+      "uuid": "bebdc7bb-58e3-41c5-976c-d719ac2b2a0d",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.zbtxuowoes.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

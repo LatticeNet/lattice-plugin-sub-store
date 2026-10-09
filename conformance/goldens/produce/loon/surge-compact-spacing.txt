@@ -1,0 +1,2 @@
+GB-olr-41=shadowsocks,aq-35.vulb.example.net,22941,aes-128-gcm,"qByn83tZ4oGdGk",udp=true
+TW-y1ya-22=trojan,tf-16.x3ejb.example.com,443,"oy52YBDBHXQ7wfCu ",tls-name=cdn.hn25j.example.com,udp=true

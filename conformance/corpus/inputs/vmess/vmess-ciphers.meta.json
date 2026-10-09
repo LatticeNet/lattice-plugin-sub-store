@@ -1,0 +1,9 @@
+{
+  "id": "vmess-ciphers",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "vmess-security",
+  "description": "The scy values auto, aes-128-gcm, chacha20-poly1305, none, zero and an unknown one."
+}

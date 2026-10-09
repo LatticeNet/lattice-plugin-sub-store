@@ -1,0 +1,22 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "GB-olr-41",
+    "password": "qByn83tZ4oGdGk",
+    "port": 22941,
+    "server": "aq-35.vulb.example.net",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "name": "TW-y1ya-22",
+    "network": "tcp",
+    "password": "oy52YBDBHXQ7wfCu ",
+    "port": 443,
+    "server": "tf-16.x3ejb.example.com",
+    "sni": "cdn.hn25j.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

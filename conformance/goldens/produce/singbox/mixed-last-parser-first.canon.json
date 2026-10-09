@@ -1,0 +1,43 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "7f05Zkf8ZVtN",
+      "server": "uf-21.emdqtlyc.example.com",
+      "server_port": 8080,
+      "tag": "TW-us3jp-56",
+      "type": "http",
+      "username": "o36eae"
+    },
+    {
+      "password": "hTEmO5BXf2cd",
+      "server": "rkm-18.ptwmbbq.example.net",
+      "server_port": 8080,
+      "tag": "JP-j9kz9p-25",
+      "type": "http",
+      "username": "qw7wr1s"
+    },
+    {
+      "password": "gVR1jzrDk80Y",
+      "server": "e6q-11.ld43.example.net",
+      "server_port": 443,
+      "tag": "AU-rqv-17",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.q9es445kaz.example.net"
+      },
+      "type": "http",
+      "username": "xc1e3"
+    },
+    {
+      "password": "ROyQV6BdndOh",
+      "server": "w6-18.oxky0a.example.com",
+      "server_port": 1080,
+      "tag": "KR-qw3f7r-39",
+      "type": "socks",
+      "username": "bhzsv",
+      "version": "5"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "vless-httpupgrade-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "httpupgrade",
+  "security": "reality",
+  "description": "VLESS share link over httpupgrade with security reality."
+}

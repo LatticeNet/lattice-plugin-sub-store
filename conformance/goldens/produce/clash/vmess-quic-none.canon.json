@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "SG-tlp-08",
+      "network": "quic",
+      "port": 443,
+      "quic-opts": {
+        "_quic-host": "none",
+        "_quic-type": "none"
+      },
+      "server": "yeh-17.mc6d.example.net",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "9a3889d0-de3f-4288-9c0c-abd5a685b433"
+    }
+  ]
+}

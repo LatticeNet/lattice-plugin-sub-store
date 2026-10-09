@@ -1,0 +1,17 @@
+[
+  {
+    "address": "o0-12.dadt3a.example.net:49419",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "d1842fe9-5aed-452a-a62f-b2a295668da1",
+      "tag": "JP-vfw94-81",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.et37x8lil.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

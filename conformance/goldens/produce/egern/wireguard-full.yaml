@@ -1,0 +1,2 @@
+proxies:
+  - {"wireguard":{"name":"KR-yoyh-58","local_ipv4":"10.7.0.2/32","local_ipv6":"fd00:7::2/128","server":"ku-30.yxff6xdm.example.com","port":51820,"private_key":"IHtY7LOisG3tXaVoMW1wfNLSd2C2nV/OppPLj06sHrs=","peer_public_key":"H1V+J29sG7CzK5jH0zH2J2X8KGiDnfwjnu3pmObU4dc=","reserved":[1,2,3],"mtu":1280}}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-coercion",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "type-coercion",
+  "description": "A quoted port, udp as a string and a numeric password."
+}

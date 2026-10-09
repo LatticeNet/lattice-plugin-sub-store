@@ -1,0 +1,1 @@
+AU-rwg0qw-67=hysteria2,gj-03.d3ejf.example.net,443,password="wNErEnwtwNG5ixk200VV",sni="api.qutrl0x4py.example.net",skip-cert-verify=false,tfo=false

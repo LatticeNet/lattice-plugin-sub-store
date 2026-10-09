@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "TW-qch7x0-96",
+    "host": "hqq-35.n7jctp.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "headerType",
+        "wechat-video"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "seed",
+        "XiSCBM8eQO"
+      ],
+      [
+        "sni",
+        "img.ohcnaml3.example.org"
+      ],
+      [
+        "type",
+        "kcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "2343d90e-6486-4ecc-b99b-f5642495fe8b"
+  }
+]

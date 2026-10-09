@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"NL-wmkko5-50","server":"ct-01.gktnpz.example.net","port":443,"password":"uY3bzTtZg5PWo0Gu","tfo":false,"udp_relay":true,"sni":"img.mfq6v7gy31.example.net","skip_tls_verify":true}}
+  - {"trojan":{"name":"GB-g2r5-48","server":"exp-37.msqhu.example.net","port":443,"password":"Q0TFWQNDf9Objj0W","tfo":false,"udp_relay":true,"sni":"www.lyoh8.example.net","websocket":{"path":"/h1xonc/ytq25w0leh","host":"www.lyoh8.example.net"}}}

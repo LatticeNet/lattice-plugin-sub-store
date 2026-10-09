@@ -1,0 +1,8 @@
+{
+  "id": "clash-ss-aead",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Shadowsocks with AEAD and 2022 ciphers."
+}

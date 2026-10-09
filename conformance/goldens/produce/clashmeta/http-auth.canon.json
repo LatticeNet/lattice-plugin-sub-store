@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "name": "US-r6m-13",
+      "password": "CHzXFu3vME0v",
+      "port": 8080,
+      "server": "q6-02.rzkx1wg.example.org",
+      "tls": false,
+      "type": "http",
+      "udp": true,
+      "username": "lesmf"
+    }
+  ]
+}

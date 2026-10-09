@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-q12au1-90",
+      "type": "anytls",
+      "server": "y2-16.jnffzo.example.net",
+      "server_port": 443,
+      "password": "AqMA6wktK9PBJuK9gRNC",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.j5ultdi1.example.com",
+        "insecure": false
+      },
+      "idle_session_check_interval": "30s",
+      "idle_session_timeout": "30s",
+      "min_idle_session": 1
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-t3yl-20",
+      "type": "shadowsocks",
+      "server": "nys-21.dm1aj.example.org",
+      "server_port": 443,
+      "method": "aes-256-gcm",
+      "password": "mLOXTpMpdEAljhJR",
+      "plugin": "v2ray-plugin",
+      "multiplex": {
+        "enabled": true
+      },
+      "plugin_opts": "host=img.nz82a.example.org;mode=websocket;mux=1;path=/zen85j47vr;skip-cert-verify=false;tls"
+    }
+  ],
+  "endpoints": []
+}

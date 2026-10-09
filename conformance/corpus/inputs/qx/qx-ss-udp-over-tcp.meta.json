@@ -1,0 +1,9 @@
+{
+  "id": "qx-ss-udp-over-tcp",
+  "family": "qx",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "uot",
+  "description": "Quantumult X shadowsocks with udp-over-tcp sp.v1, sp.v2 and true."
+}

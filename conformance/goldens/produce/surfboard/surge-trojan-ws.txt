@@ -1,0 +1,1 @@
+AU-y5wy-94=trojan,cgk-31.cs04sm.example.net,443,password=9L5yJZcSovc6F1lD,ws=true,ws-path=/tqh35/hy517k,ws-headers=Host:"img.dqmjej1k.example.net",tls=true,sni="img.dqmjej1k.example.net",udp-relay=true

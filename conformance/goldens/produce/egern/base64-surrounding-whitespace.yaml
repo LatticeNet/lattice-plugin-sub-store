@@ -1,0 +1,7 @@
+proxies:
+  - {"vless":{"name":"TW-puyv-67","server":"bf-16.kp1oi.example.net","port":443,"user_id":"03abc751-e566-4701-a98f-58e2f8f0e9ed","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.gdwm1x5jbe.example.org","skip_tls_verify":false,"reality":{"public_key":"U2lNamVN-N1RZSQ-gbs1MB8695a11axA0djYXgUMkOY","short_id":"75b63b05"}}},"flow":"xtls-rprx-vision"}}
+  - {"vmess":{"name":"AU-y7o-06","server":"dj-02.hho8r.example.com","port":443,"user_id":"9dcf01fb-bdf0-4d6f-bb4b-9976f1b4b2ba","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/d79o3q/b04b397g","headers":{"Host":"www.i5mrqz.example.org"},"sni":"www.i5mrqz.example.org"}}}}
+  - {"trojan":{"name":"AU-hd9j-35","server":"mgm-13.he3ym5.example.org","port":443,"password":"mUiguR8cunsrFhM4","tfo":false,"udp_relay":true,"sni":"api.y0svsnccsg.example.net"}}
+  - {"shadowsocks":{"name":"KR-sewsc-99","method":"aes-128-gcm","server":"gq-21.au0am.example.com","port":28043,"password":"9s6yY58pCqeFvr","tfo":false,"udp_relay":true}}
+  - {"hysteria2":{"name":"NL-z24pys-33","server":"irh-32.ul4lonv.example.net","port":443,"auth":"alWP7EaAciF1wzEuD28p","tfo":false,"udp_relay":true,"sni":"img.xfonk3.example.org","skip_tls_verify":false}}
+  - {"tuic":{"name":"JP-xdtx-51","server":"tl4-25.dwmr1aj.example.com","port":443,"uuid":"f918efa8-59ff-4d04-b865-d8fbd435320c","password":"a81W5h0XHX7ASXK5","sni":"api.axqih4.example.net","alpn":["h3"]}}

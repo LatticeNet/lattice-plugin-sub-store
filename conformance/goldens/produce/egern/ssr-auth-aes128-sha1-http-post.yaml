@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"GB-ikyosn-89","method":"aes-128-ctr","server":"in-09.lpf7.example.org","port":43566,"password":"ykOLcACoPcSC","protocol":"auth_aes128_sha1","protocol_param":"8922:8Ak2P7eB","obfs":"http_post","obfs_param":"cdn.z35d7v5.example.net","tfo":false,"udp_relay":true}}

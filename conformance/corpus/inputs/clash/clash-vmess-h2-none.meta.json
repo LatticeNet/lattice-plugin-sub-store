@@ -1,0 +1,8 @@
+{
+  "id": "clash-vmess-h2-none",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "h2",
+  "security": "none",
+  "description": "mihomo vmess proxy over h2 with security none."
+}

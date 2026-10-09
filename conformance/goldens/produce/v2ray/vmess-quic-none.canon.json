@@ -1,0 +1,20 @@
+[
+  {
+    "body": {
+      "add": "yeh-17.mc6d.example.net",
+      "aid": "0",
+      "host": "none",
+      "id": "9a3889d0-de3f-4288-9c0c-abd5a685b433",
+      "net": "quic",
+      "port": "443",
+      "ps": "SG-tlp-08",
+      "scy": "auto",
+      "tls": "",
+      "type": "none",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "lattice-substore-oracle",
+  "private": true,
+  "type": "module",
+  "description": "Oracle runner, golden regeneration and conformance checker for the native Sub-Store plugin.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "regen": "node regen.mjs",
+    "check": "node check.mjs",
+    "selftest": "node selftest.mjs",
+    "test": "node --test 'test/*.test.mjs'"
+  },
+  "dependencies": {
+    "yaml": "2.9.1"
+  }
+}

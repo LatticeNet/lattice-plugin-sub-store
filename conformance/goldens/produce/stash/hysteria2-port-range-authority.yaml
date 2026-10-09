@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"HK-ejulo-15","port":20000,"ports":"20000-30000","server":"ff5-28.t7an.example.org","skip-cert-verify":false,"sni":"static.vse2b5.example.org","type":"hysteria2","udp":true,"auth":"EYnXrPpHMB0HZlxIMDfT","fast-open":false}

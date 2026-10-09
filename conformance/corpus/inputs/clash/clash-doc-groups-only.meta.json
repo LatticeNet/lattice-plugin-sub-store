@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-groups-only",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "groups-only",
+  "description": "A document with proxy-groups and no proxies."
+}

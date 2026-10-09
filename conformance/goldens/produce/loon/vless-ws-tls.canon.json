@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "sx-39.xuvbo.example.org",
+      "443",
+      "62baade6-6b72-456c-bedc-186a64cfc946"
+    ],
+    "name": "GB-bh6-73",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "img.d6vdeaf.example.net",
+      "over-tls": "true",
+      "path": "/xil2/s6dx",
+      "skip-cert-verify": "false",
+      "tls-name": "img.d6vdeaf.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

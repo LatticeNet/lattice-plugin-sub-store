@@ -1,0 +1,110 @@
+[
+  {
+    "args": [
+      "g3-17.yyviqjt.example.org",
+      "19383"
+    ],
+    "name": "a#b dwq",
+    "params": {
+      "password": "Ewq90sghYDS5laZ7pzVz",
+      "skip-cert-verify": "false",
+      "sni": "static.tbwbbjuq.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "so-35.y0obihc.example.org",
+      "49641"
+    ],
+    "name": "x%20y knhh",
+    "params": {
+      "password": "MrlYCwxibrD0cLaqwrcl",
+      "skip-cert-verify": "false",
+      "sni": "cdn.bty92.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "uqj-22.kad2ow.example.net",
+      "48071"
+    ],
+    "name": "kv&w outm",
+    "params": {
+      "alpn": "h3",
+      "password": "o7m89ZEi9pM7FAjx",
+      "sni": "cdn.yxh3iri9d.example.com",
+      "uuid": "c3fff1a6-91d2-4e5c-a716-482679a49877"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "np-28.egxx.example.com",
+      "15988"
+    ],
+    "name": "comma semi; zom3q",
+    "params": {
+      "alpn": "h3",
+      "password": "lqId57MKVuzYmDwf",
+      "sni": "www.piqec8i3.example.org",
+      "uuid": "d18654f6-4482-498f-8140-437b55782225"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "bsx-26.kcyk.example.com",
+      "443"
+    ],
+    "name": "slash/ques? g0w",
+    "params": {
+      "password": "8E6FVDNU8MpiMb8q",
+      "sni": "static.jg7h5vfm.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "t3e-03.hieci.example.org",
+      "443"
+    ],
+    "name": "quote \" apos ' zkth",
+    "params": {
+      "password": "4jmL7qr9xpGX1Csu",
+      "sni": "static.xhdjfx.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "uv-24.h3is.example.net",
+      "57604"
+    ],
+    "name": "padded  ncb",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "5zL1yhOgywAhZ+3z464/tA==",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "r9b-13.qm3y7m10.example.com",
+      "39964"
+    ],
+    "name": "f9i0d0wpgg5ra4a4jtqjfp8shtiua0 gmf91930qobke9uf2r9t la6x0vfujzmb9qmfhbqou",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "ctkSSwDczowhPidegzUpMg==",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

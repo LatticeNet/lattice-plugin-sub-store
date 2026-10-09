@@ -1,0 +1,24 @@
+[
+  {
+    "args": [
+      "ok-34.w6xwil.example.com",
+      "443",
+      "auto",
+      "000b0651-b029-4c70-8287-7e117f38cb56"
+    ],
+    "name": "JP-h6jaf0-06",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "img.rsvilob.example.com",
+      "over-tls": "true",
+      "path": "/jg4g",
+      "skip-cert-verify": "false",
+      "tls-name": "img.rsvilob.example.com",
+      "tls-profile": "chrome",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

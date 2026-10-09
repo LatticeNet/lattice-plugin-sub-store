@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "CA-nixq-24",
+    "host": "rmq-28.tr5vrx1y.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "reuse",
+        "true"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.sgclf.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "05eDffSebg6pvqS7baU1"
+  }
+]

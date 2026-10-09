@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "shadowsocksr": {
+        "method": "aes-128-ctr",
+        "name": "GB-ikyosn-89",
+        "obfs": "http_post",
+        "obfs_param": "cdn.z35d7v5.example.net",
+        "password": "ykOLcACoPcSC",
+        "port": 43566,
+        "protocol": "auth_aes128_sha1",
+        "protocol_param": "8922:8Ak2P7eB",
+        "server": "in-09.lpf7.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

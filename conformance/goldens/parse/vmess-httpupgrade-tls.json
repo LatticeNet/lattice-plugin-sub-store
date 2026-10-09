@@ -1,0 +1,27 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "alterId": 0,
+    "cipher": "auto",
+    "client-fingerprint": "chrome",
+    "name": "DE-dwogxg-08",
+    "network": "ws",
+    "port": 443,
+    "server": "gb-29.yf72m.example.net",
+    "sni": "static.mxlydm0c.example.org",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "2c5e10e4-04fc-407b-9772-119f7689fe5e",
+    "ws-opts": {
+      "headers": {
+        "Host": "static.mxlydm0c.example.org"
+      },
+      "path": "/qkc3c2kaaw",
+      "v2ray-http-upgrade": true
+    }
+  }
+]

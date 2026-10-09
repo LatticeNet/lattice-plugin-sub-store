@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "si-36.bnyc.example.net",
+      "443"
+    ],
+    "name": "HK-rwl-68",
+    "params": {
+      "alpn": "h3",
+      "password": "",
+      "sni": "www.zuzj9pi2d.example.org",
+      "udp-relay": "true",
+      "uuid": "v2DeBaasrThWvtaPa4ChcTJX"
+    },
+    "type": "tuic-v5"
+  }
+]

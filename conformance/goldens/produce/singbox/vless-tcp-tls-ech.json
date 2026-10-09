@@ -1,0 +1,34 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-t9p-56",
+      "type": "vless",
+      "server": "uk-05.zeqc.example.net",
+      "server_port": 443,
+      "uuid": "1e63755b-a4fb-486a-9bf1-cfe455701da5",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ycqp18r6p5.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "ech": {
+          "enabled": true,
+          "config": [
+            "-----BEGIN ECH CONFIGS-----",
+            "Vr+JCeupCeH8nUII43fmZvMAW08aSjPecef/qlUi2oZ1ED/H0wXxM9P1qncTruDBU6zcMZfARZvUArzflfA4wbITJ4Ykt1B7",
+            "-----END ECH CONFIGS-----"
+          ]
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

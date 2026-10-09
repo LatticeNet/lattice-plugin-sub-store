@@ -1,0 +1,1 @@
+CA-bus8j-50=ss,o8-22.yd7la.example.com,41691,encrypt-method=chacha20-ietf-poly1305,password="DnDhyby4CUkV4H",obfs=tls,obfs-host=static.vrb8iyo.example.net,udp-relay=true

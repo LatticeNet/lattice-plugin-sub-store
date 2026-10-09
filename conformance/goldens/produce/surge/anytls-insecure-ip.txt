@@ -1,0 +1,1 @@
+GB-uq8k-07=anytls,198.51.100.140,45821,password="M9Mlcffeicbj8UV6dfeJ",skip-cert-verify=true

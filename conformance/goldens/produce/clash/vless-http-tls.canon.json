@@ -1,0 +1,29 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "h2-opts": {
+        "host": [
+          "static.van88za0.example.com"
+        ],
+        "path": "/cnm/jd7wsdlyt9"
+      },
+      "name": "NL-dd2-51",
+      "network": "h2",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "db-20.zbq9y.example.org",
+      "servername": "static.van88za0.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "b9bd841a-80d7-437c-bcf4-0708409fd2c7"
+    }
+  ]
+}

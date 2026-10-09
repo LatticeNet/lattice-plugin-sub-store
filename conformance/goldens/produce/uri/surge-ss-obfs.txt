@@ -1,0 +1,2 @@
+ss://YWVzLTI1Ni1nY206UEhXZm9OcG5oaWpyUmM=@xb-13.pqdk.example.net:58000/?plugin=simple-obfs%3Bobfs%3Dhttp%3Bobfs-host%3Dcdn.dbyv00vw9.example.com&udp=1#HK-j49-16
+ss://YWVzLTI1Ni1nY206cVM5elB1SWozU1ZWblQ=@lkd-11.nnc9idh.example.org:37436/?plugin=simple-obfs%3Bobfs%3Dtls%3Bobfs-host%3Dstatic.r2rzatcb.example.com&udp=1#US-yigh2w-55

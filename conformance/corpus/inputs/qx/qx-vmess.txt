@@ -1,0 +1,2 @@
+vmess=nz-05.lskztiz.example.net:52475, method=chacha20-ietf-poly1305, password=6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b, fast-open=false, udp-relay=false, tag=CA-xde9a-47
+vmess=mg-25.xclff6.example.com:17065, method=aes-128-gcm, password=c1a44a66-75d9-4db7-99e4-34d2a69bc33a, aead=false, tag=GB-rlvowq-05

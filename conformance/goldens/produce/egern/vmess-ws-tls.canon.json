@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-tuq-74",
+        "port": 443,
+        "security": "auto",
+        "server": "k4-29.dbrm.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.h0digvt.example.org"
+            },
+            "path": "/glnf",
+            "sni": "api.h0digvt.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "f01fcc8c-d644-4e5c-9d5f-65cda7be0d62"
+      }
+    }
+  ]
+}

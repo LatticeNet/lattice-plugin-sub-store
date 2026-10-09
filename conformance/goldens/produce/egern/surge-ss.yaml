@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"AU-zj535x-53","method":"aes-128-gcm","server":"i5-18.p8ci.example.net","port":12936,"password":"ZLN8JTCnyC9vty","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"DE-e37-73","method":"2022-blake3-aes-256-gcm","server":"t8-08.tv1tnm7j.example.net","port":29530,"password":"3BaI3U+oiaQUQZ7EAiszUx40YJu0lpzPIYTA9XW/XW8=","tfo":true,"udp_relay":true}}
+  - {"shadowsocks":{"name":"KR-pfv-77","method":"chacha20-poly1305","server":"bhl-34.c2qflj.example.com","port":32980,"password":"9RnEZgZgVPFMwU","tfo":false,"udp_relay":true}}

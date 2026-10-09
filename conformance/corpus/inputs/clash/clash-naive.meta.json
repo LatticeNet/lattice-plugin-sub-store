@@ -1,0 +1,8 @@
+{
+  "id": "clash-naive",
+  "family": "clash",
+  "protocol": "naive",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "naive with credentials and sni."
+}

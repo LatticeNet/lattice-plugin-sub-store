@@ -1,0 +1,18 @@
+[
+  {
+    "address": "f2-35.vnch.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "2358c8e5-46d7-4f60-946f-479250977580",
+      "reality-base64-pubkey": "bImFmHXlk0wSoQGnkLNDjQJhwzaLtjYA8hPE7rhQ1iQ",
+      "reality-hex-shortid": "96de511e273eddaa",
+      "tag": "KR-le0kdm-50",
+      "tls-host": "img.acvph8.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

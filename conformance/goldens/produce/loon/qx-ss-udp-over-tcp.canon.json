@@ -1,0 +1,42 @@
+[
+  {
+    "args": [
+      "rp8-33.wgzivs.example.org",
+      "38130",
+      "aes-128-gcm",
+      "whcR18hBEjkOVg"
+    ],
+    "name": "FR-w38-62",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "r2s-07.paug3a4.example.org",
+      "50285",
+      "aes-128-gcm",
+      "6dNQLnVjNDH9zs"
+    ],
+    "name": "GB-kzq-60",
+    "params": {
+      "udp": "true",
+      "udp-over-tcp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "vp-11.foz9zs.example.org",
+      "60960",
+      "aes-128-gcm",
+      "s2wFoQVQ1mZzes"
+    ],
+    "name": "TW-zh07-47",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "cipher": "chacha20-ietf-poly1305",
+      "name": "AU-qsa-88",
+      "password": "v9OkbPqqHAZGWPr1",
+      "port": 28238,
+      "server": "yp-02.if8lse.example.org",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+AU-y5wy-94=trojan,cgk-31.cs04sm.example.net,443,"9L5yJZcSovc6F1lD",transport=ws,path=/tqh35/hy517k,host=img.dqmjej1k.example.net,tls-name=img.dqmjej1k.example.net,udp=true

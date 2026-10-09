@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "7GLrM7cLUxbsgFrxj79Y",
+        "name": "DE-vvhh0b-20",
+        "port": 443,
+        "server": "qc5-23.ivrq3u.example.net",
+        "skip_tls_verify": false,
+        "sni": "api.o88ob.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

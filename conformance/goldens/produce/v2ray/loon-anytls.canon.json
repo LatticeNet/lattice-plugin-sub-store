@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "FR-q12au1-90",
+    "host": "y2-16.jnffzo.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "idle_session_check_interval",
+        "30"
+      ],
+      [
+        "idle_session_timeout",
+        "30"
+      ],
+      [
+        "max_stream_count",
+        "4"
+      ],
+      [
+        "min_idle_session",
+        "1"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.j5ultdi1.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "AqMA6wktK9PBJuK9gRNC"
+  }
+]

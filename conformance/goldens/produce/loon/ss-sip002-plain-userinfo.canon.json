@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "yp-02.if8lse.example.org",
+      "28238",
+      "chacha20-ietf-poly1305",
+      "v9OkbPqqHAZGWPr1"
+    ],
+    "name": "AU-qsa-88",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

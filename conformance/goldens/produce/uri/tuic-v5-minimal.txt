@@ -1,0 +1,1 @@
+tuic://437379f7-bed5-4389-a11e-6732f703fc45:vArKjoDH8C0gXxIT@bl-19.cnqn4dxi.example.net:443?alpn=h3&congestion_control=cubic&sni=bl-19.cnqn4dxi.example.net&udp=true&udp_relay_mode=native#FR-yeun-59

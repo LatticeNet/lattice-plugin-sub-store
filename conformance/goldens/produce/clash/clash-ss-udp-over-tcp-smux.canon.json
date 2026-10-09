@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "NL-fm2xz-53",
+      "password": "jQ2iqvOC7hkHUSoD",
+      "port": 12899,
+      "server": "zzt-26.y4jpnft5.example.org",
+      "smux": {
+        "enabled": true,
+        "max-connections": 4,
+        "protocol": "h2mux"
+      },
+      "type": "ss",
+      "udp": true,
+      "udp-over-tcp": true,
+      "udp-over-tcp-version": 2
+    }
+  ]
+}

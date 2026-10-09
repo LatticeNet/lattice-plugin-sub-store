@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"TW-pw6ak-79","server":"fr-18.grd2uet.example.com","port":443,"user_id":"7f9c5fa6-1017-4302-98c3-bcb2289a2585","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/bn2gnu","headers":{"Host":"www.acc6925d.example.net"},"sni":"www.acc6925d.example.net"}}}}

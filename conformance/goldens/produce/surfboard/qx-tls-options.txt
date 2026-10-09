@@ -1,0 +1,1 @@
+GB-rc5go-89=trojan,203.0.113.104,443,password=dHxn6dCKqdRZFujk,tls=true,server-cert-fingerprint-sha256=f9f471e7cddb6aeb1276ea0c3908239ebdb48a21d09c2e632b9604f6126a518b,sni="www.t7f0lpmk.example.org",skip-cert-verify=true,udp-relay=true

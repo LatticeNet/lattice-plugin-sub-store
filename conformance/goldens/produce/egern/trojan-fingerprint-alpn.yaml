@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"KR-i6c-08","server":"ufh-20.cskk.example.net","port":443,"password":"MqstkokkaMmCdlOb","tfo":false,"udp_relay":true,"sni":"www.pu7fx.example.net"}}

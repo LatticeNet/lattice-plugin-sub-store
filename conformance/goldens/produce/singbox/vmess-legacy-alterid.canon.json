@@ -1,0 +1,63 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 64,
+      "security": "auto",
+      "server": "j2-19.cwijcz3a.example.org",
+      "server_port": 443,
+      "tag": "CA-i0q-12",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.n9922y2d.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "api.n9922y2d.example.org"
+        },
+        "path": "/p5fr/fu0q3pivr4",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "9aca4e50-f0b4-448c-9947-a35e1c2c5fe3"
+    },
+    {
+      "alter_id": 16,
+      "security": "auto",
+      "server": "sz5-34.s72v.example.org",
+      "server_port": 443,
+      "tag": "TW-opyhr-47",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.cwxheijao8.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.cwxheijao8.example.net"
+        },
+        "path": "/go9ylvj",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "c3acc1ab-14d1-403a-8d33-ca2b7f4bb599"
+    }
+  ]
+}

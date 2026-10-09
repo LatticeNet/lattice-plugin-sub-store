@@ -1,0 +1,19 @@
+proxies:
+  - name: 日本 东京 xp3wh
+    type: ss
+    server: my3-20.shu2.example.com
+    port: 40259
+    cipher: aes-128-gcm
+    password: RfBryVPcgbhP
+  - name: Франкфурт ein23
+    type: ss
+    server: x5d-17.b1ft75s.example.net
+    port: 28566
+    cipher: aes-128-gcm
+    password: adqGqFf6jdjC
+  - name: "a: b # c [d] {e}, xcvo"
+    type: ss
+    server: sth-08.xj5a.example.net
+    port: 29015
+    cipher: aes-128-gcm
+    password: bXKC2TcvGpNl

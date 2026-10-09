@@ -1,0 +1,8 @@
+{
+  "id": "clash-ssr",
+  "family": "clash",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "ShadowsocksR with protocol and obfs parameters."
+}

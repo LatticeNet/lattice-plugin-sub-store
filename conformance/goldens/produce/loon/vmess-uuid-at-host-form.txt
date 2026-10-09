@@ -1,0 +1,1 @@
+DE-x2v8vq-21=vmess,dz-19.pgekzw8.example.org,443,auto,"0c589e64-b7b7-442c-b647-b37f1db0e7a5",transport=ws,path=/g89/nipgxvfka,host=cdn.oah4gm49.example.net,over-tls=true,skip-cert-verify=false,tls-name=cdn.oah4gm49.example.net,alterId=0,udp=true

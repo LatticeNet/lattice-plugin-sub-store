@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "name": "KR-lzb3o3-05",
+      "network": "ws",
+      "password": "6mUNbxAlL0UIUSWD",
+      "port": 443,
+      "server": "rnh-12.ruiiz.example.net",
+      "sni": "www.adclk43nua.example.com",
+      "type": "trojan",
+      "udp": true,
+      "ws-opts": {
+        "early-data-header-name": "Sec-WebSocket-Protocol",
+        "headers": {
+          "Host": "www.adclk43nua.example.com"
+        },
+        "max-early-data": 2048,
+        "path": "/nco4s"
+      }
+    }
+  ]
+}

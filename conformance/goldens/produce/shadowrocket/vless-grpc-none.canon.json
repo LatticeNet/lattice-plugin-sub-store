@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "encryption": "none",
+      "grpc-opts": {
+        "grpc-service-name": "zx7h-iwx"
+      },
+      "name": "KR-vod-56",
+      "network": "grpc",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "d9-17.yf8t8fm.example.org",
+      "skip-cert-verify": false,
+      "tls": false,
+      "type": "vless",
+      "udp": true,
+      "uuid": "4999271a-4687-4103-be9b-b308c7f336c0"
+    }
+  ]
+}

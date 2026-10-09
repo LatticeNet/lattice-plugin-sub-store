@@ -1,0 +1,31 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "jy1zzeVtjPYW5WZ1d7c3",
+        "name": "GB-vndf-11",
+        "port": 443,
+        "server": "oe-33.qx39yxx.example.com",
+        "skip_tls_verify": false,
+        "sni": "api.y9rxi39v8j.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "Ljm9RAIKKgkAVQ4Om3ES",
+        "name": "KR-x2fuc-55",
+        "obfs": "salamander",
+        "obfs_password": "RpvsakJ8xuuStgsm",
+        "port": 443,
+        "port_hopping": "20000-30000,31000",
+        "port_hopping_interval": 30,
+        "server": "w6b-30.pbeu3.example.net",
+        "sni": "cdn.wq7zecq15c.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

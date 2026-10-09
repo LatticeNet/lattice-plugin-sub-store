@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "wf-33.flul.example.com",
+      "443",
+      "aes-128-gcm",
+      "Xi906cslDTMGQz"
+    ],
+    "name": "GB-o1e7f-30",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

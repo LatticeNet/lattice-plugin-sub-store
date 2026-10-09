@@ -1,0 +1,8 @@
+{
+  "id": "clash-juicity",
+  "family": "clash",
+  "protocol": "juicity",
+  "transport": "quic",
+  "security": "tls",
+  "description": "juicity with uuid, password and congestion control."
+}

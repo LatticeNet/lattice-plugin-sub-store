@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "rv-14.nzag30.example.org",
+      "server_port": 443,
+      "tag": "CA-mzhy-32",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.paznfzs.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "66f373aa-79e0-4754-ae9a-5aad2a7e4823"
+    }
+  ]
+}

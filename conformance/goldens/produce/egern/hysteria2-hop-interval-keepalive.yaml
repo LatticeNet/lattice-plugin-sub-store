@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"AU-c10c71-51","server":"yxu-08.nlefeegc.example.com","port":443,"auth":"gSrCmBf82yAWUzLcfKSh","tfo":false,"udp_relay":true,"sni":"www.zmlvv.example.org","skip_tls_verify":false,"port_hopping":"30000-40000","port_hopping_interval":30}}

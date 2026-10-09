@@ -4,9 +4,8 @@ import { defineConfig } from "@playwright/test";
  * The design drive. It asserts the geometry a design review measures by hand,
  * so a regression in the Files lens fails here rather than in the next review.
  *
- * CI does not run it: the gates there are `npm test`, typecheck, build and
- * verify:build, and this needs a browser download. Run it locally with
- * `npm run test:e2e`.
+ * CI runs it in the ui-e2e job after `npx playwright install --with-deps
+ * chromium`. Run it locally with `npm run test:e2e`.
  */
 export default defineConfig({
   testDir: "./e2e",

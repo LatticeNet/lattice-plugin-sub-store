@@ -1,0 +1,1 @@
+FR-ylrg-19=ss,ha-30.mwovt.example.org,443,encrypt-method=aes-128-gcm,password="Rz7W2d6kyIQmQk",udp-relay=true

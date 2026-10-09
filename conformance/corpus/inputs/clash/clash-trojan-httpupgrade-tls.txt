@@ -1,0 +1,20 @@
+proxies:
+  - name: GB-wf6mw-41
+    type: trojan
+    server: sva-34.ljiws45y.example.org
+    port: 443
+    password: UGF4CIWxdW2hW0zo
+    udp: true
+    tls: true
+    sni: static.ub1g32.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /p2bpzcb
+      headers:
+        Host: static.ub1g32.example.org
+      v2ray-http-upgrade: true

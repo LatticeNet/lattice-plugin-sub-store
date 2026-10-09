@@ -1,0 +1,38 @@
+[
+  {
+    "address": "lg-07.xzui.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "tS12JGdEI3SMujA8",
+      "tag": "mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd",
+      "tls-host": "static.e4wxoq3ut.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "w0q-19.g99tmx.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "9Ne0DCSG9uVx41KX",
+      "tag": "jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo",
+      "tls-host": "cdn.j1g6mm1mj.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "xi-15.j388.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "o2C17624t0c1iv6f",
+      "tag": "yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw",
+      "tls-host": "api.tlceuktr.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

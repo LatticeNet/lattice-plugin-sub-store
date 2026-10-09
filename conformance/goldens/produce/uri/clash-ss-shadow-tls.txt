@@ -1,0 +1,2 @@
+ss://2022-blake3-aes-128-gcm:Opq2jrdRKY7wNpHQEcQmFw%3D%3D@ue-06.ur58k.example.org:443/?plugin=shadow-tls%3Bhost%3Dimg.hp3k0nb7i.example.net%3Bpassword%3DAwYmyi6NLk9PRaLy%3Bversion%3D2&udp=1&fp=chrome#FR-vda4-83
+ss://2022-blake3-aes-128-gcm:FtP4%2BwFSRGrQIpo3%2BRS3CQ%3D%3D@y2-20.givz.example.com:443/?plugin=shadow-tls%3Bhost%3Dimg.gjnkueki2x.example.org%3Bpassword%3DwhNg1PjgU7kQeTRU%3Bversion%3D3&udp=1&fp=chrome#SG-t1pkv-47

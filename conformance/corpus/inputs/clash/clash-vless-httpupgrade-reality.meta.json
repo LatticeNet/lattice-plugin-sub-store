@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-httpupgrade-reality",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "httpupgrade",
+  "security": "reality",
+  "description": "mihomo vless proxy over httpupgrade with security reality."
+}

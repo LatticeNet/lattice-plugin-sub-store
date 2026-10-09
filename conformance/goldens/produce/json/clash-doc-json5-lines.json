@@ -1,0 +1,23 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "FR-z36pm-76",
+    "password": "EA9fxeuWqVq6",
+    "port": 31170,
+    "server": "yxc-13.y93b07h.example.net",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "name": "HK-trui-14",
+    "network": "tcp",
+    "password": "isDtVJNKTKm3AVxl",
+    "port": 443,
+    "server": "sz-26.icrty1.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.o2pcyahkl3.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "fragment": "日本 东京 xp3wh",
+    "host": "my3-20.shu2.example.com",
+    "path": "",
+    "port": "40259",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206UmZCcnlWUGNnYmhQ",
+    "userinfo_base64": "aes-128-gcm:RfBryVPcgbhP"
+  },
+  {
+    "fragment": "Франкфурт ein23",
+    "host": "x5d-17.b1ft75s.example.net",
+    "path": "",
+    "port": "28566",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206YWRxR3FGZjZqZGpD",
+    "userinfo_base64": "aes-128-gcm:adqGqFf6jdjC"
+  },
+  {
+    "fragment": "a: b # c [d] {e}, xcvo",
+    "host": "sth-08.xj5a.example.net",
+    "path": "",
+    "port": "29015",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206YlhLQzJUY3ZHcE5s",
+    "userinfo_base64": "aes-128-gcm:bXKC2TcvGpNl"
+  }
+]

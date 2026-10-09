@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "203.0.113.127",
+      "aid": "0",
+      "id": "a1cc6600-15a6-4c63-9d5e-d82912fb67a8",
+      "net": "tcp",
+      "port": "21082",
+      "ps": "FR-bky-82",
+      "scy": "chacha20-poly1305",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

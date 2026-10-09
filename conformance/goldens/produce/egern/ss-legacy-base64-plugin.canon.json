@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "JP-hhek-33",
+        "obfs": "http",
+        "obfs_host": "api.tvsyc0.example.com",
+        "password": "DrL9ISgTEl19He",
+        "port": 26877,
+        "server": "fh-22.ov6ov1.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

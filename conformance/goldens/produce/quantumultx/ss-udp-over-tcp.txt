@@ -1,0 +1,2 @@
+shadowsocks=su-23.ysq8riu.example.com:41043,method=aes-256-gcm,password=f1RgjVO49Z5wYF,udp-relay=true,udp-over-tcp=sp.v1,tag=TW-sgo-07
+shadowsocks=n4j-34.a620o39y.example.com:41982,method=aes-256-gcm,password=2rCTNDZG2jMTLF,udp-relay=false,tag=TW-t0hv-35

@@ -1,0 +1,32 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-u352sz-68",
+      "type": "vless",
+      "server": "f9-26.kn67t.example.com",
+      "server_port": 443,
+      "uuid": "4cf50411-4a0f-47e3-870b-c969f988326b",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.yqlu287lg0.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "iXRMGvhG9D_pZavsQdQ2jmq9Cblai39I5253eoTVt9A",
+          "short_id": "92757c36"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "http",
+        "path": "/ep03",
+        "host": "api.yqlu287lg0.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

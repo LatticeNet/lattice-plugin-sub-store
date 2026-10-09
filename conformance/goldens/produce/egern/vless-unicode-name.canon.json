@@ -1,0 +1,64 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "香港 ggo 01",
+        "port": 443,
+        "server": "j4u-34.mklodu.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "ywc8QbzkvzDeisgx1X01csEFub2ePLPHqtk9PXEEVCk",
+              "short_id": "47b71eea"
+            },
+            "skip_tls_verify": false,
+            "sni": "www.vib8ecj.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "59c564e5-a872-4740-bd9b-b642bbb08342"
+      }
+    },
+    {
+      "vless": {
+        "name": "Москва-jyya",
+        "port": 443,
+        "server": "ty3-18.sx3g3a.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "DGUAyaxkBOgjd2EEPdaafI2BFBi_PY4sC9A1N_X6la8",
+              "short_id": "51a0fcdc"
+            },
+            "skip_tls_verify": false,
+            "sni": "api.rni6y1qd.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "58ef9d98-f954-40e9-b8d2-325b2653d432"
+      }
+    },
+    {
+      "vless": {
+        "name": "a#b%c&d=e,f;g dlg",
+        "port": 443,
+        "server": "kg0-03.hxvjre6.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "rxRd_nrAKDe4SWKIq4aZAWw4SHJ11SBEZ1KUki7J1ow",
+              "short_id": "aa078e35"
+            },
+            "skip_tls_verify": false,
+            "sni": "api.iughcpo.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ab044b25-d72b-45b9-8d5e-e67638742b61"
+      }
+    }
+  ]
+}

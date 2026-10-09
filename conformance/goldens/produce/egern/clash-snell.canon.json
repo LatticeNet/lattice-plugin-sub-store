@@ -1,0 +1,63 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "HK-rhm6-27",
+        "obfs": "http",
+        "obfs_host": "cdn.c63carmp78.example.com",
+        "port": 48974,
+        "psk": "6Q4HRMpMpQCcCXIuY8tH",
+        "server": "ra-32.h0tg9ic.example.org",
+        "tfo": false,
+        "version": 1
+      }
+    },
+    {
+      "snell": {
+        "name": "GB-kqh1gc-35",
+        "obfs": "http",
+        "obfs_host": "api.bel58blvlj.example.net",
+        "port": 59047,
+        "psk": "gyR7URAUQAEbWH7sPU9e",
+        "server": "pm-08.opgo1xb.example.net",
+        "tfo": false,
+        "version": 2
+      }
+    },
+    {
+      "snell": {
+        "name": "CA-ev71-65",
+        "obfs": "http",
+        "obfs_host": "www.g0pcoj.example.com",
+        "port": 58173,
+        "psk": "n9DfzukgsdkhYkLycGRK",
+        "server": "bm-26.r14jdl4e.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 3
+      }
+    },
+    {
+      "snell": {
+        "name": "JP-o1zi-67",
+        "port": 16923,
+        "psk": "ICuSeaJfGTwP5kRTgkrh",
+        "server": "o5q-03.m5u4.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 4
+      }
+    },
+    {
+      "snell": {
+        "name": "SG-x2h44-62",
+        "port": 27700,
+        "psk": "eR2nBQ7LjZmeB66nHlNr",
+        "server": "n9-39.sw475vr.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 5
+      }
+    }
+  ]
+}

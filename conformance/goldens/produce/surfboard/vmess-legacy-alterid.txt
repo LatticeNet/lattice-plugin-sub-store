@@ -1,0 +1,2 @@
+CA-i0q-12=vmess,j2-19.cwijcz3a.example.org,443,username=9aca4e50-f0b4-448c-9947-a35e1c2c5fe3,ws=true,ws-path=/p5fr/fu0q3pivr4,ws-headers=Host:"api.n9922y2d.example.org",vmess-aead=false,tls=true,sni="api.n9922y2d.example.org",udp-relay=true
+TW-opyhr-47=vmess,sz5-34.s72v.example.org,443,username=c3acc1ab-14d1-403a-8d33-ca2b7f4bb599,ws=true,ws-path=/go9ylvj,ws-headers=Host:"img.cwxheijao8.example.net",vmess-aead=false,tls=true,sni="img.cwxheijao8.example.net",udp-relay=true

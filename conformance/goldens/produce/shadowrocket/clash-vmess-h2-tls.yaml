@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"alterId":0,"cipher":"auto","client-fingerprint":"chrome","h2-opts":{"host":["static.b9eert.example.com"],"path":"/rxtxr2ob"},"name":"CA-w6ys-30","network":"h2","port":443,"server":"l5-09.xmmas.example.net","skip-cert-verify":false,"tls":true,"type":"vmess","udp":true,"uuid":"ab77cff5-961e-476f-98d3-a0ebed63aa20","servername":"static.b9eert.example.com"}

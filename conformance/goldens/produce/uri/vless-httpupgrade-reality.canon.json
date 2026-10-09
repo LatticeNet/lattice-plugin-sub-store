@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "KR-czj12s-29",
+    "host": "vhr-38.koq5a.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.pt853yh.example.com"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/u3b/fys0w5eo"
+      ],
+      [
+        "pbk",
+        "YzlL1TM7jl8ut1WVdj-qrN4b7YcRMk1inNOcY2Fxxhc"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "8b941762"
+      ],
+      [
+        "sni",
+        "cdn.pt853yh.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "a03093d2-d5f0-45af-b2b2-fa22ee4af630"
+  }
+]

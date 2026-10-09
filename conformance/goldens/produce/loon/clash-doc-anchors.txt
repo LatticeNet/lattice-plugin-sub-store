@@ -1,0 +1,2 @@
+CA-n3w9j-79=vmess,sp-32.tm7unoq.example.net,443,auto,"9bf01f9f-26db-45dd-8286-efcd31efd819",transport=ws,path=/lr90,over-tls=true,tls-name=sp-32.tm7unoq.example.net,alterId=0,udp=true
+AU-q0l0b-46=vmess,xhw-30.mj0me.example.org,443,auto,"9bf01f9f-26db-45dd-8286-efcd31efd819",transport=ws,path=/rse2gc/i7dsee8t,over-tls=true,tls-name=xhw-30.mj0me.example.org,alterId=0,udp=true

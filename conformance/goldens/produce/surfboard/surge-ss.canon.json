@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "i5-18.p8ci.example.net",
+      "12936"
+    ],
+    "name": "AU-zj535x-53",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "ZLN8JTCnyC9vty",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "t8-08.tv1tnm7j.example.net",
+      "29530"
+    ],
+    "name": "DE-e37-73",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-256-gcm",
+      "password": "3BaI3U+oiaQUQZ7EAiszUx40YJu0lpzPIYTA9XW/XW8=",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "bhl-34.c2qflj.example.com",
+      "32980"
+    ],
+    "name": "KR-pfv-77",
+    "params": {
+      "encrypt-method": "chacha20-ietf-poly1305",
+      "password": "9RnEZgZgVPFMwU",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

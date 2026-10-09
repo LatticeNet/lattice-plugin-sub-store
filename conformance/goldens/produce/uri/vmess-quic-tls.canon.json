@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "f4-15.wefzt.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "none",
+      "id": "f67a67ee-8473-43b2-9e10-fcef0a7c9b9c",
+      "net": "quic",
+      "port": "443",
+      "ps": "NL-jik8qm-21",
+      "scy": "auto",
+      "sni": "img.xho6mzl.example.org",
+      "tls": "tls",
+      "type": "none",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

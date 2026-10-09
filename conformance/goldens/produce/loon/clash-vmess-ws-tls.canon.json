@@ -1,0 +1,24 @@
+[
+  {
+    "args": [
+      "tau-38.aett40.example.net",
+      "443",
+      "auto",
+      "4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93"
+    ],
+    "name": "TW-xhup-68",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "static.rooc7abl.example.com",
+      "over-tls": "true",
+      "path": "/kczba7vr",
+      "skip-cert-verify": "false",
+      "tls-name": "static.rooc7abl.example.com",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

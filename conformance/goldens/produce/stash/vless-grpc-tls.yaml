@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","grpc-opts":{"grpc-service-name":"oasx-bkp"},"name":"JP-s2s3k-83","network":"grpc","packet-encoding":"xudp","port":443,"server":"at-19.vz29j36.example.com","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"40bbb1dd-0047-48f0-9179-00e17f805fef","servername":"img.m1abmvjb1.example.net"}

@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "NL-m714hc-32",
+        "password": "rvM8Z05R12RcqZmZCiEk",
+        "port": 443,
+        "server": "j4-13.xm3tt.example.org",
+        "skip_tls_verify": false,
+        "sni": "static.s3f3pn.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

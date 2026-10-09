@@ -1,0 +1,8 @@
+{
+  "id": "clash-gost-relay",
+  "family": "clash",
+  "protocol": "gost-relay",
+  "transport": "tcp",
+  "security": "none",
+  "description": "gost-relay with credentials."
+}

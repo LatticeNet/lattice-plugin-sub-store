@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "NVBxPabyTYwXnC8nXizj",
+      "server": "fg-21.w02y.example.com",
+      "server_port": 443,
+      "tag": "NL-k3j6-95",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.ppj9s1u06.example.org"
+      },
+      "type": "anytls"
+    }
+  ]
+}

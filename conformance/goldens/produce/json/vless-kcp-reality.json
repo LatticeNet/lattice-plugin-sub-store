@@ -1,0 +1,25 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "headerType": "wechat-video",
+    "name": "TW-uhdgu-02",
+    "network": "kcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "oSHx0-Bu3ynnqUMorAPSU-4fiaaO347ahOh8RIo2fTE",
+      "short-id": "c57a3e90"
+    },
+    "seed": "zvWT1wlHRs",
+    "server": "i5-22.ptbvro6.example.com",
+    "skip-cert-verify": false,
+    "sni": "www.a3h3i.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "3d8c035c-eb24-425b-9f07-93da911e4b0c"
+  }
+]

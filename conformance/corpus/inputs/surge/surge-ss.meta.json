@@ -1,0 +1,8 @@
+{
+  "id": "surge-ss",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Surge ss lines with AEAD and 2022 ciphers and udp-relay."
+}

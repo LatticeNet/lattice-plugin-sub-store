@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "vs-40.mby1pyzm.example.com",
+      "27306",
+      "aes-128-ctr",
+      "jxPaBdo2ttDX"
+    ],
+    "name": "FR-uad-37",
+    "params": {
+      "obfs": "random_head",
+      "obfs-param": "api.x5769u6.example.com",
+      "protocol": "auth_sha1_v4",
+      "protocol-param": "8037:xAMvNMp0",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

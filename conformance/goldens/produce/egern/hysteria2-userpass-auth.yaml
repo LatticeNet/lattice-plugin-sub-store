@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"AU-zxd838-69","server":"mo-07.m625b9u.example.org","port":443,"auth":"ushjygm7:KVGUTh8yVTWIts5R","tfo":false,"udp_relay":true,"sni":"static.sskdxnvab.example.org","skip_tls_verify":false}}

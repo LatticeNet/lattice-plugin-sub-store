@@ -1,0 +1,14 @@
+[
+  {
+    "address": "lb0-23.vw4fy2jt.example.net:53322",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "yVHmQka5AJDu0r",
+      "tag": "NL-snw-54",
+      "udp-over-tcp": "sp.v2",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

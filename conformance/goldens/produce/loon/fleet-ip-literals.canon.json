@@ -1,0 +1,139 @@
+[
+  {
+    "args": [
+      "2001:db8:7359:338e::2d96",
+      "443",
+      "5f1d552f-5f02-47eb-8fa2-30b4bca71182"
+    ],
+    "name": "CA nvmvre9 01",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "TsbDaDmNk39I3QjZ6nTjdcMoQXc7qr6ia4C_ezrAOk0",
+      "short-id": "ddc7f2f4",
+      "skip-cert-verify": "false",
+      "sni": "img.l4xtzq.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "192.0.2.245",
+      "443",
+      "1ceb8d22-208a-428f-8279-530177eb4b2e"
+    ],
+    "name": "KR zk3b6de 02",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "5meyldo9pACfhYGnDS5afumnZECx4lw9dgW1IP_Cs9Y",
+      "short-id": "7a28aa83",
+      "skip-cert-verify": "false",
+      "sni": "cdn.u18uxawg.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "2001:db8:2e10:817b::227e",
+      "443",
+      "855cbc2c-5456-4aa8-8db8-ab7eb97ce2e0"
+    ],
+    "name": "NL otmrq7 03",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "iBo7lZL5t5o1NVX40DdGTWa2dq8Ug-DqqRU_6QcUwek",
+      "short-id": "fc986489",
+      "skip-cert-verify": "false",
+      "sni": "cdn.w25izypd95.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "203.0.113.230",
+      "443",
+      "421b2969-9559-43a9-9f1e-6c8d60df126c"
+    ],
+    "name": "SG jiql54 04",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "qJRr-InMluxIDqcV4Tszz2uIp5vpJ_1EjTLKgQAysA8",
+      "short-id": "b9d66e30",
+      "skip-cert-verify": "false",
+      "sni": "img.xz7rx9.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "2001:db8:9f0b:1475::926d",
+      "32847",
+      "2QxCojek22G8oFQfytlF"
+    ],
+    "name": "US qofeu 05",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "www.geqxkkkk.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "203.0.113.137",
+      "24056",
+      "CzYxEhdbtrnWDqiJybaV"
+    ],
+    "name": "GB ocoyqw 06",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "www.dnkcgywu0r.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "2001:db8:a7cc:2156::cd3",
+      "443",
+      "UcUa9NajW3SboyGg"
+    ],
+    "name": "TW j3pevb 09",
+    "params": {
+      "tls-name": "cdn.x80vf.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "198.51.100.97",
+      "30590",
+      "s9he0tm",
+      "LJ7zbnZeKtYc"
+    ],
+    "name": "FR wov14 10",
+    "params": {
+      "over-tls": "false",
+      "udp": "true"
+    },
+    "type": "socks5"
+  }
+]

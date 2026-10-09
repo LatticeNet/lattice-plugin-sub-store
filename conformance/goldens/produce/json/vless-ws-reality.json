@@ -1,0 +1,29 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "US-opo-77",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "T3_rEwPJJ-F9B-y6jwjMQu7p0F-ijg9aJjgI_k977DY",
+      "short-id": "2ad1003c"
+    },
+    "server": "bu-22.u68e7.example.com",
+    "skip-cert-verify": false,
+    "sni": "www.ipzjfg8.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "8716fe3b-7305-46ba-91eb-4cb9a984fb0a",
+    "ws-opts": {
+      "headers": {
+        "Host": "www.ipzjfg8.example.net"
+      },
+      "path": "/yn3/cg1s"
+    }
+  }
+]

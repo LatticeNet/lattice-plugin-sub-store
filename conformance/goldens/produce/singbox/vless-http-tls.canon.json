@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "db-20.zbq9y.example.org",
+      "server_port": 443,
+      "tag": "NL-dd2-51",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.van88za0.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "host": "static.van88za0.example.com",
+        "path": "/cnm/jd7wsdlyt9",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "b9bd841a-80d7-437c-bcf4-0708409fd2c7"
+    }
+  ]
+}

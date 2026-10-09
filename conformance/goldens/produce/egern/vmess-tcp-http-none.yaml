@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"KR-d8v6j-75","server":"d3r-23.er9q6.example.net","port":443,"user_id":"d45031ed-edbf-4630-9a7e-3ea25d35210d","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"path":"/blc/cpyp","headers":{"Host":"static.rf5mcrm8wm.example.org"}}}}}

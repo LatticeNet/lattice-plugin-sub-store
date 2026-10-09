@@ -1,0 +1,17 @@
+proxies:
+  - name: NL-qqlje-16
+    type: trojan
+    server: wjy-10.xmkx49.example.net
+    port: 443
+    password: vjSyAI79qfTnU7US
+    udp: true
+    tls: true
+    sni: static.v11wq.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: grpc
+    grpc-opts:
+      grpc-service-name: dekrcdp-vg6

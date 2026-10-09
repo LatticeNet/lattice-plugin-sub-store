@@ -1,0 +1,8 @@
+{
+  "id": "vmess-tcp-none",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "description": "v2rayN JSON VMess link over tcp with security none."
+}

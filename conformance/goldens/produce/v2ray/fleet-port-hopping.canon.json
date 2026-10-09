@@ -1,0 +1,194 @@
+[
+  {
+    "fragment": "US pgma 01",
+    "host": "o0-15.sijz.example.com",
+    "path": "",
+    "port": "16662",
+    "query": [
+      [
+        "mport",
+        "38000-40000"
+      ],
+      [
+        "sni",
+        "cdn.rea9jflnqu.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "XRc2Rhh9n0MNeD9Osn6p"
+  },
+  {
+    "fragment": "AU qc0u 02",
+    "host": "198.19.55.70",
+    "path": "",
+    "port": "36570",
+    "query": [
+      [
+        "mport",
+        "32000-38000"
+      ],
+      [
+        "sni",
+        "img.vscl1m.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Q5jqF6PQTCa32sfClqYv"
+  },
+  {
+    "fragment": "FR lv8v 03",
+    "host": "l2n-40.dgoj8hx.example.org",
+    "path": "",
+    "port": "27704",
+    "query": [
+      [
+        "mport",
+        "25000-28000"
+      ],
+      [
+        "sni",
+        "api.lc30f36.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "wIIFVONBOr8IMuYUnCZN"
+  },
+  {
+    "fragment": "GB et9g77w 04",
+    "host": "yz-31.n6swpw.example.org",
+    "path": "",
+    "port": "11883",
+    "query": [
+      [
+        "mport",
+        "37000-40000"
+      ],
+      [
+        "sni",
+        "img.qla2g.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "2MYSf0Z3EFj2tRJB54M8"
+  },
+  {
+    "fragment": "KR eevkwok 05",
+    "host": "198.19.131.101",
+    "path": "",
+    "port": "32863",
+    "query": [
+      [
+        "mport",
+        "33000-38000"
+      ],
+      [
+        "sni",
+        "www.e8zqu19l.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "LfdYQaW89EgxuquEBj4g"
+  },
+  {
+    "fragment": "GB wvgj8 06",
+    "host": "z2-35.v20t.example.org",
+    "path": "",
+    "port": "33661",
+    "query": [
+      [
+        "mport",
+        "34000-37000"
+      ],
+      [
+        "sni",
+        "static.gz4a1m.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "ScZhJ4Nmy2sIo8e2EbCK"
+  },
+  {
+    "fragment": "SG z1ddg 07",
+    "host": "l5-40.vz2o.example.org",
+    "path": "",
+    "port": "59282",
+    "query": [
+      [
+        "mport",
+        "39000-44000"
+      ],
+      [
+        "sni",
+        "api.sf7nmsyq7.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "riu7loizAoaCDcpiYrv6"
+  },
+  {
+    "fragment": "TW ob20 08",
+    "host": "h2s-21.zwmeh.example.net",
+    "path": "",
+    "port": "55515",
+    "query": [
+      [
+        "obfs",
+        "salamander"
+      ],
+      [
+        "obfs-password",
+        "GRJrhJ3NmtFL0vrp"
+      ],
+      [
+        "sni",
+        "www.k2e5c3vwxn.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "7UCTFyxhU6piDOiAhUXz"
+  },
+  {
+    "fragment": "HK otl54y 09",
+    "host": "198.19.72.54",
+    "path": "",
+    "port": "40995",
+    "query": [
+      [
+        "obfs",
+        "salamander"
+      ],
+      [
+        "obfs-password",
+        "vLhwVop3iFArEYTg"
+      ],
+      [
+        "sni",
+        "img.h4oro21z.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "zdOMu2dptuUZp2z4nZDk"
+  },
+  {
+    "fragment": "KR eiwqt 10",
+    "host": "riz-17.q237m.example.com",
+    "path": "",
+    "port": "49280",
+    "query": [
+      [
+        "obfs",
+        "salamander"
+      ],
+      [
+        "obfs-password",
+        "CqMwN7q1gAQVVf48"
+      ],
+      [
+        "sni",
+        "img.df9i3fo.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "43tYkyhNFh9iS0V92bX0"
+  }
+]

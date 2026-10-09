@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-hop-interval-range",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "hop-interval-range",
+  "description": "hop-interval given as a range string."
+}

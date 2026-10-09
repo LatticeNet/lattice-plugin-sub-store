@@ -1,0 +1,27 @@
+[
+  {
+    "address": "br9-22.im7ld.example.org:1080",
+    "args": [],
+    "params": {
+      "password": "20ZIpGsmexUW",
+      "tag": "KR-swmn6t-78",
+      "udp-relay": "true",
+      "username": "otr1u"
+    },
+    "type": "socks5"
+  },
+  {
+    "address": "fsg-07.hr6g.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "GlUpvenmjZCs",
+      "tag": "NL-xy1-70",
+      "tls-host": "fsg-07.hr6g.example.com",
+      "tls-verification": "false",
+      "udp-relay": "true",
+      "username": "piozqbgr"
+    },
+    "type": "socks5"
+  }
+]

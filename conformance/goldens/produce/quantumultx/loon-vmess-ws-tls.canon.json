@@ -1,0 +1,19 @@
+[
+  {
+    "address": "cej-15.bkqvxt7.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "static.vn1oixf1.example.org",
+      "obfs-uri": "/xbne0",
+      "password": "8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d",
+      "tag": "NL-ch4-64",
+      "tls-host": "static.vn1oixf1.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

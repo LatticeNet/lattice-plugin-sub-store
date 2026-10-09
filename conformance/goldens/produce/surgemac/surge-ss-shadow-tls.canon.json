@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "gy-35.bb16wip1.example.org",
+      "443"
+    ],
+    "name": "KR-k7l6wk-28",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "ghMiarMyGPGfdKpB+sjHqg==",
+      "shadow-tls-password": "qfVPDOCMCDN7DozD",
+      "shadow-tls-sni": "static.x76bjg.example.org",
+      "shadow-tls-version": "3",
+      "udp-port": "13032",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

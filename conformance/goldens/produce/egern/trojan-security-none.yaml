@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"AU-ef8-23","server":"d78-40.oq5eh33.example.net","port":443,"password":"nrZ4GoNApLRurSNH","tfo":false,"udp_relay":true,"sni":"d78-40.oq5eh33.example.net"}}

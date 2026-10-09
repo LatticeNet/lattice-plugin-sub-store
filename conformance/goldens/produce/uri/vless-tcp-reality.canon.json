@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "FR-mf93w-88",
+    "host": "po-05.ffnf.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "Mic2QwIq6JbEXpWa5B-P3iwyfJnFN8r5J39tAFwLFcI"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "0d6b0e72"
+      ],
+      [
+        "sni",
+        "www.mlxcbxx3qp.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "403fe2bd-5d7f-437d-83e1-d5318d7f5888"
+  }
+]

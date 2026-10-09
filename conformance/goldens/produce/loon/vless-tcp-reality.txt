@@ -1,0 +1,1 @@
+FR-mf93w-88=vless,po-05.ffnf.example.org,443,"403fe2bd-5d7f-437d-83e1-d5318d7f5888",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,sni=www.mlxcbxx3qp.example.net,public-key="Mic2QwIq6JbEXpWa5B-P3iwyfJnFN8r5J39tAFwLFcI",short-id=0d6b0e72,udp=true

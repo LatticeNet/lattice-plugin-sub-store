@@ -1,0 +1,44 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-256-gcm",
+      "password": "5Xg4MTWmye3ZHg",
+      "server": "hgy-04.ex8w2.example.com",
+      "server_port": 56250,
+      "tag": "NL-n85w-12",
+      "type": "shadowsocks"
+    },
+    {
+      "server": "sy-18.wxdgdec.example.net",
+      "server_port": 443,
+      "tag": "FR-yyawg3-72",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.w1foqxru.example.org"
+      },
+      "transport": {
+        "headers": {
+          "Host": "static.l2taga7cax.example.net"
+        },
+        "path": "/v4pf3aroc",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "f000938c-5920-49b5-a1b5-1e16f536a34e"
+    },
+    {
+      "password": "Qw2OTIIkmqLDYdIFQUfL",
+      "server": "sjt-07.jd6i.example.org",
+      "server_port": 443,
+      "tag": "SG-ep46mu-72",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.b4d9c.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

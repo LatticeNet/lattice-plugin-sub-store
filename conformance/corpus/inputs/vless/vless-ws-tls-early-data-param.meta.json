@@ -1,0 +1,9 @@
+{
+  "id": "vless-ws-tls-early-data-param",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "WebSocket early data given as a separate ed query key."
+}

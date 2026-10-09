@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"GB-olr-41","method":"aes-128-gcm","server":"aq-35.vulb.example.net","port":22941,"password":"qByn83tZ4oGdGk","tfo":false,"udp_relay":true}}
+  - {"trojan":{"name":"TW-y1ya-22","server":"tf-16.x3ejb.example.com","port":443,"password":"oy52YBDBHXQ7wfCu ","tfo":false,"udp_relay":true,"sni":"cdn.hn25j.example.com"}}

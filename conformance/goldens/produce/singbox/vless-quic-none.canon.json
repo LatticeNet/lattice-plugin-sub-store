@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "y0-02.s4aqxi.example.org",
+      "server_port": 443,
+      "tag": "GB-ay5a4-67",
+      "type": "vless",
+      "uuid": "eea280a7-27f4-4a5e-84e2-04d68d560a7e"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+[
+  {
+    "address": "vko-36.wx04c.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "56846b9c-0cc0-4e6f-858e-d8b398d5dc89",
+      "reality-base64-pubkey": "T8pgaHBbnRSiQZ2WyKmcDmNNyPlTjbOQosj2Y_DDKwQ",
+      "reality-hex-shortid": "f55db336",
+      "tag": "JP-kheg-39",
+      "tls-host": "static.svxk81.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "br-26.hq2o538.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "lFV1bVIWHZwLbmTy",
+      "tag": "JP-fckt-50",
+      "tls-host": "img.z42yip5q6.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "u3d-32.d1kvbm.example.org:56005",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "rq8MrAoExA7lnu",
+      "tag": "SG-x0pl-12",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "zh-10.jyt81ic.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "71238152-25a5-4919-af05-50046127840d",
+      "tag": "GB-s1w-39",
+      "tls-host": "static.jmolihi.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "si-34.ge2k66hu.example.org:26289",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "VVGaOe4bC0fIF8",
+      "tag": "SG-lui-26",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

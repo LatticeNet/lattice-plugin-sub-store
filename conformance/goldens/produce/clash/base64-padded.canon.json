@@ -1,0 +1,48 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "alterId": 0,
+      "cipher": "auto",
+      "client-fingerprint": "chrome",
+      "name": "SG-p38om-82",
+      "network": "ws",
+      "port": 443,
+      "server": "fe6-05.r69b3t.example.org",
+      "servername": "api.sl054p.example.org",
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "35426d1f-cc04-4546-8730-231ca6122328",
+      "ws-opts": {
+        "headers": {
+          "Host": "api.sl054p.example.org"
+        },
+        "path": "/e2x9n/mplfy6wjxn"
+      }
+    },
+    {
+      "name": "NL-mhju-64",
+      "network": "tcp",
+      "password": "t1YFlAuSEaQ2KF0C",
+      "port": 443,
+      "server": "m4z-35.tbhf.example.net",
+      "sni": "img.ub640mtmc2.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "US-yc77p-57",
+      "password": "aEtoOa4TfScmbm",
+      "port": 14512,
+      "server": "g9-23.jhrk3yps.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

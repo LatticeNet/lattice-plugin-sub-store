@@ -1,0 +1,19 @@
+[
+  {
+    "cipher": "aes-256-gcm",
+    "name": "GB-coc-94",
+    "password": "1svs4zupFkVeb8",
+    "plugin": "v2ray-plugin",
+    "plugin-opts": {
+      "host": "www.z9bm8s.example.net",
+      "mode": "websocket",
+      "path": "/eibuy",
+      "skip-cert-verify": false
+    },
+    "port": 80,
+    "server": "ui-27.g6d8.example.com",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  }
+]

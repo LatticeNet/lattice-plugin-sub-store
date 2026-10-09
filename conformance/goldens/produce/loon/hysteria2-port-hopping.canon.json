@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "rf-16.wjqitx5.example.org",
+      "443",
+      "AXowQtwCJ2X7XBnVt6nk"
+    ],
+    "name": "US-ies-50",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "20000-30000",
+      "skip-cert-verify": "false",
+      "tls-name": "www.ajvirme9a.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "jt-14.ysbkn7no.example.net",
+      "443",
+      "TZcdqJu02bczukbFdJ4M"
+    ],
+    "name": "TW-gsc0f-98",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "20000-21000,23000,25000-26000",
+      "skip-cert-verify": "false",
+      "tls-name": "img.s5auoy5og.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

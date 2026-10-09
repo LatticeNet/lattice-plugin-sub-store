@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "FR-ylrg-19",
+        "password": "Rz7W2d6kyIQmQk",
+        "port": 443,
+        "server": "ha-30.mwovt.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

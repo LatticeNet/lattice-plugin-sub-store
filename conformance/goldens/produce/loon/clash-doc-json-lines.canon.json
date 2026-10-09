@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "c9v-36.klvhza.example.com",
+      "49167",
+      "aes-256-gcm",
+      "SYi2MlRJoQxEu7"
+    ],
+    "name": "CA-gfdgyx-54",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

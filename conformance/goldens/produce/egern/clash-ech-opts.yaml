@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"TW-ygyta-67","server":"rma-16.h25sggv.example.org","port":443,"user_id":"3a8f9903-e409-4e47-95d6-f96b71ee33cb","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/j1zy0u/avd77h9av","headers":{"Host":"api.chlscz.example.org"},"sni":"static.z0xp482.example.net","skip_tls_verify":false}}}}

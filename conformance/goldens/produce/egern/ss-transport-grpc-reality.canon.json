@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "GB-o1e7f-30",
+        "password": "Xi906cslDTMGQz",
+        "port": 443,
+        "server": "wf-33.flul.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","flow":"xtls-rprx-vision","name":"SG-qqz-51","network":"tcp","packet-encoding":"xudp","port":443,"server":"jam-37.r0ecy.example.com","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"f8db7cb5-5151-4acc-b72c-ca55afc4022c","servername":"static.ooqjd.example.org"}

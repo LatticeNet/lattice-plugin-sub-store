@@ -1,0 +1,1 @@
+US-x5x-75=trojan,2001:db8:9ef5:1c35::d99d,443,"IOG2Yrjm3RD7ry51",transport=ws,path=/hxz/otea8c,host=api.z12lb15.example.net,tls-name=api.z12lb15.example.net,udp=true

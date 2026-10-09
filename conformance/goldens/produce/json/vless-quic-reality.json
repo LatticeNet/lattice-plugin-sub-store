@@ -1,0 +1,23 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "FR-ca1-25",
+    "network": "quic",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "yOXQp_ULPWLF8cfDOUfZ0IrsfOBqSWwuzl9bACIjJQ4",
+      "short-id": "e6b83e35"
+    },
+    "server": "ozp-10.wuhv.example.org",
+    "skip-cert-verify": false,
+    "sni": "static.qb467yo81g.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "0e65c8b4-1d48-4840-9cc7-c9eb35bfeb19"
+  }
+]

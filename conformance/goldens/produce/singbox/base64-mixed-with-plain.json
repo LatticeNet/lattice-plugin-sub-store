@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-hqqur-72",
+      "type": "shadowsocks",
+      "server": "h4b-38.ex4c4j.example.com",
+      "server_port": 11356,
+      "method": "aes-128-gcm",
+      "password": "B7ztkGc3V2s1X2"
+    }
+  ],
+  "endpoints": []
+}

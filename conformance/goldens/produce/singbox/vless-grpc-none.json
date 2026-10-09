@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-vod-56",
+      "type": "vless",
+      "server": "d9-17.yf8t8fm.example.org",
+      "server_port": 443,
+      "uuid": "4999271a-4687-4103-be9b-b308c7f336c0",
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "grpc",
+        "service_name": "zx7h-iwx"
+      }
+    }
+  ],
+  "endpoints": []
+}

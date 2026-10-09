@@ -1,0 +1,1 @@
+vmess=jj2-21.m5egq.example.com:443,method=chacha20-poly1305,password=4769c081-8c80-4949-a41e-30a1b2086716,obfs=http,obfs-uri=/f7a41,obfs-host=cdn.lkwh7e7kt.example.net,aead=true,udp-relay=true,tag=HK-zb9a-35

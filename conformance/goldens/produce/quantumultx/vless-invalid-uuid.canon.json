@@ -1,0 +1,17 @@
+[
+  {
+    "address": "qz-19.lub5ieg.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "RHOvcranpksM",
+      "tag": "JP-ltu-81",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.uyhwdzq.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

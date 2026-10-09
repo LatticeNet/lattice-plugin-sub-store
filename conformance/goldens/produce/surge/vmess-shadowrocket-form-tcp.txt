@@ -1,0 +1,1 @@
+FR-bky-82=vmess,203.0.113.127,21082,username=a1cc6600-15a6-4c63-9d5e-d82912fb67a8,encrypt-method=chacha20-ietf-poly1305,vmess-aead=true,tls=false

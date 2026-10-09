@@ -1,0 +1,128 @@
+[
+  {
+    "fragment": "US-ispj8e-62",
+    "host": "sfy-07.n1gvt.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "cdn.ocjq6tpk05.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/fcw/qsvid"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.ocjq6tpk05.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1b008b24-875e-4ab7-845d-4696cd5fc633"
+  },
+  {
+    "fragment": "TW-r4i9j-62",
+    "host": "uge-01.z7e0.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "www.b6qq9x1.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/kddoysqct"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.b6qq9x1.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "7d0757b2-62f8-4e9a-9928-2e5ac80ff5e6"
+  },
+  {
+    "fragment": "SG-oueeq-06",
+    "host": "l5b-09.z9jy6.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3,h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "img.c21mm.example.net"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/yu95/h35n4cl"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "img.c21mm.example.net"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "db8995b6-b4cf-4840-b021-e8540a03da59"
+  }
+]

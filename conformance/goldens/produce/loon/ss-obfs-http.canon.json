@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "d6y-20.oabma4i4.example.org",
+      "32468",
+      "aes-128-gcm",
+      "PUq0L4AbgcmLrQ"
+    ],
+    "name": "SG-yyjrva-54",
+    "params": {
+      "obfs-host": "api.fc9ofw.example.org",
+      "obfs-name": "http",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

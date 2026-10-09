@@ -1,0 +1,1 @@
+KR-fp9-11=ss,2001:db8:67ef:80::edf3,33510,encrypt-method=aes-256-gcm,password="QsjbCL9G6dfT6l",udp-relay=true

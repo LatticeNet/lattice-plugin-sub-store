@@ -1,0 +1,52 @@
+[
+  {
+    "args": [
+      "uf-21.emdqtlyc.example.com",
+      "8080"
+    ],
+    "name": "TW-us3jp-56",
+    "params": {
+      "password": "7f05Zkf8ZVtN",
+      "username": "o36eae"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "rkm-18.ptwmbbq.example.net",
+      "8080"
+    ],
+    "name": "JP-j9kz9p-25",
+    "params": {
+      "password": "hTEmO5BXf2cd",
+      "username": "qw7wr1s"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "e6q-11.ld43.example.net",
+      "443"
+    ],
+    "name": "AU-rqv-17",
+    "params": {
+      "password": "gVR1jzrDk80Y",
+      "sni": "api.q9es445kaz.example.net",
+      "username": "xc1e3"
+    },
+    "type": "https"
+  },
+  {
+    "args": [
+      "w6-18.oxky0a.example.com",
+      "1080"
+    ],
+    "name": "KR-qw3f7r-39",
+    "params": {
+      "password": "ROyQV6BdndOh",
+      "udp-relay": "true",
+      "username": "bhzsv"
+    },
+    "type": "socks5"
+  }
+]

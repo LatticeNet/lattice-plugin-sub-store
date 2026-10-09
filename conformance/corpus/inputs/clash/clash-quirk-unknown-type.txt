@@ -1,0 +1,12 @@
+proxies:
+  - name: KR-eogua-94
+    type: brook
+    server: pc-18.d417bxt0.example.net
+    port: 55384
+    password: Izj7ukFakvo9
+  - name: DE-ctej2-56
+    type: ss
+    server: uwn-37.ixewfgf.example.net
+    port: 18259
+    cipher: aes-128-gcm
+    password: VcOgI5RQw1qi

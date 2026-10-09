@@ -1,0 +1,2 @@
+CA-zey-95=ss,e1-22.bfb12rc2.example.net,10502,encrypt-method=aes-128-gcm,password="GPUCzjamTorayo",ip-version=v4-only,udp-relay=true,block-quic=on
+KR-jpsq-90=vmess,cd-20.poht.example.org,51894,username=66613e63-dc32-4b93-8350-1eec860bb5d0,vmess-aead=true

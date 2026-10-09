@@ -1,0 +1,9 @@
+{
+  "id": "ss-2022-multi-user-key",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "ss2022-iPSK",
+  "description": "Shadowsocks 2022 with an identity key and a user key joined by a colon."
+}

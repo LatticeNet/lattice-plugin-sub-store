@@ -1,0 +1,16 @@
+[
+  {
+    "address": "bg-20.koifso.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "qMhtBNRElE5A",
+      "tag": "HK-bdzvs-31",
+      "tls-host": "img.bxln43ak.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "username": "xmmwh"
+    },
+    "type": "http"
+  }
+]

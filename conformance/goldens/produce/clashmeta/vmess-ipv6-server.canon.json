@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "CA-nay-24",
+      "network": "tcp",
+      "port": 443,
+      "server": "2001:db8:857e:9d0b::5799",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "647ab532-add4-42dc-a365-5b4707a42f62"
+    }
+  ]
+}

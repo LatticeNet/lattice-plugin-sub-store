@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-mpnbv-08",
+      "type": "hysteria2",
+      "server": "203.0.113.199",
+      "server_port": 443,
+      "password": "bMN5nqsqHZLGqAa0vR7u",
+      "tls": {
+        "enabled": true,
+        "server_name": "203.0.113.199",
+        "insecure": true,
+        "certificate_sha256": [
+          "l4Zyt/lHEl4ck9G9+Eu37BMdRL9jYafKvsOJipYjbvk="
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

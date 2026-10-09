@@ -1,0 +1,8 @@
+{
+  "id": "clash-trusttunnel",
+  "family": "clash",
+  "protocol": "trusttunnel",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "TrustTunnel with credentials, with and without headers."
+}

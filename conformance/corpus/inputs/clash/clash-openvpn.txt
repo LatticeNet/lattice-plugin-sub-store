@@ -1,0 +1,9 @@
+proxies:
+  - name: HK-kwthi-57
+    type: openvpn
+    server: fk-15.noi8u77.example.net
+    port: 1194
+    proto: udp
+    username: yhrm
+    password: soBI9Lybh4kHpw
+    ca: "-----BEGIN CERTIFICATE-----\nc96O2w+xR9ZCYy7pWQtUYnmDfJqDk580Ax3k84btl47SrELW+aPMovzz8SH8/rZs\n-----END CERTIFICATE-----"

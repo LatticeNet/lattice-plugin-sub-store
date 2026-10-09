@@ -1,0 +1,14 @@
+[
+  {
+    "name": "DE-pt9v-35",
+    "padding": true,
+    "password": "U3cR4HIba4wkPp",
+    "port": 443,
+    "server": "gq-23.kco0.example.net",
+    "sni": "cdn.bft98r0.example.com",
+    "tls": true,
+    "type": "naive",
+    "udp": true,
+    "username": "kx1iy20"
+  }
+]

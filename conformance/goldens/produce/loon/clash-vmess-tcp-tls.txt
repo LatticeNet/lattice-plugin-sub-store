@@ -1,0 +1,1 @@
+FR-bme-99=vmess,fa-12.pdht8.example.org,443,auto,"335f9710-f3d4-4e34-aa62-6b6c3e71f595",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.k11mos.example.com,alterId=0,udp=true

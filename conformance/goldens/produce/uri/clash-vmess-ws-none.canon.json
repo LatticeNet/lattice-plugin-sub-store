@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "bb8-01.l6d3.example.org",
+      "aid": "0",
+      "host": "img.lxr7dc.example.org",
+      "id": "099e3a94-ac18-45fc-b68c-e1d7135dd02c",
+      "net": "ws",
+      "path": "/bahe5/d975jk",
+      "port": "443",
+      "ps": "FR-r7y7-81",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

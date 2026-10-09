@@ -1,0 +1,9 @@
+{
+  "id": "anytls-ipv6",
+  "family": "anytls",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ipv6-literal",
+  "description": "IPv6 literal server."
+}

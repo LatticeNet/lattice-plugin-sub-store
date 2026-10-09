@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-bme-99",
+      "type": "vmess",
+      "server": "fa-12.pdht8.example.org",
+      "server_port": 443,
+      "uuid": "335f9710-f3d4-4e34-aa62-6b6c3e71f595",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.k11mos.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

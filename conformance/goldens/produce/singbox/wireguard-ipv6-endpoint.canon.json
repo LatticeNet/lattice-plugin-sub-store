@@ -1,0 +1,26 @@
+{
+  "endpoints": [
+    {
+      "address": [
+        "10.9.0.3/32",
+        "fd00:9::3/128"
+      ],
+      "peers": [
+        {
+          "address": "2001:db8:5b5a:a2d4::b245",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "public_key": "vmwsGZrV3ufK4cHCr/lKFjjqnUIqnOCeGNFRXEbcC7k="
+        }
+      ],
+      "private_key": "vdhhZ+I3ibrW3tIzqUZc8uUjV/UK+G+DTgW0fxPBiMg=",
+      "system": false,
+      "tag": "HK-dp0ugx-68",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

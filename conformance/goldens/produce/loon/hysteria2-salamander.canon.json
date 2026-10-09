@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "ea-12.a5gk98h2.example.net",
+      "443",
+      "1IIiWOkEq6ROLNHa9ym5"
+    ],
+    "name": "DE-mpzqj-17",
+    "params": {
+      "fast-open": "false",
+      "salamander-password": "xXQDOuEUnq5oxkX3",
+      "skip-cert-verify": "false",
+      "tls-name": "cdn.vw2osf1x3p.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

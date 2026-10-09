@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "DE-ctej2-56",
+    "host": "uwn-37.ixewfgf.example.net",
+    "path": "",
+    "port": "18259",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206VmNPZ0k1UlF3MXFp",
+    "userinfo_base64": "aes-128-gcm:VcOgI5RQw1qi"
+  }
+]

@@ -1,0 +1,2 @@
+SG-qwr-38=ss,z91-16.s91x2fd.example.net,16334,encrypt-method=aes-256-gcm,password="Uks1P5PqASwY6q",obfs=http,obfs-host=cdn.hp815.example.net,obfs-uri=/uqrnmcek,udp-relay=true
+TW-v5vws1-72=ss,nfx-29.succ.example.net,42929,encrypt-method=aes-256-gcm,password="E6LyHSGUyZtgMP",obfs=tls,obfs-host=img.tiqhalr80.example.com,udp-relay=true

@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "d0-09.xvx49.example.org",
+      "443",
+      "2022-blake3-aes-128-gcm",
+      "IOxAxDp0UwYKIdSPz55N9A=="
+    ],
+    "name": "KR-qk6-89",
+    "params": {
+      "shadow-tls-password": "vEWeernNDjSYNe0O",
+      "shadow-tls-sni": "www.ukc5nfbm3m.example.org",
+      "shadow-tls-version": "3",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

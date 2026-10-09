@@ -1,0 +1,162 @@
+[
+  {
+    "args": [
+      "o0-15.sijz.example.com",
+      "16662",
+      "XRc2Rhh9n0MNeD9Osn6p"
+    ],
+    "name": "US pgma 01",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "38000-40000",
+      "skip-cert-verify": "false",
+      "tls-name": "cdn.rea9jflnqu.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "198.19.55.70",
+      "36570",
+      "Q5jqF6PQTCa32sfClqYv"
+    ],
+    "name": "AU qc0u 02",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "32000-38000",
+      "skip-cert-verify": "false",
+      "tls-name": "img.vscl1m.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "l2n-40.dgoj8hx.example.org",
+      "27704",
+      "wIIFVONBOr8IMuYUnCZN"
+    ],
+    "name": "FR lv8v 03",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "25000-28000",
+      "skip-cert-verify": "false",
+      "tls-name": "api.lc30f36.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "yz-31.n6swpw.example.org",
+      "11883",
+      "2MYSf0Z3EFj2tRJB54M8"
+    ],
+    "name": "GB et9g77w 04",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "37000-40000",
+      "skip-cert-verify": "false",
+      "tls-name": "img.qla2g.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "198.19.131.101",
+      "32863",
+      "LfdYQaW89EgxuquEBj4g"
+    ],
+    "name": "KR eevkwok 05",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "33000-38000",
+      "skip-cert-verify": "false",
+      "tls-name": "www.e8zqu19l.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "z2-35.v20t.example.org",
+      "33661",
+      "ScZhJ4Nmy2sIo8e2EbCK"
+    ],
+    "name": "GB wvgj8 06",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "34000-37000",
+      "skip-cert-verify": "false",
+      "tls-name": "static.gz4a1m.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "l5-40.vz2o.example.org",
+      "59282",
+      "riu7loizAoaCDcpiYrv6"
+    ],
+    "name": "SG z1ddg 07",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "39000-44000",
+      "skip-cert-verify": "false",
+      "tls-name": "api.sf7nmsyq7.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "h2s-21.zwmeh.example.net",
+      "55515",
+      "7UCTFyxhU6piDOiAhUXz"
+    ],
+    "name": "TW ob20 08",
+    "params": {
+      "fast-open": "false",
+      "salamander-password": "GRJrhJ3NmtFL0vrp",
+      "skip-cert-verify": "false",
+      "tls-name": "www.k2e5c3vwxn.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "198.19.72.54",
+      "40995",
+      "zdOMu2dptuUZp2z4nZDk"
+    ],
+    "name": "HK otl54y 09",
+    "params": {
+      "fast-open": "false",
+      "salamander-password": "vLhwVop3iFArEYTg",
+      "skip-cert-verify": "false",
+      "tls-name": "img.h4oro21z.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "riz-17.q237m.example.com",
+      "49280",
+      "43tYkyhNFh9iS0V92bX0"
+    ],
+    "name": "KR eiwqt 10",
+    "params": {
+      "fast-open": "false",
+      "salamander-password": "CqMwN7q1gAQVVf48",
+      "skip-cert-verify": "false",
+      "tls-name": "img.df9i3fo.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

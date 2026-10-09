@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"DE-dg9tvk-01","network":"ws","port":443,"server":"hfq-19.u6i36eha.example.net","type":"vless","udp":true,"uuid":"a5108bdd-c159-4487-baae-1538bff2c110","ws-opts":{"headers":{"Host":"cdn.s01l5.example.org"},"path":"/v5qagp/z3gz2a1e8n","v2ray-http-upgrade":true}}

@@ -1,0 +1,1 @@
+CA-mzhy-32=vless,rv-14.nzag30.example.org,443,"66f373aa-79e0-4754-ae9a-5aad2a7e4823",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=cdn.paznfzs.example.net,udp=true

@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "block_quic": true,
+        "ip_version": "v4_only",
+        "method": "aes-128-gcm",
+        "name": "CA-e44-62",
+        "password": "rfrwJIQ8mprzJQ",
+        "port": 26241,
+        "prev_hop": "NL-o63-22",
+        "server": "is-28.lree.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

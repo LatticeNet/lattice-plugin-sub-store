@@ -1,0 +1,14 @@
+proxies:
+  - name: KR-xu9-56
+    type: trojan
+    server: i5-38.wplgwp.example.net
+    port: 443
+    password: MeQWwGSYT5rbvAsd
+    udp: true
+    tls: true
+    sni: img.j92m5l.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: LWUwWsat9VWdMN6pB7bTcFjL2x2zY3C-fF8_PSjHwzc
+      short-id: 93559da3
+    network: tcp

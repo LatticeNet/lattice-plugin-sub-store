@@ -1,0 +1,22 @@
+proxies:
+  - name: FR-fay-77
+    type: vless
+    server: e56-01.seeo45qf.example.net
+    port: 443
+    uuid: 6ca1dced-5ed7-4a6b-8dc7-ed9720264442
+    udp: true
+    tls: true
+    servername: cdn.udpgihfrvr.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /jcn0
+      headers:
+        Host:
+          - cdn.udpgihfrvr.example.net

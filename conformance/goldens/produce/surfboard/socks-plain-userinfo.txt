@@ -1,0 +1,1 @@
+HK-m3vio-67=socks5,xoh-25.q38e9.example.com,53769,j�]�jԍ��y�!,udp-relay=true

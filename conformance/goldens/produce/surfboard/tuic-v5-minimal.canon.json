@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "bl-19.cnqn4dxi.example.net",
+      "443"
+    ],
+    "name": "FR-yeun-59",
+    "params": {
+      "alpn": "h3",
+      "password": "vArKjoDH8C0gXxIT",
+      "sni": "bl-19.cnqn4dxi.example.net",
+      "udp-relay": "true",
+      "uuid": "437379f7-bed5-4389-a11e-6732f703fc45"
+    },
+    "type": "tuic-v5"
+  }
+]

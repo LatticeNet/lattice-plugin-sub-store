@@ -1,0 +1,1 @@
+shadowsocks=zzt-26.y4jpnft5.example.org:12899,method=aes-128-gcm,password=jQ2iqvOC7hkHUSoD,udp-relay=true,udp-over-tcp=sp.v2,tag=NL-fm2xz-53

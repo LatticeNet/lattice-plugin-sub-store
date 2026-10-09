@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "name": "GB-uq8k-07",
+      "packet-encoding": "xudp",
+      "password": "M9Mlcffeicbj8UV6dfeJ",
+      "port": 45821,
+      "server": "198.51.100.140",
+      "skip-cert-verify": true,
+      "type": "anytls",
+      "udp": true
+    }
+  ]
+}

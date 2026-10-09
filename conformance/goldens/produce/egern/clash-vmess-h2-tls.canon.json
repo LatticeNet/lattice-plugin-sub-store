@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "CA-w6ys-30",
+        "port": 443,
+        "security": "auto",
+        "server": "l5-09.xmmas.example.net",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "static.b9eert.example.com"
+            },
+            "path": "/rxtxr2ob",
+            "skip_tls_verify": false,
+            "sni": "static.b9eert.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ab77cff5-961e-476f-98d3-a0ebed63aa20"
+      }
+    }
+  ]
+}

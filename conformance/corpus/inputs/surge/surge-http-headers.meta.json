@@ -1,0 +1,9 @@
+{
+  "id": "surge-http-headers",
+  "family": "surge",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "headers",
+  "description": "Surge http with a headers option."
+}

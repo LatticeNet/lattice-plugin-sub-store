@@ -1,0 +1,4 @@
+proxies:
+  - {"name":"NL-i1l-37","password":"cx0ri7gyAdT1","port":8080,"server":"ia-17.raeya8.example.net","type":"http","udp":true,"username":"dzpyhv6v"}
+  - {"name":"HK-hlx5z-75","password":"1yxmCwBktXpQ","port":443,"server":"sn-35.itha1zf.example.net","skip-cert-verify":false,"sni":"static.ktyuunm.example.com","tls":true,"type":"http","udp":true,"username":"jjbz6"}
+  - {"headers":{"X-Client":"elixl"},"name":"HK-puvo-98","port":8080,"server":"udw-03.gq5aqn1.example.com","type":"http","udp":true}

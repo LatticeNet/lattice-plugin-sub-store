@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "vCWyidJwQyfuWrJv4pzN",
+        "name": "GB-s63s-21",
+        "port": 443,
+        "server": "bi-14.qievq7x.example.com",
+        "skip_tls_verify": false,
+        "sni": "img.qj6n1.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

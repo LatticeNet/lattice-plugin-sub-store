@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "SG-rsvy-31",
+    "host": "p7s-12.vxsga2t1.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ed",
+        "2048"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.vslcfo.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/xj1jlj/bmtb1lwh5"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.vslcfo.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "cb22c8ff-3921-4bca-aa16-d8a21097e463"
+  }
+]

@@ -1,0 +1,1 @@
+vless=sx-39.xuvbo.example.org:443,method=none,password=62baade6-6b72-456c-bedc-186a64cfc946,obfs=wss,obfs-uri=/xil2/s6dx,obfs-host=img.d6vdeaf.example.net,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=img.d6vdeaf.example.net,udp-relay=true,tag=GB-bh6-73

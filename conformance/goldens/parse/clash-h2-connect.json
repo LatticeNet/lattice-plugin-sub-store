@@ -1,0 +1,14 @@
+[
+  {
+    "max-streams": 8,
+    "name": "HK-lcjr-25",
+    "password": "8AbL4xRKqpAZ38",
+    "port": 443,
+    "server": "vc-33.qqyb.example.org",
+    "sni": "img.yj14l8li.example.com",
+    "tls": true,
+    "type": "h2-connect",
+    "udp": true,
+    "username": "bltth"
+  }
+]

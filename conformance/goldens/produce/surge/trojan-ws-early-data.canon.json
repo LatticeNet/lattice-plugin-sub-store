@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "rnh-12.ruiiz.example.net",
+      "443"
+    ],
+    "name": "KR-lzb3o3-05",
+    "params": {
+      "password": "6mUNbxAlL0UIUSWD",
+      "sni": "www.adclk43nua.example.com",
+      "tls": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"www.adclk43nua.example.com\"",
+      "ws-path": "/nco4s"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "KR-le0kdm-50",
+    "host": "f2-35.vnch.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "bImFmHXlk0wSoQGnkLNDjQJhwzaLtjYA8hPE7rhQ1iQ"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "96de511e273eddaa"
+      ],
+      [
+        "sni",
+        "img.acvph8.example.net"
+      ],
+      [
+        "spx",
+        "/wyqi4p/gye7gmjv?x=wu4z"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "2358c8e5-46d7-4f60-946f-479250977580"
+  }
+]

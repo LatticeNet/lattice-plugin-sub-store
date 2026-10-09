@@ -1,0 +1,1 @@
+FR-liz0ut-87=trojan,zh2-34.v0i498.example.com,443,password=x47D5mO8MxZGTHOg,tls=true,sni="www.gm2apo.example.com",skip-cert-verify=false,udp-relay=true

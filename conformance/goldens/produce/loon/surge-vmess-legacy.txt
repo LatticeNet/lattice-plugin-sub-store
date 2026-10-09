@@ -1,0 +1,1 @@
+DE-ul2d-17=vmess,g1d-13.yztv.example.org,80,chacha20-ietf-poly1305,"f377bfa4-dd00-482f-8fdb-839994d4cc12",transport=ws,path=/r4nzwpx,host=g1d-13.yztv.example.org,alterId=1,udp=true

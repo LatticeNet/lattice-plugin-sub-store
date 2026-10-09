@@ -1,0 +1,30 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "KR-czj12s-29",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "YzlL1TM7jl8ut1WVdj-qrN4b7YcRMk1inNOcY2Fxxhc",
+      "short-id": "8b941762"
+    },
+    "server": "vhr-38.koq5a.example.org",
+    "skip-cert-verify": false,
+    "sni": "cdn.pt853yh.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "a03093d2-d5f0-45af-b2b2-fa22ee4af630",
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.pt853yh.example.com"
+      },
+      "path": "/u3b/fys0w5eo",
+      "v2ray-http-upgrade": true
+    }
+  }
+]

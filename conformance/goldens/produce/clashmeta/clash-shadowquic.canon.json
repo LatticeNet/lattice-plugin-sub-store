@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "name": "NL-nswik-48",
+      "password": "aVhmw1LMKhM7mC",
+      "port": 443,
+      "server": "ir-15.e32tqt.example.org",
+      "server-name": "www.doswd6p.example.org",
+      "sni": "ir-15.e32tqt.example.org",
+      "type": "shadowquic",
+      "udp": true,
+      "username": "tc34tz"
+    }
+  ]
+}

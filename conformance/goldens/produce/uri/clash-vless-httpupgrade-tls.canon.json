@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "NL-nghiu-94",
+    "host": "o2r-22.xgob3bx.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.jwrx2pim.example.com"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/ixrpq/cdvs3gu"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.jwrx2pim.example.com"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "44c2f502-2dbf-4a6f-9efb-f6e6f1aefa5e"
+  }
+]

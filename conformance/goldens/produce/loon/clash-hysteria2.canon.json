@@ -1,0 +1,46 @@
+[
+  {
+    "args": [
+      "w5-33.b8gbhup.example.net",
+      "443",
+      "O5JKgY3RhM4YtB2LW6sQ"
+    ],
+    "name": "TW-a8ef-18",
+    "params": {
+      "skip-cert-verify": "false",
+      "tls-name": "img.gvbtkgnh.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "v4z-07.bsiwk9.example.net",
+      "443",
+      "1ZwO87l7TwxoKe9JwQre"
+    ],
+    "name": "SG-kutb-91",
+    "params": {
+      "salamander-password": "rYyQ9Pf4sBcZnEas",
+      "tls-name": "img.labnn7rfp.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "s4-29.i7snt2pt.example.net",
+      "443",
+      "ZJsIFFB8Z3JgXRHfRBUu"
+    ],
+    "name": "FR-uu3v3-82",
+    "params": {
+      "download-bandwidth": "200",
+      "hop-interval": "30",
+      "server-ports": "20000-30000",
+      "tls-name": "api.qkjsan.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

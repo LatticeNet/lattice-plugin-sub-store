@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "JP-degn-79",
+    "host": "iu3-20.rum15qg.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "api.xbmupx62n.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/dq3bc6/vxutok6icq"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "7c7012fe-e2a0-4029-b5d7-c6bca137fa6b"
+  }
+]

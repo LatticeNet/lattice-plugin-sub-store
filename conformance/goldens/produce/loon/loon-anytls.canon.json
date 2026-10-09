@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "y2-16.jnffzo.example.net",
+      "443",
+      "AqMA6wktK9PBJuK9gRNC"
+    ],
+    "name": "FR-q12au1-90",
+    "params": {
+      "idle-session-timeout": "30",
+      "max-stream-count": "4",
+      "skip-cert-verify": "false",
+      "tls-name": "www.j5ultdi1.example.com",
+      "udp": "true"
+    },
+    "type": "anytls"
+  }
+]

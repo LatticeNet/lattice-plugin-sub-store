@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "ayo-23.vt8d.example.com",
+      "443"
+    ],
+    "name": "AU-yxa-06",
+    "params": {
+      "headers": "X-Client:\"ohwi6\"",
+      "max-streams": "8",
+      "password": "Yw4WzfJ570cj",
+      "sni": "www.vz5stu6r4.example.net",
+      "udp-relay": "true",
+      "username": "ix3qt58v"
+    },
+    "type": "h2-connect"
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "jj2-21.m5egq.example.com",
+      "aid": "0",
+      "host": "cdn.lkwh7e7kt.example.net",
+      "id": "4769c081-8c80-4949-a41e-30a1b2086716",
+      "net": "tcp",
+      "path": "/f7a41",
+      "port": "443",
+      "ps": "HK-zb9a-35",
+      "scy": "auto",
+      "tls": "",
+      "type": "http",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

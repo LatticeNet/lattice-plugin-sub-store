@@ -1,0 +1,24 @@
+proxies:
+  - name: JP-h6jaf0-06
+    type: vmess
+    server: ok-34.w6xwil.example.com
+    port: 443
+    uuid: 000b0651-b029-4c70-8287-7e117f38cb56
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: img.rsvilob.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /jg4g
+      headers:
+        Host:
+          - img.rsvilob.example.com

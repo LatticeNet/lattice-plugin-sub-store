@@ -1,0 +1,43 @@
+[
+  {
+    "args": [
+      "hs7-14.fbk5i4m.example.net",
+      "443",
+      "joCobve956pHGbOP"
+    ],
+    "name": "KR-jnlp-45",
+    "params": {
+      "tls-name": "127.0.0.1",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "cm-29.o4a6p.example.org",
+      "443",
+      "rRZddt7F6fbdqRuD"
+    ],
+    "name": "US-udm43-99",
+    "params": {
+      "tls-name": "127.0.0.1",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "oyc-16.u9lrca1q.example.org",
+      "443",
+      "72a8e00b-8c2d-4e2f-80fa-592feab63300"
+    ],
+    "name": "HK-av3-92",
+    "params": {
+      "over-tls": "true",
+      "tls-name": "oyc-16.u9lrca1q.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

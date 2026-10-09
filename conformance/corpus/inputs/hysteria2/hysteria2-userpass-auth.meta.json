@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-userpass-auth",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "userpass",
+  "description": "user:password userinfo."
+}

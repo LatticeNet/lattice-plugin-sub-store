@@ -1,0 +1,3 @@
+proxies:
+  - {"socks5":{"name":"KR-swmn6t-78","server":"br9-22.im7ld.example.org","port":1080,"username":"otr1u","password":"20ZIpGsmexUW","tfo":false,"udp_relay":true}}
+  - {"socks5_tls":{"name":"NL-xy1-70","server":"fsg-07.hr6g.example.com","port":443,"username":"piozqbgr","password":"GlUpvenmjZCs","tfo":false,"udp_relay":true,"sni":"fsg-07.hr6g.example.com","skip_tls_verify":true}}

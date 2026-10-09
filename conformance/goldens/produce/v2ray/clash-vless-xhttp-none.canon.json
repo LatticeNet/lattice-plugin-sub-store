@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "FR-fyykk-69",
+    "host": "kf-25.g0wf.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "static.i3qiw3.example.com"
+      ],
+      [
+        "mode",
+        "auto"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/t9ws/nv6skxv"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "43754cfc-0bd7-4a5e-9f8b-c7e6066e1bd8"
+  }
+]

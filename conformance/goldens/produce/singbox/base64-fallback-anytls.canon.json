@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "PJLn2tDSGfWvqS3p7dv0",
+      "server": "qrg-20.nc9x.example.net",
+      "server_port": 443,
+      "tag": "AU-htj-64",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.abdoopble.example.com"
+      },
+      "type": "anytls"
+    },
+    {
+      "password": "zD32rCAiPcky6yiH8eWx",
+      "server": "s1-33.kogex.example.org",
+      "server_port": 443,
+      "tag": "FR-mnt-40",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.m123qkb.example.org"
+      },
+      "type": "anytls"
+    }
+  ]
+}

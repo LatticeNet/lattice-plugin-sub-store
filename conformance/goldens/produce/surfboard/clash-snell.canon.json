@@ -1,0 +1,71 @@
+[
+  {
+    "args": [
+      "ra-32.h0tg9ic.example.org",
+      "48974"
+    ],
+    "name": "HK-rhm6-27",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "cdn.c63carmp78.example.com",
+      "psk": "6Q4HRMpMpQCcCXIuY8tH",
+      "version": "1"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "pm-08.opgo1xb.example.net",
+      "59047"
+    ],
+    "name": "GB-kqh1gc-35",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "api.bel58blvlj.example.net",
+      "psk": "gyR7URAUQAEbWH7sPU9e",
+      "version": "2"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "bm-26.r14jdl4e.example.com",
+      "58173"
+    ],
+    "name": "CA-ev71-65",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "www.g0pcoj.example.com",
+      "psk": "n9DfzukgsdkhYkLycGRK",
+      "udp-relay": "true",
+      "version": "3"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "o5q-03.m5u4.example.net",
+      "16923"
+    ],
+    "name": "JP-o1zi-67",
+    "params": {
+      "psk": "ICuSeaJfGTwP5kRTgkrh",
+      "udp-relay": "true",
+      "version": "4"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "n9-39.sw475vr.example.org",
+      "27700"
+    ],
+    "name": "SG-x2h44-62",
+    "params": {
+      "psk": "eR2nBQ7LjZmeB66nHlNr",
+      "udp-relay": "true",
+      "version": "5"
+    },
+    "type": "snell"
+  }
+]

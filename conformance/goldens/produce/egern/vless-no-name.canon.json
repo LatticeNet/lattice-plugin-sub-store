@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "VLESS cj-27.fm6khz.example.org:443",
+        "port": 443,
+        "server": "cj-27.fm6khz.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "dBDBPiajTnd6TDJl5KmZPRDGJo58mXHiVYK6Q1vNB08",
+              "short_id": "c811e1a0"
+            },
+            "skip_tls_verify": false,
+            "sni": "api.af2ig.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "31284285-69fb-46f0-92da-19754ba10bf8"
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+proxies:
+  - name: AU-z6s-42
+    type: masque-surge
+    server: zzx-38.bv5vfzm.example.org
+    port: 443
+    username: ardyzxtg
+    password: roxpJPx7ZaqvKJ
+    sni: static.g7i4er3704.example.com

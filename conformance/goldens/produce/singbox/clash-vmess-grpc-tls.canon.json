@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "gtx-40.blera0o.example.net",
+      "server_port": 443,
+      "tag": "US-gv8d-49",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.jrmm477.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "service_name": "z9r672v-vjih0c",
+        "type": "grpc"
+      },
+      "type": "vmess",
+      "uuid": "fd4efde6-4152-4d96-9d0f-70c45c2d67f2"
+    }
+  ]
+}

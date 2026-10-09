@@ -1,0 +1,7 @@
+{
+  "id": "base64-fallback-anytls",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "fallback-base64",
+  "description": "Base64 whose decoded text starts with a scheme the first Base64 test does not list, so the fallback decoder handles it."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "qx-doc-full-profile",
+  "family": "qx",
+  "protocol": "mixed",
+  "quirk": "full-profile",
+  "description": "A complete Quantumult X profile; only [server_local] is read."
+}

@@ -1,0 +1,8 @@
+proxies:
+  - name: NL-e38ors-50
+    type: vless
+    server: vpb-16.ifpx5.example.com
+    port: 443
+    uuid: 63f2ded1-1843-4dcf-bf13-76c8580b46a0
+    udp: true
+    network: tcp

@@ -1,0 +1,66 @@
+[
+  {
+    "fragment": "GB-npq0ne-18",
+    "host": "t66-10.q2w5m.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.zdx9yiirp.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "7d9e2f8a-0400-4958-a9a0-86c2c3d797df"
+  },
+  {
+    "fragment": "AU-j1fz-50",
+    "host": "ihv-18.fxh80bt.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "static.cfdjp53j.example.com"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/cspqc9wvkw"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.cfdjp53j.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "283dfeac-72d9-457c-9499-faffee7e8706"
+  }
+]

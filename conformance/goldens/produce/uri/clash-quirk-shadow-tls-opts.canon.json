@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "HK-lb5-55",
+    "host": "lm-06.k25j9.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206V2hkVTlCd0ZKdFB0VU1SWA==",
+    "userinfo_base64": "aes-128-gcm:WhdU9BwFJtPtUMRX"
+  }
+]

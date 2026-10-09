@@ -1,0 +1,8 @@
+{
+  "id": "loon-wireguard",
+  "family": "loon",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "description": "Loon WireGuard with interface addresses, DNS, keepalive and one peer."
+}

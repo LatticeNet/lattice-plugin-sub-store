@@ -1,0 +1,32 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "http-opts": {
+        "headers": {
+          "Host": [
+            "cdn.udpgihfrvr.example.net"
+          ]
+        },
+        "method": "GET",
+        "path": [
+          "/jcn0"
+        ]
+      },
+      "name": "FR-fay-77",
+      "network": "http",
+      "port": 443,
+      "server": "e56-01.seeo45qf.example.net",
+      "servername": "cdn.udpgihfrvr.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "6ca1dced-5ed7-4a6b-8dc7-ed9720264442"
+    }
+  ]
+}

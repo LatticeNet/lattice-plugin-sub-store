@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-legacy-ws-keys",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "legacy-ws-path",
+  "description": "Legacy ws-path and ws-headers keys instead of ws-opts."
+}

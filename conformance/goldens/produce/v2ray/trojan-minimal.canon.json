@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "GB-z7rol-66:443",
+    "host": "ey-03.rkflh.example.net",
+    "path": "",
+    "port": "36086",
+    "query": [
+      [
+        "sni",
+        "ey-03.rkflh.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "5ZocLkGvDb1zfs84dU7A"
+  }
+]

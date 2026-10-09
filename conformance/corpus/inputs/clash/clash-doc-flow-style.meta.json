@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-flow-style",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "flow-style",
+  "description": "Each proxy written as a YAML flow mapping on one line."
+}

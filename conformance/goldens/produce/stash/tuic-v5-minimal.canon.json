@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "FR-yeun-59",
+      "password": "vArKjoDH8C0gXxIT",
+      "port": 443,
+      "server": "bl-19.cnqn4dxi.example.net",
+      "sni": "bl-19.cnqn4dxi.example.net",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "437379f7-bed5-4389-a11e-6732f703fc45",
+      "version": 5
+    }
+  ]
+}

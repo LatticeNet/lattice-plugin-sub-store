@@ -1,0 +1,38 @@
+[
+  {
+    "body": {
+      "main": "hs-06.ot0k647n.example.org:59541:auth_chain_a:chacha20-ietf:tls1.2_ticket_auth:Rng1ekNMTE9xTDBL",
+      "params": [
+        [
+          "obfsparam",
+          "static.vzpfez9.example.net"
+        ],
+        [
+          "protoparam",
+          "GUwOw4"
+        ],
+        [
+          "remarks",
+          "AU-muj8-77"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  },
+  {
+    "body": {
+      "main": "ayv-14.wqdf.example.com:16267:origin:aes-256-cfb:plain:Zzl3NHc4ZVd3MXRl",
+      "params": [
+        [
+          "remarks",
+          "SG-ql89a-39"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

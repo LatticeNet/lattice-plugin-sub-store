@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "M9Mlcffeicbj8UV6dfeJ",
+      "server": "198.51.100.140",
+      "server_port": 45821,
+      "tag": "GB-uq8k-07",
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "198.51.100.140"
+      },
+      "type": "anytls"
+    }
+  ]
+}

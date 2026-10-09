@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"AU-b4sb-43","server":"iz-29.quabe9.example.net","port":443,"user_id":"0f0e279d-0ca8-49f4-92c5-8739c23f766e","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

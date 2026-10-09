@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "CA-h69-06",
+    "host": "tjt-19.nsrz8c0.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "path",
+        "/p1saz3vuw"
+      ],
+      [
+        "sni",
+        "cdn.h9dywa.example.net"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "sXWbICGuf14KW9WE"
+  }
+]

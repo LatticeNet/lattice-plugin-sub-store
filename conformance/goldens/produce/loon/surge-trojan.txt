@@ -1,0 +1,1 @@
+DE-n3mife-19=trojan,jk5-23.fvpc.example.com,443,"Dw9cWcvIBMcXkupU",skip-cert-verify=true,tls-name=api.b0h8ez454.example.com,udp=true

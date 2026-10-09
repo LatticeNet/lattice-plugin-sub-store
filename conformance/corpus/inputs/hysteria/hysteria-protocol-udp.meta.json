@@ -1,0 +1,9 @@
+{
+  "id": "hysteria-protocol-udp",
+  "family": "hysteria",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "protocol",
+  "description": "Hysteria v1 with protocol udp."
+}

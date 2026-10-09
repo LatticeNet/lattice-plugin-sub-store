@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "US-zxcd-56",
+        "port": 443,
+        "security": "auto",
+        "server": "jz-02.c8w0o.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "img.woqeq46.example.org"
+            },
+            "path": "/jfanvq6wu",
+            "skip_tls_verify": false,
+            "sni": "img.woqeq46.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "7ad81b79-8585-455e-bbbf-62760908d238"
+      }
+    }
+  ]
+}

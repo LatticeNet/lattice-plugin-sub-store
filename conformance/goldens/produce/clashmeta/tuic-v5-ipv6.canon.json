@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "AU-dshc6-86",
+      "password": "GMbMPBfBRzCF7krc",
+      "port": 443,
+      "server": "2001:db8:5dea:9676::65f4",
+      "sni": "static.vz9cc.example.org",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "3d6086b8-489d-4975-955a-5055bdc30044",
+      "version": 5
+    }
+  ]
+}

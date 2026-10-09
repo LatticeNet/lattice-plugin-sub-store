@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "euo-40.fr243lfo.example.org",
+      "aid": "0",
+      "id": "9ae08100-542d-494f-8ada-9dcdea9f4cca",
+      "net": "tcp",
+      "port": "443",
+      "ps": "GB-hrhuy-22",
+      "scy": "chacha20-poly1305",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-cfb",
+      "name": "SG-at22-37",
+      "password": "e5XX5LpSFAz7",
+      "port": 26672,
+      "server": "uo-31.vohqvdh2.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-cfb",
+      "name": "FR-wjypay-70",
+      "password": "nmZltRLobntH",
+      "port": 33705,
+      "server": "np-08.baeops7.example.org",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-ctr",
+      "name": "JP-clgy1z-07",
+      "password": "nlpoz8gL0b9I",
+      "port": 23086,
+      "server": "pp0-31.brvt.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "chacha20-ietf",
+      "name": "US-f3qx-51",
+      "password": "Rpv1f9EyDV8H",
+      "port": 14978,
+      "server": "fx-28.zpthid.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "rc4-md5",
+      "name": "TW-odzmu-72",
+      "password": "0aSo41OohzpA",
+      "port": 50721,
+      "server": "ceq-08.xcl70pi.example.org",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "none",
+      "name": "CA-gs6jqm-70",
+      "password": "HtRQC4aUfvKA",
+      "port": 36201,
+      "server": "a8-24.ywoz.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

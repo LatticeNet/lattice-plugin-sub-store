@@ -1,0 +1,9 @@
+{
+  "id": "surge-compact-spacing",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "spacing",
+  "description": "Surge lines without spaces and with extra spaces."
+}

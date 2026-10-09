@@ -1,0 +1,4 @@
+proxies:
+  - {"vless":{"name":"US-k7el-33","server":"nu-33.bvmit5gs.example.org","port":443,"user_id":"3f2712ce-d8b6-42bb-a8fa-0ea40d599adc","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.ywpu6579.example.net","skip_tls_verify":false,"reality":{"public_key":"q9rT8fyrmmnVS089xm9m-BuOLSIQBgsEKtOdJl5flh4","short_id":"ee070f03"}}},"flow":"xtls-rprx-vision"}}
+  - {"vmess":{"name":"US-trn-03","server":"ju-20.l7scq.example.com","port":443,"user_id":"03b594a1-bf86-415d-977b-d29d3614dd03","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/gesw94","headers":{"Host":"img.k644qk.example.org"},"sni":"img.k644qk.example.org"}}}}
+  - {"trojan":{"name":"CA-j53a-20","server":"ysy-24.qhaz089.example.net","port":443,"password":"dAeTDVwyYRBMvbjs","tfo":false,"udp_relay":true,"sni":"www.ai2i3k.example.net"}}

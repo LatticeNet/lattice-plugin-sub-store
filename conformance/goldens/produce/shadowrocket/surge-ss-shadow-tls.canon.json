@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "cipher": "2022-blake3-aes-128-gcm",
+      "name": "KR-k7l6wk-28",
+      "password": "ghMiarMyGPGfdKpB+sjHqg==",
+      "plugin": "shadow-tls",
+      "plugin-opts": {
+        "host": "static.x76bjg.example.org",
+        "password": "qfVPDOCMCDN7DozD",
+        "version": 3
+      },
+      "port": 443,
+      "server": "gy-35.bb16wip1.example.org",
+      "type": "ss",
+      "udp": true,
+      "udp-port": 13032
+    }
+  ]
+}

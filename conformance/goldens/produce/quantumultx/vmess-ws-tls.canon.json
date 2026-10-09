@@ -1,0 +1,19 @@
+[
+  {
+    "address": "k4-29.dbrm.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "api.h0digvt.example.org",
+      "obfs-uri": "/glnf",
+      "password": "f01fcc8c-d644-4e5c-9d5f-65cda7be0d62",
+      "tag": "KR-tuq-74",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.h0digvt.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

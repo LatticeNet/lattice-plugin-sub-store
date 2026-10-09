@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-z7rol-66:443",
+      "type": "trojan",
+      "server": "ey-03.rkflh.example.net",
+      "server_port": 36086,
+      "password": "5ZocLkGvDb1zfs84dU7A",
+      "tls": {
+        "enabled": true,
+        "server_name": "ey-03.rkflh.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

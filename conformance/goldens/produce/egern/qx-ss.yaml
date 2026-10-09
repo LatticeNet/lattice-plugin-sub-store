@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"CA-gki4-71","method":"aes-128-gcm","server":"y5x-06.qsbxmtn.example.org","port":34163,"password":"WCk5pgZGKDGMo1","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"GB-t54-55","method":"2022-blake3-aes-128-gcm","server":"pl3-12.rvki6p41.example.com","port":55339,"password":"NIFm94rVMD3O2AH3m+kvdw==","tfo":false,"udp_relay":true}}

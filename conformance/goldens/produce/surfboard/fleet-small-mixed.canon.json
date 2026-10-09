@@ -1,0 +1,120 @@
+[
+  {
+    "args": [
+      "u4g-34.es7d41cm.example.org",
+      "52004"
+    ],
+    "name": "DE vtz1 09",
+    "params": {
+      "password": "iFlMXnuwOqiNXEi6a6uq",
+      "skip-cert-verify": "false",
+      "sni": "api.qaj2has3l1.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "lu-05.iexnrt2k.example.org",
+      "33209"
+    ],
+    "name": "JP o1bmk 10",
+    "params": {
+      "password": "V5o9jhUd43ep7pWIDz2V",
+      "salamander-password": "EtKi8VwxcLd8EoQq",
+      "skip-cert-verify": "false",
+      "sni": "img.jd2nfl5l.example.com",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "g3e-23.vf5bu7.example.com",
+      "49004"
+    ],
+    "name": "KR utqa 11",
+    "params": {
+      "alpn": "h3",
+      "password": "N9E6ZdfX8SS3rylk",
+      "sni": "www.diqv9hxj.example.com",
+      "udp-relay": "true",
+      "uuid": "7328f089-3143-478c-aaa3-6d8a56b766be"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "w0a-33.e670gex.example.org",
+      "34705"
+    ],
+    "name": "DE lk3z2o7 12",
+    "params": {
+      "alpn": "h3",
+      "password": "WmHFJYa9kG0r64tI",
+      "sni": "cdn.a7pua97kh.example.net",
+      "udp-relay": "true",
+      "uuid": "8d24e4e5-3c7f-4355-8a16-1d5c16e3d420"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "bzs-12.o21bimf.example.com",
+      "443"
+    ],
+    "name": "SG g7lq2 13",
+    "params": {
+      "password": "6GtKVy0l9VGiOYSH",
+      "sni": "img.xhien.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "yio-04.ja8tpb.example.com",
+      "443"
+    ],
+    "name": "GB cxli3c 14",
+    "params": {
+      "password": "TNr5g7hhSe8BCCo22YAj",
+      "skip-cert-verify": "false",
+      "sni": "api.f3083om.example.net",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  },
+  {
+    "args": [
+      "xn-25.i4g8ik.example.net",
+      "25404"
+    ],
+    "name": "NL mkhzk 15",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "AFQ4iScLSTCxSutTNOO+1w==",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "ki-03.f3nw0e.example.net",
+      "443"
+    ],
+    "name": "DE ub59 16",
+    "params": {
+      "sni": "static.gqp4k.example.net",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "dc8ad4bd-0b0f-4eb8-ac52-e6b5aeacaa0e",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"static.gqp4k.example.net\"",
+      "ws-path": "/gu053/pmk8l3fsuo"
+    },
+    "type": "vmess"
+  }
+]

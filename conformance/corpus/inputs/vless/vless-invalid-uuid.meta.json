@@ -1,0 +1,9 @@
+{
+  "id": "vless-invalid-uuid",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "invalid-uuid",
+  "description": "A user id that is not a UUID; upstream warns and keeps it."
+}

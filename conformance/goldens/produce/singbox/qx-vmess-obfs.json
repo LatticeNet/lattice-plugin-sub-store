@@ -1,0 +1,71 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-ijr-55",
+      "type": "vmess",
+      "server": "e4-39.vor9g.example.com",
+      "server_port": 443,
+      "uuid": "0ed5ed26-4b12-4d4f-a31c-9de5a377b458",
+      "security": "none",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.j2stn.example.org"
+        },
+        "path": "/pdlzh/kqamarys"
+      }
+    },
+    {
+      "tag": "GB-njols-07",
+      "type": "vmess",
+      "server": "ty8-01.lvynkanu.example.net",
+      "server_port": 443,
+      "uuid": "a00bab91-5bd3-46a9-b915-eaf312402b24",
+      "security": "none",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "img.pewtkvy.example.com",
+        "insecure": false
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "img.pewtkvy.example.com"
+        },
+        "path": "/xodx/z2maviu62v"
+      }
+    },
+    {
+      "tag": "SG-oma-59",
+      "type": "vmess",
+      "server": "ua4-11.ix24.example.com",
+      "server_port": 443,
+      "uuid": "93b4f3f3-326d-493f-9fe0-dcbb285ef223",
+      "security": "none",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.bi8j2y.example.net",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "AU-fv5x-63",
+      "type": "vmess",
+      "server": "nb7-30.wryjwwi.example.net",
+      "server_port": 443,
+      "uuid": "984c9559-2091-4f77-ae2b-ca189cef3eb9",
+      "security": "none",
+      "alter_id": 0,
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "path": "/iuy9",
+        "host": "img.e9d8gma.example.org"
+      }
+    }
+  ],
+  "endpoints": []
+}

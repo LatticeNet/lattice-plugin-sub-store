@@ -1,0 +1,1 @@
+KR-b8i-60 = direct, udp-relay=true, interface=en0, allow-other-interface=true

@@ -1,0 +1,14 @@
+[
+  {
+    "hop-interval": 30,
+    "name": "GB-lri5kd-88",
+    "password": "uP2i0iimcSHFoE",
+    "port": 443,
+    "server": "e4-18.rzqbh1.example.net",
+    "sni": "img.imhtrnu.example.com",
+    "tls": true,
+    "type": "masque-surge",
+    "udp": true,
+    "username": "phekv"
+  }
+]

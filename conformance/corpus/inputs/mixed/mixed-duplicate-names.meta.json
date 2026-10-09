@@ -1,0 +1,7 @@
+{
+  "id": "mixed-duplicate-names",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "duplicate-names",
+  "description": "Several links sharing one name."
+}

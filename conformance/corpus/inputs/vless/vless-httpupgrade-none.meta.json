@@ -1,0 +1,8 @@
+{
+  "id": "vless-httpupgrade-none",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "httpupgrade",
+  "security": "none",
+  "description": "VLESS share link over httpupgrade with security none."
+}

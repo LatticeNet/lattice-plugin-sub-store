@@ -1,0 +1,2 @@
+http=ia-17.raeya8.example.net:8080,username=dzpyhv6v,password=cx0ri7gyAdT1,udp-relay=true,tag=NL-i1l-37
+http=sn-35.itha1zf.example.net:443,username=jjbz6,password=1yxmCwBktXpQ,over-tls=true,tls-verification=true,tls-host=static.ktyuunm.example.com,udp-relay=true,tag=HK-hlx5z-75

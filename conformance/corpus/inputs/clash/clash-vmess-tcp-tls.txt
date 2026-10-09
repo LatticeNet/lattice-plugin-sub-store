@@ -1,0 +1,17 @@
+proxies:
+  - name: FR-bme-99
+    type: vmess
+    server: fa-12.pdht8.example.org
+    port: 443
+    uuid: 335f9710-f3d4-4e34-aa62-6b6c3e71f595
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: www.k11mos.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: tcp

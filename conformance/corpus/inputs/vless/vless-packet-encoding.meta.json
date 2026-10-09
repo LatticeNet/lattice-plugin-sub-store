@@ -1,0 +1,9 @@
+{
+  "id": "vless-packet-encoding",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "packet-encoding",
+  "description": "Explicit packetEncoding values packetaddr and none."
+}

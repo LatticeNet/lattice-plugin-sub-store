@@ -1,0 +1,8 @@
+{
+  "id": "clash-trojan-h2-tls",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "h2",
+  "security": "tls",
+  "description": "mihomo trojan proxy over h2 with security tls."
+}

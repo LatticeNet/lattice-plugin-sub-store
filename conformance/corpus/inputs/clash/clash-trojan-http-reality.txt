@@ -1,0 +1,21 @@
+proxies:
+  - name: US-azqyme-37
+    type: trojan
+    server: h83-35.dddyb.example.net
+    port: 443
+    password: 7HS5JSFsX9d7nVF2
+    udp: true
+    tls: true
+    sni: www.rjpp4m.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: Y-oqjpzvrEFhzsNYdKxrM2e6U5TlygyE9xcNaNucksY
+      short-id: f0fac1e7
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /edtufnk
+      headers:
+        Host:
+          - www.rjpp4m.example.net

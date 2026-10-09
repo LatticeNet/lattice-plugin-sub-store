@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "2001:db8:b10a:ac00::f036",
+      "34005"
+    ],
+    "name": "NL-cme-57",
+    "params": {
+      "password": "yKKdrNLMv32PgMZuqlnp",
+      "skip-cert-verify": "true",
+      "sni": "cdn.lct1cm2ewi.example.net",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

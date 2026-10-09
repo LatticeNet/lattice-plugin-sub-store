@@ -1,0 +1,8 @@
+{
+  "id": "clash-shadowquic",
+  "family": "clash",
+  "protocol": "shadowquic",
+  "transport": "quic",
+  "security": "tls",
+  "description": "shadowquic with credentials and sni."
+}

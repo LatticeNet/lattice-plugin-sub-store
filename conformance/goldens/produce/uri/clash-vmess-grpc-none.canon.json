@@ -1,0 +1,20 @@
+[
+  {
+    "body": {
+      "add": "gz1-11.f67x.example.net",
+      "aid": "0",
+      "id": "f26dc40c-98db-4600-b5f4-ed294aa9ecc4",
+      "net": "grpc",
+      "path": "pupv0-cwl8xg",
+      "port": "443",
+      "ps": "HK-etr-64",
+      "scy": "auto",
+      "tls": "",
+      "type": "gun",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

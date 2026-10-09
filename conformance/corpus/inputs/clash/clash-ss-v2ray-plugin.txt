@@ -1,0 +1,15 @@
+proxies:
+  - name: KR-t3yl-20
+    type: ss
+    server: nys-21.dm1aj.example.org
+    port: 443
+    cipher: aes-256-gcm
+    password: mLOXTpMpdEAljhJR
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: websocket
+      tls: true
+      host: img.nz82a.example.org
+      path: /zen85j47vr
+      mux: true
+      skip-cert-verify: false

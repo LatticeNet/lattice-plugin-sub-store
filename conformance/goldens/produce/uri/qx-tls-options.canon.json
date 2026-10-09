@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "GB-rc5go-89",
+    "host": "203.0.113.104",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "pcs",
+        "f9f471e7cddb6aeb1276ea0c3908239ebdb48a21d09c2e632b9604f6126a518b"
+      ],
+      [
+        "sni",
+        "www.t7f0lpmk.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "dHxn6dCKqdRZFujk"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "GB-s63s-21",
+      "password": "vCWyidJwQyfuWrJv4pzN",
+      "port": 443,
+      "server": "bi-14.qievq7x.example.com",
+      "skip-cert-verify": false,
+      "sni": "img.qj6n1.example.net",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

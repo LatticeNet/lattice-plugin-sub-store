@@ -1,0 +1,81 @@
+[
+  {
+    "fragment": "CA-gfdgyx-54",
+    "host": "c9v-36.klvhza.example.com",
+    "path": "",
+    "port": "49167",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206U1lpMk1sUkpvUXhFdTc=",
+    "userinfo_base64": "aes-256-gcm:SYi2MlRJoQxEu7"
+  },
+  {
+    "fragment": "TW-ieag-11",
+    "host": "ov-39.vux11.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "serviceName",
+        "l00c-mswa"
+      ],
+      [
+        "sni",
+        "www.l7qmk.example.com"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "34e6bf5e-6d00-4dbb-8dd8-7dc663c6d67b"
+  },
+  {
+    "fragment": "GB-bp8gu-20",
+    "host": "zi-07.l48kavu.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "sni",
+        "img.xogxm.example.com"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "fefe567f-b553-4594-80a8-74addab027e8:M6TyTbObXLPFClXw"
+  }
+]

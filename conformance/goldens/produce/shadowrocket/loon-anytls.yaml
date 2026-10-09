@@ -1,0 +1,2 @@
+proxies:
+  - {"idle-session-check-interval":30,"idle-session-timeout":30,"max-stream-count":4,"min-idle-session":1,"name":"FR-q12au1-90","password":"AqMA6wktK9PBJuK9gRNC","port":443,"server":"y2-16.jnffzo.example.net","skip-cert-verify":false,"sni":"www.j5ultdi1.example.com","type":"anytls","udp":true}

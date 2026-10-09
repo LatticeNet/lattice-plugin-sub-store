@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "NL-cme-57",
+    "host": "2001:db8:b10a:ac00::f036",
+    "path": "",
+    "port": "34005",
+    "query": [
+      [
+        "insecure",
+        "1"
+      ],
+      [
+        "sni",
+        "cdn.lct1cm2ewi.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "yKKdrNLMv32PgMZuqlnp"
+  }
+]

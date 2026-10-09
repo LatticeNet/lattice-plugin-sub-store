@@ -1,0 +1,17 @@
+[
+  {
+    "address": "ahe-13.bx4bjkbt.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "ahe-13.bx4bjkbt.example.net",
+      "obfs-uri": "/lo0adt/oqsutga",
+      "password": "ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef",
+      "tag": "AU-d9j-96",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

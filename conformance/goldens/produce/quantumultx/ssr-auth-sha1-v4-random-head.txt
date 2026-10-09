@@ -1,0 +1,1 @@
+shadowsocks=vs-40.mby1pyzm.example.com:27306,method=aes-128-ctr,password=jxPaBdo2ttDX,ssr-protocol=auth_sha1_v4,ssr-protocol-param=8037:xAMvNMp0,obfs=random_head,obfs-host=api.x5769u6.example.com,udp-relay=true,tag=FR-uad-37

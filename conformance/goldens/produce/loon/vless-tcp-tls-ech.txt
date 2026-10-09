@@ -1,0 +1,1 @@
+GB-t9p-56=vless,uk-05.zeqc.example.net,443,"1e63755b-a4fb-486a-9bf1-cfe455701da5",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.ycqp18r6p5.example.com,udp=true

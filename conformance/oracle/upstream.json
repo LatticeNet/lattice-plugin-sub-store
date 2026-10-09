@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/sub-store-org/Sub-Store.git",
+  "commit": "a3e61061e50b40e5c5938969aab915d05d8d7069",
+  "version": "2.42.3",
+  "entry": "backend/src/products/proxy-utils.esm.js"
+}

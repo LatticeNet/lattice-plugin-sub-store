@@ -1,0 +1,55 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-g3y6-02",
+      "type": "trojan",
+      "server": "k7n-34.k3dmj.example.com",
+      "server_port": 443,
+      "password": "x6ITjYHRYeEvJEsG",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.dv5ooq2v.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "TW-w9xe07-13",
+      "type": "trojan",
+      "server": "z2n-18.xvyy2a.example.org",
+      "server_port": 443,
+      "password": "xOSzUMgiUfepNYrF",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.eao2iex89b.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.eao2iex89b.example.net"
+        },
+        "path": "/soyeoey"
+      }
+    },
+    {
+      "tag": "FR-yuwlt-90",
+      "type": "trojan",
+      "server": "ls-29.dd8veg7.example.org",
+      "server_port": 80,
+      "password": "OLywOW0EdBxNnOvJ",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.pj96qv0q6.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "api.pj96qv0q6.example.net"
+        },
+        "path": "/ahi06l"
+      }
+    }
+  ],
+  "endpoints": []
+}

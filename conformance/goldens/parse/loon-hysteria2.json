@@ -1,0 +1,28 @@
+[
+  {
+    "down": "100",
+    "name": "GB-vndf-11",
+    "password": "jy1zzeVtjPYW5WZ1d7c3",
+    "port": 443,
+    "server": "oe-33.qx39yxx.example.com",
+    "skip-cert-verify": false,
+    "sni": "api.y9rxi39v8j.example.org",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  },
+  {
+    "hop-interval": 30,
+    "name": "KR-x2fuc-55",
+    "obfs": "salamander",
+    "obfs-password": "RpvsakJ8xuuStgsm",
+    "password": "Ljm9RAIKKgkAVQ4Om3ES",
+    "port": 443,
+    "ports": "20000-30000,31000",
+    "server": "w6b-30.pbeu3.example.net",
+    "sni": "cdn.wq7zecq15c.example.net",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

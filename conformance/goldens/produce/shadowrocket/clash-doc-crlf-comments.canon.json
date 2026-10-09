@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "TW-d6ahp-79",
+      "password": "E5ZzS0B766tN",
+      "port": 44420,
+      "server": "gy-28.bbn1u9k5.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "name": "KR-mxcn-27",
+      "network": "tcp",
+      "password": "iF8MoEBbQ3gtc6mI",
+      "port": 443,
+      "server": "a6-32.jx3wy.example.net",
+      "sni": "img.i37u2y5i.example.org",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-bew7t-52",
+      "type": "shadowsocks",
+      "server": "r7q-36.br9cpq0n.example.org",
+      "server_port": 14724,
+      "method": "aes-128-gcm",
+      "password": "P6IxGSrp91dddREC"
+    },
+    {
+      "tag": "GB-x1b-29",
+      "type": "shadowsocks",
+      "server": "o4n-01.aqvoop.example.net",
+      "server_port": 11346,
+      "method": "aes-192-gcm",
+      "password": "UclUOZFB7tf7Gtoq"
+    },
+    {
+      "tag": "FR-shmxl-33",
+      "type": "shadowsocks",
+      "server": "z43-26.hhi7.example.com",
+      "server_port": 19245,
+      "method": "aes-256-gcm",
+      "password": "jFIDjLKCNvu3INCU"
+    },
+    {
+      "tag": "GB-ztv-60",
+      "type": "shadowsocks",
+      "server": "uc-31.uyyxe4v.example.com",
+      "server_port": 25398,
+      "method": "chacha20-ietf-poly1305",
+      "password": "pAGvGtXSEsMymyTa"
+    },
+    {
+      "tag": "AU-bq5-72",
+      "type": "shadowsocks",
+      "server": "pm-29.am4f.example.net",
+      "server_port": 13213,
+      "method": "xchacha20-ietf-poly1305",
+      "password": "vgfKpblL5fU7TiTW"
+    }
+  ],
+  "endpoints": []
+}

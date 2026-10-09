@@ -1,0 +1,1 @@
+FR-uad-37=shadowsocksr,vs-40.mby1pyzm.example.com,27306,aes-128-ctr,"jxPaBdo2ttDX",protocol=auth_sha1_v4,protocol-param=8037:xAMvNMp0,obfs=random_head,obfs-param=api.x5769u6.example.com,udp=true

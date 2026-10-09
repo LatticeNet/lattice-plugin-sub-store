@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "udz-17.fr89hw9c.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "static.pbvaoqy.example.net",
+      "id": "893e5cf5-876b-4152-b4bf-af94e9f05285",
+      "net": "xhttp",
+      "path": "/d9awl",
+      "port": "443",
+      "ps": "FR-xrzgi-77",
+      "scy": "auto",
+      "sni": "static.pbvaoqy.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

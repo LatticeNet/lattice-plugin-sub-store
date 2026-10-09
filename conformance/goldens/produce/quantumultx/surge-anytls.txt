@@ -1,0 +1,1 @@
+anytls=rmq-28.tr5vrx1y.example.net:443,password=05eDffSebg6pvqS7baU1,over-tls=true,tls-verification=true,tls-host=cdn.sgclf.example.net,udp-relay=true,tag=CA-nixq-24

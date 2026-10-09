@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "d3r-23.er9q6.example.net",
+      "443",
+      "auto",
+      "d45031ed-edbf-4630-9a7e-3ea25d35210d"
+    ],
+    "name": "KR-d8v6j-75",
+    "params": {
+      "alterId": "0",
+      "host": "static.rf5mcrm8wm.example.org",
+      "over-tls": "false",
+      "path": "/blc/cpyp",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

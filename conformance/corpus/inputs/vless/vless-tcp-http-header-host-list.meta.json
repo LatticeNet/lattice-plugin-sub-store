@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-http-header-host-list",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp-http",
+  "security": "none",
+  "quirk": "http-header-host-list",
+  "description": "TCP HTTP header camouflage with a comma-separated host list."
+}

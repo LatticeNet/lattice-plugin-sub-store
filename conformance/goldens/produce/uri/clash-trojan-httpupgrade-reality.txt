@@ -1,0 +1,1 @@
+trojan://k9vUxnz501ueaagO@dry-29.z57qgl.example.com:443?sni=www.g53fzh.example.com&type=httpupgrade&path=%2Fgew16%2Fmnfs2&host=www.g53fzh.example.com&fp=chrome&security=reality&sid=b7383d6a&pbk=KBE_MGWu5bVgEMZ9sIr-IaBxGbcF6l8F6aoe4Q9zX7E#NL-jj6cfx-97

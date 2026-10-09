@@ -1,0 +1,3 @@
+KR-fn5-71=shadowsocks,e8-24.czdpwx7v.example.net,41712,aes-128-gcm,"eQObS4ZKRCMB0Q",udp=true
+NL-vv8-63=shadowsocks,kfm-30.j86h.example.net,41712,aes-128-gcm,"eQObS4ZKRCMB0Q",udp=true
+NL-jh0-83=shadowsocks,198.51.100.128,41712,aes-128-gcm,"eQObS4ZKRCMB0Q",udp=true

@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "p7s-12.vxsga2t1.example.org",
+      "443",
+      "cb22c8ff-3921-4bca-aa16-d8a21097e463"
+    ],
+    "name": "SG-rsvy-31",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "static.vslcfo.example.org",
+      "over-tls": "true",
+      "path": "/xj1jlj/bmtb1lwh5",
+      "skip-cert-verify": "false",
+      "tls-name": "static.vslcfo.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

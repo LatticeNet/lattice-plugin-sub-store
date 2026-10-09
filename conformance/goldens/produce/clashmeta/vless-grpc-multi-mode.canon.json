@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "grpc-opts": {
+        "grpc-service-name": "b76xx-us2u"
+      },
+      "name": "AU-fwb-56",
+      "network": "grpc",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "1n029i7oWkgUoNEV4lMxD7_EB5Kxl6u7tsRlY1sF1oE",
+        "short-id": "40baa25f"
+      },
+      "server": "vag-38.u934x.example.com",
+      "servername": "img.xn1od5rz.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "ec17c0fc-f067-4944-9df0-241fb30a2a2a"
+    }
+  ]
+}

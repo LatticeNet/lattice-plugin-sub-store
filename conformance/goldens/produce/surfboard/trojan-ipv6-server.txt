@@ -1,0 +1,1 @@
+US-x5x-75=trojan,2001:db8:9ef5:1c35::d99d,443,password=IOG2Yrjm3RD7ry51,ws=true,ws-path=/hxz/otea8c,ws-headers=Host:"api.z12lb15.example.net",tls=true,sni="api.z12lb15.example.net",udp-relay=true

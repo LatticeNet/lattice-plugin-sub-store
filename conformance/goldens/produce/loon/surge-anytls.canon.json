@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "rmq-28.tr5vrx1y.example.net",
+      "443",
+      "05eDffSebg6pvqS7baU1"
+    ],
+    "name": "CA-nixq-24",
+    "params": {
+      "skip-cert-verify": "false",
+      "tls-name": "cdn.sgclf.example.net",
+      "udp": "true"
+    },
+    "type": "anytls"
+  }
+]

@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"FR-rxs9-71","server":"gz6-27.nt3l3rl.example.com","port":443,"password":"TfwevtKu5necBwQa","tfo":false,"udp_relay":true,"sni":"img.yan934d.example.com"}}
+  - {"vmess":{"name":"NL-nk245-43","server":"mc6-21.oy1wum6m.example.com","port":443,"user_id":"4ada313e-c95d-437a-8322-4fedd24ee914","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

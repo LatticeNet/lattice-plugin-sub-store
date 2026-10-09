@@ -1,0 +1,18 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "firefox",
+    "name": "KR-i6c-08",
+    "network": "tcp",
+    "password": "MqstkokkaMmCdlOb",
+    "port": 443,
+    "server": "ufh-20.cskk.example.net",
+    "sni": "www.pu7fx.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

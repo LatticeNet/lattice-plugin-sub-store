@@ -1,0 +1,94 @@
+# Divergence allowlist for the native Sub-Store conformance gate (design 28).
+#
+# The list is closed: at most four entries, and adding, removing or widening
+# one is a reviewed change to design 28, not a harness edit. check.mjs
+# refuses a file with more than four entries or with an entry that does not
+# follow the schema below. The four entries are the four divergences design
+# 28 names. Each is pending until the slice that implements it removes
+# `pending` and adds its normalisation; a pending entry holds its slot, is
+# validated like any other, and applies to no comparison. The specifications
+# refer to them by id (specs/normaliser.md, section 4).
+#
+# Schema of one entry:
+#
+#   - id: kebab-case, stable; conformance.json lists the ids it relied on
+#     stage: parse | produce | script
+#     pending: S1 to S6     (optional; the slice that lands the entry)
+#     targets: [<target id>, ...] or ["*"]   (produce only; ids from
+#              oracle/lib/targets.mjs; never uri or v2ray, which are
+#              compared byte for byte, and "*" skips them)
+#     cases: [<non-empty case id prefix>, ...] or ["*"]
+#     upstream: what upstream does, in one or two sentences
+#     chosen: what the plugin does instead
+#     reason: why the plugin diverges
+#     normalise:            applied to the golden and to the candidate before
+#                           they are compared, only for matching stage,
+#                           targets and cases; optional while pending
+#       - strip_keys: <regex>              delete object keys (and URI query
+#                                          keys) matching the pattern,
+#                                          at any depth
+#       - drop_entries:                    delete array elements that are
+#           field: <key>                   objects whose field equals one
+#           equals: [<value>, ...]         of the values, at any depth
+#
+# A strip_keys pattern may not match the empty key or any key in
+# PROTECTED_KEYS (oracle/lib/allowlist.mjs: node identity, document
+# containers, canonical structure), and drop_entries needs at least one value,
+# so one entry cannot hide a whole node or document.
+#
+# A divergence counts as allowed only when the comparison fails without the
+# normalisation and passes with it; conformance.json records which ids were
+# needed.
+divergences:
+  - id: external
+    stage: parse
+    pending: S1
+    upstream: >-
+      Parses a Surge external line into a node of type external with its
+      exec, args and local-port, keeps any proxy that carries an exec-style
+      key, and producers such as Surge for Mac, ClashMeta and JSON write them
+      back out.
+    chosen: >-
+      The normaliser drops external and exec-shaped nodes from remote and
+      pasted input and keeps them only on a local record whose operator set
+      the explicit opt-in (specs/normaliser.md, rule H3).
+    reason: >-
+      An external entry makes the client that installs the profile run a
+      local command, so a provider feed or pasted text must not be able to
+      add one.
+  - id: underscore
+    stage: parse
+    pending: S1
+    upstream: >-
+      Keeps every key starting with an underscore that a Clash or mihomo
+      object carries, at any depth, and acts on some of them (an input
+      _loon_tls_profile triggers a normalisation step).
+    chosen: >-
+      The normaliser strips underscore keys from object input
+      (specs/normaliser.md, rule H1); underscore fields a script sets live in
+      the model's script map and never reach a producer.
+    reason: >-
+      Underscore keys are upstream's internal annotations, and accepting them
+      from input lets a feed steer internal behaviour.
+  - id: ca
+    stage: parse
+    pending: S1
+    upstream: >-
+      Reads the local file a _ca field names to compute the certificate
+      fingerprint.
+    chosen: >-
+      Never reads a file; the fingerprint comes only from ca-str or ca_str
+      (specs/normaliser.md, rule H2).
+    reason: >-
+      A field from a feed must not make the plugin read a local path.
+  - id: require
+    stage: script
+    pending: S3
+    upstream: >-
+      Runs operator scripts with Node's require available.
+    chosen: >-
+      require is unresolved in the script isolate, and the editor says why
+      (design 28, script surface).
+    reason: >-
+      require reaches the filesystem, the network and the host process outside
+      every budget and grant a script runs under.

@@ -1,0 +1,9 @@
+{
+  "id": "trojan-ws-early-data",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "WebSocket path carrying ?ed=2048."
+}

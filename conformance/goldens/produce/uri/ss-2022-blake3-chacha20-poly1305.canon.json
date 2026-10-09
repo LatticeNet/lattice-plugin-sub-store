@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "JP-sy7syv-03",
+    "host": "kgf-31.izo8.example.net",
+    "path": "",
+    "port": "15880",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-chacha20-poly1305:+jOgDBeQ5Bp3OanWNRsdieSnYRXEml1Cb9rbJMxyBtM="
+  }
+]

@@ -1,0 +1,1 @@
+AU-z6s-42=masque,zzx-38.bv5vfzm.example.org,443,username="ardyzxtg",password="roxpJPx7ZaqvKJ",sni="static.g7i4er3704.example.com"

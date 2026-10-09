@@ -1,0 +1,9 @@
+{
+  "id": "vless-fingerprints",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "fingerprint",
+  "description": "uTLS fingerprints firefox, safari, ios, random and randomized."
+}

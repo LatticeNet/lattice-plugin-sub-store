@@ -1,0 +1,16 @@
+[
+  {
+    "address": "rnh-12.ruiiz.example.net:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "www.adclk43nua.example.com",
+      "obfs-uri": "/nco4s",
+      "password": "6mUNbxAlL0UIUSWD",
+      "tag": "KR-lzb3o3-05",
+      "tls-host": "www.adclk43nua.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

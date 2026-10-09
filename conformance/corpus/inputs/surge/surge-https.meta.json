@@ -1,0 +1,8 @@
+{
+  "id": "surge-https",
+  "family": "surge",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Surge https with credentials, sni and skip-cert-verify."
+}

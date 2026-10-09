@@ -1,0 +1,19 @@
+[
+  {
+    "address": "2001:db8:7218:87a3::73e8:31656",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "e1aa4ec7-6130-4dae-ae96-2b8d7023de93",
+      "reality-base64-pubkey": "_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8",
+      "reality-hex-shortid": "a883a092",
+      "tag": "US-rjv6bu-47",
+      "tls-host": "static.snrh2o75bk.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

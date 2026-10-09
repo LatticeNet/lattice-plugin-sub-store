@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "encryption": "none",
+      "name": "GB-ay5a4-67",
+      "network": "quic",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "y0-02.s4aqxi.example.org",
+      "skip-cert-verify": false,
+      "tls": false,
+      "type": "vless",
+      "udp": true,
+      "uuid": "eea280a7-27f4-4a5e-84e2-04d68d560a7e"
+    }
+  ]
+}

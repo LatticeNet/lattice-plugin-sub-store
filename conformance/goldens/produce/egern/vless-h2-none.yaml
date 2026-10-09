@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"CA-o9nv99-23","server":"wg-36.g06hh9ti.example.com","port":443,"user_id":"cc632db6-522a-4d2c-99b1-aa927e014af4","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/q9oylycib3","headers":{"Host":"img.htdo7.example.net"},"skip_tls_verify":false}}}}

@@ -1,0 +1,34 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-jo2-78",
+      "type": "vmess",
+      "server": "fwt-04.rega.example.com",
+      "server_port": 443,
+      "uuid": "3d0bd30a-5e31-4d2b-bc4d-7237cdd12157",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.pep8i.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "api.pep8i.example.org"
+        },
+        "path": "/ntkx808b"
+      }
+    }
+  ],
+  "endpoints": []
+}

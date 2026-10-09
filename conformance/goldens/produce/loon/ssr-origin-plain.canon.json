@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "zk-35.ikvj4vc.example.org",
+      "43618",
+      "chacha20-ietf",
+      "fwXoeoq3yymb"
+    ],
+    "name": "HK-qt9-55",
+    "params": {
+      "obfs": "plain",
+      "protocol": "origin",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

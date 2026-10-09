@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-bandwidth-alpn",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "bandwidth",
+  "description": "upmbps, downmbps and alpn."
+}

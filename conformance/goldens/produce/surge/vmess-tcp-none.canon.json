@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "iz-29.quabe9.example.net",
+      "443"
+    ],
+    "name": "AU-b4sb-43",
+    "params": {
+      "tls": "false",
+      "username": "0f0e279d-0ca8-49f4-92c5-8739c23f766e",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

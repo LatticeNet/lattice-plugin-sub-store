@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ahe-13.bx4bjkbt.example.net",
+      "443"
+    ],
+    "name": "AU-d9j-96",
+    "params": {
+      "username": "ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"ahe-13.bx4bjkbt.example.net\"",
+      "ws-path": "/lo0adt/oqsutga"
+    },
+    "type": "vmess"
+  }
+]

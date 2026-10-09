@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ei-13.y2nd0g.example.org",
+      "443"
+    ],
+    "name": "TW-xk9-16",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "sni": "www.l24sjs8j.example.org",
+      "tls": "true",
+      "username": "d6179057-84a8-4647-9d34-691ebf2c8e7e",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

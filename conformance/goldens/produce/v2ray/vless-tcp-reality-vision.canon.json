@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "TW-ec92ia-02",
+    "host": "up-33.f1r92vu.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "dWg3dwQdO7WGR7_Rk6WrlyOis-kG9MVvy11W2Aq-HfE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "84d363f6"
+      ],
+      [
+        "sni",
+        "img.r79ll6b.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f962a5ea-3ad2-40f0-a529-276f283a8f65"
+  }
+]

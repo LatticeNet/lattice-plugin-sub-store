@@ -1,0 +1,8 @@
+{
+  "id": "vless-kcp-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "kcp",
+  "security": "reality",
+  "description": "VLESS share link over kcp with security reality."
+}

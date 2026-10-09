@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "KR-ujr-38",
+    "host": "cz-09.xjov.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.p9r88.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/sgsh"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.p9r88.example.net"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "4f4761e5-2f47-49f7-b8bf-227071e25c64"
+  }
+]

@@ -1,0 +1,1 @@
+anytls://bm91bewnfciiwnoMmrKb@xe-34.w3hx.example.net:443?security=tls&type=tcp&packetEncoding=xudp&alpn=h2&sni=img.l2m9nw.example.com&fp=chrome&packet_encoding=xudp&udp=1#SG-hqzi-96

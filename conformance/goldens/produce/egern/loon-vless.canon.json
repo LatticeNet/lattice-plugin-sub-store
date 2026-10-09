@@ -1,0 +1,39 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "GB-npq0ne-18",
+        "port": 443,
+        "server": "t66-10.q2w5m.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "www.zdx9yiirp.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "7d9e2f8a-0400-4958-a9a0-86c2c3d797df"
+      }
+    },
+    {
+      "vless": {
+        "name": "AU-j1fz-50",
+        "port": 443,
+        "server": "ihv-18.fxh80bt.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.cfdjp53j.example.com"
+            },
+            "path": "/cspqc9wvkw",
+            "sni": "static.cfdjp53j.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "283dfeac-72d9-457c-9499-faffee7e8706"
+      }
+    }
+  ]
+}

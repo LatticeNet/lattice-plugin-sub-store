@@ -1,0 +1,20 @@
+[
+  {
+    "address": "ok-34.w6xwil.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "http",
+      "obfs-host": "img.rsvilob.example.com",
+      "obfs-uri": "/jg4g",
+      "password": "000b0651-b029-4c70-8287-7e117f38cb56",
+      "tag": "JP-h6jaf0-06",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.rsvilob.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

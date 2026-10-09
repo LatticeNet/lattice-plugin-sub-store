@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "DE-x3tp2t-07",
+    "host": "yv-25.jf4k95.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "api.uz7n78n7b.example.net"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/t6wrj/n5s937uj"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.uz7n78n7b.example.net"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "aa84951d-631e-40be-bb55-696f6a5c5b07"
+  }
+]

@@ -1,0 +1,1 @@
+vless://d702451b-9c9f-4ca7-be10-aa5e190adc18@yqq-20.shuir5.example.net:443?encryption=none&security=none&type=tcp#KR-rx6-36

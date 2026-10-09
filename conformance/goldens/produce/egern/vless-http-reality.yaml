@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"AU-u352sz-68","server":"f9-26.kn67t.example.com","port":443,"user_id":"4cf50411-4a0f-47e3-870b-c969f988326b","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/ep03","headers":{"Host":"api.yqlu287lg0.example.net"},"sni":"api.yqlu287lg0.example.net","skip_tls_verify":false}}}}

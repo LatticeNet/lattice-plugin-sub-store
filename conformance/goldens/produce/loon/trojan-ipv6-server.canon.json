@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "2001:db8:9ef5:1c35::d99d",
+      "443",
+      "IOG2Yrjm3RD7ry51"
+    ],
+    "name": "US-x5x-75",
+    "params": {
+      "host": "api.z12lb15.example.net",
+      "path": "/hxz/otea8c",
+      "tls-name": "api.z12lb15.example.net",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

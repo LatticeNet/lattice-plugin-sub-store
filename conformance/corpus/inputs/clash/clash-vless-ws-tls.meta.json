@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-ws-tls",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "description": "mihomo vless proxy over ws with security tls."
+}

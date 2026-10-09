@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "y44-25.upfmkoug.example.org",
+      "51507",
+      "chacha20-ietf",
+      "TcoqEFXQqroN"
+    ],
+    "name": "GB-k5on8-01",
+    "params": {
+      "obfs": "http_simple",
+      "obfs-param": "cdn.tdzus3.example.org",
+      "protocol": "auth_aes128_md5",
+      "protocol-param": "6455:ru4fAyUG",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

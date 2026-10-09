@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "KR-swmn6t-78",
+        "password": "20ZIpGsmexUW",
+        "port": 1080,
+        "server": "br9-22.im7ld.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "otr1u"
+      }
+    },
+    {
+      "socks5_tls": {
+        "name": "NL-xy1-70",
+        "password": "GlUpvenmjZCs",
+        "port": 443,
+        "server": "fsg-07.hr6g.example.com",
+        "skip_tls_verify": true,
+        "sni": "fsg-07.hr6g.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "piozqbgr"
+      }
+    }
+  ]
+}

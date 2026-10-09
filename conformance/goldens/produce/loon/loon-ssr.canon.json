@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "tho-35.kq7ylba.example.org",
+      "42879",
+      "chacha20-ietf",
+      "y8VYhN7CYhd6"
+    ],
+    "name": "FR-hyp1xj-35",
+    "params": {
+      "obfs": "http_simple",
+      "obfs-param": "static.z29d1.example.net",
+      "protocol": "auth_aes128_md5",
+      "protocol-param": "403:zeSAwq",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

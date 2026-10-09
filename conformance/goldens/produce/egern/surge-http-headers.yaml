@@ -1,0 +1,2 @@
+proxies:
+  - {"http":{"name":"GB-kgzien-25","server":"ml-07.u7hv109.example.net","port":8080,"username":"po05d","password":"H4oijwVP8mye","headers":{"X-Client":"gss2r"},"tfo":false}}

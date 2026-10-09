@@ -1,0 +1,70 @@
+[
+  {
+    "address": "z91-16.s91x2fd.example.net:16334",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "http",
+      "obfs-host": "cdn.hp815.example.net",
+      "obfs-uri": "/uqrnmcek",
+      "password": "Uks1P5PqASwY6q",
+      "tag": "SG-qwr-38",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "nfx-29.succ.example.net:42929",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "tls",
+      "obfs-host": "img.tiqhalr80.example.com",
+      "password": "E6LyHSGUyZtgMP",
+      "tag": "TW-v5vws1-72",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "qi5-25.efnvp.example.org:36610",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "ws",
+      "obfs-host": "cdn.qw5vkkko.example.com",
+      "obfs-uri": "/r4g5l",
+      "password": "9ncr9Hw6RY7GCb",
+      "tag": "HK-dh5m8-89",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "ts-14.e6uxw.example.net:53935",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "img.f8ttbbe.example.net",
+      "obfs-uri": "/syu/jw08g57qe",
+      "password": "BDhjpjvfP0r9Nn",
+      "tag": "NL-qajnh-75",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "wp-40.zeo8.example.com:54763",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "over-tls",
+      "obfs-host": "cdn.n5d092.example.com",
+      "password": "OVYyj0T6S9qdEV",
+      "tag": "KR-zrj4a-79",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

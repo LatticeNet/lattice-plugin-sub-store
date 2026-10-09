@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"NL-k3j6-95","server":"fg-21.w02y.example.com","port":443,"password":"NVBxPabyTYwXnC8nXizj","tfo":false,"udp_relay":true,"sni":"www.ppj9s1u06.example.org"}}

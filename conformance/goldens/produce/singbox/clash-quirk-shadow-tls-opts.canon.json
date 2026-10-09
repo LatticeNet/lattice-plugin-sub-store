@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "WhdU9BwFJtPtUMRX",
+      "server": "lm-06.k25j9.example.org",
+      "server_port": 443,
+      "tag": "HK-lb5-55",
+      "type": "shadowsocks"
+    }
+  ]
+}

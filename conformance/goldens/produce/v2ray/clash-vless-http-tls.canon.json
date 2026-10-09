@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "FR-fay-77",
+    "host": "e56-01.seeo45qf.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "host",
+        "cdn.udpgihfrvr.example.net"
+      ],
+      [
+        "method",
+        "GET"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/jcn0"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.udpgihfrvr.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "6ca1dced-5ed7-4a6b-8dc7-ed9720264442"
+  }
+]

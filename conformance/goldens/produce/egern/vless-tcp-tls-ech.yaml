@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"GB-t9p-56","server":"uk-05.zeqc.example.net","port":443,"user_id":"1e63755b-a4fb-486a-9bf1-cfe455701da5","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.ycqp18r6p5.example.com","skip_tls_verify":false}}}}

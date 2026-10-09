@@ -1,0 +1,9 @@
+{
+  "id": "trojan-default-port",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "missing-port",
+  "description": "No port in the authority; the default is 443."
+}

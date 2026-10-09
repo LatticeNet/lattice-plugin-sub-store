@@ -1,0 +1,8 @@
+{
+  "id": "loon-vless",
+  "family": "loon",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Loon VLESS over TLS and over ws with TLS."
+}

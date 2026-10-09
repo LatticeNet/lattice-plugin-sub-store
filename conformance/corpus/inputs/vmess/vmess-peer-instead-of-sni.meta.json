@@ -1,0 +1,9 @@
+{
+  "id": "vmess-peer-instead-of-sni",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "peer-sni",
+  "description": "The server name given as peer instead of sni."
+}

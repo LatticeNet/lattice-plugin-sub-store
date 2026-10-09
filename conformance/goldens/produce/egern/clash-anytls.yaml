@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"KR-w7e-46","server":"hac-37.k2fe.example.com","port":443,"password":"CD4xeu8GaEFg9Uc7b2yO","tfo":false,"udp_relay":true,"sni":"static.ggzzb0.example.net","skip_tls_verify":false}}

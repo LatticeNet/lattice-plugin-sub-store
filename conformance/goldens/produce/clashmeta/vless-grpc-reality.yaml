@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","encryption":"none","grpc-opts":{"grpc-service-name":"sibyc6-bowmb1"},"name":"KR-vmn6-08","network":"grpc","packet-encoding":"xudp","port":443,"reality-opts":{"_spider-x":"/","public-key":"SatSks34KwPD6RbqZHLLXtOFBk-N3BHQqqcfq57fSkQ","short-id":"34dd5478"},"server":"hjk-11.n8bcfl8.example.org","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"0d0a9e5e-ac8d-4fb3-9f5a-68f67d221d0e","servername":"img.l7xuf8e.example.com"}

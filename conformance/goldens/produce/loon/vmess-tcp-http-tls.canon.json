@@ -1,0 +1,23 @@
+[
+  {
+    "args": [
+      "dj9-28.i9kdhan.example.com",
+      "443",
+      "auto",
+      "2a2633f6-bffd-41e2-a5ed-a6e930144137"
+    ],
+    "name": "NL-q8q-98",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "img.zvk38q37.example.org",
+      "over-tls": "true",
+      "path": "/abv4ag6",
+      "tls-name": "img.zvk38q37.example.org",
+      "tls-profile": "chrome",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

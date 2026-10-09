@@ -1,0 +1,1 @@
+CA-nay-24=vmess,2001:db8:857e:9d0b::5799,443,username=647ab532-add4-42dc-a365-5b4707a42f62,vmess-aead=true,tls=false

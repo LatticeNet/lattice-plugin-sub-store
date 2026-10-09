@@ -1,0 +1,105 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "xyx-01.ammpch9.example.org",
+      "server_port": 443,
+      "tag": "CA-x9xd-31",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "d72UKWR1rncBFephOj5lb_YPg4o3bPcdMJ8FP4TZcc4",
+          "short_id": "4576d427"
+        },
+        "server_name": "img.ce5g0wumm.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "21b34891-34f8-4bf7-a608-7ee9baabbb61"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "mt-36.svugfc.example.org",
+      "server_port": 443,
+      "tag": "AU-imjl-84",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.i5t74l2.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "www.i5t74l2.example.org"
+        },
+        "path": "/rpzh",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "6928eda3-0db2-4f7d-b34c-65a85724a2ee"
+    },
+    {
+      "password": "TJWOZ2tKI2Tk6oSU",
+      "server": "a7d-05.usdw.example.net",
+      "server_port": 443,
+      "tag": "CA-x9xd-31",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.rly9hq.example.org"
+      },
+      "type": "trojan"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "mLHEkenbf7A3gl",
+      "server": "kiz-01.a7xeu.example.org",
+      "server_port": 20121,
+      "tag": "CA-x9xd-31",
+      "type": "shadowsocks"
+    },
+    {
+      "password": "5WrFCAlw6tPiRzbAxHBN",
+      "server": "s7-18.e36fp22h.example.com",
+      "server_port": 443,
+      "tag": "CA-x9xd-31",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.cepwu5q.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "W8FlBwmBhA0WLADf",
+      "server": "mra-04.q98lu.example.com",
+      "server_port": 443,
+      "tag": "CA-x9xd-31",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.zuvypgkl0.example.net"
+      },
+      "type": "tuic",
+      "uuid": "358003a2-c13c-44ef-a1d0-3f45a34d2ef0"
+    }
+  ]
+}

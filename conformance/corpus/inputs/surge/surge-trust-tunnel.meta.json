@@ -1,0 +1,8 @@
+{
+  "id": "surge-trust-tunnel",
+  "family": "surge",
+  "protocol": "trusttunnel",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Surge trust-tunnel with credentials, h3 and max-streams."
+}

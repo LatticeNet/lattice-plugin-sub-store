@@ -1,0 +1,16 @@
+[
+  {
+    "address": "2001:db8:9ef5:1c35::d99d:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "api.z12lb15.example.net",
+      "obfs-uri": "/hxz/otea8c",
+      "password": "IOG2Yrjm3RD7ry51",
+      "tag": "US-x5x-75",
+      "tls-host": "api.z12lb15.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

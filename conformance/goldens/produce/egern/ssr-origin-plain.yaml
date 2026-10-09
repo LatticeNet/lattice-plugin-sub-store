@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"HK-qt9-55","method":"chacha20-ietf","server":"zk-35.ikvj4vc.example.org","port":43618,"password":"fwXoeoq3yymb","protocol":"origin","obfs":"plain","tfo":false,"udp_relay":true}}

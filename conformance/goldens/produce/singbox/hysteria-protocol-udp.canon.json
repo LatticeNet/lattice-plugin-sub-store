@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "B0p2seRMFqhxgu3r",
+      "disable_mtu_discovery": false,
+      "down_mbps": 100,
+      "server": "n5-29.y3tl5c83.example.org",
+      "server_port": 55302,
+      "tag": "JP-p1syvh-64",
+      "tls": {
+        "alpn": [
+          "hysteria"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.xenfvo9gum.example.net"
+      },
+      "type": "hysteria",
+      "up_mbps": 30
+    }
+  ]
+}

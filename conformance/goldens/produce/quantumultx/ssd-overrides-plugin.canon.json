@@ -1,0 +1,27 @@
+[
+  {
+    "address": "h3a-14.by3uil1v.example.net:13435",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "password": "saTix03A7LqJTt",
+      "tag": "US-bzxjjw-87",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "p3-32.s32r.example.net:13435",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "obfs": "ws",
+      "obfs-host": "cdn.zhjtr2ihal.example.org",
+      "obfs-uri": "/gbzl/zzmxhj",
+      "password": "saTix03A7LqJTt",
+      "tag": "HK-l2c9-96",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

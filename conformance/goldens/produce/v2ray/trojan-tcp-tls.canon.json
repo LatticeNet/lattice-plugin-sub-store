@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "TW-h11zpi-21",
+    "host": "hh-01.imfbim.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "sni",
+        "static.xxh5n1ybva.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "HwLmYAma9EMkZ8Q5"
+  }
+]

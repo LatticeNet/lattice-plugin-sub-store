@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "ssh": {
+        "name": "FR-yvf3td-84",
+        "password": "8qQpen8qOJ4Ubo",
+        "port": 22,
+        "server": "qo-38.xh0qf6.example.net",
+        "tfo": false,
+        "username": "yok0o71f"
+      }
+    },
+    {
+      "ssh": {
+        "name": "FR-uoc-38",
+        "port": 2222,
+        "server": "udx-39.glat.example.net",
+        "tfo": false,
+        "username": "tgh9b0vd"
+      }
+    }
+  ]
+}

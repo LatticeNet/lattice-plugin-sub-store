@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "05eDffSebg6pvqS7baU1",
+      "server": "rmq-28.tr5vrx1y.example.net",
+      "server_port": 443,
+      "tag": "CA-nixq-24",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.sgclf.example.net"
+      },
+      "type": "anytls"
+    }
+  ]
+}

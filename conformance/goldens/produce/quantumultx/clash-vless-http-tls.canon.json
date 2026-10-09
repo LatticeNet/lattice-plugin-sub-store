@@ -1,0 +1,19 @@
+[
+  {
+    "address": "e56-01.seeo45qf.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "http",
+      "obfs-host": "cdn.udpgihfrvr.example.net",
+      "obfs-uri": "/jcn0",
+      "password": "6ca1dced-5ed7-4a6b-8dc7-ed9720264442",
+      "tag": "FR-fay-77",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "cdn.udpgihfrvr.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

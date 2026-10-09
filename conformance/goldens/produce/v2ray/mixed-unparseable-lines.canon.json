@@ -1,0 +1,34 @@
+[
+  {
+    "fragment": "US-hr20o-56",
+    "host": "p6-38.lmtzlp.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.rvmzabz4i3.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "LUeLHNE8d1oy9IvJ"
+  },
+  {
+    "fragment": "FR-k6lz-15",
+    "host": "gp-09.lnzh34h.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.jfk8scmbz.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Ed6W7Z5cNQiUnoxukCwd"
+  }
+]

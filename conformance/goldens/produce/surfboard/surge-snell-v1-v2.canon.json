@@ -1,0 +1,39 @@
+[
+  {
+    "args": [
+      "lo-09.pupzz.example.org",
+      "41631"
+    ],
+    "name": "TW-s3d7ct-14",
+    "params": {
+      "psk": "WEL8Tz35Xhk4ci7EMfOz",
+      "version": "1"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "z6n-05.wlea.example.org",
+      "44320"
+    ],
+    "name": "US-ltp-81",
+    "params": {
+      "obfs": "tls",
+      "obfs-host": "www.e4iyt7.example.com",
+      "psk": "eWLnfe6pLNLmW1AXnyON",
+      "version": "2"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "qhy-35.c5qlq6n7.example.com",
+      "53271"
+    ],
+    "name": "GB-f2i-83",
+    "params": {
+      "psk": "klNi1Sarnw5ldI7JXdBy"
+    },
+    "type": "snell"
+  }
+]

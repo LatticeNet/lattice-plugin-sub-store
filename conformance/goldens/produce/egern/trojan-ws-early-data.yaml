@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"KR-lzb3o3-05","server":"rnh-12.ruiiz.example.net","port":443,"password":"6mUNbxAlL0UIUSWD","tfo":false,"udp_relay":true,"sni":"www.adclk43nua.example.com","websocket":{"path":"/nco4s","host":"www.adclk43nua.example.com"}}}

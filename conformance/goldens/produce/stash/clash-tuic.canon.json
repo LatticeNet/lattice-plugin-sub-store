@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "bbr",
+      "name": "DE-ef8y-71",
+      "password": "wwW951G3pYb2fO4d",
+      "port": 443,
+      "reduce-rtt": true,
+      "server": "yk-27.undo.example.com",
+      "sni": "cdn.ji7v4na.example.com",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "c10f0629-f89a-499a-9e8a-d9c96a95a37b",
+      "version": 5
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "disable-sni": true,
+      "name": "AU-odqqw-88",
+      "port": 443,
+      "server": "p4-04.g0lla3tp.example.net",
+      "skip-cert-verify": true,
+      "sni": "p4-04.g0lla3tp.example.net",
+      "token": "1CDBTBx4csOjzwyAnuz7mS34",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native"
+    }
+  ]
+}

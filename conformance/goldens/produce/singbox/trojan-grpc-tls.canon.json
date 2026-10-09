@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "at4jdVnJQ4yIlNJJ",
+      "server": "hul-38.huj9c209.example.com",
+      "server_port": 443,
+      "tag": "TW-ucn-36",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.go13h8jb1.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "service_name": "nbzlyxga-snff",
+        "type": "grpc"
+      },
+      "type": "trojan"
+    }
+  ]
+}

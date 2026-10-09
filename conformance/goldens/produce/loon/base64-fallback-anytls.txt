@@ -1,0 +1,2 @@
+AU-htj-64=anytls,qrg-20.nc9x.example.net,443,"PJLn2tDSGfWvqS3p7dv0",skip-cert-verify=false,tls-name=api.abdoopble.example.com,udp=true
+FR-mnt-40=anytls,s1-33.kogex.example.org,443,"zD32rCAiPcky6yiH8eWx",skip-cert-verify=false,tls-name=api.m123qkb.example.org,udp=true

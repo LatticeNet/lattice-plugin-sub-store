@@ -1,0 +1,9 @@
+{
+  "id": "qx-ss-obfs",
+  "family": "qx",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "obfs",
+  "description": "Quantumult X shadowsocks with obfs http, tls, ws, wss and over-tls."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-udp-over-tcp-smux",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "uot",
+  "description": "Shadowsocks with udp-over-tcp version 2 and smux."
+}

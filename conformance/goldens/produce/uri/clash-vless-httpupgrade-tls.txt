@@ -1,0 +1,1 @@
+vless://44c2f502-2dbf-4a6f-9efb-f6e6f1aefa5e@o2r-22.xgob3bx.example.org:443?security=tls&type=httpupgrade&path=%2Fixrpq%2Fcdvs3gu&host=cdn.jwrx2pim.example.com&packetEncoding=none&alpn=h2%2Chttp%2F1.1&sni=cdn.jwrx2pim.example.com&fp=chrome#NL-nghiu-94

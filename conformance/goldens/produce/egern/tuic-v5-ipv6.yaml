@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"AU-dshc6-86","server":"2001:db8:5dea:9676::65f4","port":443,"uuid":"3d6086b8-489d-4975-955a-5055bdc30044","password":"GMbMPBfBRzCF7krc","sni":"static.vz9cc.example.org","alpn":["h3"]}}

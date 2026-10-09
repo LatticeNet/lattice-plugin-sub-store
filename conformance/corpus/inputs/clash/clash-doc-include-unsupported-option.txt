@@ -1,0 +1,22 @@
+proxies:
+  - name: HK-mnfi9-26
+    type: ssr
+    server: kd-06.gvlm.example.org
+    port: 57200
+    cipher: aes-256-cfb
+    password: 37RbHUfiK5qZ
+    obfs: plain
+    protocol: origin
+  - name: GB-q3yeq-20
+    type: snell
+    server: l25-15.zi0q.example.org
+    port: 49422
+    psk: zf23H7WXJyCHIlhxKR0H
+    version: 4
+  - name: DE-kfu-53
+    type: mieru
+    server: tu-19.q21z.example.com
+    port-range: 47589-47598
+    transport: TCP
+    username: pw6q
+    password: Vc8VGELnQhHaOc

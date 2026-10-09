@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "name": "KR-rullb-08",
+      "obfs-opts": {
+        "host": "www.d58ryzg9.example.com",
+        "mode": "http"
+      },
+      "port": 25555,
+      "psk": "0ocFveFWWxVDg2nSAhoU",
+      "server": "yrb-06.y9cklk21.example.org",
+      "type": "snell",
+      "udp": true,
+      "version": 3
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "yKKdrNLMv32PgMZuqlnp",
+      "server": "2001:db8:b10a:ac00::f036",
+      "server_port": 34005,
+      "tag": "NL-cme-57",
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "cdn.lct1cm2ewi.example.net"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

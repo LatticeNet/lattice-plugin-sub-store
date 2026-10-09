@@ -1,0 +1,9 @@
+{
+  "id": "trojan-minimal",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "minimal",
+  "description": "Only password, host and port."
+}

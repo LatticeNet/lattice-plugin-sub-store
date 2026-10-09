@@ -1,0 +1,45 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-gfdgyx-54",
+      "type": "shadowsocks",
+      "server": "c9v-36.klvhza.example.com",
+      "server_port": 49167,
+      "method": "aes-256-gcm",
+      "password": "SYi2MlRJoQxEu7"
+    },
+    {
+      "tag": "TW-ieag-11",
+      "type": "vless",
+      "server": "ov-39.vux11.example.com",
+      "server_port": 443,
+      "uuid": "34e6bf5e-6d00-4dbb-8dd8-7dc663c6d67b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.l7qmk.example.com",
+        "insecure": false
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "l00c-mswa"
+      }
+    },
+    {
+      "tag": "GB-bp8gu-20",
+      "type": "tuic",
+      "server": "zi-07.l48kavu.example.com",
+      "server_port": 443,
+      "uuid": "fefe567f-b553-4594-80a8-74addab027e8",
+      "password": "M6TyTbObXLPFClXw",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xogxm.example.com",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

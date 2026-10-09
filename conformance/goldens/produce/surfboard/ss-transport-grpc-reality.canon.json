@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "wf-33.flul.example.com",
+      "443"
+    ],
+    "name": "GB-o1e7f-30",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "Xi906cslDTMGQz",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

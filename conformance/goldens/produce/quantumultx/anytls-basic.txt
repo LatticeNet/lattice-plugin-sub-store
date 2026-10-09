@@ -1,0 +1,1 @@
+anytls=xe-34.w3hx.example.net:443,password=bm91bewnfciiwnoMmrKb,over-tls=true,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=img.l2m9nw.example.com,udp-relay=true,tag=SG-hqzi-96

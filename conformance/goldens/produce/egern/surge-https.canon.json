@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "https": {
+        "name": "HK-bdzvs-31",
+        "password": "qMhtBNRElE5A",
+        "port": 443,
+        "server": "bg-20.koifso.example.org",
+        "skip_tls_verify": false,
+        "sni": "img.bxln43ak.example.net",
+        "tfo": false,
+        "username": "xmmwh"
+      }
+    }
+  ]
+}

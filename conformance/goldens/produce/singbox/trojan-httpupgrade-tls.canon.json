@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "gtHUSMIELp7dg7Rc",
+      "server": "ymv-36.itmcte7r.example.net",
+      "server_port": 443,
+      "tag": "FR-fmqlb6-67",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.wsp2o90ur.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "img.wsp2o90ur.example.org",
+        "path": "/ej2huafk9t",
+        "type": "httpupgrade"
+      },
+      "type": "trojan"
+    }
+  ]
+}

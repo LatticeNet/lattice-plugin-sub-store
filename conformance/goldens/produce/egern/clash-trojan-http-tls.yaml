@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"TW-s2u-29","server":"gi-20.mgnzx.example.net","port":443,"password":"o28W1dYtBQkLXn8a","tfo":false,"udp_relay":true,"sni":"img.mid588eb.example.com","skip_tls_verify":false}}

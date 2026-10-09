@@ -1,0 +1,35 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "cx0ri7gyAdT1",
+      "server": "ia-17.raeya8.example.net",
+      "server_port": 8080,
+      "tag": "NL-i1l-37",
+      "type": "http",
+      "username": "dzpyhv6v"
+    },
+    {
+      "password": "1yxmCwBktXpQ",
+      "server": "sn-35.itha1zf.example.net",
+      "server_port": 443,
+      "tag": "HK-hlx5z-75",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.ktyuunm.example.com"
+      },
+      "type": "http",
+      "username": "jjbz6"
+    },
+    {
+      "headers": {
+        "X-Client": "elixl"
+      },
+      "server": "udw-03.gq5aqn1.example.com",
+      "server_port": 8080,
+      "tag": "HK-puvo-98",
+      "type": "http"
+    }
+  ]
+}

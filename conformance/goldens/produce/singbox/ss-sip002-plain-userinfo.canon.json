@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "chacha20-ietf-poly1305",
+      "password": "v9OkbPqqHAZGWPr1",
+      "server": "yp-02.if8lse.example.org",
+      "server_port": 28238,
+      "tag": "AU-qsa-88",
+      "type": "shadowsocks"
+    }
+  ]
+}

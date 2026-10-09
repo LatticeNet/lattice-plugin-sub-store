@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "AU-ntf7d-49",
+    "host": "kp4-08.zfwpxgh.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "www.po8u28n.example.com"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/qk59z/b8mr"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "84b19d3a-7625-45a1-a521-04705c110792"
+  }
+]

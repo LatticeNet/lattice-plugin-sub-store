@@ -1,0 +1,3 @@
+mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd=trojan,lg-07.xzui.example.net,443,password=tS12JGdEI3SMujA8,tls=true,sni="static.e4wxoq3ut.example.org",udp-relay=true
+jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo=trojan,w0q-19.g99tmx.example.org,443,password=9Ne0DCSG9uVx41KX,tls=true,sni="cdn.j1g6mm1mj.example.org",udp-relay=true
+yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw=trojan,xi-15.j388.example.net,443,password=o2C17624t0c1iv6f,tls=true,sni="api.tlceuktr.example.com",udp-relay=true

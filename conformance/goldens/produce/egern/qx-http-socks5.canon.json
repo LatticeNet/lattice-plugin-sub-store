@@ -1,0 +1,49 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "AU-rqk1jl-33",
+        "password": "dip7H3HbE83J",
+        "port": 8080,
+        "server": "bkk-13.p8c5c.example.net",
+        "tfo": false,
+        "username": "wqmmnxz2"
+      }
+    },
+    {
+      "https": {
+        "name": "US-fs5t-40",
+        "password": "r0BQxK7uTqqg",
+        "port": 443,
+        "server": "cam-37.l9ng5.example.org",
+        "sni": "img.xuix3v.example.org",
+        "tfo": false,
+        "username": "jeafxl"
+      }
+    },
+    {
+      "socks5": {
+        "name": "JP-yqa-41",
+        "password": "unNYLsz7kUcn",
+        "port": 1080,
+        "server": "aq-21.hay35e.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "r5ti"
+      }
+    },
+    {
+      "socks5_tls": {
+        "name": "NL-sxupx-61",
+        "password": "mIaq5AnyasPj",
+        "port": 443,
+        "server": "h49-27.o5n4rf.example.net",
+        "skip_tls_verify": true,
+        "sni": "h49-27.o5n4rf.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "bptpo"
+      }
+    }
+  ]
+}

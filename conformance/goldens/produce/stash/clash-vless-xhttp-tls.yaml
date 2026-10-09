@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","name":"JP-n0pf-17","network":"xhttp","port":443,"server":"ct-25.lvja6mh.example.com","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"5d254087-2029-445c-85ed-488c866a03de","xhttp-opts":{"host":"api.j2ev7yw.example.com","mode":"auto","path":"/v80xi1is9w"},"servername":"api.j2ev7yw.example.com"}

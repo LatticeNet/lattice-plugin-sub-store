@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-reality-vision",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "flow",
+  "description": "Reality over TCP with the xtls-rprx-vision flow, the common fleet shape."
+}

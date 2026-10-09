@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "US-g9oft-73",
+        "port": 443,
+        "server": "fy-15.rele.example.com",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "static.k844cgjqpc.example.org"
+            },
+            "path": "/mxba",
+            "skip_tls_verify": false
+          }
+        },
+        "udp_relay": true,
+        "user_id": "b71a594d-c0f7-4382-b55d-ffaaefacfc1f"
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "name": "FR-yvf3td-84",
+      "password": "8qQpen8qOJ4Ubo",
+      "port": 22,
+      "server": "qo-38.xh0qf6.example.net",
+      "type": "ssh",
+      "udp": true,
+      "username": "yok0o71f"
+    },
+    {
+      "idle-timeout": 180,
+      "keystore-private-key": "nxwhcm",
+      "name": "FR-uoc-38",
+      "port": 2222,
+      "server": "udx-39.glat.example.net",
+      "server-fingerprint": "ssh-ed25519 Q8+WTH3rg7Xlf5am12m0d+44vNtsY8D+yvsPgt+aSMU=",
+      "type": "ssh",
+      "udp": true,
+      "username": "tgh9b0vd"
+    }
+  ]
+}

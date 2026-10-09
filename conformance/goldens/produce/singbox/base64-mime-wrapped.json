@@ -1,0 +1,105 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-rdp8gd-72",
+      "type": "vless",
+      "server": "ip-34.ktwatttj.example.org",
+      "server_port": 443,
+      "uuid": "57c1458d-73c3-4e95-9c04-2670f53dbac0",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.c9y35bt5.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Jwdpp-Z2G7NTZD3sY9HvijP5esLDr7gXgKPgZnFBouQ",
+          "short_id": "a40cc7aa"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "CA-nzkp5h-77",
+      "type": "vmess",
+      "server": "c9-14.btap.example.org",
+      "server_port": 443,
+      "uuid": "402a4bf1-5660-46c2-8e1e-7c6df31b087e",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.gckl0.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "api.gckl0.example.net"
+        },
+        "path": "/kd8m/lfzp6iw"
+      }
+    },
+    {
+      "tag": "KR-nru02r-03",
+      "type": "trojan",
+      "server": "d6b-40.a7xz.example.org",
+      "server_port": 443,
+      "password": "Zu79DKkx19GwylRt",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.f7e3g.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "US-p3pswm-02",
+      "type": "shadowsocks",
+      "server": "fe-04.w3s679.example.org",
+      "server_port": 21549,
+      "method": "aes-128-gcm",
+      "password": "7zijyYWmgqxRf9"
+    },
+    {
+      "tag": "FR-umn-23",
+      "type": "hysteria2",
+      "server": "en4-40.azvex2l.example.com",
+      "server_port": 443,
+      "password": "Q1q3ulUEQQHs6JO0vnb4",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.tq1ir0bnw1.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "FR-xem9-01",
+      "type": "tuic",
+      "server": "ba-35.w8mcl.example.org",
+      "server_port": 443,
+      "uuid": "76301c12-d394-44b9-816e-108885652251",
+      "password": "Ls72fnKC7SbDjxHL",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.lywm5oq1k5.example.com",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

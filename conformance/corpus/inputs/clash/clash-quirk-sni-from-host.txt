@@ -1,0 +1,19 @@
+proxies:
+  - name: AU-tfsez1-75
+    type: vmess
+    server: bee-29.xqbpipu.example.com
+    port: 443
+    uuid: 848a9969-7aa2-456b-9da9-69e9f413df30
+    alterId: 0
+    cipher: auto
+    tls: true
+    network: ws
+    ws-opts:
+      path: /hdm/xo87z7i
+      headers:
+        Host: www.v9p5uc3.example.net
+  - name: DE-pbrw-08
+    type: trojan
+    server: xey-25.ohekj.example.net
+    port: 443
+    password: 50gcH1IrTZeRtSHn

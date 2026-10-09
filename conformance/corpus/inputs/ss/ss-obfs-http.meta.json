@@ -1,0 +1,9 @@
+{
+  "id": "ss-obfs-http",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "plugin-obfs",
+  "description": "obfs-local plugin in http mode."
+}

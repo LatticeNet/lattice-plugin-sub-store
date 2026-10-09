@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "j4-13.xm3tt.example.org",
+      "443"
+    ],
+    "name": "NL-m714hc-32",
+    "params": {
+      "password": "rvM8Z05R12RcqZmZCiEk",
+      "skip-cert-verify": "false",
+      "sni": "static.s3f3pn.example.com",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

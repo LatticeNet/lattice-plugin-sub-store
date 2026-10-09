@@ -1,0 +1,10 @@
+[
+  {
+    "name": "AU-ar8sl-78",
+    "port": 1080,
+    "server": "203.0.113.215",
+    "tls": false,
+    "type": "socks5",
+    "udp": true
+  }
+]

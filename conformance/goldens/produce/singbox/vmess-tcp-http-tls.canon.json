@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "dj9-28.i9kdhan.example.com",
+      "server_port": 443,
+      "tag": "NL-q8q-98",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.zvk38q37.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "img.zvk38q37.example.org",
+        "path": "/abv4ag6",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "2a2633f6-bffd-41e2-a5ed-a6e930144137"
+    }
+  ]
+}

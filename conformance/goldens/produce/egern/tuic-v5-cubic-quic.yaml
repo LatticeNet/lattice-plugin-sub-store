@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"TW-hstpqi-80","server":"tz-12.a1opi5.example.com","port":443,"uuid":"3007e77b-5b38-41a6-aaf1-fe9710eb4bfe","password":"1UjuEMWE7CI63SWK","sni":"www.b7u4wwuv.example.net","alpn":["h3","spdy/3.1"]}}

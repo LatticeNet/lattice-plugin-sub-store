@@ -1,0 +1,31 @@
+proxies:
+  - name: FR-u1vt2-98
+    type: wireguard
+    server: jk8-30.wwys8.example.org
+    port: 51820
+    ip: 10.7.0.2
+    ipv6: "fd00:7::2"
+    private-key: X+7OWT+4zUaz8qCSCwSm03qXD+byM3usEXizq5PY+RM=
+    public-key: 2INb8aTAxDnTjtFZPu1cHNrvLO9oMJ7yXr6nlSPpn1g=
+    pre-shared-key: ea/6CsMprZpjtZJtXBDnVhPr8TFtbhkNagB1RlNAKAA=
+    reserved:
+      - 1
+      - 2
+      - 3
+    mtu: 1280
+    udp: true
+    dns:
+      - 198.51.100.214
+  - name: JP-fgs-23
+    type: wireguard
+    ip: 10.8.0.2/32
+    private-key: MiN3ngGoB5Yphs1O1Xcwi2Ni65eG6yghKgih2eZPpms=
+    udp: true
+    peers:
+      - server: b8-07.e8swull7.example.com
+        port: 51820
+        public-key: KR/ejpZYFvqFRq35KKA4a79z49vKYPGUuf0xLEbxY90=
+        allowed-ips:
+          - 0.0.0.0/0
+          - "::/0"
+        reserved: AQID

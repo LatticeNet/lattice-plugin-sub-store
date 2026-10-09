@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "ph-34.o6gn73.example.com",
+      "443",
+      "863a99be-ece7-45f2-9427-07e17260efff"
+    ],
+    "name": "TW-gnwt-57",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "qDEIceLEQu1q-ypu1Nijlugg5cotRlnsq51eew1Au4k",
+      "short-id": "49afd48f",
+      "sni": "img.wzdewu.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "g5m-18.wbotb3.example.org",
+      "443",
+      "ENVVXv1clnMHgRJZZKpC"
+    ],
+    "name": "US-uglcc6-99",
+    "params": {
+      "tls-name": "api.vfuu7.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

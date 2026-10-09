@@ -1,0 +1,1 @@
+KR-z6tb1-68=vmess,sz-12.bfsv3i.example.org,443,auto,"89ea35b3-b815-4c28-811f-5a628bf1fc26",transport=ws,path=/adww/ksgu1id9v,host=api.h8w3p.example.net,over-tls=true,tls-name=api.h8w3p.example.net,alterId=0,udp=true

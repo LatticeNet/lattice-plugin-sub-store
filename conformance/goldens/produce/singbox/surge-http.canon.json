@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "vb-17.e188i878.example.net",
+      "server_port": 8080,
+      "tag": "NL-nkzbk-02",
+      "type": "http"
+    },
+    {
+      "password": "kTH9PbaXBZbB",
+      "server": "g2c-07.eklb.example.com",
+      "server_port": 8080,
+      "tag": "DE-epqj-42",
+      "type": "http",
+      "username": "ytqroxb5"
+    },
+    {
+      "password": "CNhUZkFflnfQ",
+      "server": "bpv-02.oqml6c.example.org",
+      "server_port": 8080,
+      "tag": "FR-ikt0-49",
+      "type": "http",
+      "username": "e0bqj"
+    }
+  ]
+}

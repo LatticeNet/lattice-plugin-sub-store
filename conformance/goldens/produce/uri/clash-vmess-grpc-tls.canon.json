@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "gtx-40.blera0o.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "fd4efde6-4152-4d96-9d0f-70c45c2d67f2",
+      "net": "grpc",
+      "path": "z9r672v-vjih0c",
+      "port": "443",
+      "ps": "US-gv8d-49",
+      "scy": "auto",
+      "sni": "www.jrmm477.example.net",
+      "tls": "tls",
+      "type": "gun",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

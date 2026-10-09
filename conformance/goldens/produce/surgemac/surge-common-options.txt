@@ -1,0 +1,1 @@
+CA-e44-62=ss,is-28.lree.example.org,26241,encrypt-method=aes-128-gcm,password="rfrwJIQ8mprzJQ",ip-version=v4-only,no-error-alert=true,udp-relay=true,test-url=http://jdd-34.qdzs7.example.com/generate_204,test-timeout=5,hybrid=true,tos=32,interface=en0,block-quic=on,underlying-proxy=NL-o63-22

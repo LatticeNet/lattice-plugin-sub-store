@@ -1,0 +1,30 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-ujr-38",
+      "type": "vless",
+      "server": "cz-09.xjov.example.org",
+      "server_port": 443,
+      "uuid": "4f4761e5-2f47-49f7-b8bf-227071e25c64",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.p9r88.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "http",
+        "path": "/sgsh",
+        "host": "static.p9r88.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

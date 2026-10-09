@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "US-h3egcw-98",
+        "password": "gZGLLzkPlbpxp6zT",
+        "port": 36615,
+        "server": "198.51.100.201",
+        "skip_tls_verify": true,
+        "sni": "198.51.100.201",
+        "uuid": "9eea581b-e095-479e-8335-2600857e8c62"
+      }
+    }
+  ]
+}

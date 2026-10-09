@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "vjSyAI79qfTnU7US",
+      "server": "wjy-10.xmkx49.example.net",
+      "server_port": 443,
+      "tag": "NL-qqlje-16",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.v11wq.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "service_name": "dekrcdp-vg6",
+        "type": "grpc"
+      },
+      "type": "trojan"
+    }
+  ]
+}

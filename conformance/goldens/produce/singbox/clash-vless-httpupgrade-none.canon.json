@@ -1,0 +1,18 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "hfq-19.u6i36eha.example.net",
+      "server_port": 443,
+      "tag": "DE-dg9tvk-01",
+      "transport": {
+        "headers": {},
+        "host": "cdn.s01l5.example.org",
+        "path": "/v5qagp/z3gz2a1e8n",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "a5108bdd-c159-4487-baae-1538bff2c110"
+    }
+  ]
+}

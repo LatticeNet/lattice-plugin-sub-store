@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "d0a-18.ni6i58o.example.org",
+      "443",
+      "auto",
+      "d53cd4f4-5993-4fa8-a317-695738807b21"
+    ],
+    "name": "AU-ivcx2g-23",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

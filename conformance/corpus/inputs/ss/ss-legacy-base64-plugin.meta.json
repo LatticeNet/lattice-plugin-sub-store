@@ -1,0 +1,10 @@
+{
+  "id": "ss-legacy-base64-plugin",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "legacy-base64-query",
+  "description": "Legacy Base64 form followed by a plugin query.",
+  "oracle_dependency": "node-base64"
+}

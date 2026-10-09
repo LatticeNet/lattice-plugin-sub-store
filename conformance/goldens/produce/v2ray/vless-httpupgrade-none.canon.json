@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "AU-aqal8-16",
+    "host": "er-04.nu4t4.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "cdn.p4mxqa.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/hpj/fschyhgoe"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "715d99f4-1696-4d44-bcc8-bc885b0e1d2f"
+  }
+]

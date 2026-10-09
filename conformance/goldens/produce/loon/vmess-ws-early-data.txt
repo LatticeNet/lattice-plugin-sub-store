@@ -1,0 +1,1 @@
+TW-mc3w0h-48=vmess,fj-09.fcx8god.example.org,443,auto,"3cf24b8e-2838-480e-ad27-03657ab28a13",transport=ws,path=/zx2t,host=api.ubxoa09ik.example.com,over-tls=true,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.ubxoa09ik.example.com,alterId=0,udp=true

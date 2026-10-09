@@ -1,0 +1,1 @@
+AU-zxd838-69=Hysteria2,mo-07.m625b9u.example.org,443,"ushjygm7:KVGUTh8yVTWIts5R",tls-name=static.sskdxnvab.example.org,skip-cert-verify=false,fast-open=false,udp=true

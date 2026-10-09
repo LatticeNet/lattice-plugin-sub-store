@@ -1,0 +1,1 @@
+trojan=p6-38.lmtzlp.example.org:443,password=LUeLHNE8d1oy9IvJ,over-tls=true,tls-host=static.rvmzabz4i3.example.net,udp-relay=true,tag=US-hr20o-56

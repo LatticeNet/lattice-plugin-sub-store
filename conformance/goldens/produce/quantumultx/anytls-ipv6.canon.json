@@ -1,0 +1,15 @@
+[
+  {
+    "address": "2001:db8:f051:f0e2::9775:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "aTLmH8rMvhzmoueREcQg",
+      "tag": "AU-em7j3s-83",
+      "tls-host": "www.feai4.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "cipher": "aes-256-gcm",
+    "name": "NL-n85w-12",
+    "password": "5Xg4MTWmye3ZHg",
+    "port": 56250,
+    "server": "hgy-04.ex8w2.example.com",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "name": "FR-yyawg3-72",
+    "network": "ws",
+    "port": 443,
+    "server": "sy-18.wxdgdec.example.net",
+    "sni": "www.w1foqxru.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "f000938c-5920-49b5-a1b5-1e16f536a34e",
+    "ws-opts": {
+      "headers": {
+        "Host": "static.l2taga7cax.example.net"
+      },
+      "path": "/v4pf3aroc"
+    }
+  },
+  {
+    "name": "SG-ep46mu-72",
+    "password": "Qw2OTIIkmqLDYdIFQUfL",
+    "port": 443,
+    "server": "sjt-07.jd6i.example.org",
+    "sni": "www.b4d9c.example.org",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

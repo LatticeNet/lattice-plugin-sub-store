@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "DE-eec9l-77",
+        "port": 443,
+        "security": "auto",
+        "server": "zs-01.d96h4u7.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "img.cqi5al.example.net"
+            },
+            "path": "/jhixtf/jbwudryxb",
+            "skip_tls_verify": false,
+            "sni": "cdn.cn3k79.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "987a2697-2d80-4245-aab3-42a2e6ac081c"
+      }
+    }
+  ]
+}

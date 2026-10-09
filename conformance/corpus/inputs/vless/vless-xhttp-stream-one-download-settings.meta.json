@@ -1,0 +1,9 @@
+{
+  "id": "vless-xhttp-stream-one-download-settings",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-stream-one-download",
+  "description": "XHTTP stream-one combined with downloadSettings, which producers refuse."
+}

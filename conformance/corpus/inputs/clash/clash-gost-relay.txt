@@ -1,0 +1,8 @@
+proxies:
+  - name: CA-vts65u-22
+    type: gost-relay
+    server: yr-40.qlywwfr.example.org
+    port: 24291
+    username: b51c
+    password: tmSxxFoeeGPcSp
+    udp: true

@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"TW-h11zpi-21","server":"hh-01.imfbim.example.com","port":443,"password":"HwLmYAma9EMkZ8Q5","tfo":false,"udp_relay":true,"sni":"static.xxh5n1ybva.example.org"}}

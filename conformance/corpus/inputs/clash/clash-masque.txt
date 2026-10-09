@@ -1,0 +1,11 @@
+proxies:
+  - name: KR-j2y-90
+    type: masque
+    server: brn-21.u8loua9.example.org
+    port: 443
+    private-key: UlfryQKgGCnkJ7TsjRUsWpGwabEkZz0PbY1USLd8tY0=
+    public-key: rzsOcBBp+AUFUix+XAg57gftDaGesx70pMPnVSMGTDDMDdob0Ls82WotpdzRTimRZA1dG1QWrbQ9UT8J6RxQFMM=
+    ip: 172.16.0.2
+    ipv6: "fd01::2"
+    mtu: 1280
+    udp: true

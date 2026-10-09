@@ -1,0 +1,5 @@
+CA-x9xd-31=vless,xyx-01.ammpch9.example.org,443,"21b34891-34f8-4bf7-a608-7ee9baabbb61",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,flow=xtls-rprx-vision,sni=img.ce5g0wumm.example.org,public-key="d72UKWR1rncBFephOj5lb_YPg4o3bPcdMJ8FP4TZcc4",short-id=4576d427,udp=true
+AU-imjl-84=vmess,mt-36.svugfc.example.org,443,auto,"6928eda3-0db2-4f7d-b34c-65a85724a2ee",transport=ws,path=/rpzh,host=www.i5t74l2.example.org,over-tls=true,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.i5t74l2.example.org,alterId=0,udp=true
+CA-x9xd-31=trojan,a7d-05.usdw.example.net,443,"TJWOZ2tKI2Tk6oSU",tls-name=static.rly9hq.example.org,udp=true
+CA-x9xd-31=shadowsocks,kiz-01.a7xeu.example.org,20121,aes-128-gcm,"mLHEkenbf7A3gl",udp=true
+CA-x9xd-31=Hysteria2,s7-18.e36fp22h.example.com,443,"5WrFCAlw6tPiRzbAxHBN",tls-name=www.cepwu5q.example.org,skip-cert-verify=false,fast-open=false,udp=true

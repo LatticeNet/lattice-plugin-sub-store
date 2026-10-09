@@ -1,0 +1,9 @@
+{
+  "id": "surge-trojan-cert-pin",
+  "family": "surge",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "cert-pin",
+  "description": "Surge trojan with server-cert-fingerprint-sha256, alpn and server-cert-verify-name."
+}

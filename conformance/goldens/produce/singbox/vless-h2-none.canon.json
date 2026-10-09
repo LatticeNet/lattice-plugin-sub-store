@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "wg-36.g06hh9ti.example.com",
+      "server_port": 443,
+      "tag": "CA-o9nv99-23",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "wg-36.g06hh9ti.example.com"
+      },
+      "transport": {
+        "host": "img.htdo7.example.net",
+        "path": "/q9oylycib3",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "cc632db6-522a-4d2c-99b1-aa927e014af4"
+    }
+  ]
+}

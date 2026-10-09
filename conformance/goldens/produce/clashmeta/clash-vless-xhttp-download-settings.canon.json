@@ -1,0 +1,35 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "DE-t9cd-62",
+      "network": "xhttp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "7vu-Y-YnXHoUbAKIKq2nvV-_WfgFt8jGLAx4O7TGP_Q",
+        "short-id": "ff1ad8ff"
+      },
+      "server": "uv7-24.kgk0hqd2.example.org",
+      "servername": "www.wo8vb50bg.example.com",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "56599273-9afb-4b52-9681-272d5bf6b71e",
+      "xhttp-opts": {
+        "download-settings": {
+          "client-fingerprint": "chrome",
+          "path": "/lku4/pbpp9t3570",
+          "port": 443,
+          "reality-opts": {
+            "public-key": ""
+          },
+          "server": "o0-04.p4q2d28l.example.net",
+          "servername": "cdn.vo0bc0m.example.net",
+          "tls": true
+        },
+        "mode": "packet-up",
+        "path": "/gcs/uzso1x"
+      }
+    }
+  ]
+}

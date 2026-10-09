@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "name": "TW j3pevb 09",
+      "network": "tcp",
+      "password": "UcUa9NajW3SboyGg",
+      "port": 443,
+      "server": "2001:db8:a7cc:2156::cd3",
+      "sni": "cdn.x80vf.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "name": "FR wov14 10",
+      "password": "LJ7zbnZeKtYc",
+      "port": 30590,
+      "server": "198.51.100.97",
+      "tls": false,
+      "type": "socks5",
+      "udp": true,
+      "username": "s9he0tm"
+    }
+  ]
+}

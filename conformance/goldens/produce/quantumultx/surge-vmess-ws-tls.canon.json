@@ -1,0 +1,19 @@
+[
+  {
+    "address": "jz-02.c8w0o.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "img.woqeq46.example.org",
+      "obfs-uri": "/jfanvq6wu",
+      "password": "7ad81b79-8585-455e-bbbf-62760908d238",
+      "tag": "US-zxcd-56",
+      "tls-host": "img.woqeq46.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

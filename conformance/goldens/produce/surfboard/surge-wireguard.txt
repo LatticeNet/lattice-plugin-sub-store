@@ -1,0 +1,2 @@
+JP-jma8-57=wireguard,section-name=mfc8
+FR-ueon-08=wireguard,section-name=ryx2

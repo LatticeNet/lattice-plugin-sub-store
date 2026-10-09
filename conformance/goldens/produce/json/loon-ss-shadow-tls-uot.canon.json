@@ -1,0 +1,28 @@
+[
+  {
+    "cipher": "2022-blake3-aes-128-gcm",
+    "name": "NL-j75ymj-41",
+    "password": "4SHEU4hDm3T20fw5fTCb2A==",
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "host": "api.fxcmfmxj.example.com",
+      "password": "SMBKDvOyOY2pTxfj",
+      "version": 3
+    },
+    "port": 443,
+    "server": "mps-24.qhsg5civ.example.net",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "NL-snw-54",
+    "password": "yVHmQka5AJDu0r",
+    "port": 53322,
+    "server": "lb0-23.vw4fy2jt.example.net",
+    "type": "ss",
+    "udp": true,
+    "udp-over-tcp": true,
+    "udp-over-tcp-version": 2
+  }
+]

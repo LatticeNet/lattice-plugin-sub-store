@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-rx6-36",
+      "type": "vless",
+      "server": "yqq-20.shuir5.example.net",
+      "server_port": 443,
+      "uuid": "d702451b-9c9f-4ca7-be10-aa5e190adc18",
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

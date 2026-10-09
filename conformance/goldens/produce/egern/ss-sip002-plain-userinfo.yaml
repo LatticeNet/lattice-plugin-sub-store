@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"AU-qsa-88","method":"chacha20-poly1305","server":"yp-02.if8lse.example.org","port":28238,"password":"v9OkbPqqHAZGWPr1","tfo":false,"udp_relay":true}}

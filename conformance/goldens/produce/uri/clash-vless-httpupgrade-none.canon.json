@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "DE-dg9tvk-01",
+    "host": "hfq-19.u6i36eha.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "cdn.s01l5.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/v5qagp/z3gz2a1e8n"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "a5108bdd-c159-4487-baae-1538bff2c110"
+  }
+]

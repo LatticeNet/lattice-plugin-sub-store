@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-eq7d6q-62",
+      "type": "socks",
+      "server": "l2-10.au11r.example.org",
+      "server_port": 13306,
+      "version": "5",
+      "username": "zdxnr9q0",
+      "password": "3bo2Q3vVOY7P"
+    }
+  ],
+  "endpoints": []
+}

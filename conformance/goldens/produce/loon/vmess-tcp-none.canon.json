@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "iz-29.quabe9.example.net",
+      "443",
+      "auto",
+      "0f0e279d-0ca8-49f4-92c5-8739c23f766e"
+    ],
+    "name": "AU-b4sb-43",
+    "params": {
+      "alterId": "0",
+      "over-tls": "false",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

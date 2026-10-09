@@ -1,0 +1,4 @@
+TW-us3jp-56 = http, uf-21.emdqtlyc.example.com, 8080, username=o36eae, password=7f05Zkf8ZVtN
+JP-j9kz9p-25 = http, rkm-18.ptwmbbq.example.net, 8080, qw7wr1s, "hTEmO5BXf2cd"
+AU-rqv-17 = https, e6q-11.ld43.example.net, 443, xc1e3, "gVR1jzrDk80Y", sni=api.q9es445kaz.example.net
+KR-qw3f7r-39 = socks5, w6-18.oxky0a.example.com, 1080, bhzsv, ROyQV6BdndOh

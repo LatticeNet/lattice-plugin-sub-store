@@ -1,0 +1,12 @@
+[
+  {
+    "address": "203.0.113.215:1080",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "tag": "AU-ar8sl-78",
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  }
+]

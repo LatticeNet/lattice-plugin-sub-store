@@ -1,0 +1,14 @@
+[
+  {
+    "address": "ey-03.rkflh.example.net:36086",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "5ZocLkGvDb1zfs84dU7A",
+      "tag": "GB-z7rol-66:443",
+      "tls-host": "ey-03.rkflh.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

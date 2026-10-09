@@ -1,0 +1,60 @@
+[
+  {
+    "fragment": "KR-vmn6-08",
+    "host": "hjk-11.n8bcfl8.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "SatSks34KwPD6RbqZHLLXtOFBk-N3BHQqqcfq57fSkQ"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "serviceName",
+        "sibyc6-bowmb1"
+      ],
+      [
+        "sid",
+        "34dd5478"
+      ],
+      [
+        "sni",
+        "img.l7xuf8e.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "0d0a9e5e-ac8d-4fb3-9f5a-68f67d221d0e"
+  }
+]

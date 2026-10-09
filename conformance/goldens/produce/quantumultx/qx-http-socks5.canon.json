@@ -1,0 +1,51 @@
+[
+  {
+    "address": "bkk-13.p8c5c.example.net:8080",
+    "args": [],
+    "params": {
+      "password": "dip7H3HbE83J",
+      "tag": "AU-rqk1jl-33",
+      "udp-relay": "true",
+      "username": "wqmmnxz2"
+    },
+    "type": "http"
+  },
+  {
+    "address": "cam-37.l9ng5.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "r0BQxK7uTqqg",
+      "tag": "US-fs5t-40",
+      "tls-host": "img.xuix3v.example.org",
+      "udp-relay": "true",
+      "username": "jeafxl"
+    },
+    "type": "http"
+  },
+  {
+    "address": "aq-21.hay35e.example.net:1080",
+    "args": [],
+    "params": {
+      "password": "unNYLsz7kUcn",
+      "tag": "JP-yqa-41",
+      "udp-relay": "true",
+      "username": "r5ti"
+    },
+    "type": "socks5"
+  },
+  {
+    "address": "h49-27.o5n4rf.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "mIaq5AnyasPj",
+      "tag": "NL-sxupx-61",
+      "tls-host": "h49-27.o5n4rf.example.net",
+      "tls-verification": "false",
+      "udp-relay": "true",
+      "username": "bptpo"
+    },
+    "type": "socks5"
+  }
+]

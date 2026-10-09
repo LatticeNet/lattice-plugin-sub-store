@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"2022-blake3-chacha20-poly1305","name":"JP-sy7syv-03","password":"+jOgDBeQ5Bp3OanWNRsdieSnYRXEml1Cb9rbJMxyBtM=","port":15880,"server":"kgf-31.izo8.example.net","skip-cert-verify":false,"type":"ss","udp":true}

@@ -1,0 +1,14 @@
+proxies:
+  - name: DE-hfwjs3-70
+    type: hysteria
+    server: eem-03.omri2b2.example.org
+    port: 41261
+    auth-str: aAz3856ZQjqxVOTJ
+    obfs: HiQ2uYiYts
+    alpn:
+      - h3
+    protocol: udp
+    up: 30 Mbps
+    down: 200 Mbps
+    sni: www.rsv0amup7.example.net
+    skip-cert-verify: false

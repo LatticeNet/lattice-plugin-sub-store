@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "GB-m175-12",
+    "host": "jwn-16.xzxs3g.example.org",
+    "path": "",
+    "port": "80",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "host",
+        "api.llf804re.example.com,cdn.b7npvr.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/rrozosr,/cotqh2vr"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "662f3d29-2c17-4083-957f-1b994cae8b9a"
+  }
+]

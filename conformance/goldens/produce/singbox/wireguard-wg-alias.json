@@ -1,0 +1,24 @@
+{
+  "outbounds": [],
+  "endpoints": [
+    {
+      "system": false,
+      "tag": "GB-q5ik8-81",
+      "type": "wireguard",
+      "address": [
+        "172.16.0.2/32"
+      ],
+      "private_key": "VN4Xef3XIrmD+3/5w5NAney9AvPzcC5jMiqeL9j49p8=",
+      "peers": [
+        {
+          "address": "203.0.113.233",
+          "port": 51820,
+          "public_key": "FqbbuZGEiRaCbdF8mXyBdv0CJV2vU2FAsTZ316vVdxA=",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ]
+        }
+      ]
+    }
+  ]
+}

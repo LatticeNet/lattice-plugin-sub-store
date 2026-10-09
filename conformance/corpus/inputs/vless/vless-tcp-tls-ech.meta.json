@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-tls-ech",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ech",
+  "description": "TLS with an ECH config list."
+}

@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "name": "AU-j1fz-50",
+      "network": "ws",
+      "port": 443,
+      "server": "ihv-18.fxh80bt.example.net",
+      "servername": "static.cfdjp53j.example.com",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "283dfeac-72d9-457c-9499-faffee7e8706",
+      "ws-opts": {
+        "headers": {
+          "Host": "static.cfdjp53j.example.com"
+        },
+        "path": "/cspqc9wvkw"
+      }
+    }
+  ]
+}

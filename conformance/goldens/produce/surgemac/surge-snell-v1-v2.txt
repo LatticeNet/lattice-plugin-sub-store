@@ -1,0 +1,3 @@
+TW-s3d7ct-14=snell,lo-09.pupzz.example.org,41631,version=1,psk="WEL8Tz35Xhk4ci7EMfOz"
+US-ltp-81=snell,z6n-05.wlea.example.org,44320,version=2,psk="eWLnfe6pLNLmW1AXnyON",obfs=tls,obfs-host=www.e4iyt7.example.com
+GB-f2i-83=snell,qhy-35.c5qlq6n7.example.com,53271,psk="klNi1Sarnw5ldI7JXdBy"

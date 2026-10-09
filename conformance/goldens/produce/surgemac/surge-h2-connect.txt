@@ -1,0 +1,1 @@
+AU-yxa-06=h2-connect,ayo-23.vt8d.example.com,443,username="ix3qt58v",password="Yw4WzfJ570cj",headers="X-Client:"ohwi6"",max-streams=8,sni="www.vz5stu6r4.example.net",udp-relay=true

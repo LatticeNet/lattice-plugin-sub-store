@@ -1,0 +1,1 @@
+US-zxcd-56=vmess,jz-02.c8w0o.example.net,443,username=7ad81b79-8585-455e-bbbf-62760908d238,ws=true,ws-path=/jfanvq6wu,ws-headers=Host:"img.woqeq46.example.org"|User-Agent:o50x5tw8q,vmess-aead=true,tls=true,sni="img.woqeq46.example.org",skip-cert-verify=false,udp-relay=true

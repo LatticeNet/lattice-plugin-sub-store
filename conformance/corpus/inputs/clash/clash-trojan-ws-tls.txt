@@ -1,0 +1,19 @@
+proxies:
+  - name: DE-rnjso-15
+    type: trojan
+    server: c5-11.ocg6mst.example.org
+    port: 443
+    password: Ss3l3GXlwJPI9BmQ
+    udp: true
+    tls: true
+    sni: img.qb83s9o08.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /ucuhm923u
+      headers:
+        Host: img.qb83s9o08.example.net

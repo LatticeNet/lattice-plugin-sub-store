@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "DE-zrg-71",
+    "host": "csz-34.vuda.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "serviceName",
+        "oobemkp-f98k5"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "bc410de2-5a75-4b93-a4ba-c8ee4485ba10"
+  }
+]

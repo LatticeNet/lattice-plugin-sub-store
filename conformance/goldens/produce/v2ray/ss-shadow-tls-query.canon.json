@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "NL-ak1isp-96",
+    "host": "mz-06.v4fzlgbl.example.net",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "shadow-tls;host=api.z5h1o.example.com;password=6yMGxseYVK5CQkW8;version=3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Q1BVQ2J0NTRNYXczSkM=",
+    "userinfo_base64": "aes-128-gcm:CPUCbt54Maw3JC"
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "args": [
+      "fj-09.fcx8god.example.org",
+      "443",
+      "auto",
+      "3cf24b8e-2838-480e-ad27-03657ab28a13"
+    ],
+    "name": "TW-mc3w0h-48",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "api.ubxoa09ik.example.com",
+      "over-tls": "true",
+      "path": "/zx2t",
+      "tls-name": "api.ubxoa09ik.example.com",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,1 @@
+JP-vfw94-81=vmess,o0-12.dadt3a.example.net,49419,username=d1842fe9-5aed-452a-a62f-b2a295668da1,vmess-aead=true,tls=true,sni="api.et37x8lil.example.com",udp-relay=true

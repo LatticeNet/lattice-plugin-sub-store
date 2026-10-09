@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","name":"SG-rsvy-31","network":"ws","packet-encoding":"xudp","port":443,"server":"p7s-12.vxsga2t1.example.org","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"cb22c8ff-3921-4bca-aa16-d8a21097e463","ws-opts":{"early-data-header-name":"Sec-WebSocket-Protocol","headers":{"Host":"static.vslcfo.example.org"},"max-early-data":2048,"path":"/xj1jlj/bmtb1lwh5"},"servername":"static.vslcfo.example.org"}

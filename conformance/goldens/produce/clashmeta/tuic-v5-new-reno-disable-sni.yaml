@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"new_reno","disable-sni":true,"name":"US-h3egcw-98","password":"gZGLLzkPlbpxp6zT","port":36615,"reduce-rtt":true,"server":"198.51.100.201","skip-cert-verify":true,"type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"9eea581b-e095-479e-8335-2600857e8c62","version":5}

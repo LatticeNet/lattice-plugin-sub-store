@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "q7-09.eahzxc.example.com",
+      "18927",
+      "auto",
+      "08db3b80-c3c6-409e-98be-9d7b8962e4bd"
+    ],
+    "name": "SG-pden-75",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "vq-18.sg82606.example.com",
+      "80",
+      "auto",
+      "f8f86c57-0190-4106-8987-9d97a99989e9"
+    ],
+    "name": "FR-lb156b-04",
+    "params": {
+      "alterId": "0",
+      "host": "www.h40id.example.net",
+      "path": "/anz3c/n7wlt5",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

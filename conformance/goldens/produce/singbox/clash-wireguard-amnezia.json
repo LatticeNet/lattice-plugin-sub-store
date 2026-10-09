@@ -1,0 +1,24 @@
+{
+  "outbounds": [],
+  "endpoints": [
+    {
+      "system": false,
+      "tag": "SG-hzt-46",
+      "type": "wireguard",
+      "address": [
+        "10.9.0.2/32"
+      ],
+      "private_key": "FjZC9ZM/4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs=",
+      "peers": [
+        {
+          "address": "lj-17.ox6nx9zr.example.net",
+          "port": 51820,
+          "public_key": "UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q+vw=",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ]
+        }
+      ]
+    }
+  ]
+}

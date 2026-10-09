@@ -1,0 +1,64 @@
+[
+  {
+    "fragment": "KR-jnlp-45",
+    "host": "hs7-14.fbk5i4m.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "127.0.0.1"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "joCobve956pHGbOP"
+  },
+  {
+    "fragment": "US-udm43-99",
+    "host": "cm-29.o4a6p.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "127.0.0.1"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "rRZddt7F6fbdqRuD"
+  },
+  {
+    "fragment": "HK-av3-92",
+    "host": "oyc-16.u9lrca1q.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "oyc-16.u9lrca1q.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "72a8e00b-8c2d-4e2f-80fa-592feab63300"
+  }
+]

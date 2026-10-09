@@ -1,0 +1,16 @@
+[
+  {
+    "address": "xe-34.w3hx.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "bm91bewnfciiwnoMmrKb",
+      "tag": "SG-hqzi-96",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.l2m9nw.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

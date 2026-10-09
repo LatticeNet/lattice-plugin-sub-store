@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "gvo-12.lih7p9at.example.org",
+      "1080",
+      "ghvuo5ft",
+      "3PW2M7qZi7vb"
+    ],
+    "name": "TW-i2gfvc-26",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "k0z-07.alq6rzpv.example.org",
+      "443",
+      "q5myv",
+      "mdJzWJBzn9uV"
+    ],
+    "name": "CA-ygv-96",
+    "params": {
+      "skip-cert-verify": "true",
+      "sni": "www.v376zlisy8.example.net",
+      "udp-relay": "true"
+    },
+    "type": "socks5-tls"
+  },
+  {
+    "args": [
+      "192.0.2.224",
+      "1080"
+    ],
+    "name": "NL-glmiy7-28",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  }
+]

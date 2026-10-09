@@ -1,0 +1,4 @@
+proxies:
+  - {"snell":{"name":"KR-rullb-08","server":"yrb-06.y9cklk21.example.org","port":25555,"psk":"0ocFveFWWxVDg2nSAhoU","version":3,"udp_relay":true,"obfs":"http","obfs_host":"www.d58ryzg9.example.com","tfo":false}}
+  - {"snell":{"name":"TW-vrkn-75","server":"ya-05.zaq8hnv.example.com","port":12210,"psk":"URyP96aQ889P3tbOzmAx","version":4,"udp_relay":true,"reuse":true,"tfo":true}}
+  - {"snell":{"name":"KR-t6z28b-60","server":"bz5-25.rzbm.example.org","port":26072,"psk":"q3vUCA6N5YT5KQ39w5id","version":5,"udp_relay":true,"tfo":false}}

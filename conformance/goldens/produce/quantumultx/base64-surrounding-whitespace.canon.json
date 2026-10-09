@@ -1,0 +1,59 @@
+[
+  {
+    "address": "bf-16.kp1oi.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "03abc751-e566-4701-a98f-58e2f8f0e9ed",
+      "reality-base64-pubkey": "U2lNamVN-N1RZSQ-gbs1MB8695a11axA0djYXgUMkOY",
+      "reality-hex-shortid": "75b63b05",
+      "tag": "TW-puyv-67",
+      "tls-host": "cdn.gdwm1x5jbe.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "dj-02.hho8r.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "www.i5mrqz.example.org",
+      "obfs-uri": "/d79o3q/b04b397g",
+      "password": "9dcf01fb-bdf0-4d6f-bb4b-9976f1b4b2ba",
+      "tag": "AU-y7o-06",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.i5mrqz.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "mgm-13.he3ym5.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "mUiguR8cunsrFhM4",
+      "tag": "AU-hd9j-35",
+      "tls-host": "api.y0svsnccsg.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "gq-21.au0am.example.com:28043",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "9s6yY58pCqeFvr",
+      "tag": "KR-sewsc-99",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

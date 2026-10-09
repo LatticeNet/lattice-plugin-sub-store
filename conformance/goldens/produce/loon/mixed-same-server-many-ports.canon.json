@@ -1,0 +1,122 @@
+[
+  {
+    "args": [
+      "opz-17.m4x19d5f.example.com",
+      "20000",
+      "86575217-5ed9-475c-9346-4d36c4c2d533"
+    ],
+    "name": "SG 01",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "_t7o8LM4LKEJWR8ooHupyCp6G_oJep1ZztFu5yqq5AY",
+      "short-id": "5df7c89a",
+      "skip-cert-verify": "false",
+      "sni": "static.jr3vdg.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "opz-17.m4x19d5f.example.com",
+      "20001",
+      "1669ec10-e3f4-4444-9e37-68ee8799d234"
+    ],
+    "name": "GB 02",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "7OW5e3rAw6FBVjnMepaPKAaeXY3G1QiMUw_v6zx4DPE",
+      "short-id": "cf6b9f66",
+      "skip-cert-verify": "false",
+      "sni": "img.is5us.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "opz-17.m4x19d5f.example.com",
+      "20002",
+      "1714e4cf-c00e-4fad-bedf-f4a65e5d5be1"
+    ],
+    "name": "CA 03",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "zB9TZ6frfkSjkGKyogEBGxood6sn8sWgluyXzmU1WK0",
+      "short-id": "755a12cd",
+      "skip-cert-verify": "false",
+      "sni": "www.nz2y6.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "opz-17.m4x19d5f.example.com",
+      "20003",
+      "4aafe327-24c3-4dc7-b36a-3b1a72c368c2"
+    ],
+    "name": "JP 04",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "SKUns5A-LqRd_J87xoU8PMmgEeXIVghJzlkp-fcDFNk",
+      "short-id": "8024f436",
+      "skip-cert-verify": "false",
+      "sni": "api.r4adza4ry.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "opz-17.m4x19d5f.example.com",
+      "20004",
+      "5e258726-ed04-43b5-973a-f4fb86184b28"
+    ],
+    "name": "SG 05",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "7ysNDnYxvA9xCQ1V7DeOSkF8fRxItJKqQSf1dw0hW6c",
+      "short-id": "a7d4dbf1",
+      "skip-cert-verify": "false",
+      "sni": "static.c228hbb.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "opz-17.m4x19d5f.example.com",
+      "20005",
+      "e1242596-c599-4569-8562-3df8919fca05"
+    ],
+    "name": "DE 06",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "m1cFcwclFlbJnTnrfX66yKUs1vnYKAM6L2-f8hRL7D4",
+      "short-id": "f48604d5",
+      "skip-cert-verify": "false",
+      "sni": "cdn.cnmrr6l7.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

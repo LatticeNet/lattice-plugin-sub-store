@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-early-data",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "VMess ws with max-early-data and early-data-header-name."
+}

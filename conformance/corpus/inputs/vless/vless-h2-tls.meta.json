@@ -1,0 +1,8 @@
+{
+  "id": "vless-h2-tls",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "h2",
+  "security": "tls",
+  "description": "VLESS share link over h2 with security tls."
+}

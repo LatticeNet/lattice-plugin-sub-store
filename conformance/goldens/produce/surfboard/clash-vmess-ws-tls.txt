@@ -1,0 +1,1 @@
+TW-xhup-68=vmess,tau-38.aett40.example.net,443,username=4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93,ws=true,ws-path=/kczba7vr,ws-headers=Host:"static.rooc7abl.example.com",vmess-aead=true,tls=true,sni="static.rooc7abl.example.com",skip-cert-verify=false,udp-relay=true

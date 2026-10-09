@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"DE-vdbq-74","server":"m2-17.tb5k.example.net","port":443,"user_id":"93da0638-461c-40cd-919b-6c8aedb80cdd","tfo":false,"udp_relay":true,"transport":{"grpc":{"service_name":"fn9jg-afzb","sni":"www.bxp8z8.example.org"}}}}
+  - {"vmess":{"name":"AU-d9j-96","server":"ahe-13.bx4bjkbt.example.net","port":443,"user_id":"ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/lo0adt/oqsutga","headers":{"Host":"ahe-13.bx4bjkbt.example.net"}}}}}

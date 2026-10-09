@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "FR-e74yhy-14",
+        "port": 443,
+        "server": "a9-05.le66p.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "XsH0zzVsbUwKTqlNK1ycPEtEv8cqaY4J7U3YPR5nz-w",
+              "short_id": "845a9e77"
+            },
+            "skip_tls_verify": false,
+            "sni": "api.ip4wwzndjw.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "47bd133f-f4bb-4fb1-aad7-a238ff909c91"
+      }
+    }
+  ]
+}

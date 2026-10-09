@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "up-33.f1r92vu.example.org",
+      "443",
+      "f962a5ea-3ad2-40f0-a529-276f283a8f65"
+    ],
+    "name": "TW-ec92ia-02",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "dWg3dwQdO7WGR7_Rk6WrlyOis-kG9MVvy11W2Aq-HfE",
+      "short-id": "84d363f6",
+      "skip-cert-verify": "false",
+      "sni": "img.r79ll6b.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

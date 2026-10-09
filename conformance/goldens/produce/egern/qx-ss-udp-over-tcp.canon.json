@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "FR-w38-62",
+        "password": "whcR18hBEjkOVg",
+        "port": 38130,
+        "server": "rp8-33.wgzivs.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "GB-kzq-60",
+        "password": "6dNQLnVjNDH9zs",
+        "port": 50285,
+        "server": "r2s-07.paug3a4.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "TW-zh07-47",
+        "password": "s2wFoQVQ1mZzes",
+        "port": 60960,
+        "server": "vp-11.foz9zs.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

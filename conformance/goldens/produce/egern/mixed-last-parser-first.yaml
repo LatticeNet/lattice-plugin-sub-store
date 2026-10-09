@@ -1,0 +1,5 @@
+proxies:
+  - {"http":{"name":"TW-us3jp-56","server":"uf-21.emdqtlyc.example.com","port":8080,"username":"o36eae","password":"7f05Zkf8ZVtN","tfo":false}}
+  - {"http":{"name":"JP-j9kz9p-25","server":"rkm-18.ptwmbbq.example.net","port":8080,"username":"qw7wr1s","password":"hTEmO5BXf2cd","tfo":false}}
+  - {"https":{"name":"AU-rqv-17","server":"e6q-11.ld43.example.net","port":443,"username":"xc1e3","password":"gVR1jzrDk80Y","tfo":false,"sni":"api.q9es445kaz.example.net"}}
+  - {"socks5":{"name":"KR-qw3f7r-39","server":"w6-18.oxky0a.example.com","port":1080,"username":"bhzsv","password":"ROyQV6BdndOh","tfo":false,"udp_relay":true}}

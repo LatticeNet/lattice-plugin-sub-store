@@ -1,0 +1,9 @@
+{
+  "id": "ss-transport-grpc-reality",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "grpc",
+  "security": "reality",
+  "quirk": "ss-transport",
+  "description": "type=grpc with Reality keys on a Shadowsocks link."
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "amnezia-wg-option": {
+      "h1": 1,
+      "h2": 2,
+      "h3": 3,
+      "h4": 4,
+      "jc": 5,
+      "jmax": 1000,
+      "jmin": 50,
+      "s1": 0,
+      "s2": 0
+    },
+    "ip": "10.9.0.2",
+    "ip-cidr": 32,
+    "name": "SG-hzt-46",
+    "port": 51820,
+    "private-key": "FjZC9ZM/4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs=",
+    "public-key": "UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q+vw=",
+    "server": "lj-17.ox6nx9zr.example.net",
+    "type": "wireguard",
+    "udp": true
+  }
+]

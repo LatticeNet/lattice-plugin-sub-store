@@ -1,0 +1,1 @@
+trojan=ey-03.rkflh.example.net:36086,password=5ZocLkGvDb1zfs84dU7A,over-tls=true,tls-host=ey-03.rkflh.example.net,udp-relay=true,tag=GB-z7rol-66:443

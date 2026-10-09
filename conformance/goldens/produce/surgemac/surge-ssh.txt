@@ -1,0 +1,2 @@
+FR-yvf3td-84=ssh,qo-38.xh0qf6.example.net,22,username="yok0o71f",password="8qQpen8qOJ4Ubo"
+FR-uoc-38=ssh,udx-39.glat.example.net,2222,username="tgh9b0vd",private-key="nxwhcm",idle-timeout=180,server-fingerprint="ssh-ed25519 Q8+WTH3rg7Xlf5am12m0d+44vNtsY8D+yvsPgt+aSMU="

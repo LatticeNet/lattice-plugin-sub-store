@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "ei-13.y2nd0g.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "d6179057-84a8-4647-9d34-691ebf2c8e7e",
+      "net": "tcp",
+      "port": "443",
+      "ps": "TW-xk9-16",
+      "scy": "auto",
+      "sni": "www.l24sjs8j.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

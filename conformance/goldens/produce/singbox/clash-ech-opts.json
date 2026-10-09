@@ -1,0 +1,40 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-ygyta-67",
+      "type": "vless",
+      "server": "rma-16.h25sggv.example.org",
+      "server_port": 443,
+      "uuid": "3a8f9903-e409-4e47-95d6-f96b71ee33cb",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.z0xp482.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "ech": {
+          "enabled": true,
+          "config": [
+            "-----BEGIN ECH CONFIGS-----",
+            "3hPAJR0PcKp4o6d1V4r0tiq2GScy5VT3ucZBK1zjVPsj4tlzHBbWKARnsDhn8nJZsYQgCFY9Jvd2T4GNJfRHC5ktyBpw5N4o",
+            "-----END ECH CONFIGS-----"
+          ]
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "api.chlscz.example.org"
+        },
+        "path": "/j1zy0u/avd77h9av"
+      }
+    }
+  ],
+  "endpoints": []
+}

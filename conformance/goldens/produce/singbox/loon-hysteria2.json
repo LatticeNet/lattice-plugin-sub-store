@@ -1,0 +1,39 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-vndf-11",
+      "type": "hysteria2",
+      "server": "oe-33.qx39yxx.example.com",
+      "server_port": 443,
+      "password": "jy1zzeVtjPYW5WZ1d7c3",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.y9rxi39v8j.example.org",
+        "insecure": false
+      },
+      "down_mbps": 100
+    },
+    {
+      "tag": "KR-x2fuc-55",
+      "type": "hysteria2",
+      "server": "w6b-30.pbeu3.example.net",
+      "server_port": 443,
+      "password": "Ljm9RAIKKgkAVQ4Om3ES",
+      "obfs": {
+        "type": "salamander",
+        "password": "RpvsakJ8xuuStgsm"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.wq7zecq15c.example.net",
+        "insecure": false
+      },
+      "hop_interval": "30s",
+      "server_ports": [
+        "20000:30000",
+        "31000:31000"
+      ]
+    }
+  ],
+  "endpoints": []
+}

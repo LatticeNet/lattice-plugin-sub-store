@@ -1,0 +1,19 @@
+[
+  {
+    "address": "a9-05.le66p.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "47bd133f-f4bb-4fb1-aad7-a238ff909c91",
+      "reality-base64-pubkey": "XsH0zzVsbUwKTqlNK1ycPEtEv8cqaY4J7U3YPR5nz-w",
+      "reality-hex-shortid": "845a9e77",
+      "tag": "FR-e74yhy-14",
+      "tls-host": "api.ip4wwzndjw.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

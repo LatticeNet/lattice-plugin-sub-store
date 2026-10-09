@@ -1,0 +1,35 @@
+[
+  {
+    "fragment": "FR-z36pm-76",
+    "host": "yxc-13.y93b07h.example.net",
+    "path": "",
+    "port": "31170",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206RUE5ZnhldVdxVnE2",
+    "userinfo_base64": "aes-128-gcm:EA9fxeuWqVq6"
+  },
+  {
+    "fragment": "HK-trui-14",
+    "host": "sz-26.icrty1.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.o2pcyahkl3.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "isDtVJNKTKm3AVxl"
+  }
+]

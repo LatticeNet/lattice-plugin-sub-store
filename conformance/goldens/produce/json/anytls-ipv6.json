@@ -1,0 +1,15 @@
+[
+  {
+    "_h2": false,
+    "name": "AU-em7j3s-83",
+    "packet-encoding": "xudp",
+    "password": "aTLmH8rMvhzmoueREcQg",
+    "port": 443,
+    "server": "2001:db8:f051:f0e2::9775",
+    "skip-cert-verify": false,
+    "sni": "www.feai4.example.org",
+    "tls": true,
+    "type": "anytls",
+    "udp": true
+  }
+]

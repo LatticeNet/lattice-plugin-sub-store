@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "NL-m714hc-32",
+    "host": "j4-13.xm3tt.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "idle_session_check_interval",
+        "30"
+      ],
+      [
+        "idle_session_timeout",
+        "30"
+      ],
+      [
+        "min_idle_session",
+        "1"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.s3f3pn.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "rvM8Z05R12RcqZmZCiEk"
+  }
+]

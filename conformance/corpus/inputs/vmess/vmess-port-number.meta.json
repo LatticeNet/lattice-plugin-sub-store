@@ -1,0 +1,9 @@
+{
+  "id": "vmess-port-number",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "numeric-port",
+  "description": "The port given as a JSON number and v given as a number."
+}

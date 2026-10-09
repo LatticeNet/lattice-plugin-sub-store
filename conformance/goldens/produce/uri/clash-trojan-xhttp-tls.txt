@@ -1,0 +1,1 @@
+trojan://sXWbICGuf14KW9WE@tjt-19.nsrz8c0.example.com:443?sni=cdn.h9dywa.example.net&type=xhttp&path=%2Fp1saz3vuw&alpn=h2%2Chttp%2F1.1&fp=chrome#CA-h69-06

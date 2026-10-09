@@ -1,0 +1,15 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "chacha20-ietf-poly1305",
+      "password": "DnDhyby4CUkV4H",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=static.vrb8iyo.example.net;obfs=tls",
+      "server": "o8-22.yd7la.example.com",
+      "server_port": 41691,
+      "tag": "CA-bus8j-50",
+      "type": "shadowsocks"
+    }
+  ]
+}

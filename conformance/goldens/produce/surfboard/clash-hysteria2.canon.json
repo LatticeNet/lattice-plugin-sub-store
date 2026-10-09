@@ -1,0 +1,46 @@
+[
+  {
+    "args": [
+      "w5-33.b8gbhup.example.net",
+      "443"
+    ],
+    "name": "TW-a8ef-18",
+    "params": {
+      "password": "O5JKgY3RhM4YtB2LW6sQ",
+      "skip-cert-verify": "false",
+      "sni": "img.gvbtkgnh.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "v4z-07.bsiwk9.example.net",
+      "443"
+    ],
+    "name": "SG-kutb-91",
+    "params": {
+      "password": "1ZwO87l7TwxoKe9JwQre",
+      "salamander-password": "rYyQ9Pf4sBcZnEas",
+      "sni": "img.labnn7rfp.example.net",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "s4-29.i7snt2pt.example.net",
+      "443"
+    ],
+    "name": "FR-uu3v3-82",
+    "params": {
+      "download-bandwidth": "200",
+      "password": "ZJsIFFB8Z3JgXRHfRBUu",
+      "port-hopping": "20000-30000",
+      "port-hopping-interval": "30",
+      "sni": "api.qkjsan.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

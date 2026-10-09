@@ -1,0 +1,18 @@
+[
+  {
+    "address": "hnp-23.vn41.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "555e8ea6-0aa2-446f-89d6-75d1ee8e7875",
+      "reality-base64-pubkey": "DA9oMSTOMkBmqRO7ZvP9oWoNpP0tHqBvwj7ZX17GLUo",
+      "reality-hex-shortid": "bab52219",
+      "tag": "AU-x15se-92",
+      "tls-host": "api.xao43je5k8.example.net",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

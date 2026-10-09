@@ -1,0 +1,18 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "qMhtBNRElE5A",
+      "server": "bg-20.koifso.example.org",
+      "server_port": 443,
+      "tag": "HK-bdzvs-31",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.bxln43ak.example.net"
+      },
+      "type": "http",
+      "username": "xmmwh"
+    }
+  ]
+}

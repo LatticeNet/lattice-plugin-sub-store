@@ -1,0 +1,1 @@
+vless=e56-01.seeo45qf.example.net:443,method=none,password=6ca1dced-5ed7-4a6b-8dc7-ed9720264442,obfs=http,obfs-uri=/jcn0,obfs-host=cdn.udpgihfrvr.example.net,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=cdn.udpgihfrvr.example.net,udp-relay=true,tag=FR-fay-77

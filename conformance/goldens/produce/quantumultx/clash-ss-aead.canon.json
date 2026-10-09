@@ -1,0 +1,46 @@
+[
+  {
+    "address": "m6u-16.g97y5tav.example.org:47911",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "EfioGItZtP7wLYMn",
+      "tag": "SG-jh0f-07",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "qds-17.goiq4ag3.example.org:47885",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "password": "nlTGgPUhQWw3bMbw",
+      "tag": "US-r62-15",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "st-14.tvrbzrjl.example.net:21684",
+    "args": [],
+    "params": {
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "iPMlLeH2iF30UJL2j5+V9Q==",
+      "tag": "CA-vrmh-72",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "rc1-02.u3nal2.example.com:53372",
+    "args": [],
+    "params": {
+      "method": "2022-blake3-aes-256-gcm",
+      "password": "7agxqmwoU7bE0fIbuk5w7f0+M0gG5276auk7tf0NItc=",
+      "tag": "GB-mtf6-36",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

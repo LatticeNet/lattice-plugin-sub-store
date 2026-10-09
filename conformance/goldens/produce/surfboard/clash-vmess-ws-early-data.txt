@@ -1,0 +1,1 @@
+DE-eec9l-77=vmess,zs-01.d96h4u7.example.com,443,username=987a2697-2d80-4245-aab3-42a2e6ac081c,ws=true,ws-path=/jhixtf/jbwudryxb,ws-headers=Host:"img.cqi5al.example.net",vmess-aead=true,tls=true,sni="cdn.cn3k79.example.net",skip-cert-verify=false,udp-relay=true

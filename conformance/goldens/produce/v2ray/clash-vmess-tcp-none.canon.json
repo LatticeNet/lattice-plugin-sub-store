@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "d0a-18.ni6i58o.example.org",
+      "aid": "0",
+      "id": "d53cd4f4-5993-4fa8-a317-695738807b21",
+      "net": "tcp",
+      "port": "443",
+      "ps": "AU-ivcx2g-23",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

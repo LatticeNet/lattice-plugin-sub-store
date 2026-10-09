@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "i5-22.ptbvro6.example.com",
+      "server_port": 443,
+      "tag": "TW-uhdgu-02",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "oSHx0-Bu3ynnqUMorAPSU-4fiaaO347ahOh8RIo2fTE",
+          "short_id": "c57a3e90"
+        },
+        "server_name": "www.a3h3i.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "3d8c035c-eb24-425b-9f07-93da911e4b0c"
+    }
+  ]
+}

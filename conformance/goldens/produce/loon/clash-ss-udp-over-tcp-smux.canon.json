@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "zzt-26.y4jpnft5.example.org",
+      "12899",
+      "aes-128-gcm",
+      "jQ2iqvOC7hkHUSoD"
+    ],
+    "name": "NL-fm2xz-53",
+    "params": {
+      "udp": "true",
+      "udp-over-tcp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

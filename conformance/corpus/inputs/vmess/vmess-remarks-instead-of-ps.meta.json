@@ -1,0 +1,9 @@
+{
+  "id": "vmess-remarks-instead-of-ps",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "remarks-name",
+  "description": "No ps; the name comes from remarks."
+}

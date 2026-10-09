@@ -1,0 +1,1 @@
+GB-euqdb-55=vmess,pa-38.pn5io.example.org,34827,username=9baf1f26-b509-46b9-a4af-9617458cc1e4,vmess-aead=true,udp-relay=true

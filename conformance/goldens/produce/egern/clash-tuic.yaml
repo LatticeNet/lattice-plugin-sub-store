@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"DE-ef8y-71","server":"yk-27.undo.example.com","port":443,"uuid":"c10f0629-f89a-499a-9e8a-d9c96a95a37b","password":"wwW951G3pYb2fO4d","sni":"cdn.ji7v4na.example.com","alpn":["h3"]}}

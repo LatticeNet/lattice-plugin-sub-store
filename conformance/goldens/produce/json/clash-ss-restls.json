@@ -1,0 +1,18 @@
+[
+  {
+    "cipher": "chacha20-ietf-poly1305",
+    "name": "SG-qtt8e-54",
+    "password": "Rfy86lHUaoNBuXr7",
+    "plugin": "restls",
+    "plugin-opts": {
+      "host": "img.byq5u.example.com",
+      "password": "hMVlK6yqORqppIVC",
+      "restls-script": "300?100<1,400~100,350~100,600~100,300~200,300~100",
+      "version-hint": "tls13"
+    },
+    "port": 443,
+    "server": "y5b-21.kxhr8n4g.example.com",
+    "type": "ss",
+    "udp": true
+  }
+]

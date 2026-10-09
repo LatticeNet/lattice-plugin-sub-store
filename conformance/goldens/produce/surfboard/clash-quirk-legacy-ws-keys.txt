@@ -1,0 +1,1 @@
+KR-toisb-23=vmess,ur-05.u0srua.example.com,443,username=5840f636-1f16-4327-8520-2c6d190b4fb9,ws=true,ws-path=/ze3athc,ws-headers=Host:"img.rrs1s0l.example.com",vmess-aead=true,tls=true,sni="img.rrs1s0l.example.com",udp-relay=true

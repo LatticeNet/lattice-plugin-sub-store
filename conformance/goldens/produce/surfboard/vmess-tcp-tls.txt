@@ -1,0 +1,1 @@
+TW-xk9-16=vmess,ei-13.y2nd0g.example.org,443,username=d6179057-84a8-4647-9d34-691ebf2c8e7e,vmess-aead=true,tls=true,sni="www.l24sjs8j.example.org",udp-relay=true

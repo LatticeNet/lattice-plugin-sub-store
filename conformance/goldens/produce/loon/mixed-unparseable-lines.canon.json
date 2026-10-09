@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "p6-38.lmtzlp.example.org",
+      "443",
+      "LUeLHNE8d1oy9IvJ"
+    ],
+    "name": "US-hr20o-56",
+    "params": {
+      "tls-name": "static.rvmzabz4i3.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "gp-09.lnzh34h.example.com",
+      "443",
+      "Ed6W7Z5cNQiUnoxukCwd"
+    ],
+    "name": "FR-k6lz-15",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "img.jfk8scmbz.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

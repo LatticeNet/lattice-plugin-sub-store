@@ -1,0 +1,15 @@
+[
+  {
+    "address": "fh-22.ov6ov1.example.net:26877",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "http",
+      "obfs-host": "api.tvsyc0.example.com",
+      "password": "DrL9ISgTEl19He",
+      "tag": "JP-hhek-33",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

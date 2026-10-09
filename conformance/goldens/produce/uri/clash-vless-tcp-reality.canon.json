@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "AU-x15se-92",
+    "host": "hnp-23.vn41.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "DA9oMSTOMkBmqRO7ZvP9oWoNpP0tHqBvwj7ZX17GLUo"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "bab52219"
+      ],
+      [
+        "sni",
+        "api.xao43je5k8.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "555e8ea6-0aa2-446f-89d6-75d1ee8e7875"
+  }
+]

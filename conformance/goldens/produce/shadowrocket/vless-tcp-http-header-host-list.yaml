@@ -1,0 +1,2 @@
+proxies:
+  - {"encryption":"none","http-opts":{"headers":{"Host":["api.llf804re.example.com,cdn.b7npvr.example.org"]},"path":["/rrozosr,/cotqh2vr"]},"name":"GB-m175-12","network":"http","packet-encoding":"xudp","port":80,"server":"jwn-16.xzxs3g.example.org","skip-cert-verify":false,"tls":false,"type":"vless","udp":true,"uuid":"662f3d29-2c17-4083-957f-1b994cae8b9a"}

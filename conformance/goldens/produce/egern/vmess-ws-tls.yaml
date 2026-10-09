@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"KR-tuq-74","server":"k4-29.dbrm.example.org","port":443,"user_id":"f01fcc8c-d644-4e5c-9d5f-65cda7be0d62","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/glnf","headers":{"Host":"api.h0digvt.example.org"},"sni":"api.h0digvt.example.org"}}}}

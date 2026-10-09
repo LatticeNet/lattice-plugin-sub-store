@@ -1,0 +1,37 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "server": "t66-10.q2w5m.example.net",
+      "server_port": 443,
+      "tag": "GB-npq0ne-18",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.zdx9yiirp.example.com"
+      },
+      "type": "vless",
+      "uuid": "7d9e2f8a-0400-4958-a9a0-86c2c3d797df"
+    },
+    {
+      "server": "ihv-18.fxh80bt.example.net",
+      "server_port": 443,
+      "tag": "AU-j1fz-50",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.cfdjp53j.example.com"
+      },
+      "transport": {
+        "headers": {
+          "Host": "static.cfdjp53j.example.com"
+        },
+        "path": "/cspqc9wvkw",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "283dfeac-72d9-457c-9499-faffee7e8706"
+    }
+  ]
+}

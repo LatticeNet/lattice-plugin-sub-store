@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "AU-xw4dq-91",
+    "host": "t0-08.l62su.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "pbk",
+        "Dp2sb_GVUHmJuH5CEPUc8taOhqqqSeZtLW8noVD-OFA"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "serviceName",
+        "i1rf-n1p1n"
+      ],
+      [
+        "sid",
+        "7c92baa4"
+      ],
+      [
+        "sni",
+        "cdn.u6vgs2w.example.com"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "ND3odCftR9mMzuUo"
+  }
+]

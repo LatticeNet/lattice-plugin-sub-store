@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "l2-10.au11r.example.org",
+      "13306"
+    ],
+    "name": "TW-eq7d6q-62",
+    "params": {
+      "password": "3bo2Q3vVOY7P",
+      "udp-relay": "true",
+      "username": "zdxnr9q0"
+    },
+    "type": "socks5"
+  }
+]

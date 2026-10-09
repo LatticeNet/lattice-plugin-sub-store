@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "TfwevtKu5necBwQa",
+      "server": "gz6-27.nt3l3rl.example.com",
+      "server_port": 443,
+      "tag": "FR-rxs9-71",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.yan934d.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "mc6-21.oy1wum6m.example.com",
+      "server_port": 443,
+      "tag": "NL-nk245-43",
+      "type": "vmess",
+      "uuid": "4ada313e-c95d-437a-8322-4fedd24ee914"
+    }
+  ]
+}
