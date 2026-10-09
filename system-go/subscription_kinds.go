@@ -130,22 +130,69 @@ func validateProcessAgainst(steps []json.RawMessage, known map[string]bool) erro
 //
 // A member id that does not resolve is an error rather than a silent omission.
 // Quietly dropping it would shrink the served subscription and look to a client
-// exactly like nodes being withdrawn.
+// exactly like nodes being withdrawn. An archived member does not resolve.
+//
+// Explicit members are read by id, one host call each. Tags need the listing
+// (one more call) to find their candidates, so a collection with only
+// explicit members never reads it. The member count is bounded before any
+// member is read, so an oversized collection costs nothing to refuse.
 func (rt *runtime) collectionMembers(rec subscriptionRecord) ([]subscriptionRecord, error) {
-	all, err := rt.listSubscriptions()
-	if err != nil {
-		return nil, err
-	}
-	byID := make(map[string]subscriptionRecord, len(all))
-	for _, candidate := range all {
-		byID[candidate.ID] = candidate
-	}
-
 	seen := make(map[string]bool, len(rec.Members))
-	out := make([]subscriptionRecord, 0, len(rec.Members))
+	ids := make([]string, 0, len(rec.Members))
 	for _, id := range rec.Members {
-		member, ok := byID[id]
-		if !ok {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		ids = append(ids, id)
+	}
+	tagged := 0
+	if len(rec.MemberTags) > 0 {
+		listing, err := rt.storeListing()
+		if err != nil {
+			return nil, err
+		}
+		wanted := make(map[string]bool, len(rec.MemberTags))
+		for _, tag := range rec.MemberTags {
+			wanted[strings.TrimSpace(tag)] = true
+		}
+		var matches []string
+		for _, candidate := range listing.Records {
+			if candidate.Kind != kindSub || seen[candidate.ID] {
+				continue
+			}
+			for _, tag := range candidate.Tags {
+				if wanted[strings.TrimSpace(tag)] {
+					seen[candidate.ID] = true
+					matches = append(matches, candidate.ID)
+					break
+				}
+			}
+		}
+		// Tag matches are ordered by id so the output does not depend on the
+		// order records happen to sit in the store.
+		sort.Strings(matches)
+		tagged = len(matches)
+		ids = append(ids, matches...)
+	}
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("collection %q has no members", rec.ID)
+	}
+	if len(ids) > maxCollectionMembers {
+		return nil, fmt.Errorf("collection %q has %d members, limit %d", rec.ID, len(ids), maxCollectionMembers)
+	}
+	out := make([]subscriptionRecord, 0, len(ids))
+	for i, id := range ids {
+		member, found, err := rt.loadRecord(id)
+		if err != nil {
+			return nil, err
+		}
+		explicit := i < len(ids)-tagged
+		if !found {
+			if !explicit {
+				// Listed a moment ago and gone now: a concurrent delete.
+				continue
+			}
 			return nil, fmt.Errorf("collection %q names a subscription that no longer exists: %q", rec.ID, id)
 		}
 		if recordKind(member) != kindSub {
@@ -154,42 +201,10 @@ func (rt *runtime) collectionMembers(rec subscriptionRecord) ([]subscriptionReco
 			// not a node source for a collection.
 			return nil, fmt.Errorf("collection %q names %q, which is not a subscription", rec.ID, id)
 		}
-		if seen[id] {
-			continue
-		}
-		seen[id] = true
 		out = append(out, member)
 	}
-
-	if len(rec.MemberTags) > 0 {
-		wanted := make(map[string]bool, len(rec.MemberTags))
-		for _, tag := range rec.MemberTags {
-			wanted[strings.TrimSpace(tag)] = true
-		}
-		tagged := make([]subscriptionRecord, 0)
-		for _, candidate := range all {
-			if recordKind(candidate) != kindSub || seen[candidate.ID] {
-				continue
-			}
-			for _, tag := range candidate.Tags {
-				if wanted[strings.TrimSpace(tag)] {
-					seen[candidate.ID] = true
-					tagged = append(tagged, candidate)
-					break
-				}
-			}
-		}
-		// Tag matches are ordered by id so the output does not depend on the
-		// order records happen to sit in storage.
-		sort.Slice(tagged, func(i, j int) bool { return tagged[i].ID < tagged[j].ID })
-		out = append(out, tagged...)
-	}
-
 	if len(out) == 0 {
 		return nil, fmt.Errorf("collection %q has no members", rec.ID)
-	}
-	if len(out) > maxCollectionMembers {
-		return nil, fmt.Errorf("collection %q has %d members, limit %d", rec.ID, len(out), maxCollectionMembers)
 	}
 	return out, nil
 }

@@ -57,7 +57,7 @@ func TestVPNCoreSubscriptionFetchesTheExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetch: %v", err)
 	}
-	if out.Raw != "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one\nss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two" {
+	if snapshotText(out.Raw) != "ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one\nss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two" {
 		t.Fatalf("fetch did not return the export: %q", out.Raw)
 	}
 	if len(host.rpcCalls) != 1 {

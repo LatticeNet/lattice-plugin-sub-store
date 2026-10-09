@@ -278,6 +278,92 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 	}
 }
 
+// waveRuntimeBudgets is the table the capability-wave manifest will sign
+// (S1 plan sections 3.5 and 6), and the one the host-call tests hold this
+// code to. The store split re-prices the record paths: a collection reads
+// each member's record (64 at most), a save writes a record and the index,
+// and a delete archives. ackedRuntimeBudgets stays equal to the manifest
+// signed today, which this branch does not change; the wave commit replaces
+// ackedRuntimeBudgets with this table and the manifest with the section 6
+// diff. Until then the methods present here and absent from the manifest are
+// served by the binary already (TestWaveMethodsAreServedBeforeTheManifestDeclaresThem).
+//
+// Host calls are the measured worst path plus the script HTTP allowance where
+// the method grants scripts a network, so the "rejects one extra call" tests
+// stay exact: render 130 + 8, publish 131 + 8, fetch 132 + 8 (the fetch path's
+// member chains). preview and preview_draft keep render's ceiling, as they
+// always have. depends_on is 2, not the plan's 1, so it still answers on a
+// store that has not migrated (the index miss and the legacy document).
+func waveRuntimeBudgets() map[string]invokeBudgetSpec {
+	budgets := ackedRuntimeBudgets()
+	set := func(method string, hostCalls, stdoutBytes int) {
+		key := pluginID + "/subscription/" + method
+		budget := budgets[key]
+		budget.HostCalls = hostCalls
+		if stdoutBytes > 0 {
+			budget.StdoutBytes = stdoutBytes
+		}
+		budgets[key] = budget
+	}
+	set("list", 2, 512<<10)
+	set("get", 3, 1<<20)
+	set("save", 6, 0)
+	set("delete", 5, 0)
+	set("fetch", 140, 0)
+	set("render", 138, 0)
+	set("preview", 138, 0)
+	set("preview_draft", 138, 0)
+	set("publish", 139, 0)
+	set("export", 320, 0)
+	set("import", 320, 0)
+	set("migrate", 325, 0)
+	for method, budget := range waveOnlyRuntimeBudgets() {
+		budgets[pluginID+"/subscription/"+method] = budget
+	}
+	return budgets
+}
+
+// waveOnlyRuntimeBudgets are the runtime methods the wave adds.
+func waveOnlyRuntimeBudgets() map[string]invokeBudgetSpec {
+	return map[string]invokeBudgetSpec{
+		"depends_on":     {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		"apply_revision": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 4},
+		"restore":        {TimeoutMS: 5_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 5},
+		"purge":          {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 3},
+		"reorder":        {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		"migrate_store":  {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 140},
+	}
+}
+
+// The wave's new methods must be served before the manifest declares them:
+// the manifest is signed once, and a signed method the artifact does not
+// recognise is the broken promise TestManifestInterfacesAreServedAsDeclared
+// exists to catch. This is that test for the methods still waiting on the
+// signing, and it fails the day one of them is declared without being
+// dropped from the wave-only list.
+func TestWaveMethodsAreServedBeforeTheManifestDeclaresThem(t *testing.T) {
+	declared := map[string]bool{}
+	for _, iface := range loadManifestInterfaces(t) {
+		for _, method := range iface.Methods {
+			declared[iface.Service+"/"+method.Name] = true
+		}
+	}
+	for method := range waveOnlyRuntimeBudgets() {
+		if declared[pluginID+"/subscription/"+method] {
+			t.Errorf("%s is declared in the manifest now; move its budget into ackedRuntimeBudgets", method)
+			continue
+		}
+		rt := &runtime{host: denyHostCalls{}}
+		payload, err := json.Marshal(map[string]any{"service": pluginID + "/subscription", "method": method, "payload": map[string]any{}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp := rt.handle(request{Action: "call", Payload: payload}); refusedAsUnknown(resp) {
+			t.Errorf("%s is in the capability wave but this artifact does not serve it: %s", method, resp.Error)
+		}
+	}
+}
+
 func loadManifestInterfaces(t *testing.T) []manifestInterface {
 	t.Helper()
 	raw, err := os.ReadFile("../manifest.json")

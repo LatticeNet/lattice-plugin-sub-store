@@ -71,8 +71,10 @@ type subscriptionConvertResult struct {
 // A document with no node for the client is refused with
 // zeroNodesForTargetCode, the same rule the serve path applies.
 func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionConvertResult, error) {
-	if len(payload) > model.MaxSubscriptionResponseBytes {
-		return subscriptionConvertResult{}, fmt.Errorf("convert payload exceeds %d bytes", model.MaxSubscriptionResponseBytes)
+	// The request bound is the SDK's convert bound, which core enforces when
+	// it builds the request; the response bound was 2 MiB short of it.
+	if len(payload) > model.MaxConvertRequestBytes {
+		return subscriptionConvertResult{}, fmt.Errorf("convert payload exceeds %d bytes", model.MaxConvertRequestBytes)
 	}
 	var req subscriptionConvertRequest
 	if len(payload) > 0 {

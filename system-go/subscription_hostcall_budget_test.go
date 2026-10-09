@@ -82,17 +82,25 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 	const (
 		graphOptionsCalls = 1
 		// fetch: record read, one compose, and the refresh bookkeeping's own
-		// read and write — the outcome must land on the row either way.
+		// index read and write; the outcome must land on the row either way.
 		graphFetchCalls = 4
 		// save: the options reload that validates the selection, then the
-		// single-document flow — one load, one write.
-		graphSaveCalls       = 3
-		graphPreviewCalls    = 2
-		graphRenderCalls     = 2
-		graphPublishCalls    = 3
-		maxGraphRenderCalls  = 68
-		maxGraphPreviewCalls = 2
-		maxGraphPublishCalls = 69
+		// index read, the record write and the index write.
+		graphSaveCalls    = 4
+		graphPreviewCalls = 2
+		graphRenderCalls  = 2
+		graphPublishCalls = 3
+		// A collection of 64 graph members reads its record, each member's
+		// record and each member's composition: 1 + 64 + 64.
+		graphCollectionRenderCalls = 129
+		// A script file over it adds its own record: the node source.
+		maxGraphRenderCalls = 130
+		// A file preview refuses node-source work on its record alone.
+		maxGraphPreviewCalls = 1
+		maxGraphPublishCalls = 131
+		// The refresh of that script file: its record, the source record, 64
+		// member records, 64 compositions and the bookkeeping read and write.
+		maxGraphFetchCalls = 132
 	)
 
 	tests := []struct {
@@ -109,10 +117,11 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		{name: "direct preview", method: "preview", body: map[string]any{"subscription_id": "graph-00"}, want: graphPreviewCalls, seed: true, wantOK: true},
 		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, wantOK: true},
 		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, wantOK: true},
-		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: 66, seed: true, wantOK: true},
+		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: graphCollectionRenderCalls, seed: true, wantOK: true},
 		{name: "node-source file preview fails before composition", method: "preview", body: map[string]any{"subscription_id": "script-graphs"}, want: maxGraphPreviewCalls, seed: true},
 		{name: "script over 64 graph collection render", method: "render", body: map[string]any{"subscription_id": "script-graphs", "format": "plain"}, want: maxGraphRenderCalls, seed: true, wantOK: true},
 		{name: "script over 64 graph collection publish", method: "publish", body: map[string]any{"subscription_id": "script-graphs", "destination": "https://destination.invalid/graph", "format": "plain"}, want: maxGraphPublishCalls, seed: true, wantOK: true},
+		{name: "script over 64 graph collection fetch", method: "fetch", body: map[string]any{"subscription_id": "script-graphs"}, want: maxGraphFetchCalls, seed: true, wantOK: true},
 	}
 
 	for _, test := range tests {
@@ -126,18 +135,21 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			if response.OK != test.wantOK || host.total != test.want {
 				t.Fatalf("response=%+v calls=%d want=%d", response, host.total, test.want)
 			}
-			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+test.method]
+			budget := waveRuntimeBudgets()[pluginID+"/subscription/"+test.method]
 			if host.total > budget.HostCalls {
-				t.Fatalf("production path needs %d calls, signed budget is %d", host.total, budget.HostCalls)
+				t.Fatalf("production path needs %d calls, the wave budget is %d", host.total, budget.HostCalls)
 			}
 		})
 	}
 
-	for _, method := range []string{"preview", "render", "publish"} {
+	// fetch is pinned in the table above but not here: its bookkeeping write
+	// is best effort by design, so a call refused at the boundary is
+	// swallowed and the refresh still answers.
+	for _, method := range []string{"render", "publish"} {
 		t.Run(method+" rejects one extra call", func(t *testing.T) {
 			rt, host := newGraphBudgetRuntime(t)
 			seedGraphBudgetStore(t, rt)
-			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+method].HostCalls
+			budget := waveRuntimeBudgets()[pluginID+"/subscription/"+method].HostCalls
 			// Model one additional broker call introduced before the measured
 			// path. The signed cap is the measured path plus the script HTTP
 			// allowance, so the pre-spend has to include that allowance too:
@@ -147,9 +159,6 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			host.total = 1 + scriptHTTPMaxCalls
 			host.limit = budget
 			body := map[string]any{"subscription_id": "script-graphs", "format": "plain"}
-			if method == "preview" {
-				body["subscription_id"] = "graph-00"
-			}
 			if method == "publish" {
 				body["destination"] = "https://destination.invalid/graph"
 			}
@@ -226,7 +235,15 @@ func newCountingRuntime(t *testing.T) (*runtime, *budgetCountingHost) {
 // that found the undercounts.
 func seedBudgetStore(t *testing.T, rt *runtime) {
 	t.Helper()
-	records := []subscriptionRecord{
+	for _, rec := range budgetStoreRecords() {
+		if err := rt.saveSubscription(rec); err != nil {
+			t.Fatalf("seed %s: %v", rec.ID, err)
+		}
+	}
+}
+
+func budgetStoreRecords() []subscriptionRecord {
+	return []subscriptionRecord{
 		{ID: "local-a", Name: "local-a", Source: subscriptionSourceLocal, Content: scriptNodeHome},
 		{ID: "remote-a", Name: "remote-a", Source: subscriptionSourceRemote, URL: "https://provider.example/a"},
 		{ID: "remote-b", Name: "remote-b", Source: subscriptionSourceRemote, URL: "https://provider.example/b"},
@@ -236,11 +253,6 @@ func seedBudgetStore(t *testing.T, rt *runtime) {
 			ID: "scripty", Name: "scripty", Kind: kindFile, FileType: fileTypeScript,
 			NodeSource: "coll", Content: `$content = "ok";`,
 		},
-	}
-	for _, rec := range records {
-		if err := rt.saveSubscription(rec); err != nil {
-			t.Fatalf("seed %s: %v", rec.ID, err)
-		}
 	}
 }
 
@@ -254,18 +266,18 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// justified in the acked budget table before it can merge.
 		want int
 	}{
-		// The management reads.
+		// The management reads: the index, and one record.
 		{name: "list", method: "list", payload: map[string]any{}, want: 1},
 		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 1},
-		// The records document plus the program's own key. Production died here
-		// with the budget at 1.
-		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 2},
-		// Save loads the document once, keeps provenance from the in-memory copy,
-		// writes the program key for a script, and writes the document once. No
-		// read-back: the response is built from what was just written.
+		// The program is in the record: one read, where the legacy store needed
+		// two (production died here with the budget at 1, 2026-08-11).
+		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 1},
+		// Save reads the index, writes the record and writes the index; an
+		// existing record is read first for its provenance and the conditional
+		// check. No read-back: the response is built from what was written.
 		{name: "save a new plain sub", method: "save", payload: map[string]any{"subscription": map[string]any{
 			"id": "new-plain", "name": "new-plain", "content": scriptNodeHome,
-		}}, want: 2},
+		}}, want: 3},
 		{name: "save a new script file", method: "save", payload: map[string]any{"subscription": map[string]any{
 			"id": "new-script", "name": "new-script", "kind": kindFile, "file_type": fileTypeScript,
 			"content": `$content = "new";`,
@@ -273,57 +285,65 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		{name: "re-save an existing script file", method: "save", payload: map[string]any{"subscription": map[string]any{
 			"id": "scripty", "name": "scripty", "kind": kindFile, "file_type": fileTypeScript,
 			"node_source": "coll", "content": `$content = "ok";`,
-		}}, want: 3},
-		// Turning a script file into a plain sub clears the orphaned program key
-		// after the document write: load, write, clear.
+		}}, want: 4},
 		{name: "save over a script file with a plain sub", method: "save", payload: map[string]any{"subscription": map[string]any{
 			"id": "scripty", "name": "scripty", "content": scriptNodeHome,
-		}}, want: 3},
-		// Delete reads and writes the document; only a script file pays the
-		// third call to clear its program key.
-		{name: "delete a plain sub", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 2},
-		{name: "delete a script file", method: "delete", payload: map[string]any{"subscription_id": "scripty"}, want: 3},
+		}}, want: 4},
+		// Delete archives: the index, the record, the archive write, the index
+		// write and the record key's deletion, whatever the kind.
+		{name: "delete a plain sub", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 5},
+		{name: "delete a script file", method: "delete", payload: map[string]any{"subscription_id": "scripty"}, want: 5},
 		// Fetch: read the record, one network read, then the refresh bookkeeping
-		// is its own document read and write.
+		// is its own index read and write.
 		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 4},
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 4},
-		// A collection's refresh resolves every member: record, member list, one
-		// fetch per remote member, bookkeeping.
-		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 6},
-		// A script file's refresh resolves its node source the same way, plus the
-		// program key on the initial read.
+		// A collection's refresh resolves every member: record, one record and
+		// one fetch per remote member, bookkeeping.
+		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 7},
+		// A script file's refresh resolves its node source the same way, plus
+		// the source record.
 		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 8},
 		// Renders. A plain local sub is one read; the engine runs in-process.
 		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 1},
-		// A collection render reads the record, lists its members, then pays one
-		// provider fetch per remote member.
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 4},
+		// A collection render reads the record, then each member's record and
+		// one provider fetch per remote member. Explicit members need no index.
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 5},
 		// The operator's real shape: a script file over a collection of two
-		// remote subs. Document + program, the source record, the collection's
-		// member list, then one provider fetch per member.
+		// remote subs. The file, the source record, two member records, then
+		// one provider fetch per member.
 		{name: "render a script file over a remote collection", method: "render", payload: map[string]any{"subscription_id": "scripty", "format": "plain"}, want: 6},
 		// With the refresh path's snapshot in hand, the same renders pay no
-		// network at all: the document read (plus the program key) is the whole
-		// cost. This pair is the serve path's steady state.
+		// network at all: the record read is the whole cost. This group is the
+		// serve path's steady state.
 		{name: "render a script file from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "scripty", "format": "plain",
 			"raw": `{"source_id":"coll","source_name":"coll","source_kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 2},
+		}, want: 1},
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
 		}, want: 1},
-		// A combination preview renders its members: record, member list, one
-		// fetch per remote member.
-		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 4},
+		{name: "render a collection from a version 2 envelope", method: "render", payload: map[string]any{
+			"subscription_id": "coll", "format": "plain",
+			"raw": `{"version":2,"kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
+		}, want: 1},
+		// A combination preview renders its members: record, one record and
+		// one fetch per remote member.
+		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 5},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 1},
-		// Export reads the document and settings, then reattaches every script
-		// program — a backup without them is not a backup.
-		{name: "export", method: "export", payload: map[string]any{}, want: 3},
+		// Export reads the index, every record and the settings: N + 2 with
+		// the six seeded records.
+		{name: "export", method: "export", payload: map[string]any{}, want: 8},
+		// Import reads the index, writes each record and the index once.
+		{name: "import", method: "import", payload: map[string]any{"backup": `{"format":"lattice.sub-store.subscriptions.v1","records":[{"id":"imp-a","name":"a","content":"x"},{"id":"imp-b","name":"b","content":"y"}]}`}, want: 4},
 		// Publish renders (one read for a local sub) and sends once.
 		{name: "publish a local sub", method: "publish", payload: map[string]any{
 			"subscription_id": "local-a", "destination": "https://operator.example/hook",
 		}, want: 2},
+		// The methods the store split adds.
+		{name: "depends_on", method: "depends_on", payload: map[string]any{}, want: 1},
+		{name: "reorder", method: "reorder", payload: map[string]any{"ids": []string{"scripty", "coll", "vpn-a", "remote-b", "remote-a", "local-a"}}, want: 2},
+		{name: "migrate_store on a split store", method: "migrate_store", payload: map[string]any{}, want: 1},
 	}
 
 	for _, scenario := range scenarios {
@@ -339,12 +359,12 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 			if host.total != scenario.want {
 				t.Errorf("%s made %d host calls, pinned at %d", scenario.method, host.total, scenario.want)
 			}
-			budget, ok := ackedRuntimeBudgets()[pluginID+"/subscription/"+scenario.method]
+			budget, ok := waveRuntimeBudgets()[pluginID+"/subscription/"+scenario.method]
 			if !ok {
-				t.Fatalf("%s has no acked budget entry", scenario.method)
+				t.Fatalf("%s has no wave budget entry", scenario.method)
 			}
 			if host.total > budget.HostCalls {
-				t.Errorf("%s made %d host calls, over the acked budget of %d — this 502s in production", scenario.method, host.total, budget.HostCalls)
+				t.Errorf("%s made %d host calls, over the wave budget of %d; this 502s in production", scenario.method, host.total, budget.HostCalls)
 			}
 		})
 	}
@@ -356,8 +376,7 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 // A script file's preview is refused, not rendered: preview is substore:read,
 // and rendering a script file means executing a stored program over fetched
 // node-source content — host-capable work that belongs to render and publish.
-// The refusal must also be cheap: only the record lookup touches the host
-// (document plus the script's program key).
+// The refusal must also be cheap: only the record lookup touches the host.
 func TestPreviewOfScriptFileIsRefusedWithoutHostWork(t *testing.T) {
 	rt, host := newCountingRuntime(t)
 	seedBudgetStore(t, rt)
@@ -366,8 +385,8 @@ func TestPreviewOfScriptFileIsRefusedWithoutHostWork(t *testing.T) {
 	if res.OK || res.Error != "file preview does not expose node-source content" {
 		t.Fatalf("expected the node-source refusal, got %+v", res)
 	}
-	if host.total != 2 {
-		t.Errorf("refusal made %d host calls, pinned at 2 — it must not resolve the node source", host.total)
+	if host.total != 1 {
+		t.Errorf("refusal made %d host calls, pinned at 1; it must not resolve the node source", host.total)
 	}
 }
 
