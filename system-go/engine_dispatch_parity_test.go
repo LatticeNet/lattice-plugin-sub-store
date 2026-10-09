@@ -294,3 +294,44 @@ func TestEnvelopeLeavesNodesOutAtTheRawBound(t *testing.T) {
 		t.Fatal("a size-omitted envelope offered nodes")
 	}
 }
+
+// A chain that runs natively is previewed in Go with what previewScript
+// computes on the bundle: the same reduction to the visible fields before
+// the chain (so a step that reads a credential sees it absent), the same
+// summaries, and the same pairing of each kept node with its source and of
+// renamed nodes with their earlier names.
+func TestNativePreviewMatchesBundlePreview(t *testing.T) {
+	rt := dispatchRuntime(t)
+	// Without the plain Shadowsocks link, whose udp flag the two parsers
+	// read differently (TestNativeAndBundleRendersAgreeUnderCheckerRule).
+	document := strings.Replace(parityDocument(48), paritySSLink+"\n", "", 1)
+	for _, chain := range [][]json.RawMessage{
+		nil,
+		steps(`{"type":"Regex Rename Operator","args":[{"expr":"^(\\w+) (\\w+) (\\d+)$","now":"$1 $3"}]}`),
+		steps(`{"type":"Regex Filter","args":{"regex":["(?i)^(hk|jp)"],"keep":true}}`, `{"type":"Flag Operator","args":{"mode":"add"}}`),
+		// uuid is not visible to a reduced preview: the filter matches nothing
+		// there, and one node when the content was already synthetic.
+		steps(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EQUALS","attr":"uuid","value":"0b3cd6a9-4a5d-4a37-8c47-62f1a2d93c35"}}}`),
+		steps(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EQUALS","attr":"type","value":"trojan"}}}`),
+		steps(`{"type":"Handle Duplicate Operator","args":{"action":"rename","field":["type"],"position":"front","link":"_"}}`),
+	} {
+		for _, reduce := range []bool{true, false} {
+			native, err := rt.previewSubscription(document, chain, "URI", !reduce)
+			if err != nil {
+				t.Fatalf("native preview: %v", err)
+			}
+			out, err := rt.engine.runCoreScript("preview", "preview.js", previewScript(document, chain, "URI", reduce))
+			if err != nil {
+				t.Fatalf("bundle preview: %v", err)
+			}
+			var bundle previewNodes
+			if err := json.Unmarshal([]byte(out), &bundle); err != nil {
+				t.Fatal(err)
+			}
+			if native.SourceNodeCount != bundle.SourceNodeCount || !reflect.DeepEqual(native.Nodes, bundle.Nodes) || !reflect.DeepEqual(native.Dropped, bundle.Dropped) && len(native.Dropped)+len(bundle.Dropped) > 0 {
+				t.Errorf("chain %s reduce=%v: native %d nodes, %d dropped; bundle %d nodes, %d dropped\n native %+v\n bundle %+v",
+					chain, reduce, len(native.Nodes), len(native.Dropped), len(bundle.Nodes), len(bundle.Dropped), head(fmt.Sprint(native.Nodes), 300), head(fmt.Sprint(bundle.Nodes), 300))
+			}
+		}
+	}
+}

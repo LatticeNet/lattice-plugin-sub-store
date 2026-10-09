@@ -58,8 +58,6 @@ func (rt *runtime) invocationSettings() (pluginSettings, error) {
 }
 
 func (rt *runtime) saveSettings(s pluginSettings) error {
-	// A later read in the same invocation sees what this writes.
-	rt.settings = settingsCache{}
 	if s.SchemaVersion == 0 {
 		s.SchemaVersion = 1
 	}
