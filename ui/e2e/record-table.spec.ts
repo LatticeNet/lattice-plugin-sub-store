@@ -165,11 +165,16 @@ test.describe("at 1440 every column keeps what it says", () => {
     // A short flagged name is not cut for the marker beside it, and the marker
     // follows the name rather than the cell's far edge.
     for (const name of ["lookahead-provider", "backreference-rename"]) {
-      const open = rowNamed(page, name).getByTestId("record-name");
-      expect(await widerThanBox(open.locator("strong")), name).toBe(false);
-      const nameBox = (await open.boundingBox())!;
+      const strong = rowNamed(page, name).getByTestId("record-name").locator("strong");
+      expect(await widerThanBox(strong), name).toBe(false);
+      // Where the name's text ends, not its button, which may be wider.
+      const textEnd = await strong.evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        return range.getBoundingClientRect().right;
+      });
       const flag = (await rowNamed(page, name).getByTestId("record-flagged").boundingBox())!;
-      expect(flag.x - (nameBox.x + nameBox.width), name).toBeLessThan(16);
+      expect(flag.x - textEnd, name).toBeLessThan(16);
     }
     // A long name with three tags, the first long itself, stays as tall as a
     // name with a remark: one tag and a count on one line, never a stack, and

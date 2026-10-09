@@ -2459,7 +2459,6 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
    phone) rather than wrapping the count into a stack that would make the row
    three lines tall, or pushing the row past the frame. */
 .records-table .pc-table:not([data-stacked="true"]) .pc-name-line > .row-open { flex: 0 1 auto; max-width: none; }
-.records-table .pc-name-after { max-width: 100%; overflow: hidden; }
 .records-table .pc-table:not([data-stacked="true"]) .pc-name-after { flex: 0 0 auto; max-width: 40%; }
 .records-table .pc-name-after .pc-tag-list { min-width: 0; flex-wrap: nowrap; }
 .records-table .pc-name-after .pc-tag:not([title]) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
