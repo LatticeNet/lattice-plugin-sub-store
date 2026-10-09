@@ -143,7 +143,7 @@ func TestESPatternKeepsRE2ReadingWhereARewriteCouldRefuse(t *testing.T) {
 		{`^a\Q\s.[\Eb$`, []string{`a\s.[b`}, []string{"a .[b", "aQ"}},
 		{`^\Q.\s`, []string{`.\s`}, []string{"x "}},
 		{`^[\pZ-A]$`, []string{"-", "A", " "}, []string{"B"}},
-		{`^[\p{Greek}-\s]$`, []string{"-", "λ", " "}, []string{"x"}},
+		{`^[\p{Greek}-\s]$`, []string{"-", "λ", " ", nbsp}, []string{"x"}},
 	})
 }
 

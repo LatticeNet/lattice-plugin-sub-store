@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -167,16 +168,23 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 		members = append(members, id)
 	}
 	script := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
+	// A member whose own chain runs on the bundle takes the collection there
+	// too: its conversion is one isolated call, its four siblings one count.
+	if err := rt.saveSubscription(subscriptionRecord{ID: "m-script", Name: "m-script", Content: shareFleetFixture(1), Process: []json.RawMessage{script}}); err != nil {
+		t.Fatalf("save: %v", err)
+	}
 	for _, c := range []struct {
 		id      string
+		members []string
 		process []json.RawMessage
 		calls   int
 		nodes   bool
 	}{
-		{"c", nil, 0, true},
-		{"c-script", []json.RawMessage{script}, 1, false},
+		{"c", members, nil, 0, true},
+		{"c-script", members, []json.RawMessage{script}, 1, false},
+		{"c-member-script", append(slices.Clone(members[:4]), "m-script"), nil, 2, false},
 	} {
-		if err := rt.saveSubscription(subscriptionRecord{ID: c.id, Kind: kindCollection, Name: c.id, Members: members, Process: c.process}); err != nil {
+		if err := rt.saveSubscription(subscriptionRecord{ID: c.id, Kind: kindCollection, Name: c.id, Members: c.members, Process: c.process}); err != nil {
 			t.Fatalf("save: %v", err)
 		}
 		warmBefore, isolatedBefore := rt.engine.pathCounts()
@@ -186,10 +194,10 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 		}
 		warmAfter, isolatedAfter := rt.engine.pathCounts()
 		if calls := (warmAfter - warmBefore) + (isolatedAfter - isolatedBefore); calls != c.calls {
-			t.Fatalf("refreshing %s's five unchained members took %d engine calls, want %d", c.id, calls, c.calls)
+			t.Fatalf("refreshing %s's five members took %d engine calls, want %d", c.id, calls, c.calls)
 		}
 		env, ok := decodeSnapshotEnvelope(snap.Raw)
-		if !ok || len(env.Members) != len(members) {
+		if !ok || len(env.Members) != len(c.members) {
 			t.Fatalf("%s: snapshot is not a five-member envelope: %.120s", c.id, snap.Raw)
 		}
 		// shareFleetFixture(1) is four nodes: VLESS, Hysteria2 and two ss.
