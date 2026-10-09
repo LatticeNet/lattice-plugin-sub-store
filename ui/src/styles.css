@@ -2474,15 +2474,13 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 }
 .rec-grip:hover { color: var(--foreground); background: var(--muted); }
 .rec-grip:focus-visible { outline: none; color: var(--foreground); box-shadow: var(--lt-focus-ring-tight); }
-/* The dragged row follows the pointer one to one (a transform set from the
-   pointer), above its neighbours; the gap it would land in is a line in the
-   accent. Nothing else moves under it. */
+/* The lifted row follows the pointer one to one (a transform set from the
+   pointer), above its neighbours, edged in the accent; the rows it passes
+   slide aside to open the gap it would land in. A cancelled drag slides
+   everything back. Zero duration under reduced motion, through --lt-dur. */
 .record-row.is-dragging { position: relative; z-index: 3; cursor: grabbing; }
-.record-row.is-dragging > td { background-color: var(--card); box-shadow: 0 1px 0 var(--border), 0 -1px 0 var(--border); }
-.record-row.is-drop-before > td { box-shadow: inset 0 2px 0 var(--primary); }
-.record-row.is-drop-after > td { box-shadow: inset 0 -2px 0 var(--primary); }
-/* A cancelled drag goes back to where it came from; zero under reduced motion
-   through --lt-dur. */
+.record-row.is-dragging > td { background-color: var(--card); box-shadow: inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+.record-row.is-making-room,
 .record-row.is-settling { transition: transform var(--lt-dur) var(--lt-ease); }
 
 .rec-kind-icon { flex: 0 0 auto; align-self: center; color: var(--muted-foreground); }

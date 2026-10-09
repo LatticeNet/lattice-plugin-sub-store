@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { PcButton, PcNotice } from "@latticenet/plugin-bridge/chassis";
 
 import { applyRewrite, regexDiagnostics, type RegexDiagnostic } from "../regexRewrite";
@@ -39,13 +39,24 @@ function labelOf(type: string): string {
   return schemaFor(type)?.label ?? type;
 }
 
+/** A refusal lands where Save was pressed; the offer is brought into view under it. */
+const root = ref<{ $el?: Element } | null>(null);
+watch(
+  () => props.refusal,
+  async (refusal) => {
+    if (!refusal) return;
+    await nextTick();
+    root.value?.$el?.scrollIntoView?.({ block: "nearest" });
+  },
+);
+
 function rewrite(diagnostic: RegexDiagnostic): void {
   emit("apply", applyRewrite(props.chain, diagnostic));
 }
 </script>
 
 <template>
-  <PcNotice v-if="refusal" tone="warning" :title="TEXT.title" data-testid="regex-rewrite-offer">
+  <PcNotice v-if="refusal" ref="root" tone="warning" :title="TEXT.title" data-testid="regex-rewrite-offer">
     <p v-if="!live.length" role="status">{{ TEXT.resolved }}</p>
     <ul v-else class="regex-offer-list">
       <li v-for="diagnostic in live" :key="`${diagnostic.step}:${diagnostic.pattern}`" class="regex-offer-item">

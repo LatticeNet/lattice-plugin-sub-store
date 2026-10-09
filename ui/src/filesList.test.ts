@@ -55,7 +55,7 @@ describe("the records layer is one table of every kind", () => {
     // The paging and select-all rules are tested in paging.test.ts.
     expect(screen).toContain("const PAGE_SIZE = 50;");
     expect(screen).toMatch(/usePages\(\s*\(\) => sorted\.value,\s*PAGE_SIZE,/);
-    expect(screen).toContain('v-for="(row, index) in table.rows"');
+    expect(screen).toContain('v-for="row in table.rows"');
     expect(screen).toContain("table.value.rows.filter((row) => selectedIds.value.has(row.id))");
     expect(screen).toContain("toggleShown(selectedIds.value, table.value.rows.map((row) => row.id))");
   });

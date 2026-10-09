@@ -233,8 +233,6 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
       <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
     </div>
 
-    <RegexRewriteOffer :refusal="subs.saveRefusal.value" :chain="draft.process" @apply="(chain) => (draft.process = chain)" />
-
     <EditorSectionTabs
       :model-value="editorTab"
       label="Editor sections"
@@ -505,6 +503,10 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
         </p>
         </PcPanelBody>
       </PcPanel>
+
+      <!-- A save refused for a pattern the native engine cannot run: next to
+           the Save that was refused and under the chain it is about. -->
+      <RegexRewriteOffer :refusal="subs.saveRefusal.value" :chain="draft.process" @apply="(chain) => (draft.process = chain)" />
 
       <div class="editor-actions">
         <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>

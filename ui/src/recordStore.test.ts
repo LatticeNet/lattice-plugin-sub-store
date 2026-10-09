@@ -205,7 +205,7 @@ describe("a save the split store refuses", () => {
       code: ERROR_REGEX_INCOMPATIBLE,
       diagnostics: [{ step: 1, type: "Regex Filter", pattern: "^(?!.*(过期|官网)).*$", rewrite: "过期|官网" }],
     });
-    expect(subs.actionError.value).toMatch(/lookaround or a backreference/);
+    expect(subs.actionError.value).toBe("Not saved: step 1 uses lookaround or a backreference, which the native engine cannot run.");
     // The next attempt starts clean, and leaving the editor clears it too.
     subs.clearErrors();
     expect(subs.saveRefusal.value).toBeNull();

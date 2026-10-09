@@ -122,8 +122,6 @@ function setEditorTab(id: string): void {
       <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
     </div>
 
-    <RegexRewriteOffer :refusal="subs.saveRefusal.value" :chain="draft.process" @apply="(chain) => (draft.process = chain)" />
-
     <!--
       A save refused because the record moved underneath it. Rendered where
       the operator is, above the editor they are still holding, rather than
@@ -438,6 +436,10 @@ function setEditorTab(id: string): void {
       </div>
       </PcPanelBody>
     </PcPanel>
+
+      <!-- A save refused for a pattern the native engine cannot run: next to
+           the Save that was refused and under the chain it is about. -->
+      <RegexRewriteOffer :refusal="subs.saveRefusal.value" :chain="draft.process" @apply="(chain) => (draft.process = chain)" />
 
       <!-- Sticky so Save stays reachable while a long form scrolls. -->
       <div class="editor-actions">

@@ -798,34 +798,32 @@ function onRowKeydown(row: SubscriptionListItem, event: KeyboardEvent): void {
 }
 
 /**
- * A drag that follows the pointer: the row moves with it one to one, the gap
- * it would land in is lit, release drops it there, and Escape or a cancelled
- * pointer puts it back where it started. Pointer events rather than HTML5
- * drag, so touch works and the row is the thing that moves, not a ghost.
+ * A drag that follows the pointer: the lifted row moves with it one to one,
+ * the rows it passes slide aside to open the gap it would land in, release
+ * drops it there, and Escape or a cancelled pointer slides everything back.
+ * Pointer events rather than HTML5 drag, so touch works and the row itself is
+ * what moves, not a ghost image of it. Not reactive state: nothing in the
+ * template reads it, and the transforms are written to the rows directly.
  */
 interface DragState {
   id: string;
   pointerId: number;
   startY: number;
-  /** The row's own middle when the drag began, in page coordinates. */
+  /** The lifted row's middle when the drag began, in page coordinates. */
   startMiddle: number;
+  /** Every row on the page, in drawing order, and the middle of each. */
+  rows: HTMLElement[];
   middles: number[];
   shown: string[];
-  row: HTMLElement;
+  from: number;
+  height: number;
   gap: number;
   moved: boolean;
 }
-const drag = ref<DragState | null>(null);
-/** The gap the drag would drop into, while it is somewhere new. */
-const dropGap = computed(() => {
-  const state = drag.value;
-  if (!state || !state.moved) return -1;
-  const from = state.shown.indexOf(state.id);
-  return state.gap === from || state.gap === from + 1 ? -1 : state.gap;
-});
+let dragging: DragState | null = null;
 
 function onGripPointerDown(row: SubscriptionListItem, event: PointerEvent): void {
-  if (!canMove.value || event.button !== 0 || drag.value) return;
+  if (!canMove.value || event.button !== 0 || dragging) return;
   const grip = event.currentTarget as HTMLElement;
   const rowEl = grip.closest("tr");
   const body = rowEl?.parentElement;
@@ -839,42 +837,66 @@ function onGripPointerDown(row: SubscriptionListItem, event: PointerEvent): void
     return rect.top + scroll + rect.height / 2;
   });
   const own = rowEl.getBoundingClientRect();
-  drag.value = {
+  const from = rows.indexOf(rowEl);
+  dragging = {
     id: row.id,
     pointerId: event.pointerId,
     startY: event.clientY + scroll,
     startMiddle: own.top + scroll + own.height / 2,
+    rows,
     middles,
     shown: rows.map((el) => el.dataset.recordRow ?? ""),
-    row: rowEl,
-    gap: rows.indexOf(rowEl),
+    from,
+    height: own.height,
+    gap: from,
     moved: false,
   };
   rowEl.classList.add("is-dragging");
+  for (const el of rows) if (el !== rowEl) el.classList.add("is-making-room");
+}
+
+/** The rows between where the lifted row was and where it would land, moved over by its height. */
+function makeRoom(state: DragState): void {
+  state.rows.forEach((el, index) => {
+    if (index === state.from) return;
+    let shift = 0;
+    if (state.gap > state.from && index > state.from && index < state.gap) shift = -state.height;
+    if (state.gap < state.from && index >= state.gap && index < state.from) shift = state.height;
+    el.style.transform = shift ? `translateY(${shift}px)` : "";
+  });
 }
 
 function onGripPointerMove(event: PointerEvent): void {
-  const state = drag.value;
+  const state = dragging;
   if (!state || event.pointerId !== state.pointerId) return;
   const dy = event.clientY + window.scrollY - state.startY;
   if (Math.abs(dy) > 2) state.moved = true;
-  state.row.style.transform = `translateY(${dy}px)`;
-  state.gap = gapAt(state.middles, state.startMiddle + dy);
+  state.rows[state.from]!.style.transform = `translateY(${dy}px)`;
+  const gap = gapAt(state.middles, state.startMiddle + dy);
+  if (gap !== state.gap) {
+    state.gap = gap;
+    makeRoom(state);
+  }
 }
 
 function endDrag(drop: boolean): void {
-  const state = drag.value;
+  const state = dragging;
   if (!state) return;
-  drag.value = null;
-  state.row.classList.remove("is-dragging");
+  dragging = null;
+  const lifted = state.rows[state.from]!;
+  lifted.classList.remove("is-dragging");
   if (!drop && state.moved) {
-    // Cancelled: the row glides back to where it came from. A drop does not
-    // glide, because the row is already being redrawn at its new place.
-    const row = state.row;
-    row.classList.add("is-settling");
-    window.setTimeout(() => row.classList.remove("is-settling"), 300);
+    // Cancelled: the row glides back to where it came from and the others
+    // close the gap. A drop does not glide, because the rows are about to be
+    // drawn again in their new order.
+    lifted.classList.add("is-settling");
+    window.setTimeout(() => lifted.classList.remove("is-settling"), 300);
   }
-  state.row.style.transform = "";
+  for (const el of state.rows) {
+    if (drop) el.classList.remove("is-making-room");
+    el.style.transform = "";
+  }
+  if (!drop) window.setTimeout(() => state.rows.forEach((el) => el.classList.remove("is-making-room")), 300);
   if (!drop || !state.moved) return;
   const row = subs.items.value.find((item) => item.id === state.id);
   const order = subs.items.value.map((item) => item.id);
@@ -883,10 +905,10 @@ function endDrag(drop: boolean): void {
 }
 
 function onGripPointerUp(event: PointerEvent): void {
-  if (drag.value && event.pointerId === drag.value.pointerId) endDrag(true);
+  if (dragging && event.pointerId === dragging.pointerId) endDrag(true);
 }
 function onGripPointerCancel(event: PointerEvent): void {
-  if (drag.value && event.pointerId === drag.value.pointerId) endDrag(false);
+  if (dragging && event.pointerId === dragging.pointerId) endDrag(false);
 }
 
 // ── document keys ───────────────────────────────────────────────────────────
@@ -923,7 +945,7 @@ function onDocumentClick(event: MouseEvent): void {
  */
 function onDocumentKeydown(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
-  if (drag.value) {
+  if (dragging) {
     event.preventDefault();
     endDrag(false);
     return;
@@ -1279,15 +1301,11 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
               </template>
               <tbody>
                 <PcRow
-                  v-for="(row, index) in table.rows"
+                  v-for="row in table.rows"
                   :id="`rec-${row.id}`"
                   :key="row.id"
                   class="layer-row record-row"
-                  :class="{
-                    'is-pending': pendingIds.has(row.id),
-                    'is-drop-before': dropGap === index,
-                    'is-drop-after': dropGap === table.rows.length && index === table.rows.length - 1,
-                  }"
+                  :class="{ 'is-pending': pendingIds.has(row.id) }"
                   :selected="selectedIds.has(row.id) || chrome.openId.value === row.id"
                   :data-record-row="row.id"
                   :data-kind="kindFacetOf(row.kind)"
