@@ -644,6 +644,29 @@ func TestProduceLeavesCallerNodesUntouched(t *testing.T) {
 	}
 }
 
+// TestProduceReportsUnwritableNode pins the contract that a failing node
+// never fails the document: a value outside the model, which decoded input
+// never holds, drops its node as failed and leaves exactly the document the
+// other nodes make. On sing-box the second bad node fails in its shadow-tls
+// helper, after its outbound was written.
+func TestProduceReportsUnwritableNode(t *testing.T) {
+	good := node(map[string]any{"type": "trojan", "name": "ok", "server": "192.0.2.60", "port": float64(443), "password": "p",
+		"network": "tcp", "tls": true, "udp": true})
+	bad := node(with(good.Fields, map[string]any{"name": "bad", "password": struct{}{}}))
+	badHelper := node(map[string]any{"type": "ss", "name": "c", "server": "192.0.2.61", "port": float64(443), "cipher": "aes-128-gcm", "password": "p",
+		"udp": true, "plugin": "shadow-tls", "plugin-opts": map[string]any{"host": "h.example.com", "password": struct{}{}, "version": float64(3)}})
+	for _, tc := range []struct {
+		target string
+		opts   Options
+	}{{"JSON", nil}, {"ClashMeta", nil}, {"ClashMeta", Options{"prettyYaml": true}}, {"sing-box", nil}} {
+		want, _ := produce(t, tc.target, []*nodemodel.Node{good, good}, tc.opts)
+		out, res := produce(t, tc.target, []*nodemodel.Node{good, bad, good, badHelper}, tc.opts)
+		if out != want || res.Entries != 2 || !slices.Equal(reasons(res.Dropped), []string{"1:" + ReasonFailed, "3:" + ReasonFailed}) {
+			t.Errorf("%s %v: output %q, entries %d, dropped %v; want %q without the bad nodes, both dropped as failed", tc.target, tc.opts, out, res.Entries, res.Dropped, want)
+		}
+	}
+}
+
 // TestClashMetaInternalKeepsWhatT20Removes pins the internal mode the
 // sing-box producer runs: every node passes (no admission filter), the
 // transforms run, and T20 does not, so null values and underscore keys that

@@ -34,14 +34,15 @@ func (jsonProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, target s
 			out = append(out, ',')
 		}
 		out = append(out, "\n  "...)
-		var err error
-		if out, err = appendJSONIndent(out, p.ordered(), "  "); err != nil {
+		next, err := appendJSONIndent(out, p.ordered(), "  ")
+		if err != nil {
 			// Only a value outside the model fails, which decoded input
 			// never holds; the node is reported instead of the document.
 			out = out[:mark]
 			res.Dropped = append(res.Dropped, Dropped{Index: p.index, Type: typeOf(p.node.Fields), Reason: ReasonFailed})
 			continue
 		}
+		out = next
 		res.Entries++
 	}
 	if res.Entries > 0 {

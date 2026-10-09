@@ -76,15 +76,12 @@ func (c clashMetaProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, t
 	} else {
 		out = []byte("proxies:\n")
 		for _, p := range kept {
-			mark := len(out)
-			out = append(out, "  - "...)
-			var err error
-			if out, err = appendJSON(out, p.ordered()); err != nil {
-				out = out[:mark]
+			next, err := appendJSON(append(out, "  - "...), p.ordered())
+			if err != nil {
 				failed(p)
 				continue
 			}
-			out = append(out, '\n')
+			out = append(next, '\n')
 			res.Entries++
 		}
 	}
@@ -100,14 +97,15 @@ func prettyYAML(opts Options) bool {
 	return opts.Truthy("prettyYaml") || opts.Truthy("pretty-yaml")
 }
 
-// ClashMetaInternal is the ClashMeta producer's internal mode, which the
+// ClashMetaInternal is the ClashMeta producer's internal mode, the pass the
 // sing-box producer runs first (singbox.md, "Pipeline"): every node, because
 // include-unsupported-proxy is forced on and the admission filter never
 // applies, goes through the transforms T1 to T22 and W except T20, so null
 // values and underscore keys stay on the node. nodes are the output of the
 // steps before the producer; the result holds new nodes in the same order and
 // the input is not changed. The transforms read no option, so opts changes
-// nothing.
+// nothing. The sing-box producer applies the same pass to the steps' own copy
+// of each node, which saves the copy this function makes.
 func ClashMetaInternal(nodes []*nodemodel.Node, opts Options) []*nodemodel.Node {
 	out := make([]*nodemodel.Node, len(nodes))
 	for i, n := range nodes {
