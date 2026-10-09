@@ -10,9 +10,10 @@
  * Plain, direct and operational (DESIGN.md, Content voice): say what
  * happened, what is unavailable and what to do next. No em or en dashes.
  */
-import { pluralIn, type EnglishForms, type Rich } from "./format";
+import { numberIn, pluralIn, type EnglishForms, type Rich } from "./format";
 
 const plural = pluralIn<EnglishForms>("en");
+const num = numberIn("en");
 
 export const en = {
   time: {
@@ -73,7 +74,7 @@ export const en = {
     unreadTitle: "The share list has not been read yet.",
     none: "not published",
     noneTitle: "No share exists for this record, so no client can fetch it.",
-    servedAt: (path: string, more: number) => `Served at ${path}${more > 0 ? ` and ${more} more` : ""}.`,
+    servedAt: (path: string, more: number) => `Served at ${path}${more > 0 ? ` and ${num(more)} more` : ""}.`,
     expiredLabel: (path: string) => `${path} expired`,
     disabledLabel: (path: string) => `${path} disabled`,
     expiredTitle: "A share exists but is expired; clients that fetch it get nothing.",
@@ -210,8 +211,8 @@ export const en = {
     flagged: "regex rewrite",
     flaggedTitle:
       "A pattern in this record's chain uses lookaround or a backreference, which the native engine cannot run. It keeps rendering on the fallback path; Edit names the step and offers a rewrite where one exists.",
-    steps: (count: number, off: number) => `${plural(count, { one: "{n} step", other: "{n} steps" })}${off ? `, ${off} turned off` : ""}.`,
-    stepsOff: (off: number) => `${off} off`,
+    steps: (count: number, off: number) => `${plural(count, { one: "{n} step", other: "{n} steps" })}${off ? `, ${num(off)} turned off` : ""}.`,
+    stepsOff: (off: number) => `${num(off)} off`,
     stepsTarget: (target: string) => `Always rendered for ${target}.`,
     fileServedAsWritten: "served as written",
     fileServedTitle: "Nothing fills it: the document is served as written.",
@@ -225,14 +226,14 @@ export const en = {
     memberMissing: (ref: string, reason: string) => `${ref} (${reason})`,
     usedByNothing: "Nothing uses this source: no combination, file or share draws from it.",
     membersTags: (tags: string) => `and every source tagged ${tags}`,
-    missing: (count: number) => `${count} missing`,
+    missing: (count: number) => `${num(count)} missing`,
     reorderReadOnly: "This session can read records but not change them, so the order is read-only.",
     reorderUnsigned: "The signed plugin does not offer reorder yet, so the order shown is the store's and cannot be changed here.",
     reorderLegacy: "This store still keeps every record in one document, in id order. Migrate it to arrange records by hand.",
     reorderSorted: "Sorted, so the rows are not in the store's order. Choose Manual order to rearrange them.",
-    gripLabel: (name: string, position: number, total: number) => `Reorder ${name}, position ${position} of ${total}`,
+    gripLabel: (name: string, position: number, total: number) => `Reorder ${name}, position ${num(position)} of ${num(total)}`,
     gripHelp: "Arrow Up and Arrow Down move the record; with the pointer, drag it. Escape puts a dragged row back.",
-    moved: (name: string, position: number, total: number) => `Moved ${name} to position ${position} of ${total}.`,
+    moved: (name: string, position: number, total: number) => `Moved ${name} to position ${num(position)} of ${num(total)}.`,
     moveAtTop: (name: string) => `${name} is already at the top of the rows shown.`,
     moveAtBottom: (name: string) => `${name} is already at the bottom of the rows shown.`,
     moveUp: "Move up",
@@ -247,7 +248,7 @@ export const en = {
     migrateAction: "Migrate store",
     migrateUnsigned: "The signed plugin does not offer migrate_store yet; it arrives with the S1 manifest.",
     migrateReadOnly: "An operator with substore:admin has to run the migration.",
-    migrateProgress: (migrated: number, remaining: number) => `Migrated ${migrated} so far, ${remaining} to go.`,
+    migrateProgress: (migrated: number, remaining: number) => `Migrated ${num(migrated)} so far, ${num(remaining)} to go.`,
     migrateDone: (count: number) =>
       `The store is split: ${plural(count, { one: "{n} record", other: "{n} records" })} moved, verified, and every write works again.`,
     migrateFailed: (reason: string) => `The migration stopped (${reason}). Records already moved stay moved; run it again to continue.`,
@@ -257,8 +258,8 @@ export const en = {
       `Imported ${plural(sources, { one: "{n} subscription", other: "{n} subscriptions" })} and ${plural(combinations, {
         one: "{n} combination",
         other: "{n} combinations",
-      })}${skipped ? `, and skipped ${skipped}` : ""}. Nothing is published yet, so publish a share under Platform, then Publishing, to make them reachable.`,
-    countTitle: (shown: number, total: number, max: number) => `${shown} of ${total} records shown. The store holds at most ${max}.`,
+      })}${skipped ? `, and skipped ${num(skipped)}` : ""}. Nothing is published yet, so publish a share under Platform, then Publishing, to make them reachable.`,
+    countTitle: (shown: number, total: number, max: number) => `${num(shown)} of ${num(total)} records shown. The store holds at most ${num(max)}.`,
     showInPanel: (name: string) => `Show ${name} in the side panel`,
     drawerPreview: (name: string) => `Preview · ${name}`,
     drawerUpload: (name: string) => `Upload · ${name}`,
@@ -269,10 +270,10 @@ export const en = {
     askedPublishing: "Asked the console to open Platform → Publishing.",
     copiedLink: (label: string) => `Copied the link for ${label}.`,
     openInPublishing: "Open in Publishing",
-    remainderTitle: (done: number, pending: number) => `${done} deleted, 1 failed, ${pending} not attempted`,
+    remainderTitle: (done: number, pending: number) => `${num(done)} deleted, 1 failed, ${num(pending)} not attempted`,
     remainderBefore: "The run stopped at",
     remainderAfter: ", so nothing after it was touched. These records are still here and still selected:",
-    retryRemaining: (n: number) => `Retry the ${n} that remain`,
+    retryRemaining: (n: number) => `Retry the ${num(n)} that remain`,
     linkFor: (label: string) => `Link for ${label}`,
     loadingPanel: "Loading records",
     loading: "Loading the records",
@@ -298,19 +299,19 @@ export const en = {
     filterLabel: "Filter records",
     publishedFilter: "Published",
     publishedFilterAria: "Filter by whether a live share serves the record",
-    allCount: (n: number) => `All ${n}`,
-    publishedCount: (n: number) => `Published ${n}`,
-    unpublishedCount: (n: number) => `Not published ${n}`,
+    allCount: (n: number) => `All ${num(n)}`,
+    publishedCount: (n: number) => `Published ${num(n)}`,
+    unpublishedCount: (n: number) => `Not published ${num(n)}`,
     typeFilter: "Type",
     typeFilterAria: "Filter by file type",
     allTypes: "All",
-    configCount: (n: number) => `Configuration ${n}`,
-    scriptCount: (n: number) => `Script ${n}`,
-    plainCount: (n: number) => `Plain ${n}`,
+    configCount: (n: number) => `Configuration ${num(n)}`,
+    scriptCount: (n: number) => `Script ${num(n)}`,
+    plainCount: (n: number) => `Plain ${num(n)}`,
     originFilter: "Origin",
     originFilterAria: "Filter by where the record came from",
-    migratedCount: (n: number) => `Migrated ${n}`,
-    localCount: (n: number) => `Made here ${n}`,
+    migratedCount: (n: number) => `Migrated ${num(n)}`,
+    localCount: (n: number) => `Made here ${num(n)}`,
     sortLabel: "Sort",
     sortAria: "Sort records",
     sortRecent: "Recently refreshed",
@@ -341,7 +342,7 @@ export const en = {
     },
     noMatchBody: "Nothing in this store matches the filters above.",
     clearFilters: "Clear filters",
-    selectAll: (n: number) => `Select all ${n} shown records`,
+    selectAll: (n: number) => `Select all ${num(n)} shown records`,
     select: (name: string) => `Select ${name}`,
     colName: "Name",
     colKind: "Kind",
@@ -399,18 +400,18 @@ export const en = {
     sharesUnread: (count: number) => `The share list is unread, so the shares that serve ${count === 1 ? "it" : "them"} cannot be named.`,
     /** `served` is how many live shares change. */
     sharesChange: (served: number) =>
-      `${served === 1 ? "A live share changes" : `${served} live shares change`} for the clients that fetch ${served === 1 ? "it" : "them"}, listed below.`,
+      `${served === 1 ? "A live share changes" : `${num(served)} live shares change`} for the clients that fetch ${served === 1 ? "it" : "them"}, listed below.`,
     sharesNone: (count: number) => `No live share serves ${count === 1 ? "it" : "them"} or anything drawn from ${count === 1 ? "it" : "them"}.`,
-    filesTitle: (count: number, note: string) => `${count === 1 ? "Delete this file?" : `Delete ${count} files?`} ${note}`,
+    filesTitle: (count: number, note: string) => `${count === 1 ? "Delete this file?" : `Delete ${num(count)} files?`} ${note}`,
     consequenceMember: (name: string) => `${name}  (combination, loses a member)`,
     consequenceSource: (name: string) => `${name}  (file, loses its node source)`,
     noDependents: (count: number, note: string) =>
-      `Delete ${count === 1 ? "this record" : `${count} records`}? Nothing else in this store points at ${count === 1 ? "it" : "them"}. ${note}`,
+      `Delete ${count === 1 ? "this record" : `${num(count)} records`}? Nothing else in this store points at ${count === 1 ? "it" : "them"}. ${note}`,
     withDependents: (count: number, dependents: number, note: string) =>
-      `Delete ${count === 1 ? "this record" : `${count} records`}? ${
+      `Delete ${count === 1 ? "this record" : `${num(count)} records`}? ${
         dependents === 1
           ? `1 other record in this store points at ${count === 1 ? "it" : "them"} and stops working`
-          : `${dependents} other records in this store point at ${count === 1 ? "it" : "them"} and stop working`
+          : `${num(dependents)} other records in this store point at ${count === 1 ? "it" : "them"} and stop working`
       } until you edit them, listed below. ${note}`,
     deletedUnread: (label: string) =>
       `Deleted ${label}. The share list is unread, so any share that published it cannot be named; one would still exist and serve nothing until it is removed under Platform → Publishing.`,
@@ -450,7 +451,7 @@ export const en = {
     template: "Template",
     inOut: "in → out",
     stepsNone: "none",
-    stepsCount: (n: number, off: number) => `${plural(n, { one: "{n} step", other: "{n} steps" })}${off ? `, ${off} off` : ""}`,
+    stepsCount: (n: number, off: number) => `${plural(n, { one: "{n} step", other: "{n} steps" })}${off ? `, ${num(off)} off` : ""}`,
     noMembersResolve: "No members resolve",
     plusTagged: (tags: string) => `Plus every source tagged ${tags}`,
     servedAsWritten: "Nothing: the document is served as written",
@@ -548,27 +549,27 @@ export const en = {
       `${plural(families, { one: "{n} more family", other: "{n} more families" })}${singles ? ` and ${singles}` : ""}, ${total}`,
     showFewer: "Show fewer",
     noteSelected: (total: number) =>
-      `Showing the selected path. ${total} dependencies in all; clear the selection to see the paths that need attention.`,
+      `Showing the selected path. ${num(total)} dependencies in all; clear the selection to see the paths that need attention.`,
     noteAttention: (records: number, total: number) =>
-      `Showing the paths of the ${plural(records, { one: "{n} record", other: "{n} records" })} the attention list names, not all ${total} dependencies. Select a record to see its path.`,
-    noteDense: (total: number) => `${total} dependencies are too many to draw at once. Select a record to see its path.`,
+      `Showing the paths of the ${plural(records, { one: "{n} record", other: "{n} records" })} the attention list names, not all ${num(total)} dependencies. Select a record to see its path.`,
+    noteDense: (total: number) => `${num(total)} dependencies are too many to draw at once. Select a record to see its path.`,
     moreFold: "Fold this column back to its first entries.",
     /** `count` is a counted noun: "26 sources". */
     moreHidden: (count: string) => `${count} not shown. Show every one.`,
     foldThem: "Fold them.",
     showThem: "Show them.",
-    inside: (n: number) => `${n} more inside`,
-    drawnBelow: (shown: number, inside: number) => `${shown} drawn below because the attention list names them, ${inside} more inside.`,
+    inside: (n: number) => `${num(n)} more inside`,
+    drawnBelow: (shown: number, inside: number) => `${num(shown)} drawn below because the attention list names them, ${num(inside)} more inside.`,
     allPublished: "all published",
-    somePublished: (published: number, total: number) => `${published} of ${total} published`,
-    fileGroupTitle: (count: string, label: string, published: number) => `${count} named ${label}, ${published} published.`,
-    needAttention: (trouble: number, total: number) => `${trouble} of ${total} need attention`,
+    somePublished: (published: number, total: number) => `${num(published)} of ${num(total)} published`,
+    fileGroupTitle: (count: string, label: string, published: number) => `${count} named ${label}, ${num(published)} published.`,
+    needAttention: (trouble: number, total: number) => `${num(trouble)} of ${num(total)} need attention`,
     allOk: "all ok",
-    groupTitle: (count: string, label: string, trouble: number) => `${count} named ${label}${trouble ? `, ${trouble} with a problem` : ""}.`,
+    groupTitle: (count: string, label: string, trouble: number) => `${count} named ${label}${trouble ? `, ${num(trouble)} with a problem` : ""}.`,
     summary: (sources: string, combinations: string, files: string, shares: string, dependencies: string) =>
       `Lineage: ${sources}, ${combinations}, ${files}, ${shares}, ${dependencies}`,
     edgesDrawn: (painted: number, total: number, onPath: number | null) =>
-      `${painted} of ${total} dependencies drawn${onPath === null ? "" : `, ${onPath} on the selected path`}`,
+      `${num(painted)} of ${num(total)} dependencies drawn${onPath === null ? "" : `, ${num(onPath)} on the selected path`}`,
     none: "None",
     feedsPrefix: "feeds",
     chipTitle: (label: string, title: string) => `${label}. ${title}`,
@@ -593,12 +594,12 @@ export const en = {
     proofReading: "reading",
     proofLive: (n: number) => plural(n, { one: "{n} share live", other: "{n} shares live" }),
     proofSharesUnread: "share list unread",
-    published: (n: number) => `${n} published`,
+    published: (n: number) => `${num(n)} published`,
   },
   create: {
     unread: "The record catalogue could not be read, so the record budget and the names in use are unknown. Refresh first",
     reading: "The record catalogue is still being read, so the record budget and the names in use are not known yet",
-    limit: (max: number) => `The store holds ${max} records; delete one to add another`,
+    limit: (max: number) => `The store holds ${num(max)} records; delete one to add another`,
     noSource: "Create a source first. There is nothing to combine",
     legacy:
       "This store still keeps every record in one document and refuses new records until it is migrated. Migrate it from the Records table first",
@@ -651,7 +652,7 @@ export const en = {
     theRecord: "the record",
     showInShares: (slug: string) => `Show /${slug} in Shares`,
     showFirstFive: "Show the first five",
-    showMore: (n: number) => `Show ${n} more`,
+    showMore: (n: number) => `Show ${num(n)} more`,
   },
   overview: {
     title: "Overview",
@@ -695,11 +696,11 @@ export const en = {
     filterLabel: "Filter shares",
     stateFilter: "State",
     stateFilterAria: "Filter by whether a client gets anything",
-    liveCount: (n: number) => `Live ${n}`,
-    deadCount: (n: number) => `Serving nothing ${n}`,
-    summary: (live: number, total: number) => `${live} of ${total} live`,
+    liveCount: (n: number) => `Live ${num(n)}`,
+    deadCount: (n: number) => `Serving nothing ${num(n)}`,
+    summary: (live: number, total: number) => `${num(live)} of ${num(total)} live`,
     summaryNone: "none",
-    summaryDead: (n: number) => `${n} returning nothing: disabled, expired, or without a record.`,
+    summaryDead: (n: number) => `${num(n)} returning nothing: disabled, expired, or without a record.`,
     summaryAllLive: "Every share here is live.",
     noMatchTitle: "No share matches that search",
     noMatchQueryBefore: "No record, slug or format here matches",
@@ -742,10 +743,10 @@ export const en = {
     willImportAfter: ". The API path stays masked.",
     importAction: "Import from this Sub-Store",
     reportImported: (imported: number, total: number) =>
-      `Imported ${plural(imported, { one: "{n} record", other: "{n} records" })}${total ? ` of ${total} listed` : ""}. They land in Records, tagged migrated. A share is a separate decision.`,
+      `Imported ${plural(imported, { one: "{n} record", other: "{n} records" })}${total ? ` of ${num(total)} listed` : ""}. They land in Records, tagged migrated. A share is a separate decision.`,
     viewImported: "View imported records",
     importedTag: "imported",
-    reportSkipped: (n: number) => `Skipped ${n}.`,
+    reportSkipped: (n: number) => `Skipped ${num(n)}.`,
     reportUnavailable: (n: number) =>
       `The source did not answer ${plural(n, { one: "{n} endpoint", other: "{n} endpoints" })}. Combinations or files may be missing.`,
     reportTruncated: "The source listed more records than one import will take. What landed is above; the rest was not written.",
@@ -820,7 +821,7 @@ export const en = {
   },
   confirm: {
     alsoBreaksOne: "This also breaks:",
-    alsoBreaks: (n: number) => `This also breaks ${n} records:`,
+    alsoBreaks: (n: number) => `This also breaks ${num(n)} records:`,
     servedOne: "Clients fetching this share see the change:",
     servedMany: "Clients fetching these shares see the change:",
     typeName: (name: string) => `To confirm, type the name: ${name}`,
@@ -987,7 +988,9 @@ export const en = {
   },
   draft: {
     giveName: "Give it a name.",
-    tooLarge: (kb: number, limit: number) => `Inline content is ${kb} KB; the limit is ${limit} KB.`,
+    /** Exact byte counts: a size rounded to KB just past the limit reads the same as the limit. */
+    tooLarge: (bytes: number, limit: number) =>
+      `Inline content is ${plural(bytes, { one: "{n} byte", other: "{n} bytes" })}; the limit is ${plural(limit, { one: "{n} byte", other: "{n} bytes" })}.`,
     templateLink: "Paste the link the template is fetched from.",
     plainText: "Write the text you want served.",
     script: "Paste the script that builds this file.",
@@ -1023,14 +1026,16 @@ export const en = {
     theRecord: "The record",
     deleteFailed: "Subscription could not be deleted",
     refreshNoop: "The provider refresh failed and changed nothing. Clients keep getting whatever this record already had, which may be nothing.",
-    checked: (bytes: number, id: string, version: string) => `Checked ${bytes} bytes for ${id}${version ? ` at ${version}` : ""}.`,
+    /** `size` is formatted: "1.5 MB". */
+    checked: (size: string, id: string, version: string) => `Checked ${size} for ${id}${version ? ` at ${version}` : ""}.`,
     refreshed: (id: string) => `Refreshed ${id}.`,
     refreshFailed: (reason: string) => `${reason}. The refresh did not complete, so nothing about this record changed.`,
     refreshFallback: "Subscription could not be refreshed",
     publishStatus: (status: number, record: string) => `the publish call came back with status ${status} for record ${record}`,
     noRecord: "(none)",
-    uploaded: (bytes: number, id: string) =>
-      `Uploaded ${bytes} bytes for ${id}. The destination accepted them; whether anything downstream serves them is not visible from here.`,
+    /** `size` is formatted: "1.5 MB". */
+    uploaded: (size: string, id: string) =>
+      `Uploaded ${size} for ${id}. The destination accepted it; whether anything downstream serves it is not visible from here.`,
     uploadFailed: (reason: string) => `Upload failed: ${reason}. The saved record and the destination were not changed.`,
     uploadFallback: "the destination did not accept it",
     renderFailed: "The document could not be rendered",
@@ -1047,7 +1052,7 @@ export const en = {
     copyFailed: "Record could not be copied",
     reorderUnavailable: "reordering is not available here",
     reorderRefused: "the store refused it",
-    migrationStalled: (remaining: number) => `the last chunk moved nothing while ${remaining} records remain`,
+    migrationStalled: (remaining: number) => `the last chunk moved nothing while ${num(remaining)} records remain`,
     migrationUnfinished: "it did not finish within 64 chunks",
     migrationFailed: "migrate_store failed",
   },
@@ -1086,7 +1091,7 @@ export const en = {
       `This record was changed while you had it open: ${plural(changed, { one: "{n} field", other: "{n} fields" })}, none of them fields you edited. Reopening keeps both changes.`,
     contested: (changed: number, contested: number) =>
       `This record was changed while you had it open: ${plural(changed, { one: "{n} field", other: "{n} fields" })}, and ${
-        contested === 1 ? "1 of them is a field you also edited" : `${contested} of them are fields you also edited`
+        contested === 1 ? "1 of them is a field you also edited" : `${num(contested)} of them are fields you also edited`
       }. Saving anyway replaces their version with yours.`,
   },
   editor: {
@@ -1314,7 +1319,7 @@ export const en = {
     rootSource: (source: string, target: string) => `Source ${source} · Target ${target}`,
     rootStatus: (status: string, path: string) => `Status ${status} · Path ${path}`,
     terminal: "terminal",
-    unavailable: (n: number) => `Unavailable roots (${n})`,
+    unavailable: (n: number) => `Unavailable roots (${num(n)})`,
     unavailableLine: (source: string, target: string, status: string, path: string, reason: string) =>
       ` · Source ${source} · Target ${target} · Status ${status} · Path ${path} · Reason ${reason}`,
     unknown: "unknown",
@@ -1338,7 +1343,7 @@ export const en = {
   },
   chain: {
     heading: "Node operations",
-    activeCount: (active: number, total: number) => `${active} of ${total} active`,
+    activeCount: (active: number, total: number) => `${num(active)} of ${num(total)} active`,
     off: "off",
     turnOn: "Turn this operation back on",
     turnOff: "Turn this operation off without losing its arguments",
@@ -1349,7 +1354,7 @@ export const en = {
     moveDown: "Move down",
     moveDownLabel: (label: string) => `Move ${label} down`,
     previewStep: "Preview the nodes as they leave this operation",
-    previewStepLabel: (n: number) => `Preview up to operation ${n}`,
+    previewStepLabel: (n: number) => `Preview up to operation ${num(n)}`,
     duplicate: "Duplicate",
     duplicateLabel: (label: string) => `Duplicate ${label}`,
     remove: "Remove",
@@ -1361,17 +1366,17 @@ export const en = {
     catalogFailed: "The operator catalogue could not be read, so nothing can be added here.",
     noResponseOperator: "No response-stage operator is available for this file type.",
     noOperators: "This bundle exposes no operators to add.",
-    stepLabel: (position: number, name: string) => `${position}. ${name}`,
+    stepLabel: (position: number, name: string) => `${num(position)}. ${name}`,
   },
   chainDetail: {
     theChain: "the chain",
     nodes: (n: number) => plural(n, { one: "{n} node", other: "{n} nodes" }),
     operations: (n: number) => plural(n, { one: "{n} operation", other: "{n} operations" }),
-    dropped: (n: number) => `${n} dropped`,
+    dropped: (n: number) => `${num(n)} dropped`,
     off: "off",
     keptAll: "kept all",
-    droppedN: (n: number) => `dropped ${n}`,
-    addedN: (n: number) => `added ${n}`,
+    droppedN: (n: number) => `dropped ${num(n)}`,
+    addedN: (n: number) => `added ${num(n)}`,
     running: "running",
     notRun: "not run",
     reading: "Reading the record…",
@@ -1379,13 +1384,13 @@ export const en = {
     showDropped: (label: string) => `Show nodes dropped by ${label}`,
     switchedOff: "Switched off: the chain skips this operation",
     noOperations: "No operations. The nodes are served as the source provides them.",
-    noOperationsCount: (n: number) => `No operations. The nodes are served as the source provides them: ${n} of them.`,
+    noOperationsCount: (n: number) => `No operations. The nodes are served as the source provides them: ${num(n)} of them.`,
     combination:
       "The engine runs a combination's operations over its members' merged output and reports one result; per-operation counts exist for a subscription only.",
     combinationCount: (n: number) =>
-      `The engine runs a combination's operations over its members' merged output and reports one result, ${n} nodes; per-operation counts exist for a subscription only.`,
+      `The engine runs a combination's operations over its members' merged output and reports one result, ${num(n)} nodes; per-operation counts exist for a subscription only.`,
     cannotPreview: "This session cannot run a preview, so what each operation kept is unknown.",
-    chooseCut: (n: number) => `${n} dropped. Choose a cut to name them.`,
+    chooseCut: (n: number) => `${num(n)} dropped. Choose a cut to name them.`,
     source: "Source",
     revealedTitle: "Masks itself again after a minute",
     maskedTitle: "Masked: the query string carries the provider token",
@@ -1393,18 +1398,18 @@ export const en = {
     reveal: "Reveal",
     droppedByLabel: (label: string) => `Nodes dropped by ${label}`,
     droppedBy: (label: string) => `Dropped by ${label}`,
-    namingFirst: (shown: number, total: number) => `Naming the first ${shown} of ${total}.`,
+    namingFirst: (shown: number, total: number) => `Naming the first ${num(shown)} of ${num(total)}.`,
     pagesLabel: "Pages of dropped nodes",
     previousPage: "Previous page",
     nextPage: "Next page",
-    range: (from: number, to: number, total: number) => `${from} to ${to} of ${total}`,
+    range: (from: number, to: number, total: number) => `${num(from)} to ${num(to)} of ${num(total)}`,
   },
   regexOffer: {
     title: "The native engine cannot run a pattern in this chain",
     pending: "Until it changes, this record renders on the fallback path, and a save that changes the chain is refused.",
-    step: (step: number, label: string) => `Step ${step}, ${label}`,
+    step: (step: number, label: string) => `Step ${num(step)}, ${label}`,
     rewriteLead: "It keeps every node that does not match. The same filter in drop mode:",
-    rewriteAction: (step: number) => `Rewrite step ${step}`,
+    rewriteAction: (step: number) => `Rewrite step ${num(step)}`,
     noRewrite: "Rewrite it without lookaround or backreferences, or turn the step off.",
     resolvedTitle: "Every pattern in the chain runs natively now",
     resolvedAfterRefusal: "Save again to store it.",
@@ -1417,7 +1422,7 @@ export const en = {
     leave: "Leave",
     on: "On",
     off: "Off",
-    removeRule: (n: number) => `Remove rule ${n}`,
+    removeRule: (n: number) => `Remove rule ${num(n)}`,
     removeRuleTitle: "Remove this rule",
     addRule: "Add a rule",
     arguments: "Arguments",
@@ -1442,7 +1447,7 @@ export const en = {
     fallbackView: "Syntax highlighting is unavailable. Plain-text view shown.",
   },
   documentView: {
-    truncated: (shown: number, total: number) => `Showing the first ${shown} of ${total} lines. Copy the document to get all of it.`,
+    truncated: (shown: number, total: number) => `Showing the first ${num(shown)} of ${num(total)} lines. Copy the document to get all of it.`,
   },
   sectionTabs: {
     problem: "This section has a problem",
@@ -1473,8 +1478,8 @@ export const en = {
   sheet: {
     dropped: (client: string, dropped: number, total: number, protocols: string) => {
       const named = protocols ? ` (${protocols})` : "";
-      if (total > 0 && dropped >= total) return `${client} cannot carry any of this record's ${total} nodes${named}. This document has none of them.`;
-      return `${client} cannot carry ${dropped} of this record's ${total || dropped} nodes${named}. They are not in this document.`;
+      if (total > 0 && dropped >= total) return `${client} cannot carry any of this record's ${num(total)} nodes${named}. This document has none of them.`;
+      return `${client} cannot carry ${num(dropped)} of this record's ${num(total || dropped)} nodes${named}. They are not in this document.`;
     },
     cannotRender: "This session cannot render client documents. Use Node preview for the redacted read view.",
     noDocument: "The render response did not contain a document",
@@ -1543,9 +1548,9 @@ export const en = {
     chooseClient: "Choose a client or retry the render.",
     previewing: "Previewing nodes…",
     retryPreview: "Retry preview",
-    kept: (n: number) => `Kept ${n}`,
-    ofSource: (n: number) => `of ${n} source nodes`,
-    filtered: (n: number) => `Filtered ${n}`,
+    kept: (n: number) => `Kept ${num(n)}`,
+    ofSource: (n: number) => `of ${num(n)} source nodes`,
+    filtered: (n: number) => `Filtered ${num(n)}`,
     truncated: "Result truncated",
     colName: "Name",
     colType: "Type",
@@ -1553,14 +1558,14 @@ export const en = {
     unknownServer: "Unknown",
     keptNone: "The chain kept no nodes.",
     keptNoneNote: "A client subscribing now receives an empty node list.",
-    firstOf: (shown: number, total: number) => `Showing the first ${shown} of ${total}.`,
+    firstOf: (shown: number, total: number) => `Showing the first ${num(shown)} of ${num(total)}.`,
     noEvidence: "No node evidence loaded.",
     previewNodes: "Preview nodes",
   },
   panel: {
     loading: "Loading…",
     nodesOnce: (n: number) => `${plural(n, { one: "{n} node", other: "{n} nodes" })} once its operations run`,
-    andMore: (n: number) => `…and ${n} more`,
+    andMore: (n: number) => `…and ${num(n)} more`,
     renewBefore: (title: string) => `${title} Renewing or enabling it happens in the dashboard, under`,
     publishingPath: "Platform → Publishing",
     renewAfter: ".",
@@ -1582,21 +1587,21 @@ export const en = {
     upload: "Upload document",
   },
   previewSummary: {
-    keptOf: (kept: number, source: number) => `kept ${kept} of ${source} nodes`,
+    keptOf: (kept: number, source: number) => `kept ${num(kept)} of ${num(source)} nodes`,
     nodes: (n: number) => plural(n, { one: "{n} node", other: "{n} nodes" }),
     partial: (step: string) => `Partial run, stopped after "${step}". Operations below it did not run.`,
     source: (version: string, stale: boolean) => `Source ${version} · ${stale ? "stale last-good" : "fresh composition"}`,
     truncated: " · truncated",
     stepsLabel: "What each operation kept",
-    keptAll: (label: string, n: number) => `${label}: kept all ${n}`,
-    keptSome: (label: string, after: number, before: number) => `${label}: kept ${after} of ${before}`,
-    became: (label: string, before: number, after: number) => `${label}: ${before} became ${after}`,
+    keptAll: (label: string, n: number) => `${label}: kept all ${num(n)}`,
+    keptSome: (label: string, after: number, before: number) => `${label}: kept ${num(after)} of ${num(before)}`,
+    became: (label: string, before: number, after: number) => `${label}: ${num(before)} became ${num(after)}`,
     colSource: "Source",
     colResult: "Result",
     removedBy: (by: string) => `removed by ${by}`,
-    namingFirst: (shown: number, total: number) => `Naming the first ${shown} of ${total} removed.`,
+    namingFirst: (shown: number, total: number) => `Naming the first ${num(shown)} of ${num(total)} removed.`,
     pagesLabel: "Pages of nodes",
-    rows: (from: number, to: number, total: number) => `Rows ${from} to ${to} of ${total}`,
+    rows: (from: number, to: number, total: number) => `Rows ${num(from)} to ${num(to)} of ${num(total)}`,
     unknownType: "unknown",
   },
   boot: {

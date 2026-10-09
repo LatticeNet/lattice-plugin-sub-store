@@ -30,7 +30,7 @@ import { trapDialogTab } from "../dialogFocus";
 import { useOverlayRegistration } from "../useOverlayRegistration";
 import { isFileRecord } from "../filePreview";
 import { useHost } from "../host";
-import { t } from "../i18n";
+import { formatBytes, t } from "../i18n";
 import { copyText } from "../hostClipboard";
 import {
   editorLanguageForFileType,
@@ -163,12 +163,6 @@ const shareUrl = computed(() =>
       : buildShareLink(shareBase.value, chosen.value, includeUnsupported.value)
     : "",
 );
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 function documentKey(target = isFile.value ? "" : chosen.value): string {
   return [

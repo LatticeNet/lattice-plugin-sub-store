@@ -28,6 +28,16 @@ function rulesFor(locale: string): Intl.PluralRules {
   return rules;
 }
 
+/**
+ * A number written the locale's way (12,345 in English, 12 345 in Russian),
+ * for a message that states a count without a counted noun ("Show 3 more")
+ * or a position ("Step 3"). A counted noun goes through pluralIn, which
+ * writes its count the same way.
+ */
+export function numberIn(locale: string): (value: number) => string {
+  return (value) => numberFormat(locale).format(value);
+}
+
 /** English has one and other. */
 export interface EnglishForms {
   one: string;
