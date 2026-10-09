@@ -77,7 +77,10 @@ const (
 // besides the Lattice document bounds (ErrDocumentTooLarge,
 // ErrExpansionTooLarge).
 func Document(text string, opts Options) (nodes []*nodemodel.Node, warnings []Warning, err error) {
-	return document(text, opts, nil)
+	if len(text) > MaxDocumentBytes {
+		return nil, nil, ErrDocumentTooLarge
+	}
+	return parseText(text, opts)
 }
 
 // Line parses one line with the parser selection of section 3. Used by tests
@@ -89,7 +92,7 @@ func Line(line string, opts Options) (*nodemodel.Node, bool, error) {
 	if line == "" || len(line) > nodemodel.MaxLineBytes {
 		return nil, false, nil
 	}
-	st := newLineState(nil)
+	st := newLineState()
 	fields, _, ok := st.parse(line)
 	if !ok {
 		return nil, false, nil
@@ -123,23 +126,14 @@ func Preprocess(text string) (string, Kind) {
 	return out, kind
 }
 
-// document is Document with a hook the corpus test uses to learn which
-// parsers a line needed that are not implemented yet.
-func document(text string, opts Options, onUnimplemented func(label string)) ([]*nodemodel.Node, []Warning, error) {
-	if len(text) > MaxDocumentBytes {
-		return nil, nil, ErrDocumentTooLarge
-	}
-	return parseText(text, opts, onUnimplemented)
-}
-
 // parseText is the whole pipeline without the raw document bound, which
 // Document applies first. The linear-time test drives it past the bound.
-func parseText(text string, opts Options, onUnimplemented func(label string)) ([]*nodemodel.Node, []Warning, error) {
+func parseText(text string, opts Options) ([]*nodemodel.Node, []Warning, error) {
 	pre, _, warnings, err := preprocess(wellFormed(text))
 	if err != nil {
 		return nil, warnings, err
 	}
-	st := newLineState(onUnimplemented)
+	st := newLineState()
 	var nodes []*nodemodel.Node
 	var lines []int // the line each node came from
 	for start, lineNo := 0, 1; start <= len(pre); lineNo++ {
@@ -186,14 +180,13 @@ func parseText(text string, opts Options, onUnimplemented func(label string)) ([
 // most recent node, and the object value the Clash object test decoded for
 // the current line (so the parser does not decode it twice).
 type lineState struct {
-	last            int
-	objectLine      string
-	objectValue     any
-	onUnimplemented func(label string)
+	last        int
+	objectLine  string
+	objectValue any
 }
 
-func newLineState(onUnimplemented func(string)) *lineState {
-	return &lineState{last: -1, onUnimplemented: onUnimplemented}
+func newLineState() *lineState {
+	return &lineState{last: -1}
 }
 
 // parse runs parser selection on one trimmed line: the parser that produced
@@ -219,12 +212,6 @@ func (st *lineState) try(i int, line string) (map[string]any, bool) {
 	if !p.test(line, st) {
 		return nil, false
 	}
-	if p.parse == nil {
-		if st.onUnimplemented != nil {
-			st.onUnimplemented(p.label)
-		}
-		return nil, false
-	}
 	f, err := p.parse(line, st)
 	if err != nil || f == nil {
 		return nil, false
@@ -233,9 +220,7 @@ func (st *lineState) try(i int, line string) (map[string]any, bool) {
 }
 
 // lineParser is one row of the parser table of parser.md 3.1. label names
-// the grammar for warnings and for the corpus test's pending list; parse is
-// nil for a grammar that has not landed yet, which makes the row accept
-// nothing.
+// the grammar in warnings.
 type lineParser struct {
 	label string
 	test  func(line string, st *lineState) bool
@@ -245,18 +230,14 @@ type lineParser struct {
 // scheme builds a URI row: the test is a prefix match and parse receives the
 // text after the matched prefix.
 func scheme(label string, parse func(rest string, st *lineState) (map[string]any, error), prefixes ...string) lineParser {
-	p := lineParser{label: label, test: prefixTest(prefixes...)}
-	if parse != nil {
-		p.parse = func(line string, st *lineState) (map[string]any, error) {
-			for _, pre := range prefixes {
-				if strings.HasPrefix(line, pre) {
-					return parse(line[len(pre):], st)
-				}
+	return lineParser{label: label, test: prefixTest(prefixes...), parse: func(line string, st *lineState) (map[string]any, error) {
+		for _, pre := range prefixes {
+			if strings.HasPrefix(line, pre) {
+				return parse(line[len(pre):], st)
 			}
-			return nil, errReject
 		}
-	}
-	return p
+		return nil, errReject
+	}}
 }
 
 // prefixTest is the test of a URI row: the line starts with one of the
@@ -272,9 +253,10 @@ func prefixTest(prefixes ...string) func(string, *lineState) bool {
 	}
 }
 
-// typed builds a Surge, Loon or Quantumult X row from a test on the line.
-func typed(label string, test func(line string) bool) lineParser {
-	return lineParser{label: label, test: func(line string, _ *lineState) bool { return test(line) }}
+// typed builds a Surge, Loon or Quantumult X row from a test on the line
+// and the grammar the row shares with its family.
+func typed(label string, test func(line string) bool, parse func(line string, st *lineState) (map[string]any, error)) lineParser {
+	return lineParser{label: label, test: func(line string, _ *lineState) bool { return test(line) }, parse: parse}
 }
 
 // parsers is the table of parser.md 3.1, in order. The Surge rows share one
@@ -294,40 +276,40 @@ var parsers = []lineParser{
 	/* 11 */ scheme("trojan", parseTrojan, "trojan://"),
 	/* 12 */ scheme("anytls", parseAnyTLS, "anytls://"),
 	/* 13 */ {label: "clash", test: clashObjectTest, parse: parseClashObject},
-	/* 14 */ typed("surge", surgeDirectTest),
-	/* 15 */ typed("surge", typeWordPrefix("anytls")),
-	/* 16 */ typed("surge", typeWordPrefix("trust-tunnel")),
-	/* 17 */ typed("surge", typeWordPrefix("masque")),
-	/* 18 */ typed("surge", typeWordPrefix("h2-connect")),
-	/* 19 */ typed("surge", typeWordPrefix("ssh")),
-	/* 20 */ typed("surge", typeWordPrefix("ss")),
-	/* 21 */ typed("surge", func(l string) bool { return typeWordPrefix("vmess")(l) && strings.Contains(l, "username") }),
-	/* 22 */ typed("surge", typeWordPrefix("trojan")),
-	/* 23 */ typed("surge", func(l string) bool { return typeWordPrefix("http")(l) && !hasLoonOnlyOption(l) }),
-	/* 24 */ typed("surge", typeWordPrefix("snell")),
-	/* 25 */ typed("surge", typeWordPrefix("tuic")),
-	/* 26 */ typed("surge", typeWordPrefix("wireguard")),
-	/* 27 */ typed("surge", typeWordPrefix("hysteria2")),
-	/* 28 */ typed("surge", func(l string) bool { return typeWordPrefix("socks5")(l) && !hasLoonOnlyOption(l) }),
-	/* 29 */ typed("surge-external", typeWordPrefix("external")),
-	/* 30 */ typed("loon", func(l string) bool { return strings.ToLower(typeWord(l)) == "shadowsocks" }),
-	/* 31 */ typed("loon", func(l string) bool { return strings.ToLower(typeWord(l)) == "shadowsocksr" }),
-	/* 32 */ typed("loon", func(l string) bool { return typeWordPrefixFold("vmess")(l) && !strings.Contains(l, "username") }),
-	/* 33 */ typed("loon", typeWordPrefixFold("vless")),
-	/* 34 */ typed("loon", typeWordPrefixFold("hysteria2")),
-	/* 35 */ typed("loon", typeWordPrefixFold("trojan")),
-	/* 36 */ typed("loon", typeWordPrefixFold("anytls")),
-	/* 37 */ typed("loon", typeWordPrefixFold("http")),
-	/* 38 */ typed("loon", typeWordPrefixFold("socks5")),
-	/* 39 */ typed("loon-wireguard", typeWordPrefixFold("wireguard")),
-	/* 40 */ typed("qx", func(l string) bool { return qxFirstField(l, "shadowsocks") && !strings.Contains(l, "ssr-protocol") }),
-	/* 41 */ typed("qx", func(l string) bool { return qxFirstField(l, "shadowsocks") && strings.Contains(l, "ssr-protocol") }),
-	/* 42 */ typed("qx", func(l string) bool { return qxFirstField(l, "vmess") }),
-	/* 43 */ typed("qx", func(l string) bool { return qxFirstField(l, "vless") }),
-	/* 44 */ typed("qx", func(l string) bool { return qxFirstField(l, "anytls") }),
-	/* 45 */ typed("qx", func(l string) bool { return qxFirstField(l, "trojan") }),
-	/* 46 */ typed("qx", func(l string) bool { return qxFirstField(l, "http") }),
-	/* 47 */ typed("qx", func(l string) bool { return qxFirstField(l, "socks5") }),
+	/* 14 */ typed("surge", surgeDirectTest, parseSurge),
+	/* 15 */ typed("surge", typeWordPrefix("anytls"), parseSurge),
+	/* 16 */ typed("surge", typeWordPrefix("trust-tunnel"), parseSurge),
+	/* 17 */ typed("surge", typeWordPrefix("masque"), parseSurge),
+	/* 18 */ typed("surge", typeWordPrefix("h2-connect"), parseSurge),
+	/* 19 */ typed("surge", typeWordPrefix("ssh"), parseSurge),
+	/* 20 */ typed("surge", typeWordPrefix("ss"), parseSurge),
+	/* 21 */ typed("surge", func(l string) bool { return typeWordPrefix("vmess")(l) && strings.Contains(l, "username") }, parseSurge),
+	/* 22 */ typed("surge", typeWordPrefix("trojan"), parseSurge),
+	/* 23 */ typed("surge", func(l string) bool { return typeWordPrefix("http")(l) && !hasLoonOnlyOption(l) }, parseSurge),
+	/* 24 */ typed("surge", typeWordPrefix("snell"), parseSurge),
+	/* 25 */ typed("surge", typeWordPrefix("tuic"), parseSurge),
+	/* 26 */ typed("surge", typeWordPrefix("wireguard"), parseSurge),
+	/* 27 */ typed("surge", typeWordPrefix("hysteria2"), parseSurge),
+	/* 28 */ typed("surge", func(l string) bool { return typeWordPrefix("socks5")(l) && !hasLoonOnlyOption(l) }, parseSurge),
+	/* 29 */ typed("surge-external", typeWordPrefix("external"), parseSurgeExternal),
+	/* 30 */ typed("loon", func(l string) bool { return strings.ToLower(typeWord(l)) == "shadowsocks" }, parseLoon),
+	/* 31 */ typed("loon", func(l string) bool { return strings.ToLower(typeWord(l)) == "shadowsocksr" }, parseLoon),
+	/* 32 */ typed("loon", func(l string) bool { return typeWordPrefixFold("vmess")(l) && !strings.Contains(l, "username") }, parseLoon),
+	/* 33 */ typed("loon", typeWordPrefixFold("vless"), parseLoon),
+	/* 34 */ typed("loon", typeWordPrefixFold("hysteria2"), parseLoon),
+	/* 35 */ typed("loon", typeWordPrefixFold("trojan"), parseLoon),
+	/* 36 */ typed("loon", typeWordPrefixFold("anytls"), parseLoon),
+	/* 37 */ typed("loon", typeWordPrefixFold("http"), parseLoon),
+	/* 38 */ typed("loon", typeWordPrefixFold("socks5"), parseLoon),
+	/* 39 */ typed("loon-wireguard", typeWordPrefixFold("wireguard"), parseLoonWireGuard),
+	/* 40 */ typed("qx", func(l string) bool { return qxFirstField(l, "shadowsocks") && !strings.Contains(l, "ssr-protocol") }, parseQX),
+	/* 41 */ typed("qx", func(l string) bool { return qxFirstField(l, "shadowsocks") && strings.Contains(l, "ssr-protocol") }, parseQX),
+	/* 42 */ typed("qx", func(l string) bool { return qxFirstField(l, "vmess") }, parseQX),
+	/* 43 */ typed("qx", func(l string) bool { return qxFirstField(l, "vless") }, parseQX),
+	/* 44 */ typed("qx", func(l string) bool { return qxFirstField(l, "anytls") }, parseQX),
+	/* 45 */ typed("qx", func(l string) bool { return qxFirstField(l, "trojan") }, parseQX),
+	/* 46 */ typed("qx", func(l string) bool { return qxFirstField(l, "http") }, parseQX),
+	/* 47 */ typed("qx", func(l string) bool { return qxFirstField(l, "socks5") }, parseQX),
 }
 
 // firstField is the text before the first comma of the line.

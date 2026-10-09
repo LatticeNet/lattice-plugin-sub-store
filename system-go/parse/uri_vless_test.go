@@ -10,7 +10,7 @@ import (
 // output before the normaliser, or nil when no parser accepts the line.
 func parserFields(t *testing.T, line string) map[string]any {
 	t.Helper()
-	f, _, ok := newLineState(nil).parse(line)
+	f, _, ok := newLineState().parse(line)
 	if !ok {
 		return nil
 	}

@@ -290,10 +290,9 @@ func clipJSON(v any, present bool) string {
 
 // caseResult is the outcome of one corpus case.
 type caseResult struct {
-	pass          bool
-	allowed       []string // allowlist entries the pass needed
-	diff          string
-	unimplemented []string // grammars the case reached that have not landed
+	pass    bool
+	allowed []string // allowlist entries the pass needed
+	diff    string
 }
 
 // runCorpusCase parses one case and compares it with its parse golden:
@@ -309,13 +308,8 @@ func runCorpusCase(t testing.TB, root string, c corpusCase, entries []divergence
 	if err := json.Unmarshal(goldenRaw, &golden); err != nil {
 		t.Fatalf("%s: golden: %v", c.id, err)
 	}
-	labels := map[string]bool{}
-	nodes, _, perr := document(c.input, Options{}, func(label string) { labels[label] = true })
+	nodes, _, perr := Document(c.input, Options{})
 	var r caseResult
-	for l := range labels {
-		r.unimplemented = append(r.unimplemented, l)
-	}
-	sort.Strings(r.unimplemented)
 
 	if m, ok := golden.(map[string]any); ok && m["error"] == true {
 		r.pass = perr != nil
@@ -363,9 +357,8 @@ func runCorpusCase(t testing.TB, root string, c corpusCase, entries []divergence
 
 // TestParseCorpusMatchesGoldens runs every vendored corpus case through
 // Document and compares the nodes with goldens/parse, reporting each case.
-// A case that reaches a grammar which has not landed yet is listed as
-// pending under that grammar, never skipped silently; once every grammar
-// has landed nothing can be pending and every case must pass.
+// Every grammar of parser.md has landed, so every case must match, either
+// exactly or under the allowlist entries that apply to it.
 func TestParseCorpusMatchesGoldens(t *testing.T) {
 	root := conformanceDir(t)
 	cases := corpusCases(t, root)
@@ -373,46 +366,22 @@ func TestParseCorpusMatchesGoldens(t *testing.T) {
 	if len(cases) == 0 {
 		t.Fatal("no corpus cases")
 	}
-	pending := map[string][]string{}
 	passed, failed, allowed := 0, 0, map[string]int{}
 	for _, c := range cases {
 		r := runCorpusCase(t, root, c, entries)
 		t.Run(c.id, func(t *testing.T) {
-			switch {
-			case len(r.unimplemented) > 0:
-				// A case that reaches a grammar which has not landed is pending
-				// even when it matches: its golden may hold no nodes only
-				// because the grammar rejects the line today.
-				for _, l := range r.unimplemented {
-					pending[l] = append(pending[l], c.id)
-				}
-				state := "differs: " + r.diff
-				if r.pass {
-					state = "matches so far"
-				}
-				t.Skipf("pending on %s, which has not landed; %s", strings.Join(r.unimplemented, ", "), state)
-			case r.pass:
-				passed++
-				for _, id := range r.allowed {
-					allowed[id]++
-				}
-			default:
+			if !r.pass {
 				failed++
 				t.Errorf("parse differs from the golden: %s", r.diff)
+				return
+			}
+			passed++
+			for _, id := range r.allowed {
+				allowed[id]++
 			}
 		})
 	}
-	labels := make([]string, 0, len(pending))
-	total := 0
-	for l, ids := range pending {
-		labels = append(labels, l)
-		total += len(ids)
-	}
-	sort.Strings(labels)
-	t.Logf("%d cases: %d passed, %d failed, %d pending; allowlist entries used: %v", len(cases), passed, failed, len(cases)-passed-failed, allowed)
-	for _, l := range labels {
-		t.Logf("pending on %s (%d): %s", l, len(pending[l]), strings.Join(pending[l], " "))
-	}
+	t.Logf("%d cases: %d passed, %d failed; cases that matched only under the allowlist, by entry applied: %v", len(cases), passed, failed, allowed)
 }
 
 // fatalRecorder stands in for a test so loadDivergences's refusal can be

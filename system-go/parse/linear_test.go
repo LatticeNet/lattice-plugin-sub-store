@@ -82,7 +82,7 @@ func timeParse(t *testing.T, text string, runs int) time.Duration {
 	for i := 0; i < runs; i++ {
 		runtime.GC()
 		start := cpuTime()
-		if _, _, err := parseText(text, Options{}, nil); err != nil && !errors.Is(err, ErrExpansionTooLarge) {
+		if _, _, err := parseText(text, Options{}); err != nil && !errors.Is(err, ErrExpansionTooLarge) {
 			t.Fatalf("parse failed: %v", err)
 		}
 		if d := cpuTime() - start; d < best {

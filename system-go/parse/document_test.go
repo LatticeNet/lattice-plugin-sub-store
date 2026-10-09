@@ -190,7 +190,7 @@ func TestParserTableFollowsTheSpecificationOrder(t *testing.T) {
 		{"shadowsocks = h:1, tag=a", 40}, {"shadowsocks=h:1, ssr-protocol=x", 41}, {"vmess = h:1", 42},
 		{"vless=h:1", 43}, {"anytls=h:1", 44}, {"trojan =h:1", 45}, {"http= h:1", 46}, {"socks5=h:1", 47},
 	} {
-		st := newLineState(nil)
+		st := newLineState()
 		row := 0
 		for i := range parsers {
 			if parsers[i].test(c.line, st) {
