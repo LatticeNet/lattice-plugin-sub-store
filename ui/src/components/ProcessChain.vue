@@ -478,6 +478,24 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 .step-icon.is-danger { color: var(--lt-danger-ink); }
 .step-icon.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
 
+/* On a phone the step's name takes the bar's first line and its controls a
+   second line under it, still at the right edge. Beside the toggle's word and
+   five buttons the name had room for its number alone ("1. ..."), and with
+   the word hidden it still had about 70px, short of "1. Regex filter" in
+   English and further short in Russian. */
+@media (max-width: 480px) {
+  .step-bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .step-actions {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
 .step-body {
   display: flex;
   flex-direction: column;

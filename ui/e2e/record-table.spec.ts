@@ -281,6 +281,18 @@ for (const locale of LOCALES) {
         expect(await leftInEnglish(page, locale)).toEqual([]);
       });
 
+      test("the chain editor names every step whole beside its controls", async ({ page }) => {
+        await open(page, "&fixture=states&manifest=s1", "record-row", locale);
+        await rowNamed(page, "lookahead-provider").getByTestId("record-name").click();
+        await page.locator(".pc-side-panel").getByRole("button", { name: t.actions.edit, exact: true }).click();
+        await page.getByRole("tab", { name: startsWith(t.editor.tabs.operations) }).click();
+        await page.locator(".step-bar").first().waitFor();
+        // On a phone the toggle's word and five buttons left the name its number alone.
+        expect(await cutAmong(page, [".step-label", ".step-toggle", ".step-actions"])).toEqual([]);
+        expect(await docWidth(page)).toBe(viewport.width);
+        expect(await leftInEnglish(page, locale)).toEqual([]);
+      });
+
       test("every label around and inside the table keeps its words whole", async ({ page }) => {
         await open(page, "&fixture=states&manifest=s1", "record-row", locale);
         // The layer row holds its four tabs without scrolling one out of sight.
