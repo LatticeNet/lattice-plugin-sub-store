@@ -202,7 +202,9 @@ func quotedField(s string, i int, nonEmpty bool) (string, int, bool) {
 	return s[j+1 : j+1+k], end, true
 }
 
-// enumField reads ", word" at i for one of words, tried in order.
+// enumField reads ", word" at i for the first of words that starts there.
+// The field after it begins with a comma, so a word with characters after it
+// fails there.
 func enumField(s string, i int, words []string) (string, int, bool) {
 	j := skipGap(s, i)
 	if j >= len(s) || s[j] != ',' {
@@ -211,10 +213,7 @@ func enumField(s string, i int, words []string) (string, int, bool) {
 	j = skipGap(s, j+1)
 	for _, w := range words {
 		if strings.HasPrefix(s[j:], w) {
-			if atOptionEnd(s, j+len(w)) {
-				return w, j + len(w), true
-			}
-			return "", 0, false
+			return w, j + len(w), true
 		}
 	}
 	return "", 0, false

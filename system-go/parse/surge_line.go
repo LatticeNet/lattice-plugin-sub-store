@@ -126,13 +126,13 @@ func keyAhead(s string, i int) bool {
 }
 
 // lineScan is a line under the option engine. It remembers, for each quote
-// kind, a position from which the line holds no such quote and one from
-// which no such quote ends an option, and the last token run a header-name
-// test scanned, so a line made of unclosed quotes or of separators is read
-// in linear time.
+// kind, a position from which no such quote ends an option, and the last
+// token run a header-name test scanned, so a line made of header lists that
+// never close or of separators is read in linear time. A plain search for a
+// closing quote needs no memory: it always starts just after a quote, so it
+// can only fail from the last quote of its kind.
 type lineScan struct {
 	s          string
-	noQuote    [2]int
 	noQuoteEnd [2]int
 	runStart   int
 	runEnd     int
@@ -141,7 +141,7 @@ type lineScan struct {
 
 func newLineScan(s string) *lineScan {
 	n := len(s) + 1
-	return &lineScan{s: s, noQuote: [2]int{n, n}, noQuoteEnd: [2]int{n, n}, runStart: -1, runEnd: -1}
+	return &lineScan{s: s, noQuoteEnd: [2]int{n, n}, runStart: -1, runEnd: -1}
 }
 
 func quoteKind(q byte) int {
@@ -153,14 +153,9 @@ func quoteKind(q byte) int {
 
 // closing returns the index of the first q at or after from, or -1.
 func (ls *lineScan) closing(from int, q byte) int {
-	k := quoteKind(q)
-	if from >= ls.noQuote[k] {
-		return -1
-	}
 	if i := strings.IndexByte(ls.s[from:], q); i >= 0 {
 		return from + i
 	}
-	ls.noQuote[k] = from
 	return -1
 }
 
