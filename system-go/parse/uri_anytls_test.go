@@ -16,6 +16,11 @@ func TestAnyTLSOverlay(t *testing.T) {
 			"anytls://pw@h:443?type=ws&security=tls&idle_session_timeout=30#n",
 			map[string]any{"network": "ws", "security": "tls", "idle-session-timeout": "30"},
 		},
+		{ // a key the VLESS pass always creates is never copied, even when
+			// that pass left it without a value
+			"anytls://pw@h:443?tls=x&sni2=y#n",
+			map[string]any{"tls": nil, "sni2": "y"},
+		},
 		{ // insecure and udp by contains-true-or-1
 			"anytls://pw@h:443?insecure=TRUE&udp=0#n",
 			map[string]any{"skip-cert-verify": true, "udp": false},

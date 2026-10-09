@@ -103,7 +103,7 @@ func TestSurgeHeaderLists(t *testing.T) {
 		{"X-A: 1;X-B: 2", ';', map[string]any{"X-A": "1", "X-B": "2"}, -1},
 		{`"X-A: 1;X-B: 2", next=1`, ';', map[string]any{"X-A": "1", "X-B": "2"}, 15},
 		// A quoted value keeps the separator; a quoted name is a name.
-		{`X-A: "a;b";X-B: 2`, ';', map[string]any{"X-A": "a;b", "X-B": "2"}, -1},
+		{`X-A: "a;X-C: b";X-B: 2`, ';', map[string]any{"X-A": "a;X-C: b", "X-B": "2"}, -1},
 		{`"X-A": 1;'X-B' : '2'`, ';', map[string]any{"X-A": "1", "X-B": "2"}, -1},
 		// Pairs without ":" and pairs with an empty name are dropped; an empty
 		// name never starts a pair after a separator.
