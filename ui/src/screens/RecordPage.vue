@@ -27,6 +27,7 @@ import TargetSheet from "../components/TargetSheet.vue";
 import UsageBar from "../components/UsageBar.vue";
 import { useHost } from "../host";
 import { copyText } from "../hostClipboard";
+import { formatDate, formatTime, t } from "../i18n";
 import { useLensChrome } from "../lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import {
@@ -39,7 +40,7 @@ import {
   usedBySentence,
 } from "../pipeline";
 import { editorLanguageForContentType } from "../previewLanguage";
-import { TEXT as TABLE_TEXT, isFlagged } from "../recordTable";
+import { isFlagged } from "../recordTable";
 import { formatRelativeTime } from "../rowStatus";
 import { refreshStateFor, shareLinkOf, shareStateOf, stateTone } from "../shareState";
 import { safeErrorMessage } from "../subStoreModel";
@@ -91,24 +92,23 @@ type RecordTab = "nodes" | "steps" | "source" | "output" | "publishing";
 const tab = ref<RecordTab>("nodes");
 const tabs = computed(() => {
   const list: { id: RecordTab; label: string }[] = isFile.value
-    ? [{ id: "output", label: "Output" }]
-    : [{ id: "nodes", label: "Nodes" }];
-  list.push({ id: "steps", label: "Steps" }, { id: "source", label: "Source" }, { id: "publishing", label: "Publishing" });
+    ? [{ id: "output", label: t.page.tabOutput }]
+    : [{ id: "nodes", label: t.page.tabNodes }];
+  list.push({ id: "steps", label: t.page.tabSteps }, { id: "source", label: t.page.tabSource }, { id: "publishing", label: t.page.tabPublishing });
   return list;
 });
 
 /* Declared before load(): the watcher below runs load() during setup once
  * the handshake is in, and load() resets this. */
 const rendered = ref<{ output: SubscriptionRenderResponse | null; error: string; busy: boolean }>({ output: null, error: "", busy: false });
-const readAt = ref("");
+const readAt = ref(0);
 async function load(): Promise<void> {
   if (!props.id) return;
   reveal.hide();
   tab.value = isFile.value ? "output" : "nodes";
   rendered.value = { output: null, error: "", busy: false };
   await chain.load(props.id);
-  const now = new Date();
-  readAt.value = [now.getHours(), now.getMinutes(), now.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":");
+  readAt.value = Date.now();
 }
 
 watch(
@@ -130,19 +130,16 @@ onActivated(() => {
 const kindLabel = computed(() => {
   const record = item.value;
   if (!record) return "";
-  if (kind.value === KIND_COLLECTION) return "Combination";
-  if (kind.value === KIND_FILE) return "Client file";
-  return `Source, ${sourceKindLabel(record).toLowerCase()}`;
+  if (kind.value === KIND_COLLECTION) return t.record.kindCombination;
+  if (kind.value === KIND_FILE) return t.page.kindClientFile;
+  return t.page.kindSource(sourceKindLabel(record));
 });
 
-const VIEW_LABEL: Record<string, string> = {
-  overview: "Overview",
-  records: "Records",
-  shares: "Shares",
-  settings: "Settings",
-};
 /** The layer the page was opened from, else Records, which lists every record. */
-const backLabel = computed(() => VIEW_LABEL[props.from] ?? VIEW_LABEL.records!);
+const backLabel = computed(() => {
+  const layers: Record<string, string> = { overview: t.layers.overview, records: t.layers.records, shares: t.layers.shares, settings: t.layers.settings };
+  return layers[props.from] ?? t.layers.records;
+});
 
 function nameOf(id: string): string {
   const record = pipe.item(id);
@@ -154,10 +151,10 @@ const lineageLine = computed(() => usedBySentence(pipe.lineage.value, props.id))
 
 const proof = computed(() => {
   const parts: string[] = [];
-  parts.push(readAt.value ? `read at ${readAt.value}` : "reading the record");
+  parts.push(readAt.value ? t.page.proofReadAt(formatTime(readAt.value)) : t.page.proofReading);
   const state = pipe.counts.stateOf(props.id);
-  if (state?.status === "ready") parts.push(`preview ${formatRelativeTime(new Date(state.at).toISOString(), pipe.now.value) || "just now"}`);
-  if (state?.status === "failed") parts.push("preview failed");
+  if (state?.status === "ready") parts.push(t.page.proofPreview(formatRelativeTime(new Date(state.at).toISOString(), pipe.now.value) || t.time.justNow));
+  if (state?.status === "failed") parts.push(t.page.proofPreviewFailed);
   const record = item.value;
   if (record && isProviderLink(record)) parts.push(refreshStateFor(record, pipe.now.value).label.toLowerCase());
   parts.push(props.id);
@@ -187,7 +184,7 @@ async function renderOutput(): Promise<void> {
     const output = await callMethod<SubscriptionRenderResponse>(host.bridge, BINDINGS.subRender, { subscription_id: props.id }).promise;
     rendered.value = { output, error: "", busy: false };
   } catch (cause) {
-    rendered.value = { output: null, error: safeErrorMessage(cause, "The file could not be rendered"), busy: false };
+    rendered.value = { output: null, error: safeErrorMessage(cause, t.page.renderFailed), busy: false };
   }
 }
 watch(tab, (value) => {
@@ -206,7 +203,7 @@ async function copyOutput(): Promise<void> {
   const text = rendered.value.output?.content ?? "";
   if (!text) return;
   manualCopy.value = "";
-  if (await copyText(text)) copiedNote.value = "Copied the document.";
+  if (await copyText(text)) copiedNote.value = t.page.copiedDocument;
   else manualCopy.value = text;
 }
 
@@ -217,11 +214,11 @@ const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefin
 function publish(): void {
   if (!shareOrigin.value || !item.value) return;
   postNavigate(window, shares.value.length ? SHARES_LIST_ROUTE : sharesRoute(item.value.id), shareOrigin.value);
-  copiedNote.value = "Asked the console to open its share form.";
+  copiedNote.value = t.page.askedShareForm;
 }
 async function copyLink(link: string): Promise<void> {
   manualCopy.value = "";
-  if (await copyText(link)) copiedNote.value = "Copied the link.";
+  if (await copyText(link)) copiedNote.value = t.record.copiedLink;
   else manualCopy.value = link;
 }
 
@@ -230,21 +227,21 @@ const outputSheet = ref(false);
 
 <template>
   <section class="record-page" aria-labelledby="record-title">
-    <nav class="record-crumbs" aria-label="Back">
+    <nav class="record-crumbs" :aria-label="t.page.backNav">
       <PcButton compact @click="emit('back')">
         <template #icon><ArrowLeft :size="14" aria-hidden="true" /></template>
         {{ backLabel }}
       </PcButton>
     </nav>
 
-    <PcPanel v-if="!host.init.value || pipe.catalogue.state.value !== 'ready'" label="Loading the record">
-      <PcSkeleton :count="4" label="Reading the record" />
+    <PcPanel v-if="!host.init.value || pipe.catalogue.state.value !== 'ready'" :label="t.page.loadingPanel">
+      <PcSkeleton :count="4" :label="t.page.reading" />
     </PcPanel>
 
-    <PcPanel v-else-if="!item" label="Record not found">
-      <PcEmptyState kind="no-match" title="This record is not in the store">
-        <p>Nothing here has the id <span class="pc-mono">{{ id }}</span>. It may have been deleted since the link was made.</p>
-        <template #actions><PcButton @click="emit('back')">Back to {{ backLabel }}</PcButton></template>
+    <PcPanel v-else-if="!item" :label="t.page.notFoundPanel">
+      <PcEmptyState kind="no-match" :title="t.page.notFoundTitle">
+        <p>{{ t.page.notFoundBefore }} <span class="pc-mono">{{ id }}</span>{{ t.page.notFoundAfter }}</p>
+        <template #actions><PcButton @click="emit('back')">{{ t.page.backTo(backLabel) }}</PcButton></template>
       </PcEmptyState>
     </PcPanel>
 
@@ -253,12 +250,12 @@ const outputSheet = ref(false);
         <div class="record-title-line">
           <h2 id="record-title">{{ item.display_name || item.name }}</h2>
           <PcKindChip :label="kindLabel" />
-          <PcKindChip v-if="item.imported" label="migrated" title="Imported from a standalone Sub-Store" />
+          <PcKindChip v-if="item.imported" :label="t.records.migratedTag" :title="t.record.importedTitle" />
           <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
-          <PcStateDot v-if="isFlagged(item)" tone="warning" :label="TABLE_TEXT.flagged" :title="TABLE_TEXT.flaggedTitle" data-testid="record-flagged" />
+          <PcStateDot v-if="isFlagged(item)" tone="warning" :label="t.records.flagged" :title="t.records.flaggedTitle" data-testid="record-flagged" />
           <div class="record-actions">
-            <PcButton v-if="subs.canRender.value" @click="outputSheet = true">Client output</PcButton>
-            <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
+            <PcButton v-if="subs.canRender.value" @click="outputSheet = true">{{ t.page.clientOutput }}</PcButton>
+            <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? t.record.editTitle : t.record.editBlocked" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
             <!-- The table row's menu, so a record opened from a link can be
                  refreshed, copied or deleted without going back first. -->
             <RecordActions
@@ -271,17 +268,17 @@ const outputSheet = ref(false);
         </div>
         <p class="record-lineage">
           <template v-if="upstream.length">
-            from
+            {{ t.page.lineageFrom }}
             <template v-for="(parent, index) in upstream" :key="parent">
               <button type="button" class="peek-link" @click="chrome.openPage(parent)">{{ nameOf(parent) }}</button><template v-if="index < upstream.length - 1">, </template>
             </template>
             <template v-if="lineageLine"> · </template>
           </template>
           <span v-if="lineageLine">{{ lineageLine }}</span>
-          <span v-if="!upstream.length && !lineageLine" class="peek-note">Nothing feeds it and nothing uses it</span>
+          <span v-if="!upstream.length && !lineageLine" class="peek-note">{{ t.page.nothingFeeds }}</span>
         </p>
         <!-- The flag's reason in words, for a pointer with no hover; Edit is the way out. -->
-        <p v-if="isFlagged(item)" class="peek-why">{{ TABLE_TEXT.flaggedTitle }}</p>
+        <p v-if="isFlagged(item)" class="peek-why">{{ t.records.flaggedTitle }}</p>
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 
@@ -289,29 +286,29 @@ const outputSheet = ref(false);
       <PcNotice v-if="copiedNote" tone="success" dismissible @dismiss="copiedNote = ''">{{ copiedNote }}</PcNotice>
       <div v-if="manualCopy" class="manual-copy-strip">
         <div class="manual-copy-strip__head">
-          <span class="manual-copy-strip__label">The clipboard refused; select and copy it here</span>
-          <PcButton compact @click="manualCopy = ''">Dismiss</PcButton>
+          <span class="manual-copy-strip__label">{{ t.page.clipboardRefused }}</span>
+          <PcButton compact @click="manualCopy = ''">{{ t.common.dismiss }}</PcButton>
         </div>
         <LtManualCopy :value="manualCopy" subject="text" :multiline="manualCopy.includes('\n')" />
       </div>
 
-      <PcLensTabs v-model="tab" label="Record sections" class="record-tabs">
+      <PcLensTabs v-model="tab" :label="t.page.sections" class="record-tabs">
         <PcLensTab v-for="entry in tabs" :key="entry.id" :value="entry.id" :label="entry.label" />
       </PcLensTabs>
 
       <div :id="`pc-panel-${tab}`" class="record-body" role="tabpanel" :aria-labelledby="`pc-tab-${tab}`">
         <!-- Nodes: the compare panel -->
-        <PcPanel v-if="tab === 'nodes'" label="Nodes">
-          <PcPanelHeader title="Source against result" description="What the source provides, what the chain keeps, and which operation removed the rest." />
+        <PcPanel v-if="tab === 'nodes'" :label="t.page.tabNodes">
+          <PcPanelHeader :title="t.page.compareTitle" :description="t.page.compareDescription" />
           <PcPanelBody>
-            <p v-if="!pipe.canPreview.value" class="rec-chain-note">This session cannot run a preview, so the nodes are not shown.</p>
-            <PcSkeleton v-else-if="chain.loading.value || (!chain.explanation.value && !chain.error.value)" :count="3" label="Running the preview" />
-            <PcNotice v-else-if="chain.error.value && !chain.explanation.value?.final" tone="danger" title="The preview failed">
+            <p v-if="!pipe.canPreview.value" class="rec-chain-note">{{ t.page.cannotPreview }}</p>
+            <PcSkeleton v-else-if="chain.loading.value || (!chain.explanation.value && !chain.error.value)" :count="3" :label="t.page.runningPreview" />
+            <PcNotice v-else-if="chain.error.value && !chain.explanation.value?.final" tone="danger" :title="t.page.previewFailed">
               {{ chain.error.value }}
-              <template #actions><PcButton compact @click="load()">Try again</PcButton></template>
+              <template #actions><PcButton compact @click="load()">{{ t.common.tryAgain }}</PcButton></template>
             </PcNotice>
             <template v-else-if="chain.explanation.value?.final">
-              <PcNotice v-if="chain.error.value" tone="warning" title="The preview stopped part way">{{ chain.error.value }}</PcNotice>
+              <PcNotice v-if="chain.error.value" tone="warning" :title="t.page.previewPartial">{{ chain.error.value }}</PcNotice>
               <SubscriptionPreviewSummary
                 :preview="chain.explanation.value.final"
                 :deltas="chain.explanation.value.deltas"
@@ -322,8 +319,8 @@ const outputSheet = ref(false);
         </PcPanel>
 
         <!-- Steps: the chain -->
-        <PcPanel v-else-if="tab === 'steps'" label="Steps">
-          <PcPanelHeader title="Operations" :description="isFile ? 'Run in order over the nodes before they are placed into the document.' : 'Run in order over the source nodes. Each line says what it kept.'" />
+        <PcPanel v-else-if="tab === 'steps'" :label="t.page.tabSteps">
+          <PcPanelHeader :title="t.page.operations" :description="isFile ? t.page.operationsFile : t.page.operationsNodes" />
           <PcPanelBody>
             <RecordChainDetail
               :loading="chain.loading.value"
@@ -343,48 +340,48 @@ const outputSheet = ref(false);
         </PcPanel>
 
         <!-- Source -->
-        <PcPanel v-else-if="tab === 'source'" label="Source">
-          <PcPanelHeader title="Where it comes from" />
+        <PcPanel v-else-if="tab === 'source'" :label="t.page.tabSource">
+          <PcPanelHeader :title="t.page.sourceTitle" />
           <PcPanelBody>
             <dl class="peek-facts record-facts">
               <template v-if="kind === KIND_SUB">
-                <dt>Kind</dt>
+                <dt>{{ t.record.kind }}</dt>
                 <dd>{{ sourceKindLabel(item) }}</dd>
                 <template v-if="url">
-                  <dt>Link</dt>
+                  <dt>{{ t.record.link }}</dt>
                   <dd class="record-url">
-                    <code :title="reveal.on.value ? 'Masks itself again after a minute' : 'Masked after the host: the rest carries the provider token'">{{ reveal.on.value ? url : maskUrl(url) }}</code>
+                    <code :title="reveal.on.value ? t.page.revealOnTitle : t.page.revealOffTitle">{{ reveal.on.value ? url : maskUrl(url) }}</code>
                     <PcButton compact :aria-pressed="reveal.on.value ? 'true' : 'false'" @click="reveal.toggle()">
                       <template #icon><EyeOff v-if="reveal.on.value" :size="14" aria-hidden="true" /><Eye v-else :size="14" aria-hidden="true" /></template>
-                      {{ reveal.on.value ? "Mask" : "Reveal for 60s" }}
+                      {{ reveal.on.value ? t.page.mask : t.page.reveal }}
                     </PcButton>
                   </dd>
                 </template>
                 <template v-if="figures">
-                  <dt>Traffic</dt>
+                  <dt>{{ t.record.traffic }}</dt>
                   <dd class="peek-usage">
                     <UsageBar :figures="figures" />
                     <span v-if="formatUsage(figures)" class="peek-note">{{ formatUsage(figures) }}</span>
                   </dd>
-                  <dt>Expiry</dt>
-                  <dd>{{ formatExpiry(figures, pipe.now.value) || "The provider does not say" }}</dd>
+                  <dt>{{ t.record.expiry }}</dt>
+                  <dd>{{ formatExpiry(figures, pipe.now.value) || t.page.noExpiry }}</dd>
                 </template>
                 <template v-if="refresh">
-                  <dt>Last refresh</dt>
+                  <dt>{{ t.record.lastRefresh }}</dt>
                   <dd><PcStateDot :tone="stateTone(refresh.tone)" :label="refresh.label" :title="refresh.title || refresh.label" /></dd>
                 </template>
                 <template v-if="!url && pastedLines">
-                  <dt>Pasted</dt>
-                  <dd>{{ pastedLines }} line{{ pastedLines === 1 ? "" : "s" }} of nodes, edited in the editor</dd>
+                  <dt>{{ t.record.pasted }}</dt>
+                  <dd>{{ t.page.pastedLines(pastedLines) }}</dd>
                 </template>
                 <template v-if="chain.record.value?.vpn_identity">
-                  <dt>Identity</dt>
+                  <dt>{{ t.record.identity }}</dt>
                   <dd class="peek-mono">{{ chain.record.value.vpn_identity }}</dd>
                 </template>
               </template>
 
               <template v-else-if="kind === KIND_COLLECTION">
-                <dt>Members</dt>
+                <dt>{{ t.record.members }}</dt>
                 <dd>
                   <ul class="peek-links">
                     <li v-for="member in upstream" :key="member">
@@ -395,29 +392,29 @@ const outputSheet = ref(false);
                   </ul>
                 </dd>
                 <template v-if="item.member_tags?.length">
-                  <dt>By tag</dt>
+                  <dt>{{ t.record.byTag }}</dt>
                   <dd>{{ item.member_tags.join(", ") }}</dd>
                 </template>
-                <dt>If a member fails</dt>
-                <dd>{{ chain.record.value?.failure_mode === "skip-failed" ? "Serve the others" : "Serve nothing (strict)" }}</dd>
+                <dt>{{ t.record.ifMemberFails }}</dt>
+                <dd>{{ chain.record.value?.failure_mode === "skip-failed" ? t.page.serveOthers : t.page.serveNothing }}</dd>
               </template>
 
               <template v-else>
-                <dt>Renders</dt>
+                <dt>{{ t.record.renders }}</dt>
                 <dd>
                   <button v-if="upstream[0]" type="button" class="peek-link" @click="chrome.openPage(upstream[0]!)">{{ nameOf(upstream[0]!) }}</button>
                   <span v-else-if="broken[0]" class="peek-broken">{{ broken[0].ref }} <span>{{ broken[0].reason }}</span></span>
-                  <span v-else class="peek-note">Nothing: the document is served as written</span>
+                  <span v-else class="peek-note">{{ t.record.servedAsWritten }}</span>
                 </dd>
-                <dt>Client</dt>
-                <dd>{{ client?.label ?? "Not named in the file's name" }}</dd>
-                <dt>Kind</dt>
-                <dd>{{ item.file_type === "plain" ? "Plain text, served as written" : item.file_type === "script" ? "Built by a script" : "Client configuration, proxy list filled in" }}</dd>
+                <dt>{{ t.record.client }}</dt>
+                <dd>{{ client?.label ?? t.page.clientNotInName }}</dd>
+                <dt>{{ t.record.kind }}</dt>
+                <dd>{{ item.file_type === "plain" ? t.page.fileKindPlain : item.file_type === "script" ? t.page.fileKindScript : t.page.fileKindConfig }}</dd>
                 <template v-if="url">
-                  <dt>Template</dt>
+                  <dt>{{ t.record.template }}</dt>
                   <dd class="record-url">
                     <code>{{ reveal.on.value ? url : maskUrl(url) }}</code>
-                    <PcButton compact @click="reveal.toggle()">{{ reveal.on.value ? "Mask" : "Reveal for 60s" }}</PcButton>
+                    <PcButton compact @click="reveal.toggle()">{{ reveal.on.value ? t.page.mask : t.page.reveal }}</PcButton>
                   </dd>
                 </template>
               </template>
@@ -426,39 +423,39 @@ const outputSheet = ref(false);
         </PcPanel>
 
         <!-- Output: what a client receives (files) -->
-        <PcPanel v-else-if="tab === 'output'" label="Output">
-          <PcPanelHeader title="What a client receives" :description="rendered.output ? `${rendered.output.content_type} · ${rendered.output.content.length} characters` : ''">
+        <PcPanel v-else-if="tab === 'output'" :label="t.page.tabOutput">
+          <PcPanelHeader :title="t.page.outputTitle" :description="rendered.output ? t.page.outputDescription(rendered.output.content_type, rendered.output.content.length) : ''">
             <PcButton v-if="rendered.output" compact @click="copyOutput()">
               <template #icon><Copy :size="14" aria-hidden="true" /></template>
-              Copy document
+              {{ t.page.copyDocument }}
             </PcButton>
           </PcPanelHeader>
           <PcPanelBody>
-            <p v-if="!canRender" class="rec-chain-note">Rendering needs the admin scope, which this session does not have.</p>
-            <PcSkeleton v-else-if="rendered.busy || (!rendered.output && !rendered.error)" :count="4" label="Rendering the document" />
-            <PcNotice v-else-if="rendered.error" tone="danger" title="The file could not be rendered">
+            <p v-if="!canRender" class="rec-chain-note">{{ t.page.renderNeedsAdmin }}</p>
+            <PcSkeleton v-else-if="rendered.busy || (!rendered.output && !rendered.error)" :count="4" :label="t.page.rendering" />
+            <PcNotice v-else-if="rendered.error" tone="danger" :title="t.page.renderFailed">
               {{ rendered.error }}
-              <template #actions><PcButton compact @click="renderOutput()">Try again</PcButton></template>
+              <template #actions><PcButton compact @click="renderOutput()">{{ t.common.tryAgain }}</PcButton></template>
             </PcNotice>
             <DocumentView v-else-if="rendered.output" :text="rendered.output.content" :language="outputLanguage" />
           </PcPanelBody>
         </PcPanel>
 
         <!-- Publishing -->
-        <PcPanel v-else label="Publishing">
-          <PcPanelHeader title="Shares" description="A share is the link a client fetches. Shares are created and changed in the console under Platform → Publishing.">
-            <PcButton v-if="shareOrigin" compact @click="publish()">{{ shares.length ? "Open in Publishing" : "Publish" }}</PcButton>
+        <PcPanel v-else :label="t.page.tabPublishing">
+          <PcPanelHeader :title="t.page.sharesTitle" :description="t.page.sharesDescription">
+            <PcButton v-if="shareOrigin" compact @click="publish()">{{ shares.length ? t.records.openInPublishing : t.record.publish }}</PcButton>
           </PcPanelHeader>
           <PcPanelBody>
-            <p v-if="pipe.shares.value === undefined" class="rec-chain-note">{{ pipe.shareStore.error.value || "The share list has not been read yet." }}</p>
-            <p v-else-if="!shares.length" class="rec-chain-note">Not published. No client can fetch this record until a share exists for it.</p>
+            <p v-if="pipe.shares.value === undefined" class="rec-chain-note">{{ pipe.shareStore.error.value || t.publish.unreadTitle }}</p>
+            <p v-else-if="!shares.length" class="rec-chain-note">{{ t.page.notPublished }}</p>
             <ul v-else class="record-shares">
               <li v-for="share in shares" :key="share.share_id">
                 <span class="peek-mono">/{{ share.slug }}</span>
                 <PcStateDot :tone="stateTone(shareStateOf(share, pipe.now.value).tone)" :label="shareStateOf(share, pipe.now.value).label" :title="shareStateOf(share, pipe.now.value).title" />
-                <span class="peek-note">{{ share.default_format ? `as ${share.default_format}` : "as the client asks" }}</span>
-                <span v-if="share.expires_at" class="peek-note">until {{ share.expires_at.slice(0, 10) }}</span>
-                <PcButton compact :disabled="!shareLinkOf(share)" @click="copyLink(shareLinkOf(share))">Copy link</PcButton>
+                <span class="peek-note">{{ share.default_format ? t.page.asFormat(share.default_format) : t.page.asClientAsks }}</span>
+                <span v-if="share.expires_at" class="peek-note">{{ t.page.until(Number.isFinite(Date.parse(share.expires_at)) ? formatDate(Date.parse(share.expires_at)) : share.expires_at.slice(0, 10)) }}</span>
+                <PcButton compact :disabled="!shareLinkOf(share)" @click="copyLink(shareLinkOf(share))">{{ t.record.copyLink }}</PcButton>
               </li>
             </ul>
           </PcPanelBody>

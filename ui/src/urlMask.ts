@@ -8,6 +8,7 @@
  * the control beside it. Errors go through safeErrorMessage, which replaces a
  * whole URL; this keeps the part that identifies the provider.
  */
+import { t } from "./i18n";
 
 /** Sixty seconds, the length of a reveal before the field masks itself again. */
 export const REVEAL_MS = 60_000;
@@ -60,9 +61,9 @@ export function hostsIn(text: string): string {
   return text
     .replace(SCHEME_URL, (match) => {
       try {
-        return new URL(match).host || "the provider";
+        return new URL(match).host || t.refresh.theProvider;
       } catch {
-        return "the provider";
+        return t.refresh.theProvider;
       }
     })
     .replace(BARE_URL, (_match, host: string) => host);
@@ -92,7 +93,7 @@ export function refreshFailureText(lastError: string | undefined): string {
   const body = bodyStart(text);
   if (body >= 0) {
     const before = text.slice(0, body).replace(/[\s:,;-]+$/, "");
-    text = before ? `${before}; the response body is not shown` : "the response body is not shown";
+    text = before ? t.refresh.bodyHiddenAfter(before) : t.refresh.bodyHidden;
   }
   return hostsIn(text).replace(/\s{2,}/g, " ").trim();
 }

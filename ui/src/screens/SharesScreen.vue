@@ -21,6 +21,7 @@ import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubStoreShareRow, type SubscriptionListItem } from "../client";
 import { copyText } from "../hostClipboard";
 import { useHost } from "../host";
+import { compareText, formatDate, t } from "../i18n";
 import { useLensChrome } from "../lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "../navigate";
 import { normalizeQuery } from "../recordSearch";
@@ -58,7 +59,7 @@ const allLines = computed<ShareLine[]>(() =>
       record: subs.items.value.find((item) => item.id === share.subscription_id),
       state: shareStateOf(share, now.value, subs.state.value !== "ready" || subs.items.value.some((item) => item.id === share.subscription_id)),
     }))
-    .sort((a, b) => recordName(a).localeCompare(recordName(b)) || a.share.slug.localeCompare(b.share.slug)),
+    .sort((a, b) => compareText(recordName(a), recordName(b)) || compareText(a.share.slug, b.share.slug)),
 );
 
 const searchedLines = computed(() => {
@@ -117,9 +118,9 @@ function recordName(line: ShareLine): string {
 
 function kindOf(line: ShareLine): string {
   const kind = line.record?.kind || KIND_SUB;
-  if (kind === KIND_COLLECTION) return "combination";
-  if (kind === KIND_FILE) return "file";
-  return "source";
+  if (kind === KIND_COLLECTION) return t.shares.kind.combination;
+  if (kind === KIND_FILE) return t.shares.kind.file;
+  return t.shares.kind.source;
 }
 
 /** The share path with its token masked: the slug identifies it, the token
@@ -136,11 +137,11 @@ function maskedPath(share: SubStoreShareRow): string {
  * read "expires in 3 days" in attention and "in 4 days" here.
  */
 function expiryOf(share: SubStoreShareRow): { label: string; title: string } {
-  if (!share.expires_at) return { label: "never", title: "This share has no expiry." };
+  if (!share.expires_at) return { label: t.shares.expiryNever, title: t.shares.expiryNeverTitle };
   const at = Date.parse(share.expires_at);
-  if (!Number.isFinite(at)) return { label: share.expires_at, title: "The expiry could not be read as a date." };
-  const iso = new Date(at).toISOString().slice(0, 10);
-  return { label: formatExpiry({ expire: Math.floor(at / 1000) }, now.value), title: `${at <= now.value ? "Expired" : "Expires"} ${iso}.` };
+  if (!Number.isFinite(at)) return { label: share.expires_at, title: t.shares.expiryUnreadable };
+  const date = formatDate(at);
+  return { label: formatExpiry({ expire: Math.floor(at / 1000) }, now.value), title: at <= now.value ? t.shares.expiredOn(date) : t.shares.expiresOn(date) };
 }
 
 /** How many lines say what, for the card's count. */
@@ -221,7 +222,7 @@ const origin = computed(() => hostOriginFromHash(window.location.hash));
 function openInNetworking(): void {
   if (!origin.value) return;
   postNavigate(window, SHARES_LIST_ROUTE, origin.value);
-  notice.value = "Asked the console to open Platform → Publishing.";
+  notice.value = t.records.askedPublishing;
 }
 
 // ── loading ──────────────────────────────────────────────────────────────────
@@ -244,23 +245,23 @@ watch(host.init, (value) => {
 
 <template>
   <section class="lens" aria-labelledby="shares-title">
-    <h2 id="shares-title" class="pc-sr-only">Shares</h2>
+    <h2 id="shares-title" class="pc-sr-only">{{ t.shares.title }}</h2>
 
-    <PcNotice v-if="store.error.value && store.shares.value !== undefined" tone="warning" title="Showing the last good read">
-      The newest reload failed ({{ store.error.value }}).
+    <PcNotice v-if="store.error.value && store.shares.value !== undefined" tone="warning" :title="t.records.staleTitle">
+      {{ t.records.staleBody(store.error.value) }}
     </PcNotice>
     <PcNotice v-else-if="notice" tone="success">{{ notice }}</PcNotice>
 
     <div v-if="manualCopyId && manualCopyValue" class="manual-copy-strip">
       <div class="manual-copy-strip__head">
-        <span class="manual-copy-strip__label">Link for {{ manualCopyLabel }}</span>
-        <PcButton compact @click="manualCopyId = ''">Dismiss</PcButton>
+        <span class="manual-copy-strip__label">{{ t.shares.linkFor(manualCopyLabel) }}</span>
+        <PcButton compact @click="manualCopyId = ''">{{ t.common.dismiss }}</PcButton>
       </div>
       <LtManualCopy :value="manualCopyValue" subject="link" />
     </div>
 
-    <PcPanel v-if="listed === null && !store.error.value" label="Loading shares">
-      <PcSkeleton :count="4" label="Loading the shares" />
+    <PcPanel v-if="listed === null && !store.error.value" :label="t.shares.loadingPanel">
+      <PcSkeleton :count="4" :label="t.shares.loading" />
     </PcPanel>
 
     <!--
@@ -268,81 +269,77 @@ watch(host.init, (value) => {
       own share list does not need this frame's scope, so pointing at it is a
       real route to the thing they came for.
     -->
-    <PcPanel v-else-if="!store.available.value" label="Shares">
-      <PcEmptyState kind="permission" title="This session cannot read the share list">
+    <PcPanel v-else-if="!store.available.value" :label="t.shares.title">
+      <PcEmptyState kind="permission" :title="t.shares.cannotReadTitle">
         <p>
-          The installed bundle does not declare <span class="pc-mono">shares.list</span>, or your token
-          lacks <span class="pc-mono">substore:admin</span> and <span class="pc-mono">proxy:admin</span>.
-          Shares themselves still exist; this lens just cannot read them.
+          {{ t.shares.cannotReadBefore }} <span class="pc-mono">shares.list</span>{{ t.shares.cannotReadMiddle }}
+          <span class="pc-mono">substore:admin</span> {{ t.shares.cannotReadAnd }} <span class="pc-mono">proxy:admin</span>{{ t.shares.cannotReadAfter }}
         </p>
         <template #actions>
           <PcButton
             variant="primary"
             :disabled="!origin"
-            :title="origin ? 'The console lists the same shares under Platform → Publishing.' : 'This frame cannot ask the console to navigate; open Platform → Publishing yourself.'"
+            :title="origin ? t.shares.consoleLists : t.shell.noOrigin"
             @click="openInNetworking()"
           >
             <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-            Open in Publishing
+            {{ t.records.openInPublishing }}
           </PcButton>
         </template>
       </PcEmptyState>
     </PcPanel>
 
     <template v-else-if="store.error.value && store.shares.value === undefined">
-      <PcNotice tone="danger" title="The share list could not be read">
+      <PcNotice tone="danger" :title="t.shares.loadFailed">
         {{ store.error.value }}
-        <template #actions><PcButton compact @click="loadAll()">Try again</PcButton></template>
+        <template #actions><PcButton compact @click="loadAll()">{{ t.common.tryAgain }}</PcButton></template>
       </PcNotice>
-      <PcPanel label="Shares">
-        <PcEmptyState kind="error" title="Nothing could be loaded">
-          <p>This is not an empty share list, it is an unanswered question.</p>
+      <PcPanel :label="t.shares.title">
+        <PcEmptyState kind="error" :title="t.records.nothingLoaded">
+          <p>{{ t.shares.nothingLoadedBody }}</p>
         </PcEmptyState>
       </PcPanel>
     </template>
 
-    <PcPanel v-else label="Shares">
+    <PcPanel v-else :label="t.shares.title">
       <div v-if="!allLines.length">
-        <PcEmptyState title="Nothing is shared">
-          <p>
-            Publish a share for a record in the console under Platform, then Publishing,
-            and it appears here with its link.
-          </p>
+        <PcEmptyState :title="t.shares.emptyTitle">
+          <p>{{ t.shares.emptyBody }}</p>
         </PcEmptyState>
       </div>
-      <div v-else class="rec-list" aria-label="Shares">
+      <div v-else class="rec-list">
         <div class="rec-tools">
-          <PcSearchField v-model="search" placeholder="Filter by record, slug, format" label="Filter shares" />
+          <PcSearchField v-model="search" :placeholder="t.shares.filterPlaceholder" :label="t.shares.filterLabel" />
           <label class="toolbar-sort">
-            <span>State</span>
-            <select :value="kindFilter" class="pc-select" aria-label="Filter by whether a client gets anything" @change="setKindFilter(($event.target as HTMLSelectElement).value)">
-              <option value="all">All {{ kindCounts.all }}</option>
-              <option value="live">Live {{ kindCounts.live }}</option>
-              <option value="dead">Serving nothing {{ kindCounts.dead }}</option>
+            <span>{{ t.shares.stateFilter }}</span>
+            <select :value="kindFilter" class="pc-select" :aria-label="t.shares.stateFilterAria" @change="setKindFilter(($event.target as HTMLSelectElement).value)">
+              <option value="all">{{ t.records.allCount(kindCounts.all) }}</option>
+              <option value="live">{{ t.shares.liveCount(kindCounts.live) }}</option>
+              <option value="dead">{{ t.shares.deadCount(kindCounts.dead) }}</option>
             </select>
           </label>
           <PcCount
-            :value="summary.total ? `${summary.live} of ${summary.total} live` : 'none'"
-            :label="summary.dead ? `${summary.dead} returning nothing: disabled, expired, or without a record.` : 'Every share here is live.'"
+            :value="summary.total ? t.shares.summary(summary.live, summary.total) : t.shares.summaryNone"
+            :label="summary.dead ? t.shares.summaryDead(summary.dead) : t.shares.summaryAllLive"
           />
         </div>
 
-        <PcEmptyState v-if="!lines.length" kind="no-match" title="No share matches that search">
-          <p v-if="search.trim()">No record, slug or format here matches <span class="pc-mono">{{ search.trim() }}</span>.</p>
-          <p v-else>No share here is in that state.</p>
+        <PcEmptyState v-if="!lines.length" kind="no-match" :title="t.shares.noMatchTitle">
+          <p v-if="search.trim()">{{ t.shares.noMatchQueryBefore }} <span class="pc-mono">{{ search.trim() }}</span>{{ t.shares.noMatchQueryAfter }}</p>
+          <p v-else>{{ t.shares.noMatchState }}</p>
           <template #actions>
-            <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
+            <PcButton :disabled="!filtersActive" @click="clearFilters()">{{ t.records.clearFilters }}</PcButton>
           </template>
         </PcEmptyState>
 
-        <PcTable v-else :stacked="false" :min-width="820" label="Shares" class="layer-table">
+        <PcTable v-else :stacked="false" :min-width="820" :label="t.shares.title" class="layer-table">
           <template #head>
-            <PcTh name>Path</PcTh>
-            <PcTh width="220px">Record</PcTh>
-            <PcTh width="150px">Format</PcTh>
-            <PcTh width="150px">Expiry</PcTh>
-            <PcTh width="110px">State</PcTh>
-            <PcTh actions width="120px" aria-label="Actions" />
+            <PcTh name>{{ t.shares.colPath }}</PcTh>
+            <PcTh width="220px">{{ t.shares.colRecord }}</PcTh>
+            <PcTh width="150px">{{ t.shares.colFormat }}</PcTh>
+            <PcTh width="150px">{{ t.shares.colExpiry }}</PcTh>
+            <PcTh width="110px">{{ t.shares.colState }}</PcTh>
+            <PcTh actions width="120px" :aria-label="t.records.colActions" />
           </template>
           <tbody>
             <PcRow
@@ -353,20 +350,20 @@ watch(host.init, (value) => {
               :selected="manualCopyId === line.share.share_id || (!!line.record && chrome.openId.value === line.record.id)"
               @click="openRow(line, $event)"
             >
-              <td class="pc-name" data-stack="name" :title="`Slug ${line.share.slug}. The token is not shown; Copy link copies the whole link.`">
+              <td class="pc-name" data-stack="name" :title="t.shares.slugTitle(line.share.slug)">
                 <div class="pc-name-line"><strong class="pc-mono">/{{ line.share.slug }}</strong></div>
                 <small>{{ maskedPath(line.share) }}</small>
               </td>
-              <td data-stack="detail" data-label="Record" :title="recordName(line)">
+              <td data-stack="detail" :data-label="t.shares.colRecord" :title="recordName(line)">
                 <span class="pc-td-body layer-record">
                   <span class="layer-record-name">{{ recordName(line) }}</span>
                   <PcKindChip v-if="line.record" :label="kindOf(line)" />
-                  <PcKindChip v-else label="not in this store" title="The record behind this share is not in this store any more." />
+                  <PcKindChip v-else :label="t.shares.notInStore" :title="t.shares.notInStoreTitle" />
                 </span>
               </td>
-              <td class="pc-mono" data-stack="detail" data-label="Format" :title="line.share.default_format || 'as the client asks'"><span class="pc-td-body">{{ line.share.default_format || "as the client asks" }}</span></td>
-              <td data-stack="detail" data-label="Expiry" :title="expiryOf(line.share).title"><span class="pc-td-body">{{ expiryOf(line.share).label }}</span></td>
-              <td data-stack="detail" data-label="State">
+              <td class="pc-mono" data-stack="detail" :data-label="t.shares.colFormat" :title="line.share.default_format || t.shares.asClientAsks"><span class="pc-td-body">{{ line.share.default_format || t.shares.asClientAsks }}</span></td>
+              <td data-stack="detail" :data-label="t.shares.colExpiry" :title="expiryOf(line.share).title"><span class="pc-td-body">{{ expiryOf(line.share).label }}</span></td>
+              <td data-stack="detail" :data-label="t.shares.colState">
                 <span class="pc-td-body"><PcStatePill :tone="stateTone(line.state.tone)" :label="line.state.label" :title="line.state.title" /></span>
               </td>
               <td class="pc-actions" data-stack="actions">
@@ -374,11 +371,11 @@ watch(host.init, (value) => {
                   <PcButton
                     compact
                     :disabled="!line.share.url && !line.share.path"
-                    :title="line.share.url ? 'Copy the link a client subscribes to' : 'The server did not report its public base; the path alone is copied'"
+                    :title="line.share.url ? t.shares.copyTitle : t.shares.copyPathTitle"
                     @click="copyLink(line)"
                   >
                     <template #icon><Copy :size="13" aria-hidden="true" /></template>
-                    {{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}
+                    {{ copiedId === line.share.share_id ? t.shares.copied : t.record.copyLink }}
                   </PcButton>
                 </div>
               </td>

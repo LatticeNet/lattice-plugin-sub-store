@@ -12,7 +12,7 @@ describe("formatRelativeTime", () => {
     expect(formatRelativeTime("2026-08-10T11:45:00Z", NOW)).toBe("15m ago");
     expect(formatRelativeTime("2026-08-10T09:00:00Z", NOW)).toBe("3h ago");
     expect(formatRelativeTime("2026-08-08T12:00:00Z", NOW)).toBe("2d ago");
-    expect(formatRelativeTime("2026-06-01T12:00:00Z", NOW)).toBe("2026-06-01");
+    expect(formatRelativeTime("2026-06-01T12:00:00Z", NOW)).toBe("Jun 1, 2026");
   });
 
   // The server stamps the fetch; a browser clock slightly behind is normal,

@@ -16,6 +16,7 @@ import { ref } from "vue";
 import { Check, Copy, LoaderCircle } from "@lucide/vue";
 
 import { copyText } from "../../hostClipboard";
+import { t } from "../../i18n";
 import LtButton from "./LtButton.vue";
 import LtManualCopy from "./LtManualCopy.vue";
 
@@ -24,8 +25,8 @@ const props = withDefaults(
     value: string;
     label?: string;
     copiedLabel?: string;
-    /** What the value is, named in the fallback ("link", "document", "backup"). */
-    subject?: string;
+    /** What the value is, named in the fallback. */
+    subject?: "link" | "text" | "document" | "value";
     variant?: "primary" | "ghost" | "danger";
     size?: "md" | "sm";
     disabled?: boolean;
@@ -34,8 +35,8 @@ const props = withDefaults(
     revealInline?: boolean;
   }>(),
   {
-    label: "Copy",
-    copiedLabel: "Copied",
+    label: "",
+    copiedLabel: "",
     subject: "value",
     variant: "ghost",
     size: "md",
@@ -86,7 +87,7 @@ defineExpose({ run });
       <LoaderCircle v-if="busy" :size="14" class="spin" aria-hidden="true" />
       <Check v-else-if="copied" :size="14" aria-hidden="true" />
       <Copy v-else :size="14" aria-hidden="true" />
-      <slot>{{ copied ? props.copiedLabel : props.label }}</slot>
+      <slot>{{ copied ? props.copiedLabel || t.copyButton.copied : props.label || t.copyButton.copy }}</slot>
     </LtButton>
     <LtManualCopy
       v-if="revealed && props.revealInline"

@@ -3,6 +3,7 @@ import {
   FILE_TYPE_SCRIPT,
 } from "./client";
 import type { EditorLanguage } from "./codemirror";
+import { t } from "./i18n";
 
 /**
  * Render responses name a MIME-like content type, while CodeMirror needs one
@@ -52,6 +53,6 @@ export function editorLanguageLabel(language: EditorLanguage): string {
     case "ini":
       return "INI";
     default:
-      return "Plain text";
+      return t.fileEditor.plainText;
   }
 }

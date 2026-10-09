@@ -5,6 +5,7 @@ import { PcButton, PcSidePanel } from "@latticenet/plugin-bridge/chassis";
 import NodeRows from "./NodeRows.vue";
 import SubscriptionPublishControl from "./SubscriptionPublishControl";
 import type { SubscriptionListItem } from "../client";
+import { t } from "../i18n";
 import type { PublishState } from "../shareState";
 import type { UseSubscriptions } from "../useSubscriptions";
 
@@ -45,18 +46,16 @@ const emit = defineEmits<{
   <PcSidePanel :open="open" :title="title" size="record" :return-focus-to="returnFocusTo" @close="emit('close')">
     <template v-if="mode === 'preview'">
       <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
-        <LoaderCircle :size="13" class="spin" aria-hidden="true" /> Loading…
+        <LoaderCircle :size="13" class="spin" aria-hidden="true" /> {{ t.panel.loading }}
       </p>
       <p v-else-if="subs.rowPreview.value?.error" class="row-popover-error" role="alert">
         {{ subs.rowPreview.value.error }}
       </p>
       <template v-else-if="subs.rowPreview.value">
-        <p class="row-popover-note">
-          {{ subs.rowPreview.value.count }} node(s) once its operations run
-        </p>
+        <p class="row-popover-note">{{ t.panel.nodesOnce(subs.rowPreview.value.count) }}</p>
         <NodeRows :nodes="subs.rowPreview.value.nodes" />
         <p v-if="subs.rowPreview.value.count > subs.rowPreview.value.nodes.length" class="row-popover-note">
-          …and {{ subs.rowPreview.value.count - subs.rowPreview.value.nodes.length }} more
+          {{ t.panel.andMore(subs.rowPreview.value.count - subs.rowPreview.value.nodes.length) }}
         </p>
       </template>
     </template>
@@ -72,26 +71,21 @@ const emit = defineEmits<{
 
     <template v-else-if="mode === 'share'">
       <p v-if="item && published?.tone === 'warn'" class="row-popover-copy">
-        {{ published.title }} Renewing or enabling it happens in the
-        dashboard, under <strong>Platform → Publishing</strong>.
+        {{ t.panel.renewBefore(published.title) }} <strong>{{ t.panel.publishingPath }}</strong>{{ t.panel.renewAfter }}
       </p>
       <template v-else>
         <p class="row-popover-copy">
-          Nothing here is reachable until a share is published for it. Shares live in the
-          dashboard, under <strong>Platform → Publishing</strong>.
+          {{ t.panel.unreachableBefore }} <strong>{{ t.panel.publishingPath }}</strong>{{ t.panel.renewAfter }}
         </p>
-        <p class="row-popover-note">Already published? The Shares lens shows its link.</p>
+        <p class="row-popover-note">{{ t.panel.alreadyPublished }}</p>
       </template>
       <div v-if="shareOrigin && item" class="empty-actions">
         <PcButton variant="primary" @click="emit('openShares', item)">
           <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-          Open Shares view
+          {{ t.panel.openShares }}
         </PcButton>
       </div>
-      <p v-else class="row-popover-note">
-        This frame cannot ask the console to navigate, open Platform → Publishing
-        yourself.
-      </p>
+      <p v-else class="row-popover-note">{{ t.panel.noNavigate }}</p>
     </template>
   </PcSidePanel>
 </template>

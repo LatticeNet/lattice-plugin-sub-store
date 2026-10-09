@@ -10,6 +10,7 @@ import { computed, getCurrentScope, onScopeDispose, ref } from "vue";
 
 import { KIND_FILE, type SubscriptionListItem } from "./client";
 import type { HostContext } from "./host";
+import { t } from "./i18n";
 import { nodeCountLabel, nodeCountTitle } from "./nodeCounts";
 import {
   EXPIRY_WARN_DAYS,
@@ -70,7 +71,7 @@ export function usePipeline(host: HostContext) {
 
   function health(id: string): RecordHealth {
     const record = item(id);
-    if (!record) return { tone: "neutral", label: "gone", title: "This record is not in the store." };
+    if (!record) return { tone: "neutral", label: t.health.gone, title: t.health.goneTitle };
     return recordHealth(record, lineage.value, shares.value, now.value, previewOf(id));
   }
 
@@ -102,10 +103,10 @@ export function usePipeline(host: HostContext) {
       const at = share.expires_at ? Date.parse(share.expires_at) : Number.NaN;
       const soon = Number.isFinite(at) && at > now.value && at - now.value <= EXPIRY_WARN_DAYS * 86_400_000;
       const tone: ChipFacts["tone"] =
-        state.label === "expired" || state.label === "serves nothing" ? "error" : state.label === "disabled" ? "neutral" : soon ? "warning" : "healthy";
+        state.state === "expired" || state.state === "orphan" ? "error" : state.state === "disabled" ? "neutral" : soon ? "warning" : "healthy";
       return {
         tone,
-        state: soon ? `${state.label}, ${formatExpiry({ expire: Math.floor(at / 1000) }, now.value)}` : state.label,
+        state: soon ? t.lineage.chipStateExpiring(state.label, formatExpiry({ expire: Math.floor(at / 1000) }, now.value)) : state.label,
         figure: share.default_format || "",
         title: state.title,
       };

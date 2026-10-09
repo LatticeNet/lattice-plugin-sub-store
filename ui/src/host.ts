@@ -2,6 +2,7 @@ import { inject, provide, type InjectionKey, type Ref } from "vue";
 
 import { canCall, type BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
+import { t } from "./i18n";
 import type { PageState } from "./pageState";
 import { safeErrorMessage } from "./subStoreModel";
 
@@ -62,7 +63,7 @@ export function adoptHandshake(bridge: Pick<BridgeClient, "init">, targets: Hand
     (cause: unknown) => {
       targets.bootError.value = safeErrorMessage(
         cause,
-        "The console answered the handshake with a refusal and gave no reason.",
+        t.boot.handshakeRefused,
       );
     },
   );

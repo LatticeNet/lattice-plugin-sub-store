@@ -19,6 +19,7 @@ import {
 import { enabledStepIndexes, explainChain, type ChainExplanation } from "./chainExplain";
 import type { ChainStep } from "./components/ProcessChain.vue";
 import type { HostContext } from "./host";
+import { t } from "./i18n";
 import { overlayDepth } from "./overlayStack";
 import { useEditorExit } from "./useEditorExit";
 import {
@@ -99,7 +100,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     try {
       const result = await explainChain(steps, async (upTo) => {
         await subs.runPreview(draft.value, upTo);
-        if (!subs.preview.value || subs.previewError.value) throw new Error(subs.previewError.value || "Preview failed");
+        if (!subs.preview.value || subs.previewError.value) throw new Error(subs.previewError.value || t.counts.previewFailed);
         return subs.preview.value;
       });
       explanation.value = result;
@@ -122,29 +123,46 @@ export function useRecordEditor(options: RecordEditorOptions) {
     subs.items.value.filter((i) => (i.kind || KIND_SUB) === KIND_SUB && i.id !== editingId.value),
   );
 
+  /* The words are getters, read in the locale active when the cards are drawn. */
   const SOURCES = [
     {
       id: SOURCE_VPN_CORE,
-      title: "This fleet's nodes",
-      detail: "Reads the live vpn-core export. Nodes added or removed reach clients on refresh.",
+      get title() {
+        return t.editor.sources.fleet.title;
+      },
+      get detail() {
+        return t.editor.sources.fleet.detail;
+      },
       icon: Server,
     },
     {
       id: SOURCE_VPN_CORE_GRAPH,
-      title: "A converged path",
-      detail: "Composes selected applied line-chain roots in the exact order shown.",
+      get title() {
+        return t.editor.sources.graph.title;
+      },
+      get detail() {
+        return t.editor.sources.graph.detail;
+      },
       icon: Layers,
     },
     {
       id: SOURCE_REMOTE,
-      title: "A provider link",
-      detail: "Fetches an external subscription link and re-serves it through this record's operations.",
+      get title() {
+        return t.editor.sources.remote.title;
+      },
+      get detail() {
+        return t.editor.sources.remote.detail;
+      },
       icon: Globe,
     },
     {
       id: SOURCE_LOCAL,
-      title: "Nodes I paste",
-      detail: "URI list, base64, Clash YAML or sing-box JSON. The engine detects the format.",
+      get title() {
+        return t.editor.sources.local.title;
+      },
+      get detail() {
+        return t.editor.sources.local.detail;
+      },
       icon: ClipboardPaste,
     },
   ] as const;
@@ -206,7 +224,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     const result = reconcileGraphDraftOptions(draft.value, options, adopt);
     if (!adopt) {
       if (result.stale) {
-        subs.actionError.value = "Graph options changed. Reload and review the identity and roots before saving.";
+        subs.actionError.value = t.editor.graphChanged;
       }
       return;
     }
@@ -245,7 +263,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
       const before = draft.value.entryRoots.length;
       draft.value.entryRoots = draft.value.entryRoots.filter((root) => allowed.has(root));
       if (before !== draft.value.entryRoots.length) {
-        subs.actionError.value = "Some selected roots were removed because they are not eligible for this identity.";
+        subs.actionError.value = t.editor.rootsRemoved;
       }
     },
   );
@@ -361,10 +379,11 @@ export function useRecordEditor(options: RecordEditorOptions) {
    */
   type EditorTab = "display" | "content" | "operations";
   const editorTab = ref<EditorTab>("display");
-  const EDITOR_TABS: { id: EditorTab; label: string }[] = [
-    { id: "display", label: "Display" },
-    { id: "content", label: "Content" },
-    { id: "operations", label: "Operations" },
+  /* Getters, so a tab is named in the locale active when it is drawn. */
+  const EDITOR_TABS: { id: EditorTab; readonly label: string }[] = [
+    { id: "display", get label() { return t.editor.tabs.display; } },
+    { id: "content", get label() { return t.editor.tabs.content; } },
+    { id: "operations", get label() { return t.editor.tabs.operations; } },
   ];
 
   /**

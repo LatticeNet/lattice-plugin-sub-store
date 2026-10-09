@@ -8,8 +8,8 @@
  * these things three ways. Every cell rule lives here once, with its reason
  * when a cell is empty, so the screen only draws and the rules are tested.
  *
- * The copy the table adds is collected in TEXT, so the locale lane can move it
- * into the message table in one pass.
+ * The copy lives in the message table (`t.records`, `t.counts`, `t.kinds`),
+ * read when a cell is decided, so a row follows the host's locale.
  */
 import {
   FILE_TYPE_PLAIN,
@@ -22,6 +22,7 @@ import {
   type SubStoreShareRow,
   type SubscriptionListItem,
 } from "./client";
+import { formatCount, formatList, t } from "./i18n";
 import type { NodeCountState } from "./nodeCounts";
 import {
   EXPIRY_WARN_DAYS,
@@ -29,7 +30,6 @@ import {
   daysUntilExpiry,
   formatExpiry,
   isProviderLink,
-  plural,
   providerFigures,
   recordLabel,
   sourceKindLabel,
@@ -40,69 +40,6 @@ import {
 import { formatRelativeTime } from "./rowStatus";
 import { publishStateFor, refreshStateFor, type PublishState, type RefreshState, type Tone } from "./shareState";
 
-export const TEXT = {
-  layer: "Records",
-  kindLegend: "Kind",
-  kindAll: "All",
-  kindPlural: { source: "Sources", combination: "Combinations", file: "Files" },
-  kindNoun: { source: "source", combination: "combination", file: "file" },
-  density: "Compact rows",
-  densityTitle: "Compact rows hide the icon and the remark, so more records fit on a screen",
-  sortManual: "Manual order",
-  orderColumn: "Order",
-  publishedUnknown: "unknown",
-  publishedUnknownTitle:
-    "This session cannot read the share list (it needs substore:admin and proxy:admin), so whether a client can fetch this record is unknown.",
-  publishedUnreadTitle: (error: string) => `The share list could not be read (${error}), so whether a client can fetch this record is unknown.`,
-  fileCounts: "A file renders from its node source; the node counts are that record's.",
-  notCounted: "Not counted yet. The next fetch records how many nodes came in.",
-  outNotNative: "Counted after the chain only when the chain runs natively. Preview the record to see what it hands on.",
-  countsFrom: (nodesIn: number, nodesOut: number | null, when: string) =>
-    `${nodesIn} in${nodesOut === null ? "" : `, ${nodesOut} out after the chain`}, at the fetch ${when || "on record"}.`,
-  notAProvider: "Only a provider link reports traffic and expiry. This record's nodes are already in hand.",
-  notReported: "not reported",
-  notReportedTitle: "The provider has not sent traffic figures, or the link has not been refreshed yet.",
-  notFetched: "Only a provider link is refreshed. This record's nodes are already in hand.",
-  flagged: "regex rewrite",
-  flaggedTitle:
-    "A pattern in this record's chain uses lookaround or a backreference, which the native engine cannot run. It keeps rendering on the fallback path; Edit names the step and offers a rewrite where one exists.",
-  steps: (count: number, off: number) => `${plural(count, "step")}${off ? `, ${off} turned off` : ""}.`,
-  stepsOff: (off: number) => `${off} off`,
-  stepsTarget: (target: string) => `Always rendered for ${target}.`,
-  fileServedAsWritten: "served as written",
-  fileFrom: (name: string) => `from ${name}`,
-  fileFor: (client: string) => `for ${client}`,
-  fileGone: "source gone",
-  fileGoneTitle: (id: string) => `${id} is no longer in the store, so this file cannot render.`,
-  usedByNothing: (noun: string) => `Nothing uses this ${noun}: no combination, file or share draws from it.`,
-  membersTags: (tags: string) => `and every source tagged ${tags}`,
-  missing: (count: number) => `${count} missing`,
-  reorderReadOnly: "This session can read records but not change them, so the order is read-only.",
-  reorderUnsigned: "The signed plugin does not offer reorder yet, so the order shown is the store's and cannot be changed here.",
-  reorderLegacy: "This store still keeps every record in one document, in id order. Migrate it to arrange records by hand.",
-  reorderSorted: "Sorted, so the rows are not in the store's order. Choose Manual order to rearrange them.",
-  gripLabel: (name: string, position: number, total: number) => `Reorder ${name}, position ${position} of ${total}`,
-  gripHelp: "Arrow Up and Arrow Down move the record; with the pointer, drag it. Escape puts a dragged row back.",
-  moved: (name: string, position: number, total: number) => `Moved ${name} to position ${position} of ${total}.`,
-  moveAtEdge: (name: string, edge: "top" | "bottom") => `${name} is already at the ${edge} of the rows shown.`,
-  moveUp: "Move up",
-  moveDown: "Move down",
-  moveTop: "Move to top",
-  moveBottom: "Move to bottom",
-  moveTitle: "Among the rows shown; a filter keeps the hidden rows where they are.",
-  reorderFailed: (reason: string) => `The new order was not saved (${reason}). The table shows the stored order again.`,
-  migrateTitle: "This store still keeps every record in one document",
-  migrateBody:
-    "Saves, deletes and reordering are refused until it is split into one document per record. Reading, previews and scheduled refreshes keep working. The legacy document is kept until the split verifies.",
-  migrateAction: "Migrate store",
-  migrateUnsigned: "The signed plugin does not offer migrate_store yet; it arrives with the S1 manifest.",
-  migrateReadOnly: "An operator with substore:admin has to run the migration.",
-  migrateProgress: (migrated: number, remaining: number) => `Migrated ${migrated} so far, ${remaining} to go.`,
-  migrateDone: (count: number) => `The store is split: ${plural(count, "record")} moved, verified, and every write works again.`,
-  migrateFailed: (reason: string) => `The migration stopped (${reason}). Records already moved stay moved; run it again to continue.`,
-  readOnlyNote: "This session can read records but not create, change or reorder them.",
-  noKind: (noun: string) => `No ${noun}s yet`,
-} as const;
 
 /** The kind filter's values, as the address carries them. */
 export type KindFacet = "source" | "combination" | "file";
@@ -165,35 +102,39 @@ export interface CountInput {
  * preview count stands in, as it did before the split.
  */
 export function nodeCountsOf(item: SubscriptionListItem, input: CountInput): CountCells {
-  if (item.kind === KIND_FILE) return EMPTY_COUNTS(TEXT.fileCounts);
+  if (item.kind === KIND_FILE) return EMPTY_COUNTS(t.records.fileCounts);
   if (typeof item.nodes_in === "number") {
     const chainless = item.step_count - item.disabled_step_count <= 0;
     const out = typeof item.nodes_out === "number" ? item.nodes_out : chainless ? item.nodes_in : null;
     const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, input.now) : "";
-    const title = TEXT.countsFrom(item.nodes_in, out, when) + (out === null ? ` ${TEXT.outNotNative}` : "");
+    const nodesIn = formatCount(item.nodes_in);
+    const nodesOut = out === null ? null : formatCount(out);
+    const from = t.records.countsFrom(nodesIn, nodesOut, when);
     return {
-      in: String(item.nodes_in),
-      out: out === null ? "" : String(out),
-      title,
-      pair: out === null ? `${item.nodes_in} in` : `${item.nodes_in} → ${out}`,
+      in: nodesIn,
+      out: nodesOut ?? "",
+      title: nodesOut === null ? t.common.joinSentences([from, t.records.outNotNative]) : from,
+      pair: nodesOut === null ? t.counts.inOnly(nodesIn) : t.counts.pair(nodesIn, nodesOut),
     };
   }
-  if (input.storeVersion === STORE_VERSION_SPLIT) return EMPTY_COUNTS(TEXT.notCounted);
+  if (input.storeVersion === STORE_VERSION_SPLIT) return EMPTY_COUNTS(t.records.notCounted);
   const state = input.preview;
-  if (!input.canPreview) return EMPTY_COUNTS("This session cannot run a preview, so the node count is unknown.");
+  if (!input.canPreview) return EMPTY_COUNTS(t.counts.cannotPreview);
   if (!state || state.status === "queued" || state.status === "running") {
-    return { in: "counting", out: "counting", title: "Counting: a preview is running for this record.", pair: "counting" };
+    return { in: t.counts.counting, out: t.counts.counting, title: t.counts.running, pair: t.counts.counting };
   }
   if (state.status === "failed") {
-    const when = formatRelativeTime(new Date(state.at).toISOString(), input.now) || "just now";
-    return { in: "unknown", out: "unknown", title: `The preview run ${when} failed: ${state.reason}`, pair: "unknown" };
+    const when = formatRelativeTime(new Date(state.at).toISOString(), input.now) || t.time.justNow;
+    return { in: t.counts.unknown, out: t.counts.unknown, title: t.counts.previewRunFailed(when, state.reason), pair: t.counts.unknown };
   }
-  const when = formatRelativeTime(new Date(state.at).toISOString(), input.now) || "just now";
+  const when = formatRelativeTime(new Date(state.at).toISOString(), input.now) || t.time.justNow;
+  const source = formatCount(state.source);
+  const result = formatCount(state.result);
   return {
-    in: String(state.source),
-    out: String(state.result),
-    title: `${state.source} in, ${state.result} out, from a preview run ${when}.`,
-    pair: `${state.source} → ${state.result}`,
+    in: source,
+    out: result,
+    title: t.counts.fromPreview(source, result, when),
+    pair: t.counts.pair(source, result),
   };
 }
 
@@ -219,10 +160,10 @@ export interface PublishedInput {
  */
 export function publishedOf(item: Pick<SubscriptionListItem, "id">, input: PublishedInput): PublishState & { unknown: boolean } {
   if (!input.available) {
-    return { tone: "neutral", label: TEXT.publishedUnknown, title: TEXT.publishedUnknownTitle, shares: [], unknown: true };
+    return { tone: "neutral", label: t.records.publishedUnknown, title: t.records.publishedUnknownTitle, shares: [], unknown: true };
   }
   if (input.shares === undefined && input.error) {
-    return { tone: "neutral", label: TEXT.publishedUnknown, title: TEXT.publishedUnreadTitle(input.error), shares: [], unknown: true };
+    return { tone: "neutral", label: t.records.publishedUnknown, title: t.records.publishedUnreadTitle(input.error), shares: [], unknown: true };
   }
   return { ...publishStateFor(input.shares, item.id, input.now), unknown: false };
 }
@@ -241,15 +182,15 @@ export interface ExpiryCell {
 }
 
 export function expiryOf(item: SubscriptionListItem, now: number): ExpiryCell {
-  if (!isProviderLink(item)) return { state: "none", figures: null, text: "", title: TEXT.notAProvider, tone: "neutral" };
+  if (!isProviderLink(item)) return { state: "none", figures: null, text: "", title: t.records.notAProvider, tone: "neutral" };
   const figures = providerFigures(item);
-  if (!figures) return { state: "unreported", figures: null, text: TEXT.notReported, title: TEXT.notReportedTitle, tone: "neutral" };
+  if (!figures) return { state: "unreported", figures: null, text: t.records.notReported, title: t.records.notReportedTitle, tone: "neutral" };
   const days = daysUntilExpiry(figures, now);
   const text = formatExpiry(figures, now);
-  if (days === null) return { state: "ok", figures, text, title: "The provider reported traffic and no expiry.", tone: "neutral" };
-  if (days < 0) return { state: "expired", figures, text, title: `The provider says this subscription ${text}; it may serve nothing now.`, tone: "danger" };
-  if (days <= EXPIRY_WARN_DAYS) return { state: "soon", figures, text, title: `The provider says this subscription ${text}.`, tone: "warn" };
-  return { state: "ok", figures, text, title: `The provider says this subscription ${text}.`, tone: "neutral" };
+  if (days === null) return { state: "ok", figures, text, title: t.provider.noExpiryTitle, tone: "neutral" };
+  if (days < 0) return { state: "expired", figures, text, title: t.provider.expiredTitle(text), tone: "danger" };
+  if (days <= EXPIRY_WARN_DAYS) return { state: "soon", figures, text, title: t.provider.saysTitle(text), tone: "warn" };
+  return { state: "ok", figures, text, title: t.provider.saysTitle(text), tone: "neutral" };
 }
 
 // ── last fetch ───────────────────────────────────────────────────────────────
@@ -284,9 +225,9 @@ export interface KindCell {
 }
 
 export function fileTypeLabel(fileType: string | undefined): string {
-  if (fileType === FILE_TYPE_SCRIPT) return "Script file";
-  if (fileType === FILE_TYPE_PLAIN) return "Plain text file";
-  return "Configuration file";
+  if (fileType === FILE_TYPE_SCRIPT) return t.kinds.scriptFile;
+  if (fileType === FILE_TYPE_PLAIN) return t.kinds.plainFile;
+  return t.kinds.configFile;
 }
 
 export function kindOf(item: SubscriptionListItem, items: readonly SubscriptionListItem[], lineage: Lineage): KindCell {
@@ -298,25 +239,25 @@ export function kindOf(item: SubscriptionListItem, items: readonly SubscriptionL
     const label = fileTypeLabel(item.file_type);
     // The record stores no target, so the name is where a file says its client.
     const client = clientOfFile(item.name);
-    const forClient = client ? TEXT.fileFor(client.label) : "";
-    const clientTitle = client ? ` The name says it is for ${client.label}.` : "";
+    const forClient = client ? t.records.fileFor(client.label) : "";
+    const titled = (sentence: string) => t.common.joinSentences([sentence, client ? t.records.fileNamedFor(client.label) : ""].filter(Boolean));
     const source = (item.node_source ?? "").trim();
     if (!source) {
       return {
         label,
-        detail: [TEXT.fileServedAsWritten, forClient].filter(Boolean).join(" · "),
-        title: `Nothing fills it: the document is served as written.${clientTitle}`,
+        detail: [t.records.fileServedAsWritten, forClient].filter(Boolean).join(" · "),
+        title: titled(t.records.fileServedTitle),
         missing: 0,
         missingLabel: "",
       };
     }
     if (!items.some((entry) => entry.id === source)) {
-      return { label, detail: forClient, title: TEXT.fileGoneTitle(source) + clientTitle, missing: 1, missingLabel: TEXT.fileGone };
+      return { label, detail: forClient, title: titled(t.records.fileGoneTitle(source)), missing: 1, missingLabel: t.records.fileGone };
     }
     return {
       label,
-      detail: [TEXT.fileFrom(name(source)), forClient].filter(Boolean).join(" · "),
-      title: `Its proxy list is filled from ${name(source)}.${clientTitle}`,
+      detail: [t.records.fileFrom(name(source)), forClient].filter(Boolean).join(" · "),
+      title: titled(t.records.fileFilledFrom(name(source))),
       missing: 0,
       missingLabel: "",
     };
@@ -327,20 +268,26 @@ export function kindOf(item: SubscriptionListItem, items: readonly SubscriptionL
     const detail = members.slice(0, 2).join(", ") + (members.length > 2 ? ` +${members.length - 2}` : "");
     const title = [
       ...members,
-      ...missing.map((ref) => `${ref.ref} (${ref.reason})`),
-      ...(item.member_tags?.length ? [TEXT.membersTags(item.member_tags.join(", "))] : []),
+      ...missing.map((ref) => t.records.memberMissing(ref.ref, ref.reason)),
+      ...(item.member_tags?.length ? [t.records.membersTags(item.member_tags.join(", "))] : []),
     ].join(", ");
-    return { label: "Combination", detail, title: title || "No members.", missing: missing.length, missingLabel: missing.length ? TEXT.missing(missing.length) : "" };
+    return {
+      label: t.kinds.combination,
+      detail,
+      title: title || t.records.noMembers,
+      missing: missing.length,
+      missingLabel: missing.length ? t.records.missing(missing.length) : "",
+    };
   }
   const used = usedBy(lineage, item.id);
   const parts: string[] = [];
-  if (used.combinations.length) parts.push(plural(used.combinations.length, "combination"));
-  if (used.files.length) parts.push(plural(used.files.length, "file"));
+  if (used.combinations.length) parts.push(t.nouns.combinations(used.combinations.length));
+  if (used.files.length) parts.push(t.nouns.files(used.files.length));
   const users = [...used.combinations, ...used.files].map(name);
   return {
     label: sourceKindLabel(item),
-    detail: parts.length ? `feeds ${parts.join(", ")}` : "",
-    title: users.length ? `Feeds ${users.join(", ")}` : TEXT.usedByNothing("source"),
+    detail: parts.length ? t.lineage.feeds(formatList(parts)) : "",
+    title: users.length ? t.lineage.feedsTitle(users.join(", ")) : t.records.usedByNothing,
     missing: 0,
     missingLabel: "",
   };
@@ -362,9 +309,9 @@ export interface StepsCell {
 export function stepsOf(item: Pick<SubscriptionListItem, "step_count" | "disabled_step_count" | "target">): StepsCell {
   const off = item.disabled_step_count || 0;
   return {
-    count: String(item.step_count),
-    off: off ? TEXT.stepsOff(off) : "",
-    title: [TEXT.steps(item.step_count, off), item.target ? TEXT.stepsTarget(item.target) : ""].filter(Boolean).join(" "),
+    count: formatCount(item.step_count),
+    off: off ? t.records.stepsOff(off) : "",
+    title: t.common.joinSentences([t.records.steps(item.step_count, off), item.target ? t.records.stepsTarget(item.target) : ""].filter(Boolean)),
   };
 }
 
@@ -380,10 +327,10 @@ export interface ReorderInput {
 
 /** Why the order cannot be changed here, or "" when it can. */
 export function reorderBlock(input: ReorderInput): string {
-  if (!input.canMutate) return TEXT.reorderReadOnly;
-  if (!input.available || input.storeVersion === undefined) return TEXT.reorderUnsigned;
-  if (input.storeVersion === STORE_VERSION_LEGACY) return TEXT.reorderLegacy;
-  if (input.sort !== "manual") return TEXT.reorderSorted;
+  if (!input.canMutate) return t.records.reorderReadOnly;
+  if (!input.available || input.storeVersion === undefined) return t.records.reorderUnsigned;
+  if (input.storeVersion === STORE_VERSION_LEGACY) return t.records.reorderLegacy;
+  if (input.sort !== "manual") return t.records.reorderSorted;
   return "";
 }
 

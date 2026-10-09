@@ -21,6 +21,7 @@ import { computed } from "vue";
 
 import type { EditorLanguage } from "../codemirror";
 import { tokenizeDocument } from "../documentTokens";
+import { t } from "../i18n";
 
 const props = withDefaults(
   defineProps<{
@@ -57,7 +58,7 @@ const parsed = computed(() => tokenizeDocument(props.text, props.language));
       </ol>
     </div>
     <p v-if="parsed.hidden > 0" class="doc-truncated">
-      Showing the first {{ parsed.lines.length }} of {{ parsed.total }} lines. Copy the document to get all of it.
+      {{ t.documentView.truncated(parsed.lines.length, parsed.total) }}
     </p>
   </div>
 </template>

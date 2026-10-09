@@ -17,6 +17,8 @@
  */
 import type { BridgeClient } from "@latticenet/plugin-bridge";
 
+import { t } from "./i18n";
+
 export const SERVICES = {
   engine: "latticenet.sub-store/engine",
   subscription: "latticenet.sub-store/subscription",
@@ -607,7 +609,13 @@ export interface ConvertTarget {
 }
 
 export const CONVERT_TARGETS: readonly ConvertTarget[] = [
-  { id: "URI", label: "Universal (URI)", produces: "text" },
+  {
+    id: "URI",
+    get label() {
+      return t.targets.uri;
+    },
+    produces: "text",
+  },
   { id: "Stash", label: "Stash", produces: "yaml", uaClass: "stash" },
   { id: "ClashMeta", label: "mihomo", produces: "yaml", uaClass: "clashmeta" },
   { id: "Egern", label: "Egern", produces: "yaml", uaClass: "egern" },

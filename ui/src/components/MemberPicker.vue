@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { ArrowDown, ArrowUp, GripVertical } from "@lucide/vue";
 
 import type { SubscriptionListItem } from "../client";
+import { t } from "../i18n";
 
 /**
  * Choosing which subscriptions a combination gathers.
@@ -84,9 +85,9 @@ function clearAll(): void {
 }
 
 function describe(item: SubscriptionListItem): string {
-  if (item.source === "vpn-core") return "fleet nodes";
-  if (item.source === "local") return "pasted";
-  return item.has_url ? "provider link" : "pasted";
+  if (item.source === "vpn-core") return t.members.fleet;
+  if (item.source === "local") return t.members.pasted;
+  return item.has_url ? t.members.provider : t.members.pasted;
 }
 </script>
 
@@ -99,7 +100,7 @@ function describe(item: SubscriptionListItem): string {
           :class="{ 'is-active': tagFilter === '' }"
           @click="tagFilter = ''"
         >
-          All
+          {{ t.members.all }}
         </button>
         <button
           v-for="tag in tags"
@@ -112,8 +113,8 @@ function describe(item: SubscriptionListItem): string {
         </button>
       </div>
       <div class="picker-bulk">
-        <button type="button" :disabled="!rest.length" @click="selectAllShown">Select shown</button>
-        <button type="button" :disabled="!selected.length" @click="clearAll">Clear</button>
+        <button type="button" :disabled="!rest.length" @click="selectAllShown">{{ t.members.selectShown }}</button>
+        <button type="button" :disabled="!selected.length" @click="clearAll">{{ t.members.clear }}</button>
       </div>
     </div>
 
@@ -142,8 +143,8 @@ function describe(item: SubscriptionListItem): string {
           <button
             type="button"
             :disabled="index === 0"
-            :aria-label="`Move ${item.display_name || item.name} up`"
-            title="Move up"
+            :aria-label="t.members.moveUp(item.display_name || item.name)"
+            :title="t.members.moveUpTitle"
             @click="move(index, index - 1)"
           >
             <ArrowUp :size="13" aria-hidden="true" />
@@ -151,8 +152,8 @@ function describe(item: SubscriptionListItem): string {
           <button
             type="button"
             :disabled="index === chosen.length - 1"
-            :aria-label="`Move ${item.display_name || item.name} down`"
-            title="Move down"
+            :aria-label="t.members.moveDown(item.display_name || item.name)"
+            :title="t.members.moveDownTitle"
             @click="move(index, index + 1)"
           >
             <ArrowDown :size="13" aria-hidden="true" />
@@ -161,9 +162,7 @@ function describe(item: SubscriptionListItem): string {
       </li>
     </ol>
 
-    <p v-if="chosen.length" class="picker-note">
-      Nodes appear in this order. Drag, or use the arrows.
-    </p>
+    <p v-if="chosen.length" class="picker-note">{{ t.members.orderNote }}</p>
 
     <ul v-if="rest.length" class="picker-rest">
       <li v-for="item in rest" :key="item.id" class="row">
@@ -179,8 +178,8 @@ function describe(item: SubscriptionListItem): string {
     </ul>
 
     <p v-else-if="!chosen.length" class="picker-note">
-      <template v-if="tagFilter">Nothing tagged "{{ tagFilter }}".</template>
-      <template v-else>There are no subscriptions to combine yet.</template>
+      <template v-if="tagFilter">{{ t.members.nothingTagged(tagFilter) }}</template>
+      <template v-else>{{ t.members.noneYet }}</template>
     </p>
   </div>
 </template>

@@ -14,6 +14,7 @@ import {
 } from "../client";
 import type { EditorLanguage } from "../codemirror";
 import { filePreviewSupport } from "../filePreview";
+import { t } from "../i18n";
 import { editorLanguageForFileType, editorLanguageLabel } from "../previewLanguage";
 import type { FileEditorState, FileEditorTab } from "../useFileEditor";
 import type { UseSubscriptions } from "../useSubscriptions";
@@ -21,6 +22,7 @@ import CodeEditor from "./CodeEditor.vue";
 import DocumentView from "./DocumentView.vue";
 import EditorSectionTabs from "./EditorSectionTabs.vue";
 import MaskedUrlInput from "./MaskedUrlInput.vue";
+import RichText from "./RichText.vue";
 import ProcessChain, { type ChainStep } from "./ProcessChain.vue";
 import RegexRewriteOffer from "./RegexRewriteOffer.vue";
 import LtConfirmDialog from "./lt/LtConfirmDialog.vue";
@@ -65,13 +67,14 @@ const isScript = computed(() => draft.value.fileType === FILE_TYPE_SCRIPT);
  * for the odd file. A JSON template, an INI ruleset. Without inventing new
  * file types. Pure presentation: nothing about the record changes.
  */
-const CONTENT_LANGUAGES: ReadonlyArray<{ id: EditorLanguage; label: string }> = [
-  { id: "yaml", label: "YAML" },
-  { id: "javascript", label: "JavaScript" },
-  { id: "json", label: "JSON" },
-  { id: "ini", label: "INI" },
-  { id: "plain", label: "Plain text" },
-];
+const CONTENT_LANGUAGES: ReadonlyArray<{ id: EditorLanguage; readonly label: string }> = (["yaml", "javascript", "json", "ini", "plain"] as const).map(
+  (id) => ({
+    id,
+    get label() {
+      return editorLanguageLabel(id);
+    },
+  }),
+);
 const autoLanguage = computed<EditorLanguage>(() => editorLanguageForFileType(draft.value.fileType));
 const contentLanguage = computed<EditorLanguage>(() => contentLanguageOverride.value || autoLanguage.value);
 const contentLanguageLabel = computed(() => editorLanguageLabel(contentLanguage.value));
@@ -124,50 +127,26 @@ const danglingNodeSource = computed(() => {
   return nodeSources.value.some((item) => item.id === id) ? "" : id;
 });
 
-const FILE_TYPES = [
-  {
-    id: FILE_TYPE_CONFIG,
-    title: "Client configuration",
-    detail: "Mihomo or Clash YAML. Its proxies get replaced from the node source you pick below.",
-    icon: FileCode,
-  },
-  {
-    id: FILE_TYPE_PLAIN,
-    title: "Plain text",
-    detail: "A rule list, a fragment, anything else. Served exactly as written.",
-    icon: FileText,
-  },
-  {
-    id: FILE_TYPE_SCRIPT,
-    title: "Built by a script",
-    detail: "A JavaScript program assembles the whole document from your nodes.",
-    icon: Braces,
-  },
-] as const;
+/* The words of each card come from the message table, read when drawn. */
+const FILE_TYPES = computed(() => [
+  { id: FILE_TYPE_CONFIG, ...t.fileEditor.types.config, icon: FileCode },
+  { id: FILE_TYPE_PLAIN, ...t.fileEditor.types.plain, icon: FileText },
+  { id: FILE_TYPE_SCRIPT, ...t.fileEditor.types.script, icon: Braces },
+]);
 
-const TEMPLATE_SOURCES = [
-  {
-    id: SOURCE_LOCAL,
-    title: "Text I paste",
-    detail: "Kept in this deployment. Edit it here whenever you like.",
-    icon: ClipboardPaste,
-  },
-  {
-    id: SOURCE_REMOTE,
-    title: "A link",
-    detail: "Fetched from a URL, so a template you maintain elsewhere stays the source of truth.",
-    icon: Globe,
-  },
-] as const;
+const TEMPLATE_SOURCES = computed(() => [
+  { id: SOURCE_LOCAL, ...t.fileEditor.templateSources.local, icon: ClipboardPaste },
+  { id: SOURCE_REMOTE, ...t.fileEditor.templateSources.remote, icon: Globe },
+]);
 
 /**
  * The editor's sections, split the way the record editor splits them: what
  * the file is called, what it is made of, and what is done to it.
  */
-const EDITOR_TABS: { id: FileEditorTab; label: string }[] = [
-  { id: "display", label: "Display" },
-  { id: "content", label: "Content" },
-  { id: "operations", label: "Operations" },
+const EDITOR_TABS: { id: FileEditorTab; readonly label: string }[] = [
+  { id: "display", get label() { return t.editor.tabs.display; } },
+  { id: "content", get label() { return t.editor.tabs.content; } },
+  { id: "operations", get label() { return t.editor.tabs.operations; } },
 ];
 
 /**
@@ -208,24 +187,22 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
   <section class="configuration editor-shell" aria-labelledby="file-editor-title">
     <!-- The record editor has one; without it the only way back is the
          Cancel button at the far bottom of a long form. -->
-    <nav class="lt-breadcrumb" aria-label="Breadcrumb">
+    <nav class="lt-breadcrumb" :aria-label="t.editor.breadcrumb">
       <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
-        <ChevronLeft :size="14" aria-hidden="true" /> Records
+        <ChevronLeft :size="14" aria-hidden="true" /> {{ t.layers.records }}
       </button>
       <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
       <span class="lt-breadcrumb-here" aria-current="page">
-        {{ editingId ? draft.displayName || draft.name || editingId : "New file" }}
+        {{ editingId ? draft.displayName || draft.name || editingId : t.fileEditor.headingNew }}
       </span>
     </nav>
     <div class="section-heading">
       <div>
         <h2 id="file-editor-title" tabindex="-1" data-editor-title>
-          {{ editingId ? "Edit" : "New" }} file
-          <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
+          {{ editingId ? t.fileEditor.headingEdit : t.fileEditor.headingNew }}
+          <span v-if="editorDirty" class="editor-dirty" role="status" :title="t.editor.dirtyTitle">{{ t.editor.dirty }}</span>
         </h2>
-        <p>
-          A document served as it is, with its proxy list kept in step with a subscription.
-        </p>
+        <p>{{ t.fileEditor.lead }}</p>
       </div>
     </div>
 
@@ -235,7 +212,7 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
 
     <EditorSectionTabs
       :model-value="editorTab"
-      label="Editor sections"
+      :label="t.editor.tabsLabel"
       :tabs="editorTabs.map((tab) => ({
         id: tab.id,
         label: tab.label,
@@ -253,54 +230,50 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
          substance. -->
     <div class="editor-layout" data-pane="wide">
     <form class="editor-main" @submit.prevent="submit">
-      <PcPanel v-show="editorTab === 'display'" class="editor-group" role="group" label="Basics">
-        <PcPanelHeader title="Basics" description="How the file is named, tagged and listed." />
+      <PcPanel v-show="editorTab === 'display'" class="editor-group" role="group" :label="t.editor.basics">
+        <PcPanelHeader :title="t.editor.basics" :description="t.fileEditor.basicsDescription" />
         <PcPanelBody>
         <div class="form-grid">
           <label class="field field-wide">
-            <span class="field-label">Name</span>
-            <input v-model="draft.name" type="text" autocomplete="off" placeholder="Phone config" />
+            <span class="field-label">{{ t.editor.name }}</span>
+            <input v-model="draft.name" type="text" autocomplete="off" :placeholder="t.fileEditor.namePlaceholder" />
             <span class="field-optional">
               <template v-if="editingId">
-                Stored as <code>{{ editingId }}</code>. Renaming is safe. A published share keeps
-                working.
+                {{ t.editor.storedAsBefore }} <code>{{ editingId }}</code>{{ t.editor.storedAsAfter }}
               </template>
-              <template v-else>The only thing you have to fill in.</template>
+              <template v-else>{{ t.editor.nameRequired }}</template>
             </span>
           </label>
 
           <label class="field">
-            <span class="field-label">Display name <span class="field-optional">(optional)</span></span>
-            <input v-model="draft.displayName" type="text" autocomplete="off" placeholder="Phone" />
-            <span class="field-optional">Shown in the list instead of the name.</span>
+            <span class="field-label">{{ t.editor.displayName }} <span class="field-optional">{{ t.editor.optional }}</span></span>
+            <input v-model="draft.displayName" type="text" autocomplete="off" :placeholder="t.fileEditor.displayNamePlaceholder" />
+            <span class="field-optional">{{ t.editor.displayNameHint }}</span>
           </label>
 
           <label class="field">
-            <span class="field-label">Tags</span>
-            <input v-model="tagText" type="text" autocomplete="off" spellcheck="false" placeholder="phone, laptop" />
+            <span class="field-label">{{ t.editor.tags }}</span>
+            <input v-model="tagText" type="text" autocomplete="off" spellcheck="false" :placeholder="t.fileEditor.tagsPlaceholder" />
           </label>
 
           <label class="field field-wide">
-            <span class="field-label">Note</span>
-            <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
+            <span class="field-label">{{ t.editor.note }}</span>
+            <input v-model="draft.remark" type="text" autocomplete="off" :placeholder="t.editor.notePlaceholder" />
           </label>
 
           <label class="field field-wide checkbox-field">
             <input v-model="draft.download" type="checkbox" />
             <span>
-              <span class="field-label">Save rather than show</span>
-              <span class="field-optional">
-                Served with a filename, so a browser downloads it instead of rendering it in a
-                tab. Clients that fetch the URL directly are unaffected.
-              </span>
+              <span class="field-label">{{ t.fileEditor.download }}</span>
+              <span class="field-optional">{{ t.fileEditor.downloadHint }}</span>
             </span>
           </label>
         </div>
         </PcPanelBody>
       </PcPanel>
 
-      <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" label="What kind of file">
-        <PcPanelHeader title="What kind of file" description="Plain text served as written, a template with a proxy list, or a script." />
+      <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" :label="t.fileEditor.kindTitle">
+        <PcPanelHeader :title="t.fileEditor.kindTitle" :description="t.fileEditor.kindDescription" />
         <PcPanelBody>
         <div class="form-grid">
           <div class="field field-wide">
@@ -322,8 +295,16 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
         </PcPanelBody>
       </PcPanel>
 
-      <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" :label="isScript ? 'The program' : isPlain ? 'The text' : 'The template'">
-        <PcPanelHeader :title="isScript ? 'The program' : isPlain ? 'The text' : 'The template'" :description="isScript ? 'What runs when a client asks for this file.' : isPlain ? 'What is served, exactly as written.' : 'What is served, with its proxy list filled in from the source below.'" />
+      <PcPanel
+        v-show="editorTab === 'content'"
+        class="editor-group"
+        role="group"
+        :label="isScript ? t.fileEditor.program : isPlain ? t.fileEditor.text : t.fileEditor.template"
+      >
+        <PcPanelHeader
+          :title="isScript ? t.fileEditor.program : isPlain ? t.fileEditor.text : t.fileEditor.template"
+          :description="isScript ? t.fileEditor.programDescription : isPlain ? t.fileEditor.textDescription : t.fileEditor.templateDescription"
+        />
         <PcPanelBody>
         <div class="form-grid">
           <div v-if="!isScript" class="field field-wide">
@@ -346,28 +327,28 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
             <!-- A template link can carry a token like a provider link, so
                  it reads masked and shows whole only while edited. -->
             <div class="field field-wide">
-              <span class="field-label">Link</span>
+              <span class="field-label">{{ t.fileEditor.link }}</span>
               <MaskedUrlInput
                 v-model="draft.url"
-                aria-label="Link"
-                placeholder="Where the template is fetched from"
+                :aria-label="t.fileEditor.link"
+                :placeholder="t.fileEditor.linkPlaceholder"
               />
             </div>
             <label class="field">
-              <span class="field-label">User agent</span>
-              <input v-model="draft.ua" type="text" autocomplete="off" placeholder="Optional" />
+              <span class="field-label">{{ t.editor.userAgent }}</span>
+              <input v-model="draft.ua" type="text" autocomplete="off" :placeholder="t.editor.notePlaceholder" />
             </label>
           </template>
 
           <div v-if="isScript || !isRemote" class="field field-wide">
             <span id="file-content-label" class="field-label field-label-row">
-              {{ isScript ? "Script" : isPlain ? "Text" : "Configuration" }}
+              {{ isScript ? t.fileEditor.contentScript : isPlain ? t.fileEditor.contentText : t.fileEditor.contentConfig }}
               <select
                 v-model="contentLanguageOverride"
                 class="select select-compact"
-                aria-label="Editor highlighting"
+                :aria-label="t.fileEditor.highlighting"
               >
-                <option value="">Auto ({{ CONTENT_LANGUAGES.find((l) => l.id === autoLanguage)?.label }})</option>
+                <option value="">{{ t.fileEditor.auto(CONTENT_LANGUAGES.find((l) => l.id === autoLanguage)?.label ?? "") }}</option>
                 <option v-for="lang in CONTENT_LANGUAGES" :key="lang.id" :value="lang.id">
                   {{ lang.label }}
                 </option>
@@ -378,75 +359,48 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
               v-model="draft.content"
               :language="contentLanguage"
               :rows="isScript ? 22 : 16"
-              :placeholder="
-                isScript
-                  ? 'Paste the generator. Call produceArtifact({name, produceType: \'internal\'}) for your nodes and assign the result to $content.'
-                  : isPlain
-                    ? 'Anything you want served verbatim'
-                    : 'Paste the Mihomo or Clash config you already run'
-              "
+              :placeholder="isScript ? t.fileEditor.placeholderScript : isPlain ? t.fileEditor.placeholderPlain : t.fileEditor.placeholderConfig"
             />
-            <span v-if="isScript" class="field-optional">
-              Runs in the engine's sandbox: no filesystem, and network only through
-              <code>$substore.http</code>. Every request leaves through the server's guarded
-              egress (private addresses refused, redirects re-checked), capped at 8 requests per
-              call. It reaches <code>ProxyUtils</code>, <code>produceArtifact()</code>,
-              <code>$arguments</code> and <code>$options</code>, and returns its document by
-              assigning <code>$content</code>. Response headers go in
-              <code>$options._res.headers</code>.
-            </span>
-            <span v-else-if="!isPlain" class="field-optional">
-              Keep your own rules, DNS and groups. Only <code>proxies</code> is replaced, and any
-              group left pointing at a node that is gone gets the new ones instead.
-            </span>
+            <span v-if="isScript" class="field-optional"><RichText :parts="t.fileEditor.scriptHint" /></span>
+            <span v-else-if="!isPlain" class="field-optional"><RichText :parts="t.fileEditor.configHint" /></span>
           </div>
         </div>
         </PcPanelBody>
       </PcPanel>
 
-      <PcPanel v-if="!isPlain" v-show="editorTab === 'content'" class="editor-group" role="group" label="Where its nodes come from">
-        <PcPanelHeader title="Where its nodes come from" description="The subscription whose nodes fill the proxy list." />
+      <PcPanel v-if="!isPlain" v-show="editorTab === 'content'" class="editor-group" role="group" :label="t.fileEditor.nodesFrom">
+        <PcPanelHeader :title="t.fileEditor.nodesFrom" :description="t.fileEditor.nodesFromDescription" />
         <PcPanelBody>
         <div class="form-grid">
           <label class="field field-wide">
-            <span class="field-label">Node source</span>
+            <span class="field-label">{{ t.fileEditor.nodeSource }}</span>
             <select v-model="draft.nodeSource" class="select">
-              <option value="">Leave the configuration exactly as written</option>
+              <option value="">{{ t.fileEditor.leaveAsWritten }}</option>
               <option v-if="danglingNodeSource" :value="danglingNodeSource">
-                {{ danglingNodeSource }} (no longer in the store)
+                {{ t.fileEditor.dangling(danglingNodeSource) }}
               </option>
               <option v-for="item in nodeSources" :key="item.id" :value="item.id">
                 {{ item.display_name || item.name }}
-                {{ item.kind === KIND_COLLECTION ? "(combination)" : "" }}
+                {{ item.kind === KIND_COLLECTION ? t.fileEditor.combinationSuffix : "" }}
               </option>
             </select>
             <span class="field-optional">
-              <template v-if="danglingNodeSource">
-                The record this file draws from is not in the store any more, so serving it
-                fails. Point it at another source, or clear it to serve the text as written.
-              </template>
-              <template v-else-if="!nodeSources.length">
-                There is nothing to point at yet: create a source first.
-              </template>
-              <template v-else-if="isScript">
-                This is what <code>produceArtifact()</code> hands back. Each node keeps the name of
-                the subscription it came from, so a script can filter or rename by source.
-              </template>
-              <template v-else>
-                Whatever this resolves to at request time becomes the file's proxy list.
-              </template>
+              <template v-if="danglingNodeSource">{{ t.fileEditor.danglingHint }}</template>
+              <template v-else-if="!nodeSources.length">{{ t.fileEditor.noSources }}</template>
+              <template v-else-if="isScript"><RichText :parts="t.fileEditor.scriptSourceHint" /></template>
+              <template v-else>{{ t.fileEditor.sourceHint }}</template>
             </span>
           </label>
         </div>
         </PcPanelBody>
       </PcPanel>
 
-      <PcPanel v-if="isScript" v-show="editorTab === 'content'" class="editor-group" role="group" label="What the script can read">
-        <PcPanelHeader title="What the script can read" description="The settings handed to the script, and the request parameters it may read." />
+      <PcPanel v-if="isScript" v-show="editorTab === 'content'" class="editor-group" role="group" :label="t.fileEditor.scriptReads">
+        <PcPanelHeader :title="t.fileEditor.scriptReads" :description="t.fileEditor.scriptReadsDescription" />
         <PcPanelBody>
         <div class="form-grid">
           <label class="field field-wide">
-            <span class="field-label">Settings <span class="field-optional">($arguments)</span></span>
+            <span class="field-label">{{ t.fileEditor.settings }} <span class="field-optional">($arguments)</span></span>
             <textarea
               v-model="draft.argumentsText"
               class="code-area"
@@ -454,11 +408,11 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
               spellcheck="false"
               placeholder="enhanced-mode = fake-ip"
             ></textarea>
-            <span class="field-optional">One <code>name = value</code> per line.</span>
+            <span class="field-optional"><RichText :parts="t.fileEditor.argumentsHint" /></span>
           </label>
 
           <label class="field field-wide">
-            <span class="field-label">URL parameters the script may read</span>
+            <span class="field-label">{{ t.fileEditor.queryParams }}</span>
             <input
               v-model="queryParamText"
               type="text"
@@ -466,11 +420,7 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
               spellcheck="false"
               placeholder="enhanced-mode"
             />
-            <span class="field-optional">
-              A share link is public, so anything in its query is input from whoever holds the
-              link. Only the names listed here reach the script; everything else is dropped before
-              it runs. Leave empty and the script sees no query at all.
-            </span>
+            <span class="field-optional">{{ t.fileEditor.queryHint }}</span>
           </label>
         </div>
         </PcPanelBody>
@@ -478,9 +428,9 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
 
       <!-- A program does the whole job, including anything an operator chain
            would have done. Offering one as well would ask which runs first. -->
-      <PcPanel v-if="!isScript" v-show="editorTab === 'operations'" class="editor-group" role="group" label="Operations">
-        <PcPanelHeader title="Operations" description="Run in order over the nodes before they are placed into the document.">
-          <PcCount v-if="chainCount" :value="chainCount" :label="`${chainCount} operation${chainCount === 1 ? '' : 's'} in the chain`" />
+      <PcPanel v-if="!isScript" v-show="editorTab === 'operations'" class="editor-group" role="group" :label="t.editor.operations">
+        <PcPanelHeader :title="t.editor.operations" :description="t.fileEditor.operationsDescription">
+          <PcCount v-if="chainCount" :value="chainCount" :label="t.editor.chainCount(chainCount)" />
         </PcPanelHeader>
         <PcPanelBody>
         <ProcessChain
@@ -488,19 +438,11 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
           :catalog="subs.operators.value"
           :catalog-state="subs.operatorsState.value"
           :chain="isPlain ? 'response' : 'nodes'"
-          :heading="isPlain ? 'Document operations' : undefined"
-          :empty-copy="isPlain ? 'No operations. The text is served exactly as written.' : undefined"
+          :heading="isPlain ? t.fileEditor.documentOperations : undefined"
+          :empty-copy="isPlain ? t.fileEditor.plainEmpty : undefined"
           @update:steps="draft.process = $event"
         />
-        <p class="field-optional">
-          <template v-if="isPlain">
-            A script receives the document and returns what gets served. The node operators do
-            not appear here. The engine skips them for responses.
-          </template>
-          <template v-else>
-            Operations run over the nodes before they are placed into the configuration.
-          </template>
-        </p>
+        <p class="field-optional">{{ isPlain ? t.fileEditor.plainOpsHint : t.fileEditor.configOpsHint }}</p>
         </PcPanelBody>
       </PcPanel>
 
@@ -517,19 +459,19 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
       <div class="editor-actions">
         <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
         <p v-if="draftError" class="field-error">{{ draftError }}</p>
-        <button class="button button-secondary" type="button" @click="leaveEditor">Cancel</button>
+        <button class="button button-secondary" type="button" @click="leaveEditor">{{ t.common.cancel }}</button>
         <button class="button button-primary" type="submit" :disabled="!canSave">
           <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
-          Save
+          {{ t.editor.save }}
         </button>
       </div>
     </form>
 
-    <PcPanel class="editor-side" role="complementary" label="What a client receives">
+    <PcPanel class="editor-side" role="complementary" :label="t.fileEditor.receives">
       <!-- The chassis header, written out: the rendered document below is
            labelled by this heading, and the component gives its h2 no id. -->
       <header class="pc-panel-header">
-        <div><h2 id="file-editor-preview-label">What a client receives</h2></div>
+        <div><h2 id="file-editor-preview-label">{{ t.fileEditor.receives }}</h2></div>
         <div class="pc-panel-header-end">
         <button
           class="button button-secondary"
@@ -537,14 +479,14 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
           :disabled="!canPreviewNow"
           :title="
             editingId
-              ? draftError || draftPreview.reason || 'Render this file and show what a client would receive'
-              : 'Save it once, then preview'
+              ? draftError || draftPreview.reason || t.fileEditor.previewTitle
+              : t.fileEditor.saveFirst
           "
           @click="subs.runPreview(draft)"
         >
           <LoaderCircle v-if="subs.previewing.value" :size="16" class="spin" aria-hidden="true" />
           <Eye v-else :size="16" aria-hidden="true" />
-          {{ subs.preview.value?.document ? "Refresh" : "Preview" }}
+          {{ subs.preview.value?.document ? t.editor.refresh : t.editor.preview }}
         </button>
         </div>
       </header>
@@ -552,9 +494,7 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
 
       <template v-if="subs.preview.value?.document">
         <p class="preview-evidence-meta">
-          {{ contentLanguageLabel }} · {{ subs.preview.value.document.length }} characters<span
-            v-if="subs.preview.value.truncated"
-          > · truncated</span>
+          {{ t.fileEditor.meta(contentLanguageLabel, subs.preview.value.document.length, !!subs.preview.value.truncated) }}
         </p>
         <DocumentView
           class="output-area"
@@ -566,15 +506,9 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
       <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert">
         {{ subs.previewError.value }}
       </p>
-      <p v-else-if="editingId && !draftPreview.supported" class="editor-side-note">
-        {{ draftPreview.reason }} It is on this file's row menu, and it shows the record as last
-        saved rather than the edits here.
-      </p>
+      <p v-else-if="editingId && !draftPreview.supported" class="editor-side-note">{{ t.fileEditor.unsupported(draftPreview.reason) }}</p>
       <p v-else-if="draftError" class="editor-side-note">{{ draftError }}</p>
-      <p v-else class="editor-side-note">
-        Nothing run yet. Preview renders this draft without saving it, so the document can be
-        read before anyone else receives it.
-      </p>
+      <p v-else class="editor-side-note">{{ t.fileEditor.nothingRun }}</p>
       </PcPanelBody>
     </PcPanel>
     </div>
@@ -583,9 +517,9 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
          is the only screen it can be asked from. -->
     <LtConfirmDialog
       :open="discarding"
-      title="Leave without saving? The changes you made to this file are not stored yet and will be lost."
-      verb="Discard changes"
-      :names="[draft.displayName || draft.name || (editingId ?? 'this file')]"
+      :title="t.fileEditor.leaveConfirm"
+      :verb="t.editor.discardVerb"
+      :names="[draft.displayName || draft.name || (editingId ?? t.fileEditor.thisFile)]"
       @confirm="cancelEdit()"
       @cancel="discarding = false"
     />

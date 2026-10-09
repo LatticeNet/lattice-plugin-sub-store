@@ -9,7 +9,11 @@ import {
   paletteEntries,
   PALETTE_COMMANDS,
 } from "./commandPalette";
-import { NO_SOURCE_REASON, READING_REASON, createBlocks } from "./createGate";
+import { createBlocks } from "./createGate";
+import { t } from "./i18n";
+
+const NO_SOURCE_REASON = t.create.noSource;
+const READING_REASON = t.create.reading;
 import type { ActionCapabilities } from "./recordActions";
 
 function record(over: Partial<SubscriptionListItem> = {}): SubscriptionListItem {

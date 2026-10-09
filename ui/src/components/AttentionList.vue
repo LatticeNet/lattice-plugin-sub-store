@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { PcButton, PcCount, PcPanel, PcStateDot } from "@latticenet/plugin-bridge/chassis";
 
+import { t } from "../i18n";
 import type { AttentionItem } from "../pipeline";
 
 /**
@@ -37,27 +38,31 @@ const TONE = { danger: "error", warning: "warning", neutral: "neutral" } as cons
 /** What the action does, by name, for its tooltip. */
 function actionTitle(item: AttentionItem): string | undefined {
   const action = item.action;
-  if (action.publish) return `Open the console's share form for ${item.recordName || "this file"}`;
-  if (action.recordId) return `Show ${item.recordName || "the record"} in the side panel`;
-  if (action.search) return `Show /${action.search} in Shares`;
+  if (action.publish) return t.attentionList.shareForm(item.recordName || t.attentionList.thisFile);
+  if (action.recordId) return t.attentionList.showInPanel(item.recordName || t.attentionList.theRecord);
+  if (action.search) return t.attentionList.showInShares(action.search);
   return undefined;
 }
 </script>
 
 <template>
-  <PcPanel class="attention" label="Attention">
+  <PcPanel class="attention" :label="t.attentionList.title">
     <header class="attention-head">
-      <h2>Attention</h2>
-      <PcCount :value="items.length" :tone="items.some((item) => item.tone === 'danger') ? 'error' : 'warning'" :label="`${items.length} things need attention`" />
+      <h2>{{ t.attentionList.title }}</h2>
+      <PcCount :value="items.length" :tone="items.some((item) => item.tone === 'danger') ? 'error' : 'warning'" :label="t.attentionList.count(items.length)" />
     </header>
     <ul class="attention-list">
       <li v-for="item in shown" :key="item.key" class="attention-item" :data-tone="item.tone">
-        <PcStateDot :tone="TONE[item.tone]" label="" :title="item.tone === 'danger' ? 'Broken now' : item.tone === 'warning' ? 'Needs a hand soon' : 'Worth a look'" />
+        <PcStateDot
+          :tone="TONE[item.tone]"
+          label=""
+          :title="item.tone === 'danger' ? t.attentionList.toneDanger : item.tone === 'warning' ? t.attentionList.toneWarning : t.attentionList.toneNeutral"
+        />
         <button
           v-if="claimOpens(item)"
           type="button"
           class="attention-claim"
-          :title="`Show ${item.recordName || 'the record'} in the side panel`"
+          :title="t.attentionList.showInPanel(item.recordName || t.attentionList.theRecord)"
           @click="emit('open', item.recordId!)"
         >
           {{ item.claim }}
@@ -68,7 +73,7 @@ function actionTitle(item: AttentionItem): string | undefined {
     </ul>
     <div v-if="hidden || expanded && items.length > LIMIT" class="attention-more">
       <PcButton compact :aria-expanded="expanded ? 'true' : 'false'" @click="expanded = !expanded">
-        {{ expanded ? "Show the first five" : `Show ${hidden} more` }}
+        {{ expanded ? t.attentionList.showFirstFive : t.attentionList.showMore(hidden) }}
       </PcButton>
     </div>
   </PcPanel>

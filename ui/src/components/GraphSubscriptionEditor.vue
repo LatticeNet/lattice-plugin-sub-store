@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { RefreshCw } from "@lucide/vue";
 
 import type { GraphOptionsResponse } from "../client";
+import { t } from "../i18n";
 import type { SubscriptionDraft } from "../useSubscriptions";
 
 const props = defineProps<{
@@ -36,50 +37,60 @@ function changeIdentity(event: Event): void {
 <template>
   <div class="field field-wide graph-options">
     <div class="field-label-row">
-      <span class="field-label">Converged graph selection</span>
+      <span class="field-label">{{ t.graph.selection }}</span>
       <button type="button" class="button button-secondary" :disabled="readOnly || loading" @click="emit('reload')">
-        <RefreshCw :size="14" :class="{ spin: loading }" aria-hidden="true" /> Reload
+        <RefreshCw :size="14" :class="{ spin: loading }" aria-hidden="true" /> {{ t.graph.reload }}
       </button>
     </div>
-    <p class="field-optional">Options version <code>{{ draft.optionsVersion || "not loaded" }}</code>. A changed projection must be reviewed before saving.</p>
+    <p class="field-optional">{{ t.graph.versionBefore }} <code>{{ draft.optionsVersion || t.graph.notLoaded }}</code>{{ t.graph.versionAfter }}</p>
 
     <label class="field">
-      <span class="field-label">VPN identity</span>
+      <span class="field-label">{{ t.graph.identity }}</span>
       <select class="select" :value="draft.vpnIdentity" :disabled="readOnly || !eligibleIdentities.length" @change="changeIdentity">
-        <option value="">Choose an eligible identity</option>
+        <option value="">{{ t.graph.chooseIdentity }}</option>
         <option v-for="identity in eligibleIdentities" :key="identity.id" :value="identity.id">
-          {{ identity.label }}, {{ identity.status }}
+          {{ t.graph.identityOption(identity.label, identity.status) }}
         </option>
       </select>
     </label>
 
     <div class="field">
-      <span class="field-label">Ordered entry roots</span>
-      <p v-if="draft.entryRoots.length === 0" class="field-optional" role="status">No roots selected. Add at least one eligible source.</p>
-      <ol v-else class="graph-root-order" aria-label="Selected graph roots">
+      <span class="field-label">{{ t.graph.roots }}</span>
+      <p v-if="draft.entryRoots.length === 0" class="field-optional" role="status">{{ t.graph.noRoots }}</p>
+      <ol v-else class="graph-root-order" :aria-label="t.graph.selectedRoots">
         <li v-for="(root, index) in draft.entryRoots" :key="root">
           <span>
             <strong :title="graphRoot(root)?.label ?? root">{{ graphRoot(root)?.label ?? root }}</strong>
             <small>{{ graphRoot(root)?.path_summary }}</small>
           </span>
           <span class="graph-root-actions">
-            <button class="button button-secondary button-compact" type="button" :disabled="readOnly || index === 0" :aria-label="`Move ${graphRoot(root)?.label ?? root} up`" @click="emit('move', index, -1)">Up</button>
-            <button class="button button-secondary button-compact" type="button" :disabled="readOnly || index === draft.entryRoots.length - 1" :aria-label="`Move ${graphRoot(root)?.label ?? root} down`" @click="emit('move', index, 1)">Down</button>
-            <button class="button button-danger button-compact" type="button" :disabled="readOnly" :aria-label="`Remove ${graphRoot(root)?.label ?? root}`" @click="emit('remove', index)">Remove</button>
+            <button class="button button-secondary button-compact" type="button" :disabled="readOnly || index === 0" :aria-label="t.graph.moveUp(graphRoot(root)?.label ?? root)" @click="emit('move', index, -1)">{{ t.graph.up }}</button>
+            <button class="button button-secondary button-compact" type="button" :disabled="readOnly || index === draft.entryRoots.length - 1" :aria-label="t.graph.moveDown(graphRoot(root)?.label ?? root)" @click="emit('move', index, 1)">{{ t.graph.down }}</button>
+            <button class="button button-danger button-compact" type="button" :disabled="readOnly" :aria-label="t.graph.remove(graphRoot(root)?.label ?? root)" @click="emit('remove', index)">{{ t.graph.removeShort }}</button>
           </span>
         </li>
       </ol>
-      <div class="graph-root-candidates" aria-label="Eligible graph roots">
+      <div class="graph-root-candidates" role="group" :aria-label="t.graph.eligibleRoots">
         <button v-for="root in eligibleRoots" :key="root.line_uuid" type="button" :disabled="readOnly || draft.entryRoots.includes(root.line_uuid)" @click="emit('add', root.line_uuid)">
           <strong>{{ root.label }}</strong>
-          <span>Source {{ root.source_node_id }} · Target {{ root.target_label || "terminal" }}</span>
-          <span>Status {{ root.status }} · Path {{ root.path_summary }}</span>
+          <span>{{ t.graph.rootSource(root.source_node_id, root.target_label || t.graph.terminal) }}</span>
+          <span>{{ t.graph.rootStatus(root.status, root.path_summary) }}</span>
         </button>
       </div>
       <details v-if="unavailableRoots.length" class="graph-unavailable">
-        <summary>Unavailable roots ({{ unavailableRoots.length }})</summary>
+        <summary>{{ t.graph.unavailable(unavailableRoots.length) }}</summary>
         <ul>
-          <li v-for="root in unavailableRoots" :key="root.line_uuid"><strong>{{ root.label }}</strong> · Source {{ root.source_node_id || "unknown" }} · Target {{ root.target_label || "unresolved" }} · Status {{ root.status }} · Path {{ root.path_summary }} · Reason {{ root.reason || "not eligible for the selected identity" }}</li>
+          <li v-for="root in unavailableRoots" :key="root.line_uuid">
+            <strong>{{ root.label }}</strong>{{
+              t.graph.unavailableLine(
+                root.source_node_id || t.graph.unknown,
+                root.target_label || t.graph.unresolved,
+                root.status,
+                root.path_summary,
+                root.reason || t.graph.notEligible,
+              )
+            }}
+          </li>
         </ul>
       </details>
     </div>

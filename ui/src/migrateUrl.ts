@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { maskUrl } from "./urlMask";
 
 /**
@@ -34,28 +35,18 @@ export type SubStoreBase =
  */
 export function describeSubStoreBase(raw: string): SubStoreBase {
   const value = resolveSubStoreBase(raw);
-  if (!value) return { ok: false, reason: "Paste the backend URL of the running Sub-Store." };
+  if (!value) return { ok: false, reason: t.migrateUrl.pasteBackend };
   let url: URL;
   try {
     url = new URL(value);
   } catch {
-    return { ok: false, reason: "This is not an absolute http(s) URL." };
+    return { ok: false, reason: t.migrateUrl.notAbsolute };
   }
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return { ok: false, reason: "Use http or https." };
+    return { ok: false, reason: t.migrateUrl.useHttp };
   }
-  if (!url.host) return { ok: false, reason: "The URL needs a host." };
-  if (url.search || url.hash) {
-    return {
-      ok: false,
-      reason: "Use the backend URL (the value after ?api=), not the frontend address with its query string still attached.",
-    };
-  }
-  if (!url.pathname || url.pathname === "/") {
-    return {
-      ok: false,
-      reason: "The origin is not enough. The path after the port is the API secret; paste the backend URL from the running Sub-Store.",
-    };
-  }
+  if (!url.host) return { ok: false, reason: t.migrateUrl.needsHost };
+  if (url.search || url.hash) return { ok: false, reason: t.migrateUrl.useBackend };
+  if (!url.pathname || url.pathname === "/") return { ok: false, reason: t.migrateUrl.originOnly };
   return { ok: true, origin: `${url.protocol}//${url.host}`, masked: maskUrl(value) };
 }

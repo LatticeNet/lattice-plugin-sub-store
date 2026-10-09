@@ -3,9 +3,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { ChevronRight } from "@lucide/vue";
 import { PcStateDot, useMediaQuery } from "@latticenet/plugin-bridge/chassis";
 
-import { drawnEdges, isDense, layoutLineage, openSelectedGroup, paintedEdges, type MapItem } from "../lineageLayout";
+import { t } from "../i18n";
+import { drawnEdges, isDense, layoutLineage, openSelectedGroup, paintedEdges, stageCount, type MapItem } from "../lineageLayout";
 import { overlayDepth } from "../overlayStack";
-import { pathOf, plural, STAGES, type Lineage, type Stage } from "../pipeline";
+import { pathOf, STAGES, type Lineage, type Stage } from "../pipeline";
 
 /**
  * The overview's one picture: sources, combinations, files and shares as four
@@ -44,13 +45,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ select: [key: string] }>();
 
-const STAGE_LABEL: Record<Stage, string> = {
-  source: "Sources",
-  combination: "Combinations",
-  file: "Files",
-  share: "Shares",
-};
-const STAGE_NOUN: Record<Stage, string> = { source: "source", combination: "combination", file: "file", share: "share" };
 
 const openGroups = ref(new Set<string>());
 const expanded = ref(new Set<Stage>());
@@ -137,11 +131,9 @@ const painted = computed(() => paintedEdges(allEdges.value, !!lit.value, dense.v
 const note = computed(() => {
   if (!dense.value) return "";
   const total = props.lineage.edges.length;
-  if (lit.value) return `Showing the selected path. ${total} dependencies in all; clear the selection to see the paths that need attention.`;
-  if (attentionIds.value.length) {
-    return `Showing the paths of the ${plural(attentionIds.value.length, "record")} the attention list names, not all ${total} dependencies. Select a record to see its path.`;
-  }
-  return `${total} dependencies are too many to draw at once. Select a record to see its path.`;
+  if (lit.value) return t.map.noteSelected(total);
+  if (attentionIds.value.length) return t.map.noteAttention(attentionIds.value.length, total);
+  return t.map.noteDense(total);
 });
 
 // ── facts per drawn item ────────────────────────────────────────────────────
@@ -153,20 +145,20 @@ function factsOf(item: MapItem): ChipFacts {
       tone: "neutral",
       state: "",
       figure: "",
-      title: item.open ? "Fold this column back to its first entries." : `${plural(item.ids.length, STAGE_NOUN[item.stage])} not shown. Show every one.`,
+      title: item.open ? t.map.moreFold : t.map.moreHidden(stageCount(item.stage, item.ids.length)),
     };
   }
-  const noun = STAGE_NOUN[item.stage];
+  const count = stageCount(item.stage, item.ids.length);
   const facts = item.ids.map((id) => props.facts(id));
   const errors = facts.filter((f) => f.tone === "error").length;
   const warnings = facts.filter((f) => f.tone === "warning").length;
   const worst = facts.find((f) => f.tone === "error") ?? facts.find((f) => f.tone === "warning");
-  const toggle = item.open ? "Fold them" : "Show them";
+  const toggle = item.open ? t.map.foldThem : t.map.showThem;
   // A folded group whose attention members are drawn under it says what is
   // still inside, or it reads as holding only those.
   const inside = item.shown ? item.ids.length - item.shown : 0;
-  const figureOf = () => (inside ? `${inside} more inside` : plural(item.ids.length, noun));
-  const drawnNote = inside ? ` ${item.shown} drawn below because the attention list names them, ${inside} more inside.` : "";
+  const figureOf = () => (inside ? t.map.inside(inside) : count);
+  const drawnNote = inside ? t.map.drawnBelow(item.shown!, inside) : "";
   if (item.stage === "file") {
     const published = facts.filter((f) => f.tone === "healthy").length;
     // Healthy only when every file in the group is served: one published file
@@ -174,18 +166,18 @@ function factsOf(item: MapItem): ChipFacts {
     const all = published === item.ids.length;
     return {
       tone: worst?.tone ?? (all ? "healthy" : "neutral"),
-      state: worst?.state ?? (all ? "all published" : `${published} of ${item.ids.length} published`),
+      state: worst?.state ?? (all ? t.map.allPublished : t.map.somePublished(published, item.ids.length)),
       figure: figureOf(),
-      title: `${plural(item.ids.length, noun)} named ${item.label}, ${published} published.${drawnNote} ${toggle}.`,
+      title: t.common.joinSentences([t.map.fileGroupTitle(count, item.label, published), drawnNote, toggle].filter(Boolean)),
     };
   }
   const healthy = facts.every((f) => f.tone === "healthy");
   const trouble = errors + warnings;
   return {
     tone: worst?.tone ?? (healthy ? "healthy" : "neutral"),
-    state: worst ? `${trouble} of ${item.ids.length} need attention` : healthy ? "all ok" : `${plural(item.ids.length, noun)}`,
+    state: worst ? t.map.needAttention(trouble, item.ids.length) : healthy ? t.map.allOk : count,
     figure: figureOf(),
-    title: `${plural(item.ids.length, noun)} named ${item.label}${trouble ? `, ${trouble} with a problem` : ""}.${drawnNote} ${toggle}.`,
+    title: t.common.joinSentences([t.map.groupTitle(count, item.label, trouble), drawnNote, toggle].filter(Boolean)),
   };
 }
 
@@ -207,7 +199,7 @@ function feeds(item: MapItem): string[] {
   const named = [...shown].map((key) => labelOf.value.get(key) ?? props.lineage.nodes.get(key)?.label ?? key);
   for (const [key, ids] of folded) {
     const stage = key.slice("more:".length) as Stage;
-    named.push(`${ids.size} more ${ids.size === 1 ? STAGE_NOUN[stage] : `${STAGE_NOUN[stage]}s`}`);
+    named.push(t.map.moreOf[stage](ids.size));
   }
   return named;
 }
@@ -386,11 +378,17 @@ watch([columns, painted, narrow, canvas], () => void nextTick(measure), { flush:
 const summary = computed(() => {
   const c = props.lineage.columns;
   const edges = props.lineage.edges.length;
-  return `Lineage: ${plural(c.source.length, "source")}, ${plural(c.combination.length, "combination")}, ${plural(c.file.length, "file")}, ${plural(c.share.length, "share")}, ${edges} ${edges === 1 ? "dependency" : "dependencies"}`;
+  return t.map.summary(
+    stageCount("source", c.source.length),
+    stageCount("combination", c.combination.length),
+    stageCount("file", c.file.length),
+    stageCount("share", c.share.length),
+    t.nouns.dependencies(edges),
+  );
 });
 
 function chipTitle(item: MapItem): string {
-  return item.kind === "more" ? factsOf(item).title : `${item.label}. ${factsOf(item).title}`;
+  return item.kind === "more" ? factsOf(item).title : t.map.chipTitle(item.label, factsOf(item).title);
 }
 </script>
 
@@ -402,7 +400,7 @@ function chipTitle(item: MapItem): string {
       <svg
         class="lineage-edges"
         role="img"
-        :aria-label="`${painted.length} of ${lineage.edges.length} dependencies drawn${lit ? `, ${allEdges.filter((e) => e.on).length} on the selected path` : ''}`"
+        :aria-label="t.map.edgesDrawn(painted.length, lineage.edges.length, lit ? allEdges.filter((e) => e.on).length : null)"
         :width="size.width"
         :height="size.height"
         :viewBox="`0 0 ${size.width || 1} ${size.height || 1}`"
@@ -416,12 +414,12 @@ function chipTitle(item: MapItem): string {
           :data-tag="path.tag ? 'true' : undefined"
         />
       </svg>
-      <section v-for="stage in STAGES" :key="stage" class="lineage-col" data-map-col :aria-label="STAGE_LABEL[stage]">
+      <section v-for="stage in STAGES" :key="stage" class="lineage-col" data-map-col :aria-label="t.map.stage[stage]">
         <h3 class="lineage-head">
-          <span>{{ STAGE_LABEL[stage] }}</span>
+          <span>{{ t.map.stage[stage] }}</span>
           <span class="lineage-head-count">{{ lineage.columns[stage].length }}</span>
         </h3>
-        <p v-if="!columns[stage].length" class="lineage-none">None</p>
+        <p v-if="!columns[stage].length" class="lineage-none">{{ t.map.none }}</p>
         <button
           v-for="item in columns[stage]"
           :key="item.key"
@@ -446,12 +444,12 @@ function chipTitle(item: MapItem): string {
 
     <!-- Narrow: stage lists, each record with what it feeds written under it. -->
     <div v-else class="lineage-stages">
-      <section v-for="stage in STAGES" :key="stage" class="lineage-stage" :aria-label="STAGE_LABEL[stage]">
+      <section v-for="stage in STAGES" :key="stage" class="lineage-stage" :aria-label="t.map.stage[stage]">
         <h3 class="lineage-head">
-          <span>{{ STAGE_LABEL[stage] }}</span>
+          <span>{{ t.map.stage[stage] }}</span>
           <span class="lineage-head-count">{{ lineage.columns[stage].length }}</span>
         </h3>
-        <p v-if="!columns[stage].length" class="lineage-none">None</p>
+        <p v-if="!columns[stage].length" class="lineage-none">{{ t.map.none }}</p>
         <ul class="lineage-list">
           <li
             v-for="item in columns[stage]"
@@ -475,7 +473,7 @@ function chipTitle(item: MapItem): string {
               <span v-if="factsOf(item).figure" class="lineage-figure">{{ factsOf(item).figure }}</span>
             </button>
             <p v-if="item.kind !== 'more' && feeds(item).length && !(item.kind === 'group' && item.open)" class="lineage-feeds">
-              <span aria-hidden="true">→ </span><span class="pc-sr-only">feeds </span>{{ feeds(item).join(", ") }}
+              <span aria-hidden="true">→ </span><span class="pc-sr-only">{{ t.map.feedsPrefix }} </span>{{ feeds(item).join(", ") }}
             </p>
           </li>
         </ul>

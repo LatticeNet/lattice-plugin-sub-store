@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch } from "vue";
 import { PcButton, PcNotice } from "@latticenet/plugin-bridge/chassis";
 
 import { applyRewrite, offerState, regexDiagnostics, type RegexDiagnostic } from "../regexRewrite";
+import { t } from "../i18n";
 import { schemaFor } from "../operatorSchema";
 
 /**
@@ -34,17 +35,6 @@ const emit = defineEmits<{
   (e: "resolved"): void;
 }>();
 
-const TEXT = {
-  title: "The native engine cannot run a pattern in this chain",
-  pending: "Until it changes, this record renders on the fallback path, and a save that changes the chain is refused.",
-  step: (step: number, label: string) => `Step ${step}, ${label}`,
-  rewriteLead: "It keeps every node that does not match. The same filter in drop mode:",
-  rewriteAction: (step: number) => `Rewrite step ${step}`,
-  noRewrite: "Rewrite it without lookaround or backreferences, or turn the step off.",
-  resolvedTitle: "Every pattern in the chain runs natively now",
-  resolvedAfterRefusal: "Save again to store it.",
-  resolvedAfterRewrite: "The rewrite is in the draft. Save to store it.",
-} as const;
 
 const live = computed(() => regexDiagnostics(props.chain));
 /** A rewrite was applied here and nothing has reintroduced a pattern since. */
@@ -82,21 +72,21 @@ function rewrite(diagnostic: RegexDiagnostic): void {
     v-if="state !== 'none'"
     ref="root"
     :tone="state === 'patterns' ? 'warning' : 'success'"
-    :title="state === 'patterns' ? TEXT.title : TEXT.resolvedTitle"
+    :title="state === 'patterns' ? t.regexOffer.title : t.regexOffer.resolvedTitle"
     data-testid="regex-rewrite-offer"
   >
-    <p v-if="state === 'resolved-refusal'">{{ TEXT.resolvedAfterRefusal }}</p>
-    <p v-else-if="state === 'resolved-rewrite'">{{ TEXT.resolvedAfterRewrite }}</p>
-    <p v-else-if="!refusal">{{ TEXT.pending }}</p>
+    <p v-if="state === 'resolved-refusal'">{{ t.regexOffer.resolvedAfterRefusal }}</p>
+    <p v-else-if="state === 'resolved-rewrite'">{{ t.regexOffer.resolvedAfterRewrite }}</p>
+    <p v-else-if="!refusal">{{ t.regexOffer.pending }}</p>
     <ul v-if="state === 'patterns'" class="regex-offer-list">
       <li v-for="diagnostic in live" :key="`${diagnostic.step}:${diagnostic.pattern}`" class="regex-offer-item">
-        <span class="regex-offer-step">{{ TEXT.step(diagnostic.step, labelOf(diagnostic.type)) }}</span>
+        <span class="regex-offer-step">{{ t.regexOffer.step(diagnostic.step, labelOf(diagnostic.type)) }}</span>
         <code class="regex-offer-pattern">{{ diagnostic.pattern }}</code>
         <template v-if="diagnostic.rewrite">
-          <span>{{ TEXT.rewriteLead }} <code class="regex-offer-pattern">{{ diagnostic.rewrite }}</code></span>
-          <PcButton compact @click="rewrite(diagnostic)">{{ TEXT.rewriteAction(diagnostic.step) }}</PcButton>
+          <span>{{ t.regexOffer.rewriteLead }} <code class="regex-offer-pattern">{{ diagnostic.rewrite }}</code></span>
+          <PcButton compact @click="rewrite(diagnostic)">{{ t.regexOffer.rewriteAction(diagnostic.step) }}</PcButton>
         </template>
-        <span v-else>{{ TEXT.noRewrite }}</span>
+        <span v-else>{{ t.regexOffer.noRewrite }}</span>
       </li>
     </ul>
   </PcNotice>

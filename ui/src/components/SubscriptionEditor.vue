@@ -23,6 +23,7 @@ import {
   SOURCE_VPN_CORE,
   SOURCE_VPN_CORE_GRAPH,
 } from "../client";
+import { t } from "../i18n";
 import type { UseSubscriptions } from "../useSubscriptions";
 import type { RecordEditor } from "../useRecordEditor";
 
@@ -93,28 +94,29 @@ function setEditorTab(id: string): void {
 
 <template>
   <section class="configuration editor-shell" aria-labelledby="editor-title">
-    <nav class="lt-breadcrumb" aria-label="Breadcrumb">
+    <nav class="lt-breadcrumb" :aria-label="t.editor.breadcrumb">
       <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
-        <ChevronLeft :size="14" aria-hidden="true" /> Records
+        <ChevronLeft :size="14" aria-hidden="true" /> {{ t.layers.records }}
       </button>
       <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
       <span class="lt-breadcrumb-here" aria-current="page">
-        {{ editingId ? draft.displayName || draft.name || editingId : (isCollection ? "New combination" : "New source") }}
+        {{ editingId ? draft.displayName || draft.name || editingId : (isCollection ? t.editor.headingNewCombination : t.editor.headingNewSource) }}
       </span>
     </nav>
     <div class="section-heading">
       <div>
         <h2 id="editor-title" tabindex="-1" data-editor-title>
-          {{ editingId ? "Edit" : "New" }}
-          {{ isCollection ? "combination" : "source" }}
+          {{
+            editingId
+              ? (isCollection ? t.editor.headingEditCombination : t.editor.headingEditSource)
+              : (isCollection ? t.editor.headingNewCombination : t.editor.headingNewSource)
+          }}
           <!-- The draft survives a switch to another lens and back; this
                says so on return, so an edit is not mistaken for saved. -->
-          <span v-if="editorDirty" class="editor-dirty" role="status" title="Not saved yet. The draft stays here while you look at another lens.">Unsaved changes</span>
+          <span v-if="editorDirty" class="editor-dirty" role="status" :title="t.editor.dirtyTitle">{{ t.editor.dirty }}</span>
         </h2>
-        <p v-if="isCollection">
-          Merges several sources and processes the merged result as one.
-        </p>
-        <p v-else>One source of nodes, processed and served.</p>
+        <p v-if="isCollection">{{ t.editor.leadCombination }}</p>
+        <p v-else>{{ t.editor.leadSource }}</p>
       </div>
     </div>
 
@@ -132,16 +134,16 @@ function setEditorTab(id: string): void {
     <section v-if="subs.saveConflict.value" class="conflict-panel" role="alert" aria-labelledby="conflict-title">
       <div class="conflict-panel__head">
         <TriangleAlert :size="16" aria-hidden="true" />
-        <h3 id="conflict-title" class="conflict-panel__title">Your edit was not saved</h3>
+        <h3 id="conflict-title" class="conflict-panel__title">{{ t.editor.conflictTitle }}</h3>
       </div>
       <p class="conflict-panel__summary">{{ subs.saveConflict.value.summary }}</p>
 
       <table v-if="subs.saveConflict.value.changes.length" class="conflict-table">
         <thead>
           <tr>
-            <th scope="col">Field</th>
-            <th scope="col">When you opened it</th>
-            <th scope="col">Now</th>
+            <th scope="col">{{ t.editor.conflictField }}</th>
+            <th scope="col">{{ t.editor.conflictOpened }}</th>
+            <th scope="col">{{ t.editor.conflictNow }}</th>
           </tr>
         </thead>
         <tbody>
@@ -152,7 +154,7 @@ function setEditorTab(id: string): void {
           >
             <th scope="row">
               {{ change.label }}
-              <span v-if="change.contested" class="conflict-tag">you edited this too</span>
+              <span v-if="change.contested" class="conflict-tag">{{ t.editor.conflictContested }}</span>
             </th>
             <td class="mono">{{ change.before }}</td>
             <td class="mono">{{ change.after }}</td>
@@ -162,21 +164,17 @@ function setEditorTab(id: string): void {
 
       <div class="conflict-panel__actions">
         <LtButton variant="primary" @click="reopenOnCurrent()">
-          Reopen on their version
+          {{ t.editor.conflictReopen }}
         </LtButton>
-        <LtButton @click="overwriteWithMine()">Replace theirs with mine</LtButton>
-        <LtButton @click="discardMyEdit()">Discard my edit</LtButton>
+        <LtButton @click="overwriteWithMine()">{{ t.editor.conflictOverwrite }}</LtButton>
+        <LtButton @click="discardMyEdit()">{{ t.editor.conflictDiscard }}</LtButton>
       </div>
-      <p class="conflict-panel__note">
-        Reopening loses what you typed. Replacing loses what they wrote. Nothing here merges
-        the two, because an operator chain merged without being read is a configuration nobody
-        wrote.
-      </p>
+      <p class="conflict-panel__note">{{ t.editor.conflictNote }}</p>
     </section>
 
     <EditorSectionTabs
       :model-value="editorTab"
-      label="Editor sections"
+      :label="t.editor.tabsLabel"
       :tabs="EDITOR_TABS.map((tab) => ({
         id: tab.id,
         label: tab.label,
@@ -189,48 +187,47 @@ function setEditorTab(id: string): void {
 
     <div class="editor-layout">
     <form class="editor-main" @submit.prevent="submit">
-    <PcPanel v-show="editorTab === 'display'" class="editor-group" role="group" label="Basics">
-      <PcPanelHeader title="Basics" description="How the record is named, tagged and listed." />
+    <PcPanel v-show="editorTab === 'display'" class="editor-group" role="group" :label="t.editor.basics">
+      <PcPanelHeader :title="t.editor.basics" :description="t.editor.basicsDescription" />
       <PcPanelBody>
       <div class="form-grid">
       <label class="field field-wide">
-        <span class="field-label">Name</span>
+        <span class="field-label">{{ t.editor.name }}</span>
         <input
           v-model="draft.name"
           type="text"
           autocomplete="off"
-          :placeholder="isCollection ? 'Everything' : 'Home nodes'"
+          :placeholder="isCollection ? t.editor.namePlaceholderCombination : t.editor.namePlaceholderSource"
         />
         <span class="field-optional">
           <template v-if="editingId">
-            Stored as <code>{{ editingId }}</code>. Renaming is safe. A published share keeps
-            working.
+            {{ t.editor.storedAsBefore }} <code>{{ editingId }}</code>{{ t.editor.storedAsAfter }}
           </template>
-          <template v-else>The only thing you have to fill in.</template>
+          <template v-else>{{ t.editor.nameRequired }}</template>
         </span>
       </label>
 
       <label class="field">
-        <span class="field-label">Display name <span class="field-optional">(optional)</span></span>
-        <input v-model="draft.displayName" type="text" autocomplete="off" placeholder="Home" />
-        <span class="field-optional">Shown in the list instead of the name.</span>
+        <span class="field-label">{{ t.editor.displayName }} <span class="field-optional">{{ t.editor.optional }}</span></span>
+        <input v-model="draft.displayName" type="text" autocomplete="off" :placeholder="t.editor.displayNamePlaceholder" />
+        <span class="field-optional">{{ t.editor.displayNameHint }}</span>
       </label>
 
       <label class="field">
-        <span class="field-label">Tags</span>
+        <span class="field-label">{{ t.editor.tags }}</span>
         <input
           v-model="tagText"
           type="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="home, backup"
+          :placeholder="t.editor.tagsPlaceholder"
         />
-        <span class="field-optional">Used to group, filter, and gather by.</span>
+        <span class="field-optional">{{ t.editor.tagsHint }}</span>
       </label>
 
       <label class="field field-wide">
-        <span class="field-label">Note</span>
-        <input v-model="draft.remark" type="text" autocomplete="off" placeholder="Optional" />
+        <span class="field-label">{{ t.editor.note }}</span>
+        <input v-model="draft.remark" type="text" autocomplete="off" :placeholder="t.editor.notePlaceholder" />
       </label>
       </div>
       </PcPanelBody>
@@ -240,11 +237,11 @@ function setEditorTab(id: string): void {
       v-show="editorTab === 'content'"
       class="editor-group"
       role="group"
-      :label="isCollection ? 'What it gathers' : 'Where the nodes come from'"
+      :label="isCollection ? t.editor.gathers : t.editor.nodesFrom"
     >
       <PcPanelHeader
-        :title="isCollection ? 'What it gathers' : 'Where the nodes come from'"
-        :description="isCollection ? 'Which subscriptions are merged, and what happens when one of them cannot be fetched.' : 'The source this record reads its nodes from.'"
+        :title="isCollection ? t.editor.gathers : t.editor.nodesFrom"
+        :description="isCollection ? t.editor.gathersDescription : t.editor.nodesFromDescription"
       />
       <PcPanelBody>
       <div class="form-grid">
@@ -253,7 +250,7 @@ function setEditorTab(id: string): void {
         <!-- These cards are a single choice, so they carry the semantics of
              one: a radiogroup whose selected member is announced, not a row
              of buttons distinguishable only by tint. -->
-        <div class="source-grid" role="radiogroup" aria-label="Where the nodes come from">
+        <div class="source-grid" role="radiogroup" :aria-label="t.editor.nodesFrom">
           <button
             v-for="option in SOURCES"
             :key="option.id"
@@ -271,18 +268,15 @@ function setEditorTab(id: string): void {
       </div>
 
       <label v-if="!isCollection && draft.source === SOURCE_VPN_CORE" class="field field-wide">
-        <span class="field-label">Limit to one VPN user</span>
+        <span class="field-label">{{ t.editor.vpnUser }}</span>
         <input
           v-model="draft.vpnIdentity"
           type="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="Leave empty to include everyone's nodes"
+          :placeholder="t.editor.vpnUserPlaceholder"
         />
-        <span class="field-optional">
-          The export returns every node this fleet serves. Naming a proxy user narrows it to
-          theirs, useful when one share is meant for one person.
-        </span>
+        <span class="field-optional">{{ t.editor.vpnUserHint }}</span>
       </label>
 
       <GraphSubscriptionEditor
@@ -302,41 +296,37 @@ function setEditorTab(id: string): void {
         <!-- The link carries the provider's token, so it reads masked and
              shows whole only while it is being edited or revealed. -->
         <div class="field field-wide">
-          <span class="field-label">Provider link</span>
+          <span class="field-label">{{ t.editor.providerLink }}</span>
           <MaskedUrlInput
             v-model="draft.url"
-            aria-label="Provider link"
-            placeholder="The subscription link your provider gave you"
+            :aria-label="t.editor.providerLink"
+            :placeholder="t.editor.providerPlaceholder"
           />
-          <span class="field-optional">Shown masked after the host; the record keeps the whole link.</span>
+          <span class="field-optional">{{ t.editor.providerHint }}</span>
         </div>
         <label class="field">
-          <span class="field-label">User agent</span>
-          <input v-model="draft.ua" type="text" autocomplete="off" placeholder="Optional" />
-          <span class="field-optional">
-            Some providers return a different list per client. Set this if yours does.
-          </span>
+          <span class="field-label">{{ t.editor.userAgent }}</span>
+          <input v-model="draft.ua" type="text" autocomplete="off" :placeholder="t.editor.notePlaceholder" />
+          <span class="field-optional">{{ t.editor.userAgentHint }}</span>
         </label>
       </template>
 
       <div v-if="!isCollection && draft.source === SOURCE_LOCAL" class="field field-wide">
-        <span id="draft-nodes-label" class="field-label">Nodes</span>
+        <span id="draft-nodes-label" class="field-label">{{ t.editor.nodes }}</span>
         <CodeEditor
           aria-labelledby="draft-nodes-label"
           v-model="draft.content"
           language="plain"
           :rows="12"
-          placeholder="Paste node links, a base64 blob, Clash YAML, or sing-box JSON"
+          :placeholder="t.editor.nodesPlaceholder"
         />
-        <span class="field-optional">
-          Mixed lists work. One node per line for link formats.
-        </span>
+        <span class="field-optional">{{ t.editor.nodesHint }}</span>
       </div>
 
       <!-- ── collection: what it gathers ────────────────────────────── -->
       <template v-if="isCollection">
         <div class="field field-wide">
-          <span class="field-label">Choose subscriptions</span>
+          <span class="field-label">{{ t.editor.chooseSubscriptions }}</span>
           <MemberPicker
             :candidates="memberCandidates"
             :selected="draft.members"
@@ -345,43 +335,36 @@ function setEditorTab(id: string): void {
         </div>
 
         <label class="field field-wide">
-          <span class="field-label">…and everything tagged</span>
+          <span class="field-label">{{ t.editor.taggedToo }}</span>
           <input
             v-model="memberTagText"
             type="text"
             autocomplete="off"
             spellcheck="false"
-            placeholder="home, backup"
+            :placeholder="t.editor.tagsPlaceholder"
           />
-          <span class="field-optional">
-            Gathering by tag means a new subscription joins by being tagged, without editing
-            this combination.
-          </span>
+          <span class="field-optional">{{ t.editor.taggedHint }}</span>
         </label>
 
         <div class="field field-wide">
-          <span class="field-label">If a member cannot be fetched</span>
+          <span class="field-label">{{ t.editor.memberFails }}</span>
           <div class="choice-row">
             <button
               type="button"
               :class="{ 'is-active': draft.failureMode !== FAILURE_SKIP }"
               @click="draft.failureMode = FAILURE_STRICT"
             >
-              Fail the whole thing
+              {{ t.editor.failAll }}
             </button>
             <button
               type="button"
               :class="{ 'is-active': draft.failureMode === FAILURE_SKIP }"
               @click="draft.failureMode = FAILURE_SKIP"
             >
-              Skip it and serve the rest
+              {{ t.editor.skipFailed }}
             </button>
           </div>
-          <span class="field-optional">
-            Failing is the safer default: serving only the survivors reaches a client as “those
-            nodes were removed”, and it deletes them. Skipping is right when one flaky provider
-            should not take down a large combination.
-          </span>
+          <span class="field-optional">{{ t.editor.failHint }}</span>
         </div>
       </template>
 
@@ -389,30 +372,28 @@ function setEditorTab(id: string): void {
       </PcPanelBody>
     </PcPanel>
 
-    <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" label="Output">
-      <PcPanelHeader title="Output" description="The client format the record is served as." />
+    <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" :label="t.editor.output">
+      <PcPanelHeader :title="t.editor.output" :description="t.editor.outputDescription" />
       <PcPanelBody>
       <div class="form-grid">
       <label class="field">
-        <span class="field-label">Client format</span>
+        <span class="field-label">{{ t.editor.clientFormat }}</span>
         <select v-model="draft.target" class="select">
-          <option value="">Decide from the client that asks</option>
+          <option value="">{{ t.editor.autoFormat }}</option>
           <option v-for="target in CONVERT_TARGETS" :key="target.id" :value="target.id">
             {{ target.label }}
           </option>
         </select>
-        <span class="field-optional">
-          Left automatic, Surge gets Surge and Clash gets Clash from one URL.
-        </span>
+        <span class="field-optional">{{ t.editor.autoFormatHint }}</span>
       </label>
 
       </div>
       </PcPanelBody>
     </PcPanel>
 
-    <PcPanel v-show="editorTab === 'operations'" class="editor-group" role="group" label="Operations">
-      <PcPanelHeader title="Operations" description="The common settings first, then the chain, run in order over every node.">
-        <PcCount v-if="chainCount" :value="chainCount" :label="`${chainCount} operation${chainCount === 1 ? '' : 's'} in the chain`" />
+    <PcPanel v-show="editorTab === 'operations'" class="editor-group" role="group" :label="t.editor.operations">
+      <PcPanelHeader :title="t.editor.operations" :description="t.editor.operationsDescription">
+        <PcCount v-if="chainCount" :value="chainCount" :label="t.editor.chainCount(chainCount)" />
       </PcPanelHeader>
       <PcPanelBody>
       <div class="editor-block">
@@ -430,9 +411,7 @@ function setEditorTab(id: string): void {
           @update:steps="draft.process = $event"
           @preview-step="previewUpToStep"
         />
-        <span v-if="isCollection" class="field-optional">
-          Each member runs its own operations first; these run over everything merged.
-        </span>
+        <span v-if="isCollection" class="field-optional">{{ t.editor.collectionOpsHint }}</span>
       </div>
       </PcPanelBody>
     </PcPanel>
@@ -458,15 +437,15 @@ function setEditorTab(id: string): void {
           v-else-if="draftError"
           type="button"
           class="field-error field-error-jump"
-          :title="`Go to the ${EDITOR_TABS.find((t) => t.id === errorTab)?.label} section`"
+          :title="t.editor.goToSection(EDITOR_TABS.find((tab) => tab.id === errorTab)?.label ?? '')"
           @click="editorTab = errorTab || editorTab"
         >
           {{ draftError }}
         </button>
-        <button class="button button-secondary" type="button" @click="leaveEditor">Cancel</button>
+        <button class="button button-secondary" type="button" @click="leaveEditor">{{ t.common.cancel }}</button>
         <button class="button button-primary" type="submit" :disabled="!canSave || !subs.canMutate.value">
           <LoaderCircle v-if="subs.saving.value" :size="16" class="spin" aria-hidden="true" />
-          Save
+          {{ t.editor.save }}
         </button>
       </div>
     </form>
@@ -476,29 +455,29 @@ function setEditorTab(id: string): void {
          form scrolls under it. Below the breakpoint it becomes the last block
          instead: a sticky column in a 375px frame is a column that covers the
          form. -->
-    <PcPanel class="editor-side" role="complementary" label="Source and result">
-      <PcPanelHeader title="Source and result">
+    <PcPanel class="editor-side" role="complementary" :label="t.editor.sourceAndResult">
+      <PcPanelHeader :title="t.editor.sourceAndResult">
           <button
             class="button button-secondary"
             type="button"
             :disabled="!canPreviewNow || !explainable || explaining"
-            :title="!explainable ? 'Add an operation first; there is nothing to explain' : (draftError || 'Run the chain one operation at a time and say what each one kept')"
+            :title="!explainable ? t.editor.explainNothing : (draftError || t.editor.explainTitle)"
             @click="explainDraft()"
           >
             <LoaderCircle v-if="explaining" :size="16" class="spin" aria-hidden="true" />
             <ListOrdered v-else :size="16" aria-hidden="true" />
-            Explain chain
+            {{ t.editor.explain }}
           </button>
           <button
             class="button button-secondary"
             type="button"
             :disabled="!canPreviewNow || explaining"
-            :title="draftError || 'Run the chain and show the nodes it produces'"
+            :title="draftError || t.editor.previewTitle"
             @click="subs.runPreview(draft)"
           >
             <LoaderCircle v-if="subs.previewing.value && !explaining" :size="16" class="spin" aria-hidden="true" />
             <Eye v-else :size="16" aria-hidden="true" />
-            {{ subs.preview.value ? "Refresh" : "Preview" }}
+            {{ subs.preview.value ? t.editor.refresh : t.editor.preview }}
           </button>
       </PcPanelHeader>
       <PcPanelBody>
@@ -519,10 +498,7 @@ function setEditorTab(id: string): void {
         {{ subs.previewError.value }}
       </p>
       <p v-else-if="draftError" class="editor-side-note">{{ draftError }}</p>
-      <p v-else class="editor-side-note">
-        Nothing run yet. Preview walks the chain over this draft without saving it, so the
-        operations can be checked before anyone else sees them.
-      </p>
+      <p v-else class="editor-side-note">{{ t.editor.nothingRun }}</p>
       </PcPanelBody>
     </PcPanel>
     </div>
@@ -533,9 +509,9 @@ function setEditorTab(id: string): void {
          silently did nothing at all. -->
     <LtConfirmDialog
       :open="discarding"
-      title="Leave without saving? The changes you made to this record are not stored yet and will be lost."
-      verb="Discard changes"
-      :names="[draft.displayName || draft.name || (editingId ?? 'this record')]"
+      :title="t.editor.leaveConfirm"
+      :verb="t.editor.discardVerb"
+      :names="[draft.displayName || draft.name || (editingId ?? t.editor.thisRecord)]"
       @confirm="cancelEdit()"
       @cancel="discarding = false"
     />

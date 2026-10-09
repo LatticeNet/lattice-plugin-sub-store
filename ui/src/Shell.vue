@@ -14,6 +14,7 @@ import {
 
 import { useHandshakeTimeout } from "./handshakeTimeout";
 import { useHost } from "./host";
+import { setLocale, t } from "./i18n";
 import CommandPalette from "./components/CommandPalette.vue";
 import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
@@ -73,13 +74,13 @@ interface Layer {
   props?: Record<string, unknown>;
 }
 
-const tabs: Layer[] = [
-  { id: "overview", label: "Overview", screen: OverviewScreen },
-  { id: "records", label: "Records", screen: SubscriptionsScreen },
+const tabs = computed<Layer[]>(() => [
+  { id: "overview", label: t.layers.overview, screen: OverviewScreen },
+  { id: "records", label: t.layers.records, screen: SubscriptionsScreen },
   // The record list from the client's side: every link the console serves.
-  { id: "shares", label: "Shares", screen: SharesScreen },
-  { id: "settings", label: "Settings", screen: SettingsScreen },
-];
+  { id: "shares", label: t.layers.shares, screen: SharesScreen },
+  { id: "settings", label: t.layers.settings, screen: SettingsScreen },
+]);
 const TAB_IDS = new Set<string>(VIEW_IDS);
 
 /**
@@ -99,6 +100,13 @@ const recordId = ref("");
  * lists the record.
  */
 const recordFrom = ref<string>("");
+
+/**
+ * The page speaks the console's language: the handshake's locale, matched to
+ * English, simplified Chinese or Russian, and set on <html lang>. Before the
+ * handshake, and for any other language, it reads English.
+ */
+watch(() => host.init.value?.locale, (locale) => setLocale(locale), { immediate: true });
 
 /** The toolbar state the visible layer filters on, and what it reports back. */
 const chrome = createLensChrome();
@@ -212,7 +220,7 @@ const current = computed<{ key: string; screen: Component; props: Record<string,
       props: { id: recordId.value, from: recordFrom.value, onBack: backFromRecord, onEdit: editRecord, onDeleted: deletedFromPage },
     };
   }
-  const tab = tabs.find((entry) => entry.id === activeTab.value) ?? tabs[0]!;
+  const tab = tabs.value.find((entry) => entry.id === activeTab.value) ?? tabs.value[0]!;
   return { key: tab.id, screen: tab.screen, props: tab.props ?? {} };
 });
 
@@ -280,18 +288,18 @@ watch([() => catalogue.items.value, ready], () => { if (ready.value) stamp(); },
 watch(() => shareStore.shares.value, (value) => { if (value) stamp(); });
 
 const proof = computed(() => {
-  if (catalogue.state.value === "error") return ["the record catalogue could not be read"];
-  if (!ready.value) return ["waiting for the record catalogue"];
-  const parts = [observed.age.value ? `observed ${observed.age.value} ago` : "reading", `${records.value.length} records`];
+  if (catalogue.state.value === "error") return [t.shell.proofCatalogueFailed];
+  if (!ready.value) return [t.shell.proofWaiting];
+  const parts = [observed.age.value ? t.shell.proofObserved(observed.age.value) : t.shell.proofReading, t.nouns.records(records.value.length)];
   const shares = shareFacts.value;
-  if (shares) parts.push(`${shares.live} share${shares.live === 1 ? "" : "s"} live`);
-  else if (shareStore.error.value) parts.push("share list unread");
+  if (shares) parts.push(t.shell.proofLive(shares.live));
+  else if (shareStore.error.value) parts.push(t.shell.proofSharesUnread);
   return parts;
 });
 /** Warning ink only when the store has records and none of them is live. */
 const publishedLabel = computed(() => {
   if (!ready.value || publishedRecords.value === null) return "";
-  return `${publishedRecords.value} published`;
+  return t.shell.published(publishedRecords.value);
 });
 const publishedWarn = computed(() => publishedRecords.value === 0 && records.value.length > 0);
 
@@ -390,7 +398,6 @@ const head = computed(() =>
 /** Why each create command is blocked, for the add menu and the palette. */
 const blocks = computed(() => createBlocks(catalogueView.value));
 const shareOrigin = computed(() => hostOriginFromHash(typeof window === "undefined" ? "" : window.location.hash));
-const NO_ORIGIN = "This frame cannot ask the console to navigate; open Platform → Publishing yourself.";
 
 function openPalette(): void {
   paletteOpen.value = true;
@@ -515,7 +522,7 @@ function openShares(): void {
     <PcPageHeader
       class="ss-header"
       title="Sub-Store"
-      description="Build subscriptions from sources, render them for each client, and publish them from Lattice itself."
+      :description="t.shell.description"
     >
       <template #icon><Store :size="19" aria-hidden="true" /></template>
       <template #actions>
@@ -525,7 +532,7 @@ function openShares(): void {
         <div class="ss-head-tools">
           <PcIconButton
             class="tab-search"
-            label="Search records and actions (Cmd+K)"
+            :label="t.shell.search"
             bordered
             :disabled="standalone"
             @click="openPalette()"
@@ -537,11 +544,11 @@ function openShares(): void {
             class="header-refresh"
             :busy="refreshing"
             :disabled="!host.init.value"
-            title="Read the record catalogue and the share list again"
+            :title="t.shell.refreshTitle"
             @click="refresh()"
           >
             <template #icon><RefreshCw :size="15" aria-hidden="true" /></template>
-            Refresh
+            {{ t.shell.refresh }}
           </PcButton>
         </div>
         <!-- The layer's one primary action, after Refresh, where vpn-core puts
@@ -559,8 +566,8 @@ function openShares(): void {
             :disabled="head.menuDisabled"
             :aria-expanded="addMenuOpen"
             aria-haspopup="menu"
-            aria-label="More things to create"
-            :title="head.menuDisabled ? head.title : 'More things to create'"
+            :aria-label="t.shell.moreCreate"
+            :title="head.menuDisabled ? head.title : t.shell.moreCreate"
             @click="toggleAddMenu()"
           >
             <ChevronDown :size="14" aria-hidden="true" />
@@ -575,11 +582,11 @@ function openShares(): void {
           class="ss-head-primary"
           variant="primary"
           :disabled="!shareOrigin"
-          :title="shareOrigin ? 'Shares are created in the console under Platform → Publishing.' : NO_ORIGIN"
+          :title="shareOrigin ? t.shell.sharesInConsole : t.shell.noOrigin"
           @click="openShares()"
         >
           <template #icon><SquareArrowOutUpRight :size="15" aria-hidden="true" /></template>
-          Open in Publishing
+          {{ t.records.openInPublishing }}
         </PcButton>
       </template>
       <template #proof>
@@ -592,7 +599,7 @@ function openShares(): void {
     <StandaloneNotice v-if="standalone" :detail="host.bootError.value" />
 
     <template v-else>
-      <PcNotice v-if="host.bootError.value" tone="danger" title="The console refused the handshake">
+      <PcNotice v-if="host.bootError.value" tone="danger" :title="t.shell.handshakeRefused">
         {{ host.bootError.value }}
       </PcNotice>
 
@@ -600,7 +607,7 @@ function openShares(): void {
            it rather than stacking a second row above. The chassis layer row
            keeps the selected layer in view, again when a count lands, and
            answers Home and End. -->
-      <PcLensTabs v-if="!recordId" v-model="activeTab" variant="layer" label="Sub-Store layers">
+      <PcLensTabs v-if="!recordId" v-model="activeTab" variant="layer" :label="t.shell.layersLabel">
         <PcLensTab
           v-for="tab in tabs"
           :key="tab.id"
@@ -633,7 +640,7 @@ function openShares(): void {
         >
           {{ flash.text }}
           <template v-if="flash.shares.length && shareOrigin" #actions>
-            <PcButton compact @click="openShares()">Open in Publishing</PcButton>
+            <PcButton compact @click="openShares()">{{ t.records.openInPublishing }}</PcButton>
           </template>
         </PcNotice>
         <KeepAlive>
@@ -664,21 +671,21 @@ function openShares(): void {
             type="button"
             role="menuitem"
             :disabled="!!blocks['new-collection']"
-            :title="blocks['new-collection'] || 'Merge several sources and process the result as one'"
+            :title="blocks['new-collection'] || t.shell.newCombinationTitle"
             @click="runCommand('new-collection')"
           >
             <Layers :size="14" aria-hidden="true" />
-            New combination
+            {{ t.records.newCombination }}
           </button>
           <button
             type="button"
             role="menuitem"
             :disabled="!!blocks['new-file']"
-            :title="blocks['new-file'] || 'A client file rendered from a source or combination'"
+            :title="blocks['new-file'] || t.shell.newFileTitle"
             @click="runCommand('new-file')"
           >
             <FileCode :size="14" aria-hidden="true" />
-            New file
+            {{ t.shell.newFile }}
           </button>
           <p v-if="blocks['new-collection']" class="rec-menu-note">{{ blocks['new-collection'] }}</p>
         </div>

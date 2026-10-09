@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 
 import { KIND_SUB, type SubscriptionListItem } from "../client";
 import { useHost } from "../host";
+import { t } from "../i18n";
 import { actionCapabilities, deletePrompt, ownLiveShares, rowMenuFor, type ActionId } from "../recordActions";
 import { useOverlayRegistration } from "../useOverlayRegistration";
 import type { Pipeline } from "../usePipeline";
@@ -154,7 +155,7 @@ async function confirmDelete(): Promise<void> {
   <LtConfirmDialog
     :open="deleting"
     :title="prompt.title"
-    verb="Delete"
+    :verb="t.common.delete"
     :names="prompt.names"
     :consequences="prompt.consequences"
     :served="prompt.served"
