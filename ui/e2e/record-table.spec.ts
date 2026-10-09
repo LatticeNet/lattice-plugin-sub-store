@@ -58,10 +58,12 @@ async function seriousViolations(page: Page, within?: string): Promise<string[]>
 const widerThanBox = (locator: Locator) => locator.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
 
 /**
- * Every shown element `selector` matches whose words do not fit: wider than
- * its box (an ellipsis, a clip, a scroller or a spill), or ending past the
- * frame's right edge. A select is held to its widest option, which the
- * closed control shows once it is chosen.
+ * Every shown element `selector` matches whose words do not fit: cut by its
+ * own box (an ellipsis, a clip or a scroller), running past its border where
+ * it lets words overflow (into its padding is fine: a header's last letters
+ * may sit there in a wider system face), or ending past the frame's right
+ * edge. A select is held to its widest option, which the closed control
+ * shows once it is chosen.
  */
 function cutLabels(page: Page, selector: string): Promise<string[]> {
   return page.locator(selector).evaluateAll((els) => {
@@ -81,8 +83,13 @@ function cutLabels(page: Page, selector: string): Promise<string[]> {
           const width = ctx.measureText(option.text).width;
           if (width > room + 1) out.push(`${option.text}: ${Math.round(width - room)}px wider than its select`);
         }
-      } else if (el.scrollWidth > el.clientWidth + 1) {
-        out.push(`${words}: ${el.scrollWidth - el.clientWidth}px over its box`);
+      } else if (getComputedStyle(el).overflowX !== "visible") {
+        if (el.scrollWidth > el.clientWidth + 1) out.push(`${words}: ${el.scrollWidth - el.clientWidth}px over its box`);
+      } else {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const drawn = range.getBoundingClientRect();
+        if (drawn.right > box.right + 1) out.push(`${words}: runs ${Math.round(drawn.right - box.right)}px past its edge`);
       }
     }
     return out;

@@ -502,10 +502,11 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .rec-tools > .toolbar-sort { flex-direction: column; align-items: stretch; gap: 2px; }
   .rec-tools > .toolbar-sort .pc-select { width: 100%; }
   .rec-tools > .pc-count { justify-self: start; align-self: center; }
-  /* The layer tabs share the row with half the chassis's segment padding,
-     so the four Russian labels fit at 375 rather than scroll the last tab
-     out of sight. */
-  .pc-lens-tabs[data-variant="layer"] > .pc-lens-tab { flex: 1 0 auto; padding-inline: var(--space-1); }
+  /* The layer tabs share the row with half the chassis's segment padding and
+     a tighter gap before each count, so the four Russian labels fit at 375,
+     with room for a wider system face, rather than scroll the last tab out
+     of sight. */
+  .pc-lens-tabs[data-variant="layer"] > .pc-lens-tab { flex: 1 0 auto; gap: var(--space-1); padding-inline: var(--space-1); }
 }
 
 @media (max-width: 640px) {
