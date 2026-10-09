@@ -31,6 +31,8 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 	big := "vless://" + strings.Repeat("a", 200<<10)
 	node := `{"name":"n","port":443,"server":"a.example.com","type":"vless","uuid":"00000000-0000-4000-8000-000000000000"}`
 	socks := `{"name":"s 1","port":1080,"server":"a.example.com","supported":{"URI":false},"type":"socks5","udp":true}`
+	// N33: a certificate without a PEM header fails the whole document.
+	notPEM := `{"name":"a","type":"trojan","server":"a.example.com","port":443,"password":"p","ca-str":"MIIB"}`
 	lines := []string{
 		`{"id":1,"op":"version"}`,
 		`{"id":2,"op":"parse","input":"vless://00000000-0000-4000-8000-000000000000@a.example.com:443#n"}`,
@@ -44,6 +46,8 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		`{"id":9,"op":"parse","input":42}`,
 		`{"id":"uri","op":"produce","target":"uri","nodes":[` + socks + `],"options":{"include-unsupported-proxy":true}}`,
 		`{"id":"bad node","op":"produce","target":"v2ray","nodes":[42]}`,
+		`{"id":"not pem","op":"parse","input":` + mustJSON(t, notPEM) + `}`,
+		`{"id":"empty","op":"parse","input":""}`,
 		// The last request has no trailing newline; it is still answered.
 		`{"id":10,"op":"version"}`,
 	}
@@ -61,7 +65,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 	// stdout holds replies and nothing else: every line is one JSON object,
 	// in request order, and the blank request line has no reply.
 	outLines := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
-	wantIDs := []string{`1`, `2`, `"three"`, `4`, `5`, `6`, `null`, `8`, `9`, `"uri"`, `"bad node"`, `10`}
+	wantIDs := []string{`1`, `2`, `"three"`, `4`, `5`, `6`, `null`, `8`, `9`, `"uri"`, `"bad node"`, `"not pem"`, `"empty"`, `10`}
 	if len(outLines) != len(wantIDs) {
 		t.Fatalf("got %d reply lines for %d non-blank requests:\n%s", len(outLines), len(wantIDs), clip(stdout.String()))
 	}
@@ -77,7 +81,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		}
 	}
 
-	for _, i := range []int{0, 11} {
+	for _, i := range []int{0, 13} {
 		v := replies[i]
 		if !v.OK || v.Implementation != "lattice-go" || v.Commit == "" || v.Version == "" {
 			t.Fatalf("version reply %d = %+v, want ok with implementation lattice-go, a commit and a version", i+1, v)
@@ -88,14 +92,13 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		reply int
 		says  []string
 	}{
-		{1, []string{"parse", "not supported"}},
 		{3, []string{`"stash"`, "no native producer"}},
 		{4, []string{"nodes"}},
 		{5, []string{`unknown op "frobnicate"`}},
 		{6, []string{"bad request"}},
-		{7, []string{"parse", "not supported"}},
 		{8, []string{"bad request"}},
 		{10, []string{"node 0"}},
+		{11, []string{"parse", "PEM"}},
 	}
 	for _, r := range refusals {
 		v := replies[r.reply]
@@ -106,6 +109,20 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 			if !strings.Contains(v.Error, s) {
 				t.Fatalf("reply %d error %q does not say %q", r.reply+1, v.Error, s)
 			}
+		}
+	}
+
+	// parse answers from the native parser, nodes in their sorted-key JSON.
+	vless := `{"_h2":false,"name":"n","network":"tcp","packet-encoding":"xudp","port":443,"server":"a.example.com","skip-cert-verify":false,"type":"vless","udp":true,"uuid":"00000000-0000-4000-8000-000000000000"}`
+	if v := replies[1]; !v.OK || v.Nodes == nil || len(*v.Nodes) != 1 || string((*v.Nodes)[0]) != vless || v.Error != "" {
+		t.Fatalf("parse reply = %s, want ok with the one vless node %s", clip(outLines[1]), vless)
+	}
+	// A parse with no node still answers the empty list, which is what the
+	// golden of an empty document holds; a missing nodes key would not equal
+	// it. The 200 KiB line is over the line bound and yields no node.
+	for _, i := range []int{7, 12} {
+		if v := replies[i]; !v.OK || v.Nodes == nil || len(*v.Nodes) != 0 || !strings.Contains(outLines[i], `"nodes":[]`) {
+			t.Fatalf("parse reply %d = %s, want ok with \"nodes\":[]", i+1, clip(outLines[i]))
 		}
 	}
 
