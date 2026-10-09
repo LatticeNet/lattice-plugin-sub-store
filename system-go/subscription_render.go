@@ -789,7 +789,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			VPNIdentity string `json:"vpn_identity,omitempty"`
 		}
 		if len(call.Payload) > 0 {
-			if len(call.Payload) > model.MaxSubscriptionResponseBytes {
+			if len(call.Payload) > model.MaxSubscriptionRequestBytes {
 				return latticeplugin.ErrorResponse(errors.New("preview payload exceeds bounds"))
 			}
 			if err := decodeStrictVPNCoreGraphJSON(call.Payload, &req); err != nil {
