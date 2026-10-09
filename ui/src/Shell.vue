@@ -19,7 +19,7 @@ import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
 import { actionCapabilities, type ActionCapabilities, type ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
-import { type SubscriptionListItem } from "./client";
+import { STORE_VERSION_LEGACY, type SubscriptionListItem } from "./client";
 import { createBlocks, headerCreate, type CatalogueView } from "./createGate";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
 import OverviewScreen from "./screens/OverviewScreen.vue";
@@ -273,7 +273,10 @@ const observed = useObservedAge(() => observedAt.value);
 function stamp(): void {
   observedAt.value = Date.now();
 }
-watch(() => catalogue.items.value, () => { if (ready.value) stamp(); }, { flush: "sync" });
+// The list lands before its state turns ready, so both are watched: a session
+// that cannot read the share list has only this stamp, and said "reading"
+// for as long as the page was open.
+watch([() => catalogue.items.value, ready], () => { if (ready.value) stamp(); }, { flush: "sync" });
 watch(() => shareStore.shares.value, (value) => { if (value) stamp(); });
 
 const proof = computed(() => {
@@ -366,6 +369,7 @@ const catalogueView = computed<CatalogueView>(() => ({
   state: catalogue.state.value,
   failed: catalogueFailed.value,
   records: catalogue.items.value,
+  legacy: catalogue.storeVersion.value === STORE_VERSION_LEGACY,
 }));
 /**
  * The page's one primary action per layer, in the header after Refresh, as

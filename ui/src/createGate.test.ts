@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS } from "./client";
 import {
+  LEGACY_REASON,
   LIMIT_REASON,
   NO_SOURCE_REASON,
   READING_REASON,
@@ -55,6 +56,14 @@ describe("whether the store can take a new record", () => {
     const full = Array.from({ length: MAX_SUBSCRIPTION_RECORDS }, () => ({ kind: KIND_SUB }));
     expect(storeBlock(catalogue("ready", full))).toBe(LIMIT_REASON);
     expect(storeBlock(catalogue("ready", full.slice(1)))).toBe("");
+  });
+
+  it("cannot on a legacy store, which refuses every save until it is migrated", () => {
+    const legacy = { ...catalogue("ready"), legacy: true };
+    expect(storeBlock(legacy)).toBe(LEGACY_REASON);
+    expect(createBlocks(legacy)).toEqual({ "new-subscription": LEGACY_REASON, "new-collection": LEGACY_REASON, "new-file": LEGACY_REASON });
+    // Unread still comes first: whether the store is legacy is not known yet.
+    expect(storeBlock({ ...catalogue("error"), legacy: true })).toBe(UNREAD_REASON);
   });
 
   it("gives a combination its own reason when there is nothing to combine, after unread and before the limit", () => {

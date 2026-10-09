@@ -446,8 +446,8 @@ async function readCatalogueOnce(host: HostContext, catalogue: Catalogue): Promi
  *  shell's Refresh reads them again through `reload`. */
 export function recordCatalogue(host: HostContext) {
   const catalogue = catalogueFor(host);
-  const { state, items, loadError } = catalogue;
-  return { state, items, loadError, reload: () => readCatalogue(host, catalogue) };
+  const { state, items, loadError, storeVersion } = catalogue;
+  return { state, items, loadError, storeVersion, reload: () => readCatalogue(host, catalogue) };
 }
 
 export function useSubscriptions(host: HostContext) {
@@ -729,8 +729,9 @@ export function useSubscriptions(host: HostContext) {
       if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
         const diagnostics = regexDiagnostics(draft.process);
         saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics };
-        actionError.value = diagnostics.length
-          ? "Not saved: a pattern in the chain uses lookaround or a backreference, which the native engine cannot run. The step is named below."
+        const steps = [...new Set(diagnostics.map((entry) => entry.step))];
+        actionError.value = steps.length
+          ? `Not saved: ${steps.length === 1 ? `step ${steps[0]} uses` : `steps ${steps.slice(0, -1).join(", ")} and ${steps.at(-1)} use`} lookaround or a backreference, which the native engine cannot run.`
           : `Not saved: ${safeErrorMessage(cause, "a pattern in the chain cannot run natively")}`;
         return false;
       }

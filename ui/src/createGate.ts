@@ -28,6 +28,11 @@ export interface CatalogueView {
   failed: boolean;
   /** The records as read. Only looked at once the state is "ready". */
   records: readonly { kind?: string }[];
+  /**
+   * The store is the legacy single document (list said store_version 1), so
+   * every save is refused with store_migration_required until it is migrated.
+   */
+  legacy?: boolean;
 }
 
 export const UNREAD_REASON =
@@ -36,11 +41,14 @@ export const READING_REASON =
   "The record catalogue is still being read, so the record budget and the names in use are not known yet";
 export const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
 export const NO_SOURCE_REASON = "Create a source first. There is nothing to combine";
+export const LEGACY_REASON =
+  "This store still keeps every record in one document and refuses new records until it is migrated. Migrate it from the Records table first";
 
 /** Why the store cannot take any new record right now; empty when it can. */
 export function storeBlock(catalogue: CatalogueView, limit = MAX_SUBSCRIPTION_RECORDS): string {
   if (catalogue.state === "error") return UNREAD_REASON;
   if (catalogue.state !== "ready") return READING_REASON;
+  if (catalogue.legacy) return LEGACY_REASON;
   return catalogue.records.length >= limit ? LIMIT_REASON : "";
 }
 

@@ -368,7 +368,8 @@ describe("the record catalogue", () => {
     await subs.load();
     const catalogue = recordCatalogue(host);
     expect(catalogue.items.value).toEqual(subs.items.value);
-    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError", "reload"]);
+    // The store version rides along: the header's create reads it to refuse on a legacy store.
+    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError", "storeVersion", "reload"]);
   });
 });
 
