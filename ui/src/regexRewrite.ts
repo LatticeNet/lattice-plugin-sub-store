@@ -74,13 +74,14 @@ export function rewriteNegativeLookahead(pattern: string): string {
   const match = NEGATIVE_LOOKAHEAD.exec(pattern.trim());
   if (!match) return "";
   let inner = match[1]!;
-  for (const open of ["(?:", "("]) {
-    if (inner.startsWith(open) && inner.endsWith(")") && balanced(inner.slice(open.length, -1))) {
-      inner = inner.slice(open.length, -1);
-      break;
-    }
-  }
-  if (!inner || !balanced(inner) || regexIncompatible(inner)) return "";
+  // The inner pattern itself must run natively, so a lookaround inside the
+  // lookahead is refused before any group around it is unwrapped.
+  if (regexIncompatible(inner)) return "";
+  // Unwrap one capturing or non-capturing group around the whole alternation;
+  // any other `(?` group is not a wrapper.
+  const open = inner.startsWith("(?:") ? "(?:" : inner.startsWith("(") && inner[1] !== "?" ? "(" : "";
+  if (open && inner.endsWith(")") && balanced(inner.slice(open.length, -1))) inner = inner.slice(open.length, -1);
+  if (!inner || !balanced(inner)) return "";
   return inner;
 }
 
