@@ -29,6 +29,10 @@ type framedRuntime struct {
 	// largestHostResponse is the biggest host_response frame sent, so a test
 	// can show it pushed a frame past the size that broke production.
 	largestHostResponse int
+	// stdoutBytes is what the current invocation wrote, counted as core
+	// counts it against the method's signed stdout_bytes: every frame, host
+	// calls included, plus its newline.
+	stdoutBytes int
 }
 
 type framedWire struct {
@@ -69,6 +73,7 @@ func startFramedRuntime(t *testing.T, kv *kvHostCaller) *framedRuntime {
 func (f *framedRuntime) read() (framedWire, error) {
 	type scanned struct {
 		frame framedWire
+		size  int
 		err   error
 	}
 	result := make(chan scanned, 1)
@@ -79,10 +84,11 @@ func (f *framedRuntime) read() (framedWire, error) {
 		}
 		var frame framedWire
 		err := json.Unmarshal(f.scanner.Bytes(), &frame)
-		result <- scanned{frame: frame, err: err}
+		result <- scanned{frame: frame, size: len(f.scanner.Bytes()) + 1, err: err}
 	}()
 	select {
 	case got := <-result:
+		f.stdoutBytes += got.size
 		return got.frame, got.err
 	case err := <-f.done:
 		return framedWire{}, fmt.Errorf("runtime exited: %v", err)
@@ -98,11 +104,16 @@ func (f *framedRuntime) invoke(invocation, method string, payload any) (latticep
 	// The pipe blocks until the runtime reads, and a runtime that refuses the
 	// frame stops reading: the write runs beside the frame loop.
 	go func() { _ = json.NewEncoder(f.in).Encode(frame) }()
+	f.stdoutBytes = 0
+	limit := ackedRuntimeBudgets()[pluginID+"/subscription/"+method].StdoutBytes
 	var response latticeplugin.Response
 	for {
 		wire, err := f.read()
 		if err != nil {
 			return latticeplugin.Response{}, err
+		}
+		if limit > 0 && f.stdoutBytes > limit {
+			return latticeplugin.Response{}, fmt.Errorf("plugin exceeded stdout limit %d", limit)
 		}
 		switch wire.Kind {
 		case "host_call":
@@ -175,10 +186,22 @@ func TestLegacyDocumentAtOverflowSizeMigratesThroughTheFramedTransport(t *testin
 	if err := json.Unmarshal(response.Result, &reply); err != nil {
 		t.Fatal(err)
 	}
-	if !reply.Done || !reply.Verified || reply.Migrated != len(records) || reply.Remaining != 0 {
-		t.Fatalf("migrate_store = %+v, want all %d records migrated and verified in one chunk", reply, len(records))
+	if reply.Verified || reply.Migrated != len(records) || reply.Remaining != 0 {
+		t.Fatalf("migrate_store = %+v, want all %d records migrated in one chunk", reply, len(records))
 	}
-	got, err := f.invoke("2", "get", map[string]any{"subscription_id": "big-40"})
+	// The verify rewrites the legacy document, so it has a call of its own.
+	response, err = f.invoke("2", "migrate_store", map[string]any{})
+	if err != nil || !response.OK {
+		t.Fatalf("the verify through the framed transport: err=%v response=%+v", err, response)
+	}
+	reply = migrateStoreReply{}
+	if err := json.Unmarshal(response.Result, &reply); err != nil {
+		t.Fatal(err)
+	}
+	if !reply.Done || !reply.Verified || reply.Migrated != 0 {
+		t.Fatalf("the verify = %+v", reply)
+	}
+	got, err := f.invoke("3", "get", map[string]any{"subscription_id": "big-40"})
 	if err != nil || !got.OK {
 		t.Fatalf("get after migration: err=%v response=%+v", err, got)
 	}

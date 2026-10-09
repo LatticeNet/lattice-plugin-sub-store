@@ -29,6 +29,24 @@ func legacyFixture(n int) []subscriptionRecord {
 	return records
 }
 
+// migrateStoreUntilDone calls migrate_store until the store is split and its
+// legacy programs are deleted, as the console does, and returns the last
+// reply with every call's regex_incompatible ids.
+func migrateStoreUntilDone(t *testing.T, rt *runtime) migrateStoreReply {
+	t.Helper()
+	var flagged []string
+	for call := 0; call < 32; call++ {
+		reply := migrateStoreCall(t, rt, map[string]any{})
+		flagged = append(flagged, reply.RegexIncompatible...)
+		if reply.Done {
+			reply.RegexIncompatible = flagged
+			return reply
+		}
+	}
+	t.Fatal("migrate_store did not finish in 32 calls")
+	return migrateStoreReply{}
+}
+
 func migrateStoreCall(t *testing.T, rt *runtime, payload map[string]any) migrateStoreReply {
 	t.Helper()
 	var reply migrateStoreReply
@@ -47,23 +65,34 @@ func TestMigrateStoreOf300RecordsInChunks(t *testing.T) {
 	legacy := seedLegacyStore(t, host.kvHostCaller, records)
 	budget := ackedRuntimeBudgets()[pluginID+"/subscription/migrate_store"].HostCalls
 
+	stdoutBudget := ackedRuntimeBudgets()[pluginID+"/subscription/migrate_store"].StdoutBytes
+
 	var reply migrateStoreReply
 	for call := 1; call <= 5; call++ {
-		host.total = 0
+		host.total, host.frames = 0, 0
 		reply = migrateStoreCall(t, rt, map[string]any{})
 		if host.total > budget {
 			t.Fatalf("call %d made %d host calls, over migrate_store's %d", call, host.total, budget)
+		}
+		if out := host.frames + replyFrameBytes(t, reply); out > stdoutBudget {
+			t.Fatalf("call %d wrote %d bytes of frames, over migrate_store's %d", call, out, stdoutBudget)
 		}
 		wantRemaining := max(300-64*call, 0)
 		if reply.Remaining != wantRemaining || reply.Migrated != min(64, 300-64*(call-1)) {
 			t.Fatalf("call %d = %+v, want %d remaining", call, reply, wantRemaining)
 		}
-		if call < 5 && (reply.Verified || reply.StoreVersion != storeVersionLegacy) {
-			t.Fatalf("call %d opened the store before the last chunk: %+v", call, reply)
+		if reply.Verified || reply.StoreVersion != storeVersionLegacy {
+			t.Fatalf("call %d opened the store in a call that wrote records: %+v", call, reply)
 		}
 	}
-	if !reply.Verified || reply.StoreVersion != storeVersionSplit {
-		t.Fatalf("the fifth chunk did not verify: %+v", reply)
+	// The verify has a call of its own, after the last chunk.
+	host.total, host.frames = 0, 0
+	reply = migrateStoreCall(t, rt, map[string]any{})
+	if out := host.frames + replyFrameBytes(t, reply); out > stdoutBudget || host.total > budget {
+		t.Fatalf("the verify call wrote %d bytes in %d host calls", out, host.total)
+	}
+	if reply.Migrated != 0 || !reply.Verified || reply.StoreVersion != storeVersionSplit {
+		t.Fatalf("the sixth call did not verify: %+v", reply)
 	}
 	scripts := 0
 	for _, rec := range records {
@@ -230,11 +259,12 @@ func TestMigrateStoreFlagsLookaheadRecords(t *testing.T) {
 		{ID: "scripted", Name: "scripted", Content: "x", Process: step(`{"type":"Script Operator","args":{"mode":"script","content":"$server.name = 'x'"}}`)},
 	})
 	reply := migrateStoreCall(t, rt, map[string]any{})
-	if !reply.Verified {
-		t.Fatalf("migration did not verify: %+v", reply)
-	}
 	if strings.Join(reply.RegexIncompatible, ",") != "lookahead,rename-backref" {
 		t.Fatalf("flagged %v, want lookahead,rename-backref", reply.RegexIncompatible)
+	}
+	// The chunk wrote records, so the verify is the next call's.
+	if verify := migrateStoreCall(t, rt, map[string]any{}); !verify.Verified {
+		t.Fatalf("migration did not verify: %+v", verify)
 	}
 	want := map[string]indexFlags{
 		"lookahead":          {RegexIncompatible: true},
@@ -268,7 +298,7 @@ func TestAPurgedRecordDoesNotComeBackFromTheMigratedLegacyDocument(t *testing.T)
 	host := newKVHostCaller()
 	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
 	seedLegacyStore(t, host, []subscriptionRecord{{ID: "gone", Name: "gone", Content: "x"}, {ID: "kept", Name: "kept", Content: "y"}})
-	if reply := migrateStoreCall(t, rt, map[string]any{}); !reply.Done {
+	if reply := migrateStoreUntilDone(t, rt); !reply.Verified {
 		t.Fatalf("migration = %+v", reply)
 	}
 	for _, method := range []string{"delete", "purge"} {
@@ -373,6 +403,11 @@ func TestMigrateStoreVerifyCatchesALostEntryAndRecovers(t *testing.T) {
 	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
 	seedLegacyStore(t, host.kvHostCaller, legacyFixture(10))
 	host.lose = true
+	// The chunk writes the ten records and an index that loses an entry; the
+	// verify is the next call's.
+	if first := migrateStoreCall(t, rt, map[string]any{}); first.Migrated != 10 || first.Verified {
+		t.Fatalf("the chunk = %+v, want ten records written and no verify", first)
+	}
 	if res := callSubscription(t, rt, "migrate_store", map[string]any{}); res.OK || !strings.Contains(res.Error, "migrate_store verify") {
 		t.Fatalf("a verify over a lossy index = %+v, want it refused", res)
 	}
@@ -383,12 +418,17 @@ func TestMigrateStoreVerifyCatchesALostEntryAndRecovers(t *testing.T) {
 		t.Fatal("a failed verify opened the store for writes")
 	}
 	puts := host.puts
-	reply := migrateStoreCall(t, rt, map[string]any{})
-	if !reply.Verified || reply.Migrated != 1 {
-		t.Fatalf("the retry = %+v, want the lost record written again and verified", reply)
+	retry := migrateStoreCall(t, rt, map[string]any{})
+	if retry.Verified || retry.Migrated != 1 {
+		t.Fatalf("the retry = %+v, want the lost record written again", retry)
 	}
-	// The lost record, the index, the legacy mark and the verified index.
+	reply := migrateStoreCall(t, rt, map[string]any{})
+	if !reply.Verified || reply.Migrated != 0 {
+		t.Fatalf("the verify after the retry = %+v", reply)
+	}
+	// The lost record and the index, then the legacy mark and the verified
+	// index.
 	if host.puts-puts != 4 {
-		t.Fatalf("the retry wrote %d keys, want 4", host.puts-puts)
+		t.Fatalf("the retry and the verify wrote %d keys, want 4", host.puts-puts)
 	}
 }

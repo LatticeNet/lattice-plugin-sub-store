@@ -297,10 +297,15 @@ type budgetCountingHost struct {
 	limit       int
 	exportLinks []string
 	remoteBody  string
+	// frames is the bytes of the host_call frames written so far, which core
+	// counts against the method's signed stdout_bytes with the reply.
+	frames int
 }
 
 func (c *budgetCountingHost) call(method string, params any) (json.RawMessage, error) {
 	c.total++
+	encoded, _ := json.Marshal(params)
+	c.frames += len(encoded) + len(method) + hostCallFrameOverhead
 	if c.limit > 0 && c.total > c.limit {
 		return nil, fmt.Errorf("plugin exceeded host-call limit %d", c.limit)
 	}
