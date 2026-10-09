@@ -5,49 +5,37 @@ const SRC = new URL(".", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, SRC), "utf8");
 
 /**
- * Files and Shares are L1 collections on the same table chassis as Sources:
- * columns that mean something for the kind, the first one sticky, one
- * affordance per row (design 22, section 4).
+ * Records is one L1 collection on the table chassis for every kind (design 28,
+ * S1): the columns every kind shares, one affordance per row. What each cell
+ * says is tested in recordTable.test.ts and the states in
+ * e2e/record-table.spec.ts; this is the wiring those rules ride on.
  */
-describe("the files layer is a table of what each file renders and whether it is served", () => {
+describe("the records layer is one table of every kind", () => {
   const styles = read("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
-  const screen = read("screens/FilesScreen.vue");
+  const screen = read("screens/SubscriptionsScreen.vue");
 
-  it("keeps its columns at every width", () => {
-    expect(screen).toMatch(/<PcTable v-else :stacked="false"/);
-    for (const column of ["Name", "Client", "Renders", "Published", "Type"]) {
+  it("has the design's columns, and stacks into rows on a phone instead of scrolling sideways", () => {
+    for (const column of ["Name", "Kind", "Published", "Nodes in", "Nodes out", "Steps", "Expiry and traffic", "Last fetch"]) {
       expect(screen, column).toMatch(new RegExp(`<PcTh[^>]*>${column}</PcTh>`));
     }
-    expect(screen).not.toContain("RecKindTabs");
+    // No `:stacked="false"`: the chassis stacks the rows under 480px.
+    expect(screen).not.toContain(':stacked="false"');
+    expect(screen).toContain(':density="compact ? \'compact\' : \'comfortable\'"');
   });
 
-  it("offers Publish where a file has no share, and filters on it from the address", () => {
+  it("offers Publish where a record has no share, and filters on it from the address", () => {
     expect(screen).toContain('class="row-publish"');
-    // The form opens on the file itself, by id; the console matches ids and names.
-    expect(screen).toContain('@click.stop="openShares(item)"');
-    expect(screen).toContain("postNavigate(window, sharesRoute(item.id), shareOrigin.value);");
+    expect(screen).toContain('@click.stop="openShares(row)"');
+    expect(screen).toContain("sharesRoute(record.id)");
     expect(screen).toContain('v-model="facets.published"');
-    expect(screen).toContain('if (facets.published === "no" && isPublished(file)) return false;');
-  });
-
-  it("reads the client from the name and says why when it cannot", () => {
-    expect(screen).toContain("const client = clientOfFile(item.name);");
-    expect(screen).toContain("does not name a client app");
+    expect(screen).toContain('if (facets.published === "no" && isPublished(item)) return false;');
   });
 
   it("opens the side panel from the row, with the menu the only other control", () => {
-    expect(screen).toContain('@click="openRow(item, $event)"');
+    expect(screen).toContain('@click="openRow(row, $event)"');
     expect(screen.match(/<RecordMenu/g)).toHaveLength(1);
-    // The row menu is the shared one (rowMenuFor), the same list the side
-    // panel and the record page carry; a file simply has nothing to refresh.
-    expect(screen).toContain("return rowMenuFor(item, actionCaps.value);");
+    expect(screen).toContain("return rowMenuFor(row, actionCaps.value);");
     expect(screen).not.toContain('class="rec-open"');
-    expect(screen).not.toContain('class="rec-file-facts"');
-  });
-
-  it("puts the whole name and the id in the title", () => {
-    expect(screen).toContain(':title="nameTitle(item)"');
-    expect(screen).toMatch(/function nameTitle[\s\S]*?item\.display_name \|\| item\.name/);
   });
 
   it("keeps no sideways scroll rule outside a scroller", () => {
@@ -64,20 +52,17 @@ describe("the files layer is a table of what each file renders and whether it is
   });
 
   it("pages by fifty, and selects and deletes only the rows on screen", () => {
-    // The large store's 180 files were one 7,590 px page. The paging and
-    // select-all rules are tested in paging.test.ts; this is the wiring.
-    expect(screen).toContain("const FILES_PAGE = 50;");
-    expect(screen).toMatch(/usePages\(\s*\(\) => files\.value,\s*FILES_PAGE,/);
-    expect(screen).toContain('v-for="item in table.rows"');
-    expect(screen).toMatch(/<PcPagination\s+v-if="table\.pages > 1"/);
-    expect(screen).toContain("table.value.rows.filter((file) => selectedIds.value.has(file.id))");
-    expect(screen).toContain("toggleShown(selectedIds.value, table.value.rows.map((file) => file.id))");
+    // The paging and select-all rules are tested in paging.test.ts.
+    expect(screen).toContain("const PAGE_SIZE = 50;");
+    expect(screen).toMatch(/usePages\(\s*\(\) => sorted\.value,\s*PAGE_SIZE,/);
+    expect(screen).toContain('v-for="(row, index) in table.rows"');
+    expect(screen).toContain("table.value.rows.filter((row) => selectedIds.value.has(row.id))");
+    expect(screen).toContain("toggleShown(selectedIds.value, table.value.rows.map((row) => row.id))");
   });
 
   it("opens one document surface from every entry", () => {
-    expect(screen).toMatch(/if \(id === "output"\) return openFileSheet\(item, event\);/);
+    expect(screen).toMatch(/if \(id === "output"\) return openTargetSheet\(row, event\);/);
     expect(screen).not.toContain("row-popover-document");
-    expect(screen).not.toMatch(/mode: "preview"/);
   });
 });
 

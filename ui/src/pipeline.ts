@@ -28,16 +28,13 @@ import { maskUrlsIn, refreshFailureText } from "./urlMask";
 export type Stage = "source" | "combination" | "file" | "share";
 export const STAGES: readonly Stage[] = ["source", "combination", "file", "share"];
 
-/** The layers of the page, in tab order. The id is what `?view=` carries. */
-export type ViewId = "overview" | "sources" | "combinations" | "files" | "shares" | "settings";
-export const VIEW_IDS: readonly ViewId[] = ["overview", "sources", "combinations", "files", "shares", "settings"];
-
-/** The layer that lists a record of this kind. */
-export function viewOfKind(kind: string | undefined): ViewId {
-  if (kind === KIND_COLLECTION) return "combinations";
-  if (kind === KIND_FILE) return "files";
-  return "sources";
-}
+/**
+ * The layers of the page, in tab order. The id is what `?view=` carries.
+ * Records lists every kind (design 28, S1); the three per-kind layers it
+ * replaced still land through pageState's legacy views.
+ */
+export type ViewId = "overview" | "records" | "shares" | "settings";
+export const VIEW_IDS: readonly ViewId[] = ["overview", "records", "shares", "settings"];
 
 export function stageOfKind(kind: string | undefined): Exclude<Stage, "share"> {
   if (kind === KIND_COLLECTION) return "combination";
@@ -679,12 +676,12 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
         claim: one
           ? `${recordLabel(one)} is not published, so no client can fetch it`
           : `${all ? "No file is" : `${unpublished.length} files are not`} published, so no client can fetch ${all ? "any of them" : "them"}`,
-        // One file: Publish opens the share form on it. Several: the Files
-        // layer narrowed to them, where each row carries its own Publish.
+        // One file: Publish opens the share form on it. Several: the Records
+        // table narrowed to them, where each row carries its own Publish.
         recordId: one?.id,
         action: one
           ? { label: "Publish", publish: one.id }
-          : { label: "Show them", view: "files", facet: { published: "no" } },
+          : { label: "Show them", view: "records", facet: { kind: "file", published: "no" } },
       });
     }
     for (const share of shares) {

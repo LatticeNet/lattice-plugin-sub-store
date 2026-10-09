@@ -21,9 +21,17 @@ function catalogue(state: LoadState, records: readonly { kind?: string }[] = STO
   return { state, failed, records };
 }
 
-function header(tab: ViewId, overrides: Partial<HeaderCreateInput> = {}) {
+/**
+ * A layer as the header reads it: the Overview, or Records with its kind
+ * filter (`records:file`). Records showing every kind is plain `records`.
+ */
+type Layer = ViewId | `records:${"source" | "combination" | "file"}`;
+
+function header(layer: Layer, overrides: Partial<HeaderCreateInput> = {}) {
+  const [tab, kind = ""] = layer.split(":") as [ViewId, string?];
   return headerCreate({
     tab,
+    kind,
     catalogue: catalogue("ready"),
     caps: { ready: true, mutate: true },
     covered: false,
@@ -31,7 +39,7 @@ function header(tab: ViewId, overrides: Partial<HeaderCreateInput> = {}) {
   });
 }
 
-const CREATING: readonly ViewId[] = ["overview", "sources", "combinations", "files"];
+const CREATING: readonly Layer[] = ["overview", "records", "records:source", "records:combination", "records:file"];
 
 describe("whether the store can take a new record", () => {
   it("cannot while the catalogue is unread, failed or still being read", () => {
@@ -66,12 +74,13 @@ describe("whether the store can take a new record", () => {
 });
 
 describe("the header's create action", () => {
-  it("names each layer's own verb, the Overview's as a split button", () => {
+  it("names the verb of the kind on screen, a split button where every kind shows", () => {
     expect(header("overview")).toMatchObject({ command: "new-subscription", label: "New source", menu: true, disabled: false });
-    expect(header("sources")).toMatchObject({ command: "new-subscription", label: "New source", menu: false });
-    expect(header("combinations")).toMatchObject({ command: "new-collection", label: "New combination", menu: false });
-    expect(header("files")).toMatchObject({ command: "new-file", label: "New file", menu: false });
-    expect(header("files")?.title).toBe("A document served as it is, with its proxy list kept in step");
+    expect(header("records")).toMatchObject({ command: "new-subscription", label: "New source", menu: true, disabled: false });
+    expect(header("records:source")).toMatchObject({ command: "new-subscription", label: "New source", menu: false });
+    expect(header("records:combination")).toMatchObject({ command: "new-collection", label: "New combination", menu: false });
+    expect(header("records:file")).toMatchObject({ command: "new-file", label: "New file", menu: false });
+    expect(header("records:file")?.title).toBe("A document served as it is, with its proxy list kept in step");
     expect(header("shares")).toBeNull();
     expect(header("settings")).toBeNull();
   });
@@ -98,17 +107,23 @@ describe("the header's create action", () => {
     }
   });
 
-  it("leaves create to a read and empty layer's empty state", () => {
+  it("leaves create to the empty state of a kind the store holds none of", () => {
     expect(header("overview", { catalogue: catalogue("ready", []) })).toBeNull();
+    expect(header("records", { catalogue: catalogue("ready", []) })).toBeNull();
     const onlyFiles = [{ kind: KIND_FILE }];
-    expect(header("sources", { catalogue: catalogue("ready", onlyFiles) })).toBeNull();
-    expect(header("combinations", { catalogue: catalogue("ready", onlyFiles) })).toBeNull();
-    expect(header("files", { catalogue: catalogue("ready", onlyFiles) })).not.toBeNull();
+    expect(header("records:source", { catalogue: catalogue("ready", onlyFiles) })).toBeNull();
+    expect(header("records:combination", { catalogue: catalogue("ready", onlyFiles) })).toBeNull();
+    expect(header("records:file", { catalogue: catalogue("ready", onlyFiles) })).not.toBeNull();
+    expect(header("records", { catalogue: catalogue("ready", onlyFiles) })).not.toBeNull();
     expect(header("overview", { catalogue: catalogue("ready", onlyFiles) })).not.toBeNull();
-    expect(header("files", { catalogue: catalogue("ready", [{ kind: KIND_SUB }]) })).toBeNull();
+    expect(header("records:file", { catalogue: catalogue("ready", [{ kind: KIND_SUB }]) })).toBeNull();
   });
 
-  it("is disabled at the record limit, and the Overview's chevron still opens to say why", () => {
+  it("reads an unknown kind filter as every kind", () => {
+    expect(header("records", { kind: "module" })).toMatchObject({ command: "new-subscription", menu: true });
+  });
+
+  it("is disabled at the record limit, and the split button's chevron still opens to say why", () => {
     const full = [...STORE, ...Array.from({ length: MAX_SUBSCRIPTION_RECORDS - STORE.length }, () => ({ kind: KIND_FILE }))];
     for (const tab of CREATING) {
       expect(header(tab, { catalogue: catalogue("ready", full) }), tab).toMatchObject({ disabled: true, title: LIMIT_REASON, menuDisabled: false });
@@ -117,6 +132,6 @@ describe("the header's create action", () => {
 
   it("disables New combination when there is no subscription to combine", () => {
     const combosOnly = [{ kind: KIND_COLLECTION }, { kind: KIND_FILE }];
-    expect(header("combinations", { catalogue: catalogue("ready", combosOnly) })).toMatchObject({ disabled: true, title: NO_SOURCE_REASON });
+    expect(header("records:combination", { catalogue: catalogue("ready", combosOnly) })).toMatchObject({ disabled: true, title: NO_SOURCE_REASON });
   });
 });

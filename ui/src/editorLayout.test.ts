@@ -148,7 +148,11 @@ describe("the record editor and its compare panel", () => {
 // screen and the breadcrumb, and then a 1400px single scroll of six fieldsets
 // next to a sticky pane, while its sibling was 356px behind three tabs.
 describe("the two record editors are the same shape", () => {
-  const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+  // The file editor is its state (useFileEditor) and its view (FileEditor.vue).
+  const files = [
+    readFileSync(new URL("./useFileEditor.ts", import.meta.url), "utf8"),
+    readFileSync(new URL("./components/FileEditor.vue", import.meta.url), "utf8"),
+  ].join("\n");
 
   it("splits both editors into the same sections", () => {
     expect(screen).toMatch(
@@ -161,7 +165,7 @@ describe("the two record editors are the same shape", () => {
     expect(files).toMatch(
       /EDITOR_TABS[\s\S]{0,220}id: "display"[\s\S]{0,80}id: "content"[\s\S]{0,80}id: "operations"/,
     );
-    expect(files).toContain('editorTab = ref<EditorTab>("display")');
+    expect(files).toContain('editorTab = ref<FileEditorTab>("display")');
     expect(files).toMatch(/editorTab\.value = "display";/);
     // A script is the whole job. The Operations panel is already hidden for
     // that type, so the tab is too. Config and plain keep the chain.
@@ -176,7 +180,7 @@ describe("the two record editors are the same shape", () => {
     const tabs = readFileSync(new URL("./components/EditorSectionTabs.vue", import.meta.url), "utf8");
     expect(tabs).toContain('class="editor-tab-flag"');
     expect(tabs).toContain("errorTab === tab.id && modelValue !== tab.id");
-    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FilesScreen.vue", files]] as const) {
+    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FileEditor.vue", files]] as const) {
       expect(source, name).toMatch(/const errorTab = computed/);
       expect(source, name).toContain("<EditorSectionTabs");
       expect(source, name).toContain(':error-tab="errorTab"');
@@ -215,7 +219,7 @@ describe("the two record editors are the same shape", () => {
 });
 
 describe("a checkbox inside a field stays a square", () => {
-  const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+  const files = readFileSync(new URL("./components/FileEditor.vue", import.meta.url), "utf8");
   const css = withoutComments(styles);
 
   it("keeps field text inputs full width without stretching a checkbox", () => {

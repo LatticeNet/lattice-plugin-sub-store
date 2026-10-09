@@ -62,7 +62,7 @@ async function runMigrate(): Promise<void> {
 }
 
 function viewImported(): void {
-  chrome.openLens("sources");
+  chrome.openLens("records", { origin: "migrated" });
 }
 
 async function doExport(): Promise<void> {

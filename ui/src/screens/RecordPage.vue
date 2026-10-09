@@ -37,7 +37,6 @@ import {
   providerFigures,
   sourceKindLabel,
   usedBySentence,
-  viewOfKind,
 } from "../pipeline";
 import { editorLanguageForContentType } from "../previewLanguage";
 import { formatRelativeTime } from "../rowStatus";
@@ -135,16 +134,14 @@ const kindLabel = computed(() => {
   return `Source, ${sourceKindLabel(record).toLowerCase()}`;
 });
 
-const fromView = computed(() => viewOfKind(item.value?.kind));
 const VIEW_LABEL: Record<string, string> = {
   overview: "Overview",
-  sources: "Sources",
-  combinations: "Combinations",
-  files: "Files",
+  records: "Records",
   shares: "Shares",
   settings: "Settings",
 };
-const backLabel = computed(() => VIEW_LABEL[props.from] ?? VIEW_LABEL[fromView.value]!);
+/** The layer the page was opened from, else Records, which lists every record. */
+const backLabel = computed(() => VIEW_LABEL[props.from] ?? VIEW_LABEL.records!);
 
 function nameOf(id: string): string {
   const record = pipe.item(id);

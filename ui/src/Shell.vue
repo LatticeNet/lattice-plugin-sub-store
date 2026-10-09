@@ -19,29 +19,30 @@ import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
 import { actionCapabilities, type ActionCapabilities, type ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
-import { KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionListItem } from "./client";
+import { type SubscriptionListItem } from "./client";
 import { createBlocks, headerCreate, type CatalogueView } from "./createGate";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
 import OverviewScreen from "./screens/OverviewScreen.vue";
 import RecordPage from "./screens/RecordPage.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
-import FilesScreen from "./screens/FilesScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
 import SharesScreen from "./screens/SharesScreen.vue";
 import { createLensChrome, provideLensChrome, type Facets, type LensOpenOptions, type TabId } from "./lensChrome";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate } from "./navigate";
 import { createStateSender, decodeShellState, encodeShellState, type ShellState } from "./pageState";
 import { useObservedAge } from "./observedAge";
-import { VIEW_IDS, viewOfKind } from "./pipeline";
+import { VIEW_IDS } from "./pipeline";
+import { kindFacetOf, matchesKind } from "./recordTable";
 import { publishStateFor, shareStateOf } from "./shareState";
 import { usePipeline } from "./usePipeline";
 
 /**
  * The plugin's page, with no knowledge of how the host is reached.
  *
- * The layers of design 22: Overview (what is wrong, then the pipeline as one
- * picture), then one table per kind of record (Sources, Combinations, Files,
- * Shares), then Settings. One tab row, mirrored in the address as `?view=`.
+ * The layers: Overview (what is wrong, then the pipeline as one picture),
+ * Records (every source, combination and file in one table with a kind
+ * filter, design 28), Shares, then Settings. One tab row, mirrored in the
+ * address as `?view=`; the per-kind layers Records replaced still land.
  * A row or a chip opens the record in a side panel (`?open=<id>`); "Open
  * page" gives it the whole frame (`?record=<id>`), which replaces the tab row
  * rather than stacking a second one under it. The same screens are mounted
@@ -74,9 +75,7 @@ interface Layer {
 
 const tabs: Layer[] = [
   { id: "overview", label: "Overview", screen: OverviewScreen },
-  { id: "sources", label: "Sources", screen: SubscriptionsScreen, props: { kind: KIND_SUB } },
-  { id: "combinations", label: "Combinations", screen: SubscriptionsScreen, props: { kind: KIND_COLLECTION } },
-  { id: "files", label: "Files", screen: FilesScreen },
+  { id: "records", label: "Records", screen: SubscriptionsScreen },
   // The record list from the client's side: every link the console serves.
   { id: "shares", label: "Shares", screen: SharesScreen },
   { id: "settings", label: "Settings", screen: SettingsScreen },
@@ -111,6 +110,8 @@ const shellState = computed<ShellState>(() => ({
   open: chrome.openId.value,
   q: chrome.search.value,
   sort: chrome.sort.value,
+  kind: chrome.facets.kind,
+  density: chrome.density.value,
   published: chrome.facets.published,
   origin: chrome.facets.origin,
   type: chrome.facets.type,
@@ -125,7 +126,8 @@ function applyState(state: ShellState): void {
   chrome.openId.value = state.open;
   chrome.search.value = state.q;
   chrome.sort.value = state.sort;
-  Object.assign(chrome.facets, { published: state.published, origin: state.origin, type: state.type, link: state.link });
+  chrome.density.value = state.density;
+  Object.assign(chrome.facets, { kind: state.kind, published: state.published, origin: state.origin, type: state.type, link: state.link });
   chrome.page.value = state.page;
 }
 
@@ -146,6 +148,7 @@ chrome.openLens = (tab, facets?: Partial<Facets>, options?: LensOpenOptions) => 
   recordId.value = "";
   activeTab.value = tab;
   if (facets) {
+    chrome.facets.kind = facets.kind ?? "";
     chrome.facets.published = facets.published ?? "";
     chrome.facets.origin = facets.origin ?? "";
     chrome.facets.type = facets.type ?? "";
@@ -228,9 +231,6 @@ const shareStore = pipe.shareStore;
 
 const ready = computed(() => catalogue.state.value === "ready");
 const records = computed(() => (ready.value ? catalogue.items.value : []));
-const singles = computed(() => records.value.filter((item) => (item.kind || KIND_SUB) === KIND_SUB));
-const combos = computed(() => records.value.filter((item) => item.kind === KIND_COLLECTION));
-const files = computed(() => records.value.filter((item) => item.kind === KIND_FILE));
 
 /**
  * The counts on the tabs, from the same two lists the layers render: the
@@ -239,9 +239,7 @@ const files = computed(() => records.value.filter((item) => item.kind === KIND_F
  */
 const tabCounts = computed<Record<TabId, number | null>>(() => ({
   overview: null,
-  sources: ready.value ? singles.value.length : null,
-  combinations: ready.value ? combos.value.length : null,
-  files: ready.value ? files.value.length : null,
+  records: ready.value ? records.value.length : null,
   shares: shareStore.shares.value ? shareStore.shares.value.length : null,
   settings: null,
 }));
@@ -377,7 +375,13 @@ const catalogueView = computed<CatalogueView>(() => ({
  * reason as its title.
  */
 const head = computed(() =>
-  headerCreate({ tab: activeTab.value, catalogue: catalogueView.value, caps: caps.value, covered: !!recordId.value || editing.value }),
+  headerCreate({
+    tab: activeTab.value,
+    kind: chrome.facets.kind,
+    catalogue: catalogueView.value,
+    caps: caps.value,
+    covered: !!recordId.value || editing.value,
+  }),
 );
 /** Why each create command is blocked, for the add menu and the palette. */
 const blocks = computed(() => createBlocks(catalogueView.value));
@@ -435,25 +439,34 @@ function fadeLens(): void {
   });
 }
 
+/**
+ * Records with the record's row in view: a kind filter that would hide it
+ * gives way to the record's own kind, so focus can land back on its row.
+ */
+function openRecords(record?: SubscriptionListItem): void {
+  chrome.openLens("records");
+  if (record && !matchesKind(record, chrome.facets.kind)) chrome.facets.kind = kindFacetOf(record.kind);
+}
+
 function runFromPalette(record: SubscriptionListItem, action: ActionId): void {
-  chrome.openLens(viewOfKind(record.kind));
+  openRecords(record);
   intent.value = { recordId: record.id, action };
   settleFocus(record.id);
 }
 
 function runCommand(command: PaletteCommandId): void {
   closeAddMenu();
-  chrome.openLens(command === "new-file" ? "files" : command === "new-collection" ? "combinations" : "sources");
+  chrome.openLens("records");
   intent.value = { command };
   settleFocus();
 }
 
-/** The editor belongs to the layer that lists the record; the page hands over. */
+/** The editor belongs to the Records layer; the page and the panel hand over. */
 function editRecord(id: string): void {
   const record = pipe.item(id);
   if (!record) return;
   chrome.openId.value = "";
-  chrome.openLens(viewOfKind(record.kind));
+  openRecords(record);
   intent.value = { recordId: id, action: "edit" };
 }
 
@@ -467,8 +480,8 @@ const flash = ref<{ text: string; view: TabId; shares: string[] } | null>(null);
 watch(activeTab, (tab) => {
   if (flash.value && flash.value.view !== tab) flash.value = null;
 });
-function deletedFromPage(kind: string, text: string, shares: string[] = []): void {
-  const view = viewOfKind(kind);
+function deletedFromPage(_kind: string, text: string, shares: string[] = []): void {
+  const view: TabId = "records";
   recordId.value = "";
   activeTab.value = view;
   flash.value = text ? { text, view, shares } : null;
@@ -482,9 +495,8 @@ function deletedFromPanel(_kind: string, text: string, shares: string[] = []): v
 
 function backFromRecord(): void {
   const from = recordFrom.value as TabId;
-  const own = viewOfKind(pipe.item(recordId.value)?.kind);
   recordId.value = "";
-  activeTab.value = TAB_IDS.has(from) ? from : own;
+  activeTab.value = TAB_IDS.has(from) ? from : "records";
 }
 
 function openShares(): void {

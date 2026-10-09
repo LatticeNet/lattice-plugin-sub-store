@@ -145,7 +145,6 @@ import { readFileSync } from "node:fs";
 describe("the screens ask the registry rather than re-deciding", () => {
   const screens = [
     ["SubscriptionsScreen.vue", readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8")],
-    ["FilesScreen.vue", readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8")],
   ] as const;
 
   it("builds its capabilities once, from the shared reader", () => {

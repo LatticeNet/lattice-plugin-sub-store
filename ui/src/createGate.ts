@@ -78,37 +78,46 @@ const SUBSCRIPTION: LayerCreate = {
   hint: "One source of nodes, processed and served",
 };
 
-/** The layers that create, and what. Shares and Settings have no create of their own. */
-const LAYER_CREATE: Partial<Record<ViewId, LayerCreate>> = {
-  overview: SUBSCRIPTION,
-  sources: SUBSCRIPTION,
-  combinations: {
+/** What each kind of record is created with. */
+const KIND_CREATE: Record<string, LayerCreate> = {
+  [KIND_SUB]: SUBSCRIPTION,
+  [KIND_COLLECTION]: {
     command: "new-collection",
     label: "New combination",
     hint: "Merge several sources and process the result as one",
   },
-  files: {
+  [KIND_FILE]: {
     command: "new-file",
     label: "New file",
     hint: "A document served as it is, with its proxy list kept in step",
   },
 };
 
-const LAYER_KIND: Partial<Record<ViewId, string>> = {
-  sources: KIND_SUB,
-  combinations: KIND_COLLECTION,
-  files: KIND_FILE,
-};
+/** The kind the Records layer's kind filter stands for, "" for every kind. */
+const FACET_KIND: Record<string, string> = { source: KIND_SUB, combination: KIND_COLLECTION, file: KIND_FILE };
 
-/** The layer's list was read and holds nothing; the Overview counts every record. */
-function layerEmpty(tab: ViewId, records: readonly { kind?: string }[]): boolean {
-  if (tab === "overview") return records.length === 0;
-  const kind = LAYER_KIND[tab];
-  return !!kind && !records.some((record) => kindOf(record) === kind);
+/**
+ * The layer's create, and the kind it is narrowed to: Records creates the
+ * kind its filter shows, a source with every kind showing. Shares and
+ * Settings have no create of their own.
+ */
+function layerCreate(tab: ViewId, kindFacet: string): { create: LayerCreate; kind: string } | null {
+  if (tab === "overview") return { create: SUBSCRIPTION, kind: "" };
+  if (tab !== "records") return null;
+  const kind = FACET_KIND[kindFacet] ?? "";
+  return { create: KIND_CREATE[kind || KIND_SUB]!, kind };
+}
+
+/** The layer's list was read and holds nothing of the kind it shows. */
+function layerEmpty(kind: string, records: readonly { kind?: string }[]): boolean {
+  if (!kind) return records.length === 0;
+  return !records.some((record) => kindOf(record) === kind);
 }
 
 export interface HeaderCreateInput {
   tab: ViewId;
+  /** The Records layer's kind filter (`source`, `combination`, `file`), "" for all. */
+  kind?: string;
   catalogue: CatalogueView;
   caps: { ready: boolean; mutate: boolean };
   /** A record page or an editor is up; neither carries the layer's create. */
@@ -119,7 +128,7 @@ export interface HeaderCreate extends LayerCreate {
   disabled: boolean;
   /** The control's title: why it is disabled, or what it makes. */
   title: string;
-  /** The Overview's split button, with the other kinds behind a chevron. */
+  /** The split button, with the other kinds behind a chevron (Overview, and Records showing every kind). */
   menu: boolean;
   /**
    * The chevron is disabled while the catalogue is unread. At the record
@@ -139,17 +148,17 @@ export interface HeaderCreate extends LayerCreate {
  * reason. A read and empty layer leaves create to its empty state.
  */
 export function headerCreate(input: HeaderCreateInput): HeaderCreate | null {
-  const layer = LAYER_CREATE[input.tab];
+  const layer = layerCreate(input.tab, input.kind ?? "");
   if (!layer || input.covered || !input.caps.ready || !input.caps.mutate) return null;
   const { state, failed, records } = input.catalogue;
   if (state !== "ready" && state !== "error" && !failed) return null;
-  if (state === "ready" && layerEmpty(input.tab, records)) return null;
-  const reason = createBlocks(input.catalogue)[layer.command];
+  if (state === "ready" && layerEmpty(layer.kind, records)) return null;
+  const reason = createBlocks(input.catalogue)[layer.create.command];
   return {
-    ...layer,
+    ...layer.create,
     disabled: reason !== "",
-    title: reason || layer.hint,
-    menu: input.tab === "overview",
+    title: reason || layer.create.hint,
+    menu: !layer.kind,
     menuDisabled: state !== "ready",
   };
 }
