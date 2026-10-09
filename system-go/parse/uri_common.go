@@ -211,3 +211,50 @@ func vmessCipher(v string) string {
 	}
 	return "auto"
 }
+
+// uriParts is [userinfo@]host[:port][/][?query][#fragment] cut apart, the
+// shape the Hysteria, Hysteria2, TUIC and WireGuard parsers share. The user
+// info ends at the first "@" of the text; after it the fragment starts at
+// the first "#" and the query at the first "?" before that.
+type uriParts struct {
+	userInfo    string
+	hasUserInfo bool
+	host, port  string
+	query       string
+	fragment    string
+	hasFragment bool
+}
+
+// splitURI cuts rest (the text after the scheme). With userInfo false an
+// "@" stays in the host. The port is the text after the last ":" when it is
+// non-empty and made only of portChars; otherwise the host keeps the colon,
+// so a bracketed IPv6 host without a port stays whole.
+func splitURI(rest string, userInfo bool, portChars string) uriParts {
+	var p uriParts
+	if userInfo {
+		if at := strings.IndexByte(rest, '@'); at >= 0 {
+			p.userInfo, p.hasUserInfo, rest = rest[:at], true, rest[at+1:]
+		}
+	}
+	if i := strings.IndexByte(rest, '#'); i >= 0 {
+		rest, p.fragment, p.hasFragment = rest[:i], rest[i+1:], true
+	}
+	if i := strings.IndexByte(rest, '?'); i >= 0 {
+		rest, p.query = rest[:i], rest[i+1:]
+	}
+	rest = strings.TrimSuffix(rest, "/")
+	p.host = rest
+	if c := strings.LastIndexByte(rest, ':'); c >= 0 && c+1 < len(rest) && allIn(rest[c+1:], portChars) {
+		p.host, p.port = rest[:c], rest[c+1:]
+	}
+	return p
+}
+
+// copyUnhandled copies a query item into the node as text when the node has
+// no key of that name yet: the rule of the AnyTLS, Hysteria (v1), TUIC and
+// WireGuard parsers for keys they do not handle (parser.md 1.1).
+func copyUnhandled(f map[string]any, it queryItem) {
+	if _, exists := f[it.Key]; !exists {
+		f[it.Key] = jsString(it.Value, true)
+	}
+}

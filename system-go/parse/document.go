@@ -245,14 +245,7 @@ type lineParser struct {
 // scheme builds a URI row: the test is a prefix match and parse receives the
 // text after the matched prefix.
 func scheme(label string, parse func(rest string, st *lineState) (map[string]any, error), prefixes ...string) lineParser {
-	p := lineParser{label: label, test: func(line string, _ *lineState) bool {
-		for _, pre := range prefixes {
-			if strings.HasPrefix(line, pre) {
-				return true
-			}
-		}
-		return false
-	}}
+	p := lineParser{label: label, test: prefixTest(prefixes...)}
 	if parse != nil {
 		p.parse = func(line string, st *lineState) (map[string]any, error) {
 			for _, pre := range prefixes {
@@ -266,6 +259,19 @@ func scheme(label string, parse func(rest string, st *lineState) (map[string]any
 	return p
 }
 
+// prefixTest is the test of a URI row: the line starts with one of the
+// prefixes.
+func prefixTest(prefixes ...string) func(string, *lineState) bool {
+	return func(line string, _ *lineState) bool {
+		for _, pre := range prefixes {
+			if strings.HasPrefix(line, pre) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 // typed builds a Surge, Loon or Quantumult X row from a test on the line.
 func typed(label string, test func(line string) bool) lineParser {
 	return lineParser{label: label, test: func(line string, _ *lineState) bool { return test(line) }}
@@ -275,18 +281,18 @@ func typed(label string, test func(line string) bool) lineParser {
 // grammar, as do the Loon rows 30 to 38 and the Quantumult X rows; rows 29
 // and 39 have their own parsers.
 var parsers = []lineParser{
-	/* 1 */ scheme("socks5-http", nil, "socks5+tls://", "socks5://", "http://", "https://"),
-	/* 2 */ scheme("socks", nil, "socks://"),
-	/* 3 */ scheme("ss", nil, "ss://"),
-	/* 4 */ scheme("ssr", nil, "ssr://"),
+	/* 1 */ {label: "socks5-http", test: prefixTest(proxySchemePrefixes...), parse: parseProxyLine},
+	/* 2 */ scheme("socks", parseSocks, "socks://"),
+	/* 3 */ scheme("ss", parseSS, "ss://"),
+	/* 4 */ scheme("ssr", parseSSR, "ssr://"),
 	/* 5 */ scheme("vmess", parseVMess, "vmess://"),
 	/* 6 */ scheme("vless", parseVLESS, "vless://"),
-	/* 7 */ scheme("tuic", nil, "tuic://"),
-	/* 8 */ scheme("wireguard", nil, "wireguard://", "wg://"),
-	/* 9 */ scheme("hysteria", nil, "hysteria://", "hy://"),
-	/* 10 */ scheme("hysteria2", nil, "hysteria2://", "hy2://"),
-	/* 11 */ scheme("trojan", nil, "trojan://"),
-	/* 12 */ scheme("anytls", nil, "anytls://"),
+	/* 7 */ scheme("tuic", parseTUIC, "tuic://"),
+	/* 8 */ scheme("wireguard", parseWireGuard, "wireguard://", "wg://"),
+	/* 9 */ scheme("hysteria", parseHysteria, "hysteria://", "hy://"),
+	/* 10 */ scheme("hysteria2", parseHysteria2, "hysteria2://", "hy2://"),
+	/* 11 */ scheme("trojan", parseTrojan, "trojan://"),
+	/* 12 */ scheme("anytls", parseAnyTLS, "anytls://"),
 	/* 13 */ {label: "clash", test: clashObjectTest},
 	/* 14 */ typed("surge", surgeDirectTest),
 	/* 15 */ typed("surge", typeWordPrefix("anytls")),

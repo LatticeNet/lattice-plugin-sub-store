@@ -78,12 +78,12 @@ const (
 )
 
 // vlessResult is the VLESS parser's output: the node fields, the split query
-// (AnyTLS copies its unhandled keys), and the shape's user info as written,
-// before decoding (AnyTLS decodes it again as its password).
+// and the matched shape, whose user info as written and whose fragment and
+// query AnyTLS reads again for its overlay.
 type vlessResult struct {
-	fields   map[string]any
-	query    query
-	userInfo string
+	fields map[string]any
+	query  query
+	shape  vlessShape
 }
 
 // parseVLESS parses the text after "vless://".
@@ -305,7 +305,7 @@ func parseVLESSBody(rest string, flavour vlessFlavour) (vlessResult, error) {
 		f["alterId"] = 0.0
 		delete(f, "flow")
 	}
-	return vlessResult{fields: f, query: q, userInfo: shape.uuid}, nil
+	return vlessResult{fields: f, query: q, shape: shape}, nil
 }
 
 // vlessTransport builds <network>-opts and the transport annotations for a
