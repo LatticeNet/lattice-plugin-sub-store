@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
@@ -27,6 +28,11 @@ const (
 	// refuse anyway, so the reason reaches the operator instead of a bare
 	// size error from the server.
 	snapshotTooLargeCode = "snapshot_too_large"
+	// Why an envelope carries no nodes. size: the nodes would have taken it
+	// past the raw bound, so render parses the text. fallback_chain: a chain
+	// runs on the bundle, which parses the text itself.
+	nodesOmittedSize     = "size"
+	nodesOmittedFallback = "fallback_chain"
 )
 
 type snapshotEnvelope struct {
@@ -36,10 +42,10 @@ type snapshotEnvelope struct {
 	// for the bundle fallback and re-parsing.
 	Raw       string `json:"raw,omitempty"`
 	RawSHA256 string `json:"raw_sha256,omitempty"`
-	// Nodes is the compact model after parse and normalise, before the chain.
-	// The native parser fills it; until then it is absent, and render parses
-	// Raw as before. NodesOmitted says why it is absent when it should not be
-	// ("size", "fallback_chain").
+	// Nodes is the compact model after parse and normalise, before the chain,
+	// filled when the record's chain is native. NodesOmitted says why it is
+	// absent when it should not be ("size", "fallback_chain"); render then
+	// parses Raw.
 	Nodes        []json.RawMessage `json:"nodes,omitempty"`
 	NodesOmitted string            `json:"nodes_omitted,omitempty"`
 	// A collection and a script file carry their members.
@@ -72,17 +78,55 @@ func membersEnvelope(kind string, members []fileScriptMember) snapshotEnvelope {
 	return env
 }
 
-// encodeSnapshotEnvelope is the raw fetch returns. One over the core's bound
-// is refused here with a stated reason.
+// encodeSnapshotEnvelope is the raw fetch returns. Nodes that would take it
+// over the core's bound are left out with nodes_omitted "size"; an envelope
+// still over the bound without them is refused here with a stated reason.
 func encodeSnapshotEnvelope(env snapshotEnvelope) (string, error) {
 	raw, err := json.Marshal(env)
 	if err != nil {
 		return "", err
 	}
+	if len(raw) > model.MaxSubscriptionRawBytes && envelopeHasNodes(env) {
+		env.Nodes = nil
+		env.Members = append([]envelopeMember(nil), env.Members...)
+		for i := range env.Members {
+			env.Members[i].Nodes = nil
+		}
+		env.NodesOmitted = nodesOmittedSize
+		if raw, err = json.Marshal(env); err != nil {
+			return "", err
+		}
+	}
 	if len(raw) > model.MaxSubscriptionRawBytes {
 		return "", fmt.Errorf("%s: the snapshot is %d bytes once enveloped, and the core keeps at most %d; the source returned more than one subscription can carry", snapshotTooLargeCode, len(raw), model.MaxSubscriptionRawBytes)
 	}
 	return string(raw), nil
+}
+
+func envelopeHasNodes(env snapshotEnvelope) bool {
+	if len(env.Nodes) > 0 {
+		return true
+	}
+	for _, member := range env.Members {
+		if len(member.Nodes) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// envelopeNodes is the nodes a subscription's version 2 envelope carries,
+// decoded, or nil when it carries none (or any of them fails to decode), in
+// which case render parses the text.
+func envelopeNodes(env snapshotEnvelope) []*nodemodel.Node {
+	if env.Kind != kindSub || len(env.Nodes) == 0 {
+		return nil
+	}
+	nodes, ok := decodeNodes(env.Nodes)
+	if !ok {
+		return nil
+	}
+	return nodes
 }
 
 // decodeSnapshotEnvelope reports whether raw is a version 2 envelope. A JSON
@@ -114,6 +158,11 @@ func snapshotText(raw string) string {
 	if !ok {
 		return raw
 	}
+	return envelopeText(env)
+}
+
+// envelopeText is snapshotText for an envelope already decoded.
+func envelopeText(env snapshotEnvelope) string {
 	if len(env.Members) == 0 {
 		return env.Raw
 	}

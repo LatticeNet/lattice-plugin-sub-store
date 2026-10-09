@@ -147,6 +147,18 @@ expires with the call, and a watchdog cancels the warm runtime's context and
 retires it, so a catastrophic regex or an oversized document on the scriptless
 path costs one call its budget, not the worker.
 
+Node-list conversions go through a native dispatcher first
+(`system-go/engine_dispatch.go`). A render, a collection, a preview or a
+`convert` answers in Go when its target is URI, V2Ray, JSON, sing-box or
+ClashMeta and every enabled step of its chain compiles natively; otherwise the
+whole chain runs on the bundle's isolated runtime, never half in each. Resolve
+Domain, the two script steps, a pattern RE2 refuses and arguments only the
+bundle reads keep a chain on the bundle. Operator patterns compile with their
+ECMAScript meaning of `\s`, `\S` and the dot (`system-go/operators/regex.go`).
+The warm runtime still serves the node count of a refresh whose chain runs on
+the bundle, previews of scriptless chains that do, and the legacy engine
+service.
+
 Rebuild the pinned bundle with:
 
 ```sh

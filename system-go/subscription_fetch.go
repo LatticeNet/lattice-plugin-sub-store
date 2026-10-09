@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -27,6 +29,9 @@ type fetchResult struct {
 	SourceManifest json.RawMessage `json:"source_manifest,omitempty"`
 	// nodesIn is the source node count the refresh read, when it counted one.
 	nodesIn *int
+	// nodesOut is the count after the record's chain, when the chain is
+	// native and could run at refresh.
+	nodesOut *int
 }
 
 func isVPNCoreSource(source string) bool {
@@ -60,11 +65,14 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	var env snapshotEnvelope
 	switch recordKind(rec) {
 	case kindCollection:
-		members, err := rt.fetchCollectionSnapshot(rec)
+		members, membersNative, err := rt.fetchCollectionSnapshot(rec)
 		if err != nil {
 			return fetchResult{}, err
 		}
 		env = membersEnvelope(kindCollection, members)
+		if err := withMemberNodes(&env, members, membersNative); err != nil {
+			return fetchResult{}, err
+		}
 	case kindFile:
 		if env, err = rt.fetchFileSnapshot(rec); err != nil {
 			return fetchResult{}, err
@@ -73,12 +81,38 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		if out, err = rt.fetchRecordContent(rec); err != nil {
 			return fetchResult{}, err
 		}
-		count, err := rt.requireNodes(fmt.Sprintf("subscription %q", rec.ID), out.Raw)
+		plan, err := rt.chainPlan(rec)
+		if err != nil {
+			return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
+		}
+		env = textEnvelope(kindSub, out.Raw, out.SourceVersion)
+		label := fmt.Sprintf("subscription %q", rec.ID)
+		if !planIsNative(plan) {
+			// The bundle renders this record whatever the target, so the
+			// bundle counts it, on the warm runtime: a refresh never pays an
+			// isolated boot (plan section 7, decision 4).
+			count, err := rt.requireNodes(label, out.Raw)
+			if err != nil {
+				return fetchResult{}, err
+			}
+			out.nodesIn = &count
+			env.NodesOmitted = nodesOmittedFallback
+			break
+		}
+		nodes, err := requireNativeNodes(label, out.Raw)
 		if err != nil {
 			return fetchResult{}, err
 		}
+		count := len(nodes)
 		out.nodesIn = &count
-		env = textEnvelope(kindSub, out.Raw, out.SourceVersion)
+		if env.Nodes, err = encodeNodes(nodes); err != nil {
+			return fetchResult{}, err
+		}
+		// The envelope holds the nodes before the chain; the count after it
+		// is the row's nodes out. The chain runs over the nodes in place,
+		// after they were encoded.
+		after := len(runChain(plan, nodes, out.Raw))
+		out.nodesOut = &after
 	}
 	if env.Raw == "" && len(env.Members) == 0 {
 		// An empty fetch is a failure, not a subscription with no nodes: the
@@ -90,6 +124,46 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		return fetchResult{}, err
 	}
 	return out, nil
+}
+
+// runChain runs a native plan over nodes with the context a render gives it,
+// before any target is known.
+func runChain(plan *operators.Plan, nodes []*nodemodel.Node, raw string) []*nodemodel.Node {
+	if plan == nil {
+		return nodes
+	}
+	return plan.Run(nodes, &operators.Context{Raw: raw})
+}
+
+// withMemberNodes puts each member's nodes in a collection envelope when
+// every chain of the collection ran in Go, and says why they are absent
+// otherwise.
+func withMemberNodes(env *snapshotEnvelope, members []fileScriptMember, membersNative bool) error {
+	if !membersNative {
+		env.NodesOmitted = nodesOmittedFallback
+		return nil
+	}
+	for i, member := range members {
+		nodes, err := encodeNodes(member.nodes)
+		if err != nil {
+			return err
+		}
+		env.Members[i].Nodes = nodes
+	}
+	return nil
+}
+
+// requireNativeNodes parses node text in Go and refuses it when it holds no
+// node, as requireNodes does with the bundle.
+func requireNativeNodes(label, raw string) ([]*nodemodel.Node, error) {
+	nodes, err := parseParts([]string{raw})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+	if len(nodes) == 0 {
+		return nil, providerNoNodesError(label)
+	}
+	return nodes, nil
 }
 
 // requireNodes refuses node text the engine finds no node in, and returns the
@@ -132,10 +206,10 @@ type snapshotArtifacts struct {
 // fetchCollectionSnapshot resolves a collection's members to their chained
 // node text. Member content moves at provider cadence; resolving it at refresh
 // time is what lets a render skip the network entirely.
-func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScriptMember, error) {
+func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScriptMember, bool, error) {
 	members, err := rt.collectionMembers(rec)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	return rt.chainMembers(rec, members)
 }
@@ -143,13 +217,25 @@ func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScript
 // chainMembers renders each member through its own chain, honoring the
 // collection's failure mode. Shared by the collection snapshot and the live
 // render paths so the two can never drift apart.
-func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, error) {
+//
+// membersNative reports that the collection's own chain and every member's
+// chain run in Go. Each member then carries its nodes, and the members that
+// arrived unchained are counted by parsing them in Go; otherwise they are
+// counted on the bundle's warm runtime in one call, as before, and no member
+// carries nodes. A chained member runs on whichever engine its own chain
+// allows: the snapshot is taken before any target is known, and its member
+// texts have to be what a live render of the same collection computes.
+func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, bool, error) {
 	type resolvedMember struct {
-		member     subscriptionRecord
-		raw        string
-		needsCount bool
-		dropped    bool
+		member  subscriptionRecord
+		out     memberOutput
+		dropped bool
 	}
+	plan, err := rt.chainPlan(rec)
+	if err != nil {
+		return nil, false, fmt.Errorf("collection %q: %w", rec.ID, err)
+	}
+	membersNative := planIsNative(plan)
 	resolved := make([]resolvedMember, 0, len(members))
 	skipped := make([]string, 0)
 	// fail applies the collection's failure mode to one member.
@@ -169,55 +255,74 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 		return nil
 	}
 	for _, member := range members {
-		raw, needsCount, err := rt.memberNodes(member)
+		out, err := rt.memberNodes(member)
 		if err != nil {
 			if err := fail(member, err); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 			continue
 		}
-		resolved = append(resolved, resolvedMember{member: member, raw: raw, needsCount: needsCount})
+		membersNative = membersNative && out.native
+		resolved = append(resolved, resolvedMember{member: member, out: out})
 	}
 	// A member whose source parses to no nodes (a provider's error page) is a
-	// failed member, not an empty one. Every unchained member is counted in
-	// one engine call rather than one call per member.
+	// failed member, not an empty one. When the collection runs in Go each
+	// unchained member is parsed in Go, which is also where its nodes come
+	// from; otherwise every unchained member is counted in one engine call
+	// rather than one call per member.
 	var texts []string
 	var at []int
 	for i, entry := range resolved {
-		if entry.needsCount {
-			texts, at = append(texts, entry.raw), append(at, i)
+		if entry.out.needsCount {
+			texts, at = append(texts, entry.out.raw), append(at, i)
 		}
 	}
-	if len(texts) > 0 {
+	if len(texts) > 0 && membersNative {
+		for _, i := range at {
+			nodes, err := requireNativeNodes(memberLabel(resolved[i].member), resolved[i].out.raw)
+			if err != nil {
+				if err := fail(resolved[i].member, err); err != nil {
+					return nil, false, err
+				}
+				resolved[i].dropped = true
+				continue
+			}
+			resolved[i].out.nodes = nodes
+		}
+	} else if len(texts) > 0 {
 		counts, err := rt.subStoreEngine().countNodesEach(texts)
 		if err != nil {
-			return nil, fmt.Errorf("collection %q: %w", rec.ID, err)
+			return nil, false, fmt.Errorf("collection %q: %w", rec.ID, err)
 		}
 		for j, i := range at {
 			if counts[j] > 0 {
 				continue
 			}
 			if err := fail(resolved[i].member, providerNoNodesError(memberLabel(resolved[i].member))); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 			resolved[i].dropped = true
 		}
 	}
 	out := make([]fileScriptMember, 0, len(resolved))
 	for _, entry := range resolved {
-		if !entry.dropped && strings.TrimSpace(entry.raw) != "" {
-			out = append(out, fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.raw})
+		if !entry.dropped && strings.TrimSpace(entry.out.raw) != "" {
+			member := fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.out.raw}
+			if membersNative {
+				member.nodes = entry.out.nodes
+			}
+			out = append(out, member)
 		}
 	}
 	// Every member failing is not "skip the failures" — it is a collection with
 	// nothing in it, and that must never be served as a success.
 	if len(out) == 0 && len(members) > 0 {
-		return nil, fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
+		return nil, false, fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("collection %q produced no nodes", rec.ID)
+		return nil, false, fmt.Errorf("collection %q produced no nodes", rec.ID)
 	}
-	return out, nil
+	return out, membersNative, nil
 }
 
 // fetchFileSnapshot resolves what a file's render varies by: its node source,
@@ -251,7 +356,7 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 		if err != nil {
 			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
-		members, err = rt.chainMembers(sourceRecord, gathered)
+		members, _, err = rt.chainMembers(sourceRecord, gathered)
 		if err != nil {
 			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 		}

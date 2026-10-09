@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
@@ -24,25 +25,9 @@ var subscriptionConvertTargets = map[string]bool{
 // handful; the bound only keeps a caller from sending thousands.
 const maxConvertOptions = 16
 
-// subscriptionConvertRequest is the whole input of a convert: node text, the
-// client, and how a URI list is carried. There is no record id, no operator
-// chain and no source to resolve, so a call can only ever produce a document
-// from what it was handed.
-type subscriptionConvertRequest struct {
-	// URIs is one share link per entry. Raw is the alternative: any node text
-	// the engine parses (a URI list, a base64 list, a Clash document). Exactly
-	// one of them is set.
-	URIs []string `json:"uris,omitempty"`
-	Raw  string   `json:"raw,omitempty"`
-	// Target is the client, from subscriptionConvertTargets.
-	Target string `json:"target"`
-	// Format is "" or "base64" for the client-native default (a URI list in
-	// its base64 envelope, every other target as its producer writes it), or
-	// "plain" for a bare URI list.
-	Format string `json:"format,omitempty"`
-	// Options are produce() flags under upstream's own names, booleans only.
-	Options map[string]bool `json:"options,omitempty"`
-}
+// convertUnsupportedCode leads the refusal of a convert input this release
+// does not run yet, so the core can tell it from a malformed request.
+const convertUnsupportedCode = "convert_input_unsupported"
 
 type subscriptionConvertResult struct {
 	Content     string `json:"content"`
@@ -60,13 +45,17 @@ type subscriptionConvertResult struct {
 // manifest declares the method with zero host calls, so the runner refuses any
 // store or network access outright. The request has no operator chain (an
 // operators field is an unknown field and is refused), so no user JavaScript
-// runs and the call qualifies for the warm runtime. And the only engine calls
-// are parse and produce, which keep no data between calls: the source audit
-// of the pinned core (tools/substore-core/state-audit.json, bound to the
-// embedded bundle by TestEmbeddedCoreIsTheStateAuditedCore) and the twelve-call
-// isolation test (TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials)
-// are what that rests on. If either ever says otherwise, the fallback is
-// runIsolatedScript, at about 0.85 s per call locally.
+// runs. And the conversion goes through the dispatcher with no chain: the
+// five native targets are answered in Go, which keeps nothing between calls,
+// and the nine others on the bundle's isolated path, a runtime that dies with
+// the call (engine_dispatch.go).
+//
+// The request is the SDK's ConvertRequest, decoded as strictly as the plugin
+// always decoded its own: exactly one of uris, raw and nodes. nodes are a
+// typed-node plan's nodes after the core bound them. A document plan and a
+// response chain are refused with a stated reason until the slices that run
+// them (document plans with fleet-bound records in S2, response chains in
+// S3).
 //
 // A document with no node for the client is refused with
 // zeroNodesForTargetCode, the same rule the serve path applies.
@@ -76,20 +65,17 @@ func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionCon
 	if len(payload) > model.MaxConvertRequestBytes {
 		return subscriptionConvertResult{}, fmt.Errorf("convert payload exceeds %d bytes", model.MaxConvertRequestBytes)
 	}
-	var req subscriptionConvertRequest
-	if len(payload) > 0 {
-		if err := decodeStrictVPNCoreGraphJSON(payload, &req); err != nil {
-			return subscriptionConvertResult{}, fmt.Errorf("invalid convert payload: %w", err)
-		}
-	}
-	raw, err := convertInput(req)
+	req, err := model.DecodeConvertRequest(payload)
 	if err != nil {
-		return subscriptionConvertResult{}, err
+		return subscriptionConvertResult{}, fmt.Errorf("invalid convert payload: %w", err)
 	}
-	target := strings.TrimSpace(req.Target)
-	if target == "" {
-		return subscriptionConvertResult{}, errors.New("convert needs a target")
+	if req.Document != nil {
+		return subscriptionConvertResult{}, fmt.Errorf("%s: a document plan is converted once fleet-bound records exist (S2); send uris, raw or nodes", convertUnsupportedCode)
 	}
+	if len(req.ResponseChain) > 0 {
+		return subscriptionConvertResult{}, fmt.Errorf("%s: convert runs a response chain once scripts run in its isolate (S3); render applies a record's response chain", convertUnsupportedCode)
+	}
+	target := req.Target
 	if !subscriptionConvertTargets[target] {
 		return subscriptionConvertResult{}, fmt.Errorf("target %q is not a client convert produces for", target)
 	}
@@ -102,11 +88,25 @@ func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionCon
 		return subscriptionConvertResult{}, fmt.Errorf("convert accepts at most %d options", maxConvertOptions)
 	}
 
-	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
-		Raw:     raw,
-		Target:  target,
-		Options: req.Options,
-	})
+	request := nodeConvertRequest{Target: target, Options: req.Options}
+	if len(req.Nodes) > 0 {
+		request.Nodes = make([]*nodemodel.Node, len(req.Nodes))
+		for i, raw := range req.Nodes {
+			request.Nodes[i] = &nodemodel.Node{}
+			// The decoder's error names a type, never a value: the node
+			// carries a credential.
+			if err := request.Nodes[i].UnmarshalJSON(raw); err != nil {
+				return subscriptionConvertResult{}, fmt.Errorf("convert node %d: %w", i, err)
+			}
+		}
+	} else {
+		raw, err := convertInput(req.URIs, req.Raw)
+		if err != nil {
+			return subscriptionConvertResult{}, err
+		}
+		request.Parts = []string{raw}
+	}
+	converted, _, err := rt.convertNodes(request)
 	if err != nil {
 		return subscriptionConvertResult{}, err
 	}
@@ -120,21 +120,21 @@ func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionCon
 	return subscriptionConvertResult{Content: body, ContentType: contentType, Target: target, NodeCount: converted.NodeCount}, nil
 }
 
-// convertInput turns the request's node input into the text the engine
+// convertInput turns the request's text input into the text the engine
 // parses. Errors never quote the input: it carries credentials.
-func convertInput(req subscriptionConvertRequest) (string, error) {
-	hasURIs, hasRaw := len(req.URIs) > 0, strings.TrimSpace(req.Raw) != ""
+func convertInput(uris []string, raw string) (string, error) {
+	hasURIs, hasRaw := len(uris) > 0, strings.TrimSpace(raw) != ""
 	if hasURIs == hasRaw {
-		return "", errors.New("convert needs exactly one of uris or raw")
+		return "", errors.New("convert needs exactly one of uris, raw and nodes")
 	}
 	if hasRaw {
-		return req.Raw, nil
+		return raw, nil
 	}
-	if len(req.URIs) > maxExportLinks {
+	if len(uris) > maxExportLinks {
 		return "", fmt.Errorf("convert accepts at most %d uris", maxExportLinks)
 	}
-	lines := make([]string, 0, len(req.URIs))
-	for i, uri := range req.URIs {
+	lines := make([]string, 0, len(uris))
+	for i, uri := range uris {
 		uri = strings.TrimSpace(uri)
 		switch {
 		case uri == "":

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 )
 
 // The runtime a generator script expects.
@@ -31,6 +33,10 @@ import (
 type fileScriptMember struct {
 	SubName string `json:"sub_name"`
 	Raw     string `json:"raw"`
+	// nodes are the member's nodes after its own chain when every chain of
+	// its collection runs in Go (chainMembers); never encoded here, the
+	// snapshot envelope carries them as envelopeMember.Nodes.
+	nodes []*nodemodel.Node
 }
 
 // fileScriptArtifact is what one `produceArtifact({name})` call resolves to.

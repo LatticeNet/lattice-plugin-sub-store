@@ -78,8 +78,8 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 		payload map[string]any
 		want    string
 	}{
-		{"no input", map[string]any{"target": "URI"}, "uris or raw"},
-		{"both inputs", map[string]any{"uris": uris, "raw": "ss://x", "target": "URI"}, "uris or raw"},
+		{"no input", map[string]any{"target": "URI"}, "exactly one of uris, raw"},
+		{"both inputs", map[string]any{"uris": uris, "raw": "ss://x", "target": "URI"}, "exactly one of uris, raw"},
 		{"no target", map[string]any{"uris": uris}, "target"},
 		{"unknown target", map[string]any{"uris": uris, "target": "Netscape"}, "target"},
 		// Operators would mean user JavaScript, which never runs on the shared
@@ -110,9 +110,12 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 	}
 }
 
-// The isolation guarantee per-identity links rest on. convert runs on the warm
-// runtime, which persists across calls and records, so it has to be shown that
-// nothing one call converts survives into another call's document. Twelve
+// The isolation guarantee of the warm runtime. The convert method no longer
+// runs there (it answers in Go or on the isolated path, engine_dispatch.go),
+// but the legacy engine service's convert and every refresh's node count
+// still do, and the runtime persists across calls and records, so it has to
+// be shown on engine.convert that nothing one call converts survives into
+// another call's document. Twelve
 // converts with distinct credentials, cycling through targets so the same
 // producer runs back to back with different input, all on one warm runtime:
 // each document carries its own credentials and none of the others'. A fixed
@@ -140,7 +143,14 @@ func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.
 })()`); err != nil || !served {
 		t.Fatalf("install store spy: served=%v err=%v", served, err)
 	}
-	rt := &runtime{host: denyHostCalls{}, engine: engine}
+	warmConvert := func(uris []string, target string) string {
+		t.Helper()
+		out, err := engine.convert(subStoreConversionRequest{Raw: strings.Join(uris, "\n"), Target: target})
+		if err != nil {
+			t.Fatalf("convert for %s: %v", target, err)
+		}
+		return out.Output
+	}
 
 	const n = 12
 	targets := []string{"ClashMeta", "sing-box", "URI", "ClashMeta", "Stash", "V2Ray", "Loon", "sing-box", "QX", "Egern", "Shadowrocket", "JSON"}
@@ -183,13 +193,12 @@ func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.
 		if _, done := before[target]; done {
 			continue
 		}
-		before[target] = decodeConvert(t, callConvert(t, rt, map[string]any{"uris": callURIs(99, reference), "target": target, "format": "plain"})).Content
+		before[target] = warmConvert(callURIs(99, reference), target)
 	}
 
 	for i := 0; i < n; i++ {
 		uris := callURIs(i, secrets[i])
-		out := decodeConvert(t, callConvert(t, rt, map[string]any{"uris": uris, "target": targets[i], "format": "plain"}))
-		document := out.Content
+		document := warmConvert(uris, targets[i])
 		if targets[i] == "V2Ray" {
 			decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(document))
 			if err != nil {
@@ -221,7 +230,7 @@ func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.
 		}
 	}
 	for target, want := range before {
-		got := decodeConvert(t, callConvert(t, rt, map[string]any{"uris": callURIs(99, reference), "target": target, "format": "plain"})).Content
+		got := warmConvert(callURIs(99, reference), target)
 		if got != want {
 			t.Fatalf("%s: the reference document changed after %d other calls on the same runtime:\nbefore %q\nafter  %q", target, n, head(want, 200), head(got, 200))
 		}

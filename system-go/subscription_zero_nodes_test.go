@@ -153,10 +153,12 @@ func TestCollectionRefreshTreatsAMemberWithNoNodesAsFailed(t *testing.T) {
 	}
 }
 
-// A combination's refresh counts every unchained member in one engine call. On
-// a worker whose warm runtime is still booting each call takes the isolated
-// path, so one call per member would put a large combination's refresh at risk
-// of its time budget.
+// A combination's refresh counts every unchained member in one engine call
+// when its chain runs on the bundle. On a worker whose warm runtime is still
+// booting each call takes the isolated path, so one call per member would put
+// a large combination's refresh at risk of its time budget. A combination
+// whose chains all run in Go counts its members in Go and calls the engine
+// not at all, and its snapshot carries each member's nodes.
 func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 	rt, _ := newWarmKVRuntime(t)
 	var members []string
@@ -164,16 +166,41 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 		seedSub(t, rt, id, nil, shareFleetFixture(1))
 		members = append(members, id)
 	}
-	if err := rt.saveSubscription(subscriptionRecord{ID: "c", Kind: kindCollection, Name: "c", Members: members}); err != nil {
-		t.Fatalf("save: %v", err)
-	}
-	warmBefore, isolatedBefore := rt.engine.pathCounts()
-	if _, err := rt.fetchSubscription("c"); err != nil {
-		t.Fatalf("refresh: %v", err)
-	}
-	warmAfter, isolatedAfter := rt.engine.pathCounts()
-	if calls := (warmAfter - warmBefore) + (isolatedAfter - isolatedBefore); calls != 1 {
-		t.Fatalf("refreshing five unchained members took %d engine calls, want 1", calls)
+	script := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
+	for _, c := range []struct {
+		id      string
+		process []json.RawMessage
+		calls   int
+		nodes   bool
+	}{
+		{"c", nil, 0, true},
+		{"c-script", []json.RawMessage{script}, 1, false},
+	} {
+		if err := rt.saveSubscription(subscriptionRecord{ID: c.id, Kind: kindCollection, Name: c.id, Members: members, Process: c.process}); err != nil {
+			t.Fatalf("save: %v", err)
+		}
+		warmBefore, isolatedBefore := rt.engine.pathCounts()
+		snap, err := rt.fetchSubscription(c.id)
+		if err != nil {
+			t.Fatalf("refresh %s: %v", c.id, err)
+		}
+		warmAfter, isolatedAfter := rt.engine.pathCounts()
+		if calls := (warmAfter - warmBefore) + (isolatedAfter - isolatedBefore); calls != c.calls {
+			t.Fatalf("refreshing %s's five unchained members took %d engine calls, want %d", c.id, calls, c.calls)
+		}
+		env, ok := decodeSnapshotEnvelope(snap.Raw)
+		if !ok || len(env.Members) != len(members) {
+			t.Fatalf("%s: snapshot is not a five-member envelope: %.120s", c.id, snap.Raw)
+		}
+		// shareFleetFixture(1) is four nodes: VLESS, Hysteria2 and two ss.
+		for _, member := range env.Members {
+			if want := map[bool]int{true: 4, false: 0}[c.nodes]; len(member.Nodes) != want {
+				t.Fatalf("%s: member %s carries %d nodes, want %d", c.id, member.SubName, len(member.Nodes), want)
+			}
+		}
+		if omitted := env.NodesOmitted; (omitted == nodesOmittedFallback) == c.nodes {
+			t.Fatalf("%s: nodes_omitted %q", c.id, omitted)
+		}
 	}
 }
 
