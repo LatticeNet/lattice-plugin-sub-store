@@ -292,7 +292,9 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// migrated from an oversized legacy document can hold 300 records (302).
 		// Before migration it reads the legacy document and one program key per
 		// script file instead.
-		pluginID + "/subscription/export": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 320},
+		// Its reply carries the backup as a JSON string, escaped twice;
+		// exportReply refuses past maxExportReplyBytes rather than be killed.
+		pluginID + "/subscription/export": {TimeoutMS: 5_000, StdoutBytes: 8 << 20, StderrBytes: 32 << 10, HostCalls: 320},
 		// import reads the index, writes each record and the index once, and
 		// writes Settings: N + 3, which 320 covers for the largest store export
 		// produces (300 records).

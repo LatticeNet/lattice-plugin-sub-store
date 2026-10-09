@@ -573,7 +573,11 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
-		return latticeplugin.RawResultResponse(mustJSON(map[string]any{"backup": string(body)}), "")
+		reply, err := exportReply(body)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(reply, "")
 	case "import":
 		var req struct {
 			Backup string `json:"backup"`

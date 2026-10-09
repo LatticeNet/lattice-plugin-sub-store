@@ -386,11 +386,12 @@ export const MIGRATE_STORE_CHUNK = 64;
 
 /**
  * Calls one migration may take. A chunk stops early when its record frames
- * reach the runtime's byte bound, so the worst store (256 records, each too
- * large to share a call) takes one call per record, then the verify call and
- * the legacy program deletes. A call that changes nothing stops the run first.
+ * reach the runtime's byte bound, so the worst store takes one call per
+ * record (a legacy document over the record cap can hold 300), then the
+ * verify call and the legacy program deletes. A call that changes nothing
+ * stops the run first, so the bound only has to be generous.
  */
-export const MIGRATE_STORE_MAX_CALLS = 256 + 16;
+export const MIGRATE_STORE_MAX_CALLS = 512;
 
 /**
  * What a migrate_store reply says is left to do. Two replies with the same

@@ -359,7 +359,7 @@
           ],
           "budget": {
             "timeout_ms": 5000,
-            "stdout_bytes": 4194304,
+            "stdout_bytes": 8388608,
             "stderr_bytes": 32768,
             "host_calls": 320
           }

@@ -448,7 +448,7 @@ func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (batchOutcom
 	// that cannot fit is refused whole here rather than cut off after some of
 	// its records have landed.
 	if frames > maxBatchFrameBytes {
-		return out, fmt.Errorf("%s: these records take %d bytes to write and one call may write %d; split them across smaller imports", batchTooLargeCode, frames, maxBatchFrameBytes)
+		return out, fmt.Errorf("%s: these records take %d bytes to write and one call may write %d", batchTooLargeCode, frames, maxBatchFrameBytes)
 	}
 	for i, rec := range pending {
 		if err := rt.kvPut(recordKey(rec.ID), encoded[i]); err != nil {

@@ -86,7 +86,8 @@ func TestWriteBudgetsCoverTheirLargestFrames(t *testing.T) {
 	withRecord := maxRecordDocBytes + reply
 	// publish sends the body as base64 to a destination of at most
 	// maxLinkBytes, beside the render's reads and the script requests.
-	published := hostCallFrameOverhead + base64.StdEncoding.EncodedLen(maxPublishBytes) + maxLinkBytes + 1<<10
+	// A destination of maxLinkBytes can grow six times as escaped JSON.
+	published := hostCallFrameOverhead + base64.StdEncoding.EncodedLen(maxPublishBytes) + 6*maxLinkBytes + 1<<10
 	scripts := scriptHTTPMaxRequestBytes + scriptHTTPMaxCalls*hostCallFrameOverhead
 	need := map[string]int{
 		"engine/save_pipeline":   pipelines + 2*small + reply,
@@ -107,6 +108,14 @@ func TestWriteBudgetsCoverTheirLargestFrames(t *testing.T) {
 		"subscription/save_settings":  settings + small + maxSettingsBytes,
 		"subscription/publish":        published + scripts + 143*small + reply,
 		"subscription/apply_revision": reply,
+	}
+	// Methods marked read that answer with a large reply are held the same way.
+	for key, want := range map[string]int{
+		"subscription/export": maxExportReplyBytes + 320*small,
+	} {
+		if got := budgets[pluginID+"/"+key].StdoutBytes; got < want {
+			t.Errorf("%s signs %d stdout bytes; its largest reply needs %d", key, got, want)
+		}
 	}
 	for _, iface := range loadManifestInterfaces(t) {
 		service := strings.TrimPrefix(iface.Service, pluginID+"/")
@@ -177,5 +186,33 @@ func TestImportRefusesABatchTooLargeToWriteBeforeWritingAny(t *testing.T) {
 	out, err := rt.importBackup(raw)
 	if err != nil || len(out.Imported) != 10 {
 		t.Fatalf("a batch inside the bound: %+v, %v", out, err)
+	}
+}
+
+// An export too large for one reply is refused with a reason before core
+// would kill it, and one inside the bound still goes out whole.
+func TestExportRefusesABackupTooLargeForOneReply(t *testing.T) {
+	rt, _ := newKVRuntime(t)
+	content := strings.Repeat("vless://u@h:1?a=1&b=2#\"n\"\n", (maxSubscriptionInlineBytes-1024)/26)
+	for i := 0; i < 30; i++ {
+		if err := rt.saveSubscription(subscriptionRecord{ID: fmt.Sprintf("big-%02d", i), Name: "big", Kind: "sub", Source: "local", Content: content}); err != nil {
+			t.Fatalf("seed %d: %v", i, err)
+		}
+	}
+	res := callSubscription(t, rt, "export", map[string]any{})
+	if res.OK || !strings.Contains(res.Error, exportTooLargeCode) {
+		t.Fatalf("an export past the reply bound was not refused: ok=%v %s", res.OK, res.Error)
+	}
+	for i := 5; i < 30; i++ {
+		if res := callSubscription(t, rt, "delete", map[string]any{"subscription_id": fmt.Sprintf("big-%02d", i)}); !res.OK {
+			t.Fatalf("delete %d: %s", i, res.Error)
+		}
+	}
+	res = callSubscription(t, rt, "export", map[string]any{})
+	if !res.OK {
+		t.Fatalf("an export inside the bound was refused: %s", res.Error)
+	}
+	if raw := mustJSON(res.Result); len(raw) > maxExportReplyBytes {
+		t.Fatalf("export answered %d bytes, bound %d", len(raw), maxExportReplyBytes)
 	}
 }
