@@ -164,20 +164,32 @@ type subscriptionRenderRequest struct {
 	SubscriptionID string
 	Format         string
 	UAClass        string
-	Target         string
-	Options        map[string]bool
-	Raw            string
-	Query          map[string]string
+	// UATarget is the client target the core derived from the agent when the
+	// URL named none (lattice-server share_render_plan.go). It ranks below
+	// the record's pin and above this plugin's own ua_class table: the core
+	// sends ua_class "clash" to a mihomo client for the sake of plugins that
+	// predate the clashmeta class, and only ua_target says ClashMeta.
+	UATarget string
+	Target   string
+	Options  map[string]bool
+	Raw      string
+	Query    map[string]string
 	// Explain asks for the diagnosis alongside the document.
 	Explain bool
 }
 
 // resolveRenderTarget picks the client for one render. Priority is explicit
-// caller target, then the record's pin, then the UA classification, then the
-// universally accepted URI list — an operator or URL that names a client is
-// never overridden by a header.
-func resolveRenderTarget(rec subscriptionRecord, explicit, uaClass string) string {
+// caller target, then the record's pin, then the core's target for the
+// agent, then the UA classification, then the universally accepted URI list.
+// An operator or URL that names a client is never overridden by a header.
+func resolveRenderTarget(rec subscriptionRecord, explicit, uaTarget, uaClass string) string {
 	if t := strings.TrimSpace(explicit); t != "" {
+		return t
+	}
+	if t := strings.TrimSpace(rec.Target); t != "" {
+		return t
+	}
+	if t := strings.TrimSpace(uaTarget); t != "" {
 		return t
 	}
 	return subscriptionTarget(rec, uaClass)
@@ -243,7 +255,7 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
-	target := resolveRenderTarget(rec, requestTarget(req), uaClass)
+	target := resolveRenderTarget(rec, requestTarget(req), req.UATarget, uaClass)
 
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
@@ -999,6 +1011,9 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			SubscriptionID string `json:"subscription_id"`
 			Format         string `json:"format"`
 			UAClass        string `json:"ua_class"`
+			// UATarget is what the core resolved from the agent; it travels
+			// only when the URL named no target (subscriptionRenderRequest).
+			UATarget string `json:"ua_target"`
 			// Target names the client explicitly — the parity contract with
 			// Sub-Store, whose subscription URLs carry ?target=. An explicit
 			// target outranks both the record's pin and the UA class: the
@@ -1025,6 +1040,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			SubscriptionID: req.SubscriptionID,
 			Format:         req.Format,
 			UAClass:        req.UAClass,
+			UATarget:       req.UATarget,
 			Target:         req.Target,
 			Options:        req.Options,
 			Raw:            req.Raw,
