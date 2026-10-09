@@ -481,9 +481,12 @@ func encodeURIComponent(s string) string {
 }
 
 // splitTrimNonEmpty splits on sep, trims each piece and drops empty pieces.
+// The list is sized once: a line may hold some 30000 pieces, and growing the
+// list piece by piece doubled the cost per piece at that length.
 func splitTrimNonEmpty(s, sep string) []any {
-	out := []any{}
-	for _, p := range strings.Split(s, sep) {
+	parts := strings.Split(s, sep)
+	out := make([]any, 0, len(parts))
+	for _, p := range parts {
 		if p = TrimECMAScript(p); p != "" {
 			out = append(out, p)
 		}
