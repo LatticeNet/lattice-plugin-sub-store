@@ -64,12 +64,8 @@ func TestMigrationIsIdempotent(t *testing.T) {
 	if _, err := rt.migrateFromSubStore(subStoreRequest{BaseURL: "https://source.invalid/secret"}); err != nil {
 		t.Fatalf("second migrate: %v", err)
 	}
-	list, err := rt.listSubscriptions()
-	if err != nil {
-		t.Fatalf("list: %v", err)
-	}
-	if len(list) != 2 {
-		t.Fatalf("a second run duplicated records: %d entries", len(list))
+	if list := listedEntries(t, rt); len(list) != 2 {
+		t.Fatalf("a second run duplicated records: %d entries", len(listedEntries(t, rt)))
 	}
 }
 

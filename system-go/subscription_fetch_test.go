@@ -86,7 +86,7 @@ func TestFetchReturnsBodyAndTrafficHeader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetch: %v", err)
 	}
-	if out.Raw != string(host.body) {
+	if snapshotText(out.Raw) != string(host.body) {
 		t.Fatalf("raw = %q", out.Raw)
 	}
 	if out.Userinfo != "upload=1; download=2; total=3" {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -9,44 +8,27 @@ import (
 //
 // The other two file types treat the stored text as the document: a config gets
 // its `proxies` replaced, plain text is served as written. Neither can express
-// the shape operators actually use upstream, where the script IS the file — it
+// the shape operators actually use upstream, where the script IS the file: it
 // asks the store for a named collection's nodes, assembles rules, DNS, groups
 // and listeners itself, and assigns the result to `$content`.
 //
-// Storage is deliberately split. Generator scripts run 25–60 KB each, and the
-// record document is one KV value holding every subscription, combination and
-// file: putting scripts inside it would mean re-encoding half a megabyte of
-// JavaScript on every unrelated edit, and would run the document into its own
-// 1 MB cap after a dozen files. Each script gets its own key instead, and the
-// record carries none of it.
+// The program lives in the record's Content on the split store. The legacy
+// store kept it under its own key, because every record shared one document
+// with a 1 MiB cap; with one key per record that reason is gone, and a
+// separate key would cost get, render and export one host call per script.
 const fileTypeScript = "script"
 
-// maxFileScriptBytes bounds one script. Comfortably above the largest real
-// generator, and low enough that a runaway paste cannot fill the store.
-const maxFileScriptBytes = 512 << 10
-
-// fileScriptKey is where one file's program lives. Versioned like the record
-// document so a future format change does not have to guess what it is reading.
+// fileScriptKey is where the legacy store kept one file's program. Only
+// migrate_store and the legacy reader read it, and migrate_store deletes it
+// once the split store is verified.
 //
 // The separator is a dash, not a slash: the server's plugin KV validates keys
-// with validateStorageName and refuses slashes outright (a slash would let one
-// record masquerade as another in composite paths). The slash spelling of this
-// key never survived contact with a real host — every test host accepted it,
-// and production answered "plugin kv key must not contain a slash" on the first
-// script save (2026-08-11).
+// with validateStorageName and refuses slashes outright.
 func fileScriptKey(id string) string {
 	return "subscription-script-v1-" + id
 }
 
-// putFileScript stores a program under its own key.
-func (rt *runtime) putFileScript(id, script string) error {
-	if len(script) > maxFileScriptBytes {
-		return fmt.Errorf("file %q script is too large: %d bytes, limit %d", id, len(script), maxFileScriptBytes)
-	}
-	return rt.kvPut(fileScriptKey(id), []byte(script))
-}
-
-// getFileScript returns a program, or "" when the file has none stored.
+// getFileScript returns a legacy program, or "" when none is stored.
 func (rt *runtime) getFileScript(id string) (string, error) {
 	value, found, err := rt.kvGet(fileScriptKey(id))
 	if err != nil {
@@ -56,17 +38,6 @@ func (rt *runtime) getFileScript(id string) (string, error) {
 		return "", nil
 	}
 	return string(value), nil
-}
-
-// clearFileScript empties a program's key.
-//
-// The host exposes kv.get and kv.put and no delete, so this writes zero bytes
-// rather than removing the key. An empty value costs nothing and the record
-// count is capped, so the worst case is a bounded number of empty keys — but it
-// IS a tombstone rather than a deletion, and the difference matters if the key
-// space is ever enumerated.
-func (rt *runtime) clearFileScript(id string) error {
-	return rt.kvPut(fileScriptKey(id), nil)
 }
 
 // isScriptFile reports whether a record's document is built by a program.

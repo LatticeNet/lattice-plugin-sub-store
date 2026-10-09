@@ -31,11 +31,18 @@
 #       - drop_entries:                    delete array elements that are
 #           field: <key>                   objects whose field equals one
 #           equals: [<value>, ...]         of the values, at any depth
+#       - drop_entries_with_keys:          delete array elements that are
+#           [<key>, ...]                   objects carrying any of the keys
+#                                          (matched without regard to case),
+#                                          at any depth; parse stage only
 #
 # A strip_keys pattern may not match the empty key or any key in
 # PROTECTED_KEYS (oracle/lib/allowlist.mjs: node identity, document
-# containers, canonical structure), and drop_entries needs at least one value,
-# so one entry cannot hide a whole node or document.
+# containers, canonical structure), drop_entries needs at least one value,
+# and drop_entries_with_keys may not name a node identity key or a document
+# container (DROP_GUARD_KEYS) and applies only at parse stage, where every
+# array element is a node, so one entry cannot hide a whole node list or
+# document.
 #
 # A divergence counts as allowed only when the comparison fails without the
 # normalisation and passes with it; conformance.json records which ids were
@@ -47,12 +54,12 @@
 #
 # external drops the elements whose type is external. Upstream's Clash
 # reader rejects that type, so such a node only comes from a Surge external
-# line, whose type keyword is lower case. The other half of rule H3, nodes
-# of any type that carry exec, args, local-port, local-address or
-# local_address, has no normalisation in this schema (drop_entries matches a
-# field's value, not a key's presence), so the cases that exercise it
-# (clash-hostile-exec-key, tuic-hostile-exec-query) still count as parse
-# failures for an implementation of H3 until the schema can state it.
+# line, whose type keyword is lower case. Its second step states the other
+# half of rule H3: a node of any type that carries exec, args, local-port,
+# local-address or local_address is dropped too (clash-hostile-exec-key,
+# tuic-hostile-exec-query). drop_entries_with_keys was added for this half
+# (design 28, decision of 2026-10-09); before it, the schema could match a
+# field's value but not a key's presence.
 #
 # underscore and ca apply to the cases whose nodes come from Clash or mihomo
 # objects, which are the cases whose ids start with clash-. In every other
@@ -79,6 +86,7 @@ divergences:
       - drop_entries:
           field: type
           equals: [external]
+      - drop_entries_with_keys: [exec, args, local-port, local-address, local_address]
   - id: underscore
     stage: parse
     cases: [clash-]

@@ -134,17 +134,17 @@ func (rt *runtime) migrateFromSubStore(req subStoreRequest) (migrationReport, er
 	// Order matters. A combination names its members and a file names its node
 	// source, so both must be written after the records they point at exist —
 	// otherwise the first render is the thing that discovers the reference is
-	// dangling. One flush at the end makes even that moot: everything lands in
-	// a single document write, so members exist the same instant the reference
-	// does.
+	// dangling. One flush at the end makes even that moot: the index is
+	// written once, after every record, so members are listed the same instant
+	// the reference is.
 	rt.importUpstreamCollections(collections, &report, &pending)
 	rt.importUpstreamFiles(files, &report, &pending)
-	batchSkipped, err := rt.saveSubscriptionBatch(pending)
+	batch, err := rt.saveSubscriptionBatch(pending)
 	if err != nil {
 		return migrationReport{}, fmt.Errorf("persist migrated records: %w", err)
 	}
 	// Reconcile the eager Imported marks with what the batch actually stored.
-	for id, why := range batchSkipped {
+	for id, why := range batch.skipped {
 		report.Skipped[id] = why
 		report.Imported = slices.DeleteFunc(report.Imported, func(x string) bool { return x == id })
 	}

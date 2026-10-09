@@ -15,8 +15,9 @@ import (
 // against. The scripted fakeHostCaller in main_test.go replays a fixed list of
 // responses, which cannot model read-after-write.
 type kvHostCaller struct {
-	values map[string][]byte
-	puts   int
+	values  map[string][]byte
+	puts    int
+	deletes []string
 }
 
 func newKVHostCaller() *kvHostCaller {
@@ -46,6 +47,10 @@ func (k *kvHostCaller) call(method string, params any) (json.RawMessage, error) 
 			return json.RawMessage(`{"ok":false}`), nil
 		}
 		return json.RawMessage(`{"ok":true,"value_base64":"` + base64.StdEncoding.EncodeToString(value) + `"}`), nil
+	case latticeplugin.HostMethodKVDelete:
+		delete(k.values, p.Key)
+		k.deletes = append(k.deletes, p.Key)
+		return json.RawMessage(`{"ok":true}`), nil
 	default:
 		return nil, nil
 	}
@@ -119,13 +124,12 @@ func TestSubscriptionRecordRoundTrip(t *testing.T) {
 	if got.Name != "provider" || got.URL != "https://example.invalid/sub" || got.Target != "Surge" {
 		t.Fatalf("round trip lost data: %+v", got)
 	}
-	if got.SchemaVersion != 1 {
-		t.Fatalf("schema version = %d, want 1", got.SchemaVersion)
+	if got.SchemaVersion != recordSchemaVersion {
+		t.Fatalf("schema version = %d, want %d", got.SchemaVersion, recordSchemaVersion)
 	}
 
-	list, err := rt.listSubscriptions()
-	if err != nil || len(list) != 1 {
-		t.Fatalf("list = %v, %v", list, err)
+	if list := listedEntries(t, rt); len(list) != 1 {
+		t.Fatalf("list = %v", list)
 	}
 }
 
@@ -137,10 +141,7 @@ func TestSubscriptionSaveReplacesRatherThanDuplicates(t *testing.T) {
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", Name: "second"}); err != nil {
 		t.Fatalf("save second: %v", err)
 	}
-	list, err := rt.listSubscriptions()
-	if err != nil {
-		t.Fatalf("list: %v", err)
-	}
+	list := listedEntries(t, rt)
 	if len(list) != 1 {
 		t.Fatalf("save duplicated the record: %d entries", len(list))
 	}
@@ -189,22 +190,47 @@ func TestSubscriptionDelete(t *testing.T) {
 	}
 }
 
-func TestSubscriptionRecordsStayOrdered(t *testing.T) {
+// The store keeps the operator's manual order: a new record goes last, an
+// edit keeps its place, and reorder is the only thing that moves a row.
+func TestSubscriptionRecordsKeepManualOrder(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	for _, id := range []string{"c", "a", "b"} {
 		if err := rt.saveSubscription(subscriptionRecord{ID: id, Name: id}); err != nil {
 			t.Fatalf("save %s: %v", id, err)
 		}
 	}
-	list, err := rt.listSubscriptions()
-	if err != nil {
-		t.Fatalf("list: %v", err)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "c", Name: "c renamed"}); err != nil {
+		t.Fatalf("edit c: %v", err)
 	}
-	var ids []string
-	for _, rec := range list {
-		ids = append(ids, rec.ID)
+	order := func() string {
+		var ids []string
+		for i, entry := range listedEntries(t, rt) {
+			if entry.Order != i {
+				t.Fatalf("entry %s has order %d at position %d", entry.ID, entry.Order, i)
+			}
+			ids = append(ids, entry.ID)
+		}
+		return strings.Join(ids, ",")
 	}
-	if strings.Join(ids, ",") != "a,b,c" {
-		t.Fatalf("records are not ordered: %v", ids)
+	if got := order(); got != "c,a,b" {
+		t.Fatalf("order = %s, want the order records were created in (c,a,b)", got)
+	}
+	if res := callSubscription(t, rt, "reorder", map[string]any{"ids": []string{"b", "c", "a"}}); !res.OK {
+		t.Fatalf("reorder: %s", res.Error)
+	}
+	if got := order(); got != "b,c,a" {
+		t.Fatalf("order after reorder = %s, want b,c,a", got)
+	}
+	for name, ids := range map[string][]string{
+		"missing one": {"b", "c"},
+		"duplicate":   {"b", "b", "a"},
+		"unknown":     {"b", "c", "zzz"},
+	} {
+		if res := callSubscription(t, rt, "reorder", map[string]any{"ids": ids}); res.OK {
+			t.Fatalf("reorder %s was accepted", name)
+		}
+	}
+	if got := order(); got != "b,c,a" {
+		t.Fatalf("a refused reorder moved rows: %s", got)
 	}
 }

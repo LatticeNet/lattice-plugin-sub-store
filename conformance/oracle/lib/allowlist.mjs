@@ -22,6 +22,12 @@ export const PROTECTED_KEYS = [
     'address', 'args', 'params', 'section', 'key', 'value', 'header', 'comment', 'raw', 'unparsed',
 ];
 
+// Keys a drop_entries_with_keys step may never name: every node carries its
+// identity keys and every document its container, so naming one would drop
+// every node or the whole document rather than the nodes that carry a
+// divergent key.
+export const DROP_GUARD_KEYS = ['type', 'name', 'server', 'port', 'proxies', 'outbounds', 'endpoints'];
+
 export function loadAllowlist(file) {
     const doc = YAML.parse(fs.readFileSync(file, 'utf8')) ?? {};
     const entries = doc.divergences;
@@ -72,6 +78,15 @@ export function loadAllowlist(file) {
                 if (!d || typeof d.field !== 'string' || d.field === '' || !Array.isArray(d.equals) || d.equals.length === 0) {
                     throw new Error(`${where}: drop_entries needs field and equals`);
                 }
+            } else if (keys[0] === 'drop_entries_with_keys') {
+                const list = step.drop_entries_with_keys;
+                if (e.stage !== 'parse') throw new Error(`${where}: drop_entries_with_keys applies only at parse stage, where every array element is a node`);
+                if (!Array.isArray(list) || list.length === 0 || list.some((k) => typeof k !== 'string' || k === '')) {
+                    throw new Error(`${where}: drop_entries_with_keys needs a list of keys`);
+                }
+                const hit = list.find((k) => DROP_GUARD_KEYS.includes(k.toLowerCase()));
+                if (hit) throw new Error(`${where}: drop_entries_with_keys names ${hit}, which every node or document carries`);
+                step.dropKeys = new Set(list.map((k) => k.toLowerCase()));
             } else {
                 throw new Error(`${where}: unknown normalise kind ${keys[0]}`);
             }
@@ -109,6 +124,9 @@ function applyStep(v, step, parentKey) {
         if (step.drop_entries) {
             const { field, equals } = step.drop_entries;
             arr = arr.filter((x) => !(x && typeof x === 'object' && !Array.isArray(x) && equals.includes(x[field])));
+        }
+        if (step.dropKeys) {
+            arr = arr.filter((x) => !(x && typeof x === 'object' && !Array.isArray(x) && Object.keys(x).some((k) => step.dropKeys.has(k.toLowerCase()))));
         }
         if (step.re && parentKey === 'query') {
             arr = arr.filter((pair) => !(Array.isArray(pair) && typeof pair[0] === 'string' && step.re.test(pair[0])));

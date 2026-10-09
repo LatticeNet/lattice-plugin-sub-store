@@ -22,13 +22,15 @@ func fetchViaMethod(t *testing.T, rt *runtime, id string) response {
 	return rt.handleSubscriptionCall(callPayload{Method: "fetch", Payload: raw})
 }
 
+// storedRecord is the record with the bookkeeping fetch wrote, which lives in
+// its index entry.
 func storedRecord(t *testing.T, rt *runtime, id string) subscriptionRecord {
 	t.Helper()
 	rec, err := rt.getSubscription(id)
 	if err != nil {
 		t.Fatalf("get %q: %v", id, err)
 	}
-	return rec
+	return withBookkeeping(rec, indexEntryOf(t, rt, id))
 }
 
 func TestFetchMethodRecordsSuccessOnTheRecord(t *testing.T) {
@@ -55,7 +57,7 @@ func TestFetchMethodRecordsSuccessOnTheRecord(t *testing.T) {
 	}
 	// The snapshot body stays first class — the core stores `raw` — and the
 	// management fields ride alongside it.
-	if out.Raw != string(host.body) || out.Bytes != len(host.body) || out.SubscriptionID != "s1" {
+	if snapshotText(out.Raw) != string(host.body) || out.Bytes != len(out.Raw) || out.SubscriptionID != "s1" {
 		t.Fatalf("unexpected fetch reply: %s", string(res.Result))
 	}
 	if _, err := time.Parse(time.RFC3339, out.FetchedAt); err != nil {
