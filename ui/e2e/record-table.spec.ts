@@ -281,7 +281,7 @@ for (const locale of LOCALES) {
         expect(await leftInEnglish(page, locale)).toEqual([]);
       });
 
-      test("the chain editor names every step whole beside its controls", async ({ page }) => {
+      test("the chain editor names every step whole beside its controls, and its pane keeps its buttons inside", async ({ page }) => {
         await open(page, "&fixture=states&manifest=s1", "record-row", locale);
         await rowNamed(page, "lookahead-provider").getByTestId("record-name").click();
         await page.locator(".pc-side-panel").getByRole("button", { name: t.actions.edit, exact: true }).click();
@@ -289,6 +289,15 @@ for (const locale of LOCALES) {
         await page.locator(".step-bar").first().waitFor();
         // On a phone the toggle's word and five buttons left the name its number alone.
         expect(await cutAmong(page, [".step-label", ".step-toggle", ".step-actions"])).toEqual([]);
+        // The pane under the form: Explain and Preview take a row each when one cannot hold both.
+        const pastPane = await page.locator(".editor-side .pc-panel-header").evaluate((header) => {
+          const edge = header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight);
+          return [...header.querySelectorAll(".pc-panel-header-end > *")]
+            .map((button) => [button.textContent?.trim(), Math.round(button.getBoundingClientRect().right - edge)] as const)
+            .filter(([, past]) => past > 1)
+            .map(([words, past]) => `${words}: ${past}px past the pane's edge`);
+        });
+        expect(pastPane).toEqual([]);
         expect(await docWidth(page)).toBe(viewport.width);
         expect(await leftInEnglish(page, locale)).toEqual([]);
       });

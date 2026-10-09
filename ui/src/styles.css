@@ -926,8 +926,12 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   max-height: none;
   overflow: visible;
 }
-/* The heading is one phrase; the buttons wrap under it before it breaks. */
+/* The heading is one phrase; the buttons wrap under it before it breaks, and
+   under each other when one row cannot hold them. The pane lets overflow show
+   (above), so two buttons that did not fit ran past the frame: CI's Linux face
+   drew "Разобрать цепочку" and "Предпросмотр" 15px past it at 375. */
 .editor-side .pc-panel-header h2 { white-space: nowrap; }
+.editor-side .pc-panel-header-end { flex-wrap: wrap; }
 .editor-side-note {
   margin: 0;
   color: var(--muted-foreground);
