@@ -339,9 +339,35 @@ test.describe("a chain the native engine cannot run", () => {
     expect(await seriousViolations(page)).toEqual([]);
     await offer.getByRole("button", { name: "Rewrite step 1" }).click();
     await expect(offer).toContainText("Save again");
+    // The notice and the message beside Save follow the chain, not the refusal.
+    await expect(offer).toContainText("Every pattern in the chain runs natively now");
+    await expect(offer).not.toContainText("cannot run");
+    await expect(page.locator(".editor-actions")).not.toContainText("Not saved");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByTestId("record-row").first()).toBeVisible();
     await expect(rowNamed(page, "lookahead-provider").getByTestId("record-flagged")).toHaveCount(0);
   });
 
+  test("a flagged record says so in its panel and on its page, and its editor offers the rewrite before any save", async ({ page }) => {
+    await open(page, "&fixture=states&manifest=s1", "record-row");
+    await rowNamed(page, "lookahead-provider").getByTestId("record-name").click();
+    const panel = page.locator(".pc-side-panel");
+    await expect(panel.getByTestId("record-flagged")).toBeVisible();
+    await panel.getByRole("button", { name: "Open page" }).click();
+    const head = page.locator(".record-head");
+    await expect(head.getByTestId("record-flagged")).toBeVisible();
+    await head.getByRole("button", { name: "Edit" }).click();
+    // Nothing changed and nothing saved: the step and its rewrite are named at once.
+    const offer = page.getByTestId("regex-rewrite-offer");
+    await expect(offer).toBeVisible();
+    await expect(offer).toContainText("Step 1");
+    await expect(offer).toContainText("^(?!.*(过期|剩余|官网)).*$");
+    expect(await seriousViolations(page)).toEqual([]);
+    await offer.getByRole("button", { name: "Rewrite step 1" }).click();
+    await expect(offer).toContainText("Every pattern in the chain runs natively now");
+    await expect(offer).toContainText("Save to store it");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(rowNamed(page, "lookahead-provider")).toBeVisible();
+    await expect(rowNamed(page, "lookahead-provider").getByTestId("record-flagged")).toHaveCount(0);
+  });
 });

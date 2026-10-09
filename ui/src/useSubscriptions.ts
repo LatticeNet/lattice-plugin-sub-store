@@ -510,9 +510,22 @@ export function useSubscriptions(host: HostContext) {
    * Why the last save was refused, when the reason is one the editor can act
    * on: a pattern the native engine cannot run (`regex_incompatible`). The
    * diagnostics are read from the draft the save carried, so the editor can
-   * name the step and offer the rewrite. Cleared by the next save.
+   * name the step and offer the rewrite; `message` is what was put beside
+   * Save, so it can be withdrawn once the chain no longer has the pattern.
+   * Cleared by the next save.
    */
-  const saveRefusal = ref<{ code: string; diagnostics: RegexDiagnostic[] } | null>(null);
+  const saveRefusal = ref<{ code: string; diagnostics: RegexDiagnostic[]; message: string } | null>(null);
+
+  /**
+   * The chain on screen no longer has what the last save was refused for, so
+   * "Not saved: step 1 uses lookaround" beside Save is no longer true. Only
+   * that message is withdrawn: a later failure (a preview, a conflict) put its
+   * own message there and keeps it.
+   */
+  function settleRefusal(): void {
+    const refusal = saveRefusal.value;
+    if (refusal && actionError.value === refusal.message) actionError.value = "";
+  }
 
   /**
    * A write refused because the store is still the legacy single document.
@@ -728,11 +741,12 @@ export function useSubscriptions(host: HostContext) {
     } catch (cause) {
       if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
         const diagnostics = regexDiagnostics(draft.process);
-        saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics };
         const steps = [...new Set(diagnostics.map((entry) => entry.step))];
-        actionError.value = steps.length
+        const message = steps.length
           ? `Not saved: ${steps.length === 1 ? `step ${steps[0]} uses` : `steps ${steps.slice(0, -1).join(", ")} and ${steps.at(-1)} use`} lookaround or a backreference, which the native engine cannot run.`
           : `Not saved: ${safeErrorMessage(cause, "a pattern in the chain cannot run natively")}`;
+        saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics, message };
+        actionError.value = message;
         return false;
       }
       actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, "Subscription could not be saved");
@@ -1220,6 +1234,7 @@ export function useSubscriptions(host: HostContext) {
     staleError,
     storeVersion,
     saveRefusal,
+    settleRefusal,
     migration,
     operatorsState,
     graphOptions,

@@ -504,9 +504,15 @@ const chainCount = computed(() => (draft.value.process as unknown[]).length);
         </PcPanelBody>
       </PcPanel>
 
-      <!-- A save refused for a pattern the native engine cannot run: next to
-           the Save that was refused and under the chain it is about. -->
-      <RegexRewriteOffer :refusal="subs.saveRefusal.value" :chain="draft.process" @apply="(chain) => (draft.process = chain)" />
+      <!-- A pattern the native engine cannot run, from the moment the record
+           opens: next to Save, which it refuses once the chain changes, and
+           under the chain it is about. -->
+      <RegexRewriteOffer
+        :refusal="subs.saveRefusal.value"
+        :chain="draft.process"
+        @apply="(chain) => (draft.process = chain)"
+        @resolved="subs.settleRefusal()"
+      />
 
       <div class="editor-actions">
         <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>

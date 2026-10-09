@@ -201,14 +201,32 @@ describe("a save the split store refuses", () => {
     const subs = useSubscriptions(host);
     await subs.load();
     expect(await subs.save(draft())).toBe(false);
+    const message = "Not saved: step 1 uses lookaround or a backreference, which the native engine cannot run.";
     expect(subs.saveRefusal.value).toEqual({
       code: ERROR_REGEX_INCOMPATIBLE,
       diagnostics: [{ step: 1, type: "Regex Filter", pattern: "^(?!.*(过期|官网)).*$", rewrite: "过期|官网" }],
+      message,
     });
-    expect(subs.actionError.value).toBe("Not saved: step 1 uses lookaround or a backreference, which the native engine cannot run.");
+    expect(subs.actionError.value).toBe(message);
     // The next attempt starts clean, and leaving the editor clears it too.
     subs.clearErrors();
     expect(subs.saveRefusal.value).toBeNull();
+  });
+
+  it("withdraws its own message beside Save once the chain is fixed, and nobody else's", async () => {
+    const { host } = storeHost({ list: [LISTED], save: [new Error("regex_incompatible: step 1 pattern needs lookaround")] });
+    const subs = useSubscriptions(host);
+    await subs.load();
+    expect(await subs.save(draft())).toBe(false);
+    subs.settleRefusal();
+    expect(subs.actionError.value).toBe("");
+    // The refusal itself stays, so the editor can say the chain is fixed and to save again.
+    expect(subs.saveRefusal.value?.code).toBe(ERROR_REGEX_INCOMPATIBLE);
+
+    expect(await subs.save(draft())).toBe(false);
+    subs.actionError.value = "The preview could not run.";
+    subs.settleRefusal();
+    expect(subs.actionError.value).toBe("The preview could not run.");
   });
 
   it("names the migration rather than the raw code when the store is still legacy", async () => {

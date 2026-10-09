@@ -13,6 +13,7 @@ import {
   reachingShares,
   sourceKindLabel,
 } from "../pipeline";
+import { TEXT as TABLE_TEXT, isFlagged } from "../recordTable";
 import type { Pipeline } from "../usePipeline";
 import { copyText } from "../hostClipboard";
 import { refreshStateFor, shareLinkOf, stateTone } from "../shareState";
@@ -177,9 +178,12 @@ function publish(): void {
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
         <PcKindChip v-if="record.imported" label="migrated" title="Imported from a standalone Sub-Store" />
+        <PcStateDot v-if="isFlagged(record)" tone="warning" :label="TABLE_TEXT.flagged" :title="TABLE_TEXT.flaggedTitle" data-testid="record-flagged" />
       </div>
       <!-- The reason behind a broken state; a warning's facts are in the list below. -->
       <p v-if="health.tone === 'error'" class="peek-why">{{ health.title }}</p>
+      <!-- The flag's reason in words, with the way out: Edit, below. -->
+      <p v-if="isFlagged(record)" class="peek-why">{{ TABLE_TEXT.flaggedTitle }}</p>
 
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">

@@ -65,7 +65,7 @@ export const TEXT = {
   notFetched: "Only a provider link is refreshed. This record's nodes are already in hand.",
   flagged: "regex rewrite",
   flaggedTitle:
-    "A pattern in this record's chain uses lookaround or a backreference, which the native engine cannot run. It keeps rendering on the fallback path; editing the step offers a rewrite.",
+    "A pattern in this record's chain uses lookaround or a backreference, which the native engine cannot run. It keeps rendering on the fallback path; Edit names the step and offers a rewrite where one exists.",
   steps: (count: number, off: number) => `${plural(count, "step")}${off ? `, ${off} turned off` : ""}.`,
   stepsOff: (off: number) => `${off} off`,
   stepsTarget: (target: string) => `Always rendered for ${target}.`,
