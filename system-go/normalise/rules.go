@@ -973,9 +973,17 @@ func wireGuard(f map[string]any) error {
 			}
 		}
 	}
+	WireGuardInterface(f)
+	return nil
+}
+
+// WireGuardInterface is the interface address normalisation of N35 alone:
+// ip and ipv6 become bare literals of their family with the prefix in
+// ip-cidr and ipv6-cidr. The producers' WireGuard step runs it again, because
+// an operator or a script may write an address after the parse.
+func WireGuardInterface(f map[string]any) {
 	interfaceAddress(f, "ip", "ip-cidr", IsIPv4Literal, 32)
 	interfaceAddress(f, "ipv6", "ipv6-cidr", IsIPv6Literal, 128)
-	return nil
 }
 
 // interfaceAddress is normaliser.md section 2.3 for one address family.
