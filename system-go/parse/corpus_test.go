@@ -70,19 +70,24 @@ func corpusCases(t testing.TB, root string) []corpusCase {
 // divergence is one entry of allowlist/divergences.yaml, read as the
 // harness's oracle/lib/allowlist.mjs reads it.
 type divergence struct {
-	ID        string   `yaml:"id"`
-	Stage     string   `yaml:"stage"`
-	Pending   string   `yaml:"pending"`
-	Cases     []string `yaml:"cases"`
-	Normalise []struct {
-		StripKeys   string `yaml:"strip_keys"`
-		DropEntries *struct {
-			Field  string `yaml:"field"`
-			Equals []any  `yaml:"equals"`
-		} `yaml:"drop_entries"`
-	} `yaml:"normalise"`
+	ID      string
+	Stage   string
+	Pending string
+	Cases   []string
+	Steps   []normaliseStep
 }
 
+// normaliseStep is one normalisation of an entry. Exactly one kind is set.
+type normaliseStep struct {
+	stripKeys  *regexp.Regexp  // strip_keys: delete matching keys at any depth
+	dropField  string          // drop_entries: delete objects whose field
+	dropEquals []any           // equals one of the values
+	dropKeys   map[string]bool // drop_entries_with_keys, lower-cased
+}
+
+// loadDivergences reads the allowlist and fails on a normalisation kind
+// this reader does not implement, so a schema change in the harness cannot
+// be ignored silently.
 func loadDivergences(t testing.TB, root string) []divergence {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join(root, "allowlist", "divergences.yaml"))
@@ -90,7 +95,13 @@ func loadDivergences(t testing.TB, root string) []divergence {
 		t.Fatal(err)
 	}
 	var doc struct {
-		Divergences []divergence `yaml:"divergences"`
+		Divergences []struct {
+			ID        string           `yaml:"id"`
+			Stage     string           `yaml:"stage"`
+			Pending   string           `yaml:"pending"`
+			Cases     []string         `yaml:"cases"`
+			Normalise []map[string]any `yaml:"normalise"`
+		} `yaml:"divergences"`
 	}
 	if err := yaml.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
@@ -98,7 +109,45 @@ func loadDivergences(t testing.TB, root string) []divergence {
 	if len(doc.Divergences) == 0 {
 		t.Fatal("allowlist has no entries")
 	}
-	return doc.Divergences
+	var out []divergence
+	for _, e := range doc.Divergences {
+		d := divergence{ID: e.ID, Stage: e.Stage, Pending: e.Pending, Cases: e.Cases}
+		for _, step := range e.Normalise {
+			if len(step) != 1 {
+				t.Fatalf("allowlist %s: a normalise step has %d kinds, want one", e.ID, len(step))
+			}
+			var ns normaliseStep
+			for kind, v := range step {
+				switch kind {
+				case "strip_keys":
+					pattern, _ := v.(string)
+					ns.stripKeys = regexp.MustCompile(pattern)
+				case "drop_entries":
+					m, _ := v.(map[string]any)
+					ns.dropField, _ = m["field"].(string)
+					ns.dropEquals, _ = m["equals"].([]any)
+					if ns.dropField == "" || len(ns.dropEquals) == 0 {
+						t.Fatalf("allowlist %s: drop_entries needs field and equals", e.ID)
+					}
+				case "drop_entries_with_keys":
+					keys, _ := v.([]any)
+					ns.dropKeys = map[string]bool{}
+					for _, k := range keys {
+						s, _ := k.(string)
+						ns.dropKeys[strings.ToLower(s)] = true
+					}
+					if len(ns.dropKeys) == 0 {
+						t.Fatalf("allowlist %s: drop_entries_with_keys needs keys", e.ID)
+					}
+				default:
+					t.Fatalf("allowlist %s: normalise kind %q is not implemented by this test", e.ID, kind)
+				}
+			}
+			d.Steps = append(d.Steps, ns)
+		}
+		out = append(out, d)
+	}
+	return out
 }
 
 // applicableParse is applicable(entries, 'parse', null, caseId): entries of
@@ -124,52 +173,60 @@ func applicableParse(entries []divergence, caseID string) []divergence {
 
 // normaliseValue applies the entries' steps in order, as allowlist.mjs's
 // normalise does.
-func normaliseValue(t testing.TB, v any, entries []divergence) any {
+func normaliseValue(v any, entries []divergence) any {
 	for _, e := range entries {
-		for _, step := range e.Normalise {
-			var re *regexp.Regexp
-			if step.StripKeys != "" {
-				re = regexp.MustCompile(step.StripKeys)
-			}
-			v = applyStep(v, re, step.DropEntries)
+		for _, step := range e.Steps {
+			v = applyStep(v, step, "")
 		}
 	}
 	return v
 }
 
-func applyStep(v any, re *regexp.Regexp, drop *struct {
-	Field  string `yaml:"field"`
-	Equals []any  `yaml:"equals"`
-}) any {
+func applyStep(v any, step normaliseStep, parentKey string) any {
 	switch x := v.(type) {
 	case []any:
 		out := []any{}
 		for _, e := range x {
-			if m, ok := e.(map[string]any); ok && drop != nil {
-				dropped := false
-				for _, want := range drop.Equals {
-					if got, ok := m[drop.Field]; ok && reflect.DeepEqual(got, want) {
-						dropped = true
-					}
-				}
-				if dropped {
+			if m, ok := e.(map[string]any); ok && dropEntry(m, step) {
+				continue
+			}
+			if pair, ok := e.([]any); ok && step.stripKeys != nil && parentKey == "query" && len(pair) > 0 {
+				if k, isString := pair[0].(string); isString && step.stripKeys.MatchString(k) {
 					continue
 				}
 			}
-			out = append(out, applyStep(e, re, drop))
+			out = append(out, applyStep(e, step, ""))
 		}
 		return out
 	case map[string]any:
 		out := map[string]any{}
 		for k, e := range x {
-			if re != nil && re.MatchString(k) {
+			if step.stripKeys != nil && step.stripKeys.MatchString(k) {
 				continue
 			}
-			out[k] = applyStep(e, re, drop)
+			out[k] = applyStep(e, step, k)
 		}
 		return out
 	}
 	return v
+}
+
+func dropEntry(m map[string]any, step normaliseStep) bool {
+	if step.dropField != "" {
+		if got, ok := m[step.dropField]; ok {
+			for _, want := range step.dropEquals {
+				if reflect.DeepEqual(got, want) {
+					return true
+				}
+			}
+		}
+	}
+	for k := range m {
+		if step.dropKeys[strings.ToLower(k)] {
+			return true
+		}
+	}
+	return false
 }
 
 // firstDiff returns the first path where two decoded JSON values differ,
@@ -289,7 +346,7 @@ func runCorpusCase(t testing.TB, root string, c corpusCase, entries []divergence
 	}
 	applicable := applicableParse(entries, c.id)
 	if len(applicable) > 0 {
-		ng, nc := normaliseValue(t, golden, applicable), normaliseValue(t, got, applicable)
+		ng, nc := normaliseValue(golden, applicable), normaliseValue(got, applicable)
 		if reflect.DeepEqual(ng, nc) {
 			r.pass = true
 			for _, e := range applicable {
@@ -355,5 +412,58 @@ func TestParseCorpusMatchesGoldens(t *testing.T) {
 	t.Logf("%d cases: %d passed, %d failed, %d pending; allowlist entries used: %v", len(cases), passed, failed, len(cases)-passed-failed, allowed)
 	for _, l := range labels {
 		t.Logf("pending on %s (%d): %s", l, len(pending[l]), strings.Join(pending[l], " "))
+	}
+}
+
+// fatalRecorder stands in for a test so loadDivergences's refusal can be
+// observed without failing the caller.
+type fatalRecorder struct {
+	testing.TB
+	fatal string
+}
+
+func (r *fatalRecorder) Helper() {}
+
+func (r *fatalRecorder) Fatalf(format string, args ...any) {
+	if r.fatal == "" {
+		r.fatal = fmt.Sprintf(format, args...)
+	}
+}
+
+// TestAllowlistReaderFollowsTheHarnessSchema holds the Go reader to
+// allowlist.mjs: the vendored entries apply as the harness applies them,
+// key presence matched without regard to case, and a normalisation kind
+// the reader does not implement stops the test instead of being skipped.
+func TestAllowlistReaderFollowsTheHarnessSchema(t *testing.T) {
+	entries := loadDivergences(t, conformanceDir(t))
+	nodes := []any{
+		map[string]any{"type": "ss", "name": "keep", "_x": 1.0, "o": map[string]any{"_y": 2.0}},
+		map[string]any{"type": "external", "name": "drop by type"},
+		map[string]any{"type": "tuic", "name": "drop by key", "EXEC": "x"},
+		map[string]any{"type": "ssr", "name": "drop by key", "local_address": "x"},
+	}
+	clash := normaliseValue(nodes, applicableParse(entries, "clash-example"))
+	want := []any{map[string]any{"type": "ss", "name": "keep", "o": map[string]any{}}}
+	if !reflect.DeepEqual(clash, want) {
+		t.Errorf("clash- case normalised to %#v, want %#v", clash, want)
+	}
+	other := normaliseValue(nodes, applicableParse(entries, "tuic-example"))
+	want = []any{map[string]any{"type": "ss", "name": "keep", "_x": 1.0, "o": map[string]any{"_y": 2.0}}}
+	if !reflect.DeepEqual(other, want) {
+		t.Errorf("tuic- case normalised to %#v, want %#v", other, want)
+	}
+
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "allowlist"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	unknown := "divergences:\n  - id: x\n    stage: parse\n    normalise:\n      - rename_keys: a\n"
+	if err := os.WriteFile(filepath.Join(dir, "allowlist", "divergences.yaml"), []byte(unknown), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	r := &fatalRecorder{TB: t}
+	loadDivergences(r, dir)
+	if !strings.Contains(r.fatal, "rename_keys") {
+		t.Errorf("an unknown normalise kind gave %q, want the test stopped", r.fatal)
 	}
 }
