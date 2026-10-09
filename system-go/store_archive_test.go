@@ -234,7 +234,7 @@ func TestWritesOnALegacyStoreAreRefusedWithCode(t *testing.T) {
 // The "pre" column of the plan's host-call table: what each method costs on a
 // store that has not migrated. The legacy document is read once per
 // invocation, so a record read costs its own key's miss and nothing more
-// after the first, and every count fits the wave budget. The Settings read
+// after the first, and every count fits the signed budget. The Settings read
 // for a default user agent or target costs the same one call as on a split
 // store.
 func TestHostCallCountsOnALegacyStore(t *testing.T) {
@@ -276,8 +276,8 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 			if host.total != scenario.want {
 				t.Errorf("%s made %d host calls on a legacy store, pinned at %d", scenario.method, host.total, scenario.want)
 			}
-			if budget := waveRuntimeBudgets()[pluginID+"/subscription/"+scenario.method].HostCalls; host.total > budget {
-				t.Errorf("%s needs %d host calls on a legacy store, over the wave budget of %d", scenario.method, host.total, budget)
+			if budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+scenario.method].HostCalls; host.total > budget {
+				t.Errorf("%s needs %d host calls on a legacy store, over the signed budget of %d", scenario.method, host.total, budget)
 			}
 		})
 	}

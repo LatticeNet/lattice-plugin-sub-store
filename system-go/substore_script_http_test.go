@@ -155,6 +155,29 @@ func TestScriptHTTPEnforcesItsRequestBudget(t *testing.T) {
 	}
 }
 
+// Design 28 holds script HTTP to 256 KiB per response. The host's bound is the
+// calling method's signed http_response_bytes, and render and publish are
+// signed for a provider's whole body because they fetch providers too, so the
+// host no longer keeps a script's response that small in those methods. The
+// gateway keeps it.
+func TestScriptHTTPBoundsEachResponse(t *testing.T) {
+	const designScriptHTTPResponseBytes = 256 << 10
+	host := &scriptHTTPHost{body: []byte(strings.Repeat("x", designScriptHTTPResponseBytes))}
+	gateway := newScriptHTTPGateway(host)
+	if _, err := gateway.do(`{"method":"GET","url":"https://rules.example/list"}`); err != nil {
+		t.Fatalf("a response at the bound was refused: %v", err)
+	}
+	host.body = []byte(strings.Repeat("x", designScriptHTTPResponseBytes+1))
+	_, err := gateway.do(`{"method":"GET","url":"https://rules.example/list"}`)
+	if err == nil || !strings.Contains(err.Error(), "response exceeds") {
+		t.Fatalf("a response one byte past %d must be refused, got %v", designScriptHTTPResponseBytes, err)
+	}
+	diagnostics := gateway.diagnostics()
+	if len(diagnostics) != 2 || diagnostics[1].Error == "" {
+		t.Fatalf("the refused response must leave a record that says so, got %+v", diagnostics)
+	}
+}
+
 func TestScriptHTTPRejectsNonHTTPSchemesBeforeSpendingBudget(t *testing.T) {
 	host := &scriptHTTPHost{body: []byte("ok")}
 	gateway := newScriptHTTPGateway(host)

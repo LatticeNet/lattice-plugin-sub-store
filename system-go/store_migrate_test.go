@@ -45,7 +45,7 @@ func TestMigrateStoreOf300RecordsInChunks(t *testing.T) {
 	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
 	records := legacyFixture(300)
 	legacy := seedLegacyStore(t, host.kvHostCaller, records)
-	budget := waveRuntimeBudgets()[pluginID+"/subscription/migrate_store"].HostCalls
+	budget := ackedRuntimeBudgets()[pluginID+"/subscription/migrate_store"].HostCalls
 
 	var reply migrateStoreReply
 	for call := 1; call <= 5; call++ {

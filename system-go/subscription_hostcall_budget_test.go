@@ -137,21 +137,116 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			if response.OK != test.wantOK || host.total != test.want {
 				t.Fatalf("response=%+v calls=%d want=%d", response, host.total, test.want)
 			}
-			budget := waveRuntimeBudgets()[pluginID+"/subscription/"+test.method]
+			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+test.method]
 			if host.total > budget.HostCalls {
-				t.Fatalf("production path needs %d calls, the wave budget is %d", host.total, budget.HostCalls)
+				t.Fatalf("production path needs %d calls, the signed budget is %d", host.total, budget.HostCalls)
 			}
 		})
 	}
+	// The graph shapes are not the heaviest the store can express: tag
+	// members and provider members that name no user agent each add a read.
+	// TestWorstHostCallPathsSetTheSignedBudgets holds the signed caps to the
+	// heaviest shape and refuses one call beyond them.
+}
 
-	// fetch is pinned in the table above but not here: its bookkeeping write
-	// is best effort by design, so a call refused at the boundary is
-	// swallowed and the refresh still answers.
+// seedWorstStore writes the heaviest shape the store can express: 64
+// provider records that name no user agent, a collection that gathers them by
+// tag, and a script file whose node source is that collection. Tag members
+// cost the listing read and a missing agent costs the Settings read. On a
+// store that has not migrated (legacy), every record read is its key's miss
+// after the one legacy document read, and the script file's program sits
+// under its own key.
+func seedWorstStore(t *testing.T, rt *runtime, host *budgetCountingHost, legacy bool) {
+	t.Helper()
+	records := make([]subscriptionRecord, 0, maxCollectionMembers+2)
+	for i := 0; i < maxCollectionMembers; i++ {
+		id := fmt.Sprintf("worst-%02d", i)
+		records = append(records, subscriptionRecord{ID: id, Name: id, Source: subscriptionSourceRemote, URL: "https://provider.example/" + id, Tags: []string{"worst"}})
+	}
+	records = append(records,
+		subscriptionRecord{ID: "worst-tags", Name: "worst-tags", Kind: kindCollection, MemberTags: []string{"worst"}},
+		subscriptionRecord{ID: "worst-script", Name: "worst-script", Kind: kindFile, FileType: fileTypeScript, NodeSource: "worst-tags", Content: `$content = "ok";`},
+	)
+	if legacy {
+		seedLegacyStore(t, host.kvHostCaller, records)
+		return
+	}
+	for _, rec := range records {
+		if err := rt.saveSubscription(rec); err != nil {
+			t.Fatalf("seed %s: %v", rec.ID, err)
+		}
+	}
+}
+
+// The signed host_calls caps come from this test's numbers: the heaviest
+// shape, measured on a split store and on one that has not migrated yet,
+// which is what a store is from the install of this version until the
+// operator runs migrate_store, and shares serve from it all that time.
+// render and publish give scripts a network, so their cap is the legacy count
+// plus scriptHTTPMaxCalls exactly and one call more is refused. fetch,
+// preview and preview_draft give scripts none and keep the headroom their
+// caps carry over these counts; fetch is not in the refusal check because its
+// bookkeeping write is best effort by design, so a call refused at the
+// boundary is swallowed and the refresh still answers.
+func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
+	scenarios := []struct {
+		name          string
+		method        string
+		body          map[string]any
+		split, legacy int
+	}{
+		// The file's record (and, legacy, the document and its program key),
+		// the source record, the listing, Settings, 64 records, 64 fetches.
+		{name: "render a script file over the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-script", "format": "plain"}, split: 132, legacy: 134},
+		// The record, the listing, Settings (target and agent), 64 records,
+		// 64 fetches.
+		{name: "render the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-tags", "format": "plain"}, split: 131, legacy: 132},
+		// render's script shape and the send.
+		{name: "publish the script file", method: "publish", body: map[string]any{"subscription_id": "worst-script", "destination": "https://destination.invalid/worst", "format": "plain"}, split: 133, legacy: 135},
+		// render's script shape and the bookkeeping read and write.
+		{name: "fetch the script file", method: "fetch", body: map[string]any{"subscription_id": "worst-script"}, split: 134, legacy: 136},
+		// The row check reads what the refresh reads and records nothing:
+		// fetch's shape without the bookkeeping read and write.
+		{name: "probe the script file", method: "probe", body: map[string]any{"subscription_id": "worst-script"}, split: 132, legacy: 134},
+		// The combination's record, the listing, Settings, 64 records, 64 fetches.
+		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
+		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
+	}
+	worst := map[string]int{}
+	for _, scenario := range scenarios {
+		for _, legacy := range []bool{false, true} {
+			want := scenario.split
+			layout := "split"
+			if legacy {
+				want, layout = scenario.legacy, "legacy"
+			}
+			t.Run(scenario.name+" on a "+layout+" store", func(t *testing.T) {
+				rt, host := newCountingRuntime(t)
+				seedWorstStore(t, rt, host, legacy)
+				host.total = 0
+				res := callSubscription(t, rt, scenario.method, scenario.body)
+				if !res.OK {
+					t.Fatalf("%s failed: %s", scenario.method, res.Error)
+				}
+				if host.total != want {
+					t.Errorf("%s made %d host calls, pinned at %d", scenario.method, host.total, want)
+				}
+				if budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+scenario.method].HostCalls; host.total > budget {
+					t.Errorf("%s made %d host calls, over the signed budget of %d; this 502s in production", scenario.method, host.total, budget)
+				}
+			})
+			worst[scenario.method] = max(worst[scenario.method], want)
+		}
+	}
+
 	for _, method := range []string{"render", "publish"} {
+		budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+method].HostCalls
+		if want := worst[method] + scriptHTTPMaxCalls; budget != want {
+			t.Errorf("%s is signed at %d host calls; its heaviest path is %d plus %d for scripts, so it must be %d", method, budget, worst[method], scriptHTTPMaxCalls, want)
+		}
 		t.Run(method+" rejects one extra call", func(t *testing.T) {
-			rt, host := newGraphBudgetRuntime(t)
-			seedGraphBudgetStore(t, rt)
-			budget := waveRuntimeBudgets()[pluginID+"/subscription/"+method].HostCalls
+			rt, host := newCountingRuntime(t)
+			seedWorstStore(t, rt, host, true)
 			// Model one additional broker call introduced before the measured
 			// path. The signed cap is the measured path plus the script HTTP
 			// allowance, so the pre-spend has to include that allowance too:
@@ -160,11 +255,11 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			// reservation for scripts is absent.
 			host.total = 1 + scriptHTTPMaxCalls
 			host.limit = budget
-			body := map[string]any{"subscription_id": "script-graphs", "format": "plain"}
+			body := map[string]any{"subscription_id": "worst-script", "format": "plain"}
 			if method == "publish" {
-				body["destination"] = "https://destination.invalid/graph"
+				body["destination"] = "https://destination.invalid/worst"
 			}
-			if response := callSubscription(t, rt, method, body); response.OK {
+			if res := callSubscription(t, rt, method, body); res.OK {
 				t.Fatalf("%s unexpectedly accepted host call %d beyond cap %d", method, budget+1, budget)
 			}
 		})
@@ -194,16 +289,21 @@ func repeatHex(value string) string {
 
 // budgetCountingHost is the in-memory KV plus canned network answers, counting
 // every round trip the way the runner's host_calls budget does: one per call,
-// whatever the method.
+// whatever the method. A limit refuses every call past it, as the runner does
+// at the signed budget.
 type budgetCountingHost struct {
 	*kvHostCaller
 	total       int
+	limit       int
 	exportLinks []string
 	remoteBody  string
 }
 
 func (c *budgetCountingHost) call(method string, params any) (json.RawMessage, error) {
 	c.total++
+	if c.limit > 0 && c.total > c.limit {
+		return nil, fmt.Errorf("plugin exceeded host-call limit %d", c.limit)
+	}
 	switch method {
 	case latticeplugin.HostMethodRPCCall:
 		links := c.exportLinks
@@ -307,6 +407,11 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// A script file's refresh resolves its node source the same way, plus
 		// the source record.
 		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 9},
+		// The row check (probe) resolves exactly what fetch resolves and
+		// records nothing, so it is fetch's count less the bookkeeping. The
+		// console's Refresh button calls it on every kind of record.
+		{name: "probe a remote sub", method: "probe", payload: map[string]any{"subscription_id": "remote-a"}, want: 3},
+		{name: "probe a script file over a remote collection", method: "probe", payload: map[string]any{"subscription_id": "scripty"}, want: 7},
 		// Renders. A plain local sub is one read; the engine runs in-process.
 		// A record that names no target, rendered from a URL that names none,
 		// also reads Settings for the default target (decision 14); an explicit
@@ -370,12 +475,12 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 			if host.total != scenario.want {
 				t.Errorf("%s made %d host calls, pinned at %d", scenario.method, host.total, scenario.want)
 			}
-			budget, ok := waveRuntimeBudgets()[pluginID+"/subscription/"+scenario.method]
+			budget, ok := ackedRuntimeBudgets()[pluginID+"/subscription/"+scenario.method]
 			if !ok {
-				t.Fatalf("%s has no wave budget entry", scenario.method)
+				t.Fatalf("%s has no signed budget entry", scenario.method)
 			}
 			if host.total > budget.HostCalls {
-				t.Errorf("%s made %d host calls, over the wave budget of %d; this 502s in production", scenario.method, host.total, budget.HostCalls)
+				t.Errorf("%s made %d host calls, over the signed budget of %d; this 502s in production", scenario.method, host.total, budget.HostCalls)
 			}
 		})
 	}

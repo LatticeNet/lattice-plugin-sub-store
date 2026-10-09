@@ -55,7 +55,7 @@ which is what lets `dev/` mount the same screens against a fake host.
 
 All method names live in `src/client.ts` in two tiers:
 
-- **active** declared by the manifest: 16 `…/subscription` methods, 7
+- **active** declared by the manifest: 21 `…/subscription` methods, 7
   `…/engine` methods, and `…/shares.list`, which is core-backed and used only to
   tell an operator whether a record already has a published share;
 - **pending** proposed but undeclared methods (empty between contract waves; the
@@ -104,6 +104,15 @@ scopes. The bundle document is served with `connect-src 'none'`.
 The runtime declares six host-risk capabilities: `rpc:call`, `http:egress`,
 `http:operator-target`, `kv:read`, `kv:write`, and `subscription:serve`. The last
 is what lets the core serve a published subscription document at a share URL.
+`kv:write` also covers `kv.delete`, which the split record store uses to
+archive, restore and purge records. That host call and the per-method
+`http_response_bytes` budget both first exist in the server release
+`compatibility.server` names as its floor; the release before it refuses the
+manifest. Every method that can reach a provider body declares 8 MiB, the cap
+the provider fetch itself enforces: `fetch`, `probe`, `render`, `publish`,
+`preview` and `preview_draft`. The others keep the host default of 256 KiB, and
+a script's own requests stay at 256 KiB per response in every method, enforced
+by the plugin where the method budget is larger.
 
 The signed outbound RPC dependencies are exactly `latticenet.vpn-core/nodes.export`
 and `latticenet.vpn-core/subscription-sources` (`compose`, `graph_options`).
