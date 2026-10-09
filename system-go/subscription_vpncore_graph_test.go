@@ -45,10 +45,16 @@ type vpnCoreGraphHost struct {
 func (h *vpnCoreGraphHost) call(method string, params any) (json.RawMessage, error) {
 	if method == latticeplugin.HostMethodHTTPOperatorDo {
 		encoded, _ := json.Marshal(params)
+		// Core takes the body as text or as base64; publish sends base64.
 		var request struct {
-			Body string `json:"body"`
+			Body       string `json:"body"`
+			BodyBase64 string `json:"body_base64"`
 		}
 		_ = json.Unmarshal(encoded, &request)
+		if request.BodyBase64 != "" {
+			decoded, _ := base64.StdEncoding.DecodeString(request.BodyBase64)
+			request.Body = string(decoded)
+		}
 		h.published = append(h.published, request.Body)
 		return json.RawMessage(`{"status_code":200}`), nil
 	}

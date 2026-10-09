@@ -41,10 +41,16 @@ func (host *graphBudgetHost) call(method string, params any) (json.RawMessage, e
 		return append(json.RawMessage(nil), host.compose...), nil
 	case latticeplugin.HostMethodHTTPOperatorDo:
 		encoded, _ := json.Marshal(params)
+		// Core takes the body as text or as base64; publish sends base64.
 		var request struct {
-			Body string `json:"body"`
+			Body       string `json:"body"`
+			BodyBase64 string `json:"body_base64"`
 		}
 		_ = json.Unmarshal(encoded, &request)
+		if request.BodyBase64 != "" {
+			decoded, _ := base64.StdEncoding.DecodeString(request.BodyBase64)
+			request.Body = string(decoded)
+		}
 		host.publishedBody = request.Body
 		return json.RawMessage(`{"status_code":200}`), nil
 	case latticeplugin.HostMethodHTTPDo:
