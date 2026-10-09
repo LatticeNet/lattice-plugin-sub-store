@@ -1074,7 +1074,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
         </template>
       </PcNotice>
       <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
-      <PcNotice v-if="reorderError" tone="danger" dismissible data-testid="records-reorder-error" @dismiss="reorderError = ''">
+      <PcNotice v-if="reorderError" tone="danger" dismissible :dismiss-label="t.common.dismiss" data-testid="records-reorder-error" @dismiss="reorderError = ''">
         {{ reorderError }}
       </PcNotice>
 
@@ -1091,7 +1091,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
           <PcButton variant="primary" compact :busy="subs.migration.value.running" @click="migrateStore()">{{ t.records.migrateAction }}</PcButton>
         </template>
       </PcNotice>
-      <PcNotice v-else-if="migratedCount" tone="success" dismissible data-testid="records-migrated" @dismiss="migratedCount = 0">
+      <PcNotice v-else-if="migratedCount" tone="success" dismissible :dismiss-label="t.common.dismiss" data-testid="records-migrated" @dismiss="migratedCount = 0">
         {{ t.records.migrateDone(migratedCount) }}
       </PcNotice>
 

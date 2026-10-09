@@ -43,7 +43,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <PcSidePanel :open="open" :title="title" size="record" :return-focus-to="returnFocusTo" @close="emit('close')">
+  <PcSidePanel :open="open" :title="title" size="record" :close-label="t.record.closePanel" :return-focus-to="returnFocusTo" @close="emit('close')">
     <template v-if="mode === 'preview'">
       <p v-if="subs.rowPreview.value?.loading" class="row-popover-note">
         <LoaderCircle :size="13" class="spin" aria-hidden="true" /> {{ t.panel.loading }}

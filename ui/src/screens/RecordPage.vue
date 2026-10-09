@@ -282,8 +282,8 @@ const outputSheet = ref(false);
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 
-      <PcNotice v-if="actionStatus" :tone="actionStatus.tone" dismissible @dismiss="actionStatus = null">{{ actionStatus.text }}</PcNotice>
-      <PcNotice v-if="copiedNote" tone="success" dismissible @dismiss="copiedNote = ''">{{ copiedNote }}</PcNotice>
+      <PcNotice v-if="actionStatus" :tone="actionStatus.tone" dismissible :dismiss-label="t.common.dismiss" @dismiss="actionStatus = null">{{ actionStatus.text }}</PcNotice>
+      <PcNotice v-if="copiedNote" tone="success" dismissible :dismiss-label="t.common.dismiss" @dismiss="copiedNote = ''">{{ copiedNote }}</PcNotice>
       <div v-if="manualCopy" class="manual-copy-strip">
         <div class="manual-copy-strip__head">
           <span class="manual-copy-strip__label">{{ t.page.clipboardRefused }}</span>

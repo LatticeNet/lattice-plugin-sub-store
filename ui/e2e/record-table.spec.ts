@@ -252,6 +252,8 @@ for (const locale of LOCALES) {
         expect(await seriousViolations(page)).toEqual([]);
         await page.getByTestId("records-migrate").getByRole("button", { name: t.records.migrateAction }).click();
         await expect(page.getByTestId("records-migrated")).toBeVisible();
+        // The chassis notice names its close button in English unless it is told the word.
+        await expect(page.getByTestId("records-migrated").getByRole("button", { name: t.common.dismiss, exact: true })).toBeVisible();
         await expect(page.getByTestId("records-migrate")).toHaveCount(0);
         await expect(page.getByTestId("record-grip").first()).toBeVisible();
       });

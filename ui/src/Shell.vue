@@ -636,6 +636,7 @@ function openShares(): void {
           class="shell-flash"
           tone="success"
           dismissible
+          :dismiss-label="t.common.dismiss"
           @dismiss="flash = null"
         >
           {{ flash.text }}
