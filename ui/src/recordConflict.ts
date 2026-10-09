@@ -13,6 +13,7 @@
  */
 
 import type { SubscriptionRecord } from "./client";
+import { maskUrl } from "./urlMask";
 
 export interface FieldChange {
   /** The field, named the way the editor labels it rather than the way it is stored. */
@@ -25,14 +26,36 @@ export interface FieldChange {
   contested: boolean;
 }
 
+/**
+ * Fields that can carry a credential are never printed, whatever their length:
+ * a provider link carries its token, inline content can hold node passwords,
+ * and query parameters are where a provider puts a token when the link does
+ * not. The link keeps its host, as every read view shows it; the other two
+ * keep only their size.
+ */
+function describeSecretUrl(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) return describeValue(value);
+  return maskUrl(value);
+}
+
+function describeSecretText(value: unknown): string {
+  if (typeof value !== "string" || !value) return describeValue(value);
+  return `${value.length} ${value.length === 1 ? "character" : "characters"}`;
+}
+
+function describeSecretList(value: unknown): string {
+  if (!Array.isArray(value) || value.length === 0) return describeValue(value);
+  return `${value.length} ${value.length === 1 ? "entry" : "entries"}`;
+}
+
 /** Storage name to the label the editor puts on it. Order is the reading order. */
-const FIELDS: Array<{ key: keyof SubscriptionRecord; label: string }> = [
+const FIELDS: Array<{ key: keyof SubscriptionRecord; label: string; describe?: (value: unknown) => string }> = [
   { key: "name", label: "Name" },
   { key: "display_name", label: "Display name" },
   { key: "remark", label: "Remark" },
   { key: "tags", label: "Tags" },
-  { key: "url", label: "Provider URL" },
-  { key: "content", label: "Content" },
+  { key: "url", label: "Provider URL", describe: describeSecretUrl },
+  { key: "content", label: "Content", describe: describeSecretText },
   { key: "source", label: "Source" },
   { key: "vpn_identity", label: "VPN identity" },
   { key: "entry_roots", label: "Entry roots" },
@@ -44,7 +67,7 @@ const FIELDS: Array<{ key: keyof SubscriptionRecord; label: string }> = [
   { key: "file_type", label: "File type" },
   { key: "node_source", label: "Node source" },
   { key: "download", label: "Download" },
-  { key: "query_params", label: "Query parameters" },
+  { key: "query_params", label: "Query parameters", describe: describeSecretList },
   { key: "arguments", label: "Arguments" },
   { key: "process", label: "Operations" },
   { key: "script_digest", label: "Program" },
@@ -130,8 +153,8 @@ export function conflictChanges(
     if (same(before, after)) continue;
     changes.push({
       label: field.label,
-      before: describeValue(before),
-      after: describeValue(after),
+      before: (field.describe ?? describeValue)(before),
+      after: (field.describe ?? describeValue)(after),
       // Contested only when the operator changed the same field away from what
       // they opened. Editing it back to its original value is not a contest.
       contested: mine ? !same(before, mine[field.key]) : false,
