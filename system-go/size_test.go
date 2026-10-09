@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
 	"github.com/LatticeNet/lattice-sdk/model"
@@ -98,4 +100,60 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 			t.Logf("%s at %d nodes: document %d bytes, render body %d bytes (bounds %d and %d)", target, count, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
 		})
 	}
+}
+
+// A fetch of 4096 nodes envelopes the provider text and the parsed nodes
+// (snapshotEnvelope.Nodes, the compact model before the chain) inside the
+// core's raw bound, so nodes_omitted: size is not needed at the fleet's
+// largest record, and a render from the envelope's nodes writes the same
+// document as a live render of the text (S1 plan section 5.2). The nodes are
+// the perf gate's VLESS Reality mix through the perf gate's chain.
+func TestEnvelopeAt4096NodesFitsRawBound(t *testing.T) {
+	doc := perfDocument(4096)
+	plan := perfPlan(t)
+	parsed, _, err := parse.Document(doc, parse.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	env := textEnvelope(kindSub, doc, "")
+	for _, n := range parsed {
+		b, err := n.MarshalJSON()
+		if err != nil {
+			t.Fatal(err)
+		}
+		env.Nodes = append(env.Nodes, b)
+	}
+	raw, err := encodeSnapshotEnvelope(env)
+	if err != nil {
+		t.Fatalf("the 4096-node envelope does not fit: %v", err)
+	}
+	t.Logf("4096-node envelope: %d bytes (text %d bytes), bound %d", len(raw), len(doc), model.MaxSubscriptionRawBytes)
+
+	stored, ok := decodeSnapshotEnvelope(raw)
+	if !ok || stored.NodesOmitted != "" || len(stored.Nodes) != len(parsed) {
+		t.Fatalf("decoded envelope: version 2 %v, nodes_omitted %q, %d nodes; want %d nodes", ok, stored.NodesOmitted, len(stored.Nodes), len(parsed))
+	}
+	nodes := make([]*nodemodel.Node, len(stored.Nodes))
+	for i, b := range stored.Nodes {
+		nodes[i] = &nodemodel.Node{}
+		if err := json.Unmarshal(b, nodes[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var fromEnvelope, live bytes.Buffer
+	if _, err := nativeProducer(t, perfTarget).Produce(&fromEnvelope, plan.Run(nodes, &operators.Context{Target: perfTarget}), perfTarget, nil); err != nil {
+		t.Fatal(err)
+	}
+	renderNative(t, &live, doc, plan)
+	if !bytes.Equal(fromEnvelope.Bytes(), live.Bytes()) {
+		t.Fatalf("the render from the envelope's nodes differs from the live render at byte %d", firstDifferingByte(fromEnvelope.Bytes(), live.Bytes()))
+	}
+}
+
+func firstDifferingByte(a, b []byte) int {
+	i := 0
+	for i < len(a) && i < len(b) && a[i] == b[i] {
+		i++
+	}
+	return i
 }

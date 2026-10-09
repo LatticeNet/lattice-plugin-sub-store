@@ -46,10 +46,11 @@ jobs:
 
       - name: govulncheck
         # govulncheck needs a go.mod in its working directory; GOWORK still
-        # applies there.
+        # applies there. The version is pinned so a new release cannot change
+        # what this step judges without a reviewed edit here.
         working-directory: system-go
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
+          go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
           "$(go env GOPATH)/bin/govulncheck" ./...
 
       - name: test system runtime
@@ -63,14 +64,6 @@ jobs:
 
       - name: test perf gate
         run: go test -race ./tools/perfgate/...
-
-      - name: build the conformance runner
-        # The conformance job that judges it with conformance/oracle/check.mjs
-        # lands with the native parsers and producers; until then the build
-        # and the protocol handshake are the gate.
-        run: |
-          go build -o "$RUNNER_TEMP/substore-conformance" ./system-go/cmd/substore-conformance
-          printf '{"id":1,"op":"version"}\n' | "$RUNNER_TEMP/substore-conformance" | grep -q '"implementation":"lattice-go"'
 
       - name: test Sub-Store core tooling
         run: node --test tools/substore-core/build.test.mjs tools/substore-core/audit-state.test.mjs
@@ -97,9 +90,10 @@ jobs:
 
       - name: validate manifest against reviewed server
         env:
-          # alpha-0.2.2a108 release commit 76bcf5a (live in production on 2026-10-03).
+          # alpha-0.2.2a123 release commit e987e16, the S0 server release whose
+          # checker knows the capability-wave manifest.
           # Move ONLY to another released tag's commit.
-          LATTICE_CHECK_REF: v0.2.4-0.20261003181846-76bcf5a2b74b
+          LATTICE_CHECK_REF: v0.2.4-0.20261009034729-e987e1606b03
         run: go run "github.com/LatticeNet/lattice-server/cmd/lattice-plugin-manifest-check@${LATTICE_CHECK_REF}" manifest.json
 
       - name: build runtime binaries
@@ -141,6 +135,146 @@ jobs:
 
       - name: git diff check
         run: git diff --check
+
+  conformance:
+    # The vendored checker (conformance/oracle/check.mjs, run as it is) judges
+    # the native parser and the five native producers through the runner.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.9'
+          cache-dependency-path: system-go/go.mod
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: conformance/oracle/package-lock.json
+
+      - name: build the conformance runner
+        # check.mjs runs with the data root as its working directory, so the
+        # candidate path is absolute.
+        working-directory: system-go
+        run: go build -o "$RUNNER_TEMP/substore-conformance" ./cmd/substore-conformance
+
+      - name: install the checker
+        run: npm ci --prefix conformance/oracle
+
+      - name: test the end-to-end judge
+        run: node --test tools/conformance-end-to-end.test.mjs
+
+      - name: judge parse and the five native targets
+        # From the golden nodes. Exit 1 is a failed comparison, 2 a run whose
+        # numbers differ from conformance/conformance.json (a corpus, golden
+        # or allowlist change regenerates it with --conformance in the same
+        # commit), 3 a harness error.
+        run: >-
+          node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance"
+          --targets uri,v2ray,json,singbox,clashmeta
+          --conformance "$RUNNER_TEMP/conformance.json" --expect conformance/conformance.json
+          --report "$RUNNER_TEMP/conformance-report.json"
+
+      - name: judge end to end from the runner's own parse
+        # A case whose parse matches only under the allowlist cannot match
+        # produce goldens written from nodes Lattice does not build, so the
+        # end-to-end run is judged by tools/conformance-end-to-end.mjs, with
+        # a strict parse run (an empty allowlist) naming those cases.
+        run: |
+          node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance" \
+            --targets uri,v2ray,json,singbox,clashmeta --end-to-end --no-fail \
+            --report "$RUNNER_TEMP/end-to-end-report.json"
+          printf 'divergences: []\n' > "$RUNNER_TEMP/no-allowlist.yaml"
+          node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance" \
+            --targets uri --allowlist "$RUNNER_TEMP/no-allowlist.yaml" --no-fail --quiet \
+            --report "$RUNNER_TEMP/strict-parse-report.json"
+          node tools/conformance-end-to-end.mjs "$RUNNER_TEMP/end-to-end-report.json" "$RUNNER_TEMP/strict-parse-report.json"
+
+      - name: keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conformance-reports
+          path: |
+            ${{ runner.temp }}/conformance.json
+            ${{ runner.temp }}/conformance-report.json
+            ${{ runner.temp }}/end-to-end-report.json
+            ${{ runner.temp }}/strict-parse-report.json
+          retention-days: 30
+
+  perf:
+    # Wall-clock gates (S1 plan section 5.2) on a fixed runner image, judged
+    # by tools/perfgate against the baseline committed from this job's own
+    # output.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.9'
+          cache-dependency-path: |
+            system-go/go.mod
+            tools/perfgate/go.mod
+
+      - name: run the pipeline, parse and producer benchmarks ten times
+        working-directory: system-go
+        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096' -count 10 -benchmem ./... | tee "$RUNNER_TEMP/bench.txt"
+
+      - name: judge the medians
+        working-directory: tools/perfgate
+        run: go run . -baseline "$GITHUB_WORKSPACE/system-go/testdata/bench/ubuntu-24.04.txt" -current "$RUNNER_TEMP/bench.txt"
+
+      - name: keep the benchmark output
+        # A deliberate baseline move commits this file, from runs on at least
+        # two runner CPUs, as system-go/testdata/bench/ubuntu-24.04.txt
+        # (README, Conformance numbers).
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-ubuntu-24.04
+          path: ${{ runner.temp }}/bench.txt
+          retention-days: 30
+
+  memory:
+    # The allocation and heap gates need a binary without the race detector,
+    # which allocates on its own account, and the worker's resident set is
+    # read from /proc.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.9'
+          cache-dependency-path: system-go/go.mod
+
+      - name: allocation and heap gates
+        working-directory: system-go
+        run: go test -count=1 -run '^(TestPipelineAllocsPerNodeBound|TestHeapInuseAfter4096Render)$' -v .
+
+      - name: build the worker as the release does
+        working-directory: system-go
+        env:
+          CGO_ENABLED: "0"
+        run: go build -trimpath -buildvcs=false -o "$RUNNER_TEMP/plugin" .
+
+      - name: record the worker's resident set
+        # Recorded, not enforced, until S2.
+        working-directory: system-go
+        env:
+          LATTICE_WORKER_BINARY: ${{ runner.temp }}/plugin
+        run: go test -count=1 -run '^TestWorkerVmRSS$' -v . | tee "$RUNNER_TEMP/memory.txt"
+
+      - name: keep the record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory-ubuntu-24.04
+          path: ${{ runner.temp }}/memory.txt
+          retention-days: 30
 
   fuzz:
     runs-on: ubuntu-latest

@@ -10,11 +10,15 @@
 // is never part of the plugin artifact.
 //
 // version answers {implementation:"lattice-go", commit, version} from the
-// build information. produce answers {ok:true, output} from the native
+// build information. parse answers {ok:true, nodes} from the native parser
+// (system-go/parse) with the external opt-in off, so the Lattice hostile
+// content rules apply as they do to remote input, and ok:false only when the
+// parser refuses the whole document (an N33 certificate failure or a Lattice
+// document bound). produce answers {ok:true, output} from the native
 // producer of the target (system-go/producers), with the request's options,
-// and a stated refusal for a target without one. parse
-// answers a stated refusal until the native parser (system-go/parse) lands;
-// plan section 2.6 says what it then returns.
+// and a stated refusal for a target without one. Neither applies operators,
+// the 4096-node ceiling or the zero-node refusal: the checker judges the
+// parser and the producers alone.
 package main
 
 import (
@@ -28,6 +32,7 @@ import (
 	"runtime/debug"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
 )
 
@@ -40,15 +45,19 @@ type request struct {
 	Options map[string]any    `json:"options,omitempty"`
 }
 
+// reply is the plan's declaration with one change: Nodes is a pointer, as
+// Output is, so a parse that yields no node still answers "nodes":[] (the
+// golden of an empty document is the empty list, and a missing nodes key is
+// not equal to it), while every other reply leaves the key out.
 type reply struct {
-	ID             json.RawMessage   `json:"id"`
-	OK             bool              `json:"ok"`
-	Error          string            `json:"error,omitempty"`
-	Nodes          []json.RawMessage `json:"nodes,omitempty"`
-	Output         *string           `json:"output,omitempty"`
-	Implementation string            `json:"implementation,omitempty"`
-	Commit         string            `json:"commit,omitempty"`
-	Version        string            `json:"version,omitempty"`
+	ID             json.RawMessage    `json:"id"`
+	OK             bool               `json:"ok"`
+	Error          string             `json:"error,omitempty"`
+	Nodes          *[]json.RawMessage `json:"nodes,omitempty"`
+	Output         *string            `json:"output,omitempty"`
+	Implementation string             `json:"implementation,omitempty"`
+	Commit         string             `json:"commit,omitempty"`
+	Version        string             `json:"version,omitempty"`
 }
 
 // platforms maps the harness target ids S1 builds natively to the platform
@@ -111,7 +120,17 @@ func handle(line []byte, diag io.Writer) reply {
 		commit, version := buildIdentity()
 		return reply{ID: req.ID, OK: true, Implementation: "lattice-go", Commit: commit, Version: version}
 	case "parse":
-		return reply{ID: req.ID, Error: "parse is not supported yet: the native parser (system-go/parse) has not landed"}
+		parsed, _, err := parse.Document(req.Input, parse.Options{})
+		if err != nil {
+			return reply{ID: req.ID, Error: "parse: " + err.Error()}
+		}
+		nodes := make([]json.RawMessage, len(parsed))
+		for i, n := range parsed {
+			if nodes[i], err = n.MarshalJSON(); err != nil {
+				return reply{ID: req.ID, Error: fmt.Sprintf("parse: node %d: %v", i, err)}
+			}
+		}
+		return reply{ID: req.ID, OK: true, Nodes: &nodes}
 	case "produce":
 		platform := platforms[req.Target]
 		p, ok := producers.Lookup(platform)

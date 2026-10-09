@@ -188,7 +188,7 @@ compatibility last, only after canonical grants have been migrated or removed.
 `GITHUB_TOKEN` in the environment.
 
 ```sh
-node --test tools/substore-core/build.test.mjs
+node --test tools/substore-core/build.test.mjs tools/conformance-end-to-end.test.mjs
 cd system-go && go test -race ./...
 cd ../ui && npm ci && npm test && npm run typecheck && npm run build && npm run verify:build
 npx playwright install chromium && npm run test:e2e
@@ -234,11 +234,64 @@ node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conforma
   --targets uri,v2ray,json,singbox,clashmeta --report "${TMPDIR:-/tmp}/conformance-report.json"
 ```
 
-The runner refuses `parse` and `produce` until the native parser and producers
-land; `conformance/conformance.json` and the conformance CI job arrive with
-them. `system-go/perfgen` generates the perf gate's synthetic VLESS Reality
-nodes, and `tools/perfgate` judges `go test -bench` output against the S1
-targets and a committed baseline.
+The runner answers `parse` from `system-go/parse` with the external opt-in off,
+so the hostile-content rules apply as they do to remote input, and `produce`
+from `system-go/producers`. It applies no operator, node ceiling or zero-node
+refusal. The `conformance` CI job runs the checker from the golden nodes with
+`--expect conformance/conformance.json`, so a corpus, golden or allowlist
+change regenerates that file in the same commit:
+
+```sh
+node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
+  --targets uri,v2ray,json,singbox,clashmeta --conformance conformance/conformance.json
+```
+
+It then runs the checker with `--end-to-end`, producing from the runner's own
+parse output. A case whose parse matches its golden only under the allowlist
+cannot match produce goldens written from nodes Lattice does not build, so
+`tools/conformance-end-to-end.mjs` judges that run: it passes when every
+produce failure is one of the cases a second run with an empty allowlist
+fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
+
+### Conformance numbers
+
+Design 28 publishes three numbers per release. Measured on the S1 native
+engine against harness commit de74ccf (upstream 2.42.3, a3e6106):
+
+| Number | Result |
+|---|---|
+| Parse | 607 of 607 corpus cases (100 percent) |
+| Produce, URI | 579 of 579, byte for byte |
+| Produce, V2Ray | 579 of 579, byte for byte |
+| Produce, JSON | 579 of 579 |
+| Produce, sing-box | 579 of 579 |
+| Produce, ClashMeta | 579 of 579 |
+| Script | not measured until S3, which fixes the named community script set |
+
+The parse number counts corpus cases as `check.mjs` does, not lines: a case is
+one subscription document, and it passes when every node the document yields
+deep-equals the golden. One case (`clash-norm-ca-not-pem`) is a whole-document
+failure in the golden and passes by failing the same way. The run relied on
+three of the four allowlist
+entries: `external`, `underscore` and `ca` (`require` applies to scripts and
+stays pending until S3). End to end, from the runner's own parse, the five
+targets match 568, 567, 558, 573 and 573 of 579; every miss is one of the 21
+cases that parse only under those entries, and the other 558 cases match for
+every target. The other nine targets are answered by the embedded bundle.
+
+`system-go/perfgen` generates the perf gate's synthetic VLESS Reality nodes.
+The pipeline benchmarks time design 28's measure, the nodes through four
+non-script operators to sing-box; the parse of the same nodes' links is a
+benchmark of its own. The `perf` job runs the pipeline, parse and producer
+benchmarks ten times on ubuntu-24.04 and `tools/perfgate` judges the medians
+against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`. That
+baseline is the job's output from two runs that landed on different CPUs (an
+Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
+is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
+run happens to get. Move it the same way, from at least two CPUs, with the
+reason in the commit. The `memory` job runs the
+allocation and heap gates without the race detector and records the built
+worker's resident set (`TestWorkerVmRSS`), which S2 starts enforcing.
 
 ## Looking at the UI
 

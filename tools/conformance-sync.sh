@@ -14,8 +14,9 @@
 # TestVendoredCheckerMatchesHarnessCommit (system-go/cmd/substore-conformance)
 # hold the result to both rules.
 #
-# After a sync, regenerate conformance/conformance.json in the same commit once
-# the conformance job runs (README, "Conformance data").
+# After a sync, regenerate conformance/conformance.json in the same commit
+# (README, "Conformance data"): the conformance job runs check.mjs with
+# --expect against it and fails until the numbers match.
 set -eu
 
 if [ $# -ne 2 ]; then

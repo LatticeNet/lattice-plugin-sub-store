@@ -33,10 +33,7 @@ const conformanceDir = "../../conformance"
 // checker parses the output with, and whether the checker compares bytes. For
 // URI and V2Ray it does, and the allowlist never applies to them, so equal
 // bytes is the checker's whole verdict.
-var harnessTargets = []struct {
-	id, platform, ext, form string
-	bytes                   bool
-}{
+var harnessTargets = []harnessTarget{
 	{"uri", "URI", "txt", "uri", true},
 	{"v2ray", "V2Ray", "txt", "v2ray", true},
 	{"json", "JSON", "json", "json", false},
@@ -44,12 +41,18 @@ var harnessTargets = []struct {
 	{"clashmeta", "ClashMeta", "yaml", "yaml", false},
 }
 
-// produceCase is one corpus case check.mjs produces from: its golden nodes
-// and the options of its meta.json.
+type harnessTarget struct {
+	id, platform, ext, form string
+	bytes                   bool
+}
+
+// produceCase is one corpus case check.mjs produces from: its golden nodes,
+// the options of its meta.json, and the input file beside it.
 type produceCase struct {
-	id      string
-	options Options
-	nodes   json.RawMessage
+	id        string
+	options   Options
+	nodes     json.RawMessage
+	inputPath string
 }
 
 // produceCases lists the corpus cases whose parse golden is a node list, the
@@ -72,7 +75,7 @@ func produceCases(t *testing.T) []produceCase {
 			}
 			nodes := readFile(t, filepath.Join(conformanceDir, "goldens", "parse", meta.ID+".json"))
 			if bytes.HasPrefix(bytes.TrimSpace(nodes), []byte("[")) {
-				cases = append(cases, produceCase{id: meta.ID, options: meta.Options, nodes: nodes})
+				cases = append(cases, produceCase{id: meta.ID, options: meta.Options, nodes: nodes, inputPath: strings.TrimSuffix(path, ".meta.json") + ".txt"})
 			}
 			return nil
 		})
@@ -138,14 +141,8 @@ func TestProduceCorpusMatchesGoldens(t *testing.T) {
 				}
 				judged++
 				got, _ := produce(t, target.platform, decodeNodes(t, c.nodes), c.options)
-				if target.bytes {
-					golden := string(readFile(t, filepath.Join(dir, c.id+"."+target.ext)))
-					if got != golden {
-						t.Errorf("%s: output differs from the golden at byte %d\n golden:    %q\n candidate: %q", c.id, firstDifference(golden, got), clip(golden), clip(got))
-						continue
-					}
-				} else if path, golden, candidate, same := sameStructure(t, readFile(t, canonFile), target.form, got); !same {
-					t.Errorf("%s: output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", c.id, path, golden, candidate, clip(got))
+				if diff := differsFromGolden(t, target, c.id, got); diff != "" {
+					t.Errorf("%s: %s", c.id, diff)
 					continue
 				}
 				passed++
@@ -156,6 +153,26 @@ func TestProduceCorpusMatchesGoldens(t *testing.T) {
 			t.Logf("%s: %d/%d cases match", target.id, passed, judged)
 		})
 	}
+}
+
+// differsFromGolden judges one produced document against the case's produce
+// golden by the checker's rule for the target: bytes for URI and V2Ray, the
+// canonical structure otherwise. It returns where they differ, or "" when
+// the output matches.
+func differsFromGolden(t *testing.T, target harnessTarget, id, got string) string {
+	t.Helper()
+	dir := filepath.Join(conformanceDir, "goldens", "produce", target.id)
+	if target.bytes {
+		golden := string(readFile(t, filepath.Join(dir, id+"."+target.ext)))
+		if got != golden {
+			return fmt.Sprintf("output differs from the golden at byte %d\n golden:    %q\n candidate: %q", firstDifference(golden, got), clip(golden), clip(got))
+		}
+		return ""
+	}
+	if path, golden, candidate, same := sameStructure(t, readFile(t, filepath.Join(dir, id+".canon.json")), target.form, got); !same {
+		return fmt.Sprintf("output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", path, golden, candidate, clip(got))
+	}
+	return ""
 }
 
 func firstDifference(a, b string) int {
