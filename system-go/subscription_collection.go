@@ -270,8 +270,11 @@ func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool)
 				if len(member.Nodes) > 0 {
 					nodes, ok = decodeNodes(member.Nodes)
 				} else {
-					// Left out for size: the text, parsed as the live path
-					// parses a member with no chain of its own.
+					// Left out for size: the member's text, parsed. For a
+					// member with no chain of its own that is what the live
+					// path does; a chained member's nodes go only when its
+					// chain's nodes alone pass the bound, and its text is
+					// that chain's URI output (encodeSnapshotEnvelope).
 					var err error
 					nodes, err = parseParts([]string{members[at].Raw})
 					ok = err == nil
