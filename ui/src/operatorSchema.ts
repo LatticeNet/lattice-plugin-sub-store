@@ -12,6 +12,7 @@
  * heard of, and the honest response is a usable text box rather than a form
  * that silently drops the arguments it does not understand.
  */
+import { t } from "./i18n";
 
 export type FieldKind =
   | "text"
@@ -66,18 +67,28 @@ export interface OperatorSchema {
   fields: readonly OperatorField[];
 }
 
-const REGIONS = [
-  { value: "HK", label: "Hong Kong" },
-  { value: "TW", label: "Taiwan" },
-  { value: "JP", label: "Japan" },
-  { value: "KR", label: "Korea" },
-  { value: "SG", label: "Singapore" },
-  { value: "US", label: "United States" },
-  { value: "UK", label: "United Kingdom" },
-  { value: "DE", label: "Germany" },
-  { value: "FR", label: "France" },
-  { value: "CN", label: "China" },
-] as const;
+/**
+ * The shape of each operator's form, without its words. The words (labels,
+ * summaries, hints, placeholders, the text of a select's options) live in the
+ * message table under `t.operators[type]`, read whenever a form is drawn, so
+ * the same schema answers in every locale. An option that carries its own
+ * `label` is a proper name (a protocol, a provider) and is not translated.
+ */
+interface FieldSpec {
+  key: string;
+  kind: FieldKind;
+  options?: readonly { value: string; label?: string }[];
+  default?: unknown;
+}
+
+interface OperatorSpec {
+  type: string;
+  group: OperatorSchema["group"];
+  wire?: OperatorSchema["wire"];
+  fields: readonly FieldSpec[];
+}
+
+const REGION_CODES = ["HK", "TW", "JP", "KR", "SG", "US", "UK", "DE", "FR", "CN"] as const;
 
 const NODE_TYPES = [
   { value: "vless", label: "VLESS" },
@@ -94,226 +105,102 @@ const NODE_TYPES = [
   { value: "snell", label: "Snell" },
 ] as const;
 
-export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
+const SCRIPT_SOURCE = [{ value: "script" }, { value: "link" }] as const;
+
+const OPERATOR_SPECS: readonly OperatorSpec[] = [
   {
     type: "Region Filter",
-    label: "Region filter",
-    summary: "Keep only nodes whose name matches the chosen regions.",
     group: "filter",
     fields: [
-      { key: "value", label: "Regions", kind: "multiselect", options: REGIONS },
-      {
-        key: "keep",
-        label: "Keep the matches",
-        kind: "switch",
-        default: true,
-        hint: "Off inverts the filter: the chosen regions are the ones removed.",
-      },
+      { key: "value", kind: "multiselect", options: REGION_CODES.map((value) => ({ value })) },
+      { key: "keep", kind: "switch", default: true },
     ],
   },
   {
     type: "Type Filter",
-    label: "Protocol filter",
-    summary: "Keep only nodes of the chosen protocols.",
     group: "filter",
     fields: [
-      { key: "value", label: "Protocols", kind: "multiselect", options: NODE_TYPES },
-      { key: "keep", label: "Keep the matches", kind: "switch", default: true },
+      { key: "value", kind: "multiselect", options: NODE_TYPES },
+      { key: "keep", kind: "switch", default: true },
     ],
   },
   {
     type: "Regex Filter",
-    label: "Regex filter",
-    summary: "Keep or drop nodes whose name matches a pattern.",
     group: "filter",
     fields: [
-      {
-        key: "regex",
-        label: "Patterns",
-        kind: "textarea",
-        placeholder: "One regular expression per line",
-        hint: "A node matching any line matches the filter.",
-      },
-      { key: "keep", label: "Keep the matches", kind: "switch", default: true },
+      { key: "regex", kind: "textarea" },
+      { key: "keep", kind: "switch", default: true },
     ],
   },
   {
     type: "Conditional Filter",
-    label: "Conditional filter",
-    summary: "Keep nodes satisfying an expression over their fields.",
     group: "filter",
-    fields: [
-      {
-        key: "rule",
-        label: "Expression",
-        kind: "textarea",
-        placeholder: "type=vless AND port=443",
-      },
-    ],
+    // The placeholder is the expression grammar itself, the same in every locale.
+    fields: [{ key: "rule", kind: "textarea" }],
   },
-  {
-    type: "Useless Filter",
-    label: "Drop junk nodes",
-    summary: "Drop nodes that carry traffic or expiry notices rather than a server.",
-    group: "filter",
-    fields: [],
-  },
-  {
-    type: "Remove Duplicate Filter",
-    label: "Drop duplicates",
-    summary: "Drop nodes that repeat an earlier one.",
-    group: "filter",
-    fields: [],
-  },
+  { type: "Useless Filter", group: "filter", fields: [] },
+  { type: "Remove Duplicate Filter", group: "filter", fields: [] },
   {
     type: "Regex Rename Operator",
     wire: "bare",
-    label: "Regex rename",
-    summary: "Rewrite node names by pattern.",
     group: "rewrite",
-    fields: [
-      {
-        key: "value",
-        label: "Replacements",
-        kind: "pairs",
-        columns: ["Pattern", "Replace with"],
-        hint: "Applied in order. Later rules see the output of earlier ones.",
-      },
-    ],
+    fields: [{ key: "value", kind: "pairs" }],
   },
   {
     type: "Regex Delete Operator",
     wire: "bare",
-    label: "Regex delete",
-    summary: "Strip matching text out of node names.",
     group: "rewrite",
-    fields: [
-      {
-        key: "value",
-        label: "Patterns",
-        kind: "textarea",
-        placeholder: "One regular expression per line",
-      },
-    ],
+    fields: [{ key: "value", kind: "textarea" }],
   },
   {
     type: "Flag Operator",
-    label: "Country flags",
-    summary: "Add or remove the country flag in front of a node name.",
     group: "rewrite",
-    fields: [
-      {
-        key: "mode",
-        label: "Action",
-        kind: "select",
-        default: "add",
-        options: [
-          { value: "add", label: "Add flags" },
-          { value: "remove", label: "Remove flags" },
-        ],
-      },
-    ],
+    fields: [{ key: "mode", kind: "select", default: "add", options: [{ value: "add" }, { value: "remove" }] }],
   },
   {
     type: "Sort Operator",
     wire: "bare",
-    label: "Sort",
-    summary: "Order the node list.",
     group: "rewrite",
-    fields: [
-      {
-        key: "value",
-        label: "Order",
-        kind: "select",
-        default: "asc",
-        options: [
-          { value: "asc", label: "Ascending by name" },
-          { value: "desc", label: "Descending by name" },
-          { value: "random", label: "Random" },
-        ],
-      },
-    ],
+    fields: [{ key: "value", kind: "select", default: "asc", options: [{ value: "asc" }, { value: "desc" }, { value: "random" }] }],
   },
   {
     type: "Regex Sort Operator",
     wire: "bare",
-    label: "Regex sort",
-    summary: "Order nodes by which pattern they match first.",
     group: "rewrite",
-    fields: [
-      {
-        key: "value",
-        label: "Patterns in order",
-        kind: "textarea",
-        placeholder: "One regular expression per line",
-        hint: "Nodes matching the first line come first, and so on.",
-      },
-    ],
+    fields: [{ key: "value", kind: "textarea" }],
   },
   {
     type: "Handle Duplicate Operator",
-    label: "Handle duplicates",
-    summary: "Decide what happens to nodes that share a name.",
     group: "rewrite",
     fields: [
-      {
-        key: "action",
-        label: "Action",
-        kind: "select",
-        default: "rename",
-        options: [
-          { value: "rename", label: "Rename the duplicates" },
-          { value: "delete", label: "Delete the duplicates" },
-          { value: "skip", label: "Leave them alone" },
-        ],
-      },
-      { key: "template", label: "Rename template", kind: "text", placeholder: "$name $counter" },
-      { key: "link", label: "Separator", kind: "text", placeholder: "-" },
-      { key: "position", label: "Counter position", kind: "text", placeholder: "back" },
+      { key: "action", kind: "select", default: "rename", options: [{ value: "rename" }, { value: "delete" }, { value: "skip" }] },
+      { key: "template", kind: "text" },
+      { key: "link", kind: "text" },
+      { key: "position", kind: "text" },
     ],
   },
   {
     type: "Quick Setting Operator",
-    label: "Quick settings",
-    summary: "Force protocol switches on every node.",
     group: "rewrite",
     fields: [
-      { key: "udp", label: "UDP", kind: "tristate" },
-      { key: "tfo", label: "TCP Fast Open", kind: "tristate" },
-      { key: "scert", label: "Skip cert verify", kind: "tristate" },
-      { key: "vmess aead", label: "VMess AEAD", kind: "tristate" },
+      { key: "udp", kind: "tristate" },
+      { key: "tfo", kind: "tristate" },
+      { key: "scert", kind: "tristate" },
+      { key: "vmess aead", kind: "tristate" },
     ],
   },
   {
     type: "Resolve Domain Operator",
-    label: "Resolve domains",
-    summary: "Replace hostnames with resolved addresses.",
     group: "rewrite",
     fields: [
       {
         key: "provider",
-        label: "Resolver",
         kind: "select",
         default: "cloudflare",
-        options: [
-          { value: "cloudflare", label: "Cloudflare" },
-          { value: "google", label: "Google" },
-          { value: "ali", label: "Ali" },
-          { value: "tencent", label: "Tencent" },
-        ],
+        options: [{ value: "cloudflare" }, { value: "google" }, { value: "ali" }, { value: "tencent" }],
       },
-      {
-        key: "type",
-        label: "Mode",
-        kind: "select",
-        default: "auto",
-        options: [
-          { value: "auto", label: "Auto" },
-          { value: "remove-failed", label: "Remove nodes that fail to resolve" },
-          { value: "IP-ONLY", label: "Keep only nodes that are already IPs" },
-        ],
-      },
-      { key: "cache", label: "Use the resolver cache", kind: "switch", default: true },
+      { key: "type", kind: "select", default: "auto", options: [{ value: "auto" }, { value: "remove-failed" }, { value: "IP-ONLY" }] },
+      { key: "cache", kind: "switch", default: true },
     ],
   },
   {
@@ -326,37 +213,11 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     // are correct now regardless; a control that writes the wrong shape is a
     // second bug waiting behind the first.
     type: "Add Proxies From Subscription Operator",
-    label: "Append another subscription",
-    summary: "Append nodes from another subscription. Needs the file pipeline.",
     group: "rewrite",
     fields: [
-      {
-        key: "sourceType",
-        label: "Kind",
-        kind: "select",
-        default: "subscription",
-        options: [
-          { value: "subscription", label: "Subscription" },
-          { value: "collection", label: "Combination" },
-        ],
-      },
-      {
-        key: "sourceName",
-        label: "Name",
-        kind: "text",
-        placeholder: "The name it is stored under",
-      },
-      {
-        key: "position",
-        label: "Where",
-        kind: "select",
-        default: "replace",
-        options: [
-          { value: "replace", label: "Replace" },
-          { value: "before", label: "Before" },
-          { value: "after", label: "After" },
-        ],
-      },
+      { key: "sourceType", kind: "select", default: "subscription", options: [{ value: "subscription" }, { value: "collection" }] },
+      { key: "sourceName", kind: "text" },
+      { key: "position", kind: "select", default: "replace", options: [{ value: "replace" }, { value: "before" }, { value: "after" }] },
     ],
   },
   {
@@ -364,77 +225,109 @@ export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = [
     // skipped there by design, so this is the only step that can change a
     // plain-text file.
     type: "Response Transformer",
-    label: "Rewrite document",
-    summary: "Run JavaScript over the served document.",
     group: "script",
     fields: [
-      {
-        key: "mode",
-        label: "Source",
-        kind: "select",
-        default: "script",
-        options: [
-          { value: "script", label: "Inline script" },
-          { value: "link", label: "Remote script URL" },
-        ],
-      },
-      {
-        key: "content",
-        label: "Script",
-        kind: "script",
-        hint: "Define transformFunction(res). It receives {status, headers, body} and returns it. Runs inside the engine's sandbox: no filesystem, and network only through $substore.http, which goes out under the server's egress guard (8 requests per call).",
-      },
+      { key: "mode", kind: "select", default: "script", options: SCRIPT_SOURCE },
+      { key: "content", kind: "script" },
     ],
   },
   {
     type: "Script Operator",
-    label: "Script",
-    summary: "Run JavaScript over the whole node list.",
     group: "script",
     fields: [
-      {
-        key: "mode",
-        label: "Source",
-        kind: "select",
-        default: "script",
-        options: [
-          { value: "script", label: "Inline script" },
-          { value: "link", label: "Remote script URL" },
-        ],
-      },
-      {
-        key: "content",
-        label: "Script",
-        kind: "script",
-        hint: "Receives the proxy list and returns it. Runs inside the engine's sandbox: no filesystem, and network only through $substore.http, which goes out under the server's egress guard (8 requests per call).",
-      },
+      { key: "mode", kind: "select", default: "script", options: SCRIPT_SOURCE },
+      { key: "content", kind: "script" },
     ],
   },
   {
     type: "Script Filter",
-    label: "Script filter",
-    summary: "Run JavaScript that decides which nodes to keep.",
     group: "script",
     fields: [
-      {
-        key: "mode",
-        label: "Source",
-        kind: "select",
-        default: "script",
-        options: [
-          { value: "script", label: "Inline script" },
-          { value: "link", label: "Remote script URL" },
-        ],
-      },
-      {
-        key: "content",
-        label: "Script",
-        kind: "script",
-        hint: "Returns an array of booleans, one per node. Runs inside the engine's sandbox.",
-      },
+      { key: "mode", kind: "select", default: "script", options: SCRIPT_SOURCE },
+      { key: "content", kind: "script" },
     ],
   },
-] as const;
+];
+
+/** Placeholders that are syntax rather than words, and so the same in every locale. */
+const SYNTAX_PLACEHOLDERS: Record<string, Record<string, string>> = {
+  "Conditional Filter": { rule: "type=vless AND port=443" },
+  "Handle Duplicate Operator": { template: "$name $counter", link: "-", position: "back" },
+};
+
+interface FieldText {
+  label: string;
+  hint?: string;
+  placeholder?: string;
+  columns?: readonly string[];
+  options?: Record<string, string>;
+}
+
+interface OperatorText {
+  label: string;
+  summary: string;
+  fields: Record<string, FieldText>;
+}
+
+/** The active locale's words for one operator type. */
+function textOf(type: string): OperatorText {
+  return (t.operators as unknown as Record<string, OperatorText>)[type]!;
+}
+
+function fieldText(type: string, key: string): FieldText {
+  return textOf(type).fields[key] ?? { label: key };
+}
+
+/**
+ * A schema whose words are getters over the message table, so a form drawn
+ * after the handshake reads the console's language, and one drawn in a test
+ * reads English.
+ */
+function localized(spec: OperatorSpec): OperatorSchema {
+  const fields = spec.fields.map<OperatorField>((field) => {
+    const options = field.options?.map((option) => ({
+      value: option.value,
+      get label() {
+        if (option.label) return option.label;
+        if (spec.type === "Region Filter") return (t.regions as Record<string, string>)[option.value] ?? option.value;
+        return fieldText(spec.type, field.key).options?.[option.value] ?? option.value;
+      },
+    }));
+    return {
+      key: field.key,
+      kind: field.kind,
+      ...(field.default !== undefined ? { default: field.default } : {}),
+      ...(options ? { options } : {}),
+      get label() {
+        return fieldText(spec.type, field.key).label;
+      },
+      get hint() {
+        return fieldText(spec.type, field.key).hint;
+      },
+      get placeholder() {
+        return SYNTAX_PLACEHOLDERS[spec.type]?.[field.key] ?? fieldText(spec.type, field.key).placeholder;
+      },
+      get columns() {
+        const columns = fieldText(spec.type, field.key).columns;
+        return columns ? ([columns[0] ?? "", columns[1] ?? ""] as const) : undefined;
+      },
+    };
+  });
+  return {
+    type: spec.type,
+    group: spec.group,
+    ...(spec.wire ? { wire: spec.wire } : {}),
+    fields,
+    get label() {
+      return textOf(spec.type).label;
+    },
+    get summary() {
+      return textOf(spec.type).summary;
+    },
+  };
+}
+
+export const OPERATOR_SCHEMAS: readonly OperatorSchema[] = OPERATOR_SPECS.map(localized);
 
 const BY_TYPE = new Map(OPERATOR_SCHEMAS.map((schema) => [schema.type, schema]));
 

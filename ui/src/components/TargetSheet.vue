@@ -30,6 +30,7 @@ import { trapDialogTab } from "../dialogFocus";
 import { useOverlayRegistration } from "../useOverlayRegistration";
 import { isFileRecord } from "../filePreview";
 import { useHost } from "../host";
+import { t } from "../i18n";
 import { copyText } from "../hostClipboard";
 import {
   editorLanguageForFileType,
@@ -144,13 +145,7 @@ const droppedNotice = computed(() => {
   if (dropped <= 0) return "";
   const total = rendered.value?.nodeCount ?? 0;
   const protocols = rendered.value?.droppedProtocols ?? [];
-  const named = protocols.length > 0 ? ` (${protocols.join(", ")})` : "";
-  const all = total > 0 && dropped >= total;
-  const scope = all
-    ? `any of this record's ${total} nodes`
-    : `${dropped} of this record's ${total || dropped} nodes`;
-  const outcome = all ? "This document has none of them." : "They are not in this document.";
-  return `${chosenTarget.value.label} cannot carry ${scope}${named}. ${outcome}`;
+  return t.sheet.dropped(chosenTarget.value.label, dropped, total, protocols.join(", "));
 });
 const renderedBytes = computed(() =>
   rendered.value ? new TextEncoder().encode(rendered.value.content).byteLength : 0,
@@ -257,8 +252,7 @@ async function loadShare(): Promise<void> {
 async function loadDocument(): Promise<void> {
   if (!host.bridge || !canRender.value) {
     documentStatus.value = "error";
-    documentError.value =
-      "This session cannot render client documents. Use Node preview for the redacted read view.";
+    documentError.value = t.sheet.cannotRender;
     return;
   }
 
@@ -299,7 +293,7 @@ async function loadDocument(): Promise<void> {
       return;
     }
     if (typeof response?.content !== "string") {
-      throw new Error("The render response did not contain a document");
+      throw new Error(t.sheet.noDocument);
     }
     rendered.value = {
       key,
@@ -317,9 +311,7 @@ async function loadDocument(): Promise<void> {
     documentStatus.value = "error";
     documentError.value = safeErrorMessage(
       cause,
-      isFile.value
-        ? "Could not render this file"
-        : `Could not render the ${chosenTarget.value.label} document`,
+      isFile.value ? t.sheet.renderFileFailed : t.sheet.renderFailed(chosenTarget.value.label),
     );
   } finally {
     if (generation === documentGeneration) {
@@ -333,9 +325,7 @@ async function loadNodes(): Promise<void> {
   viewMode.value = "nodes";
   if (!host.bridge || !canPreview.value || isFile.value) {
     nodesStatus.value = "error";
-    nodesError.value = isFile.value
-      ? "Files are documents and do not have a node preview."
-      : "This session cannot preview this record's nodes.";
+    nodesError.value = isFile.value ? t.sheet.filesNoNodes : t.sheet.cannotPreview;
     return;
   }
 
@@ -368,7 +358,7 @@ async function loadNodes(): Promise<void> {
     if (generation !== nodesGeneration || !props.open) return;
     preview.value = null;
     nodesStatus.value = "error";
-    nodesError.value = safeErrorMessage(cause, "Node preview failed");
+    nodesError.value = safeErrorMessage(cause, t.sheet.nodesFailed);
   } finally {
     if (generation === nodesGeneration) {
       nodesCancel = null;
@@ -553,67 +543,65 @@ onBeforeUnmount(stopAllRequests);
       data-size="output"
       role="dialog"
       aria-modal="true"
-      :aria-label="`${isFile ? 'Document preview' : 'Client output'} for ${recordName}`"
+      :aria-label="isFile ? t.sheet.dialogFile(recordName) : t.sheet.dialogClient(recordName)"
       @keydown.tab="onTab"
     >
       <header class="sheet-head">
         <div class="sheet-headings">
-          <h2 class="sheet-title">{{ isFile ? "Document preview" : "Client output" }}</h2>
+          <h2 class="sheet-title">{{ isFile ? t.sheet.titleFile : t.sheet.titleClient }}</h2>
           <p class="sheet-sub" :title="recordName">
             <span>{{ recordName }}</span>
             <code v-if="recordId !== recordName">{{ recordId }}</code>
           </p>
         </div>
-        <button type="button" class="sheet-close" aria-label="Close" @click="close">
+        <button type="button" class="sheet-close" :aria-label="t.sheet.close" @click="close">
           <X :size="16" aria-hidden="true" />
         </button>
       </header>
 
       <div class="target-workspace-body" :class="{ 'is-file': isFile }">
-        <aside class="target-controls" aria-label="Output controls">
+        <aside class="target-controls" :aria-label="t.sheet.controls">
           <!-- Delivery first. It is two lines and the reason most operators
                open this sheet ("is it published, and where"), and it sat
                under fourteen client chips, below the fold on a wide frame. -->
           <section class="target-control-section delivery-section">
-            <h3 class="control-eyebrow">Delivery</h3>
+            <h3 class="control-eyebrow">{{ t.sheet.delivery }}</h3>
             <template v-if="shareState === 'loading'">
-              <p class="delivery-state">Checking publication…</p>
+              <p class="delivery-state">{{ t.sheet.checking }}</p>
             </template>
             <template v-else-if="shareState === 'unavailable'">
-              <p class="delivery-state is-unknown">Publication status requires admin access</p>
-              <p class="control-note">Document generation is unaffected.</p>
+              <p class="delivery-state is-unknown">{{ t.sheet.needsAdmin }}</p>
+              <p class="control-note">{{ t.sheet.unaffected }}</p>
             </template>
             <template v-else-if="shareState === 'failed'">
-              <p class="delivery-state is-unknown">Could not check publication status</p>
-              <p class="control-note">Document generation is unaffected.</p>
+              <p class="delivery-state is-unknown">{{ t.sheet.checkFailed }}</p>
+              <p class="control-note">{{ t.sheet.unaffected }}</p>
             </template>
             <template v-else-if="share">
-              <p v-if="shareVerdict?.tone === 'ok'" class="delivery-state is-published">Published as /{{ share.slug }}</p>
+              <p v-if="shareVerdict?.tone === 'ok'" class="delivery-state is-published">{{ t.sheet.publishedAs(share.slug) }}</p>
               <template v-else>
-                <p class="delivery-state is-unknown">Share {{ shareVerdict?.label }}</p>
-                <p class="control-note">{{ shareVerdict?.title }} Renew it under Platform → Publishing.</p>
+                <p class="delivery-state is-unknown">{{ t.sheet.shareState(shareVerdict?.label ?? "") }}</p>
+                <p class="control-note">{{ t.sheet.renew(shareVerdict?.title ?? "") }}</p>
               </template>
               <LtButton :disabled="copyingLink" @click="copyLink()">
                 <LoaderCircle v-if="copyingLink" :size="14" class="spin" aria-hidden="true" />
                 <Check v-else-if="copied === 'link'" :size="14" aria-hidden="true" />
                 <Link v-else :size="14" aria-hidden="true" />
-                {{ copied === "link" ? "Link copied" : "Copy stable link" }}
+                {{ copied === "link" ? t.sheet.linkCopied : t.sheet.copyLink }}
               </LtButton>
             </template>
             <template v-else>
-              <p class="delivery-state">Not published</p>
-              <p class="control-note">
-                Copy document still works. Publish under Platform → Publishing to create a stable URL.
-              </p>
+              <p class="delivery-state">{{ t.sheet.notPublished }}</p>
+              <p class="control-note">{{ t.sheet.notPublishedNote }}</p>
             </template>
             <LtManualCopy v-if="shownLink" :value="shownLink" subject="link" />
           </section>
 
           <section v-if="!isFile" class="target-control-section">
             <h3 class="control-eyebrow">
-              Client <span class="control-count">{{ CONVERT_TARGETS.length }}</span>
+              {{ t.sheet.client }} <span class="control-count">{{ CONVERT_TARGETS.length }}</span>
             </h3>
-            <div class="target-grid" role="radiogroup" aria-label="Client">
+            <div class="target-grid" role="radiogroup" :aria-label="t.sheet.client">
               <button
                 v-for="target in CONVERT_TARGETS"
                 :key="target.id"
@@ -638,34 +626,28 @@ onBeforeUnmount(stopAllRequests);
               </button>
             </div>
             <p v-if="pinned" class="control-note">
-              Record default: <code>{{ pinned }}</code>. This selection overrides it for preview
-              and copy.
+              {{ t.sheet.pinnedBefore }} <code>{{ pinned }}</code>{{ t.sheet.pinnedAfter }}
             </p>
           </section>
 
           <section v-else class="target-control-section">
-            <h3 class="control-eyebrow">Document</h3>
-            <p class="control-note">
-              A file is delivered as the document it is. Client selection does not change it.
-            </p>
+            <h3 class="control-eyebrow">{{ t.sheet.document }}</h3>
+            <p class="control-note">{{ t.sheet.documentNote }}</p>
           </section>
 
           <section v-if="!isFile" class="target-control-section">
-            <h3 class="control-eyebrow">Output options</h3>
+            <h3 class="control-eyebrow">{{ t.sheet.options }}</h3>
             <label class="sheet-toggle">
               <input
                 v-model="includeUnsupported"
                 type="checkbox"
                 name="include-unsupported-proxy"
               />
-              Include protocols the selected client does not support
+              {{ t.sheet.includeUnsupported }}
             </label>
           </section>
 
-          <p v-if="!canRender" class="permission-strip">
-            Client documents require admin access. This session can preview redacted nodes
-            only.
-          </p>
+          <p v-if="!canRender" class="permission-strip">{{ t.sheet.needsAdminRender }}</p>
           <p v-if="actionError" class="sheet-error" role="alert">{{ actionError }}</p>
         </aside>
 
@@ -674,41 +656,41 @@ onBeforeUnmount(stopAllRequests);
             <div class="evidence-rail" role="status" aria-live="polite">
               <template v-if="viewMode === 'document'">
                 <span class="evidence-step">
-                  <small>{{ isFile ? "DOCUMENT" : "CLIENT" }}</small>
-                  <strong>{{ isFile ? "FILE" : chosenTarget.label }}</strong>
+                  <small>{{ isFile ? t.sheet.railDocument : t.sheet.railClient }}</small>
+                  <strong>{{ isFile ? t.sheet.railFile : chosenTarget.label }}</strong>
                 </span>
                 <span class="evidence-arrow" aria-hidden="true">→</span>
                 <span class="evidence-step">
-                  <small>OUTPUT</small>
+                  <small>{{ t.sheet.railOutput }}</small>
                   <strong>{{ renderedLanguageLabel }}</strong>
                 </span>
                 <span class="evidence-arrow" aria-hidden="true">→</span>
                 <span class="evidence-step">
-                  <small>RECORD</small>
+                  <small>{{ t.sheet.railRecord }}</small>
                   <strong>{{ recordId }}</strong>
                 </span>
                 <template v-if="documentStatus === 'ready'">
                   <span class="evidence-arrow" aria-hidden="true">→</span>
                   <span class="evidence-step">
-                    <small>SIZE</small>
+                    <small>{{ t.sheet.railSize }}</small>
                     <strong>{{ formatBytes(renderedBytes) }}</strong>
                   </span>
                 </template>
               </template>
               <template v-else>
                 <span class="evidence-step">
-                  <small>AFTER OPERATIONS</small>
-                  <strong>NODES</strong>
+                  <small>{{ t.sheet.railAfter }}</small>
+                  <strong>{{ t.sheet.railNodes }}</strong>
                 </span>
                 <span class="evidence-arrow" aria-hidden="true">→</span>
                 <span class="evidence-step">
-                  <small>RECORD</small>
+                  <small>{{ t.sheet.railRecord }}</small>
                   <strong>{{ recordId }}</strong>
                 </span>
                 <template v-if="nodesStatus === 'ready' && preview">
                   <span class="evidence-arrow" aria-hidden="true">→</span>
                   <span class="evidence-step">
-                    <small>KEPT</small>
+                    <small>{{ t.sheet.railKept }}</small>
                     <strong>
                       {{ preview.response.node_count }}
                       <template v-if="preview.response.source_node_count !== undefined">
@@ -720,7 +702,7 @@ onBeforeUnmount(stopAllRequests);
               </template>
             </div>
 
-            <div v-if="!isFile" class="output-tabs" role="tablist" aria-label="Preview evidence">
+            <div v-if="!isFile" class="output-tabs" role="tablist" :aria-label="t.sheet.evidence">
               <button
                 id="target-document-tab"
                 type="button"
@@ -731,7 +713,7 @@ onBeforeUnmount(stopAllRequests);
                 @click="showDocument()"
                 @keydown="onViewTabKeydown"
               >
-                Document
+                {{ t.sheet.tabDocument }}
               </button>
               <button
                 id="target-nodes-tab"
@@ -743,7 +725,7 @@ onBeforeUnmount(stopAllRequests);
                 @click="showNodes()"
                 @keydown="onViewTabKeydown"
               >
-                Node preview
+                {{ t.sheet.tabNodes }}
               </button>
             </div>
 
@@ -758,25 +740,22 @@ onBeforeUnmount(stopAllRequests);
               <div>
                 <h3 :id="viewMode === 'document' ? 'target-document-label' : 'target-nodes-label'">
                   <template v-if="viewMode === 'document'">
-                    {{ isFile ? "Rendered document" : `What ${chosenTarget.label} receives` }}
+                    {{ isFile ? t.sheet.renderedDocument : t.sheet.receives(chosenTarget.label) }}
                   </template>
                   <template v-else>
-                    {{ isCollection ? "Merged nodes after operations" : "Nodes after operations" }}
+                    {{ isCollection ? t.sheet.mergedNodes : t.sheet.nodesAfter }}
                   </template>
                 </h3>
                 <p v-if="viewMode === 'document'" class="output-description">
                   <template v-if="documentStatus === 'loading'">
-                    Generating {{ isFile ? "document" : chosenTarget.label }} output…
+                    {{ t.sheet.generating(isFile ? t.sheet.generatingDocument : chosenTarget.label) }}
                   </template>
                   <template v-else-if="documentStatus === 'ready'">
-                    {{ renderedLanguageLabel }} · {{ formatBytes(renderedBytes) }} ·
-                    {{ rendered?.content.length ?? 0 }} characters
+                    {{ t.sheet.readyMeta(renderedLanguageLabel, formatBytes(renderedBytes), rendered?.content.length ?? 0) }}
                   </template>
-                  <template v-else>The exact document for the selected output target.</template>
+                  <template v-else>{{ t.sheet.exactDocument }}</template>
                 </p>
-                <p v-else class="output-description">
-                  Redacted node evidence from the chain, separate from the client document.
-                </p>
+                <p v-else class="output-description">{{ t.sheet.redacted }}</p>
               </div>
               <div class="output-actions">
                 <LtButton
@@ -793,13 +772,13 @@ onBeforeUnmount(stopAllRequests);
                   />
                   <Check v-else-if="copied === 'document'" :size="14" aria-hidden="true" />
                   <Copy v-else :size="14" aria-hidden="true" />
-                  {{ copied === "document" ? "Document copied" : "Copy document" }}
+                  {{ copied === "document" ? t.sheet.documentCopied : t.sheet.copyDocument }}
                 </LtButton>
                 <LtButton
                   v-else-if="nodesStatus === 'error'"
                   @click="retryCurrent()"
                 >
-                  <RefreshCw :size="14" aria-hidden="true" /> Retry
+                  <RefreshCw :size="14" aria-hidden="true" /> {{ t.sheet.retry }}
                 </LtButton>
               </div>
           </div>
@@ -843,18 +822,18 @@ onBeforeUnmount(stopAllRequests);
                 class="button button-secondary button-compact"
                 @click="includeUnsupported = true"
               >
-                Send them anyway
+                {{ t.sheet.sendAnyway }}
               </button>
             </div>
             <div v-if="documentStatus === 'loading'" class="output-state" role="status">
               <LoaderCircle :size="18" class="spin" aria-hidden="true" />
-              <strong>Generating {{ isFile ? "document" : chosenTarget.label }} output…</strong>
-              <span>The previous target cannot be mistaken for this result.</span>
+              <strong>{{ t.sheet.generating(isFile ? t.sheet.generatingDocument : chosenTarget.label) }}</strong>
+              <span>{{ t.sheet.notMistaken }}</span>
             </div>
             <div v-else-if="documentStatus === 'error'" class="output-state is-error" role="alert">
               <strong>{{ documentError }}</strong>
               <LtButton @click="retryCurrent()">
-                <RefreshCw :size="14" aria-hidden="true" /> Retry render
+                <RefreshCw :size="14" aria-hidden="true" /> {{ t.sheet.retryRender }}
               </LtButton>
             </div>
             <div
@@ -862,8 +841,8 @@ onBeforeUnmount(stopAllRequests);
               class="output-state is-empty"
               role="status"
             >
-              <strong>The render completed with an empty document.</strong>
-              <span>Nothing is available to copy for this client target.</span>
+              <strong>{{ t.sheet.emptyRender }}</strong>
+              <span>{{ t.sheet.nothingToCopy }}</span>
             </div>
             <DocumentView
               v-else-if="documentStatus === 'ready' && rendered"
@@ -873,8 +852,8 @@ onBeforeUnmount(stopAllRequests);
               :aria-labelledby="'target-document-label'"
             />
             <div v-else class="output-state">
-              <strong>No document generated yet.</strong>
-              <span>Choose a client or retry the render.</span>
+              <strong>{{ t.sheet.noDocumentYet }}</strong>
+              <span>{{ t.sheet.chooseClient }}</span>
             </div>
           </section>
 
@@ -886,29 +865,29 @@ onBeforeUnmount(stopAllRequests);
           >
             <div v-if="nodesStatus === 'loading'" class="output-state" role="status">
               <LoaderCircle :size="18" class="spin" aria-hidden="true" />
-              <strong>Previewing nodes…</strong>
+              <strong>{{ t.sheet.previewing }}</strong>
             </div>
             <div v-else-if="nodesStatus === 'error'" class="output-state is-error" role="alert">
               <strong>{{ nodesError }}</strong>
               <LtButton @click="retryCurrent()">
-                <RefreshCw :size="14" aria-hidden="true" /> Retry preview
+                <RefreshCw :size="14" aria-hidden="true" /> {{ t.sheet.retryPreview }}
               </LtButton>
             </div>
             <template v-else-if="nodesStatus === 'ready' && preview">
               <div class="nodes-summary">
-                <strong>Kept {{ preview.response.node_count }}</strong>
+                <strong>{{ t.sheet.kept(preview.response.node_count) }}</strong>
                 <span v-if="preview.response.source_node_count !== undefined">
-                  of {{ preview.response.source_node_count }} source nodes
+                  {{ t.sheet.ofSource(preview.response.source_node_count) }}
                 </span>
-                <span v-if="filteredNodeCount">Filtered {{ filteredNodeCount }}</span>
-                <span v-if="preview.response.truncated">Result truncated</span>
+                <span v-if="filteredNodeCount">{{ t.sheet.filtered(filteredNodeCount) }}</span>
+                <span v-if="preview.response.truncated">{{ t.sheet.truncated }}</span>
               </div>
               <table v-if="preview.response.nodes.length" class="preview-node-table">
                 <thead>
                   <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Endpoint</th>
+                    <th scope="col">{{ t.sheet.colName }}</th>
+                    <th scope="col">{{ t.sheet.colType }}</th>
+                    <th scope="col">{{ t.sheet.colEndpoint }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -920,23 +899,23 @@ onBeforeUnmount(stopAllRequests);
                     <td><code>{{ node.type }}</code></td>
                     <td>
                       <code>
-                        {{ node.server || "Unknown" }}<template v-if="node.port">:{{ node.port }}</template>
+                        {{ node.server || t.sheet.unknownServer }}<template v-if="node.port">:{{ node.port }}</template>
                       </code>
                     </td>
                   </tr>
                 </tbody>
               </table>
               <div v-else class="output-state is-empty" role="status">
-                <strong>The chain kept no nodes.</strong>
-                <span>A client subscribing now receives an empty node list.</span>
+                <strong>{{ t.sheet.keptNone }}</strong>
+                <span>{{ t.sheet.keptNoneNote }}</span>
               </div>
               <p v-if="preview.response.nodes.length > 40" class="result-more">
-                Showing the first 40 of {{ preview.response.nodes.length }}.
+                {{ t.sheet.firstOf(40, preview.response.nodes.length) }}
               </p>
             </template>
             <div v-else class="output-state">
-              <strong>No node evidence loaded.</strong>
-              <LtButton @click="showNodes()">Preview nodes</LtButton>
+              <strong>{{ t.sheet.noEvidence }}</strong>
+              <LtButton @click="showNodes()">{{ t.sheet.previewNodes }}</LtButton>
             </div>
           </section>
         </main>

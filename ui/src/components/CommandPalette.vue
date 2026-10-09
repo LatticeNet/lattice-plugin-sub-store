@@ -3,6 +3,7 @@ import { computed, nextTick, ref, toRef, watch } from "vue";
 import { CornerDownLeft, Search } from "@lucide/vue";
 
 import type { SubscriptionListItem } from "../client";
+import { t } from "../i18n";
 import {
   moveSelection,
   paletteActionsFor,
@@ -170,7 +171,7 @@ function escape(): void {
       class="palette"
       role="dialog"
       aria-modal="true"
-      aria-label="Search records and actions"
+      :aria-label="t.palette.dialogLabel"
       tabindex="-1"
       @click.stop
       @keydown="onKeydown"
@@ -185,11 +186,11 @@ function escape(): void {
           aria-expanded="true"
           aria-controls="palette-list"
           :aria-activedescendant="rows.length ? `palette-row-${cursor}` : undefined"
-          :placeholder="chosen ? `What to do with ${chosen.display_name || chosen.name}` : 'Search records, or type a command'"
+          :placeholder="chosen ? t.palette.placeholderChosen(chosen.display_name || chosen.name) : t.palette.placeholder"
           autocomplete="off"
           spellcheck="false"
         />
-        <kbd class="palette-hint">esc</kbd>
+        <kbd class="palette-hint">{{ t.palette.escape }}</kbd>
       </div>
 
       <ul id="palette-list" class="palette-list" role="listbox">
@@ -212,7 +213,7 @@ function escape(): void {
           <CornerDownLeft v-if="index === cursor && !row.disabled" :size="13" aria-hidden="true" />
         </li>
         <li v-if="!rows.length" class="palette-empty">
-          Nothing matches “{{ query }}”.
+          {{ t.palette.noMatch(query) }}
         </li>
       </ul>
     </div>

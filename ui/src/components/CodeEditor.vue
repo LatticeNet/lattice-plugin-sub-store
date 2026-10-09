@@ -15,6 +15,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import type { EditorHandle, EditorLanguage } from "../codemirror";
+import { t } from "../i18n";
 
 const props = withDefaults(
   defineProps<{
@@ -111,7 +112,7 @@ onBeforeUnmount(() => {
       @input="onTextareaInput"
     ></textarea>
     <p v-if="failed" class="code-editor-fallback-note" role="status">
-      Syntax highlighting is unavailable. Plain-text {{ preview ? "view" : "editor" }} shown.
+      {{ preview ? t.codeEditor.fallbackView : t.codeEditor.fallbackEditor }}
     </p>
     <div v-show="ready" ref="hostEl" class="code-editor-host"></div>
   </div>

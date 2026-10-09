@@ -2,17 +2,20 @@ import { describe, expect, it } from "vitest";
 
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS } from "./client";
 import {
-  LEGACY_REASON,
-  LIMIT_REASON,
-  NO_SOURCE_REASON,
-  READING_REASON,
-  UNREAD_REASON,
   createBlocks,
   headerCreate,
   storeBlock,
   type CatalogueView,
   type HeaderCreateInput,
 } from "./createGate";
+import { t } from "./i18n";
+
+// The reasons are the message table's, read in English, the default locale.
+const UNREAD_REASON = t.create.unread;
+const READING_REASON = t.create.reading;
+const LIMIT_REASON = t.create.limit(MAX_SUBSCRIPTION_RECORDS);
+const NO_SOURCE_REASON = t.create.noSource;
+const LEGACY_REASON = t.create.legacy;
 import type { LoadState } from "./useSubscriptions";
 import type { ViewId } from "./pipeline";
 

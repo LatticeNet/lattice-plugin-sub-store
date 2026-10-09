@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { ArrowDown, ArrowUp, ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
 
+import { t } from "../i18n";
 import { defaultArgs, fromWireArgs, schemaFor, toWireArgs } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
 
@@ -101,7 +102,7 @@ const addable = computed(() =>
 function label(step: ChainStep, position: number): string {
   const name = step.customName?.trim();
   if (name) return name;
-  return `${position}. ${schemaFor(step.type)?.label ?? step.type}`;
+  return t.chain.stepLabel(position, schemaFor(step.type)?.label ?? step.type);
 }
 
 function commit(next: ChainStep[]): void {
@@ -190,10 +191,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 <template>
   <section class="chain">
     <div class="chain-head">
-      <h3>{{ heading ?? "Node operations" }}</h3>
-      <span v-if="visible.length" class="chain-count">
-        {{ activeCount }} of {{ visible.length }} active
-      </span>
+      <h3>{{ heading ?? t.chain.heading }}</h3>
+      <span v-if="visible.length" class="chain-count">{{ t.chain.activeCount(activeCount, visible.length) }}</span>
     </div>
 
     <ol v-if="visible.length" class="chain-list">
@@ -222,25 +221,25 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               :class="['step-caret', { 'is-open': expanded === entry.index }]"
             />
             <span class="step-label">{{ label(entry.step, position + 1) }}</span>
-            <span v-if="entry.step.disabled" class="badge" data-tone="warning">off</span>
+            <span v-if="entry.step.disabled" class="badge" data-tone="warning">{{ t.chain.off }}</span>
           </button>
 
           <div class="step-actions">
-            <label class="step-toggle" :title="entry.step.disabled ? 'Turn this operation back on' : 'Turn this operation off without losing its arguments'">
+            <label class="step-toggle" :title="entry.step.disabled ? t.chain.turnOn : t.chain.turnOff">
               <input
                 type="checkbox"
                 :checked="!entry.step.disabled"
-                :aria-label="`Enable ${label(entry.step, position + 1)}`"
+                :aria-label="t.chain.enable(label(entry.step, position + 1))"
                 @change="toggleDisabled(entry.index)"
               />
-              <span>Enabled</span>
+              <span>{{ t.chain.enabled }}</span>
             </label>
             <button
               type="button"
               class="step-icon"
               :disabled="position === 0"
-              title="Move up"
-              :aria-label="`Move ${label(entry.step, position + 1)} up`"
+              :title="t.chain.moveUp"
+              :aria-label="t.chain.moveUpLabel(label(entry.step, position + 1))"
               @click="moveVisible(entry.index, -1)"
             >
               <ArrowUp :size="14" aria-hidden="true" />
@@ -249,8 +248,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon"
               :disabled="position === visible.length - 1"
-              title="Move down"
-              :aria-label="`Move ${label(entry.step, position + 1)} down`"
+              :title="t.chain.moveDown"
+              :aria-label="t.chain.moveDownLabel(label(entry.step, position + 1))"
               @click="moveVisible(entry.index, 1)"
             >
               <ArrowDown :size="14" aria-hidden="true" />
@@ -260,8 +259,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon"
               :disabled="entry.step.disabled || previewingStep !== null"
-              title="Preview the nodes as they leave this operation"
-              :aria-label="`Preview up to operation ${position + 1}`"
+              :title="t.chain.previewStep"
+              :aria-label="t.chain.previewStepLabel(position + 1)"
               @click="emit('preview-step', entry.index, label(entry.step, position + 1))"
             >
               <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" aria-hidden="true" />
@@ -270,8 +269,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
             <button
               type="button"
               class="step-icon"
-              title="Duplicate"
-              :aria-label="`Duplicate ${label(entry.step, position + 1)}`"
+              :title="t.chain.duplicate"
+              :aria-label="t.chain.duplicateLabel(label(entry.step, position + 1))"
               @click="duplicate(entry.index)"
             >
               <Copy :size="14" aria-hidden="true" />
@@ -279,8 +278,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
             <button
               type="button"
               class="step-icon is-danger"
-              title="Remove"
-              :aria-label="`Remove ${label(entry.step, position + 1)}`"
+              :title="t.chain.remove"
+              :aria-label="t.chain.removeLabel(label(entry.step, position + 1))"
               @click="remove(entry.index)"
             >
               <Trash2 :size="14" aria-hidden="true" />
@@ -290,7 +289,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 
         <div v-if="expanded === entry.index" class="step-body">
           <label class="step-name">
-            <span>Label</span>
+            <span>{{ t.chain.label }}</span>
             <input
               type="text"
               autocomplete="off"
@@ -310,13 +309,13 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
     </ol>
 
     <p v-else class="chain-empty">
-      {{ emptyCopy ?? "No operations. Nodes are served exactly as the source provides them." }}
+      {{ emptyCopy ?? t.chain.empty }}
     </p>
 
     <!-- Every operator visible at once. A picker that has to be opened turns
          "what can this do" into a question you have to go and ask. -->
     <div class="add-block">
-      <p class="add-label">Add an operation</p>
+      <p class="add-label">{{ t.chain.add }}</p>
       <div class="add-grid">
         <button
           v-for="entry in addable"
@@ -331,14 +330,10 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
         </button>
       </div>
       <p v-if="!addable.length" class="add-waiting">
-        <template v-if="catalogState === 'loading'">Loading the operator catalogue…</template>
-        <template v-else-if="catalogState === 'error'">
-          The operator catalogue could not be read, so nothing can be added here.
-        </template>
-        <template v-else-if="chain === 'response'">
-          No response-stage operator is available for this file type.
-        </template>
-        <template v-else>This bundle exposes no operators to add.</template>
+        <template v-if="catalogState === 'loading'">{{ t.chain.catalogLoading }}</template>
+        <template v-else-if="catalogState === 'error'">{{ t.chain.catalogFailed }}</template>
+        <template v-else-if="chain === 'response'">{{ t.chain.noResponseOperator }}</template>
+        <template v-else>{{ t.chain.noOperators }}</template>
       </p>
     </div>
   </section>
@@ -482,6 +477,24 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
    inherits the console's palette. */
 .step-icon.is-danger { color: var(--lt-danger-ink); }
 .step-icon.is-danger:hover:not(:disabled) { background: var(--lt-danger-soft); }
+
+/* On a phone the step's name takes the bar's first line and its controls a
+   second line under it, still at the right edge. Beside the toggle's word and
+   five buttons the name had room for its number alone ("1. ..."), and with
+   the word hidden it still had about 70px, short of "1. Regex filter" in
+   English and further short in Russian. */
+@media (max-width: 480px) {
+  .step-bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .step-actions {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
 
 .step-body {
   display: flex;

@@ -75,7 +75,7 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(editor).toContain('v-if="!ready"');
     expect(editor).toContain("failed.value = true");
     expect(editor).toContain('class="code-editor-fallback-note" role="status"');
-    expect(editor).toContain("Syntax highlighting is unavailable.");
+    expect(editor).toContain("t.codeEditor.fallbackEditor");
   });
 
   it("lets the current draft source decide whether its retained url is live", () => {

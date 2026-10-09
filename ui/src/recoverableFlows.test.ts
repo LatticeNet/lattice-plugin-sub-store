@@ -141,7 +141,7 @@ describe("absent is not rendered as zero", () => {
 
   it("still offers a way forward when the session cannot read shares", () => {
     // The permission wall used to be the one state with nothing to press.
-    const wall = text.slice(text.indexOf("cannot read the share list"));
+    const wall = text.slice(text.indexOf("t.shares.cannotReadTitle"));
     expect(wall.slice(0, 900)).toContain("openInNetworking()");
   });
 });

@@ -8,6 +8,7 @@ import {
   type SubscriptionSettings,
 } from "./client";
 import type { HostContext } from "./host";
+import { t } from "./i18n";
 import { safeErrorMessage } from "./subStoreModel";
 
 export type OpsState = "idle" | "loading" | "ready" | "error";
@@ -44,7 +45,7 @@ export function useSubscriptionOps(host: HostContext) {
       state.value = "ready";
     } catch (cause) {
       state.value = "error";
-      loadError.value = safeErrorMessage(cause, "Settings could not be loaded");
+      loadError.value = safeErrorMessage(cause, t.ops.loadFailed);
     } finally {
       await host.resize();
     }
@@ -57,10 +58,10 @@ export function useSubscriptionOps(host: HostContext) {
     notice.value = "";
     try {
       settings.value = await callMethod<SubscriptionSettings>(host.bridge, BINDINGS.subSaveSettings, next).promise;
-      notice.value = "Settings saved.";
+      notice.value = t.ops.saved;
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Settings could not be saved");
+      actionError.value = safeErrorMessage(cause, t.ops.saveFailed);
       return false;
     } finally {
       saving.value = false;
@@ -76,12 +77,10 @@ export function useSubscriptionOps(host: HostContext) {
     notice.value = "";
     try {
       const response = await callMethod<BackupExportResponse>(host.bridge, BINDINGS.subExport, {}).promise;
-      notice.value = response.backup
-        ? "Backup exported."
-        : "The server returned an empty backup, so there is nothing to save.";
+      notice.value = response.backup ? t.ops.exported : t.ops.exportEmpty;
       return response.backup ?? "";
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Backup could not be exported");
+      actionError.value = safeErrorMessage(cause, t.ops.exportFailed);
       return "";
     } finally {
       busy.value = false;
@@ -92,7 +91,7 @@ export function useSubscriptionOps(host: HostContext) {
   async function importBackup(backup: string): Promise<boolean> {
     if (!host.bridge || !canImport.value || busy.value) return false;
     if (!backup.trim()) {
-      actionError.value = "Paste a backup envelope first.";
+      actionError.value = t.ops.pasteBackup;
       return false;
     }
     busy.value = true;
@@ -103,15 +102,12 @@ export function useSubscriptionOps(host: HostContext) {
         backup,
       }).promise;
       const restored = Array.isArray(result.imported) ? result.imported.length : undefined;
-      notice.value =
-        restored === undefined
-          ? "Backup restored."
-          : `Backup restored: ${restored} record(s) landed. Any record the server rejected is not counted here. Nothing was published; a share is a separate decision.`;
+      notice.value = restored === undefined ? t.ops.restored : t.ops.restoredCount(restored);
       return true;
     } catch (cause) {
       // The export refuses an unknown or missing format rather than guessing,
       // so a truncated or hand-edited file fails here loudly. Say that.
-      actionError.value = safeErrorMessage(cause, "Backup could not be restored");
+      actionError.value = safeErrorMessage(cause, t.ops.restoreFailed);
       return false;
     } finally {
       busy.value = false;
@@ -122,7 +118,7 @@ export function useSubscriptionOps(host: HostContext) {
   async function migrate(baseUrl: string): Promise<boolean> {
     if (!host.bridge || !canMigrate.value || busy.value) return false;
     if (!baseUrl.trim()) {
-      actionError.value = "Give the standalone Sub-Store's base URL.";
+      actionError.value = t.ops.giveBaseUrl;
       return false;
     }
     busy.value = true;
@@ -134,10 +130,10 @@ export function useSubscriptionOps(host: HostContext) {
         base_url: baseUrl.trim(),
       }).promise;
       const count = report.value?.imported?.length ?? 0;
-      notice.value = `Imported ${count} record(s); the report below lists anything that was skipped. Nothing is published yet, so create a share for each one you want served.`;
+      notice.value = t.ops.imported(count);
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Migration failed");
+      actionError.value = safeErrorMessage(cause, t.ops.migrateFailed);
       return false;
     } finally {
       busy.value = false;

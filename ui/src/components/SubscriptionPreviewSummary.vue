@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "@lucide/vue";
 
 import { describeDelta, nodeKey, type StepDelta } from "../chainExplain";
 import type { SubscriptionPreviewNode, SubscriptionPreviewResponse } from "../client";
+import { compareText, t } from "../i18n";
 
 /**
  * The compare panel: source nodes on the left, what the chain made of each
@@ -33,7 +34,7 @@ const props = withDefaults(
 const headline = computed(() => {
   const kept = props.preview.node_count;
   const source = props.preview.source_node_count ?? kept;
-  return source > kept ? `kept ${kept} of ${source} nodes` : `${kept} node(s)`;
+  return source > kept ? t.previewSummary.keptOf(kept, source) : t.previewSummary.nodes(kept);
 });
 
 const dropped = computed(() => props.preview.dropped ?? []);
@@ -46,12 +47,12 @@ const sourceCount = computed(() => props.preview.source_node_count ?? props.prev
 const typeCounts = computed(() => {
   const counts = new Map<string, number>();
   for (const node of props.preview.nodes ?? []) {
-    const type = node.type || "unknown";
+    const type = node.type || t.previewSummary.unknownType;
     counts.set(type, (counts.get(type) ?? 0) + 1);
   }
   return [...counts.entries()]
     .map(([type, count]) => ({ type, count }))
-    .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
+    .sort((a, b) => b.count - a.count || compareText(a.type, b.type));
 });
 
 interface CompareRow {
@@ -99,12 +100,12 @@ watch(() => props.preview, () => { page.value = 0; });
  *  column rather than re-read each row. */
 function flags(node: SubscriptionPreviewNode): { label: string; title: string }[] {
   const out: { label: string; title: string }[] = [];
-  if (node.network) out.push({ label: node.network, title: "Transport" });
-  if (node.security) out.push({ label: node.security, title: "Security" });
-  if (node.udp) out.push({ label: "UDP", title: "UDP relay" });
-  if (node.tfo) out.push({ label: "TFO", title: "TCP Fast Open" });
-  if (node.skip_cert_verify) out.push({ label: "skip-cert", title: "Skips TLS certificate verification" });
-  if (node.aead) out.push({ label: "AEAD", title: "VMess AEAD" });
+  if (node.network) out.push({ label: node.network, title: t.nodeRows.transport });
+  if (node.security) out.push({ label: node.security, title: t.nodeRows.security });
+  if (node.udp) out.push({ label: "UDP", title: t.nodeRows.udp });
+  if (node.tfo) out.push({ label: "TFO", title: t.nodeRows.tfo });
+  if (node.skip_cert_verify) out.push({ label: "skip-cert", title: t.nodeRows.skipCert });
+  if (node.aead) out.push({ label: "AEAD", title: t.nodeRows.aead });
   return out;
 }
 </script>
@@ -112,13 +113,13 @@ function flags(node: SubscriptionPreviewNode): { label: string; title: string }[
 <template>
   <div class="preview-summary">
     <p v-if="stepLabel" class="preview-cut" role="status">
-      Partial run, stopped after "{{ stepLabel }}". Operations below it did not run.
+      {{ t.previewSummary.partial(stepLabel) }}
     </p>
     <p v-if="preview.source_version" class="mono" role="status">
-      Source {{ preview.source_version }} · {{ preview.stale ? "stale last-good" : "fresh composition" }}
+      {{ t.previewSummary.source(preview.source_version, !!preview.stale) }}
     </p>
     <p class="mono">
-      {{ headline }}<span v-if="preview.truncated"> · truncated</span>
+      {{ headline }}<span v-if="preview.truncated">{{ t.previewSummary.truncated }}</span>
     </p>
     <p v-if="typeCounts.length" class="preview-type-chips">
       <span v-for="entry in typeCounts" :key="entry.type" class="badge">
@@ -128,7 +129,7 @@ function flags(node: SubscriptionPreviewNode): { label: string; title: string }[
 
     <!-- The per-operation account: one line per enabled operation, the ones
          that removed nodes marked. -->
-    <ol v-if="deltas.length" class="chain-deltas" aria-label="What each operation kept">
+    <ol v-if="deltas.length" class="chain-deltas" :aria-label="t.previewSummary.stepsLabel">
       <li v-for="delta in deltas" :key="delta.index" :class="{ 'is-cut': delta.after < delta.before }">
         {{ describeDelta(delta) }}
       </li>
@@ -137,8 +138,8 @@ function flags(node: SubscriptionPreviewNode): { label: string; title: string }[
     <table v-if="rows.length" class="compare-table">
       <thead>
         <tr>
-          <th scope="col">Source <span class="compare-count">{{ sourceCount }}</span></th>
-          <th scope="col">Result <span class="compare-count">{{ preview.node_count }}</span></th>
+          <th scope="col">{{ t.previewSummary.colSource }} <span class="compare-count">{{ sourceCount }}</span></th>
+          <th scope="col">{{ t.previewSummary.colResult }} <span class="compare-count">{{ preview.node_count }}</span></th>
         </tr>
       </thead>
       <tbody>
@@ -153,28 +154,28 @@ function flags(node: SubscriptionPreviewNode): { label: string; title: string }[
               <!-- The name the chain replaced. Without it a rename is
                    invisible: the new name reads as the name the node always
                    had. -->
-              <span v-if="row.result.was" class="node-was" :title="`Renamed from ${row.result.was}`">was {{ row.result.was }}</span>
+              <span v-if="row.result.was" class="node-was" :title="t.nodeRows.renamedFrom(row.result.was)">{{ t.nodeRows.was(row.result.was) }}</span>
               <span class="node-tags">
                 <span class="badge">{{ row.result.type }}</span>
                 <span v-for="flag in flags(row.result)" :key="flag.label" class="badge" :title="flag.title">{{ flag.label }}</span>
               </span>
             </template>
-            <span v-else class="compare-dropped">removed by {{ row.by || "the chain" }}</span>
+            <span v-else class="compare-dropped">{{ t.previewSummary.removedBy(row.by || t.chainDetail.theChain) }}</span>
           </td>
         </tr>
       </tbody>
     </table>
 
     <p v-if="preview.dropped_truncated" class="node-group-note">
-      Naming the first {{ dropped.length }} of {{ droppedCount }} removed.
+      {{ t.previewSummary.namingFirst(dropped.length, droppedCount) }}
     </p>
 
-    <nav v-if="pageCount > 1" class="compare-pager" aria-label="Pages of nodes">
-      <button type="button" class="button button-secondary button-compact" :disabled="page === 0" aria-label="Previous page" @click="page -= 1">
+    <nav v-if="pageCount > 1" class="compare-pager" :aria-label="t.previewSummary.pagesLabel">
+      <button type="button" class="button button-secondary button-compact" :disabled="page === 0" :aria-label="t.chainDetail.previousPage" data-testid="page-previous" @click="page -= 1">
         <ChevronLeft :size="13" aria-hidden="true" />
       </button>
-      <span class="mono" role="status">Rows {{ pageFrom }}–{{ pageTo }} of {{ rows.length }}</span>
-      <button type="button" class="button button-secondary button-compact" :disabled="page >= pageCount - 1" aria-label="Next page" @click="page += 1">
+      <span class="mono" role="status">{{ t.previewSummary.rows(pageFrom, pageTo, rows.length) }}</span>
+      <button type="button" class="button button-secondary button-compact" :disabled="page >= pageCount - 1" :aria-label="t.chainDetail.nextPage" data-testid="page-next" @click="page += 1">
         <ChevronRight :size="13" aria-hidden="true" />
       </button>
     </nav>

@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { parse } from "vue/compiler-sfc";
 import { describe, expect, it } from "vitest";
 
+import { en } from "./messages/en";
+
 // The subscriptions editor is its own component now, with its state in
 // useRecordEditor; the screen routes between it and the list. These assertions
 // are about the editor, so they read the three files as one.
@@ -62,7 +64,7 @@ describe("the record editor and its compare panel", () => {
     // panel now, whose header wraps its end slot; the heading itself is the
     // one thing we still pin.
     expect(styles).toMatch(/\.editor-side \.pc-panel-header h2\s*\{[^}]*white-space:\s*nowrap/s);
-    expect(editorView).toContain('<PcPanel class="editor-side" role="complementary" label="Source and result">');
+    expect(editorView).toContain('<PcPanel class="editor-side" role="complementary" :label="t.editor.sourceAndResult">');
   });
 
   it("gives the pane the control that fills it, once", () => {
@@ -71,7 +73,7 @@ describe("the record editor and its compare panel", () => {
     expect(aside).toContain("subs.runPreview(draft)");
     // Two buttons for one job is two places to look when nothing happens.
     expect((editor.match(/subs\.runPreview\(draft\)/g) ?? []).length).toBe(1);
-    expect(aside).toContain('subs.preview.value ? "Refresh" : "Preview"');
+    expect(aside).toContain("subs.preview.value ? t.editor.refresh : t.editor.preview");
   });
 
   it("reports a failed preview where the preview would have been", () => {
@@ -83,13 +85,14 @@ describe("the record editor and its compare panel", () => {
     expect(aside).toMatch(/subs\.previewError\.value/);
     expect(aside).toContain('role="alert"');
     const composable = readFileSync(new URL("./useSubscriptions.ts", import.meta.url), "utf8");
-    expect(composable).toMatch(/previewError\.value = safeErrorMessage\(cause, "Preview failed"\)/);
+    expect(composable).toMatch(/previewError\.value = safeErrorMessage\(cause, t\.subs\.previewFailed\)/);
     expect(composable).toMatch(/previewError\.value = "";/);
   });
 
   it("says something true before the first run instead of showing an empty box", () => {
-    expect(screen).toContain("Nothing run yet.");
-    expect(screen).toContain("without saving it");
+    expect(screen).toContain("t.editor.nothingRun");
+    expect(en.editor.nothingRun).toContain("Nothing run yet.");
+    expect(en.editor.nothingRun).toContain("without saving it");
   });
   // An error raised inside the editor is about a draft that stops existing the
   // moment the editor closes. Left standing it sits above the list as an alert
@@ -235,7 +238,8 @@ describe("a checkbox inside a field stays a square", () => {
     expect(files).toContain('class="field field-wide checkbox-field"');
     expect(files).toContain('v-model="draft.download"');
     expect(files).toContain('type="checkbox"');
-    expect(files).toContain("Save rather than show");
+    expect(files).toContain("t.fileEditor.download");
+    expect(en.fileEditor.download).toBe("Save rather than show");
     const fieldCheckboxes = files.match(/class="[^"]*field[^"]*"[\s\S]{0,80}type="checkbox"/g) ?? [];
     expect(fieldCheckboxes.length).toBe(1);
     expect(fieldCheckboxes[0]).toContain("checkbox-field");

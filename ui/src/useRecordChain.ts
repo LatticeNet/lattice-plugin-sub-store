@@ -15,6 +15,7 @@ import { cutChain, enabledStepIndexes, explainChain, type ChainExplanation } fro
 import { BINDINGS, callMethod, KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionPreviewResponse, type SubscriptionRecord } from "./client";
 import type { ChainStep } from "./components/ProcessChain.vue";
 import type { HostContext } from "./host";
+import { t } from "./i18n";
 import type { NodeCountQueue } from "./nodeCounts";
 import { safeErrorMessage } from "./subStoreModel";
 import type { UseSubscriptions } from "./useSubscriptions";
@@ -67,7 +68,7 @@ export function useRecordChain(host: HostContext, subs: UseSubscriptions, counts
     if (!current()) return;
     loading.value = false;
     if (!read) {
-      error.value = subs.actionError.value || "The record could not be read";
+      error.value = subs.actionError.value || t.boot.recordUnread;
       subs.actionError.value = "";
       return;
     }
@@ -96,7 +97,7 @@ export function useRecordChain(host: HostContext, subs: UseSubscriptions, counts
         } catch (cause) {
           // explainChain stops at the first run that throws and keeps what it
           // learned; the reason is ours to report.
-          if (current()) error.value = safeErrorMessage(cause, "Preview failed");
+          if (current()) error.value = safeErrorMessage(cause, t.subs.previewFailed);
           throw cause;
         } finally {
           running.value = null;
@@ -106,7 +107,7 @@ export function useRecordChain(host: HostContext, subs: UseSubscriptions, counts
       explanation.value = explained;
       if (explained.complete && explained.final) counts.record(target, explained.final);
     } catch (cause) {
-      if (current()) error.value = safeErrorMessage(cause, "Preview failed");
+      if (current()) error.value = safeErrorMessage(cause, t.subs.previewFailed);
     }
   }
 

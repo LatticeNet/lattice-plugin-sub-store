@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import { en } from "./messages/en";
+
 const SRC = new URL(".", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, SRC), "utf8");
 
@@ -15,9 +17,20 @@ describe("the records layer is one table of every kind", () => {
   const screen = read("screens/SubscriptionsScreen.vue");
 
   it("has the design's columns, and stacks into rows on a phone instead of scrolling sideways", () => {
-    for (const column of ["Name", "Kind", "Published", "Nodes in", "Nodes out", "Steps", "Expiry and traffic", "Last fetch"]) {
-      expect(screen, column).toMatch(new RegExp(`<PcTh[^>]*>${column}</PcTh>`));
+    const columns = ["colName", "colKind", "colPublished", "colNodesIn", "colNodesOut", "colSteps", "colExpiry", "colLastFetch"] as const;
+    for (const column of columns) {
+      expect(screen, column).toMatch(new RegExp(`<PcTh[^>]*>\\{\\{ t\\.records\\.${column} \\}\\}</PcTh>`));
     }
+    expect(columns.map((column) => en.records[column])).toEqual([
+      "Name",
+      "Kind",
+      "Published",
+      "Nodes in",
+      "Nodes out",
+      "Steps",
+      "Expiry and traffic",
+      "Last fetch",
+    ]);
     // No `:stacked="false"`: the chassis stacks the rows under 480px.
     expect(screen).not.toContain(':stacked="false"');
     expect(screen).toContain(':density="compact ? \'compact\' : \'comfortable\'"');
@@ -71,15 +84,18 @@ describe("the shares layer is the list from the client's side", () => {
 
   it("has the design's columns and keeps them at every width", () => {
     expect(shares).toMatch(/<PcTable v-else :stacked="false"/);
-    for (const column of ["Path", "Record", "Format", "Expiry", "State"]) {
-      expect(shares, column).toMatch(new RegExp(`<PcTh[^>]*>${column}</PcTh>`));
+    const columns = ["colPath", "colRecord", "colFormat", "colExpiry", "colState"] as const;
+    for (const column of columns) {
+      expect(shares, column).toMatch(new RegExp(`<PcTh[^>]*>\\{\\{ t\\.shares\\.${column} \\}\\}</PcTh>`));
     }
-    expect(shares).toContain("as the client asks");
+    expect(columns.map((column) => en.shares[column])).toEqual(["Path", "Record", "Format", "Expiry", "State"]);
+    expect(shares).toContain("t.shares.asClientAsks");
+    expect(en.shares.asClientAsks).toBe("as the client asks");
     expect(shares).toContain("<PcStatePill");
   });
 
   it("keeps Copy link as the row's one verb and opens the record behind it", () => {
-    expect(shares).toContain('{{ copiedId === line.share.share_id ? "Copied" : "Copy link" }}');
+    expect(shares).toContain("{{ copiedId === line.share.share_id ? t.shares.copied : t.record.copyLink }}");
     expect(shares).toContain('@click="openRow(line, $event)"');
     expect(shares).toContain("if (line.record) chrome.openRecord(line.record.id);");
   });

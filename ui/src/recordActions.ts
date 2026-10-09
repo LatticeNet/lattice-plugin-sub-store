@@ -1,4 +1,5 @@
 import { BINDINGS, KIND_COLLECTION, KIND_FILE, KIND_SUB, type MethodBinding, type SubStoreShareRow, type SubscriptionListItem } from "./client";
+import { t } from "./i18n";
 import { shareStateOf } from "./shareState";
 
 /**
@@ -86,9 +87,9 @@ export interface ActionDeclaration {
   blocked: (caps: ActionCapabilities, record: SubscriptionListItem) => string;
 }
 
-const NEEDS_HOST = "The console has not finished handing this panel a session yet.";
-const NEEDS_MUTATE =
-  "This session cannot change records here. Either the installed bundle does not declare that method, or your token lacks the scope.";
+/** Read when a verdict is asked for, so the sentence is in the active locale. */
+const needsHost = () => t.actions.needsHost;
+const needsMutate = () => t.actions.needsMutate;
 
 function kindOf(record: SubscriptionListItem): RecordKind {
   return (record.kind as RecordKind) || KIND_SUB;
@@ -100,63 +101,54 @@ const NODE_KINDS = [KIND_SUB, KIND_COLLECTION] as const;
 export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "edit",
-    label: () => "Edit",
-    title: () => "Open the record: its name, source and operations.",
+    label: () => t.actions.edit,
+    title: () => t.actions.editTitle,
     icon: "pencil",
     kinds: ALL_KINDS,
     // The editor exists to change the record, and its Save is the capability
     // being tested. Opening it read-only is a product decision nobody has
     // taken, so this keeps what both screens already did.
-    blocked: (caps) => (!caps.ready ? NEEDS_HOST : caps.mutate ? "" : NEEDS_MUTATE),
+    blocked: (caps) => (!caps.ready ? needsHost() : caps.mutate ? "" : needsMutate()),
   },
   {
     id: "refresh",
-    label: () => "Refresh",
-    title: () => "Read the source again and store what it returns.",
+    label: () => t.actions.refresh,
+    title: () => t.actions.refreshTitle,
     icon: "refresh",
     kinds: NODE_KINDS,
     // Refreshing reads the source again; it is gated on the probe method, not
     // on write access. Writing this down is what caught the two apart: the
     // draft of this registry had guessed `mutate`, and the screens had always
     // used `fetch`.
-    blocked: (caps) => (!caps.ready ? NEEDS_HOST : caps.fetch ? "" : "The installed bundle does not declare a fetch method."),
+    blocked: (caps) => (!caps.ready ? needsHost() : caps.fetch ? "" : t.actions.noFetch),
   },
   {
     id: "output",
-    label: (kind) => (kind === KIND_FILE ? "Show document" : "Client output…"),
-    title: (kind) =>
-      kind === KIND_FILE
-        ? "Show the document a client receives."
-        : "Render this record for a client of your choice and copy the result.",
+    label: (kind) => (kind === KIND_FILE ? t.actions.outputFile : t.actions.output),
+    title: (kind) => (kind === KIND_FILE ? t.actions.outputFileTitle : t.actions.outputTitle),
     icon: "eye",
     kinds: ALL_KINDS,
-    blocked: (caps) =>
-      !caps.ready
-        ? NEEDS_HOST
-        : caps.render || caps.preview
-          ? ""
-          : "The installed bundle does not declare a render method.",
+    blocked: (caps) => (!caps.ready ? needsHost() : caps.render || caps.preview ? "" : t.actions.noRender),
   },
   {
     id: "preview",
-    label: () => "Preview nodes",
-    title: () => "Run the chain and list the nodes it produces.",
+    label: () => t.actions.preview,
+    title: () => t.actions.previewTitle,
     icon: "eye",
     // A file is a document; its nodes are not the thing it serves.
     kinds: NODE_KINDS,
-    blocked: (caps) =>
-      !caps.ready ? NEEDS_HOST : caps.preview ? "" : "The installed bundle does not declare a preview method.",
+    blocked: (caps) => (!caps.ready ? needsHost() : caps.preview ? "" : t.actions.noPreview),
   },
   {
     // Named by its outcome. The console creates the share, so this frame can
     // only open the form there; what the operator gets is a published record,
     // which is the word the PUBLISHED column and the banner already use.
     id: "share",
-    label: () => "Publish…",
-    title: () => "Open the console's share form for this record. A share is what makes a record reachable to a client.",
+    label: () => t.actions.share,
+    title: () => t.actions.shareTitle,
     icon: "share",
     kinds: ALL_KINDS,
-    blocked: (caps) => (caps.ready ? "" : NEEDS_HOST),
+    blocked: (caps) => (caps.ready ? "" : needsHost()),
   },
   {
     // The server's `publish` renders the saved record and ships the document
@@ -166,36 +158,29 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
     // made the record reachable and one of which did not, was the vocabulary
     // bug.
     id: "publish",
-    label: () => "Upload document…",
-    title: () => "Render the saved record and send the document to a URL you name (PUT, POST or PATCH). Unsaved edits are never sent.",
+    label: () => t.actions.publish,
+    title: () => t.actions.publishTitle,
     icon: "upload",
     kinds: ALL_KINDS,
-    blocked: (caps) =>
-      !caps.ready
-        ? NEEDS_HOST
-        : !caps.publish
-          ? "The installed bundle does not declare a publish method."
-          : caps.mutate
-            ? ""
-            : NEEDS_MUTATE,
+    blocked: (caps) => (!caps.ready ? needsHost() : !caps.publish ? t.actions.noPublish : caps.mutate ? "" : needsMutate()),
   },
   {
     id: "duplicate",
-    label: () => "Duplicate",
-    title: () => "Copy this record as a new one.",
+    label: () => t.actions.duplicate,
+    title: () => t.actions.duplicateTitle,
     icon: "copy",
     kinds: ALL_KINDS,
-    blocked: (caps) => (!caps.ready ? NEEDS_HOST : caps.mutate ? "" : NEEDS_MUTATE),
+    blocked: (caps) => (!caps.ready ? needsHost() : caps.mutate ? "" : needsMutate()),
   },
   {
     id: "delete",
-    label: () => "Delete",
-    title: () => "Remove the record. A share published for it keeps existing and starts returning nothing.",
+    label: () => t.actions.delete,
+    title: () => t.actions.deleteTitle,
     icon: "trash",
     kinds: ALL_KINDS,
     danger: true,
     batch: true,
-    blocked: (caps) => (!caps.ready ? NEEDS_HOST : caps.mutate ? "" : NEEDS_MUTATE),
+    blocked: (caps) => (!caps.ready ? needsHost() : caps.mutate ? "" : needsMutate()),
   },
 ];
 
@@ -332,14 +317,14 @@ function servedBy(doomed: ReadonlySet<string>, items: readonly SubscriptionListI
   }
   const lines: string[] = [];
   for (const share of shares) {
-    if (shareStateOf(share, now).label !== "live") continue;
+    if (shareStateOf(share, now).state !== "live") continue;
     const id = share.subscription_id;
     // By slug, as the Published column names it: the path carries the
     // share's token, and a dialog is no place to print a credential.
     const path = `/${share.slug}`;
-    if (doomed.has(id)) lines.push(`${path} stops serving: it publishes ${label(id)}`);
-    else if (broken.has(id)) lines.push(`${path} stops serving: it publishes ${label(id)}, which loses its node source`);
-    else if (changed.has(id)) lines.push(`${path} serves fewer nodes: it publishes ${label(id)}, which draws from what is deleted`);
+    if (doomed.has(id)) lines.push(t.deletion.servedDoomed(path, label(id)));
+    else if (broken.has(id)) lines.push(t.deletion.servedBroken(path, label(id)));
+    else if (changed.has(id)) lines.push(t.deletion.servedChanged(path, label(id)));
   }
   return lines;
 }
@@ -375,30 +360,25 @@ export function deletePrompt(
   const doomed = new Set(ids);
   const served = shares ? servedBy(doomed, items, shares, now) : [];
   const confirmText = one && served.length ? names[0]! : "";
-  const object = one ? "it" : "them";
   const sharesNote = !shares
-    ? `The share list is unread, so the shares that serve ${object} cannot be named.`
+    ? t.deletion.sharesUnread(count)
     : served.length
-      ? `${served.length === 1 ? "A live share changes" : `${served.length} live shares change`} for the clients that fetch ${served.length === 1 ? "it" : "them"}, listed below.`
-      : `No live share serves ${object} or anything drawn from ${object}.`;
+      ? t.deletion.sharesChange(served.length)
+      : t.deletion.sharesNone(count);
   if (count > 0 && ids.every((id) => byId.get(id)?.kind === KIND_FILE)) {
-    return { title: `${one ? "Delete this file?" : `Delete ${count} files?`} ${sharesNote}`, names, consequences: [], served, confirmText };
+    return { title: t.deletion.filesTitle(count, sharesNote), names, consequences: [], served, confirmText };
   }
   const consequences: string[] = [];
   for (const item of items) {
     if (doomed.has(item.id)) continue;
     if ((item.members ?? []).some((member) => doomed.has(member))) {
-      consequences.push(`${label(item)}  (combination, loses a member)`);
+      consequences.push(t.deletion.consequenceMember(label(item)));
     } else if (item.node_source && doomed.has(item.node_source)) {
-      consequences.push(`${label(item)}  (file, loses its node source)`);
+      consequences.push(t.deletion.consequenceSource(label(item)));
     }
   }
-  const subject = one ? "this record" : `${count} records`;
-  if (!consequences.length) return { title: `Delete ${subject}? Nothing else in this store points at ${object}. ${sharesNote}`, names, consequences, served, confirmText };
-  const breaks = consequences.length === 1
-    ? `1 other record in this store points at ${object} and stops working`
-    : `${consequences.length} other records in this store point at ${object} and stop working`;
-  return { title: `Delete ${subject}? ${breaks} until you edit them, listed below. ${sharesNote}`, names, consequences, served, confirmText };
+  if (!consequences.length) return { title: t.deletion.noDependents(count, sharesNote), names, consequences, served, confirmText };
+  return { title: t.deletion.withDependents(count, consequences.length, sharesNote), names, consequences, served, confirmText };
 }
 
 /**
@@ -408,7 +388,7 @@ export function deletePrompt(
  */
 export function ownLiveShares(id: string, shares: readonly SubStoreShareRow[] | undefined, now: number = Date.now()): string[] | undefined {
   if (!shares) return undefined;
-  return shares.filter((share) => share.subscription_id === id && shareStateOf(share, now).label === "live").map((share) => `/${share.slug}`);
+  return shares.filter((share) => share.subscription_id === id && shareStateOf(share, now).state === "live").map((share) => `/${share.slug}`);
 }
 
 /**
@@ -418,11 +398,7 @@ export function ownLiveShares(id: string, shares: readonly SubStoreShareRow[] | 
  * says so; with none, it says only what was deleted.
  */
 export function deletedNotice(label: string, ownShares: readonly string[] | undefined): string {
-  if (!ownShares) {
-    return `Deleted ${label}. The share list is unread, so any share that published it cannot be named; one would still exist and serve nothing until it is removed under Platform → Publishing.`;
-  }
-  if (!ownShares.length) return `Deleted ${label}.`;
-  const one = ownShares.length === 1;
-  const paths = ownShares.join(", ");
-  return `Deleted ${label}. ${paths} still ${one ? "exists" : "exist"} and now ${one ? "serves" : "serve"} nothing: remove ${one ? "it" : "them"}, or point ${one ? "it" : "them"} at another record, under Platform → Publishing.`;
+  if (!ownShares) return t.deletion.deletedUnread(label);
+  if (!ownShares.length) return t.deletion.deleted(label);
+  return t.deletion.deletedServing(label, ownShares.join(", "), ownShares.length);
 }

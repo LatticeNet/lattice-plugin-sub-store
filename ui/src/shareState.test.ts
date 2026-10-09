@@ -13,7 +13,7 @@ const item = (over: Partial<SubscriptionListItem>): SubscriptionListItem => ({
 
 describe("publishStateFor", () => {
   it("says the list is unread, then not published, then names the live slug", () => {
-    expect(publishStateFor(undefined, "cdcd-self-host").label).toBe("—");
+    expect(publishStateFor(undefined, "cdcd-self-host").label).toBe("not read");
     expect(publishStateFor([], "cdcd-self-host")).toMatchObject({ tone: "neutral", label: "not published" });
     const live = publishStateFor([share({}), share({ share_id: "sh-2", slug: "cd-self-2", subscription_id: "other" })], "cdcd-self-host", NOW);
     expect(live).toMatchObject({ tone: "ok", label: "/cd-self", slug: "cd-self" });

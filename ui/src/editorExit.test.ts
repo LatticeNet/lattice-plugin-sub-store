@@ -34,6 +34,8 @@ describe("leaving the record editor", () => {
 
 import { readFileSync } from "node:fs";
 
+import { en } from "./messages/en";
+
 // Each editor is three files: the Records screen routes between the list and
 // the editors, a composable holds the draft and the guard (useRecordEditor,
 // useFileEditor), and a component draws it (SubscriptionEditor.vue,
@@ -66,7 +68,7 @@ describe("the editor screens delegate their exits", () => {
         'class="lt-breadcrumb-root" @click="leaveEditor"',
       );
       expect(source, name + " has a Cancel that skips the guard").toContain(
-        '@click="leaveEditor">Cancel</button>',
+        '@click="leaveEditor">{{ t.common.cancel }}</button>',
       );
       // The unconditional teardown. Only the guard and the confirm's own
       // handler may reach it.
@@ -116,8 +118,13 @@ describe("the editor screens delegate their exits", () => {
 
   it("says what is at stake before discarding", () => {
     expect(screen).toMatch(/:open="discarding"/);
-    expect(screen).toContain("Leave without saving?");
-    expect(screen).toContain("will be lost");
-    expect(screen).toContain('verb="Discard changes"');
+    expect(screen).toContain(':title="t.editor.leaveConfirm"');
+    expect(screen).toContain(':verb="t.editor.discardVerb"');
+    expect(files).toContain(':title="t.fileEditor.leaveConfirm"');
+    // The words themselves, in the English table every locale mirrors.
+    expect(en.editor.leaveConfirm).toContain("Leave without saving?");
+    expect(en.editor.leaveConfirm).toContain("will be lost");
+    expect(en.fileEditor.leaveConfirm).toContain("will be lost");
+    expect(en.editor.discardVerb).toBe("Discard changes");
   });
 });

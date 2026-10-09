@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SubscriptionPreviewNode } from "../client";
+import { t } from "../i18n";
 
 defineProps<{
   nodes: SubscriptionPreviewNode[];
@@ -11,12 +12,12 @@ defineProps<{
  *  column rather than re-read each row. */
 function flags(node: SubscriptionPreviewNode): { label: string; title: string }[] {
   const out: { label: string; title: string }[] = [];
-  if (node.network) out.push({ label: node.network, title: "Transport" });
-  if (node.security) out.push({ label: node.security, title: "Security" });
-  if (node.udp) out.push({ label: "UDP", title: "UDP relay" });
-  if (node.tfo) out.push({ label: "TFO", title: "TCP Fast Open" });
-  if (node.skip_cert_verify) out.push({ label: "skip-cert", title: "Skips TLS certificate verification" });
-  if (node.aead) out.push({ label: "AEAD", title: "VMess AEAD" });
+  if (node.network) out.push({ label: node.network, title: t.nodeRows.transport });
+  if (node.security) out.push({ label: node.security, title: t.nodeRows.security });
+  if (node.udp) out.push({ label: "UDP", title: t.nodeRows.udp });
+  if (node.tfo) out.push({ label: "TFO", title: t.nodeRows.tfo });
+  if (node.skip_cert_verify) out.push({ label: "skip-cert", title: t.nodeRows.skipCert });
+  if (node.aead) out.push({ label: "AEAD", title: t.nodeRows.aead });
   return out;
 }
 </script>
@@ -33,8 +34,8 @@ function flags(node: SubscriptionPreviewNode): { label: string; title: string }[
              name rather than beside it: inline it was the first thing the row
              ellipsed away, leaving "was wa..." to report that something had
              been renamed from something. -->
-        <span v-if="node.was" class="node-was" :title="`Renamed from ${node.was}`">
-          was {{ node.was }}
+        <span v-if="node.was" class="node-was" :title="t.nodeRows.renamedFrom(node.was)">
+          {{ t.nodeRows.was(node.was) }}
         </span>
       </span>
       <span class="node-tags">

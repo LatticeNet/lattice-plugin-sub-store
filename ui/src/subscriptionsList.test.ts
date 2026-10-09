@@ -14,7 +14,7 @@ describe("the records layer is one table with one affordance per row", () => {
   const shell = read("Shell.vue");
 
   it("is one screen for every kind, the kind a filter rather than a tab row", () => {
-    expect(shell).toMatch(/\{ id: "records", label: "Records", screen: SubscriptionsScreen \}/);
+    expect(shell).toMatch(/\{ id: "records", label: t\.layers\.records, screen: SubscriptionsScreen \}/);
     expect(screen).not.toContain("defineProps");
     expect(screen).toContain('<fieldset class="rec-kinds">');
     expect(screen).toContain('v-model="kindFacet" type="radio"');
@@ -36,7 +36,7 @@ describe("the records layer is one table with one affordance per row", () => {
   it("never prints n/a: a cell with nothing to say is empty and says why on hover", () => {
     expect(screen).not.toContain('"n/a"');
     expect(screen).toContain(':title="cell(row).expiry.title"');
-    expect(screen).toContain(':title="cell(row).fetch ? undefined : TEXT.notFetched"');
+    expect(screen).toContain(':title="cell(row).fetch ? undefined : t.refresh.notFetched"');
   });
 
   it("filters the migration marker as a facet, not a chip on every row", () => {
@@ -79,7 +79,7 @@ describe("the page chassis is a quiet Cloudflare header, not a KPI strip", () =>
 
   it("puts the primary action in the header after Refresh, never in the tab row", () => {
     const actions = shell.slice(shell.indexOf("<template #actions>"), shell.indexOf("<template #proof>"));
-    for (const control of ["{{ head.label }}", "Open in Publishing"]) expect(actions, control).toContain(control);
+    for (const control of ["{{ head.label }}", "{{ t.records.openInPublishing }}"]) expect(actions, control).toContain(control);
     expect(actions.indexOf("header-refresh")).toBeLessThan(actions.indexOf("ss-head-primary"));
     expect(shell).not.toContain("#primary");
   });

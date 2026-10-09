@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, toRef, watch } from "vue";
 import LtButton from "./LtButton.vue";
+import { t } from "../../i18n";
 
 import { trapDialogTab } from "../../dialogFocus";
 import { useOverlayRegistration } from "../../useOverlayRegistration";
@@ -122,30 +123,30 @@ const armed = computed(() => {
       </ul>
       <template v-if="consequences.length">
         <p class="lt-dialog-subtitle">
-          {{ consequences.length === 1 ? "This also breaks:" : `This also breaks ${consequences.length} records:` }}
+          {{ consequences.length === 1 ? t.confirm.alsoBreaksOne : t.confirm.alsoBreaks(consequences.length) }}
         </p>
         <ul class="lt-dialog-names is-consequence">
           <li v-for="note in consequences" :key="note" class="mono">{{ note }}</li>
         </ul>
       </template>
       <template v-if="served.length">
-        <p class="lt-dialog-subtitle">Clients fetching {{ served.length === 1 ? "this share" : "these shares" }} see the change:</p>
+        <p class="lt-dialog-subtitle">{{ served.length === 1 ? t.confirm.servedOne : t.confirm.servedMany }}</p>
         <ul class="lt-dialog-names is-consequence">
           <li v-for="line in served" :key="line" class="mono">{{ line }}</li>
         </ul>
       </template>
       <label v-if="confirmText" class="lt-dialog-arm">
-        To confirm, type the name: {{ confirmText }}
+        {{ t.confirm.typeName(confirmText) }}
         <input v-model="typed" class="lt-dialog-input is-name" autocomplete="off" spellcheck="false" />
       </label>
       <label v-else-if="needsTyping" class="lt-dialog-arm">
-        To confirm, type the number of items listed above: {{ names.length }}
+        {{ t.confirm.typeCount(names.length) }}
         <input v-model="typed" class="lt-dialog-input" inputmode="numeric" autocomplete="off" />
       </label>
       <div class="lt-dialog-actions">
-        <LtButton variant="ghost" @click="emit('cancel')">Cancel</LtButton>
+        <LtButton variant="ghost" @click="emit('cancel')">{{ t.common.cancel }}</LtButton>
         <LtButton variant="danger" :disabled="!armed || busy" @click="emit('confirm')">
-          {{ busy ? `${verb}…` : verb }}
+          {{ busy ? t.confirm.busy(verb) : verb }}
         </LtButton>
       </div>
     </div>

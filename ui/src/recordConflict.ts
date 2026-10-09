@@ -13,6 +13,7 @@
  */
 
 import type { SubscriptionRecord } from "./client";
+import { t } from "./i18n";
 import { maskUrl } from "./urlMask";
 
 export interface FieldChange {
@@ -40,37 +41,39 @@ function describeSecretUrl(value: unknown): string {
 
 function describeSecretText(value: unknown): string {
   if (typeof value !== "string" || !value) return describeValue(value);
-  return `${value.length} ${value.length === 1 ? "character" : "characters"}`;
+  return t.conflict.characters(value.length);
 }
 
 function describeSecretList(value: unknown): string {
   if (!Array.isArray(value) || value.length === 0) return describeValue(value);
-  return `${value.length} ${value.length === 1 ? "entry" : "entries"}`;
+  return t.conflict.entries(value.length);
 }
 
-/** Storage name to the label the editor puts on it. Order is the reading order. */
-const FIELDS: Array<{ key: keyof SubscriptionRecord; label: string; describe?: (value: unknown) => string }> = [
-  { key: "name", label: "Name" },
-  { key: "display_name", label: "Display name" },
-  { key: "remark", label: "Remark" },
-  { key: "tags", label: "Tags" },
-  { key: "url", label: "Provider URL", describe: describeSecretUrl },
-  { key: "content", label: "Content", describe: describeSecretText },
-  { key: "source", label: "Source" },
-  { key: "vpn_identity", label: "VPN identity" },
-  { key: "entry_roots", label: "Entry roots" },
-  { key: "ua", label: "User agent" },
-  { key: "target", label: "Client target" },
-  { key: "members", label: "Members" },
-  { key: "member_tags", label: "Member tags" },
-  { key: "failure_mode", label: "Failure mode" },
-  { key: "file_type", label: "File type" },
-  { key: "node_source", label: "Node source" },
-  { key: "download", label: "Download" },
-  { key: "query_params", label: "Query parameters", describe: describeSecretList },
-  { key: "arguments", label: "Arguments" },
-  { key: "process", label: "Operations" },
-  { key: "script_digest", label: "Program" },
+type ConflictField = keyof typeof t.conflict.fields;
+
+/** Storage name to the label the editor puts on it (`t.conflict.fields`). Order is the reading order. */
+const FIELDS: Array<{ key: ConflictField & keyof SubscriptionRecord; describe?: (value: unknown) => string }> = [
+  { key: "name" },
+  { key: "display_name" },
+  { key: "remark" },
+  { key: "tags" },
+  { key: "url", describe: describeSecretUrl },
+  { key: "content", describe: describeSecretText },
+  { key: "source" },
+  { key: "vpn_identity" },
+  { key: "entry_roots" },
+  { key: "ua" },
+  { key: "target" },
+  { key: "members" },
+  { key: "member_tags" },
+  { key: "failure_mode" },
+  { key: "file_type" },
+  { key: "node_source" },
+  { key: "download" },
+  { key: "query_params", describe: describeSecretList },
+  { key: "arguments" },
+  { key: "process" },
+  { key: "script_digest" },
 ];
 
 /** How long a value may be before it is summarised rather than printed. */
@@ -82,23 +85,23 @@ const MAX_VALUE = 60;
  * not reading a diff of a 40 KB config.
  */
 export function describeValue(value: unknown): string {
-  if (value === undefined || value === null || value === "") return "empty";
-  if (typeof value === "boolean") return value ? "on" : "off";
+  if (value === undefined || value === null || value === "") return t.conflict.empty;
+  if (typeof value === "boolean") return value ? t.conflict.on : t.conflict.off;
   if (Array.isArray(value)) {
-    if (value.length === 0) return "empty";
+    if (value.length === 0) return t.conflict.empty;
     if (value.every((item) => typeof item === "string")) {
       const joined = (value as string[]).join(", ");
-      return joined.length <= MAX_VALUE ? joined : `${value.length} entries`;
+      return joined.length <= MAX_VALUE ? joined : t.conflict.entries(value.length);
     }
-    return `${value.length} ${value.length === 1 ? "entry" : "entries"}`;
+    return t.conflict.entries(value.length);
   }
   if (typeof value === "object") {
     const keys = Object.keys(value as Record<string, unknown>);
-    return keys.length ? `${keys.length} ${keys.length === 1 ? "key" : "keys"}` : "empty";
+    return keys.length ? t.conflict.keys(keys.length) : t.conflict.empty;
   }
   const text = String(value);
   if (text.length <= MAX_VALUE) return text;
-  return `${text.length} characters`;
+  return t.conflict.characters(text.length);
 }
 
 /**
@@ -152,7 +155,7 @@ export function conflictChanges(
     const after = current[field.key];
     if (same(before, after)) continue;
     changes.push({
-      label: field.label,
+      label: t.conflict.fields[field.key],
       before: (field.describe ?? describeValue)(before),
       after: (field.describe ?? describeValue)(after),
       // Contested only when the operator changed the same field away from what
@@ -171,13 +174,7 @@ export function conflictChanges(
  */
 export function conflictSummary(changes: FieldChange[]): string {
   const contested = changes.filter((change) => change.contested).length;
-  if (!changes.length) {
-    return "This record was changed while you had it open. The change is not in a field shown here, so compare before you decide.";
-  }
-  const changed = changes.length === 1 ? "1 field" : `${changes.length} fields`;
-  if (!contested) {
-    return `This record was changed while you had it open: ${changed}, none of them fields you edited. Reopening keeps both changes.`;
-  }
-  const clash = contested === 1 ? "1 of them is a field you also edited" : `${contested} of them are fields you also edited`;
-  return `This record was changed while you had it open: ${changed}, and ${clash}. Saving anyway replaces their version with yours.`;
+  if (!changes.length) return t.conflict.unseen;
+  if (!contested) return t.conflict.uncontested(changes.length);
+  return t.conflict.contested(changes.length, contested);
 }

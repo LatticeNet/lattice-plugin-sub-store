@@ -15,6 +15,7 @@
  */
 import { reactive } from "vue";
 
+import { formatCount, t } from "./i18n";
 import { formatRelativeTime } from "./rowStatus";
 
 export type NodeCountState =
@@ -60,7 +61,7 @@ export function createNodeCountQueue(
       states.set(id, ready(reply, now()));
     } catch (cause) {
       if (states.get(id)?.status !== "running") return;
-      const reason = cause instanceof Error && cause.message ? cause.message : "Preview failed";
+      const reason = cause instanceof Error && cause.message ? cause.message : t.counts.previewFailed;
       states.set(id, { status: "failed", reason, at: now() });
     } finally {
       active -= 1;
@@ -107,18 +108,18 @@ function ready(reply: NodeCountReply, at: number): NodeCountState {
  * as a number cut short, and a question mark as a fault.
  */
 export function nodeCountLabel(state: NodeCountState | undefined): string {
-  if (!state) return "unknown";
-  if (state.status === "ready") return `${state.source} → ${state.result}`;
-  if (state.status === "failed") return "unknown";
-  return "counting";
+  if (!state) return t.counts.unknown;
+  if (state.status === "ready") return t.counts.pair(formatCount(state.source), formatCount(state.result));
+  if (state.status === "failed") return t.counts.unknown;
+  return t.counts.counting;
 }
 
 /** Which run the cell's number came from and when, or why there is none. */
 export function nodeCountTitle(state: NodeCountState | undefined, canPreview: boolean, now: number = Date.now()): string {
-  if (!canPreview) return "This session cannot run a preview, so the node count is unknown.";
-  if (!state) return "Not counted yet.";
-  if (state.status === "queued" || state.status === "running") return "Counting: a preview is running for this record.";
-  const when = formatRelativeTime(new Date(state.at).toISOString(), now) || "just now";
-  if (state.status === "failed") return `The preview run ${when} failed: ${state.reason}`;
-  return `${state.source} in, ${state.result} out, from a preview run ${when}.`;
+  if (!canPreview) return t.counts.cannotPreview;
+  if (!state) return t.counts.notCounted;
+  if (state.status === "queued" || state.status === "running") return t.counts.running;
+  const when = formatRelativeTime(new Date(state.at).toISOString(), now) || t.time.justNow;
+  if (state.status === "failed") return t.counts.previewRunFailed(when, state.reason);
+  return t.counts.fromPreview(formatCount(state.source), formatCount(state.result), when);
 }

@@ -100,7 +100,8 @@ describe("provider figures", () => {
     expect(formatExpiry(at(1), NOW)).toBe("expires tomorrow");
     expect(formatExpiry(at(0), NOW)).toBe("expires today");
     expect(formatExpiry({ expire: Math.floor((NOW - 3 * DAY) / 1000) }, NOW)).toBe("expired 3 days ago");
-    expect(formatExpiry({ expire: Math.floor(Date.parse("2027-03-01T00:00:00Z") / 1000) }, NOW)).toBe("expires 2027-03-01");
+    // Past sixty days the date itself, in the viewer's calendar: noon UTC is the same date from UTC-11 to UTC+11.
+    expect(formatExpiry({ expire: Math.floor(Date.parse("2027-03-01T12:00:00Z") / 1000) }, NOW)).toBe("expires Mar 1, 2027");
     expect(formatExpiry({}, NOW)).toBe("");
   });
 });

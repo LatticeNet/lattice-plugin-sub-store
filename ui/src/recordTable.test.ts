@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { KIND_COLLECTION, KIND_FILE, STORE_VERSION_LEGACY, STORE_VERSION_SPLIT, type SubStoreShareRow, type SubscriptionListItem } from "./client";
+import { t } from "./i18n";
 import { buildLineage } from "./pipeline";
 import {
-  TEXT,
   attentionWeight,
   countsNeedPreview,
   expiryOf,
@@ -57,7 +57,7 @@ describe("nodes in and out", () => {
     expect(counted.title).toBe("166 in, 25 out after the chain, at the fetch 2h ago.");
     const flagged = nodeCountsOf(row({ nodes_in: 120, step_count: 2 }), split);
     expect(flagged).toMatchObject({ in: "120", out: "", pair: "120 in" });
-    expect(flagged.title).toContain(TEXT.outNotNative);
+    expect(flagged.title).toContain(t.records.outNotNative);
   });
 
   it("hands on every node it read when no step runs", () => {
@@ -66,7 +66,7 @@ describe("nodes in and out", () => {
   });
 
   it("says not counted on a split store, and counts through previews only on a store without the index", () => {
-    expect(nodeCountsOf(row({}), split)).toMatchObject({ in: "", out: "", title: TEXT.notCounted });
+    expect(nodeCountsOf(row({}), split)).toMatchObject({ in: "", out: "", title: t.records.notCounted });
     expect(countsNeedPreview(row({}), STORE_VERSION_SPLIT)).toBe(false);
     expect(countsNeedPreview(row({}), STORE_VERSION_LEGACY)).toBe(true);
     expect(countsNeedPreview(row({}), undefined)).toBe(true);
@@ -79,7 +79,7 @@ describe("nodes in and out", () => {
   });
 
   it("leaves a file's cells empty, with the reason", () => {
-    expect(nodeCountsOf(row({ kind: KIND_FILE, nodes_in: 9 }), split)).toEqual({ in: "", out: "", title: TEXT.fileCounts, pair: "" });
+    expect(nodeCountsOf(row({ kind: KIND_FILE, nodes_in: 9 }), split)).toEqual({ in: "", out: "", title: t.records.fileCounts, pair: "" });
     expect(countsNeedPreview(row({ kind: KIND_FILE }), undefined)).toBe(false);
   });
 });
@@ -88,7 +88,7 @@ describe("published", () => {
   const shares: SubStoreShareRow[] = [{ subscription_id: "r", share_id: "s", slug: "cdcd", enabled: true, path: "/sub/cdcd/x" }];
 
   it("is unknown, not unpublished, when the session cannot read the share list or the read failed", () => {
-    expect(publishedOf(row({}), { shares: undefined, available: false, error: "", now: NOW })).toMatchObject({ label: "unknown", unknown: true, title: TEXT.publishedUnknownTitle });
+    expect(publishedOf(row({}), { shares: undefined, available: false, error: "", now: NOW })).toMatchObject({ label: "unknown", unknown: true, title: t.records.publishedUnknownTitle });
     expect(publishedOf(row({}), { shares: undefined, available: true, error: "denied", now: NOW })).toMatchObject({ label: "unknown", unknown: true });
   });
 
@@ -110,8 +110,8 @@ describe("expiry and traffic", () => {
   });
 
   it("says why the cell is empty for a record that is not a provider, or a provider that sent nothing", () => {
-    expect(expiryOf(row({}), NOW)).toMatchObject({ state: "none", title: TEXT.notAProvider, figures: null });
-    expect(expiryOf(row({ source: "remote", has_url: true, userinfo_parsed: true }), NOW)).toMatchObject({ state: "unreported", text: TEXT.notReported });
+    expect(expiryOf(row({}), NOW)).toMatchObject({ state: "none", title: t.records.notAProvider, figures: null });
+    expect(expiryOf(row({ source: "remote", has_url: true, userinfo_parsed: true }), NOW)).toMatchObject({ state: "unreported", text: t.records.notReported });
   });
 });
 
@@ -140,16 +140,16 @@ describe("the kind cell", () => {
   it("names what a record is and what it connects to", () => {
     expect(cell("src")).toMatchObject({ label: "Pasted nodes", detail: "feeds 1 combination", missing: 0 });
     expect(cell("combo")).toMatchObject({ label: "Combination", detail: "cdcd-self-host", missing: 1, missingLabel: "1 missing" });
-    expect(cell("rules")).toMatchObject({ label: "Plain text file", detail: TEXT.fileServedAsWritten });
+    expect(cell("rules")).toMatchObject({ label: "Plain text file", detail: t.records.fileServedAsWritten });
   });
 
   it("names a file's source before its client, so a narrow cell cuts the client the row's name already says", () => {
     expect(cell("loon")).toMatchObject({ label: "Configuration file", detail: "from merge · for Loon", missing: 0 });
-    expect(cell("clash").detail).toBe(`${TEXT.fileServedAsWritten} · for Clash`);
+    expect(cell("clash").detail).toBe(`${t.records.fileServedAsWritten} · for Clash`);
   });
 
   it("marks a file whose node source is gone, and keeps the id in the title", () => {
-    expect(cell("orphan")).toMatchObject({ label: "Script file", detail: "for Stash", missing: 1, missingLabel: TEXT.fileGone });
+    expect(cell("orphan")).toMatchObject({ label: "Script file", detail: "for Stash", missing: 1, missingLabel: t.records.fileGone });
     expect(cell("orphan").title).toContain("retired is no longer in the store");
   });
 });
@@ -170,11 +170,11 @@ describe("whether rows can be moved", () => {
   });
 
   it("says why not, the session first, then the signed plugin, then the store, then the sort", () => {
-    expect(reorderBlock({ ...ok, canMutate: false, available: false })).toBe(TEXT.reorderReadOnly);
-    expect(reorderBlock({ ...ok, available: false })).toBe(TEXT.reorderUnsigned);
-    expect(reorderBlock({ ...ok, storeVersion: undefined })).toBe(TEXT.reorderUnsigned);
-    expect(reorderBlock({ ...ok, storeVersion: STORE_VERSION_LEGACY, sort: "name" })).toBe(TEXT.reorderLegacy);
-    expect(reorderBlock({ ...ok, sort: "recent" })).toBe(TEXT.reorderSorted);
+    expect(reorderBlock({ ...ok, canMutate: false, available: false })).toBe(t.records.reorderReadOnly);
+    expect(reorderBlock({ ...ok, available: false })).toBe(t.records.reorderUnsigned);
+    expect(reorderBlock({ ...ok, storeVersion: undefined })).toBe(t.records.reorderUnsigned);
+    expect(reorderBlock({ ...ok, storeVersion: STORE_VERSION_LEGACY, sort: "name" })).toBe(t.records.reorderLegacy);
+    expect(reorderBlock({ ...ok, sort: "recent" })).toBe(t.records.reorderSorted);
   });
 });
 

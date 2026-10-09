@@ -247,6 +247,9 @@ describe("the harness console", () => {
   it("writes a state message over the query, keeping the harness switches", () => {
     expect(addressForState("?fixture=large&view=files&published=no", { view: "shares", link: "dead" })).toBe("?fixture=large&view=shares&link=dead");
     expect(addressForState("?fixture=large&view=files", {})).toBe("?fixture=large");
+    // The locale is the handshake's, never page state: it stays on the address across every write.
+    expect(addressForState("?locale=ru-RU&view=files", { view: "shares" })).toBe("?locale=ru-RU&view=shares");
+    expect(pageStateFromAddress("?locale=zh-CN&view=records")).toEqual({ view: "records" });
     expect(addressForState("?view=files", {})).toBe("");
   });
 

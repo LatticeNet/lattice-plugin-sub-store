@@ -102,7 +102,7 @@ const KEPT = [node("hk-01"), node("hk-02")];
 describe("the compare panel sets source nodes beside what the chain made of them", () => {
   it("shows every node kept beside itself when the chain removed nothing", () => {
     const { root } = mount({ nodes: KEPT, node_count: 2, source_node_count: 2 });
-    expect(textOf(root)).toContain("2 node(s)");
+    expect(textOf(root)).toContain("2 nodes");
     const rows = find(root, (n) => n.type === "tr").slice(1);
     expect(rows).toHaveLength(2);
     expect(withClass(root, "is-dropped")).toHaveLength(0);
@@ -178,16 +178,16 @@ describe("the compare panel sets source nodes beside what the chain made of them
     const nodes = Array.from({ length: 30 }, (_, i) => node(`n-${String(i).padStart(2, "0")}`));
     const { root } = mount({ nodes, node_count: 30, source_node_count: 30 }, { pageSize: 12 });
     expect(find(root, (n) => n.type === "tr").slice(1)).toHaveLength(12);
-    expect(textOf(root)).toContain("Rows 1–12 of 30");
-    const next = find(root, (n) => n.props["aria-label"] === "Next page")[0]!;
+    expect(textOf(root)).toContain("Rows 1 to 12 of 30");
+    const next = find(root, (n) => n.props["data-testid"] === "page-next")[0]!;
     (next.props.onClick as () => void)();
     await nextTick();
-    expect(textOf(root)).toContain("Rows 13–24 of 30");
+    expect(textOf(root)).toContain("Rows 13 to 24 of 30");
     expect(textOf(root)).toContain("n-12");
     expect(textOf(root)).not.toContain("n-00");
     (next.props.onClick as () => void)();
     await nextTick();
-    expect(textOf(root)).toContain("Rows 25–30 of 30");
+    expect(textOf(root)).toContain("Rows 25 to 30 of 30");
     expect(next.props.disabled).toBe(true);
   });
 });

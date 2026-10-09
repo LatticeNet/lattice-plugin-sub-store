@@ -7,7 +7,6 @@ import {
   PcCount,
   PcEmptyState,
   PcNotice,
-  PcPagination,
   PcPanel,
   PcRow,
   PcSearchField,
@@ -29,6 +28,7 @@ import SubscriptionEditor from "../components/SubscriptionEditor.vue";
 import FileEditor from "../components/FileEditor.vue";
 import EngineUnavailable from "../components/EngineUnavailable.vue";
 import MaskedUrlInput from "../components/MaskedUrlInput.vue";
+import PagerFooter from "../components/PagerFooter.vue";
 import UsageBar from "../components/UsageBar.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { actionCapabilities, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
@@ -49,6 +49,7 @@ import {
   type SubscriptionListItem,
 } from "../client";
 import { useHost } from "../host";
+import { compareText, formatCount, t } from "../i18n";
 import { copyText } from "../hostClipboard";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { pageHolding, toggleShown, usePages } from "../paging";
@@ -58,11 +59,10 @@ import { useLensChrome } from "../lensChrome";
 import { useShares } from "../useShares";
 import { useNodeCounts } from "../useNodeCounts";
 import { describeSubStoreBase, resolveSubStoreBase } from "../migrateUrl";
-import { buildLineage, plural } from "../pipeline";
+import { buildLineage } from "../pipeline";
 import { dropMove, edgeScrollSpeed, gapAt, namedMove, stepMove, type MoveId } from "../recordOrder";
 import {
   KIND_FACETS,
-  TEXT,
   attentionWeight,
   countsNeedPreview,
   expiryOf,
@@ -223,9 +223,9 @@ const sorted = computed(() => {
   const rows = [...filtered.value];
   const now = Date.now();
   if (sortKey.value === "name") {
-    rows.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+    rows.sort((a, b) => compareText(a.display_name || a.name, b.display_name || b.name));
   } else if (sortKey.value === "status") {
-    rows.sort((a, b) => attentionWeight(a, now) - attentionWeight(b, now) || a.name.localeCompare(b.name));
+    rows.sort((a, b) => attentionWeight(a, now) - attentionWeight(b, now) || compareText(a.name, b.name));
   } else if (sortKey.value === "recent") {
     rows.sort((a, b) => String(b.last_fetch_at ?? "").localeCompare(String(a.last_fetch_at ?? "")));
   }
@@ -281,7 +281,7 @@ const migrateSummary = ref("");
 const migrateConfirm = ref(false);
 const migrateParsed = computed(() => describeSubStoreBase(migrateUrl.value));
 const migrateConfirmNames = computed(() =>
-  migrateParsed.value.ok ? [`The Sub-Store at ${migrateParsed.value.origin}`] : [],
+  migrateParsed.value.ok ? [t.records.importFrom(migrateParsed.value.origin)] : [],
 );
 
 async function runMigrate(): Promise<void> {
@@ -305,10 +305,7 @@ async function confirmMigrate(): Promise<void> {
   const landed = subs.items.value.filter((item) => imported.has(item.id));
   const combos = landed.filter((item) => item.kind === KIND_COLLECTION).length;
   const skipped = Object.keys(ops.report.value?.skipped ?? {}).length;
-  migrateSummary.value =
-    `Imported ${landed.length - combos} subscription(s) and ${combos} combination(s)` +
-    (skipped ? `, and skipped ${skipped}` : "") +
-    ". Nothing is published yet, so publish a share under Platform, then Publishing, to make them reachable.";
+  migrateSummary.value = t.records.importSummary(landed.length - combos, combos, skipped);
   migrateUrl.value = "";
 }
 
@@ -316,8 +313,8 @@ async function confirmMigrate(): Promise<void> {
 
 const legacyStore = computed(() => subs.storeVersion.value === STORE_VERSION_LEGACY);
 const migrateStoreBlock = computed(() => {
-  if (!subs.canMutate.value) return TEXT.migrateReadOnly;
-  if (!subs.canMigrateStore.value) return TEXT.migrateUnsigned;
+  if (!subs.canMutate.value) return t.records.migrateReadOnly;
+  if (!subs.canMigrateStore.value) return t.records.migrateUnsigned;
   return "";
 });
 const migratedCount = ref(0);
@@ -348,10 +345,8 @@ function toggleSelectAll(): void {
   selectedIds.value = toggleShown(selectedIds.value, table.value.rows.map((row) => row.id));
 }
 
-const countLabel = computed(() => plural(sorted.value.length, "record"));
-const countTitle = computed(() =>
-  `${sorted.value.length} of ${total.value} records shown. The store holds at most ${MAX_SUBSCRIPTION_RECORDS}.`,
-);
+const countLabel = computed(() => t.nouns.records(sorted.value.length));
+const countTitle = computed(() => t.records.countTitle(sorted.value.length, total.value, MAX_SUBSCRIPTION_RECORDS));
 
 /** The lens tells the shell when an editor is up and how many rows are selected. */
 watch(
@@ -431,7 +426,7 @@ function menuActionsFor(row: SubscriptionListItem) {
 const batchActions = computed(() => batchActionsFor(selectedVisible.value, actionCaps.value));
 
 function nameTitle(row: SubscriptionListItem): string {
-  return `Show ${row.display_name || row.name} in the side panel`;
+  return t.records.showInPanel(row.display_name || row.name);
 }
 
 function openRow(row: SubscriptionListItem, event: MouseEvent): void {
@@ -505,9 +500,9 @@ const drawerItem = computed(() => (drawer.value ? subs.items.value.find((r) => r
 const drawerTitle = computed(() => {
   if (!drawer.value || !drawerItem.value) return "";
   const name = drawerItem.value.display_name || drawerItem.value.name;
-  if (drawer.value.mode === "preview") return `Preview · ${name}`;
-  if (drawer.value.mode === "publish") return `Upload · ${name}`;
-  return publishStateFor(shares.value, drawerItem.value.id).tone === "warn" ? `Renew share · ${name}` : `Publish · ${name}`;
+  if (drawer.value.mode === "preview") return t.records.drawerPreview(name);
+  if (drawer.value.mode === "publish") return t.records.drawerUpload(name);
+  return publishStateFor(shares.value, drawerItem.value.id).tone === "warn" ? t.records.drawerRenew(name) : t.records.drawerPublish(name);
 });
 function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
   drawerTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
@@ -542,8 +537,8 @@ function openShares(record: SubscriptionListItem): void {
   postNavigate(window, existing ? SHARES_LIST_ROUTE : sharesRoute(record.id), shareOrigin.value);
   closeDrawer();
   subs.notice.value = record.kind === KIND_FILE
-    ? `Asked the console to open its share form for ${record.display_name || record.name}. The file is published once the share is saved there.`
-    : "Asked the console to open Platform → Publishing.";
+    ? t.records.askedShareForm(record.display_name || record.name)
+    : t.records.askedPublishing;
 }
 
 /** The console's share list, where a share a delete left serving nothing is removed or repointed. */
@@ -562,7 +557,7 @@ async function copyShareLink(row: SubscriptionListItem): Promise<void> {
   manualShareLink.value = null;
   if (await copyText(link)) {
     subs.actionError.value = "";
-    subs.notice.value = `Copied the link for ${state.label}.`;
+    subs.notice.value = t.records.copiedLink(state.label);
     return;
   }
   subs.notice.value = "";
@@ -757,13 +752,13 @@ function focusGrip(id: string): void {
 async function commitOrder(row: SubscriptionListItem, order: string[], keepFocus: boolean): Promise<void> {
   reorderError.value = "";
   const pending = subs.reorder(order);
-  announce(TEXT.moved(labelOf(row), order.indexOf(row.id) + 1, order.length));
+  announce(t.records.moved(labelOf(row), order.indexOf(row.id) + 1, order.length));
   const holder = pageHolding(sorted.value.findIndex((entry) => entry.id === row.id), PAGE_SIZE);
   if (holder && holder !== page.value) page.value = holder;
   if (keepFocus) focusGrip(row.id);
   const result = await pending;
   if (result.ok || result.dropped) return;
-  reorderError.value = TEXT.reorderFailed(result.reason);
+  reorderError.value = t.records.reorderFailed(result.reason);
   announce(reorderError.value);
   if (keepFocus) focusGrip(row.id);
 }
@@ -774,7 +769,7 @@ function moveStep(row: SubscriptionListItem, direction: -1 | 1): void {
   const order = subs.items.value.map((item) => item.id);
   const next = stepMove(order, sorted.value.map((item) => item.id), row.id, direction);
   if (!next) {
-    announce(TEXT.moveAtEdge(labelOf(row), direction < 0 ? "top" : "bottom"));
+    announce(direction < 0 ? t.records.moveAtTop(labelOf(row)) : t.records.moveAtBottom(labelOf(row)));
     return;
   }
   void commitOrder(row, next, true);
@@ -792,10 +787,10 @@ function movesFor(row: SubscriptionListItem): RecordMove[] {
   const top = at <= 0;
   const bottom = at < 0 || at >= sorted.value.length - 1;
   return [
-    { id: "up", label: TEXT.moveUp, title: TEXT.moveTitle, disabled: top },
-    { id: "down", label: TEXT.moveDown, title: TEXT.moveTitle, disabled: bottom },
-    { id: "top", label: TEXT.moveTop, title: TEXT.moveTitle, disabled: top },
-    { id: "bottom", label: TEXT.moveBottom, title: TEXT.moveTitle, disabled: bottom },
+    { id: "up", label: t.records.moveUp, title: t.records.moveTitle, disabled: top },
+    { id: "down", label: t.records.moveDown, title: t.records.moveTitle, disabled: bottom },
+    { id: "top", label: t.records.moveTop, title: t.records.moveTitle, disabled: top },
+    { id: "bottom", label: t.records.moveBottom, title: t.records.moveTitle, disabled: bottom },
   ];
 }
 function moveFromMenu(row: SubscriptionListItem, where: MoveId): void {
@@ -1045,17 +1040,18 @@ watch(host.init, (value) => {
 
 /** Facet values the kind filter offers, with their counts. */
 const kindOptions = computed(() => [
-  { value: "" as const, label: TEXT.kindAll, count: kindTotals.value.all },
-  ...KIND_FACETS.map((facet) => ({ value: facet, label: TEXT.kindPlural[facet], count: kindTotals.value[facet] })),
+  { value: "" as const, label: t.records.kindAll, count: kindTotals.value.all },
+  ...KIND_FACETS.map((facet) => ({ value: facet, label: t.records.kindPlural[facet], count: kindTotals.value[facet] })),
 ]);
 
 /** What the empty state of a kind with no records offers, by kind. */
 const emptyKind = computed<KindFacet>(() => kindFacet.value || "source");
-const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : "record"));
+/** The kind the filters narrow to, for the sentences that name it. */
+const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
 </script>
 
 <template>
-  <EngineUnavailable v-if="host.init.value && !subs.available.value" feature="Records" />
+  <EngineUnavailable v-if="host.init.value && !subs.available.value" :feature="t.records.layer" />
 
   <template v-else>
     <!-- ── editors ──────────────────────────────────────────────────────── -->
@@ -1064,49 +1060,48 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
     <section v-else class="lens records" aria-labelledby="records-title">
-      <h2 id="records-title" class="pc-sr-only">{{ TEXT.layer }}</h2>
+      <h2 id="records-title" class="pc-sr-only">{{ t.records.layer }}</h2>
       <!-- Every move and every refused save is read out here, politely, so a
            keyboard operator hears where the row went without losing focus. -->
       <p class="pc-sr-only" role="status" aria-live="polite" data-testid="records-live">{{ liveMessage }}</p>
-      <p id="records-grip-help" class="pc-sr-only">{{ TEXT.gripHelp }}</p>
+      <p id="records-grip-help" class="pc-sr-only">{{ t.records.gripHelp }}</p>
 
       <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
       <PcNotice v-else-if="subs.notice.value" tone="success">
         {{ subs.notice.value }}
         <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
-          <PcButton compact @click="openPublishing()">Open in Publishing</PcButton>
+          <PcButton compact @click="openPublishing()">{{ t.records.openInPublishing }}</PcButton>
         </template>
       </PcNotice>
       <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
-      <PcNotice v-if="reorderError" tone="danger" dismissible data-testid="records-reorder-error" @dismiss="reorderError = ''">
+      <PcNotice v-if="reorderError" tone="danger" dismissible :dismiss-label="t.common.dismiss" data-testid="records-reorder-error" @dismiss="reorderError = ''">
         {{ reorderError }}
       </PcNotice>
 
       <!-- A legacy store reads fine and refuses every write until it is split.
            The prompt says so before a save does, and runs the split here. -->
-      <PcNotice v-if="legacyStore" tone="warning" :title="TEXT.migrateTitle" data-testid="records-migrate">
-        <p>{{ TEXT.migrateBody }}</p>
+      <PcNotice v-if="legacyStore" tone="warning" :title="t.records.migrateTitle" data-testid="records-migrate">
+        <p>{{ t.records.migrateBody }}</p>
         <p v-if="subs.migration.value.running" role="status">
-          {{ TEXT.migrateProgress(subs.migration.value.migrated, subs.migration.value.remaining) }}
+          {{ t.records.migrateProgress(subs.migration.value.migrated, subs.migration.value.remaining) }}
         </p>
-        <p v-else-if="subs.migration.value.error" role="alert">{{ TEXT.migrateFailed(subs.migration.value.error) }}</p>
+        <p v-else-if="subs.migration.value.error" role="alert">{{ t.records.migrateFailed(subs.migration.value.error) }}</p>
         <p v-if="migrateStoreBlock" class="rec-list-note">{{ migrateStoreBlock }}</p>
         <template v-if="!migrateStoreBlock" #actions>
-          <PcButton variant="primary" compact :busy="subs.migration.value.running" @click="migrateStore()">{{ TEXT.migrateAction }}</PcButton>
+          <PcButton variant="primary" compact :busy="subs.migration.value.running" @click="migrateStore()">{{ t.records.migrateAction }}</PcButton>
         </template>
       </PcNotice>
-      <PcNotice v-else-if="migratedCount" tone="success" dismissible data-testid="records-migrated" @dismiss="migratedCount = 0">
-        {{ TEXT.migrateDone(migratedCount) }}
+      <PcNotice v-else-if="migratedCount" tone="success" dismissible :dismiss-label="t.common.dismiss" data-testid="records-migrated" @dismiss="migratedCount = 0">
+        {{ t.records.migrateDone(migratedCount) }}
       </PcNotice>
 
       <!-- A batch delete that stopped part way: what that means for the rest. -->
       <PcNotice
         v-if="deleteRemainder"
         tone="warning"
-        :title="`${deleteRemainder.done.length} deleted, 1 failed, ${deleteRemainder.pending.length} not attempted`"
+        :title="t.records.remainderTitle(deleteRemainder.done.length, deleteRemainder.pending.length)"
       >
-        The run stopped at <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>, so nothing after
-        it was touched. These records are still here and still selected:
+        {{ t.records.remainderBefore }} <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>{{ t.records.remainderAfter }}
         <ul class="partial-strip__names">
           <li v-for="name in namesFor([deleteRemainder.failed, ...deleteRemainder.pending])" :key="name" class="pc-mono">
             {{ name }}
@@ -1114,9 +1109,9 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
         </ul>
         <template #actions>
           <PcButton compact @click="retryDeleteRemainder()">
-            Retry the {{ deleteRemainder.pending.length + 1 }} that remain
+            {{ t.records.retryRemaining(deleteRemainder.pending.length + 1) }}
           </PcButton>
-          <PcButton compact @click="deleteRemainder = null">Dismiss</PcButton>
+          <PcButton compact @click="deleteRemainder = null">{{ t.common.dismiss }}</PcButton>
         </template>
       </PcNotice>
 
@@ -1124,68 +1119,60 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
            because rows re-sort and a reveal anchored to one would move. -->
       <div v-if="manualShareLink" class="manual-copy-strip">
         <div class="manual-copy-strip__head">
-          <span class="manual-copy-strip__label">Link for {{ manualShareLink.label }}</span>
-          <PcButton compact @click="manualShareLink = null">Dismiss</PcButton>
+          <span class="manual-copy-strip__label">{{ t.records.linkFor(manualShareLink.label) }}</span>
+          <PcButton compact @click="manualShareLink = null">{{ t.common.dismiss }}</PcButton>
         </div>
         <LtManualCopy :value="manualShareLink.value" subject="link" />
       </div>
 
-      <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" label="Loading records" data-testid="records-loading">
-        <PcSkeleton :count="6" label="Loading the records" />
+      <PcPanel v-if="!host.init.value || subs.state.value === 'loading'" :label="t.records.loadingPanel" data-testid="records-loading">
+        <PcSkeleton :count="6" :label="t.records.loading" />
       </PcPanel>
 
       <template v-else-if="subs.loadError.value">
-        <PcNotice tone="danger" title="The list could not be loaded" data-testid="records-error">
+        <PcNotice tone="danger" :title="t.records.loadFailed" data-testid="records-error">
           {{ subs.loadError.value }}
-          <template #actions><PcButton compact @click="loadAll()">Try again</PcButton></template>
+          <template #actions><PcButton compact @click="loadAll()">{{ t.common.tryAgain }}</PcButton></template>
         </PcNotice>
-        <PcPanel :label="TEXT.layer">
-          <PcEmptyState kind="error" title="Nothing could be loaded">
-            <p>This is not an empty store, it is an unanswered question.</p>
+        <PcPanel :label="t.records.layer">
+          <PcEmptyState kind="error" :title="t.records.nothingLoaded">
+            <p>{{ t.records.nothingLoadedBody }}</p>
           </PcEmptyState>
         </PcPanel>
       </template>
 
       <!-- Nothing in the store at all: the moment to offer creation and the
            import from a standalone Sub-Store, side by side. -->
-      <PcPanel v-else-if="storeEmpty" :label="TEXT.layer" data-testid="records-empty">
-        <PcEmptyState title="No records yet">
+      <PcPanel v-else-if="storeEmpty" :label="t.records.layer" data-testid="records-empty">
+        <PcEmptyState :title="t.records.emptyTitle">
           <template #icon><Library :size="26" aria-hidden="true" /></template>
-          <p>
-            Start with your own fleet: one source reading this deployment's vpn-core nodes. Combinations
-            and client files build on sources.
-          </p>
+          <p>{{ t.records.emptyBody }}</p>
           <template #actions>
             <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="editor.startCreate(KIND_SUB)">
               <template #icon><Server :size="15" aria-hidden="true" /></template>
-              Add this fleet's nodes
+              {{ t.records.addFleet }}
             </PcButton>
             <PcButton :disabled="!subs.canMutate.value" @click="fileEditor.startCreate()">
               <template #icon><FileCode :size="15" aria-hidden="true" /></template>
-              Add a configuration
+              {{ t.records.addConfiguration }}
             </PcButton>
             <div v-if="ops.canMigrate.value" class="empty-secondary">
-              <span class="field-label">Already running a standalone Sub-Store?</span>
+              <span class="field-label">{{ t.records.standaloneQuestion }}</span>
               <form class="empty-inline-form" @submit.prevent="runMigrate">
                 <MaskedUrlInput
                   v-model="migrateUrl"
-                  placeholder="Backend URL, or the official UI address with ?api="
-                  aria-label="Running Sub-Store backend URL"
+                  :placeholder="t.records.importPlaceholder"
+                  :aria-label="t.records.importAria"
                 />
-                <PcButton type="submit" :busy="ops.busy.value" :disabled="!migrateParsed.ok">Import from it</PcButton>
+                <PcButton type="submit" :busy="ops.busy.value" :disabled="!migrateParsed.ok">{{ t.records.importAction }}</PcButton>
               </form>
-              <p class="row-popover-note">
-                Paste the official UI address or the backend URL after ?api=. The control plane fetches
-                it, so a Sub-Store that exists only on this laptop at 127.0.0.1 is unreachable unless
-                the server can open that origin. The path is the API secret, used for this import only.
-                Importing publishes nothing.
-              </p>
+              <p class="row-popover-note">{{ t.records.importNote }}</p>
               <p v-if="migrateUrl.trim() && !migrateParsed.ok" class="row-popover-error" role="status">{{ migrateParsed.reason }}</p>
               <p v-if="ops.actionError.value" class="row-popover-error" role="alert">{{ ops.actionError.value }}</p>
               <LtConfirmDialog
                 :open="migrateConfirm"
-                title="Import from this Sub-Store? The records it lists are written here as imported-* ids. Re-running replaces those ids. Nothing is published."
-                verb="Import"
+                :title="t.records.importConfirm"
+                :verb="t.records.importVerb"
                 :names="migrateConfirmNames"
                 :busy="ops.busy.value"
                 @cancel="migrateConfirm = false"
@@ -1200,116 +1187,112 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
         <!-- A write can succeed and its trailing reload still fail. The rows
              below are then the last good read, and saying so beats either
              blanking them or pretending they are current. -->
-        <PcNotice v-if="subs.staleError.value" tone="warning" title="Showing the last good read" data-testid="records-stale">
-          The newest reload failed ({{ subs.staleError.value }}).
+        <PcNotice v-if="subs.staleError.value" tone="warning" :title="t.records.staleTitle" data-testid="records-stale">
+          {{ t.records.staleBody(subs.staleError.value) }}
         </PcNotice>
 
-        <PcPanel :label="TEXT.layer">
+        <PcPanel :label="t.records.layer">
           <div ref="listRoot" class="rec-list">
             <div class="rec-tools">
               <!-- The kind filter is where the three per-kind layers went. A
                    radio group, not a tab row: it narrows this table, it is
                    not a place of its own. -->
               <fieldset class="rec-kinds">
-                <legend class="pc-sr-only">{{ TEXT.kindLegend }}</legend>
+                <legend class="pc-sr-only">{{ t.records.kindLegend }}</legend>
                 <label v-for="option in kindOptions" :key="option.value || 'all'" class="rec-kind" :class="{ 'is-selected': kindFacet === option.value }">
                   <input v-model="kindFacet" type="radio" name="record-kind" :value="option.value" :data-testid="`kind-${option.value || 'all'}`" />
                   <span>{{ option.label }}</span>
-                  <span class="rec-kind-count pc-mono">{{ option.count }}</span>
+                  <span class="rec-kind-count pc-mono">{{ formatCount(option.count) }}</span>
                 </label>
               </fieldset>
-              <PcSearchField v-model="searchText" placeholder="Filter by name, id, remark, tag" label="Filter records" />
+              <PcSearchField v-model="searchText" :placeholder="t.records.filterPlaceholder" :label="t.records.filterLabel" />
               <label class="toolbar-sort">
-                <span>Published</span>
-                <select v-model="facets.published" class="pc-select" aria-label="Filter by whether a live share serves the record" :disabled="!shareStore.available.value">
-                  <option value="">All {{ facetCounts.all }}</option>
-                  <option value="yes">Published {{ facetCounts.published }}</option>
-                  <option value="no">Not published {{ facetCounts.unpublished }}</option>
+                <span>{{ t.records.publishedFilter }}</span>
+                <select v-model="facets.published" class="pc-select" :aria-label="t.records.publishedFilterAria" :disabled="!shareStore.available.value">
+                  <option value="">{{ t.records.allCount(facetCounts.all) }}</option>
+                  <option value="yes">{{ t.records.publishedCount(facetCounts.published) }}</option>
+                  <option value="no">{{ t.records.unpublishedCount(facetCounts.unpublished) }}</option>
                 </select>
               </label>
               <label v-if="kindFacet === 'file'" class="toolbar-sort">
-                <span>Type</span>
-                <select v-model="fileType" class="pc-select" aria-label="Filter by file type">
-                  <option value="">All</option>
-                  <option value="config">Configuration {{ facetCounts.config }}</option>
-                  <option value="script">Script {{ facetCounts.script }}</option>
-                  <option value="plain">Plain {{ facetCounts.plain }}</option>
+                <span>{{ t.records.typeFilter }}</span>
+                <select v-model="fileType" class="pc-select" :aria-label="t.records.typeFilterAria">
+                  <option value="">{{ t.records.allTypes }}</option>
+                  <option value="config">{{ t.records.configCount(facetCounts.config) }}</option>
+                  <option value="script">{{ t.records.scriptCount(facetCounts.script) }}</option>
+                  <option value="plain">{{ t.records.plainCount(facetCounts.plain) }}</option>
                 </select>
               </label>
               <label class="toolbar-sort">
-                <span>Origin</span>
-                <select v-model="facets.origin" class="pc-select" aria-label="Filter by where the record came from">
-                  <option value="">All {{ facetCounts.all }}</option>
-                  <option value="migrated">Migrated {{ facetCounts.migrated }}</option>
-                  <option value="local">Made here {{ facetCounts.local }}</option>
+                <span>{{ t.records.originFilter }}</span>
+                <select v-model="facets.origin" class="pc-select" :aria-label="t.records.originFilterAria">
+                  <option value="">{{ t.records.allCount(facetCounts.all) }}</option>
+                  <option value="migrated">{{ t.records.migratedCount(facetCounts.migrated) }}</option>
+                  <option value="local">{{ t.records.localCount(facetCounts.local) }}</option>
                 </select>
               </label>
               <label class="toolbar-sort">
-                <span>Sort</span>
-                <select v-model="sortKey" class="pc-select" aria-label="Sort records">
-                  <option value="manual">{{ TEXT.sortManual }}</option>
-                  <option value="recent">Recently refreshed</option>
-                  <option value="name">Name</option>
-                  <option value="status">Needs attention</option>
+                <span>{{ t.records.sortLabel }}</span>
+                <select v-model="sortKey" class="pc-select" :aria-label="t.records.sortAria">
+                  <option value="manual">{{ t.records.sortManual }}</option>
+                  <option value="recent">{{ t.records.sortRecent }}</option>
+                  <option value="name">{{ t.records.sortName }}</option>
+                  <option value="status">{{ t.records.sortStatus }}</option>
                 </select>
               </label>
               <button
                 type="button"
                 class="rec-density"
                 :aria-pressed="compact"
-                :title="TEXT.densityTitle"
+                :title="t.records.densityTitle"
                 data-testid="records-density"
                 @click="compact = !compact"
               >
                 <Rows3 :size="14" aria-hidden="true" />
-                {{ TEXT.density }}
+                {{ t.records.density }}
               </button>
               <PcCount :value="countLabel" :label="countTitle" />
-              <p v-if="!subs.canMutate.value" class="rec-list-note" data-testid="records-readonly">{{ TEXT.readOnlyNote }}</p>
+              <p v-if="!subs.canMutate.value" class="rec-list-note" data-testid="records-readonly">{{ t.records.readOnlyNote }}</p>
               <p v-else-if="showRail && reorderReason" class="rec-list-note" data-testid="records-order-note">{{ reorderReason }}</p>
             </div>
 
             <!-- A kind the store holds none of: what that kind is and how to
                  make one. Inside the card, so the kind filter stays in reach. -->
             <div v-if="kindEmpty" data-testid="records-empty">
-              <PcEmptyState v-if="emptyKind === 'combination'" :title="TEXT.noKind(noun)">
+              <PcEmptyState v-if="emptyKind === 'combination'" :title="t.records.noKind.combination">
                 <template #icon><Layers :size="26" aria-hidden="true" /></template>
-                <p>A combination merges several sources and runs one chain over the result, so a file can render all of them at once.</p>
+                <p>{{ t.records.combinationEmptyBody }}</p>
                 <template #actions>
                   <PcButton
                     :disabled="!subs.canMutate.value || !hasSource"
-                    :title="hasSource ? undefined : 'Create a source first. There is nothing to combine'"
+                    :title="hasSource ? undefined : t.records.combinationNeedsSource"
                     @click="editor.startCreate(KIND_COLLECTION)"
                   >
-                    New combination
+                    {{ t.records.newCombination }}
                   </PcButton>
                 </template>
               </PcEmptyState>
-              <PcEmptyState v-else-if="emptyKind === 'file'" :title="TEXT.noKind(noun)">
+              <PcEmptyState v-else-if="emptyKind === 'file'" :title="t.records.noKind.file">
                 <template #icon><FileCode :size="26" aria-hidden="true" /></template>
-                <p>
-                  Paste the Mihomo config you already run. Lattice keeps your rules and groups and replaces
-                  only the proxy list, from whichever source you point it at, so nodes can change
-                  without you editing anything.
-                </p>
+                <p>{{ t.records.fileEmptyBody }}</p>
                 <template #actions>
                   <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="fileEditor.startCreate()">
                     <template #icon><FileCode :size="15" aria-hidden="true" /></template>
-                    Add a configuration
+                    {{ t.records.addConfiguration }}
                   </PcButton>
                   <PcButton :disabled="!subs.canMutate.value" @click="fileEditor.startCreate(FILE_TYPE_PLAIN)">
                     <template #icon><FileText :size="15" aria-hidden="true" /></template>
-                    New plain-text file
+                    {{ t.records.newPlainFile }}
                   </PcButton>
                 </template>
               </PcEmptyState>
-              <PcEmptyState v-else :title="TEXT.noKind(noun)">
+              <PcEmptyState v-else :title="t.records.noKind.source">
                 <template #icon><Library :size="26" aria-hidden="true" /></template>
-                <p>Start with your own fleet: one source reading this deployment's vpn-core nodes.</p>
+                <p>{{ t.records.sourceEmptyBody }}</p>
                 <template #actions>
                   <PcButton variant="primary" :disabled="!subs.canMutate.value" @click="editor.startCreate(KIND_SUB)">
                     <template #icon><Server :size="15" aria-hidden="true" /></template>
-                    Add this fleet's nodes
+                    {{ t.records.addFleet }}
                   </PcButton>
                 </template>
               </PcEmptyState>
@@ -1318,16 +1301,16 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
             <PcEmptyState
               v-else-if="!sorted.length"
               kind="no-match"
-              :title="searchText.trim() ? 'No record matches that search' : `No ${noun}s match these filters`"
+              :title="searchText.trim() ? t.records.noMatchSearch : t.records.noMatchFilters[nounKey]"
               data-testid="records-no-match"
             >
               <p v-if="searchText.trim()">
-                Nothing here is called, tagged or described as <span class="pc-mono">{{ searchText.trim() }}</span>.
+                {{ t.records.noMatchQueryBefore }} <span class="pc-mono">{{ searchText.trim() }}</span>{{ t.records.noMatchQueryAfter }}
               </p>
-              <p v-else-if="facets.published === 'no'">Every {{ noun }} here is published.</p>
-              <p v-else>Nothing in this store matches the filters above.</p>
+              <p v-else-if="facets.published === 'no'">{{ t.records.allPublished[nounKey] }}</p>
+              <p v-else>{{ t.records.noMatchBody }}</p>
               <template #actions>
-                <PcButton :disabled="!filtersActive" @click="clearFilters()">Clear filters</PcButton>
+                <PcButton :disabled="!filtersActive" @click="clearFilters()">{{ t.records.clearFilters }}</PcButton>
               </template>
             </PcEmptyState>
 
@@ -1335,7 +1318,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
               v-else
               :min-width="showRail ? 1300 : 1244"
               :density="compact ? 'compact' : 'comfortable'"
-              :label="TEXT.layer"
+              :label="t.records.layer"
               class="layer-table records-table"
               :data-rail="showRail ? 'true' : undefined"
               data-testid="records-table"
@@ -1345,22 +1328,22 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                   header
                   :checked="allVisibleSelected"
                   :indeterminate="selectedCount > 0 && !allVisibleSelected"
-                  :label="`Select all ${table.rows.length} shown records`"
+                  :label="t.records.selectAll(table.rows.length)"
                   @change="toggleSelectAll()"
                 />
-                <PcTh v-if="showRail" numeric width="56px">#</PcTh>
-                <PcTh name>Name</PcTh>
+                <PcTh v-if="showRail" numeric width="56px" :aria-label="t.records.orderColumn">#</PcTh>
+                <PcTh name>{{ t.records.colName }}</PcTh>
                 <!-- The name takes what these leave: 367px at 1440 with the
                      order rail. Expiry and Steps put their second fact on a
                      line of its own rather than widening the row. -->
-                <PcTh width="192px">Kind</PcTh>
-                <PcTh width="120px">Published</PcTh>
-                <PcTh numeric width="84px">Nodes in</PcTh>
-                <PcTh numeric width="84px">Nodes out</PcTh>
-                <PcTh numeric width="64px">Steps</PcTh>
-                <PcTh width="168px">Expiry and traffic</PcTh>
-                <PcTh width="152px">Last fetch</PcTh>
-                <PcTh actions width="48px" aria-label="Actions" />
+                <PcTh width="192px">{{ t.records.colKind }}</PcTh>
+                <PcTh width="120px">{{ t.records.colPublished }}</PcTh>
+                <PcTh numeric width="84px">{{ t.records.colNodesIn }}</PcTh>
+                <PcTh numeric width="84px">{{ t.records.colNodesOut }}</PcTh>
+                <PcTh numeric width="64px">{{ t.records.colSteps }}</PcTh>
+                <PcTh width="168px">{{ t.records.colExpiry }}</PcTh>
+                <PcTh width="152px">{{ t.records.colLastFetch }}</PcTh>
+                <PcTh actions width="48px" :aria-label="t.records.colActions" />
               </template>
               <tbody>
                 <PcRow
@@ -1376,7 +1359,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                   @click="openRow(row, $event)"
                   @keydown="onRowKeydown(row, $event)"
                 >
-                  <PcSelectCell :checked="selectedIds.has(row.id)" :label="`Select ${row.name}`" @change="toggleSelected(row.id)" />
+                  <PcSelectCell :checked="selectedIds.has(row.id)" :label="t.records.select(row.name)" @change="toggleSelected(row.id)" />
                   <td v-if="showRail" class="rec-order">
                     <span class="rec-order-inner">
                       <button
@@ -1384,7 +1367,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                         type="button"
                         class="rec-grip"
                         :data-grip="row.id"
-                        :aria-label="TEXT.gripLabel(labelOf(row), positions.get(row.id) ?? 0, total)"
+                        :aria-label="t.records.gripLabel(labelOf(row), positions.get(row.id) ?? 0, total)"
                         aria-describedby="records-grip-help"
                         data-testid="record-grip"
                         @click.stop
@@ -1412,9 +1395,9 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                       >
                         <strong>{{ row.display_name || row.name }}</strong>
                       </button>
-                      <span v-if="isFlagged(row)" class="rec-flag" :title="TEXT.flaggedTitle" data-testid="record-flagged">
-                        <PcStateDot tone="warning" :label="TEXT.flagged" />
-                        <span class="pc-sr-only">{{ TEXT.flaggedTitle }}</span>
+                      <span v-if="isFlagged(row)" class="rec-flag" :title="t.records.flaggedTitle" data-testid="record-flagged">
+                        <PcStateDot tone="warning" :label="t.records.flagged" />
+                        <span class="pc-sr-only">{{ t.records.flaggedTitle }}</span>
                       </span>
                       <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="1" /></span>
                     </div>
@@ -1422,7 +1405,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                          record's id is `imported-` and its name again. -->
                     <small v-if="row.remark" :title="row.remark">{{ row.remark }}</small>
                   </td>
-                  <td data-stack="summary" data-label="Kind" :title="cell(row).kind.title" class="rec-kind-cell">
+                  <td data-stack="summary" :data-label="t.records.colKind" :title="cell(row).kind.title" class="rec-kind-cell">
                     <!-- A reference that answers nothing leads the second line,
                          so the kind's name stays whole beside it; compact rows
                          have no second line, so there it follows the name. -->
@@ -1444,7 +1427,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                       /><template v-if="cell(row).kind.missing && !compact && cell(row).kind.detail"> · </template>{{ cell(row).kind.detail }}
                     </small>
                   </td>
-                  <td data-stack="state" data-label="Published" :title="cell(row).published.title" data-testid="record-published">
+                  <td data-stack="state" class="rec-published" :data-label="t.records.colPublished" :title="cell(row).published.title" data-testid="record-published">
                     <span class="pc-td-body">
                       <span v-if="cell(row).published.slug" class="layer-share">
                         <PcStateDot :tone="tone(cell(row).published.tone)" :label="cell(row).published.label" />
@@ -1456,32 +1439,32 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                         v-else-if="facets.published === 'no' && shareOrigin && shares !== undefined"
                         type="button"
                         class="row-publish"
-                        :aria-label="`Publish ${labelOf(row)}…`"
-                        :title="`Open the console's share form for ${labelOf(row)}, with this record chosen`"
+                        :aria-label="t.records.publishRecord(labelOf(row))"
+                        :title="t.records.publishRecordTitle(labelOf(row))"
                         @click.stop="openShares(row)"
                       >
-                        Publish…
+                        {{ t.records.publishShort }}
                       </button>
-                      <span v-else-if="cell(row).published.unknown" class="layer-muted">{{ TEXT.publishedUnknown }}</span>
-                      <span v-else-if="shares !== undefined" class="layer-muted">not published</span>
+                      <span v-else-if="cell(row).published.unknown" class="layer-muted">{{ t.records.publishedUnknown }}</span>
+                      <span v-else-if="shares !== undefined" class="layer-muted">{{ t.publish.none }}</span>
                     </span>
                   </td>
                   <template v-if="!stacked">
-                    <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes in" :title="cell(row).counts.title" data-testid="record-nodes-in">
+                    <td class="pc-numeric pc-mono" data-stack="detail" :data-label="t.records.colNodesIn" :title="cell(row).counts.title" data-testid="record-nodes-in">
                       <span class="pc-td-body">{{ cell(row).counts.in }}</span>
                     </td>
-                    <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes out" :title="cell(row).counts.title" data-testid="record-nodes-out">
+                    <td class="pc-numeric pc-mono" data-stack="detail" :data-label="t.records.colNodesOut" :title="cell(row).counts.title" data-testid="record-nodes-out">
                       <span class="pc-td-body">{{ cell(row).counts.out }}</span>
                     </td>
                   </template>
-                  <td v-else data-stack="state" data-label="Nodes" :title="cell(row).counts.title" class="pc-mono rec-nodes-pair" data-testid="record-nodes">
+                  <td v-else data-stack="state" :data-label="t.records.colNodes" :title="cell(row).counts.title" class="pc-mono rec-nodes-pair" data-testid="record-nodes">
                     {{ cell(row).counts.pair }}
                   </td>
-                  <td class="pc-numeric pc-mono rec-steps" data-stack="detail" data-label="Steps" :title="stepsOf(row).title" data-testid="record-steps">
+                  <td class="pc-numeric pc-mono rec-steps" data-stack="detail" :data-label="t.records.colSteps" :title="stepsOf(row).title" data-testid="record-steps">
                     <span class="pc-td-body">{{ stepsOf(row).count }}</span>
                     <small v-if="stepsOf(row).off">{{ stepsOf(row).off }}</small>
                   </td>
-                  <td data-stack="state" data-label="Expiry and traffic" :title="cell(row).expiry.title" :data-expiry="cell(row).expiry.state">
+                  <td data-stack="state" :data-label="t.records.colExpiry" :title="cell(row).expiry.title" :data-expiry="cell(row).expiry.state">
                     <!-- The expiry first, the bar under it at full rows: when the
                          cell is short of room the bar is what gives way, never
                          the date, and compact rows drop the bar. -->
@@ -1494,9 +1477,9 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                       >{{ cell(row).expiry.text }}</span>
                       <UsageBar :figures="cell(row).expiry.figures!" />
                     </span>
-                    <span v-else-if="cell(row).expiry.state === 'unreported'" class="pc-td-body layer-muted">{{ TEXT.notReported }}</span>
+                    <span v-else-if="cell(row).expiry.state === 'unreported'" class="pc-td-body layer-muted">{{ t.records.notReported }}</span>
                   </td>
-                  <td data-stack="state" data-label="Last fetch" :title="cell(row).fetch ? undefined : TEXT.notFetched">
+                  <td data-stack="state" class="rec-fetch" :data-label="t.records.colLastFetch" :title="cell(row).fetch ? undefined : t.refresh.notFetched">
                     <span v-if="cell(row).fetch" class="pc-td-body">
                       <PcStateDot
                         :tone="tone(cell(row).fetch!.tone)"
@@ -1524,15 +1507,15 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
               </tbody>
             </PcTable>
             <!-- More than a page: a footer, as vpn-core's Users has. Fewer and there is none. -->
-            <PcPagination
+            <PagerFooter
               v-if="!kindEmpty && sorted.length && table.pages > 1"
               :page="table.page"
               :pages="table.pages"
               :from="table.from"
               :to="table.to"
               :total="table.total"
-              noun="Records"
-              label="Records pagination"
+              :noun="t.records.pagerNoun"
+              :label="t.records.pagerLabel"
               @update:page="turnPage"
             />
           </div>
@@ -1541,19 +1524,26 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
 
       <!-- The bar names the count it acts on, the intersection with what is on
            screen, and floats over the foot of the frame so rows never move. -->
-      <PcBatchBar :count="selectedCount" noun="selected" @clear="selectedIds = new Set()">
+      <PcBatchBar
+        :count="selectedCount"
+        :noun="t.records.batchSelected"
+        :clear-label="t.common.clear"
+        :label="t.records.batchLabel"
+        @clear="selectedIds = new Set()"
+      >
         <!-- The console's share form takes one record, so one selected record
              can be handed over and a larger selection is told why not. -->
         <PcButton
           v-if="selectedCount === 1 && shareOrigin"
           compact
-          :aria-label="`Publish ${labelOf(selectedVisible[0]!)}…`"
+          data-testid="batch-publish"
+          :aria-label="t.records.publishRecord(labelOf(selectedVisible[0]!))"
           @click="openShares(selectedVisible[0]!)"
         >
           <template #icon><SquareArrowOutUpRight :size="13" aria-hidden="true" /></template>
-          Publish…
+          {{ t.records.publishShort }}
         </PcButton>
-        <span v-else-if="selectedCount > 1" class="batch-note">Publish one record at a time: the console's share form takes one.</span>
+        <span v-else-if="selectedCount > 1" class="batch-note">{{ t.records.batchOneAtATime }}</span>
         <PcButton
           v-for="action in batchActions"
           :key="action.id"
@@ -1564,7 +1554,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
           @click="requestDelete(selectedVisible.map((row) => row.id))"
         >
           <template #icon><Trash2 :size="13" aria-hidden="true" /></template>
-          {{ action.label }} {{ selectedCount }} record{{ selectedCount === 1 ? "" : "s" }}
+          {{ t.records.batchVerb(action.label, selectedCount) }}
         </PcButton>
       </PcBatchBar>
 
@@ -1588,7 +1578,7 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
       <LtConfirmDialog
         :open="deleting.length > 0"
         :title="deleteDialog.title"
-        verb="Delete"
+        :verb="t.common.delete"
         :names="deleteDialog.names"
         :consequences="deleteDialog.consequences"
         :served="deleteDialog.served"

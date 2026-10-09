@@ -502,6 +502,12 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .rec-tools > .toolbar-sort { flex-direction: column; align-items: stretch; gap: 2px; }
   .rec-tools > .toolbar-sort .pc-select { width: 100%; }
   .rec-tools > .pc-count { justify-self: start; align-self: center; }
+  /* The layer tabs share the row with half the chassis's segment padding and
+     a tighter gap before each count, so the four Russian labels fit one row
+     at 375; where a wider system face still needs more, the last tab wraps
+     onto a second row rather than scroll out of sight. */
+  .pc-lens-tabs[data-variant="layer"] { flex-wrap: wrap; row-gap: 2px; }
+  .pc-lens-tabs[data-variant="layer"] > .pc-lens-tab { flex: 1 0 auto; gap: var(--space-1); padding-inline: var(--space-1); }
 }
 
 @media (max-width: 640px) {
@@ -920,8 +926,12 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   max-height: none;
   overflow: visible;
 }
-/* The heading is one phrase; the buttons wrap under it before it breaks. */
+/* The heading is one phrase; the buttons wrap under it before it breaks, and
+   under each other when one row cannot hold them. The pane lets overflow show
+   (above), so two buttons that did not fit ran past the frame: CI's Linux face
+   drew "Разобрать цепочку" and "Предпросмотр" 15px past it at 375. */
 .editor-side .pc-panel-header h2 { white-space: nowrap; }
+.editor-side .pc-panel-header-end { flex-wrap: wrap; }
 .editor-side-note {
   margin: 0;
   color: var(--muted-foreground);
@@ -2463,11 +2473,26 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .records-table .pc-name-after .pc-tag-list { min-width: 0; flex-wrap: nowrap; }
 .records-table .pc-name-after .pc-tag:not([title]) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
+/* A header takes a second line rather than run into the next column when its
+   words need it, in a longer locale or a wider system face ("NODES / OUT" in
+   a Linux face); the 32px header row holds two 14px lines. */
+.records-table .pc-table:not([data-stacked="true"]) th { white-space: normal; line-height: 14px; }
+
 /* Second lines that sit in narrow columns: the turned-off steps under the
    count, and the traffic bar under the expiry. The chassis floors a cell's
-   sub-line at 126px, which a 64px column would clip on the wrong side. */
-.records-table td.rec-steps small { width: auto; min-width: 0; }
+   sub-line at 126px, which a 64px column would clip on the wrong side. The
+   column is right-aligned, so a word longer than the count ("1 выкл") may
+   reach into the cell's left padding rather than be cut. */
+.records-table td.rec-steps small { width: auto; min-width: 0; margin-left: -10px; }
 .records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) .layer-provider { flex-direction: column; align-items: flex-start; gap: 2px; }
+/* The last fetch and a share's state may take the row's second line at full
+   rows rather than cut their words off ("Обновлено 12 ч назад", "/oj-loon
+   expired"); compact rows keep one line, cut, with the whole label in the
+   cell's or the dot's title. */
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-td-body,
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-state-dot { white-space: normal; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-state-dot { align-items: flex-start; line-height: 16px; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) :is(td.rec-fetch, td.rec-published) .pc-state-dot::before { margin-top: 4.5px; }
 /* Compact rows have one line, so the bar goes, as every other sub-line does. */
 .records-table .pc-table[data-density="compact"]:not([data-stacked="true"]) .layer-provider:has(> .layer-expiry) > .usage { display: none; }
 

@@ -2,6 +2,8 @@
 import { MonitorOff } from "@lucide/vue";
 import { PcButton, PcEmptyState, PcPanel } from "@latticenet/plugin-bridge/chassis";
 
+import { t } from "../i18n";
+
 /**
  * What the frame says when it is opened outside the console.
  *
@@ -21,19 +23,14 @@ function reload(): void {
 </script>
 
 <template>
-  <PcPanel label="Waiting for the Lattice console">
-    <PcEmptyState kind="handshake" title="Waiting for the Lattice console">
+  <PcPanel :label="t.standalone.title">
+    <PcEmptyState kind="handshake" :title="t.standalone.title">
       <template #icon><MonitorOff :size="26" aria-hidden="true" /></template>
-      <p>
-        This page is the Sub-Store extension's frame. The console hands it a session when it embeds
-        it, and nothing has arrived yet. If you opened this address directly, that will not change,
-        because the frame has no way to reach your subscriptions on its own. If you opened it from
-        the console, this clears the moment the console answers.
-      </p>
-      <p>Find it under <strong>Console, then Extensions, then Sub-Store</strong>.</p>
+      <p>{{ t.standalone.body }}</p>
+      <p>{{ t.standalone.findBefore }} <strong>{{ t.standalone.findPath }}</strong>{{ t.standalone.findAfter }}</p>
       <p v-if="detail" class="pc-mono standalone-detail">{{ detail }}</p>
       <template #actions>
-        <PcButton @click="reload()">Reload the page</PcButton>
+        <PcButton @click="reload()">{{ t.standalone.reload }}</PcButton>
       </template>
     </PcEmptyState>
   </PcPanel>

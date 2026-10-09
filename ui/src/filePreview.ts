@@ -23,6 +23,7 @@ import {
   SOURCE_REMOTE,
   type SubscriptionListItem,
 } from "./client";
+import { t } from "./i18n";
 
 /** The subset of a list row the decision reads. */
 export type FileRecordFacts = Pick<
@@ -41,7 +42,9 @@ const SUPPORTED: FilePreviewSupport = { supported: true, reason: "" };
 
 /** A rendered document is the fallback everywhere preview is refused, so each
  *  reason ends by naming it rather than leaving the operator at a dead end. */
-const FALLBACK = "Show the document instead: it renders the file in full.";
+function refused(reason: string): FilePreviewSupport {
+  return { supported: false, reason: t.common.joinSentences([reason, t.filePreview.fallback]) };
+}
 
 export function isFileRecord(item: { kind?: string } | null | undefined): boolean {
   return item?.kind === KIND_FILE;
@@ -56,28 +59,16 @@ export function isFileRecord(item: { kind?: string } | null | undefined): boolea
 export function filePreviewSupport(item: FileRecordFacts | null | undefined): FilePreviewSupport {
   if (!item || !isFileRecord(item)) return SUPPORTED;
   if ((item.node_source ?? "").trim()) {
-    return {
-      supported: false,
-      reason: `This file fills its proxy list from another record, and a preview does not resolve one. ${FALLBACK}`,
-    };
+    return refused(t.filePreview.nodeSource);
   }
   if (item.source === SOURCE_REMOTE || item.has_url) {
-    return {
-      supported: false,
-      reason: `This file's template is fetched from a link, and a preview does not fetch. ${FALLBACK}`,
-    };
+    return refused(t.filePreview.fetch);
   }
   if (item.file_type === FILE_TYPE_SCRIPT) {
-    return {
-      supported: false,
-      reason: `This file is built by a program, and a preview does not run one. ${FALLBACK}`,
-    };
+    return refused(t.filePreview.program);
   }
   if ((item.step_count ?? 0) > 0) {
-    return {
-      supported: false,
-      reason: `This file has operations that run over the document, and a preview does not run them. ${FALLBACK}`,
-    };
+    return refused(t.filePreview.chain);
   }
   return SUPPORTED;
 }

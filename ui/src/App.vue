@@ -4,6 +4,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { BridgeClient, type HostInit } from "@latticenet/plugin-bridge";
 import type { MethodBinding } from "./client";
 import { adoptHandshake, provideHost } from "./host";
+import { t } from "./i18n";
 import type { PageState } from "./pageState";
 import { safeErrorMessage } from "./subStoreModel";
 import Shell from "./Shell.vue";
@@ -31,7 +32,7 @@ try {
 } catch (cause) {
   bootError.value = safeErrorMessage(
     cause,
-    "This page could not open a channel to the console.",
+    t.boot.noChannel,
   );
 }
 

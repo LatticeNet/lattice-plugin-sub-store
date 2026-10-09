@@ -16,6 +16,7 @@ import {
 import { PcIconButton } from "@latticenet/plugin-bridge/chassis";
 import { onBeforeUnmount, ref, watch } from "vue";
 
+import { t } from "../i18n";
 import type { ResolvedAction } from "../recordActions";
 import type { MoveId } from "../recordOrder";
 
@@ -153,7 +154,7 @@ onBeforeUnmount(unlisten);
 <template>
   <div ref="anchor" class="rec-menu-wrap" v-bind="$attrs">
     <PcIconButton
-      :label="`Actions for ${name}`"
+      :label="t.records.actionsFor(name)"
       bordered
       :aria-haspopup="true"
       :aria-expanded="open"

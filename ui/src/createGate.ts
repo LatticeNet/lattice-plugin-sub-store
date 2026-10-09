@@ -11,6 +11,7 @@
  * while the catalogue is unread.
  */
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS } from "./client";
+import { t } from "./i18n";
 import type { ViewId } from "./pipeline";
 import type { LoadState } from "./useSubscriptions";
 
@@ -35,21 +36,15 @@ export interface CatalogueView {
   legacy?: boolean;
 }
 
-export const UNREAD_REASON =
-  "The record catalogue could not be read, so the record budget and the names in use are unknown. Refresh first";
-export const READING_REASON =
-  "The record catalogue is still being read, so the record budget and the names in use are not known yet";
-export const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
-export const NO_SOURCE_REASON = "Create a source first. There is nothing to combine";
-export const LEGACY_REASON =
-  "This store still keeps every record in one document and refuses new records until it is migrated. Migrate it from the Records table first";
-
-/** Why the store cannot take any new record right now; empty when it can. */
+/**
+ * Why the store cannot take any new record right now; empty when it can.
+ * The reasons are the message table's `t.create`, read when asked.
+ */
 export function storeBlock(catalogue: CatalogueView, limit = MAX_SUBSCRIPTION_RECORDS): string {
-  if (catalogue.state === "error") return UNREAD_REASON;
-  if (catalogue.state !== "ready") return READING_REASON;
-  if (catalogue.legacy) return LEGACY_REASON;
-  return catalogue.records.length >= limit ? LIMIT_REASON : "";
+  if (catalogue.state === "error") return t.create.unread;
+  if (catalogue.state !== "ready") return t.create.reading;
+  if (catalogue.legacy) return t.create.legacy;
+  return catalogue.records.length >= limit ? t.create.limit(MAX_SUBSCRIPTION_RECORDS) : "";
 }
 
 function kindOf(record: { kind?: string }): string {
@@ -68,7 +63,7 @@ export function createBlocks(catalogue: CatalogueView, limit = MAX_SUBSCRIPTION_
   const noSource = !unread && !catalogue.records.some((record) => kindOf(record) === KIND_SUB);
   return {
     "new-subscription": store,
-    "new-collection": unread ? store : noSource ? NO_SOURCE_REASON : store,
+    "new-collection": unread ? store : noSource ? t.create.noSource : store,
     "new-file": store,
   };
 }
@@ -80,10 +75,15 @@ interface LayerCreate {
   hint: string;
 }
 
+/* Getters, so a label is read in the locale that is active when it is drawn. */
 const SUBSCRIPTION: LayerCreate = {
   command: "new-subscription",
-  label: "New source",
-  hint: "One source of nodes, processed and served",
+  get label() {
+    return t.create.newSource;
+  },
+  get hint() {
+    return t.create.newSourceHint;
+  },
 };
 
 /** What each kind of record is created with. */
@@ -91,13 +91,21 @@ const KIND_CREATE: Record<string, LayerCreate> = {
   [KIND_SUB]: SUBSCRIPTION,
   [KIND_COLLECTION]: {
     command: "new-collection",
-    label: "New combination",
-    hint: "Merge several sources and process the result as one",
+    get label() {
+      return t.create.newCombination;
+    },
+    get hint() {
+      return t.create.newCombinationHint;
+    },
   },
   [KIND_FILE]: {
     command: "new-file",
-    label: "New file",
-    hint: "A document served as it is, with its proxy list kept in step",
+    get label() {
+      return t.create.newFile;
+    },
+    get hint() {
+      return t.create.newFileHint;
+    },
   },
 };
 
@@ -163,7 +171,9 @@ export function headerCreate(input: HeaderCreateInput): HeaderCreate | null {
   if (state === "ready" && layerEmpty(layer.kind, records)) return null;
   const reason = createBlocks(input.catalogue)[layer.create.command];
   return {
-    ...layer.create,
+    command: layer.create.command,
+    label: layer.create.label,
+    hint: layer.create.hint,
     disabled: reason !== "",
     title: reason || layer.create.hint,
     menu: !layer.kind,

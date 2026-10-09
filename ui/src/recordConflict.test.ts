@@ -27,7 +27,7 @@ describe("describeValue", () => {
   // The operator is deciding whose edit wins, not reading a diff of a 40 KB
   // config, so long values become a size.
   it("summarises long text by length", () => {
-    expect(describeValue("x".repeat(4000))).toBe("4000 characters");
+    expect(describeValue("x".repeat(4000))).toBe("4,000 characters");
   });
 
   it("counts structured values instead of dumping them", () => {

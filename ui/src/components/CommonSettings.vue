@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { computed } from "vue";
+
 import type { CommonSettings, TriState } from "../commonSettings";
+import { t } from "../i18n";
 
 /**
  * The handful of operators people reach for constantly, as plain choices.
@@ -18,18 +21,18 @@ const emit = defineEmits<{
   (e: "update:modelValue", value: CommonSettings): void;
 }>();
 
-const TRI: { value: TriState; label: string }[] = [
-  { value: "default", label: "Leave as-is" },
-  { value: "on", label: "Force on" },
-  { value: "off", label: "Force off" },
-];
+const TRI = computed<{ value: TriState; label: string }[]>(() => [
+  { value: "default", label: t.commonSettings.leave },
+  { value: "on", label: t.commonSettings.forceOn },
+  { value: "off", label: t.commonSettings.forceOff },
+]);
 
-const SWITCHES: { key: keyof CommonSettings; label: string; hint?: string }[] = [
-  { key: "udp", label: "UDP relay", hint: "Needed for QUIC and most game traffic." },
-  { key: "skipCertVerify", label: "Skip certificate verification" },
-  { key: "tcpFastOpen", label: "TCP Fast Open" },
-  { key: "vmessAead", label: "VMess AEAD" },
-];
+const SWITCHES = computed<{ key: keyof CommonSettings; label: string; hint?: string }[]>(() => [
+  { key: "udp", label: t.commonSettings.udp, hint: t.commonSettings.udpHint },
+  { key: "skipCertVerify", label: t.commonSettings.skipCert },
+  { key: "tcpFastOpen", label: t.commonSettings.tfo },
+  { key: "vmessAead", label: t.commonSettings.vmessAead },
+]);
 
 function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings, value: TriState) {
   emit("update:modelValue", { ...props.modelValue, [key]: value });
@@ -38,26 +41,23 @@ function setTri(props: { modelValue: CommonSettings }, key: keyof CommonSettings
 
 <template>
   <section class="common">
-    <h3>Common settings</h3>
+    <h3>{{ t.commonSettings.title }}</h3>
 
     <div class="common-row">
-      <span id="common-junk-label" class="common-label">Junk nodes</span>
+      <span id="common-junk-label" class="common-label">{{ t.commonSettings.junk }}</span>
       <div class="common-choices" role="radiogroup" aria-labelledby="common-junk-label">
         <button type="button" role="radio" :aria-checked="!modelValue.dropUseless" :class="{ 'is-active': !modelValue.dropUseless }"
           @click="emit('update:modelValue', { ...modelValue, dropUseless: false })"
         >
-          Keep
+          {{ t.commonSettings.keep }}
         </button>
         <button type="button" role="radio" :aria-checked="modelValue.dropUseless" :class="{ 'is-active': modelValue.dropUseless }"
           @click="emit('update:modelValue', { ...modelValue, dropUseless: true })"
         >
-          Drop
+          {{ t.commonSettings.drop }}
         </button>
       </div>
-      <span class="common-hint">
-        Providers often put traffic and expiry notices in the node list. Dropping them keeps a
-        client's server list clean.
-      </span>
+      <span class="common-hint">{{ t.commonSettings.junkHint }}</span>
     </div>
 
     <div v-for="row in SWITCHES" :key="row.key" class="common-row">

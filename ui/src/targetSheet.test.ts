@@ -7,6 +7,7 @@ import type { BridgeClient, HostInit } from "@latticenet/plugin-bridge";
 
 import { BINDINGS, KIND_SUB, type SubscriptionListItem } from "./client";
 import { provideHost, type HostContext } from "./host";
+import { en } from "./messages/en";
 
 // The sheet's own behaviour is what these cover: which document reaches the
 // output and when. How the viewer colours it is DocumentView's business and has
@@ -299,7 +300,7 @@ describe("TargetSheet client output behavior", () => {
       source_node_count: 2,
     });
     await settle();
-    const nodesTab = find(root, (node) => node.props.role === "tab" && textOf(node).includes("Node preview"))[0]!;
+    const nodesTab = find(root, (node) => node.props.role === "tab" && textOf(node).includes(en.sheet.tabNodes))[0]!;
     expect(nodesTab.props["aria-selected"]).toBe(true);
     expect(find(root, (node) => node.props["data-document-view"] === "true")).toHaveLength(0);
     expect(textOf(root)).toContain("Hong Kong 01");
@@ -312,7 +313,7 @@ describe("TargetSheet client output behavior", () => {
     renderCalls[0]!.result.reject(new Error("provider returned status 503"));
     await settle();
     expect(textOf(root)).toContain("provider returned status 503");
-    const retry = find(root, (node) => node.type === "button" && textOf(node).includes("Retry render"))[0]!;
+    const retry = find(root, (node) => node.type === "button" && textOf(node).includes(en.sheet.retryRender))[0]!;
     (retry.props.onClick as () => void)();
     await settle();
     expect(renderCalls).toHaveLength(2);
@@ -353,7 +354,7 @@ describe("TargetSheet client output behavior", () => {
     expect(textOf(root)).toContain("The render completed with an empty document");
     expect(textOf(root)).not.toContain("Retry render");
     expect(find(root, (node) => node.props["data-document-view"] === "true")).toHaveLength(0);
-    const copy = find(root, (node) => node.type === "button" && textOf(node).includes("Copy document"))[0]!;
+    const copy = find(root, (node) => node.type === "button" && textOf(node).includes(en.sheet.copyDocument))[0]!;
     expect(copy.props.disabled).toBe(true);
     app.unmount();
   });

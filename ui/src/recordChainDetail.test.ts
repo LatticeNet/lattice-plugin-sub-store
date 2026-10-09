@@ -175,7 +175,7 @@ describe("the expanded record is a chain pane, not extra table rows", () => {
     await nextTick();
     expect(textOf(root)).toContain("1 to 12 of 20");
     expect(textOf(root)).toContain("Naming the first 20 of 141");
-    const next = find(root, (n) => n.props["aria-label"] === "Next page")[0]!;
+    const next = find(root, (n) => n.props["data-testid"] === "page-next")[0]!;
     (next.props.onClick as () => void)();
     await nextTick();
     expect(textOf(root)).toContain("13 to 20 of 20");

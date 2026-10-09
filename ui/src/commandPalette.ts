@@ -1,5 +1,6 @@
 import type { SubscriptionListItem } from "./client";
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB } from "./client";
+import { t } from "./i18n";
 import { matchesQuery, normalizeQuery } from "./recordSearch";
 import { actionsFor, type ActionCapabilities, type ActionId } from "./recordActions";
 
@@ -50,30 +51,40 @@ export interface PaletteCommand {
   blocked: (caps: ActionCapabilities) => string;
 }
 
-const NEEDS_MUTATE =
-  "This session cannot create records here. Either the installed bundle does not declare that method, or your token lacks the scope.";
-
+/* Getters, so a command reads and matches in the locale active when the palette opens. */
 export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   {
     id: "new-subscription",
-    label: "New source",
-    hint: "One source of nodes",
+    get label() {
+      return t.create.newSource;
+    },
+    get hint() {
+      return t.palette.newSourceHint;
+    },
     tab: "subscriptions",
-    blocked: (caps) => (caps.mutate ? "" : NEEDS_MUTATE),
+    blocked: (caps) => (caps.mutate ? "" : t.palette.needsMutate),
   },
   {
     id: "new-collection",
-    label: "New combination",
-    hint: "Several sources served as one",
+    get label() {
+      return t.create.newCombination;
+    },
+    get hint() {
+      return t.palette.newCombinationHint;
+    },
     tab: "subscriptions",
-    blocked: (caps) => (caps.mutate ? "" : NEEDS_MUTATE),
+    blocked: (caps) => (caps.mutate ? "" : t.palette.needsMutate),
   },
   {
     id: "new-file",
-    label: "New file",
-    hint: "A configuration served as it is",
+    get label() {
+      return t.create.newFile;
+    },
+    get hint() {
+      return t.palette.newFileHint;
+    },
     tab: "files",
-    blocked: (caps) => (caps.mutate ? "" : NEEDS_MUTATE),
+    blocked: (caps) => (caps.mutate ? "" : t.palette.needsMutate),
   },
 ];
 
@@ -92,9 +103,9 @@ function hintFor(record: SubscriptionListItem): string {
 }
 
 function describe(record: SubscriptionListItem): string {
-  if (record.kind === KIND_FILE) return "File";
-  if (record.kind === KIND_COLLECTION) return "Combination";
-  return "Source";
+  if (record.kind === KIND_FILE) return t.palette.kindFile;
+  if (record.kind === KIND_COLLECTION) return t.palette.kindCombination;
+  return t.palette.kindSource;
 }
 
 /**
