@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { PcButton, PcNotice } from "@latticenet/plugin-bridge/chassis";
 
-import { applyRewrite, regexDiagnostics, type RegexDiagnostic } from "../regexRewrite";
+import { applyRewrite, offerState, regexDiagnostics, type RegexDiagnostic } from "../regexRewrite";
 import { schemaFor } from "../operatorSchema";
 
 /**
@@ -49,19 +49,11 @@ const TEXT = {
 const live = computed(() => regexDiagnostics(props.chain));
 /** A rewrite was applied here and nothing has reintroduced a pattern since. */
 const applied = ref(false);
-/**
- * Something this notice named is gone from the chain. A refusal whose
- * pattern this reading did not recognise names nothing, so it never reads as
- * resolved; its reason stays beside Save.
- */
-const resolved = computed(() => !live.value.length && (applied.value || !!props.refusal?.diagnostics.length));
-watch(
-  () => live.value.length,
-  (count) => {
-    if (count) applied.value = false;
-    else if (props.refusal?.diagnostics.length) emit("resolved");
-  },
-);
+const state = computed(() => offerState(live.value, props.refusal, applied.value));
+watch(state, (now) => {
+  if (now === "patterns") applied.value = false;
+  else if (now === "resolved-refusal") emit("resolved");
+});
 
 /** The step as the chain list names it: "Regex filter", not the wire type. */
 function labelOf(type: string): string {
@@ -87,15 +79,16 @@ function rewrite(diagnostic: RegexDiagnostic): void {
 
 <template>
   <PcNotice
-    v-if="live.length || resolved"
+    v-if="state !== 'none'"
     ref="root"
-    :tone="live.length ? 'warning' : 'success'"
-    :title="live.length ? TEXT.title : TEXT.resolvedTitle"
+    :tone="state === 'patterns' ? 'warning' : 'success'"
+    :title="state === 'patterns' ? TEXT.title : TEXT.resolvedTitle"
     data-testid="regex-rewrite-offer"
   >
-    <p v-if="!live.length">{{ refusal ? TEXT.resolvedAfterRefusal : TEXT.resolvedAfterRewrite }}</p>
+    <p v-if="state === 'resolved-refusal'">{{ TEXT.resolvedAfterRefusal }}</p>
+    <p v-else-if="state === 'resolved-rewrite'">{{ TEXT.resolvedAfterRewrite }}</p>
     <p v-else-if="!refusal">{{ TEXT.pending }}</p>
-    <ul v-if="live.length" class="regex-offer-list">
+    <ul v-if="state === 'patterns'" class="regex-offer-list">
       <li v-for="diagnostic in live" :key="`${diagnostic.step}:${diagnostic.pattern}`" class="regex-offer-item">
         <span class="regex-offer-step">{{ TEXT.step(diagnostic.step, labelOf(diagnostic.type)) }}</span>
         <code class="regex-offer-pattern">{{ diagnostic.pattern }}</code>

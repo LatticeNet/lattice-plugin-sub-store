@@ -162,3 +162,22 @@ export function applyRewrite(chain: readonly unknown[], diagnostic: RegexDiagnos
   const next = { ...step, args: { ...args, regex: [diagnostic.rewrite], keep: false } };
   return chain.map((entry, at) => (at === index ? next : entry));
 }
+
+/**
+ * What the editor's notice says about the chain on screen: the patterns still
+ * in it; that they are gone, after a refusal that named them or after a
+ * rewrite applied from the notice; or nothing. A refusal that named no pattern
+ * (one this reading does not recognise) never reads as resolved, because
+ * nothing it said has changed; its reason stays beside Save.
+ */
+export type OfferState = "patterns" | "resolved-refusal" | "resolved-rewrite" | "none";
+
+export function offerState(
+  live: readonly RegexDiagnostic[],
+  refusal: { diagnostics: readonly RegexDiagnostic[] } | null,
+  applied: boolean,
+): OfferState {
+  if (live.length) return "patterns";
+  if (refusal?.diagnostics.length) return "resolved-refusal";
+  return applied ? "resolved-rewrite" : "none";
+}

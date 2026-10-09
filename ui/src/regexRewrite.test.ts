@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyRewrite, regexDiagnostics, regexIncompatible, rewriteNegativeLookahead, stepPatterns } from "./regexRewrite";
+import { applyRewrite, offerState, regexDiagnostics, regexIncompatible, rewriteNegativeLookahead, stepPatterns, type RegexDiagnostic } from "./regexRewrite";
 
 describe("what the native engine cannot run", () => {
   it("is lookaround, an atomic group and a backreference", () => {
@@ -72,5 +72,24 @@ describe("diagnostics over a chain", () => {
     expect(regexDiagnostics(next)).toEqual([]);
     // A diagnostic that no longer matches its step changes nothing.
     expect(applyRewrite(next, diagnostic!)).toEqual(next);
+  });
+});
+
+describe("what the editor's notice says", () => {
+  const named: RegexDiagnostic = { step: 1, type: "Regex Filter", pattern: "^(?!.*HK).*$", rewrite: "HK" };
+
+  it("lists the patterns while the chain has any, refused or not", () => {
+    expect(offerState([named], null, false)).toBe("patterns");
+    expect(offerState([named], { diagnostics: [named] }, true)).toBe("patterns");
+  });
+
+  it("says they are gone after a refusal that named them, or a rewrite applied from it", () => {
+    expect(offerState([], { diagnostics: [named] }, false)).toBe("resolved-refusal");
+    expect(offerState([], null, true)).toBe("resolved-rewrite");
+  });
+
+  it("says nothing for a chain that never had one, nor for a refusal that named no pattern", () => {
+    expect(offerState([], null, false)).toBe("none");
+    expect(offerState([], { diagnostics: [] }, false)).toBe("none");
   });
 });
