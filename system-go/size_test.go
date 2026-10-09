@@ -13,28 +13,14 @@ import (
 )
 
 // nativeProducerTargets are the five targets S1 produces natively, by the
-// platform name the plugin and the harness call them. pending names the step
-// that brings a target's producer; a target that gains one fails here until
-// its pending note goes, so none is skipped silently.
-var nativeProducerTargets = []struct{ platform, pending string }{
-	{"URI", ""},
-	{"V2Ray", ""},
-	{"JSON", "lane 4 step B"},
-	{"sing-box", "lane 4 step B"},
-	{"ClashMeta", "lane 4 step B"},
-}
+// platform name the plugin and the harness call them.
+var nativeProducerTargets = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta"}
 
-func nativeProducer(t *testing.T, platform, pending string) producers.Producer {
+func nativeProducer(t *testing.T, platform string) producers.Producer {
 	t.Helper()
 	p, ok := producers.Lookup(platform)
-	if pending != "" {
-		if ok {
-			t.Fatalf("%s has a native producer: drop its pending note", platform)
-		}
-		t.Skipf("pending: the native %s producer lands in %s", platform, pending)
-	}
 	if !ok {
-		t.Fatalf("%s has no native producer and no pending note", platform)
+		t.Fatalf("%s has no native producer", platform)
 	}
 	return p
 }
@@ -46,15 +32,15 @@ func nativeProducer(t *testing.T, platform, pending string) producers.Producer {
 // of no nodes writes exactly EmptyDocument with no entries.
 func TestEmptyDocumentsMatchBundleBound(t *testing.T) {
 	for _, target := range nativeProducerTargets {
-		t.Run(target.platform, func(t *testing.T) {
-			p := nativeProducer(t, target.platform, target.pending)
+		t.Run(target, func(t *testing.T) {
+			p := nativeProducer(t, target)
 			for _, opts := range []producers.Options{{}, {"include-unsupported-proxy": true, "pretty-yaml": true}} {
 				empty := p.EmptyDocument(opts)
 				if size := len(strings.TrimSpace(string(empty))); size > subStoreMaxEmptyDocumentBytes {
 					t.Errorf("%v: the empty document is %d bytes; the zero-node check only looks at outputs up to %d", opts, size, subStoreMaxEmptyDocumentBytes)
 				}
 				var buf bytes.Buffer
-				res, err := p.Produce(&buf, nil, target.platform, opts)
+				res, err := p.Produce(&buf, nil, target, opts)
 				if err != nil || res.Entries != 0 || !bytes.Equal(buf.Bytes(), empty) {
 					t.Errorf("%v: Produce of no nodes gave %q, %d entries, err %v; want EmptyDocument %q and no entries", opts, buf.Bytes(), res.Entries, err, empty)
 				}
@@ -72,8 +58,8 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 	raw := perfgen.Nodes(count)
 	stdout := ackedRuntimeBudgets()[pluginID+"/subscription/render"].StdoutBytes
 	for _, target := range nativeProducerTargets {
-		t.Run(target.platform, func(t *testing.T) {
-			p := nativeProducer(t, target.platform, target.pending)
+		t.Run(target, func(t *testing.T) {
+			p := nativeProducer(t, target)
 			nodes := make([]*nodemodel.Node, len(raw))
 			for i, r := range raw {
 				nodes[i] = &nodemodel.Node{}
@@ -82,12 +68,22 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 				}
 			}
 			var buf bytes.Buffer
-			res, err := p.Produce(&buf, nodes, target.platform, nil)
+			res, err := p.Produce(&buf, nodes, target, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if res.Entries != count {
-				t.Errorf("produced %d entries for %d nodes (dropped %v)", res.Entries, count, res.Dropped)
+			want := count
+			if target == "sing-box" {
+				// sing-box has no xhttp transport (singbox.md, row F6), so
+				// the mix's xhttp nodes yield nothing there.
+				for _, n := range nodes {
+					if n.Fields["network"] == "xhttp" {
+						want--
+					}
+				}
+			}
+			if res.Entries != want || len(res.Dropped) != count-want {
+				t.Errorf("produced %d entries for %d nodes, want %d (dropped %d)", res.Entries, count, want, len(res.Dropped))
 			}
 			body, err := json.Marshal(buf.String())
 			if err != nil {
@@ -99,7 +95,7 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 			if len(body) > stdout {
 				t.Errorf("render body is %d bytes, over the %d byte render stdout budget", len(body), stdout)
 			}
-			t.Logf("%s at %d nodes: document %d bytes, render body %d bytes (bounds %d and %d)", target.platform, count, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
+			t.Logf("%s at %d nodes: document %d bytes, render body %d bytes (bounds %d and %d)", target, count, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
 		})
 	}
 }
