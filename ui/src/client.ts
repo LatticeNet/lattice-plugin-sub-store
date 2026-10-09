@@ -6,10 +6,11 @@
  *    Today that is the shipped `import` adapter surface plus the embedded
  *    `engine` surface (convert / transform_response / pipeline CRUD /
  *    run_pipeline, hephaestus's PR6, per-method budgets included).
- *  - "pending": proposed but not yet declared methods. Empty right now, the
- *    engine contract landed and consumed the whole proposal tier. The tier
- *    mechanism stays: a future wave (e.g. subscription records) enters here
- *    first, and contract.test.ts trips when it becomes declared.
+ *  - "pending": proposed but not yet declared methods. Empty right now: the
+ *    0.17 manifest declares the S1 store-split methods, which were the last
+ *    entries. The tier mechanism stays: a future slice's methods enter here
+ *    first, each with a comment naming the slice that declares it, and
+ *    contract.test.ts trips when one becomes declared.
  *
  * Wire shapes mirror system-go's structs exactly (verified against the merged
  * engine implementation 2026-07-27). When the backend changes a shape, this
@@ -86,20 +87,19 @@ export const BINDINGS = {
   subSaveSettings: binding(SERVICES.subscription, "save_settings", "active"),
   subPublish: binding(SERVICES.subscription, "publish", "active"),
   // ── S1 store split (design 28, s1-plan sections 3.1 to 3.3) ──────────────
-  // Served by the runtime from S1 and declared by the capability-wave
-  // manifest, which is signed last. Until then the console refuses them, so
-  // the UI gates every control on availability, and contract.test.ts fails
-  // the moment the manifest declares one of them: flip it to "active" then.
+  // Declared by the 0.17 manifest. An older bundle or a token without the
+  // scope still leaves them unavailable, so the UI keeps gating every
+  // control on availability.
   /** `{subscription_id}`: an archived record back under the same id. */
-  subRestore: binding(SERVICES.subscription, "restore", "pending"),
+  subRestore: binding(SERVICES.subscription, "restore", "active"),
   /** `{subscription_id}`: drop an archived record for good. */
-  subPurge: binding(SERVICES.subscription, "purge", "pending"),
+  subPurge: binding(SERVICES.subscription, "purge", "active"),
   /** `{ids}`: every live id exactly once, in the new manual order. */
-  subReorder: binding(SERVICES.subscription, "reorder", "pending"),
+  subReorder: binding(SERVICES.subscription, "reorder", "active"),
   /** `{chunk}`: move a legacy single-document store to the split index. */
-  subMigrateStore: binding(SERVICES.subscription, "migrate_store", "pending"),
+  subMigrateStore: binding(SERVICES.subscription, "migrate_store", "active"),
   /** `{}`: the records whose sources reach vpn-core, for core's fleet re-render. */
-  subDependsOn: binding(SERVICES.subscription, "depends_on", "pending"),
+  subDependsOn: binding(SERVICES.subscription, "depends_on", "active"),
 } as const satisfies Record<string, MethodBinding>;
 
 /**

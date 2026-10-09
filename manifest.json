@@ -31,7 +31,7 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.2-alpha.20",
+    "server": "\u003e=0.2.2-alpha.123",
     "dashboard_host": "\u003e=1",
     "runtime_protocol": "\u003e=2"
   },
@@ -184,7 +184,8 @@
             "timeout_ms": 30000,
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
-            "host_calls": 78
+            "host_calls": 140,
+            "http_response_bytes": 8388608
           }
         },
         {
@@ -210,7 +211,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 76
+            "host_calls": 142
           }
         },
         {
@@ -262,7 +263,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 76
+            "host_calls": 138
           }
         },
         {
@@ -275,24 +276,11 @@
             "timeout_ms": 30000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 76
+            "host_calls": 138
           }
         },
         {
           "name": "list",
-          "effect": "read",
-          "scopes": [
-            "substore:read"
-          ],
-          "budget": {
-            "timeout_ms": 2000,
-            "stdout_bytes": 262144,
-            "stderr_bytes": 16384,
-            "host_calls": 1
-          }
-        },
-        {
-          "name": "get",
           "effect": "read",
           "scopes": [
             "substore:read"
@@ -305,6 +293,19 @@
           }
         },
         {
+          "name": "get",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 16384,
+            "host_calls": 3
+          }
+        },
+        {
           "name": "save",
           "effect": "write",
           "scopes": [
@@ -314,7 +315,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 3
+            "host_calls": 6
           }
         },
         {
@@ -327,7 +328,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 16384,
-            "host_calls": 3
+            "host_calls": 5
           }
         },
         {
@@ -343,7 +344,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 263
+            "host_calls": 325
           }
         },
         {
@@ -356,7 +357,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 32768,
-            "host_calls": 258
+            "host_calls": 320
           }
         },
         {
@@ -369,7 +370,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 65536,
-            "host_calls": 260
+            "host_calls": 320
           }
         },
         {
@@ -411,7 +412,85 @@
             "timeout_ms": 30000,
             "stdout_bytes": 65536,
             "stderr_bytes": 65536,
-            "host_calls": 77
+            "host_calls": 143
+          }
+        },
+        {
+          "name": "depends_on",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ],
+          "budget": {
+            "timeout_ms": 2000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 16384,
+            "host_calls": 2
+          }
+        },
+        {
+          "name": "apply_revision",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 16384,
+            "host_calls": 0
+          }
+        },
+        {
+          "name": "restore",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 16384,
+            "host_calls": 5
+          }
+        },
+        {
+          "name": "purge",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 16384,
+            "host_calls": 3
+          }
+        },
+        {
+          "name": "reorder",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 16384,
+            "host_calls": 2
+          }
+        },
+        {
+          "name": "migrate_store",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 65536,
+            "stderr_bytes": 65536,
+            "host_calls": 140
           }
         }
       ],

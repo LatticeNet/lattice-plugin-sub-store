@@ -249,10 +249,10 @@ describe("a save the split store refuses", () => {
   });
 });
 
-describe("the pending tier", () => {
-  it("holds the store split's methods until the manifest declares them", () => {
+describe("the store split's bindings", () => {
+  it("are active now the 0.17 manifest declares them", () => {
     for (const binding of [BINDINGS.subRestore, BINDINGS.subPurge, BINDINGS.subReorder, BINDINGS.subMigrateStore, BINDINGS.subDependsOn]) {
-      expect(binding.status, binding.method).toBe("pending");
+      expect(binding.status, binding.method).toBe("active");
     }
   });
 });

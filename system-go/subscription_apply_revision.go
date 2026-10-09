@@ -6,7 +6,8 @@ import "errors"
 // 28, S2): core claims the approval, then asks the plugin to apply a staged
 // revision of one record. Core refuses it outside an approved plan and on
 // every path but its own (lattice-server server_plugin_invoke.go), and it is
-// declared now, with the S2 budget, so the capability wave is signed once.
+// declared now so core can name it in a plan, with a budget of zero host
+// calls until S2 stages revisions and signs the count staging needs.
 //
 // S1 stages no revisions, so there is nothing to apply. The refusal is stated
 // and costs no host call: it claims nothing, reads nothing and writes nothing.

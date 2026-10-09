@@ -42,7 +42,7 @@ func heavyLegacyRecords(n int) []subscriptionRecord {
 // The risk the plan names: at 300 records the index approaches list's
 // budget. Migrated from a legacy store at realistic worst, the index stays
 // under the bound a save is refused at, and list's whole answer under the
-// wave's list stdout budget.
+// signed list stdout budget.
 func TestIndexAt300RecordsFitsListBudget(t *testing.T) {
 	host := newKVHostCaller()
 	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
@@ -57,7 +57,7 @@ func TestIndexAt300RecordsFitsListBudget(t *testing.T) {
 	}
 	// The runner counts the whole invoke_result frame against stdout.
 	frame := len(mustJSON(res)) + 256
-	budget := waveRuntimeBudgets()[pluginID+"/subscription/list"].StdoutBytes
+	budget := ackedRuntimeBudgets()[pluginID+"/subscription/list"].StdoutBytes
 	t.Logf("300 heavy records: index %d bytes (bound %d), list frame %d bytes (budget %d)", index, maxIndexBytes, frame, budget)
 	if index > maxIndexBytes {
 		t.Fatalf("the index is %d bytes at 300 records, past the %d a save is refused at", index, maxIndexBytes)
