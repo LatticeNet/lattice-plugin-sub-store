@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 )
 
 // runnerEnv makes the test binary run main instead of the tests, so the
@@ -106,6 +109,42 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 	// Diagnostics go to stderr, never into the reply stream.
 	if !strings.Contains(stderr.String(), "bad request") {
 		t.Fatalf("stderr does not carry the bad-request diagnostic:\n%s", stderr.String())
+	}
+
+	// check.mjs waits for each reply before it sends the next request, so a
+	// reply must reach stdout while stdin is still open.
+	live := exec.Command(os.Args[0], "-test.run=^$")
+	live.Env = append(os.Environ(), runnerEnv+"=1")
+	in, err := live.StdinPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := live.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := live.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		in.Close()
+		live.Wait()
+	}()
+	if _, err := io.WriteString(in, `{"id":11,"op":"version"}`+"\n"); err != nil {
+		t.Fatal(err)
+	}
+	got := make(chan string, 1)
+	go func() {
+		l, _ := bufio.NewReader(out).ReadString('\n')
+		got <- l
+	}()
+	select {
+	case l := <-got:
+		if !strings.HasPrefix(l, `{"id":11,"ok":true,`) {
+			t.Fatalf("live reply = %q, want the version reply for id 11", l)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("no reply within 10s while stdin stayed open: replies are not flushed per request")
 	}
 }
 
