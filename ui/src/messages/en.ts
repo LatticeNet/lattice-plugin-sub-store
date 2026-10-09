@@ -279,7 +279,7 @@ export const en = {
     loading: "Loading the records",
     loadFailed: "The list could not be loaded",
     nothingLoaded: "Nothing could be loaded",
-    nothingLoadedBody: "This is not an empty store, it is an unanswered question.",
+    nothingLoadedBody: "The store may still hold records; the list could not be read.",
     emptyTitle: "No records yet",
     emptyBody: "Start with your own fleet: one source reading this deployment's vpn-core nodes. Combinations and client files build on sources.",
     addFleet: "Add this fleet's nodes",
@@ -661,7 +661,7 @@ export const en = {
     loadFailed: "The record catalogue could not be read",
     pipeline: "Pipeline",
     nothingLoaded: "Nothing could be loaded",
-    nothingLoadedBody: "This is not an empty store, it is an unanswered question. The map stays away until the list is read.",
+    nothingLoadedBody: "The store may still hold records; the list could not be read. The map appears once it is.",
     emptyTitle: "Nothing in the store yet",
     emptyBody:
       "A pipeline starts with a source: this fleet's nodes, a provider link, or nodes you paste. Combine sources, render them into a file for each client, and publish the file as a share.",
@@ -689,7 +689,7 @@ export const en = {
     cannotReadAfter: ". Shares themselves still exist; this lens just cannot read them.",
     consoleLists: "The console lists the same shares under Platform → Publishing.",
     loadFailed: "The share list could not be read",
-    nothingLoadedBody: "This is not an empty share list, it is an unanswered question.",
+    nothingLoadedBody: "Shares may still exist; the share list could not be read.",
     emptyTitle: "Nothing is shared",
     emptyBody: "Publish a share for a record in the console under Platform, then Publishing, and it appears here with its link.",
     filterPlaceholder: "Filter by record, slug, format",
@@ -1043,7 +1043,7 @@ export const en = {
     savedSourceNote:
       "Previewed from the saved source with this draft's operations. This session cannot resolve a source a draft names, so a changed link or user would not show here until an admin saves it.",
     draftSourceRefused:
-      "This session cannot resolve the source a draft names: that needs admin access (substore:admin), because naming a source is naming a host for the control plane to read. It can preview pasted nodes, a converged path, and any saved record's stored source. Ask an operator with admin access to save this record; its preview then works here.",
+      "This session cannot resolve the source a draft names: that needs admin access (substore:admin), because naming a source is naming a host for the control plane to read. It can preview pasted nodes, a relay path, and any saved record's stored source. Ask an operator with admin access to save this record; its preview then works here.",
     copyUnconfirmed:
       "The server did not confirm the copy, so the new record may or may not have been written. Reload the list before copying again.",
     copied: (name: string) => `Copied to ${name}.`,
@@ -1097,7 +1097,7 @@ export const en = {
   editor: {
     sources: {
       fleet: { title: "This fleet's nodes", detail: "Reads the live vpn-core export. Nodes added or removed reach clients on refresh." },
-      graph: { title: "A converged path", detail: "Composes selected applied line-chain roots in the exact order shown." },
+      graph: { title: "A relay path", detail: "Composes selected applied line-chain roots in the exact order shown." },
       remote: { title: "A provider link", detail: "Fetches an external subscription link and re-serves it through this record's operations." },
       local: { title: "Nodes I paste", detail: "URI list, base64, Clash YAML or sing-box JSON. The engine detects the format." },
     },
@@ -1298,7 +1298,7 @@ export const en = {
     chain: "This file has operations that run over the document, and a preview does not run them.",
   },
   graph: {
-    selection: "Converged graph selection",
+    selection: "Relay path selection",
     reload: "Reload",
     versionBefore: "Options version",
     versionAfter: ". A changed projection must be reviewed before saving.",
