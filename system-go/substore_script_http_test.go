@@ -383,3 +383,39 @@ func TestScriptHTTPBoundsRequestShape(t *testing.T) {
 		t.Fatal("the body did not reach the host")
 	}
 }
+
+// The requests of one invocation share a byte total, because every host_call
+// frame they ride in counts against the method's signed stdout_bytes.
+func TestScriptHTTPBoundsTheRequestsOfOneInvocation(t *testing.T) {
+	host := &scriptHTTPHost{body: []byte("ok")}
+	gateway := newScriptHTTPGateway(host)
+	post := func() error {
+		payload, _ := json.Marshal(map[string]any{"method": "POST", "url": "https://rules.example/put", "body": strings.Repeat("x", scriptHTTPMaxRequestBodyLen)})
+		_, err := gateway.do(string(payload))
+		return err
+	}
+	sent := 0
+	for ; sent < scriptHTTPMaxCalls; sent++ {
+		if err := post(); err != nil {
+			if !strings.Contains(err.Error(), "requests exceed") {
+				t.Fatalf("request %d failed for the wrong reason: %v", sent+1, err)
+			}
+			break
+		}
+	}
+	// Each request's params as the host_call frame carries them: 256 KiB of
+	// body as base64, the method and the URL.
+	one, _ := json.Marshal(map[string]any{"method": "POST", "url": "https://rules.example/put", "body_base64": base64.StdEncoding.EncodeToString([]byte(strings.Repeat("x", scriptHTTPMaxRequestBodyLen)))})
+	want := scriptHTTPMaxRequestBytes / len(one)
+	if want >= scriptHTTPMaxCalls || sent != want || len(host.seen()) != want {
+		t.Fatalf("sent %d requests (%d reached the host); want %d inside the total", sent, len(host.seen()), want)
+	}
+
+	// A base64 body is held to the same 256 KiB as a text body.
+	fresh := newScriptHTTPGateway(host)
+	over := base64.StdEncoding.EncodeToString(make([]byte, scriptHTTPMaxRequestBodyLen+3))
+	payload, _ := json.Marshal(map[string]any{"method": "POST", "url": "https://rules.example/put", "body_base64": over})
+	if _, err := fresh.do(string(payload)); err == nil || !strings.Contains(err.Error(), "request body exceeds") {
+		t.Fatalf("a base64 body past 256 KiB was not refused: %v", err)
+	}
+}

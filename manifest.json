@@ -111,7 +111,7 @@
           ],
           "budget": {
             "timeout_ms": 2000,
-            "stdout_bytes": 32768,
+            "stdout_bytes": 2097152,
             "stderr_bytes": 16384,
             "host_calls": 2
           }
@@ -150,7 +150,7 @@
           ],
           "budget": {
             "timeout_ms": 2000,
-            "stdout_bytes": 32768,
+            "stdout_bytes": 2097152,
             "stderr_bytes": 16384,
             "host_calls": 2
           }
@@ -414,7 +414,7 @@
           ],
           "budget": {
             "timeout_ms": 30000,
-            "stdout_bytes": 65536,
+            "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
             "host_calls": 143,
             "http_response_bytes": 8388608

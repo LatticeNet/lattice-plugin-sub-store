@@ -20,6 +20,10 @@ type httpKVHost struct {
 	body    []byte
 	httpErr error
 	ua      string
+	// sent is the request body of the last call, decoded, and sentAsText is
+	// true when it travelled as a JSON string rather than as base64.
+	sent       []byte
+	sentAsText bool
 	// byPath answers per URL suffix. A migration reads three endpoints, and one
 	// canned body for all of them would let a test pass while importing the same
 	// list three times.
@@ -33,11 +37,17 @@ func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
 	h.calls++
 	encoded, _ := json.Marshal(params)
 	var p struct {
-		Header map[string]string `json:"header"`
-		URL    string            `json:"url"`
+		Header     map[string]string `json:"header"`
+		URL        string            `json:"url"`
+		Body       string            `json:"body"`
+		BodyBase64 string            `json:"body_base64"`
 	}
 	_ = json.Unmarshal(encoded, &p)
 	h.ua = p.Header["User-Agent"]
+	h.sent, h.sentAsText = []byte(p.Body), p.Body != ""
+	if p.BodyBase64 != "" {
+		h.sent, _ = base64.StdEncoding.DecodeString(p.BodyBase64)
+	}
 	if h.httpErr != nil {
 		return nil, h.httpErr
 	}

@@ -99,13 +99,18 @@ func (f *framedRuntime) read() (framedWire, error) {
 
 // invoke sends one call and serves its host calls until the invocation ends.
 func (f *framedRuntime) invoke(invocation, method string, payload any) (latticeplugin.Response, error) {
-	call := mustJSON(callPayload{Service: pluginID + "/subscription", Method: method, Payload: mustJSON(payload)})
+	service := pluginID + "/subscription"
+	call := mustJSON(callPayload{Service: service, Method: method, Payload: mustJSON(payload)})
 	frame := map[string]any{"protocol": 2, "kind": "invoke", "generation": 7, "invocation_id": invocation, "request": request{Action: latticeplugin.ActionCall, Payload: call}}
 	// The pipe blocks until the runtime reads, and a runtime that refuses the
 	// frame stops reading: the write runs beside the frame loop.
 	go func() { _ = json.NewEncoder(f.in).Encode(frame) }()
 	f.stdoutBytes = 0
-	limit := ackedRuntimeBudgets()[pluginID+"/subscription/"+method].StdoutBytes
+	budget, signed := ackedRuntimeBudgets()[service+"/"+method]
+	if !signed {
+		return latticeplugin.Response{}, fmt.Errorf("%s/%s has no signed budget to enforce", service, method)
+	}
+	limit := budget.StdoutBytes
 	var response latticeplugin.Response
 	for {
 		wire, err := f.read()

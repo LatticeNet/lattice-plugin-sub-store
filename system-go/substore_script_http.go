@@ -64,6 +64,13 @@ const (
 	scriptHTTPMaxHeaders        = 24
 	scriptHTTPMaxHeaderBytes    = 8 << 10
 	scriptHTTPMaxRequestBodyLen = 256 << 10
+	// scriptHTTPMaxRequestBytes bounds the encoded params of every request
+	// one invocation sends: body, headers and URL as the host_call frame
+	// carries them. Core counts each frame a plugin writes against the
+	// method's signed stdout_bytes, so without a total the eight calls could
+	// spend over 2.7 MiB of the budget render and publish need for their own
+	// output.
+	scriptHTTPMaxRequestBytes = 1 << 20
 )
 
 // scriptHTTPRequest is what the JavaScript shim hands to Go. Field names are
@@ -112,6 +119,7 @@ type scriptHTTPGateway struct {
 	mu       sync.Mutex
 	calls    int
 	bytes    int
+	sent     int
 	recorded []scriptHTTPCall
 }
 
@@ -155,7 +163,7 @@ func (g *scriptHTTPGateway) do(requestJSON string) (string, error) {
 	if err := boundScriptHTTPHeaders(req.Headers); err != nil {
 		return "", err
 	}
-	if len(req.Body) > scriptHTTPMaxRequestBodyLen || len(req.BodyBase64) > scriptHTTPMaxRequestBodyLen*2 {
+	if len(req.Body) > scriptHTTPMaxRequestBodyLen || len(req.BodyBase64) > base64.StdEncoding.EncodedLen(scriptHTTPMaxRequestBodyLen) {
 		return "", fmt.Errorf("script http: request body exceeds %d bytes", scriptHTTPMaxRequestBodyLen)
 	}
 	params := map[string]any{"method": method, "url": target}
@@ -167,6 +175,13 @@ func (g *scriptHTTPGateway) do(requestJSON string) (string, error) {
 		params["body_base64"] = req.BodyBase64
 	case req.Body != "":
 		params["body_base64"] = base64.StdEncoding.EncodeToString([]byte(req.Body))
+	}
+	sending, err := json.Marshal(params)
+	if err != nil {
+		return "", fmt.Errorf("script http: unencodable request")
+	}
+	if err := g.spend(len(sending)); err != nil {
+		return "", err
 	}
 
 	started := time.Now()
@@ -251,6 +266,18 @@ func (g *scriptHTTPGateway) reserve() error {
 		return fmt.Errorf("script http: request budget exhausted (%d of %d used in this call)", g.calls, scriptHTTPMaxCalls)
 	}
 	g.calls++
+	return nil
+}
+
+// spend charges one request's encoded params against the invocation's
+// request total before the request goes out.
+func (g *scriptHTTPGateway) spend(size int) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.sent+size > scriptHTTPMaxRequestBytes {
+		return fmt.Errorf("script http: requests exceed %d bytes in this call", scriptHTTPMaxRequestBytes)
+	}
+	g.sent += size
 	return nil
 }
 

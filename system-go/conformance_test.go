@@ -122,6 +122,7 @@ type manifestInterface struct {
 	Backing string `json:"backing"`
 	Methods []struct {
 		Name   string            `json:"name"`
+		Effect string            `json:"effect"`
 		Scopes []string          `json:"scopes"`
 		Budget *invokeBudgetSpec `json:"budget,omitempty"`
 	} `json:"methods"`
@@ -195,10 +196,10 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// someone else's server rather than on CPU.
 		pluginID + "/engine/convert":            {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
 		pluginID + "/engine/transform_response": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
-		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
 		pluginID + "/engine/get_pipeline":       {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 32 << 10, HostCalls: 1},
 		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
 		// run_pipeline is convert plus the stored chain's own read.
 		pluginID + "/engine/run_pipeline": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 13},
 		// render feeds a public subscription endpoint, so its stdout budget matches
@@ -283,10 +284,10 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// Sub-Store it imports from, so it gets the longest timeout.
 		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 325},
 		// publish renders (render's shape, 135 with the send on a store that has
-		// not migrated) and sends once, plus the script allowance. Its stdout is
-		// a small result object because the rendered body goes out over the
-		// network, not back up stdout.
-		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 143, HTTPResponseBytes: 8 << 20},
+		// not migrated) and sends once, plus the script allowance. The rendered
+		// body leaves in the http.operator.do host_call frame, which core counts
+		// as stdout: up to maxPublishBytes as base64, beside the script requests.
+		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 143, HTTPResponseBytes: 8 << 20},
 		// export reads the index, every record and Settings (N + 2); a store that
 		// migrated from an oversized legacy document can hold 300 records (302).
 		// Before migration it reads the legacy document and one program key per

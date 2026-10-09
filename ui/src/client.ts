@@ -377,10 +377,28 @@ export interface MigrateStoreResponse {
   store_version?: number;
   /** Ids the migration's compile pass flagged for a regex rewrite. */
   regex_incompatible?: string[];
+  /** Legacy program keys still to delete after the store is verified. */
+  legacy_programs_pending?: number;
 }
 
 /** Records per `migrate_store` call: the plan's chunk, 131 host calls at most. */
 export const MIGRATE_STORE_CHUNK = 64;
+
+/**
+ * Calls one migration may take. A chunk stops early when its record frames
+ * reach the runtime's byte bound, so the worst store (256 records, each too
+ * large to share a call) takes one call per record, then the verify call and
+ * the legacy program deletes. A call that changes nothing stops the run first.
+ */
+export const MIGRATE_STORE_MAX_CALLS = 256 + 16;
+
+/**
+ * What a migrate_store reply says is left to do. Two replies with the same
+ * state mean the call changed nothing.
+ */
+export function migrationProgress(reply: MigrateStoreResponse): string {
+  return [reply.remaining ?? 0, reply.verified ? 1 : 0, reply.legacy_programs_pending ?? 0].join("/");
+}
 
 /**
  * Stable refusal codes a runtime method leads its error with

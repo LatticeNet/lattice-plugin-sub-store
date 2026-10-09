@@ -16,13 +16,29 @@ func publishRuntime(t *testing.T, status int) (*runtime, *httpKVHost) {
 }
 
 func TestPublishSendsRenderedContent(t *testing.T) {
-	rt, _ := publishRuntime(t, 200)
+	rt, host := publishRuntime(t, 200)
 	out, err := rt.publishSubscription("s1", "https://dest.invalid/put", "PUT", "plain")
 	if err != nil {
 		t.Fatalf("publish: %v", err)
 	}
 	if out.Bytes == 0 || out.StatusCode != 200 {
 		t.Fatalf("result = %+v", out)
+	}
+	// The body goes as base64: core counts the host_call frame against
+	// publish's stdout_bytes, and a JSON string can grow a body six times.
+	if host.sentAsText || len(host.sent) != out.Bytes {
+		t.Fatalf("publish sent %d bytes (as text: %v), rendered %d", len(host.sent), host.sentAsText, out.Bytes)
+	}
+}
+
+func TestPublishRefusesAnOverlongDestination(t *testing.T) {
+	rt, host := publishRuntime(t, 200)
+	long := "https://dest.invalid/" + strings.Repeat("p", maxLinkBytes)
+	if _, err := rt.publishSubscription("s1", long, "PUT", "plain"); err == nil || !strings.Contains(err.Error(), "destination exceeds") {
+		t.Fatalf("an overlong destination was not refused: %v", err)
+	}
+	if host.calls != 0 {
+		t.Fatalf("a refused publish reached the network %d times", host.calls)
 	}
 }
 
