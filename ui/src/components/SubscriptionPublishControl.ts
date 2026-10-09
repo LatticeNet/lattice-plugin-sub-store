@@ -1,5 +1,7 @@
 import { defineComponent, h, ref } from "vue";
 
+import MaskedUrlInput from "./MaskedUrlInput.vue";
+
 function field(label: string, control: ReturnType<typeof h>) {
   return h("label", { class: "field" }, [h("span", { class: "field-label" }, label), control]);
 }
@@ -37,11 +39,19 @@ export default defineComponent({
         : null,
       props.error ? h("p", { class: "row-popover-error", role: "alert" }, props.error) : null,
       h("div", { class: "form-grid" }, [
-        field("Destination", h("input", {
-          value: destination.value, type: "url", required: true, autocomplete: "off", disabled: disabled(),
-          placeholder: "Where the recomposed definition is sent",
-          onInput: (event: Event) => { destination.value = (event.target as HTMLInputElement).value; },
-        })),
+        // A destination can carry a credential in its path or query, as a
+        // provider link does, so it reads masked after the host and shows
+        // whole only while it is edited or revealed (design 28, Security).
+        h("div", { class: "field" }, [
+          h("span", { class: "field-label" }, "Destination"),
+          h(MaskedUrlInput, {
+            modelValue: destination.value,
+            ariaLabel: "Destination",
+            disabled: disabled(),
+            placeholder: "Where the recomposed definition is sent",
+            "onUpdate:modelValue": (value: string) => { destination.value = value; },
+          }),
+        ]),
         field("Method", h("select", {
           class: "select",
           value: method.value, disabled: disabled(), onChange: (event: Event) => { method.value = (event.target as HTMLSelectElement).value; },

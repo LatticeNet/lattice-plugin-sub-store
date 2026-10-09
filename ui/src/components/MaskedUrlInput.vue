@@ -15,6 +15,8 @@ const props = defineProps<{
   placeholder?: string;
   /** For the input's own label; the caller wraps it in a <label>. */
   ariaLabel?: string;
+  /** A field the session may not edit; the masked value still reads. */
+  disabled?: boolean;
 }>();
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
 
@@ -43,6 +45,7 @@ function onBlur(): void {
       :value="shown"
       :placeholder="placeholder"
       :aria-label="ariaLabel"
+      :disabled="disabled"
       :title="showing ? undefined : 'Masked after the host. Click to edit, or Reveal to read it for a minute.'"
       @focus="onFocus"
       @blur="onBlur"

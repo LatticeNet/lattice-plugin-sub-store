@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
-import { createRenderer, createSSRApp, h, nextTick, ref, ssrContextKey } from "vue";
+import { compile, createRenderer, createSSRApp, h, nextTick, ref, ssrContextKey } from "vue";
+import { compileScript, parse } from "vue/compiler-sfc";
 import { renderToString } from "@vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import type { HostInit } from "@latticenet/plugin-bridge";
 
 import GraphSubscriptionEditor from "./components/GraphSubscriptionEditor.vue";
+import MaskedUrlInput from "./components/MaskedUrlInput.vue";
 import SubscriptionPreviewSummary from "./components/SubscriptionPreviewSummary.vue";
 import SubscriptionPublishControl from "./components/SubscriptionPublishControl";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
@@ -31,6 +33,19 @@ const options: GraphOptionsResponse = {
 };
 
 type HostNode = { type: string; props: Record<string, unknown>; children: HostNode[]; text?: string; parent?: HostNode };
+
+// The suite builds SFCs for a server render only. The publish control's
+// destination is the masked link field, so its client render is compiled here
+// (as maskedUrlInput.test.ts does) for the interactive renderer below.
+{
+  const source = readFileSync(new URL("./components/MaskedUrlInput.vue", import.meta.url), "utf8");
+  const descriptor = parse(source, { filename: "MaskedUrlInput.vue" }).descriptor;
+  const bindings = compileScript(descriptor, { id: "masked-url-graph-test" }).bindings;
+  (MaskedUrlInput as { render?: ReturnType<typeof compile> }).render = compile(descriptor.template!.content, {
+    bindingMetadata: bindings,
+    prefixIdentifiers: true,
+  });
+}
 function interactiveRenderer() {
   return createRenderer<HostNode, HostNode>({
     patchProp(node, key, _previous, value) { node.props[key] = value; },
@@ -139,14 +154,19 @@ describe("vpn-core graph editor component contract", () => {
     app.provide(ssrContextKey, { modules: new Set<string>() });
     app.mount(root);
     const input = findHost(root, "input")[0];
-    const button = findHost(root, "button")[0];
+    const button = findHost(root, "button").find((node) => node.props.type === "submit")!;
     expect(button.props.disabled).toBe(true);
-    (input.props.onInput as (event: unknown) => void)({ target: { value: "https://destination.invalid/graph" } });
+    (input.props.onFocus as () => void)();
+    (input.props.onInput as (event: unknown) => void)({ target: { value: "https://destination.invalid/graph?token=secret" } });
     await nextTick();
     expect(button.props.disabled).toBe(false);
+    // Out of the field, the destination reads masked after the host.
+    (input.props.onBlur as () => void)();
+    await nextTick();
+    expect(findHost(root, "input")[0].props.value).toBe("https://destination.invalid/…?…");
     const form = findHost(root, "form")[0];
     (form.props.onSubmit as (event: { preventDefault(): void }) => void)({ preventDefault() {} });
-    expect(published).toEqual([["https://destination.invalid/graph", "PUT", "plain"]]);
+    expect(published).toEqual([["https://destination.invalid/graph?token=secret", "PUT", "plain"]]);
   });
 
   it("keeps the graph workflow responsive and reduced-motion safe", () => {
