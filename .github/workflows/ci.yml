@@ -64,6 +64,14 @@ jobs:
       - name: test perf gate
         run: go test -race ./tools/perfgate/...
 
+      - name: build the conformance runner
+        # The conformance job that judges it with conformance/oracle/check.mjs
+        # lands with the native parsers and producers; until then the build
+        # and the protocol handshake are the gate.
+        run: |
+          go build -o "$RUNNER_TEMP/substore-conformance" ./system-go/cmd/substore-conformance
+          printf '{"id":1,"op":"version"}\n' | "$RUNNER_TEMP/substore-conformance" | grep -q '"implementation":"lattice-go"'
+
       - name: test Sub-Store core tooling
         run: node --test tools/substore-core/build.test.mjs tools/substore-core/audit-state.test.mjs
 
@@ -134,3 +142,54 @@ jobs:
       - name: git diff check
         run: git diff --check
 
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.9'
+          cache-dependency-path: system-go/go.mod
+
+      - name: run every fuzz target for 30s
+        # -fuzz takes one target in one package, so each Fuzz function found
+        # by go test -list runs on its own. None exists until the parser lane
+        # adds them; the loop then picks them up without a workflow change.
+        working-directory: system-go
+        run: |
+          found=0
+          for pkg in $(go list ./...); do
+            names=$(go test -list '^Fuzz' "$pkg")
+            for name in $(printf '%s\n' "$names" | grep '^Fuzz' || true); do
+              found=1
+              echo "fuzzing $name in $pkg"
+              go test -run '^$' -fuzz "^${name}\$" -fuzztime 30s "$pkg"
+            done
+          done
+          if [ "$found" = 0 ]; then echo "no Fuzz targets in system-go yet"; fi
+
+  ui-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: install UI dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ui
+        run: npm ci
+
+      - name: install Chromium for Playwright
+        working-directory: ui
+        run: npx playwright install --with-deps chromium
+
+      - name: run the Playwright suite
+        working-directory: ui
+        run: npm run test:e2e
