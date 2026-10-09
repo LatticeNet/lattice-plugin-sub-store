@@ -436,7 +436,17 @@ func (rt *runtime) fetchRecordContent(rec subscriptionRecord) (fetchResult, erro
 		return fetchResult{}, fmt.Errorf("subscription %q URL must be http or https", label)
 	}
 
+	// The record's own agent, then the operator's default from Settings, then
+	// the plugin's. Settings are read only here, once per invocation, so a
+	// record that names its agent costs no extra host call.
 	ua := strings.TrimSpace(rec.UA)
+	if ua == "" {
+		settings, err := rt.invocationSettings()
+		if err != nil {
+			return fetchResult{}, err
+		}
+		ua = settings.DefaultUA
+	}
 	if ua == "" {
 		ua = defaultProviderUA
 	}

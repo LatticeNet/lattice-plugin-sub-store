@@ -192,6 +192,9 @@ type runtime struct {
 	// legacy caches the legacy document for one invocation, so a store that
 	// has not migrated pays its read once rather than once per record.
 	legacy legacyCache
+	// settings caches the settings document for one invocation, so a
+	// collection of remote members reads the default agent once.
+	settings settingsCache
 }
 
 type hostCaller interface {

@@ -88,11 +88,13 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		// index read, the record write and the index write.
 		graphSaveCalls    = 4
 		graphPreviewCalls = 2
-		graphRenderCalls  = 2
-		graphPublishCalls = 3
-		// A collection of 64 graph members reads its record, each member's
-		// record and each member's composition: 1 + 64 + 64.
-		graphCollectionRenderCalls = 129
+		// render and publish: the record, the Settings read for the default
+		// target (the records name none), one composition; publish sends.
+		graphRenderCalls  = 3
+		graphPublishCalls = 4
+		// A collection of 64 graph members reads its record, Settings, each
+		// member's record and each member's composition: 1 + 1 + 64 + 64.
+		graphCollectionRenderCalls = 130
 		// A script file over it adds its own record: the node source.
 		maxGraphRenderCalls = 130
 		// A file preview refuses node-source work on its record alone.
@@ -294,27 +296,34 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		{name: "delete a plain sub", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 5},
 		{name: "delete a script file", method: "delete", payload: map[string]any{"subscription_id": "scripty"}, want: 5},
 		// Fetch: read the record, one network read, then the refresh bookkeeping
-		// is its own index read and write.
-		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 4},
+		// is its own index read and write. A provider record that names no user
+		// agent also reads Settings for the default one, once per invocation
+		// (plan section 7, decision 14).
+		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 5},
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 4},
 		// A collection's refresh resolves every member: record, one record and
 		// one fetch per remote member, bookkeeping.
-		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 7},
+		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 8},
 		// A script file's refresh resolves its node source the same way, plus
 		// the source record.
-		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 8},
+		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 9},
 		// Renders. A plain local sub is one read; the engine runs in-process.
-		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 1},
+		// A record that names no target, rendered from a URL that names none,
+		// also reads Settings for the default target (decision 14); an explicit
+		// target or a pin skips that read.
+		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 2},
+		{name: "render a plain local sub for a named target", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain", "target": "sing-box"}, want: 1},
 		// A collection render reads the record, then each member's record and
 		// one provider fetch per remote member. Explicit members need no index.
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 5},
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 6},
 		// The operator's real shape: a script file over a collection of two
 		// remote subs. The file, the source record, two member records, then
 		// one provider fetch per member.
-		{name: "render a script file over a remote collection", method: "render", payload: map[string]any{"subscription_id": "scripty", "format": "plain"}, want: 6},
+		{name: "render a script file over a remote collection", method: "render", payload: map[string]any{"subscription_id": "scripty", "format": "plain"}, want: 7},
 		// With the refresh path's snapshot in hand, the same renders pay no
 		// network at all: the record read is the whole cost. This group is the
-		// serve path's steady state.
+		// serve path's steady state. A collection that names no target adds
+		// the Settings read for the default one.
 		{name: "render a script file from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "scripty", "format": "plain",
 			"raw": `{"source_id":"coll","source_name":"coll","source_kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
@@ -322,24 +331,26 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 1},
+		}, want: 2},
 		{name: "render a collection from a version 2 envelope", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"version":2,"kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 1},
+		}, want: 2},
 		// A combination preview renders its members: record, one record and
-		// one fetch per remote member.
-		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 5},
+		// one fetch per remote member. The members name no user agent, so
+		// Settings are read once for the default.
+		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 6},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 1},
 		// Export reads the index, every record and the settings: N + 2 with
 		// the six seeded records.
 		{name: "export", method: "export", payload: map[string]any{}, want: 8},
 		// Import reads the index, writes each record and the index once.
 		{name: "import", method: "import", payload: map[string]any{"backup": `{"format":"lattice.sub-store.subscriptions.v1","records":[{"id":"imp-a","name":"a","content":"x"},{"id":"imp-b","name":"b","content":"y"}]}`}, want: 4},
-		// Publish renders (one read for a local sub) and sends once.
+		// Publish renders (one read for a local sub, one for the default target
+		// in Settings) and sends once.
 		{name: "publish a local sub", method: "publish", payload: map[string]any{
 			"subscription_id": "local-a", "destination": "https://operator.example/hook",
-		}, want: 2},
+		}, want: 3},
 		// The methods the store split adds.
 		{name: "depends_on", method: "depends_on", payload: map[string]any{}, want: 1},
 		{name: "reorder", method: "reorder", payload: map[string]any{"ids": []string{"scripty", "coll", "vpn-a", "remote-b", "remote-a", "local-a"}}, want: 2},

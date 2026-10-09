@@ -101,26 +101,32 @@ func TestResolveRenderTargetPriority(t *testing.T) {
 	pinned := subscriptionRecord{Target: "Clash"}
 	free := subscriptionRecord{}
 	cases := []struct {
-		name     string
-		rec      subscriptionRecord
-		explicit string
-		uaTarget string
-		uaClass  string
-		want     string
+		name          string
+		rec           subscriptionRecord
+		explicit      string
+		defaultTarget string
+		uaTarget      string
+		uaClass       string
+		want          string
 	}{
-		{"explicit beats the record pin", pinned, "Stash", "", "surge", "Stash"},
-		{"explicit beats the UA class", free, "sing-box", "", "surge", "sing-box"},
-		{"explicit beats ua_target", free, "sing-box", "ClashMeta", "clash", "sing-box"},
-		{"pin beats the UA class", pinned, "", "", "surge", "Clash"},
-		{"pin beats ua_target", pinned, "", "ClashMeta", "clash", "Clash"},
-		{"ua_target beats the UA class", free, "", "ClashMeta", "clash", "ClashMeta"},
-		{"UA class fills the gap", free, "", "", "loon", "Loon"},
-		{"whitespace ua_target does not count", free, "", "  ", "loon", "Loon"},
-		{"URI is the last resort", free, "", "", "", "URI"},
-		{"whitespace explicit does not count", pinned, "   ", "", "surge", "Clash"},
+		{"explicit beats the record pin", pinned, "Stash", "", "", "surge", "Stash"},
+		{"explicit beats the UA class", free, "sing-box", "", "", "surge", "sing-box"},
+		{"explicit beats ua_target", free, "sing-box", "", "ClashMeta", "clash", "sing-box"},
+		{"explicit beats the default target", free, "sing-box", "QX", "", "", "sing-box"},
+		{"pin beats the UA class", pinned, "", "", "", "surge", "Clash"},
+		{"pin beats ua_target", pinned, "", "", "ClashMeta", "clash", "Clash"},
+		{"pin beats the default target", pinned, "", "QX", "", "", "Clash"},
+		{"default target beats ua_target", free, "", "QX", "ClashMeta", "clash", "QX"},
+		{"default target beats the UA class", free, "", "QX", "", "loon", "QX"},
+		{"whitespace default target does not count", free, "", "  ", "", "loon", "Loon"},
+		{"ua_target beats the UA class", free, "", "", "ClashMeta", "clash", "ClashMeta"},
+		{"UA class fills the gap", free, "", "", "", "loon", "Loon"},
+		{"whitespace ua_target does not count", free, "", "", "  ", "loon", "Loon"},
+		{"URI is the last resort", free, "", "", "", "", "URI"},
+		{"whitespace explicit does not count", pinned, "   ", "", "", "surge", "Clash"},
 	}
 	for _, tc := range cases {
-		if got := resolveRenderTarget(tc.rec, tc.explicit, tc.uaTarget, tc.uaClass); got != tc.want {
+		if got := resolveRenderTarget(tc.rec, tc.explicit, tc.defaultTarget, tc.uaTarget, tc.uaClass); got != tc.want {
 			t.Fatalf("%s: got %q want %q", tc.name, got, tc.want)
 		}
 	}

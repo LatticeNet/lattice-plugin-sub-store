@@ -179,20 +179,40 @@ type subscriptionRenderRequest struct {
 }
 
 // resolveRenderTarget picks the client for one render. Priority is explicit
-// caller target, then the record's pin, then the core's target for the
-// agent, then the UA classification, then the universally accepted URI list.
-// An operator or URL that names a client is never overridden by a header.
-func resolveRenderTarget(rec subscriptionRecord, explicit, uaTarget, uaClass string) string {
+// caller target, then the record's pin, then the operator's default target
+// from Settings (the pin of every record that names none), then the core's
+// target for the agent, then the UA classification, then the universally
+// accepted URI list. An operator or URL that names a client is never
+// overridden by a header.
+func resolveRenderTarget(rec subscriptionRecord, explicit, defaultTarget, uaTarget, uaClass string) string {
 	if t := strings.TrimSpace(explicit); t != "" {
 		return t
 	}
 	if t := strings.TrimSpace(rec.Target); t != "" {
 		return t
 	}
+	if t := strings.TrimSpace(defaultTarget); t != "" {
+		return t
+	}
 	if t := strings.TrimSpace(uaTarget); t != "" {
 		return t
 	}
 	return subscriptionTarget(rec, uaClass)
+}
+
+// renderTarget is resolveRenderTarget for one render request, reading the
+// default target from Settings only when neither the request nor the record
+// names a client, so a pinned record or an explicit URL costs no host call.
+func (rt *runtime) renderTarget(rec subscriptionRecord, req subscriptionRenderRequest) (string, error) {
+	explicit, defaultTarget := requestTarget(req), ""
+	if strings.TrimSpace(explicit) == "" && strings.TrimSpace(rec.Target) == "" {
+		settings, err := rt.invocationSettings()
+		if err != nil {
+			return "", err
+		}
+		defaultTarget = settings.DefaultTarget
+	}
+	return resolveRenderTarget(rec, explicit, defaultTarget, req.UATarget, req.UAClass), nil
 }
 
 // requestTarget is the client a render request names explicitly: ?target=
@@ -254,7 +274,10 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
-	target := resolveRenderTarget(rec, requestTarget(req), req.UATarget, uaClass)
+	target, err := rt.renderTarget(rec, req)
+	if err != nil {
+		return renderResult{}, err
+	}
 
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
@@ -479,6 +502,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 	// per invocation anyway; a test that drives several calls through one
 	// runtime must not read one call's cache in the next.
 	rt.legacy = legacyCache{}
+	rt.settings = settingsCache{}
 	switch call.Method {
 	case "fetch":
 		var req struct {
