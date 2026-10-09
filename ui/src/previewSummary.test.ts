@@ -179,7 +179,7 @@ describe("the compare panel sets source nodes beside what the chain made of them
     const { root } = mount({ nodes, node_count: 30, source_node_count: 30 }, { pageSize: 12 });
     expect(find(root, (n) => n.type === "tr").slice(1)).toHaveLength(12);
     expect(textOf(root)).toContain("Rows 1 to 12 of 30");
-    const next = find(root, (n) => n.props["aria-label"] === "Next page")[0]!;
+    const next = find(root, (n) => n.props["data-testid"] === "page-next")[0]!;
     (next.props.onClick as () => void)();
     await nextTick();
     expect(textOf(root)).toContain("Rows 13 to 24 of 30");

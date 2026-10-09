@@ -106,7 +106,7 @@ const recordFrom = ref<string>("");
  * English, simplified Chinese or Russian, and set on <html lang>. Before the
  * handshake, and for any other language, it reads English.
  */
-watch(() => host.init.value?.locale, (locale) => setLocale(locale), { immediate: true });
+watch(() => host.init.value?.locale, (locale) => void setLocale(locale), { immediate: true });
 
 /** The toolbar state the visible layer filters on, and what it reports back. */
 const chrome = createLensChrome();

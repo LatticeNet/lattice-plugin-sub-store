@@ -16,6 +16,12 @@
  * proxy, so a template or a computed that reads a message re-renders when the
  * locale arrives.
  *
+ * English ships in the main chunk, because the page reads it before the
+ * handshake. The Chinese and Russian tables are chunks of their own, fetched
+ * from the frame's origin when the host asks for them, so an operator loads
+ * the one table their console speaks and not the other two. The page keeps
+ * the table it has until the new one has arrived, then switches whole.
+ *
  * Counts, sizes, dates, relative times and sorting go through Intl with the
  * active locale; the helpers below are the only place they are formatted.
  */
@@ -23,15 +29,19 @@ import { ref } from "vue";
 
 import { en, type Messages } from "./messages/en";
 import { numberFormat } from "./messages/format";
-import { ru } from "./messages/ru";
-import { zhCN } from "./messages/zh-CN";
 
 export type Locale = "en" | "zh-CN" | "ru";
 export const LOCALES: readonly Locale[] = ["en", "zh-CN", "ru"];
 
-const TABLES: Record<Locale, Messages> = { en, "zh-CN": zhCN, ru };
+const tables: Partial<Record<Locale, Messages>> = { en };
+const loaders: Record<Exclude<Locale, "en">, () => Promise<Messages>> = {
+  "zh-CN": () => import("./messages/zh-CN").then((module) => module.zhCN),
+  ru: () => import("./messages/ru").then((module) => module.ru),
+};
 
 const active = ref<Locale>("en");
+/** The locale the last setLocale asked for, so a slower earlier load cannot win. */
+let wanted: Locale = "en";
 
 /**
  * The supported locale for a host's tag: `zh` in any region or script reads
@@ -45,9 +55,30 @@ export function matchLocale(tag: string | null | undefined): Locale {
   return "en";
 }
 
-/** Adopt the host's locale, and say it on <html lang> for assistive technology and hyphenation. */
-export function setLocale(tag: string | null | undefined): Locale {
+/** The table of one locale, fetched the first time it is asked for. */
+export async function messagesFor(locale: Locale): Promise<Messages> {
+  const loaded = tables[locale];
+  if (loaded) return loaded;
+  const table = await loaders[locale as Exclude<Locale, "en">]();
+  tables[locale] = table;
+  return table;
+}
+
+/**
+ * Adopt the host's locale once its table is in hand, and say it on <html
+ * lang> for assistive technology and hyphenation. A table that fails to load
+ * leaves the page in the locale it was already in; a later call supersedes an
+ * earlier one still loading. Resolves to the locale the page now reads.
+ */
+export async function setLocale(tag: string | null | undefined): Promise<Locale> {
   const next = matchLocale(tag);
+  wanted = next;
+  try {
+    await messagesFor(next);
+  } catch {
+    return active.value;
+  }
+  if (wanted !== next) return active.value;
   active.value = next;
   if (typeof document !== "undefined") document.documentElement.lang = next;
   return next;
@@ -59,13 +90,8 @@ export function currentLocale(): Locale {
 
 /** The active message table. Read it where the text is drawn, never into a constant. */
 export const t: Messages = new Proxy({} as Messages, {
-  get: (_target, key) => Reflect.get(TABLES[active.value], key),
+  get: (_target, key) => Reflect.get(tables[active.value] ?? en, key),
 });
-
-/** The table of one locale, for tests and for a check that runs every locale. */
-export function messagesFor(locale: Locale): Messages {
-  return TABLES[locale];
-}
 
 // ── formatting with the active locale ────────────────────────────────────────
 

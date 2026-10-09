@@ -15,7 +15,7 @@ import { MAX_STATE_KEYS, RESERVED_STATE_KEYS, validPageState, withoutReserved, t
  * none of these; here they sit beside the page state, so the fake console
  * leaves them alone when it hands state over and when it writes it back.
  */
-const HARNESS_PARAMS = new Set(["fixture", "theme", "state", "conflict", "store", "manifest", "reorder", "clock"]);
+const HARNESS_PARAMS = new Set(["fixture", "theme", "state", "conflict", "store", "manifest", "reorder", "clock", "locale"]);
 
 /** What the console keeps in its address and never hands across. */
 function staysWithConsole(key: string): boolean {

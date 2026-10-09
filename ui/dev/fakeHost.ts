@@ -891,6 +891,15 @@ function delay<T>(value: T): Promise<T> {
  */
 export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale" | "noadmin" | "sharesfail";
 
+/**
+ * The locale the handshake hands over, from `?locale=` (a BCP 47 tag, as the
+ * console sends it: `zh-CN`, `ru-RU`, `en-US`). Without it the harness says
+ * `en`. Any tag goes through, so an unsupported one shows the English fallback.
+ */
+export function harnessLocale(): string {
+  return new URLSearchParams(window.location.search).get("locale") || "en";
+}
+
 /** Whether the handshake declares the S1 capability-wave methods (`?manifest=s1`). */
 export function s1Manifest(): boolean {
   return new URLSearchParams(window.location.search).get("manifest") === "s1";
@@ -918,6 +927,7 @@ export function createFakeHost(): HostContext {
       version: "1",
       pluginId: "latticenet.sub-store",
       route: "sub-store",
+      locale: harnessLocale(),
       interfaces: [
         {
           service: "latticenet.sub-store/subscription",

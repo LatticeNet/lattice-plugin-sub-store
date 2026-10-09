@@ -171,11 +171,11 @@ function flags(node: SubscriptionPreviewNode): { label: string; title: string }[
     </p>
 
     <nav v-if="pageCount > 1" class="compare-pager" :aria-label="t.previewSummary.pagesLabel">
-      <button type="button" class="button button-secondary button-compact" :disabled="page === 0" :aria-label="t.chainDetail.previousPage" @click="page -= 1">
+      <button type="button" class="button button-secondary button-compact" :disabled="page === 0" :aria-label="t.chainDetail.previousPage" data-testid="page-previous" @click="page -= 1">
         <ChevronLeft :size="13" aria-hidden="true" />
       </button>
       <span class="mono" role="status">{{ t.previewSummary.rows(pageFrom, pageTo, rows.length) }}</span>
-      <button type="button" class="button button-secondary button-compact" :disabled="page >= pageCount - 1" :aria-label="t.chainDetail.nextPage" @click="page += 1">
+      <button type="button" class="button button-secondary button-compact" :disabled="page >= pageCount - 1" :aria-label="t.chainDetail.nextPage" data-testid="page-next" @click="page += 1">
         <ChevronRight :size="13" aria-hidden="true" />
       </button>
     </nav>

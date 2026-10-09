@@ -243,11 +243,11 @@ function nameOf(step: ChainStep): string {
         </ul>
         <p v-if="droppedTruncated" class="rec-chain-note">{{ t.chainDetail.namingFirst(dropped.length, droppedTotal) }}</p>
         <nav v-if="pageCount > 1" class="compare-pager" :aria-label="t.chainDetail.pagesLabel">
-          <button type="button" class="button button-secondary button-compact" :disabled="page === 0" :aria-label="t.chainDetail.previousPage" @click="page -= 1">
+          <button type="button" class="button button-secondary button-compact" :disabled="page === 0" :aria-label="t.chainDetail.previousPage" data-testid="page-previous" @click="page -= 1">
             <ChevronLeft :size="13" aria-hidden="true" />
           </button>
           <span class="mono" role="status">{{ t.chainDetail.range(pageFrom, pageTo, selectedGroup.nodes.length) }}</span>
-          <button type="button" class="button button-secondary button-compact" :disabled="page >= pageCount - 1" :aria-label="t.chainDetail.nextPage" @click="page += 1">
+          <button type="button" class="button button-secondary button-compact" :disabled="page >= pageCount - 1" :aria-label="t.chainDetail.nextPage" data-testid="page-next" @click="page += 1">
             <ChevronRight :size="13" aria-hidden="true" />
           </button>
         </nav>
