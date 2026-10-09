@@ -192,10 +192,11 @@ node --test tools/substore-core/build.test.mjs
 cd system-go && go test -race ./...
 cd ../ui && npm ci && npm test && npm run typecheck && npm run build && npm run verify:build
 cd ../tools/pluginpack && go test -race ./...
+cd ../perfgate && go test -race ./...
 ```
 
 Release automation must build the UI with Node.js 22 and both Linux runtime
-binaries with Go 1.26.4 and `-trimpath -buildvcs=false`. Both pinned toolchains
+binaries with Go 1.26.9 and `-trimpath -buildvcs=false`. Both pinned toolchains
 are part of the signed byte contract. It then packs a deterministic artifact,
 sets `bundle.digest_sha256`, signs the manifest with the trusted LatticeNet
 Ed25519 publisher seed, and publishes the alpha release without making it GitHub

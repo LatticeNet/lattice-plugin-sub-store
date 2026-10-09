@@ -58,7 +58,7 @@ if [ "$changed" -eq 0 ]; then
 fi
 cat <<'EOF'
 bump: done. Next:
-  1. rebuild the bundle (Go 1.26.4, Node 22)
+  1. rebuild the bundle (Go 1.26.9, Node 22)
   2. pluginpack -> write bundle.digest_sha256 into manifest.json
   3. pluginsign -write (never commit the seed)
 EOF

@@ -17,10 +17,13 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26.4'
+          # Part of the signed byte contract (README, Local verification).
+          # An exact patch version makes setup-go fetch it from go.dev.
+          go-version: '1.26.9'
           cache-dependency-path: |
             system-go/go.mod
             tools/pluginpack/go.mod
+            tools/perfgate/go.mod
 
       - uses: actions/setup-node@v5
         with:
@@ -29,14 +32,25 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: check formatting
-        run: test -z "$(gofmt -l system-go tools/pluginpack)"
+        run: test -z "$(gofmt -l system-go tools/pluginpack tools/perfgate)"
 
       - name: prepare temporary Go workspace
         run: |
           mkdir -p "$RUNNER_TEMP/gowork"
           cd "$RUNNER_TEMP/gowork"
-          go work init "$GITHUB_WORKSPACE/system-go" "$GITHUB_WORKSPACE/tools/pluginpack"
+          go work init "$GITHUB_WORKSPACE/system-go" "$GITHUB_WORKSPACE/tools/pluginpack" "$GITHUB_WORKSPACE/tools/perfgate"
           echo "GOWORK=$RUNNER_TEMP/gowork/go.work" >> "$GITHUB_ENV"
+
+      - name: go vet
+        run: go vet ./system-go/... ./tools/pluginpack/... ./tools/perfgate/...
+
+      - name: govulncheck
+        # govulncheck needs a go.mod in its working directory; GOWORK still
+        # applies there.
+        working-directory: system-go
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" ./...
 
       - name: test system runtime
         # The union of the snapshot-render and graph suites pushes system-go
@@ -46,6 +60,9 @@ jobs:
 
       - name: test deterministic packer
         run: go test -race ./tools/pluginpack/...
+
+      - name: test perf gate
+        run: go test -race ./tools/perfgate/...
 
       - name: test Sub-Store core tooling
         run: node --test tools/substore-core/build.test.mjs tools/substore-core/audit-state.test.mjs
@@ -116,3 +133,4 @@ jobs:
 
       - name: git diff check
         run: git diff --check
+
