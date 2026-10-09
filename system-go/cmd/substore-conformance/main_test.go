@@ -89,7 +89,6 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		says  []string
 	}{
 		{1, []string{"parse", "not supported"}},
-		{2, []string{"ClashMeta", "not supported"}},
 		{3, []string{`"stash"`, "no native producer"}},
 		{4, []string{"nodes"}},
 		{5, []string{`unknown op "frobnicate"`}},
@@ -114,6 +113,10 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 	// include-unsupported-proxy keeps the node supported.URI=false drops.
 	if v := replies[9]; !v.OK || v.Output == nil || *v.Output != "socks://Og%3D%3D@a.example.com:1080#s 1" || v.Error != "" {
 		t.Fatalf("uri produce reply = %+v, want ok with the socks link", v)
+	}
+	// Every harness id of the five native targets has its producer.
+	if v, want := replies[2], "proxies:\n  - "+node+"\n"; !v.OK || v.Output == nil || *v.Output != want || v.Error != "" {
+		t.Fatalf("clashmeta produce reply = %+v, want ok with %q", v, want)
 	}
 
 	// Diagnostics go to stderr, never into the reply stream.

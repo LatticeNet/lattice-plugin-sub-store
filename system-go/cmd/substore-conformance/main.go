@@ -12,7 +12,7 @@
 // version answers {implementation:"lattice-go", commit, version} from the
 // build information. produce answers {ok:true, output} from the native
 // producer of the target (system-go/producers), with the request's options,
-// and a stated refusal for a target whose producer has not landed. parse
+// and a stated refusal for a target without one. parse
 // answers a stated refusal until the native parser (system-go/parse) lands;
 // plan section 2.6 says what it then returns.
 package main
@@ -113,16 +113,13 @@ func handle(line []byte, diag io.Writer) reply {
 	case "parse":
 		return reply{ID: req.ID, Error: "parse is not supported yet: the native parser (system-go/parse) has not landed"}
 	case "produce":
-		platform, ok := platforms[req.Target]
+		platform := platforms[req.Target]
+		p, ok := producers.Lookup(platform)
 		if !ok {
 			return reply{ID: req.ID, Error: fmt.Sprintf("produce: target %q has no native producer", req.Target)}
 		}
 		if req.Nodes == nil {
 			return reply{ID: req.ID, Error: "produce needs a nodes array"}
-		}
-		p, ok := producers.Lookup(platform)
-		if !ok {
-			return reply{ID: req.ID, Error: fmt.Sprintf("produce is not supported yet: the native %s producer (system-go/producers) has not landed", platform)}
 		}
 		nodes := make([]*nodemodel.Node, len(req.Nodes))
 		for i, raw := range req.Nodes {
