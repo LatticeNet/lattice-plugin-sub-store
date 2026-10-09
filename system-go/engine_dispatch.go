@@ -165,9 +165,12 @@ func convertNative(req nodeConvertRequest) (subStoreConversionResult, error) {
 	out.OutputBytes = document.Len()
 	out.ZeroNodes = produced.Entries == 0
 	out.nodes = nodes
-	// The bundle explains only when include-unsupported-proxy is off, since
-	// the option keeps every node the support rules would drop.
-	if req.Explain && !opts.Truthy("include-unsupported-proxy") {
+	// The producer's own drop report: every node that yielded no entry,
+	// whatever the reason. The bundle can only infer drops by producing
+	// each node alone, and counts none when include-unsupported-proxy is on;
+	// here the report is exact, so a node the option cannot rescue (a VLESS
+	// Reality block without a public key) is still named.
+	if req.Explain {
 		out.UnsupportedNodeCount, out.UnsupportedProtocols = droppedSummary(produced.Dropped, nil)
 	}
 	if req.CarrierCheck {

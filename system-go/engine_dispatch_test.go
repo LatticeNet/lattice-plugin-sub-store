@@ -8,7 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
 )
 
@@ -348,5 +350,96 @@ func TestPlanCacheIsSafeForConcurrentInvocations(t *testing.T) {
 	}
 	if len(cache.plans) != 16 {
 		t.Fatalf("cache holds %d plans, want 16", len(cache.plans))
+	}
+}
+
+// A native render explains from the producer's own drop report: every node
+// that yielded no entry, a support-map refusal and a VLESS Reality block
+// without a public key alike, and include-unsupported-proxy rescues only the
+// first. A carrier check counts what the URI output loses, leaving out the
+// node no client would get anyway.
+func TestNativeRenderExplainsWhatTheProducerDropped(t *testing.T) {
+	rt := dispatchRuntime(t)
+	raws := perfgen.Nodes(4)
+	var refused, broken map[string]any
+	if err := json.Unmarshal(raws[2], &refused); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(raws[3], &broken); err != nil {
+		t.Fatal(err)
+	}
+	refused["supported"] = map[string]any{"sing-box": false, "URI": false}
+	delete(broken["reality-opts"].(map[string]any), "public-key")
+	raws[2], _ = json.Marshal(refused)
+	raws[3], _ = json.Marshal(broken)
+	decode := func() []*nodemodel.Node {
+		nodes, ok := decodeNodes(raws)
+		if !ok {
+			t.Fatal("perfgen nodes do not decode")
+		}
+		return nodes
+	}
+	for _, c := range []struct {
+		name    string
+		options map[string]bool
+		want    int
+	}{
+		{"by default", nil, 2},
+		{"with include-unsupported-proxy", map[string]bool{"include-unsupported-proxy": true}, 1},
+	} {
+		out, served, err := rt.convertNodes(nodeConvertRequest{Nodes: decode(), Target: "sing-box", Options: c.options, Explain: true})
+		if err != nil || served != servedNative {
+			t.Fatalf("%s: served %s err %v", c.name, served, err)
+		}
+		if out.UnsupportedNodeCount != c.want || !slices.Equal(out.UnsupportedProtocols, []string{"vless"}) || out.NodeCount != 4 {
+			t.Fatalf("%s: dropped %d %v of %d nodes, want %d vless", c.name, out.UnsupportedNodeCount, out.UnsupportedProtocols, out.NodeCount, c.want)
+		}
+	}
+	out, _, err := rt.convertNodes(nodeConvertRequest{Nodes: decode(), Target: "URI", CarrierCheck: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.CarrierLostNodeCount != 1 || !slices.Equal(out.CarrierLostProtocols, []string{"vless"}) || out.UnsupportedNodeCount != 0 {
+		t.Fatalf("carrier lost %d %v (explained %d), want the one support-map refusal", out.CarrierLostNodeCount, out.CarrierLostProtocols, out.UnsupportedNodeCount)
+	}
+}
+
+// A collection snapshot whose members carry no nodes renders whole on the
+// bundle: a version 1 snapshot and an envelope written before member nodes
+// existed hold member texts the bundle produced, and only an envelope whose
+// members carry their nodes says every member chain ran in Go.
+func TestCollectionSnapshotWithoutMemberNodesRendersOnTheBundle(t *testing.T) {
+	rt := dispatchRuntime(t)
+	savedRecord(t, rt, subscriptionRecord{ID: "a", Source: subscriptionSourceLocal, Content: shareFleetFixture(2)})
+	savedRecord(t, rt, subscriptionRecord{ID: "b", Source: subscriptionSourceLocal, Content: shareFleetFixture(3)})
+	savedRecord(t, rt, subscriptionRecord{ID: "c", Kind: kindCollection, Members: []string{"a", "b"}})
+	snap, err := rt.fetchSubscription("c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	withNodes := snap.Raw
+	env, _ := decodeSnapshotEnvelope(withNodes)
+	for i := range env.Members {
+		env.Members[i].Nodes = nil
+	}
+	withoutNodes, _ := json.Marshal(env)
+	v1 := snapshotText(withNodes)
+	for _, c := range []struct {
+		name     string
+		raw      string
+		isolated int
+	}{
+		{"an envelope whose members carry nodes", withNodes, 0},
+		{"an envelope without member nodes", string(withoutNodes), 1},
+		{"a version 1 snapshot", v1, 1},
+	} {
+		warm, isolated := rt.engine.pathCounts()
+		out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "c", Target: "sing-box", Format: "plain", Raw: c.raw})
+		if err != nil || out.Content == "" {
+			t.Fatalf("%s: render err %v", c.name, err)
+		}
+		if w, i := rt.engine.pathCounts(); w != warm || i != isolated+c.isolated {
+			t.Fatalf("%s: warm %d->%d isolated %d->%d, want %d isolated calls", c.name, warm, w, isolated, i, c.isolated)
+		}
 	}
 }
