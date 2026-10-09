@@ -52,7 +52,7 @@ function actionTitle(item: AttentionItem): string | undefined {
       <PcCount :value="items.length" :tone="items.some((item) => item.tone === 'danger') ? 'error' : 'warning'" :label="t.attentionList.count(items.length)" />
     </header>
     <ul class="attention-list">
-      <li v-for="item in shown" :key="item.key" class="attention-item" :data-tone="item.tone">
+      <li v-for="item in shown" :key="item.key" class="attention-item" :data-tone="item.tone" :data-attention="item.key">
         <PcStateDot
           :tone="TONE[item.tone]"
           label=""

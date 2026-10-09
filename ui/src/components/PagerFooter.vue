@@ -29,8 +29,8 @@ const emit = defineEmits<{ (event: "update:page", page: number): void }>();
 <template>
   <footer class="pc-pagination" :aria-label="props.label">
     <span class="pc-pagination-range">{{ t.pager.range(props.noun, formatCount(props.from), formatCount(props.to), formatCount(props.total)) }}</span>
-    <PcButton compact :disabled="props.page <= 1" @click="emit('update:page', props.page - 1)">{{ t.pager.previous }}</PcButton>
+    <PcButton compact data-testid="page-previous" :disabled="props.page <= 1" @click="emit('update:page', props.page - 1)">{{ t.pager.previous }}</PcButton>
     <span class="pc-pagination-page">{{ t.pager.page(formatCount(props.page), formatCount(props.pages)) }}</span>
-    <PcButton compact :disabled="props.page >= props.pages" @click="emit('update:page', props.page + 1)">{{ t.pager.next }}</PcButton>
+    <PcButton compact data-testid="page-next" :disabled="props.page >= props.pages" @click="emit('update:page', props.page + 1)">{{ t.pager.next }}</PcButton>
   </footer>
 </template>

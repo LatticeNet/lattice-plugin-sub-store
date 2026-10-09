@@ -1536,6 +1536,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
         <PcButton
           v-if="selectedCount === 1 && shareOrigin"
           compact
+          data-testid="batch-publish"
           :aria-label="t.records.publishRecord(labelOf(selectedVisible[0]!))"
           @click="openShares(selectedVisible[0]!)"
         >

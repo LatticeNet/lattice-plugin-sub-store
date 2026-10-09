@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { m, startsWith } from "./messages";
+
 /**
  * The layers of design 22, driven at the widths a design review uses.
  *
@@ -74,7 +76,7 @@ test.describe("375", () => {
       await expect(page.locator("[data-variant=layer] .pc-count"), view).toHaveCount(2);
       await expect.poll(inView, view).toBe(true);
     }
-    await page.getByRole("tab", { name: /Overview/ }).click();
+    await page.locator("#pc-tab-overview").click();
     await expect.poll(inView, "back to overview").toBe(true);
     expect(await docWidth(page)).toBe(375);
   });
@@ -96,7 +98,7 @@ test.describe("375", () => {
   test("Search and Refresh sit on the title line, not a row each before the content", async ({ page }) => {
     await open(page, "", ".lineage-stages");
     const title = (await page.locator(".ss-header h1").boundingBox())!;
-    for (const name of ["Search records and actions (Cmd+K)", "Refresh"]) {
+    for (const name of [m.shell.search, m.shell.refresh]) {
       const box = (await page.locator(".ss-header").getByRole("button", { name }).boundingBox())!;
       expect(Math.abs(box.y + box.height / 2 - (title.y + title.height / 2)), name).toBeLessThan(8);
       expect(box.width, name).toBeLessThan(160);
@@ -117,7 +119,7 @@ test.describe("375", () => {
       const box = (await row.boundingBox())!;
       expect(Math.round(box.x + box.width)).toBeLessThanOrEqual(Math.round(wrap.x + wrap.width) + 1);
     }
-    await expect(page.getByTestId("record-row").first().locator("td", { hasText: /Provider link|Pasted nodes/ })).toHaveCount(1);
+    await expect(page.getByTestId("record-row").first().locator("td", { hasText: new RegExp(`${m.kinds.provider}|${m.kinds.pasted}`) })).toHaveCount(1);
   });
 
   test("the side panel is a full-height sheet", async ({ page }) => {
@@ -129,7 +131,7 @@ test.describe("375", () => {
     // Full width, and the frame's height less the chassis's inset at the top.
     expect(Math.round(box.width)).toBe(375);
     expect(box.height).toBeGreaterThanOrEqual(812 - 24);
-    await expect(panel.getByText("410 GB of 500 GB", { exact: false })).toBeVisible();
+    await expect(panel.getByText(m.provider.usage("410 GB", "500 GB", "82%"))).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
   });
@@ -160,13 +162,13 @@ test.describe("1440", () => {
     const map = (await page.locator(".overview-map").boundingBox())!;
     expect(map.y + map.height).toBeLessThanOrEqual(900);
     // As vpn-core places its own: in the header, on Refresh's line, to its right.
-    const refresh = (await page.locator(".ss-header").getByRole("button", { name: "Refresh" }).boundingBox())!;
-    const primary = (await page.locator(".ss-header").getByRole("button", { name: "New source" }).boundingBox())!;
+    const refresh = (await page.locator(".ss-header").getByRole("button", { name: m.shell.refresh }).boundingBox())!;
+    const primary = (await page.locator(".ss-header").getByRole("button", { name: m.create.newSource }).boundingBox())!;
     expect(Math.abs(primary.y + primary.height / 2 - (refresh.y + refresh.height / 2))).toBeLessThan(2);
     expect(primary.x).toBeGreaterThan(refresh.x + refresh.width);
     // The tab row holds the layers and nothing else.
-    await expect(page.locator("[data-variant=layer]").getByRole("button", { name: /New / })).toHaveCount(0);
-    await expect(page.getByText("15 files are not published")).toBeVisible();
+    await expect(page.locator("[data-variant=layer]").getByRole("button")).toHaveCount(0);
+    await expect(page.getByText(m.attention.filesUnpublished(15))).toBeVisible();
   });
 
   test("the kind on screen names the header's create action, and each layer takes its place", async ({ page }) => {
@@ -174,15 +176,16 @@ test.describe("1440", () => {
     const header = page.locator(".ss-header");
     // Every kind showing: New source, with the other kinds behind the chevron.
     await expect(header.locator(".ss-head-primary")).toContainText("New source");
-    await expect(header.getByRole("button", { name: "More things to create" })).toBeVisible();
-    for (const [kind, name] of [["Sources", "New source"], ["Combinations", "New combination"], ["Files", "New file"]] as const) {
-      await page.getByRole("radio", { name: new RegExp(`^${kind}`) }).check();
+    await expect(header.getByRole("button", { name: m.shell.moreCreate })).toBeVisible();
+    const kinds = m.records.kindPlural;
+    for (const [kind, name] of [[kinds.source, m.create.newSource], [kinds.combination, m.create.newCombination], [kinds.file, m.create.newFile]] as const) {
+      await page.getByRole("radio", { name: startsWith(kind) }).check();
       await expect(header.locator(".ss-head-primary"), kind).toHaveCount(1);
       await expect(header.locator(".ss-head-primary"), kind).toContainText(name);
     }
-    await page.getByRole("tab", { name: /^Shares/ }).click();
+    await page.locator("#pc-tab-shares").click();
     await expect(header.locator(".ss-head-primary")).toContainText("Open in Publishing");
-    await page.getByRole("tab", { name: /^Settings/ }).click();
+    await page.locator("#pc-tab-settings").click();
     await expect(header.locator(".ss-head-primary")).toHaveCount(0);
   });
 
@@ -192,23 +195,23 @@ test.describe("1440", () => {
       await expect(page.locator(".ss-header .ss-head-primary"), view || "overview").toHaveCount(0);
     }
     await open(page, "?state=empty", ".pc-empty");
-    await expect(page.getByRole("button", { name: "Go to Records" })).toBeVisible();
+    await expect(page.getByRole("button", { name: m.overview.goToRecords })).toBeVisible();
   });
 
   test("with the record catalogue unread, create stays in place and is disabled with the reason", async ({ page }) => {
     await open(page, "?state=error", ".ss-header .ss-head-primary");
     const header = page.locator(".ss-header");
-    await expect(header.getByRole("button", { name: "New source" })).toBeDisabled();
-    await expect(header.getByRole("button", { name: "More things to create" })).toBeDisabled();
-    await expect(header.getByRole("button", { name: "New source" })).toHaveAttribute("title", /could not be read.*Refresh first/);
+    await expect(header.getByRole("button", { name: m.create.newSource })).toBeDisabled();
+    await expect(header.getByRole("button", { name: m.shell.moreCreate })).toBeDisabled();
+    await expect(header.getByRole("button", { name: m.create.newSource })).toHaveAttribute("title", /could not be read.*Refresh first/);
     // Records narrowed to files, by the old Files address: the create is the file's.
     await open(page, "?view=files&state=error", ".ss-header .ss-head-primary");
-    await expect(header.getByRole("button", { name: "New file" })).toBeDisabled();
+    await expect(header.getByRole("button", { name: m.create.newFile })).toBeDisabled();
     // The palette's create commands carry the same reason, written out.
-    await header.getByRole("button", { name: "Search records and actions (Cmd+K)" }).click();
+    await header.getByRole("button", { name: m.shell.search }).click();
     await page.locator(".palette-input").getByRole("combobox").fill("new");
-    await expect(page.getByRole("option", { name: /New file/ })).toHaveAttribute("aria-disabled", "true");
-    await expect(page.getByRole("option", { name: /New file/ })).toContainText("could not be read");
+    await expect(page.getByRole("option", { name: startsWith(m.create.newFile) })).toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByRole("option", { name: startsWith(m.create.newFile) })).toContainText("could not be read");
   });
 
   test("a retry after a failed read keeps the disabled create in place, so the header does not jump", async ({ page }) => {
@@ -228,23 +231,23 @@ test.describe("1440", () => {
         else if (w.__titles.at(-1) !== el.title) w.__titles.push(el.title);
       }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["title"] });
     });
-    await header.getByRole("button", { name: "Refresh" }).click();
+    await header.getByRole("button", { name: m.shell.refresh }).click();
     const titles = () => page.evaluate(() => (window as unknown as { __titles: string[] }).__titles);
     await expect.poll(async () => (await titles()).some((title) => /still being read/.test(title))).toBe(true);
     await expect.poll(async () => (await titles()).at(-1)).toMatch(/could not be read/);
     expect(await page.evaluate(() => (window as unknown as { __gone: number }).__gone)).toBe(0);
-    await expect(header.getByRole("button", { name: "New source" })).toBeDisabled();
+    await expect(header.getByRole("button", { name: m.create.newSource })).toBeDisabled();
   });
 
   test("before the first read lands, the palette offers create disabled with the reason", async ({ page }) => {
     await open(page, "?state=slow", ".ss-header");
     const header = page.locator(".ss-header");
     // The handshake has landed (Refresh is live); the catalogue never does.
-    await expect(header.getByRole("button", { name: "Refresh" })).toBeEnabled();
+    await expect(header.getByRole("button", { name: m.shell.refresh })).toBeEnabled();
     await expect(header.locator(".ss-head-primary")).toHaveCount(0);
-    await header.getByRole("button", { name: "Search records and actions (Cmd+K)" }).click();
+    await header.getByRole("button", { name: m.shell.search }).click();
     await page.locator(".palette-input").getByRole("combobox").fill("new");
-    for (const name of [/New source/, /New combination/, /New file/]) {
+    for (const name of [m.create.newSource, m.create.newCombination, m.create.newFile].map(startsWith)) {
       await expect(page.getByRole("option", { name })).toHaveAttribute("aria-disabled", "true");
       await expect(page.getByRole("option", { name })).toContainText("still being read");
     }
@@ -374,7 +377,7 @@ test.describe("1440", () => {
     const panel = page.locator(".pc-side-panel");
     await panel.getByRole("button", { name: "openjobs-host" }).first().click();
     await expect(panel.locator("h2")).toHaveText("openjobs-host");
-    await panel.getByRole("button", { name: "Open page" }).click();
+    await panel.getByRole("button", { name: m.record.openPage }).click();
     await expect(page.locator("#record-title")).toHaveText("openjobs-host");
     await expect(page.getByRole("tablist")).toHaveCount(1);
     await expect(page).toHaveURL(/[?&]record=imported-openjobs-host(&|#|$)/);
@@ -382,12 +385,12 @@ test.describe("1440", () => {
 
   test("the record page masks a provider link and reveals it for a minute", async ({ page }) => {
     await open(page, "?record=imported-unnamed", "#record-title");
-    await page.getByRole("tab", { name: "Source" }).click();
+    await page.getByRole("tab", { name: m.page.tabSource }).click();
     const link = page.locator(".record-url code");
     await expect(link).toHaveText("https://vip.ding202507.xyz/…?…");
-    await page.getByRole("button", { name: "Reveal for 60s" }).click();
+    await page.getByRole("button", { name: m.page.reveal }).click();
     await expect(link).toContainText("token=");
-    await page.getByRole("button", { name: /Records/ }).click();
+    await page.locator(".record-crumbs button").click();
     await expect(page.getByTestId("record-row").first()).toBeVisible();
   });
 
@@ -409,12 +412,12 @@ test.describe("1440", () => {
 
   test("Show them on the overview lands on the unpublished files, each with its Publish", async ({ page }) => {
     await open(page, "", ".attention-item");
-    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Show them" }).click();
+    await page.locator('.attention-item[data-attention="files:unpublished"]').getByRole("button", { name: m.attention.showThem }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
     await expect(page).toHaveURL(/[?&]published=no(&|#|$)/);
     // On this view each row keeps a Publish… named after its file, which asks
     // the console for its share form on that file.
-    await page.getByRole("button", { name: "Publish for-openjobs-loon…", exact: true }).click();
+    await page.getByRole("button", { name: m.records.publishRecord("for-openjobs-loon"), exact: true }).click();
     // A posted message lands on a later task, so the log is polled.
     await expect
       .poll(() => page.evaluate(() => ((window as unknown as { __navigations?: string[] }).__navigations ?? []).at(-1)))
@@ -432,26 +435,26 @@ test.describe("the large store's files, fifty a page", () => {
     await expect(page.getByTestId("record-row")).toHaveCount(50);
     await expect(footer(page)).toContainText("Records 1 to 50 of 180");
     await expect(footer(page)).toContainText("Page 1 of 4");
-    await footer(page).getByRole("button", { name: "Next" }).click();
+    await footer(page).getByTestId("page-next").click();
     await expect(footer(page)).toContainText("Records 51 to 100 of 180");
     // Next sat under the last row; the new page shows from its top.
     const top = await page.locator(".rec-list").evaluate((el) => el.getBoundingClientRect().top);
     expect(top).toBeGreaterThanOrEqual(0);
     expect(top).toBeLessThan(900);
     // Select all takes the rows on screen, and the bar counts those.
-    await page.getByRole("checkbox", { name: "Select all 50 shown records" }).check();
+    await page.getByRole("checkbox", { name: m.records.selectAll(50) }).check();
     await expect(page.locator(".pc-batch-bar")).toContainText("50");
-    await page.locator(".pc-batch-bar").getByRole("button", { name: "Clear" }).click();
-    await page.getByRole("searchbox", { name: "Filter records" }).fill("alice");
+    await page.locator(".pc-batch-bar").getByRole("button", { name: m.common.clear }).click();
+    await page.getByRole("searchbox", { name: m.records.filterLabel }).fill("alice");
     await expect(page.getByTestId("record-row")).toHaveCount(15);
     await expect(footer(page)).toHaveCount(0);
   });
 
   test("select all on one page leaves the rows selected on another page alone", async ({ page }) => {
     await open(page, "?view=files&fixture=large", ".layer-row");
-    const selectAll = page.getByRole("checkbox", { name: "Select all 50 shown records" });
+    const selectAll = page.getByRole("checkbox", { name: m.records.selectAll(50) });
     await selectAll.check();
-    await footer(page).getByRole("button", { name: "Next" }).click();
+    await footer(page).getByTestId("page-next").click();
     await expect(footer(page)).toContainText("Records 51 to 100 of 180");
     await expect(selectAll).not.toBeChecked();
     await selectAll.check();
@@ -459,7 +462,7 @@ test.describe("the large store's files, fifty a page", () => {
     // Clearing this page through select all keeps page 1's rows selected.
     await selectAll.uncheck();
     await expect(page.locator(".pc-batch-bar")).toHaveCount(0);
-    await footer(page).getByRole("button", { name: "Previous" }).click();
+    await footer(page).getByTestId("page-previous").click();
     await expect(footer(page)).toContainText("Records 1 to 50 of 180");
     await expect(selectAll).toBeChecked();
     await expect(page.locator(".pc-batch-bar")).toContainText("50");
@@ -480,10 +483,10 @@ test.describe("touch at 375", () => {
     await open(page, "", ".ss-header .ss-head-primary");
     const header = page.locator(".ss-header");
     const targets = [
-      header.getByRole("button", { name: "Search records and actions (Cmd+K)" }),
-      header.getByRole("button", { name: "Refresh" }),
-      header.getByRole("button", { name: "New source" }),
-      header.getByRole("button", { name: "More things to create" }),
+      header.getByRole("button", { name: m.shell.search }),
+      header.getByRole("button", { name: m.shell.refresh }),
+      header.getByRole("button", { name: m.create.newSource }),
+      header.getByRole("button", { name: m.shell.moreCreate }),
     ];
     for (const target of targets) {
       const box = (await target.boundingBox())!;
@@ -515,8 +518,8 @@ test.describe("touch at 375", () => {
     await open(page, "?view=files&fixture=large", ".pc-pagination");
     const footer = page.locator(".pc-pagination");
     const range = (await footer.locator("> span").first().boundingBox())!;
-    const previous = (await footer.getByRole("button", { name: "Previous" }).boundingBox())!;
-    const next = (await footer.getByRole("button", { name: "Next" }).boundingBox())!;
+    const previous = (await footer.getByTestId("page-previous").boundingBox())!;
+    const next = (await footer.getByTestId("page-next").boundingBox())!;
     expect(previous.y).toBeGreaterThan(range.y + range.height - 1);
     expect(Math.abs(next.y - previous.y)).toBeLessThan(1);
     for (const box of [previous, next]) expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
@@ -530,10 +533,10 @@ test.describe("publishing and deleting files", () => {
   test("the Published column is a state and Publish… leads each file's menu", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
     await expect(page.locator(".row-publish")).toHaveCount(0);
-    await expect(page.locator(".layer-row", { hasText: "for-openjobs-loon" }).getByText("not published")).toBeVisible();
+    await expect(page.locator(".layer-row", { hasText: "for-openjobs-loon" }).getByText(m.publish.none)).toBeVisible();
     await page.locator('[data-row-menu="imported-file-for-openjobs-loon"] button').first().click();
     const items = page.locator(".rec-menu [role=menuitem]");
-    await expect(items.first()).toHaveText("Publish…");
+    await expect(items.first()).toHaveText(m.actions.share);
     await items.first().click();
     await expect
       .poll(() => page.evaluate(() => ((window as unknown as { __navigations?: string[] }).__navigations ?? []).at(-1)))
@@ -544,19 +547,19 @@ test.describe("publishing and deleting files", () => {
     await open(page, "?view=files&published=no", ".layer-row");
     const boxes = page.locator(".layer-row input[type=checkbox]");
     await boxes.nth(0).check();
-    await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish .+…$/ })).toBeVisible();
+    await expect(page.locator(".pc-batch-bar").getByTestId("batch-publish")).toBeVisible();
     await boxes.nth(1).check();
     await expect(page.locator(".pc-batch-bar")).toContainText("Publish one record at a time");
-    await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish / })).toHaveCount(0);
+    await expect(page.locator(".pc-batch-bar").getByTestId("batch-publish")).toHaveCount(0);
   });
 
   test("deleting a file a live share serves names the share and asks for the file's name", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
     await page.locator('[data-row-menu="imported-file-for-cdcd-loon"] button').first().click();
-    await page.locator(".rec-menu [role=menuitem]", { hasText: "Delete" }).click();
+    await page.locator(".rec-menu [role=menuitem]", { hasText: m.actions.delete }).click();
     const dialog = page.getByRole("alertdialog");
     await expect(dialog).toContainText("/cdcd stops serving: it publishes for-cdcd-loon");
-    const confirm = dialog.getByRole("button", { name: "Delete", exact: true });
+    const confirm = dialog.getByRole("button", { name: m.common.delete, exact: true });
     await expect(confirm).toBeDisabled();
     await dialog.getByRole("textbox").fill("for-cdcd-loo");
     await expect(confirm).toBeDisabled();
@@ -576,9 +579,9 @@ test.describe("page state in the console address", () => {
 
   test("a reload lands on the same layer, filter, search and peek", async ({ page }) => {
     await open(page, "?fixture=production", ".attention-item");
-    await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Show them" }).click();
+    await page.locator('.attention-item[data-attention="files:unpublished"]').getByRole("button", { name: m.attention.showThem }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
-    await page.getByRole("searchbox", { name: "Filter records" }).fill("loon");
+    await page.getByRole("searchbox", { name: m.records.filterLabel }).fill("loon");
     await expect(page.getByTestId("record-row")).toHaveCount(3);
     await page.getByTestId("record-row").filter({ hasText: "for-openjobs-loon" }).getByTestId("record-name").click();
     await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
@@ -595,9 +598,9 @@ test.describe("page state in the console address", () => {
 
     await page.reload();
     await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
-    await expect(page.getByRole("tab", { name: /Records/ })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("radio", { name: /^Files/ })).toBeChecked();
-    await expect(page.getByRole("searchbox", { name: "Filter records" })).toHaveValue("loon");
+    await expect(page.locator("#pc-tab-records")).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("radio", { name: startsWith(m.records.kindPlural.file) })).toBeChecked();
+    await expect(page.getByRole("searchbox", { name: m.records.filterLabel })).toHaveValue("loon");
     await expect(page.getByTestId("record-row")).toHaveCount(3);
     // The reload did not rewrite the address it landed on.
     expect(new URL(page.url()).search).toBe(url.search);
@@ -659,7 +662,7 @@ test.describe("page state in the console address", () => {
     await page.locator("[data-record-open]").nth(0).click();
     const panel = page.locator(".pc-side-panel");
     await expect(panel).toHaveAttribute("role", "complementary");
-    const search = page.getByRole("searchbox", { name: /^Filter / });
+    const search = page.getByRole("searchbox", { name: m.records.filterLabel });
     await search.focus();
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(1);
@@ -667,7 +670,7 @@ test.describe("page state in the console address", () => {
 
     // The panel covers the actions column, so the operator reaches the next
     // row's menu from the keyboard.
-    const trigger = page.getByRole("button", { name: /^Actions for / }).nth(1);
+    const trigger = page.locator("[data-row-menu]").getByRole("button").nth(1);
     await trigger.focus();
     await page.keyboard.press("Enter");
     const menu = page.getByRole("menu");
@@ -685,7 +688,7 @@ test.describe("page state in the console address", () => {
   test("a reload lands on the same record page, and back still goes where it came from", async ({ page }) => {
     await open(page, "?view=combinations", ".layer-row");
     await page.locator(".layer-row", { hasText: "merge-openjobs" }).locator("td").nth(3).click();
-    await page.locator(".pc-side-panel").getByRole("button", { name: "Open page" }).click();
+    await page.locator(".pc-side-panel").getByRole("button", { name: m.record.openPage }).click();
     await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
     await expect(page).toHaveURL(/[?&]record=imported-col-merge-openjobs(&|#|$)/);
     // The old Combinations address landed on Records filtered to combinations,
@@ -696,7 +699,7 @@ test.describe("page state in the console address", () => {
 
     await page.reload();
     await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
-    await page.locator(".record-crumbs").getByRole("button", { name: "Records" }).click();
+    await page.locator(".record-crumbs button").click();
     await expect(page.getByTestId("record-row").first()).toBeVisible();
     await expect(page).toHaveURL(/\?view=records&kind=combination(#|$)/);
   });
@@ -731,7 +734,7 @@ test.describe("reduced motion", () => {
     await page.locator('[data-map-key="imported-openjobs-host"]').click();
     await page.goto("/dev.html?view=sources");
     await page.locator('[data-row-menu="imported-openjobs-host"] button').click();
-    await page.locator(".rec-menu button", { hasText: "Client output" }).click();
+    await page.locator(".rec-menu button", { hasText: m.page.clientOutput }).click();
     await page.locator(".sheet").waitFor();
     const timed = await page.evaluate(() =>
       document
