@@ -128,7 +128,9 @@ Sub-Store `ProxyUtils` bundle. The pin is recorded in
 `system-go/lib/substore-core.js`. The current pin uses upstream commit
 `48d83214ffe3e1de86a03d80247f2d8202885948`, backend package `sub-store`
 `2.36.22`, and bundle SHA-256
-`994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b`.
+`994423340ddfbbcb4c858dc497bbbd249aac89b736a03606ada2f8958b1f0d4b`. The bundle
+is AGPL-3.0 upstream code shipped inside this MIT plugin; see
+`THIRD_PARTY_NOTICES.md`.
 
 Every QuickJS runtime the engine creates, the warm one and each per-call
 isolated one, is sealed before the core loads. The qjs wasm build publishes

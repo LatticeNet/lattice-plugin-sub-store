@@ -34,7 +34,10 @@ globalThis.SubStoreProxyUtils = {
         Deno: typeof globalThis.Deno,
         Bun: typeof globalThis.Bun,
         document: typeof globalThis.document,
-        localStorage: typeof globalThis.localStorage
+        localStorage: typeof globalThis.localStorage,
+        std: typeof globalThis.std,
+        os: typeof globalThis.os,
+        bjson: typeof globalThis.bjson
       }
     });
   }
