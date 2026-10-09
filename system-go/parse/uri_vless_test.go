@@ -57,6 +57,10 @@ func TestVLESSShape(t *testing.T) {
 		{"uh:443", "", "", "", "", false, false},
 		{"u@h:443?a\r=1", "", "", "", "", false, false},
 		{"u@@h:1", "@h", "1", "", "", false, true},
+		// The host is the shortest that works, so ":digits" later in the
+		// fragment or the query stays there.
+		{"u@h:443#name:8080", "h", "443", "", "name:8080", true, true},
+		{"u@h:443?path=%2Fa:80", "h", "443", "path=%2Fa:80", "", false, true},
 	} {
 		s, ok := matchVLESSShape(c.rest)
 		if ok != c.ok {
