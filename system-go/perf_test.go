@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"regexp"
 	goruntime "runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -84,9 +86,10 @@ func BenchmarkPipelineReality1000SingBox(b *testing.B) { benchmarkPipeline(b, 10
 func BenchmarkPipelineReality4096SingBox(b *testing.B) { benchmarkPipeline(b, 4096) }
 
 // TestPerfPipelineRendersTheChain keeps the benchmarks honest: the parse
-// yields every node, the Regex Filter keeps the eight countries' nodes, and
+// yields every node, the Regex Filter keeps the eight countries' nodes,
 // sing-box writes every kept node except the XHTTP ones, which it has no
-// transport for (singbox.md, row F6).
+// transport for (singbox.md, row F6), and every outbound carries its flag and
+// its renamed name, in ascending order.
 func TestPerfPipelineRendersTheChain(t *testing.T) {
 	const n = 1000
 	var want int
@@ -107,8 +110,26 @@ func TestPerfPipelineRendersTheChain(t *testing.T) {
 	if parsed != n || entries != want || want == 0 || want == n {
 		t.Fatalf("parsed %d nodes and produced %d entries; want %d and %d", parsed, entries, n, want)
 	}
-	if !strings.Contains(buf.String(), `"server_name"`) || !strings.Contains(buf.String(), "\U0001F1ED\U0001F1F0 HK ") {
-		t.Fatalf("the document lacks the flagged, renamed Reality outbounds: %.300s", buf.String())
+	var doc struct {
+		Outbounds []struct {
+			Tag string
+			TLS struct{ Reality struct{ Enabled bool } }
+		}
+	}
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil || len(doc.Outbounds) != want {
+		t.Fatalf("the document has %d outbounds (%v), want %d", len(doc.Outbounds), err, want)
+	}
+	tag := regexp.MustCompile(`^[\x{1F1E6}-\x{1F1FF}]{2} ((?:HK|JP|SG|US|TW|KR|DE|GB) \d{4} [a-z][a-z0-9]{4})$`)
+	var names []string
+	for _, o := range doc.Outbounds {
+		m := tag.FindStringSubmatch(o.Tag)
+		if m == nil || !o.TLS.Reality.Enabled {
+			t.Fatalf("outbound %q is not a flagged, renamed Reality outbound", o.Tag)
+		}
+		names = append(names, m[1])
+	}
+	if !slices.IsSorted(names) {
+		t.Fatalf("the outbounds are not in ascending order: %q", names[:min(len(names), 8)])
 	}
 }
 
