@@ -916,7 +916,11 @@ function follow(state: DragState): void {
   }
 }
 
-/** One frame of scrolling while the row is held in an edge zone; it stops at the end of the page or out of the zone. */
+/**
+ * One frame of scrolling while the row is held in an edge zone. It stops at
+ * the end of the page, out of the zone, and once the drag has ended, which
+ * is why a frame still pending at release needs no cancelling.
+ */
 function edgeScroll(): void {
   const state = dragging;
   if (!state) return;
@@ -942,7 +946,6 @@ function endDrag(drop: boolean): void {
   const state = dragging;
   if (!state) return;
   dragging = null;
-  if (state.frame) cancelAnimationFrame(state.frame);
   const lifted = state.rows[state.from]!;
   lifted.classList.remove("is-dragging");
   if (!drop && state.moved) {

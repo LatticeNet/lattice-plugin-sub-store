@@ -450,6 +450,7 @@ test.describe("a chain the native engine cannot run", () => {
     await expect(offer).toBeVisible();
     await expect(offer).toContainText("Step 1");
     await expect(offer).toContainText("^(?!.*(过期|剩余|官网)).*$");
+    await expect(offer).toContainText("a save that changes the chain is refused");
     expect(await seriousViolations(page)).toEqual([]);
     await offer.getByRole("button", { name: "Rewrite step 1" }).click();
     await expect(offer).toContainText("Every pattern in the chain runs natively now");
