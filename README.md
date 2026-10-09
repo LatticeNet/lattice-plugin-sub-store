@@ -284,8 +284,12 @@ The pipeline benchmarks time design 28's measure, the nodes through four
 non-script operators to sing-box; the parse of the same nodes' links is a
 benchmark of its own. The `perf` job runs the pipeline, parse and producer
 benchmarks ten times on ubuntu-24.04 and `tools/perfgate` judges the medians
-against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`, which
-is that job's output committed as the baseline. The `memory` job runs the
+against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`. That
+baseline is the job's output from two runs that landed on different CPUs (an
+Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
+is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
+run happens to get. Move it the same way, from at least two CPUs, with the
+reason in the commit. The `memory` job runs the
 allocation and heap gates without the race detector and records the built
 worker's resident set (`TestWorkerVmRSS`), which S2 starts enforcing.
 
