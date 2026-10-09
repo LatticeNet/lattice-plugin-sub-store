@@ -153,7 +153,12 @@ describe("migrating a legacy store", () => {
         { migrated: 64, remaining: 172, done: false },
         { migrated: 64, remaining: 108, done: false },
         { migrated: 64, remaining: 44, done: false },
-        { migrated: 44, remaining: 0, done: true, verified: true, store_version: 2 },
+        { migrated: 44, remaining: 0, done: false },
+        // The verify call copies nothing; it is progress all the same.
+        { migrated: 0, remaining: 0, done: false, verified: true, store_version: 2, legacy_programs_pending: 70 },
+        // So is each call that deletes legacy program keys.
+        { migrated: 0, remaining: 0, done: false, verified: true, store_version: 2, legacy_programs_pending: 6 },
+        { migrated: 0, remaining: 0, done: true, verified: true, store_version: 2 },
       ],
     });
     const subs = useSubscriptions(host);
@@ -161,7 +166,7 @@ describe("migrating a legacy store", () => {
     expect(subs.storeVersion.value).toBe(1);
     expect(await subs.migrateStore()).toBe(true);
     const chunks = calls.filter((call) => call.method === "migrate_store");
-    expect(chunks).toHaveLength(5);
+    expect(chunks).toHaveLength(8);
     expect(chunks.every((call) => (call.payload as { chunk: number }).chunk === 64)).toBe(true);
     expect(subs.migration.value).toMatchObject({ running: false, migrated: 300, remaining: 0, done: true, error: "" });
     expect(subs.storeVersion.value).toBe(2);
@@ -174,6 +179,31 @@ describe("migrating a legacy store", () => {
     expect(await subs.migrateStore()).toBe(false);
     expect(calls.filter((call) => call.method === "migrate_store")).toHaveLength(2);
     expect(subs.migration.value.error).toMatch(/moved nothing while 40 records remain/);
+  });
+
+  it("finishes in one more call on a store with no legacy programs", async () => {
+    const { host, calls } = storeHost({
+      list: [{ ...LISTED, store_version: 1 }, LISTED],
+      migrate_store: [
+        { migrated: 3, remaining: 0, done: false },
+        { migrated: 0, remaining: 0, done: true, verified: true, store_version: 2 },
+      ],
+    });
+    const subs = useSubscriptions(host);
+    await subs.load();
+    expect(await subs.migrateStore()).toBe(true);
+    expect(calls.filter((call) => call.method === "migrate_store")).toHaveLength(2);
+    expect(subs.migration.value).toMatchObject({ migrated: 3, done: true, error: "" });
+  });
+
+  it("stops when the program deletes stop shrinking, and says so", async () => {
+    const stuck = { migrated: 0, remaining: 0, done: false, verified: true, store_version: 2, legacy_programs_pending: 6 };
+    const { host, calls } = storeHost({ list: [{ ...LISTED, store_version: 1 }], migrate_store: [stuck, stuck] });
+    const subs = useSubscriptions(host);
+    await subs.load();
+    expect(await subs.migrateStore()).toBe(false);
+    expect(calls.filter((call) => call.method === "migrate_store")).toHaveLength(2);
+    expect(subs.migration.value.error).not.toBe("");
   });
 
   it("is not run where the signed plugin does not declare it", async () => {

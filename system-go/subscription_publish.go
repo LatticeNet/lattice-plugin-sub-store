@@ -7,8 +7,10 @@ import (
 )
 
 // maxPublishBytes bounds what one publish sends. The engine already caps its own
-// output; this is the second bound, on what leaves the host.
-const maxPublishBytes = 6 << 20
+// output; this is the second bound, on what leaves the host. The body rides in
+// one host_call frame as base64, so 4 MiB is 5.34 MiB of the method's signed
+// stdout_bytes, beside up to scriptHTTPMaxRequestBytes of script requests.
+const maxPublishBytes = 4 << 20
 
 type publishResult struct {
 	SubscriptionID string `json:"subscription_id"`
@@ -32,6 +34,10 @@ func (rt *runtime) publishSubscription(subscriptionID, destination, method, form
 	destination = strings.TrimSpace(destination)
 	if destination == "" {
 		return publishResult{}, fmt.Errorf("publish needs a destination")
+	}
+	// The destination rides in the same host_call frame as the body.
+	if len(destination) > maxLinkBytes {
+		return publishResult{}, fmt.Errorf("publish destination exceeds %d bytes", maxLinkBytes)
 	}
 	switch strings.ToUpper(strings.TrimSpace(method)) {
 	case "", "PUT":

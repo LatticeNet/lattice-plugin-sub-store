@@ -34,7 +34,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.17.0-alpha.1"
+	pluginVersion        = "0.17.0-alpha.2"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
 	maxExportBytes       = 1 << 20
@@ -730,7 +730,10 @@ func (rt *runtime) httpDo(method, target string, body []byte) (int, []byte, erro
 	}
 	if body != nil {
 		params["header"] = map[string]string{"Content-Type": "application/json"}
-		params["body"] = string(body)
+		// base64, not a JSON string: the host_call frame counts against the
+		// method's stdout_bytes, and JSON escaping can grow a body six times
+		// where base64 grows it by a third.
+		params["body_base64"] = base64.StdEncoding.EncodeToString(body)
 	}
 	raw, err := rt.callHost(latticeplugin.HostMethodHTTPOperatorDo, params)
 	if err != nil {

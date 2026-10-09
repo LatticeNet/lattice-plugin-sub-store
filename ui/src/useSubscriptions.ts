@@ -9,6 +9,8 @@ import {
   ERROR_REGEX_INCOMPATIBLE,
   ERROR_STORE_MIGRATION_REQUIRED,
   MIGRATE_STORE_CHUNK,
+  MIGRATE_STORE_MAX_CALLS,
+  migrationProgress,
   STORE_VERSION_LEGACY,
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
@@ -1161,20 +1163,23 @@ export function useSubscriptions(host: HostContext) {
   });
 
   /**
-   * Split a legacy store, one chunk per call, until the runtime says done.
+   * Split a legacy store, one call at a time, until the runtime says done.
    *
-   * Each call migrates up to MIGRATE_STORE_CHUNK records and verifies on the
-   * last one (s1-plan section 3.1); progress lives in the store, so a run that
-   * stops resumes where it left off when it is started again. The loop is
-   * bounded: 64 chunks is 4,096 records, sixteen times the record budget, and a
-   * chunk that moves nothing while records remain is a stall, not progress.
+   * A call copies up to MIGRATE_STORE_CHUNK records, fewer when their frames
+   * reach the runtime's byte bound; once none remain, one call verifies and
+   * later calls delete the legacy program keys (s1-plan section 3.1). Progress
+   * lives in the store, so a run that stops resumes where it left off. A call
+   * that changes nothing (no record copied, no verification, no program key
+   * deleted) is a stall, so the call bound only has to cover the worst real
+   * run: one call per record, the verify, and the program deletes.
    */
   async function migrateStore(): Promise<boolean> {
     const bridge = host.bridge;
     if (!bridge || !canMigrateStore.value || migration.value.running) return false;
     migration.value = { running: true, migrated: 0, remaining: 0, error: "", done: false };
     try {
-      for (let chunk = 0; chunk < 64; chunk += 1) {
+      let previous = "";
+      for (let call = 0; call < MIGRATE_STORE_MAX_CALLS; call += 1) {
         const reply = await callMethod<MigrateStoreResponse>(bridge, BINDINGS.subMigrateStore, { chunk: MIGRATE_STORE_CHUNK }).promise;
         migration.value.migrated += Math.max(0, reply.migrated ?? 0);
         migration.value.remaining = Math.max(0, reply.remaining ?? 0);
@@ -1182,7 +1187,9 @@ export function useSubscriptions(host: HostContext) {
           migration.value.done = true;
           break;
         }
-        if (!reply.migrated) throw new Error(t.subs.migrationStalled(reply.remaining));
+        const state = migrationProgress(reply);
+        if (!reply.migrated && state === previous) throw new Error(t.subs.migrationStalled(reply.remaining));
+        previous = state;
         await host.resize();
       }
       if (!migration.value.done) throw new Error(t.subs.migrationUnfinished);

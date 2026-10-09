@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -34,7 +35,26 @@ import (
 const (
 	defaultMigrateChunk = 64
 	maxMigrateChunk     = 64
+	// migrateChunkFrameBytes bounds the record writes of one call. Core counts
+	// every frame the plugin writes against the method's signed stdout_bytes,
+	// host calls included, and a kv.put frame carries its value in base64, so
+	// a chunk of large records (a script file's program is inlined) could pass
+	// any budget sized by record count. A call stops before the record that
+	// would take its frames past this bound, and always writes at least one;
+	// the index write and the reply fit in what the budget leaves
+	// (TestWriteBudgetsCoverTheirLargestFrames).
+	migrateChunkFrameBytes = 5 << 20
+	// hostCallFrameOverhead is a host_call frame's bytes besides its params:
+	// the protocol, kind, generation, invocation and host call ids and the
+	// method, rounded up.
+	hostCallFrameOverhead = 256
 )
+
+// kvPutFrameBytes is the size of the host_call frame that writes value under
+// key: the value travels base64 encoded.
+func kvPutFrameBytes(key string, value []byte) int {
+	return base64.StdEncoding.EncodedLen(len(value)) + len(key) + hostCallFrameOverhead
+}
 
 type migrateStoreRequest struct {
 	Chunk   int    `json:"chunk"`
@@ -101,6 +121,7 @@ func (rt *runtime) migrateStore(payload json.RawMessage) (migrateStoreReply, err
 	cursor := idx.Migration.Cursor
 	start := sort.Search(len(records), func(i int) bool { return records[i].ID > cursor })
 	next := start
+	frames := 0
 	for ; next < len(records) && reply.Migrated < chunk; next++ {
 		rec := records[next]
 		if err := validStoreID(rec.ID); err != nil {
@@ -121,9 +142,18 @@ func (rt *runtime) migrateStore(payload json.RawMessage) (migrateStoreReply, err
 			}
 			migrated.Content = program
 		}
-		if err := rt.putRecord(withRevision(migrated)); err != nil {
+		raw, err := encodeRecord(withRevision(migrated))
+		if err != nil {
+			return migrateStoreReply{}, fmt.Errorf("migrate_store encodes %q: %w", rec.ID, err)
+		}
+		size := kvPutFrameBytes(recordKey(rec.ID), raw)
+		if reply.Migrated > 0 && frames+size > migrateChunkFrameBytes {
+			break
+		}
+		if err := rt.kvPut(recordKey(rec.ID), raw); err != nil {
 			return migrateStoreReply{}, fmt.Errorf("migrate_store writes %q: %w", rec.ID, err)
 		}
+		frames += size
 		if pos >= 0 {
 			idx.Records[pos] = entry
 		} else {
@@ -143,6 +173,13 @@ func (rt *runtime) migrateStore(payload json.RawMessage) (migrateStoreReply, err
 		}
 	}
 	if reply.Remaining > 0 {
+		return reply, nil
+	}
+	// The verify rewrites the index and the whole legacy document, so it runs
+	// in a call that wrote no record: a chunk that just wrote up to
+	// migrateChunkFrameBytes leaves the verify to the next call, which keeps
+	// every call inside migrate_store's stdout budget.
+	if reply.Migrated > 0 {
 		return reply, nil
 	}
 	return rt.verifyMigration(legacy, records, reply)

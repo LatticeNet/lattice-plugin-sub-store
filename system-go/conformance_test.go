@@ -122,6 +122,7 @@ type manifestInterface struct {
 	Backing string `json:"backing"`
 	Methods []struct {
 		Name   string            `json:"name"`
+		Effect string            `json:"effect"`
 		Scopes []string          `json:"scopes"`
 		Budget *invokeBudgetSpec `json:"budget,omitempty"`
 	} `json:"methods"`
@@ -195,10 +196,10 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// someone else's server rather than on CPU.
 		pluginID + "/engine/convert":            {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
 		pluginID + "/engine/transform_response": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
-		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
 		pluginID + "/engine/get_pipeline":       {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 32 << 10, HostCalls: 1},
 		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 32 << 10, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
 		// run_pipeline is convert plus the stored chain's own read.
 		pluginID + "/engine/run_pipeline": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 13},
 		// render feeds a public subscription endpoint, so its stdout budget matches
@@ -268,7 +269,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// store that has not migrated: its key's miss, the legacy document and
 		// the legacy program key. 2026-08-11: duplicating a script file in the
 		// UI 502'd here with the budget at 1; get is duplicate's first step.
-		pluginID + "/subscription/get": {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 3},
+		pluginID + "/subscription/get": {TimeoutMS: 2_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 3},
 		// save reads the index, writes the record and writes the index; an
 		// existing record is read first for its provenance and the conditional
 		// check, and a graph record reloads the options that validate its
@@ -277,25 +278,27 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// needs. (2026-08-11: the first production import died at 512 KiB.)
 		// delete archives: the index, the record, the archive write, the record
 		// key's deletion and the index write.
-		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 6},
+		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 6},
 		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 5},
 		// migrate is import's shape plus three fetches from the standalone
 		// Sub-Store it imports from, so it gets the longest timeout.
-		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 325},
+		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 325},
 		// publish renders (render's shape, 135 with the send on a store that has
-		// not migrated) and sends once, plus the script allowance. Its stdout is
-		// a small result object because the rendered body goes out over the
-		// network, not back up stdout.
-		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 143, HTTPResponseBytes: 8 << 20},
+		// not migrated) and sends once, plus the script allowance. The rendered
+		// body leaves in the http.operator.do host_call frame, which core counts
+		// as stdout: up to maxPublishBytes as base64, beside the script requests.
+		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 143, HTTPResponseBytes: 8 << 20},
 		// export reads the index, every record and Settings (N + 2); a store that
 		// migrated from an oversized legacy document can hold 300 records (302).
 		// Before migration it reads the legacy document and one program key per
 		// script file instead.
-		pluginID + "/subscription/export": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 32 << 10, HostCalls: 320},
+		// Its reply carries the backup as a JSON string, escaped twice;
+		// exportReply refuses past maxExportReplyBytes rather than be killed.
+		pluginID + "/subscription/export": {TimeoutMS: 5_000, StdoutBytes: 8 << 20, StderrBytes: 32 << 10, HostCalls: 320},
 		// import reads the index, writes each record and the index once, and
 		// writes Settings: N + 3, which 320 covers for the largest store export
 		// produces (300 records).
-		pluginID + "/subscription/import":        {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 64 << 10, HostCalls: 320},
+		pluginID + "/subscription/import":        {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 320},
 		pluginID + "/subscription/get_settings":  {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 1},
 		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		// depends_on reads the index, and the legacy document on a store that
@@ -309,14 +312,18 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// deletion and the index write; it answers with the record. purge: the
 		// index, the archive's deletion and the index write. reorder: the index
 		// and its write.
-		pluginID + "/subscription/restore": {TimeoutMS: 5_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 5},
-		pluginID + "/subscription/purge":   {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 3},
-		pluginID + "/subscription/reorder": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 2},
-		// migrate_store: the chunk of 64 script files that reaches the end of a
-		// legacy store reads the document, the index miss and 64 programs,
-		// writes 64 records and the index, then verifies, marks the legacy
-		// document and writes the index again (134).
-		pluginID + "/subscription/migrate_store": {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 140},
+		pluginID + "/subscription/restore": {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 16 << 10, HostCalls: 5},
+		pluginID + "/subscription/purge":   {TimeoutMS: 5_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 3},
+		pluginID + "/subscription/reorder": {TimeoutMS: 5_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 2},
+		// migrate_store: a chunk of 64 script files reads the document, the
+		// index miss and 64 programs and writes 64 records and the index; the
+		// verify runs in a later call that writes no record (store_migrate.go).
+		// stdout_bytes is the host maximum because core counts the kv.put
+		// frames, base64 values included: a chunk stops before its record
+		// frames pass migrateChunkFrameBytes, and the verify call rewrites the
+		// index twice and the legacy document once. restore, purge and reorder
+		// write the index (and restore a record) the same way.
+		pluginID + "/subscription/migrate_store": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 140},
 	}
 }
 

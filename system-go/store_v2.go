@@ -437,10 +437,18 @@ func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (batchOutcom
 		return out, err
 	}
 	encoded := make([][]byte, len(pending))
+	frames := kvPutFrameBytes(storeIndexKey, indexRaw)
 	for i, rec := range pending {
 		if encoded[i], err = encodeRecord(rec); err != nil {
 			return out, err
 		}
+		frames += kvPutFrameBytes(recordKey(rec.ID), encoded[i])
+	}
+	// Core kills a call whose frames pass its signed stdout_bytes, so a batch
+	// that cannot fit is refused whole here rather than cut off after some of
+	// its records have landed.
+	if frames > maxBatchFrameBytes {
+		return out, fmt.Errorf("%s: these records take %d bytes to write and one call may write %d", batchTooLargeCode, frames, maxBatchFrameBytes)
 	}
 	for i, rec := range pending {
 		if err := rt.kvPut(recordKey(rec.ID), encoded[i]); err != nil {
@@ -449,6 +457,14 @@ func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (batchOutcom
 	}
 	return out, rt.kvPut(storeIndexKey, indexRaw)
 }
+
+// maxBatchFrameBytes bounds the record and index frames one batch writes.
+// import and migrate sign 8 MiB of stdout; their reads, reply and Settings
+// write stay well under the 1 MiB left over.
+const maxBatchFrameBytes = 7 << 20
+
+// batchTooLargeCode opens the refusal of a batch over maxBatchFrameBytes.
+const batchTooLargeCode = "batch_too_large"
 
 // maxFetchErrorBytes bounds the failure reason stored for a record. A
 // provider can answer with a whole error page, and the index is rewritten in

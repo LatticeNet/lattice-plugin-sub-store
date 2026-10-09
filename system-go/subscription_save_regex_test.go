@@ -84,7 +84,7 @@ func TestSaveOfUnrelatedFieldKeepsFlaggedRecord(t *testing.T) {
 	seedLegacyStore(t, host, []subscriptionRecord{
 		{ID: "flagged", Name: "provider", Content: "vless://example", Process: steps(`{"type":"Sort Operator","args":"asc"}`, lookaheadFilter)},
 	})
-	if reply := migrateStoreCall(t, rt, map[string]any{}); !reply.Done || strings.Join(reply.RegexIncompatible, ",") != "flagged" {
+	if reply := migrateStoreUntilDone(t, rt); !reply.Done || strings.Join(reply.RegexIncompatible, ",") != "flagged" {
 		t.Fatalf("migration = %+v", reply)
 	}
 	if !indexEntryOf(t, rt, "flagged").Flags.RegexIncompatible {

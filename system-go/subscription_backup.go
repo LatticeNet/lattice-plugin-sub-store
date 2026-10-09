@@ -24,6 +24,29 @@ type importOutcome struct {
 	Replaced []string          `json:"replaced"`
 }
 
+// maxExportReplyBytes bounds export's reply. Core counts the reply frame
+// against the method's signed stdout_bytes (8 MiB), and the backup travels
+// as a JSON string inside it, so its quotes and newlines are escaped a second
+// time. The rest covers the frame and the reads (320 small host_call frames).
+const maxExportReplyBytes = 8<<20 - 512<<10
+
+// exportTooLargeCode opens the refusal of a backup past maxExportReplyBytes.
+const exportTooLargeCode = "export_too_large"
+
+// exportReply wraps a backup for the export method, or refuses one that core
+// would kill on the way out.
+//
+// yagni: a store past the bound cannot be backed up in one call. A chunked
+// export (records after an id, as rebuild pages) lifts it; until a store needs
+// it, the refusal says what happened instead of a dropped connection.
+func exportReply(backup []byte) (json.RawMessage, error) {
+	reply := mustJSON(map[string]any{"backup": string(backup)})
+	if len(reply) > maxExportReplyBytes {
+		return nil, fmt.Errorf("%s: the backup is %d bytes once encoded, and one call can return %d", exportTooLargeCode, len(reply), maxExportReplyBytes)
+	}
+	return reply, nil
+}
+
 // exportBackup writes everything this plugin owns.
 //
 // Records are sorted by id so two exports of the same data are byte-identical:
@@ -132,6 +155,9 @@ func (rt *runtime) importBackup(data []byte) (importOutcome, error) {
 	// happens once inside the batch; per-record failures come back as skips.
 	batch, err := rt.saveSubscriptionBatch(doc.Records)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), batchTooLargeCode) {
+			return importOutcome{}, fmt.Errorf("%w; split the backup into smaller ones", err)
+		}
 		return importOutcome{}, err
 	}
 	for _, rec := range doc.Records {
