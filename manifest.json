@@ -13,7 +13,7 @@
   ],
   "version": "0.17.0-alpha.1",
   "publisher": "latticenet",
-  "signature_ed25519": "",
+  "signature_ed25519": "DOGUcj+QP032v6C4xvJoPI9Vow7ofIR/2SoSNy0V5er8FUX/Z2wpD0g68YXTeLZCMCYo/JgsxglSH+ZpYjB0Cw==",
   "bundle": {
     "format": "tar+gzip",
     "digest_sha256": "bc2e55587fe20da2f47707acaad71fa3884e4e3a427e15c5b48aa0b8c560a23e"
