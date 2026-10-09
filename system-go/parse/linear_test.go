@@ -139,3 +139,78 @@ func TestParseLinearTimeOn10MBInput(t *testing.T) {
 		})
 	}
 }
+
+// lineShapes are single lines built to make a quadratic scan inside one line
+// show: runs of unclosed quotes, of separators, of commas a value may hold,
+// of options and of query items. Each builder returns a line of about n
+// bytes.
+var lineShapes = []struct {
+	name  string
+	build func(n int) string
+}{
+	{"surge-unclosed-alpn", func(n int) string { return "a = snell, h, 1" + strings.Repeat(", alpn='x", n/9) }},
+	{"surge-header-separators", func(n int) string {
+		return "a = trojan, h, 1, ws=true, ws-headers=" + strings.Repeat("a|", n/2)
+	}},
+	{"surge-header-quotes", func(n int) string { return "a = http, h, 1, headers=" + strings.Repeat(`"a;`, n/3) }},
+	{"surge-options", func(n int) string { return "a = ss, h, 1" + strings.Repeat(", x=1", n/5) }},
+	{"surge-port-hopping", func(n int) string { return "a = tuic, h, 1" + strings.Repeat(", port-hopping=1-", n/17) }},
+	{"surge-external", func(n int) string { return "x = external" + strings.Repeat(", args=a", n/8) }},
+	{"qx-password-commas", func(n int) string { return "trojan=h:443, password=" + strings.Repeat("a,", n/2) }},
+	{"loon-server-dns", func(n int) string { return `a = trojan, h, 1, "p", server-dns=` + strings.Repeat("1,", n/2) }},
+	{"loon-wireguard-keys", func(n int) string {
+		return "w = wireguard" + strings.Repeat(", dns = 1", n/10) + ", peers = [{endpoint = h:1}]"
+	}},
+	{"ss-flag-items", func(n int) string { return "ss://aes-128-gcm:p@h:1?" + strings.Repeat("uot=0&", n/6) }},
+	{"hysteria2-port-list", func(n int) string { return "hysteria2://p@h:" + strings.Repeat("1,", n/2) }},
+	{"trojan-fragments", func(n int) string { return "trojan://p@h:1?a=1" + strings.Repeat("#", n) }},
+}
+
+// timeLine returns the least CPU time of runs passes of reps parses of one
+// line through parser selection, before the normaliser.
+func timeLine(line string, reps, runs int) time.Duration {
+	best := time.Duration(1<<63 - 1)
+	for r := 0; r < runs; r++ {
+		start := cpuTime()
+		for i := 0; i < reps; i++ {
+			newLineState().parse(line)
+		}
+		if d := cpuTime() - start; d < best {
+			best = d
+		}
+	}
+	return best
+}
+
+// TestLineGrammarsLinearInLineLength parses each shape as a 6 KiB and as a
+// 60 KiB line and requires the longer to cost no more than thirty times the
+// shorter: ten times is linear, a hundred quadratic. Lines are capped at 64
+// KiB, so the document-level test cannot see a quadratic scan inside a line.
+func TestLineGrammarsLinearInLineLength(t *testing.T) {
+	const small, large = 6 << 10, 60 << 10
+	const maxRatio = 30.0
+	floor := 2 * time.Millisecond
+	reps, runs := 20, 3
+	if raceEnabled {
+		reps, runs = 4, 2
+	}
+	for _, shape := range lineShapes {
+		t.Run(shape.name, func(t *testing.T) {
+			s, l := shape.build(small), shape.build(large)
+			if len(l) > 64<<10 {
+				t.Fatalf("large line is %d bytes, past the line bound", len(l))
+			}
+			ts := timeLine(s, reps, runs)
+			tl := timeLine(l, reps, runs)
+			base := ts
+			if base < floor {
+				base = floor
+			}
+			ratio := float64(tl) / float64(base)
+			t.Logf("%s: %d bytes %v, %d bytes %v, ratio %.1f", shape.name, len(s), ts, len(l), tl, ratio)
+			if ratio > maxRatio {
+				t.Errorf("a 60 KiB line took %.1f times as long as a 6 KiB one (%v vs %v), want at most %.0f", ratio, tl, ts, maxRatio)
+			}
+		})
+	}
+}
