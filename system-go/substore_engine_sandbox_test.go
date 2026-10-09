@@ -311,6 +311,44 @@ async function operator(proxies) {
 	assertSandboxSealed(t, "user script operator", hostDir, decodeSandboxProbe(t, "user script operator", proxies[0].Name))
 }
 
+// A Script Operator that reaches for the sealed qjs:std module fails inside
+// the bundle, and the embedded core swallows an operator's error: the step is
+// skipped, its nodes pass through unchanged and the conversion reports
+// success. This pins that behaviour, and that the engine stays usable after
+// it, until the native chain compiler (design 28 S1) can report a failed step
+// instead of hiding it.
+func TestSandboxScriptOperatorCallingLoadFileLeavesNodesAndEngineAlive(t *testing.T) {
+	engine := newTestEmbeddedSubStoreEngine()
+	showSubStoreEngineErrors(t)
+	operator, err := json.Marshal(map[string]any{
+		"type": "Script Operator",
+		"args": map[string]any{"content": `function operator(proxies) {
+  const hosts = std.loadFile("/etc/hosts");
+  return proxies.map(function (proxy) { return Object.assign({}, proxy, { name: "read:" + String(hosts) }); });
+}`},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "JSON", Operators: []json.RawMessage{operator}})
+	if err != nil {
+		t.Fatalf("script operator convert: %v", err)
+	}
+	var proxies []struct {
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal([]byte(result.Output), &proxies); err != nil || len(proxies) != 1 {
+		t.Fatalf("decode JSON output (%v): %s", err, result.Output)
+	}
+	if strings.HasPrefix(proxies[0].Name, "read:") {
+		t.Fatalf("the operator ran past std.loadFile and renamed the node to %q", proxies[0].Name)
+	}
+	after, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "JSON"})
+	if err != nil || after.NodeCount != 1 {
+		t.Fatalf("scriptless convert after the failed operator: %+v, %v", after, err)
+	}
+}
+
 // sandboxBundleCore is a stand-in core. Its top level runs where the real
 // bundle's top level runs, so what it sees at load is what the bundle sees;
 // its process step runs the full probe from inside the bundle's own closure.
