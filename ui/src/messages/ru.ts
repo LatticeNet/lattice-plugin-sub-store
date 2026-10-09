@@ -302,8 +302,9 @@ export const ru: Messages = {
     publishedFilter: "Публикация",
     publishedFilterAria: "Фильтр по тому, отдаёт ли запись активная публикация",
     allCount: (v) => `Все: ${v}`,
-    publishedCount: (v) => `Опубликованы: ${v}`,
-    unpublishedCount: (v) => `Не опубликованы: ${v}`,
+    // Under the filter's own label, Публикация, so "есть" and "нет" say it in a phone's half-width select.
+    publishedCount: (v) => `Есть: ${v}`,
+    unpublishedCount: (v) => `Нет: ${v}`,
     typeFilter: "Тип",
     typeFilterAria: "Фильтр по типу файла",
     allTypes: "Все",
