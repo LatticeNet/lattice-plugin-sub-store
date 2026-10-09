@@ -150,6 +150,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 
       await expect(row.locator("td.pc-name small")).toBeHidden();
       await expect(row.locator(".rec-kind-icon")).toHaveCount(0);
       await expect(row.getByTestId("record-flagged")).toBeVisible();
+      // A reference that is gone is a state too: it moves up beside the kind.
+      await expect(rowNamed(page, "for-loon-novpn").getByTestId("record-missing")).toBeVisible();
       await expect(page).toHaveURL(/[?&]density=compact(&|#|$)/);
       // One line per cell: the traffic bar goes and the date stays, rather than
       // the bar spilling past the cell's edge.
