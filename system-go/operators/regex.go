@@ -1,8 +1,10 @@
 package operators
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
+	"regexp/syntax"
 	"strings"
 	"unicode/utf8"
 )
@@ -27,7 +29,7 @@ func (c *stepCompiler) compilePattern(pattern string) *regexp.Regexp {
 			Step:    c.index,
 			Code:    CodeRegexIncompatible,
 			Pattern: pattern,
-			Message: fmt.Sprintf("pattern %q does not compile under RE2 (%s); lookaround and backreferences inside a pattern are not supported", pattern, regexReason(err)),
+			Message: fmt.Sprintf("pattern %q does not compile under RE2 (%s); lookaround and backreferences inside a pattern are not supported", pattern, regexReason(pattern, err)),
 		})
 		return nil
 	}
@@ -236,9 +238,31 @@ func isHexDigit(c byte) bool {
 	return c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F'
 }
 
-// regexReason is the part of a regexp/syntax error after its fixed prefix.
-func regexReason(err error) string {
-	return strings.TrimPrefix(err.Error(), "error parsing regexp: ")
+// regexReason says why RE2 refused esPattern(pattern) with err, quoting only
+// text the operator wrote. The error quotes the expression RE2 stopped at,
+// which is the rewritten pattern's text: an unclosed group around a \s quotes
+// the whole space class. When that quote is not part of pattern, the reason
+// is RE2's error for pattern itself, which RE2 refuses too (the rewrite keeps
+// every pattern RE2 accepts accepted), as long as that error quotes the
+// operator's text; otherwise the reason is the error's code alone.
+func regexReason(pattern string, err error) string {
+	var refused *syntax.Error
+	if !errors.As(err, &refused) {
+		return err.Error()
+	}
+	if quotesFrom(pattern, refused) {
+		return refused.Code.String() + ": `" + refused.Expr + "`"
+	}
+	var own *syntax.Error
+	if _, err := syntax.Parse(pattern, syntax.Perl); errors.As(err, &own) && quotesFrom(pattern, own) {
+		return own.Code.String() + ": `" + own.Expr + "`"
+	}
+	return refused.Code.String()
+}
+
+// quotesFrom reports whether an RE2 error quotes a part of pattern.
+func quotesFrom(pattern string, err *syntax.Error) bool {
+	return err.Expr != "" && strings.Contains(pattern, err.Expr)
 }
 
 // negativeLookahead matches the keep-everything-but idiom, `^(?!.*X).*$`,

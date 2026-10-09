@@ -145,6 +145,66 @@ describe("the message tables", () => {
     expect(ru.shell.description).toMatch(/[Ѐ-ӿ]/);
   });
 
+  /** Every text a table gives at each path, functions called with sample values. */
+  const byPath = (table: unknown) => {
+    const out = new Map<string, string>();
+    for (const [path, text] of texts(table)) out.set(path, `${out.get(path) ?? ""} ${text}`);
+    return out;
+  };
+
+  // A regex pattern and a file template are different things typed into
+  // different places. Russian called both шаблон, and Chinese called the
+  // pattern 模式, which is also its word for a mode (the resolver's mode,
+  // drop mode), so each table keeps one word per concept.
+  it("names a regex pattern apart from a template and from a mode", () => {
+    const english = byPath(en);
+    const chinese = byPath(zhCN);
+    const russian = byPath(ru);
+    const patterns = [...english].filter(([, text]) => /\bpatterns?\b/i.test(text)).map(([path]) => path);
+    const templates = [...english].filter(([, text]) => /\btemplate/i.test(text)).map(([path]) => path);
+    expect(patterns.length).toBeGreaterThan(8);
+    expect(templates.length).toBeGreaterThan(5);
+    for (const path of patterns) {
+      expect(chinese.get(path), path).toMatch(/正则/);
+      expect(chinese.get(path), path).not.toMatch(/模式/);
+      expect(russian.get(path), path).toMatch(/регулярн/i);
+      expect(russian.get(path), path).not.toMatch(/шаблон/i);
+    }
+    for (const path of templates) {
+      expect(chinese.get(path), path).toMatch(/模板/);
+      expect(russian.get(path), path).toMatch(/шаблон/i);
+    }
+  });
+
+  // The vpn-core graph source was "Relay path" in the records table and "A
+  // converged path" in the editor's source picker: one kind, two names.
+  it.each([["en", en, /converged/i] as const, ["zh-CN", zhCN, /汇聚/] as const, ["ru", ru, /сведённ/i] as const])(
+    "%s gives the relay path source one name",
+    (_locale, table, retired) => {
+      expect(table.editor.sources.graph.title.toLowerCase()).toContain(table.kinds.relay.toLowerCase());
+      expect(texts(table).filter(([, text]) => retired.test(text))).toEqual([]);
+    },
+  );
+
+  // An operator exports and pastes a backup file. "Envelope" is the format's
+  // name in the code, and 信封 and конверт were that word translated.
+  it("calls the exported backup a backup in Chinese and Russian", () => {
+    expect(texts(zhCN).filter(([, text]) => text.includes("信封"))).toEqual([]);
+    expect(texts(ru).filter(([, text]) => /конверт/i.test(text))).toEqual([]);
+    expect(zhCN.settings.backupTitle).toBe("备份文件");
+  });
+
+  // A list that failed to load says what it means for the operator: the
+  // store may hold records. It used to call itself an unanswered question.
+  it.each([["en", en, /question/i] as const, ["zh-CN", zhCN, /问题/] as const, ["ru", ru, /вопрос/i] as const])(
+    "%s says plainly what a list that did not load means",
+    (_locale, table, figure) => {
+      for (const body of [table.records.nothingLoadedBody, table.overview.nothingLoadedBody, table.shares.nothingLoadedBody]) {
+        expect(body).not.toMatch(figure);
+      }
+    },
+  );
+
   // Duplicate writes a new record to the store at once, unconfirmed; Copy puts
   // text on the clipboard. One word for both reads the first as the second.
   it.each([["en", en] as const, ...TABLES])("%s names Duplicate with a verb of its own, apart from the clipboard's Copy", (_locale, table) => {

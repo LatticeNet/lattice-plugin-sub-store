@@ -28,9 +28,10 @@ const (
 	// refuse anyway, so the reason reaches the operator instead of a bare
 	// size error from the server.
 	snapshotTooLargeCode = "snapshot_too_large"
-	// Why an envelope carries no nodes. size: the nodes would have taken it
-	// past the raw bound, so render parses the text. fallback_chain: a chain
-	// runs on the bundle, which parses the text itself.
+	// Why an envelope carries no nodes, or not all of them. size: the nodes
+	// would have taken it past the raw bound, so render parses the text of
+	// whatever carries none. fallback_chain: a chain runs on the bundle, which
+	// parses the text itself.
 	nodesOmittedSize     = "size"
 	nodesOmittedFallback = "fallback_chain"
 )
@@ -61,6 +62,10 @@ type envelopeMember struct {
 	SubName string            `json:"sub_name"`
 	Raw     string            `json:"raw"`
 	Nodes   []json.RawMessage `json:"nodes,omitempty"`
+	// parsedRaw says Nodes are Raw parsed and nothing more (the member has no
+	// chain of its own), so the size bound can leave them out first. Never
+	// stored: render tells the members apart by whether they carry nodes.
+	parsedRaw bool
 }
 
 // textEnvelope wraps one text snapshot.
@@ -81,16 +86,29 @@ func membersEnvelope(kind string, members []fileScriptMember) snapshotEnvelope {
 // encodeSnapshotEnvelope is the raw fetch returns. Nodes that would take it
 // over the core's bound are left out with nodes_omitted "size"; an envelope
 // still over the bound without them is refused here with a stated reason.
+//
+// Nodes go in two steps. First the ones render derives exactly from the text
+// beside them, by the same parse: a subscription's, and those of a member
+// with no chain of its own. Then, if the envelope is still over the bound,
+// the nodes a member chain left. For such a member render parses its text,
+// which is the chain's URI output, so its nodes take a URI round trip that a
+// live render skips (a gRPC link gains mode=gun). The first step leaves that
+// to a collection whose member chains' nodes alone pass the bound.
 func encodeSnapshotEnvelope(env snapshotEnvelope) (string, error) {
 	raw, err := json.Marshal(env)
 	if err != nil {
 		return "", err
 	}
-	if len(raw) > model.MaxSubscriptionRawBytes && envelopeHasNodes(env) {
+	for _, keepChained := range []bool{true, false} {
+		if len(raw) <= model.MaxSubscriptionRawBytes || !envelopeHasNodes(env) {
+			break
+		}
 		env.Nodes = nil
 		env.Members = append([]envelopeMember(nil), env.Members...)
 		for i := range env.Members {
-			env.Members[i].Nodes = nil
+			if !keepChained || env.Members[i].parsedRaw {
+				env.Members[i].Nodes = nil
+			}
 		}
 		env.NodesOmitted = nodesOmittedSize
 		if raw, err = json.Marshal(env); err != nil {

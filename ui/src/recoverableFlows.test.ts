@@ -72,7 +72,7 @@ describe("Escape closes exactly the top of the stack", () => {
     // it is acting on: each lens reports its selection and the shell hands
     // that to the workspace.
     const shell = source("./Shell.vue");
-    expect(shell).toContain('<PcWorkspace :batch="lens.selected > 0">');
+    expect(shell).toMatch(/<PcWorkspace :batch="lens\.selected > 0"[\s>]/);
     expect(source("./screens/SubscriptionsScreen.vue")).toContain("chrome.lenses.records.selected = count");
   });
 });

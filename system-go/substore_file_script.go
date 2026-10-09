@@ -37,6 +37,9 @@ type fileScriptMember struct {
 	// its collection runs in Go (chainMembers); never encoded here, the
 	// snapshot envelope carries them as envelopeMember.Nodes.
 	nodes []*nodemodel.Node
+	// unchained says the member has no chain of its own, so nodes are Raw
+	// parsed and nothing more, and a render can parse them again exactly.
+	unchained bool
 }
 
 // fileScriptArtifact is what one `produceArtifact({name})` call resolves to.

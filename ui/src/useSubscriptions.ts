@@ -47,7 +47,7 @@ import { conflictChanges, conflictSummary, type FieldChange } from "./recordConf
 import { deletedNotice } from "./recordActions";
 import { filePreviewSupport } from "./filePreview";
 import type { HostContext } from "./host";
-import { t } from "./i18n";
+import { formatBytes, t } from "./i18n";
 import { safeErrorMessage } from "./subStoreModel";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
@@ -274,7 +274,7 @@ export function validateDraft(draft: SubscriptionDraft): string {
   // every kind rather than only for pasted nodes.
   const bytes = new TextEncoder().encode(draft.content).length;
   if (bytes > MAX_SUBSCRIPTION_INLINE_BYTES) {
-    return t.draft.tooLarge(Math.round(bytes / 1024), MAX_SUBSCRIPTION_INLINE_BYTES / 1024);
+    return t.draft.tooLarge(bytes, MAX_SUBSCRIPTION_INLINE_BYTES);
   }
   // A file is the document itself. Without one there is nothing to serve, and
   // a node source alone produces a proxy list with no config around it.
@@ -822,7 +822,7 @@ export function useSubscriptions(host: HostContext) {
       }
       notice.value =
         typeof response.bytes === "number"
-          ? t.subs.checked(response.bytes, id, response.source_version ?? "")
+          ? t.subs.checked(formatBytes(response.bytes), id, response.source_version ?? "")
           : t.subs.refreshed(id);
       return true;
     } catch (cause) {
@@ -860,7 +860,7 @@ export function useSubscriptions(host: HostContext) {
           t.subs.publishStatus(response.status_code, response.subscription_id || t.subs.noRecord),
         );
       }
-      notice.value = t.subs.uploaded(response.bytes, id);
+      notice.value = t.subs.uploaded(formatBytes(response.bytes), id);
       return true;
     } catch (cause) {
       // The cause is what separates "the destination refused the credentials"

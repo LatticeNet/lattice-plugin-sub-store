@@ -12,7 +12,7 @@ import {
   PcWorkspace,
 } from "@latticenet/plugin-bridge/chassis";
 
-import { useHandshakeTimeout } from "./handshakeTimeout";
+import { HANDSHAKE_TIMEOUT_MS, useHandshakeTimeout } from "./handshakeTimeout";
 import { useHost } from "./host";
 import { setLocale, t } from "./i18n";
 import CommandPalette from "./components/CommandPalette.vue";
@@ -103,10 +103,35 @@ const recordFrom = ref<string>("");
 
 /**
  * The page speaks the console's language: the handshake's locale, matched to
- * English, simplified Chinese or Russian, and set on <html lang>. Before the
- * handshake, and for any other language, it reads English.
+ * English, simplified Chinese or Russian, and set on <html lang>. For any
+ * other language it reads English.
+ *
+ * It holds its first paint until it can: the handshake has named a locale
+ * and that locale's table is in hand, or failed to load and left English.
+ * Until then the page is laid out but not shown, so a Chinese or Russian
+ * operator never sees English words and then every word change at once. A
+ * handshake that never comes ends the hold with the standalone notice, which
+ * has no locale to follow, and a table that never arrives ends it after the
+ * handshake's own wait, in English rather than a blank frame.
  */
-watch(() => host.init.value?.locale, (locale) => void setLocale(locale), { immediate: true });
+const localeSettled = ref(false);
+let localeHold: ReturnType<typeof setTimeout> | undefined;
+watch(
+  () => host.init.value,
+  (init) => {
+    const settled = setLocale(init?.locale);
+    if (!init) return;
+    void settled.then(() => {
+      localeSettled.value = true;
+    });
+    localeHold ??= setTimeout(() => {
+      localeSettled.value = true;
+    }, HANDSHAKE_TIMEOUT_MS);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => clearTimeout(localeHold));
+const painted = computed(() => localeSettled.value || standalone.value);
 
 /** The toolbar state the visible layer filters on, and what it reports back. */
 const chrome = createLensChrome();
@@ -518,7 +543,7 @@ function openShares(): void {
 </script>
 
 <template>
-  <PcWorkspace :batch="lens.selected > 0">
+  <PcWorkspace :batch="lens.selected > 0" :class="{ 'ss-holding': !painted }" :aria-busy="painted ? undefined : 'true'">
     <PcPageHeader
       class="ss-header"
       title="Sub-Store"

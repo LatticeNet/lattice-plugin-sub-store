@@ -101,6 +101,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* ── the header's actions ───────────────────────────────────────────────── */
 /* Search and Refresh, then the layer's primary action, as vpn-core orders its header. */
 .ss-head-tools { display: flex; align-items: center; gap: var(--space-2); }
+/* The first paint waits for the locale's table (Shell.vue): laid out, not shown. */
+.ss-holding { visibility: hidden; }
 
 @media (max-width: 620px) {
   /* The title line keeps Search and Refresh; the description goes under it

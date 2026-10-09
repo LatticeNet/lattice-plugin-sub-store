@@ -26,7 +26,9 @@
  * the table it has until the new one has arrived, then switches whole.
  *
  * Counts, sizes, dates, relative times and sorting go through Intl with the
- * active locale; the helpers below are the only place they are formatted.
+ * active locale. The helpers below, and the plural and number helpers of
+ * messages/format.ts that the tables write counts with, are the only place
+ * they are formatted (messageNumbers.test.ts holds both to it).
  */
 import { ref } from "vue";
 
