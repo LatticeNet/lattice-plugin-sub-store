@@ -293,7 +293,7 @@ var parsers = []lineParser{
 	/* 10 */ scheme("hysteria2", parseHysteria2, "hysteria2://", "hy2://"),
 	/* 11 */ scheme("trojan", parseTrojan, "trojan://"),
 	/* 12 */ scheme("anytls", parseAnyTLS, "anytls://"),
-	/* 13 */ {label: "clash", test: clashObjectTest},
+	/* 13 */ {label: "clash", test: clashObjectTest, parse: parseClashObject},
 	/* 14 */ typed("surge", surgeDirectTest),
 	/* 15 */ typed("surge", typeWordPrefix("anytls")),
 	/* 16 */ typed("surge", typeWordPrefix("trust-tunnel")),
