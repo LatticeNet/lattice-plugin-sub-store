@@ -208,9 +208,6 @@ func (host sdkHostCaller) call(method string, params any) (json.RawMessage, erro
 }
 
 func (rt *runtime) handle(req request) response {
-	// Production builds a runtime per invocation; a test that drives several
-	// invocations through one must not carry the cache from one to the next.
-	rt.legacy = legacyCache{}
 	switch req.Action {
 	case latticeplugin.ActionDescribe:
 		body, _ := json.Marshal(map[string]any{

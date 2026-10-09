@@ -449,6 +449,10 @@ func targetContentType(target string) string {
 // subscription body. It is deliberately tiny: the only method is a read, and the
 // only thing it returns is content plus a content type.
 func (rt *runtime) handleSubscriptionCall(call callPayload) response {
+	// The legacy document is cached for one call. Production builds a runtime
+	// per invocation anyway; a test that drives several calls through one
+	// runtime must not read one call's cache in the next.
+	rt.legacy = legacyCache{}
 	switch call.Method {
 	case "fetch":
 		var req struct {
