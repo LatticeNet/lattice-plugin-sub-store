@@ -280,12 +280,14 @@ cases that parse only under those entries, and the other 558 cases match for
 every target. The other nine targets are answered by the embedded bundle.
 
 `system-go/perfgen` generates the perf gate's synthetic VLESS Reality nodes.
-The `perf` job runs the pipeline and producer benchmarks ten times on
-ubuntu-24.04 and `tools/perfgate` judges the medians against the S1 targets
-and `system-go/testdata/bench/ubuntu-24.04.txt`, which is that job's output
-committed as the baseline. The `memory` job runs the allocation and heap gates
-without the race detector and records the built worker's resident set
-(`TestWorkerVmRSS`), which S2 starts enforcing.
+The pipeline benchmarks time design 28's measure, the nodes through four
+non-script operators to sing-box; the parse of the same nodes' links is a
+benchmark of its own. The `perf` job runs the pipeline, parse and producer
+benchmarks ten times on ubuntu-24.04 and `tools/perfgate` judges the medians
+against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`, which
+is that job's output committed as the baseline. The `memory` job runs the
+allocation and heap gates without the race detector and records the built
+worker's resident set (`TestWorkerVmRSS`), which S2 starts enforcing.
 
 ## Looking at the UI
 

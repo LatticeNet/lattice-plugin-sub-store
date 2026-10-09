@@ -5,25 +5,31 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"reflect"
 	"regexp"
 	goruntime "runtime"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
 )
 
-// The perf gate (S1 plan section 5.2) times the native render of perfgen's
-// VLESS Reality nodes through four non-script operators to sing-box: the
-// subscription text is parsed, the compiled chain runs, and the producer
-// writes the document. The chain is compiled once, as a record revision's
-// plan is. tools/perfgate holds the medians of the two pipeline benchmarks
-// under 20 ms and 100 ms and every benchmark under 1.5 times the baseline
-// committed in testdata/bench/ubuntu-24.04.txt.
+// The perf gate (S1 plan section 5.2) times design 28's measure: 1000 and
+// 4096 of perfgen's VLESS Reality nodes through four non-script operators to
+// sing-box output. The chain is compiled once, as a record revision's plan
+// is, and runs over a fresh copy of the nodes each iteration (it renames in
+// place); the producer then writes the document. The parse of the same
+// nodes' share links is timed on its own (BenchmarkParseReality1000 and
+// 4096): design 28 bounds it inside the provider fetch and the render round
+// trip, not in this measure, and here it is held to the regression rule.
+// tools/perfgate holds the medians of the two pipeline benchmarks under 20 ms
+// and 100 ms and every benchmark under 1.5 times the baseline committed in
+// testdata/bench/ubuntu-24.04.txt.
 var perfChain = []json.RawMessage{
 	json.RawMessage(`{"type":"Regex Filter","args":{"regex":["^(HK|JP|SG|US|TW|KR|DE|GB) "],"keep":true}}`),
 	json.RawMessage(`{"type":"Regex Rename Operator","args":[{"expr":"^(\\w+) (\\w+) (\\d+)$","now":"$1 $3 $2"}]}`),
@@ -48,6 +54,36 @@ func perfDocument(n int) string {
 	return strings.Join(perfgen.URIs(n), "\n")
 }
 
+// perfNodes is perfgen's first n nodes in the model.
+func perfNodes(tb testing.TB, n int) []*nodemodel.Node {
+	tb.Helper()
+	raw := perfgen.Nodes(n)
+	nodes := make([]*nodemodel.Node, len(raw))
+	for i, r := range raw {
+		nodes[i] = &nodemodel.Node{}
+		if err := json.Unmarshal(r, nodes[i]); err != nil {
+			tb.Fatal(err)
+		}
+	}
+	return nodes
+}
+
+// renderNodes runs the chain over nodes, in place, and writes the sing-box
+// document. It returns how many entries the document has.
+func renderNodes(tb testing.TB, dst *bytes.Buffer, nodes []*nodemodel.Node, plan *operators.Plan) int {
+	tb.Helper()
+	nodes = plan.Run(nodes, &operators.Context{Target: perfTarget})
+	p, ok := producers.Lookup(perfTarget)
+	if !ok {
+		tb.Fatalf("%s has no native producer", perfTarget)
+	}
+	res, err := p.Produce(dst, nodes, perfTarget, nil)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return res.Entries
+}
+
 // renderNative is the native render of one document: parse, the chain, the
 // producer. It returns how many nodes the parse gave and how many entries
 // the document has.
@@ -57,27 +93,29 @@ func renderNative(tb testing.TB, dst *bytes.Buffer, doc string, plan *operators.
 	if err != nil {
 		tb.Fatal(err)
 	}
-	parsed = len(nodes)
-	nodes = plan.Run(nodes, &operators.Context{Target: perfTarget, Raw: doc})
-	p, ok := producers.Lookup(perfTarget)
-	if !ok {
-		tb.Fatalf("%s has no native producer", perfTarget)
+	return len(nodes), renderNodes(tb, dst, nodes, plan)
+}
+
+// copyNodes fills dst with fresh copies of src.
+func copyNodes(dst, src []*nodemodel.Node) {
+	for i, n := range src {
+		dst[i] = n.Clone()
 	}
-	res, err := p.Produce(dst, nodes, perfTarget, nil)
-	if err != nil {
-		tb.Fatal(err)
-	}
-	return parsed, res.Entries
 }
 
 func benchmarkPipeline(b *testing.B, n int) {
-	doc := perfDocument(n)
+	src := perfNodes(b, n)
+	nodes := make([]*nodemodel.Node, n)
 	plan := perfPlan(b)
 	var buf bytes.Buffer
 	b.ReportAllocs()
-	for b.Loop() {
+	b.ResetTimer()
+	for range b.N {
+		b.StopTimer()
+		copyNodes(nodes, src)
 		buf.Reset()
-		renderNative(b, &buf, doc, plan)
+		b.StartTimer()
+		renderNodes(b, &buf, nodes, plan)
 	}
 }
 
@@ -85,19 +123,44 @@ func BenchmarkPipelineReality1000SingBox(b *testing.B) { benchmarkPipeline(b, 10
 
 func BenchmarkPipelineReality4096SingBox(b *testing.B) { benchmarkPipeline(b, 4096) }
 
+func benchmarkParse(b *testing.B, n int) {
+	doc := perfDocument(n)
+	b.ReportAllocs()
+	for b.Loop() {
+		if _, _, err := parse.Document(doc, parse.Options{}); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkParseReality1000(b *testing.B) { benchmarkParse(b, 1000) }
+
+func BenchmarkParseReality4096(b *testing.B) { benchmarkParse(b, 4096) }
+
 // TestPerfPipelineRendersTheChain keeps the benchmarks honest: the parse
-// yields every node, the Regex Filter keeps the eight countries' nodes,
-// sing-box writes every kept node except the XHTTP ones, which it has no
-// transport for (singbox.md, row F6), and every outbound carries its flag and
-// its renamed name, in ascending order.
+// benchmark's links parse to exactly the pipeline benchmark's nodes, the
+// Regex Filter keeps the eight countries' nodes, sing-box writes every kept
+// node except the XHTTP ones, which it has no transport for (singbox.md, row
+// F6), and every outbound carries its flag and its renamed name, in
+// ascending order.
 func TestPerfPipelineRendersTheChain(t *testing.T) {
 	const n = 1000
+	parsed, _, err := parse.Document(perfDocument(n), parse.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fromLinks, fromNodes []any
+	if wire, err := json.Marshal(parsed); err != nil || json.Unmarshal(wire, &fromLinks) != nil {
+		t.Fatalf("encode the parsed nodes: %v", err)
+	}
 	var want int
 	for _, raw := range perfgen.Nodes(n) {
+		var v any
 		var node struct{ Name, Network string }
-		if err := json.Unmarshal(raw, &node); err != nil {
-			t.Fatal(err)
+		if json.Unmarshal(raw, &v) != nil || json.Unmarshal(raw, &node) != nil {
+			t.Fatalf("perfgen node %s is not JSON", raw)
 		}
+		fromNodes = append(fromNodes, v)
 		switch node.Name[:3] {
 		case "HK ", "JP ", "SG ", "US ", "TW ", "KR ", "DE ", "GB ":
 			if node.Network != perfgen.XHTTP {
@@ -105,10 +168,12 @@ func TestPerfPipelineRendersTheChain(t *testing.T) {
 			}
 		}
 	}
+	if !reflect.DeepEqual(fromLinks, fromNodes) {
+		t.Fatalf("the %d links parse to %d nodes that are not perfgen's nodes", n, len(fromLinks))
+	}
 	var buf bytes.Buffer
-	parsed, entries := renderNative(t, &buf, perfDocument(n), perfPlan(t))
-	if parsed != n || entries != want || want == 0 || want == n {
-		t.Fatalf("parsed %d nodes and produced %d entries; want %d and %d", parsed, entries, n, want)
+	if entries := renderNodes(t, &buf, perfNodes(t, n), perfPlan(t)); entries != want || want == 0 || want == n {
+		t.Fatalf("produced %d entries from %d nodes; want %d", entries, n, want)
 	}
 	var doc struct {
 		Outbounds []struct {
@@ -133,26 +198,29 @@ func TestPerfPipelineRendersTheChain(t *testing.T) {
 	}
 }
 
-// pipelineAllocsPerNodeBound is the allocation bound of the 1000-node
-// render, per input node: the first measurement, 61.6 on go1.26.9 (darwin
-// and linux alike), rounded up by a quarter. Raise it only with the reason in
-// the commit.
-const pipelineAllocsPerNodeBound = 77
+// pipelineAllocsPerNodeBound bounds the allocations of the 1000-node chain
+// and producer, per input node, without the copy the benchmark makes first:
+// the first measurement, 22.5 on go1.26.9, rounded up by a quarter. Raise it
+// only with the reason in the commit.
+const pipelineAllocsPerNodeBound = 29
 
 func TestPipelineAllocsPerNodeBound(t *testing.T) {
 	if raceEnabled {
 		t.Skip("the race detector allocates on its own account")
 	}
 	const n = 1000
-	doc := perfDocument(n)
+	src := perfNodes(t, n)
+	nodes := make([]*nodemodel.Node, n)
 	plan := perfPlan(t)
 	var buf bytes.Buffer
+	copies := testing.AllocsPerRun(5, func() { copyNodes(nodes, src) })
 	allocs := testing.AllocsPerRun(5, func() {
+		copyNodes(nodes, src)
 		buf.Reset()
-		renderNative(t, &buf, doc, plan)
-	})
+		renderNodes(t, &buf, nodes, plan)
+	}) - copies
 	perNode := allocs / n
-	t.Logf("%.0f allocations per 1000-node render, %.1f per node (bound %d)", allocs, perNode, pipelineAllocsPerNodeBound)
+	t.Logf("%.0f allocations per 1000-node chain and render, %.1f per node (bound %d)", allocs, perNode, pipelineAllocsPerNodeBound)
 	if perNode > pipelineAllocsPerNodeBound {
 		t.Errorf("%.1f allocations per node, over the bound of %d", perNode, pipelineAllocsPerNodeBound)
 	}

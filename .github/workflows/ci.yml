@@ -219,9 +219,9 @@ jobs:
             system-go/go.mod
             tools/perfgate/go.mod
 
-      - name: run the pipeline and producer benchmarks ten times
+      - name: run the pipeline, parse and producer benchmarks ten times
         working-directory: system-go
-        run: go test -run '^$' -bench 'Pipeline|Produce4096' -count 10 -benchmem ./... | tee "$RUNNER_TEMP/bench.txt"
+        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096' -count 10 -benchmem ./... | tee "$RUNNER_TEMP/bench.txt"
 
       - name: judge the medians
         working-directory: tools/perfgate
