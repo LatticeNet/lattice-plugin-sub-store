@@ -196,6 +196,9 @@ test.describe("at 1440 every column keeps what it says", () => {
     await expect(steps).toHaveAttribute("title", "2 steps, 1 turned off.");
     await expect(steps.locator("small")).toHaveText("1 off");
     expect(await widerThanBox(steps.locator("small"))).toBe(false);
+    const off = (await steps.locator("small").boundingBox())!;
+    const stepsCell = (await steps.boundingBox())!;
+    expect(off.x + off.width, "the second line ends inside its cell").toBeLessThanOrEqual(stepsCell.x + stepsCell.width);
   });
 
   test("on a legacy store the counting word fits the node columns", async ({ page }) => {
