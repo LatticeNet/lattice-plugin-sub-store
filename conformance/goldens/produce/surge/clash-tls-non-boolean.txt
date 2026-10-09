@@ -1,0 +1,1 @@
+HK-k90ug1-59=vmess,m0-15.db68mym.example.net,443,username=c3cea05f-d893-4aaa-900d-53e2e4591837,vmess-aead=true,tls=true,sni="cdn.ozhoh8.example.com"

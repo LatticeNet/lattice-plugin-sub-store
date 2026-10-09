@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "x1-34.mh3dtn.example.com",
+      "443"
+    ],
+    "name": "FR-noq-63",
+    "params": {
+      "tls": "false",
+      "username": "dd30ca27-f54c-4355-b110-7639681794cf",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"x1-34.mh3dtn.example.com\"",
+      "ws-path": "/"
+    },
+    "type": "vmess"
+  }
+]

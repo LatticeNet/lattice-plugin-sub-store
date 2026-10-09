@@ -1,0 +1,20 @@
+[
+  {
+    "body": {
+      "add": "gq-32.z66i.example.com",
+      "aid": "0",
+      "id": "a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb",
+      "net": "tcp",
+      "port": "443",
+      "ps": "SG-b68-73",
+      "scy": "auto",
+      "sni": "img.caykblkqyh.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

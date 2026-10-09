@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-http-multi-path",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "http",
+  "security": "none",
+  "quirk": "http-multi-path",
+  "description": "vmess http with two paths and two Host values."
+}

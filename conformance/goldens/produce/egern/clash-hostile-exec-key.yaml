@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"GB-fz8n-86","method":"aes-128-gcm","server":"c8k-13.e1l43f.example.org","port":43977,"password":"KYsCwZmKBjKgSF","tfo":false,"udp_relay":true}}
+  - {"shadowsocksr":{"name":"KR-ndqkk-68","method":"chacha20-ietf","server":"b6x-20.i8josg.example.org","port":10947,"password":"bcFPcct0YV3p","protocol":"origin","obfs":"plain","tfo":false,"udp_relay":true}}

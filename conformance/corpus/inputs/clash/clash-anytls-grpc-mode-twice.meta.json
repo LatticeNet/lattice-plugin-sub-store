@@ -1,0 +1,9 @@
+{
+  "id": "clash-anytls-grpc-mode-twice",
+  "family": "clash",
+  "protocol": "anytls",
+  "transport": "grpc",
+  "security": "tls",
+  "quirk": "grpc-mode-twice",
+  "description": "anytls on grpc with a service name and _mode multi, so its VLESS-shaped link would carry mode twice; the URI golden pins the collapse. H1 removes _mode on the Lattice parse side."
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "name": "",
+    "password": "wY75JPRvaRRLEgYnTRuB",
+    "ports": "8443",
+    "server": "vq-35.tbtq.example.net",
+    "sni": "static.n6ugri.example.com",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

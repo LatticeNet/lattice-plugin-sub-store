@@ -1,0 +1,25 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "AbkBDfOEHReXUn",
+      "server": "uw-26.rku62.example.org",
+      "server_port": 15190,
+      "tag": "HK-v33w-32",
+      "type": "shadowsocks"
+    },
+    {
+      "password": "jktIH5m0728JHCM4",
+      "server": "lgc-08.chq4.example.org",
+      "server_port": 443,
+      "tag": "KR-wrh-40",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.t3kxz.example.net"
+      },
+      "type": "trojan"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"HK-irkxn-71","server":"enz-06.ks1z.example.org","port":443,"user_id":"d29f522d-b0af-4e45-b5ff-63db7cb42577","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/u2za/ks2mqc","headers":{},"sni":"enz-06.ks1z.example.org"}}}}

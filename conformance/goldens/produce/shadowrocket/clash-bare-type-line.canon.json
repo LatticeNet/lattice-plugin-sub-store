@@ -1,0 +1,9 @@
+{
+  "proxies": [
+    {
+      "name": "direct undefined:undefined",
+      "type": "direct",
+      "udp": true
+    }
+  ]
+}

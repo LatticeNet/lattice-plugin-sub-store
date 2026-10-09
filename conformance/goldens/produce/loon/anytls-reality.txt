@@ -1,0 +1,1 @@
+CA-c08t-42=anytls,hbn-02.cg9uhh2v.example.net,443,"ejgbYJ6mPnxvebxd9iNg",skip-cert-verify=false,sni=api.lvxt2kr.example.net,public-key="xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk",short-id=81f82d48,udp=true

@@ -1,0 +1,1 @@
+vmess=nx6-10.ccti3d5z.example.net:443,method=chacha20-poly1305,password=56394afa-2189-4076-b77c-f314bdae667e,obfs=wss,obfs-uri=/pyb3/uvxw9hba4o,obfs-host=f38-17.jfoeyse.example.net:8080,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=www.fd76v0.example.com,aead=true,udp-relay=true,tag=SG-mtlm4-76

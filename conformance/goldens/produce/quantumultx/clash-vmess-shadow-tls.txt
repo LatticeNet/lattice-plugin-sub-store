@@ -1,0 +1,1 @@
+vmess=ph4-05.mx0tv.example.com:443,method=chacha20-poly1305,password=e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35,obfs=wss,obfs-uri=/zzha3a/pymm,obfs-host=img.bgickuqs.example.org,tls-verification=true,tls-host=api.mmb7dk.example.org,aead=true,udp-relay=true,tag=US-o93-80

@@ -1,0 +1,2 @@
+{"name":"GB-rw9-06","type":"hysteria2","server":"mkg-09.nh61g.example.net","port":443,"password":"wKl8PntEJYrIyLHXdG2j","sni":"www.kup71ude7q.example.org","ports":"59018-59027/14159"}
+{"name":"HK-uqr5-06","type":"hysteria2","server":"xis-35.v7fm.example.com","port":443,"password":"YSTm6wIrazS7SxyeUBSh","sni":"static.w381uvl.example.org","ports":""}

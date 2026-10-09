@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "xo-23.xbwv0pop.example.net",
+      "40231"
+    ],
+    "name": "FR-ngk2i-88",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "cdn.ixxoeq.example.com",
+      "psk": "mClhBBZmCVzR0IpkaeFe",
+      "udp-relay": "true",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

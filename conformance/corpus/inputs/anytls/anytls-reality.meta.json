@@ -1,0 +1,9 @@
+{
+  "id": "anytls-reality",
+  "family": "anytls",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "reality",
+  "description": "security=reality with pbk, sid and type=tcp: reality-opts, network tcp kept, and security, pbk and sid copied as text."
+}

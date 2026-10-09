@@ -1,0 +1,1 @@
+tuic://fe030823-567f-4fbf-b11e-9f282081bfdf:yp4kKdg56ngpzODl@x9j-17.cv7l2u.example.net:443?alpn=h3&congestion_control=cubic&sni=img.mbn182htgb.example.org&fast_open=1&udp=true&udp_relay_mode=native#DE-tg4yf-12

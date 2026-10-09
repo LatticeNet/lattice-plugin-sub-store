@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "SG-i1osv-55",
+    "host": "::ffff:198.51.100.153",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.ok64r7bmn.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Ou8kTO0V9PYFpUBy"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "ss-obfs-blank-host",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "plugin-obfs",
+  "description": "obfs-local with obfs=tls and an empty obfs-host: plugin-opts has no host."
+}

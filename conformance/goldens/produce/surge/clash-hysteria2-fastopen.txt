@@ -1,0 +1,2 @@
+SG-vwk2-66=hysteria2,ur-40.nw6l.example.net,443,password="hF9IuU0ISd7Gz9sI9VrY",sni="static.jzfhs115.example.net",tfo=true
+HK-wv1-55=hysteria2,vr-05.xhjbigia.example.org,443,password="4GlcBhFWc9on08dqocz0",sni="api.zldsqhz5l.example.net",tfo=true

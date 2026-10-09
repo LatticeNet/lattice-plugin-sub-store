@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "nx6-10.ccti3d5z.example.net",
+      "443"
+    ],
+    "name": "SG-mtlm4-76",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "skip-cert-verify": "false",
+      "sni": "www.fd76v0.example.com",
+      "tls": "true",
+      "username": "56394afa-2189-4076-b77c-f314bdae667e",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"f38-17.jfoeyse.example.net:8080\"",
+      "ws-path": "/pyb3/uvxw9hba4o"
+    },
+    "type": "vmess"
+  }
+]

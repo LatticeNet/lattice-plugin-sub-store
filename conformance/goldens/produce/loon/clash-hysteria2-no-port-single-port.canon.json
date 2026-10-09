@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "vq-35.tbtq.example.net",
+      "8443",
+      "wY75JPRvaRRLEgYnTRuB"
+    ],
+    "name": "hysteria2 vq-35.tbtq.example.net:undefined",
+    "params": {
+      "server-ports": "8443",
+      "tls-name": "static.n6ugri.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

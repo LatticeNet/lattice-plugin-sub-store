@@ -1,0 +1,1 @@
+NL-wj4-65=snell,on5-10.vyf1qk.example.org,21532,version=4,psk="D7w7zk21tmdo3Ta891fW",obfs=http,obfs-host=static.mq5rbfy.example.com,reuse=true

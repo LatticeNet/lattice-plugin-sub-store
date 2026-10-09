@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "AU-owaf2-26",
+    "host": "pze-30.gl0zl.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.k1jwj.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "34359908-5583-4f5c-a3ca-2973676f37b8"
+  }
+]

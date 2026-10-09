@@ -1,0 +1,1 @@
+shadowsocks=2001:db8:4504:7576::5d4a:15683,method=aes-128-cfb,password=rcFtHdIJ2k06,ssr-protocol=origin,obfs=plain,obfs-host=api.ih9gp.example.com,udp-relay=true,tag=[2001:db8:4504:7576::5d4a]

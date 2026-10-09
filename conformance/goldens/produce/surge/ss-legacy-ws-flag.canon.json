@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "zv-23.f2kz3r.example.com",
+      "57656"
+    ],
+    "name": "CA-xewu-02",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "password": "rp81zpm9W9bVp4",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

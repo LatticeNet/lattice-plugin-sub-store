@@ -1,0 +1,25 @@
+proxies:
+  - name: SG-u4gm-64
+    type: vless
+    server: q7-21.ctotah.example.org
+    port: 443
+    uuid: 60a5687f-ba67-404a-a2c8-56ca44ec8062
+    udp: true
+    tls: true
+    servername: cdn.la456g.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: KgMh4n27ehm-38dybjboHSbcxSLxw_d1fRO7DKCPr1Q
+      short-id: 56a88599
+    network: xhttp
+    xhttp-opts:
+      path: /qbye/oq5e5hk8
+      mode: packet-up
+      download-settings:
+        path: /i9c1tcimu
+        server: a6o-18.lz4va.example.net
+        port: 443
+        tls: true
+        servername: api.rqvry.example.net
+        reality-opts:
+          public-key: ""

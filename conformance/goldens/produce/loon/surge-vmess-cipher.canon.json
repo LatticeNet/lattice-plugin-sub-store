@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "x5-10.v543o.example.org",
+      "43099",
+      "auto",
+      "d4c82b99-ab27-4c78-b7a6-a67a987675aa"
+    ],
+    "name": "US-w9f9-50",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "lh6-09.tkdfx8sd.example.net",
+      "51833",
+      "chacha20-ietf-poly1305",
+      "ffe806aa-3175-4477-9210-b5ef908b99ac"
+    ],
+    "name": "TW-sph-32",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,2 @@
+vmess=x5-10.v543o.example.org:43099,method=chacha20-poly1305,password=d4c82b99-ab27-4c78-b7a6-a67a987675aa,aead=true,udp-relay=true,tag=US-w9f9-50
+vmess=lh6-09.tkdfx8sd.example.net:51833,method=chacha20-poly1305,password=ffe806aa-3175-4477-9210-b5ef908b99ac,aead=true,udp-relay=true,tag=TW-sph-32

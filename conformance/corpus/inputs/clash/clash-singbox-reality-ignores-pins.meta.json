@@ -1,0 +1,9 @@
+{
+  "id": "clash-singbox-reality-ignores-pins",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-pins",
+  "description": "vless Reality with fingerprint and _certificate_sha256."
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "vu3-01.e7b60u5.example.org",
+      "32470"
+    ],
+    "name": "HK-jscx-03",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "F92aTOMG5tnYx1",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "f8j-38.pujymc1.example.net",
+      "443"
+    ],
+    "name": "NL-gblee-19",
+    "params": {
+      "password": "loD9lFOy1tBHPvkb",
+      "sni": "static.jj1xaxhl.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"DE-mezs9r-33","server":"r7-03.i2erek.example.net","port":443,"user_id":"5f9949e9-6942-4705-aac5-b20178fbf8d9","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/yp7qbs?ed=gi2i1","headers":{"Host":"api.wcdec4b.example.org"},"sni":"api.wcdec4b.example.org","skip_tls_verify":false}}}}

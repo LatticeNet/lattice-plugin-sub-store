@@ -1,0 +1,1 @@
+FR-ngk2i-88=snell,xo-23.xbwv0pop.example.net,40231,version=4,psk="mClhBBZmCVzR0IpkaeFe",obfs=http,obfs-host=cdn.ixxoeq.example.com,shadow-tls-password="cr2BrE41G1Ek7tgM",shadow-tls-sni=static.wa6r8.example.org,shadow-tls-version=3

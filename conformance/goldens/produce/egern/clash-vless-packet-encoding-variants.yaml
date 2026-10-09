@@ -1,0 +1,8 @@
+proxies:
+  - {"vless":{"name":"NL-c0jwf0-27","server":"r53-20.yhgq.example.com","port":443,"user_id":"912e7571-7154-452b-9b82-c6026c6953fb","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.o74wal.example.net","skip_tls_verify":false}}}}
+  - {"vless":{"name":"FR-r7ml8-20","server":"z0-06.qzoy.example.net","port":443,"user_id":"5348b7f1-9e4e-4515-b51b-189559424870","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.bm38g6wqs.example.net","skip_tls_verify":false}}}}
+  - {"vless":{"name":"JP-qrm-35","server":"v9-03.agwj3.example.org","port":443,"user_id":"c1ec7aa9-f92b-4bfd-9d36-d1e428bb8682","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.b8k1h6kf9z.example.org","skip_tls_verify":false}}}}
+  - {"vless":{"name":"HK-d710yj-84","server":"vp-08.qfttqrq.example.com","port":443,"user_id":"b7f70ac5-0730-43bf-ac0c-eb767e9b3c49","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.f87ffy7ut.example.com","skip_tls_verify":false}}}}
+  - {"vless":{"name":"CA-hjc4-51","server":"zl5-12.cr9r.example.org","port":443,"user_id":"061b0719-0e25-4525-8b66-c18c5ff0aa8c","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.jip6g5tw.example.net","skip_tls_verify":false}}}}
+  - {"vless":{"name":"HK-futh-87","server":"hfc-25.hcxldu.example.net","port":443,"user_id":"11275432-b68d-408c-9676-e6fa18c06530","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.zeenb.example.com","skip_tls_verify":false}}}}
+  - {"vless":{"name":"KR-ez31fy-14","server":"qgd-06.g02h.example.com","port":443,"user_id":"8a1a0a05-cd82-45f8-82c5-249933f55d4f","tfo":false,"udp_relay":false,"transport":{"tls":{"sni":"cdn.w1qjmg.example.org","skip_tls_verify":false}}}}

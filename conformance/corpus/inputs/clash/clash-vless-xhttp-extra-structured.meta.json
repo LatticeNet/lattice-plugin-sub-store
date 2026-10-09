@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-xhttp-extra-structured",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-extra-structured",
+  "description": "vless xhttp with headers, no-grpc-header, x-padding-bytes, uplink-http-method, session and seq keys and reuse-settings."
+}

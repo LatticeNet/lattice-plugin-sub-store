@@ -1,0 +1,19 @@
+proxies:
+  - name: JP-dlo0l-90
+    type: vmess
+    server: lyy-32.bzir.example.org
+    port: 443
+    uuid: c1fdca40-1054-4b30-a6f8-dac53a265e4e
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /amaez
+        - /af64p
+      headers:
+        Host:
+          - www.bsjjx6bz0t.example.com
+          - api.bwc8x.example.org

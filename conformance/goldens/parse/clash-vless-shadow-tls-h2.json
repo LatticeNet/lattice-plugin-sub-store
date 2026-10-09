@@ -1,0 +1,31 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "h2-opts": {
+      "host": [
+        "static.t3tolezml9.example.org"
+      ],
+      "path": "/gd2xn7xk2"
+    },
+    "name": "AU-jwzsq-86",
+    "network": "h2",
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "host": "www.eafsr4p4.example.net",
+      "password": "sJsf5OZ1VPm1lqg2",
+      "version": 3
+    },
+    "port": 443,
+    "server": "yb-14.ftkl.example.org",
+    "skip-cert-verify": false,
+    "sni": "www.eafsr4p4.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "77ae0d55-6292-4898-bd24-56a17d4c8a99"
+  }
+]

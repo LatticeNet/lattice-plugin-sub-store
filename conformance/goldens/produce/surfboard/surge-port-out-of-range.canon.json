@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ndr-05.gbn77.example.com",
+      "undefined"
+    ],
+    "name": "CA-m7m-68",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "ALdras0pPBr1sZ",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

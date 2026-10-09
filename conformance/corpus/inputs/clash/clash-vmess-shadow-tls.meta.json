@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-shadow-tls",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "vmess ws TLS with shadow-tls-opts version 3."
+}

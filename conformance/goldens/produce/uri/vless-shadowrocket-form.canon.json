@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "SG-lc2-75",
+    "host": "cn8-05.u99h.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "host",
+        "api.sfqet.example.com"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/sufbag7zgs"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.sfqet.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ef04e78f-802d-4a7d-b13d-af45d17e4676"
+  }
+]

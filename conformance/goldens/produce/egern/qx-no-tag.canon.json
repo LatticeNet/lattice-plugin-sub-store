@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "http pri-05.hq82lhl.example.net:80",
+        "port": 80,
+        "server": "pri-05.hq82lhl.example.net",
+        "tfo": false
+      }
+    }
+  ]
+}

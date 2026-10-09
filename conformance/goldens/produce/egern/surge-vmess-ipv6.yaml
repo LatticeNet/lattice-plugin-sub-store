@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"US-snz-75","server":"2001:db8:f4e1:9108::e11d","port":28811,"user_id":"4ddabfe1-ea65-4fc3-af13-ab9d288a30ce","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/qpqlfvau","headers":{"Host":"cdn.shsl3n.example.net"}}}}}

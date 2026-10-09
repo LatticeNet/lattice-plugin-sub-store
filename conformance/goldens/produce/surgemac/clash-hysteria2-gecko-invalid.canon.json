@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "a05-26.q0npk.example.net",
+      "443"
+    ],
+    "name": "FR-s4pa-17",
+    "params": {
+      "gecko-password": "gYN0n7FMODePW3SE",
+      "password": "H4knqbki5VO6glZ0GAIi",
+      "sni": "img.dqnh2.example.org"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "j6-16.pt0d.example.com",
+      "443"
+    ],
+    "name": "US-rzgm8-24",
+    "params": {
+      "gecko-password": "ZOkZD2ADUQ6tUiPg",
+      "password": "Bswmsu7Dabu1mM7QmduP",
+      "sni": "www.jxgptr7.example.net"
+    },
+    "type": "hysteria2"
+  }
+]

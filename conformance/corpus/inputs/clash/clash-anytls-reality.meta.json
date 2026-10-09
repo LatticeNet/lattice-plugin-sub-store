@@ -1,0 +1,9 @@
+{
+  "id": "clash-anytls-reality",
+  "family": "clash",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "anytls-reality",
+  "description": "anytls with network tcp and reality-opts (ClashMeta A11 drops it)."
+}

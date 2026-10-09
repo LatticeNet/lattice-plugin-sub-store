@@ -1,0 +1,3 @@
+proxies:
+  - {"wireguard":{"name":"HK-z9kib-51","local_ipv4":"10.62.213.85/28","local_ipv6":"fd00:2a0d::e32/64","server":"k8-23.iefkaz2.example.com","port":51820,"private_key":"CzWYNoo2tFnVTknmWB0FYPOL2Y0gAM0qurdfhjTWdPw=","peer_public_key":"oyiYyfyZhBjaHHoiJ5xjaeukQl3v+0D9vtbqw5nQGuo="}}
+  - {"wireguard":{"name":"CA-cvee-04","server":"fxv-34.sjojf.example.org","port":51820,"private_key":"Gy3ZPk2zUnhR9lt8Ab1VnPi2UbIMhRJvuiM5aZMtX+U=","peer_public_key":"Xjv4vaWAuSn0vvB0bC5mpjjTnzkOiYe9abu+Od7rnrI="}}

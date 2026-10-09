@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "d3-40.imv854.example.com",
+      "11307"
+    ],
+    "name": "JP-oxhcw-81",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "0464",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "l4o-04.bk9b.example.com",
+      "20956"
+    ],
+    "name": "SG-tqhn9e-94",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "0566",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "jo-14.ikr1e9o.example.net",
+      "42874"
+    ],
+    "name": "FR-zp3m-01",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "560",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

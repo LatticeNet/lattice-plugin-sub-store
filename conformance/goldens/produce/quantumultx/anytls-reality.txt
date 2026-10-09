@@ -1,0 +1,1 @@
+anytls=hbn-02.cg9uhh2v.example.net:443,password=ejgbYJ6mPnxvebxd9iNg,over-tls=true,tls-verification=true,tls-host=api.lvxt2kr.example.net,udp-relay=true,tag=CA-c08t-42,reality-base64-pubkey=xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk,reality-hex-shortid=81f82d48

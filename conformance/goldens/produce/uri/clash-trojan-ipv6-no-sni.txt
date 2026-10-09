@@ -1,0 +1,1 @@
+trojan://g3gXaBy4RFjQr2HJ@[2001:db8:e063:b663::82e8]:443?sni=%5B2001%3Adb8%3Ae063%3Ab663%3A%3A82e8%5D&type=tcp#SG-kcw-48

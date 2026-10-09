@@ -1,0 +1,1 @@
+shadowsocks=z1-21.zqumychj.example.net:14505,method=aes-128-gcm,password=gt0FvRTLVhowsY,obfs=over-tls,obfs-host=cdn.re7uychv.example.net,tls-alpn=02683208687474702f312e31,tls-verification=true,udp-relay=true,tag=JP-w1dnn-84

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "pf-09.b8jq.example.com:50711",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "koqDbSBQ9l8LWr",
+      "tag": "US-cokl-60",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

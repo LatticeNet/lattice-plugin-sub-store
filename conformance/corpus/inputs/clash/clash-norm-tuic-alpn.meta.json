@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-tuic-alpn",
+  "family": "clash",
+  "protocol": "tuic",
+  "quirk": "tuic-alpn",
+  "description": "N34: TUIC with alpn \"\", \"h3\" and a list: [h3], [h3] and the list kept, with the congestion and relay defaults."
+}

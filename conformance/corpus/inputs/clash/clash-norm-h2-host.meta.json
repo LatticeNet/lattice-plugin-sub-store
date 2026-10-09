@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-h2-host",
+  "family": "clash",
+  "protocol": "vmess",
+  "quirk": "h2-host",
+  "description": "N21: VMess h2 with headers.host beside another header, then h2 with both h2-opts.host and headers.Host and a list path: h2-opts.host becomes a list, the host headers go, an emptied headers object is dropped, and a list path becomes its first element."
+}

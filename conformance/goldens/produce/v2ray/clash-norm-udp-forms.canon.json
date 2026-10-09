@@ -1,0 +1,92 @@
+[
+  {
+    "fragment": "DE-cx3puo-07",
+    "host": "ax-36.fvpemab.example.com",
+    "path": "",
+    "port": "59231",
+    "query": [
+      [
+        "udp",
+        "0"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206TUhkSldhN2ZHMTNlemM=",
+    "userinfo_base64": "aes-128-gcm:MHdJWa7fG13ezc"
+  },
+  {
+    "fragment": "JP-c0up-16",
+    "host": "gb-35.qorj2ra.example.org",
+    "path": "",
+    "port": "11115",
+    "query": [
+      [
+        "udp",
+        "0"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Qm1talVIUzlrM2ZiQnk=",
+    "userinfo_base64": "aes-128-gcm:BmmjUHS9k3fbBy"
+  },
+  {
+    "fragment": "CA-db7t-24",
+    "host": "rv-32.lqs3ow7.example.net",
+    "path": "",
+    "port": "43102",
+    "query": [
+      [
+        "udp",
+        "0"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206dFVVUFdJOWo2U203RVg=",
+    "userinfo_base64": "aes-128-gcm:tUUPWI9j6Sm7EX"
+  },
+  {
+    "fragment": "CA-n9cjl5-36",
+    "host": "ri-36.p6ef54x.example.com",
+    "path": "",
+    "port": "17632",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206dnF6OTA2d2RzZWpuWHc=",
+    "userinfo_base64": "aes-128-gcm:vqz906wdsejnXw"
+  },
+  {
+    "fragment": "AU-m13e-41",
+    "host": "vqc-37.ogl0g.example.com",
+    "path": "",
+    "port": "43916",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206c2JScHRNVHRqdlNENnQ=",
+    "userinfo_base64": "aes-128-gcm:sbRptMTtjvSD6t"
+  },
+  {
+    "fragment": "DE-cg3m-43",
+    "host": "ka2-34.mp8l.example.net",
+    "path": "",
+    "port": "19976",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206cGREVE9JMFhPWVQyejc=",
+    "userinfo_base64": "aes-128-gcm:pdDTOI0XOYT2z7"
+  }
+]

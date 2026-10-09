@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "pze-30.gl0zl.example.com",
+      "443",
+      "34359908-5583-4f5c-a3ca-2973676f37b8"
+    ],
+    "name": "AU-owaf2-26",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "static.k1jwj.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

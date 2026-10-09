@@ -1,0 +1,9 @@
+{
+  "id": "ssr-ipv6",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "ipv6-literal",
+  "description": "A bracketed IPv6 host with obfsparam and group and no remarks: the normaliser unbrackets the server, and the name is the server as written, brackets included."
+}

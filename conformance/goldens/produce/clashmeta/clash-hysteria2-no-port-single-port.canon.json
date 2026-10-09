@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "name": "hysteria2 vq-35.tbtq.example.net:undefined",
+      "password": "wY75JPRvaRRLEgYnTRuB",
+      "port": 8443,
+      "ports": "8443",
+      "server": "vq-35.tbtq.example.net",
+      "sni": "static.n6ugri.example.com",
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

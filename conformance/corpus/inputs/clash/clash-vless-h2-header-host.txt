@@ -1,0 +1,19 @@
+proxies:
+  - name: GB-xg93w-33
+    type: vless
+    server: b7-18.kmcodbo.example.org
+    port: 443
+    uuid: 2df16dbd-66db-48f2-80ff-ef1f78228057
+    udp: true
+    tls: true
+    servername: img.m0ma8.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: h2
+    h2-opts:
+      path: /lqu7b/jfvvr716ye
+      headers:
+        Host: static.aifby1prv.example.net

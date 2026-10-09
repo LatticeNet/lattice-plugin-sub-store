@@ -1,0 +1,9 @@
+{
+  "id": "trojan-bare-allow-insecure",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "allow-insecure",
+  "description": "A bare allowInsecure item: skip-cert-verify true."
+}

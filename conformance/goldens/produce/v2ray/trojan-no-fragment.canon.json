@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "ec-33.vvz9nnx.example.net:443",
+    "host": "ec-33.vvz9nnx.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "ec-33.vvz9nnx.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "rIMI2l87ZUcn0Dio"
+  }
+]

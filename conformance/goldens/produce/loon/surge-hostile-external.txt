@@ -1,0 +1,1 @@
+NL-d0svs-69=shadowsocks,ww-28.b6rk.example.com,50551,aes-128-gcm,"2UkWNdG9ThWtTN",udp=true

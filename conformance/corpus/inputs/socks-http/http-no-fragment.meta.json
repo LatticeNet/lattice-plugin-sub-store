@@ -1,0 +1,9 @@
+{
+  "id": "http-no-fragment",
+  "family": "socks-http",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "missing-name",
+  "description": "http://host:8080 without a fragment: the name is http host:8080."
+}

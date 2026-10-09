@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "nnv-08.qg4at.example.net",
+      "10273"
+    ],
+    "name": "GB-uvpa-97",
+    "params": {
+      "mode": "unshaped",
+      "psk": "z28buU4hhgDebz86r0o7",
+      "version": "6"
+    },
+    "type": "snell"
+  }
+]

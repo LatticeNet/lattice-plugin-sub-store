@@ -1,0 +1,19 @@
+proxies:
+  - name: TW-hbk7t-48
+    type: vmess
+    server: e1t-28.pn1vrl.example.org
+    port: 443
+    uuid: 92dd7a9f-7483-4169-b5bc-9e1c9df883c9
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: api.mszatet97q.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    shadow-tls-opts:
+      password: yU68L74JHz9Hng25
+      version: 4

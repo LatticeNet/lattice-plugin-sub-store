@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"TW-n4sg-69","server":"l1-03.zh7zvdv.example.net","port":443,"uuid":"13980a81-2a49-45de-9d78-14135a92db7a","password":"xBFRjdH4b8mIwbA7","sni":"www.vspcc22n.example.com","alpn":["h3"]}}

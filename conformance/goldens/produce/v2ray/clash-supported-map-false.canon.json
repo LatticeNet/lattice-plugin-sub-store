@@ -1,0 +1,164 @@
+[
+  {
+    "fragment": "SG-mxrw1e-75",
+    "host": "cp-20.jw71rf.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.tbkalp.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "kTepawGO3AjkBJVt"
+  },
+  {
+    "fragment": "NL-pkmbvt-41",
+    "host": "y0-35.wdcffic.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.ybdua.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "vhJvxrLTpRHRfRPV"
+  },
+  {
+    "fragment": "TW-bk4-46",
+    "host": "pa-28.vuyz.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.ocdd7vpvs.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "bmUi5GJVTgZIzHcA"
+  },
+  {
+    "fragment": "GB-pep-83",
+    "host": "s52-03.k2kzr.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.kgw5zfakhz.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "I7JJza3Y885Hhp4R"
+  },
+  {
+    "fragment": "CA-bxm-15",
+    "host": "gki-38.z3rkzlw.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.u8x9y8.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Ask6g1xO23Dib1uN"
+  },
+  {
+    "fragment": "TW-lat6-53",
+    "host": "jyz-13.is8wm.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.i8zl1hhbgv.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "7ePXq4jqWdv19scY"
+  },
+  {
+    "fragment": "HK-pdh3s2-73",
+    "host": "qxj-15.bjv0ij.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.w8op1d7c4.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "fGCyF2qeRAtQuer7"
+  },
+  {
+    "fragment": "JP-mog-09",
+    "host": "s9z-20.cf5oazt.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.ws36rvxzs.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "v9HWkJwL5BIBqaUF"
+  },
+  {
+    "fragment": "AU-a8pf2k-05",
+    "host": "fwl-26.obmfk01k.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.zat9xlm.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "ec6G8V8ffMYPurFG"
+  }
+]

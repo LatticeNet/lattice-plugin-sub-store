@@ -1,0 +1,9 @@
+{
+  "id": "trojan-ipv6-mapped-full",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ipv6-literal-grammar",
+  "description": "Bracketed hosts 0:0:0:0:0:ffff:<IPv4> and ::ffff:<IPv4>: the first is not an IPv6 literal under parser.md 1.5 and is rejected, the second is accepted."
+}

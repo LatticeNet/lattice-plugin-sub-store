@@ -1,0 +1,40 @@
+[
+  {
+    "address": "ph-02.bapy.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "6c4622e0-64ad-4d8e-a4bb-b3eab53c4c54",
+      "tag": "US-ym0l-16",
+      "tls-host": "cdn.wouhuc1z7w.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "wox-27.fknu.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "3f5ddbaa-1428-47db-8c42-5461d36dc1b2",
+      "tag": "NL-yzu-01",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "kw-04.bxqyy.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "8e3fa44a-72bc-4952-88e2-71cd10bc8ed2",
+      "tag": "KR-pjl-56",
+      "tls-host": "img.s8xo0hw.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

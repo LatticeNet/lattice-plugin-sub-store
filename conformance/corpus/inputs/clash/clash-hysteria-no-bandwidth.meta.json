@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria-no-bandwidth",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "no-bandwidth",
+  "description": "hysteria without up and down."
+}

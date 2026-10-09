@@ -1,0 +1,9 @@
+vmess=mt-07.ap0n.example.org:443,method=chacha20-poly1305,password=04fea0d2-f068-4818-9e84-9fcd0cb64977,aead=true,udp-relay=true,tag=AU-qms18c-73
+vmess=fi-07.zlmsj5zp.example.com:443,method=chacha20-poly1305,password=604b60bf-4a19-4cf3-984c-2750181358ed,obfs=over-tls,tls-host=fi-07.zlmsj5zp.example.com,aead=true,udp-relay=true,tag=KR-h6tw3-13
+vmess=yj-35.ax320ck.example.net:443,method=chacha20-poly1305,password=c7982572-4530-4815-9e33-2d254bae810c,obfs=over-tls,tls-host=yj-35.ax320ck.example.net,aead=true,udp-relay=true,tag=AU-kas6d-44
+vmess=a4j-40.xuz5ma.example.org:443,method=chacha20-poly1305,password=21fe4760-f458-454a-ad39-0db461b589e0,obfs=over-tls,tls-host=a4j-40.xuz5ma.example.org,aead=true,udp-relay=true,tag=JP-gndw-67
+vmess=j0g-14.hg40a2n.example.net:443,method=chacha20-poly1305,password=2ef72e8e-9908-4085-9800-f337bbc3f059,obfs=over-tls,tls-host=j0g-14.hg40a2n.example.net,aead=true,udp-relay=true,tag=DE-lb7ytx-50
+vmess=bx-31.x56tz.example.org:443,method=chacha20-poly1305,password=85f1e9b4-eba3-408a-8f1d-24c832e9b51b,aead=true,udp-relay=true,tag=NL-ysukf-56
+vmess=e0-07.czbgd0.example.net:443,method=chacha20-poly1305,password=291987db-ea96-4f88-9236-e3c2f0a463a8,aead=true,udp-relay=true,tag=CA-ceca-80
+vmess=clz-12.fjzed0y.example.com:443,method=chacha20-poly1305,password=4299b255-f1cf-40b5-a043-d866da1333c0,aead=true,udp-relay=true,tag=DE-p9o9ke-01
+vmess=wgi-05.jlm73zvl.example.net:443,method=chacha20-poly1305,password=f59d0d38-5c8c-451f-8d84-9c6f93f70ed2,obfs=over-tls,tls-host=wgi-05.jlm73zvl.example.net,aead=true,udp-relay=true,tag=KR-h09-04

@@ -1,0 +1,34 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "nx6-10.ccti3d5z.example.net",
+      "server_port": 443,
+      "tag": "SG-mtlm4-76",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.fd76v0.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "f38-17.jfoeyse.example.net"
+        },
+        "path": "/pyb3/uvxw9hba4o",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "56394afa-2189-4076-b77c-f314bdae667e"
+    }
+  ]
+}

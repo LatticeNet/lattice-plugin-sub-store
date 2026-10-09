@@ -1,0 +1,24 @@
+[
+  {
+    "args": [],
+    "name": "GB-itui-59",
+    "params": {
+      "interface-ip": "10.25.96.50",
+      "interface-ipv6": "fd00:9946::7d85",
+      "peers": "[{public-key=\"/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=e8-16.m20ou6xn.example.net:51820}]",
+      "private-key": "RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "TW-lql-28",
+    "params": {
+      "interface-ip": "theee7",
+      "interface-ipv6": "",
+      "peers": "[{public-key=\"FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=nwc-26.vov4gi.example.com:51820}]",
+      "private-key": "GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc="
+    },
+    "type": "wireguard"
+  }
+]

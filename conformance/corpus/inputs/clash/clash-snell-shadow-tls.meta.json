@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-shadow-tls",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "snell-shadow-tls",
+  "description": "snell version 4 with shadow-tls given as obfs-opts mode shadow-tls."
+}

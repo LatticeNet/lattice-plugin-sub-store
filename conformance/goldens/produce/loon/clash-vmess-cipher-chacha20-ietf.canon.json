@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "b7-04.wu1sho.example.com",
+      "443",
+      "chacha20-ietf-poly1305",
+      "a050dd43-7c9a-43a4-8c46-b9ab4c4d3f97"
+    ],
+    "name": "CA-cqz7w-71",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

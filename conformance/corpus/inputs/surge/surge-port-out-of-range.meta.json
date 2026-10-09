@@ -1,0 +1,9 @@
+{
+  "id": "surge-port-out-of-range",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "port-out-of-range",
+  "description": "Port 99999: port is absent."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "anytls-no-port",
+  "family": "anytls",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "missing-port",
+  "description": "anytls://password@host without a port: the VLESS pass needs a port, so the line is rejected."
+}

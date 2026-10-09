@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-jnq-88",
+      "type": "trojan",
+      "server": "yev-28.xniy064.example.net",
+      "server_port": 443,
+      "password": "jjPT3sFpPqTjDrbJ",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.a6fucziy.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

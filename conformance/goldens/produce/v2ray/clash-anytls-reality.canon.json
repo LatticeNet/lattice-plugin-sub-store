@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "JP-uine-40",
+    "host": "wja-38.mypjmxik.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "network",
+        "tcp"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "x1d1tn0PXiRTV539e9f0sdqIxB9Q3QtSK3WWsvOYFYU"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "36529070"
+      ],
+      [
+        "sni",
+        "api.d36fk.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "CHDxZquybD5tKCFbF3uw"
+  }
+]

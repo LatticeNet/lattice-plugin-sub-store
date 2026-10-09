@@ -1,0 +1,17 @@
+[
+  {
+    "address": "hc-40.nc5igzur.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "b2db72da-0421-48df-b34b-b536eca4d3f8",
+      "tag": "NL-y3n-41",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.n2x9vi.example.org",
+      "tls-verification": "img.gx3fkjiqom.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-cf9p0-05",
+      "type": "hysteria2",
+      "server": "krx-01.z80re.example.org",
+      "server_port": 443,
+      "password": "8RY6jGZbI7EkOQU9BxCP",
+      "obfs": {
+        "type": "gecko",
+        "min_packet_size": 100,
+        "max_packet_size": 2048,
+        "password": "W8lk4MDS8AdiS9s1"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.wgruy.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

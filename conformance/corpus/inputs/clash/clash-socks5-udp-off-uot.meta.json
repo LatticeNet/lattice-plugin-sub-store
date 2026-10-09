@@ -1,0 +1,9 @@
+{
+  "id": "clash-socks5-udp-off-uot",
+  "family": "clash",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "udp-over-tcp",
+  "description": "socks5 with udp: false and uot: true, and socks5 with udp-over-tcp: true and udp-over-tcp-version 2."
+}

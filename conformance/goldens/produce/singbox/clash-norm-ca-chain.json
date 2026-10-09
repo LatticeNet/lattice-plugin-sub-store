@@ -1,0 +1,35 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-chu7-11",
+      "type": "vless",
+      "server": "my4-31.fhft.example.com",
+      "server_port": 443,
+      "uuid": "ba462a80-ab01-4c3f-88b7-c47220841185",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.h1p5z.example.com",
+        "insecure": false,
+        "certificate": [
+          "-----BEGIN CERTIFICATE-----\nfDVv9GoUYbj07gHr3afCj3O93GOITEPG8QvosW7ChinB8WBFOrHfUSooesl5SnYs\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nzsSFdYn7mnrN238gk4lorAV3guP8Pf0ICfTyGeI5tMr2OMevoWRZ5Ou+1CVerqBY\n-----END CERTIFICATE-----"
+        ]
+      }
+    },
+    {
+      "tag": "HK-xgot1p-60",
+      "type": "trojan",
+      "server": "b9-39.i1ubj.example.org",
+      "server_port": 443,
+      "password": "1nbSNxX7dKIzH5cg",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.xjvul.example.org",
+        "insecure": false,
+        "certificate": [
+          "-----BEGIN CERTIFICATE-----\n/PiBfl2zVHgY0WyR87O6XGi7/BSTJCyt0Vf/xukDS3g3dkRSiAZ5p8pYOLWTgfzN\n-----END CERTIFICATE-----"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

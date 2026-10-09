@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "GB-e5b-15",
+    "host": "cb-23.mmndug.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "path",
+        "/du3hede"
+      ],
+      [
+        "sni",
+        "static.b7zcm8.example.net"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "QF8oCcvBNMnLwtsA"
+  }
+]

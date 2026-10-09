@@ -1,0 +1,18 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "NL-wca4te-67",
+    "network": "ws",
+    "password": "UIyHcd6WdDKACc",
+    "port": 10060,
+    "server": "qq0-04.ywvxhzk.example.com",
+    "sni": "qq0-04.ywvxhzk.example.com",
+    "tls": true,
+    "type": "ss",
+    "udp": true,
+    "ws-opts": {
+      "max-early-data": 2048,
+      "path": "/l372je9y"
+    }
+  }
+]

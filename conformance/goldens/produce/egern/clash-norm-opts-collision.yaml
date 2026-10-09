@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"GB-psozs1-08","method":"aes-128-gcm","server":"u69-18.hhni.example.net","port":15480,"password":"vLNqaPRJUz67TQ","tfo":false,"udp_relay":true}}
+  - {"vmess":{"name":"TW-neu8xy-54","server":"nuu-30.bptlkz.example.com","port":443,"user_id":"0a5d3415-a80e-41f0-9ff2-1292dc251a4e","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/ct25/e7005","headers":{"Host":"cdn.mub447v0m.example.net"}}}}}

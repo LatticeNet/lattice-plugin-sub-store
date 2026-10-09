@@ -1,0 +1,1 @@
+US-jnq-88=trojan,yev-28.xniy064.example.net,443,"jjPT3sFpPqTjDrbJ",tls-name=cdn.a6fucziy.example.net,udp=true

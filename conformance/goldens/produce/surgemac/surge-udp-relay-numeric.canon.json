@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "j9r-22.r5nnt.example.com",
+      "21000"
+    ],
+    "name": "SG-fllz-67",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "8tBpgDAvkyCIM2",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "nw-25.gx808qo.example.net",
+      "443"
+    ],
+    "name": "TW-zqdt-64",
+    "params": {
+      "password": "sPOmVik1yMye21bMsDsr",
+      "salamander-password": "xVZfLLQWOS2O",
+      "skip-cert-verify": "false",
+      "sni": "static.refup.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

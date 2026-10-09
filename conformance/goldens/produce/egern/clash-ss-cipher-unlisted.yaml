@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"KR-t5c4a4-23","method":"camellia-128-cfb","server":"z0p-14.h7qm2mrm.example.com","port":34037,"password":"sno5kIgnhB6Fsk","tfo":false,"udp_relay":true}}

@@ -1,0 +1,3 @@
+SG-ndx7f-75=tuic-v5,yi-18.nwuw0vdq.example.com,443,uuid=e36e543d-430c-4504-95a2-fcb1e9e8c41e,password="LiA8wWkAmjun7p5p",sni="cdn.uybowyulgx.example.net",alpn="h3"
+US-qkl-19=tuic-v5,cn-35.vy0b.example.net,443,uuid=79338101-7e19-4bf8-bd50-bc577e9913a8,password="MLs179LcEU5gAAyL",sni="static.hiqwqs.example.org",alpn="h3"
+TW-w25-72=tuic-v5,i4p-30.pqvll.example.com,443,uuid=5c112dae-2e13-4949-b4c1-e96e3d222134,password="RxcZJzwe8DttDIdv",sni="cdn.augcru5.example.org",alpn="h3,spdy/3.1"

@@ -1,0 +1,59 @@
+[
+  {
+    "args": [
+      "o30-36.skj7.example.net",
+      "443",
+      "f3bcf2dc-56ad-44d1-aae4-841e7906b751"
+    ],
+    "name": "SG-b5q-10",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "1G2ZoQ3_fo3QVQT-lMsdv48t6rnPKq05FVdYWDhvw1s",
+      "short-id": "d1598053",
+      "sni": "img.t9f9hgw.example.org",
+      "tls-profile": "safari-ios-26",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "di-26.aub26d.example.com",
+      "443",
+      "b251581e-2ff0-47ff-9407-a51f76850caf"
+    ],
+    "name": "CA-zukec-21",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "_lQFE406gO_mEh9dTyGBfoY9ArJagdI-m5SvFl6il3s",
+      "short-id": "88d2dfb5",
+      "sni": "img.f0jk13.example.net",
+      "tls-profile": "chrome147",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "cog-27.g0vvm9f.example.com",
+      "443",
+      "ff524432-da03-4630-8748-f7b4ee08c504"
+    ],
+    "name": "TW-qg6b2y-39",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "I_kNHGqd8kMfOei3DGIXPpc86GE1atl3poz4A3_37yU",
+      "short-id": "257d13f0",
+      "sni": "static.s7lp51.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

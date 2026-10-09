@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-uine-40",
+      "type": "anytls",
+      "server": "wja-38.mypjmxik.example.org",
+      "server_port": 443,
+      "password": "CHDxZquybD5tKCFbF3uw",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.d36fk.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "x1d1tn0PXiRTV539e9f0sdqIxB9Q3QtSK3WWsvOYFYU",
+          "short_id": "36529070"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

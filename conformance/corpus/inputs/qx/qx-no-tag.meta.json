@@ -1,0 +1,9 @@
+{
+  "id": "qx-no-tag",
+  "family": "qx",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "missing-tag",
+  "description": "http=host:80 without a tag: the normaliser names it http host:80."
+}

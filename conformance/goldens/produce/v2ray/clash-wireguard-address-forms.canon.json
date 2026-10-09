@@ -1,0 +1,42 @@
+[
+  {
+    "fragment": "HK-z9kib-51",
+    "host": "k8-23.iefkaz2.example.com",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.62.213.85/28,fd00:2a0d::e32/64"
+      ],
+      [
+        "publickey",
+        "oyiYyfyZhBjaHHoiJ5xjaeukQl3v+0D9vtbqw5nQGuo="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "CzWYNoo2tFnVTknmWB0FYPOL2Y0gAM0qurdfhjTWdPw="
+  },
+  {
+    "fragment": "CA-cvee-04",
+    "host": "fxv-34.sjojf.example.org",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "publickey",
+        "Xjv4vaWAuSn0vvB0bC5mpjjTnzkOiYe9abu+Od7rnrI="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "Gy3ZPk2zUnhR9lt8Ab1VnPi2UbIMhRJvuiM5aZMtX+U="
+  }
+]

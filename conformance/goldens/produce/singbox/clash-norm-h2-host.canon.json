@@ -1,0 +1,43 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "w7y-37.o465b4c.example.org",
+      "server_port": 443,
+      "tag": "GB-tar-46",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.h1c9g9r6o.example.com"
+      },
+      "transport": {
+        "host": "img.h1c9g9r6o.example.com",
+        "path": "/emz38eglb",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "552931fd-1683-49b6-a34f-4ae883271012"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "moi-07.uggey.example.org",
+      "server_port": 443,
+      "tag": "TW-oq52r2-15",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.unensw1l.example.org"
+      },
+      "transport": {
+        "host": "api.unensw1l.example.org",
+        "path": "/go6vp",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "6f3b98b5-cebc-4003-ab5c-c71f08f094f3"
+    }
+  ]
+}

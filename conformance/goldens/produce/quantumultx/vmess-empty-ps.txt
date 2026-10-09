@@ -1,0 +1,1 @@
+vmess=cz-18.bqqq3e.example.org:443,method=chacha20-poly1305,password=252586ae-8170-4126-8483-71740ee01d41,aead=true,udp-relay=true,tag=vmess cz-18.bqqq3e.example.org:443

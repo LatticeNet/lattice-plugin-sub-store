@@ -1,0 +1,9 @@
+{
+  "id": "clash-trojan-ipv6-no-sni",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ipv6-literal",
+  "description": "trojan on an IPv6 literal without sni."
+}

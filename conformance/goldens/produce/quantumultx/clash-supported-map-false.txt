@@ -1,0 +1,9 @@
+trojan=cp-20.jw71rf.example.com:443,password=kTepawGO3AjkBJVt,over-tls=true,tls-host=www.tbkalp.example.net,udp-relay=true,tag=SG-mxrw1e-75
+trojan=p5-04.feey.example.org:443,password=3RNTFc2beLg82aAo,over-tls=true,tls-host=static.ziv5g394s.example.net,udp-relay=true,tag=HK-ax86-82
+trojan=y0-35.wdcffic.example.org:443,password=vhJvxrLTpRHRfRPV,over-tls=true,tls-host=cdn.ybdua.example.net,udp-relay=true,tag=NL-pkmbvt-41
+trojan=pa-28.vuyz.example.org:443,password=bmUi5GJVTgZIzHcA,over-tls=true,tls-host=api.ocdd7vpvs.example.net,udp-relay=true,tag=TW-bk4-46
+trojan=s52-03.k2kzr.example.org:443,password=I7JJza3Y885Hhp4R,over-tls=true,tls-host=www.kgw5zfakhz.example.net,udp-relay=true,tag=GB-pep-83
+trojan=gki-38.z3rkzlw.example.net:443,password=Ask6g1xO23Dib1uN,over-tls=true,tls-host=www.u8x9y8.example.net,udp-relay=true,tag=CA-bxm-15
+trojan=jyz-13.is8wm.example.com:443,password=7ePXq4jqWdv19scY,over-tls=true,tls-host=cdn.i8zl1hhbgv.example.com,udp-relay=true,tag=TW-lat6-53
+trojan=qxj-15.bjv0ij.example.net:443,password=fGCyF2qeRAtQuer7,over-tls=true,tls-host=api.w8op1d7c4.example.org,udp-relay=true,tag=HK-pdh3s2-73
+trojan=fwl-26.obmfk01k.example.org:443,password=ec6G8V8ffMYPurFG,over-tls=true,tls-host=img.zat9xlm.example.net,udp-relay=true,tag=AU-a8pf2k-05

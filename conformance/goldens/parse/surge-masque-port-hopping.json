@@ -1,0 +1,14 @@
+[
+  {
+    "name": "CA-i4r3o-16",
+    "password": "CAijEBqPquKFfV",
+    "port": 443,
+    "ports": "53921-53930",
+    "server": "i6r-05.o0s2r.example.com",
+    "sni": "cdn.atshtof.example.com",
+    "tls": true,
+    "type": "masque-surge",
+    "udp": true,
+    "username": "eg0p8"
+  }
+]

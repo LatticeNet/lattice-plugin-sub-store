@@ -1,0 +1,7 @@
+proxies:
+  - name: "fk5tg8\nhyn1sg63"
+    type: socks5
+    server: xlh-33.n4sclexz.example.org
+    port: 1080
+    username: zqhe3gwg
+    password: 5OKlfrVLEtru

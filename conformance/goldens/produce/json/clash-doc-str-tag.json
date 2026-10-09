@@ -1,0 +1,29 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "JP-oxhcw-81",
+    "password": "0464",
+    "port": 11307,
+    "server": "d3-40.imv854.example.com",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "SG-tqhn9e-94",
+    "password": "0566",
+    "port": 20956,
+    "server": "l4o-04.bk9b.example.com",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "FR-zp3m-01",
+    "password": "560",
+    "port": 42874,
+    "server": "jo-14.ikr1e9o.example.net",
+    "type": "ss",
+    "udp": true
+  }
+]

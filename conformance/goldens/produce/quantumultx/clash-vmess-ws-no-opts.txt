@@ -1,0 +1,1 @@
+vmess=si-01.pyt8o.example.com:443,method=chacha20-poly1305,password=e59cbec9-9e75-48b1-8c3b-c5b53fb1de09,obfs=ws,obfs-uri=/,obfs-host=si-01.pyt8o.example.com,aead=true,udp-relay=true,tag=SG-zof-93

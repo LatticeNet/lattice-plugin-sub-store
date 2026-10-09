@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "GB-xg93w-33",
+        "port": 443,
+        "server": "b7-18.kmcodbo.example.org",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "static.aifby1prv.example.net"
+            },
+            "path": "/lqu7b/jfvvr716ye",
+            "skip_tls_verify": false,
+            "sni": "img.m0ma8.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "2df16dbd-66db-48f2-80ff-ef1f78228057"
+      }
+    }
+  ]
+}

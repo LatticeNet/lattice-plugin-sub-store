@@ -1,0 +1,2 @@
+FR-e45-21=Hysteria2,yz-31.o9t4ry4.example.org,443,"yyAyzyg3eRCFuhg2AQyT",tls-name=img.i57tmk4cc8.example.org,salamander-password=HSJKygToOAME6To1,udp=true
+HK-zlv-67=Hysteria2,a13-12.ezd38.example.org,443,"UoAwyPUyCmcsX8fUl5z4",tls-name=api.rtpzqpp.example.org,salamander-password=dT6lnZU72e,udp=true

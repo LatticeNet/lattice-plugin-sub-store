@@ -1,0 +1,13 @@
+[
+  {
+    "address": "vv4-07.bwxx.example.com:43689",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "",
+      "tag": "NL-ahs6-94",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

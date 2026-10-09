@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "l1-03.zh7zvdv.example.net",
+      "443"
+    ],
+    "name": "TW-n4sg-69",
+    "params": {
+      "alpn": "h3",
+      "password": "xBFRjdH4b8mIwbA7",
+      "sni": "www.vspcc22n.example.com",
+      "uuid": "13980a81-2a49-45de-9d78-14135a92db7a"
+    },
+    "type": "tuic-v5"
+  }
+]

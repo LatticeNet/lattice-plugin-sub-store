@@ -1,0 +1,17 @@
+[
+  {
+    "address": "b1-03.pywg7w10.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "b7fd1d5b-18b6-47d1-af4d-c3bc916c2490",
+      "tag": "FR-r6j6l-31",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.dki3ak.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

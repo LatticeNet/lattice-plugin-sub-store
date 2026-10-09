@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "CA-hgyp5c-78",
+    "host": "ye-18.h7d833x.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "img.w7zhe.example.org"
+      ],
+      [
+        "path",
+        "/"
+      ],
+      [
+        "sni",
+        "img.w7zhe.example.org"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "HVfwSq7vAQp7quel"
+  }
+]

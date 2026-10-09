@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-256-cfb",
+      "name": "KR-d1m-45",
+      "obfs": "http_simple",
+      "obfs-param": "static.yhydgl.example.org",
+      "password": "vY9lKm8ZeVQS",
+      "port": 32659,
+      "protocol": "origin",
+      "server": "hb-21.rfbq.example.com",
+      "type": "ssr",
+      "udp": true
+    }
+  ]
+}

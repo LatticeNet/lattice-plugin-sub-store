@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "f9u-30.yunpr0j.example.com",
+      "52428",
+      "aes-128-gcm",
+      "rfyxAU5zrOYf5L"
+    ],
+    "name": "SG-nvtf84-42",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

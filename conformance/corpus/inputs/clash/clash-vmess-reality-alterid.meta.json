@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-reality-alterid",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "vmess-reality",
+  "description": "vmess Reality with alterId 4 and no aead."
+}

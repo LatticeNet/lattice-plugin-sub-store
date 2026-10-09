@@ -1,0 +1,4 @@
+proxies:
+  - {"trojan":{"name":"NL-pm7iw-59","server":"b8-22.em4epvh.example.com","port":443,"password":"Oj98GoGK2yo8X5kh","tfo":false,"udp_relay":true,"sni":"www.o9brwd5iyu.example.com"}}
+  - {"trojan":{"name":"TW-pmsd-69","server":"rm-23.gpdij.example.com","port":443,"password":"rwsWD8q5dDmSp7ad","tfo":false,"udp_relay":true,"sni":"cdn.a7telas.example.com"}}
+  - {"trojan":{"name":"JP-yhuvq-44","server":"ja-17.ko8cxerr.example.net","port":443,"password":"dCiWPhM9pvnCz35E","tfo":false,"udp_relay":true,"sni":"static.hrqb83a.example.org"}}

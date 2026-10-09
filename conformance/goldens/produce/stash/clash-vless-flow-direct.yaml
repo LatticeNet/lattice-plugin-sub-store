@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","flow":"xtls-rprx-direct","name":"NL-wo1x2-93","network":"tcp","port":443,"server":"s3-34.cgec.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"9b65e8b4-b29c-43b1-89f9-88bc90af1539","servername":"static.x2andpnt9.example.net"}

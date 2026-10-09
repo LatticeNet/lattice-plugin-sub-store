@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-f98xkj-62",
+      "type": "anytls",
+      "server": "ib-35.lmclrx.example.net",
+      "server_port": 443,
+      "password": "vE7a0G7LmSKfar4bZKdZ",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.p9ekhp.example.com",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

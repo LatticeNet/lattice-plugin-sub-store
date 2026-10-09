@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "Dxnae7hB8sq8H4nnLYFk",
+        "bandwidth": 200,
+        "name": "JP-ei5q-91",
+        "port": 443,
+        "server": "eh-02.e6fd.example.net",
+        "sni": "img.lgpapm0p.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

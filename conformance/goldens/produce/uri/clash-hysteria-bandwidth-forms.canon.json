@@ -1,0 +1,138 @@
+[
+  {
+    "fragment": "CA-vwb-88",
+    "host": "ycz-07.yvm8d.example.net",
+    "path": "",
+    "port": "56000",
+    "query": [
+      [
+        "auth",
+        "rBwOeuzSarUHEA3A"
+      ],
+      [
+        "downmbps",
+        "100 Kbps"
+      ],
+      [
+        "peer",
+        "static.g1s9fk7e6g.example.com"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "100 Kbps"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  },
+  {
+    "fragment": "FR-iu2o-35",
+    "host": "v0-09.bss6ok.example.org",
+    "path": "",
+    "port": "60157",
+    "query": [
+      [
+        "auth",
+        "qIYVFY0V27VALMCN"
+      ],
+      [
+        "downmbps",
+        "30 Mbps"
+      ],
+      [
+        "peer",
+        "img.rc5w2d8lp.example.org"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30 Mbps"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  },
+  {
+    "fragment": "JP-si8yhs-07",
+    "host": "mky-06.glrpk.example.com",
+    "path": "",
+    "port": "54722",
+    "query": [
+      [
+        "auth",
+        "k352VYfvB3ADKewW"
+      ],
+      [
+        "downmbps",
+        "2 gbps"
+      ],
+      [
+        "peer",
+        "static.kqe32e.example.com"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "2 gbps"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  },
+  {
+    "fragment": "NL-s0to-52",
+    "host": "oav-11.uyi5.example.com",
+    "path": "",
+    "port": "56546",
+    "query": [
+      [
+        "auth",
+        "mlsOMeRL3a2ijCbj"
+      ],
+      [
+        "downmbps",
+        "50"
+      ],
+      [
+        "peer",
+        "img.mjj2fjq.example.net"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "50"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

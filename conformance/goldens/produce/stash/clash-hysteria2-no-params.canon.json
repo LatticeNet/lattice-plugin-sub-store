@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "auth": "TRVXCERjoTB5gXhbzIx9",
+      "name": "CA-c80r-97",
+      "port": 443,
+      "server": "203.0.113.47",
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

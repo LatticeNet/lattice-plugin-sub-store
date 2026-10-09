@@ -1,0 +1,36 @@
+[
+  {
+    "args": [
+      "az-01.ra66.example.org",
+      "443",
+      "auto",
+      "5c489657-08cd-4391-9302-18b20b2463d9"
+    ],
+    "name": "NL-blkq5-54",
+    "params": {
+      "alterId": "0",
+      "host": "az-01.ra66.example.org",
+      "path": "/8923",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "xp0-33.njrtp.example.org",
+      "443",
+      "auto",
+      "ef5ef9c3-4a75-48a6-afe2-294c7afc5197"
+    ],
+    "name": "AU-ewmlbc-18",
+    "params": {
+      "alterId": "0",
+      "host": "xp0-33.njrtp.example.org",
+      "path": "/l2fi",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

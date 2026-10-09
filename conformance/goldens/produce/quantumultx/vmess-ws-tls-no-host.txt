@@ -1,0 +1,1 @@
+vmess=enz-06.ks1z.example.org:443,method=chacha20-poly1305,password=d29f522d-b0af-4e45-b5ff-63db7cb42577,obfs=wss,obfs-uri=/u2za/ks2mqc,tls-alpn=02683208687474702f312e31,tls-host=enz-06.ks1z.example.org,aead=true,udp-relay=true,tag=HK-irkxn-71

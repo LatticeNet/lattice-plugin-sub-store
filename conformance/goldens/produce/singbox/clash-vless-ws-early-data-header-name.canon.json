@@ -1,0 +1,63 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "bf-01.rvs3.example.org",
+      "server_port": 443,
+      "tag": "TW-mk0-06",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.bg8e5mi.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "early_data_header_name": "X-Ed",
+        "headers": {
+          "Host": "static.h72zog8.example.net"
+        },
+        "max_early_data": 2048,
+        "path": "/yjd5",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "604dfc35-2fab-41a6-9bd7-198f9bcbfa73"
+    },
+    {
+      "server": "nz-06.yv72.example.net",
+      "server_port": 443,
+      "tag": "KR-ysri-71",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.tjhpolxnn4.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "early_data_header_name": "Sec-WebSocket-Protocol",
+        "headers": {
+          "Host": "www.nz70uzc.example.net"
+        },
+        "max_early_data": 2048,
+        "path": "/khjh8ejx",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "d036208d-6589-44d5-815b-421410e4aed5"
+    }
+  ]
+}

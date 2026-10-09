@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "enz-06.ks1z.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "d29f522d-b0af-4e45-b5ff-63db7cb42577",
+      "net": "ws",
+      "path": "/u2za/ks2mqc",
+      "port": "443",
+      "ps": "HK-irkxn-71",
+      "scy": "auto",
+      "sni": "enz-06.ks1z.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

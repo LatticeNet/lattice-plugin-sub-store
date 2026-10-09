@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "m0-15.db68mym.example.net",
+      "server_port": 443,
+      "tag": "HK-k90ug1-59",
+      "type": "vmess",
+      "uuid": "c3cea05f-d893-4aaa-900d-53e2e4591837"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "uw-26.rku62.example.org",
+      "15190",
+      "aes-128-gcm",
+      "AbkBDfOEHReXUn"
+    ],
+    "name": "HK-v33w-32",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "lgc-08.chq4.example.org",
+      "443",
+      "jktIH5m0728JHCM4"
+    ],
+    "name": "KR-wrh-40",
+    "params": {
+      "tls-name": "img.t3kxz.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

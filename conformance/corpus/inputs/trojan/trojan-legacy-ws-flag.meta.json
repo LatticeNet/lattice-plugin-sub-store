@@ -1,0 +1,9 @@
+{
+  "id": "trojan-legacy-ws-flag",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "legacy-ws-flag",
+  "description": "ws=1 with wspath: network ws and the path from wspath."
+}

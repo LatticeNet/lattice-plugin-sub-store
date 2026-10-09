@@ -1,0 +1,7 @@
+{
+  "id": "clash-hostile-exec-key",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "hostile-exec-key",
+  "description": "H3 key rule: type ss with exec and type ssr with local-address: upstream keeps both nodes; Lattice drops them on remote input."
+}

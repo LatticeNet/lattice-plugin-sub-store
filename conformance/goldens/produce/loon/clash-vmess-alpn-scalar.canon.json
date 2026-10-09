@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "jv-05.vi5q.example.com",
+      "443",
+      "auto",
+      "a4251e45-8c27-43ce-9bb2-ce33100ace04"
+    ],
+    "name": "JP-nhs7w3-33",
+    "params": {
+      "alpn": "h2",
+      "alterId": "0",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "cdn.g0ri20uyg.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

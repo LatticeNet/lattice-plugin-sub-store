@@ -1,0 +1,1 @@
+HK-irkxn-71=vmess,enz-06.ks1z.example.org,443,auto,"d29f522d-b0af-4e45-b5ff-63db7cb42577",transport=ws,path=/u2za/ks2mqc,over-tls=true,tls-profile=chrome,alpn="h2,http/1.1",tls-name=enz-06.ks1z.example.org,alterId=0,udp=true

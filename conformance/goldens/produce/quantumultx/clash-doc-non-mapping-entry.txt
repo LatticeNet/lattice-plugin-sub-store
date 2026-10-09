@@ -1,0 +1,1 @@
+shadowsocks=f9u-30.yunpr0j.example.com:52428,method=aes-128-gcm,password=rfyxAU5zrOYf5L,udp-relay=true,tag=SG-nvtf84-42

@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "network": "tcp",
+      "password": "a6YV4jhq3YYs",
+      "server": "ttp-13.hgduq8t.example.org",
+      "server_port": 1080,
+      "tag": "FR-skjup-87",
+      "type": "socks",
+      "udp_over_tcp": true,
+      "username": "x746rjcm",
+      "version": "5"
+    },
+    {
+      "password": "npyOMD5jBROX",
+      "server": "mo-35.oieb9.example.com",
+      "server_port": 1080,
+      "tag": "US-ki5-48",
+      "type": "socks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      },
+      "username": "zos1msg0",
+      "version": "5"
+    }
+  ]
+}

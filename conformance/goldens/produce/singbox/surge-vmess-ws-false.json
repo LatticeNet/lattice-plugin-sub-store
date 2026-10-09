@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-pbg8g-55",
+      "type": "vmess",
+      "server": "iy-03.lvd0u.example.com",
+      "server_port": 80,
+      "uuid": "d7d256b8-aa72-41a5-952a-4a1c853b315b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "iy-03.lvd0u.example.com"
+        },
+        "path": "/iz57g9"
+      }
+    }
+  ],
+  "endpoints": []
+}

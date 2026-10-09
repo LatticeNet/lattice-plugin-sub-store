@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "2001:db8:f4e1:9108::e11d",
+      "28811",
+      "auto",
+      "4ddabfe1-ea65-4fc3-af13-ab9d288a30ce"
+    ],
+    "name": "US-snz-75",
+    "params": {
+      "alterId": "0",
+      "host": "cdn.shsl3n.example.net",
+      "path": "/qpqlfvau",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

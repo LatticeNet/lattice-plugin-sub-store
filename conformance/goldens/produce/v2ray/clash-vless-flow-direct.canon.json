@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "NL-wo1x2-93",
+    "host": "s3-34.cgec.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "flow",
+        "xtls-rprx-direct"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.x2andpnt9.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "9b65e8b4-b29c-43b1-89f9-88bc90af1539"
+  }
+]

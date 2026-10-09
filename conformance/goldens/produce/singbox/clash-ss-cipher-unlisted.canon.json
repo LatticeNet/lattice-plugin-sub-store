@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "camellia-128-cfb",
+      "password": "sno5kIgnhB6Fsk",
+      "server": "z0p-14.h7qm2mrm.example.com",
+      "server_port": 34037,
+      "tag": "KR-t5c4a4-23",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-cfb8",
+      "password": "ge8GrwHGT73qq6",
+      "server": "caq-04.te7x.example.com",
+      "server_port": 37356,
+      "tag": "CA-ifzyj-54",
+      "type": "shadowsocks"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "AU-qdf2nu-60",
+      "password": "pMULWF6GVsIKxHkmeJrH",
+      "plugin": "shadow-tls",
+      "plugin-opts": {
+        "host": "static.nbazeta.example.com",
+        "password": "3fL67OwHg3zl4tPB",
+        "version": 3
+      },
+      "port": 443,
+      "server": "s2-22.kay4.example.org",
+      "sni": "static.nbazeta.example.com",
+      "type": "anytls",
+      "udp": true
+    }
+  ]
+}

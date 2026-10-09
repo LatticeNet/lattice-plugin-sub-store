@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-opts-collision",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "opts-key-case",
+  "description": "N1 and N4: a Shadowsocks node with WS-OPTS beside a ws-opts whose keys are Path and Headers keeps the lower-case object, a VMess node whose only options key is Ws-Opts gets it as ws-opts, and the upper-case cipher is lower-cased."
+}

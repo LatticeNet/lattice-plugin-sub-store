@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "w6-35.z4kqx.example.net",
+      "aid": "0",
+      "id": "345830f4-42b9-453c-b800-bcaa2447cb46",
+      "net": "tcp",
+      "port": "43185",
+      "ps": "KR-x0i8i-78",
+      "scy": "none",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

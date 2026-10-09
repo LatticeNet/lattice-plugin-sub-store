@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "x1-34.mh3dtn.example.com",
+      "aid": "0",
+      "host": "x1-34.mh3dtn.example.com",
+      "id": "dd30ca27-f54c-4355-b110-7639681794cf",
+      "net": "ws",
+      "path": "/",
+      "port": "443",
+      "ps": "FR-noq-63",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

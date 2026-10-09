@@ -1,0 +1,17 @@
+[
+  {
+    "address": "sd-32.hga9.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "6040d5b2-dd22-4cdd-858e-88becead8f7d",
+      "tag": "CA-zp5-38",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.keoob546.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

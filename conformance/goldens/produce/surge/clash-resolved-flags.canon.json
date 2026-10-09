@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "b8-22.em4epvh.example.com",
+      "443"
+    ],
+    "name": "NL-pm7iw-59",
+    "params": {
+      "password": "Oj98GoGK2yo8X5kh",
+      "sni": "www.o9brwd5iyu.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "rm-23.gpdij.example.com",
+      "443"
+    ],
+    "name": "TW-pmsd-69",
+    "params": {
+      "password": "rwsWD8q5dDmSp7ad",
+      "sni": "cdn.a7telas.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "ja-17.ko8cxerr.example.net",
+      "443"
+    ],
+    "name": "JP-yhuvq-44",
+    "params": {
+      "password": "dCiWPhM9pvnCz35E",
+      "sni": "static.hrqb83a.example.org",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

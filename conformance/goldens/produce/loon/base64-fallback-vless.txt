@@ -1,0 +1,2 @@
+KR-m4pcf9-54=vless,qgr-29.ijwj.example.net,443,"7a9e5f0c-5fbb-41db-84c3-f3451a397d9f",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,flow=xtls-rprx-vision,sni=cdn.tyfz9tsjjb.example.net,public-key="Q1dAvQMkI3_YMgWm1dCa7_0Df1UUowiUOPgfBsssjF0",short-id=33f4d073,udp=true
+NL-x3oc-18=vless,ar-26.nwpt.example.org,443,"1b2f873e-9224-4f7f-84b1-3a35b0d9fb3b",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,flow=xtls-rprx-vision,sni=api.zgvtw96xq.example.net,public-key="KwtJvxpWqjFazT5N1vz0_w6WR-yFZK0FVqexnENgVMw",short-id=775f4291,udp=true

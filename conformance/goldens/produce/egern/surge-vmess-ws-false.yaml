@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"JP-pbg8g-55","server":"iy-03.lvd0u.example.com","port":80,"user_id":"d7d256b8-aa72-41a5-952a-4a1c853b315b","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/iz57g9","headers":{"Host":"iy-03.lvd0u.example.com"}}}}}

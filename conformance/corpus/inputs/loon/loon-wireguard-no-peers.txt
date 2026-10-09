@@ -1,0 +1,1 @@
+NL-ciu-52 = wireguard, interface-ip = 10.50.255.11, interface-ipv6 = fd00:7ae9::4b86, mtu = 1280, keepalive = 25

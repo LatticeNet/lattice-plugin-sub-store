@@ -1,0 +1,18 @@
+[
+  {
+    "address": "f2-35.rug0aa.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "0a8a14d6-5fe1-47a4-b391-8e32145eedb9",
+      "tag": "SG-qa5-45",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.pj3n2fe.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

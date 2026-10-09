@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "ttp-13.hgduq8t.example.org",
+      "1080"
+    ],
+    "name": "FR-skjup-87",
+    "params": {
+      "password": "a6YV4jhq3YYs",
+      "udp-relay": "false",
+      "username": "x746rjcm"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "mo-35.oieb9.example.com",
+      "1080"
+    ],
+    "name": "US-ki5-48",
+    "params": {
+      "password": "npyOMD5jBROX",
+      "udp-relay": "true",
+      "username": "zos1msg0"
+    },
+    "type": "socks5"
+  }
+]

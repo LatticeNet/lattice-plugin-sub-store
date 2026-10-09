@@ -1,0 +1,1 @@
+trojan=hp-05.gks3u9.example.org:443,password=pFz9FbdHbazUQpJZ,over-tls=true,tls-host=hp-05.gks3u9.example.org,udp-relay=true,tag=GB-ypr0ot-83

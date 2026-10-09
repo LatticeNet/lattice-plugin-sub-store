@@ -1,0 +1,1 @@
+CA-saq36m-81=Hysteria2,quz-07.xsbt.example.net,443,"60Xt0FmFgKCvZJufrosV",tls-name=www.t5tqzt5.example.org,skip-cert-verify=false,fast-open=true,udp=true

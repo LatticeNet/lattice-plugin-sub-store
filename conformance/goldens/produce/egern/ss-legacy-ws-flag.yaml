@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"CA-xewu-02","method":"aes-256-gcm","server":"zv-23.f2kz3r.example.com","port":57656,"password":"rp81zpm9W9bVp4","tfo":false,"udp_relay":true}}

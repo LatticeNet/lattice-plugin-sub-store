@@ -1,0 +1,22 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-uweh-78",
+      "type": "http",
+      "server": "y7-34.vb5wyv5p.example.org",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.cefk3wbf7.example.org",
+        "insecure": false
+      },
+      "username": "vl82wc",
+      "password": "pG781flwXCsl",
+      "headers": {
+        "X-A": "8",
+        "X-B": "\\\"bn73;t8a6o\\\""
+      }
+    }
+  ],
+  "endpoints": []
+}

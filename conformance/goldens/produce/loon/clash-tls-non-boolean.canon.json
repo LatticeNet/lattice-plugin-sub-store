@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "m0-15.db68mym.example.net",
+      "443",
+      "auto",
+      "c3cea05f-d893-4aaa-900d-53e2e4591837"
+    ],
+    "name": "HK-k90ug1-59",
+    "params": {
+      "alterId": "0",
+      "over-tls": "true",
+      "tls-name": "cdn.ozhoh8.example.com",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,1 @@
+JP-dlo0l-90=vmess,lyy-32.bzir.example.org,443,auto,"c1fdca40-1054-4b30-a6f8-dac53a265e4e",transport=http,path=/amaez,host=www.bsjjx6bz0t.example.com,alterId=0,udp=true

@@ -1,0 +1,1 @@
+trojan://rIMI2l87ZUcn0Dio@ec-33.vvz9nnx.example.net:443?sni=ec-33.vvz9nnx.example.net&type=tcp#ec-33.vvz9nnx.example.net%3A443

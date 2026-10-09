@@ -1,0 +1,9 @@
+{
+  "id": "vmess-ws-no-path",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "ws-without-data",
+  "description": "net ws without path, host or TLS: path / and the Host pinned to the server."
+}

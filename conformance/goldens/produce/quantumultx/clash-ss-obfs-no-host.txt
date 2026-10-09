@@ -1,0 +1,1 @@
+shadowsocks=nqj-39.vj1nhp.example.net:26246,method=aes-128-gcm,password=39ic9wEqGqdWx6,obfs=http,udp-relay=true,tag=HK-lyqz-03

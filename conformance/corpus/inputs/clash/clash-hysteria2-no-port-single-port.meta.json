@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-no-port-single-port",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "name-and-port-fill",
+  "description": "hysteria2 with name \"\", no port and ports \"8443\"."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"NL-d0svs-69","password":"2UkWNdG9ThWtTN","port":50551,"server":"ww-28.b6rk.example.com","type":"ss","udp":true}

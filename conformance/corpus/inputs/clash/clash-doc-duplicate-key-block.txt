@@ -1,0 +1,23 @@
+proxies:
+  - name: DE-ycmae-61
+    type: ss
+    server: q5-32.jd59bbzv.example.org
+    port: 37096
+    cipher: aes-128-gcm
+    password: 8qgalVI1YEqRkG
+  - name: AU-qlp9l-46
+    name: NL-avbec2-75
+    type: trojan
+    server: sxg-19.s0er.example.net
+    port: 443
+    password: 8e019E4jj3yqVodz
+  - type: vless
+    name: KR-k71-21
+    server: o92-08.f6en.example.com
+    port: 443
+    uuid: 0c18e6c7-d5b8-4e7c-ba6e-ec06fe0c9c80
+proxy-groups:
+  - name: dxat
+    type: select
+    proxies:
+      - DE-ycmae-61

@@ -1,0 +1,13 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "TW-zy6l-07",
+        "port": 80,
+        "server": "dyt-27.fldz.example.com",
+        "tfo": false,
+        "username": "fyv7ffic"
+      }
+    }
+  ]
+}

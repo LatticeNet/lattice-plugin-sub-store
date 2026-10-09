@@ -1,0 +1,4 @@
+proxies:
+  - {"trojan":{"name":"JP-wwxzz-36","server":"k0-09.xp6f.example.com","port":443,"password":"1Iz84ILzrS9Neqpv","tfo":false,"udp_relay":true,"sni":"static.l862e7.example.com"}}
+  - {"http":{"name":"KR-tq2-07","server":"fpd-08.dl483.example.org","port":8080,"username":"tqtzpi","password":"cg4QWBilRQRo","headers":{"X-mtt3tr5w":"u1xh"},"tfo":false}}
+  - {"shadowsocks":{"name":"US-iqkz-62","method":"aes-128-gcm","server":"izc-22.l21tl33.example.com","port":34054,"password":"t75by9UeUMxNHS","tfo":false,"udp_relay":true}}

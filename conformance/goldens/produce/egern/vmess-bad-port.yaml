@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"DE-rmkd-68","server":"wqb-29.gzhip.example.org","user_id":"25c2e2a0-1f95-4953-9f36-a64e83e85446","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-host-with-port",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ws-headers",
+  "description": "vmess ws whose Host carries a port."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-duplicate-key",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "yaml-duplicate-key-flow",
+  "description": "A flow-style document with one valid entry and one entry that repeats name: the YAML error fails the Clash preprocessor, every entry line parses as a list, and no node is read."
+}

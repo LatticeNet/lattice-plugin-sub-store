@@ -1,0 +1,9 @@
+{
+  "id": "vless-ech-dns",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ech-dns",
+  "description": "ech=<name>+https://<doh>: ech-opts with query-server-name and the _dns annotation."
+}

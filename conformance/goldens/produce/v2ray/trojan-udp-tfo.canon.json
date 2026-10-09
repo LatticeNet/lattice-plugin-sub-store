@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "NL-iyg-35",
+    "host": "u2l-25.nave.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.jvk2wurwv.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "5Q3Okkl4B6XFYtv1"
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "GB-n96cy-04",
+    "host": "fgx-19.clzv92cm.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ech",
+        "www.nj74x8.example.com+https://p4-25.vt5g3d.example.com/dns-query"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.cynpn55tzo.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "77e2f0ee-a13a-4e15-9007-f20fbeccc43f"
+  }
+]

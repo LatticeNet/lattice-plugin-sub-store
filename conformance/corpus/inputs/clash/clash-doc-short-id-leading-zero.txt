@@ -1,0 +1,25 @@
+proxies:
+  - name: HK-rzpg-20
+    type: vless
+    server: u16-26.sz1teg.example.com
+    port: 443
+    uuid: 9f1ba0a5-a979-48eb-9d96-caff0917c849
+    flow: xtls-rprx-vision
+    tls: true
+    servername: www.t88723n10.example.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: TeoTSdir_kbAvA2e-B4-6IMCsUuZMfVNtPhy3yII6Pc
+      short-id: 0086
+  - name: AU-ctw-23
+    type: vless
+    server: qjb-11.e5y6.example.net
+    port: 443
+    uuid: c3465fc6-122b-40a0-bbd8-a5eb6460d054
+    flow: xtls-rprx-vision
+    tls: true
+    servername: api.mc05ho3.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: Vinz4N9PuKGQ1h5Kx4f4po9zhPr0euemOLqUNPcukKk
+      short-id: ""

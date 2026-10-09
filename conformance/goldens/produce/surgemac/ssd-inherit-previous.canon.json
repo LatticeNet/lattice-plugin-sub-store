@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "ik4-24.pakq1pd.example.com",
+      "39141"
+    ],
+    "name": "AU-do2bi-94",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "oTe2mcYzsduFTR",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "lpx-15.sisat.example.net",
+      "14150"
+    ],
+    "name": "SG-j37i-11",
+    "params": {
+      "encrypt-method": "chacha20-ietf-poly1305",
+      "password": "oTe2mcYzsduFTR",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "dm-30.e2zlt1bx.example.net",
+      "14150"
+    ],
+    "name": "NL-tw5z-43",
+    "params": {
+      "encrypt-method": "chacha20-ietf-poly1305",
+      "password": "oTe2mcYzsduFTR",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

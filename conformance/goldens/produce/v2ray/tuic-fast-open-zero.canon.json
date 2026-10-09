@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "NL-uz15zs-50",
+    "host": "g8-25.dmb8z.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "fast_open",
+        "1"
+      ],
+      [
+        "sni",
+        "www.ff5jwi1ob.example.org"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "5b77cf22-d66c-4826-be34-948eb128bab1:4LGYr5bSJbf93Oxo"
+  }
+]

@@ -1,0 +1,19 @@
+proxies:
+  - name: JP-oxhcw-81
+    type: ss
+    server: d3-40.imv854.example.com
+    port: 11307
+    cipher: aes-128-gcm
+    password: !<str> 0464
+  - name: SG-tqhn9e-94
+    type: ss
+    server: l4o-04.bk9b.example.com
+    port: 20956
+    cipher: aes-128-gcm
+    password: !!str 0566
+  - name: FR-zp3m-01
+    type: ss
+    server: jo-14.ikr1e9o.example.net
+    port: 42874
+    cipher: aes-128-gcm
+    password: !foo 560

@@ -1,0 +1,12 @@
+{
+  "id": "clash-singbox-name-cert-verify",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "name-cert-verify",
+  "description": "With include-unsupported-proxy: vless TLS with name-cert-verify.",
+  "options": {
+    "include-unsupported-proxy": true
+  }
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "address": "fkb-23.g95rfl34.example.com:70000",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "2WkYTw57EFOugGjI",
+      "tag": "US-bfrb-66",
+      "tls-host": "api.gdqao1.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

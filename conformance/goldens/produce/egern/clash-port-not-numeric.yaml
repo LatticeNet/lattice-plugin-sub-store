@@ -1,0 +1,3 @@
+proxies:
+  - {"socks5":{"name":"NL-lztg-36","server":"cg-29.ysunden.example.com","port":"80a","username":"nkpdg93","password":"b2pDXmK1Weku","tfo":false,"udp_relay":true}}
+  - {"socks5":{"name":"GB-p124z9-66","server":"kim-20.bwqt.example.org","port":"abc","username":"imhslavy","password":"sL1aNErJ62Dw","tfo":false,"udp_relay":true}}

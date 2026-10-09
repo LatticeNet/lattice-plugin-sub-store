@@ -1,0 +1,14 @@
+[
+  {
+    "auth-str": "dGDmD7MGaDNmJyUh",
+    "name": "GB-x2x-24",
+    "port": 13157,
+    "protocol": "udp",
+    "server": "uy-23.pcyw.example.org",
+    "skip-cert-verify": false,
+    "sni": "www.k076tb.example.org",
+    "tls": true,
+    "type": "hysteria",
+    "udp": true
+  }
+]

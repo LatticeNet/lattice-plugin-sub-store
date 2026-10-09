@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "SG-gcy25-16",
+    "host": "qx-36.osr5h7m.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "plugin",
+        "shadow-tls"
+      ],
+      [
+        "plugin_opts",
+        "[object Object]"
+      ],
+      [
+        "sni",
+        "api.t64iuoc.example.net"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "9a09dfbd-f8d5-4469-bd9e-639ec24665d2:JPjcD1TqtosA8Mr2"
+  }
+]

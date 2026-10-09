@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "AU-qdf2nu-60",
+        "password": "pMULWF6GVsIKxHkmeJrH",
+        "port": 443,
+        "server": "s2-22.kay4.example.org",
+        "shadow_tls": {
+          "password": "3fL67OwHg3zl4tPB",
+          "sni": "static.nbazeta.example.com"
+        },
+        "sni": "static.nbazeta.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

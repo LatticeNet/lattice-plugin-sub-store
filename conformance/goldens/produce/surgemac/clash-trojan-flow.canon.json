@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "a2g-25.z48tqd9.example.net",
+      "443"
+    ],
+    "name": "US-qe4q1x-80",
+    "params": {
+      "password": "rc0xyjyaXcBn0bBO",
+      "sni": "cdn.xie8kv58.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

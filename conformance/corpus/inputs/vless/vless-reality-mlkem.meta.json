@@ -1,0 +1,9 @@
+{
+  "id": "vless-reality-mlkem",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-mlkem",
+  "description": "Reality with support-x25519mlkem768=1 and with =yes: the flag is set only for the first."
+}

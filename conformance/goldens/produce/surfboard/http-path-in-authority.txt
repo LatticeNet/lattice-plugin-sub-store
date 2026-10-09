@@ -1,0 +1,1 @@
+JP-jg34z-16=http,ro-29.zbyjbimf.example.com:8080/gnwx9pn,80,udp-relay=true

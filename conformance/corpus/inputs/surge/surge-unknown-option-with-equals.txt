@@ -1,0 +1,1 @@
+AU-qb1-24 = ss, z0g-03.f2gksu.example.com, 22105, encrypt-method=aes-128-gcm, password=jo4semlZEpI3n2, x-gi4too=nwc=igi

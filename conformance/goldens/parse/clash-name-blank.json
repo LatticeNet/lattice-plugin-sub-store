@@ -1,0 +1,24 @@
+[
+  {
+    "name": "",
+    "network": "tcp",
+    "password": "NHf9rBYljVdtJehr",
+    "port": 443,
+    "server": "fqu-05.gkq008mx.example.net",
+    "sni": "static.grofr.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": " ",
+    "network": "tcp",
+    "password": "6HnaJbaINQaGBUdR",
+    "port": 443,
+    "server": "yp-22.onpzeo.example.com",
+    "sni": "www.nn9zf.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

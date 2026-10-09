@@ -1,0 +1,23 @@
+[
+  {
+    "_mode": "multi",
+    "client-fingerprint": "chrome",
+    "grpc-opts": {
+      "_grpc-type": "multi",
+      "grpc-service-name": "azws-m7u"
+    },
+    "name": "CA-z11d-11",
+    "network": "grpc",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "tGXOBKCRc-FPDIJMFrHVhlPC_cCWCWM0zh_wqFQmIpw",
+      "short-id": "7e67fbaa"
+    },
+    "server": "qjy-31.fujk8r.example.org",
+    "sni": "cdn.saf9gr6.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "664f8904-9864-4d15-b8b9-f8662f69fa31"
+  }
+]

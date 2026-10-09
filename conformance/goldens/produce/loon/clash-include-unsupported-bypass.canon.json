@@ -1,0 +1,39 @@
+[
+  {
+    "args": [
+      "k0-09.xp6f.example.com",
+      "443",
+      "1Iz84ILzrS9Neqpv"
+    ],
+    "name": "JP-wwxzz-36",
+    "params": {
+      "tls-name": "static.l862e7.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "fpd-08.dl483.example.org",
+      "8080",
+      "tqtzpi",
+      "cg4QWBilRQRo"
+    ],
+    "name": "KR-tq2-07",
+    "params": {},
+    "type": "http"
+  },
+  {
+    "args": [
+      "izc-22.l21tl33.example.com",
+      "34054",
+      "aes-128-gcm",
+      "t75by9UeUMxNHS"
+    ],
+    "name": "US-iqkz-62",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

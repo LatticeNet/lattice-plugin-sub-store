@@ -1,0 +1,2 @@
+GB-psozs1-08=ss,u69-18.hhni.example.net,15480,encrypt-method=aes-128-gcm,password="vLNqaPRJUz67TQ",udp-relay=true
+TW-neu8xy-54=vmess,nuu-30.bptlkz.example.com,443,username=0a5d3415-a80e-41f0-9ff2-1292dc251a4e,ws=true,ws-path=/ct25/e7005,ws-headers="Host:"cdn.mub447v0m.example.net"",vmess-aead=true

@@ -1,0 +1,4 @@
+hysteria://ycz-07.yvm8d.example.net:56000?auth=rBwOeuzSarUHEA3A&downmbps=100 Kbps&protocol=udp&peer=static.g1s9fk7e6g.example.com&udp=true&upmbps=100 Kbps#CA-vwb-88
+hysteria://v0-09.bss6ok.example.org:60157?auth=qIYVFY0V27VALMCN&downmbps=30 Mbps&protocol=udp&peer=img.rc5w2d8lp.example.org&udp=true&upmbps=30 Mbps#FR-iu2o-35
+hysteria://mky-06.glrpk.example.com:54722?auth=k352VYfvB3ADKewW&downmbps=2 gbps&protocol=udp&peer=static.kqe32e.example.com&udp=true&upmbps=2 gbps#JP-si8yhs-07
+hysteria://oav-11.uyi5.example.com:56546?auth=mlsOMeRL3a2ijCbj&downmbps=50&protocol=udp&peer=img.mjj2fjq.example.net&udp=true&upmbps=50#NL-s0to-52

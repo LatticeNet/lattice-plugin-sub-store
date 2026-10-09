@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "on5-10.vyf1qk.example.org",
+      "21532"
+    ],
+    "name": "NL-wj4-65",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "static.mq5rbfy.example.com",
+      "psk": "D7w7zk21tmdo3Ta891fW",
+      "reuse": "true",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

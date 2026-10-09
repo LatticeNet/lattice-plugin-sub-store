@@ -1,0 +1,2 @@
+proxies:
+  - {"socks5_tls":{"name":"KR-m37jau-89","server":"hum-22.nsl1n.example.com","port":443,"tfo":false,"udp_relay":true,"sni":"hum-22.nsl1n.example.com"}}

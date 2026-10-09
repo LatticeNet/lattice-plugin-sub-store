@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "d3-40.imv854.example.com",
+      "11307",
+      "aes-128-gcm",
+      "0464"
+    ],
+    "name": "JP-oxhcw-81",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "l4o-04.bk9b.example.com",
+      "20956",
+      "aes-128-gcm",
+      "0566"
+    ],
+    "name": "SG-tqhn9e-94",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "jo-14.ikr1e9o.example.net",
+      "42874",
+      "aes-128-gcm",
+      "560"
+    ],
+    "name": "FR-zp3m-01",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

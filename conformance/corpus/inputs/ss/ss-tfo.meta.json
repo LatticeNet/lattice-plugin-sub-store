@@ -1,0 +1,9 @@
+{
+  "id": "ss-tfo",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "tfo",
+  "description": "tfo=1 and tfo=10: the prefix rule gives tfo true for both."
+}

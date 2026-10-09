@@ -1,0 +1,9 @@
+{
+  "id": "vless-empty-security",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "empty-security",
+  "description": "security= and a bare security item, one per line, and a VMess link in the VLESS shape with security=: tls is the empty text on all three."
+}

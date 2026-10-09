@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-gecko-invalid",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "gecko-invalid",
+  "description": "gecko nodes whose minimum packet size is above the maximum, and whose size is not digits."
+}

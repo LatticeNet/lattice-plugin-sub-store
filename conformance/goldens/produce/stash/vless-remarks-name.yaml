@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","name":"CA-actar-66","network":"tcp","packet-encoding":"xudp","port":443,"server":"fq-04.ri20owdn.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"6490f9f8-ff11-4f38-92bf-752ea9cb09b2","servername":"api.z96qqyye3z.example.net"}

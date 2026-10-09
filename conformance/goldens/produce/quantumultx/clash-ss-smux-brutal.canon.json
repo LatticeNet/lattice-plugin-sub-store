@@ -1,0 +1,13 @@
+[
+  {
+    "address": "lh-03.tvntg.example.org:10239",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "cf02XhToMNkAVl",
+      "tag": "NL-rvfu-27",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

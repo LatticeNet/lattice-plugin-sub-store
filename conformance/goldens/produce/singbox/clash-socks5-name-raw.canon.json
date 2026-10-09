@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "ySxTDEzPais6",
+      "server": "d43-15.jjgyxd.example.org",
+      "server_port": 1080,
+      "tag": "cyyr3 / #xqd 東京",
+      "type": "socks",
+      "username": "h0py",
+      "version": "5"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"SG-i1osv-55","server":"::ffff:198.51.100.153","port":443,"password":"Ou8kTO0V9PYFpUBy","tfo":false,"udp_relay":true,"sni":"www.ok64r7bmn.example.net"}}

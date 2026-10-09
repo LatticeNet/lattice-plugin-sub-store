@@ -1,0 +1,1 @@
+JP-sllha-25=vmess,du-21.xuqo.example.net,443,auto,"abeab29a-533c-49a8-9ea3-5fa5fd336813",transport=ws,path=/ohvx2r/ccu9,host=wk-11.bydc.example.org,bzy-26.x994q.example.com,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=static.hj7i0uqi3t.example.net,alterId=0,udp=true

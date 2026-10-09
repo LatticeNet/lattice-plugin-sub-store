@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-shadow-tls-vision",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "vless with flow xtls-rprx-vision and shadow-tls-opts."
+}

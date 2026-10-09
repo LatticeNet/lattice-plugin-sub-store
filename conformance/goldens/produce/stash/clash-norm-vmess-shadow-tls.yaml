@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","name":"SG-b68-73","network":"tcp","plugin":"shadow-tls","plugin-opts":{"alpn":["h2","http/1.1"],"host":"img.caykblkqyh.example.org","password":"KQha0gVa25POdcjz","version":3},"port":443,"server":"gq-32.z66i.example.com","tls":true,"type":"vmess","udp":true,"uuid":"a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb","servername":"img.caykblkqyh.example.org"}

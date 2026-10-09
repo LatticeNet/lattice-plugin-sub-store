@@ -1,0 +1,9 @@
+{
+  "id": "surge-udp-relay-numeric",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "typed-value-mismatch",
+  "description": "udp-relay=1 and a non-numeric test-timeout: neither value starts with an accepted token, so both options are ignored."
+}

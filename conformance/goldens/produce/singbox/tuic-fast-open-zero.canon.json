@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "4LGYr5bSJbf93Oxo",
+      "server": "g8-25.dmb8z.example.org",
+      "server_port": 443,
+      "tag": "NL-uz15zs-50",
+      "tcp_fast_open": true,
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.ff5jwi1ob.example.org"
+      },
+      "type": "tuic",
+      "udp_fragment": true,
+      "uuid": "5b77cf22-d66c-4826-be34-948eb128bab1"
+    }
+  ]
+}

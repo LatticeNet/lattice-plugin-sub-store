@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "dx-34.uzidmcd.example.org",
+      "57692"
+    ],
+    "name": "US-wy3-51",
+    "params": {
+      "psk": "NZq6UaXbsTlmroOZ7STZ",
+      "shadow-tls-password": "ZBhhkwByhlgdUUYT",
+      "shadow-tls-sni": "static.jgcbpwv1f3.example.com",
+      "shadow-tls-version": "3",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

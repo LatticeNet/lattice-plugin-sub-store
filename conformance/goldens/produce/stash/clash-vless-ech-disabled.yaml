@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","ech-opts":{"config":"p2dTGAPmq1h5UDDIvBQEbVviYQeuepyfdhxSk1nNKPmEmvnvTbSzUR+PKn96PQlEZl+Q097zCu+IMAD0++dx6lknwmRUps7I","enable":false},"name":"AU-owaf2-26","network":"tcp","port":443,"server":"pze-30.gl0zl.example.com","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"34359908-5583-4f5c-a3ca-2973676f37b8","servername":"static.k1jwj.example.org"}

@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "FR-s8k-58",
+    "host": "m97-07.vapbfgw4.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "max_open_streams",
+        "20"
+      ],
+      [
+        "sni",
+        "www.r0ym9flg0.example.net"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ],
+      [
+        "x_tv8d",
+        "krx3ew2,gch9p7"
+      ],
+      [
+        "x_zpymcx5",
+        "[object Object]"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "8084f53b-14db-4353-bb2f-54266975fe35:haySs7N4afsvUahP"
+  }
+]

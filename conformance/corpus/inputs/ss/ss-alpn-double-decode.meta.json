@@ -1,0 +1,9 @@
+{
+  "id": "ss-alpn-double-decode",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "alpn-double-decode",
+  "description": "alpn=h2%252Chttp%252F1.1: the value is decoded twice and split into h2 and http/1.1."
+}

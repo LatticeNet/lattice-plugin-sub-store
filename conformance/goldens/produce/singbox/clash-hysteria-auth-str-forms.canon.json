@@ -1,0 +1,41 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "0dScwdcFvTsgwoRw",
+      "disable_mtu_discovery": false,
+      "down_mbps": 100,
+      "server": "qj-31.bnvjp5.example.org",
+      "server_port": 41321,
+      "tag": "FR-zgr62-62",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.swzlt3589.example.org"
+      },
+      "type": "hysteria",
+      "up_mbps": 30
+    },
+    {
+      "auth_str": "WMWle62v bypAvQ0U",
+      "disable_mtu_discovery": false,
+      "down_mbps": 100,
+      "server": "eq-11.iv7rmg4.example.net",
+      "server_port": 32670,
+      "tag": "HK-epef-89",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.x5csa.example.com"
+      },
+      "type": "hysteria",
+      "up_mbps": 30
+    }
+  ]
+}

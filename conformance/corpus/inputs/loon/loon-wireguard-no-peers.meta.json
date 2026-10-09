@@ -1,0 +1,9 @@
+{
+  "id": "loon-wireguard-no-peers",
+  "family": "loon",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "wireguard-without-peers",
+  "description": "A lower-case Loon WireGuard line without peers and without = inside a value: the Surge grammar accepts it first, as a wireguard-surge node without a server."
+}

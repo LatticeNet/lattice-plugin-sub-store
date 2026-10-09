@@ -1,0 +1,26 @@
+[
+  {
+    "address": "c8k-13.e1l43f.example.org:43977",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "KYsCwZmKBjKgSF",
+      "tag": "GB-fz8n-86",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "b6x-20.i8josg.example.org:10947",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "obfs": "plain",
+      "password": "bcFPcct0YV3p",
+      "ssr-protocol": "origin",
+      "tag": "KR-ndqkk-68",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

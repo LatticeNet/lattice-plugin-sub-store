@@ -1,0 +1,44 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-nq4-74",
+      "type": "vless",
+      "server": "::FFFF:203.0.113.13",
+      "server_port": 443,
+      "uuid": "f3ebf17c-58c0-4334-9180-f10707b10ee9",
+      "tls": {
+        "enabled": true,
+        "server_name": "::FFFF:203.0.113.13",
+        "insecure": false
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "CA-ksx-50",
+      "type": "vless",
+      "server": "FE80::4AD9%25eth0",
+      "server_port": 443,
+      "uuid": "18970a1b-eb66-439e-963f-2ec5e118bae0",
+      "tls": {
+        "enabled": true,
+        "server_name": "FE80::4AD9%25eth0",
+        "insecure": false
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "NL-fkhqa-70",
+      "type": "vless",
+      "server": "::ffff:192.0.2.2",
+      "server_port": 443,
+      "uuid": "00afba75-b3d3-4726-ab6b-19606121bf02",
+      "tls": {
+        "enabled": true,
+        "server_name": "::ffff:192.0.2.2",
+        "insecure": false
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,12 @@
+proxies:
+  - name: FR-x7stf5-56
+    type: ss
+    server: nu4-28.oyouu.example.net
+    port: 48808
+    cipher: aes-128-gcm
+    password: 9Iz4XwQRVYotgD
+    udp: true
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: quic
+      host: cdn.zuzdhm.example.org

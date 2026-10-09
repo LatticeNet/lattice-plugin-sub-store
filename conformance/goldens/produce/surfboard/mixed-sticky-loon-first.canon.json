@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "kf-11.i58wm.example.com",
+      "8080",
+      "o052km1",
+      "kaX16lgCD924"
+    ],
+    "name": "HK-mz0r-89",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "kf-11.i58wm.example.com",
+      "8080",
+      "o052km1",
+      "kaX16lgCD924"
+    ],
+    "name": "HK-mz0r-89",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

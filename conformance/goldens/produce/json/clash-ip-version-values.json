@@ -1,0 +1,93 @@
+[
+  {
+    "_dns_server": "unbcljtf",
+    "ip-version": "dual",
+    "name": "HK-cjx-77",
+    "network": "tcp",
+    "password": "Drttxdvccwfaxc4e",
+    "port": 443,
+    "server": "iy-37.dc56k.example.org",
+    "sni": "img.aramgppm3.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "_dns_server": "ox7z41tk",
+    "ip-version": "v4-only",
+    "name": "NL-rm1-76",
+    "network": "tcp",
+    "password": "Jnuuxv8gZVVRzh2t",
+    "port": 443,
+    "server": "fuz-28.uv8ot.example.com",
+    "sni": "api.rxocwwswkc.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "_dns_server": "vh5zu",
+    "ip-version": "v6-only",
+    "name": "SG-cl9-44",
+    "network": "tcp",
+    "password": "4Vm2vFAENjt6bylh",
+    "port": 443,
+    "server": "xy-34.u6n8sj2n.example.net",
+    "sni": "static.ppsw9hocg.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "_dns_server": "h71g7t",
+    "ip-version": "prefer-v4",
+    "name": "HK-n488o-76",
+    "network": "tcp",
+    "password": "otgZ2PBAxIKEUXrS",
+    "port": 443,
+    "server": "uv-23.jocsspi.example.org",
+    "sni": "cdn.z33tx93cbl.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "_dns_server": "og5v",
+    "ip-version": "prefer-v6",
+    "name": "US-gqu8sb-76",
+    "network": "tcp",
+    "password": "1i1Kr6u8pd838AxG",
+    "port": 443,
+    "server": "xw-05.xstlss.example.net",
+    "sni": "cdn.dn2x7pvo.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "_dns_server": "xr0jy",
+    "ip-version": "ipv4-prefer",
+    "name": "AU-wk1-50",
+    "network": "tcp",
+    "password": "JCwYvyUPiGX6GDPn",
+    "port": 443,
+    "server": "c7l-25.ys3mkhv.example.net",
+    "sni": "cdn.ymq4b.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "_dns_server": "natkrwdc",
+    "ip-version": "eh8bd",
+    "name": "GB-qumu-79",
+    "network": "tcp",
+    "password": "b3XQHRCGOb8va6mh",
+    "port": 443,
+    "server": "hmp-30.q92twj.example.com",
+    "sni": "static.rdwf05uk.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

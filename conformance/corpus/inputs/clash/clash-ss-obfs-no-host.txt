@@ -1,0 +1,11 @@
+proxies:
+  - name: HK-lyqz-03
+    type: ss
+    server: nqj-39.vj1nhp.example.net
+    port: 26246
+    cipher: aes-128-gcm
+    password: 39ic9wEqGqdWx6
+    udp: true
+    plugin: obfs
+    plugin-opts:
+      mode: http

@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-uvpa-97",
+      "type": "snell",
+      "server": "nnv-08.qg4at.example.net",
+      "server_port": 10273,
+      "psk": "z28buU4hhgDebz86r0o7",
+      "version": 6,
+      "mode": "unshaped"
+    }
+  ],
+  "endpoints": []
+}

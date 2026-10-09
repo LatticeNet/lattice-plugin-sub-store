@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "fkb-23.g95rfl34.example.com",
+      "70000"
+    ],
+    "name": "US-bfrb-66",
+    "params": {
+      "password": "2WkYTw57EFOugGjI",
+      "sni": "api.gdqao1.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

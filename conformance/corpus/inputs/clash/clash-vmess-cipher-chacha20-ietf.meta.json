@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-cipher-chacha20-ietf",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "vmess-cipher",
+  "description": "vmess with cipher chacha20-ietf-poly1305."
+}

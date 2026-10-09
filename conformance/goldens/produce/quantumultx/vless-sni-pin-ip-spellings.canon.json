@@ -1,0 +1,43 @@
+[
+  {
+    "address": "::FFFF:203.0.113.13:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "f3ebf17c-58c0-4334-9180-f10707b10ee9",
+      "tag": "AU-nq4-74",
+      "tls-host": "::FFFF:203.0.113.13",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "FE80::4AD9%25eth0:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "18970a1b-eb66-439e-963f-2ec5e118bae0",
+      "tag": "CA-ksx-50",
+      "tls-host": "FE80::4AD9%25eth0",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "::ffff:192.0.2.2:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "00afba75-b3d3-4726-ab6b-19606121bf02",
+      "tag": "NL-fkhqa-70",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

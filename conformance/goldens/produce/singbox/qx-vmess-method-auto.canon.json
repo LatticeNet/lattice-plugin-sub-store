@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "w6-35.z4kqx.example.net",
+      "server_port": 43185,
+      "tag": "KR-x0i8i-78",
+      "type": "vmess",
+      "uuid": "345830f4-42b9-453c-b800-bcaa2447cb46"
+    }
+  ]
+}

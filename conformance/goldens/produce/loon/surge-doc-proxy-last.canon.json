@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "vu3-01.e7b60u5.example.org",
+      "32470",
+      "aes-128-gcm",
+      "F92aTOMG5tnYx1"
+    ],
+    "name": "HK-jscx-03",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "f8j-38.pujymc1.example.net",
+      "443",
+      "loD9lFOy1tBHPvkb"
+    ],
+    "name": "NL-gblee-19",
+    "params": {
+      "tls-name": "static.jj1xaxhl.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

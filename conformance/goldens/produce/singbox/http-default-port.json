@@ -1,0 +1,11 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-itwlx-02",
+      "type": "http",
+      "server": "je-18.obs1jo.example.com",
+      "server_port": 80
+    }
+  ],
+  "endpoints": []
+}

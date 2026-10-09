@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-no-opts",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "ws-no-opts",
+  "description": "vmess with network ws and no ws-opts; the normaliser already creates ws-opts with path / and the server as Host, so the case pins that path."
+}

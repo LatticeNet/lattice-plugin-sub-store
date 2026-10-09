@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "US-qe4q1x-80",
+    "host": "a2g-25.z48tqd9.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.xie8kv58.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "rc0xyjyaXcBn0bBO"
+  }
+]

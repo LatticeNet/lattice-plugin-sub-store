@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "sm-01.u4wqs351.example.net",
+      "443"
+    ],
+    "name": "TW-y9pq-57",
+    "params": {
+      "password": "fp2omGYeoDUnyAE7",
+      "skip-cert-verify": "true",
+      "sni": "sm-01.u4wqs351.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

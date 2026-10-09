@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-hrzu1-40",
+      "type": "snell",
+      "psk": "fs4dQCnc0K27Snsb0pa4",
+      "version": 4,
+      "detour": "US-hrzu1-40_shadowtls"
+    },
+    {
+      "tag": "US-hrzu1-40_shadowtls",
+      "type": "shadowtls",
+      "server": "xe-40.qjvo2.example.org",
+      "server_port": 443,
+      "version": 3,
+      "password": "JyusLIVRCdQytKeC",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.pc9gay6ya.example.com",
+        "alpn": [
+          "h2"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

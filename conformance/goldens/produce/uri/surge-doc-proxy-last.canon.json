@@ -1,0 +1,35 @@
+[
+  {
+    "fragment": "HK-jscx-03",
+    "host": "vu3-01.e7b60u5.example.org",
+    "path": "",
+    "port": "32470",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206RjkyYVRPTUc1dG5ZeDE=",
+    "userinfo_base64": "aes-128-gcm:F92aTOMG5tnYx1"
+  },
+  {
+    "fragment": "NL-gblee-19",
+    "host": "f8j-38.pujymc1.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.jj1xaxhl.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "loD9lFOy1tBHPvkb"
+  }
+]

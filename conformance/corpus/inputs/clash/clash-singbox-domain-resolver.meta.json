@@ -1,0 +1,9 @@
+{
+  "id": "clash-singbox-domain-resolver",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "domain-resolver",
+  "description": "Nodes with _dns_server plus ip-version, with _domain_resolver as a string, and with _domain_resolver as a mapping."
+}

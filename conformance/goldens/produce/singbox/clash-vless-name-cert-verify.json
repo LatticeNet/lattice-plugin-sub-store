@@ -1,0 +1,45 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-ihl5x-86",
+      "type": "vless",
+      "server": "sp1-26.r1ybtf.example.com",
+      "server_port": 443,
+      "uuid": "dc40258c-70f7-4cc6-8f57-47f891ff5fdf",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gyfox1.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "tag": "SG-hkj1-48",
+      "type": "vless",
+      "server": "dpa-17.ht61.example.net",
+      "server_port": 443,
+      "uuid": "12dfd962-9faf-4d0b-a5a1-86880db75bd8",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.rmwsxjoka.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "wqb-29.gzhip.example.org",
+      "null",
+      "auto",
+      "25c2e2a0-1f95-4953-9f36-a64e83e85446"
+    ],
+    "name": "DE-rmkd-68",
+    "params": {
+      "alterId": "0",
+      "over-tls": "false",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

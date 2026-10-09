@@ -1,0 +1,2 @@
+shadowsocks=u69-18.hhni.example.net:15480,method=aes-128-gcm,password=vLNqaPRJUz67TQ,udp-relay=true,tag=GB-psozs1-08
+vmess=nuu-30.bptlkz.example.com:443,method=chacha20-poly1305,password=0a5d3415-a80e-41f0-9ff2-1292dc251a4e,obfs=ws,obfs-uri=/ct25/e7005,obfs-host=cdn.mub447v0m.example.net,aead=true,udp-relay=true,tag=TW-neu8xy-54

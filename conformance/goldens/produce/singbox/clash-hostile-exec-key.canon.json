@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "KYsCwZmKBjKgSF",
+      "server": "c8k-13.e1l43f.example.org",
+      "server_port": 43977,
+      "tag": "GB-fz8n-86",
+      "type": "shadowsocks"
+    }
+  ]
+}

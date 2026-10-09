@@ -1,0 +1,7 @@
+{
+  "id": "surge-doc-lowercase-next-header",
+  "family": "surge",
+  "protocol": "mixed",
+  "quirk": "full-profile-lowercase-header",
+  "description": "[Proxy] followed by [proxy group] and more proxy-shaped lines: the extraction stops at the lower-case header, so only the lines under [Proxy] are read."
+}

@@ -1,0 +1,1 @@
+GB-ckpmjo-57=vless,fb-07.r6uukg.example.net,443,"5a606251-0e3b-472a-a3a8-45ca68b9011e",transport=tcp,over-tls=false,skip-cert-verify=false,tls-profile=chrome147,public-key="0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY",udp=true

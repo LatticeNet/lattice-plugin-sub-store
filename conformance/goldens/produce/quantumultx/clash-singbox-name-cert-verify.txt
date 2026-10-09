@@ -1,0 +1,1 @@
+vless=hc-40.nc5igzur.example.org:443,method=none,password=b2db72da-0421-48df-b34b-b536eca4d3f8,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=img.gx3fkjiqom.example.com,tls-host=api.n2x9vi.example.org,udp-relay=true,tag=NL-y3n-41

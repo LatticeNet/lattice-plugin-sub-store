@@ -1,0 +1,42 @@
+[
+  {
+    "fragment": "GB-itui-59",
+    "host": "e8-16.m20ou6xn.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.25.96.50/24,fd00:9946::7d85/64"
+      ],
+      [
+        "publickey",
+        "/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs="
+  },
+  {
+    "fragment": "TW-lql-28",
+    "host": "nwc-26.vov4gi.example.com",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "publickey",
+        "FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc="
+  }
+]

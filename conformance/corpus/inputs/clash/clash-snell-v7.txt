@@ -1,0 +1,7 @@
+proxies:
+  - name: JP-z1p4n-56
+    type: snell
+    server: qe-33.ttqwd.example.net
+    port: 35334
+    psk: aHolZGsIjJLxzWXwOPFR
+    version: 7

@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "SG-e0n-36",
+        "port": 443,
+        "server": "moe-25.xfbb.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "www.z2kul.example.org"
+            },
+            "path": "/ryv3jdg?ed=fh9",
+            "skip_tls_verify": false,
+            "sni": "api.gulze.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "7a0fb666-6ddd-4347-8b4c-2d81c515330b"
+      }
+    }
+  ]
+}

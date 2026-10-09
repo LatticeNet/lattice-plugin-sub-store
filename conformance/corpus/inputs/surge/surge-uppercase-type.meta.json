@@ -1,0 +1,9 @@
+{
+  "id": "surge-uppercase-type",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "type-keyword-case",
+  "description": "x = SS, ...: the type keyword is case-sensitive and no grammar accepts the line."
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "name": "JP-z1p4n-56",
+    "port": 35334,
+    "psk": "aHolZGsIjJLxzWXwOPFR",
+    "server": "qe-33.ttqwd.example.net",
+    "type": "snell",
+    "udp": true,
+    "version": 7
+  }
+]

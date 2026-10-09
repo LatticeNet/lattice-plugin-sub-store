@@ -1,0 +1,7 @@
+proxies:
+  - name: DE-rdjkty-17
+    type: ssh
+    server: zm-38.z1bz19i8.example.net
+    port: 22
+    username: ymp5emb
+    private-key: y5wh3781.pem

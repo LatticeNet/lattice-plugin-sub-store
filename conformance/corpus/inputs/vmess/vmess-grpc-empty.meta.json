@@ -1,0 +1,9 @@
+{
+  "id": "vmess-grpc-empty",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "grpc",
+  "security": "none",
+  "quirk": "grpc-without-data",
+  "description": "net grpc without path and host: the network is dropped and the normaliser sets tcp."
+}

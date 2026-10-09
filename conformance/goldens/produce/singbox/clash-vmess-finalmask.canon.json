@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "f2-35.rug0aa.example.com",
+      "server_port": 443,
+      "tag": "SG-qa5-45",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.pj3n2fe.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vmess",
+      "uuid": "0a8a14d6-5fe1-47a4-b391-8e32145eedb9"
+    }
+  ]
+}

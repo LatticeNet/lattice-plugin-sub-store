@@ -1,0 +1,1 @@
+HK-a98v-94 = Shadowsocks, v0p-17.vsy4.example.net, 70000, aes-128-gcm, "ZyW8K6jh5l7OpY"

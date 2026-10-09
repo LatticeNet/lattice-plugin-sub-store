@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "enz-06.ks1z.example.org",
+      "443",
+      "auto",
+      "d29f522d-b0af-4e45-b5ff-63db7cb42577"
+    ],
+    "name": "HK-irkxn-71",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "over-tls": "true",
+      "path": "/u2za/ks2mqc",
+      "tls-name": "enz-06.ks1z.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

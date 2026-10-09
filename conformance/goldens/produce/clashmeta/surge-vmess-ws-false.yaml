@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","name":"JP-pbg8g-55","network":"ws","port":80,"server":"iy-03.lvd0u.example.com","type":"vmess","udp":true,"uuid":"d7d256b8-aa72-41a5-952a-4a1c853b315b","ws-opts":{"headers":{"Host":"iy-03.lvd0u.example.com"},"path":"/iz57g9"}}

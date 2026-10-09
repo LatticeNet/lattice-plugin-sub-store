@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "NL-y3n-41",
+    "host": "hc-40.nc5igzur.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.n2x9vi.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "vcn",
+        "img.gx3fkjiqom.example.com"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b2db72da-0421-48df-b34b-b536eca4d3f8"
+  }
+]

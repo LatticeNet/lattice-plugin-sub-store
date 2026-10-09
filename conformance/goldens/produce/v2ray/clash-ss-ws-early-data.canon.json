@@ -1,0 +1,33 @@
+[
+  {
+    "fragment": "NL-wca4te-67",
+    "host": "qq0-04.ywvxhzk.example.com",
+    "path": "",
+    "port": "10060",
+    "query": [
+      [
+        "path",
+        "/l372je9y?ed=2048"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "qq0-04.ywvxhzk.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206VUl5SGNkNldkREtBQ2M=",
+    "userinfo_base64": "aes-128-gcm:UIyHcd6WdDKACc"
+  }
+]

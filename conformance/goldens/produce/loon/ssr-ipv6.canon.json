@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "2001:db8:4504:7576::5d4a",
+      "15683",
+      "aes-128-cfb",
+      "rcFtHdIJ2k06"
+    ],
+    "name": "[2001:db8:4504:7576::5d4a]",
+    "params": {
+      "obfs": "plain",
+      "obfs-param": "api.ih9gp.example.com",
+      "protocol": "origin",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

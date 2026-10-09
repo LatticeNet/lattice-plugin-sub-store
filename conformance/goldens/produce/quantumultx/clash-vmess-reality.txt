@@ -1,0 +1,1 @@
+vmess=nq-33.xwwdgm4.example.com:443,method=chacha20-poly1305,password=a42be7b0-8e81-4442-ae42-e9487199226b,obfs=over-tls,tls-host=img.v5muog5j0.example.net,aead=true,udp-relay=true,tag=FR-w58zd-41,reality-base64-pubkey=6EC-s4L-Ektr8wxEyKG6gxEVbldWLckdisaAaGeNHxE,reality-hex-shortid=29f1c4db

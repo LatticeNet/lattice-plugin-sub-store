@@ -1,0 +1,9 @@
+{
+  "id": "surge-https-quoted-headers",
+  "family": "surge",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "quoted-headers",
+  "description": "headers=\"X-A: 1;X-B: \\\"q;r\\\"\": two headers, the second keeping its escaped quotes and the separator inside them."
+}

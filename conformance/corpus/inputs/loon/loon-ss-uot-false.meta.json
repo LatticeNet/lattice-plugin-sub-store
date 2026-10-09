@@ -1,0 +1,9 @@
+{
+  "id": "loon-ss-uot-false",
+  "family": "loon",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "uot-false",
+  "description": "udp-over-tcp=false: the same effect as true, udp-over-tcp true with version 2."
+}

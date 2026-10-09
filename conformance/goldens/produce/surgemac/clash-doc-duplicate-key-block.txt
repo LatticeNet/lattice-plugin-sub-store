@@ -1,0 +1,2 @@
+ss undefined:undefined=ss,undefined,undefined,encrypt-method=none,udp-relay=true
+trojan undefined:undefined=trojan,undefined,undefined,tls=true

@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "du-21.xuqo.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "wk-11.bydc.example.org,bzy-26.x994q.example.com",
+      "id": "abeab29a-533c-49a8-9ea3-5fa5fd336813",
+      "net": "ws",
+      "path": "/ohvx2r/ccu9",
+      "port": "443",
+      "ps": "JP-sllha-25",
+      "scy": "auto",
+      "sni": "static.hj7i0uqi3t.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

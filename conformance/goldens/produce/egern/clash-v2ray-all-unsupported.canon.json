@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "DE-etktcw-02",
+        "password": "QYrIC13bchqS",
+        "port": 8080,
+        "server": "n8s-17.s0mpz.example.net",
+        "tfo": false,
+        "username": "bb25f"
+      }
+    },
+    {
+      "http": {
+        "name": "NL-pj3l7-41",
+        "password": "VMGYcj8oRohq",
+        "port": 8080,
+        "server": "ihj-14.hf0kvu.example.net",
+        "tfo": false,
+        "username": "e2fw"
+      }
+    }
+  ]
+}

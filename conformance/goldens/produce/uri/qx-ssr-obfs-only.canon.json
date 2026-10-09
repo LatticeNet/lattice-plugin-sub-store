@@ -1,0 +1,20 @@
+[
+  {
+    "body": {
+      "main": "hb-21.rfbq.example.com:32659:origin:aes-256-cfb:http_simple:dlk5bEttOFplVlFT",
+      "params": [
+        [
+          "obfsparam",
+          "static.yhydgl.example.org"
+        ],
+        [
+          "remarks",
+          "KR-d1m-45"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

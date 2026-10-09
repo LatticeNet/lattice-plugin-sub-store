@@ -1,0 +1,18 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "short-id: fzpp",
+    "network": "tcp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE",
+      "short-id": "8d112c21"
+    },
+    "server": "jhs-40.ixwhbpn.example.net",
+    "sni": "api.ncfc5tg.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "a0da4f1d-63c0-43f2-b194-924674712637"
+  }
+]

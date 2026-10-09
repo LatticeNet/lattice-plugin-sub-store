@@ -1,0 +1,9 @@
+{
+  "id": "surge-unknown-option-with-equals",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "unknown-option",
+  "description": "An unknown option whose value contains =: the line is rejected."
+}

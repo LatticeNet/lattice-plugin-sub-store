@@ -1,0 +1,2 @@
+shadowsocks=r8-22.rqosi.example.com:39474,method=aes-128-gcm,password=UurzHOXEvgK8m3,fast-open=true,udp-relay=true,tag=JP-x092-11
+shadowsocks=bv-01.deuvl.example.net:31874,method=aes-128-gcm,password=sMIHATg9l4GXsa,fast-open=true,udp-relay=true,tag=HK-xz4py5-57

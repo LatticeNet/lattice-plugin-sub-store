@@ -1,0 +1,44 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "SG-ndx7f-75",
+        "password": "LiA8wWkAmjun7p5p",
+        "port": 443,
+        "server": "yi-18.nwuw0vdq.example.com",
+        "sni": "cdn.uybowyulgx.example.net",
+        "uuid": "e36e543d-430c-4504-95a2-fcb1e9e8c41e"
+      }
+    },
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "US-qkl-19",
+        "password": "MLs179LcEU5gAAyL",
+        "port": 443,
+        "server": "cn-35.vy0b.example.net",
+        "sni": "static.hiqwqs.example.org",
+        "uuid": "79338101-7e19-4bf8-bd50-bc577e9913a8"
+      }
+    },
+    {
+      "tuic": {
+        "alpn": [
+          "h3",
+          "spdy/3.1"
+        ],
+        "name": "TW-w25-72",
+        "password": "RxcZJzwe8DttDIdv",
+        "port": 443,
+        "server": "i4p-30.pqvll.example.com",
+        "sni": "cdn.augcru5.example.org",
+        "uuid": "5c112dae-2e13-4949-b4c1-e96e3d222134"
+      }
+    }
+  ]
+}

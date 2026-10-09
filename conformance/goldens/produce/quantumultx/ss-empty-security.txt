@@ -1,0 +1,3 @@
+shadowsocks=wz-14.huhsgb.example.org:44206,method=aes-128-gcm,password=XBgXU8v1hEoPJA,udp-relay=true,tag=JP-tee2k7-36
+shadowsocks=g8-14.x5adht.example.org:33639,method=aes-128-gcm,password=SZDTUPhJwtveeW,udp-relay=true,tag=CA-bvq-13
+shadowsocks=mgz-18.jad1an.example.net:45471,method=aes-128-gcm,password=E6Ms689vI6sJyL,obfs=over-tls,obfs-host=mgz-18.jad1an.example.net,tls-verification=true,udp-relay=true,tag=SG-bot-82

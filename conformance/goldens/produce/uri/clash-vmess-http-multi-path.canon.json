@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "lyy-32.bzir.example.org",
+      "aid": "0",
+      "host": "www.bsjjx6bz0t.example.com",
+      "id": "c1fdca40-1054-4b30-a6f8-dac53a265e4e",
+      "net": "tcp",
+      "path": "/amaez",
+      "port": "443",
+      "ps": "JP-dlo0l-90",
+      "scy": "auto",
+      "tls": "",
+      "type": "http",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

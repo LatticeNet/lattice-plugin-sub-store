@@ -1,0 +1,16 @@
+[
+  {
+    "address": "xlh-33.n4sclexz.example.org:1080",
+    "args": [],
+    "params": {
+      "password": "5OKlfrVLEtru",
+      "tag": "fk5tg8",
+      "udp-relay": "true",
+      "username": "zqhe3gwg"
+    },
+    "type": "socks5"
+  },
+  {
+    "raw": "hyn1sg63"
+  }
+]

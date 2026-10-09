@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "fast-open": false,
+      "name": "TW-zqdt-64",
+      "obfs": "salamander",
+      "obfs-password": "xVZfLLQWOS2O",
+      "password": "sPOmVik1yMye21bMsDsr",
+      "port": 443,
+      "server": "nw-25.gx808qo.example.net",
+      "skip-cert-verify": false,
+      "sni": "static.refup.example.org",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+http=ro-29.zbyjbimf.example.com:8080/gnwx9pn:80,over-tls=false,udp-relay=true,tag=JP-jg34z-16

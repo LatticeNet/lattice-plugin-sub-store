@@ -1,0 +1,18 @@
+[
+  {
+    "address": "jv-05.vi5q.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "a4251e45-8c27-43ce-9bb2-ce33100ace04",
+      "tag": "JP-nhs7w3-33",
+      "tls-alpn": "026832",
+      "tls-host": "cdn.g0ri20uyg.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "proxies": [
+    {
+      "name": "TW-j9w6qk-36",
+      "password": "WRlDhNJU25Ck",
+      "port": 1080,
+      "server": "er-31.mtwnt.example.net",
+      "type": "socks5",
+      "udp": true,
+      "username": "h06y"
+    },
+    {
+      "name": "FR-ukui-94",
+      "password": "dJSY4pWnnmYU",
+      "port": 8080,
+      "server": "gt-07.b9min995.example.net",
+      "type": "http",
+      "udp": true,
+      "username": "uxvyk117"
+    },
+    {
+      "name": "HK-xka4u-94",
+      "password": "N8FwlKhIIDGI",
+      "port": 1080,
+      "server": "ar-10.yy6s.example.org",
+      "type": "socks5",
+      "udp": true,
+      "username": "ymxf0nzo"
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "SG-sqaa-44",
+      "password": "FNO39eNJhWcf5R",
+      "plugin": "kcptun",
+      "plugin-opts": {
+        "crypt": "aes",
+        "key": "j4IhNAIOJlPs"
+      },
+      "port": 12010,
+      "server": "gr-13.j8un730.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

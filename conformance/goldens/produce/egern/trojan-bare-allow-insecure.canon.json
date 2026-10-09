@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "TW-y9pq-57",
+        "password": "fp2omGYeoDUnyAE7",
+        "port": 443,
+        "server": "sm-01.u4wqs351.example.net",
+        "skip_tls_verify": true,
+        "sni": "sm-01.u4wqs351.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

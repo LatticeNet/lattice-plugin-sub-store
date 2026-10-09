@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "detour": "US-wy3-51_shadowtls",
+      "psk": "NZq6UaXbsTlmroOZ7STZ",
+      "tag": "US-wy3-51",
+      "type": "snell",
+      "version": 4
+    },
+    {
+      "password": "ZBhhkwByhlgdUUYT",
+      "server": "dx-34.uzidmcd.example.org",
+      "server_port": 57692,
+      "tag": "US-wy3-51_shadowtls",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.jgcbpwv1f3.example.com"
+      },
+      "type": "shadowtls",
+      "version": 3
+    }
+  ]
+}

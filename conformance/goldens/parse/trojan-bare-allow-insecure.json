@@ -1,0 +1,14 @@
+[
+  {
+    "name": "TW-y9pq-57",
+    "network": "tcp",
+    "password": "fp2omGYeoDUnyAE7",
+    "port": 443,
+    "server": "sm-01.u4wqs351.example.net",
+    "skip-cert-verify": true,
+    "sni": "sm-01.u4wqs351.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

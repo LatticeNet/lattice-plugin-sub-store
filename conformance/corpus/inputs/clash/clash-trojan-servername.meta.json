@@ -1,0 +1,7 @@
+{
+  "id": "clash-trojan-servername",
+  "family": "clash",
+  "protocol": "trojan",
+  "quirk": "servername-non-vless",
+  "description": "A trojan proxy with servername and no sni: servername is kept, because only vmess and vless move it, and the normaliser derives sni from the server."
+}

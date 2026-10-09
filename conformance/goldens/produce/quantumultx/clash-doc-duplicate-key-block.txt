@@ -1,0 +1,2 @@
+shadowsocks=undefined:undefined,method=none,password=undefined,udp-relay=true,tag=ss undefined:undefined
+trojan=undefined:undefined,password=undefined,over-tls=true,udp-relay=true,tag=trojan undefined:undefined

@@ -1,0 +1,1 @@
+vless=vhy-37.kbjlbsej.example.com:443,method=none,password=9ed65cb0-7a2c-45a9-ad68-97b05846f77e,obfs=wss,obfs-uri=/jui0ogbt30,obfs-host=cdn.o9kp42xjx.example.org,tls-host=cdn.o9kp42xjx.example.org,udp-relay=true,tag=FR-hh0-05

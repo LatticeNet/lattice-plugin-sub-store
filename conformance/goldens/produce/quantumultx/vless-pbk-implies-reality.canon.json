@@ -1,0 +1,14 @@
+[
+  {
+    "address": "fb-07.r6uukg.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "5a606251-0e3b-472a-a3a8-45ca68b9011e",
+      "reality-base64-pubkey": "0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY",
+      "tag": "GB-ckpmjo-57",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

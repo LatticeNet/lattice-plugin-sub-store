@@ -1,0 +1,48 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-rzpg-20",
+      "type": "vless",
+      "server": "u16-26.sz1teg.example.com",
+      "server_port": 443,
+      "uuid": "9f1ba0a5-a979-48eb-9d96-caff0917c849",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.t88723n10.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "TeoTSdir_kbAvA2e-B4-6IMCsUuZMfVNtPhy3yII6Pc",
+          "short_id": "0086"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "AU-ctw-23",
+      "type": "vless",
+      "server": "qjb-11.e5y6.example.net",
+      "server_port": 443,
+      "uuid": "c3465fc6-122b-40a0-bbd8-a5eb6460d054",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.mc05ho3.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Vinz4N9PuKGQ1h5Kx4f4po9zhPr0euemOLqUNPcukKk"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "flow": "xtls-rprx-vision"
+    }
+  ],
+  "endpoints": []
+}

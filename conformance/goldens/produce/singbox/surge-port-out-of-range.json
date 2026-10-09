@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-m7m-68",
+      "type": "shadowsocks",
+      "server": "ndr-05.gbn77.example.com",
+      "server_port": null,
+      "method": "aes-128-gcm",
+      "password": "ALdras0pPBr1sZ"
+    }
+  ],
+  "endpoints": []
+}

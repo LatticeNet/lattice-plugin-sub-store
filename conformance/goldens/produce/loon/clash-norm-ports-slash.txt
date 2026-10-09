@@ -1,0 +1,2 @@
+GB-rw9-06=Hysteria2,mkg-09.nh61g.example.net,443,"wKl8PntEJYrIyLHXdG2j",server-ports="59018-59027,14159",tls-name=www.kup71ude7q.example.org,udp=true
+HK-uqr5-06=Hysteria2,xis-35.v7fm.example.com,443,"YSTm6wIrazS7SxyeUBSh",tls-name=static.w381uvl.example.org,udp=true

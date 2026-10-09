@@ -1,0 +1,9 @@
+{
+  "id": "qx-ssr-obfs-only",
+  "family": "qx",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "ssr-obfs-only",
+  "description": "obfs=http_simple without ssr-protocol: an SSR obfs word makes the node ssr, with protocol origin."
+}

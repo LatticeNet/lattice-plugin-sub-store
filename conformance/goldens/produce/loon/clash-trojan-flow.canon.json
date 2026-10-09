@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "a2g-25.z48tqd9.example.net",
+      "443",
+      "rc0xyjyaXcBn0bBO"
+    ],
+    "name": "US-qe4q1x-80",
+    "params": {
+      "tls-name": "cdn.xie8kv58.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

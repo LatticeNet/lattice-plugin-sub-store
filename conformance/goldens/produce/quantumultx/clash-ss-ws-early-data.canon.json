@@ -1,0 +1,14 @@
+[
+  {
+    "address": "qq0-04.ywvxhzk.example.com:10060",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "UIyHcd6WdDKACc",
+      "tag": "NL-wca4te-67",
+      "tls-host": "qq0-04.ywvxhzk.example.com",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

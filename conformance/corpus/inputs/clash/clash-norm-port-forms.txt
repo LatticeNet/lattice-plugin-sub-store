@@ -1,0 +1,5 @@
+{"name":"DE-bfs-55","type":"ss","server":"hrc-22.zibc.example.net","port":"0443","cipher":"aes-128-gcm","password":"ty4TysmKKjggHD"}
+{"name":"AU-tdfmfr-53","type":"ss","server":"qo-39.ljrhkp7.example.com","port":"65536","cipher":"aes-128-gcm","password":"AmRgr2888qlIPD"}
+{"name":"NL-xa8-63","type":"ss","server":"ke6-36.rgn5ls.example.org","port":"","cipher":"aes-128-gcm","password":"tESlvXey4WRcbi"}
+{"name":"JP-lf7-81","type":"ss","server":"jf1-18.gdljfe.example.org","port":"abc","cipher":"aes-128-gcm","password":"e22RD6Xn1e8xf8"}
+{"name":"DE-yyf9-35","type":"ss","server":"r0a-11.qghyipu.example.com","port":70000,"cipher":"aes-128-gcm","password":"VJAlDVxiyZ5xRh"}

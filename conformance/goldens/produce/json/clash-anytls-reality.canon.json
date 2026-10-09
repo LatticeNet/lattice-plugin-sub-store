@@ -1,0 +1,18 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "JP-uine-40",
+    "network": "tcp",
+    "password": "CHDxZquybD5tKCFbF3uw",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "x1d1tn0PXiRTV539e9f0sdqIxB9Q3QtSK3WWsvOYFYU",
+      "short-id": "36529070"
+    },
+    "server": "wja-38.mypjmxik.example.org",
+    "sni": "api.d36fk.example.com",
+    "tls": true,
+    "type": "anytls",
+    "udp": true
+  }
+]

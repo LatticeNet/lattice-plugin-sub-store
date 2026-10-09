@@ -1,0 +1,9 @@
+{
+  "id": "vless-empty-fragment",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "empty-fragment",
+  "description": "A trailing # and remarks=R: the empty fragment wins and the name is the empty text."
+}

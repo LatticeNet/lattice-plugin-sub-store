@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-gecko",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "gecko",
+  "description": "hysteria2 with obfs gecko and packet sizes 100 and 5000."
+}

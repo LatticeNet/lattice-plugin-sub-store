@@ -1,0 +1,2 @@
+FR-skjup-87=socks5,ttp-13.hgduq8t.example.org,1080,username="x746rjcm",password="a6YV4jhq3YYs",udp-relay=false
+US-ki5-48=socks5,mo-35.oieb9.example.com,1080,username="zos1msg0",password="npyOMD5jBROX",udp-relay=true

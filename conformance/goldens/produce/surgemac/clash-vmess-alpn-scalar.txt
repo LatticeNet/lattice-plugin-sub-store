@@ -1,0 +1,1 @@
+JP-nhs7w3-33=vmess,jv-05.vi5q.example.com,443,username=a4251e45-8c27-43ce-9bb2-ce33100ace04,vmess-aead=true,tls=true,sni="cdn.g0ri20uyg.example.org",alpn="h2",skip-cert-verify=false

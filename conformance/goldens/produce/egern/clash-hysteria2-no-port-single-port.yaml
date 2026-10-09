@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"hysteria2 vq-35.tbtq.example.net:undefined","server":"vq-35.tbtq.example.net","port":8443,"auth":"wY75JPRvaRRLEgYnTRuB","tfo":false,"udp_relay":true,"sni":"static.n6ugri.example.com","port_hopping":"8443"}}

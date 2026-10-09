@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria-auth-str-forms",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "auth-str-forms",
+  "description": "hysteria with only auth_str and a scalar alpn h3, and hysteria whose auth-str contains a space."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-packet-encoding-variants",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "packet-encoding",
+  "description": "vless nodes with packet-encoding \"\", packetaddr, XUDP and an unknown value, with xudp: true, with packet-addr: true, and with udp: false."
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "args": [
+      "kf-11.i58wm.example.com",
+      "8080"
+    ],
+    "name": "HK-mz0r-89",
+    "params": {
+      "password": "kaX16lgCD924",
+      "tfo": "true",
+      "username": " o052km1"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "kf-11.i58wm.example.com",
+      "8080"
+    ],
+    "name": "HK-mz0r-89",
+    "params": {
+      "password": "kaX16lgCD924",
+      "username": " o052km1"
+    },
+    "type": "http"
+  }
+]

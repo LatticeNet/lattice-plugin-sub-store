@@ -1,0 +1,14 @@
+[
+  {
+    "address": "wtr-25.tgodt.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "iEbzUJm2r7ZFhxxz",
+      "tag": "FR-mw0ad-11",
+      "tls-host": "img.xashyl2j67.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

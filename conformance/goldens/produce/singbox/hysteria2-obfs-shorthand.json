@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-zqdt-64",
+      "type": "hysteria2",
+      "server": "nw-25.gx808qo.example.net",
+      "server_port": 443,
+      "password": "sPOmVik1yMye21bMsDsr",
+      "obfs": {
+        "type": "salamander",
+        "password": "xVZfLLQWOS2O"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "static.refup.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "address": "n8s-17.s0mpz.example.net:8080",
+    "args": [],
+    "params": {
+      "password": "QYrIC13bchqS",
+      "tag": "DE-etktcw-02",
+      "udp-relay": "true",
+      "username": "bb25f"
+    },
+    "type": "http"
+  },
+  {
+    "address": "ihj-14.hf0kvu.example.net:8080",
+    "args": [],
+    "params": {
+      "password": "VMGYcj8oRohq",
+      "tag": "NL-pj3l7-41",
+      "udp-relay": "true",
+      "username": "e2fw"
+    },
+    "type": "http"
+  }
+]

@@ -1,0 +1,1 @@
+vmess=x1-34.mh3dtn.example.com:443,method=chacha20-poly1305,password=dd30ca27-f54c-4355-b110-7639681794cf,obfs=ws,obfs-uri=/,obfs-host=x1-34.mh3dtn.example.com,aead=true,udp-relay=true,tag=FR-noq-63

@@ -1,0 +1,16 @@
+proxies:
+  - name: NL-rvfu-27
+    type: ss
+    server: lh-03.tvntg.example.org
+    port: 10239
+    cipher: aes-128-gcm
+    password: cf02XhToMNkAVl
+    udp: true
+    smux:
+      enabled: true
+      protocol: h2mux
+      max-connections: 4
+      brutal-opts:
+        enabled: true
+        up: 50
+        down: 100

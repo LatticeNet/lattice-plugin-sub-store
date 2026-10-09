@@ -1,0 +1,2 @@
+{"name":"GB-itui-59","type":"wireguard","server":"e8-16.m20ou6xn.example.net","port":51820,"private-key":"RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs=","public-key":"/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8=","udp":true,"ip":"10.25.96.50/24","ip-cidr":40,"ipv6":"[fd00:9946::7d85]/64"}
+{"name":"TW-lql-28","type":"wireguard","server":"nwc-26.vov4gi.example.com","port":51820,"private-key":"GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc=","public-key":"FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8=","udp":true,"ip":"theee7","ip-cidr":24,"ipv6":"","ipv6-cidr":64}

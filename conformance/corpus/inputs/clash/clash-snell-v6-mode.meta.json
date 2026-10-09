@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-v6-mode",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "snell-version",
+  "description": "snell version 6 with mode and quic-proxy-mode: true."
+}

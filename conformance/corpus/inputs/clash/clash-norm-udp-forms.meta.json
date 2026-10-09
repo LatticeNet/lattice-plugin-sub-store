@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-udp-forms",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "udp-forms",
+  "description": "N3: udp as \"FALSE\", 0, \"off\", null, absent and \"yes\": false for the first three, true for the rest."
+}

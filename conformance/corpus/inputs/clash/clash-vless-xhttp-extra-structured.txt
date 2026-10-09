@@ -1,0 +1,30 @@
+proxies:
+  - name: JP-wzcyce-54
+    type: vless
+    server: kc-11.be1i5.example.org
+    port: 443
+    uuid: c5f3fae3-1c0b-4c0d-81e4-c6ef1f6096ad
+    udp: true
+    tls: true
+    servername: api.l7qbloarat.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: Iq3oWJDvt0Aj5l45mAC-izg13hbGP6cyuWqV1pBm6b8
+      short-id: 0a674faa
+    network: xhttp
+    xhttp-opts:
+      path: /ipi7gmqks
+      mode: packet-up
+      headers:
+        X-g7hkl17: ipxgp9v1
+      no-grpc-header: true
+      x-padding-bytes: 100-1000
+      uplink-http-method: PUT
+      session-placement: header
+      session-key: X-kapmh
+      seq-placement: query
+      seq-key: lch1f4
+      reuse-settings:
+        max-connections: "8"
+        max-concurrency: 16-32
+        h-keep-alive-period: 30

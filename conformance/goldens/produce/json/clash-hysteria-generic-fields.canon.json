@@ -1,0 +1,21 @@
+[
+  {
+    "auth-str": "1BvAeVxGOLa9Li1k",
+    "down": "100 Mbps",
+    "fast-open": true,
+    "name": "DE-of38-16",
+    "port": 45400,
+    "ports": "33137-33146",
+    "protocol": "udp",
+    "recv-window": 52428800,
+    "recv-window-conn": 12582912,
+    "server": "t3-06.uk6fxic.example.net",
+    "skip-cert-verify": false,
+    "sni": "static.jmvmn6obd.example.net",
+    "tls": true,
+    "type": "hysteria",
+    "udp": true,
+    "up": "30 Mbps",
+    "x-e0dev": "tm5is"
+  }
+]

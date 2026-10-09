@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "AU-gg9uw-50",
+    "host": "qb-21.dzh8.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.dtrwbre6f.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "kjhClV1ZL1nzoBZOKHyq"
+  }
+]

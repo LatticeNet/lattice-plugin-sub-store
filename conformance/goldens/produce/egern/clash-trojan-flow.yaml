@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"US-qe4q1x-80","server":"a2g-25.z48tqd9.example.net","port":443,"password":"rc0xyjyaXcBn0bBO","tfo":false,"udp_relay":true,"sni":"cdn.xie8kv58.example.net"}}

@@ -1,0 +1,13 @@
+proxies:
+  - name: NL-lztg-36
+    type: socks5
+    server: cg-29.ysunden.example.com
+    port: 80a
+    username: nkpdg93
+    password: b2pDXmK1Weku
+  - name: GB-p124z9-66
+    type: socks5
+    server: kim-20.bwqt.example.org
+    port: abc
+    username: imhslavy
+    password: sL1aNErJ62Dw

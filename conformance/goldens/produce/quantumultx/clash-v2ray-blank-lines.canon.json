@@ -1,0 +1,35 @@
+[
+  {
+    "address": "er-31.mtwnt.example.net:1080",
+    "args": [],
+    "params": {
+      "password": "WRlDhNJU25Ck",
+      "tag": "TW-j9w6qk-36",
+      "udp-relay": "true",
+      "username": "h06y"
+    },
+    "type": "socks5"
+  },
+  {
+    "address": "gt-07.b9min995.example.net:8080",
+    "args": [],
+    "params": {
+      "password": "dJSY4pWnnmYU",
+      "tag": "FR-ukui-94",
+      "udp-relay": "true",
+      "username": "uxvyk117"
+    },
+    "type": "http"
+  },
+  {
+    "address": "ar-10.yy6s.example.org:1080",
+    "args": [],
+    "params": {
+      "password": "N8FwlKhIIDGI",
+      "tag": "HK-xka4u-94",
+      "udp-relay": "true",
+      "username": "ymxf0nzo"
+    },
+    "type": "socks5"
+  }
+]

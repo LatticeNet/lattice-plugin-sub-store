@@ -1,0 +1,30 @@
+proxies:
+  - name: FR-xzt8-87
+    type: trojan
+    server: r71-09.q6isz.example.com
+    port: 443
+    password: 252osGcNC6rhBPot
+    sni: api.k66w9n0.example.com
+    udp: true
+    _dns_server: q9yd0
+    ip-version: v4-only
+  - name: KR-kse4f-43
+    type: trojan
+    server: w7-10.olg8j.example.org
+    port: 443
+    password: pNnlkRSb5JLWlpyh
+    sni: img.ec3p3.example.com
+    udp: true
+    _domain_resolver: bmsdx9c
+  - name: HK-tm0vy-52
+    type: trojan
+    server: kuk-03.ztc4l.example.net
+    port: 443
+    password: 7pxYY9U0dtY7Xt2x
+    sni: api.xevlb.example.org
+    udp: true
+    _dns_server: h5am
+    ip-version: prefer-v6
+    _domain_resolver:
+      server: ke2du
+      strategy: prefer_ipv4

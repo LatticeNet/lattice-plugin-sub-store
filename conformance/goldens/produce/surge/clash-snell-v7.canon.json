@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "qe-33.ttqwd.example.net",
+      "35334"
+    ],
+    "name": "JP-z1p4n-56",
+    "params": {
+      "psk": "aHolZGsIjJLxzWXwOPFR",
+      "version": "7"
+    },
+    "type": "snell"
+  }
+]

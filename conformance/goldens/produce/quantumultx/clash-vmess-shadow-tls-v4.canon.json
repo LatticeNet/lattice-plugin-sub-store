@@ -1,0 +1,17 @@
+[
+  {
+    "address": "e1t-28.pn1vrl.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "92dd7a9f-7483-4169-b5bc-9e1c9df883c9",
+      "tag": "TW-hbk7t-48",
+      "tls-host": "api.mszatet97q.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

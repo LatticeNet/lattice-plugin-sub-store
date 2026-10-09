@@ -1,0 +1,9 @@
+{
+  "id": "surge-shadow-tls-v1",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-version",
+  "description": "shadow-tls-version=1: a version below 2 rejects the line."
+}

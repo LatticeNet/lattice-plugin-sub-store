@@ -1,0 +1,11 @@
+{
+  "id": "mixed-empty-pretty-yaml",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "empty",
+  "description": "An empty document produced with prettyYaml: the ClashMeta empty document is proxies: [] instead of proxies:.",
+  "produce": "always",
+  "options": {
+    "prettyYaml": true
+  }
+}

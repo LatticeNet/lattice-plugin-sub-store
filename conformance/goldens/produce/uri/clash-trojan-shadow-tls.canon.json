@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "TW-m5o0-21",
+    "host": "i0-17.w4oe.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.kratp2kn.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "oX6y6U3NunXBPYcG"
+  }
+]

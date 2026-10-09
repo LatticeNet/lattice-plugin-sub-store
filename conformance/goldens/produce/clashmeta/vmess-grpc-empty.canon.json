@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "CA-uaxg-47",
+      "network": "tcp",
+      "port": 443,
+      "server": "qb-25.b9184.example.net",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "eaf90f9a-7e2a-493a-9887-b669e8aa7e6b"
+    }
+  ]
+}

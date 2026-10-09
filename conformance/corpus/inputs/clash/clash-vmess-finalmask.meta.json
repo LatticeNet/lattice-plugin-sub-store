@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-finalmask",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "finalmask",
+  "description": "vmess with _finalmask, which selects the URI query form."
+}

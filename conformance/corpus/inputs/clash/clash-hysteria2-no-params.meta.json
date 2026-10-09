@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-no-params",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "minimal",
+  "description": "hysteria2 on an IPv4 literal with only a password."
+}

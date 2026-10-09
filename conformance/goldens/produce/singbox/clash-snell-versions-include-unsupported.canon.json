@@ -1,0 +1,37 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "psk": "qy4Ski0CRbGm7cZh3dsR",
+      "server": "plt-35.fr9ce.example.com",
+      "server_port": 44923,
+      "tag": "AU-voji-39",
+      "type": "snell",
+      "version": 1
+    },
+    {
+      "psk": "9XKg0BnUWylNk0MI5SRO",
+      "server": "hl6-08.vqbj.example.net",
+      "server_port": 12361,
+      "tag": "SG-kau-01",
+      "type": "snell",
+      "version": 2
+    },
+    {
+      "psk": "PiOQ8ZkWtdHzke3JjM8D",
+      "server": "eod-34.v0aybnc.example.net",
+      "server_port": 42820,
+      "tag": "CA-cpszh-53",
+      "type": "snell",
+      "version": 5
+    },
+    {
+      "psk": "LsywgDXBCASaBetQKsQs",
+      "server": "r57-35.n27cw2z.example.org",
+      "server_port": 43212,
+      "tag": "JP-qty-61",
+      "type": "snell",
+      "version": 6
+    }
+  ]
+}

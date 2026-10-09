@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ndr-05.gbn77.example.com",
+      "undefined",
+      "aes-128-gcm",
+      "ALdras0pPBr1sZ"
+    ],
+    "name": "CA-m7m-68",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

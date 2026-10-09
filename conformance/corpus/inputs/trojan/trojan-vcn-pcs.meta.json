@@ -1,0 +1,9 @@
+{
+  "id": "trojan-vcn-pcs",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-annotations",
+  "description": "sni, vcn with two names and pcs: _vcn, name-cert-verify from its first entry, and tls-fingerprint."
+}

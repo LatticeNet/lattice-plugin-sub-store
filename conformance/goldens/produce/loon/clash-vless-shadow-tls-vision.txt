@@ -1,0 +1,1 @@
+US-syz8-29=vless,tcz-29.ppxe.example.net,443,"03ba6920-4b55-435c-90f5-2dd82536c8dc",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,flow=xtls-rprx-vision,tls-name=static.lo63q03r9t.example.com,udp=true

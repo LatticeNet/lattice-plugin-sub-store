@@ -1,0 +1,25 @@
+[
+  {
+    "addresses": [
+      "198.51.100.226"
+    ],
+    "args": [
+      "-c",
+      "/etc/pn7l.json"
+    ],
+    "exec": "/usr/local/bin/m2h7",
+    "local-port": "1080",
+    "name": "AU-dmn5y5-44",
+    "type": "external",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "NL-d0svs-69",
+    "password": "2UkWNdG9ThWtTN",
+    "port": 50551,
+    "server": "ww-28.b6rk.example.com",
+    "type": "ss",
+    "udp": true
+  }
+]

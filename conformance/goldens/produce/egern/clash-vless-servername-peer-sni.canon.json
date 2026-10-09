@@ -1,0 +1,36 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "JP-f94zlg-44",
+        "port": 443,
+        "server": "u6c-29.l2ck05d.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "api.xqq9sjsn.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ae8a4d40-fd2d-471e-957c-4533ddfe7ffa"
+      }
+    },
+    {
+      "vless": {
+        "name": "AU-c1i4-58",
+        "port": 443,
+        "server": "qyd-10.ho2a.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.yx83fdfg.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "907c4f53-0a20-4f51-9e41-4c6edc229092"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "FR-hh0-05",
+        "port": 443,
+        "server": "vhy-37.kbjlbsej.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "cdn.o9kp42xjx.example.org"
+            },
+            "path": "/jui0ogbt30",
+            "sni": "cdn.o9kp42xjx.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "9ed65cb0-7a2c-45a9-ad68-97b05846f77e"
+      }
+    }
+  ]
+}

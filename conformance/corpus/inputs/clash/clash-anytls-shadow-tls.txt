@@ -1,0 +1,12 @@
+proxies:
+  - name: AU-qdf2nu-60
+    type: anytls
+    server: s2-22.kay4.example.org
+    port: 443
+    password: pMULWF6GVsIKxHkmeJrH
+    client-fingerprint: chrome
+    sni: static.nbazeta.example.com
+    udp: true
+    shadow-tls-opts:
+      password: 3fL67OwHg3zl4tPB
+      version: 3

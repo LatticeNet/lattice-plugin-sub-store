@@ -1,0 +1,1 @@
+anytls://ejgbYJ6mPnxvebxd9iNg@hbn-02.cg9uhh2v.example.net:443?security=reality&sni=api.lvxt2kr.example.net&pbk=xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk&sid=81f82d48&type=tcp#CA-c08t-42

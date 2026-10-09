@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "eh-02.e6fd.example.net",
+      "443",
+      "Dxnae7hB8sq8H4nnLYFk"
+    ],
+    "name": "JP-ei5q-91",
+    "params": {
+      "download-bandwidth": "1",
+      "tls-name": "img.lgpapm0p.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

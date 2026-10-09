@@ -1,0 +1,56 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-k2i26o-60",
+      "type": "vless",
+      "server": "ql-28.mfh74.example.org",
+      "server_port": 443,
+      "uuid": "4bfba380-5bc4-4df4-86d0-90a44bdaca86",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.n3c5y9f2.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "HK-ovkvbt-84",
+      "type": "vless",
+      "server": "vnx-13.k0stf9.example.com",
+      "server_port": 443,
+      "uuid": "ac23f656-42ff-4309-b8ca-f67c1db6fa2f",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.dxln3g3tl.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "3nZMZwYr4Me0cOVWa4Oe_nwLDnQQqq8Z-1ylmaMBMb4",
+          "short_id": "3f318d68"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "flow": ""
+    },
+    {
+      "tag": "SG-ujrq5-92",
+      "type": "vless",
+      "server": "hf-04.l37ml.example.org",
+      "server_port": 443,
+      "uuid": "493e1001-6c2d-406a-bdb3-9386878d202f",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.clpf8qt.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "path": "/"
+      }
+    }
+  ],
+  "endpoints": []
+}

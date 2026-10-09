@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-r68l-27",
+      "type": "shadowsocks",
+      "server": "ob-14.iqrnt.example.org",
+      "server_port": 11702,
+      "method": "aes-256-gcm",
+      "password": "9dVmH36FRUKBKT"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"CA-saq36m-81","port":443,"server":"quz-07.xsbt.example.net","skip-cert-verify":false,"sni":"www.t5tqzt5.example.org","type":"hysteria2","udp":true,"auth":"60Xt0FmFgKCvZJufrosV","fast-open":true}

@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "5OKlfrVLEtru",
+      "server": "xlh-33.n4sclexz.example.org",
+      "server_port": 1080,
+      "tag": "fk5tg8\nhyn1sg63",
+      "type": "socks",
+      "username": "zqhe3gwg",
+      "version": "5"
+    }
+  ]
+}

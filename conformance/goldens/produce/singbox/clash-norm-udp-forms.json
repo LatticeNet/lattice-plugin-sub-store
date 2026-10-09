@@ -1,0 +1,56 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-cx3puo-07",
+      "type": "shadowsocks",
+      "server": "ax-36.fvpemab.example.com",
+      "server_port": 59231,
+      "method": "aes-128-gcm",
+      "password": "MHdJWa7fG13ezc",
+      "network": "tcp"
+    },
+    {
+      "tag": "JP-c0up-16",
+      "type": "shadowsocks",
+      "server": "gb-35.qorj2ra.example.org",
+      "server_port": 11115,
+      "method": "aes-128-gcm",
+      "password": "BmmjUHS9k3fbBy",
+      "network": "tcp"
+    },
+    {
+      "tag": "CA-db7t-24",
+      "type": "shadowsocks",
+      "server": "rv-32.lqs3ow7.example.net",
+      "server_port": 43102,
+      "method": "aes-128-gcm",
+      "password": "tUUPWI9j6Sm7EX",
+      "network": "tcp"
+    },
+    {
+      "tag": "CA-n9cjl5-36",
+      "type": "shadowsocks",
+      "server": "ri-36.p6ef54x.example.com",
+      "server_port": 17632,
+      "method": "aes-128-gcm",
+      "password": "vqz906wdsejnXw"
+    },
+    {
+      "tag": "AU-m13e-41",
+      "type": "shadowsocks",
+      "server": "vqc-37.ogl0g.example.com",
+      "server_port": 43916,
+      "method": "aes-128-gcm",
+      "password": "sbRptMTtjvSD6t"
+    },
+    {
+      "tag": "DE-cg3m-43",
+      "type": "shadowsocks",
+      "server": "ka2-34.mp8l.example.net",
+      "server_port": 19976,
+      "method": "aes-128-gcm",
+      "password": "pdDTOI0XOYT2z7"
+    }
+  ],
+  "endpoints": []
+}

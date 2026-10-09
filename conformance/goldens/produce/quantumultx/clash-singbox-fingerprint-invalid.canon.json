@@ -1,0 +1,15 @@
+[
+  {
+    "address": "ow-28.dtz3rnpm.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "pPnCGkjyaqHJ0MfE",
+      "tag": "KR-r6gn-96",
+      "tls-cert-sha256": "cfa0652d596fff52864e5c2c7ae1cdd72414dfd74aa3ba626999902136a39b4",
+      "tls-host": "cdn.jg0x6mx4e.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,128 @@
+[
+  {
+    "fragment": "HK-cjx-77",
+    "host": "iy-37.dc56k.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.aramgppm3.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Drttxdvccwfaxc4e"
+  },
+  {
+    "fragment": "NL-rm1-76",
+    "host": "fuz-28.uv8ot.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.rxocwwswkc.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Jnuuxv8gZVVRzh2t"
+  },
+  {
+    "fragment": "SG-cl9-44",
+    "host": "xy-34.u6n8sj2n.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.ppsw9hocg.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "4Vm2vFAENjt6bylh"
+  },
+  {
+    "fragment": "HK-n488o-76",
+    "host": "uv-23.jocsspi.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.z33tx93cbl.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "otgZ2PBAxIKEUXrS"
+  },
+  {
+    "fragment": "US-gqu8sb-76",
+    "host": "xw-05.xstlss.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.dn2x7pvo.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "1i1Kr6u8pd838AxG"
+  },
+  {
+    "fragment": "AU-wk1-50",
+    "host": "c7l-25.ys3mkhv.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.ymq4b.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "JCwYvyUPiGX6GDPn"
+  },
+  {
+    "fragment": "GB-qumu-79",
+    "host": "hmp-30.q92twj.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.rdwf05uk.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "b3XQHRCGOb8va6mh"
+  }
+]

@@ -1,0 +1,2 @@
+trojan://40QBKx4MhuEBt2QU@[0:0:0:0:0:ffff:198.51.100.93]:443?sni=api.zorhgkc3.example.com#DE-yocbnt-93
+trojan://Ou8kTO0V9PYFpUBy@[::ffff:198.51.100.153]:443?sni=www.ok64r7bmn.example.net#SG-i1osv-55

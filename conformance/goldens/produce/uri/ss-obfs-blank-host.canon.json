@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "NL-emsp-35",
+    "host": "fe-35.h9jtz.example.org",
+    "path": "/",
+    "port": "54028",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=tls"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206SksxOG9HWEQxb1ZQdnA=",
+    "userinfo_base64": "aes-256-gcm:JK18oGXD1oVPvp"
+  }
+]

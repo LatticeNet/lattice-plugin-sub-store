@@ -1,0 +1,15 @@
+[
+  {
+    "address": "u2l-25.nave.example.org:443",
+    "args": [],
+    "params": {
+      "fast-open": "true",
+      "over-tls": "true",
+      "password": "5Q3Okkl4B6XFYtv1",
+      "tag": "NL-iyg-35",
+      "tls-host": "cdn.jvk2wurwv.example.org",
+      "udp-relay": "false"
+    },
+    "type": "trojan"
+  }
+]

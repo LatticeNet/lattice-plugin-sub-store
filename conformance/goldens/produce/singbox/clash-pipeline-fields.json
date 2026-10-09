@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-mw0ad-11",
+      "type": "trojan",
+      "server": "wtr-25.tgodt.example.org",
+      "server_port": 443,
+      "password": "iEbzUJm2r7ZFhxxz",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xashyl2j67.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

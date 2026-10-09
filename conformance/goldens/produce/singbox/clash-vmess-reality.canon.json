@@ -1,0 +1,28 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "nq-33.xwwdgm4.example.com",
+      "server_port": 443,
+      "tag": "FR-w58zd-41",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "6EC-s4L-Ektr8wxEyKG6gxEVbldWLckdisaAaGeNHxE",
+          "short_id": "29f1c4db"
+        },
+        "server_name": "img.v5muog5j0.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vmess",
+      "uuid": "a42be7b0-8e81-4442-ae42-e9487199226b"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+KR-t5c4a4-23=ss,z0p-14.h7qm2mrm.example.com,34037,encrypt-method=camellia-128-cfb,password="sno5kIgnhB6Fsk",udp-relay=true

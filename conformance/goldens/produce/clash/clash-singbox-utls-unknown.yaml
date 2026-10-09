@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":" Chrome ","name":"CA-t7vt-14","network":"tcp","port":443,"server":"xl-19.a0gaynq.example.com","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"7ac6db26-2930-4189-b140-e6645c3ec41b","servername":"cdn.p9aj7.example.org"}

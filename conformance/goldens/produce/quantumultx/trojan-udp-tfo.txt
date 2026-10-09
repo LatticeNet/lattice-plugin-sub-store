@@ -1,0 +1,1 @@
+trojan=u2l-25.nave.example.org:443,password=5Q3Okkl4B6XFYtv1,over-tls=true,tls-host=cdn.jvk2wurwv.example.org,fast-open=true,udp-relay=false,tag=NL-iyg-35

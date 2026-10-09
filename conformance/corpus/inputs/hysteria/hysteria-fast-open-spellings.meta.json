@@ -1,0 +1,9 @@
+{
+  "id": "hysteria-fast-open-spellings",
+  "family": "hysteria",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "fast-open-spellings",
+  "description": "fast-open=1, fastopen=1 and recv_window_conn=1: fast-open has no effect, fastopen is copied as the text 1, and recv_window_conn becomes recv-window_conn."
+}

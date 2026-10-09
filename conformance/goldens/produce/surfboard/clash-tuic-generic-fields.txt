@@ -1,0 +1,1 @@
+FR-s8k-58=tuic-v5,m97-07.vapbfgw4.example.net,443,uuid=8084f53b-14db-4353-bb2f-54266975fe35,password="haySs7N4afsvUahP",alpn="h3",sni="www.r0ym9flg0.example.net",udp-relay=true

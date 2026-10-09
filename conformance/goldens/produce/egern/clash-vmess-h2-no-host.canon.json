@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-q60-82",
+        "port": 443,
+        "security": "auto",
+        "server": "wnt-34.v5lbu.example.net",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "path": "/cdxbxd",
+            "skip_tls_verify": false,
+            "sni": "www.pjpqvxmy.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "d3f3ec96-793c-4363-92c9-e8ad01ce29b0"
+      }
+    }
+  ]
+}

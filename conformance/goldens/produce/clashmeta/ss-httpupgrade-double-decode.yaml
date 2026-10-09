@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-256-gcm","name":"US-r68l-27","network":"ws","password":"9dVmH36FRUKBKT","port":11702,"server":"ob-14.iqrnt.example.org","skip-cert-verify":false,"type":"ss","udp":true,"ws-opts":{"headers":{"Host":"img.z38kf.example.com%"},"path":"/sevmgd/fnlumtri1s","v2ray-http-upgrade":true,"v2ray-http-upgrade-fast-open":true}}

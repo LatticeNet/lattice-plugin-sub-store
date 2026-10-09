@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "pFz9FbdHbazUQpJZ",
+      "server": "hp-05.gks3u9.example.org",
+      "server_port": 443,
+      "tag": "GB-ypr0ot-83",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "hp-05.gks3u9.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

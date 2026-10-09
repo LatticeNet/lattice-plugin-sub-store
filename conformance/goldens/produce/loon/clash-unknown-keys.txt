@@ -1,0 +1,1 @@
+FR-hh0-05=vless,vhy-37.kbjlbsej.example.com,443,"9ed65cb0-7a2c-45a9-ad68-97b05846f77e",transport=ws,path=/jui0ogbt30,host=cdn.o9kp42xjx.example.org,over-tls=true,tls-name=cdn.o9kp42xjx.example.org,udp=true

@@ -1,0 +1,15 @@
+proxies:
+  - name: ""
+    type: trojan
+    server: fqu-05.gkq008mx.example.net
+    port: 443
+    password: NHf9rBYljVdtJehr
+    sni: static.grofr.example.org
+    udp: true
+  - name: " "
+    type: trojan
+    server: yp-22.onpzeo.example.com
+    port: 443
+    password: 6HnaJbaINQaGBUdR
+    sni: www.nn9zf.example.net
+    udp: true

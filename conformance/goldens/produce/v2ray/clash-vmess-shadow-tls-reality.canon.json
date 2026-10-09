@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "KR-e3w4-95",
+    "host": "aq-17.vsn27vzi.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "auto"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "LqfNLMKbhMVX8W_M2RJXCK_jRri5GjmOqeZXexE0BoQ"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "f2a67485"
+      ],
+      [
+        "sni",
+        "api.agy7vgm3k.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vmess",
+    "userinfo": "23df0336-e6e4-4d67-a1a5-a858d0c3a07d"
+  }
+]

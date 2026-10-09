@@ -1,0 +1,47 @@
+[
+  {
+    "fragment": "JP-oxhcw-81",
+    "host": "d3-40.imv854.example.com",
+    "path": "",
+    "port": "11307",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206MDQ2NA==",
+    "userinfo_base64": "aes-128-gcm:0464"
+  },
+  {
+    "fragment": "SG-tqhn9e-94",
+    "host": "l4o-04.bk9b.example.com",
+    "path": "",
+    "port": "20956",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206MDU2Ng==",
+    "userinfo_base64": "aes-128-gcm:0566"
+  },
+  {
+    "fragment": "FR-zp3m-01",
+    "host": "jo-14.ikr1e9o.example.net",
+    "path": "",
+    "port": "42874",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206NTYw",
+    "userinfo_base64": "aes-128-gcm:560"
+  }
+]

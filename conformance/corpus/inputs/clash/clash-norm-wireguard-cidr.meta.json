@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-wireguard-cidr",
+  "family": "clash",
+  "protocol": "wireguard",
+  "quirk": "wireguard-cidr",
+  "description": "N35 and 2.3: ip <IPv4>/24 with an out-of-range ip-cidr and a bracketed IPv6 with a suffix, then a non-IP ip with ip-cidr and an empty ipv6 with ipv6-cidr: bare addresses with prefixes 24 and 64, the non-IP pair untouched, and the empty address's CIDR removed."
+}

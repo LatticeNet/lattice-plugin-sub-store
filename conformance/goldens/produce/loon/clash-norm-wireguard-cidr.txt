@@ -1,0 +1,2 @@
+GB-itui-59=wireguard,interface-ip=10.25.96.50,interface-ipv6=fd00:9946::7d85,private-key="RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs=",peers=[{public-key="/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8=",allowed-ips="0.0.0.0/0,::/0",endpoint=e8-16.m20ou6xn.example.net:51820}]
+TW-lql-28=wireguard,interface-ip=theee7,interface-ipv6=,private-key="GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc=",peers=[{public-key="FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8=",allowed-ips="0.0.0.0/0,::/0",endpoint=nwc-26.vov4gi.example.com:51820}]

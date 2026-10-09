@@ -1,0 +1,9 @@
+{
+  "id": "qx-vmess-method-auto",
+  "family": "qx",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "method-auto",
+  "description": "vmess with method=auto, which is not in the QX list: the option is ignored and cipher falls back to none."
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "address": "t21-20.eu3o.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "edaca863-c360-43e9-9c87-f8472d557124",
+      "tag": "TW-rsq-92",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "dj7-13.at5nkb5c.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "e84da8f7-807b-4654-b474-792df7ee29e1",
+      "tag": "TW-rvi-20",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "ev-36.o21g.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "46dd643a-1c5e-4996-8a18-5bbf15fdf184",
+      "tag": "TW-sweeks-49",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

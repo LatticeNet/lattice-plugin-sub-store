@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "vv4-07.bwxx.example.com",
+      "43689"
+    ],
+    "name": "NL-ahs6-94",
+    "params": {
+      "encrypt-method": "none",
+      "password": "",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

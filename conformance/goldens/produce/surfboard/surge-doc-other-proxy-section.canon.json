@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "pf-09.b8jq.example.com",
+      "50711"
+    ],
+    "name": "US-cokl-60",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "koqDbSBQ9l8LWr",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

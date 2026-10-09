@@ -1,0 +1,71 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "server": "o30-36.skj7.example.net",
+      "server_port": 443,
+      "tag": "SG-b5q-10",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "1G2ZoQ3_fo3QVQT-lMsdv48t6rnPKq05FVdYWDhvw1s",
+          "short_id": "d1598053"
+        },
+        "server_name": "img.t9f9hgw.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "ios"
+        }
+      },
+      "type": "vless",
+      "uuid": "f3bcf2dc-56ad-44d1-aae4-841e7906b751"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "server": "di-26.aub26d.example.com",
+      "server_port": 443,
+      "tag": "CA-zukec-21",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "_lQFE406gO_mEh9dTyGBfoY9ArJagdI-m5SvFl6il3s",
+          "short_id": "88d2dfb5"
+        },
+        "server_name": "img.f0jk13.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "b251581e-2ff0-47ff-9407-a51f76850caf"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "server": "cog-27.g0vvm9f.example.com",
+      "server_port": 443,
+      "tag": "TW-qg6b2y-39",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "I_kNHGqd8kMfOei3DGIXPpc86GE1atl3poz4A3_37yU",
+          "short_id": "257d13f0"
+        },
+        "server_name": "static.s7lp51.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "ff524432-da03-4630-8748-f7b4ee08c504"
+    }
+  ]
+}

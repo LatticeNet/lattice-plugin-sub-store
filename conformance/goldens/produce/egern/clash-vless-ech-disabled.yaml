@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"AU-owaf2-26","server":"pze-30.gl0zl.example.com","port":443,"user_id":"34359908-5583-4f5c-a3ca-2973676f37b8","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.k1jwj.example.org","skip_tls_verify":false}}}}

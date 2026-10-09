@@ -1,0 +1,25 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "detour": "TW-m5o0-21_shadowtls",
+      "password": "oX6y6U3NunXBPYcG",
+      "server": "i0-17.w4oe.example.net",
+      "server_port": 443,
+      "tag": "TW-m5o0-21",
+      "type": "trojan"
+    },
+    {
+      "password": "is4ZqRqigeoIFBat",
+      "server": "i0-17.w4oe.example.net",
+      "server_port": 443,
+      "tag": "TW-m5o0-21_shadowtls",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.kratp2kn.example.net"
+      },
+      "type": "shadowtls",
+      "version": 3
+    }
+  ]
+}

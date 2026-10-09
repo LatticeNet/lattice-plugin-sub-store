@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "US-syz8-29",
+        "port": 443,
+        "server": "tcz-29.ppxe.example.net",
+        "shadow_tls": {
+          "password": "vPD6gpNJzyrqSysH",
+          "sni": "static.lo63q03r9t.example.com"
+        },
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "static.lo63q03r9t.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "03ba6920-4b55-435c-90f5-2dd82536c8dc"
+      }
+    }
+  ]
+}

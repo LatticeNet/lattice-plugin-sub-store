@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-ngk2i-88",
+      "type": "snell",
+      "psk": "mClhBBZmCVzR0IpkaeFe",
+      "version": 4,
+      "obfs_mode": "http",
+      "obfs_host": "cdn.ixxoeq.example.com",
+      "detour": "FR-ngk2i-88_shadowtls"
+    },
+    {
+      "tag": "FR-ngk2i-88_shadowtls",
+      "type": "shadowtls",
+      "server": "xo-23.xbwv0pop.example.net",
+      "server_port": 40231,
+      "version": 3,
+      "password": "cr2BrE41G1Ek7tgM",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.wa6r8.example.org"
+      }
+    }
+  ],
+  "endpoints": []
+}

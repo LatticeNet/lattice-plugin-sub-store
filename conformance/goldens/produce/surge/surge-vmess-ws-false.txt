@@ -1,0 +1,1 @@
+JP-pbg8g-55=vmess,iy-03.lvd0u.example.com,80,username=d7d256b8-aa72-41a5-952a-4a1c853b315b,ws=true,ws-path=/iz57g9,ws-headers="Host:"iy-03.lvd0u.example.com"",vmess-aead=true

@@ -1,0 +1,7 @@
+{
+  "id": "ssd-percent-in-remark",
+  "family": "ssd",
+  "protocol": "ss",
+  "quirk": "ssd",
+  "description": "SSD whose second server has a remark with a bare %: the tag is not percent-encoded, so that server's ss:// line fails to decode and only the first server is read."
+}

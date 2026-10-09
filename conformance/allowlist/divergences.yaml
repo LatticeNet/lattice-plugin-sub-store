@@ -6,8 +6,9 @@
 # follow the schema below. The four entries are the four divergences design
 # 28 names. Each is pending until the slice that implements it removes
 # `pending` and adds its normalisation; a pending entry holds its slot, is
-# validated like any other, and applies to no comparison. The specifications
-# refer to them by id (specs/normaliser.md, section 4).
+# validated like any other, and applies to no comparison. external,
+# underscore and ca have landed for S1; require stays pending until S3. The
+# specifications refer to them by id (specs/normaliser.md, section 4).
 #
 # Schema of one entry:
 #
@@ -39,10 +40,28 @@
 # A divergence counts as allowed only when the comparison fails without the
 # normalisation and passes with it; conformance.json records which ids were
 # needed.
+#
+# The three S1 entries are parse-stage entries (S1 implementation plan,
+# decision 18). Producers keep upstream's produce-stage behaviour in S1, so
+# no produce-stage entry is needed and the cap holds.
+#
+# external drops the elements whose type is external. Upstream's Clash
+# reader rejects that type, so such a node only comes from a Surge external
+# line, whose type keyword is lower case. The other half of rule H3, nodes
+# of any type that carry exec, args, local-port, local-address or
+# local_address, has no normalisation in this schema (drop_entries matches a
+# field's value, not a key's presence), so the cases that exercise it
+# (clash-hostile-exec-key, tuic-hostile-exec-query) still count as parse
+# failures for an implementation of H3 until the schema can state it.
+#
+# underscore and ca apply to the cases whose nodes come from Clash or mihomo
+# objects, which are the cases whose ids start with clash-. In every other
+# case an underscore key is a parser annotation both sides produce
+# (specs/normaliser.md, section 6). The corpus never points _ca at a file
+# that exists, so the key is the only difference ca has to hide.
 divergences:
   - id: external
     stage: parse
-    pending: S1
     upstream: >-
       Parses a Surge external line into a node of type external with its
       exec, args and local-port, keeps any proxy that carries an exec-style
@@ -56,9 +75,13 @@ divergences:
       An external entry makes the client that installs the profile run a
       local command, so a provider feed or pasted text must not be able to
       add one.
+    normalise:
+      - drop_entries:
+          field: type
+          equals: [external]
   - id: underscore
     stage: parse
-    pending: S1
+    cases: [clash-]
     upstream: >-
       Keeps every key starting with an underscore that a Clash or mihomo
       object carries, at any depth, and acts on some of them (an input
@@ -70,9 +93,11 @@ divergences:
     reason: >-
       Underscore keys are upstream's internal annotations, and accepting them
       from input lets a feed steer internal behaviour.
+    normalise:
+      - strip_keys: ^_
   - id: ca
     stage: parse
-    pending: S1
+    cases: [clash-]
     upstream: >-
       Reads the local file a _ca field names to compute the certificate
       fingerprint.
@@ -81,6 +106,8 @@ divergences:
       (specs/normaliser.md, rule H2).
     reason: >-
       A field from a feed must not make the plugin read a local path.
+    normalise:
+      - strip_keys: ^_ca$
   - id: require
     stage: script
     pending: S3

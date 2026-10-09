@@ -1,0 +1,17 @@
+[
+  {
+    "address": "cq7-04.a4y814.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "89cab0d8-3def-4051-8c56-83309d193307",
+      "tag": "vless cq7-04.a4y814.example.org:443",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "cdn.mw6pykbq.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

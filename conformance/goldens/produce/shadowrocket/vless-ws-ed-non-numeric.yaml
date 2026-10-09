@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","name":"DE-mezs9r-33","network":"ws","packet-encoding":"xudp","port":443,"server":"r7-03.i2erek.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"5f9949e9-6942-4705-aac5-b20178fbf8d9","ws-opts":{"headers":{"Host":"api.wcdec4b.example.org"},"path":"/yp7qbs?ed=gi2i1"},"servername":"api.wcdec4b.example.org"}

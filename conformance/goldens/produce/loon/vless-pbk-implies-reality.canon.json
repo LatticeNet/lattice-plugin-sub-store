@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "fb-07.r6uukg.example.net",
+      "443",
+      "5a606251-0e3b-472a-a3a8-45ca68b9011e"
+    ],
+    "name": "GB-ckpmjo-57",
+    "params": {
+      "over-tls": "false",
+      "public-key": "0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY",
+      "skip-cert-verify": "false",
+      "tls-profile": "chrome147",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

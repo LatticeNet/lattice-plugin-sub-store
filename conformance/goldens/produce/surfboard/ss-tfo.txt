@@ -1,0 +1,2 @@
+JP-x092-11=ss,r8-22.rqosi.example.com,39474,encrypt-method=aes-128-gcm,password="UurzHOXEvgK8m3",udp-relay=true
+HK-xz4py5-57=ss,bv-01.deuvl.example.net,31874,encrypt-method=aes-128-gcm,password="sMIHATg9l4GXsa",udp-relay=true

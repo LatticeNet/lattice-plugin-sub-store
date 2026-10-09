@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-port-forms",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "port-forms",
+  "description": "N9 and 2.1: port as \"0443\", \"65536\", \"\", \"abc\" and 70000: 443, \"65536\" unchanged, not-a-number, \"abc\" unchanged and 70000 unchanged."
+}

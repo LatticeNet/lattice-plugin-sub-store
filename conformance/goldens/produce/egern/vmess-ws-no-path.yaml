@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"FR-noq-63","server":"x1-34.mh3dtn.example.com","port":443,"user_id":"dd30ca27-f54c-4355-b110-7639681794cf","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/","headers":{"Host":"x1-34.mh3dtn.example.com"}}}}}

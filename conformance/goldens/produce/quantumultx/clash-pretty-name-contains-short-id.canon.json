@@ -1,0 +1,17 @@
+[
+  {
+    "address": "jhs-40.ixwhbpn.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "a0da4f1d-63c0-43f2-b194-924674712637",
+      "reality-base64-pubkey": "kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE",
+      "reality-hex-shortid": "8d112c21",
+      "tag": "short-id: fzpp",
+      "tls-host": "api.ncfc5tg.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

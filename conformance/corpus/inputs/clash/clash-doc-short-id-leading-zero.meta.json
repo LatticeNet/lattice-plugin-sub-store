@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-short-id-leading-zero",
+  "family": "clash",
+  "protocol": "vless",
+  "quirk": "short-id-leading-zero",
+  "description": "VLESS Reality proxies with an unquoted short-id that starts with 00 and with short-id \"\": the short-id rewrite keeps the leading zeros and the empty string."
+}

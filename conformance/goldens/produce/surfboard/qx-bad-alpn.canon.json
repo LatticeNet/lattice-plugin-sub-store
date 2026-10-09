@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "yev-28.xniy064.example.net",
+      "443"
+    ],
+    "name": "US-jnq-88",
+    "params": {
+      "password": "jjPT3sFpPqTjDrbJ",
+      "sni": "cdn.a6fucziy.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

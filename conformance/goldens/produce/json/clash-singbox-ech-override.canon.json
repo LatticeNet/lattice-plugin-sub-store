@@ -1,0 +1,27 @@
+[
+  {
+    "_ech": {
+      "enabled": true,
+      "query_server_name": "img.uj5ev5al.example.org"
+    },
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "ech-opts": {
+      "config": "hbGFOTEu7gN5x8mew1PCV0AEkJnNg7EMMkGjl+GaG+FIw+kAILc1I+h1gNcBKts9oRLLXfseDrXyH08SAALnUZK47cC6BVwL",
+      "enable": true
+    },
+    "name": "AU-xfb4-33",
+    "network": "tcp",
+    "port": 443,
+    "server": "jaf-26.euz8l.example.net",
+    "skip-cert-verify": false,
+    "sni": "www.qj98n.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "3fe877cd-15b1-4d4b-b1ab-e1181fca6e08"
+  }
+]

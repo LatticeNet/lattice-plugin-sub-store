@@ -1,0 +1,29 @@
+[
+  {
+    "fragment": "NL-gjx-28",
+    "host": "stt-32.z59voz2.example.net",
+    "path": "",
+    "port": "22070",
+    "query": [
+      [
+        "host",
+        "stt-32.z59voz2.example.net"
+      ],
+      [
+        "path",
+        "/cix90cjon?ed=2048"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206TldLN1lBbmdKYUE5T0M=",
+    "userinfo_base64": "aes-256-gcm:NWK7YAngJaA9OC"
+  }
+]

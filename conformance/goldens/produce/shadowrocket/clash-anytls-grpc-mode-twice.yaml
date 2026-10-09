@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","grpc-opts":{"grpc-service-name":"fccotcy7-hq1hyf"},"name":"AU-f98xkj-62","network":"grpc","password":"vE7a0G7LmSKfar4bZKdZ","port":443,"server":"ib-35.lmclrx.example.net","sni":"www.p9ekhp.example.com","type":"anytls","udp":true}

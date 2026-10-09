@@ -1,0 +1,27 @@
+[
+  {
+    "_extra": "{klb",
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "FR-tpci-48",
+    "network": "xhttp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "c2m-07.cloa.example.com",
+    "skip-cert-verify": false,
+    "sni": "api.ppnmc0.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "e57cc12e-3818-4c8c-b661-355086cbc0aa",
+    "xhttp-opts": {
+      "mode": "auto",
+      "path": "/ucr/j32i"
+    }
+  }
+]

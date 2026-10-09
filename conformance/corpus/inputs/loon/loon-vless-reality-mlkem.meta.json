@@ -1,0 +1,9 @@
+{
+  "id": "loon-vless-reality-mlkem",
+  "family": "loon",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-mlkem-profile",
+  "description": "N2: Loon VLESS Reality lines with tls-profile safari-ios-26, chrome147 and chrome: support-x25519mlkem768 is set on the first two only."
+}

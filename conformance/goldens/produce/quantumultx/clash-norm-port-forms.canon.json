@@ -1,0 +1,57 @@
+[
+  {
+    "address": "hrc-22.zibc.example.net:443",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "ty4TysmKKjggHD",
+      "tag": "DE-bfs-55",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "qo-39.ljrhkp7.example.com:65536",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "AmRgr2888qlIPD",
+      "tag": "AU-tdfmfr-53",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "ke6-36.rgn5ls.example.org:null",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "tESlvXey4WRcbi",
+      "tag": "NL-xa8-63",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "jf1-18.gdljfe.example.org:abc",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "e22RD6Xn1e8xf8",
+      "tag": "JP-lf7-81",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "r0a-11.qghyipu.example.com:70000",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "VJAlDVxiyZ5xRh",
+      "tag": "DE-yyf9-35",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

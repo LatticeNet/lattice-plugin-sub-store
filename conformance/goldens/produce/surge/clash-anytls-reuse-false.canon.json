@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "m6p-14.scrh.example.org",
+      "443"
+    ],
+    "name": "GB-pth3-15",
+    "params": {
+      "password": "fWYv5uOVHB7nhZioJ7XS",
+      "reuse": "false",
+      "sni": "static.s3ey79smsd.example.com"
+    },
+    "type": "anytls"
+  }
+]

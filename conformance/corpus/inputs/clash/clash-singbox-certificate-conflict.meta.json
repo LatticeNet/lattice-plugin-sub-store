@@ -1,0 +1,9 @@
+{
+  "id": "clash-singbox-certificate-conflict",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "certificate-conflict",
+  "description": "trojan with ca-str and _certificate_public_key_sha256."
+}

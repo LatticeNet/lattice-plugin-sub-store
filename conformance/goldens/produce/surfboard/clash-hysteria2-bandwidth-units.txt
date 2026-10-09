@@ -1,0 +1,1 @@
+JP-ei5q-91=hysteria2,eh-02.e6fd.example.net,443,password="Dxnae7hB8sq8H4nnLYFk",sni="img.lgpapm0p.example.com",download-bandwidth=1,udp-relay=true

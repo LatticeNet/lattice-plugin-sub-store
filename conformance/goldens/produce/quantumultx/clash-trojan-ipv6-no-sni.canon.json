@@ -1,0 +1,13 @@
+[
+  {
+    "address": "2001:db8:e063:b663::82e8:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "g3gXaBy4RFjQr2HJ",
+      "tag": "SG-kcw-48",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

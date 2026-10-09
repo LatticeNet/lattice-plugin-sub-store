@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "k1-08.kyfdjl.example.com",
+      "443",
+      "Tig60oG8t9t1VWoe"
+    ],
+    "name": "GB-l15-02",
+    "params": {
+      "tls-cert-sha256": "B8:48:42:F8:70:F1:ED:56:15:F9:93:C7:35:F0:A8:21:F8:B2:79:FD:BC:EF:9C:38:E2:2D:C7:3F:6A:5A:77:76",
+      "tls-name": "www.lwg76w45a.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

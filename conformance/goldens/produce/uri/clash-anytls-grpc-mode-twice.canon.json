@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "AU-f98xkj-62",
+    "host": "ib-35.lmclrx.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "multi"
+      ],
+      [
+        "network",
+        "grpc"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "serviceName",
+        "fccotcy7-hq1hyf"
+      ],
+      [
+        "sni",
+        "www.p9ekhp.example.com"
+      ],
+      [
+        "type",
+        "grpc"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "vE7a0G7LmSKfar4bZKdZ"
+  }
+]

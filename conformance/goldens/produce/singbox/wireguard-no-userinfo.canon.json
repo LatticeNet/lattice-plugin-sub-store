@@ -1,0 +1,24 @@
+{
+  "endpoints": [
+    {
+      "address": [
+        "10.0.92.165/32"
+      ],
+      "peers": [
+        {
+          "address": "k95-36.hs4w7i.example.com",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "port": 51820,
+          "public_key": "8LsHaJEyLaMqY1L7gW6cag0RfYlg8ccbuJ4MVLUEaiI="
+        }
+      ],
+      "private_key": "undefined",
+      "system": false,
+      "tag": "SG-hpjmwu-57",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "vless-ws-ed-non-numeric",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data-non-numeric",
+  "description": "A non-numeric ed inside the ws path, then a non-numeric ed query item: the first keeps the path unchanged, the second is rejected."
+}

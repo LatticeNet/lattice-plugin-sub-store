@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"KR-d1m-45","method":"aes-256-cfb","server":"hb-21.rfbq.example.com","port":32659,"password":"vY9lKm8ZeVQS","protocol":"origin","obfs":"http_simple","obfs_param":"static.yhydgl.example.org","tfo":false,"udp_relay":true}}

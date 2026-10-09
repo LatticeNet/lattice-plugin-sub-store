@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "ik4-24.pakq1pd.example.com",
+      "39141",
+      "aes-128-gcm",
+      "oTe2mcYzsduFTR"
+    ],
+    "name": "AU-do2bi-94",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "lpx-15.sisat.example.net",
+      "14150",
+      "chacha20-ietf-poly1305",
+      "oTe2mcYzsduFTR"
+    ],
+    "name": "SG-j37i-11",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "dm-30.e2zlt1bx.example.net",
+      "14150",
+      "chacha20-ietf-poly1305",
+      "oTe2mcYzsduFTR"
+    ],
+    "name": "NL-tw5z-43",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

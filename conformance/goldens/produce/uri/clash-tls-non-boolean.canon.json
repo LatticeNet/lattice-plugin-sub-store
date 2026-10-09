@@ -1,0 +1,20 @@
+[
+  {
+    "body": {
+      "add": "m0-15.db68mym.example.net",
+      "aid": "0",
+      "id": "c3cea05f-d893-4aaa-900d-53e2e4591837",
+      "net": "tcp",
+      "port": "443",
+      "ps": "HK-k90ug1-59",
+      "scy": "auto",
+      "sni": "cdn.ozhoh8.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "hum-22.nsl1n.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "tag": "KR-m37jau-89",
+      "tls-host": "hum-22.nsl1n.example.com",
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  }
+]

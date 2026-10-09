@@ -1,0 +1,1 @@
+vless://6490f9f8-ff11-4f38-92bf-752ea9cb09b2@fq-04.ri20owdn.example.net:443?encryption=none&security=tls&sni=api.z96qqyye3z.example.net&fp=chrome&alpn=h2%2Chttp%2F1.1&type=tcp&remarks=CA-actar-66

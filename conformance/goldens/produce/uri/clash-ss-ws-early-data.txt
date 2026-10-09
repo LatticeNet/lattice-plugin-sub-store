@@ -1,0 +1,1 @@
+ss://YWVzLTEyOC1nY206VUl5SGNkNldkREtBQ2M=@qq0-04.ywvxhzk.example.com:10060?udp=1&sni=qq0-04.ywvxhzk.example.com&type=ws&path=%2Fl372je9y%3Fed%3D2048&security=tls#NL-wca4te-67

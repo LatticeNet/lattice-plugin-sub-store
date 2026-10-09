@@ -1,0 +1,15 @@
+proxies:
+  - name: KR-t5c4a4-23
+    type: ss
+    server: z0p-14.h7qm2mrm.example.com
+    port: 34037
+    cipher: camellia-128-cfb
+    password: sno5kIgnhB6Fsk
+    udp: true
+  - name: CA-ifzyj-54
+    type: ss
+    server: caq-04.te7x.example.com
+    port: 37356
+    cipher: aes-256-cfb8
+    password: ge8GrwHGT73qq6
+    udp: true

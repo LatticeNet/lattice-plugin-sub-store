@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-h2-header-host",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "h2",
+  "security": "tls",
+  "quirk": "h2-header-host",
+  "description": "vless h2 whose host is only in h2-opts.headers.Host."
+}

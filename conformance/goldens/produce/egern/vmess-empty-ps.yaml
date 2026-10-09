@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"vmess cz-18.bqqq3e.example.org:443","server":"cz-18.bqqq3e.example.org","port":443,"user_id":"252586ae-8170-4126-8483-71740ee01d41","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

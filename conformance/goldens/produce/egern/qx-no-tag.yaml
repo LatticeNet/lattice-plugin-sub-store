@@ -1,0 +1,2 @@
+proxies:
+  - {"http":{"name":"http pri-05.hq82lhl.example.net:80","server":"pri-05.hq82lhl.example.net","port":80,"tfo":false}}

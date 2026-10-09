@@ -1,0 +1,82 @@
+[
+  {
+    "fragment": "HK-rzpg-20",
+    "host": "u16-26.sz1teg.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "TeoTSdir_kbAvA2e-B4-6IMCsUuZMfVNtPhy3yII6Pc"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "0086"
+      ],
+      [
+        "sni",
+        "www.t88723n10.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "9f1ba0a5-a979-48eb-9d96-caff0917c849"
+  },
+  {
+    "fragment": "AU-ctw-23",
+    "host": "qjb-11.e5y6.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "Vinz4N9PuKGQ1h5Kx4f4po9zhPr0euemOLqUNPcukKk"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sni",
+        "api.mc05ho3.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "c3465fc6-122b-40a0-bbd8-a5eb6460d054"
+  }
+]

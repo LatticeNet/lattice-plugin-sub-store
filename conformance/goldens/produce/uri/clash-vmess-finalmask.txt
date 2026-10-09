@@ -1,0 +1,1 @@
+vmess://0a8a14d6-5fe1-47a4-b391-8e32145eedb9@f2-35.rug0aa.example.com:443?security=tls&type=tcp&packetEncoding=none&alpn=h2%2Chttp%2F1.1&sni=www.pj3n2fe.example.com&fp=chrome&fm=%7B%22udp%22%3A%5B%7B%22settings%22%3A%7B%22password%22%3A%22qCvgzRBhc3pT%22%7D%2C%22type%22%3A%22salamander%22%7D%5D%7D&encryption=auto#SG-qa5-45

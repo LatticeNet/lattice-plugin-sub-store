@@ -1,0 +1,2 @@
+HK-mz0r-89 = http, kf-11.i58wm.example.com, 8080, o052km1, "kaX16lgCD924", fast-open=true
+HK-mz0r-89 = http, kf-11.i58wm.example.com, 8080, o052km1, "kaX16lgCD924"

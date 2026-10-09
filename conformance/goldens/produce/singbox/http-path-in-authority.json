@@ -1,0 +1,11 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-jg34z-16",
+      "type": "http",
+      "server": "ro-29.zbyjbimf.example.com:8080/gnwx9pn",
+      "server_port": 80
+    }
+  ],
+  "endpoints": []
+}

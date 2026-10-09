@@ -1,0 +1,66 @@
+[
+  {
+    "fragment": "SG-ck7-23",
+    "host": "0:0:0:0:0:ffff:203.0.113.235",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "0:0:0:0:0:ffff:203.0.113.235"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/qj6af"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ee69dd3c-2163-4541-b3ab-e25b917d57f7"
+  },
+  {
+    "fragment": "HK-dr76-41",
+    "host": "::ffff:198.51.100.36",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/zxtb"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "bfe383f4-6a95-4843-a6d3-04bf5e8e4124"
+  }
+]

@@ -1,0 +1,20 @@
+proxies:
+  - name: KR-dgo-22
+    type: vless
+    server: elw-11.bhoj.example.com
+    port: 443
+    uuid: 1d454515-6317-4a7b-ba58-0accbc55e3d8
+    udp: true
+    tls: true
+    servername: img.av9b68r.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 0a3vFXinIBotdP8vPySCP-b7uEZ1yvPdFf6IZ9kFqwk
+      short-id: e4a6886e
+    _finalmask:
+      udp:
+        - type: salamander
+          settings:
+            password: ldMdZjUUkLp1
+    _h2: true
+    _pqv: 7CtLKHEKLYxWHdrdHKbnliV5sRk7Rl6vOZBqqs7TvT-V2Iy4VFYd_LwF0_WCWu1UgJjEbSdRtqwHqbOOz-e2a7bTPBNhn_NL-IBl-HQjydhGNR-9NFgnqnkqIgH8pSoX

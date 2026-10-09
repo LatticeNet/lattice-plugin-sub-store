@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "name": "JP-jg34z-16",
+      "port": 80,
+      "server": "ro-29.zbyjbimf.example.com:8080/gnwx9pn",
+      "tls": false,
+      "type": "http",
+      "udp": true
+    }
+  ]
+}

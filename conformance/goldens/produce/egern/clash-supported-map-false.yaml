@@ -1,0 +1,11 @@
+proxies:
+  - {"trojan":{"name":"SG-mxrw1e-75","server":"cp-20.jw71rf.example.com","port":443,"password":"kTepawGO3AjkBJVt","tfo":false,"udp_relay":true,"sni":"www.tbkalp.example.net"}}
+  - {"trojan":{"name":"HK-ax86-82","server":"p5-04.feey.example.org","port":443,"password":"3RNTFc2beLg82aAo","tfo":false,"udp_relay":true,"sni":"static.ziv5g394s.example.net"}}
+  - {"trojan":{"name":"NL-pkmbvt-41","server":"y0-35.wdcffic.example.org","port":443,"password":"vhJvxrLTpRHRfRPV","tfo":false,"udp_relay":true,"sni":"cdn.ybdua.example.net"}}
+  - {"trojan":{"name":"TW-bk4-46","server":"pa-28.vuyz.example.org","port":443,"password":"bmUi5GJVTgZIzHcA","tfo":false,"udp_relay":true,"sni":"api.ocdd7vpvs.example.net"}}
+  - {"trojan":{"name":"GB-pep-83","server":"s52-03.k2kzr.example.org","port":443,"password":"I7JJza3Y885Hhp4R","tfo":false,"udp_relay":true,"sni":"www.kgw5zfakhz.example.net"}}
+  - {"trojan":{"name":"CA-bxm-15","server":"gki-38.z3rkzlw.example.net","port":443,"password":"Ask6g1xO23Dib1uN","tfo":false,"udp_relay":true,"sni":"www.u8x9y8.example.net"}}
+  - {"trojan":{"name":"TW-lat6-53","server":"jyz-13.is8wm.example.com","port":443,"password":"7ePXq4jqWdv19scY","tfo":false,"udp_relay":true,"sni":"cdn.i8zl1hhbgv.example.com"}}
+  - {"trojan":{"name":"HK-pdh3s2-73","server":"qxj-15.bjv0ij.example.net","port":443,"password":"fGCyF2qeRAtQuer7","tfo":false,"udp_relay":true,"sni":"api.w8op1d7c4.example.org"}}
+  - {"trojan":{"name":"JP-mog-09","server":"s9z-20.cf5oazt.example.com","port":443,"password":"v9HWkJwL5BIBqaUF","tfo":false,"udp_relay":true,"sni":"www.ws36rvxzs.example.com"}}
+  - {"trojan":{"name":"AU-a8pf2k-05","server":"fwl-26.obmfk01k.example.org","port":443,"password":"ec6G8V8ffMYPurFG","tfo":false,"udp_relay":true,"sni":"img.zat9xlm.example.net"}}

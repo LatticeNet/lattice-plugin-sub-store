@@ -1,0 +1,100 @@
+[
+  {
+    "fragment": "HK-k2i26o-60",
+    "host": "ql-28.mfh74.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.n3c5y9f2.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "4bfba380-5bc4-4df4-86d0-90a44bdaca86"
+  },
+  {
+    "fragment": "HK-ovkvbt-84",
+    "host": "vnx-13.k0stf9.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "3nZMZwYr4Me0cOVWa4Oe_nwLDnQQqq8Z-1ylmaMBMb4"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "3f318d68"
+      ],
+      [
+        "sni",
+        "static.dxln3g3tl.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ac23f656-42ff-4309-b8ca-f67c1db6fa2f"
+  },
+  {
+    "fragment": "SG-ujrq5-92",
+    "host": "hf-04.l37ml.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.clpf8qt.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "493e1001-6c2d-406a-bdb3-9386878d202f"
+  }
+]

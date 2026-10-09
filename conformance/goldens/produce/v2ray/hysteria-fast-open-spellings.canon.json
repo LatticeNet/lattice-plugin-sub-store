@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "GB-nkn46-03",
+    "host": "m6-39.trbk.example.net",
+    "path": "",
+    "port": "29836",
+    "query": [
+      [
+        "auth",
+        "MZURz8UXO1s6MWpC"
+      ],
+      [
+        "fastopen",
+        "1"
+      ],
+      [
+        "peer",
+        "www.xz02a.example.net"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "recv_window_conn",
+        "1"
+      ],
+      [
+        "udp",
+        "true"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

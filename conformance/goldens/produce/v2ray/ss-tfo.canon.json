@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "JP-x092-11",
+    "host": "r8-22.rqosi.example.com",
+    "path": "",
+    "port": "39474",
+    "query": [
+      [
+        "tfo",
+        "1"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206VXVyekhPWEV2Z0s4bTM=",
+    "userinfo_base64": "aes-128-gcm:UurzHOXEvgK8m3"
+  },
+  {
+    "fragment": "HK-xz4py5-57",
+    "host": "bv-01.deuvl.example.net",
+    "path": "",
+    "port": "31874",
+    "query": [
+      [
+        "tfo",
+        "1"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206c01JSEFUZzlsNEdYc2E=",
+    "userinfo_base64": "aes-128-gcm:sMIHATg9l4GXsa"
+  }
+]

@@ -1,0 +1,1 @@
+vless://5a606251-0e3b-472a-a3a8-45ca68b9011e@fb-07.r6uukg.example.net:443?encryption=none&security=none&pbk=0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY&support-x25519mlkem768=true&type=tcp#GB-ckpmjo-57

@@ -1,0 +1,1 @@
+KR-t5c4a4-23=shadowsocks,z0p-14.h7qm2mrm.example.com,34037,camellia-128-cfb,"sno5kIgnhB6Fsk",udp=true

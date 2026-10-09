@@ -1,0 +1,1 @@
+HK-xgot1p-60=trojan,b9-39.i1ubj.example.org,443,password=1nbSNxX7dKIzH5cg,tls=true,server-cert-fingerprint-sha256=09:58:49:FB:DB:82:83:32:BB:44:D9:0A:89:2C:3B:79:FF:27:CD:EE:4E:76:35:2B:C7:BE:CF:F4:D3:D3:07:9B,sni="cdn.xjvul.example.org",udp-relay=true

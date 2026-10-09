@@ -1,0 +1,1 @@
+trojan=a2g-25.z48tqd9.example.net:443,password=rc0xyjyaXcBn0bBO,over-tls=true,tls-host=cdn.xie8kv58.example.net,udp-relay=true,tag=US-qe4q1x-80

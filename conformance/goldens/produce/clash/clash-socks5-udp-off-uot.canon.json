@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "name": "FR-skjup-87",
+      "password": "a6YV4jhq3YYs",
+      "port": 1080,
+      "server": "ttp-13.hgduq8t.example.org",
+      "type": "socks5",
+      "udp": false,
+      "uot": true,
+      "username": "x746rjcm"
+    },
+    {
+      "name": "US-ki5-48",
+      "password": "npyOMD5jBROX",
+      "port": 1080,
+      "server": "mo-35.oieb9.example.com",
+      "type": "socks5",
+      "udp": true,
+      "udp-over-tcp": true,
+      "udp-over-tcp-version": 2,
+      "username": "zos1msg0"
+    }
+  ]
+}

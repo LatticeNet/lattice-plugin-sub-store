@@ -1,0 +1,19 @@
+proxies:
+  - name: SG-q60-82
+    type: vmess
+    server: wnt-34.v5lbu.example.net
+    port: 443
+    uuid: d3f3ec96-793c-4363-92c9-e8ad01ce29b0
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: www.pjpqvxmy.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: h2
+    h2-opts:
+      path: /cdxbxd

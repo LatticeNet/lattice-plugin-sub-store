@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "wKl8PntEJYrIyLHXdG2j",
+        "name": "GB-rw9-06",
+        "port": 443,
+        "port_hopping": "59018-59027,14159",
+        "server": "mkg-09.nh61g.example.net",
+        "sni": "www.kup71ude7q.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "YSTm6wIrazS7SxyeUBSh",
+        "name": "HK-uqr5-06",
+        "port": 443,
+        "server": "xis-35.v7fm.example.com",
+        "sni": "static.w381uvl.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

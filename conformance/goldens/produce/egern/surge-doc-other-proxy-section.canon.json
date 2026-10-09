@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "US-cokl-60",
+        "password": "koqDbSBQ9l8LWr",
+        "port": 50711,
+        "server": "pf-09.b8jq.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

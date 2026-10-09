@@ -1,0 +1,1 @@
+vless cq7-04.a4y814.example.org:443=vless,cq7-04.a4y814.example.org,443,"89cab0d8-3def-4051-8c56-83309d193307",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=cdn.mw6pykbq.example.net,udp=true

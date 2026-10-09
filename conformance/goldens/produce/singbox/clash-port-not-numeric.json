@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-lztg-36",
+      "type": "socks",
+      "server": "cg-29.ysunden.example.com",
+      "server_port": 80,
+      "version": "5",
+      "username": "nkpdg93",
+      "password": "b2pDXmK1Weku"
+    },
+    {
+      "tag": "GB-p124z9-66",
+      "type": "socks",
+      "server": "kim-20.bwqt.example.org",
+      "server_port": null,
+      "version": "5",
+      "username": "imhslavy",
+      "password": "sL1aNErJ62Dw"
+    }
+  ],
+  "endpoints": []
+}

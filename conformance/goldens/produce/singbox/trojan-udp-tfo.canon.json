@@ -1,0 +1,19 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "network": "tcp",
+      "password": "5Q3Okkl4B6XFYtv1",
+      "server": "u2l-25.nave.example.org",
+      "server_port": 443,
+      "tag": "NL-iyg-35",
+      "tcp_fast_open": true,
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.jvk2wurwv.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

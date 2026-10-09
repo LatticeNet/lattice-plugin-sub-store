@@ -1,0 +1,1 @@
+DE-rdjkty-17=ssh,zm-38.z1bz19i8.example.net,22,username="ymp5emb",private-key="y5wh3781.pem"

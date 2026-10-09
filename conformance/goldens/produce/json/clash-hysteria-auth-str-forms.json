@@ -1,0 +1,34 @@
+[
+  {
+    "alpn": "h3",
+    "auth_str": "0dScwdcFvTsgwoRw",
+    "down": "100 Mbps",
+    "name": "FR-zgr62-62",
+    "port": 41321,
+    "protocol": "udp",
+    "server": "qj-31.bnvjp5.example.org",
+    "skip-cert-verify": false,
+    "sni": "img.swzlt3589.example.org",
+    "tls": true,
+    "type": "hysteria",
+    "udp": true,
+    "up": "30 Mbps"
+  },
+  {
+    "alpn": [
+      "h3"
+    ],
+    "auth-str": "WMWle62v bypAvQ0U",
+    "down": "100 Mbps",
+    "name": "HK-epef-89",
+    "port": 32670,
+    "protocol": "udp",
+    "server": "eq-11.iv7rmg4.example.net",
+    "skip-cert-verify": false,
+    "sni": "www.x5csa.example.com",
+    "tls": true,
+    "type": "hysteria",
+    "udp": true,
+    "up": "30 Mbps"
+  }
+]

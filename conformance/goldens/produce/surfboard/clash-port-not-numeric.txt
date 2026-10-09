@@ -1,0 +1,2 @@
+NL-lztg-36=socks5,cg-29.ysunden.example.com,80a,nkpdg93,b2pDXmK1Weku,udp-relay=true
+GB-p124z9-66=socks5,kim-20.bwqt.example.org,abc,imhslavy,sL1aNErJ62Dw,udp-relay=true

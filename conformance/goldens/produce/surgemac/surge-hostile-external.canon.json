@@ -1,0 +1,30 @@
+[
+  {
+    "args": [],
+    "name": "AU-dmn5y5-44",
+    "params": {
+      "addresses": "198.51.100.226",
+      "args": [
+        "-c",
+        "/etc/pn7l.json"
+      ],
+      "exec": "/usr/local/bin/m2h7",
+      "local-port": "1080",
+      "udp-relay": "true"
+    },
+    "type": "external"
+  },
+  {
+    "args": [
+      "ww-28.b6rk.example.com",
+      "50551"
+    ],
+    "name": "NL-d0svs-69",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "2UkWNdG9ThWtTN",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

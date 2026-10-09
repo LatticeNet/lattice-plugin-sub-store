@@ -1,0 +1,3 @@
+shadowsocks=ik4-24.pakq1pd.example.com:39141,method=aes-128-gcm,password=oTe2mcYzsduFTR,udp-relay=true,tag=AU-do2bi-94
+shadowsocks=lpx-15.sisat.example.net:14150,method=chacha20-ietf-poly1305,password=oTe2mcYzsduFTR,udp-relay=true,tag=SG-j37i-11
+shadowsocks=dm-30.e2zlt1bx.example.net:14150,method=chacha20-ietf-poly1305,password=oTe2mcYzsduFTR,udp-relay=true,tag=NL-tw5z-43

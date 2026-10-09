@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"cipher":"aes-128-gcm","name":"JP-w1dnn-84","password":"gt0FvRTLVhowsY","port":14505,"server":"z1-21.zqumychj.example.net","skip-cert-verify":false,"sni":"cdn.re7uychv.example.net","tls":true,"type":"ss","udp":true,"servername":"cdn.re7uychv.example.net"}

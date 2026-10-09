@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"US-bfrb-66","network":"tcp","password":"2WkYTw57EFOugGjI","port":70000,"server":"fkb-23.g95rfl34.example.com","sni":"api.gdqao1.example.net","type":"trojan","udp":true}

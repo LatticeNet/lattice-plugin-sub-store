@@ -1,0 +1,1 @@
+hysteria2://60Xt0FmFgKCvZJufrosV@quz-07.xsbt.example.net:443?sni=www.t5tqzt5.example.org&fastopen=1#CA-saq36m-81

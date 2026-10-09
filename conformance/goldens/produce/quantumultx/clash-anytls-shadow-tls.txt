@@ -1,0 +1,1 @@
+anytls=s2-22.kay4.example.org:443,password=pMULWF6GVsIKxHkmeJrH,over-tls=true,tls-host=static.nbazeta.example.com,udp-relay=true,tag=AU-qdf2nu-60

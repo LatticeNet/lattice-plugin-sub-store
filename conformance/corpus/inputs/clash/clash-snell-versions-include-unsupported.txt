@@ -1,0 +1,25 @@
+proxies:
+  - name: AU-voji-39
+    type: snell
+    server: plt-35.fr9ce.example.com
+    port: 44923
+    psk: qy4Ski0CRbGm7cZh3dsR
+    version: 1
+  - name: SG-kau-01
+    type: snell
+    server: hl6-08.vqbj.example.net
+    port: 12361
+    psk: 9XKg0BnUWylNk0MI5SRO
+    version: 2
+  - name: CA-cpszh-53
+    type: snell
+    server: eod-34.v0aybnc.example.net
+    port: 42820
+    psk: PiOQ8ZkWtdHzke3JjM8D
+    version: 5
+  - name: JP-qty-61
+    type: snell
+    server: r57-35.n27cw2z.example.org
+    port: 43212
+    psk: LsywgDXBCASaBetQKsQs
+    version: 6

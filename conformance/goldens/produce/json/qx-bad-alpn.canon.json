@@ -1,0 +1,14 @@
+[
+  {
+    "name": "US-jnq-88",
+    "network": "tcp",
+    "password": "jjPT3sFpPqTjDrbJ",
+    "port": 443,
+    "server": "yev-28.xniy064.example.net",
+    "sni": "cdn.a6fucziy.example.net",
+    "tls": true,
+    "tls-alpn": "zz",
+    "type": "trojan",
+    "udp": true
+  }
+]

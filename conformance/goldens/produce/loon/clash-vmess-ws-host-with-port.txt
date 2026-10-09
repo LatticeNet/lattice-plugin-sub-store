@@ -1,0 +1,1 @@
+SG-mtlm4-76=vmess,nx6-10.ccti3d5z.example.net,443,auto,"56394afa-2189-4076-b77c-f314bdae667e",transport=ws,path=/pyb3/uvxw9hba4o,host=f38-17.jfoeyse.example.net:8080,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.fd76v0.example.com,alterId=0,udp=true

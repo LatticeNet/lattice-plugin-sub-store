@@ -1,0 +1,4 @@
+AU-voji-39=snell,plt-35.fr9ce.example.com,44923,version=1,psk="qy4Ski0CRbGm7cZh3dsR"
+SG-kau-01=snell,hl6-08.vqbj.example.net,12361,version=2,psk="9XKg0BnUWylNk0MI5SRO"
+CA-cpszh-53=snell,eod-34.v0aybnc.example.net,42820,version=5,psk="PiOQ8ZkWtdHzke3JjM8D"
+JP-qty-61=snell,r57-35.n27cw2z.example.org,43212,version=6,psk="LsywgDXBCASaBetQKsQs"

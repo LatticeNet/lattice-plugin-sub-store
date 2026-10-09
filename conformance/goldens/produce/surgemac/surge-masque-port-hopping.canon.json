@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "i6r-05.o0s2r.example.com",
+      "443"
+    ],
+    "name": "CA-i4r3o-16",
+    "params": {
+      "password": "CAijEBqPquKFfV",
+      "port-hopping": "53921-53930",
+      "sni": "cdn.atshtof.example.com",
+      "username": "eg0p8"
+    },
+    "type": "masque"
+  }
+]

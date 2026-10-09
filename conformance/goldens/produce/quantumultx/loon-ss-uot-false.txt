@@ -1,0 +1,1 @@
+shadowsocks=bb-27.sc6zg0dg.example.net:25709,method=aes-128-gcm,password=g0W5qYXucvY1IN,udp-relay=true,udp-over-tcp=sp.v2,tag=FR-zy6i6-82

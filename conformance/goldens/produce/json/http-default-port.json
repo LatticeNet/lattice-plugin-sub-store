@@ -1,0 +1,10 @@
+[
+  {
+    "name": "NL-itwlx-02",
+    "port": 80,
+    "server": "je-18.obs1jo.example.com",
+    "tls": false,
+    "type": "http",
+    "udp": true
+  }
+]

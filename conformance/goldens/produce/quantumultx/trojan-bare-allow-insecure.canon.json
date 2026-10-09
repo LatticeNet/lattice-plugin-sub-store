@@ -1,0 +1,15 @@
+[
+  {
+    "address": "sm-01.u4wqs351.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "fp2omGYeoDUnyAE7",
+      "tag": "TW-y9pq-57",
+      "tls-host": "sm-01.u4wqs351.example.net",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

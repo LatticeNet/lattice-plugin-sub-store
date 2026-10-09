@@ -1,0 +1,28 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-n66eo-51",
+      "type": "shadowsocks",
+      "method": "aes-128-gcm",
+      "password": "ZMG7STrb3w3XbD",
+      "detour": "TW-n66eo-51_shadowtls"
+    },
+    {
+      "tag": "TW-n66eo-51_shadowtls",
+      "type": "shadowtls",
+      "server": "bc-25.jsgi.example.net",
+      "server_port": 443,
+      "version": 2,
+      "password": "6NEGLx6NVJT8j74j",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.bcv8u0ou.example.net",
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

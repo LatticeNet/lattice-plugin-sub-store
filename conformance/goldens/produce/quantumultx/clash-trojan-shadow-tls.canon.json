@@ -1,0 +1,14 @@
+[
+  {
+    "address": "i0-17.w4oe.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "oX6y6U3NunXBPYcG",
+      "tag": "TW-m5o0-21",
+      "tls-host": "img.kratp2kn.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,2 @@
+GB-rw9-06=hysteria2,mkg-09.nh61g.example.net,443,password="wKl8PntEJYrIyLHXdG2j",port-hopping="59018-59027;14159",sni="www.kup71ude7q.example.org"
+HK-uqr5-06=hysteria2,xis-35.v7fm.example.com,443,password="YSTm6wIrazS7SxyeUBSh",sni="static.w381uvl.example.org"

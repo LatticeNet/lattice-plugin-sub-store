@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "2001:db8:f4e1:9108::e11d",
+      "aid": "0",
+      "host": "cdn.shsl3n.example.net",
+      "id": "4ddabfe1-ea65-4fc3-af13-ab9d288a30ce",
+      "net": "ws",
+      "path": "/qpqlfvau",
+      "port": "28811",
+      "ps": "US-snz-75",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

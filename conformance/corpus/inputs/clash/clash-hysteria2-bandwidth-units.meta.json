@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-bandwidth-units",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "bandwidth-units",
+  "description": "hysteria2 with up 200 Mbps and down 1 Gbps."
+}

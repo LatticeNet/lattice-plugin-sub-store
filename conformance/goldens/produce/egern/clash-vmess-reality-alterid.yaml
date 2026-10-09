@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"HK-hgq-99","server":"pgf-17.cv2qm174.example.net","port":443,"user_id":"2ec8f005-4bea-4ba2-be6f-7031ea6499b5","security":"auto","tfo":false,"legacy":true,"udp_relay":true,"transport":{"tls":{"sni":"cdn.v35bq7.example.net"}}}}

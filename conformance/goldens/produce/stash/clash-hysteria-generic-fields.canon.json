@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "auth-str": "1BvAeVxGOLa9Li1k",
+      "down-speed": "100",
+      "fast-open": true,
+      "name": "DE-of38-16",
+      "port": 45400,
+      "ports": "33137-33146",
+      "protocol": "udp",
+      "recv-window": 52428800,
+      "recv-window-conn": 12582912,
+      "server": "t3-06.uk6fxic.example.net",
+      "skip-cert-verify": false,
+      "sni": "static.jmvmn6obd.example.net",
+      "type": "hysteria",
+      "udp": true,
+      "up-speed": "30",
+      "x-e0dev": "tm5is"
+    }
+  ]
+}

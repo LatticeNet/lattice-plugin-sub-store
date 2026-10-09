@@ -1,0 +1,17 @@
+proxies:
+  - name: AU-owaf2-26
+    type: vless
+    server: pze-30.gl0zl.example.com
+    port: 443
+    uuid: 34359908-5583-4f5c-a3ca-2973676f37b8
+    udp: true
+    tls: true
+    servername: static.k1jwj.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    ech-opts:
+      enable: false
+      config: p2dTGAPmq1h5UDDIvBQEbVviYQeuepyfdhxSk1nNKPmEmvnvTbSzUR+PKn96PQlEZl+Q097zCu+IMAD0++dx6lknwmRUps7I

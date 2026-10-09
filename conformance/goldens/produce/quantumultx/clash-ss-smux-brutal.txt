@@ -1,0 +1,1 @@
+shadowsocks=lh-03.tvntg.example.org:10239,method=aes-128-gcm,password=cf02XhToMNkAVl,udp-relay=true,tag=NL-rvfu-27

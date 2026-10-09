@@ -1,0 +1,3 @@
+proxies:
+  - {"wireguard":{"name":"GB-itui-59","local_ipv4":"10.25.96.50/24","local_ipv6":"fd00:9946::7d85/64","server":"e8-16.m20ou6xn.example.net","port":51820,"private_key":"RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs=","peer_public_key":"/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8="}}
+  - {"wireguard":{"name":"TW-lql-28","server":"nwc-26.vov4gi.example.com","port":51820,"private_key":"GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc=","peer_public_key":"FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8="}}

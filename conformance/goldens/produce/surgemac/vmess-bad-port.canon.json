@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "wqb-29.gzhip.example.org",
+      "null"
+    ],
+    "name": "DE-rmkd-68",
+    "params": {
+      "tls": "false",
+      "username": "25c2e2a0-1f95-4953-9f36-a64e83e85446",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

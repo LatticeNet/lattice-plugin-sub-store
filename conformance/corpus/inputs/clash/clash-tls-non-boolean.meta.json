@@ -1,0 +1,9 @@
+{
+  "id": "clash-tls-non-boolean",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-non-boolean",
+  "description": "vmess with tls: \"true\" (a string)."
+}

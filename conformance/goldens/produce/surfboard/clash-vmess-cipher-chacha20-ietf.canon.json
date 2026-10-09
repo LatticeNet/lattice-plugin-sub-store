@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "b7-04.wu1sho.example.com",
+      "443"
+    ],
+    "name": "CA-cqz7w-71",
+    "params": {
+      "udp-relay": "true",
+      "username": "a050dd43-7c9a-43a4-8c46-b9ab4c4d3f97",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

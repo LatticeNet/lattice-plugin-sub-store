@@ -1,0 +1,1 @@
+shadowsocks=m5g-37.osr10ykk.example.com:57590,method=aes-256-gcm,password=32oWLbrurkKWPK,udp-relay=true,tag=HK-yulm9-28

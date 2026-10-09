@@ -1,0 +1,1 @@
+shadowsocks=q0-09.sbh6s.example.net:51380,method=aes-128-gcm,password=g4gPi8XOZGfWfq,obfs=over-tls,obfs-host=q0-09.sbh6s.example.net,udp-relay=true,tag=FR-pc7-02

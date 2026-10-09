@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"HK-lyqz-03","method":"aes-128-gcm","server":"nqj-39.vj1nhp.example.net","port":26246,"password":"39ic9wEqGqdWx6","tfo":false,"udp_relay":true,"obfs":"http"}}

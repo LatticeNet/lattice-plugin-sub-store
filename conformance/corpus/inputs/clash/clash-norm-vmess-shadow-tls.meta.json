@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-vmess-shadow-tls",
+  "family": "clash",
+  "protocol": "vmess",
+  "quirk": "shadow-tls-opts",
+  "description": "N11 and N13: VMess with sni, shadow-tls-opts and alpn: plugin shadow-tls with host from sni, password and version from shadow-tls-opts, alpn moved into plugin-opts and removed from the top level."
+}

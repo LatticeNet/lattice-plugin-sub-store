@@ -1,0 +1,1 @@
+vless=cq7-04.a4y814.example.org:443,method=none,password=89cab0d8-3def-4051-8c56-83309d193307,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=cdn.mw6pykbq.example.net,udp-relay=true,tag=vless cq7-04.a4y814.example.org:443

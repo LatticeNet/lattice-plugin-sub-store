@@ -1,0 +1,46 @@
+[
+  {
+    "fragment": "FR-s4pa-17",
+    "host": "a05-26.q0npk.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "obfs",
+        "gecko"
+      ],
+      [
+        "obfs-password",
+        "gYN0n7FMODePW3SE"
+      ],
+      [
+        "sni",
+        "img.dqnh2.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "H4knqbki5VO6glZ0GAIi"
+  },
+  {
+    "fragment": "US-rzgm8-24",
+    "host": "j6-16.pt0d.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "obfs",
+        "gecko"
+      ],
+      [
+        "obfs-password",
+        "ZOkZD2ADUQ6tUiPg"
+      ],
+      [
+        "sni",
+        "www.jxgptr7.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Bswmsu7Dabu1mM7QmduP"
+  }
+]

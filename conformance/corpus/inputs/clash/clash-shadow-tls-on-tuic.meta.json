@@ -1,0 +1,9 @@
+{
+  "id": "clash-shadow-tls-on-tuic",
+  "family": "clash",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-type",
+  "description": "tuic with plugin shadow-tls and plugin-opts (ClashMeta A6 drops it)."
+}

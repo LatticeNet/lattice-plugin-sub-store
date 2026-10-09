@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-cipher-unlisted",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "cipher-unlisted",
+  "description": "ss with camellia-128-cfb and with aes-256-cfb8, neither in the ClashMeta cipher list."
+}

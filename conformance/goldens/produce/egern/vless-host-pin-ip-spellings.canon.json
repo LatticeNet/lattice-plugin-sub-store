@@ -1,0 +1,38 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "SG-ck7-23",
+        "port": 443,
+        "server": "0:0:0:0:0:ffff:203.0.113.235",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "0:0:0:0:0:ffff:203.0.113.235"
+            },
+            "path": "/qj6af"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ee69dd3c-2163-4541-b3ab-e25b917d57f7"
+      }
+    },
+    {
+      "vless": {
+        "name": "HK-dr76-41",
+        "port": 443,
+        "server": "::ffff:198.51.100.36",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {},
+            "path": "/zxtb"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "bfe383f4-6a95-4843-a6d3-04bf5e8e4124"
+      }
+    }
+  ]
+}

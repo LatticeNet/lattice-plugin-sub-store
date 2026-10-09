@@ -1,0 +1,22 @@
+[
+  {
+    "_cftp0pt": "xc3p3z0b",
+    "_q68f34": 43,
+    "_resolved": true,
+    "client-fingerprint": null,
+    "collectionName": "g442",
+    "id": "77",
+    "name": "FR-mw0ad-11",
+    "network": "tcp",
+    "no-resolve": true,
+    "password": "iEbzUJm2r7ZFhxxz",
+    "port": 443,
+    "resolved": true,
+    "server": "wtr-25.tgodt.example.org",
+    "sni": "img.xashyl2j67.example.net",
+    "subName": "r3xc",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

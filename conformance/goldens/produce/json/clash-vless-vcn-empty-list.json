@@ -1,0 +1,20 @@
+[
+  {
+    "_vcn": null,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "name": "FR-r6j6l-31",
+    "network": "tcp",
+    "port": 443,
+    "server": "b1-03.pywg7w10.example.org",
+    "skip-cert-verify": false,
+    "sni": "img.dki3ak.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "b7fd1d5b-18b6-47d1-af4d-c3bc916c2490"
+  }
+]

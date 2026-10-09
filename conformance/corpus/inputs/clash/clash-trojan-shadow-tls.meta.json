@@ -1,0 +1,9 @@
+{
+  "id": "clash-trojan-shadow-tls",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "trojan with shadow-tls-opts."
+}

@@ -1,0 +1,1 @@
+hysteria2://8RY6jGZbI7EkOQU9BxCP@krx-01.z80re.example.org:443?obfs=gecko&obfs-password=W8lk4MDS8AdiS9s1&sni=cdn.wgruy.example.net#JP-cf9p0-05

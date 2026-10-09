@@ -1,0 +1,1 @@
+GB-e5b-15=trojan,cb-23.mmndug.example.com,443,password=QF8oCcvBNMnLwtsA,ws=true,ws-path=/du3hede,tls=true,sni="static.b7zcm8.example.net",udp-relay=true

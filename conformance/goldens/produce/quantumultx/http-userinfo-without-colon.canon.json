@@ -1,0 +1,12 @@
+[
+  {
+    "address": "onxbae3@orp-12.iliuew1v.example.org:80",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "tag": "TW-z9qv3-83",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

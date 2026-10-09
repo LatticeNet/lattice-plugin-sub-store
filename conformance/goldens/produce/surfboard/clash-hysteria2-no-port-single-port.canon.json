@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "vq-35.tbtq.example.net",
+      "8443"
+    ],
+    "name": "hysteria2 vq-35.tbtq.example.net:undefined",
+    "params": {
+      "password": "wY75JPRvaRRLEgYnTRuB",
+      "port-hopping": "8443",
+      "sni": "static.n6ugri.example.com",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

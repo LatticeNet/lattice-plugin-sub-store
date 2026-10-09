@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-cfb","name":"[2001:db8:4504:7576::5d4a]","obfs":"plain","obfs-param":"api.ih9gp.example.com","password":"rcFtHdIJ2k06","port":15683,"protocol":"origin","server":"2001:db8:4504:7576::5d4a","type":"ssr","udp":true}

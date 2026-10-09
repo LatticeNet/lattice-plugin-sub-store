@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "JP-wzcyce-54",
+    "host": "kc-11.be1i5.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"headers\":{\"X-g7hkl17\":\"ipxgp9v1\"},\"noGRPCHeader\":true,\"xPaddingBytes\":\"100-1000\",\"uplinkHTTPMethod\":\"PUT\",\"sessionIDPlacement\":\"header\",\"sessionIDKey\":\"X-kapmh\",\"seqPlacement\":\"query\",\"seqKey\":\"lch1f4\",\"xmux\":{\"maxConnections\":\"8\",\"maxConcurrency\":\"16-32\",\"hKeepAlivePeriod\":30}}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/ipi7gmqks"
+      ],
+      [
+        "pbk",
+        "Iq3oWJDvt0Aj5l45mAC-izg13hbGP6cyuWqV1pBm6b8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "0a674faa"
+      ],
+      [
+        "sni",
+        "api.l7qbloarat.example.org"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "c5f3fae3-1c0b-4c0d-81e4-c6ef1f6096ad"
+  }
+]

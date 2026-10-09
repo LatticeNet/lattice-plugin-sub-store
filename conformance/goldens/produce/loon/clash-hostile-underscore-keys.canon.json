@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "k4-16.jn75z1.example.com",
+      "443",
+      "e23518f7-6bdf-4157-a78c-e04cd917c507"
+    ],
+    "name": "DE-njz7k-17",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk",
+      "short-id": "095a09fb",
+      "sni": "static.ly0di.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

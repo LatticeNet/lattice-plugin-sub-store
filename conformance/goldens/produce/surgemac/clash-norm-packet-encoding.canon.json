@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "wox-27.fknu.example.org",
+      "443"
+    ],
+    "name": "NL-yzu-01",
+    "params": {
+      "username": "3f5ddbaa-1428-47db-8c42-5461d36dc1b2",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

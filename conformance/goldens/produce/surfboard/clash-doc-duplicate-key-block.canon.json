@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "undefined",
+      "undefined"
+    ],
+    "name": "trojan undefined:undefined",
+    "params": {
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

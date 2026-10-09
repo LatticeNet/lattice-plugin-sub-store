@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","name":"NL-y3n-41","name-cert-verify":"img.gx3fkjiqom.example.com","network":"tcp","port":443,"server":"hc-40.nc5igzur.example.org","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"b2db72da-0421-48df-b34b-b536eca4d3f8","servername":"api.n2x9vi.example.org"}

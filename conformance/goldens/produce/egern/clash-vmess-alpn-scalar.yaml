@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"JP-nhs7w3-33","server":"jv-05.vi5q.example.com","port":443,"user_id":"a4251e45-8c27-43ce-9bb2-ce33100ace04","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.g0ri20uyg.example.org","skip_tls_verify":false}}}}

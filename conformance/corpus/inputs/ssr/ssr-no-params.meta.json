@@ -1,0 +1,9 @@
+{
+  "id": "ssr-no-params",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "missing-params",
+  "description": "Decoded text without /?: the line is rejected."
+}

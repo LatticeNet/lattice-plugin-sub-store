@@ -1,0 +1,1 @@
+shadowsocks=ry-15.lipvx.example.net:33417,method=aes-128-cfb,password=srKjGdX2iwqG,ssr-protocol=origin,obfs=plain,udp-relay=true,tag=ry-15.lipvx.example.net

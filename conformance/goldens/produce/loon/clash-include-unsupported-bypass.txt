@@ -1,0 +1,3 @@
+JP-wwxzz-36=trojan,k0-09.xp6f.example.com,443,"1Iz84ILzrS9Neqpv",tls-name=static.l862e7.example.com,udp=true
+KR-tq2-07=http,fpd-08.dl483.example.org,8080,tqtzpi,"cg4QWBilRQRo"
+US-iqkz-62=shadowsocks,izc-22.l21tl33.example.com,34054,aes-128-gcm,"t75by9UeUMxNHS",udp=true

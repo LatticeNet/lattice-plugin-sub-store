@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "m5g-37.osr10ykk.example.com",
+      "57590",
+      "aes-256-gcm",
+      "32oWLbrurkKWPK"
+    ],
+    "name": "HK-yulm9-28",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

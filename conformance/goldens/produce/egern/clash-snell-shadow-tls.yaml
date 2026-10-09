@@ -1,0 +1,2 @@
+proxies:
+  - {"snell":{"name":"US-wy3-51","server":"dx-34.uzidmcd.example.org","port":57692,"psk":"NZq6UaXbsTlmroOZ7STZ","version":4,"udp_relay":true,"tfo":false,"shadow_tls":{"password":"ZBhhkwByhlgdUUYT","sni":"static.jgcbpwv1f3.example.com"}}}

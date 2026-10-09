@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-obfs-shorthand",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "obfs-shorthand",
+  "description": "N26: a share link with obfs=<word> other than salamander and no obfs-password: obfs-password takes the word and obfs becomes salamander."
+}

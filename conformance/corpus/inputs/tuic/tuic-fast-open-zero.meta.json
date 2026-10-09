@@ -1,0 +1,9 @@
+{
+  "id": "tuic-fast-open-zero",
+  "family": "tuic",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "fast-open",
+  "description": "fast_open=0: tfo is true whatever the value."
+}

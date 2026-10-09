@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "shadowsocksr": {
+        "method": "aes-128-cfb",
+        "name": "ry-15.lipvx.example.net",
+        "obfs": "plain",
+        "password": "srKjGdX2iwqG",
+        "port": 33417,
+        "protocol": "origin",
+        "server": "ry-15.lipvx.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

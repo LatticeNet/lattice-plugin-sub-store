@@ -1,0 +1,1 @@
+HK-k90ug1-59=vmess,m0-15.db68mym.example.net,443,auto,"c3cea05f-d893-4aaa-900d-53e2e4591837",transport=tcp,over-tls=true,tls-name=cdn.ozhoh8.example.com,alterId=0,udp=true

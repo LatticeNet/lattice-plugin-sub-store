@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "NL-aubv0-64",
+        "port": 443,
+        "server": "wu-38.euvmfc6.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "fingerprint_sha256": "c9c44a3751374a82531e53fc8f545ae4d90b978881350926a19d34fa866903ec",
+            "reality": {
+              "public_key": "2eoGiDdAjppnR9VLLP_GhA9eTuo8xyhhBO9Syc-sj8A",
+              "short_id": "e55d3799"
+            },
+            "sni": "static.bc9l6j77.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "36c5070e-ab86-4902-b8b8-c21e8e439fd4"
+      }
+    }
+  ]
+}

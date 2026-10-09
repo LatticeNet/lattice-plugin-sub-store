@@ -1,0 +1,52 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "domain_resolver": {
+        "server": "q9yd0",
+        "strategy": "ipv4_only"
+      },
+      "password": "252osGcNC6rhBPot",
+      "server": "r71-09.q6isz.example.com",
+      "server_port": 443,
+      "tag": "FR-xzt8-87",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.k66w9n0.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "bmsdx9c"
+      },
+      "password": "pNnlkRSb5JLWlpyh",
+      "server": "w7-10.olg8j.example.org",
+      "server_port": 443,
+      "tag": "KR-kse4f-43",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.ec3p3.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "ke2du",
+        "strategy": "prefer_ipv4"
+      },
+      "password": "7pxYY9U0dtY7Xt2x",
+      "server": "kuk-03.ztc4l.example.net",
+      "server_port": 443,
+      "tag": "HK-tm0vy-52",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.xevlb.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

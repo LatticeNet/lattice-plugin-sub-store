@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "NL-d0svs-69",
+        "password": "2UkWNdG9ThWtTN",
+        "port": 50551,
+        "server": "ww-28.b6rk.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

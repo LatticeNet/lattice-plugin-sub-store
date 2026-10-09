@@ -1,0 +1,10 @@
+SG-mxrw1e-75=trojan,cp-20.jw71rf.example.com,443,"kTepawGO3AjkBJVt",tls-name=www.tbkalp.example.net,udp=true
+HK-ax86-82=trojan,p5-04.feey.example.org,443,"3RNTFc2beLg82aAo",tls-name=static.ziv5g394s.example.net,udp=true
+NL-pkmbvt-41=trojan,y0-35.wdcffic.example.org,443,"vhJvxrLTpRHRfRPV",tls-name=cdn.ybdua.example.net,udp=true
+TW-bk4-46=trojan,pa-28.vuyz.example.org,443,"bmUi5GJVTgZIzHcA",tls-name=api.ocdd7vpvs.example.net,udp=true
+GB-pep-83=trojan,s52-03.k2kzr.example.org,443,"I7JJza3Y885Hhp4R",tls-name=www.kgw5zfakhz.example.net,udp=true
+CA-bxm-15=trojan,gki-38.z3rkzlw.example.net,443,"Ask6g1xO23Dib1uN",tls-name=www.u8x9y8.example.net,udp=true
+TW-lat6-53=trojan,jyz-13.is8wm.example.com,443,"7ePXq4jqWdv19scY",tls-name=cdn.i8zl1hhbgv.example.com,udp=true
+HK-pdh3s2-73=trojan,qxj-15.bjv0ij.example.net,443,"fGCyF2qeRAtQuer7",tls-name=api.w8op1d7c4.example.org,udp=true
+JP-mog-09=trojan,s9z-20.cf5oazt.example.com,443,"v9HWkJwL5BIBqaUF",tls-name=www.ws36rvxzs.example.com,udp=true
+AU-a8pf2k-05=trojan,fwl-26.obmfk01k.example.org,443,"ec6G8V8ffMYPurFG",tls-name=img.zat9xlm.example.net,udp=true

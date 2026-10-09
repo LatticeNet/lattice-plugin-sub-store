@@ -1,0 +1,26 @@
+[
+  {
+    "address": "r8-22.rqosi.example.com:39474",
+    "args": [],
+    "params": {
+      "fast-open": "true",
+      "method": "aes-128-gcm",
+      "password": "UurzHOXEvgK8m3",
+      "tag": "JP-x092-11",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "bv-01.deuvl.example.net:31874",
+    "args": [],
+    "params": {
+      "fast-open": "true",
+      "method": "aes-128-gcm",
+      "password": "sMIHATg9l4GXsa",
+      "tag": "HK-xz4py5-57",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "60Xt0FmFgKCvZJufrosV",
+      "server": "quz-07.xsbt.example.net",
+      "server_port": 443,
+      "tag": "CA-saq36m-81",
+      "tcp_fast_open": true,
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.t5tqzt5.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

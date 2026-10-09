@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "jaf-26.euz8l.example.net",
+      "server_port": 443,
+      "tag": "AU-xfb4-33",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "ech": {
+          "enabled": true,
+          "query_server_name": "img.uj5ev5al.example.org"
+        },
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.qj98n.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "3fe877cd-15b1-4d4b-b1ab-e1181fca6e08"
+    }
+  ]
+}

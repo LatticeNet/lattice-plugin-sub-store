@@ -1,0 +1,1 @@
+vmess=jv-05.vi5q.example.com:443,method=chacha20-poly1305,password=a4251e45-8c27-43ce-9bb2-ce33100ace04,obfs=over-tls,tls-alpn=026832,tls-verification=true,tls-host=cdn.g0ri20uyg.example.org,aead=true,udp-relay=true,tag=JP-nhs7w3-33

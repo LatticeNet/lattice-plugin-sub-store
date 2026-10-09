@@ -1,0 +1,9 @@
+{
+  "id": "http-userinfo-without-colon",
+  "family": "socks-http",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "userinfo-without-colon",
+  "description": "http://user@host:80: user info without a colon is not recognised, so server is user@host."
+}

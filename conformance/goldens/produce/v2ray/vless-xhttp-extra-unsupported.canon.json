@@ -1,0 +1,60 @@
+[
+  {
+    "fragment": "AU-pf8-61",
+    "host": "ns-12.acx8s.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "extra",
+        "{\"headers\":{\"X-gyga8\":\"qq7zz2\"},\"xPaddingBytes\":\"100-1000\",\"xmux\":{\"maxConnections\":\"16-32\",\"cMaxLifetimeMs\":7389},\"downloadSettings\":{\"address\":\"c5-08.zo23cs.example.net\",\"network\":\"xhttp\",\"port\":443,\"security\":\"reality\",\"tlsSettings\":{\"serverName\":\"www.tfsqhx.example.org\",\"fingerprint\":\"chrome\"},\"realitySettings\":{\"serverName\":\"www.tfsqhx.example.org\",\"fingerprint\":\"chrome\",\"publicKey\":\"at1WvtNfc56VHMdrpomc76ewNFpKcQ0yQENKyDqx4ug\",\"shortId\":\"596b125e\",\"spiderX\":\"/hi1h/xdju0bwbb\"},\"xhttpSettings\":{\"path\":\"/xke1\",\"mode\":\"packet-up\"},\"sockopt\":{\"tcpFastOpen\":true}},\"unknownKey\":[1]}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/xlksxbjvq"
+      ],
+      [
+        "pbk",
+        "ceK8cORT5vyAbAygN2ADRG6LWaTCRY0WsMnIAt4QykM"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "24c0bcbc"
+      ],
+      [
+        "sni",
+        "img.uo5t3bw.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "a8f6fed9-76c4-4661-b47d-193bbdc29845"
+  }
+]

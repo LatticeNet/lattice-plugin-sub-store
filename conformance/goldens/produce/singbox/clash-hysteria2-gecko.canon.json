@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "obfs": {
+        "max_packet_size": 2048,
+        "min_packet_size": 100,
+        "password": "W8lk4MDS8AdiS9s1",
+        "type": "gecko"
+      },
+      "password": "8RY6jGZbI7EkOQU9BxCP",
+      "server": "krx-01.z80re.example.org",
+      "server_port": 443,
+      "tag": "JP-cf9p0-05",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.wgruy.example.net"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

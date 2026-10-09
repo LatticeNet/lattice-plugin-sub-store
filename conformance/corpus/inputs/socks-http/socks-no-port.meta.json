@@ -1,0 +1,9 @@
+{
+  "id": "socks-no-port",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "missing-port",
+  "description": "socks://<base64>@host without a port: the line is rejected."
+}

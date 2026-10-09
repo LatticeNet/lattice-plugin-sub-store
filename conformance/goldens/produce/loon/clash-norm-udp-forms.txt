@@ -1,0 +1,6 @@
+DE-cx3puo-07=shadowsocks,ax-36.fvpemab.example.com,59231,aes-128-gcm,"MHdJWa7fG13ezc"
+JP-c0up-16=shadowsocks,gb-35.qorj2ra.example.org,11115,aes-128-gcm,"BmmjUHS9k3fbBy"
+CA-db7t-24=shadowsocks,rv-32.lqs3ow7.example.net,43102,aes-128-gcm,"tUUPWI9j6Sm7EX"
+CA-n9cjl5-36=shadowsocks,ri-36.p6ef54x.example.com,17632,aes-128-gcm,"vqz906wdsejnXw",udp=true
+AU-m13e-41=shadowsocks,vqc-37.ogl0g.example.com,43916,aes-128-gcm,"sbRptMTtjvSD6t",udp=true
+DE-cg3m-43=shadowsocks,ka2-34.mp8l.example.net,19976,aes-128-gcm,"pdDTOI0XOYT2z7",udp=true

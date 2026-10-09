@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "cz-18.bqqq3e.example.org",
+      "aid": "0",
+      "id": "252586ae-8170-4126-8483-71740ee01d41",
+      "net": "tcp",
+      "port": "443",
+      "ps": "vmess cz-18.bqqq3e.example.org:443",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

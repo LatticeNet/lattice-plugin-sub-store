@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "KR-dgo-22",
+      "network": "tcp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "0a3vFXinIBotdP8vPySCP-b7uEZ1yvPdFf6IZ9kFqwk",
+        "short-id": "e4a6886e"
+      },
+      "server": "elw-11.bhoj.example.com",
+      "servername": "img.av9b68r.example.net",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "1d454515-6317-4a7b-ba58-0accbc55e3d8"
+    }
+  ]
+}

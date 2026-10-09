@@ -1,0 +1,24 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "exec": "/usr/local/bin/avtul",
+    "name": "GB-fz8n-86",
+    "password": "KYsCwZmKBjKgSF",
+    "port": 43977,
+    "server": "c8k-13.e1l43f.example.org",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "chacha20-ietf",
+    "local-address": "198.51.100.122",
+    "name": "KR-ndqkk-68",
+    "obfs": "plain",
+    "password": "bcFPcct0YV3p",
+    "port": 10947,
+    "protocol": "origin",
+    "server": "b6x-20.i8josg.example.org",
+    "type": "ssr",
+    "udp": true
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "si-01.pyt8o.example.com",
+      "443",
+      "auto",
+      "e59cbec9-9e75-48b1-8c3b-c5b53fb1de09"
+    ],
+    "name": "SG-zof-93",
+    "params": {
+      "alterId": "0",
+      "host": "si-01.pyt8o.example.com",
+      "path": "/",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

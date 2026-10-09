@@ -1,0 +1,1 @@
+shadowsocks=qq0-04.ywvxhzk.example.com:10060,method=aes-128-gcm,password=UIyHcd6WdDKACc,tls-host=qq0-04.ywvxhzk.example.com,udp-relay=true,tag=NL-wca4te-67

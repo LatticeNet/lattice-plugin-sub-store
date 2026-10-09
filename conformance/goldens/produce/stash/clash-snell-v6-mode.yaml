@@ -1,0 +1,2 @@
+proxies:
+  - {"mode":"unshaped","name":"GB-uvpa-97","port":10273,"psk":"z28buU4hhgDebz86r0o7","quic-proxy-mode":true,"server":"nnv-08.qg4at.example.net","type":"snell","udp":true,"version":6}

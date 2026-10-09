@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-i1osv-55",
+      "type": "trojan",
+      "server": "::ffff:198.51.100.153",
+      "server_port": 443,
+      "password": "Ou8kTO0V9PYFpUBy",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ok64r7bmn.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

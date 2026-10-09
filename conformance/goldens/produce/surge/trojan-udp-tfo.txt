@@ -1,0 +1,1 @@
+NL-iyg-35=trojan,u2l-25.nave.example.org,443,password="5Q3Okkl4B6XFYtv1",tls=true,sni="cdn.jvk2wurwv.example.org",tfo=true

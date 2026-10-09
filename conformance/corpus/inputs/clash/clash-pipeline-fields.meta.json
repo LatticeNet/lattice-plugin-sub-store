@@ -1,0 +1,9 @@
+{
+  "id": "clash-pipeline-fields",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "pipeline-fields",
+  "description": "A node carrying subName, collectionName, id, resolved, no-resolve, a null field and underscore-prefixed fields."
+}

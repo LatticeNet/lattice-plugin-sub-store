@@ -1,0 +1,19 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "down_mbps": 1,
+      "password": "Dxnae7hB8sq8H4nnLYFk",
+      "server": "eh-02.e6fd.example.net",
+      "server_port": 443,
+      "tag": "JP-ei5q-91",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.lgpapm0p.example.com"
+      },
+      "type": "hysteria2",
+      "up_mbps": 200
+    }
+  ]
+}

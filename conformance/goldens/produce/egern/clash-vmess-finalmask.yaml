@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"SG-qa5-45","server":"f2-35.rug0aa.example.com","port":443,"user_id":"0a8a14d6-5fe1-47a4-b391-8e32145eedb9","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"www.pj3n2fe.example.com","skip_tls_verify":false}}}}

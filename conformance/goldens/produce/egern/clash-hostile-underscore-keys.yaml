@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"DE-njz7k-17","server":"k4-16.jn75z1.example.com","port":443,"user_id":"e23518f7-6bdf-4157-a78c-e04cd917c507","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.ly0di.example.org","reality":{"public_key":"bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk","short_id":"095a09fb"}}},"flow":"xtls-rprx-vision"}}

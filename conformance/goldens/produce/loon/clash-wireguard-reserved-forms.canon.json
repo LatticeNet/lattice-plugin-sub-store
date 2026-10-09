@@ -1,0 +1,31 @@
+[
+  {
+    "args": [],
+    "name": "FR-lkksca-49",
+    "params": {
+      "interface-ip": "10.159.118.196",
+      "peers": "[{public-key=\"UpuO6PUmckOF93MXmoGRIiMuk1/91Hx5SAyO1EyMRLs=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=kfo-39.pxng8tol.example.net:51820,reserved=[TeqD]}]",
+      "private-key": "pwRLYLRcZklXfGwkDl4lc/W6Al19foQzBSHpRV2TWo0="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "CA-qwozx-70",
+    "params": {
+      "interface-ip": "10.132.15.160",
+      "peers": "[{public-key=\"3gtPvbnKbS5fjNYQJ5dbvaYTMQ8eYirbHXQvVIMO5Eg=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=y5o-21.lbt60v12.example.net:51820,reserved=[118,233,228]}]",
+      "private-key": "0e61tURiITdd8tyeW2Ls9sCzoAHWbzRy2r6d9MxNU1U="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "SG-cg0a-25",
+    "params": {
+      "peers": "[{public-key=\"jeP3nnldu7Ss5vTGMyIkEnUGp38gyeIqFAyKxAs0pDA=\",allowed-ips=\"0.0.0.0/0\",endpoint=szw-03.qo26jwj.example.net:51820,reserved=[gFNh]}]",
+      "private-key": "HbbD+d3ms3OZAbG6m8IznmBTaRy6GZ1TwW61yAf3Wcc="
+    },
+    "type": "wireguard"
+  }
+]

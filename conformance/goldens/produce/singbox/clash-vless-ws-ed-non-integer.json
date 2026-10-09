@@ -1,0 +1,33 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-e0n-36",
+      "type": "vless",
+      "server": "moe-25.xfbb.example.com",
+      "server_port": 443,
+      "uuid": "7a0fb666-6ddd-4347-8b4c-2d81c515330b",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.gulze.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.z2kul.example.org"
+        },
+        "max_early_data": 2,
+        "path": "/ryv3jdg?ed=fh9"
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "ksr-38.odza5qa.example.com:59597",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "4BuXR7BK2HwHfH",
+      "tag": "US-dodyb9-55",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

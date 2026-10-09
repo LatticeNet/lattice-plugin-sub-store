@@ -1,0 +1,3 @@
+AU-do2bi-94=ss,ik4-24.pakq1pd.example.com,39141,encrypt-method=aes-128-gcm,password="oTe2mcYzsduFTR",udp-relay=true
+SG-j37i-11=ss,lpx-15.sisat.example.net,14150,encrypt-method=chacha20-ietf-poly1305,password="oTe2mcYzsduFTR",udp-relay=true
+NL-tw5z-43=ss,dm-30.e2zlt1bx.example.net,14150,encrypt-method=chacha20-ietf-poly1305,password="oTe2mcYzsduFTR",udp-relay=true

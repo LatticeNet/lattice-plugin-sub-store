@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"FR-s8k-58","server":"m97-07.vapbfgw4.example.net","port":443,"uuid":"8084f53b-14db-4353-bb2f-54266975fe35","password":"haySs7N4afsvUahP","sni":"www.r0ym9flg0.example.net","alpn":["h3"]}}

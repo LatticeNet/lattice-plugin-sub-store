@@ -1,0 +1,44 @@
+[
+  {
+    "args": [
+      "r71-09.q6isz.example.com",
+      "443"
+    ],
+    "name": "FR-xzt8-87",
+    "params": {
+      "password": "252osGcNC6rhBPot",
+      "sni": "api.k66w9n0.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "w7-10.olg8j.example.org",
+      "443"
+    ],
+    "name": "KR-kse4f-43",
+    "params": {
+      "password": "pNnlkRSb5JLWlpyh",
+      "sni": "img.ec3p3.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "kuk-03.ztc4l.example.net",
+      "443"
+    ],
+    "name": "HK-tm0vy-52",
+    "params": {
+      "password": "7pxYY9U0dtY7Xt2x",
+      "sni": "api.xevlb.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

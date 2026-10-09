@@ -1,0 +1,3 @@
+{
+  "unparsed": "proxies:\n  - vless:\n      name: \"short-id: \"fzpp\"\"\n      server: jhs-40.ixwhbpn.example.net\n      port: 443\n      user_id: a0da4f1d-63c0-43f2-b194-924674712637\n      tfo: false\n      udp_relay: true\n      transport:\n        tls:\n          sni: api.ncfc5tg.example.com\n          reality:\n            public_key: kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE\n            short_id: 8d112c21\n"
+}

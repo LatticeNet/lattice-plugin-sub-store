@@ -1,0 +1,31 @@
+[
+  {
+    "fragment": "GB-fz8n-86",
+    "host": "c8k-13.e1l43f.example.org",
+    "path": "",
+    "port": "43977",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206S1lzQ3dabUtCaktnU0Y=",
+    "userinfo_base64": "aes-128-gcm:KYsCwZmKBjKgSF"
+  },
+  {
+    "body": {
+      "main": "b6x-20.i8josg.example.org:10947:origin:chacha20-ietf:plain:YmNGUGNjdDBZVjNw",
+      "params": [
+        [
+          "remarks",
+          "KR-ndqkk-68"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

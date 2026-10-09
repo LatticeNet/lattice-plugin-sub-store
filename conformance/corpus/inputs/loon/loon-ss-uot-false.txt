@@ -1,0 +1,1 @@
+FR-zy6i6-82 = Shadowsocks, bb-27.sc6zg0dg.example.net, 25709, aes-128-gcm, "g0W5qYXucvY1IN", udp-over-tcp=false

@@ -1,0 +1,24 @@
+[
+  {
+    "args": [
+      "ph4-05.mx0tv.example.com",
+      "443"
+    ],
+    "name": "US-o93-80",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "shadow-tls-password": "FRUnGaggSJUwqE6q",
+      "shadow-tls-sni": "api.mmb7dk.example.org",
+      "shadow-tls-version": "3",
+      "skip-cert-verify": "false",
+      "sni": "api.mmb7dk.example.org",
+      "tls": "true",
+      "username": "e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.bgickuqs.example.org\"",
+      "ws-path": "/zzha3a/pymm"
+    },
+    "type": "vmess"
+  }
+]

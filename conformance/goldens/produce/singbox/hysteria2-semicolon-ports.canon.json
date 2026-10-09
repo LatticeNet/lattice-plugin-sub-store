@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "r7cmfc1rRfj8qGskOnXt",
+      "server": "b5-14.vhmjhduu.example.org",
+      "server_port": null,
+      "server_ports": [
+        "443;8443:443;8443"
+      ],
+      "tag": "TW-o2aaj-10",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.c2znodw.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

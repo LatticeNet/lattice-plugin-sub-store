@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-xhttp-download-shadow-tls-v5",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "shadow-tls",
+  "quirk": "xhttp-download-shadow-tls",
+  "description": "vless xhttp whose download-settings carries shadow-tls version 5 (ClashMeta A7 drops it)."
+}

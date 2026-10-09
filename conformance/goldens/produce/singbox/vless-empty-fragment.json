@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "vless cq7-04.a4y814.example.org:443",
+      "type": "vless",
+      "server": "cq7-04.a4y814.example.org",
+      "server_port": 443,
+      "uuid": "89cab0d8-3def-4051-8c56-83309d193307",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.mw6pykbq.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

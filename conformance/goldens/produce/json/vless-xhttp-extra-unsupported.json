@@ -1,0 +1,64 @@
+[
+  {
+    "_extra_unsupported": {
+      "downloadSettings": {
+        "realitySettings": {
+          "spiderX": "/hi1h/xdju0bwbb"
+        },
+        "sockopt": {
+          "tcpFastOpen": true
+        }
+      },
+      "unknownKey": [
+        1
+      ],
+      "xmux": {
+        "cMaxLifetimeMs": 7389
+      }
+    },
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "AU-pf8-61",
+    "network": "xhttp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "ceK8cORT5vyAbAygN2ADRG6LWaTCRY0WsMnIAt4QykM",
+      "short-id": "24c0bcbc"
+    },
+    "server": "ns-12.acx8s.example.com",
+    "skip-cert-verify": false,
+    "sni": "img.uo5t3bw.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "a8f6fed9-76c4-4661-b47d-193bbdc29845",
+    "xhttp-opts": {
+      "download-settings": {
+        "client-fingerprint": "chrome",
+        "mode": "packet-up",
+        "network": "xhttp",
+        "path": "/xke1",
+        "port": 443,
+        "reality-opts": {
+          "public-key": "at1WvtNfc56VHMdrpomc76ewNFpKcQ0yQENKyDqx4ug",
+          "short-id": "596b125e"
+        },
+        "server": "c5-08.zo23cs.example.net",
+        "servername": "www.tfsqhx.example.org",
+        "tls": true
+      },
+      "headers": {
+        "X-gyga8": "qq7zz2"
+      },
+      "mode": "packet-up",
+      "path": "/xlksxbjvq",
+      "reuse-settings": {
+        "max-connections": "16-32"
+      },
+      "x-padding-bytes": "100-1000"
+    }
+  }
+]

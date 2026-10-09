@@ -1,0 +1,9 @@
+proxies:
+  - name: FR-pc7-02
+    type: ss
+    server: q0-09.sbh6s.example.net
+    port: 51380
+    cipher: aes-128-gcm
+    password: g4gPi8XOZGfWfq
+    udp: true
+    tls: true

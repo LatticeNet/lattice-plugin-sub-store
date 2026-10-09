@@ -1,0 +1,2 @@
+proxies:
+  - {"snell":{"name":"FR-ngk2i-88","server":"xo-23.xbwv0pop.example.net","port":40231,"psk":"mClhBBZmCVzR0IpkaeFe","version":4,"udp_relay":true,"obfs":"http","obfs_host":"cdn.ixxoeq.example.com","tfo":false,"shadow_tls":{"password":"cr2BrE41G1Ek7tgM","sni":"static.wa6r8.example.org"}}}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-tuic-generic-fields",
+  "family": "clash",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "generic-fields",
+  "description": "tuic with a nested mapping field, a list field, udp: true and max-open-streams."
+}

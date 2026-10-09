@@ -1,0 +1,44 @@
+{
+  "proxies": [
+    {
+      "name": "US-ym0l-16",
+      "network": "tcp",
+      "packet-addr": true,
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "ph-02.bapy.example.org",
+      "servername": "cdn.wouhuc1z7w.example.org",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "6c4622e0-64ad-4d8e-a4bb-b3eab53c4c54",
+      "xudp": true
+    },
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "NL-yzu-01",
+      "network": "tcp",
+      "packet-addr": true,
+      "packet-encoding": "packetaddr",
+      "port": 443,
+      "server": "wox-27.fknu.example.org",
+      "type": "vmess",
+      "udp": true,
+      "uuid": "3f5ddbaa-1428-47db-8c42-5461d36dc1b2"
+    },
+    {
+      "name": "KR-pjl-56",
+      "network": "tcp",
+      "packet-encoding": "packetaddr",
+      "port": 443,
+      "server": "kw-04.bxqyy.example.org",
+      "servername": "img.s8xo0hw.example.org",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "8e3fa44a-72bc-4952-88e2-71cd10bc8ed2",
+      "xudp": true
+    }
+  ]
+}

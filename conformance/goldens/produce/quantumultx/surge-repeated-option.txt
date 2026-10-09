@@ -1,0 +1,1 @@
+shadowsocks=ksr-38.odza5qa.example.com:59597,method=aes-128-gcm,password=4BuXR7BK2HwHfH,udp-relay=true,tag=US-dodyb9-55

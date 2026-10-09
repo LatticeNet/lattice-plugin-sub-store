@@ -1,0 +1,1 @@
+SG-fllz-67=shadowsocks,j9r-22.r5nnt.example.com,21000,aes-128-gcm,"8tBpgDAvkyCIM2",udp=true

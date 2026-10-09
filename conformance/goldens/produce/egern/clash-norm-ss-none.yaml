@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-ahs6-94","method":"none","server":"vv4-07.bwxx.example.com","port":43689,"password":"","tfo":false,"udp_relay":true}}

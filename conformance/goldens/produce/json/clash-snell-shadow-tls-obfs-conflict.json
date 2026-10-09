@@ -1,0 +1,21 @@
+[
+  {
+    "name": "FR-ngk2i-88",
+    "obfs-opts": {
+      "host": "cdn.ixxoeq.example.com",
+      "mode": "http"
+    },
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "host": "static.wa6r8.example.org",
+      "password": "cr2BrE41G1Ek7tgM",
+      "version": 3
+    },
+    "port": 40231,
+    "psk": "mClhBBZmCVzR0IpkaeFe",
+    "server": "xo-23.xbwv0pop.example.net",
+    "type": "snell",
+    "udp": true,
+    "version": 4
+  }
+]

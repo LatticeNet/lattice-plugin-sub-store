@@ -1,0 +1,4 @@
+proxies:
+  - {"snell":{"name":"AU-voji-39","server":"plt-35.fr9ce.example.com","port":44923,"psk":"qy4Ski0CRbGm7cZh3dsR","version":1,"tfo":false}}
+  - {"snell":{"name":"SG-kau-01","server":"hl6-08.vqbj.example.net","port":12361,"psk":"9XKg0BnUWylNk0MI5SRO","version":2,"tfo":false}}
+  - {"snell":{"name":"CA-cpszh-53","server":"eod-34.v0aybnc.example.net","port":42820,"psk":"PiOQ8ZkWtdHzke3JjM8D","version":5,"udp_relay":true,"tfo":false}}

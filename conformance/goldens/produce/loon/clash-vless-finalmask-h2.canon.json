@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "elw-11.bhoj.example.com",
+      "443",
+      "1d454515-6317-4a7b-ba58-0accbc55e3d8"
+    ],
+    "name": "KR-dgo-22",
+    "params": {
+      "over-tls": "true",
+      "public-key": "0a3vFXinIBotdP8vPySCP-b7uEZ1yvPdFf6IZ9kFqwk",
+      "short-id": "e4a6886e",
+      "sni": "img.av9b68r.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

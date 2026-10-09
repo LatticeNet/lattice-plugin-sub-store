@@ -1,0 +1,1 @@
+trojan://QF8oCcvBNMnLwtsA@cb-23.mmndug.example.com:443?sni=static.b7zcm8.example.net&ws=1&wspath=%2Fdu3hede#GB-e5b-15

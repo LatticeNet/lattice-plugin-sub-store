@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "FR-s8k-58",
+        "password": "haySs7N4afsvUahP",
+        "port": 443,
+        "server": "m97-07.vapbfgw4.example.net",
+        "sni": "www.r0ym9flg0.example.net",
+        "uuid": "8084f53b-14db-4353-bb2f-54266975fe35"
+      }
+    }
+  ]
+}

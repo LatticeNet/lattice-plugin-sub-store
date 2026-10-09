@@ -1,0 +1,13 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "SG-nvtf84-42",
+      "password": "rfyxAU5zrOYf5L",
+      "port": 52428,
+      "server": "f9u-30.yunpr0j.example.com",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

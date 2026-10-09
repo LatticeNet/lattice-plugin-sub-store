@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"AU-gg9uw-50","obfs-password":"QSFnmheRMZEtq74g","password":"kjhClV1ZL1nzoBZOKHyq","port":443,"server":"qb-21.dzh8.example.org","skip-cert-verify":false,"sni":"static.dtrwbre6f.example.com","tfo":false,"type":"hysteria2","udp":true,"fast-open":false}

@@ -1,0 +1,67 @@
+[
+  {
+    "args": [
+      "hrc-22.zibc.example.net",
+      "443"
+    ],
+    "name": "DE-bfs-55",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "ty4TysmKKjggHD",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "qo-39.ljrhkp7.example.com",
+      "65536"
+    ],
+    "name": "AU-tdfmfr-53",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "AmRgr2888qlIPD",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "ke6-36.rgn5ls.example.org",
+      "null"
+    ],
+    "name": "NL-xa8-63",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "tESlvXey4WRcbi",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "jf1-18.gdljfe.example.org",
+      "abc"
+    ],
+    "name": "JP-lf7-81",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "e22RD6Xn1e8xf8",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "r0a-11.qghyipu.example.com",
+      "70000"
+    ],
+    "name": "DE-yyf9-35",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "VJAlDVxiyZ5xRh",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

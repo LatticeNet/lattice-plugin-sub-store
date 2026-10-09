@@ -1,0 +1,18 @@
+proxies:
+  - name: KR-e3w4-95
+    type: vmess
+    server: aq-17.vsn27vzi.example.org
+    port: 443
+    uuid: 23df0336-e6e4-4d67-a1a5-a858d0c3a07d
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: api.agy7vgm3k.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: LqfNLMKbhMVX8W_M2RJXCK_jRri5GjmOqeZXexE0BoQ
+      short-id: f2a67485
+    shadow-tls-opts:
+      password: gcMjfz8eDgDNnlql
+      version: 3

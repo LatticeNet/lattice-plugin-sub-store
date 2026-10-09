@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-256-gcm",
+        "name": "NL-emsp-35",
+        "obfs": "tls",
+        "password": "JK18oGXD1oVPvp",
+        "port": 54028,
+        "server": "fe-35.h9jtz.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

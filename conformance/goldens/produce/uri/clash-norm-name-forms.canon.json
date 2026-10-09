@@ -1,0 +1,92 @@
+[
+  {
+    "fragment": "q0iaf",
+    "host": "x20-02.n3yn8l1.example.org",
+    "path": "",
+    "port": "59729",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206QnMwZXllWFpZMndWZGI=",
+    "userinfo_base64": "aes-128-gcm:Bs0eyeXZY2wVdb"
+  },
+  {
+    "fragment": "uiv3ylf",
+    "host": "s4-21.ug12smk.example.org",
+    "path": "",
+    "port": "15003",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206UmtaSmpENENqZW5sUks=",
+    "userinfo_base64": "aes-128-gcm:RkZJjD4CjenlRK"
+  },
+  {
+    "fragment": "ss tb-31.uxxfa.example.com:11770",
+    "host": "tb-31.uxxfa.example.com",
+    "path": "",
+    "port": "11770",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206akY1TWZFZzdYakU3OUU=",
+    "userinfo_base64": "aes-128-gcm:jF5MfEg7XjE79E"
+  },
+  {
+    "fragment": "ss tpd-07.ezln.example.com:34430",
+    "host": "tpd-07.ezln.example.com",
+    "path": "",
+    "port": "34430",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206WERqRFllRmZIN0RMZTY=",
+    "userinfo_base64": "aes-128-gcm:XDjDYeFfH7DLe6"
+  },
+  {
+    "fragment": "6916",
+    "host": "t7m-12.ta0dvm.example.org",
+    "path": "",
+    "port": "25237",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Uko5NlFDbHdUVGY4WmM=",
+    "userinfo_base64": "aes-128-gcm:RJ96QClwTTf8Zc"
+  },
+  {
+    "fragment": "ss j01-23.b75w.example.net:36055",
+    "host": "j01-23.b75w.example.net",
+    "path": "",
+    "port": "36055",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Zk9BbWJLMUNLelFwajQ=",
+    "userinfo_base64": "aes-128-gcm:fOAmbK1CKzQpj4"
+  }
+]

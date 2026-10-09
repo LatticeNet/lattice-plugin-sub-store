@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "bb-27.sc6zg0dg.example.net",
+      "25709"
+    ],
+    "name": "FR-zy6i6-82",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "g0W5qYXucvY1IN",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

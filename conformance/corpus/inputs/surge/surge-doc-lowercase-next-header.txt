@@ -1,0 +1,10 @@
+[General]
+loglevel = notify
+
+[Proxy]
+HK-v33w-32 = ss, uw-26.rku62.example.org, 15190, encrypt-method=aes-128-gcm, password=AbkBDfOEHReXUn
+KR-wrh-40 = trojan, lgc-08.chq4.example.org, 443, password=jktIH5m0728JHCM4, sni=img.t3kxz.example.net
+
+[proxy group]
+HK-mpz6ih-57 = ss, uol-04.kuk4h9ox.example.net, 12241, encrypt-method=aes-128-gcm, password=EGG0Ygt95btme5
+NL-bxpz-26 = trojan, dmw-21.cxb2t.example.net, 443, password=Pp5tEdhZx6Cr2w1F, sni=img.ytx7ep30i5.example.org

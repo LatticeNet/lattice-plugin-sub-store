@@ -1,0 +1,16 @@
+[
+  {
+    "address": "e9c-27.aqvroil.example.org:443",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "over-tls",
+      "obfs-host": "e9c-27.aqvroil.example.org",
+      "password": "zDjr7cCx7FMMHr",
+      "tag": "US-up97r-76",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

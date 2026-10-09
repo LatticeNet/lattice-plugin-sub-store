@@ -1,0 +1,15 @@
+[
+  {
+    "address": "ry-15.lipvx.example.net:33417",
+    "args": [],
+    "params": {
+      "method": "aes-128-cfb",
+      "obfs": "plain",
+      "password": "srKjGdX2iwqG",
+      "ssr-protocol": "origin",
+      "tag": "ry-15.lipvx.example.net",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

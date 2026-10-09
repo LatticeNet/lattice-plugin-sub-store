@@ -1,0 +1,43 @@
+proxies:
+  - name: DE-rcz-30
+    type: vless
+    server: zh-03.tgkqxx.example.net
+    port: 443
+    uuid: 7b57aebd-6a68-444c-a14d-516c3be6d408
+    udp: true
+    tls: true
+    servername: www.z196aua.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /f05/wrutp3e
+      headers:
+        Host: cdn.nfkm4eg.example.org
+      v2ray-http-upgrade: true
+      v2ray-http-upgrade-fast-open: true
+      _v2ray-http-upgrade-ed: 4096
+  - name: GB-wovgf-47
+    type: vless
+    server: r9-29.bteohk.example.com
+    port: 443
+    uuid: 5fcab3f9-2f93-4438-8cf4-e4c11940008c
+    udp: true
+    tls: true
+    servername: api.bs5oowllw.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /srn3txw?x=1
+      headers:
+        Host: api.z4kra7h.example.org
+      v2ray-http-upgrade: true
+      v2ray-http-upgrade-fast-open: true
+      _v2ray-http-upgrade-ed: 4096

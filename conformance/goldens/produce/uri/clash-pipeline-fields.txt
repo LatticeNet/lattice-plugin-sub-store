@@ -1,0 +1,1 @@
+trojan://iEbzUJm2r7ZFhxxz@wtr-25.tgodt.example.org:443?sni=img.xashyl2j67.example.net&type=tcp#FR-mw0ad-11

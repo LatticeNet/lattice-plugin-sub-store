@@ -1,0 +1,9 @@
+{
+  "id": "loon-port-out-of-range",
+  "family": "loon",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "port-out-of-range",
+  "description": "Port 70000: the Loon grammar rejects the line."
+}

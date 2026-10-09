@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"CA-hgyp5c-78","server":"ye-18.h7d833x.example.org","port":443,"password":"HVfwSq7vAQp7quel","tfo":false,"udp_relay":true,"sni":"img.w7zhe.example.org"}}

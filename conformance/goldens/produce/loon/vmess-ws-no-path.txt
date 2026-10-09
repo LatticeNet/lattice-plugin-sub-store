@@ -1,0 +1,1 @@
+FR-noq-63=vmess,x1-34.mh3dtn.example.com,443,auto,"dd30ca27-f54c-4355-b110-7639681794cf",transport=ws,path=/,host=x1-34.mh3dtn.example.com,over-tls=false,alterId=0,udp=true

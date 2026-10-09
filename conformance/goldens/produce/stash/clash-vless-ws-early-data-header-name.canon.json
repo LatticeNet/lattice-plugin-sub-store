@@ -1,0 +1,54 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "TW-mk0-06",
+      "network": "ws",
+      "port": 443,
+      "server": "bf-01.rvs3.example.org",
+      "servername": "cdn.bg8e5mi.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "604dfc35-2fab-41a6-9bd7-198f9bcbfa73",
+      "ws-opts": {
+        "early-data-header-name": "X-Ed",
+        "headers": {
+          "Host": "static.h72zog8.example.net"
+        },
+        "max-early-data": 2048,
+        "path": "/yjd5"
+      }
+    },
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "KR-ysri-71",
+      "network": "ws",
+      "port": 443,
+      "server": "nz-06.yv72.example.net",
+      "servername": "cdn.tjhpolxnn4.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "d036208d-6589-44d5-815b-421410e4aed5",
+      "ws-opts": {
+        "early-data-header-name": "Sec-WebSocket-Protocol",
+        "headers": {
+          "Host": "www.nz70uzc.example.net"
+        },
+        "max-early-data": 2048,
+        "path": "/khjh8ejx"
+      }
+    }
+  ]
+}

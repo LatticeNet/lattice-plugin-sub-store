@@ -1,0 +1,1 @@
+vless=tk-32.xvijvsjy.example.org:443,method=none,password=4710275e-e11c-42f3-ba9a-67c63306551e,obfs=over-tls,tls-alpn=026832,tls-verification=true,tls-host=img.w88jy1fal.example.com,udp-relay=true,tag=KR-mc0h2-32

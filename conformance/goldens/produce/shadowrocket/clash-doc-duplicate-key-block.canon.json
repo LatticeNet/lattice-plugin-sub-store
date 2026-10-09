@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "ss undefined:undefined",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "name": "trojan undefined:undefined",
+      "network": "tcp",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+[
+  {
+    "args": [
+      "::FFFF:203.0.113.13",
+      "443",
+      "f3ebf17c-58c0-4334-9180-f10707b10ee9"
+    ],
+    "name": "AU-nq4-74",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "::FFFF:203.0.113.13",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "FE80::4AD9%25eth0",
+      "443",
+      "18970a1b-eb66-439e-963f-2ec5e118bae0"
+    ],
+    "name": "CA-ksx-50",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "FE80::4AD9%25eth0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "::ffff:192.0.2.2",
+      "443",
+      "00afba75-b3d3-4726-ab6b-19606121bf02"
+    ],
+    "name": "NL-fkhqa-70",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

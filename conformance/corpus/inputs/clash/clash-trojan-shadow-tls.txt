@@ -1,0 +1,11 @@
+proxies:
+  - name: TW-m5o0-21
+    type: trojan
+    server: i0-17.w4oe.example.net
+    port: 443
+    password: oX6y6U3NunXBPYcG
+    sni: img.kratp2kn.example.net
+    udp: true
+    shadow-tls-opts:
+      password: is4ZqRqigeoIFBat
+      version: 3

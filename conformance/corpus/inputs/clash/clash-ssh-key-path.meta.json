@@ -1,0 +1,9 @@
+{
+  "id": "clash-ssh-key-path",
+  "family": "clash",
+  "protocol": "ssh",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "ssh-key-path",
+  "description": "ssh whose private-key is a file path."
+}

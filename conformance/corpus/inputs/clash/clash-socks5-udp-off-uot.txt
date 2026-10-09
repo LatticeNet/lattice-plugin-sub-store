@@ -1,0 +1,17 @@
+proxies:
+  - name: FR-skjup-87
+    type: socks5
+    server: ttp-13.hgduq8t.example.org
+    port: 1080
+    username: x746rjcm
+    password: a6YV4jhq3YYs
+    udp: false
+    uot: true
+  - name: US-ki5-48
+    type: socks5
+    server: mo-35.oieb9.example.com
+    port: 1080
+    username: zos1msg0
+    password: npyOMD5jBROX
+    udp-over-tcp: true
+    udp-over-tcp-version: 2

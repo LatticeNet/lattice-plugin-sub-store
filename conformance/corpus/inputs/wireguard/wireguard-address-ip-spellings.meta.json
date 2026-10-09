@@ -1,0 +1,9 @@
+{
+  "id": "wireguard-address-ip-spellings",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "ipv6-literal-grammar",
+  "description": "address lists pairing an IPv4 /32 with 0:0:0:0:0:ffff:<IPv4>/128, with fe80::x%25eth0.1/64 and with ::ffff:<IPv4>/128: ip and ip-cidr 32 on all three, ipv6 and ipv6-cidr only on the third."
+}

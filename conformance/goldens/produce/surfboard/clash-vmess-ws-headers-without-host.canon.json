@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "h8-35.ke75.example.org",
+      "443"
+    ],
+    "name": "DE-b7miyb-06",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "img.bxztir.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "a63ff333-ba61-4ef6-a1fa-b2d5e8d6b680",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "X-A:z9ce",
+      "ws-path": "/utg25"
+    },
+    "type": "vmess"
+  }
+]

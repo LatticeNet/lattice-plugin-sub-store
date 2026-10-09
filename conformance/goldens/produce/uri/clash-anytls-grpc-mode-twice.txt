@@ -1,0 +1,1 @@
+anytls://vE7a0G7LmSKfar4bZKdZ@ib-35.lmclrx.example.net:443?security=tls&type=grpc&mode=multi&serviceName=fccotcy7-hq1hyf&packetEncoding=none&sni=www.p9ekhp.example.com&fp=chrome&network=grpc&udp=1#AU-f98xkj-62

@@ -1,0 +1,9 @@
+{
+  "id": "vless-sni-pin-ip-spellings",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "sni-pin-ip-grammar",
+  "description": "N24: VLESS TLS without sni on [::FFFF:<IPv4>], on [FE80::x%25eth0] and on [::ffff:<IPv4>]: the first two are not IP literals under parser.md 1.5, so sni is pinned to the server on them and absent on the third."
+}

@@ -1,0 +1,1 @@
+GB-pth3-15=anytls,m6p-14.scrh.example.org,443,"fWYv5uOVHB7nhZioJ7XS",tls-profile=chrome,tls-name=static.s3ey79smsd.example.com,udp=true

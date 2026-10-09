@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-ca-not-pem",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "ca-not-pem",
+  "description": "N33: two valid nodes and one whose ca-str has no PEM header: the whole document fails and no node is returned."
+}

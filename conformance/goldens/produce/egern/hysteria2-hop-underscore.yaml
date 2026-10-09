@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"CA-saq36m-81","server":"quz-07.xsbt.example.net","port":443,"auth":"60Xt0FmFgKCvZJufrosV","tfo":true,"udp_relay":true,"sni":"www.t5tqzt5.example.org","skip_tls_verify":false}}

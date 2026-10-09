@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "short-id: fzpp",
+      "type": "vless",
+      "server": "jhs-40.ixwhbpn.example.net",
+      "server_port": 443,
+      "uuid": "a0da4f1d-63c0-43f2-b194-924674712637",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.ncfc5tg.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE",
+          "short_id": "8d112c21"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

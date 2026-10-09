@@ -1,0 +1,9 @@
+{
+  "id": "vmess-tls-value-forms",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-value-forms",
+  "description": "v2rayN JSON with tls as \"true\", true, 1, \"1\", \"tls\", \"TLS\" and 2, then the Shadowrocket form with tls=true and tls=1: tls is false for \"true\", \"TLS\", 2 and Shadowrocket tls=true, and true for the rest."
+}

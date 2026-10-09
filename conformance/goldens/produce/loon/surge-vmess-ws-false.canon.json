@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "iy-03.lvd0u.example.com",
+      "80",
+      "auto",
+      "d7d256b8-aa72-41a5-952a-4a1c853b315b"
+    ],
+    "name": "JP-pbg8g-55",
+    "params": {
+      "alterId": "0",
+      "host": "iy-03.lvd0u.example.com",
+      "path": "/iz57g9",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

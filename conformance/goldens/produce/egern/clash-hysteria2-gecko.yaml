@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"JP-cf9p0-05","server":"krx-01.z80re.example.org","port":443,"auth":"8RY6jGZbI7EkOQU9BxCP","tfo":false,"udp_relay":true,"sni":"cdn.wgruy.example.net"}}

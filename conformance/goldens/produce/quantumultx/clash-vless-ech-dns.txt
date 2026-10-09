@@ -1,0 +1,1 @@
+vless=fgx-19.clzv92cm.example.com:443,method=none,password=77e2f0ee-a13a-4e15-9007-f20fbeccc43f,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.cynpn55tzo.example.net,udp-relay=true,tag=GB-n96cy-04

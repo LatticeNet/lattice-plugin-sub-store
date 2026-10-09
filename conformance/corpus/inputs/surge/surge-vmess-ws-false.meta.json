@@ -1,0 +1,9 @@
+{
+  "id": "surge-vmess-ws-false",
+  "family": "surge",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "ws-false",
+  "description": "ws=false: WebSocket is enabled all the same."
+}

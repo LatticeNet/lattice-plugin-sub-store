@@ -1,0 +1,2 @@
+JP-tee2k7-36=ss,wz-14.huhsgb.example.org,44206,encrypt-method=aes-128-gcm,password="XBgXU8v1hEoPJA",udp-relay=true
+CA-bvq-13=ss,g8-14.x5adht.example.org,33639,encrypt-method=aes-128-gcm,password="SZDTUPhJwtveeW",udp-relay=true

@@ -1,0 +1,16 @@
+[
+  {
+    "address": "m0-15.db68mym.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "c3cea05f-d893-4aaa-900d-53e2e4591837",
+      "tag": "HK-k90ug1-59",
+      "tls-host": "cdn.ozhoh8.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

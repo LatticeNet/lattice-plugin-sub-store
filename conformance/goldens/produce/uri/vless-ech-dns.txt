@@ -1,0 +1,1 @@
+vless://6040d5b2-dd22-4cdd-858e-88becead8f7d@sd-32.hga9.example.net:443?security=tls&type=tcp&packetEncoding=xudp&alpn=h2%2Chttp%2F1.1&ech=www.bes7m.example.com%2Bhttps%3A%2F%2Fkz-15.iavn.example.net%2Fdns-query&sni=api.keoob546.example.com&fp=chrome&encryption=none#CA-zp5-38

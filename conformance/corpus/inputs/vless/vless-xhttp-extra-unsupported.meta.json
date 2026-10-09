@@ -1,0 +1,9 @@
+{
+  "id": "vless-xhttp-extra-unsupported",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-extra-unsupported",
+  "description": "xhttp whose extra holds a header, a padding range, an xmux with the unknown cMaxLifetimeMs, an unknownKey holding [1,{}], and Reality download settings with spiderX and sockopt: the modelled fields go to xhttp-opts and the rest to _extra_unsupported."
+}

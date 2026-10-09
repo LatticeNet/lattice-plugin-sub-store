@@ -1,0 +1,2 @@
+proxies:
+  - {"snell":{"name":"NL-wj4-65","server":"on5-10.vyf1qk.example.org","port":21532,"psk":"D7w7zk21tmdo3Ta891fW","version":4,"udp_relay":true,"reuse":true,"obfs":"http","obfs_host":"static.mq5rbfy.example.com","tfo":false}}

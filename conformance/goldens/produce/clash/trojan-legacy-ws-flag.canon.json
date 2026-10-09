@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "name": "GB-e5b-15",
+      "network": "ws",
+      "password": "QF8oCcvBNMnLwtsA",
+      "port": 443,
+      "server": "cb-23.mmndug.example.com",
+      "sni": "static.b7zcm8.example.net",
+      "type": "trojan",
+      "udp": true,
+      "ws-opts": {
+        "path": "/du3hede"
+      }
+    }
+  ]
+}

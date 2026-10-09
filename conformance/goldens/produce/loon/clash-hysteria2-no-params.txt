@@ -1,0 +1,1 @@
+CA-c80r-97=Hysteria2,203.0.113.47,443,"TRVXCERjoTB5gXhbzIx9",udp=true

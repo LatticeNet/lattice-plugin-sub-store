@@ -1,0 +1,58 @@
+[
+  {
+    "_loon_tls_profile": "safari-ios-26",
+    "client-fingerprint": "ios",
+    "flow": "xtls-rprx-vision",
+    "name": "SG-b5q-10",
+    "network": "tcp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "1G2ZoQ3_fo3QVQT-lMsdv48t6rnPKq05FVdYWDhvw1s",
+      "short-id": "d1598053",
+      "support-x25519mlkem768": true
+    },
+    "server": "o30-36.skj7.example.net",
+    "sni": "img.t9f9hgw.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "f3bcf2dc-56ad-44d1-aae4-841e7906b751"
+  },
+  {
+    "_loon_tls_profile": "chrome147",
+    "client-fingerprint": "chrome",
+    "flow": "xtls-rprx-vision",
+    "name": "CA-zukec-21",
+    "network": "tcp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "_lQFE406gO_mEh9dTyGBfoY9ArJagdI-m5SvFl6il3s",
+      "short-id": "88d2dfb5",
+      "support-x25519mlkem768": true
+    },
+    "server": "di-26.aub26d.example.com",
+    "sni": "img.f0jk13.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "b251581e-2ff0-47ff-9407-a51f76850caf"
+  },
+  {
+    "_loon_tls_profile": "chrome",
+    "client-fingerprint": "chrome",
+    "flow": "xtls-rprx-vision",
+    "name": "TW-qg6b2y-39",
+    "network": "tcp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "I_kNHGqd8kMfOei3DGIXPpc86GE1atl3poz4A3_37yU",
+      "short-id": "257d13f0"
+    },
+    "server": "cog-27.g0vvm9f.example.com",
+    "sni": "static.s7lp51.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "ff524432-da03-4630-8748-f7b4ee08c504"
+  }
+]

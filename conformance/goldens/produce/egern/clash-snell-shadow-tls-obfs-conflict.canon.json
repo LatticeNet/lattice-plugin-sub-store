@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "FR-ngk2i-88",
+        "obfs": "http",
+        "obfs_host": "cdn.ixxoeq.example.com",
+        "port": 40231,
+        "psk": "mClhBBZmCVzR0IpkaeFe",
+        "server": "xo-23.xbwv0pop.example.net",
+        "shadow_tls": {
+          "password": "cr2BrE41G1Ek7tgM",
+          "sni": "static.wa6r8.example.org"
+        },
+        "tfo": false,
+        "udp_relay": true,
+        "version": 4
+      }
+    }
+  ]
+}

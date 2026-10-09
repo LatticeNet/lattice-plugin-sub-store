@@ -1,0 +1,19 @@
+[
+  {
+    "name": "TW-m5o0-21",
+    "network": "tcp",
+    "password": "oX6y6U3NunXBPYcG",
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "host": "img.kratp2kn.example.net",
+      "password": "is4ZqRqigeoIFBat",
+      "version": 3
+    },
+    "port": 443,
+    "server": "i0-17.w4oe.example.net",
+    "sni": "img.kratp2kn.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

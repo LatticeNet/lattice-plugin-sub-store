@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"KR-mc0h2-32","server":"tk-32.xvijvsjy.example.org","port":443,"user_id":"4710275e-e11c-42f3-ba9a-67c63306551e","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.w88jy1fal.example.com","skip_tls_verify":false}}}}

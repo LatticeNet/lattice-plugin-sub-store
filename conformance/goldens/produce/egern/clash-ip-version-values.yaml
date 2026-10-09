@@ -1,0 +1,8 @@
+proxies:
+  - {"trojan":{"name":"HK-cjx-77","server":"iy-37.dc56k.example.org","port":443,"password":"Drttxdvccwfaxc4e","tfo":false,"udp_relay":true,"sni":"img.aramgppm3.example.com","ip_version":"dual_stack"}}
+  - {"trojan":{"name":"NL-rm1-76","server":"fuz-28.uv8ot.example.com","port":443,"password":"Jnuuxv8gZVVRzh2t","tfo":false,"udp_relay":true,"sni":"api.rxocwwswkc.example.com","ip_version":"v4_only"}}
+  - {"trojan":{"name":"SG-cl9-44","server":"xy-34.u6n8sj2n.example.net","port":443,"password":"4Vm2vFAENjt6bylh","tfo":false,"udp_relay":true,"sni":"static.ppsw9hocg.example.net","ip_version":"v6_only"}}
+  - {"trojan":{"name":"HK-n488o-76","server":"uv-23.jocsspi.example.org","port":443,"password":"otgZ2PBAxIKEUXrS","tfo":false,"udp_relay":true,"sni":"cdn.z33tx93cbl.example.org","ip_version":"v4_prefer"}}
+  - {"trojan":{"name":"US-gqu8sb-76","server":"xw-05.xstlss.example.net","port":443,"password":"1i1Kr6u8pd838AxG","tfo":false,"udp_relay":true,"sni":"cdn.dn2x7pvo.example.com","ip_version":"v6_prefer"}}
+  - {"trojan":{"name":"AU-wk1-50","server":"c7l-25.ys3mkhv.example.net","port":443,"password":"JCwYvyUPiGX6GDPn","tfo":false,"udp_relay":true,"sni":"cdn.ymq4b.example.org","ip_version":"v4_prefer"}}
+  - {"trojan":{"name":"GB-qumu-79","server":"hmp-30.q92twj.example.com","port":443,"password":"b3XQHRCGOb8va6mh","tfo":false,"udp_relay":true,"sni":"static.rdwf05uk.example.org","ip_version":"eh8bd"}}

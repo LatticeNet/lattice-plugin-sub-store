@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "GB-pth3-15",
+    "host": "m6p-14.scrh.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.s3ey79smsd.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "fWYv5uOVHB7nhZioJ7XS"
+  }
+]

@@ -1,0 +1,9 @@
+proxies:
+  - name: JP-ei5q-91
+    type: hysteria2
+    server: eh-02.e6fd.example.net
+    port: 443
+    password: Dxnae7hB8sq8H4nnLYFk
+    sni: img.lgpapm0p.example.com
+    up: 200 Mbps
+    down: 1 Gbps

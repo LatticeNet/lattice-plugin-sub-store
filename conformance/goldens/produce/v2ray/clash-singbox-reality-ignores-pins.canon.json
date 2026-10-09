@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "NL-aubv0-64",
+    "host": "wu-38.euvmfc6.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "2eoGiDdAjppnR9VLLP_GhA9eTuo8xyhhBO9Syc-sj8A"
+      ],
+      [
+        "pcs",
+        "c9c44a3751374a82531e53fc8f545ae4d90b978881350926a19d34fa866903ec"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "e55d3799"
+      ],
+      [
+        "sni",
+        "static.bc9l6j77.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "36c5070e-ab86-4902-b8b8-c21e8e439fd4"
+  }
+]

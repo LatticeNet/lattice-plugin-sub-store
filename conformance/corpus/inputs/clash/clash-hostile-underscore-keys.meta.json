@@ -1,0 +1,7 @@
+{
+  "id": "clash-hostile-underscore-keys",
+  "family": "clash",
+  "protocol": "vless",
+  "quirk": "hostile-underscore-keys",
+  "description": "H1: a Clash line with top-level _exec and _loon_tls_profile, a nested reality-opts._spider-x and a list element carrying _x: upstream keeps them all; Lattice strips every underscore key. The profile value does not trigger N2, so stripping underscore keys on both sides is the whole divergence."
+}

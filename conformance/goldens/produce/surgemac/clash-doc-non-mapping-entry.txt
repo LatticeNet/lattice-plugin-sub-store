@@ -1,0 +1,1 @@
+SG-nvtf84-42=ss,f9u-30.yunpr0j.example.com,52428,encrypt-method=aes-128-gcm,password="rfyxAU5zrOYf5L",udp-relay=true

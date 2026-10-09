@@ -1,0 +1,14 @@
+[
+  {
+    "address": "hp-05.gks3u9.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "pFz9FbdHbazUQpJZ",
+      "tag": "GB-ypr0ot-83",
+      "tls-host": "hp-05.gks3u9.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

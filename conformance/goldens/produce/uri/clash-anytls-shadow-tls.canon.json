@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "AU-qdf2nu-60",
+    "host": "s2-22.kay4.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "plugin",
+        "shadow-tls"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.nbazeta.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "pMULWF6GVsIKxHkmeJrH"
+  }
+]

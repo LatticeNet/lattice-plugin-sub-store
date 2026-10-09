@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"TW-o2aaj-10","port":null,"ports":"443;8443","server":"b5-14.vhmjhduu.example.org","skip-cert-verify":false,"sni":"www.c2znodw.example.org","type":"hysteria2","udp":true,"auth":"r7cmfc1rRfj8qGskOnXt","fast-open":false}

@@ -1,0 +1,36 @@
+[
+  {
+    "address": "qgr-29.ijwj.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "7a9e5f0c-5fbb-41db-84c3-f3451a397d9f",
+      "reality-base64-pubkey": "Q1dAvQMkI3_YMgWm1dCa7_0Df1UUowiUOPgfBsssjF0",
+      "reality-hex-shortid": "33f4d073",
+      "tag": "KR-m4pcf9-54",
+      "tls-host": "cdn.tyfz9tsjjb.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "ar-26.nwpt.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "1b2f873e-9224-4f7f-84b1-3a35b0d9fb3b",
+      "reality-base64-pubkey": "KwtJvxpWqjFazT5N1vz0_w6WR-yFZK0FVqexnENgVMw",
+      "reality-hex-shortid": "775f4291",
+      "tag": "NL-x3oc-18",
+      "tls-host": "api.zgvtw96xq.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

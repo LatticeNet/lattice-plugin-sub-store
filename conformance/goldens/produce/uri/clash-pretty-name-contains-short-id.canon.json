@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "short-id: fzpp",
+    "host": "jhs-40.ixwhbpn.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "8d112c21"
+      ],
+      [
+        "sni",
+        "api.ncfc5tg.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "a0da4f1d-63c0-43f2-b194-924674712637"
+  }
+]

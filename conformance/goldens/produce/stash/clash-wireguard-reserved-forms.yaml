@@ -1,0 +1,4 @@
+proxies:
+  - {"ip":"10.159.118.196","name":"FR-lkksca-49","port":51820,"private-key":"pwRLYLRcZklXfGwkDl4lc/W6Al19foQzBSHpRV2TWo0=","public-key":"UpuO6PUmckOF93MXmoGRIiMuk1/91Hx5SAyO1EyMRLs=","reserved":"TeqD","server":"kfo-39.pxng8tol.example.net","type":"wireguard","udp":true}
+  - {"ip":"10.132.15.160","name":"CA-qwozx-70","port":51820,"private-key":"0e61tURiITdd8tyeW2Ls9sCzoAHWbzRy2r6d9MxNU1U=","public-key":"3gtPvbnKbS5fjNYQJ5dbvaYTMQ8eYirbHXQvVIMO5Eg=","reserved":[118,233,228],"server":"y5o-21.lbt60v12.example.net","type":"wireguard","udp":true}
+  - {"ip":"10.120.251.57","name":"SG-cg0a-25","peers":[{"allowed-ips":["0.0.0.0/0"],"port":51820,"public-key":"jeP3nnldu7Ss5vTGMyIkEnUGp38gyeIqFAyKxAs0pDA=","reserved":"gFNh","server":"szw-03.qo26jwj.example.net"}],"private-key":"HbbD+d3ms3OZAbG6m8IznmBTaRy6GZ1TwW61yAf3Wcc=","type":"wireguard","udp":true}

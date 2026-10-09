@@ -1,0 +1,1 @@
+hysteria2 vq-35.tbtq.example.net:undefined=hysteria2,vq-35.tbtq.example.net,8443,password="wY75JPRvaRRLEgYnTRuB",port-hopping="8443",sni="static.n6ugri.example.com"

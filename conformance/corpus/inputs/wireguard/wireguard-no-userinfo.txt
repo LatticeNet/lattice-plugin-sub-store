@@ -1,0 +1,1 @@
+wg://k95-36.hs4w7i.example.com?private_key=BuJgFe%2BNWLgBC9UY8p0hV0LYzXVzNpX03kM3a0tO9lE%3D&public_key=8LsHaJEyLaMqY1L7gW6cag0RfYlg8ccbuJ4MVLUEaiI%3D&ip=10.0.92.165#SG-hpjmwu-57

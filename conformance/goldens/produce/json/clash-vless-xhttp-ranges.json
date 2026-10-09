@@ -1,0 +1,53 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "AU-pnw4-54",
+    "network": "xhttp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "0IEKpPNyJxLbBKDQQHMlBMxYXdTIJM2xxjBBzy-jTVM",
+      "short-id": "40ef9828"
+    },
+    "server": "a3-27.acgmr.example.org",
+    "sni": "img.ylx0bqftm9.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "2ce1df91-ad5d-44f4-a325-b7df9801c023",
+    "xhttp-opts": {
+      "mode": "packet-up",
+      "path": "/zl19",
+      "reuse-settings": {
+        "h-keep-alive-period": 30,
+        "max-connections": "16-32"
+      },
+      "sc-max-each-post-bytes": "1000-2000"
+    }
+  },
+  {
+    "client-fingerprint": "chrome",
+    "name": "SG-zla4t-17",
+    "network": "xhttp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "jhmzvuY77XcGOfno1No20qGgxgHTnivlWxM3pvii9F8",
+      "short-id": "acf66ac6"
+    },
+    "server": "hj-06.jfepn.example.net",
+    "sni": "img.p55l8.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "589aba3b-116f-429a-8016-a11025189894",
+    "xhttp-opts": {
+      "mode": "packet-up",
+      "path": "/dp96nska2",
+      "reuse-settings": {
+        "h-keep-alive-period": "x",
+        "max-connections": "-1"
+      },
+      "sc-max-each-post-bytes": "0",
+      "x-padding-bytes": "2000-1000"
+    }
+  }
+]

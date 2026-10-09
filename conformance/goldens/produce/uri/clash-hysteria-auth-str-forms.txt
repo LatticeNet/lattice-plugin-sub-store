@@ -1,0 +1,2 @@
+hysteria://qj-31.bnvjp5.example.org:41321?alpn=h3&auth_str=0dScwdcFvTsgwoRw&downmbps=100 Mbps&protocol=udp&peer=img.swzlt3589.example.org&udp=true&upmbps=30 Mbps#FR-zgr62-62
+hysteria://eq-11.iv7rmg4.example.net:32670?alpn=h3&auth=WMWle62v bypAvQ0U&downmbps=100 Mbps&protocol=udp&peer=www.x5csa.example.com&udp=true&upmbps=30 Mbps#HK-epef-89

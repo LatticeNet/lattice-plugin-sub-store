@@ -1,0 +1,45 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "h2-opts": {
+        "headers": {
+          "X-zky3g71": "z16kcepj"
+        },
+        "host": [
+          "img.h1c9g9r6o.example.com"
+        ],
+        "path": "/emz38eglb"
+      },
+      "name": "GB-tar-46",
+      "network": "h2",
+      "port": 443,
+      "server": "w7y-37.o465b4c.example.org",
+      "servername": "img.h1c9g9r6o.example.com",
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "552931fd-1683-49b6-a34f-4ae883271012"
+    },
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "h2-opts": {
+        "host": [
+          "api.unensw1l.example.org"
+        ],
+        "path": "/go6vp"
+      },
+      "name": "TW-oq52r2-15",
+      "network": "h2",
+      "port": 443,
+      "server": "moi-07.uggey.example.org",
+      "servername": "api.unensw1l.example.org",
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "6f3b98b5-cebc-4003-ab5c-c71f08f094f3"
+    }
+  ]
+}

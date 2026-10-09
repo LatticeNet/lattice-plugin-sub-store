@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "JP-cf9p0-05",
+    "host": "krx-01.z80re.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "obfs",
+        "gecko"
+      ],
+      [
+        "obfs-password",
+        "W8lk4MDS8AdiS9s1"
+      ],
+      [
+        "sni",
+        "cdn.wgruy.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "8RY6jGZbI7EkOQU9BxCP"
+  }
+]

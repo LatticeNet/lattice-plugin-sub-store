@@ -1,0 +1,9 @@
+{
+  "id": "ss-allow-insecure-zero",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "allow-insecure",
+  "description": "SIP002 with allowInsecure=0: any non-empty value sets skip-cert-verify true."
+}

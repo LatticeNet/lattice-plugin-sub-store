@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"KR-m4pcf9-54","server":"qgr-29.ijwj.example.net","port":443,"user_id":"7a9e5f0c-5fbb-41db-84c3-f3451a397d9f","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.tyfz9tsjjb.example.net","skip_tls_verify":false,"reality":{"public_key":"Q1dAvQMkI3_YMgWm1dCa7_0Df1UUowiUOPgfBsssjF0","short_id":"33f4d073"}}},"flow":"xtls-rprx-vision"}}
+  - {"vless":{"name":"NL-x3oc-18","server":"ar-26.nwpt.example.org","port":443,"user_id":"1b2f873e-9224-4f7f-84b1-3a35b0d9fb3b","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.zgvtw96xq.example.net","skip_tls_verify":false,"reality":{"public_key":"KwtJvxpWqjFazT5N1vz0_w6WR-yFZK0FVqexnENgVMw","short_id":"775f4291"}}},"flow":"xtls-rprx-vision"}}

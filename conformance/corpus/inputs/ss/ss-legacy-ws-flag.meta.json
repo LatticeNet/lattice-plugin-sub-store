@@ -1,0 +1,9 @@
+{
+  "id": "ss-legacy-ws-flag",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "legacy-ws-flag",
+  "description": "ws=1 with wspath: network ws, the path from wspath, and the Host pinned to the server."
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "FR-hh0-05",
+    "host": "vhy-37.kbjlbsej.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "cdn.o9kp42xjx.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/jui0ogbt30"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.o9kp42xjx.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "9ed65cb0-7a2c-45a9-ad68-97b05846f77e"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "address": "dyt-27.fldz.example.com:80",
+    "args": [],
+    "params": {
+      "tag": "TW-zy6l-07",
+      "udp-relay": "true",
+      "username": "fyv7ffic"
+    },
+    "type": "http"
+  }
+]

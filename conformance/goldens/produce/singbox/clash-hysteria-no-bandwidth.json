@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-x2x-24",
+      "type": "hysteria",
+      "server": "uy-23.pcyw.example.org",
+      "server_port": 13157,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.k076tb.example.org",
+        "insecure": false
+      },
+      "auth_str": "dGDmD7MGaDNmJyUh",
+      "up_mbps": null,
+      "down_mbps": null
+    }
+  ],
+  "endpoints": []
+}

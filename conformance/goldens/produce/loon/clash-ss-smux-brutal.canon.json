@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "lh-03.tvntg.example.org",
+      "10239",
+      "aes-128-gcm",
+      "cf02XhToMNkAVl"
+    ],
+    "name": "NL-rvfu-27",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-shadow-tls-v4",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-version",
+  "description": "vmess with shadow-tls-opts version 4 (ClashMeta A6 drops it)."
+}

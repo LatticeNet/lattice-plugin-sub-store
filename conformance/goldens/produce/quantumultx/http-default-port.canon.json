@@ -1,0 +1,12 @@
+[
+  {
+    "address": "je-18.obs1jo.example.com:80",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "tag": "NL-itwlx-02",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

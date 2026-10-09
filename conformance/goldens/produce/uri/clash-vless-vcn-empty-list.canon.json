@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "FR-r6j6l-31",
+    "host": "b1-03.pywg7w10.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "img.dki3ak.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b7fd1d5b-18b6-47d1-af4d-c3bc916c2490"
+  }
+]

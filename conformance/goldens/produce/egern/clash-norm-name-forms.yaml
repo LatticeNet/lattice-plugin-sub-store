@@ -1,0 +1,7 @@
+proxies:
+  - {"shadowsocks":{"name":"q0iaf","method":"aes-128-gcm","server":"x20-02.n3yn8l1.example.org","port":59729,"password":"Bs0eyeXZY2wVdb","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"uiv3ylf","method":"aes-128-gcm","server":"s4-21.ug12smk.example.org","port":15003,"password":"RkZJjD4CjenlRK","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"ss tb-31.uxxfa.example.com:11770","method":"aes-128-gcm","server":"tb-31.uxxfa.example.com","port":11770,"password":"jF5MfEg7XjE79E","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"ss tpd-07.ezln.example.com:34430","method":"aes-128-gcm","server":"tpd-07.ezln.example.com","port":34430,"password":"XDjDYeFfH7DLe6","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"6916","method":"aes-128-gcm","server":"t7m-12.ta0dvm.example.org","port":25237,"password":"RJ96QClwTTf8Zc","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"ss j01-23.b75w.example.net:36055","method":"aes-128-gcm","server":"j01-23.b75w.example.net","port":36055,"password":"fOAmbK1CKzQpj4","tfo":false,"udp_relay":true}}

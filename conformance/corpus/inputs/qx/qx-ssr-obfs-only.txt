@@ -1,0 +1,1 @@
+shadowsocks=hb-21.rfbq.example.com:32659, method=aes-256-cfb, password=vY9lKm8ZeVQS, obfs=http_simple, obfs-host=static.yhydgl.example.org, tag=KR-d1m-45

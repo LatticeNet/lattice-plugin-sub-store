@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "wz-14.huhsgb.example.org",
+      "44206",
+      "aes-128-gcm",
+      "XBgXU8v1hEoPJA"
+    ],
+    "name": "JP-tee2k7-36",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "g8-14.x5adht.example.org",
+      "33639",
+      "aes-128-gcm",
+      "SZDTUPhJwtveeW"
+    ],
+    "name": "CA-bvq-13",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

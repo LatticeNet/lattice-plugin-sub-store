@@ -1,0 +1,39 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "JP-wwxzz-36",
+        "password": "1Iz84ILzrS9Neqpv",
+        "port": 443,
+        "server": "k0-09.xp6f.example.com",
+        "sni": "static.l862e7.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "http": {
+        "headers": {
+          "X-mtt3tr5w": "u1xh"
+        },
+        "name": "KR-tq2-07",
+        "password": "cg4QWBilRQRo",
+        "port": 8080,
+        "server": "fpd-08.dl483.example.org",
+        "tfo": false,
+        "username": "tqtzpi"
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "US-iqkz-62",
+        "password": "t75by9UeUMxNHS",
+        "port": 34054,
+        "server": "izc-22.l21tl33.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

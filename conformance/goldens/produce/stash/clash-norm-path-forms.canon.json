@@ -1,0 +1,87 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "NL-blkq5-54",
+      "network": "ws",
+      "port": 443,
+      "server": "az-01.ra66.example.org",
+      "type": "vmess",
+      "udp": true,
+      "uuid": "5c489657-08cd-4391-9302-18b20b2463d9",
+      "ws-opts": {
+        "headers": {
+          "Host": "az-01.ra66.example.org"
+        },
+        "path": "/8923"
+      }
+    },
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "AU-ewmlbc-18",
+      "network": "ws",
+      "port": 443,
+      "server": "xp0-33.njrtp.example.org",
+      "type": "vmess",
+      "udp": true,
+      "uuid": "ef5ef9c3-4a75-48a6-afe2-294c7afc5197",
+      "ws-opts": {
+        "headers": {
+          "Host": "xp0-33.njrtp.example.org"
+        },
+        "path": "/l2fi"
+      }
+    },
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "grpc-opts": {
+        "grpc-service-name": "ps7ys-i3y",
+        "path": [
+          "/tlmiyqa",
+          "/"
+        ]
+      },
+      "name": "FR-rprs-23",
+      "network": "grpc",
+      "port": 443,
+      "server": "bpt-21.nwy7.example.net",
+      "type": "vmess",
+      "udp": true,
+      "uuid": "9780c28e-3733-41d1-b2ed-cbd2b08b0621"
+    },
+    {
+      "http-opts": {
+        "path": [
+          "/"
+        ]
+      },
+      "name": "GB-l0y0-75",
+      "network": "http",
+      "password": "TifAT0yjW7Y0dzla",
+      "port": 443,
+      "server": "cq-10.a54n9l7t.example.org",
+      "sni": "api.nf4ckmsolx.example.org",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip": "10.239.86.155",
+      "name": "CA-ukb9d2-32",
+      "network": "ws",
+      "port": 443,
+      "private-key": "qaNbpqohbzNPAk4K/7fs7HrN2Dk5uQaspIYyRfp1+AU=",
+      "public-key": "4aZLpzL+wrdRG67H2K7ICJf/jDz5LH7rubpWFpv6/Su0S+7S4/8T8PP1lC6cMG/13nGY9w37ru7rThdXNV4gBa8=",
+      "server": "e46-29.gtcl68me.example.com",
+      "sni": "e46-29.gtcl68me.example.com",
+      "tls": true,
+      "type": "masque",
+      "udp": true,
+      "ws-opts": {
+        "path": "/"
+      }
+    }
+  ]
+}

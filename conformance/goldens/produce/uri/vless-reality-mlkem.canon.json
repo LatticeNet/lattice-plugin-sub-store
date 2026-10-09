@@ -1,0 +1,106 @@
+[
+  {
+    "fragment": "NL-uf1gbz-26",
+    "host": "rrm-24.e5vt.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "4rgYaM5EM4CfdJzD-xysAGT82UlWgINDddTbgr1lVWY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "f0998b0d"
+      ],
+      [
+        "sni",
+        "static.jrdedhjuk9.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "support-x25519mlkem768",
+        "true"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "190a0e0a-2ea3-4321-a95b-72b5e80c1782"
+  },
+  {
+    "fragment": "HK-zcsve8-02",
+    "host": "q3u-22.rb82s.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "0EJeirOFU72EPPXFeor0BKycE2QDa4uo4FKP53UTrTE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "11bb05f2"
+      ],
+      [
+        "sni",
+        "cdn.tm8tva8p6y.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "fab98708-bc26-4148-965d-c22950429df6"
+  }
+]

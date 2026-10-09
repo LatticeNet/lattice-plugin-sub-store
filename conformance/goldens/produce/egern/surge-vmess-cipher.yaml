@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"US-w9f9-50","server":"x5-10.v543o.example.org","port":43099,"user_id":"d4c82b99-ab27-4c78-b7a6-a67a987675aa","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}
+  - {"vmess":{"name":"TW-sph-32","server":"lh6-09.tkdfx8sd.example.net","port":51833,"user_id":"ffe806aa-3175-4477-9210-b5ef908b99ac","security":"chacha20-poly1305","tfo":false,"legacy":false,"udp_relay":true}}

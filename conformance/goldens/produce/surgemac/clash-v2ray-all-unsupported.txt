@@ -1,0 +1,2 @@
+DE-etktcw-02=http,n8s-17.s0mpz.example.net,8080,username="bb25f",password="QYrIC13bchqS"
+NL-pj3l7-41=http,ihj-14.hf0kvu.example.net,8080,username="e2fw",password="VMGYcj8oRohq"

@@ -1,0 +1,9 @@
+proxies:
+  - name: AU-mzg2-91
+    type: tailscale
+    auth-key: tskey-auth-f96uJC54nlLLuct6VpMD5K3dA41Ptl
+    hostname: vml7zad4k1
+    control-http-client:
+      detour: qo4bzy
+    dialer-proxy: HK-oy69ce-65
+    udp: true

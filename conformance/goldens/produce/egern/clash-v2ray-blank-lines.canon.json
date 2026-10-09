@@ -1,0 +1,47 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "TW-j9w6qk-36",
+        "password": "WRlDhNJU25Ck",
+        "port": 1080,
+        "server": "er-31.mtwnt.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "h06y"
+      }
+    },
+    {
+      "http": {
+        "name": "FR-ukui-94",
+        "password": "dJSY4pWnnmYU",
+        "port": 8080,
+        "server": "gt-07.b9min995.example.net",
+        "tfo": false,
+        "username": "uxvyk117"
+      }
+    },
+    {
+      "snell": {
+        "name": "US-rrjn-36",
+        "port": 58650,
+        "psk": "tIJ6AYLXWg2uopx7EdBS",
+        "server": "na-25.a29v3id.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 4
+      }
+    },
+    {
+      "socks5": {
+        "name": "HK-xka4u-94",
+        "password": "N8FwlKhIIDGI",
+        "port": 1080,
+        "server": "ar-10.yy6s.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "ymxf0nzo"
+      }
+    }
+  ]
+}

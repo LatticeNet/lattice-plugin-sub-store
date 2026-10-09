@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "HK-k90ug1-59",
+        "port": 443,
+        "security": "auto",
+        "server": "m0-15.db68mym.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "cdn.ozhoh8.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "c3cea05f-d893-4aaa-900d-53e2e4591837"
+      }
+    }
+  ]
+}

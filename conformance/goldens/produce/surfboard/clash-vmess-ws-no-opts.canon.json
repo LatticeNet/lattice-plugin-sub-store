@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "si-01.pyt8o.example.com",
+      "443"
+    ],
+    "name": "SG-zof-93",
+    "params": {
+      "udp-relay": "true",
+      "username": "e59cbec9-9e75-48b1-8c3b-c5b53fb1de09",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"si-01.pyt8o.example.com\"",
+      "ws-path": "/"
+    },
+    "type": "vmess"
+  }
+]

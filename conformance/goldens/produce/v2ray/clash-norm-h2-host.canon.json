@@ -1,0 +1,42 @@
+[
+  {
+    "body": {
+      "add": "w7y-37.o465b4c.example.org",
+      "aid": "0",
+      "host": "img.h1c9g9r6o.example.com",
+      "id": "552931fd-1683-49b6-a34f-4ae883271012",
+      "net": "h2",
+      "path": "/emz38eglb",
+      "port": "443",
+      "ps": "GB-tar-46",
+      "scy": "auto",
+      "sni": "img.h1c9g9r6o.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "moi-07.uggey.example.org",
+      "aid": "0",
+      "host": "api.unensw1l.example.org",
+      "id": "6f3b98b5-cebc-4003-ab5c-c71f08f094f3",
+      "net": "h2",
+      "path": "/go6vp",
+      "port": "443",
+      "ps": "TW-oq52r2-15",
+      "scy": "auto",
+      "sni": "api.unensw1l.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

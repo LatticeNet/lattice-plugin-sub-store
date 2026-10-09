@@ -1,0 +1,60 @@
+[
+  {
+    "fragment": "SG-rvp97-26",
+    "host": "cr-03.ci0fvkp.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fm",
+        "{\"udp\":[{\"settings\":{\"password\":\"yvZW1Gkf0R4a\"},\"type\":\"salamander\"}]}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "h2",
+        "1"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pcs",
+        "69:24:7B:D1:F8:01:D5:23:CA:AE:2C:C3:37:9B:F1:F1:A2:31:50:49:8D:0B:43:4C:EC:0B:B5:4E:F5:79:F2:20"
+      ],
+      [
+        "pqv",
+        "NXhu6xafNGRd_mL_w2GZPTkexTmHVY_osURgnKpgf4KrdRw2EO7HyPFvIZDlTkWcbQ-cnBiTc1eAGr0k0MFRl17xsixvfCOFPCso-oKb6W777fVtyxgBGtwXck89g1wK"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "img.lejb3z3.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "vcn",
+        "static.h05sqvoy.example.org,www.drhapln2in.example.net"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "eddf6c71-29a2-485e-977d-36d68b51ffa4"
+  }
+]

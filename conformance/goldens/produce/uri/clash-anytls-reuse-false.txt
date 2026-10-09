@@ -1,0 +1,1 @@
+anytls://fWYv5uOVHB7nhZioJ7XS@m6p-14.scrh.example.org:443?security=tls&type=tcp&packetEncoding=none&sni=static.s3ey79smsd.example.com&fp=chrome&udp=1#GB-pth3-15

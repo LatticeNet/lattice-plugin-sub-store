@@ -1,0 +1,16 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "obfs_host": "static.mq5rbfy.example.com",
+      "obfs_mode": "http",
+      "psk": "D7w7zk21tmdo3Ta891fW",
+      "reuse": true,
+      "server": "on5-10.vyf1qk.example.org",
+      "server_port": 21532,
+      "tag": "NL-wj4-65",
+      "type": "snell",
+      "version": 4
+    }
+  ]
+}

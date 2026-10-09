@@ -1,0 +1,19 @@
+[
+  {
+    "alpn": [
+      "h3"
+    ],
+    "congestion-controller": "cubic",
+    "name": "NL-uz15zs-50",
+    "password": "4LGYr5bSJbf93Oxo",
+    "port": 443,
+    "server": "g8-25.dmb8z.example.org",
+    "sni": "www.ff5jwi1ob.example.org",
+    "tfo": true,
+    "tls": true,
+    "type": "tuic",
+    "udp": true,
+    "udp-relay-mode": "native",
+    "uuid": "5b77cf22-d66c-4826-be34-948eb128bab1"
+  }
+]

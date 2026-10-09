@@ -1,0 +1,29 @@
+[
+  {
+    "fragment": "US-r68l-27",
+    "host": "ob-14.iqrnt.example.org",
+    "path": "",
+    "port": "11702",
+    "query": [
+      [
+        "host",
+        "img.z38kf.example.com%"
+      ],
+      [
+        "path",
+        "/sevmgd/fnlumtri1s?ed=1796"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206OWRWbUgzNkZSVUtCS1Q=",
+    "userinfo_base64": "aes-256-gcm:9dVmH36FRUKBKT"
+  }
+]

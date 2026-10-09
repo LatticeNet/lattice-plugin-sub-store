@@ -1,0 +1,2 @@
+socks://eDc0NnJqY206YTZZVjRqaHEzWVlz@ttp-13.hgduq8t.example.org:1080#FR-skjup-87
+socks://em9zMW1zZzA6bnB5T01ENWpCUk9Y@mo-35.oieb9.example.com:1080#US-ki5-48

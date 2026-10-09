@@ -1,0 +1,6 @@
+[General]
+loglevel = notify
+
+[Proxy]
+HK-jscx-03 = ss, vu3-01.e7b60u5.example.org, 32470, encrypt-method=aes-128-gcm, password=F92aTOMG5tnYx1
+NL-gblee-19 = trojan, f8j-38.pujymc1.example.net, 443, password=loD9lFOy1tBHPvkb, sni=static.jj1xaxhl.example.net

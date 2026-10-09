@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "CA-c08t-42",
+    "host": "hbn-02.cg9uhh2v.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "network",
+        "tcp"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "81f82d48"
+      ],
+      [
+        "sni",
+        "api.lvxt2kr.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "ejgbYJ6mPnxvebxd9iNg"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "xe-40.qjvo2.example.org",
+      "443"
+    ],
+    "name": "US-hrzu1-40",
+    "params": {
+      "psk": "fs4dQCnc0K27Snsb0pa4",
+      "udp-relay": "true",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

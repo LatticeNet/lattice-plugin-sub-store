@@ -1,0 +1,6 @@
+proxies:
+  - {"hysteria2":{"name":"DE-b2vm-85","server":"af-14.f4rtg15a.example.net","port":443,"auth":"3Q4boAkPXPYrXhI4oeep","tfo":false,"udp_relay":true,"sni":"static.vebnlvmi.example.net","port_hopping":"25081-25090","port_hopping_interval":30}}
+  - {"hysteria2":{"name":"CA-u9u7-99","server":"z9b-18.eqn2.example.net","port":443,"auth":"zCa1WQdpSOWo53ctdO9o","tfo":false,"udp_relay":true,"sni":"static.js3jrg.example.com","port_hopping":"59987-59996"}}
+  - {"hysteria2":{"name":"US-xcox-39","server":"kd-35.wqm27.example.net","port":443,"auth":"qUwyGRZ6bjyL6rQ0lDbH","tfo":false,"udp_relay":true,"sni":"api.c4ihhz2m9.example.net","port_hopping":"23048-23057"}}
+  - {"tuic":{"name":"HK-u2i-06","server":"gr-37.q2q2ayz.example.org","port":443,"uuid":"58d5daa7-9286-474a-a42d-641913310439","password":"KXS0hkCcTRKpUySD","sni":"img.ikkexvao.example.org","alpn":["h3"]}}
+  - {"tuic":{"name":"TW-erpc-43","server":"cs-29.vz4po.example.com","port":443,"uuid":"03827299-ab27-4a40-afe3-0341a26b2b48","password":"FS0M8xufo1JYxhyJ","sni":"img.lc22qmoz1f.example.net","alpn":["h3"]}}

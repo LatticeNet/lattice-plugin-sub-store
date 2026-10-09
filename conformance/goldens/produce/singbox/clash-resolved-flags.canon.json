@@ -1,0 +1,41 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "Oj98GoGK2yo8X5kh",
+      "server": "b8-22.em4epvh.example.com",
+      "server_port": 443,
+      "tag": "NL-pm7iw-59",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.o9brwd5iyu.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "rwsWD8q5dDmSp7ad",
+      "server": "rm-23.gpdij.example.com",
+      "server_port": 443,
+      "tag": "TW-pmsd-69",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.a7telas.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "dCiWPhM9pvnCz35E",
+      "server": "ja-17.ko8cxerr.example.net",
+      "server_port": 443,
+      "tag": "JP-yhuvq-44",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.hrqb83a.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-singbox-ech-override",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ech-override",
+  "description": "vless TLS with both _ech (a mapping) and ech-opts."
+}

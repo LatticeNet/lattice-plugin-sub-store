@@ -1,0 +1,1 @@
+ry-15.lipvx.example.net=shadowsocksr,ry-15.lipvx.example.net,33417,aes-128-cfb,"srKjGdX2iwqG",protocol=origin,obfs=plain,udp=true

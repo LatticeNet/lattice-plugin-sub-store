@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ksr-38.odza5qa.example.com",
+      "59597",
+      "aes-128-gcm",
+      "4BuXR7BK2HwHfH"
+    ],
+    "name": "US-dodyb9-55",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

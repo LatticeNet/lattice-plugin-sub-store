@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-packet-encoding",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "packet-encoding",
+  "description": "N18: VLESS with xudp and packet-addr gets xudp, VMess with only packet-addr gets packetaddr, and an explicit packet-encoding on VLESS is kept."
+}

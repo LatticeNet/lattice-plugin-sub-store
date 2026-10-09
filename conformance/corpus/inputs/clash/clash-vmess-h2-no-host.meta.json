@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-h2-no-host",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "h2",
+  "security": "tls",
+  "quirk": "h2-no-host",
+  "description": "vmess h2 without a host."
+}

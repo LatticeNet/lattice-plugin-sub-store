@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-uyycd7-94",
+      "type": "vless",
+      "server": "nyg-31.rua1.example.org",
+      "server_port": 443,
+      "uuid": "1b75496d-b70a-4fde-ad0d-9c0374bbc393",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.j8fg2.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "E047wKfHFupR2T6z-dJaq8F4mDJihX13_iBiBjM-dvg",
+          "short_id": "55154019"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

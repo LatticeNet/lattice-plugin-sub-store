@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"SG-fllz-67","method":"aes-128-gcm","server":"j9r-22.r5nnt.example.com","port":21000,"password":"8tBpgDAvkyCIM2","tfo":false,"udp_relay":true}}

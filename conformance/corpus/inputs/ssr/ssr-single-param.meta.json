@@ -1,0 +1,9 @@
+{
+  "id": "ssr-single-param",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "single-param",
+  "description": "Only remarks= after /?: a single parameter is ignored, so the name is the server."
+}

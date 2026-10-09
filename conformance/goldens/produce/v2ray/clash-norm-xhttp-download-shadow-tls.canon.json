@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "TW-xumf-35",
+    "host": "d1d-24.dnfx.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"downloadSettings\":{\"address\":\"k5-40.j6s12rj.example.org\",\"network\":\"xhttp\",\"port\":443,\"security\":\"tls\",\"tlsSettings\":{\"serverName\":\"api.im48z36.example.net\"},\"xhttpSettings\":{\"path\":\"/mm3s\",\"mode\":\"packet-up\"}}}"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/bindym"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.ixzqde.example.net"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f56f55da-d655-4542-9584-9ff8f0fb2f73"
+  }
+]

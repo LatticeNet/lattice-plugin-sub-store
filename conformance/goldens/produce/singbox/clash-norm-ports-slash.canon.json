@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "wKl8PntEJYrIyLHXdG2j",
+      "server": "mkg-09.nh61g.example.net",
+      "server_port": 443,
+      "server_ports": [
+        "59018:59027",
+        "14159:14159"
+      ],
+      "tag": "GB-rw9-06",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.kup71ude7q.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "YSTm6wIrazS7SxyeUBSh",
+      "server": "xis-35.v7fm.example.com",
+      "server_port": 443,
+      "tag": "HK-uqr5-06",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.w381uvl.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

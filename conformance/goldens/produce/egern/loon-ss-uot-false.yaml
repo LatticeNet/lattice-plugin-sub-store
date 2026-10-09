@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"FR-zy6i6-82","method":"aes-128-gcm","server":"bb-27.sc6zg0dg.example.net","port":25709,"password":"g0W5qYXucvY1IN","tfo":false,"udp_relay":true}}

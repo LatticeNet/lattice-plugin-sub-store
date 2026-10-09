@@ -1,0 +1,29 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-rvp97-26",
+      "type": "vless",
+      "server": "cr-03.ci0fvkp.example.com",
+      "server_port": 443,
+      "uuid": "eddf6c71-29a2-485e-977d-36d68b51ffa4",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.lejb3z3.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "certificate_sha256": [
+          "aSR70fgB1SPKrizDN5vx8aIxUEmNC0NM7Au1TvV58iA="
+        ]
+      },
+      "packet_encoding": ""
+    }
+  ],
+  "endpoints": []
+}

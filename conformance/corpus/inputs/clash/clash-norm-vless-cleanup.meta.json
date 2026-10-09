@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-vless-cleanup",
+  "family": "clash",
+  "protocol": "vless",
+  "quirk": "vless-cleanup",
+  "description": "N28: VLESS with flow \"null\" and empty reality-opts and grpc-opts loses all three; Reality with flow \"\" keeps the flow; VLESS on http without a path gets http-opts.path [\"/\"]."
+}

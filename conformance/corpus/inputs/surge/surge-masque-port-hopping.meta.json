@@ -1,0 +1,9 @@
+{
+  "id": "surge-masque-port-hopping",
+  "family": "surge",
+  "protocol": "masque",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "port-hopping",
+  "description": "masque with port-hopping: the option is taken out before the grammar runs and sets ports."
+}

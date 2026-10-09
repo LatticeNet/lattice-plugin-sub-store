@@ -1,0 +1,9 @@
+{
+  "id": "clash-supported-map-false",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "supported-map",
+  "description": "One node per Tier 1 platform name with supported.<name>: false, and one with the lower-case key uri, which matches no platform name."
+}

@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"GB-rw9-06","port":443,"ports":"59018-59027,14159","server":"mkg-09.nh61g.example.net","sni":"www.kup71ude7q.example.org","type":"hysteria2","udp":true,"auth":"wKl8PntEJYrIyLHXdG2j"}
+  - {"name":"HK-uqr5-06","port":443,"server":"xis-35.v7fm.example.com","sni":"static.w381uvl.example.org","type":"hysteria2","udp":true,"auth":"YSTm6wIrazS7SxyeUBSh"}

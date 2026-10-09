@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"TW-n66eo-51","password":"ZMG7STrb3w3XbD","plugin":"shadow-tls","plugin-opts":{"alpn":["h2","http/1.1"],"host":"api.bcv8u0ou.example.net","password":"6NEGLx6NVJT8j74j","version":2},"port":443,"server":"bc-25.jsgi.example.net","type":"ss","udp":true}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"KR-dgo-22","server":"elw-11.bhoj.example.com","port":443,"user_id":"1d454515-6317-4a7b-ba58-0accbc55e3d8","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.av9b68r.example.net","reality":{"public_key":"0a3vFXinIBotdP8vPySCP-b7uEZ1yvPdFf6IZ9kFqwk","short_id":"e4a6886e"}}}}}

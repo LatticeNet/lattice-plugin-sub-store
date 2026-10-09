@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "HK-irkxn-71",
+        "port": 443,
+        "security": "auto",
+        "server": "enz-06.ks1z.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {},
+            "path": "/u2za/ks2mqc",
+            "sni": "enz-06.ks1z.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "d29f522d-b0af-4e45-b5ff-63db7cb42577"
+      }
+    }
+  ]
+}

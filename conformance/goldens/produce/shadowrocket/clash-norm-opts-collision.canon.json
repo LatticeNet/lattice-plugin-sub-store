@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "GB-psozs1-08",
+      "network": "ws",
+      "password": "vLNqaPRJUz67TQ",
+      "port": 15480,
+      "server": "u69-18.hhni.example.net",
+      "type": "ss",
+      "udp": true,
+      "ws-opts": {
+        "headers": {
+          "Host": "api.ab4zjql.example.org"
+        },
+        "path": "/rwrrb/rsbnf"
+      }
+    },
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "TW-neu8xy-54",
+      "network": "ws",
+      "port": 443,
+      "server": "nuu-30.bptlkz.example.com",
+      "type": "vmess",
+      "udp": true,
+      "uuid": "0a5d3415-a80e-41f0-9ff2-1292dc251a4e",
+      "ws-opts": {
+        "headers": {
+          "Host": "cdn.mub447v0m.example.net"
+        },
+        "path": "/ct25/e7005"
+      }
+    }
+  ]
+}

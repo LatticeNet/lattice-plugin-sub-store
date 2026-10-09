@@ -1,0 +1,7 @@
+{
+  "id": "base64-fallback-vless",
+  "family": "base64",
+  "protocol": "vless",
+  "quirk": "fallback-base64",
+  "description": "Base64 of two VLESS links laid out so that no known-scheme marker occurs (neither dmxlc3M= nor the ss:/ inside vless://): the fallback preprocessor decodes it and both nodes are read."
+}

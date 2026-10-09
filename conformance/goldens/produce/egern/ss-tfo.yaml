@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"JP-x092-11","method":"aes-128-gcm","server":"r8-22.rqosi.example.com","port":39474,"password":"UurzHOXEvgK8m3","tfo":true,"udp_relay":true}}
+  - {"shadowsocks":{"name":"HK-xz4py5-57","method":"aes-128-gcm","server":"bv-01.deuvl.example.net","port":31874,"password":"sMIHATg9l4GXsa","tfo":true,"udp_relay":true}}

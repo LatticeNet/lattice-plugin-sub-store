@@ -1,0 +1,78 @@
+[
+  {
+    "fragment": "FR-zgr62-62",
+    "host": "qj-31.bnvjp5.example.org",
+    "path": "",
+    "port": "41321",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "auth_str",
+        "0dScwdcFvTsgwoRw"
+      ],
+      [
+        "downmbps",
+        "100 Mbps"
+      ],
+      [
+        "peer",
+        "img.swzlt3589.example.org"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30 Mbps"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  },
+  {
+    "fragment": "HK-epef-89",
+    "host": "eq-11.iv7rmg4.example.net",
+    "path": "",
+    "port": "32670",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "auth",
+        "WMWle62v bypAvQ0U"
+      ],
+      [
+        "downmbps",
+        "100 Mbps"
+      ],
+      [
+        "peer",
+        "www.x5csa.example.com"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30 Mbps"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

@@ -1,0 +1,136 @@
+[
+  {
+    "fragment": "SG-b5q-10",
+    "host": "o30-36.skj7.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "ios"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "1G2ZoQ3_fo3QVQT-lMsdv48t6rnPKq05FVdYWDhvw1s"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "d1598053"
+      ],
+      [
+        "sni",
+        "img.t9f9hgw.example.org"
+      ],
+      [
+        "support-x25519mlkem768",
+        "true"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f3bcf2dc-56ad-44d1-aae4-841e7906b751"
+  },
+  {
+    "fragment": "CA-zukec-21",
+    "host": "di-26.aub26d.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "_lQFE406gO_mEh9dTyGBfoY9ArJagdI-m5SvFl6il3s"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "88d2dfb5"
+      ],
+      [
+        "sni",
+        "img.f0jk13.example.net"
+      ],
+      [
+        "support-x25519mlkem768",
+        "true"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b251581e-2ff0-47ff-9407-a51f76850caf"
+  },
+  {
+    "fragment": "TW-qg6b2y-39",
+    "host": "cog-27.g0vvm9f.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "I_kNHGqd8kMfOei3DGIXPpc86GE1atl3poz4A3_37yU"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "257d13f0"
+      ],
+      [
+        "sni",
+        "static.s7lp51.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ff524432-da03-4630-8748-f7b4ee08c504"
+  }
+]

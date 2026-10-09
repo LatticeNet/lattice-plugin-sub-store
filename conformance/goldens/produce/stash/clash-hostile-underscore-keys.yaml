@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","flow":"xtls-rprx-vision","name":"DE-njz7k-17","network":"tcp","port":443,"reality-opts":{"_spider-x":"/san/uymw9","public-key":"bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk","short-id":"095a09fb"},"server":"k4-16.jn75z1.example.com","tls":true,"type":"vless","udp":true,"uuid":"e23518f7-6bdf-4157-a78c-e04cd917c507","x-vpyv":[{"_x":"fdi411i0","x-uar2mu9f":"k0b6ne"}],"servername":"static.ly0di.example.org"}

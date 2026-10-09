@@ -1,0 +1,10 @@
+proxies:
+  - name: GB-pth3-15
+    type: anytls
+    server: m6p-14.scrh.example.org
+    port: 443
+    password: fWYv5uOVHB7nhZioJ7XS
+    client-fingerprint: chrome
+    sni: static.s3ey79smsd.example.com
+    udp: true
+    reuse: false

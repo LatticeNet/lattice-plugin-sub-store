@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "tag": "ec-33.vvz9nnx.example.net:443",
+      "type": "trojan",
+      "server": "ec-33.vvz9nnx.example.net",
+      "server_port": 443,
+      "password": "rIMI2l87ZUcn0Dio",
+      "tls": {
+        "enabled": true,
+        "server_name": "ec-33.vvz9nnx.example.net",
+        "insecure": false
+      },
+      "network": "tcp",
+      "tcp_fast_open": true
+    }
+  ],
+  "endpoints": []
+}

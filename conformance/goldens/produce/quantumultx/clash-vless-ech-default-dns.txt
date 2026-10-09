@@ -1,0 +1,1 @@
+vless=uw-19.sjh726zc.example.net:443,method=none,password=b00f0c79-f649-44af-925c-4e6d05ba7bf6,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=api.mpluewkbpx.example.net,udp-relay=true,tag=CA-caxc0-59

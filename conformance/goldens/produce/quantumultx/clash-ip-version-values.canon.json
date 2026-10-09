@@ -1,0 +1,86 @@
+[
+  {
+    "address": "iy-37.dc56k.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "Drttxdvccwfaxc4e",
+      "tag": "HK-cjx-77",
+      "tls-host": "img.aramgppm3.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "fuz-28.uv8ot.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "Jnuuxv8gZVVRzh2t",
+      "tag": "NL-rm1-76",
+      "tls-host": "api.rxocwwswkc.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "xy-34.u6n8sj2n.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "4Vm2vFAENjt6bylh",
+      "tag": "SG-cl9-44",
+      "tls-host": "static.ppsw9hocg.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "uv-23.jocsspi.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "otgZ2PBAxIKEUXrS",
+      "tag": "HK-n488o-76",
+      "tls-host": "cdn.z33tx93cbl.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "xw-05.xstlss.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "1i1Kr6u8pd838AxG",
+      "tag": "US-gqu8sb-76",
+      "tls-host": "cdn.dn2x7pvo.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "c7l-25.ys3mkhv.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "JCwYvyUPiGX6GDPn",
+      "tag": "AU-wk1-50",
+      "tls-host": "cdn.ymq4b.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "hmp-30.q92twj.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "b3XQHRCGOb8va6mh",
+      "tag": "GB-qumu-79",
+      "tls-host": "static.rdwf05uk.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

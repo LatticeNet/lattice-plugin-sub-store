@@ -1,0 +1,9 @@
+{
+  "id": "ss-empty-security",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "empty-security",
+  "description": "security= alone, security= with type=ws, and a bare security item: tls is the empty text and no sni is pinned on the first two, the second with its ws Host pinned to the server; the bare item gives tls true and the sni from the server."
+}

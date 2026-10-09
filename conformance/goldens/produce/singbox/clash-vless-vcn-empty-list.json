@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-r6j6l-31",
+      "type": "vless",
+      "server": "b1-03.pywg7w10.example.org",
+      "server_port": 443,
+      "uuid": "b7fd1d5b-18b6-47d1-af4d-c3bc916c2490",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.dki3ak.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

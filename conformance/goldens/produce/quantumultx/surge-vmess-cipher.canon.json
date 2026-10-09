@@ -1,0 +1,26 @@
+[
+  {
+    "address": "x5-10.v543o.example.org:43099",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "d4c82b99-ab27-4c78-b7a6-a67a987675aa",
+      "tag": "US-w9f9-50",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "lh6-09.tkdfx8sd.example.net:51833",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "ffe806aa-3175-4477-9210-b5ef908b99ac",
+      "tag": "TW-sph-32",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

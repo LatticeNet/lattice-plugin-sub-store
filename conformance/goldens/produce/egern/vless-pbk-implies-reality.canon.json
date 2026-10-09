@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "GB-ckpmjo-57",
+        "port": 443,
+        "server": "fb-07.r6uukg.example.net",
+        "tfo": false,
+        "transport": {
+          "tcp": {
+            "reality": {
+              "public_key": "0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY"
+            }
+          }
+        },
+        "udp_relay": true,
+        "user_id": "5a606251-0e3b-472a-a3a8-45ca68b9011e"
+      }
+    }
+  ]
+}

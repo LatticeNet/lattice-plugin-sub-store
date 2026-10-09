@@ -1,0 +1,56 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "DE-cx3puo-07",
+    "password": "MHdJWa7fG13ezc",
+    "port": 59231,
+    "server": "ax-36.fvpemab.example.com",
+    "type": "ss",
+    "udp": false
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "JP-c0up-16",
+    "password": "BmmjUHS9k3fbBy",
+    "port": 11115,
+    "server": "gb-35.qorj2ra.example.org",
+    "type": "ss",
+    "udp": false
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "CA-db7t-24",
+    "password": "tUUPWI9j6Sm7EX",
+    "port": 43102,
+    "server": "rv-32.lqs3ow7.example.net",
+    "type": "ss",
+    "udp": false
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "CA-n9cjl5-36",
+    "password": "vqz906wdsejnXw",
+    "port": 17632,
+    "server": "ri-36.p6ef54x.example.com",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "AU-m13e-41",
+    "password": "sbRptMTtjvSD6t",
+    "port": 43916,
+    "server": "vqc-37.ogl0g.example.com",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "DE-cg3m-43",
+    "password": "pdDTOI0XOYT2z7",
+    "port": 19976,
+    "server": "ka2-34.mp8l.example.net",
+    "type": "ss",
+    "udp": true
+  }
+]

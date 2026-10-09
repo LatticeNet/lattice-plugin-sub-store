@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "name": "US-wy3-51",
+      "obfs-opts": {
+        "host": "static.jgcbpwv1f3.example.com",
+        "mode": "shadow-tls",
+        "password": "ZBhhkwByhlgdUUYT",
+        "version": 3
+      },
+      "port": 57692,
+      "psk": "NZq6UaXbsTlmroOZ7STZ",
+      "server": "dx-34.uzidmcd.example.org",
+      "type": "snell",
+      "udp": true,
+      "version": 4
+    }
+  ]
+}

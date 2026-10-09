@@ -1,0 +1,2 @@
+proxies:
+  - {"http-opts":{"headers":{"Host":"img.w7zhe.example.org"},"path":["/"]},"name":"CA-hgyp5c-78","network":"http","password":"HVfwSq7vAQp7quel","port":443,"server":"ye-18.h7d833x.example.org","sni":"img.w7zhe.example.org","type":"trojan","udp":true}

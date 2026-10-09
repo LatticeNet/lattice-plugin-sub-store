@@ -1,0 +1,1 @@
+DE-ir4-01=trojan,z3x-34.bxl4g0.example.net,443,password=55bt96ZFfIhJqsPD,tls=true,server-cert-fingerprint-sha256=F4:34:B0:E6:CC:78:E6:7F:98:23:15:8B:C8:6F:30:67:AF:F7:66:9B:B2:91:87:AF:3A:C3:CE:68:54:4F:95:DC,sni="cdn.v644j5.example.net",udp-relay=true

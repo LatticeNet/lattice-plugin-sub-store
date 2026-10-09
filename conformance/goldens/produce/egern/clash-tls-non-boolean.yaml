@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"HK-k90ug1-59","server":"m0-15.db68mym.example.net","port":443,"user_id":"c3cea05f-d893-4aaa-900d-53e2e4591837","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.ozhoh8.example.com"}}}}

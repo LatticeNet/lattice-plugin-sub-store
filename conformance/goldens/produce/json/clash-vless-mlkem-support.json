@@ -1,0 +1,19 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "US-uyycd7-94",
+    "network": "tcp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "E047wKfHFupR2T6z-dJaq8F4mDJihX13_iBiBjM-dvg",
+      "short-id": "55154019",
+      "support-x25519mlkem768": true
+    },
+    "server": "nyg-31.rua1.example.org",
+    "sni": "static.j8fg2.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "1b75496d-b70a-4fde-ad0d-9c0374bbc393"
+  }
+]

@@ -1,0 +1,1 @@
+US-wy3-51=snell,dx-34.uzidmcd.example.org,57692,version=4,psk="NZq6UaXbsTlmroOZ7STZ",udp-relay=true

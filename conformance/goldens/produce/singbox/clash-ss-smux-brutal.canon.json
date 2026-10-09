@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "multiplex": {
+        "brutal": {
+          "down_mbps": 100,
+          "enabled": true,
+          "up_mbps": 50
+        },
+        "enabled": true,
+        "max_connections": 4,
+        "protocol": "h2mux"
+      },
+      "password": "cf02XhToMNkAVl",
+      "server": "lh-03.tvntg.example.org",
+      "server_port": 10239,
+      "tag": "NL-rvfu-27",
+      "type": "shadowsocks"
+    }
+  ]
+}

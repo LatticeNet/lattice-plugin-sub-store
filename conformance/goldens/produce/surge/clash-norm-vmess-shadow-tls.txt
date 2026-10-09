@@ -1,0 +1,1 @@
+SG-b68-73=vmess,gq-32.z66i.example.com,443,username=a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb,vmess-aead=true,tls=true,sni="img.caykblkqyh.example.org",shadow-tls-password="KQha0gVa25POdcjz",shadow-tls-sni=img.caykblkqyh.example.org,shadow-tls-version=3,alpn="h2,http/1.1"

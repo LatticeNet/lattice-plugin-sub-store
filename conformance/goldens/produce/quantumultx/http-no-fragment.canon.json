@@ -1,0 +1,12 @@
+[
+  {
+    "address": "kuj-37.whmza.example.org:8080",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "tag": "http kuj-37.whmza.example.org:8080",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

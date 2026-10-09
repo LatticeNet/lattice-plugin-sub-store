@@ -1,0 +1,9 @@
+{
+  "id": "clash-wireguard-reserved-forms",
+  "family": "clash",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "wireguard-reserved",
+  "description": "wireguard with reserved as a string and as a list, and a peer whose reserved is a string."
+}

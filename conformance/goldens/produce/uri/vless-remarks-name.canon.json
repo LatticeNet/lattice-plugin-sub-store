@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "CA-actar-66",
+    "host": "fq-04.ri20owdn.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.z96qqyye3z.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "6490f9f8-ff11-4f38-92bf-752ea9cb09b2"
+  }
+]

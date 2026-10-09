@@ -1,0 +1,31 @@
+{
+  "endpoints": [
+    {
+      "address": [],
+      "peers": [
+        {
+          "address": "u1-34.l923l.example.com",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "port": 51820,
+          "public_key": "hQsmleyfagjgdtM+gXJapFxE86tBEivr+Glw6/+7tuU="
+        },
+        {
+          "address": "btb-14.g5s1m.example.com",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "public_key": "R67gJ+9ya8s8x2Fag8G8FUQ+s0h3OICCGO4/hdoStQI="
+        }
+      ],
+      "private_key": "eYFtgcfZFlM+h2S35AIzzrUyT20Uijna1BVllbt1jCo=",
+      "system": false,
+      "tag": "TW-pv2r-62",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

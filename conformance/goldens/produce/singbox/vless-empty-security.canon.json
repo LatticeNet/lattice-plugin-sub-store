@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "t21-20.eu3o.example.com",
+      "server_port": 443,
+      "tag": "TW-rsq-92",
+      "type": "vless",
+      "uuid": "edaca863-c360-43e9-9c87-f8472d557124"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "dj7-13.at5nkb5c.example.org",
+      "server_port": 443,
+      "tag": "TW-rvi-20",
+      "type": "vless",
+      "uuid": "e84da8f7-807b-4654-b474-792df7ee29e1"
+    },
+    {
+      "alter_id": 0,
+      "packet_encoding": "xudp",
+      "security": "auto",
+      "server": "ev-36.o21g.example.com",
+      "server_port": 443,
+      "tag": "TW-sweeks-49",
+      "type": "vmess",
+      "uuid": "46dd643a-1c5e-4996-8a18-5bbf15fdf184"
+    }
+  ]
+}

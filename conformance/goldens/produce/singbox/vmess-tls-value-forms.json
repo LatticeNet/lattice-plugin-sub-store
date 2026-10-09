@@ -1,0 +1,111 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-qms18c-73",
+      "type": "vmess",
+      "server": "mt-07.ap0n.example.org",
+      "server_port": 443,
+      "uuid": "04fea0d2-f068-4818-9e84-9fcd0cb64977",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "tag": "KR-h6tw3-13",
+      "type": "vmess",
+      "server": "fi-07.zlmsj5zp.example.com",
+      "server_port": 443,
+      "uuid": "604b60bf-4a19-4cf3-984c-2750181358ed",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "fi-07.zlmsj5zp.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "AU-kas6d-44",
+      "type": "vmess",
+      "server": "yj-35.ax320ck.example.net",
+      "server_port": 443,
+      "uuid": "c7982572-4530-4815-9e33-2d254bae810c",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "yj-35.ax320ck.example.net",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "JP-gndw-67",
+      "type": "vmess",
+      "server": "a4j-40.xuz5ma.example.org",
+      "server_port": 443,
+      "uuid": "21fe4760-f458-454a-ad39-0db461b589e0",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "a4j-40.xuz5ma.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "DE-lb7ytx-50",
+      "type": "vmess",
+      "server": "j0g-14.hg40a2n.example.net",
+      "server_port": 443,
+      "uuid": "2ef72e8e-9908-4085-9800-f337bbc3f059",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "j0g-14.hg40a2n.example.net",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "NL-ysukf-56",
+      "type": "vmess",
+      "server": "bx-31.x56tz.example.org",
+      "server_port": 443,
+      "uuid": "85f1e9b4-eba3-408a-8f1d-24c832e9b51b",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "tag": "CA-ceca-80",
+      "type": "vmess",
+      "server": "e0-07.czbgd0.example.net",
+      "server_port": 443,
+      "uuid": "291987db-ea96-4f88-9236-e3c2f0a463a8",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "tag": "DE-p9o9ke-01",
+      "type": "vmess",
+      "server": "clz-12.fjzed0y.example.com",
+      "server_port": 443,
+      "uuid": "4299b255-f1cf-40b5-a043-d866da1333c0",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "tag": "KR-h09-04",
+      "type": "vmess",
+      "server": "wgi-05.jlm73zvl.example.net",
+      "server_port": 443,
+      "uuid": "f59d0d38-5c8c-451f-8d84-9c6f93f70ed2",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "wgi-05.jlm73zvl.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

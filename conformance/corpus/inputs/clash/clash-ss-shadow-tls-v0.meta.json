@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-shadow-tls-v0",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-version",
+  "description": "ss with shadow-tls version 0."
+}

@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "jjPT3sFpPqTjDrbJ",
+      "server": "yev-28.xniy064.example.net",
+      "server_port": 443,
+      "tag": "US-jnq-88",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.a6fucziy.example.net"
+      },
+      "type": "trojan"
+    }
+  ]
+}

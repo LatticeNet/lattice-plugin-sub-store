@@ -1,0 +1,1 @@
+socks5=d43-15.jjgyxd.example.org:1080,username=h0py,password=ySxTDEzPais6,udp-relay=true,tag=cyyr3 / #xqd 東京

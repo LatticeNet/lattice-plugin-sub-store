@@ -1,0 +1,81 @@
+{
+  "proxies": [
+    {
+      "ip-version": "dual",
+      "name": "HK-cjx-77",
+      "network": "tcp",
+      "password": "Drttxdvccwfaxc4e",
+      "port": 443,
+      "server": "iy-37.dc56k.example.org",
+      "sni": "img.aramgppm3.example.com",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip-version": "ipv4",
+      "name": "NL-rm1-76",
+      "network": "tcp",
+      "password": "Jnuuxv8gZVVRzh2t",
+      "port": 443,
+      "server": "fuz-28.uv8ot.example.com",
+      "sni": "api.rxocwwswkc.example.com",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip-version": "ipv6",
+      "name": "SG-cl9-44",
+      "network": "tcp",
+      "password": "4Vm2vFAENjt6bylh",
+      "port": 443,
+      "server": "xy-34.u6n8sj2n.example.net",
+      "sni": "static.ppsw9hocg.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip-version": "ipv4-prefer",
+      "name": "HK-n488o-76",
+      "network": "tcp",
+      "password": "otgZ2PBAxIKEUXrS",
+      "port": 443,
+      "server": "uv-23.jocsspi.example.org",
+      "sni": "cdn.z33tx93cbl.example.org",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip-version": "ipv6-prefer",
+      "name": "US-gqu8sb-76",
+      "network": "tcp",
+      "password": "1i1Kr6u8pd838AxG",
+      "port": 443,
+      "server": "xw-05.xstlss.example.net",
+      "sni": "cdn.dn2x7pvo.example.com",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip-version": "ipv4-prefer",
+      "name": "AU-wk1-50",
+      "network": "tcp",
+      "password": "JCwYvyUPiGX6GDPn",
+      "port": 443,
+      "server": "c7l-25.ys3mkhv.example.net",
+      "sni": "cdn.ymq4b.example.org",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "ip-version": "eh8bd",
+      "name": "GB-qumu-79",
+      "network": "tcp",
+      "password": "b3XQHRCGOb8va6mh",
+      "port": 443,
+      "server": "hmp-30.q92twj.example.com",
+      "sni": "static.rdwf05uk.example.org",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

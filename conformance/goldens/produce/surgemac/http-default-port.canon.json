@@ -1,0 +1,11 @@
+[
+  {
+    "args": [
+      "je-18.obs1jo.example.com",
+      "80"
+    ],
+    "name": "NL-itwlx-02",
+    "params": {},
+    "type": "http"
+  }
+]

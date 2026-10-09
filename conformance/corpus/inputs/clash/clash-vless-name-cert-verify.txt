@@ -1,0 +1,31 @@
+proxies:
+  - name: NL-ihl5x-86
+    type: vless
+    server: sp1-26.r1ybtf.example.com
+    port: 443
+    uuid: dc40258c-70f7-4cc6-8f57-47f891ff5fdf
+    udp: true
+    tls: true
+    servername: www.gyfox1.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    name-cert-verify: img.isv3awbqj.example.com
+  - name: SG-hkj1-48
+    type: vless
+    server: dpa-17.ht61.example.net
+    port: 443
+    uuid: 12dfd962-9faf-4d0b-a5a1-86880db75bd8
+    udp: true
+    tls: true
+    servername: www.rmwsxjoka.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    _vcn:
+      - cdn.ajjqw8ky.example.com
+      - api.t9lgzju.example.com

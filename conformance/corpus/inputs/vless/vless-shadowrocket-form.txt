@@ -1,0 +1,1 @@
+vless://YXV0bzplZjA0ZTc4Zi04MDJkLTRhN2QtYjEzZC1hZjQ1ZDE3ZTQ2NzZAY244LTA1LnU5OWguZXhhbXBsZS5vcmc6NDQz?remarks=SG-lc2-75&obfs=websocket&path=%2Fsufbag7zgs&obfsParam=api.sfqet.example.com&tls=1&xtls=2&peer=api.sfqet.example.com

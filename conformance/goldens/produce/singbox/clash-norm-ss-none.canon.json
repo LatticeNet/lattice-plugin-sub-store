@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "none",
+      "password": "",
+      "server": "vv4-07.bwxx.example.com",
+      "server_port": 43689,
+      "tag": "NL-ahs6-94",
+      "type": "shadowsocks"
+    }
+  ]
+}

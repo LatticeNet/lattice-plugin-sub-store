@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "ec-33.vvz9nnx.example.net:443",
+      "network": "tcp",
+      "password": "rIMI2l87ZUcn0Dio",
+      "port": 443,
+      "server": "ec-33.vvz9nnx.example.net",
+      "sni": "ec-33.vvz9nnx.example.net",
+      "tfo": true,
+      "type": "trojan",
+      "udp": false
+    }
+  ]
+}

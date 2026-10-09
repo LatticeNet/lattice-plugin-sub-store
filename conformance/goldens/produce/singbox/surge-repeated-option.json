@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-dodyb9-55",
+      "type": "shadowsocks",
+      "server": "ksr-38.odza5qa.example.com",
+      "server_port": 59597,
+      "method": "aes-128-gcm",
+      "password": "4BuXR7BK2HwHfH"
+    }
+  ],
+  "endpoints": []
+}

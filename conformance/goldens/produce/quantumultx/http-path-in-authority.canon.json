@@ -1,0 +1,12 @@
+[
+  {
+    "address": "ro-29.zbyjbimf.example.com:8080/gnwx9pn:80",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "tag": "JP-jg34z-16",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

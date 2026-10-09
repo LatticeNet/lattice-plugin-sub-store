@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "SG-qa5-45",
+    "host": "f2-35.rug0aa.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "auto"
+      ],
+      [
+        "fm",
+        "{\"udp\":[{\"settings\":{\"password\":\"qCvgzRBhc3pT\"},\"type\":\"salamander\"}]}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.pj3n2fe.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vmess",
+    "userinfo": "0a8a14d6-5fe1-47a4-b391-8e32145eedb9"
+  }
+]

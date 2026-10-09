@@ -1,0 +1,20 @@
+proxies:
+  - name: SG-e0n-36
+    type: vless
+    server: moe-25.xfbb.example.com
+    port: 443
+    uuid: 7a0fb666-6ddd-4347-8b4c-2d81c515330b
+    udp: true
+    tls: true
+    servername: api.gulze.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /ryv3jdg?ed=fh9
+      headers:
+        Host: www.z2kul.example.org
+      max-early-data: 2k

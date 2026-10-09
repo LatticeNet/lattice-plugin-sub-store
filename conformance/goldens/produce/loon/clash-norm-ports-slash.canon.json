@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "mkg-09.nh61g.example.net",
+      "443",
+      "wKl8PntEJYrIyLHXdG2j"
+    ],
+    "name": "GB-rw9-06",
+    "params": {
+      "server-ports": "59018-59027,14159",
+      "tls-name": "www.kup71ude7q.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "xis-35.v7fm.example.com",
+      "443",
+      "YSTm6wIrazS7SxyeUBSh"
+    ],
+    "name": "HK-uqr5-06",
+    "params": {
+      "tls-name": "static.w381uvl.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

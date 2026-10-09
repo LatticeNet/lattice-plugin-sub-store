@@ -1,0 +1,1 @@
+NL-uz15zs-50=tuic-v5,g8-25.dmb8z.example.org,443,uuid=5b77cf22-d66c-4826-be34-948eb128bab1,password="4LGYr5bSJbf93Oxo",sni="www.ff5jwi1ob.example.org",alpn="h3",tfo=true

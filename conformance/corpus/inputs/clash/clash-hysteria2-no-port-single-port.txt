@@ -1,0 +1,7 @@
+proxies:
+  - name: ""
+    type: hysteria2
+    server: vq-35.tbtq.example.net
+    ports: "8443"
+    password: wY75JPRvaRRLEgYnTRuB
+    sni: static.n6ugri.example.com

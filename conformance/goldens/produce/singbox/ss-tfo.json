@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-x092-11",
+      "type": "shadowsocks",
+      "server": "r8-22.rqosi.example.com",
+      "server_port": 39474,
+      "method": "aes-128-gcm",
+      "password": "UurzHOXEvgK8m3",
+      "tcp_fast_open": true
+    },
+    {
+      "tag": "HK-xz4py5-57",
+      "type": "shadowsocks",
+      "server": "bv-01.deuvl.example.net",
+      "server_port": 31874,
+      "method": "aes-128-gcm",
+      "password": "sMIHATg9l4GXsa",
+      "tcp_fast_open": true
+    }
+  ],
+  "endpoints": []
+}

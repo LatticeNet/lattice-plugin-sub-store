@@ -1,0 +1,9 @@
+{
+  "id": "ss-ws-early-data",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "early-data",
+  "description": "type=ws with ?ed=2048 inside the path: max-early-data 2048 and the path without the ed item."
+}

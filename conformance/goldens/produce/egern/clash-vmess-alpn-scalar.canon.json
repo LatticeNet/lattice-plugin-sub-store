@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "JP-nhs7w3-33",
+        "port": 443,
+        "security": "auto",
+        "server": "jv-05.vi5q.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "cdn.g0ri20uyg.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "a4251e45-8c27-43ce-9bb2-ce33100ace04"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"SG-mtlm4-76","server":"nx6-10.ccti3d5z.example.net","port":443,"user_id":"56394afa-2189-4076-b77c-f314bdae667e","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/pyb3/uvxw9hba4o","headers":{"Host":"f38-17.jfoeyse.example.net:8080"},"sni":"www.fd76v0.example.com","skip_tls_verify":false}}}}

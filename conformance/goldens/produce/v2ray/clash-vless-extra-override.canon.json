@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "AU-m3cm0-96",
+    "host": "z86-24.x11eum6.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"xPaddingBytes\":\"100-1000\",\"noGRPCHeader\":true}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/kgny8p/znry1vl"
+      ],
+      [
+        "pbk",
+        "nRifQYEZ5dp2VNSvlyn32sz5cadDw6WI4mceeUrGWoA"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "87f35d69"
+      ],
+      [
+        "sni",
+        "static.h4jmq30q4.example.com"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "862d1368-f42a-4a1d-a449-90c3f245c930"
+  }
+]

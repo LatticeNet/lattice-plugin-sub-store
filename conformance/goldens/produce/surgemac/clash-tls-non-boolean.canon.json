@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "m0-15.db68mym.example.net",
+      "443"
+    ],
+    "name": "HK-k90ug1-59",
+    "params": {
+      "sni": "cdn.ozhoh8.example.com",
+      "tls": "true",
+      "username": "c3cea05f-d893-4aaa-900d-53e2e4591837",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

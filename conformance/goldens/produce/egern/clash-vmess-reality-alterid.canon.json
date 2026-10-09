@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": true,
+        "name": "HK-hgq-99",
+        "port": 443,
+        "security": "auto",
+        "server": "pgf-17.cv2qm174.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "cdn.v35bq7.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "2ec8f005-4bea-4ba2-be6f-7031ea6499b5"
+      }
+    }
+  ]
+}

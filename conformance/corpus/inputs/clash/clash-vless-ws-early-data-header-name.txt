@@ -1,0 +1,41 @@
+proxies:
+  - name: TW-mk0-06
+    type: vless
+    server: bf-01.rvs3.example.org
+    port: 443
+    uuid: 604dfc35-2fab-41a6-9bd7-198f9bcbfa73
+    udp: true
+    tls: true
+    servername: cdn.bg8e5mi.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /yjd5
+      headers:
+        Host: static.h72zog8.example.net
+      max-early-data: 2048
+      early-data-header-name: X-Ed
+  - name: KR-ysri-71
+    type: vless
+    server: nz-06.yv72.example.net
+    port: 443
+    uuid: d036208d-6589-44d5-815b-421410e4aed5
+    udp: true
+    tls: true
+    servername: cdn.tjhpolxnn4.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /khjh8ejx
+      headers:
+        Host: www.nz70uzc.example.net
+      max-early-data: 2048
+      early-data-header-name: Sec-WebSocket-Protocol

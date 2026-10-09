@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "SG-e0n-36",
+      "network": "ws",
+      "port": 443,
+      "server": "moe-25.xfbb.example.com",
+      "servername": "api.gulze.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "7a0fb666-6ddd-4347-8b4c-2d81c515330b",
+      "ws-opts": {
+        "headers": {
+          "Host": "www.z2kul.example.org"
+        },
+        "max-early-data": "2k",
+        "path": "/ryv3jdg?ed=fh9"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"SG-gcy25-16","server":"qx-36.osr5h7m.example.net","port":443,"uuid":"9a09dfbd-f8d5-4469-bd9e-639ec24665d2","password":"JPjcD1TqtosA8Mr2","sni":"api.t64iuoc.example.net","alpn":["h3"]}}

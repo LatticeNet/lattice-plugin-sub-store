@@ -1,0 +1,1 @@
+vmess=b7-04.wu1sho.example.com:443,method=chacha20-poly1305,password=a050dd43-7c9a-43a4-8c46-b9ab4c4d3f97,aead=true,udp-relay=true,tag=CA-cqz7w-71

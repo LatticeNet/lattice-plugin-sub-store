@@ -1,0 +1,19 @@
+[
+  {
+    "address": "ph4-05.mx0tv.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "img.bgickuqs.example.org",
+      "obfs-uri": "/zzha3a/pymm",
+      "password": "e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35",
+      "tag": "US-o93-80",
+      "tls-host": "api.mmb7dk.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

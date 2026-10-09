@@ -1,0 +1,1 @@
+HK-yulm9-28=ss,m5g-37.osr10ykk.example.com,57590,encrypt-method=aes-256-gcm,password="32oWLbrurkKWPK",udp-relay=true

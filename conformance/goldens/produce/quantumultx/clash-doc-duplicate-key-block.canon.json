@@ -1,0 +1,24 @@
+[
+  {
+    "address": "undefined:undefined",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "undefined",
+      "tag": "ss undefined:undefined",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "undefined:undefined",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "undefined",
+      "tag": "trojan undefined:undefined",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

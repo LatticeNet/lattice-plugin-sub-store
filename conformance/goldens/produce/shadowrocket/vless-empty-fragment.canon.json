@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "vless cq7-04.a4y814.example.org:443",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "cq7-04.a4y814.example.org",
+      "servername": "cdn.mw6pykbq.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "89cab0d8-3def-4051-8c56-83309d193307"
+    }
+  ]
+}

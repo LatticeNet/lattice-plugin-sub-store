@@ -1,0 +1,14 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "DE-rmkd-68",
+    "network": "tcp",
+    "port": null,
+    "server": "wqb-29.gzhip.example.org",
+    "tls": false,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "25c2e2a0-1f95-4953-9f36-a64e83e85446"
+  }
+]

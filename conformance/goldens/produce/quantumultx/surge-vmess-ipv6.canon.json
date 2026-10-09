@@ -1,0 +1,17 @@
+[
+  {
+    "address": "2001:db8:f4e1:9108::e11d:28811",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "cdn.shsl3n.example.net",
+      "obfs-uri": "/qpqlfvau",
+      "password": "4ddabfe1-ea65-4fc3-af13-ab9d288a30ce",
+      "tag": "US-snz-75",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

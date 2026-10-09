@@ -1,0 +1,160 @@
+[
+  {
+    "body": {
+      "add": "mt-07.ap0n.example.org",
+      "aid": "0",
+      "id": "04fea0d2-f068-4818-9e84-9fcd0cb64977",
+      "net": "tcp",
+      "port": "443",
+      "ps": "AU-qms18c-73",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "fi-07.zlmsj5zp.example.com",
+      "aid": "0",
+      "id": "604b60bf-4a19-4cf3-984c-2750181358ed",
+      "net": "tcp",
+      "port": "443",
+      "ps": "KR-h6tw3-13",
+      "scy": "auto",
+      "sni": "fi-07.zlmsj5zp.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "yj-35.ax320ck.example.net",
+      "aid": "0",
+      "id": "c7982572-4530-4815-9e33-2d254bae810c",
+      "net": "tcp",
+      "port": "443",
+      "ps": "AU-kas6d-44",
+      "scy": "auto",
+      "sni": "yj-35.ax320ck.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "a4j-40.xuz5ma.example.org",
+      "aid": "0",
+      "id": "21fe4760-f458-454a-ad39-0db461b589e0",
+      "net": "tcp",
+      "port": "443",
+      "ps": "JP-gndw-67",
+      "scy": "auto",
+      "sni": "a4j-40.xuz5ma.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "j0g-14.hg40a2n.example.net",
+      "aid": "0",
+      "id": "2ef72e8e-9908-4085-9800-f337bbc3f059",
+      "net": "tcp",
+      "port": "443",
+      "ps": "DE-lb7ytx-50",
+      "scy": "auto",
+      "sni": "j0g-14.hg40a2n.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "bx-31.x56tz.example.org",
+      "aid": "0",
+      "id": "85f1e9b4-eba3-408a-8f1d-24c832e9b51b",
+      "net": "tcp",
+      "port": "443",
+      "ps": "NL-ysukf-56",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "e0-07.czbgd0.example.net",
+      "aid": "0",
+      "id": "291987db-ea96-4f88-9236-e3c2f0a463a8",
+      "net": "tcp",
+      "port": "443",
+      "ps": "CA-ceca-80",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "clz-12.fjzed0y.example.com",
+      "aid": "0",
+      "id": "4299b255-f1cf-40b5-a043-d866da1333c0",
+      "net": "tcp",
+      "port": "443",
+      "ps": "DE-p9o9ke-01",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "wgi-05.jlm73zvl.example.net",
+      "aid": "0",
+      "id": "f59d0d38-5c8c-451f-8d84-9c6f93f70ed2",
+      "net": "tcp",
+      "port": "443",
+      "ps": "KR-h09-04",
+      "scy": "auto",
+      "sni": "wgi-05.jlm73zvl.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

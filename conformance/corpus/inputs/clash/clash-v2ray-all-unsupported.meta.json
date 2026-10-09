@@ -1,0 +1,9 @@
+{
+  "id": "clash-v2ray-all-unsupported",
+  "family": "clash",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "all-unsupported",
+  "description": "Two http nodes without headers: every entry is an unsupported blank line, so the V2Ray output is Cg==."
+}

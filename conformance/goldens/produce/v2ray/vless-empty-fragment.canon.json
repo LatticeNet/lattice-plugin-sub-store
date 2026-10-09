@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "vless cq7-04.a4y814.example.org:443",
+    "host": "cq7-04.a4y814.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.mw6pykbq.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "89cab0d8-3def-4051-8c56-83309d193307"
+  }
+]

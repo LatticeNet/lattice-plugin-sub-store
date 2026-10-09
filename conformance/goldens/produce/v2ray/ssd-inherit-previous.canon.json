@@ -1,0 +1,47 @@
+[
+  {
+    "fragment": "AU-do2bi-94",
+    "host": "ik4-24.pakq1pd.example.com",
+    "path": "",
+    "port": "39141",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206b1RlMm1jWXpzZHVGVFI=",
+    "userinfo_base64": "aes-128-gcm:oTe2mcYzsduFTR"
+  },
+  {
+    "fragment": "SG-j37i-11",
+    "host": "lpx-15.sisat.example.net",
+    "path": "",
+    "port": "14150",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpvVGUybWNZenNkdUZUUg==",
+    "userinfo_base64": "chacha20-ietf-poly1305:oTe2mcYzsduFTR"
+  },
+  {
+    "fragment": "NL-tw5z-43",
+    "host": "dm-30.e2zlt1bx.example.net",
+    "path": "",
+    "port": "14150",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpvVGUybWNZenNkdUZUUg==",
+    "userinfo_base64": "chacha20-ietf-poly1305:oTe2mcYzsduFTR"
+  }
+]

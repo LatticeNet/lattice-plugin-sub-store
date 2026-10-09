@@ -1,0 +1,9 @@
+proxies:
+  - name: TW-wrz9t8-60
+    type: ss
+    server: "2001:db8:4d6e:23bd::9d87"
+    port: 443
+    cipher: aes-128-gcm
+    password: z0F940oLMYUUFJ
+    tls: true
+    network: ws

@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "MZURz8UXO1s6MWpC",
+      "disable_mtu_discovery": false,
+      "down_mbps": null,
+      "server": "m6-39.trbk.example.net",
+      "server_port": 29836,
+      "tag": "GB-nkn46-03",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.xz02a.example.net"
+      },
+      "type": "hysteria",
+      "up_mbps": null
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+vless=0:0:0:0:0:ffff:203.0.113.235:443,method=none,password=ee69dd3c-2163-4541-b3ab-e25b917d57f7,obfs=ws,obfs-uri=/qj6af,obfs-host=0:0:0:0:0:ffff:203.0.113.235,udp-relay=true,tag=SG-ck7-23
+vless=::ffff:198.51.100.36:443,method=none,password=bfe383f4-6a95-4843-a6d3-04bf5e8e4124,obfs=ws,obfs-uri=/zxtb,udp-relay=true,tag=HK-dr76-41

@@ -1,0 +1,2 @@
+HK-k2i26o-60=vless,ql-28.mfh74.example.org,443,"4bfba380-5bc4-4df4-86d0-90a44bdaca86",transport=tcp,over-tls=true,tls-name=static.n3c5y9f2.example.org,udp=true
+SG-ujrq5-92=vless,hf-04.l37ml.example.org,443,"493e1001-6c2d-406a-bdb3-9386878d202f",transport=http,path=/,over-tls=true,tls-name=api.clpf8qt.example.net,udp=true

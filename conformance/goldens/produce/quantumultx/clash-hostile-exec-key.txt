@@ -1,0 +1,2 @@
+shadowsocks=c8k-13.e1l43f.example.org:43977,method=aes-128-gcm,password=KYsCwZmKBjKgSF,udp-relay=true,tag=GB-fz8n-86
+shadowsocks=b6x-20.i8josg.example.org:10947,method=chacha20-ietf,password=bcFPcct0YV3p,ssr-protocol=origin,obfs=plain,udp-relay=true,tag=KR-ndqkk-68

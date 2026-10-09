@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "HK-yulm9-28",
+    "host": "m5g-37.osr10ykk.example.com",
+    "path": "",
+    "port": "57590",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206MzJvV0xicnVya0tXUEs=",
+    "userinfo_base64": "aes-256-gcm:32oWLbrurkKWPK"
+  }
+]

@@ -1,0 +1,1 @@
+SG-rvp97-26=vless,cr-03.ci0fvkp.example.com,443,"eddf6c71-29a2-485e-977d-36d68b51ffa4",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=img.lejb3z3.example.com,tls-cert-sha256=69:24:7B:D1:F8:01:D5:23:CA:AE:2C:C3:37:9B:F1:F1:A2:31:50:49:8D:0B:43:4C:EC:0B:B5:4E:F5:79:F2:20,udp=true

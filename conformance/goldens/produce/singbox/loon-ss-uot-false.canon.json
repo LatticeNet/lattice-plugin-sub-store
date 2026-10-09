@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "g0W5qYXucvY1IN",
+      "server": "bb-27.sc6zg0dg.example.net",
+      "server_port": 25709,
+      "tag": "FR-zy6i6-82",
+      "type": "shadowsocks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      }
+    }
+  ]
+}

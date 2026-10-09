@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "US-dodyb9-55",
+        "password": "4BuXR7BK2HwHfH",
+        "port": 59597,
+        "server": "ksr-38.odza5qa.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "address": "cb-23.mmndug.example.com:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-uri": "/du3hede",
+      "password": "QF8oCcvBNMnLwtsA",
+      "tag": "GB-e5b-15",
+      "tls-host": "static.b7zcm8.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

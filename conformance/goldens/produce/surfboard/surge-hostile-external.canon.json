@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ww-28.b6rk.example.com",
+      "50551"
+    ],
+    "name": "NL-d0svs-69",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "2UkWNdG9ThWtTN",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "nw-25.gx808qo.example.net",
+      "443",
+      "sPOmVik1yMye21bMsDsr"
+    ],
+    "name": "TW-zqdt-64",
+    "params": {
+      "fast-open": "false",
+      "salamander-password": "xVZfLLQWOS2O",
+      "skip-cert-verify": "false",
+      "tls-name": "static.refup.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

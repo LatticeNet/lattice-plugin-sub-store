@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-servername-peer-sni",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "servername-peer-sni",
+  "description": "vless TLS carrying peer beside servername, and one carrying servername, peer and sni."
+}

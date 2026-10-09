@@ -1,0 +1,40 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "JP-f94zlg-44",
+      "network": "tcp",
+      "peer": "api.q4bvpa.example.net",
+      "port": 443,
+      "server": "u6c-29.l2ck05d.example.org",
+      "servername": "api.xqq9sjsn.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "ae8a4d40-fd2d-471e-957c-4533ddfe7ffa"
+    },
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "AU-c1i4-58",
+      "network": "tcp",
+      "peer": "api.n6jkv1of.example.com",
+      "port": 443,
+      "server": "qyd-10.ho2a.example.net",
+      "servername": "www.yx83fdfg.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "907c4f53-0a20-4f51-9e41-4c6edc229092"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-non-mapping-entry",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "non-mapping-entry",
+  "description": "A proxies list with a bare string and a null next to a valid proxy: both produce lines that are not nodes, so one node is read."
+}

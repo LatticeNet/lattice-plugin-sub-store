@@ -1,0 +1,23 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "ech-opts": {
+      "enable": true,
+      "query-server-name": "static.nvb3a.example.org"
+    },
+    "name": "CA-caxc0-59",
+    "network": "tcp",
+    "port": 443,
+    "server": "uw-19.sjh726zc.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.mpluewkbpx.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "b00f0c79-f649-44af-925c-4e6d05ba7bf6"
+  }
+]
