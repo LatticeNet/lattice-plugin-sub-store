@@ -704,11 +704,6 @@ function recount(id: string): void {
   if (subs.canPreview.value && table.value.rows.some((row) => row.id === id && countsNeedPreview(row, subs.storeVersion.value))) counts.request([id]);
 }
 
-/** A count cell holds a figure, or a word ("counting", "unknown") drawn quieter than one. */
-function isFigure(text: string): boolean {
-  return /^\d/.test(text);
-}
-
 function kindIcon(row: SubscriptionListItem) {
   if (row.kind === KIND_COLLECTION) return Layers;
   if (row.kind === KIND_FILE) {
@@ -1473,10 +1468,10 @@ const noun = computed(() => (kindFacet.value ? TEXT.kindNoun[kindFacet.value] : 
                   </td>
                   <template v-if="!stacked">
                     <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes in" :title="cell(row).counts.title" data-testid="record-nodes-in">
-                      <span class="pc-td-body" :class="{ 'layer-muted': !isFigure(cell(row).counts.in) }">{{ cell(row).counts.in }}</span>
+                      <span class="pc-td-body">{{ cell(row).counts.in }}</span>
                     </td>
                     <td class="pc-numeric pc-mono" data-stack="detail" data-label="Nodes out" :title="cell(row).counts.title" data-testid="record-nodes-out">
-                      <span class="pc-td-body" :class="{ 'layer-muted': !isFigure(cell(row).counts.out) }">{{ cell(row).counts.out }}</span>
+                      <span class="pc-td-body">{{ cell(row).counts.out }}</span>
                     </td>
                   </template>
                   <td v-else data-stack="state" data-label="Nodes" :title="cell(row).counts.title" class="pc-mono rec-nodes-pair" data-testid="record-nodes">
