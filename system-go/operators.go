@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 )
 
 // operatorCatalog is every operator type the pinned Sub-Store core implements.
@@ -131,4 +133,46 @@ func containsScriptingOperator(operators []json.RawMessage) bool {
 		}
 	}
 	return false
+}
+
+// savedChainCheck is the save-time compilation of a chain (design 28, "Node
+// filtering"; S1 plan section 3.1). A save that brings in a pattern RE2
+// refuses, by adding a step or by changing one, is refused with the
+// regex_incompatible code, each step and pattern named and the rewrite
+// offered where the idiom has one. A pattern the stored chain already
+// carried is not refused again: a record the migration flagged keeps saving
+// when an unrelated field changes, and keeps rendering on the bundle until
+// its chain is edited.
+//
+// "Already carried" is counted per step type and pattern, not compared as
+// bytes, because the editor rewrites a chain's JSON when it opens it.
+func savedChainCheck(stored, incoming []json.RawMessage) error {
+	if _, err := operators.CompileStrict(incoming); err == nil {
+		return nil
+	} else if _, refused := operators.AsIncompatible(err); !refused {
+		return err
+	}
+	plan, err := operators.Compile("", incoming)
+	if err != nil {
+		return err
+	}
+	carried := map[[2]string]int{}
+	if before, err := operators.Compile("", stored); err == nil {
+		for _, d := range before.Incompatible() {
+			carried[[2]string{before.Steps[d.Step-1].Step.Type, d.Pattern}]++
+		}
+	}
+	var brought []operators.Diagnostic
+	for _, d := range plan.Incompatible() {
+		key := [2]string{plan.Steps[d.Step-1].Step.Type, d.Pattern}
+		if carried[key] > 0 {
+			carried[key]--
+			continue
+		}
+		brought = append(brought, d)
+	}
+	if len(brought) == 0 {
+		return nil
+	}
+	return &operators.IncompatibleError{Diagnostics: brought}
 }

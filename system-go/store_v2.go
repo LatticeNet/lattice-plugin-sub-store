@@ -266,12 +266,16 @@ type saveConflict struct {
 // the record write and the index write. Three host calls for a new record,
 // four for an existing one.
 //
+// strict is the editor's save: a chain that brings in a pattern RE2 refuses
+// is refused (savedChainCheck). Import, migrate and backup restore write
+// records as they were and pass false; the index flags what they carry.
+//
 // The conditional write. A blind full-record overwrite is a lost-update
 // defect: two operators editing one record, or one operator editing a record
 // a refresh or a restore has already moved, and the loser's work disappeared
 // with nothing on screen to say it had happened. ifRevision is optional:
 // import, migrate and backup restore write records they never read.
-func (rt *runtime) storeSave(rec subscriptionRecord, ifRevision string) (subscriptionRecord, *saveConflict, error) {
+func (rt *runtime) storeSave(rec subscriptionRecord, ifRevision string, strict bool) (subscriptionRecord, *saveConflict, error) {
 	if strings.TrimSpace(rec.ID) == "" {
 		return subscriptionRecord{}, nil, fmt.Errorf("subscription id is required")
 	}
@@ -319,6 +323,17 @@ func (rt *runtime) storeSave(rec subscriptionRecord, ifRevision string) (subscri
 	if err != nil {
 		return subscriptionRecord{}, nil, err
 	}
+	if strict {
+		var before []json.RawMessage
+		if found {
+			before = processSteps(stored)
+		}
+		// Unwrapped: the refusal's message leads with its code, which is
+		// how the editor recognises it.
+		if err := savedChainCheck(before, nrec.Process); err != nil {
+			return subscriptionRecord{}, nil, err
+		}
+	}
 	entry := indexEntryFor(nrec)
 	if pos >= 0 {
 		entry.carryBookkeeping(idx.Records[pos])
@@ -350,7 +365,7 @@ func (rt *runtime) storeSave(rec subscriptionRecord, ifRevision string) (subscri
 
 // saveSubscription is an unconditional save.
 func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
-	_, conflict, err := rt.storeSave(rec, "")
+	_, conflict, err := rt.storeSave(rec, "", false)
 	if err != nil {
 		return err
 	}

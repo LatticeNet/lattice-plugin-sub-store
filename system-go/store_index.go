@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 )
 
 // The index is what list reads in one kv.get: one entry per record with
@@ -190,96 +191,18 @@ func truncateUTF8(text string, limit int) string {
 	return text[:cut]
 }
 
-// fallbackStepTypes are the steps the bundle has to run (plan section 2.3,
-// KindFallback): Resolve Domain needs the network and the two script steps
-// run operator JavaScript.
-var fallbackStepTypes = map[string]bool{
-	"Resolve Domain Operator": true,
-	"Script Operator":         true,
-	"Script Filter":           true,
-}
-
-// chainFlags computes an entry's flags from its chain.
-//
-// This is the seam the operators lane fills: once system-go/operators exists,
-// the body becomes operators.Compile and its Plan.HasFallback and
-// Plan.Incompatible. Until then a pattern is incompatible when Go's regexp,
-// which is RE2, refuses it (lookaround and backreferences are the cases that
-// matter), and that is the same set operators.Compile flags as
-// regex_incompatible.
+// chainFlags computes an entry's flags from its chain: has_fallback_step
+// when an enabled step only the bundle runs (Resolve Domain, a script step),
+// regex_incompatible when an enabled step carries a pattern RE2 refuses.
+// Such a record keeps rendering on the bundle until its chain is edited. A
+// chain that does not compile at all has no flags: render refuses it with
+// its own reason.
 func chainFlags(steps []json.RawMessage) indexFlags {
-	var flags indexFlags
-	for _, raw := range steps {
-		var step struct {
-			Type     string          `json:"type"`
-			Disabled bool            `json:"disabled"`
-			Args     json.RawMessage `json:"args"`
-		}
-		if json.Unmarshal(raw, &step) != nil || step.Disabled {
-			continue
-		}
-		if fallbackStepTypes[step.Type] {
-			flags.HasFallbackStep = true
-		}
-		for _, pattern := range stepPatterns(step.Type, step.Args) {
-			if _, err := regexp.Compile(pattern); err != nil {
-				flags.RegexIncompatible = true
-			}
-		}
+	plan, err := operators.Compile("", steps)
+	if err != nil {
+		return indexFlags{}
 	}
-	return flags
-}
-
-// stepPatterns returns the operator-written regular expressions in one
-// step's arguments, in the wire shapes ui/src/operatorSchema.ts writes:
-// Regex Filter {"regex": [...]}, Regex Delete and Regex Sort a bare list,
-// Regex Rename a bare list of {"expr", "now"}. A legacy {"value": ...}
-// wrapper and a single string are read too, as the UI reads them back.
-func stepPatterns(stepType string, args json.RawMessage) []string {
-	var value any
-	if len(args) == 0 || json.Unmarshal(args, &value) != nil {
-		return nil
-	}
-	unwrap := func(v any, key string) any {
-		if object, ok := v.(map[string]any); ok {
-			return object[key]
-		}
-		return v
-	}
-	switch stepType {
-	case "Regex Filter":
-		return stringsIn(unwrap(value, "regex"), "")
-	case "Regex Delete Operator", "Regex Sort Operator":
-		return stringsIn(unwrap(value, "value"), "")
-	case "Regex Rename Operator":
-		return stringsIn(unwrap(value, "value"), "expr")
-	default:
-		return nil
-	}
-}
-
-// stringsIn collects non-empty strings from a string, a list of strings, or
-// (with key set) a list of objects carrying key.
-func stringsIn(value any, key string) []string {
-	var out []string
-	add := func(v any) {
-		if key != "" {
-			if object, ok := v.(map[string]any); ok {
-				v = object[key]
-			}
-		}
-		if text, ok := v.(string); ok && text != "" {
-			out = append(out, text)
-		}
-	}
-	if list, ok := value.([]any); ok {
-		for _, item := range list {
-			add(item)
-		}
-		return out
-	}
-	add(value)
-	return out
+	return indexFlags{RegexIncompatible: len(plan.Incompatible()) > 0, HasFallbackStep: plan.HasFallback()}
 }
 
 // storeListing is what list, depends_on, export and tag resolution read.

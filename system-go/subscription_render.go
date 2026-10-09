@@ -652,7 +652,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		// A caller must not be able to forge provenance: a new record gets
 		// none, and an existing one keeps what is stored.
 		rec.Origin = nil
-		saved, conflict, err := rt.storeSave(rec, req.IfRevision)
+		saved, conflict, err := rt.storeSave(rec, req.IfRevision, true)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
