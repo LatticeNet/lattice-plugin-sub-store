@@ -216,16 +216,36 @@ func TestESPatternNeverRefusesAValidPattern(t *testing.T) {
 }
 
 // The step keeps the operator's own text in its diagnostic, never the
-// rewritten pattern.
+// rewritten pattern: in the pattern it names, and in every expression the
+// RE2 reason quotes. An unclosed group or a stray ) around a \s or a dot
+// makes RE2 quote the rewritten class, which the operator never wrote.
 func TestIncompatibleDiagnosticNamesTheOperatorsPattern(t *testing.T) {
-	const pattern = `^(?=.*\s)HK.$`
-	step := `{"type":"Regex Filter","args":{"regex":[` + strconvQuote(pattern) + `],"keep":true}}`
-	plan, err := Compile("r", []json.RawMessage{json.RawMessage(step)})
-	if err != nil {
-		t.Fatal(err)
-	}
-	diags := plan.Incompatible()
-	if len(diags) != 1 || diags[0].Pattern != pattern {
-		t.Fatalf("diagnostics = %+v, want one naming %q", diags, pattern)
+	for _, c := range []struct{ pattern, reason string }{
+		{`^(?=.*\s)HK.$`, "invalid or unsupported Perl syntax: `(?=`"},
+		{`\pX(?=a)`, "invalid or unsupported Perl syntax: `(?=`"},
+		{`(\s`, "missing closing ): `(\\s`"},
+		{`(HK.`, "missing closing ): `(HK.`"},
+		{`HK)\S`, "unexpected ): `HK)\\S`"},
+		{`\s{2,1001}`, "invalid repeat count: `{2,1001}`"},
+	} {
+		step := `{"type":"Regex Filter","args":{"regex":[` + strconvQuote(c.pattern) + `],"keep":true}}`
+		plan, err := Compile("r", []json.RawMessage{json.RawMessage(step)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		diags := plan.Incompatible()
+		if len(diags) != 1 || diags[0].Pattern != c.pattern {
+			t.Fatalf("%q: diagnostics = %+v, want one naming it", c.pattern, diags)
+		}
+		message := diags[0].Message
+		if !strings.Contains(message, "("+c.reason+")") {
+			t.Errorf("%q: message %q does not give the reason %q", c.pattern, message, c.reason)
+		}
+		quoted := strings.Split(message, "`")
+		for i := 1; i < len(quoted); i += 2 {
+			if !strings.Contains(c.pattern, quoted[i]) {
+				t.Errorf("%q: message quotes %q, which the operator did not write", c.pattern, quoted[i])
+			}
+		}
 	}
 }
