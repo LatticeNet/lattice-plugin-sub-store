@@ -157,6 +157,7 @@ func withMemberNodes(env *snapshotEnvelope, members []fileScriptMember, membersN
 			return err
 		}
 		env.Members[i].Nodes = nodes
+		env.Members[i].parsedRaw = member.unchained
 	}
 	return nil
 }
@@ -318,6 +319,7 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 			member := fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.out.raw}
 			if membersNative {
 				member.nodes = entry.out.nodes
+				member.unchained = entry.out.needsCount
 			}
 			out = append(out, member)
 		}

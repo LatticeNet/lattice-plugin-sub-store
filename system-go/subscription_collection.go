@@ -233,10 +233,15 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 //
 // membersNative reports that every member's chain ran in Go when the snapshot
 // was taken, which only a version 2 envelope can say: its members carry their
-// nodes, or it says they were omitted for size. Anything else (a version 1
-// snapshot, an envelope whose members ran on the bundle, one written before
-// member nodes existed) renders whole on the bundle, as the members' texts
-// came from it. Nodes are decoded only when the render will read them.
+// nodes, or it says some or all were omitted for size. Anything else (a
+// version 1 snapshot, an envelope whose members ran on the bundle, one
+// written before member nodes existed) renders whole on the bundle, as the
+// members' texts came from it.
+//
+// Nodes are read only when the render will read them, and then every member
+// gets its nodes: decoded where the envelope carries them, parsed from the
+// member's text where the size bound left them out. Nodes that do not decode
+// leave every member to its text, as before.
 func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool) {
 	if strings.TrimSpace(snapshotRaw) == "" {
 		return nil, false
@@ -253,15 +258,24 @@ func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool)
 			}
 			members = append(members, fileScriptMember{SubName: member.SubName, Raw: strings.TrimSpace(member.Raw)})
 		}
-		complete := withNodes == len(members)
-		membersNative := len(members) > 0 && (complete || env.NodesOmitted == nodesOmittedSize)
-		if membersNative && complete && decode {
+		membersNative := len(members) > 0 && (withNodes == len(members) || env.NodesOmitted == nodesOmittedSize)
+		if membersNative && decode {
 			at := 0
 			for _, member := range env.Members {
 				if strings.TrimSpace(member.Raw) == "" {
 					continue
 				}
-				nodes, ok := decodeNodes(member.Nodes)
+				var nodes []*nodemodel.Node
+				ok := true
+				if len(member.Nodes) > 0 {
+					nodes, ok = decodeNodes(member.Nodes)
+				} else {
+					// Left out for size: the text, parsed as the live path
+					// parses a member with no chain of its own.
+					var err error
+					nodes, err = parseParts([]string{members[at].Raw})
+					ok = err == nil
+				}
 				if !ok {
 					// Undecodable nodes: parse the texts instead.
 					for i := range members {

@@ -447,6 +447,109 @@ func TestCollectionSnapshotWithoutMemberNodesRendersOnTheBundle(t *testing.T) {
 	}
 }
 
+// sizeBoundCollection stores a native collection of six members of 980
+// perfgen links each, so its envelope with member nodes passes the raw bound
+// and without them stays inside it. The first `chained` members run a native
+// chain of their own; the first member also carries the plain Shadowsocks
+// link the two parsers read differently.
+func sizeBoundCollection(t *testing.T, rt *runtime, chained int) snapshotEnvelope {
+	t.Helper()
+	const members, perMember = 6, 980
+	links := perfgen.URIs(members * perMember)
+	ids := make([]string, 0, members)
+	for i := range members {
+		id := fmt.Sprintf("m%d", i)
+		rec := subscriptionRecord{ID: id, Source: subscriptionSourceLocal, Content: strings.Join(links[i*perMember:(i+1)*perMember], "\n") + "\n"}
+		if i == 0 {
+			rec.Content += paritySSLink + "\n"
+		}
+		if i < chained {
+			rec.Process = steps(stepRename, stepSort, stepFlag)
+		}
+		savedRecord(t, rt, rec)
+		ids = append(ids, id)
+	}
+	savedRecord(t, rt, subscriptionRecord{ID: "big", Kind: kindCollection, Members: ids, Process: steps(`{"type":"Sort Operator","args":"desc"}`)})
+	snap, err := rt.fetchSubscription("big")
+	if err != nil {
+		t.Fatal(err)
+	}
+	env, ok := decodeSnapshotEnvelope(snap.Raw)
+	if !ok || env.NodesOmitted != nodesOmittedSize || len(env.Members) != members {
+		t.Fatalf("fetch did not omit nodes for size: version 2 %v, nodes_omitted %q, %d members", ok, env.NodesOmitted, len(env.Members))
+	}
+	return env
+}
+
+// renderBig renders the collection sizeBoundCollection stored, live when
+// snapshot is empty, and reports whether the render reached the bundle.
+func renderBig(t *testing.T, rt *runtime, target string, snapshot snapshotEnvelope) (string, bool) {
+	t.Helper()
+	raw := ""
+	if snapshot.Version != 0 {
+		encoded, err := json.Marshal(snapshot)
+		if err != nil {
+			t.Fatal(err)
+		}
+		raw = string(encoded)
+	}
+	warm, isolated := rt.engine.pathCounts()
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "big", Target: target, Format: "plain", Raw: raw})
+	if err != nil || out.Content == "" {
+		t.Fatalf("%s: render err %v", target, err)
+	}
+	w, i := rt.engine.pathCounts()
+	return out.Content, w != warm || i != isolated
+}
+
+// A native collection past the raw bound keeps the nodes its member chains
+// left and leaves out only those its unchained members' texts give back by
+// the same parse. Its render reads the kept nodes, parses the other members'
+// texts as the live render does, and so serves the live render's bytes for
+// every native target, in Go. Leaving every member's nodes out instead sent
+// the chained member's nodes through its URI text: a gRPC link gained
+// mode=gun in URI and V2Ray and _mode in JSON, and the bundle, the other
+// way to render member texts, serves the same difference at 100 to 300 times
+// the cost.
+func TestSizeBoundKeepsMemberChainNodesAndRendersAsLive(t *testing.T) {
+	rt := dispatchRuntime(t)
+	env := sizeBoundCollection(t, rt, 1)
+	if len(env.Members[0].Nodes) == 0 {
+		t.Fatal("the chained member's nodes were left out although the envelope fits with them")
+	}
+	for _, member := range env.Members[1:] {
+		if len(member.Nodes) != 0 {
+			t.Fatalf("member %s kept nodes its text gives back", member.SubName)
+		}
+	}
+	for _, target := range nativeTargets {
+		live, _ := renderBig(t, rt, target, snapshotEnvelope{})
+		fromSnapshot, bundle := renderBig(t, rt, target, env)
+		if bundle {
+			t.Fatalf("%s: the size-bound snapshot rendered on the bundle", target)
+		}
+		if fromSnapshot != live {
+			t.Fatalf("%s: the size-bound snapshot render differs from live at %s", target, checkerAgree(t, "URI", fromSnapshot, live))
+		}
+	}
+}
+
+// When the member chains' nodes alone pass the bound, every member's nodes
+// are left out, and the render still runs in Go from the members' texts
+// rather than on the bundle, which would parse the same texts.
+func TestSizeBoundWithoutAnyMemberNodesRendersInGo(t *testing.T) {
+	rt := dispatchRuntime(t)
+	env := sizeBoundCollection(t, rt, 6)
+	if envelopeHasNodes(env) {
+		t.Fatal("member chain nodes kept past the bound")
+	}
+	for _, target := range nativeTargets {
+		if _, bundle := renderBig(t, rt, target, env); bundle {
+			t.Fatalf("%s: a size-omitted collection rendered on the bundle", target)
+		}
+	}
+}
+
 // bodyHost is the in-memory store plus a provider that answers one body.
 type bodyHost struct {
 	*kvHostCaller
