@@ -295,7 +295,9 @@ func (w *boundsWalker) value(parent, key string, v any, level int) bool {
 			return w.fail("list", maxListEntries)
 		}
 	case float64:
-		if math.IsInf(x, 0) || (x == math.Trunc(x) && math.Abs(x) > maxSafeInteger) {
+		// The infinities are integral and beyond 2^53, so this refuses them
+		// too; not-a-number compares false and passes.
+		if x == math.Trunc(x) && math.Abs(x) > maxSafeInteger {
 			return w.fail("number", maxSafeInteger)
 		}
 	case int64:

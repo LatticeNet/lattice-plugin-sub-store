@@ -259,9 +259,7 @@ func (n *Node) UnmarshalJSON(data []byte) error {
 	if raw, ok := fields[latticeKey]; ok {
 		delete(fields, latticeKey)
 		if raw != nil {
-			if _, isObject := raw.(map[string]any); !isObject {
-				return errors.New("nodemodel: _lattice must be a JSON object")
-			}
+			// Anything but an object fails to decode into LatticeFields.
 			encoded, err := json.Marshal(raw)
 			if err != nil {
 				return err

@@ -251,6 +251,15 @@ func TestFieldBoundsRefuse(t *testing.T) {
 			func(f map[string]any) { f["_finalmask"] = map[string]any{"type": text(4000), "server": text(4000)} },
 			func(f map[string]any) { f["_finalmask"] = map[string]any{"type": text(9000), "server": text(9000)} },
 			"structured", "_finalmask"},
+		// Five entries of compact JSON: 36 bytes of punctuation and keys.
+		{"download settings as a whole",
+			func(f map[string]any) {
+				f["xhttp-opts"] = map[string]any{"download-settings": map[string]any{"a": text(4000), "b": text(4000), "c": text(4000), "d": text(4000), "e": text(348)}}
+			},
+			func(f map[string]any) {
+				f["xhttp-opts"] = map[string]any{"download-settings": map[string]any{"a": text(4000), "b": text(4000), "c": text(4000), "d": text(4000), "e": text(349)}}
+			},
+			"structured", "xhttp-opts.download-settings"},
 		{"any other text", func(f map[string]any) { f["mieru-note"] = text(4096) }, func(f map[string]any) { f["mieru-note"] = text(4097) }, "text", "mieru-note"},
 		{"unknown keys",
 			func(f map[string]any) {
