@@ -198,7 +198,8 @@
             "timeout_ms": 20000,
             "stdout_bytes": 65536,
             "stderr_bytes": 65536,
-            "host_calls": 2
+            "host_calls": 138,
+            "http_response_bytes": 8388608
           }
         },
         {
@@ -211,7 +212,8 @@
             "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 142
+            "host_calls": 142,
+            "http_response_bytes": 8388608
           }
         },
         {
@@ -263,7 +265,8 @@
             "timeout_ms": 30000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 138
+            "host_calls": 138,
+            "http_response_bytes": 8388608
           }
         },
         {
@@ -276,7 +279,8 @@
             "timeout_ms": 30000,
             "stdout_bytes": 1048576,
             "stderr_bytes": 65536,
-            "host_calls": 138
+            "host_calls": 138,
+            "http_response_bytes": 8388608
           }
         },
         {
@@ -412,7 +416,8 @@
             "timeout_ms": 30000,
             "stdout_bytes": 65536,
             "stderr_bytes": 65536,
-            "host_calls": 143
+            "host_calls": 143,
+            "http_response_bytes": 8388608
           }
         },
         {

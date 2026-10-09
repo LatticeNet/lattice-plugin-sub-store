@@ -41,8 +41,13 @@ const (
 	// operator-reviewed on every request.
 	scriptHTTPMaxCalls = 8
 	// scriptHTTPMaxTotalBytes bounds what one invocation may pull in total.
-	// The server caps each individual response far below this.
 	scriptHTTPMaxTotalBytes = 8 << 20
+	// scriptHTTPMaxResponseBytes bounds each response a script receives
+	// (design 28: 256 KiB). The host's bound is the calling method's signed
+	// http_response_bytes, and render and publish are signed for a
+	// provider's whole body because they fetch providers too, so in those
+	// methods the host would hand a script up to 8 MiB; this keeps it here.
+	scriptHTTPMaxResponseBytes = 256 << 10
 	// Request timeout clamp. Upstream's default is 8s; a script may ask for
 	// less, and asking for more than the ceiling is silently clamped rather
 	// than refused, because the invocation deadline is the real bound.
@@ -186,6 +191,11 @@ func (g *scriptHTTPGateway) do(requestJSON string) (string, error) {
 	if decodeErr != nil {
 		g.record(scriptHTTPCall{Method: method, Host: parsed.Host, Status: out.StatusCode, Duration: elapsed.Milliseconds(), Error: "undecodable body"})
 		return "", fmt.Errorf("script http: undecodable response body")
+	}
+	if len(body) > scriptHTTPMaxResponseBytes {
+		err := fmt.Errorf("script http: response exceeds %d bytes", scriptHTTPMaxResponseBytes)
+		g.record(scriptHTTPCall{Method: method, Host: parsed.Host, Status: out.StatusCode, Bytes: len(body), Duration: elapsed.Milliseconds(), Error: err.Error()})
+		return "", err
 	}
 	if err := g.account(len(body)); err != nil {
 		g.record(scriptHTTPCall{Method: method, Host: parsed.Host, Status: out.StatusCode, Bytes: len(body), Duration: elapsed.Milliseconds(), Error: err.Error()})

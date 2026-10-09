@@ -106,9 +106,13 @@ The runtime declares six host-risk capabilities: `rpc:call`, `http:egress`,
 is what lets the core serve a published subscription document at a share URL.
 `kv:write` also covers `kv.delete`, which the split record store uses to
 archive, restore and purge records. That host call and the per-method
-`http_response_bytes` budget `fetch` declares (8 MiB, for a provider's whole
-body) both first exist in the server release `compatibility.server` names as
-its floor; the release before it refuses the manifest.
+`http_response_bytes` budget both first exist in the server release
+`compatibility.server` names as its floor; the release before it refuses the
+manifest. Every method that can reach a provider body declares 8 MiB, the cap
+the provider fetch itself enforces: `fetch`, `probe`, `render`, `publish`,
+`preview` and `preview_draft`. The others keep the host default of 256 KiB, and
+a script's own requests stay at 256 KiB per response in every method, enforced
+by the plugin where the method budget is larger.
 
 The signed outbound RPC dependencies are exactly `latticenet.vpn-core/nodes.export`
 and `latticenet.vpn-core/subscription-sources` (`compose`, `graph_options`).

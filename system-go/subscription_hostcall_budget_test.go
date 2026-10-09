@@ -205,6 +205,9 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 		{name: "publish the script file", method: "publish", body: map[string]any{"subscription_id": "worst-script", "destination": "https://destination.invalid/worst", "format": "plain"}, split: 133, legacy: 135},
 		// render's script shape and the bookkeeping read and write.
 		{name: "fetch the script file", method: "fetch", body: map[string]any{"subscription_id": "worst-script"}, split: 134, legacy: 136},
+		// The row check reads what the refresh reads and records nothing:
+		// fetch's shape without the bookkeeping read and write.
+		{name: "probe the script file", method: "probe", body: map[string]any{"subscription_id": "worst-script"}, split: 132, legacy: 134},
 		// The combination's record, the listing, Settings, 64 records, 64 fetches.
 		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
 		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
@@ -404,6 +407,11 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// A script file's refresh resolves its node source the same way, plus
 		// the source record.
 		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 9},
+		// The row check (probe) resolves exactly what fetch resolves and
+		// records nothing, so it is fetch's count less the bookkeeping. The
+		// console's Refresh button calls it on every kind of record.
+		{name: "probe a remote sub", method: "probe", payload: map[string]any{"subscription_id": "remote-a"}, want: 3},
+		{name: "probe a script file over a remote collection", method: "probe", payload: map[string]any{"subscription_id": "scripty"}, want: 7},
 		// Renders. A plain local sub is one read; the engine runs in-process.
 		// A record that names no target, rendered from a URL that names none,
 		// also reads Settings for the default target (decision 14); an explicit

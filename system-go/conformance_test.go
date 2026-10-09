@@ -170,6 +170,19 @@ type invokeBudgetSpec struct {
 // (TestWorstHostCallPathsSetTheSignedBudgets). The S1 store split re-priced
 // the record paths: a collection reads each member's own record (64 at most),
 // a save writes a record and the index, and a delete archives.
+//
+// http_response_bytes is 8 MiB, the provider fetch's own cap
+// (maxProviderResponseBytes), on every method that can reach a provider body:
+// fetch and probe (fetchSubscription), render and publish (a file's remote
+// template on every render, a collection's members when no snapshot is
+// held), and preview and preview_draft (a provider record or draft resolved
+// live). Each of them would otherwise refuse, at the host's 256 KiB default,
+// a body that fetch stores (TestProviderFetchingMethodsAreSignedForAProviderBody).
+// Until the host response frame rises past 4 MiB, a body reaches the plugin
+// only up to about 3 MiB after base64 (design 28). The bound is per method,
+// not per host call, so in render and publish it also covers the scripts'
+// own requests; the script gateway holds those to 256 KiB per response itself
+// (scriptHTTPMaxResponseBytes), and publish's send answers with a status.
 func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 	return map[string]invokeBudgetSpec{
 		// 2026-08-18: convert and transform_response went from zero host calls to
@@ -202,7 +215,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// The timeout is the host maximum because the runner spawns the plugin
 		// per invocation and a cold QuickJS/wazero boot cost about 13.5s on the
 		// production box (measured 2026-08-11).
-		pluginID + "/subscription/render": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 142},
+		pluginID + "/subscription/render": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 142, HTTPResponseBytes: 8 << 20},
 		// 2026-10-02: convert is the stateless converter for per-identity
 		// links. Zero host calls is the point: the runner then refuses any KV
 		// or network access, so the method cannot read or keep state even by
@@ -210,17 +223,23 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// size; the timeout is render's because a call that lands while the
 		// worker's warm runtime is still booting takes the isolated path.
 		pluginID + "/subscription/convert": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 0},
-		// fetch carries a provider's whole response, so its stdout budget and
-		// its HTTP response budget are the 8 MiB the fetch path itself caps at
-		// (maxProviderResponseBytes); until the host response frame rises past
-		// 4 MiB, a body reaches the plugin only up to about 3 MiB after base64
-		// (design 28). host_calls: the refresh of the render shape above is that
-		// render's 134 reads plus the bookkeeping read and write, 136 on a store
-		// that has not migrated and 134 on a split one. fetch gives scripts no
+		// fetch carries a provider's whole response, so its stdout budget is
+		// the 8 MiB the fetch path itself caps at (maxProviderResponseBytes),
+		// as its HTTP response budget is. host_calls: the refresh of the
+		// render shape above is that render's 134 reads plus the bookkeeping
+		// read and write, 136 on a store that has not migrated and 134 on a
+		// split one. fetch gives scripts no
 		// network, so the 4 left over are headroom. The timeout is the host
 		// maximum: 64 sequential provider fetches cannot promise less.
 		pluginID + "/subscription/fetch": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 140, HTTPResponseBytes: 8 << 20},
-		pluginID + "/subscription/probe": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 2},
+		// probe is the console's row check (its Refresh button, on every kind
+		// of record): fetchSubscription without the bookkeeping, so the same
+		// provider bodies and fetch's resolution less its read and write, 134
+		// on a store that has not migrated. It answers a byte count, not the
+		// body, and gives scripts no network; the 4 left over are fetch's
+		// headroom. The old allowance of 2 priced only a graph record, and a
+		// provider record that names no agent needs 3.
+		pluginID + "/subscription/probe": {TimeoutMS: 20_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 138, HTTPResponseBytes: 8 << 20},
 		// operators returns a fixed catalog and touches nothing, so it gets the
 		// smallest budget in the file and zero host calls.
 		pluginID + "/subscription/operators":     {TimeoutMS: 2_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
@@ -234,11 +253,11 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// Its timeout matches render's for the same cold-engine reason: 15s
 		// still timed out a script file on production (about 13.5s boot plus
 		// the work itself).
-		pluginID + "/subscription/preview": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 138},
+		pluginID + "/subscription/preview": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 138, HTTPResponseBytes: 8 << 20},
 		// preview_draft is preview plus the one live resolve of a source the
 		// CALLER named, which is why it is declared substore:admin and preview
 		// is not. Same shape, same ceiling.
-		pluginID + "/subscription/preview_draft": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 138},
+		pluginID + "/subscription/preview_draft": {TimeoutMS: 30_000, StdoutBytes: 1 << 20, StderrBytes: 64 << 10, HostCalls: 138, HTTPResponseBytes: 8 << 20},
 		// list reads the index, plus the legacy document on a store that has not
 		// migrated (2). The index carries more per row than the old listing
 		// (bookkeeping, node counts, flags), and at 300 records it needs the
@@ -267,7 +286,7 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// not migrated) and sends once, plus the script allowance. Its stdout is
 		// a small result object because the rendered body goes out over the
 		// network, not back up stdout.
-		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 143},
+		pluginID + "/subscription/publish": {TimeoutMS: 30_000, StdoutBytes: 64 << 10, StderrBytes: 64 << 10, HostCalls: 143, HTTPResponseBytes: 8 << 20},
 		// export reads the index, every record and Settings (N + 2); a store that
 		// migrated from an oversized legacy document can hold 300 records (302).
 		// Before migration it reads the legacy document and one program key per
