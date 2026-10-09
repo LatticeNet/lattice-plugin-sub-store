@@ -36,6 +36,15 @@ func (o *object) get(key string) (any, bool) {
 	return v, ok
 }
 
+// del removes key; the keys after it keep their order.
+func (o *object) del(key string) {
+	if _, ok := o.vals[key]; !ok {
+		return
+	}
+	delete(o.vals, key)
+	o.keys = slices.DeleteFunc(o.keys, func(k string) bool { return k == key })
+}
+
 func (o *object) len() int { return len(o.keys) }
 
 // appendJSON appends v as ECMAScript's JSON.stringify(v) writes it, compact:
@@ -44,14 +53,25 @@ func (o *object) len() int { return len(o.keys) }
 // Number::toString writes them, *object keys in their order and model objects
 // in ECMAScript property order (propertyOrder).
 func appendJSON(dst []byte, v any) ([]byte, error) {
-	return appendJSONDepth(dst, v, 0)
+	return appendJSONDepth(dst, v, "", "", 0)
+}
+
+// appendJSONIndent appends v as JSON.stringify(v, null, 2) writes it: every
+// member and element on its own line, two spaces deeper than its container,
+// "key": value with one space, and [] and {} for empty containers. indent is
+// the indentation of the line v starts on, which the lines after the first
+// carry too.
+func appendJSONIndent(dst []byte, v any, indent string) ([]byte, error) {
+	return appendJSONDepth(dst, v, "  ", indent, 0)
 }
 
 // maxJSONDepth stops a cyclic value from recursing forever. Bounds refuses
 // nodes far shallower than this.
 const maxJSONDepth = 1000
 
-func appendJSONDepth(dst []byte, v any, depth int) ([]byte, error) {
+// appendJSONDepth writes v compact when gap is empty and indented by gap per
+// level otherwise, as JSON.stringify's space argument does.
+func appendJSONDepth(dst []byte, v any, gap, indent string, depth int) ([]byte, error) {
 	if depth > maxJSONDepth {
 		return nil, fmt.Errorf("producers: value nested too deeply to write")
 	}
@@ -69,39 +89,61 @@ func appendJSONDepth(dst []byte, v any, depth int) ([]byte, error) {
 	case int:
 		return strconv.AppendInt(dst, int64(x), 10), nil
 	case []any:
+		if len(x) == 0 {
+			return append(dst, "[]"...), nil
+		}
+		inner := indent + gap
 		dst = append(dst, '[')
 		for i, e := range x {
 			if i > 0 {
 				dst = append(dst, ',')
 			}
+			dst = newline(dst, gap, inner)
 			var err error
-			if dst, err = appendJSONDepth(dst, e, depth+1); err != nil {
+			if dst, err = appendJSONDepth(dst, e, gap, inner, depth+1); err != nil {
 				return nil, err
 			}
 		}
-		return append(dst, ']'), nil
+		return append(newline(dst, gap, indent), ']'), nil
 	case map[string]any:
-		return appendMembers(dst, propertyOrder(x), func(k string) any { return x[k] }, depth)
+		return appendMembers(dst, propertyOrder(x), func(k string) any { return x[k] }, gap, indent, depth)
 	case *object:
-		return appendMembers(dst, x.keys, func(k string) any { return x.vals[k] }, depth)
+		return appendMembers(dst, x.keys, func(k string) any { return x.vals[k] }, gap, indent, depth)
 	}
 	return nil, fmt.Errorf("producers: value of type %T is not part of the model", v)
 }
 
-func appendMembers(dst []byte, keys []string, value func(string) any, depth int) ([]byte, error) {
+func appendMembers(dst []byte, keys []string, value func(string) any, gap, indent string, depth int) ([]byte, error) {
+	if len(keys) == 0 {
+		return append(dst, "{}"...), nil
+	}
+	inner := indent + gap
 	dst = append(dst, '{')
 	for i, k := range keys {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
+		dst = newline(dst, gap, inner)
 		dst = nodemodel.AppendJSONString(dst, k)
 		dst = append(dst, ':')
+		if gap != "" {
+			dst = append(dst, ' ')
+		}
 		var err error
-		if dst, err = appendJSONDepth(dst, value(k), depth+1); err != nil {
+		if dst, err = appendJSONDepth(dst, value(k), gap, inner, depth+1); err != nil {
 			return nil, err
 		}
 	}
-	return append(dst, '}'), nil
+	return append(newline(dst, gap, indent), '}'), nil
+}
+
+// newline starts a line at indent in the indented form; the compact form has
+// no line breaks.
+func newline(dst []byte, gap, indent string) []byte {
+	if gap == "" {
+		return dst
+	}
+	return append(append(dst, '\n'), indent...)
 }
 
 // jsonText is appendJSON into a string.
@@ -123,6 +165,39 @@ func propertyOrder(m map[string]any) []string {
 	}
 	slices.SortFunc(keys, comparePropertyKeys)
 	return keys
+}
+
+// keyOrder is the order upstream holds a node's keys in after the steps and
+// transforms that created added (prepared.added): the keys the producer
+// received in property order, then the created ones still present, in the
+// order they were last created. The parameter walks visit fields in this
+// order (uri.md, "Input"), and ClashMeta and JSON write it.
+func keyOrder(f map[string]any, added []string) []string {
+	if len(added) == 0 {
+		return propertyOrder(f)
+	}
+	created := make(map[string]bool, len(added))
+	for _, k := range added {
+		created[k] = true
+	}
+	keys := make([]string, 0, len(f))
+	for k := range f {
+		if !created[k] {
+			keys = append(keys, k)
+		}
+	}
+	slices.SortFunc(keys, comparePropertyKeys)
+	tail := make([]string, 0, len(added))
+	seen := make(map[string]bool, len(added))
+	for i := len(added) - 1; i >= 0; i-- {
+		k := added[i]
+		if _, present := f[k]; present && !seen[k] {
+			seen[k] = true
+			tail = append(tail, k)
+		}
+	}
+	slices.Reverse(tail)
+	return append(keys, tail...)
 }
 
 func comparePropertyKeys(a, b string) int {

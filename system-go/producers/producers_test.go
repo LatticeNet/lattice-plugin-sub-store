@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"go/parser"
 	"go/token"
 	"io/fs"
+	"maps"
+	"math"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -16,6 +20,7 @@ import (
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
+	"gopkg.in/yaml.v3"
 )
 
 // conformanceDir is the vendored copy of the conformance harness at the
@@ -24,27 +29,19 @@ const conformanceDir = "../../conformance"
 
 // harnessTargets are the five native targets by harness id, with the
 // platform name the harness's check.mjs calls each producer by
-// (oracle/lib/targets.mjs), the golden file extension, and whether the
-// checker compares bytes. For URI and V2Ray it does, and the allowlist never
-// applies to them, so equal bytes is the checker's whole verdict.
+// (oracle/lib/targets.mjs), the golden file extension, the canonical form the
+// checker parses the output with, and whether the checker compares bytes. For
+// URI and V2Ray it does, and the allowlist never applies to them, so equal
+// bytes is the checker's whole verdict.
 var harnessTargets = []struct {
-	id, platform, ext string
-	bytes             bool
+	id, platform, ext, form string
+	bytes                   bool
 }{
-	{"uri", "URI", "txt", true},
-	{"v2ray", "V2Ray", "txt", true},
-	{"json", "JSON", "json", false},
-	{"singbox", "sing-box", "json", false},
-	{"clashmeta", "ClashMeta", "yaml", false},
-}
-
-// pendingTargets have no native producer yet. Each is reported as skipped
-// with its reason, and a target that gains a producer fails here until it
-// leaves this list, so nothing is skipped silently.
-var pendingTargets = map[string]string{
-	"json":      "the JSON producer lands in lane 4 step B",
-	"singbox":   "the sing-box producer lands in lane 4 step B",
-	"clashmeta": "the ClashMeta producer lands in lane 4 step B",
+	{"uri", "URI", "txt", "uri", true},
+	{"v2ray", "V2Ray", "txt", "v2ray", true},
+	{"json", "JSON", "json", "json", false},
+	{"singbox", "sing-box", "json", "json", false},
+	{"clashmeta", "ClashMeta", "yaml", "yaml", false},
 }
 
 // produceCase is one corpus case check.mjs produces from: its golden nodes
@@ -129,30 +126,26 @@ func TestProduceCorpusMatchesGoldens(t *testing.T) {
 	cases := produceCases(t)
 	for _, target := range harnessTargets {
 		t.Run(target.id, func(t *testing.T) {
-			_, native := Lookup(target.platform)
-			if reason, pending := pendingTargets[target.id]; pending {
-				if native {
-					t.Fatalf("%s has a native producer: remove it from pendingTargets", target.id)
-				}
-				t.Skipf("pending: %s", reason)
-			}
-			if !native {
-				t.Fatalf("%s has no native producer and is not pending", target.platform)
-			}
-			if !target.bytes {
-				t.Fatalf("%s: no structural comparison is implemented yet", target.id)
+			if _, native := Lookup(target.platform); !native {
+				t.Fatalf("%s has no native producer", target.platform)
 			}
 			dir := filepath.Join(conformanceDir, "goldens", "produce", target.id)
 			judged, passed := 0, 0
 			for _, c := range cases {
-				if _, err := os.Stat(filepath.Join(dir, c.id+".canon.json")); err != nil {
+				canonFile := filepath.Join(dir, c.id+".canon.json")
+				if _, err := os.Stat(canonFile); err != nil {
 					continue
 				}
 				judged++
-				golden := string(readFile(t, filepath.Join(dir, c.id+"."+target.ext)))
 				got, _ := produce(t, target.platform, decodeNodes(t, c.nodes), c.options)
-				if got != golden {
-					t.Errorf("%s: output differs from the golden at byte %d\n golden:    %q\n candidate: %q", c.id, firstDifference(golden, got), clip(golden), clip(got))
+				if target.bytes {
+					golden := string(readFile(t, filepath.Join(dir, c.id+"."+target.ext)))
+					if got != golden {
+						t.Errorf("%s: output differs from the golden at byte %d\n golden:    %q\n candidate: %q", c.id, firstDifference(golden, got), clip(golden), clip(got))
+						continue
+					}
+				} else if path, golden, candidate, same := sameStructure(t, readFile(t, canonFile), target.form, got); !same {
+					t.Errorf("%s: output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", c.id, path, golden, candidate, clip(got))
 					continue
 				}
 				passed++
@@ -171,6 +164,151 @@ func firstDifference(a, b string) int {
 		i++
 	}
 	return i
+}
+
+// sameStructure compares a produced document with its golden's canonical
+// form by the vendored checker's rule (oracle/lib/canonical.mjs and firstDiff
+// in oracle/check.mjs): the output is parsed back, json as JSON.parse reads it
+// and yaml as a YAML 1.2 document, and the two values are compared with object
+// key order ignored and list order kept. Output that does not parse is
+// {unparsed: <text>}, which only equal text matches. When the two differ it
+// returns the first differing path and both values there.
+func sameStructure(t *testing.T, canon []byte, form, output string) (path, golden, candidate string, same bool) {
+	t.Helper()
+	var want any
+	if err := json.Unmarshal(canon, &want); err != nil {
+		t.Fatal(err)
+	}
+	return firstDiff(want, parseCanonical(t, form, output), "$")
+}
+
+func parseCanonical(t *testing.T, form, output string) any {
+	t.Helper()
+	unparsed := map[string]any{"unparsed": output}
+	var v any
+	switch form {
+	case "json":
+		if err := json.Unmarshal([]byte(output), &v); err != nil {
+			return unparsed
+		}
+		return v
+	case "yaml":
+		if err := yaml.Unmarshal([]byte(output), &v); err != nil {
+			return unparsed
+		}
+		j, ok := jsonValue(v)
+		if !ok {
+			return unparsed
+		}
+		return j
+	}
+	t.Fatalf("no canonical form %q", form)
+	return nil
+}
+
+// jsonValue turns a decoded YAML value into what JSON.parse(JSON.stringify(v))
+// gives in the checker: numbers become float64, not-a-number and the
+// infinities become null. A value JSON cannot carry reports false.
+func jsonValue(v any) (any, bool) {
+	switch x := v.(type) {
+	case nil, bool, string:
+		return x, true
+	case int:
+		return float64(x), true
+	case int64:
+		return float64(x), true
+	case uint64:
+		return float64(x), true
+	case float64:
+		if math.IsNaN(x) || math.IsInf(x, 0) {
+			return nil, true
+		}
+		return x, true
+	case []any:
+		out := make([]any, len(x))
+		for i, e := range x {
+			var ok bool
+			if out[i], ok = jsonValue(e); !ok {
+				return nil, false
+			}
+		}
+		return out, true
+	case map[string]any:
+		out := make(map[string]any, len(x))
+		for k, e := range x {
+			var ok bool
+			if out[k], ok = jsonValue(e); !ok {
+				return nil, false
+			}
+		}
+		return out, true
+	}
+	return nil, false
+}
+
+// firstDiff is check.mjs's firstDiff over decoded JSON values.
+func firstDiff(a, b any, path string) (string, string, string, bool) {
+	if reflect.DeepEqual(a, b) {
+		return "", "", "", true
+	}
+	switch x := a.(type) {
+	case []any:
+		if y, ok := b.([]any); ok {
+			for i := 0; i < max(len(x), len(y)); i++ {
+				p := path + "[" + strconv.Itoa(i) + "]"
+				if i >= len(x) || i >= len(y) {
+					return p, showAt(x, i), showAt(y, i), false
+				}
+				if p, g, c, same := firstDiff(x[i], y[i], p); !same {
+					return p, g, c, false
+				}
+			}
+		}
+	case map[string]any:
+		if y, ok := b.(map[string]any); ok {
+			keys := slices.Sorted(maps.Keys(x))
+			for k := range y {
+				if _, ok := x[k]; !ok {
+					keys = append(keys, k)
+				}
+			}
+			slices.Sort(keys)
+			for _, k := range keys {
+				p := path + "." + k
+				xv, inX := x[k]
+				yv, inY := y[k]
+				if !inX || !inY {
+					return p, showPresent(xv, inX), showPresent(yv, inY), false
+				}
+				if p, g, c, same := firstDiff(xv, yv, p); !same {
+					return p, g, c, false
+				}
+			}
+		}
+	}
+	return path, show(a), show(b), false
+}
+
+func showAt(l []any, i int) string {
+	if i < len(l) {
+		return show(l[i])
+	}
+	return "<missing>"
+}
+
+func showPresent(v any, present bool) string {
+	if !present {
+		return "<missing>"
+	}
+	return show(v)
+}
+
+func show(v any) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Sprint(v)
+	}
+	return clip(string(b))
 }
 
 func clip(s string) string {
@@ -207,7 +345,8 @@ func reasons(d []Dropped) []string {
 
 // TestSupportMapKeyedByExactTarget pins that the per-node supported map is
 // keyed by the exact target string the caller used: supported.URI = false
-// drops the node for URI and keeps it for uri.
+// drops the node for URI and keeps it for uri, and so on for every name each
+// specification lists.
 func TestSupportMapKeyedByExactTarget(t *testing.T) {
 	for _, tc := range []struct {
 		key     string
@@ -218,11 +357,16 @@ func TestSupportMapKeyedByExactTarget(t *testing.T) {
 		{"uri", []string{"uri"}, []string{"URI"}},
 		{"V2Ray", []string{"V2Ray"}, []string{"v2ray", "v2"}},
 		{"v2", []string{"v2"}, []string{"V2Ray", "v2ray"}},
+		{"JSON", []string{"JSON"}, []string{"json"}},
+		{"sing-box", []string{"sing-box"}, []string{"singbox"}},
+		{"ClashMeta", []string{"ClashMeta"}, []string{"clashmeta", "meta", "clash.meta", "Clash.Meta", "mihomo", "Mihomo"}},
+		{"mihomo", []string{"mihomo"}, []string{"ClashMeta", "Mihomo"}},
 	} {
 		n := node(with(socks5("s1"), map[string]any{"supported": map[string]any{tc.key: false}}))
 		for _, target := range tc.drops {
+			p, _ := Lookup(target)
 			out, res := produce(t, target, []*nodemodel.Node{n}, nil)
-			if out != "" || res.Entries != 0 || !slices.Equal(reasons(res.Dropped), []string{"0:" + ReasonSupportMap}) {
+			if out != string(p.EmptyDocument(nil)) || res.Entries != 0 || !slices.Equal(reasons(res.Dropped), []string{"0:" + ReasonSupportMap}) {
 				t.Errorf("supported.%s=false for %s: output %q, entries %d, dropped %v; want the node dropped by the support map", tc.key, target, out, res.Entries, res.Dropped)
 			}
 		}
@@ -246,13 +390,21 @@ func TestSupportMapKeyedByExactTarget(t *testing.T) {
 // producers answer: each specification's names and the harness ids, exactly
 // as written, and nothing for the nine bundle targets.
 func TestLookupAcceptsExactNamesOnly(t *testing.T) {
-	for target, id := range map[string]string{"URI": "uri", "uri": "uri", "V2Ray": "v2ray", "v2ray": "v2ray", "v2": "v2ray"} {
+	for target, id := range map[string]string{
+		"URI": "uri", "uri": "uri", "V2Ray": "v2ray", "v2ray": "v2ray", "v2": "v2ray",
+		"JSON": "json", "json": "json", "sing-box": "singbox", "singbox": "singbox",
+		"ClashMeta": "clashmeta", "clashmeta": "clashmeta", "meta": "clashmeta", "clash.meta": "clashmeta",
+		"Clash.Meta": "clashmeta", "mihomo": "clashmeta", "Mihomo": "clashmeta",
+	} {
 		p, ok := Lookup(target)
 		if !ok || p.ID() != id {
 			t.Errorf("Lookup(%q) = %v, %v; want the %s producer", target, p, ok, id)
 		}
 	}
-	for _, target := range []string{"Uri", "V2RAY", "v2rayN", "", "Stash", "Surge", "SurgeMac", "Loon", "Shadowrocket", "QX", "Egern", "Surfboard", "Clash"} {
+	for _, target := range []string{
+		"Uri", "V2RAY", "v2rayN", "", "Json", "SING-BOX", "Sing-Box", "sing_box", "Meta", "MIHOMO", "clashMeta", "ClashMETA",
+		"Stash", "Surge", "SurgeMac", "Loon", "Shadowrocket", "QX", "Egern", "Surfboard", "Clash", "clash",
+	} {
 		if Native(target) {
 			t.Errorf("Native(%q) = true; want the bundle to answer it", target)
 		}
@@ -262,7 +414,10 @@ func TestLookupAcceptsExactNamesOnly(t *testing.T) {
 // TestZeroNodeCountsEntriesNotText pins the zero-node rule: a document is
 // empty when the producer wrote no entry, whatever its text. V2Ray gives
 // nodes without a URI form an empty line, so two of them encode to "Cg==",
-// which is not the empty document and still holds no link.
+// which is not the empty document and still holds no link. sing-box and
+// ClashMeta write a skeleton when every node is dropped, which is not the
+// empty string either, and sing-box counts entries, so a chained node counts
+// twice.
 func TestZeroNodeCountsEntriesNotText(t *testing.T) {
 	httpNode := func(name string) *nodemodel.Node {
 		return node(map[string]any{"type": "http", "name": name, "server": "192.0.2.2", "port": float64(8080), "udp": false})
@@ -292,6 +447,38 @@ func TestZeroNodeCountsEntriesNotText(t *testing.T) {
 	out, res = produce(t, "URI", unsupported, nil)
 	if out != "" || res.Entries != 0 {
 		t.Errorf("URI of two http nodes: output %q, entries %d; want the empty string and 0 entries", out, res.Entries)
+	}
+
+	// Skeletons: every node dropped leaves the empty document, never "".
+	direct := func(name string) *nodemodel.Node {
+		return node(map[string]any{"type": "direct", "name": name, "udp": true})
+	}
+	juicity := func(name string) *nodemodel.Node {
+		return node(map[string]any{"type": "juicity", "name": name, "server": "192.0.2.9", "port": float64(443), "uuid": "u", "password": "p", "udp": true})
+	}
+	for _, tc := range []struct {
+		target string
+		nodes  []*nodemodel.Node
+		opts   Options
+		want   string
+	}{
+		{"sing-box", []*nodemodel.Node{direct("d1"), direct("d2")}, nil, "{\n  \"outbounds\": [],\n  \"endpoints\": []\n}"},
+		{"ClashMeta", []*nodemodel.Node{juicity("j1"), juicity("j2")}, nil, "proxies:\n"},
+		{"ClashMeta", []*nodemodel.Node{juicity("j1"), juicity("j2")}, Options{"prettyYaml": true}, "proxies: []\n"},
+		{"JSON", []*nodemodel.Node{node(with(socks5("s"), map[string]any{"supported": map[string]any{"JSON": false}}))}, nil, "[]"},
+	} {
+		out, res := produce(t, tc.target, tc.nodes, tc.opts)
+		p, _ := Lookup(tc.target)
+		if out != tc.want || out != string(p.EmptyDocument(tc.opts)) || res.Entries != 0 || len(res.Dropped) != len(tc.nodes) {
+			t.Errorf("%s %v of dropped nodes: output %q, entries %d, dropped %v; want the skeleton %q and 0 entries", tc.target, tc.opts, out, res.Entries, res.Dropped, tc.want)
+		}
+	}
+
+	// A shadow-tls Shadowsocks node is two sing-box entries.
+	chained := node(map[string]any{"type": "ss", "name": "c", "server": "192.0.2.10", "port": float64(443), "cipher": "aes-128-gcm", "password": "p", "udp": true,
+		"plugin": "shadow-tls", "plugin-opts": map[string]any{"host": "h.example.com", "password": "q", "version": float64(3)}})
+	if out, res := produce(t, "sing-box", []*nodemodel.Node{chained}, nil); res.Entries != 2 || !strings.Contains(out, `"c_shadowtls"`) {
+		t.Errorf("sing-box of one shadow-tls node: entries %d, output %q; want the outbound and its helper", res.Entries, out)
 	}
 }
 
@@ -344,6 +531,31 @@ func TestIncludeUnsupportedProxy(t *testing.T) {
 	if _, res := produce(t, "URI", nodes, Options{"include-unsupported-proxy": ""}); res.Entries != 0 {
 		t.Errorf(`include-unsupported-proxy "": %d entries, want 0`, res.Entries)
 	}
+
+	// ClashMeta: the option also skips the whole admission filter (juicity
+	// is A9), and broken Reality still goes.
+	meta := []*nodemodel.Node{
+		node(map[string]any{"type": "juicity", "name": "j", "server": "192.0.2.11", "port": float64(443), "uuid": "u", "password": "p", "udp": true}),
+		nodes[2], nodes[3],
+	}
+	_, res = produce(t, "ClashMeta", meta, nil)
+	if want := []string{"0:" + ReasonUnsupported, "1:" + ReasonSSTLS, "2:" + ReasonBrokenReality}; res.Entries != 0 || !slices.Equal(reasons(res.Dropped), want) {
+		t.Errorf("ClashMeta without the option: entries %d, dropped %v; want %v", res.Entries, reasons(res.Dropped), want)
+	}
+	out, res = produce(t, "ClashMeta", meta, opts)
+	if want := []string{"2:" + ReasonBrokenReality}; res.Entries != 2 || !slices.Equal(reasons(res.Dropped), want) || !strings.Contains(out, `"type":"juicity"`) {
+		t.Errorf("ClashMeta with the option: entries %d, dropped %v, output %q; want juicity and ss kept, %v", res.Entries, reasons(res.Dropped), out, want)
+	}
+
+	// sing-box: the option lifts F8, so ssr converts.
+	ssr := []*nodemodel.Node{node(map[string]any{"type": "ssr", "name": "r", "server": "192.0.2.12", "port": float64(443), "cipher": "aes-128-cfb",
+		"password": "p", "obfs": "plain", "protocol": "origin", "udp": true})}
+	if _, res := produce(t, "sing-box", ssr, nil); res.Entries != 0 || !slices.Equal(reasons(res.Dropped), []string{"0:" + ReasonUnsupported}) {
+		t.Errorf("sing-box ssr without the option: entries %d, dropped %v; want it dropped as unsupported", res.Entries, reasons(res.Dropped))
+	}
+	if out, res := produce(t, "sing-box", ssr, opts); res.Entries != 1 || !strings.Contains(out, `"type": "shadowsocksr"`) {
+		t.Errorf("sing-box ssr with the option: entries %d, output %q; want a shadowsocksr outbound", res.Entries, out)
+	}
 }
 
 // TestWalksWriteAddedSNILast pins the field order of the parameter walks
@@ -379,26 +591,158 @@ func TestWalksWriteAddedSNILast(t *testing.T) {
 	}
 }
 
-// TestProduceLeavesCallerNodesUntouched pins that the steps and the URI
-// preparation work on copies: filling a name, a port and sni, and removing
-// fields, never reaches the caller's node.
+// TestProduceLeavesCallerNodesUntouched pins that the steps, the URI
+// preparation and the ClashMeta transforms work on copies: filling a name, a
+// port and sni, removing fields, and writing inside ws-opts, plugin-opts,
+// h2-opts, grpc-opts and the xhttp download settings never reach the
+// caller's node.
 func TestProduceLeavesCallerNodesUntouched(t *testing.T) {
-	fields := map[string]any{"type": "hysteria2", "name": " ", "server": "192.0.2.8", "ports": "20000-20010/30000", "password": "p",
-		"disable-sni": true, "tls": true, "udp": true, "id": "x", "resolved": nil}
-	n := node(fields)
-	before, err := n.MarshalJSON()
-	if err != nil {
-		t.Fatal(err)
+	nodes := []*nodemodel.Node{
+		node(map[string]any{"type": "hysteria2", "name": " ", "server": "192.0.2.8", "ports": "20000-20010/30000", "password": "p",
+			"disable-sni": true, "tls": true, "udp": true, "id": "x", "resolved": nil}),
+		node(map[string]any{"type": "vmess", "name": "ws", "server": "192.0.2.20", "port": float64(443), "uuid": "u", "cipher": "auto", "alterId": float64(0),
+			"network": "ws", "tls": true, "udp": true, "ws-opts": map[string]any{"path": "/ws?ed=2048", "headers": map[string]any{"Host": "h.example.com"}}}),
+		node(map[string]any{"type": "ss", "name": "plugin", "server": "192.0.2.21", "port": float64(443), "cipher": "aes-128-gcm", "password": "p",
+			"skip-cert-verify": true, "udp": true, "plugin": "v2ray-plugin",
+			"plugin-opts": map[string]any{"mode": "websocket", "tls": true, "mux": "true", "host": "w.example.com"}}),
+		node(map[string]any{"type": "vless", "name": "h2", "server": "192.0.2.22", "port": float64(443), "uuid": "u", "network": "h2", "tls": true, "udp": true,
+			"h2-opts": map[string]any{"path": []any{"/a", "/b"}, "headers": map[string]any{"Host": "h2.example.com"}}}),
+		node(map[string]any{"type": "vless", "name": "grpc", "server": "192.0.2.23", "port": float64(443), "uuid": "u", "network": "grpc", "tls": true, "udp": true,
+			"grpc-opts": map[string]any{"grpc-service-name": "s", "_grpc-type": "gun"}}),
+		node(map[string]any{"type": "vless", "name": "xhttp", "server": "192.0.2.24", "port": float64(443), "uuid": "u", "network": "xhttp", "tls": true, "udp": true,
+			"reality-opts": map[string]any{"public-key": "k"},
+			"xhttp-opts":   map[string]any{"mode": "packet-up", "download-settings": map[string]any{"server": "192.0.2.25", "tls": true}}}),
+		node(map[string]any{"type": "snell", "name": "snell", "server": "192.0.2.26", "port": float64(443), "psk": "k", "version": float64(4), "udp": true,
+			"plugin": "shadow-tls", "plugin-opts": map[string]any{"host": "s.example.com", "password": "q", "version": float64(3)}}),
+		node(map[string]any{"type": "trojan", "name": "st", "server": "192.0.2.27", "port": float64(443), "password": "p", "network": "tcp", "tls": true, "udp": true,
+			"plugin": "shadow-tls", "plugin-opts": map[string]any{"host": "t.example.com", "password": "q", "version": float64(3), "alpn": []any{"h2"}}}),
 	}
-	for _, target := range []string{"URI", "V2Ray"} {
-		produce(t, target, []*nodemodel.Node{n}, nil)
+	before := make([][]byte, len(nodes))
+	for i, n := range nodes {
+		var err error
+		if before[i], err = n.MarshalJSON(); err != nil {
+			t.Fatal(err)
+		}
 	}
-	after, err := n.MarshalJSON()
-	if err != nil {
-		t.Fatal(err)
+	for _, target := range harnessTargets {
+		for _, opts := range []Options{nil, {"include-unsupported-proxy": true, "prettyYaml": true}} {
+			produce(t, target.platform, nodes, opts)
+		}
 	}
-	if !bytes.Equal(before, after) {
-		t.Errorf("producing changed the caller's node:\n before %s\n after  %s", before, after)
+	ClashMetaInternal(nodes, nil)
+	for i, n := range nodes {
+		after, err := n.MarshalJSON()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(before[i], after) {
+			t.Errorf("producing changed the caller's node:\n before %s\n after  %s", before[i], after)
+		}
+	}
+}
+
+// TestClashMetaInternalKeepsWhatT20Removes pins the internal mode the
+// sing-box producer runs: every node passes (no admission filter), the
+// transforms run, and T20 does not, so null values and underscore keys that
+// sing-box reads stay on the node while the text form removes them.
+func TestClashMetaInternalKeepsWhatT20Removes(t *testing.T) {
+	in := []*nodemodel.Node{
+		node(map[string]any{"type": "juicity", "name": "j", "server": "192.0.2.30", "port": float64(443), "udp": true}),
+		node(map[string]any{"type": "trojan", "name": "t", "server": "192.0.2.31", "port": float64(443), "password": "p", "network": "tcp", "tls": true,
+			"udp": true, "_dns_server": "d", "client-fingerprint": nil, "tls-fingerprint": "ab", "id": "7"}),
+	}
+	out := ClashMetaInternal(in, nil)
+	if len(out) != 2 || out[0].Fields["type"] != "juicity" {
+		t.Fatalf("ClashMetaInternal dropped or reordered nodes: %v", out)
+	}
+	f := out[1].Fields
+	if _, ok := f["client-fingerprint"]; !ok || f["_dns_server"] != "d" {
+		t.Errorf("internal mode removed what T20 removes: %v", f)
+	}
+	if _, ok := f["tls"]; ok || f["fingerprint"] != "ab" || f["id"] != nil {
+		t.Errorf("internal mode skipped T15, T16 or T19: %v", f)
+	}
+	text, _ := produce(t, "ClashMeta", in[1:], nil)
+	if strings.Contains(text, "_dns_server") || strings.Contains(text, "client-fingerprint") {
+		t.Errorf("the text form kept what T20 removes: %s", text)
+	}
+}
+
+// TestPrettyYAMLShortIDRewrite pins the pretty form's textual short-id
+// rewrite (clashmeta.md, "Output shape"): a plain short id is quoted, a
+// quoted one, null and an empty value keep or gain their quotes, and the
+// rewrite also reaches a name that contains "short-id:", which leaves text
+// that is not valid YAML. The default form has no rewrite, so a numeric short
+// id (reachable only through scripts) stays a number there.
+func TestPrettyYAMLShortIDRewrite(t *testing.T) {
+	for in, want := range map[string]string{
+		"short-id: 49afd48f\n":           "short-id: \"49afd48f\"\n",
+		"short-id: \"08\"\n":             "short-id: \"08\"\n",
+		"short-id: '08'\n":               "short-id: '08'\n",
+		"short-id: null\n":               "short-id: null\n",
+		"short-id:\n":                    "short-id: \"\"\n",
+		"short-id:    \n":                "short-id: \"\"\n",
+		"short-id: \"\n":                 "short-id: \"\"\"\n",
+		"{short-id: ab, x: 1}":           "{short-id: \"ab\", x: 1}",
+		"short-id: ab # c\nshort-id: cd": "short-id: \"ab\"# c\nshort-id: \"cd\"",
+		"name: \"short-id: x\"\n":        "name: \"short-id: \"x\"\"\n",
+		"proxies: []\n":                  "proxies: []\n",
+	} {
+		if got := string(rewriteShortID([]byte(in))); got != want {
+			t.Errorf("rewriteShortID(%q) = %q, want %q", in, got, want)
+		}
+	}
+
+	reality := func(name string, shortID any) *nodemodel.Node {
+		return node(map[string]any{"type": "vless", "name": name, "server": "192.0.2.40", "port": float64(443), "uuid": "u", "network": "tcp",
+			"tls": true, "udp": true, "client-fingerprint": "chrome", "reality-opts": map[string]any{"public-key": "k", "short-id": shortID}})
+	}
+	for _, key := range []string{"prettyYaml", "pretty-yaml"} {
+		out, res := produce(t, "ClashMeta", []*nodemodel.Node{reality("n", float64(1234)), reality("short-id: x", "ab")}, Options{key: true})
+		if res.Entries != 2 || !strings.Contains(out, "\n      short-id: \"1234\"\n") || !strings.Contains(out, "\n      short-id: \"ab\"\n") ||
+			!strings.Contains(out, "\n    name: \"short-id: \"x\"\"\n") || !strings.HasPrefix(out, "proxies:\n  - ") {
+			t.Errorf("%s: pretty form\n%s\nwant both short ids quoted and the name corrupted as upstream corrupts it", key, out)
+		}
+		if err := yaml.Unmarshal([]byte(out), new(any)); err == nil {
+			t.Errorf("%s: the corrupted name still reads as YAML:\n%s", key, out)
+		}
+	}
+	out, _ := produce(t, "ClashMeta", []*nodemodel.Node{reality("n", float64(1234))}, nil)
+	if !strings.Contains(out, `"short-id":1234`) {
+		t.Errorf("default form: %q; want the numeric short id left a number", out)
+	}
+}
+
+// TestSingBoxPluginOptsKeyOrder pins the order plugin_opts walks plugin-opts
+// in, with the two checked lines of singbox.md ("ss plugins"): the received
+// keys ascending, then skip-cert-verify from the ClashMeta pass's T14, then
+// the node-level host and path.
+func TestSingBoxPluginOptsKeyOrder(t *testing.T) {
+	for _, tc := range []struct {
+		fields map[string]any
+		want   string
+	}{
+		{
+			map[string]any{"plugin-opts": map[string]any{"mode": "websocket", "host": "w.example.com", "path": "/p", "tls": true, "mux": true}},
+			"host=w.example.com;mode=websocket;mux=1;path=/p;tls;skip-cert-verify=true",
+		},
+		{
+			map[string]any{"plugin-opts": map[string]any{"mode": "websocket", "tls": true}, "ws-host": "wh.example.com", "ws-path": "/wp"},
+			"mode=websocket;tls;skip-cert-verify=true;host=wh.example.com;path=/wp",
+		},
+	} {
+		n := node(with(map[string]any{"type": "ss", "name": "v", "server": "192.0.2.50", "port": float64(443), "cipher": "aes-128-gcm", "password": "p",
+			"udp": true, "plugin": "v2ray-plugin", "skip-cert-verify": true}, tc.fields))
+		out, _ := produce(t, "sing-box", []*nodemodel.Node{n}, nil)
+		var doc struct {
+			Outbounds []map[string]any `json:"outbounds"`
+		}
+		if err := json.Unmarshal([]byte(out), &doc); err != nil || len(doc.Outbounds) != 1 {
+			t.Fatalf("sing-box output %q: %v", out, err)
+		}
+		if got := doc.Outbounds[0]["plugin_opts"]; got != tc.want {
+			t.Errorf("plugin_opts = %q, want %q", got, tc.want)
+		}
 	}
 }
 
@@ -410,6 +754,7 @@ func TestProducersImportOnlyModelPackages(t *testing.T) {
 	allowed := []string{
 		"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel",
 		"github.com/LatticeNet/lattice-plugin-sub-store/system-go/normalise",
+		"gopkg.in/yaml.v3",
 	}
 	files, err := filepath.Glob("*.go")
 	if err != nil {
@@ -450,7 +795,7 @@ func BenchmarkProduce4096(b *testing.B) {
 		b.Run(target.id, func(b *testing.B) {
 			p, ok := Lookup(target.platform)
 			if !ok {
-				b.Skipf("pending: %s", pendingTargets[target.id])
+				b.Fatalf("%s has no native producer", target.platform)
 			}
 			nodes := make([]*nodemodel.Node, len(raw))
 			for i, r := range raw {

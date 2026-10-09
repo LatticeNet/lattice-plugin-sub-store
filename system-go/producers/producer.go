@@ -90,8 +90,11 @@ var targetIDs = map[string]string{
 // registry holds the producers that exist, by harness id. A target whose id
 // has no producer here is answered by the bundle.
 var registry = map[string]Producer{
-	"uri":   uriProducer{},
-	"v2ray": v2rayProducer{},
+	"uri":       uriProducer{},
+	"v2ray":     v2rayProducer{},
+	"json":      jsonProducer{},
+	"clashmeta": clashMetaProducer{},
+	"singbox":   singBoxProducer{},
 }
 
 // Lookup maps a caller target string to its producer. It accepts the platform

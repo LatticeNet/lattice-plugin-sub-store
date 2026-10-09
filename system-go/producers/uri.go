@@ -82,13 +82,13 @@ func uriLine(p prepared) (string, error) {
 	case "hysteria2":
 		return hysteria2Line(f), nil
 	case "hysteria":
-		return hysteriaLine(f, p.addedSNI), nil
+		return hysteriaLine(f, p.added), nil
 	case "tuic":
-		return tuicLine(f, p.addedSNI)
+		return tuicLine(f, p.added)
 	case "anytls":
-		return anytlsLine(f, p.addedSNI)
+		return anytlsLine(f, p.added)
 	case "wireguard":
-		return wireguardLine(f, p.addedSNI), nil
+		return wireguardLine(f, p.added), nil
 	}
 	return "", errNoForm
 }
@@ -925,19 +925,6 @@ func hysteria2Line(f map[string]any) string {
 	return "hysteria2://" + encodeComponent(textOf(f, "password")) + "@" + authority(f) + "?" + q.String() + fragment(f)
 }
 
-// walkOrder is the order the parameter walks visit a node's fields: the
-// fields the producer received in ECMAScript property order, then sni when
-// the disable-sni step added it (uri.md, "Input").
-func walkOrder(f map[string]any, addedSNI bool) []string {
-	keys := propertyOrder(f)
-	if addedSNI {
-		if i := slices.Index(keys, "sni"); i >= 0 {
-			keys = append(append(keys[:i:i], keys[i+1:]...), "sni")
-		}
-	}
-	return keys
-}
-
 // firstOrText is "the first element, or the string": a list's first element
 // (undefined for an empty list), any other value as it is, as text.
 func firstOrText(v any) string {
@@ -950,10 +937,10 @@ func firstOrText(v any) string {
 	return text(v)
 }
 
-func hysteriaLine(f map[string]any, addedSNI bool) string {
+func hysteriaLine(f map[string]any, added []string) string {
 	var q query
 	fastOpen := false
-	for _, k := range walkOrder(f, addedSNI) {
+	for _, k := range keyOrder(f, added) {
 		v := f[k]
 		switch k {
 		case "name", "type", "server", "port":
@@ -993,13 +980,13 @@ func hysteriaLine(f map[string]any, addedSNI bool) string {
 	return "hysteria://" + authority(f) + "?" + q.String() + fragment(f)
 }
 
-func tuicLine(f map[string]any, addedSNI bool) (string, error) {
+func tuicLine(f map[string]any, added []string) (string, error) {
 	if set(f, "token") {
 		return "", fmt.Errorf("tuic v4 token node: %w", errNoForm)
 	}
 	var q query
 	fastOpen := false
-	for _, k := range walkOrder(f, addedSNI) {
+	for _, k := range keyOrder(f, added) {
 		v := f[k]
 		switch k {
 		case "name", "type", "uuid", "password", "server", "port", "tls":
@@ -1039,7 +1026,7 @@ func tuicLine(f map[string]any, addedSNI bool) (string, error) {
 // anytlsLine builds the VLESS line of a copy of the node, renames its
 // scheme, and merges the node's own fields into its query (uri.md,
 // "anytls").
-func anytlsLine(f map[string]any, addedSNI bool) (string, error) {
+func anytlsLine(f map[string]any, added []string) (string, error) {
 	c := make(map[string]any, len(f)+1)
 	for k, v := range f {
 		c[k] = v
@@ -1059,7 +1046,7 @@ func anytlsLine(f map[string]any, addedSNI bool) (string, error) {
 	base = strings.Replace(base, "vless", "anytls", 1)
 
 	var extra query
-	for _, k := range walkOrder(f, addedSNI) {
+	for _, k := range keyOrder(f, added) {
 		v := f[k]
 		switch k {
 		case "name", "type", "password", "server", "port", "tls":
@@ -1117,9 +1104,9 @@ func anytlsLine(f map[string]any, addedSNI bool) (string, error) {
 	return head + "?" + strings.Join(pairs, "&") + frag, nil
 }
 
-func wireguardLine(f map[string]any, addedSNI bool) string {
+func wireguardLine(f map[string]any, added []string) string {
 	var q query
-	for _, k := range walkOrder(f, addedSNI) {
+	for _, k := range keyOrder(f, added) {
 		v := f[k]
 		switch k {
 		case "name", "type", "server", "port", "ip", "ipv6", "ip-cidr", "ipv6-cidr", "private-key":

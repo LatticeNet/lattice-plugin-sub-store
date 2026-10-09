@@ -54,10 +54,26 @@ type prepared struct {
 	// the caller, so a producer that changes one copies it first
 	// (nodemodel.CloneValue).
 	node *nodemodel.Node
-	// addedSNI says the disable-sni step created sni. It is the one field a
-	// step adds that a parameter walk writes, and the walks write it after
-	// the fields the node already had (uri.md, "Input").
-	addedSNI bool
+	// added lists the top-level keys created after the producer received
+	// the node, by the steps and then by the producer's own transforms, in
+	// creation order (put). Producers that keep upstream's key order write
+	// them after the received keys (keyOrder); of the steps' keys only sni
+	// reaches a URI parameter walk (uri.md, "Input").
+	added []string
+}
+
+// ordered is the node's fields with their keys in keyOrder, for the
+// producers that write upstream's key order.
+func (p *prepared) ordered() *object {
+	return &object{keys: keyOrder(p.node.Fields, p.added), vals: p.node.Fields}
+}
+
+// put writes a top-level field and records it as created when it is new.
+func (p *prepared) put(key string, v any) {
+	if _, ok := p.node.Fields[key]; !ok {
+		p.added = append(p.added, key)
+	}
+	p.node.Fields[key] = v
 }
 
 // prepare runs the steps for target, the exact string the caller used, with
@@ -86,23 +102,21 @@ func prepare(nodes []*nodemodel.Node, target, id string, opts Options) ([]prepar
 		// Resolved marker: _resolved mirrors resolved whenever resolved is
 		// present, null included (json.md).
 		if v, ok := f["resolved"]; ok {
-			f["_resolved"] = v
+			p.put("_resolved", v)
 		}
 
 		// Name fill, with port as it is before port hopping fills it.
 		if !notBlank(f["name"]) {
-			f["name"] = textOf(f, "type") + " " + textOf(f, "server") + ":" + textOf(f, "port")
+			p.put("name", textOf(f, "type")+" "+textOf(f, "server")+":"+textOf(f, "port"))
 		}
 
 		if rules.disableSNI && set(f, "disable-sni") && f["type"] != "tuic" {
-			_, had := f["sni"]
 			server, _ := f["server"].(string)
 			if normalise.IsIPv4Literal(server) || normalise.IsIPv6Literal(server) {
-				f["sni"] = server
+				p.put("sni", server)
 			} else {
-				f["sni"] = "127.0.0.1"
+				p.put("sni", "127.0.0.1")
 			}
-			p.addedSNI = !had
 		}
 
 		if set(f, "ports") {
@@ -112,12 +126,22 @@ func prepare(nodes []*nodemodel.Node, target, id string, opts Options) ([]prepar
 			}
 			f["ports"] = ports
 			if !set(f, "port") {
-				f["port"] = drawPort(ports)
+				p.put("port", drawPort(ports))
 			}
 		}
 
 		if f["type"] == "wireguard" {
+			_, hadV4 := f["ip-cidr"]
+			_, hadV6 := f["ipv6-cidr"]
 			normalise.WireGuardInterface(f)
+			for _, k := range [...]struct {
+				key string
+				had bool
+			}{{"ip-cidr", hadV4}, {"ipv6-cidr", hadV6}} {
+				if _, has := f[k.key]; has && !k.had {
+					p.added = append(p.added, k.key)
+				}
+			}
 		}
 		out = append(out, p)
 	}
