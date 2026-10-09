@@ -118,7 +118,7 @@ describe("the message tables", () => {
     expect(all.length).toBeGreaterThan(900);
     for (const [path, text] of all) {
       expect(text.trim(), path).not.toBe("");
-      expect(text, path).not.toMatch(/[–—]/);
+      expect(text, path).not.toMatch(/[\u2013\u2014]/);
     }
   });
 
@@ -265,9 +265,14 @@ describe("Intl formatting follows the locale", () => {
     expect(formatExpiry(at(1), NOW)).toBe("明天到期");
     expect(formatExpiry({ expire: Math.floor((NOW - 3 * DAY) / 1000) }, NOW)).toBe("3天前已到期");
     await setLocale("ru");
-    expect(formatExpiry(at(6), NOW)).toBe("истекает через 6 дней");
+    // Days left, counted, so the table cell stays short; tomorrow and today in words.
+    expect(formatExpiry(at(6), NOW)).toBe("осталось 6 дней");
+    expect(formatExpiry(at(3), NOW)).toBe("осталось 3 дня");
+    expect(formatExpiry(at(21), NOW)).toBe("остался 21 день");
     expect(formatExpiry(at(1), NOW)).toBe("истекает завтра");
-    expect(formatExpiry({ expire: Math.floor((NOW - 3 * DAY) / 1000) }, NOW)).toBe("истекла 3 дня назад");
+    expect(formatExpiry(at(90), NOW)).toMatch(/^до 8 нояб\. 2026/);
+    expect(formatExpiry({ expire: Math.floor((NOW - 3 * DAY) / 1000) }, NOW)).toBe("истекла 3 дн. назад");
+    expect(formatExpiry({ expire: Math.floor((NOW - 21 * DAY) / 1000) }, NOW)).toBe("истекла 21 дн. назад");
   });
 
   it("writes sizes, percentages and ages with the locale's numbers and units", async () => {
@@ -289,6 +294,9 @@ describe("Intl formatting follows the locale", () => {
     expect(["Яблоко", "арбуз", "Борщ"].sort(compareText)).toEqual(["арбуз", "Борщ", "Яблоко"]);
     expect(formatList(["a", "b", "c"])).toBe("a, b и c");
     await setLocale("zh-CN");
-    expect(formatList(["a", "b", "c"])).toBe("a、b和c");
+    // 和 keeps a space from Latin text and digits, as the table does, and none from Chinese.
+    expect(formatList(["a", "b", "c"])).toBe("a、b 和 c");
+    expect(formatList(["1 个组合", "1 个文件"])).toBe("1 个组合和 1 个文件");
+    expect(formatList(["来源", "组合"])).toBe("来源和组合");
   });
 });

@@ -1479,7 +1479,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                     </span>
                     <span v-else-if="cell(row).expiry.state === 'unreported'" class="pc-td-body layer-muted">{{ t.records.notReported }}</span>
                   </td>
-                  <td data-stack="state" :data-label="t.records.colLastFetch" :title="cell(row).fetch ? undefined : t.refresh.notFetched">
+                  <td data-stack="state" class="rec-fetch" :data-label="t.records.colLastFetch" :title="cell(row).fetch ? undefined : t.refresh.notFetched">
                     <span v-if="cell(row).fetch" class="pc-td-body">
                       <PcStateDot
                         :tone="tone(cell(row).fetch!.tone)"

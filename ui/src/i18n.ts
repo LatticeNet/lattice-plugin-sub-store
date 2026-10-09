@@ -1,14 +1,17 @@
 /**
  * i18n.ts, the page in English, simplified Chinese and Russian.
  *
- * A typed message table in our own code rather than vue-i18n. That library
- * compiles each message at run time with `new Function`, and the frame's
- * policy refuses it: the console serves plugin documents with
+ * A typed message table in our own code rather than vue-i18n. The frame
+ * refuses code built from strings: the console serves plugin documents with
  * `script-src 'self' <console origin>` and no 'unsafe-eval'
  * (lattice-server internal/server/server_plugin_assets.go, pluginAssetCSP).
- * Here every message is a plain string or a function of its values, so
- * nothing is parsed at run time, and a key missing from any locale is a type
- * error (each table is declared as `Messages`, the English table's type).
+ * vue-i18n before 9.3 compiled messages with eval and would not run there;
+ * its JIT compiler (the default from v10) would, but it still parses every
+ * message at run time, needs a custom rule for Russian plurals, and checks
+ * keys but not the values a message takes. Here every message is a plain
+ * string or a function of its values, so nothing is parsed at run time, and
+ * a key missing from any locale, or a message taking different values, is a
+ * type error (each table is declared as `Messages`, the English table's type).
  *
  * The locale is the host's: HostInit.locale, a BCP 47 tag, matched by its
  * language. Any language other than Chinese or Russian reads English, and so
@@ -224,12 +227,25 @@ export function compareText(a: string, b: string): number {
 
 const listFormats = new Map<string, Intl.ListFormat>();
 
-/** "a, b and c" in the active locale's words. */
+/**
+ * "a, b and c" in the active locale's words. Chinese joins the last two with
+ * 和 and no space, so where 和 meets Latin text or a digit ("1 个组合和 1 个
+ * 文件") the space the table keeps between them is put back.
+ */
 export function formatList(items: readonly string[]): string {
   let format = listFormats.get(active.value);
   if (!format) {
     format = new Intl.ListFormat(active.value, { type: "conjunction" });
     listFormats.set(active.value, format);
   }
-  return format.format(items);
+  if (active.value !== "zh-CN") return format.format(items);
+  const parts = format.formatToParts(items);
+  return parts
+    .map((part, at) => {
+      if (part.type !== "literal" || part.value !== "和") return part.value;
+      const before = /[A-Za-z0-9]$/.test(parts[at - 1]?.value ?? "") ? " " : "";
+      const after = /^[A-Za-z0-9]/.test(parts[at + 1]?.value ?? "") ? " " : "";
+      return `${before}和${after}`;
+    })
+    .join("");
 }

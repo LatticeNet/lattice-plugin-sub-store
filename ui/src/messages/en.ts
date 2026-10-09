@@ -108,12 +108,15 @@ export const en = {
   provider: {
     usage: (used: string, total: string, percent: string) => `${used} of ${total} · ${percent}`,
     usedOnly: (used: string) => `${used} used`,
-    /** `when` is a day count in words: "today", "tomorrow", "in 6 days". */
-    expiresIn: (when: string) => `expires ${when}`,
+    /**
+     * `days` is the whole days left, for a locale that counts them ("6 days
+     * left"); `when` is the same in words: "today", "tomorrow", "in 6 days".
+     */
+    expiresIn: (_days: number, when: string) => `expires ${when}`,
     expiresOn: (date: string) => `expires ${date}`,
     expiredToday: "expired today",
-    /** `when` is "3 days ago". */
-    expiredAgo: (when: string) => `expired ${when}`,
+    /** `days` is the whole days since, counted; `when` is "3 days ago". */
+    expiredAgo: (_days: number, when: string) => `expired ${when}`,
     noExpiryTitle: "The provider reported traffic and no expiry.",
     saysTitle: (expiry: string) => `The provider says this subscription ${expiry}.`,
     expiredTitle: (expiry: string) => `The provider says this subscription ${expiry}; it may serve nothing now.`,

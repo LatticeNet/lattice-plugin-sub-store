@@ -125,9 +125,9 @@ export function formatExpiry(figures: ProviderFigures | null, now: number): stri
   if (days === null) return "";
   if (days < 0) {
     if (now - figures!.expire! * 1000 < DAY_MS) return t.provider.expiredToday;
-    return t.provider.expiredAgo(formatDays(days));
+    return t.provider.expiredAgo(-days, formatDays(days));
   }
-  if (days <= 60) return t.provider.expiresIn(formatDays(days));
+  if (days <= 60) return t.provider.expiresIn(days, formatDays(days));
   return t.provider.expiresOn(formatDate(figures!.expire! * 1000));
 }
 

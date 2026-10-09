@@ -10,7 +10,7 @@
  * the type check.
  */
 import type { Messages } from "./en";
-import { pluralIn, type RussianForms } from "./format";
+import { numberFormat, pluralIn, type RussianForms } from "./format";
 
 const plural = pluralIn<RussianForms>("ru");
 
@@ -81,11 +81,11 @@ export const ru: Messages = {
   publish: {
     unread: "не прочитано",
     unreadTitle: "Список публикаций ещё не прочитан.",
-    none: "не опубликовано",
+    none: "нет публикации",
     noneTitle: "Для этой записи нет публикации, поэтому ни один клиент не может её получить.",
     servedAt: (path, more) => `Доступно по адресу ${path}${more > 0 ? ` и ещё по ${more}` : ""}.`,
-    expiredLabel: (path) => `${path}: срок истёк`,
-    disabledLabel: (path) => `${path}: отключена`,
+    expiredLabel: (path) => `${path} истекла`,
+    disabledLabel: (path) => `${path} отключена`,
     expiredTitle: "Публикация есть, но срок её действия истёк; клиенты, которые её запрашивают, ничего не получают.",
     disabledTitle: "Публикация есть, но отключена; клиенты, которые её запрашивают, ничего не получают.",
   },
@@ -118,13 +118,15 @@ export const ru: Messages = {
   provider: {
     usage: (used, total, percent) => `${used} из ${total} · ${percent}`,
     usedOnly: (used) => `использовано ${used}`,
-    expiresIn: (when) => `истекает ${when}`,
-    expiresOn: (date) => `истекает ${date}`,
+    expiresIn: (days, when) =>
+      days < 2 ? `истекает ${when}` : plural(days, { one: "остался {n} день", few: "осталось {n} дня", many: "осталось {n} дней" }),
+    expiresOn: (date) => `до ${date}`,
     expiredToday: "истекла сегодня",
-    expiredAgo: (when) => `истекла ${when}`,
+    // "дн." for every count keeps "истекла 5 дн. назад" inside the table's expiry column.
+    expiredAgo: (days) => `истекла ${numberFormat("ru").format(days)} дн. назад`,
     noExpiryTitle: "Провайдер сообщил трафик, но не срок действия.",
-    saysTitle: (expiry) => `По данным провайдера, подписка ${expiry}.`,
-    expiredTitle: (expiry) => `По данным провайдера, подписка ${expiry}; возможно, сейчас она ничего не отдаёт.`,
+    saysTitle: (expiry) => `По данным провайдера: ${expiry}.`,
+    expiredTitle: (expiry) => `По данным провайдера: ${expiry}. Возможно, подписка сейчас ничего не отдаёт.`,
   },
   lineage: {
     reasonGone: "больше не существует",
@@ -132,7 +134,7 @@ export const ru: Messages = {
     reasonIsFile: "это файл, а не подписка",
     reasonWrongKind: "это не подписка",
     reasonFileSource: "это файл, а не источник узлов",
-    feeds: (list) => `питает ${list}`,
+    feeds: (list) => `питает: ${list}`,
     feedsTitle: (names) => `Питает: ${names}`,
     publishedAt: (paths) => `опубликовано по адресу ${paths}`,
     chipStateExpiring: (state, expiry) => `${state}, ${expiry}`,
@@ -215,7 +217,7 @@ export const ru: Messages = {
     flaggedTitle:
       "Шаблон в цепочке этой записи использует опережающую проверку или обратную ссылку, которые нативный движок не выполняет. Запись продолжает отрисовываться по резервному пути; в редакторе указан шаг и предложена замена, если она есть.",
     steps: (count, off) => `${steps(count)}${off ? `, отключено: ${off}` : ""}.`,
-    stepsOff: (off) => `откл.: ${off}`,
+    stepsOff: (off) => `${off} выкл`,
     stepsTarget: (target) => `Всегда отрисовывается для ${target}.`,
     fileServedAsWritten: "отдаётся как есть",
     fileServedTitle: "Ничего не подставляется: документ отдаётся как есть.",
@@ -252,7 +254,8 @@ export const ru: Messages = {
     migrateUnsigned: "Подписанный плагин пока не поддерживает migrate_store; он появится с манифестом S1.",
     migrateReadOnly: "Перенос должен запустить оператор с правом substore:admin.",
     migrateProgress: (migrated, remaining) => `Перенесено: ${migrated}, осталось: ${remaining}.`,
-    migrateDone: (count) => `Хранилище разделено: перенесено и проверено ${records(count)}, запись снова работает.`,
+    migrateDone: (count) =>
+      `Хранилище разделено: ${plural(count, { one: "перенесена и проверена {n} запись", few: "перенесены и проверены {n} записи", many: "перенесено и проверено {n} записей" })}, запись снова работает.`,
     migrateFailed: (reason) => `Перенос остановлен (${reason}). Уже перенесённые записи остаются на месте; запустите его снова, чтобы продолжить.`,
     readOnlyNote: "Эта сессия может читать записи, но не может создавать, изменять или переставлять их.",
     importFrom: (origin) => `Sub-Store по адресу ${origin}`,
@@ -313,7 +316,7 @@ export const ru: Messages = {
     localCount: (v) => `Созданы здесь: ${v}`,
     sortLabel: "Сортировка",
     sortAria: "Сортировка записей",
-    sortRecent: "Недавно обновлённые",
+    sortRecent: "По обновлению",
     sortName: "Имя",
     sortStatus: "Требуют внимания",
     combinationEmptyBody:
@@ -346,12 +349,12 @@ export const ru: Messages = {
     colName: "Имя",
     colKind: "Тип",
     colPublished: "Публикация",
-    colNodesIn: "Узлов на входе",
-    colNodesOut: "Узлов на выходе",
+    colNodesIn: "Вход",
+    colNodesOut: "Выход",
     colNodes: "Узлы",
     colSteps: "Шаги",
     colExpiry: "Срок и трафик",
-    colLastFetch: "Последнее получение",
+    colLastFetch: "Обновление",
     colActions: "Действия",
     publishRecord: (name) => `Опубликовать «${name}»…`,
     publishRecordTitle: (name) => `Открыть форму публикации в консоли с выбранной записью «${name}»`,
@@ -450,7 +453,7 @@ export const ru: Messages = {
     template: "Шаблон",
     inOut: "вход → выход",
     stepsNone: "нет",
-    stepsCount: (count, off) => `${steps(count)}${off ? `, откл.: ${off}` : ""}`,
+    stepsCount: (count, off) => `${steps(count)}${off ? `, отключено: ${off}` : ""}`,
     noMembersResolve: "Ни один участник не найден",
     plusTagged: (tags) => `А также все источники с тегами ${tags}`,
     servedAsWritten: "Ничего: документ отдаётся как есть",
@@ -609,8 +612,8 @@ export const ru: Messages = {
     needsMutate:
       "Эта сессия не может создавать записи здесь. Либо установленный пакет не объявляет этот метод, либо у вашего токена нет нужного права.",
     newSourceHint: "Один источник узлов",
-    newCombinationHint: "Несколько источников, отданных как один",
-    newFileHint: "Конфигурация, которая отдаётся как есть",
+    newCombinationHint: "Объединение источников",
+    newFileHint: "Конфигурация как есть",
     kindFile: "Файл",
     kindCombination: "Комбинация",
     kindSource: "Источник",
@@ -783,7 +786,7 @@ export const ru: Messages = {
     pasteBackup: "Сначала вставьте конверт резервной копии.",
     restored: "Резервная копия восстановлена.",
     restoredCount: (count) =>
-      `Резервная копия восстановлена: записано ${records(count)}. Записи, отклонённые сервером, здесь не учтены. Ничего не опубликовано; публикация решается отдельно.`,
+      `Резервная копия восстановлена: ${plural(count, { one: "записана {n} запись", few: "записаны {n} записи", many: "записано {n} записей" })}. Записи, отклонённые сервером, здесь не учтены. Ничего не опубликовано; публикация решается отдельно.`,
     restoreFailed: "Не удалось восстановить резервную копию",
     giveBaseUrl: "Укажите базовый URL отдельного Sub-Store.",
     imported: (count) =>
@@ -1035,7 +1038,8 @@ export const ru: Messages = {
     copyFailed: "Не удалось скопировать запись",
     reorderUnavailable: "изменение порядка здесь недоступно",
     reorderRefused: "хранилище отказало",
-    migrationStalled: (remaining) => `последняя порция ничего не перенесла, а осталось ещё ${records(remaining)}`,
+    migrationStalled: (remaining) =>
+      `последняя порция ничего не перенесла, а ${plural(remaining, { one: "осталась ещё {n} запись", few: "остались ещё {n} записи", many: "осталось ещё {n} записей" })}`,
     migrationUnfinished: "перенос не завершился за 64 порции",
     migrationFailed: "migrate_store не удался",
   },
