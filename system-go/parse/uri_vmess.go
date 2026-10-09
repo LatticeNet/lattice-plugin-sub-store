@@ -148,9 +148,8 @@ func vmessShadowrocket(body, fragment string) (map[string]any, error) {
 	params["id"] = uuid
 	params["port"] = hostPort[colon+1:]
 	params["add"] = hostPort[:colon]
-	if _, isList := params["alpn"].([]any); isList {
-		return nil, errReject
-	}
+	// A list-valued alpn (a value with a comma) is rejected by vmessFields,
+	// as a non-string alpn is in every form.
 	return vmessFields(params, fragment)
 }
 
