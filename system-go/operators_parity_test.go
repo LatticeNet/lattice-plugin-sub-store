@@ -293,3 +293,78 @@ func TestNativeVocabularyMatchesProcessVocabulary(t *testing.T) {
 		t.Fatalf("operators.Vocabulary() = %q\nprocessVocabulary() = %q", native, store)
 	}
 }
+
+// The ECMAScript reading of \s, \S and the dot that the native operators
+// compile (operators/regex.go esPattern) matches the bundle on node names
+// that carry a full-width space, a no-break space and the other characters
+// ECMAScript counts as white space or as a line terminator.
+func TestRegexTranslationMatchesBundle(t *testing.T) {
+	engine := sharedWarmTestEngine(t)
+	// ECMAScript white space and line terminators first, then three
+	// characters it does not count, which RE2's \s does not count either.
+	spaces := []rune{' ', 0xa0, 0x3000, 0xfeff, '\v', '\f', '\t', 0x1680, 0x2005, 0x202f, 0x205f, 0x2028, 0x2029, '\r'}
+	others := []rune{0x200b, 0x85, 0x180e}
+	var lines []string
+	for i, r := range append(slices.Clone(spaces), others...) {
+		name := "HK" + string(r) + "node" + string(r) + string(rune('a'+i))
+		lines = append(lines, fmt.Sprintf("trojan://pw@192.0.2.%d:443?sni=t.example.com#%s", i+1, urlFragment(name)))
+	}
+	raw := strings.Join(lines, "\n")
+	base := bundleNodes(t, engine, raw, nil)
+	if len(base) != len(spaces)+len(others) {
+		t.Fatalf("bundle parsed %d of %d names", len(base), len(spaces)+len(others))
+	}
+	for _, c := range []string{
+		`{"type":"Regex Filter","args":{"regex":["^HK\\snode"],"keep":true}}`,
+		`{"type":"Regex Filter","args":{"regex":["^HK\\Snode"],"keep":true}}`,
+		`{"type":"Regex Filter","args":{"regex":["^HK.node"],"keep":true}}`,
+		`{"type":"Regex Filter","args":{"regex":["^HK[\\s]node"],"keep":false}}`,
+		`{"type":"Regex Filter","args":{"regex":["^HK[^\\s]node"],"keep":true}}`,
+		`{"type":"Regex Filter","args":{"regex":["(?i)^hk\\s+NODE"],"keep":true}}`,
+		`{"type":"Regex Filter","args":{"regex":["\\\\s"],"keep":false}}`,
+		`{"type":"Regex Rename Operator","args":[{"expr":"\\s+","now":"_"}]}`,
+		`{"type":"Regex Rename Operator","args":[{"expr":"^HK(.)node","now":"[$1]"}]}`,
+		`{"type":"Regex Delete Operator","args":["\\s[a-z]$"]}`,
+	} {
+		chain := steps(c)
+		want := bundleNodes(t, engine, raw, chain)
+		got := nativeNodes(t, base, chain)
+		if !sameNodes(got, want) {
+			t.Errorf("%s:\n native %q\n bundle %q", c, nodeNames(got), nodeNames(want))
+		}
+	}
+	// Regex Sort puts the names whose separator is white space first. Within
+	// the matched group QuickJS's unstable sort decides the bundle's order
+	// (PR #77), so the group is compared as a set and the unmatched tail in
+	// order.
+	chain := steps(`{"type":"Regex Sort Operator","args":{"expressions":["\\s[a-z]$"],"order":"asc"}}`)
+	want, got := nodeNames(bundleNodes(t, engine, raw, chain)), nodeNames(nativeNodes(t, base, chain))
+	if len(want) != len(got) {
+		t.Fatalf("regex sort: native %d nodes, bundle %d", len(got), len(want))
+	}
+	matched := len(spaces)
+	if !slices.Equal(slices.Sorted(slices.Values(got[:matched])), slices.Sorted(slices.Values(want[:matched]))) || !slices.Equal(got[matched:], want[matched:]) {
+		t.Errorf("regex sort:\n native %q\n bundle %q", got, want)
+	}
+	for _, name := range want[matched:] {
+		if r := []rune(name)[2]; slices.Contains(spaces, r) {
+			t.Errorf("regex sort: the bundle left %+q unmatched", name)
+		}
+	}
+}
+
+// urlFragment percent-encodes a node name for a URI fragment, every byte
+// outside the unreserved set included, so a line terminator in the name
+// does not end the line.
+func urlFragment(name string) string {
+	var b strings.Builder
+	for i := 0; i < len(name); i++ {
+		c := name[i]
+		if c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '-' || c == '_' {
+			b.WriteByte(c)
+			continue
+		}
+		fmt.Fprintf(&b, "%%%02X", c)
+	}
+	return b.String()
+}
