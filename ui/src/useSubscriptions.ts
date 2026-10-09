@@ -5,6 +5,11 @@ import { computed, ref, watch, type Ref } from "vue";
 import {
   BINDINGS,
   callMethod,
+  errorCodeOf,
+  ERROR_REGEX_INCOMPATIBLE,
+  ERROR_STORE_MIGRATION_REQUIRED,
+  MIGRATE_STORE_CHUNK,
+  STORE_VERSION_LEGACY,
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
   SOURCE_VPN_CORE,
@@ -21,6 +26,7 @@ import {
   type OperatorCatalogResponse,
   type OperatorInfo,
   type GraphOptionsResponse,
+  type MigrateStoreResponse,
   type SubscriptionDeleteResponse,
   type SubscriptionFetchResponse,
   type SubscriptionPublishResponse,
@@ -31,9 +37,12 @@ import {
   type SubscriptionPreviewResponse,
   type SubscriptionRecord,
   type SubscriptionRenderResponse,
+  type SubscriptionReorderResponse,
   type SubscriptionSaveResponse,
   type SubscriptionSaveConflict,
 } from "./client";
+import { inStoreOrder, withOrder } from "./recordOrder";
+import { regexDiagnostics, type RegexDiagnostic } from "./regexRewrite";
 import { conflictChanges, conflictSummary, type FieldChange } from "./recordConflict";
 import { deletedNotice } from "./recordActions";
 import { filePreviewSupport } from "./filePreview";
@@ -351,6 +360,17 @@ interface Catalogue {
   loadError: Ref<string>;
   /** A failed background reload: the rows on screen are the last good ones. */
   staleError: Ref<string>;
+  /**
+   * The store layout the last list reported: 1 legacy single document, 2
+   * split index, undefined from a runtime before S1.
+   */
+  storeVersion: Ref<number | undefined>;
+  /** The order the store last accepted, which a refused reorder puts back. */
+  confirmedOrder: string[];
+  /** Reorders go out one at a time, in the order the operator made them. */
+  reorderQueue: Promise<unknown>;
+  /** Moves made before a refused reorder are dropped rather than sent after it. */
+  reorderGeneration: number;
   /** A read already in flight is joined, not repeated: the shell and the
    *  visible lens both ask for the list when the handshake lands. */
   inFlight: Promise<void> | null;
@@ -372,6 +392,10 @@ function catalogueFor(host: HostContext): Catalogue {
     items: ref<SubscriptionListItem[]>([]),
     loadError: ref(""),
     staleError: ref(""),
+    storeVersion: ref<number | undefined>(undefined),
+    confirmedOrder: [],
+    reorderQueue: Promise.resolve(),
+    reorderGeneration: 0,
     inFlight: null,
   };
   catalogues.set(host, fresh);
@@ -401,7 +425,9 @@ async function readCatalogueOnce(host: HostContext, catalogue: Catalogue): Promi
   staleError.value = "";
   try {
     const response = await callMethod<SubscriptionListResponse>(host.bridge, BINDINGS.subList, {}).promise;
-    items.value = response.subscriptions ?? [];
+    items.value = inStoreOrder(response.subscriptions ?? []);
+    catalogue.storeVersion.value = typeof response.store_version === "number" ? response.store_version : undefined;
+    catalogue.confirmedOrder = items.value.map((item) => item.id);
     state.value = "ready";
   } catch (cause) {
     const message = safeErrorMessage(cause, "Subscriptions could not be loaded");
@@ -425,7 +451,8 @@ export function recordCatalogue(host: HostContext) {
 }
 
 export function useSubscriptions(host: HostContext) {
-  const { state, items, loadError, staleError } = catalogueFor(host);
+  const catalogue = catalogueFor(host);
+  const { state, items, loadError, staleError, storeVersion } = catalogue;
   /** Whether the operator catalogue is still coming, or is simply not there. */
   const operatorsState = ref<LoadState>("idle");
   const actionError = ref("");
@@ -474,7 +501,29 @@ export function useSubscriptions(host: HostContext) {
   const canRender = computed(() => host.available(BINDINGS.subRender));
   const canPublish = computed(() => host.available(BINDINGS.subPublish));
   const canLoadGraphOptions = computed(() => host.available(BINDINGS.subGraphOptions));
+  /** `reorder` and `migrate_store` are signed with the S1 manifest; pending until then. */
+  const canReorder = computed(() => canMutate.value && host.available(BINDINGS.subReorder));
+  const canMigrateStore = computed(() => canMutate.value && host.available(BINDINGS.subMigrateStore));
   const atRecordLimit = computed(() => items.value.length >= MAX_SUBSCRIPTION_RECORDS);
+
+  /**
+   * Why the last save was refused, when the reason is one the editor can act
+   * on: a pattern the native engine cannot run (`regex_incompatible`). The
+   * diagnostics are read from the draft the save carried, so the editor can
+   * name the step and offer the rewrite. Cleared by the next save.
+   */
+  const saveRefusal = ref<{ code: string; diagnostics: RegexDiagnostic[] } | null>(null);
+
+  /**
+   * A write refused because the store is still the legacy single document.
+   * The list said so too if it was read since; this makes the migration
+   * prompt appear for a store migrated away under the page as well.
+   */
+  function migrationRefusal(cause: unknown): string {
+    if (errorCodeOf(cause) !== ERROR_STORE_MIGRATION_REQUIRED) return "";
+    storeVersion.value = STORE_VERSION_LEGACY;
+    return "The store still keeps every record in one document, so writes wait until it is migrated. Migrate it from the Records table, then try again.";
+  }
 
   /**
    * A reload that fails behind a successful write must not replace the list.
@@ -560,6 +609,7 @@ export function useSubscriptions(host: HostContext) {
   async function save(draft: SubscriptionDraft, force = false): Promise<boolean> {
     if (!host.bridge || !canMutate.value || saving.value) return false;
     saveConflict.value = null;
+    saveRefusal.value = null;
     const invalid = validateDraft(draft);
     if (invalid) {
       actionError.value = invalid;
@@ -676,7 +726,15 @@ export function useSubscriptions(host: HostContext) {
       await load();
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Subscription could not be saved");
+      if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
+        const diagnostics = regexDiagnostics(draft.process);
+        saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics };
+        actionError.value = diagnostics.length
+          ? "Not saved: a pattern in the chain uses lookaround or a backreference, which the native engine cannot run. The step is named below."
+          : `Not saved: ${safeErrorMessage(cause, "a pattern in the chain cannot run natively")}`;
+        return false;
+      }
+      actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, "Subscription could not be saved");
       return false;
     } finally {
       saving.value = false;
@@ -723,7 +781,7 @@ export function useSubscriptions(host: HostContext) {
       await load();
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Subscription could not be deleted");
+      actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, "Subscription could not be deleted");
       return false;
     } finally {
       busyId.value = null;
@@ -1048,6 +1106,83 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
+  /**
+   * The store's new manual order, shown at once and saved behind it.
+   *
+   * `reorder` names every live id (s1-plan section 3.3), so the whole order
+   * goes out each time. Moves are sent one after another in the order they
+   * were made: a keyboard operator presses Arrow Up four times faster than four
+   * calls return. A refusal puts back the order the store last accepted and
+   * drops the moves queued behind it, which were made on top of the refused
+   * one. The reason comes back for the live region; "" means saved.
+   */
+  function reorder(order: string[]): Promise<{ ok: boolean; reason: string; dropped: boolean }> {
+    const bridge = host.bridge;
+    if (!bridge || !canReorder.value) return Promise.resolve({ ok: false, reason: "reordering is not available here", dropped: false });
+    const generation = catalogue.reorderGeneration;
+    items.value = withOrder(items.value, order);
+    const run = catalogue.reorderQueue.then(async () => {
+      if (generation !== catalogue.reorderGeneration) return { ok: false, reason: "", dropped: true };
+      try {
+        await callMethod<SubscriptionReorderResponse>(bridge, BINDINGS.subReorder, { ids: order }).promise;
+        catalogue.confirmedOrder = [...order];
+        return { ok: true, reason: "", dropped: false };
+      } catch (cause) {
+        catalogue.reorderGeneration += 1;
+        items.value = withOrder(items.value, catalogue.confirmedOrder);
+        return { ok: false, reason: migrationRefusal(cause) || safeErrorMessage(cause, "the store refused it"), dropped: false };
+      }
+    });
+    catalogue.reorderQueue = run;
+    return run;
+  }
+
+  /** Where a migration run stands, for the prompt that started it. */
+  const migration = ref<{ running: boolean; migrated: number; remaining: number; error: string; done: boolean }>({
+    running: false,
+    migrated: 0,
+    remaining: 0,
+    error: "",
+    done: false,
+  });
+
+  /**
+   * Split a legacy store, one chunk per call, until the runtime says done.
+   *
+   * Each call migrates up to MIGRATE_STORE_CHUNK records and verifies on the
+   * last one (s1-plan section 3.1); progress lives in the store, so a run that
+   * stops resumes where it left off when it is started again. The loop is
+   * bounded: 64 chunks is 4,096 records, sixteen times the record budget, and a
+   * chunk that moves nothing while records remain is a stall, not progress.
+   */
+  async function migrateStore(): Promise<boolean> {
+    const bridge = host.bridge;
+    if (!bridge || !canMigrateStore.value || migration.value.running) return false;
+    migration.value = { running: true, migrated: 0, remaining: 0, error: "", done: false };
+    try {
+      for (let chunk = 0; chunk < 64; chunk += 1) {
+        const reply = await callMethod<MigrateStoreResponse>(bridge, BINDINGS.subMigrateStore, { chunk: MIGRATE_STORE_CHUNK }).promise;
+        migration.value.migrated += Math.max(0, reply.migrated ?? 0);
+        migration.value.remaining = Math.max(0, reply.remaining ?? 0);
+        if (reply.done) {
+          migration.value.done = true;
+          break;
+        }
+        if (!reply.migrated) throw new Error(`the last chunk moved nothing while ${reply.remaining} records remain`);
+        await host.resize();
+      }
+      if (!migration.value.done) throw new Error("it did not finish within 64 chunks");
+      await load();
+      return true;
+    } catch (cause) {
+      migration.value.error = safeErrorMessage(cause, "migrate_store failed");
+      return false;
+    } finally {
+      migration.value.running = false;
+      await host.resize();
+    }
+  }
+
   function clearMessages(): void {
     clearErrors();
     notice.value = "";
@@ -1062,6 +1197,7 @@ export function useSubscriptions(host: HostContext) {
   function clearErrors(): void {
     actionError.value = "";
     previewError.value = "";
+    saveRefusal.value = null;
   }
 
   return {
@@ -1081,6 +1217,9 @@ export function useSubscriptions(host: HostContext) {
     previewing,
     previewStep,
     staleError,
+    storeVersion,
+    saveRefusal,
+    migration,
     operatorsState,
     graphOptions,
     graphOptionsLoading,
@@ -1093,6 +1232,8 @@ export function useSubscriptions(host: HostContext) {
     canRender,
     canPublish,
     canLoadGraphOptions,
+    canReorder,
+    canMigrateStore,
     atRecordLimit,
     load,
     loadOperators,
@@ -1103,6 +1244,8 @@ export function useSubscriptions(host: HostContext) {
     duplicate,
     refresh,
     publish,
+    reorder,
+    migrateStore,
     runPreview,
     toggleRowPreview,
     clearMessages,

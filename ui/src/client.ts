@@ -83,6 +83,21 @@ export const BINDINGS = {
   subGetSettings: binding(SERVICES.subscription, "get_settings", "active"),
   subSaveSettings: binding(SERVICES.subscription, "save_settings", "active"),
   subPublish: binding(SERVICES.subscription, "publish", "active"),
+  // ── S1 store split (design 28, s1-plan sections 3.1 to 3.3) ──────────────
+  // Served by the runtime from S1 and declared by the capability-wave
+  // manifest, which is signed last. Until then the console refuses them, so
+  // the UI gates every control on availability, and contract.test.ts fails
+  // the moment the manifest declares one of them: flip it to "active" then.
+  /** `{subscription_id}`: an archived record back under the same id. */
+  subRestore: binding(SERVICES.subscription, "restore", "pending"),
+  /** `{subscription_id}`: drop an archived record for good. */
+  subPurge: binding(SERVICES.subscription, "purge", "pending"),
+  /** `{ids}`: every live id exactly once, in the new manual order. */
+  subReorder: binding(SERVICES.subscription, "reorder", "pending"),
+  /** `{chunk}`: move a legacy single-document store to the split index. */
+  subMigrateStore: binding(SERVICES.subscription, "migrate_store", "pending"),
+  /** `{}`: the records whose sources reach vpn-core, for core's fleet re-render. */
+  subDependsOn: binding(SERVICES.subscription, "depends_on", "pending"),
 } as const satisfies Record<string, MethodBinding>;
 
 /**
@@ -291,6 +306,26 @@ export interface SubscriptionListItem {
    * the UI reads `userinfo` itself (providerFigures).
    */
   userinfo_parsed?: boolean;
+  /**
+   * The store index's fields (s1-plan section 2.5), present once the store is
+   * split. `revision` is the record's content fingerprint; `order` its place
+   * in the manual order, dense from 0; `nodes_in` and `nodes_out` the counts
+   * the last fetch recorded (out only when the chain ran natively); `flags`
+   * what the chain compiler found when it last compiled the record.
+   */
+  revision?: string;
+  order?: number;
+  nodes_in?: number;
+  nodes_out?: number;
+  flags?: RecordFlags;
+  archived_at?: string;
+}
+
+export interface RecordFlags {
+  /** A stored pattern RE2 cannot compile: the record renders on the fallback bundle until rewritten. */
+  regex_incompatible?: boolean;
+  /** A Resolve Domain or script step: the whole chain runs on the fallback path. */
+  has_fallback_step?: boolean;
 }
 
 export const KIND_SUB = "sub";
@@ -312,6 +347,59 @@ export const FILE_TYPE_SCRIPT = "script";
 
 export interface SubscriptionListResponse {
   subscriptions: SubscriptionListItem[];
+  /**
+   * 1 while the legacy single document still holds records (writes are
+   * refused with `store_migration_required` until `migrate_store` is done),
+   * 2 once the store is split. Absent from a runtime older than S1.
+   */
+  store_version?: number;
+  /** "manual" when the rows arrive in the operator's own order. */
+  order?: string;
+  archived?: SubscriptionListItem[];
+}
+
+/** The store layout a list reply reports, or undefined from a runtime before S1. */
+export const STORE_VERSION_LEGACY = 1;
+export const STORE_VERSION_SPLIT = 2;
+
+export interface SubscriptionReorderResponse {
+  reordered: boolean;
+  count: number;
+}
+
+export interface MigrateStoreResponse {
+  migrated: number;
+  remaining: number;
+  done: boolean;
+  verified?: boolean;
+  store_version?: number;
+  /** Ids the migration's compile pass flagged for a regex rewrite. */
+  regex_incompatible?: string[];
+}
+
+/** Records per `migrate_store` call: the plan's chunk, 131 host calls at most. */
+export const MIGRATE_STORE_CHUNK = 64;
+
+/**
+ * Stable refusal codes a runtime method leads its error with
+ * (`store_migration_required: the subscription store still holds ...`).
+ */
+export const ERROR_STORE_MIGRATION_REQUIRED = "store_migration_required";
+export const ERROR_REGEX_INCOMPATIBLE = "regex_incompatible";
+
+/**
+ * The stable code a refusal carries, from the bridge's `code` when the host
+ * passed one through, else from the message's leading token. "" when it
+ * carries none.
+ */
+const KNOWN_ERROR_CODES: ReadonlySet<string> = new Set([ERROR_STORE_MIGRATION_REQUIRED, ERROR_REGEX_INCOMPATIBLE]);
+
+export function errorCodeOf(cause: unknown): string {
+  const code = (cause as { code?: unknown } | null)?.code;
+  if (typeof code === "string" && KNOWN_ERROR_CODES.has(code)) return code;
+  const message = cause instanceof Error ? cause.message : "";
+  const lead = /^\s*([a-z][a-z0-9_]*)\s*:/.exec(message)?.[1] ?? "";
+  return KNOWN_ERROR_CODES.has(lead) ? lead : "";
 }
 
 export interface SubscriptionGetResponse {
