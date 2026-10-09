@@ -346,6 +346,39 @@ func TestIncludeUnsupportedProxy(t *testing.T) {
 	}
 }
 
+// TestWalksWriteAddedSNILast pins the field order of the parameter walks
+// for the one field a step adds that a walk writes: sni from disable-sni
+// comes after every field the node had, so hysteria writes peer last and
+// wireguard writes sni just before address (the two checked lines of
+// uri.md, "Input"; no corpus case has such a node). tuic is exempt from the
+// step and gets no sni at all.
+func TestWalksWriteAddedSNILast(t *testing.T) {
+	for _, tc := range []struct {
+		fields map[string]any
+		want   string
+	}{
+		{
+			map[string]any{"type": "hysteria", "name": "h", "server": "192.0.2.10", "port": float64(443), "auth-str": "a",
+				"disable-sni": true, "down": float64(20), "up": float64(10), "udp": true},
+			"hysteria://192.0.2.10:443?auth=a&disable_sni=true&downmbps=20&udp=true&upmbps=10&peer=192.0.2.10#h",
+		},
+		{
+			map[string]any{"type": "wireguard", "name": "w", "server": "192.0.2.12", "port": float64(51820), "private-key": "k",
+				"public-key": "pk", "disable-sni": true, "udp": true, "ip": "10.0.0.2"},
+			"wireguard://k@192.0.2.12:51820/?disable-sni=true&publickey=pk&udp=1&sni=192.0.2.12&address=10.0.0.2%2F32#w",
+		},
+		{
+			map[string]any{"type": "tuic", "name": "t", "server": "192.0.2.13", "port": float64(443), "uuid": "u", "password": "p",
+				"disable-sni": true, "udp": true, "alpn": []any{"h3"}, "congestion-controller": "cubic", "udp-relay-mode": "native"},
+			"tuic://u:p@192.0.2.13:443?alpn=h3&congestion_control=cubic&disable_sni=1&udp=true&udp_relay_mode=native#t",
+		},
+	} {
+		if out, _ := produce(t, "URI", []*nodemodel.Node{node(tc.fields)}, nil); out != tc.want {
+			t.Errorf("%s:\n got  %s\n want %s", tc.fields["type"], out, tc.want)
+		}
+	}
+}
+
 // TestProduceLeavesCallerNodesUntouched pins that the steps and the URI
 // preparation work on copies: filling a name, a port and sni, and removing
 // fields, never reaches the caller's node.
