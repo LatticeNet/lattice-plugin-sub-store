@@ -24,17 +24,6 @@ type importOutcome struct {
 	Replaced []string          `json:"replaced"`
 }
 
-// exportBackup writes everything this plugin owns.
-//
-// Records are sorted by id so two exports of the same data are byte-identical:
-// an export that depended on map order would diff against itself and be useless
-// for comparing a backup against what is live.
-//
-// On the split store that is the index, one read per live record (a script
-// file's program is in its record) and the settings: N + 2 host calls. On a
-// store that has not migrated it is the legacy document, its program keys and
-// the settings. Archived records are not exported; a backup restores what is
-// live.
 // maxExportReplyBytes bounds export's reply. Core counts the reply frame
 // against the method's signed stdout_bytes (8 MiB), and the backup travels
 // as a JSON string inside it, so its quotes and newlines are escaped a second
@@ -58,6 +47,17 @@ func exportReply(backup []byte) (json.RawMessage, error) {
 	return reply, nil
 }
 
+// exportBackup writes everything this plugin owns.
+//
+// Records are sorted by id so two exports of the same data are byte-identical:
+// an export that depended on map order would diff against itself and be useless
+// for comparing a backup against what is live.
+//
+// On the split store that is the index, one read per live record (a script
+// file's program is in its record) and the settings: N + 2 host calls. On a
+// store that has not migrated it is the legacy document, its program keys and
+// the settings. Archived records are not exported; a backup restores what is
+// live.
 func (rt *runtime) exportBackup() ([]byte, error) {
 	listing, err := rt.storeListing()
 	if err != nil {
