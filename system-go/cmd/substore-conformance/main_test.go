@@ -30,6 +30,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 	// with a line limit fails here before the corpus grows into it.
 	big := "vless://" + strings.Repeat("a", 200<<10)
 	node := `{"name":"n","port":443,"server":"a.example.com","type":"vless","uuid":"00000000-0000-4000-8000-000000000000"}`
+	socks := `{"name":"s 1","port":1080,"server":"a.example.com","supported":{"URI":false},"type":"socks5","udp":true}`
 	lines := []string{
 		`{"id":1,"op":"version"}`,
 		`{"id":2,"op":"parse","input":"vless://00000000-0000-4000-8000-000000000000@a.example.com:443#n"}`,
@@ -41,6 +42,8 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		`{"id":7,"op":`,
 		`{"id":8,"op":"parse","input":` + mustJSON(t, big) + `}`,
 		`{"id":9,"op":"parse","input":42}`,
+		`{"id":"uri","op":"produce","target":"uri","nodes":[` + socks + `],"options":{"include-unsupported-proxy":true}}`,
+		`{"id":"bad node","op":"produce","target":"v2ray","nodes":[42]}`,
 		// The last request has no trailing newline; it is still answered.
 		`{"id":10,"op":"version"}`,
 	}
@@ -58,7 +61,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 	// stdout holds replies and nothing else: every line is one JSON object,
 	// in request order, and the blank request line has no reply.
 	outLines := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
-	wantIDs := []string{`1`, `2`, `"three"`, `4`, `5`, `6`, `null`, `8`, `9`, `10`}
+	wantIDs := []string{`1`, `2`, `"three"`, `4`, `5`, `6`, `null`, `8`, `9`, `"uri"`, `"bad node"`, `10`}
 	if len(outLines) != len(wantIDs) {
 		t.Fatalf("got %d reply lines for %d non-blank requests:\n%s", len(outLines), len(wantIDs), clip(stdout.String()))
 	}
@@ -74,7 +77,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		}
 	}
 
-	for _, i := range []int{0, 9} {
+	for _, i := range []int{0, 11} {
 		v := replies[i]
 		if !v.OK || v.Implementation != "lattice-go" || v.Commit == "" || v.Version == "" {
 			t.Fatalf("version reply %d = %+v, want ok with implementation lattice-go, a commit and a version", i+1, v)
@@ -86,13 +89,13 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		says  []string
 	}{
 		{1, []string{"parse", "not supported"}},
-		{2, []string{"ClashMeta", "not supported"}},
 		{3, []string{`"stash"`, "no native producer"}},
 		{4, []string{"nodes"}},
 		{5, []string{`unknown op "frobnicate"`}},
 		{6, []string{"bad request"}},
 		{7, []string{"parse", "not supported"}},
 		{8, []string{"bad request"}},
+		{10, []string{"node 0"}},
 	}
 	for _, r := range refusals {
 		v := replies[r.reply]
@@ -104,6 +107,16 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 				t.Fatalf("reply %d error %q does not say %q", r.reply+1, v.Error, s)
 			}
 		}
+	}
+
+	// produce answers from the native producer with the request's options:
+	// include-unsupported-proxy keeps the node supported.URI=false drops.
+	if v := replies[9]; !v.OK || v.Output == nil || *v.Output != "socks://Og%3D%3D@a.example.com:1080#s 1" || v.Error != "" {
+		t.Fatalf("uri produce reply = %+v, want ok with the socks link", v)
+	}
+	// Every harness id of the five native targets has its producer.
+	if v, want := replies[2], "proxies:\n  - "+node+"\n"; !v.OK || v.Output == nil || *v.Output != want || v.Error != "" {
+		t.Fatalf("clashmeta produce reply = %+v, want ok with %q", v, want)
 	}
 
 	// Diagnostics go to stderr, never into the reply stream.

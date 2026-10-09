@@ -10,9 +10,11 @@
 // is never part of the plugin artifact.
 //
 // version answers {implementation:"lattice-go", commit, version} from the
-// build information. parse and produce answer a stated refusal until the
-// native parser (system-go/parse) and producers (system-go/producers) land;
-// plan section 2.6 says what each then returns.
+// build information. produce answers {ok:true, output} from the native
+// producer of the target (system-go/producers), with the request's options,
+// and a stated refusal for a target without one. parse
+// answers a stated refusal until the native parser (system-go/parse) lands;
+// plan section 2.6 says what it then returns.
 package main
 
 import (
@@ -24,6 +26,9 @@ import (
 	"io"
 	"os"
 	"runtime/debug"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
 )
 
 type request struct {
@@ -108,14 +113,27 @@ func handle(line []byte, diag io.Writer) reply {
 	case "parse":
 		return reply{ID: req.ID, Error: "parse is not supported yet: the native parser (system-go/parse) has not landed"}
 	case "produce":
-		platform, ok := platforms[req.Target]
+		platform := platforms[req.Target]
+		p, ok := producers.Lookup(platform)
 		if !ok {
 			return reply{ID: req.ID, Error: fmt.Sprintf("produce: target %q has no native producer", req.Target)}
 		}
 		if req.Nodes == nil {
 			return reply{ID: req.ID, Error: "produce needs a nodes array"}
 		}
-		return reply{ID: req.ID, Error: fmt.Sprintf("produce is not supported yet: the native %s producer (system-go/producers) has not landed", platform)}
+		nodes := make([]*nodemodel.Node, len(req.Nodes))
+		for i, raw := range req.Nodes {
+			nodes[i] = &nodemodel.Node{}
+			if err := json.Unmarshal(raw, nodes[i]); err != nil {
+				return reply{ID: req.ID, Error: fmt.Sprintf("produce: node %d: %v", i, err)}
+			}
+		}
+		var out bytes.Buffer
+		if _, err := p.Produce(&out, nodes, platform, producers.Options(req.Options)); err != nil {
+			return reply{ID: req.ID, Error: "produce: " + err.Error()}
+		}
+		output := out.String()
+		return reply{ID: req.ID, OK: true, Output: &output}
 	default:
 		return reply{ID: req.ID, Error: fmt.Sprintf("unknown op %q", req.Op)}
 	}
