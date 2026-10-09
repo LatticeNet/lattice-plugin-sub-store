@@ -181,6 +181,9 @@ func serveInvocation(engine *subStoreEngine, host hostCaller, req request) respo
 type runtime struct {
 	host   hostCaller
 	engine *subStoreEngine
+	// legacy caches the legacy document for one invocation, so a store that
+	// has not migrated pays its read once rather than once per record.
+	legacy legacyCache
 }
 
 type hostCaller interface {
@@ -197,6 +200,9 @@ func (host sdkHostCaller) call(method string, params any) (json.RawMessage, erro
 }
 
 func (rt *runtime) handle(req request) response {
+	// Production builds a runtime per invocation; a test that drives several
+	// invocations through one must not carry the cache from one to the next.
+	rt.legacy = legacyCache{}
 	switch req.Action {
 	case latticeplugin.ActionDescribe:
 		body, _ := json.Marshal(map[string]any{
@@ -660,6 +666,14 @@ func (rt *runtime) kvPut(key string, value []byte) error {
 		"key":          key,
 		"value_base64": base64.StdEncoding.EncodeToString(value),
 	})
+	return err
+}
+
+// kvDelete removes one key. It speaks the SDK's kv.delete exactly as
+// HostClient.KVDelete does, through the runtime's host seam so a test host
+// counts it like every other call. Deleting a missing key is not an error.
+func (rt *runtime) kvDelete(key string) error {
+	_, err := rt.callHost(latticeplugin.HostMethodKVDelete, map[string]any{"key": key})
 	return err
 }
 

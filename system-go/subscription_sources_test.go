@@ -42,7 +42,7 @@ func TestRefreshingAManualSubscriptionReturnsItsContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("refresh of a manual subscription failed: %v", err)
 	}
-	if out.Raw != "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted" {
+	if snapshotText(out.Raw) != "ss://YWVzLTEyOC1nY206cHc@192.0.2.13:8388#pasted" {
 		t.Fatalf("refresh returned %q", out.Raw)
 	}
 }

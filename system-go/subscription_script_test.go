@@ -161,10 +161,10 @@ $content = JSON.stringify(nodes);`,
 	}
 }
 
-// The program is the largest thing this plugin stores. Keeping it in the record
-// document would re-encode it on every unrelated edit and exhaust the 1 MB cap
-// after a dozen files.
-func TestScriptIsStoredOutsideTheRecordDocument(t *testing.T) {
+// The program is the largest thing this plugin stores. It lives in its own
+// record, never in the index that list reads, so a dozen script files do not
+// weigh on every list and every index write.
+func TestScriptIsStoredInItsRecordAndOutOfTheIndex(t *testing.T) {
 	rt, host := newKVRuntime(t)
 	script := realGeneratorScript(t)
 	if err := rt.saveSubscription(subscriptionRecord{
@@ -173,26 +173,27 @@ func TestScriptIsStoredOutsideTheRecordDocument(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	stored, ok := host.values[subscriptionRecordsKey]
+	index, ok := host.values[storeIndexKey]
 	if !ok {
-		t.Fatal("the record document was never written")
+		t.Fatal("the index was never written")
 	}
 	// The marker is taken from the script rather than hardcoded, so swapping the
-	// fixture — or pointing the run at a real generator — cannot turn this into
-	// an assertion that passes because it is looking for something absent.
+	// fixture cannot turn this into an assertion that passes because it is
+	// looking for something absent.
 	marker := script[:120]
-	if strings.Contains(string(stored), marker) {
-		t.Fatalf("the script was stored inside the record document (%d bytes)", len(stored))
+	if strings.Contains(string(index), marker) {
+		t.Fatalf("the script was stored inside the index (%d bytes)", len(index))
 	}
-	if len(stored) > 4096 {
-		t.Fatalf("the record document is %d bytes; a %d-byte script leaked into it", len(stored), len(script))
+	if len(index) > 4096 {
+		t.Fatalf("the index is %d bytes; a %d-byte script leaked into it", len(index), len(script))
 	}
-	if _, ok := host.values[fileScriptKey("gen")]; !ok {
-		t.Fatal("the script was not stored under its own key")
+	if !strings.Contains(string(host.values[recordKey("gen")]), marker[:40]) {
+		t.Fatal("the script is not in its record")
+	}
+	if _, ok := host.values[fileScriptKey("gen")]; ok {
+		t.Fatal("the split store wrote a legacy program key")
 	}
 
-	// The split has to be invisible: a caller reading the record back gets its
-	// content, the same as any other kind.
 	got, err := rt.getSubscription("gen")
 	if err != nil {
 		t.Fatalf("get: %v", err)
@@ -202,7 +203,9 @@ func TestScriptIsStoredOutsideTheRecordDocument(t *testing.T) {
 	}
 }
 
-func TestDeletingAScriptFileClearsItsScript(t *testing.T) {
+// Deleting a script file archives it whole, program included, so restore
+// brings the program back too.
+func TestDeletingAScriptFileArchivesItsProgram(t *testing.T) {
 	rt, host := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "gen", Kind: kindFile, Name: "gen", FileType: fileTypeScript,
@@ -213,8 +216,18 @@ func TestDeletingAScriptFileClearsItsScript(t *testing.T) {
 	if err := rt.deleteSubscription("gen"); err != nil {
 		t.Fatalf("delete: %v", err)
 	}
-	if value := host.values[fileScriptKey("gen")]; len(value) != 0 {
-		t.Fatalf("the script outlived its file: %d bytes", len(value))
+	if _, ok := host.values[recordKey("gen")]; ok {
+		t.Fatal("the record outlived its delete")
+	}
+	if !strings.Contains(string(host.values[archiveKey("gen")]), `$content = \"hello\";`) {
+		t.Fatalf("the archive lost the program: %s", host.values[archiveKey("gen")])
+	}
+	restored, err := rt.restoreSubscription("gen")
+	if err != nil {
+		t.Fatalf("restore: %v", err)
+	}
+	if restored.Content != `$content = "hello";` {
+		t.Fatalf("restore brought back program %q", restored.Content)
 	}
 }
 

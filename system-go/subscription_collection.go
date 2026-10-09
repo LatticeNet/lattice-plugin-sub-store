@@ -83,7 +83,7 @@ func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) 
 		return "", err
 	}
 	if needsCount {
-		if err := rt.requireNodes(memberLabel(member), raw); err != nil {
+		if _, err := rt.requireNodes(memberLabel(member), raw); err != nil {
 			return "", err
 		}
 	}

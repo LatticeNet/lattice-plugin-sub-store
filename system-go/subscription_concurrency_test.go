@@ -139,8 +139,20 @@ func TestConditionalSaveRefusesARecordDeletedUnderneath(t *testing.T) {
 	if out.Saved {
 		t.Fatal("saving over a deleted record silently recreated it")
 	}
-	if out.Conflict == nil || out.Conflict.Reason != "deleted" {
-		t.Fatalf("expected a deleted conflict, got %+v", out.Conflict)
+	// Delete archives, and an archived record keeps its id for restore.
+	if out.Conflict == nil || out.Conflict.Reason != "archived" {
+		t.Fatalf("expected an archived conflict, got %+v", out.Conflict)
+	}
+	// Once purged it is gone, and the edit is told so.
+	if res := callSubscription(t, rt, "purge", map[string]any{"subscription_id": "s1"}); !res.OK {
+		t.Fatalf("purge failed: %s", res.Error)
+	}
+	out = saveRecord(t, rt, map[string]any{
+		"if_revision":  first.Revision,
+		"subscription": map[string]any{"id": "s1", "name": "mine", "url": "https://example.invalid/sub"},
+	})
+	if out.Saved || out.Conflict == nil || out.Conflict.Reason != "deleted" {
+		t.Fatalf("expected a deleted conflict after purge, got saved=%v %+v", out.Saved, out.Conflict)
 	}
 }
 
@@ -153,12 +165,12 @@ func TestABackgroundFetchDoesNotInvalidateAnOpenEdit(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 	first := seed(t, rt, "s1", "provider")
 
-	rt.noteFetchOutcome("s1", time.Now(), "upload=1; download=2", nil)
+	rt.noteFetchOutcome("s1", fetchOutcome{at: time.Now(), userinfo: "upload=1; download=2"})
 
-	after := getRecord(t, rt, "s1")
-	if after.LastFetchAt == "" {
-		t.Fatal("the fetch bookkeeping was not written, so this proves nothing")
+	if entry := indexEntryOf(t, rt, "s1"); entry.LastFetchAt == "" || entry.Revision != first.Revision {
+		t.Fatalf("bookkeeping at=%q revision=%q, want written and %q", entry.LastFetchAt, entry.Revision, first.Revision)
 	}
+	after := getRecord(t, rt, "s1")
 	if after.Revision != first.Revision {
 		t.Fatalf("a background fetch moved the revision: %q became %q", first.Revision, after.Revision)
 	}
@@ -171,7 +183,7 @@ func TestABackgroundFetchDoesNotInvalidateAnOpenEdit(t *testing.T) {
 		t.Fatalf("an edit was refused because of a refresh that changed nothing editable: %+v", out.Conflict)
 	}
 	// And the bookkeeping still survives the edit, as it did before.
-	if got := getRecord(t, rt, "s1"); got.LastFetchAt == "" {
+	if entry := indexEntryOf(t, rt, "s1"); entry.LastFetchAt == "" {
 		t.Fatal("the save dropped the fetch bookkeeping")
 	}
 }
@@ -196,21 +208,17 @@ func TestASaveWithoutARevisionIsUnconditional(t *testing.T) {
 // A record stored before this field existed has no revision in the document.
 // It must still be editable, and still protected, without a migration.
 func TestALegacyRecordWithNoStoredRevisionIsStillProtected(t *testing.T) {
-	rt, _ := newKVRuntime(t)
+	rt, host := newKVRuntime(t)
 	seed(t, rt, "s1", "provider")
 
-	// Strip the stored revision, the way a document written by an older build
+	// Strip the stored revision, the way a record written by an older build
 	// would look on disk.
-	doc, err := rt.loadSubscriptionRecords()
-	if err != nil {
-		t.Fatalf("load: %v", err)
+	var stored map[string]any
+	if err := json.Unmarshal(host.values[recordKey("s1")], &stored); err != nil {
+		t.Fatalf("decode stored record: %v", err)
 	}
-	for i := range doc.Records {
-		doc.Records[i].Revision = ""
-	}
-	if err := rt.saveSubscriptionRecords(doc); err != nil {
-		t.Fatalf("save doc: %v", err)
-	}
+	delete(stored, "revision")
+	host.values[recordKey("s1")] = mustJSON(stored)
 
 	// Reading it still yields a revision, computed rather than stored.
 	legacy := getRecord(t, rt, "s1")
@@ -233,9 +241,9 @@ func TestALegacyRecordWithNoStoredRevisionIsStillProtected(t *testing.T) {
 	}
 }
 
-// A script file's program lives under its own key, so it is not part of the
-// record's own bytes. ScriptDigest carries it into the fingerprint; without
-// that, two operators editing one program would never conflict.
+// The revision hashes ScriptDigest in place of the program (so it is the same
+// before and after migrate_store); without the digest, two operators editing
+// one program would never conflict.
 func TestAScriptProgramChangeMovesTheRevision(t *testing.T) {
 	rt, _ := newKVRuntime(t)
 
@@ -276,10 +284,10 @@ func TestAScriptProgramChangeMovesTheRevision(t *testing.T) {
 	if out.Conflict == nil || out.Conflict.Reason != "stale" {
 		t.Fatalf("expected a stale conflict, got %+v", out.Conflict)
 	}
-	// The program is deliberately not echoed back: answering with an empty
-	// Content would make a diff claim the operator's program had been erased.
-	if out.Conflict.Subscription.Content != "" {
-		t.Fatal("the conflict echoed a program back; the UI would diff against a value the store did not send")
+	// The program is in the record now, so the conflict hands back the one
+	// that is stored and the UI's diff is against what the store holds.
+	if out.Conflict.Subscription.Content != "export default async function () { return 2 }" {
+		t.Fatalf("the conflict carried program %q, want the stored one", out.Conflict.Subscription.Content)
 	}
 }
 

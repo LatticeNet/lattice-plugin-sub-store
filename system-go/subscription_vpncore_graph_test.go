@@ -157,6 +157,7 @@ func TestVPNCoreGraphComposesOrderedRootsWithOneHostCall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	result.Raw = snapshotText(result.Raw)
 	if len(host.calls) != 1 || host.calls[0]["service"] != vpnCoreGraphService || host.calls[0]["method"] != "compose" {
 		t.Fatalf("host calls = %+v", host.calls)
 	}
@@ -190,7 +191,7 @@ func TestVPNCoreGraphComposesOrderedRootsWithOneHostCall(t *testing.T) {
 	if err := json.Unmarshal(response.Result, &wire); err != nil {
 		t.Fatal(err)
 	}
-	if wire.SourceVersion != expected.SourceVersion || string(wire.SourceManifest) != string(expected.SourceManifest) || wire.Raw != expected.Raw {
+	if wire.SourceVersion != expected.SourceVersion || string(wire.SourceManifest) != string(expected.SourceManifest) || snapshotText(wire.Raw) != expected.Raw {
 		t.Fatalf("fetch RPC dropped graph authority: %+v", wire)
 	}
 }
@@ -225,7 +226,7 @@ func TestVPNCoreGraphCanonicalRawIsOneNodePerEntry(t *testing.T) {
 			t.Fatal(err)
 		}
 		result, err := rt.fetchSubscription("graph")
-		if err != nil || result.Raw != response.Raw {
+		if err != nil || snapshotText(result.Raw) != response.Raw {
 			t.Fatalf("alpn %v: refresh err=%v stored=%q", alpn, err, head(result.Raw, 80))
 		}
 	}
