@@ -109,3 +109,23 @@ func TestEnvelopeOverTheRawBoundIsRefused(t *testing.T) {
 		t.Fatalf("a 1 MiB snapshot was refused: %v", err)
 	}
 }
+
+// render reads what fetch stored: a sub rendered from its version 2
+// envelope serves exactly what it serves from the provider text itself.
+func TestRenderReadsTheEnvelopeFetchStored(t *testing.T) {
+	rt, _ := newCountingRuntime(t)
+	seedBudgetStore(t, rt)
+	fetched, err := rt.fetchSubscription("remote-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	render := func(raw string) string {
+		var out renderResult
+		decodeResult(t, callSubscription(t, rt, "render", map[string]any{"subscription_id": "remote-a", "format": "plain", "raw": raw}), &out)
+		return out.Content
+	}
+	fromEnvelope, fromText := render(fetched.Raw), render(snapshotText(fetched.Raw))
+	if fromEnvelope == "" || fromEnvelope != fromText {
+		t.Fatalf("render from the envelope = %q, from its text = %q", fromEnvelope, fromText)
+	}
+}

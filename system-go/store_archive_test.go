@@ -280,3 +280,26 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		})
 	}
 }
+
+// A refresh records the source node count it read on the index, and list
+// shows it, so the record table has its "nodes in" column without a render.
+func TestFetchRecordsNodesInOnTheIndex(t *testing.T) {
+	rt, host := newFetchRuntime(t)
+	host.body = []byte("ss://YWVzLTEyOC1nY206cHc@192.0.2.10:8388#one\nss://YWVzLTEyOC1nY206cHc@192.0.2.11:8388#two")
+	if err := rt.saveSubscription(subscriptionRecord{ID: "s1", Name: "p", URL: "https://provider.invalid/sub"}); err != nil {
+		t.Fatal(err)
+	}
+	if res := fetchViaMethod(t, rt, "s1"); !res.OK {
+		t.Fatal(res.Error)
+	}
+	if entry := indexEntryOf(t, rt, "s1"); entry.NodesIn == nil || *entry.NodesIn != 2 {
+		t.Fatalf("nodes_in = %v, want 2", entry.NodesIn)
+	}
+	var listed struct {
+		Subscriptions []listView `json:"subscriptions"`
+	}
+	decodeResult(t, callSubscription(t, rt, "list", map[string]any{}), &listed)
+	if row := listed.Subscriptions[0]; row.NodesIn == nil || *row.NodesIn != 2 {
+		t.Fatalf("list nodes_in = %v, want 2", row.NodesIn)
+	}
+}
