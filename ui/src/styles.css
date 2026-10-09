@@ -503,9 +503,10 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
   .rec-tools > .toolbar-sort .pc-select { width: 100%; }
   .rec-tools > .pc-count { justify-self: start; align-self: center; }
   /* The layer tabs share the row with half the chassis's segment padding and
-     a tighter gap before each count, so the four Russian labels fit at 375,
-     with room for a wider system face, rather than scroll the last tab out
-     of sight. */
+     a tighter gap before each count, so the four Russian labels fit one row
+     at 375; where a wider system face still needs more, the last tab wraps
+     onto a second row rather than scroll out of sight. */
+  .pc-lens-tabs[data-variant="layer"] { flex-wrap: wrap; row-gap: 2px; }
   .pc-lens-tabs[data-variant="layer"] > .pc-lens-tab { flex: 1 0 auto; gap: var(--space-1); padding-inline: var(--space-1); }
 }
 
@@ -2467,6 +2468,11 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .records-table .pc-table:not([data-stacked="true"]) .pc-name-after { flex: 0 0 auto; max-width: 40%; }
 .records-table .pc-name-after .pc-tag-list { min-width: 0; flex-wrap: nowrap; }
 .records-table .pc-name-after .pc-tag:not([title]) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* A header takes a second line rather than run into the next column when its
+   words need it, in a longer locale or a wider system face ("NODES / OUT" in
+   a Linux face); the 32px header row holds two 14px lines. */
+.records-table .pc-table:not([data-stacked="true"]) th { white-space: normal; line-height: 14px; }
 
 /* Second lines that sit in narrow columns: the turned-off steps under the
    count, and the traffic bar under the expiry. The chassis floors a cell's
