@@ -179,20 +179,40 @@ type subscriptionRenderRequest struct {
 }
 
 // resolveRenderTarget picks the client for one render. Priority is explicit
-// caller target, then the record's pin, then the core's target for the
-// agent, then the UA classification, then the universally accepted URI list.
-// An operator or URL that names a client is never overridden by a header.
-func resolveRenderTarget(rec subscriptionRecord, explicit, uaTarget, uaClass string) string {
+// caller target, then the record's pin, then the operator's default target
+// from Settings (the pin of every record that names none), then the core's
+// target for the agent, then the UA classification, then the universally
+// accepted URI list. An operator or URL that names a client is never
+// overridden by a header.
+func resolveRenderTarget(rec subscriptionRecord, explicit, defaultTarget, uaTarget, uaClass string) string {
 	if t := strings.TrimSpace(explicit); t != "" {
 		return t
 	}
 	if t := strings.TrimSpace(rec.Target); t != "" {
 		return t
 	}
+	if t := strings.TrimSpace(defaultTarget); t != "" {
+		return t
+	}
 	if t := strings.TrimSpace(uaTarget); t != "" {
 		return t
 	}
 	return subscriptionTarget(rec, uaClass)
+}
+
+// renderTarget is resolveRenderTarget for one render request, reading the
+// default target from Settings only when neither the request nor the record
+// names a client, so a pinned record or an explicit URL costs no host call.
+func (rt *runtime) renderTarget(rec subscriptionRecord, req subscriptionRenderRequest) (string, error) {
+	explicit, defaultTarget := requestTarget(req), ""
+	if strings.TrimSpace(explicit) == "" && strings.TrimSpace(rec.Target) == "" {
+		settings, err := rt.invocationSettings()
+		if err != nil {
+			return "", err
+		}
+		defaultTarget = settings.DefaultTarget
+	}
+	return resolveRenderTarget(rec, explicit, defaultTarget, req.UATarget, req.UAClass), nil
 }
 
 // requestTarget is the client a render request names explicitly: ?target=
@@ -213,10 +233,6 @@ func requestTarget(req subscriptionRenderRequest) string {
 // stopping twice rather than relying on either layer alone.
 func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResult, error) {
 	subscriptionID, format, uaClass, query := req.SubscriptionID, req.Format, req.UAClass, req.Query
-	// The core hands back whatever fetch stored: a snapshot envelope, or a
-	// version 1 snapshot from a runtime before it. Both read as the text the
-	// paths below always took.
-	raw := snapshotText(req.Raw)
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return renderResult{}, err
@@ -226,7 +242,10 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	// target. The core's format only decides how a NODE LIST is carried, and a
 	// configuration is not a node list.
 	if recordKind(rec) == kindFile {
-		output, headers, err := rt.renderFile(rec, uaClass, query, raw)
+		// The core hands back whatever fetch stored: a snapshot envelope, or a
+		// version 1 snapshot from a runtime before it. Both read as the text
+		// the file paths always took.
+		output, headers, err := rt.renderFile(rec, uaClass, query, snapshotText(req.Raw))
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -255,18 +274,30 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
-	target := resolveRenderTarget(rec, requestTarget(req), req.UATarget, uaClass)
+	target, err := rt.renderTarget(rec, req)
+	if err != nil {
+		return renderResult{}, err
+	}
 
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		converted, err := rt.renderCollectionResult(rec, target, req.Options, raw, req.Explain)
+		// The snapshot as fetch stored it: a version 2 envelope carries the
+		// members' nodes, which snapshotText would drop.
+		converted, err := rt.renderCollectionResult(rec, target, req.Options, req.Raw, req.Explain)
 		if err != nil {
 			return renderResult{}, err
 		}
 		return rt.finishNodeRender(rec, "collection "+quoteLabel(subscriptionID), target, format, req.Explain, converted)
 	}
 
+	// The snapshot as fetch stored it, decoded once: at 4096 nodes an envelope
+	// is about 3 MB, and decoding it costs as much as parsing its nodes.
+	env, enveloped := decodeSnapshotEnvelope(req.Raw)
+	raw := req.Raw
+	if enveloped {
+		raw = envelopeText(env)
+	}
 	// The core hands back the snapshot it holds for this subscription. Inline
 	// content is the fallback for a record that has no remote source at all.
 	source := raw
@@ -293,17 +324,23 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{}, fmt.Errorf("subscription %q has no content to render", subscriptionID)
 	}
 
-	operators, err := enabledOperators(rec)
+	plan, err := rt.chainPlan(rec)
 	if err != nil {
 		return renderResult{}, fmt.Errorf("subscription %q: %w", subscriptionID, err)
 	}
-	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
-		Raw:       source,
-		Target:    target,
-		Operators: operators,
-		Options:   req.Options,
-		Explain:   req.Explain,
-	})
+	request := nodeConvertRequest{
+		Parts:   []string{source},
+		Target:  target,
+		Plan:    plan,
+		Options: req.Options,
+		Explain: req.Explain,
+	}
+	// A snapshot envelope carries the nodes fetch parsed from the same text;
+	// a native render reads them instead of parsing again.
+	if enveloped && source == raw && nativeRoute(plan, target) {
+		request.Nodes = envelopeNodes(env)
+	}
+	converted, _, err := rt.convertNodes(request)
 	if err != nil {
 		return renderResult{}, err
 	}
@@ -465,6 +502,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 	// per invocation anyway; a test that drives several calls through one
 	// runtime must not read one call's cache in the next.
 	rt.legacy = legacyCache{}
+	rt.settings = settingsCache{}
 	switch call.Method {
 	case "fetch":
 		var req struct {
@@ -480,7 +518,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		// Bookkeeping whether the fetch worked or not: this method is the
 		// refresh path — the core calls it on a schedule and the UI on a click —
 		// so it is the one place that knows when the served snapshot last moved.
-		rt.noteFetchOutcome(req.SubscriptionID, fetchOutcome{at: fetchedAt, userinfo: out.Userinfo, nodesIn: out.nodesIn, err: err})
+		rt.noteFetchOutcome(req.SubscriptionID, fetchOutcome{at: fetchedAt, userinfo: out.Userinfo, nodesIn: out.nodesIn, nodesOut: out.nodesOut, err: err})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}

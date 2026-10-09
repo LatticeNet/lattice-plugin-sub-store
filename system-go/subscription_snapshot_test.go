@@ -72,7 +72,8 @@ func TestCollectionRenderFromSnapshotMatchesLive(t *testing.T) {
 	if _, ok := decodeSnapshotEnvelope(snap.Raw); !ok {
 		t.Fatalf("fetch did not write a version 2 envelope: %.120s", snap.Raw)
 	}
-	fromSnapshot, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, snapshotText(snap.Raw))
+	// The envelope as fetch stored it, which is what the core hands render.
+	fromSnapshot, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, snap.Raw)
 	if err != nil {
 		t.Fatalf("render from snapshot: %v", err)
 	}

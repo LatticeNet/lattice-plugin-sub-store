@@ -230,11 +230,21 @@ globalThis.SubStoreProxyUtils.processResponse = function(response){ return { sta
 	if warm, isolated := previewEngine.pathCounts(); warm != 0 || isolated != 1 {
 		t.Fatalf("script preview path counts warm=%d isolated=%d, want 0/1", warm, isolated)
 	}
-	if _, err := rt.previewSubscription("ss://y", nil, "URI", false); err != nil {
+	// A scriptless chain the native code does not run (a lookahead RE2
+	// refuses) still answers warm; a chain that runs natively reaches neither
+	// runtime.
+	lookahead := json.RawMessage(`{"type":"Regex Filter","args":{"regex":["^(?!.*HK).*$"],"keep":true}}`)
+	if _, err := rt.previewSubscription("ss://y", []json.RawMessage{lookahead}, "URI", false); err != nil {
 		t.Fatalf("scriptless preview: %v", err)
 	}
 	if warm, _ := previewEngine.pathCounts(); warm != 1 {
 		t.Fatalf("scriptless preview did not answer warm (warm=%d)", warm)
+	}
+	if _, err := rt.previewSubscription(warmTestURI, nil, "URI", false); err != nil {
+		t.Fatalf("native preview: %v", err)
+	}
+	if warm, isolated := previewEngine.pathCounts(); warm != 1 || isolated != 1 {
+		t.Fatalf("native preview reached the bundle: warm=%d isolated=%d, want 1/1", warm, isolated)
 	}
 }
 

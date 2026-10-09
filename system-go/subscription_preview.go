@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/normalise"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 )
 
 // nodeSummary is one node reduced to what an operator needs to judge a pipeline.
@@ -80,34 +84,42 @@ const maxPreviewNodes = 200
 //
 // Every other source is arbitrary upstream content whose secret-bearing fields
 // this process cannot enumerate, so those get the reduction.
-func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, target string, credentialsAlreadySynthetic bool) (previewResult, error) {
+func (rt *runtime) previewSubscription(raw string, steps []json.RawMessage, target string, credentialsAlreadySynthetic bool) (previewResult, error) {
 	if strings.TrimSpace(raw) == "" {
 		return previewResult{}, fmt.Errorf("preview needs subscription content")
 	}
-	if err := validateOperators(operators); err != nil {
+	if err := validateOperators(steps); err != nil {
 		return previewResult{}, err
 	}
 	if strings.TrimSpace(target) == "" {
 		target = "URI"
 	}
 
-	engine := rt.subStoreEngine()
-	run := engine.runCoreScript
-	if containsScriptingOperator(operators) {
-		// User JavaScript never touches the warm runtime.
-		run = engine.runIsolatedScript
-	}
-	out, err := run("preview", "preview.js", previewScript(raw, operators, target, !credentialsAlreadySynthetic))
+	// A preview produces no document, so only the chain decides: a chain that
+	// runs in Go is previewed in Go, from the native parse.
+	plan, err := nativePlans.plan("", steps)
 	if err != nil {
 		return previewResult{}, err
 	}
-	var decoded struct {
-		SourceNodeCount int           `json:"source_node_count"`
-		Nodes           []nodeSummary `json:"nodes"`
-		Dropped         []nodeSummary `json:"dropped"`
-	}
-	if err := json.Unmarshal([]byte(out), &decoded); err != nil {
-		return previewResult{}, fmt.Errorf("decode preview result: %w", err)
+	var decoded previewNodes
+	if plan.Native() {
+		if decoded, err = previewNative(raw, plan, target, !credentialsAlreadySynthetic); err != nil {
+			return previewResult{}, err
+		}
+	} else {
+		engine := rt.subStoreEngine()
+		run := engine.runCoreScript
+		if containsScriptingOperator(steps) {
+			// User JavaScript never touches the warm runtime.
+			run = engine.runIsolatedScript
+		}
+		out, err := run("preview", "preview.js", previewScript(raw, steps, target, !credentialsAlreadySynthetic))
+		if err != nil {
+			return previewResult{}, err
+		}
+		if err := json.Unmarshal([]byte(out), &decoded); err != nil {
+			return previewResult{}, fmt.Errorf("decode preview result: %w", err)
+		}
 	}
 	result := previewResult{
 		SourceNodeCount: decoded.SourceNodeCount,
@@ -127,6 +139,142 @@ func (rt *runtime) previewSubscription(raw string, operators []json.RawMessage, 
 		result.DroppedTruncated = true
 	}
 	return result, nil
+}
+
+// previewNodes is what either preview engine reports: the source count, the
+// summaries the chain kept and the ones it dropped.
+type previewNodes struct {
+	SourceNodeCount int           `json:"source_node_count"`
+	Nodes           []nodeSummary `json:"nodes"`
+	Dropped         []nodeSummary `json:"dropped"`
+}
+
+// previewVisible is the allowlist previewScript reduces a node to before the
+// chain: what the summary returns or reads, plus _subName.
+var previewVisible = []string{
+	"name", "type", "server", "port", "network",
+	"security", "tls", "reality-opts",
+	"udp", "tfo", "skip-cert-verify", "aead",
+	"_subName",
+}
+
+// previewNative is previewScript in Go, for a chain that runs natively: the
+// same reduction before the chain, the same summaries and the same pairing
+// of each kept node with the source node it came from.
+func previewNative(raw string, plan *operators.Plan, target string, reduceBeforeOperators bool) (previewNodes, error) {
+	nodes, err := parseParts([]string{raw})
+	if err != nil {
+		return previewNodes{}, err
+	}
+	if reduceBeforeOperators {
+		for _, n := range nodes {
+			reduced := make(map[string]any, len(previewVisible))
+			for _, key := range previewVisible {
+				if v, ok := n.Fields[key]; ok {
+					reduced[key] = v
+				}
+			}
+			n.Fields = reduced
+		}
+	}
+	// Summaries are fresh values, taken before the chain edits the nodes in
+	// place.
+	source := make([]nodeSummary, len(nodes))
+	for i, n := range nodes {
+		source[i] = summarizeNode(n)
+	}
+	nodes = plan.Run(nodes, &operators.Context{Target: target, Raw: raw})
+	kept := make([]nodeSummary, len(nodes))
+	for i, n := range nodes {
+		kept[i] = summarizeNode(n)
+	}
+	return previewNodes{SourceNodeCount: len(source), Nodes: kept, Dropped: pairPreview(source, kept)}, nil
+}
+
+// summarizeNode is previewScript's summarize over a model node.
+func summarizeNode(n *nodemodel.Node) nodeSummary {
+	text := func(key string) string {
+		v, ok := n.Fields[key]
+		if !ok || v == nil {
+			return ""
+		}
+		return normalise.Text(v)
+	}
+	isTrue := func(key string) bool {
+		v, _ := n.Fields[key].(bool)
+		return v
+	}
+	security := text("security")
+	if v, ok := n.Fields["security"]; !ok || v == nil {
+		security = ""
+		if v, ok := n.Fields["reality-opts"]; ok && v != nil {
+			security = "reality"
+		} else if isTrue("tls") {
+			security = "tls"
+		}
+	}
+	return nodeSummary{
+		Name:           text("name"),
+		Type:           text("type"),
+		Server:         text("server"),
+		Port:           text("port"),
+		Network:        text("network"),
+		Security:       security,
+		UDP:            isTrue("udp"),
+		TFO:            isTrue("tfo"),
+		SkipCertVerify: isTrue("skip-cert-verify"),
+		AEAD:           isTrue("aead"),
+	}
+}
+
+// pairPreview pairs every kept node with the source node it came from, as
+// previewScript does: the endpoint (type, server, port) is the identity,
+// exact name matches are claimed first, and a kept node paired with a source
+// node of another name records that name in Was. It returns the source nodes
+// nothing claimed, in order.
+func pairPreview(source, kept []nodeSummary) []nodeSummary {
+	keyOf := func(n nodeSummary) string {
+		return n.Type + "|" + strings.ToLower(n.Server) + "|" + n.Port
+	}
+	byKey := map[string][]int{}
+	for i, n := range source {
+		byKey[keyOf(n)] = append(byKey[keyOf(n)], i)
+	}
+	claimed := make([]bool, len(source))
+	var unpaired []int
+	for j := range kept {
+		hit := -1
+		for _, i := range byKey[keyOf(kept[j])] {
+			if !claimed[i] && source[i].Name == kept[j].Name {
+				hit = i
+				break
+			}
+		}
+		if hit < 0 {
+			unpaired = append(unpaired, j)
+			continue
+		}
+		claimed[hit] = true
+	}
+	for _, j := range unpaired {
+		for _, i := range byKey[keyOf(kept[j])] {
+			if claimed[i] {
+				continue
+			}
+			claimed[i] = true
+			if source[i].Name != kept[j].Name {
+				kept[j].Was = source[i].Name
+			}
+			break
+		}
+	}
+	var dropped []nodeSummary
+	for i, n := range source {
+		if !claimed[i] {
+			dropped = append(dropped, n)
+		}
+	}
+	return dropped
 }
 
 // previewScript reduces each node to its summary inside the engine, so the

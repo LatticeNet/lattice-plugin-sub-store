@@ -460,6 +460,7 @@ type fetchOutcome struct {
 	at       time.Time
 	userinfo string
 	nodesIn  *int
+	nodesOut *int
 	err      error
 }
 
@@ -529,6 +530,14 @@ func applyFetchOutcome(entry *indexEntry, outcome fetchOutcome) {
 	if outcome.nodesIn != nil {
 		count := *outcome.nodesIn
 		entry.NodesIn = &count
+		// Counted with the chain when it is native, cleared when it is not:
+		// a count from before the chain stopped being native would describe
+		// a chain the record no longer has.
+		entry.NodesOut = nil
+		if outcome.nodesOut != nil {
+			after := *outcome.nodesOut
+			entry.NodesOut = &after
+		}
 	}
 }
 

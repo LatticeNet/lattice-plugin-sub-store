@@ -234,7 +234,9 @@ func TestWritesOnALegacyStoreAreRefusedWithCode(t *testing.T) {
 // The "pre" column of the plan's host-call table: what each method costs on a
 // store that has not migrated. The legacy document is read once per
 // invocation, so a record read costs its own key's miss and nothing more
-// after the first, and every count fits the wave budget.
+// after the first, and every count fits the wave budget. The Settings read
+// for a default user agent or target costs the same one call as on a split
+// store.
 func TestHostCallCountsOnALegacyStore(t *testing.T) {
 	scenarios := []struct {
 		name    string
@@ -246,16 +248,16 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		{name: "list", method: "list", payload: map[string]any{}, want: 2, ok: true},
 		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 3, ok: true},
-		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 5, ok: true},
+		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 6, ok: true},
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 5, ok: true},
-		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 8, ok: true},
-		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 10, ok: true},
-		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 2, ok: true},
+		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 9, ok: true},
+		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 11, ok: true},
+		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 3, ok: true},
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 2, ok: true},
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 6, ok: true},
+		}, want: 3, ok: true},
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 7, ok: true},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 		{name: "export", method: "export", payload: map[string]any{}, want: 4, ok: true},
 		{name: "depends_on", method: "depends_on", payload: map[string]any{}, want: 2, ok: true},
