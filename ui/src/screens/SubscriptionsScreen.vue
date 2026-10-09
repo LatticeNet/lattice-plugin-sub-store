@@ -802,12 +802,9 @@ function moveFromMenu(row: SubscriptionListItem, where: MoveId): void {
   closeRowMenu();
   if (!canMove.value) return;
   const order = subs.items.value.map((item) => item.id);
+  // Null only where the row already is, and there the item is off.
   const next = namedMove(order, sorted.value.map((item) => item.id), row.id, where);
-  if (!next) {
-    announce(TEXT.moveAtEdge(labelOf(row), where === "up" || where === "top" ? "top" : "bottom"));
-    return;
-  }
-  void commitOrder(row, next, false);
+  if (next) void commitOrder(row, next, false);
 }
 
 /** On the grip, the arrows move the row; anywhere in the row, Alt and the arrows do. */
