@@ -443,9 +443,12 @@ test.describe("a chain the native engine cannot run", () => {
     await rowNamed(page, "lookahead-provider").getByTestId("record-name").click();
     const panel = page.locator(".pc-side-panel");
     await expect(panel.getByTestId("record-flagged")).toBeVisible();
+    // The reason in words, where no pointer can hover for a title, with the way out.
+    await expect(panel).toContainText("Edit names the step and offers a rewrite");
     await panel.getByRole("button", { name: "Open page" }).click();
     const head = page.locator(".record-head");
     await expect(head.getByTestId("record-flagged")).toBeVisible();
+    await expect(head).toContainText("Edit names the step and offers a rewrite");
     await head.getByRole("button", { name: "Edit" }).click();
     // Nothing changed and nothing saved: the step and its rewrite are named at once.
     const offer = page.getByTestId("regex-rewrite-offer");
