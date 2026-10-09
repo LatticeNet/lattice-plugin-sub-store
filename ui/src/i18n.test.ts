@@ -1,3 +1,4 @@
+import { computed, watchEffect } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -194,6 +195,20 @@ describe("the locale", () => {
     await setLocale("de");
     expect(t.records.layer).toBe("Records");
     expect(root.lang).toBe("en");
+  });
+
+  it("redraws a message already on screen when the locale arrives", async () => {
+    // The page draws English before the handshake. A computed (the layer tabs)
+    // and a render effect (a template) that read a message then must read it
+    // again once the table switches, or that text stays English.
+    const tab = computed(() => t.layers.records);
+    const drawn: string[] = [];
+    const stop = watchEffect(() => drawn.push(t.layers.settings), { flush: "sync" });
+    expect(tab.value).toBe("Records");
+    await setLocale("ru");
+    stop();
+    expect(tab.value).toBe("Записи");
+    expect(drawn).toEqual(["Settings", "Настройки"]);
   });
 
   it("lets the last request win when an earlier table is still loading", async () => {

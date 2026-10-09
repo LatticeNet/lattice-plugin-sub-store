@@ -102,6 +102,53 @@ async function cutAmong(page: Page, selectors: readonly string[]): Promise<strin
   return found.flat();
 }
 
+/**
+ * The English table's strings that `locale` says otherwise, string parts of a
+ * rich message included. Strings both tables hold (names, units, protocol
+ * words) are left out, so in English the list is empty.
+ */
+function englishOnly(locale: Locale): string[] {
+  const walk = (value: unknown, visit: (text: string) => void): void => {
+    if (typeof value === "string") visit(value);
+    else if (value && typeof value === "object") for (const inner of Object.values(value)) walk(inner, visit);
+  };
+  const theirs = new Set<string>();
+  walk(TABLES[locale], (text) => theirs.add(text));
+  const out = new Set<string>();
+  walk(TABLES.en, (text) => {
+    if (/[A-Za-z]{2}/.test(text) && !theirs.has(text)) out.add(text);
+  });
+  return [...out];
+}
+
+/**
+ * Each shown text, accessible name, title and placeholder that is one of the
+ * English table's strings in a page that reads `locale`: a label left in
+ * English, as a message read once outside a render keeps the English it read
+ * before the locale arrived. The harness's own bar is left out.
+ */
+function leftInEnglish(page: Page, locale: Locale): Promise<string[]> {
+  return page.evaluate((english) => {
+    const words = new Set(english);
+    const where = (el: Element) => (el.id ? `#${el.id}` : [el.tagName.toLowerCase(), ...el.classList].join("."));
+    const out: string[] = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const el = node.parentElement;
+      const text = (node.textContent ?? "").trim();
+      if (el && words.has(text) && !el.closest(".dev-bar") && el.checkVisibility()) out.push(`"${text}" in ${where(el)}`);
+    }
+    for (const el of document.querySelectorAll("[aria-label], [title], [placeholder]")) {
+      if (el.closest(".dev-bar")) continue;
+      for (const name of ["aria-label", "title", "placeholder"]) {
+        const value = el.getAttribute(name)?.trim();
+        if (value && words.has(value)) out.push(`${name}="${value}" on ${where(el)}`);
+      }
+    }
+    return out;
+  }, englishOnly(locale));
+}
+
 /** The words around the table that change with the locale: the header, the layer tabs and the toolbar. */
 const CHROME = [".ss-header .pc-button", ".pc-lens-tab", ".rec-kind", ".toolbar-sort > span", ".toolbar-sort > select", "[data-testid=records-density]"];
 /** The table's own labels at full rows: the headers, and the cells that hold words rather than names. */
@@ -221,6 +268,19 @@ for (const locale of LOCALES) {
         expect(await seriousViolations(page)).toEqual([]);
       });
 
+      test("the header and the layer tabs speak the page's locale, and nothing shown is left in English", async ({ page }) => {
+        await open(page, "&fixture=states&manifest=s1", "record-row", locale);
+        // The page draws English before the handshake; the frame must redraw
+        // once the table arrives, not only the rows that load after it.
+        for (const layer of ["overview", "records", "shares", "settings"] as const) {
+          await expect(page.locator(`#pc-tab-${layer}`)).toHaveText(startsWith(t.layers[layer]));
+        }
+        const header = page.locator(".ss-header");
+        await expect(header.getByRole("button", { name: t.shell.refresh, exact: true })).toBeVisible();
+        await expect(header.getByRole("button", { name: t.create.newSource, exact: true })).toBeVisible();
+        expect(await leftInEnglish(page, locale)).toEqual([]);
+      });
+
       test("every label around and inside the table keeps its words whole", async ({ page }) => {
         await open(page, "&fixture=states&manifest=s1", "record-row", locale);
         // The layer row holds its four tabs without scrolling one out of sight.
@@ -229,13 +289,14 @@ for (const locale of LOCALES) {
         expect(await docWidth(page)).toBe(viewport.width);
       });
 
-      test("the row menu and the side panel keep their words whole", async ({ page }) => {
+      test("the row menu and the side panel keep their words whole, in the page's locale", async ({ page }) => {
         await open(page, "&fixture=states&manifest=s1", "record-row", locale);
         const row = rowNamed(page, "openjobs-host-trojan");
         await row.getByRole("button", { name: t.records.actionsFor("openjobs-host-trojan") }).click();
         const menu = page.getByRole("menu");
         await menu.evaluate((el) => Promise.all(el.getAnimations().map((animation) => animation.finished)));
         expect(await cutAmong(page, [".rec-menu [role=menuitem]"])).toEqual([]);
+        expect(await leftInEnglish(page, locale)).toEqual([]);
         expect(await seriousViolations(page)).toEqual([]);
         await page.keyboard.press("Escape");
         await expect(menu).toHaveCount(0);
@@ -245,6 +306,7 @@ for (const locale of LOCALES) {
         await expect(panel).toBeVisible();
         await panel.evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).map((animation) => animation.finished)));
         expect(await cutAmong(page, [".pc-side-panel .pc-button", ".peek-state > *", ".peek-facts dt"])).toEqual([]);
+        expect(await leftInEnglish(page, locale)).toEqual([]);
         expect(await docWidth(page)).toBe(viewport.width);
         // On a phone the panel is a modal sheet: the rows under its scrim are not read.
         expect(await seriousViolations(page, viewport.width > 480 ? undefined : ".pc-side-panel")).toEqual([]);
