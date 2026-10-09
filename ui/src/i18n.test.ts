@@ -143,6 +143,15 @@ describe("the message tables", () => {
     expect(ru.records.layer).toMatch(/[Ѐ-ӿ]/);
     expect(ru.shell.description).toMatch(/[Ѐ-ӿ]/);
   });
+
+  // Duplicate writes a new record to the store at once, unconfirmed; Copy puts
+  // text on the clipboard. One word for both reads the first as the second.
+  it.each([["en", en] as const, ...TABLES])("%s names Duplicate with a verb of its own, apart from the clipboard's Copy", (_locale, table) => {
+    const duplicates = [table.actions.duplicate, table.chain.duplicate, table.chain.duplicateLabel("1. X")];
+    for (const verb of duplicates) {
+      for (const copy of [table.copyButton.copy, table.settings.copy]) expect(verb, `${verb} holds ${copy}`).not.toContain(copy);
+    }
+  });
 });
 
 describe("the locale", () => {
