@@ -51,8 +51,8 @@ type prepared struct {
 	index int
 	// node is a copy of the caller's node at the top level, which is the
 	// only level the steps write. Nested objects and lists are shared with
-	// the caller, so a producer that changes one copies it first
-	// (nodemodel.CloneValue).
+	// the caller, so a producer that changes one copies it first (own in
+	// clashmeta_transforms.go).
 	node *nodemodel.Node
 	// added lists the top-level keys created after the producer received
 	// the node, by the steps and then by the producer's own transforms, in
