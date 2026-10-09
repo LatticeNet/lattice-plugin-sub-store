@@ -175,8 +175,8 @@ func TestMigrateStoreIsIdempotentAndResumesFromCursor(t *testing.T) {
 	host.values[storeIndexKey] = mustJSON(idx)
 	puts = host.puts
 	rewound := migrateStoreCall(t, rt, map[string]any{"chunk": 30})
-	if rewound.Migrated != 30 || host.puts-puts != 31 {
-		t.Fatalf("rewound chunk = %+v with %d writes, want the 60 known records skipped and 30 new ones written", rewound, host.puts-puts)
+	if rewound.Migrated != 30 || rewound.Remaining != 10 || host.puts-puts != 31 {
+		t.Fatalf("rewound chunk = %+v with %d writes, want the 60 known records skipped and rec-060..rec-089 written", rewound, host.puts-puts)
 	}
 	for !rewound.Verified {
 		rewound = migrateStoreCall(t, rt, map[string]any{"chunk": 30})
@@ -336,5 +336,59 @@ func TestRebuildRepairsAStaleIndex(t *testing.T) {
 	}
 	if a := listing.Records[0]; a.Name != "name a" || a.Userinfo != "total=9" {
 		t.Fatalf("rebuild left a = %+v", a)
+	}
+}
+
+// lossyIndexHost drops the last entry from one index write, the way a
+// concurrent writer holding an older index can.
+type lossyIndexHost struct {
+	*kvHostCaller
+	lose bool
+}
+
+func (h *lossyIndexHost) call(method string, params any) (json.RawMessage, error) {
+	out, err := h.kvHostCaller.call(method, params)
+	if h.lose && method == "kv.put" && err == nil {
+		var p struct {
+			Key string `json:"key"`
+		}
+		_ = json.Unmarshal(mustJSON(params), &p)
+		if p.Key == storeIndexKey {
+			var idx indexDocument
+			if json.Unmarshal(h.values[storeIndexKey], &idx) == nil && len(idx.Records) > 0 {
+				idx.Records = idx.Records[:len(idx.Records)-1]
+				h.values[storeIndexKey] = mustJSON(idx)
+				h.lose = false
+			}
+		}
+	}
+	return out, err
+}
+
+// The verify holds the index to the legacy document: an index that lost an
+// entry is caught, the store stays closed and the legacy document unmarked,
+// and the next call writes the lost record again and verifies.
+func TestMigrateStoreVerifyCatchesALostEntryAndRecovers(t *testing.T) {
+	host := &lossyIndexHost{kvHostCaller: newKVHostCaller()}
+	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	seedLegacyStore(t, host.kvHostCaller, legacyFixture(10))
+	host.lose = true
+	if res := callSubscription(t, rt, "migrate_store", map[string]any{}); res.OK || !strings.Contains(res.Error, "migrate_store verify") {
+		t.Fatalf("a verify over a lossy index = %+v, want it refused", res)
+	}
+	if strings.Contains(string(host.values[subscriptionRecordsKey]), "migrated_to") {
+		t.Fatal("a failed verify marked the legacy document")
+	}
+	if res := callSubscription(t, rt, "save", map[string]any{"subscription": map[string]any{"id": "x", "name": "x"}}); res.OK {
+		t.Fatal("a failed verify opened the store for writes")
+	}
+	puts := host.puts
+	reply := migrateStoreCall(t, rt, map[string]any{})
+	if !reply.Verified || reply.Migrated != 1 {
+		t.Fatalf("the retry = %+v, want the lost record written again and verified", reply)
+	}
+	// The lost record, the index, the legacy mark and the verified index.
+	if host.puts-puts != 4 {
+		t.Fatalf("the retry wrote %d keys, want 4", host.puts-puts)
 	}
 }

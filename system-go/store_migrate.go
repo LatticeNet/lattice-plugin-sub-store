@@ -150,6 +150,9 @@ func (rt *runtime) migrateStore(payload json.RawMessage) (migrateStoreReply, err
 
 // verifyMigration re-reads the index and holds it to the legacy document
 // read in the same call, then marks the legacy document and opens the store.
+// A verify that fails rewinds the cursor, so the next call walks the legacy
+// document again: entries that are right are skipped without a write, and
+// whatever the index lost is written again.
 func (rt *runtime) verifyMigration(legacy subscriptionRecordsDocument, records []subscriptionRecord, reply migrateStoreReply) (migrateStoreReply, error) {
 	check, err := rt.loadIndex()
 	if err != nil {
@@ -158,20 +161,15 @@ func (rt *runtime) verifyMigration(legacy subscriptionRecordsDocument, records [
 	if check == nil || check.Migration == nil {
 		return migrateStoreReply{}, fmt.Errorf("migrate_store verify: the index did not land; call migrate_store again")
 	}
-	if len(check.Records) != len(records) {
-		return migrateStoreReply{}, fmt.Errorf("migrate_store verify: the index holds %d records, the legacy document %d; call migrate_store again", len(check.Records), len(records))
+	if problem := migrationMismatch(check, records); problem != "" {
+		check.Migration.Cursor = ""
+		if err := rt.putIndex(check, false); err != nil {
+			return migrateStoreReply{}, err
+		}
+		return migrateStoreReply{}, fmt.Errorf("migrate_store verify: %s; the cursor is rewound, call migrate_store again", problem)
 	}
 	var programs []string
 	for _, rec := range records {
-		want := legacyEntry(rec)
-		pos := check.position(rec.ID)
-		if pos < 0 {
-			return migrateStoreReply{}, fmt.Errorf("migrate_store verify: %q is missing from the index; call migrate_store again", rec.ID)
-		}
-		got := check.Records[pos]
-		if got.Revision != want.Revision || got.ContentHash != want.ContentHash {
-			return migrateStoreReply{}, fmt.Errorf("migrate_store verify: %q differs from the legacy document", rec.ID)
-		}
 		if isScriptFile(rec) {
 			programs = append(programs, rec.ID)
 		}
@@ -192,6 +190,25 @@ func (rt *runtime) verifyMigration(legacy subscriptionRecordsDocument, records [
 	reply.StoreVersion = storeVersionSplit
 	reply.LegacyPrograms = len(programs)
 	return reply, nil
+}
+
+// migrationMismatch names the first way the index disagrees with the legacy
+// records, or "" when every id, revision and content hash matches.
+func migrationMismatch(check *indexDocument, records []subscriptionRecord) string {
+	if len(check.Records) != len(records) {
+		return fmt.Sprintf("the index holds %d records, the legacy document %d", len(check.Records), len(records))
+	}
+	for _, rec := range records {
+		want := legacyEntry(rec)
+		pos := check.position(rec.ID)
+		if pos < 0 {
+			return fmt.Sprintf("%q is missing from the index", rec.ID)
+		}
+		if got := check.Records[pos]; got.Revision != want.Revision || got.ContentHash != want.ContentHash {
+			return fmt.Sprintf("%q differs from the legacy document", rec.ID)
+		}
+	}
+	return ""
 }
 
 // deleteLegacyPrograms is the cleanup after a verified migration: up to a
