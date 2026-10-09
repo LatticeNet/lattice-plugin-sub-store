@@ -228,8 +228,9 @@ jobs:
         run: go run . -baseline "$GITHUB_WORKSPACE/system-go/testdata/bench/ubuntu-24.04.txt" -current "$RUNNER_TEMP/bench.txt"
 
       - name: keep the benchmark output
-        # A deliberate baseline move commits this file as
-        # system-go/testdata/bench/ubuntu-24.04.txt.
+        # A deliberate baseline move commits this file, from runs on at least
+        # two runner CPUs, as system-go/testdata/bench/ubuntu-24.04.txt
+        # (README, Conformance numbers).
         if: always()
         uses: actions/upload-artifact@v4
         with:
