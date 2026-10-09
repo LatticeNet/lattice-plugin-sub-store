@@ -128,6 +128,9 @@ func FuzzPreprocessBase64(f *testing.F) {
 	fuzzSeeds(f, "base64")
 	f.Add("dm1lc3M6Ly8=")
 	f.Add("YW55dGxzOi8vcEBoOjE")
+	// Encoded, these hold the sixth-bit values 62 and 63, so the round trip
+	// below meets "-" and "_" as well as "+" and "/".
+	f.Add("~~>~~?\xfb\xff\xfe")
 	f.Fuzz(func(t *testing.T, text string) {
 		for _, p := range []func(string) (string, bool, string, error){preprocessBase64Known, preprocessBase64Fallback} {
 			out, ok, warning, err := p(text)
