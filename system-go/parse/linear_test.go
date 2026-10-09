@@ -153,6 +153,7 @@ var lineShapes = []struct {
 		return "a = trojan, h, 1, ws=true, ws-headers=" + strings.Repeat("a|", n/2)
 	}},
 	{"surge-header-quotes", func(n int) string { return "a = http, h, 1, headers=" + strings.Repeat(`"a;`, n/3) }},
+	{"surge-header-lists-unclosed", func(n int) string { return "a = http, h, 1" + strings.Repeat(`, headers="a`, n/12) }},
 	{"surge-options", func(n int) string { return "a = ss, h, 1" + strings.Repeat(", x=1", n/5) }},
 	{"surge-port-hopping", func(n int) string { return "a = tuic, h, 1" + strings.Repeat(", port-hopping=1-", n/17) }},
 	{"surge-external", func(n int) string { return "x = external" + strings.Repeat(", args=a", n/8) }},
