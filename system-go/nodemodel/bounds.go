@@ -72,7 +72,7 @@ var textRules = func() map[string]textBound {
 		}
 	}
 	add(textBound{"server", maxServerBytes}, "server", "addresses")
-	add(textBound{"enumeration", maxEnumBytes}, "type", "network", "cipher", "flow", "encryption", "protocol",
+	add(textBound{"enumeration", maxEnumBytes}, "type", "network", "cipher", "flow", "protocol",
 		"obfs", "mode", "congestion-controller", "udp-relay-mode", "ip-version", "client-fingerprint",
 		"packet-encoding", "plugin")
 	add(textBound{"credential", maxCredentialBytes}, "password", "uuid", "username", "psk", "token", "auth-str",

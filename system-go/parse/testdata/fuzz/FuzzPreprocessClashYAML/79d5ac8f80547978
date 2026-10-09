@@ -1,0 +1,2 @@
+go test fuzz v1
+string("x-common: &common\n proxies:\n  - <<: *common\n    name: CA-n3w9j-79\n    server: sp-32.tm7unoq.example.net\n    ws-opts:\n      path: /lr90\n  - <<: *common\n    name: AU-q0l0b-46\n    server: xhw-30.mj0me.example.org\n    ws-opts:\n      path: /rse2gc/i7dsee8t/")

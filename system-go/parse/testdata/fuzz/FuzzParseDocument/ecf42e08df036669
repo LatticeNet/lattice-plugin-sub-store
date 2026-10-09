@@ -1,0 +1,2 @@
+go test fuzz v1
+string("n: &common\n proxies:\n  - <: *common\n    e: \n    r: \n    s:\n    h: \n  - <: *common\n    es")
