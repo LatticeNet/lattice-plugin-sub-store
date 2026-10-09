@@ -270,7 +270,7 @@ func TestPlanCacheCompilesEachRevisionOnce(t *testing.T) {
 		t.Fatalf("cache holds %d plans, rev-0 kept=%v", len(cache.plans), cache.plans["rev-0"] != nil)
 	}
 	// A chain that belongs to no stored record is compiled and not kept.
-	if _, err := cache.plan("", steps(stepSort)); err != nil || len(cache.plans) != planCacheEntries {
+	if _, err := cache.plan("", steps(stepSort)); err != nil || len(cache.plans) != planCacheEntries || cache.plans[""] != nil {
 		t.Fatalf("an anonymous chain was cached: %d plans, err %v", len(cache.plans), err)
 	}
 }
