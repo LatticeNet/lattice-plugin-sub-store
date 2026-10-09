@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "SG-qqz-51",
+        "port": 443,
+        "server": "jam-37.r0ecy.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "static.ooqjd.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "f8db7cb5-5151-4acc-b72c-ca55afc4022c"
+      }
+    }
+  ]
+}

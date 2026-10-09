@@ -1,0 +1,16 @@
+[
+  {
+    "address": "fy-15.rele.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "http",
+      "obfs-host": "static.k844cgjqpc.example.org",
+      "obfs-uri": "/mxba",
+      "password": "b71a594d-c0f7-4382-b55d-ffaaefacfc1f",
+      "tag": "US-g9oft-73",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

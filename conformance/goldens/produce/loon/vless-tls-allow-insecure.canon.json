@@ -1,0 +1,38 @@
+[
+  {
+    "args": [
+      "qz-13.y0ltk.example.com",
+      "443",
+      "48a7baf3-16ad-478f-8e2e-74d287abc37b"
+    ],
+    "name": "CA-yfey-66",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "true",
+      "tls-name": "img.xgty3hb.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "tp-27.lzti78d.example.net",
+      "443",
+      "60c28923-6300-4bd5-b6fb-422aa3917feb"
+    ],
+    "name": "FR-ov7c4w-98",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "img.uzh18wpk67.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

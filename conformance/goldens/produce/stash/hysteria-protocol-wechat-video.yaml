@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["hysteria"],"auth-str":"Qk0ihmeKudCglzGs","name":"NL-r4c2jf-02","port":13880,"protocol":"wechat-video","server":"rzd-26.ept8.example.com","skip-cert-verify":false,"sni":"www.fpyqi2.example.org","type":"hysteria","udp":true,"down-speed":"100","up-speed":"30"}

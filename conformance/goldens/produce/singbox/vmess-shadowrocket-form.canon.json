@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "sz-12.bfsv3i.example.org",
+      "server_port": 443,
+      "tag": "KR-z6tb1-68",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.h8w3p.example.net"
+      },
+      "transport": {
+        "headers": {
+          "Host": "api.h8w3p.example.net"
+        },
+        "path": "/adww/ksgu1id9v",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "89ea35b3-b815-4c28-811f-5a628bf1fc26"
+    }
+  ]
+}

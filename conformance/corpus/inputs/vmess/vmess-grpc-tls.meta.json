@@ -1,0 +1,8 @@
+{
+  "id": "vmess-grpc-tls",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "grpc",
+  "security": "tls",
+  "description": "v2rayN JSON VMess link over grpc with security tls."
+}

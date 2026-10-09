@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "KR-wt1sz-93",
+    "host": "r5-16.k6xc.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "serviceName",
+        "nnyf05t-q8xe"
+      ],
+      [
+        "sni",
+        "cdn.d7vte8ap.example.com"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "4d2d2c30-aec9-4423-89fb-34466783fb59"
+  }
+]

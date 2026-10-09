@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "NL-k3j6-95",
+    "host": "fg-21.w02y.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.ppj9s1u06.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "NVBxPabyTYwXnC8nXizj"
+  }
+]

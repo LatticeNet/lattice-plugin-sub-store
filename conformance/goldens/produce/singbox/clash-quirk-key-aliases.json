@@ -1,0 +1,28 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-xmcwy-91",
+      "type": "vless",
+      "server": "y2-31.xsea.example.net",
+      "server_port": 443,
+      "uuid": "319242a6-da46-498e-b7a4-2f1c17d0e0c5",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.hdptwe1.example.org",
+        "insecure": false,
+        "certificate_sha256": [
+          "MOoOfX6IluMtIfe4CCdLQFXC66GO4E/tmN127FcWfAk="
+        ]
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.nfuzg.example.net"
+        },
+        "path": "/s05tj"
+      },
+      "detour": "HK-tf0-80"
+    }
+  ],
+  "endpoints": []
+}

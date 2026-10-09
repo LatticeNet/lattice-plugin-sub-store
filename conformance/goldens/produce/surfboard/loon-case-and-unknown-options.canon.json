@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "e1-22.bfb12rc2.example.net",
+      "10502"
+    ],
+    "name": "CA-zey-95",
+    "params": {
+      "block-quic": "on",
+      "encrypt-method": "aes-128-gcm",
+      "password": "GPUCzjamTorayo",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "cd-20.poht.example.org",
+      "51894"
+    ],
+    "name": "KR-jpsq-90",
+    "params": {
+      "udp-relay": "true",
+      "username": "66613e63-dc32-4b93-8350-1eec860bb5d0",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

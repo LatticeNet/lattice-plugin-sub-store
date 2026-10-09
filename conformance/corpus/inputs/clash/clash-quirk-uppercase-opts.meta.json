@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-uppercase-opts",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "grpc",
+  "security": "tls",
+  "quirk": "opts-key-case",
+  "description": "Mixed-case *-opts keys (Grpc-Opts, WS-OPTS)."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"NL-mpnbv-08","port":443,"server":"203.0.113.199","skip-cert-verify":true,"type":"hysteria2","udp":true,"auth":"bMN5nqsqHZLGqAa0vR7u","fast-open":false,"server-cert-fingerprint":"978672B7F947125E1C93D1BDF84BB7EC131D44BF6361A7CABEC3898A96236EF9"}

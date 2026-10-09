@@ -1,0 +1,1 @@
+GB-q3yeq-20=snell,l25-15.zi0q.example.org,49422,version=4,psk="zf23H7WXJyCHIlhxKR0H",udp-relay=true

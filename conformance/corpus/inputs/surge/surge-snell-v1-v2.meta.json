@@ -1,0 +1,9 @@
+{
+  "id": "surge-snell-v1-v2",
+  "family": "surge",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "snell-old-versions",
+  "description": "Surge snell versions 1 and 2 and a line without a version."
+}

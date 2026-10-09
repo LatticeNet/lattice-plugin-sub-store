@@ -1,0 +1,10 @@
+{
+  "id": "clash-doc-include-unsupported-option",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "produce-option-include-unsupported",
+  "description": "Proxies most targets drop, produced with include-unsupported-proxy set.",
+  "options": {
+    "include-unsupported-proxy": true
+  }
+}

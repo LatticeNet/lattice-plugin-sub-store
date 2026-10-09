@@ -1,0 +1,25 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "name": "DE-rnjso-15",
+    "network": "ws",
+    "password": "Ss3l3GXlwJPI9BmQ",
+    "port": 443,
+    "server": "c5-11.ocg6mst.example.org",
+    "skip-cert-verify": false,
+    "sni": "img.qb83s9o08.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "img.qb83s9o08.example.net"
+      },
+      "path": "/ucuhm923u"
+    }
+  }
+]

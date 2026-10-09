@@ -1,0 +1,38 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "SG-mrkd-08",
+    "network": "xhttp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "gbbri-1Hp-YR80fpbZ2pM-YxhyPEYRKILtkvdiFJDTA",
+      "short-id": "708975c5"
+    },
+    "server": "a72-23.ei2lnbs.example.org",
+    "skip-cert-verify": false,
+    "sni": "img.b0uvyz.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "3e5fcf2b-c467-4f07-98d5-aaad1b702509",
+    "xhttp-opts": {
+      "download-settings": {
+        "client-fingerprint": "chrome",
+        "mode": "packet-up",
+        "network": "xhttp",
+        "path": "/plbm30r6",
+        "port": 443,
+        "server": "j2-20.xw5qgz.example.org",
+        "servername": "static.ri2gkv835v.example.com",
+        "tls": true
+      },
+      "mode": "packet-up",
+      "path": "/lcs6c",
+      "x-padding-bytes": "100-1000"
+    }
+  }
+]

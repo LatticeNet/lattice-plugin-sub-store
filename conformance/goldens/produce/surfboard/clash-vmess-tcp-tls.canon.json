@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "fa-12.pdht8.example.org",
+      "443"
+    ],
+    "name": "FR-bme-99",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "www.k11mos.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "335f9710-f3d4-4e34-aa62-6b6c3e71f595",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

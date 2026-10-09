@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "US-rjv6bu-47",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 31656,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8",
+        "short-id": "a883a092"
+      },
+      "server": "2001:db8:7218:87a3::73e8",
+      "servername": "static.snrh2o75bk.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "e1aa4ec7-6130-4dae-ae96-2b8d7023de93"
+    }
+  ]
+}

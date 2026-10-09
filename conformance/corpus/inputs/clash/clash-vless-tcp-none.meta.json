@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-tcp-none",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "none",
+  "description": "mihomo vless proxy over tcp with security none."
+}

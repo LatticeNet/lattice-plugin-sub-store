@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "IOG2Yrjm3RD7ry51",
+      "server": "2001:db8:9ef5:1c35::d99d",
+      "server_port": 443,
+      "tag": "US-x5x-75",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.z12lb15.example.net"
+      },
+      "transport": {
+        "headers": {
+          "Host": "api.z12lb15.example.net"
+        },
+        "path": "/hxz/otea8c",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

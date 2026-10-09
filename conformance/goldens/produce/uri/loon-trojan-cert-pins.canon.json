@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "SG-vhcg-10",
+    "host": "198.51.100.141",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "pcs",
+        "a8a2916f802d5debbe8d31ba3fe64aa0899856a327d65307fcce5dadfadb1c26"
+      ],
+      [
+        "sni",
+        "www.ynezx5akh.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "tXTMeRxFYxRlodBY"
+  }
+]

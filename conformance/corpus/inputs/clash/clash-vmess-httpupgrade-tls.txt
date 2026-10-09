@@ -1,0 +1,22 @@
+proxies:
+  - name: TW-bi20-61
+    type: vmess
+    server: jqg-27.c54v7.example.com
+    port: 443
+    uuid: 91a7a9be-cdac-43f1-b90c-42bbdce195c1
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: www.tvrdvlzy.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /wzn/aevx5odj
+      headers:
+        Host: www.tvrdvlzy.example.net
+      v2ray-http-upgrade: true

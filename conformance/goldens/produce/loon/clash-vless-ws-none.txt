@@ -1,0 +1,1 @@
+AU-ntf7d-49=vless,kp4-08.zfwpxgh.example.com,443,"84b19d3a-7625-45a1-a521-04705c110792",transport=ws,path=/qk59z/b8mr,host=www.po8u28n.example.com,udp=true

@@ -1,0 +1,1 @@
+SG-yyjrva-54=ss,d6y-20.oabma4i4.example.org,32468,encrypt-method=aes-128-gcm,password="PUq0L4AbgcmLrQ",obfs=http,obfs-host=api.fc9ofw.example.org,udp-relay=true

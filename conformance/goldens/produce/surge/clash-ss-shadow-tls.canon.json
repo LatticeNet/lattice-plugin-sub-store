@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "ue-06.ur58k.example.org",
+      "443"
+    ],
+    "name": "FR-vda4-83",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "Opq2jrdRKY7wNpHQEcQmFw==",
+      "shadow-tls-password": "AwYmyi6NLk9PRaLy",
+      "shadow-tls-sni": "img.hp3k0nb7i.example.net",
+      "shadow-tls-version": "2",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "y2-20.givz.example.com",
+      "443"
+    ],
+    "name": "SG-t1pkv-47",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "FtP4+wFSRGrQIpo3+RS3CQ==",
+      "shadow-tls-password": "whNg1PjgU7kQeTRU",
+      "shadow-tls-sni": "img.gjnkueki2x.example.org",
+      "shadow-tls-version": "3",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

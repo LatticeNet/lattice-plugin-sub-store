@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "yp-02.if8lse.example.org",
+      "28238"
+    ],
+    "name": "AU-qsa-88",
+    "params": {
+      "encrypt-method": "chacha20-ietf-poly1305",
+      "password": "v9OkbPqqHAZGWPr1",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "fragment": "FR-vda4-83",
+    "host": "ue-06.ur58k.example.org",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "plugin",
+        "shadow-tls;host=img.hp3k0nb7i.example.net;password=AwYmyi6NLk9PRaLy;version=2"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:Opq2jrdRKY7wNpHQEcQmFw=="
+  },
+  {
+    "fragment": "SG-t1pkv-47",
+    "host": "y2-20.givz.example.com",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "plugin",
+        "shadow-tls;host=img.gjnkueki2x.example.org;password=whNg1PjgU7kQeTRU;version=3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:FtP4+wFSRGrQIpo3+RS3CQ=="
+  }
+]

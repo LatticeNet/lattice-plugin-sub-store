@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "u9q-33.g5pnn.example.com",
+      "443",
+      "auto",
+      "b837354d-24b9-4e40-a7bd-36eaeb1b4a44"
+    ],
+    "name": "NL-h78vw3-34",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "over-tls": "true",
+      "tls-name": "cdn.p974vl.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

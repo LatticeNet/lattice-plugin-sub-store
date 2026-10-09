@@ -1,0 +1,41 @@
+{
+  "outbounds": [
+    {
+      "tag": "mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd",
+      "type": "trojan",
+      "server": "lg-07.xzui.example.net",
+      "server_port": 443,
+      "password": "tS12JGdEI3SMujA8",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.e4wxoq3ut.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo",
+      "type": "trojan",
+      "server": "w0q-19.g99tmx.example.org",
+      "server_port": 443,
+      "password": "9Ne0DCSG9uVx41KX",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.j1g6mm1mj.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw",
+      "type": "trojan",
+      "server": "xi-15.j388.example.net",
+      "server_port": 443,
+      "password": "o2C17624t0c1iv6f",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.tlceuktr.example.com",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

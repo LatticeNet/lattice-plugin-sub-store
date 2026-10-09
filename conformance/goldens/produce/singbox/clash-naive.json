@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-pt9v-35",
+      "type": "naive",
+      "server": "gq-23.kco0.example.net",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.bft98r0.example.com",
+        "insecure": false
+      },
+      "username": "kx1iy20",
+      "password": "U3cR4HIba4wkPp"
+    }
+  ],
+  "endpoints": []
+}

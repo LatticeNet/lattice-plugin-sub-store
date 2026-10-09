@@ -1,0 +1,1 @@
+HK-ejulo-15=hysteria2,ff5-28.t7an.example.org,20000,password="EYnXrPpHMB0HZlxIMDfT",port-hopping="20000-30000",sni="static.vse2b5.example.org",skip-cert-verify=false,udp-relay=true

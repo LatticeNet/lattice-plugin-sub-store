@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "d78-40.oq5eh33.example.net",
+      "443",
+      "nrZ4GoNApLRurSNH"
+    ],
+    "name": "AU-ef8-23",
+    "params": {
+      "tls-name": "d78-40.oq5eh33.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

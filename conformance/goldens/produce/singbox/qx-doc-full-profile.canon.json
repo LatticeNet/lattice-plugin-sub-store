@@ -1,0 +1,34 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "jQjvT0KFTZfBgD",
+      "server": "jr-09.lmt9g.example.net",
+      "server_port": 19626,
+      "tag": "SG-qx3wl-78",
+      "type": "shadowsocks"
+    },
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "fm8-06.y7l1.example.org",
+      "server_port": 443,
+      "tag": "AU-cajil-62",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.aiq2p.example.net"
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.aiq2p.example.net"
+        },
+        "path": "/wo1x7lvx",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "7498ceaf-fb34-440c-bf61-be5cd2755c55"
+    }
+  ]
+}

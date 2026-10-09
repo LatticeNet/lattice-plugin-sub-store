@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "KR-w7e-46",
+        "password": "CD4xeu8GaEFg9Uc7b2yO",
+        "port": 443,
+        "server": "hac-37.k2fe.example.com",
+        "skip_tls_verify": false,
+        "sni": "static.ggzzb0.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

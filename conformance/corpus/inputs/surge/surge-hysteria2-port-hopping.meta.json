@@ -1,0 +1,9 @@
+{
+  "id": "surge-hysteria2-port-hopping",
+  "family": "surge",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "port-hopping",
+  "description": "Surge hysteria2 with a port-hopping list and an interval."
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "mps-24.qhsg5civ.example.net",
+      "443",
+      "2022-blake3-aes-128-gcm",
+      "4SHEU4hDm3T20fw5fTCb2A=="
+    ],
+    "name": "NL-j75ymj-41",
+    "params": {
+      "shadow-tls-password": "SMBKDvOyOY2pTxfj",
+      "shadow-tls-sni": "api.fxcmfmxj.example.com",
+      "shadow-tls-version": "3",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "lb0-23.vw4fy2jt.example.net",
+      "53322",
+      "aes-128-gcm",
+      "yVHmQka5AJDu0r"
+    ],
+    "name": "NL-snw-54",
+    "params": {
+      "udp": "true",
+      "udp-over-tcp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

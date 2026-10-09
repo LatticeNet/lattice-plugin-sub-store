@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "ff5-28.t7an.example.org",
+      "20000",
+      "EYnXrPpHMB0HZlxIMDfT"
+    ],
+    "name": "HK-ejulo-15",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "20000-30000",
+      "skip-cert-verify": "false",
+      "tls-name": "static.vse2b5.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

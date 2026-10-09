@@ -1,0 +1,29 @@
+{
+  "id": "fleet-reality-heavy",
+  "family": "fleet",
+  "description": "Eighty lines, mostly VLESS Reality with Vision, the shape the performance targets assume.",
+  "shape": "reality-heavy",
+  "lines": 80,
+  "mix": [
+    {
+      "protocol": "hysteria2",
+      "count": 6
+    },
+    {
+      "protocol": "tuic",
+      "count": 4
+    },
+    {
+      "protocol": "vless-reality-grpc",
+      "count": 8
+    },
+    {
+      "protocol": "vless-reality-vision",
+      "count": 56
+    },
+    {
+      "protocol": "vless-reality-xhttp",
+      "count": 6
+    }
+  ]
+}

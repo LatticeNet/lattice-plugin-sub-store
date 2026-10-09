@@ -1,0 +1,35 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "obn-39.yszi265.example.com",
+      "server_port": 443,
+      "tag": "TW-y1oz-65",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.c2lmw.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "early_data_header_name": "Sec-WebSocket-Protocol",
+        "headers": {
+          "Host": "static.c2lmw.example.org"
+        },
+        "max_early_data": 2560,
+        "path": "/aa6ho/v3ap",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "f968b5ca-0962-4746-94d1-21ce2d1268be"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+[
+  {
+    "args": [
+      "i8-27.kwfus9v.example.net",
+      "443",
+      "M6T4AbuJZ0cK2rOJKd86"
+    ],
+    "name": "AU-nfkxua-16",
+    "params": {
+      "tls-name": "static.l7apvb3w.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "c8-38.jmmx222a.example.net",
+      "443",
+      "pi1OJ50UimhFUZX3qDUy"
+    ],
+    "name": "SG-rjh-49",
+    "params": {
+      "salamander-password": "uqubuTjtsMf7ml7X",
+      "skip-cert-verify": "true",
+      "tls-name": "www.ql954.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  },
+  {
+    "args": [
+      "oof-04.acf0m.example.net",
+      "443",
+      "PbkXjiQuX0VtooZQToHX"
+    ],
+    "name": "FR-frs-09",
+    "params": {
+      "download-bandwidth": "200",
+      "ecn": "true",
+      "tls-name": "oof-04.acf0m.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

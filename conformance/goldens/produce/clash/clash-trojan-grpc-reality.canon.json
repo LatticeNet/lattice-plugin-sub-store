@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "grpc-opts": {
+        "grpc-service-name": "i1rf-n1p1n"
+      },
+      "name": "AU-xw4dq-91",
+      "network": "grpc",
+      "password": "ND3odCftR9mMzuUo",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "Dp2sb_GVUHmJuH5CEPUc8taOhqqqSeZtLW8noVD-OFA",
+        "short-id": "7c92baa4"
+      },
+      "server": "t0-08.l62su.example.com",
+      "sni": "cdn.u6vgs2w.example.com",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

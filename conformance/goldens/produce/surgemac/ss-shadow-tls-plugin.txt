@@ -1,0 +1,1 @@
+KR-qk6-89=ss,d0-09.xvx49.example.org,443,encrypt-method=2022-blake3-aes-128-gcm,password="IOxAxDp0UwYKIdSPz55N9A==",udp-relay=true,shadow-tls-password="vEWeernNDjSYNe0O",shadow-tls-sni=www.ukc5nfbm3m.example.org,shadow-tls-version=3

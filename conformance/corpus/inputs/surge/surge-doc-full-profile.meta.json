@@ -1,0 +1,7 @@
+{
+  "id": "surge-doc-full-profile",
+  "family": "surge",
+  "protocol": "mixed",
+  "quirk": "full-profile",
+  "description": "A complete Surge profile; only the [Proxy] section is read."
+}

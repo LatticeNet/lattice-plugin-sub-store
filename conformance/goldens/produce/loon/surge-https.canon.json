@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "bg-20.koifso.example.org",
+      "443",
+      "xmmwh",
+      "qMhtBNRElE5A"
+    ],
+    "name": "HK-bdzvs-31",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "img.bxln43ak.example.net"
+    },
+    "type": "https"
+  }
+]

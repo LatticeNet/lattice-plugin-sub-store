@@ -1,0 +1,9 @@
+proxies:
+  - name: FR-o4ir-08
+    type: mieru
+    server: sd-12.nxsbnx.example.net
+    port-range: 32864-32873
+    transport: TCP
+    username: h3qfljd
+    password: q08DsCXp5FXcgh
+    multiplexing: MULTIPLEXING_LOW

@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "AU-rwg0qw-67",
+    "host": "gj-03.d3ejf.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "ech",
+        "8R4LDPJaZRbTYEHWvUcwAAcLBWzHbaypdwyLwGZM84MkYQnME3v+FU4uM3+mK+ZAyOBN0DusfuRn05iZ5X10yU+9BPR74jsw"
+      ],
+      [
+        "sni",
+        "api.qutrl0x4py.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "wNErEnwtwNG5ixk200VV"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "Xi906cslDTMGQz",
+      "server": "wf-33.flul.example.com",
+      "server_port": 443,
+      "tag": "GB-o1e7f-30",
+      "type": "shadowsocks"
+    }
+  ]
+}

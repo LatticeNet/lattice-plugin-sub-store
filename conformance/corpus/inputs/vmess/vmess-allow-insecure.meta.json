@@ -1,0 +1,9 @@
+{
+  "id": "vmess-allow-insecure",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "allow-insecure",
+  "description": "allowInsecure true and the verify_cert false spelling."
+}

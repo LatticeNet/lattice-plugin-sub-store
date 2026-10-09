@@ -1,0 +1,7 @@
+{
+  "id": "base64-surrounding-whitespace",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "whitespace",
+  "description": "Base64 with leading and trailing blank lines and spaces."
+}

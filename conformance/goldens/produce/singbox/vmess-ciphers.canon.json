@@ -1,0 +1,59 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "z3-24.jfke.example.net",
+      "server_port": 443,
+      "tag": "JP-ppcq89-80",
+      "type": "vmess",
+      "uuid": "ce07d7cc-26d3-449a-86fc-6e8ab886b24c"
+    },
+    {
+      "alter_id": 0,
+      "security": "aes-128-gcm",
+      "server": "cc-35.jg3aqv.example.net",
+      "server_port": 443,
+      "tag": "FR-nmudfw-61",
+      "type": "vmess",
+      "uuid": "5effff97-93b7-4844-935c-d3db48a3cb23"
+    },
+    {
+      "alter_id": 0,
+      "security": "chacha20-poly1305",
+      "server": "bn6-21.w1kc71bz.example.com",
+      "server_port": 443,
+      "tag": "NL-v3tw-05",
+      "type": "vmess",
+      "uuid": "c6ba407d-4f74-4b37-b37f-cfb2be550d4f"
+    },
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "s63-29.nz70.example.com",
+      "server_port": 443,
+      "tag": "HK-g5t4-39",
+      "type": "vmess",
+      "uuid": "daf10bb1-b10a-4fb5-b126-54731df8df13"
+    },
+    {
+      "alter_id": 0,
+      "security": "zero",
+      "server": "eb-36.mw37.example.org",
+      "server_port": 443,
+      "tag": "KR-gnw-02",
+      "type": "vmess",
+      "uuid": "a455556c-1557-41d1-9f19-3eb3f30ee137"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "rz-14.f0p7h.example.org",
+      "server_port": 443,
+      "tag": "GB-ran39-34",
+      "type": "vmess",
+      "uuid": "4d9a4d42-35d2-4cbd-9c0e-c9875d4dad26"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "SG-hzt-46",
+    "host": "lj-17.ox6nx9zr.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.9.0.2/32"
+      ],
+      [
+        "amnezia-wg-option",
+        "[object Object]"
+      ],
+      [
+        "publickey",
+        "UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q+vw="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "FjZC9ZM/4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs="
+  }
+]

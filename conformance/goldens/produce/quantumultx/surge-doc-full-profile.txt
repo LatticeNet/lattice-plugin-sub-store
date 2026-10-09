@@ -1,0 +1,2 @@
+shadowsocks=v5-05.qb5b.example.org:34588,method=aes-128-gcm,password=i0Xuxu3C1Z8mZe,udp-relay=true,tag=AU-tx3-71
+trojan=bun-09.kwq8.example.net:443,password=RbyQZY56IcdRRx5v,over-tls=true,tls-host=cdn.bskwnh8rfx.example.com,udp-relay=true,tag=TW-cdnh-17

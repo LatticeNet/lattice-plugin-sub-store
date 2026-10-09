@@ -1,0 +1,3 @@
+AU-nfkxua-16 = hysteria2, i8-27.kwfus9v.example.net, 443, password=M6T4AbuJZ0cK2rOJKd86, sni=static.l7apvb3w.example.org
+SG-rjh-49 = hysteria2, c8-38.jmmx222a.example.net, 443, password=pi1OJ50UimhFUZX3qDUy, salamander-password=uqubuTjtsMf7ml7X, sni=www.ql954.example.net, skip-cert-verify=true
+FR-frs-09 = hysteria2, oof-04.acf0m.example.net, 443, password=PbkXjiQuX0VtooZQToHX, download-bandwidth=200, ecn=true

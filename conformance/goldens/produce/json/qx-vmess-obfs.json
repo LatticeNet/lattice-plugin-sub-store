@@ -1,0 +1,73 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "none",
+    "name": "JP-ijr-55",
+    "network": "ws",
+    "port": 443,
+    "server": "e4-39.vor9g.example.com",
+    "type": "vmess",
+    "udp": true,
+    "uuid": "0ed5ed26-4b12-4d4f-a31c-9de5a377b458",
+    "ws-opts": {
+      "headers": {
+        "Host": "www.j2stn.example.org"
+      },
+      "path": "/pdlzh/kqamarys"
+    }
+  },
+  {
+    "alterId": 0,
+    "cipher": "none",
+    "name": "GB-njols-07",
+    "network": "ws",
+    "port": 443,
+    "server": "ty8-01.lvynkanu.example.net",
+    "sni": "img.pewtkvy.example.com",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "a00bab91-5bd3-46a9-b915-eaf312402b24",
+    "ws-opts": {
+      "headers": {
+        "Host": "img.pewtkvy.example.com"
+      },
+      "path": "/xodx/z2maviu62v"
+    }
+  },
+  {
+    "alterId": 0,
+    "cipher": "none",
+    "name": "SG-oma-59",
+    "network": "tcp",
+    "port": 443,
+    "server": "ua4-11.ix24.example.com",
+    "sni": "api.bi8j2y.example.net",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "93b4f3f3-326d-493f-9fe0-dcbb285ef223"
+  },
+  {
+    "_qx_obfs_http": "http",
+    "alterId": 0,
+    "cipher": "none",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "img.e9d8gma.example.org"
+        ]
+      },
+      "path": [
+        "/iuy9"
+      ]
+    },
+    "name": "AU-fv5x-63",
+    "network": "http",
+    "port": 443,
+    "server": "nb7-30.wryjwwi.example.net",
+    "type": "vmess",
+    "udp": true,
+    "uuid": "984c9559-2091-4f77-ae2b-ca189cef3eb9"
+  }
+]

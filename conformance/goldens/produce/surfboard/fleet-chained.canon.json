@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "relay-02.mmsc1m.example.net",
+      "30016"
+    ],
+    "name": "KR-TW relay 17",
+    "params": {
+      "password": "1aK4UZcb4qB4EeA3daT4",
+      "skip-cert-verify": "false",
+      "sni": "api.lpaj01.example.org",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  },
+  {
+    "args": [
+      "relay-03.mmsc1m.example.net",
+      "30017"
+    ],
+    "name": "HK-HK relay 18",
+    "params": {
+      "password": "v7cCms40kk8wSBg0m1Qx",
+      "skip-cert-verify": "false",
+      "sni": "cdn.mhxeluq.example.com",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "sz-12.bfsv3i.example.org",
+      "443"
+    ],
+    "name": "KR-z6tb1-68",
+    "params": {
+      "sni": "api.h8w3p.example.net",
+      "tls": "true",
+      "username": "89ea35b3-b815-4c28-811f-5a628bf1fc26",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"api.h8w3p.example.net\"",
+      "ws-path": "/adww/ksgu1id9v"
+    },
+    "type": "vmess"
+  }
+]

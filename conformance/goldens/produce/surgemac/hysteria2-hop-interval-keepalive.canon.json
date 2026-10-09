@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "yxu-08.nlefeegc.example.com",
+      "443"
+    ],
+    "name": "AU-c10c71-51",
+    "params": {
+      "password": "gSrCmBf82yAWUzLcfKSh",
+      "port-hopping": "30000-40000",
+      "port-hopping-interval": "30",
+      "skip-cert-verify": "false",
+      "sni": "www.zmlvv.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

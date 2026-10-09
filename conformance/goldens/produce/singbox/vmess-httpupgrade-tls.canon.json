@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "gb-29.yf72m.example.net",
+      "server_port": 443,
+      "tag": "DE-dwogxg-08",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.mxlydm0c.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "static.mxlydm0c.example.org",
+        "path": "/qkc3c2kaaw",
+        "type": "httpupgrade"
+      },
+      "type": "vmess",
+      "uuid": "2c5e10e4-04fc-407b-9772-119f7689fe5e"
+    }
+  ]
+}

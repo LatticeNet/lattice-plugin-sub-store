@@ -1,0 +1,2 @@
+vless://9dd1f389-f74c-4747-96b5-19b4af4d55ac@cyz-24.e9dn21w.example.org:443?security=tls&type=tcp&packetEncoding=none&pcs=82%3A80%3A74%3A3B%3A0D%3AB9%3AA0%3A48%3A92%3AC9%3A08%3AC2%3A3B%3ACB%3A07%3AFF%3A43%3A8B%3A5E%3A8B%3AE7%3AD8%3A9F%3A86%3AB8%3A91%3A5E%3A21%3A1C%3A82%3AD1%3A64&sni=img.dlvsk0q.example.org#NL-do9b0q-21
+trojan://NJBWrIzIMGyilHmy@umm-36.imjd.example.net:443?sni=api.de4hx.example.com&type=tcp#US-hilk-85

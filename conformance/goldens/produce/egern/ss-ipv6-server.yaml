@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"KR-uhyf-94","method":"aes-256-gcm","server":"2001:db8:d7c0:51b0::dfb9","port":21991,"password":"OFWOx4wLiW8zkv","tfo":false,"udp_relay":true}}

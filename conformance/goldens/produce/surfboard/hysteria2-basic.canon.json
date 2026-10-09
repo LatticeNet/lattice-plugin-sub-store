@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "bi-14.qievq7x.example.com",
+      "443"
+    ],
+    "name": "GB-s63s-21",
+    "params": {
+      "password": "vCWyidJwQyfuWrJv4pzN",
+      "skip-cert-verify": "false",
+      "sni": "img.qj6n1.example.net",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "TW-eq7d6q-62",
+        "password": "3bo2Q3vVOY7P",
+        "port": 13306,
+        "server": "l2-10.au11r.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "zdxnr9q0"
+      }
+    }
+  ]
+}

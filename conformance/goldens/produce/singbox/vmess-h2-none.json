@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-jify-67",
+      "type": "vmess",
+      "server": "y7-38.n0e0hv.example.com",
+      "server_port": 443,
+      "uuid": "cafc6286-f7d7-4d2e-a35b-cd38a93e6fa4",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "y7-38.n0e0hv.example.com",
+        "insecure": false
+      },
+      "transport": {
+        "type": "http",
+        "path": "/ax0/brhwd6",
+        "host": "img.l481zufk5j.example.com"
+      }
+    }
+  ],
+  "endpoints": []
+}

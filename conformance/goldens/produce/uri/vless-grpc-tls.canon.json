@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "JP-s2s3k-83",
+    "host": "at-19.vz29j36.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "serviceName",
+        "oasx-bkp"
+      ],
+      [
+        "sni",
+        "img.m1abmvjb1.example.net"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "40bbb1dd-0047-48f0-9179-00e17f805fef"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"FR-ajaf6-93","server":"ot5-06.htbmu.example.net","port":443,"uuid":"b1d7c103-a53e-4c59-a49c-59e698ca7b41","password":"2b9zg3OPu2JaJ6xT","sni":"api.we7fbrswnx.example.net","alpn":["h3"],"port_hopping":"20000-30000","port_hopping_interval":30}}

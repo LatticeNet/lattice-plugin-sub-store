@@ -1,0 +1,8 @@
+{
+  "id": "surge-ssh",
+  "family": "surge",
+  "protocol": "ssh",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Surge ssh with password, and with a private key and server fingerprint."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"US-h3egcw-98","server":"198.51.100.201","port":36615,"uuid":"9eea581b-e095-479e-8335-2600857e8c62","password":"gZGLLzkPlbpxp6zT","sni":"198.51.100.201","alpn":["h3"],"skip_tls_verify":true}}

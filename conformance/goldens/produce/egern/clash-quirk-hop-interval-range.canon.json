@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "xBfmvQnqwyT2k1d0tmXj",
+        "name": "JP-wqjm9-26",
+        "port": 443,
+        "port_hopping": "20000-30000",
+        "port_hopping_interval": 15,
+        "server": "ry-31.ngpamb5.example.net",
+        "sni": "cdn.ygqhz.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

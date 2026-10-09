@@ -1,0 +1,1 @@
+trojan://nrZ4GoNApLRurSNH@d78-40.oq5eh33.example.net:443?security=none&type=tcp#AU-ef8-23

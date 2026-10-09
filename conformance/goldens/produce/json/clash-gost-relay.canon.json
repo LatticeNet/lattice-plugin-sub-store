@@ -1,0 +1,11 @@
+[
+  {
+    "name": "CA-vts65u-22",
+    "password": "tmSxxFoeeGPcSp",
+    "port": 24291,
+    "server": "yr-40.qlywwfr.example.org",
+    "type": "gost-relay",
+    "udp": true,
+    "username": "b51c"
+  }
+]

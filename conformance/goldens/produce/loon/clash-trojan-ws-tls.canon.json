@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "c5-11.ocg6mst.example.org",
+      "443",
+      "Ss3l3GXlwJPI9BmQ"
+    ],
+    "name": "DE-rnjso-15",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "img.qb83s9o08.example.net",
+      "path": "/ucuhm923u",
+      "skip-cert-verify": "false",
+      "tls-name": "img.qb83s9o08.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

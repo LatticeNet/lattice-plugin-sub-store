@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "z2n-07.i1p3rsm.example.com",
+      "aid": "0",
+      "host": "static.wzzu98.example.com",
+      "id": "6b18ea51-a2ba-42ea-a8e4-ace92af5bf0a",
+      "net": "httpupgrade",
+      "path": "/q9dd",
+      "port": "443",
+      "ps": "JP-p84tk-69",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

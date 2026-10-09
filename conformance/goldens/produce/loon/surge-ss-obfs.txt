@@ -1,0 +1,2 @@
+HK-j49-16=shadowsocks,xb-13.pqdk.example.net,58000,aes-256-gcm,"PHWfoNpnhijrRc",obfs-name=http,obfs-host=cdn.dbyv00vw9.example.com,obfs-uri=/ww79o,udp=true
+US-yigh2w-55=shadowsocks,lkd-11.nnc9idh.example.org,37436,aes-256-gcm,"qS9zPuIj3SVVnT",obfs-name=tls,obfs-host=static.r2rzatcb.example.com,udp=true

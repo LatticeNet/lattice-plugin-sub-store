@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-mzhy-32",
+      "type": "vless",
+      "server": "rv-14.nzag30.example.org",
+      "server_port": 443,
+      "uuid": "66f373aa-79e0-4754-ae9a-5aad2a7e4823",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.paznfzs.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

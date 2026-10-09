@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "hnp-23.vn41.example.com",
+      "443",
+      "555e8ea6-0aa2-446f-89d6-75d1ee8e7875"
+    ],
+    "name": "AU-x15se-92",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "DA9oMSTOMkBmqRO7ZvP9oWoNpP0tHqBvwj7ZX17GLUo",
+      "short-id": "bab52219",
+      "sni": "api.xao43je5k8.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

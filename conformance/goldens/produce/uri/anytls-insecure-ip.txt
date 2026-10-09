@@ -1,0 +1,1 @@
+anytls://M9Mlcffeicbj8UV6dfeJ@198.51.100.140:45821?security=tls&type=tcp&packetEncoding=xudp&allowInsecure=1&packet_encoding=xudp&insecure=1&udp=1#GB-uq8k-07

@@ -1,0 +1,17 @@
+{
+  "id": "fleet-port-hopping",
+  "family": "fleet",
+  "description": "Hysteria2 lines with port-hopping ranges, some with salamander.",
+  "shape": "port-hopping",
+  "lines": 10,
+  "mix": [
+    {
+      "protocol": "hysteria2-port-hopping",
+      "count": 7
+    },
+    {
+      "protocol": "hysteria2-salamander",
+      "count": 3
+    }
+  ]
+}

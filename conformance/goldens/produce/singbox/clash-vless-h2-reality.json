@@ -1,0 +1,31 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-pw6ak-79",
+      "type": "vless",
+      "server": "fr-18.grd2uet.example.com",
+      "server_port": 443,
+      "uuid": "7f9c5fa6-1017-4302-98c3-bcb2289a2585",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.acc6925d.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "wIU2kfEdde_FxnYnQ7MiH7J-CMOkWO60_7ceoR8q78E",
+          "short_id": "bde02f48"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "http",
+        "path": "/bn2gnu",
+        "host": "www.acc6925d.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

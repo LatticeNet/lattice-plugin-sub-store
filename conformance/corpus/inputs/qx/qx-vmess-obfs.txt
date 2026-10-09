@@ -1,0 +1,4 @@
+vmess=e4-39.vor9g.example.com:443, method=none, password=0ed5ed26-4b12-4d4f-a31c-9de5a377b458, obfs=ws, obfs-host=www.j2stn.example.org, obfs-uri=/pdlzh/kqamarys, tag=JP-ijr-55
+vmess=ty8-01.lvynkanu.example.net:443, method=none, password=a00bab91-5bd3-46a9-b915-eaf312402b24, obfs=wss, obfs-host=img.pewtkvy.example.com, obfs-uri=/xodx/z2maviu62v, tag=GB-njols-07
+vmess=ua4-11.ix24.example.com:443, method=none, password=93b4f3f3-326d-493f-9fe0-dcbb285ef223, obfs=over-tls, obfs-host=api.bi8j2y.example.net, tag=SG-oma-59
+vmess=nb7-30.wryjwwi.example.net:443, method=none, password=984c9559-2091-4f77-ae2b-ca189cef3eb9, obfs=http, obfs-host=img.e9d8gma.example.org, obfs-uri=/iuy9, tag=AU-fv5x-63

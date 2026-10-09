@@ -1,0 +1,32 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "alterId": 0,
+    "cipher": "auto",
+    "client-fingerprint": "chrome",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "img.rsvilob.example.com"
+        ]
+      },
+      "method": "GET",
+      "path": [
+        "/jg4g"
+      ]
+    },
+    "name": "JP-h6jaf0-06",
+    "network": "http",
+    "port": 443,
+    "server": "ok-34.w6xwil.example.com",
+    "skip-cert-verify": false,
+    "sni": "img.rsvilob.example.com",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "000b0651-b029-4c70-8287-7e117f38cb56"
+  }
+]

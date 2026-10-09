@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-ylrg-19",
+      "type": "shadowsocks",
+      "server": "ha-30.mwovt.example.org",
+      "server_port": 443,
+      "method": "aes-128-gcm",
+      "password": "Rz7W2d6kyIQmQk"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,1 @@
+vless://946ca19d-458d-4607-a30c-d7d5c6af849a@203.0.113.48:8443?encryption=none&security=tls&sni=www.chcyg0.example.org&fp=chrome&alpn=h2%2Chttp%2F1.1&type=ws&host=www.chcyg0.example.org&path=%2Fogd6r7489#US-uz1w8a-26

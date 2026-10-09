@@ -1,0 +1,2 @@
+proxies:
+  - {"socks5":{"name":"GB-ycmz-27","server":"a7-04.h9q2h.example.net","port":37605,"username":"r2ddmw","password":"a31bA1CmoKR9","tfo":false,"udp_relay":true}}

@@ -1,0 +1,1 @@
+vless://31284285-69fb-46f0-92da-19754ba10bf8@cj-27.fm6khz.example.org:443?security=reality&type=tcp&packetEncoding=xudp&sni=api.af2ig.example.org&fp=chrome&sid=c811e1a0&spx=%2F&pbk=dBDBPiajTnd6TDJl5KmZPRDGJo58mXHiVYK6Q1vNB08&encryption=none#VLESS%20cj-27.fm6khz.example.org%3A443

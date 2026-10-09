@@ -1,0 +1,17 @@
+[
+  {
+    "address": "tho-35.kq7ylba.example.org:42879",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "obfs": "http_simple",
+      "obfs-host": "static.z29d1.example.net",
+      "password": "y8VYhN7CYhd6",
+      "ssr-protocol": "auth_aes128_md5",
+      "ssr-protocol-param": "403:zeSAwq",
+      "tag": "FR-hyp1xj-35",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

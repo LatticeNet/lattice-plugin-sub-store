@@ -1,0 +1,56 @@
+[
+  {
+    "args": [
+      "nu-33.bvmit5gs.example.org",
+      "443",
+      "3f2712ce-d8b6-42bb-a8fa-0ea40d599adc"
+    ],
+    "name": "US-k7el-33",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "q9rT8fyrmmnVS089xm9m-BuOLSIQBgsEKtOdJl5flh4",
+      "short-id": "ee070f03",
+      "skip-cert-verify": "false",
+      "sni": "api.ywpu6579.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "ju-20.l7scq.example.com",
+      "443",
+      "auto",
+      "03b594a1-bf86-415d-977b-d29d3614dd03"
+    ],
+    "name": "US-trn-03",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "img.k644qk.example.org",
+      "over-tls": "true",
+      "path": "/gesw94",
+      "tls-name": "img.k644qk.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "ysy-24.qhaz089.example.net",
+      "443",
+      "dAeTDVwyYRBMvbjs"
+    ],
+    "name": "CA-j53a-20",
+    "params": {
+      "tls-name": "www.ai2i3k.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

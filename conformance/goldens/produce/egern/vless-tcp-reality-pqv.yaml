@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"FR-e74yhy-14","server":"a9-05.le66p.example.org","port":443,"user_id":"47bd133f-f4bb-4fb1-aad7-a238ff909c91","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.ip4wwzndjw.example.org","skip_tls_verify":false,"reality":{"public_key":"XsH0zzVsbUwKTqlNK1ycPEtEv8cqaY4J7U3YPR5nz-w","short_id":"845a9e77"}}},"flow":"xtls-rprx-vision"}}

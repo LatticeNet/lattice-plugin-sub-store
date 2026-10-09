@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"bbr","name":"HK-rwl-68","password":"","port":443,"server":"si-36.bnyc.example.net","sni":"www.zuzj9pi2d.example.org","type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"v2DeBaasrThWvtaPa4ChcTJX","version":5}

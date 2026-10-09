@@ -1,0 +1,21 @@
+proxies:
+  - name: HK-olzp-81
+    type: ss
+    server: aa-40.dp1puv.example.net
+    port: 52725
+    cipher: aes-256-gcm
+    password: wtoWMi8it1w603vL
+    plugin: obfs
+    plugin-opts:
+      mode: http
+      host: static.v1d0c.example.org
+  - name: DE-w59nld-21
+    type: ss
+    server: x1i-33.f9r5w.example.com
+    port: 29794
+    cipher: aes-256-gcm
+    password: 7PlXMjUk18NdUlCm
+    plugin: obfs
+    plugin-opts:
+      mode: tls
+      host: www.gsnwk4z3.example.net

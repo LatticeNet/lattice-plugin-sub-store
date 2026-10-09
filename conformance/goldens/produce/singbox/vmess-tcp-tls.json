@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-xk9-16",
+      "type": "vmess",
+      "server": "ei-13.y2nd0g.example.org",
+      "server_port": 443,
+      "uuid": "d6179057-84a8-4647-9d34-691ebf2c8e7e",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.l24sjs8j.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

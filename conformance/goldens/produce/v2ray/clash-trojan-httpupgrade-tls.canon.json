@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "GB-wf6mw-41",
+    "host": "sva-34.ljiws45y.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.ub1g32.example.org"
+      ],
+      [
+        "path",
+        "/p2bpzcb"
+      ],
+      [
+        "sni",
+        "static.ub1g32.example.org"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "UGF4CIWxdW2hW0zo"
+  }
+]

@@ -1,0 +1,2 @@
+shadowsocks=hs-06.ot0k647n.example.org:59541,method=chacha20-ietf,password=Fx5zCLLOqL0K,ssr-protocol=auth_chain_a,ssr-protocol-param=GUwOw4,obfs=tls1.2_ticket_auth,obfs-host=static.vzpfez9.example.net,udp-relay=true,tag=AU-muj8-77
+shadowsocks=ayv-14.wqdf.example.com:16267,method=aes-256-cfb,password=g9w4w8eWw1te,ssr-protocol=origin,obfs=plain,udp-relay=true,tag=SG-ql89a-39

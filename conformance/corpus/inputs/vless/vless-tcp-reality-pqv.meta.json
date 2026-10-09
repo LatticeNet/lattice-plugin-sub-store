@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-reality-pqv",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-pqv",
+  "description": "Reality with a post-quantum verification key (pqv)."
+}

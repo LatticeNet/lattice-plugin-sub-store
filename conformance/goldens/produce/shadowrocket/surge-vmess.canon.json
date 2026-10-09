@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "GB-euqdb-55",
+      "network": "tcp",
+      "port": 34827,
+      "server": "pa-38.pn5io.example.org",
+      "type": "vmess",
+      "udp": true,
+      "uuid": "9baf1f26-b509-46b9-a4af-9617458cc1e4"
+    }
+  ]
+}

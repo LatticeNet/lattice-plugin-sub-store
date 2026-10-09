@@ -1,0 +1,19 @@
+[
+  {
+    "address": "jwn-16.xzxs3g.example.org:80",
+    "args": [
+      "/cotqh2vr",
+      "cdn.b7npvr.example.org"
+    ],
+    "params": {
+      "method": "none",
+      "obfs": "http",
+      "obfs-host": "api.llf804re.example.com",
+      "obfs-uri": "/rrozosr",
+      "password": "662f3d29-2c17-4083-957f-1b994cae8b9a",
+      "tag": "GB-m175-12",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

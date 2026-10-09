@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "rnh-12.ruiiz.example.net",
+      "443",
+      "6mUNbxAlL0UIUSWD"
+    ],
+    "name": "KR-lzb3o3-05",
+    "params": {
+      "host": "www.adclk43nua.example.com",
+      "path": "/nco4s",
+      "tls-name": "www.adclk43nua.example.com",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

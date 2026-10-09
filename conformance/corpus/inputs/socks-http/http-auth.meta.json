@@ -1,0 +1,8 @@
+{
+  "id": "http-auth",
+  "family": "socks-http",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "description": "http:// with username and password."
+}

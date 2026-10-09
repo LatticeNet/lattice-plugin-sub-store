@@ -1,0 +1,84 @@
+[
+  {
+    "args": [
+      "akc-28.vlmqr.example.com",
+      "443",
+      "4abef220-a6e5-448d-b2f3-04452d87eac6"
+    ],
+    "name": "SG-aed895-64",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "2sn1ajpTsIIAykb9vOLufhKZx4_Y_HImq2G8CU6N7IA",
+      "short-id": "f1e9bc03",
+      "skip-cert-verify": "false",
+      "sni": "static.tlcka1.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "wg-40.njl6w.example.com",
+      "443",
+      "auto",
+      "70a23224-58d5-4ff5-a6be-afb912028894"
+    ],
+    "name": "SG-ybikbz-82",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "www.xrum8py.example.net",
+      "over-tls": "true",
+      "path": "/gde0wl/vhc9mxn1",
+      "tls-name": "www.xrum8py.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "vgg-21.fgdulnj.example.com",
+      "443",
+      "R2FJHiqey4AtGEiJ"
+    ],
+    "name": "SG-x6r3x-95",
+    "params": {
+      "tls-name": "cdn.cqi8qg6g.example.org",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "ps-30.cpkgqe.example.org",
+      "21245",
+      "aes-128-gcm",
+      "kFN9Nc8uRPE3TH"
+    ],
+    "name": "FR-zkt-81",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "tf6-24.yoxexf2.example.com",
+      "443",
+      "7nslbrhrvWZasFblxtDn"
+    ],
+    "name": "TW-m27sbr-28",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "static.f5i952jxr.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

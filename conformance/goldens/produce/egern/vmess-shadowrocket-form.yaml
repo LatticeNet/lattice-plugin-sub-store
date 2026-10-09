@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"KR-z6tb1-68","server":"sz-12.bfsv3i.example.org","port":443,"user_id":"89ea35b3-b815-4c28-811f-5a628bf1fc26","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/adww/ksgu1id9v","headers":{"Host":"api.h8w3p.example.net"},"sni":"api.h8w3p.example.net"}}}}

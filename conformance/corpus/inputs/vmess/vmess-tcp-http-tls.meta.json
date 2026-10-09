@@ -1,0 +1,8 @@
+{
+  "id": "vmess-tcp-http-tls",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp-http",
+  "security": "tls",
+  "description": "v2rayN JSON VMess link over tcp-http with security tls."
+}

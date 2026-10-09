@@ -1,0 +1,1 @@
+vmess://0c589e64-b7b7-442c-b647-b37f1db0e7a5@dz-19.pgekzw8.example.org:443?encryption=auto&security=tls&sni=cdn.oah4gm49.example.net&type=ws&host=cdn.oah4gm49.example.net&path=%2Fg89%2Fnipgxvfka#DE-x2v8vq-21

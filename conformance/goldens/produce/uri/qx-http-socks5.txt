@@ -1,0 +1,2 @@
+socks://cjV0aTp1bk5ZTHN6N2tVY24%3D@aq-21.hay35e.example.net:1080#JP-yqa-41
+socks://YnB0cG86bUlhcTVBbnlhc1Bq@h49-27.o5n4rf.example.net:443#NL-sxupx-61

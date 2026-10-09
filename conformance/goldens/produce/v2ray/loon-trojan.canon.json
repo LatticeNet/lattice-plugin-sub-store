@@ -1,0 +1,50 @@
+[
+  {
+    "fragment": "NL-wmkko5-50",
+    "host": "ct-01.gktnpz.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "sni",
+        "img.mfq6v7gy31.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "uY3bzTtZg5PWo0Gu"
+  },
+  {
+    "fragment": "GB-g2r5-48",
+    "host": "exp-37.msqhu.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "www.lyoh8.example.net"
+      ],
+      [
+        "path",
+        "/h1xonc/ytq25w0leh"
+      ],
+      [
+        "sni",
+        "www.lyoh8.example.net"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Q0TFWQNDf9Objj0W"
+  }
+]

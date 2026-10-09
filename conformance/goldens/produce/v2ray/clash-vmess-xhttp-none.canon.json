@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "x50-29.t4oyq5wq.example.com",
+      "aid": "0",
+      "host": "api.b3uqf.example.com",
+      "id": "d0d282fb-f19c-451a-a72c-8397dfd59c3c",
+      "net": "xhttp",
+      "path": "/o8b5gqc",
+      "port": "443",
+      "ps": "KR-kj5b5n-49",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

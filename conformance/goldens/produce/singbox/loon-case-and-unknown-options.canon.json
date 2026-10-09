@@ -1,0 +1,22 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "GPUCzjamTorayo",
+      "server": "e1-22.bfb12rc2.example.net",
+      "server_port": 10502,
+      "tag": "CA-zey-95",
+      "type": "shadowsocks"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "cd-20.poht.example.org",
+      "server_port": 51894,
+      "tag": "KR-jpsq-90",
+      "type": "vmess",
+      "uuid": "66613e63-dc32-4b93-8350-1eec860bb5d0"
+    }
+  ]
+}

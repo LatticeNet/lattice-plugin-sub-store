@@ -1,0 +1,9 @@
+{
+  "id": "anytls-idle-session",
+  "family": "anytls",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "idle-session",
+  "description": "Idle session tuning keys."
+}

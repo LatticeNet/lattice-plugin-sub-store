@@ -1,0 +1,9 @@
+{
+  "id": "trojan-allow-insecure",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "allow-insecure",
+  "description": "allowInsecure=1 with a peer key instead of sni."
+}

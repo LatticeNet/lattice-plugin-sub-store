@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "pa-38.pn5io.example.org",
+      "34827"
+    ],
+    "name": "GB-euqdb-55",
+    "params": {
+      "udp-relay": "true",
+      "username": "9baf1f26-b509-46b9-a4af-9617458cc1e4",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

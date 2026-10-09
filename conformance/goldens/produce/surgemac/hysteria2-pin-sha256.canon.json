@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "203.0.113.199",
+      "443"
+    ],
+    "name": "NL-mpnbv-08",
+    "params": {
+      "password": "bMN5nqsqHZLGqAa0vR7u",
+      "server-cert-fingerprint-sha256": "978672B7F947125E1C93D1BDF84BB7EC131D44BF6361A7CABEC3898A96236EF9",
+      "skip-cert-verify": "true",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

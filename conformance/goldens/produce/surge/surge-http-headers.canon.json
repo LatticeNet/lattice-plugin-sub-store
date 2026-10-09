@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ml-07.u7hv109.example.net",
+      "8080"
+    ],
+    "name": "GB-kgzien-25",
+    "params": {
+      "headers": "X-Client:\"gss2r\"",
+      "password": "H4oijwVP8mye",
+      "username": "po05d"
+    },
+    "type": "http"
+  }
+]

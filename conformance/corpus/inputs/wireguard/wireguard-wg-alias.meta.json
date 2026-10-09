@@ -1,0 +1,9 @@
+{
+  "id": "wireguard-wg-alias",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "scheme-alias",
+  "description": "The wg:// alias with an IPv4-only address."
+}

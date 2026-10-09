@@ -1,0 +1,82 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-kheg-39",
+      "type": "vless",
+      "server": "vko-36.wx04c.example.net",
+      "server_port": 443,
+      "uuid": "56846b9c-0cc0-4e6f-858e-d8b398d5dc89",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.svxk81.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "T8pgaHBbnRSiQZ2WyKmcDmNNyPlTjbOQosj2Y_DDKwQ",
+          "short_id": "f55db336"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "JP-fckt-50",
+      "type": "trojan",
+      "server": "br-26.hq2o538.example.net",
+      "server_port": 443,
+      "password": "lFV1bVIWHZwLbmTy",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.z42yip5q6.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "SG-x0pl-12",
+      "type": "shadowsocks",
+      "server": "u3d-32.d1kvbm.example.org",
+      "server_port": 56005,
+      "method": "aes-128-gcm",
+      "password": "rq8MrAoExA7lnu"
+    },
+    {
+      "tag": "GB-s1w-39",
+      "type": "vmess",
+      "server": "zh-10.jyt81ic.example.com",
+      "server_port": 443,
+      "uuid": "71238152-25a5-4919-af05-50046127840d",
+      "security": "none",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.jmolihi.example.net",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "KR-logo1-06",
+      "type": "hysteria2",
+      "server": "cze-20.sxdhx8.example.com",
+      "server_port": 443,
+      "password": "XksBeWvF8IOR34qt1nH9",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.uzyhj.example.net",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "SG-lui-26",
+      "type": "shadowsocks",
+      "server": "si-34.ge2k66hu.example.org",
+      "server_port": 26289,
+      "method": "aes-128-gcm",
+      "password": "VVGaOe4bC0fIF8"
+    }
+  ],
+  "endpoints": []
+}

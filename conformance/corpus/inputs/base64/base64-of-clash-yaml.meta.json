@@ -1,0 +1,7 @@
+{
+  "id": "base64-of-clash-yaml",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "base64-yaml",
+  "description": "Base64 of a Clash YAML document, which no preprocessor decodes."
+}

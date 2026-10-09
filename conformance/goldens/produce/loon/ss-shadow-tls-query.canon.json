@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "mz-06.v4fzlgbl.example.net",
+      "443",
+      "aes-128-gcm",
+      "CPUCbt54Maw3JC"
+    ],
+    "name": "NL-ak1isp-96",
+    "params": {
+      "shadow-tls-password": "6yMGxseYVK5CQkW8",
+      "shadow-tls-sni": "api.z5h1o.example.com",
+      "shadow-tls-version": "3",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

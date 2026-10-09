@@ -1,0 +1,1 @@
+KR-lzb3o3-05=trojan,rnh-12.ruiiz.example.net,443,password="6mUNbxAlL0UIUSWD",ws=true,ws-path=/nco4s,ws-headers="Host:"www.adclk43nua.example.com"",tls=true,sni="www.adclk43nua.example.com"

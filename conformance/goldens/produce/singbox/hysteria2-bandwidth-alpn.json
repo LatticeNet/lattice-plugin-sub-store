@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-n0gwa7-77",
+      "type": "hysteria2",
+      "server": "ke0-40.lx6l.example.org",
+      "server_port": 443,
+      "password": "rcGMeNXxjwztH1PuBrs5",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.md1rpi.example.com",
+        "insecure": false
+      },
+      "up_mbps": 50,
+      "down_mbps": 200
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "SG-yyh6-49",
+    "host": "ojd-26.jpya.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.z5n5auu.example.com"
+      ],
+      [
+        "path",
+        "/dmws/d43mz1k"
+      ],
+      [
+        "sni",
+        "cdn.z5n5auu.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "N3BO5u3oKZ7MaAHU"
+  }
+]

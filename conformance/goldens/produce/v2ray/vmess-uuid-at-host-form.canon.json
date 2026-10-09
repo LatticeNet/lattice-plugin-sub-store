@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "dz-19.pgekzw8.example.org",
+      "aid": "0",
+      "host": "cdn.oah4gm49.example.net",
+      "id": "0c589e64-b7b7-442c-b647-b37f1db0e7a5",
+      "net": "ws",
+      "path": "/g89/nipgxvfka",
+      "port": "443",
+      "ps": "DE-x2v8vq-21",
+      "scy": "auto",
+      "sni": "cdn.oah4gm49.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

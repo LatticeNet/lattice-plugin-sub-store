@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-d8v6j-75",
+        "port": 443,
+        "security": "auto",
+        "server": "d3r-23.er9q6.example.net",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "static.rf5mcrm8wm.example.org"
+            },
+            "path": "/blc/cpyp"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "d45031ed-edbf-4630-9a7e-3ea25d35210d"
+      }
+    }
+  ]
+}

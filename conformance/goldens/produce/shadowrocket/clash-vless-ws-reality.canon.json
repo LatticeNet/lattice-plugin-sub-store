@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "SG-eh7-78",
+      "network": "ws",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "5Ljjcofv3eq-etEHfwPTrhX1potPY56bNU3ZKI0FkVU",
+        "short-id": "e6347b99"
+      },
+      "server": "jhs-39.peelab.example.org",
+      "servername": "img.w3kpjhn.example.org",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "0817af70-3653-4523-b59f-b1a1b00abc76",
+      "ws-opts": {
+        "headers": {
+          "Host": "img.w3kpjhn.example.org"
+        },
+        "path": "/bz8mszs9e"
+      }
+    }
+  ]
+}

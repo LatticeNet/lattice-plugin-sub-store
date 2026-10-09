@@ -1,0 +1,36 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "SG-qx3wl-78",
+        "password": "jQjvT0KFTZfBgD",
+        "port": 19626,
+        "server": "jr-09.lmt9g.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "AU-cajil-62",
+        "port": 443,
+        "security": "none",
+        "server": "fm8-06.y7l1.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "img.aiq2p.example.net"
+            },
+            "path": "/wo1x7lvx",
+            "sni": "img.aiq2p.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "7498ceaf-fb34-440c-bf61-be5cd2755c55"
+      }
+    }
+  ]
+}

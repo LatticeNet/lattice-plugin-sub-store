@@ -1,0 +1,1 @@
+vmess=g1d-13.yztv.example.org:80,method=chacha20-poly1305,password=f377bfa4-dd00-482f-8fdb-839994d4cc12,obfs=ws,obfs-uri=/r4nzwpx,obfs-host=g1d-13.yztv.example.org,aead=false,udp-relay=true,tag=DE-ul2d-17

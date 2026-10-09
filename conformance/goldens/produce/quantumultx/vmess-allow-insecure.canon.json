@@ -1,0 +1,38 @@
+[
+  {
+    "address": "oes-32.n24d5.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "cdn.ona5zaws.example.org",
+      "obfs-uri": "/r17mh",
+      "password": "c9dbfd76-55c7-44c4-8994-6664aa738d1c",
+      "tag": "AU-nmg-47",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "cdn.ona5zaws.example.org",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "mp-03.vjrfhp59.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "static.mf2uv0vj.example.com",
+      "obfs-uri": "/ex9zeq2",
+      "password": "3111cd1e-db1b-45c0-998d-ba3c52f64f32",
+      "tag": "US-woc-03",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.mf2uv0vj.example.com",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

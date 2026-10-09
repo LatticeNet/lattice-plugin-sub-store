@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "qc5-23.ivrq3u.example.net",
+      "443"
+    ],
+    "name": "DE-vvhh0b-20",
+    "params": {
+      "password": "7GLrM7cLUxbsgFrxj79Y",
+      "skip-cert-verify": "false",
+      "sni": "api.o88ob.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

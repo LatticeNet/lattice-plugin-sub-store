@@ -1,0 +1,2 @@
+proxies:
+  - {"encryption":"none","name":"KR-rx6-36","network":"tcp","packet-encoding":"xudp","port":443,"server":"yqq-20.shuir5.example.net","skip-cert-verify":false,"tls":false,"type":"vless","udp":true,"uuid":"d702451b-9c9f-4ca7-be10-aa5e190adc18"}

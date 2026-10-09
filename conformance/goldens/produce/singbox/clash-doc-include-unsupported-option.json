@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-mnfi9-26",
+      "type": "shadowsocksr",
+      "server": "kd-06.gvlm.example.org",
+      "server_port": 57200,
+      "method": "aes-256-cfb",
+      "password": "37RbHUfiK5qZ",
+      "obfs": "plain",
+      "protocol": "origin"
+    },
+    {
+      "tag": "GB-q3yeq-20",
+      "type": "snell",
+      "server": "l25-15.zi0q.example.org",
+      "server_port": 49422,
+      "psk": "zf23H7WXJyCHIlhxKR0H",
+      "version": 4
+    }
+  ],
+  "endpoints": []
+}

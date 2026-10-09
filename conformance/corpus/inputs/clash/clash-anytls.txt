@@ -1,0 +1,16 @@
+proxies:
+  - name: KR-w7e-46
+    type: anytls
+    server: hac-37.k2fe.example.com
+    port: 443
+    password: CD4xeu8GaEFg9Uc7b2yO
+    client-fingerprint: chrome
+    udp: true
+    idle-session-check-interval: 30
+    idle-session-timeout: 30
+    min-idle-session: 0
+    sni: static.ggzzb0.example.net
+    alpn:
+      - h2
+      - http/1.1
+    skip-cert-verify: false

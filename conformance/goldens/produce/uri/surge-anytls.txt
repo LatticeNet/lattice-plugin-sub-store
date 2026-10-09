@@ -1,0 +1,1 @@
+anytls://05eDffSebg6pvqS7baU1@rmq-28.tr5vrx1y.example.net:443?security=tls&type=tcp&packetEncoding=none&sni=cdn.sgclf.example.net&reuse=true&udp=1#CA-nixq-24

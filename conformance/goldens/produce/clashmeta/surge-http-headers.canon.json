@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "headers": {
+        "X-Client": "gss2r"
+      },
+      "name": "GB-kgzien-25",
+      "password": "H4oijwVP8mye",
+      "port": 8080,
+      "server": "ml-07.u7hv109.example.net",
+      "type": "http",
+      "udp": true,
+      "username": "po05d"
+    }
+  ]
+}

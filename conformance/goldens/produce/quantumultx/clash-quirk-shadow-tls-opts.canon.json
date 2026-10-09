@@ -1,0 +1,13 @@
+[
+  {
+    "address": "lm-06.k25j9.example.org:443",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "WhdU9BwFJtPtUMRX",
+      "tag": "HK-lb5-55",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

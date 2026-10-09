@@ -1,0 +1,34 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "KR-fn5-71",
+      "password": "eQObS4ZKRCMB0Q",
+      "port": 41712,
+      "server": "e8-24.czdpwx7v.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "NL-vv8-63",
+      "password": "eQObS4ZKRCMB0Q",
+      "port": 41712,
+      "server": "kfm-30.j86h.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "NL-jh0-83",
+      "password": "eQObS4ZKRCMB0Q",
+      "port": 41712,
+      "server": "198.51.100.128",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

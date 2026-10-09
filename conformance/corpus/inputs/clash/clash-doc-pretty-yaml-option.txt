@@ -1,0 +1,19 @@
+proxies:
+  - name: TW-gnwt-57
+    type: vless
+    server: ph-34.o6gn73.example.com
+    port: 443
+    uuid: 863a99be-ece7-45f2-9427-07e17260efff
+    flow: xtls-rprx-vision
+    tls: true
+    servername: img.wzdewu.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: qDEIceLEQu1q-ypu1Nijlugg5cotRlnsq51eew1Au4k
+      short-id: 49afd48f
+  - name: US-uglcc6-99
+    type: hysteria2
+    server: g5m-18.wbotb3.example.org
+    port: 443
+    password: ENVVXv1clnMHgRJZZKpC
+    sni: api.vfuu7.example.com

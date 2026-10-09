@@ -1,0 +1,8 @@
+{
+  "id": "vless-xhttp-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "description": "VLESS share link over xhttp with security reality."
+}

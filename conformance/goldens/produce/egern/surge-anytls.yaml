@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"CA-nixq-24","server":"rmq-28.tr5vrx1y.example.net","port":443,"password":"05eDffSebg6pvqS7baU1","tfo":false,"udp_relay":true,"sni":"cdn.sgclf.example.net","skip_tls_verify":false}}

@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "name": "AU-wsyi3-89",
+      "password": "pNrjwULAt2coYT",
+      "port": 22,
+      "server": "lkt-29.pzlqhl.example.net",
+      "type": "ssh",
+      "udp": true,
+      "username": "w925gli"
+    },
+    {
+      "host-key": [
+        "ssh-ed25519 T+P5HQZSvsICfxmM+pM30tJWvn/EfhDv1IefhBdEQI7nD5qIML+L91SuRNCQzeiYety2"
+      ],
+      "name": "US-igpj-20",
+      "port": 2222,
+      "private-key": "-----BEGIN OPENSSH PRIVATE KEY-----\nouJ+RKK3MW/+8u3XzDkENlcqn+80p615M8ZepiUZnA1UaTsxwidV96b/5P5REJA2\n-----END OPENSSH PRIVATE KEY-----",
+      "server": "yo-34.prbku5n8.example.org",
+      "type": "ssh",
+      "udp": true,
+      "username": "ww2knbu"
+    }
+  ]
+}

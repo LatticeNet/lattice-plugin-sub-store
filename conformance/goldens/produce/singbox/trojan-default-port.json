@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-uj6a-60",
+      "type": "trojan",
+      "server": "sxl-01.jiyys7.example.net",
+      "server_port": 443,
+      "password": "8RvhaFk0czErf7tJ",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.x2tic.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

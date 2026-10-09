@@ -1,0 +1,2 @@
+ss://2022-blake3-aes-128-gcm:4SHEU4hDm3T20fw5fTCb2A%3D%3D@mps-24.qhsg5civ.example.net:443/?plugin=shadow-tls%3Bhost%3Dapi.fxcmfmxj.example.com%3Bpassword%3DSMBKDvOyOY2pTxfj%3Bversion%3D3&udp=1#NL-j75ymj-41
+ss://YWVzLTEyOC1nY206eVZIbVFrYTVBSkR1MHI=@lb0-23.vw4fy2jt.example.net:53322?uot=1&udp=1#NL-snw-54

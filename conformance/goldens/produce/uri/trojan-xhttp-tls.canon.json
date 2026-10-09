@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "HK-dq7iy1-12",
+    "host": "de4-40.or91.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.f84uf0umu.example.org"
+      ],
+      [
+        "path",
+        "/yd60xvm"
+      ],
+      [
+        "sni",
+        "cdn.f84uf0umu.example.org"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "WkXAvi3KHLWIejv8"
+  }
+]

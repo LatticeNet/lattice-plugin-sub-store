@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"JP-jma8-57","section-name":"mfc8","type":"wireguard-surge","udp":true}
+  - {"name":"FR-ueon-08","section-name":"ryx2","type":"wireguard-surge","udp":true,"dialer-proxy":"SG-dxq7-47"}

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "TW-sgo-07",
+    "host": "su-23.ysq8riu.example.com",
+    "path": "",
+    "port": "41043",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206ZjFSZ2pWTzQ5WjV3WUY=",
+    "userinfo_base64": "aes-256-gcm:f1RgjVO49Z5wYF"
+  },
+  {
+    "fragment": "TW-t0hv-35",
+    "host": "n4j-34.a620o39y.example.com",
+    "path": "",
+    "port": "41982",
+    "query": [
+      [
+        "udp",
+        "0"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206MnJDVE5EWkcyak1UTEY=",
+    "userinfo_base64": "aes-256-gcm:2rCTNDZG2jMTLF"
+  }
+]

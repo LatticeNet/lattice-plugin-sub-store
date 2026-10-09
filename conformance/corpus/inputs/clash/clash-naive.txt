@@ -1,0 +1,9 @@
+proxies:
+  - name: DE-pt9v-35
+    type: naive
+    server: gq-23.kco0.example.net
+    port: 443
+    username: kx1iy20
+    password: U3cR4HIba4wkPp
+    sni: cdn.bft98r0.example.com
+    padding: true

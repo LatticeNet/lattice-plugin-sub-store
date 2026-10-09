@@ -1,0 +1,2 @@
+anytls://PJLn2tDSGfWvqS3p7dv0@qrg-20.nc9x.example.net:443?security=tls&type=tcp&packetEncoding=xudp&sni=api.abdoopble.example.com&packet_encoding=xudp&udp=1#AU-htj-64
+anytls://zD32rCAiPcky6yiH8eWx@s1-33.kogex.example.org:443?security=tls&type=tcp&packetEncoding=xudp&sni=api.m123qkb.example.org&packet_encoding=xudp&udp=1#FR-mnt-40

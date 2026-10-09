@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "main": "vs-40.mby1pyzm.example.com:27306:auth_sha1_v4:aes-128-ctr:random_head:anhQYUJkbzJ0dERY",
+      "params": [
+        [
+          "obfsparam",
+          "api.x5769u6.example.com"
+        ],
+        [
+          "protoparam",
+          "8037:xAMvNMp0"
+        ],
+        [
+          "remarks",
+          "FR-uad-37"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

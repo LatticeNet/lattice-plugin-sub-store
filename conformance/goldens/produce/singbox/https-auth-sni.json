@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-f5qjs-75",
+      "type": "http",
+      "server": "gav-13.l5s0ra.example.com",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "gav-13.l5s0ra.example.com",
+        "insecure": false
+      },
+      "username": "owy7rh",
+      "password": "0WqVo2egBAnO"
+    }
+  ],
+  "endpoints": []
+}

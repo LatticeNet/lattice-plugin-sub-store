@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-wsyi3-89",
+      "type": "ssh",
+      "server": "lkt-29.pzlqhl.example.net",
+      "server_port": 22,
+      "user": "w925gli",
+      "password": "pNrjwULAt2coYT"
+    },
+    {
+      "tag": "US-igpj-20",
+      "type": "ssh",
+      "server": "yo-34.prbku5n8.example.org",
+      "server_port": 2222,
+      "user": "ww2knbu",
+      "private_key": "-----BEGIN OPENSSH PRIVATE KEY-----\nouJ+RKK3MW/+8u3XzDkENlcqn+80p615M8ZepiUZnA1UaTsxwidV96b/5P5REJA2\n-----END OPENSSH PRIVATE KEY-----",
+      "host_key": [
+        "ssh-ed25519 T+P5HQZSvsICfxmM+pM30tJWvn/EfhDv1IefhBdEQI7nD5qIML+L91SuRNCQzeiYety2"
+      ]
+    }
+  ],
+  "endpoints": []
+}

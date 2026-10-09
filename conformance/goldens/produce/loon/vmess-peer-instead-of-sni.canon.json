@@ -1,0 +1,23 @@
+[
+  {
+    "args": [
+      "fwt-04.rega.example.com",
+      "443",
+      "auto",
+      "3d0bd30a-5e31-4d2b-bc4d-7237cdd12157"
+    ],
+    "name": "JP-jo2-78",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "api.pep8i.example.org",
+      "over-tls": "true",
+      "path": "/ntkx808b",
+      "tls-name": "api.pep8i.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "b6y1LjqiDr3JpbFN",
+      "disable_mtu_discovery": false,
+      "down_mbps": 80,
+      "obfs": "UwNBvR4dhTjf",
+      "server": "by-05.sxhabqpu.example.com",
+      "server_port": 11795,
+      "tag": "KR-bawy-93",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.aoey7lq4p.example.com"
+      },
+      "type": "hysteria",
+      "up_mbps": 20
+    }
+  ]
+}

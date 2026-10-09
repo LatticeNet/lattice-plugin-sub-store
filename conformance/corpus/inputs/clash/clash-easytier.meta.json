@@ -1,0 +1,7 @@
+{
+  "id": "clash-easytier",
+  "family": "clash",
+  "protocol": "easytier",
+  "security": "none",
+  "description": "easytier with a network name and secret."
+}

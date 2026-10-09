@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "y5x-06.qsbxmtn.example.org",
+      "34163",
+      "aes-128-gcm",
+      "WCk5pgZGKDGMo1"
+    ],
+    "name": "CA-gki4-71",
+    "params": {
+      "fast-open": "false",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "pl3-12.rvki6p41.example.com",
+      "55339",
+      "2022-blake3-aes-128-gcm",
+      "NIFm94rVMD3O2AH3m+kvdw=="
+    ],
+    "name": "GB-t54-55",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

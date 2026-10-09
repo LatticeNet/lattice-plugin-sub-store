@@ -1,0 +1,1 @@
+hysteria://n5-29.y3tl5c83.example.org:55302?alpn=hysteria&auth=B0p2seRMFqhxgu3r&downmbps=100&protocol=udp&peer=img.xenfvo9gum.example.net&udp=true&upmbps=30#JP-p1syvh-64

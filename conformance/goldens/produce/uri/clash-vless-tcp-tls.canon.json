@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "HK-gs6-10",
+    "host": "ae-36.mpq7wcgj.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.vktuy3r.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "9045a4fb-8b76-41d9-870a-08f5903c65da"
+  }
+]

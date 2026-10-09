@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["hysteria"],"auth-str":"B0p2seRMFqhxgu3r","name":"JP-p1syvh-64","port":55302,"protocol":"udp","server":"n5-29.y3tl5c83.example.org","skip-cert-verify":false,"sni":"img.xenfvo9gum.example.net","type":"hysteria","udp":true,"down-speed":"100","up-speed":"30"}

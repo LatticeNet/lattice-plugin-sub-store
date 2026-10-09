@@ -1,0 +1,29 @@
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+dns:
+  enable: true
+  nameserver:
+    - https://l7-02.xogceypj.example.net/dns-query
+proxies:
+  - name: FR-rxs9-71
+    type: trojan
+    server: gz6-27.nt3l3rl.example.com
+    port: 443
+    password: TfwevtKu5necBwQa
+    sni: img.yan934d.example.com
+  - name: NL-nk245-43
+    type: vmess
+    server: mc6-21.oy1wum6m.example.com
+    port: 443
+    uuid: 4ada313e-c95d-437a-8322-4fedd24ee914
+    alterId: 0
+    cipher: auto
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - DIRECT
+rules:
+  - MATCH,Proxy

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "TW-ucn-36",
+    "host": "hul-38.huj9c209.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "serviceName",
+        "nbzlyxga-snff"
+      ],
+      [
+        "sni",
+        "cdn.go13h8jb1.example.net"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "at4jdVnJQ4yIlNJJ"
+  }
+]

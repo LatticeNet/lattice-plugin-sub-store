@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"DE-rnjso-15","server":"c5-11.ocg6mst.example.org","port":443,"password":"Ss3l3GXlwJPI9BmQ","tfo":false,"udp_relay":true,"sni":"img.qb83s9o08.example.net","skip_tls_verify":false,"websocket":{"path":"/ucuhm923u","host":"img.qb83s9o08.example.net"}}}

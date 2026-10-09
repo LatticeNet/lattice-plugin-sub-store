@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "zb-37.bkm1jc04.example.org",
+      "server_port": 443,
+      "tag": "KR-kqarv-32",
+      "transport": {
+        "headers": {
+          "Host": "cdn.ntdq7.example.org"
+        },
+        "path": "/l9qryrkj",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "466e68b0-f500-4ae2-b943-fba35589f245"
+    }
+  ]
+}

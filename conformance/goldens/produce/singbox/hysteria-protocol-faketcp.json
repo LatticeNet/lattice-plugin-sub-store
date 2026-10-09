@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-f7j-28",
+      "type": "hysteria",
+      "server": "ap-39.nxuyyahu.example.org",
+      "server_port": 16090,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.ycnztn1hm.example.org",
+        "insecure": false,
+        "alpn": [
+          "hysteria"
+        ]
+      },
+      "auth_str": "RxIFQ9t4mdsr1c24",
+      "up_mbps": 30,
+      "down_mbps": 100
+    }
+  ],
+  "endpoints": []
+}

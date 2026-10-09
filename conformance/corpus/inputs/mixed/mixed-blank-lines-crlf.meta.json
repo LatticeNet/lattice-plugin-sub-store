@@ -1,0 +1,7 @@
+{
+  "id": "mixed-blank-lines-crlf",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "crlf-whitespace",
+  "description": "Links with CRLF endings, blank lines and indentation."
+}

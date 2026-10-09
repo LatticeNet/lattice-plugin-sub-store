@@ -1,0 +1,1 @@
+AU-zxd838-69=hysteria2,mo-07.m625b9u.example.org,443,password="ushjygm7:KVGUTh8yVTWIts5R",sni="static.sskdxnvab.example.org",skip-cert-verify=false,tfo=false

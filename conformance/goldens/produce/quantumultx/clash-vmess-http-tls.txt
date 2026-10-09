@@ -1,0 +1,1 @@
+vmess=ok-34.w6xwil.example.com:443,method=chacha20-poly1305,password=000b0651-b029-4c70-8287-7e117f38cb56,obfs=http,obfs-uri=/jg4g,obfs-host=img.rsvilob.example.com,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=img.rsvilob.example.com,aead=true,udp-relay=true,tag=JP-h6jaf0-06

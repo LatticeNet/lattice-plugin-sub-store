@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "my3-20.shu2.example.com",
+      "40259"
+    ],
+    "name": "日本 东京 xp3wh",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "RfBryVPcgbhP",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "x5d-17.b1ft75s.example.net",
+      "28566"
+    ],
+    "name": "Франкфурт ein23",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "adqGqFf6jdjC",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "sth-08.xj5a.example.net",
+      "29015"
+    ],
+    "name": "a: b # c [d] {e} xcvo",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "bXKC2TcvGpNl",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

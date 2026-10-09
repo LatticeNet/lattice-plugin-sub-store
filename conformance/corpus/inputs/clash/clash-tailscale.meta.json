@@ -1,0 +1,7 @@
+{
+  "id": "clash-tailscale",
+  "family": "clash",
+  "protocol": "tailscale",
+  "security": "none",
+  "description": "tailscale with an auth key and hostname."
+}

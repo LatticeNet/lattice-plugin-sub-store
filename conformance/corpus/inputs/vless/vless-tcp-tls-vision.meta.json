@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-tls-vision",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "flow",
+  "description": "TLS over TCP with the xtls-rprx-vision flow."
+}

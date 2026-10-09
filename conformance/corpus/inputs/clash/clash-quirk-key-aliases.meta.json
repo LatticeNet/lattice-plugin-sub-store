@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-key-aliases",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "key-aliases",
+  "description": "servername, fingerprint and dialer-proxy, which the reader maps to sni, tls-fingerprint and underlying-proxy."
+}

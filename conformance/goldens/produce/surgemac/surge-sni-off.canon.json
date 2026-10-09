@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "192.0.2.176",
+      "443"
+    ],
+    "name": "DE-nsuz9v-24",
+    "params": {
+      "password": "muju50zKO0N7ulsr",
+      "skip-cert-verify": "true",
+      "sni": "off",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

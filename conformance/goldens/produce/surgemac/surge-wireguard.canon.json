@@ -1,0 +1,19 @@
+[
+  {
+    "args": [],
+    "name": "JP-jma8-57",
+    "params": {
+      "section-name": "mfc8"
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "FR-ueon-08",
+    "params": {
+      "section-name": "ryx2",
+      "underlying-proxy": "SG-dxq7-47"
+    },
+    "type": "wireguard"
+  }
+]

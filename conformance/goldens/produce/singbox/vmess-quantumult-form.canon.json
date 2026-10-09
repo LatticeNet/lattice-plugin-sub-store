@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "chacha20-poly1305",
+      "server": "euo-40.fr243lfo.example.org",
+      "server_port": 443,
+      "tag": "GB-hrhuy-22",
+      "type": "vmess",
+      "uuid": "9ae08100-542d-494f-8ada-9dcdea9f4cca"
+    }
+  ]
+}

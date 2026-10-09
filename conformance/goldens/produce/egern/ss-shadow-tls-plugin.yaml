@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"KR-qk6-89","method":"2022-blake3-aes-128-gcm","server":"d0-09.xvx49.example.org","port":443,"password":"IOxAxDp0UwYKIdSPz55N9A==","tfo":false,"udp_relay":true,"shadow_tls":{"password":"vEWeernNDjSYNe0O","sni":"www.ukc5nfbm3m.example.org"}}}

@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "name": "FR-thqrdw-48",
+      "network-name": "abzeob4a",
+      "network-secret": "RhoAjdTn3X97uvS3",
+      "peers": [
+        "tcp://vqh-33.x3h6rb.example.org:11010"
+      ],
+      "type": "easytier",
+      "udp": true
+    }
+  ]
+}

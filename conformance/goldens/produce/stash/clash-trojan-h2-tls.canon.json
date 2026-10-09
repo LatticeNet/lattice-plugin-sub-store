@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "h2-opts": {
+        "host": [
+          "cdn.yt9i0ts.example.org"
+        ],
+        "path": "/azkq/x70x07mipd"
+      },
+      "name": "SG-t7bm-84",
+      "network": "h2",
+      "password": "2EnJLQPqixnrG6Ht",
+      "port": 443,
+      "server": "o1-30.zmrsp.example.org",
+      "skip-cert-verify": false,
+      "sni": "cdn.yt9i0ts.example.org",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

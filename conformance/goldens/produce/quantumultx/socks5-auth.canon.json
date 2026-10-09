@@ -1,0 +1,14 @@
+[
+  {
+    "address": "a7-04.h9q2h.example.net:37605",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "password": "a31bA1CmoKR9",
+      "tag": "GB-ycmz-27",
+      "udp-relay": "true",
+      "username": "r2ddmw"
+    },
+    "type": "socks5"
+  }
+]

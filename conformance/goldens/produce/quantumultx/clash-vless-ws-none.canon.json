@@ -1,0 +1,16 @@
+[
+  {
+    "address": "kp4-08.zfwpxgh.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "ws",
+      "obfs-host": "www.po8u28n.example.com",
+      "obfs-uri": "/qk59z/b8mr",
+      "password": "84b19d3a-7625-45a1-a521-04705c110792",
+      "tag": "AU-ntf7d-49",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

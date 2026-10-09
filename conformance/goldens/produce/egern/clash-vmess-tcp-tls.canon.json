@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "FR-bme-99",
+        "port": 443,
+        "security": "auto",
+        "server": "fa-12.pdht8.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.k11mos.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "335f9710-f3d4-4e34-aa62-6b6c3e71f595"
+      }
+    }
+  ]
+}

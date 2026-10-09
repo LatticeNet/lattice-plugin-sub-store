@@ -1,0 +1,1 @@
+GB-ycmz-27=socks5,a7-04.h9q2h.example.net,37605,r2ddmw,a31bA1CmoKR9,udp-relay=true

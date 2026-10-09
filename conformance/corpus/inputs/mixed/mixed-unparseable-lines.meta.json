@@ -1,0 +1,7 @@
+{
+  "id": "mixed-unparseable-lines",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "garbage-lines",
+  "description": "Valid links interleaved with lines no parser accepts; those are skipped."
+}

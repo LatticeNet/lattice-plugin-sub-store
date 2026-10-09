@@ -1,0 +1,4 @@
+proxies:
+  - {"trojan":{"name":"JP-g3y6-02","server":"k7n-34.k3dmj.example.com","port":443,"password":"x6ITjYHRYeEvJEsG","tfo":false,"udp_relay":true,"sni":"api.dv5ooq2v.example.com","skip_tls_verify":false}}
+  - {"trojan":{"name":"TW-w9xe07-13","server":"z2n-18.xvyy2a.example.org","port":443,"password":"xOSzUMgiUfepNYrF","tfo":false,"udp_relay":true,"sni":"www.eao2iex89b.example.net","websocket":{"path":"/soyeoey","host":"www.eao2iex89b.example.net"}}}
+  - {"trojan":{"name":"FR-yuwlt-90","server":"ls-29.dd8veg7.example.org","port":80,"password":"OLywOW0EdBxNnOvJ","tfo":false,"udp_relay":true,"sni":"api.pj96qv0q6.example.net","websocket":{"path":"/ahi06l","host":"api.pj96qv0q6.example.net"}}}

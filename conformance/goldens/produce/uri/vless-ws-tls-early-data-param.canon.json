@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "TW-y1oz-65",
+    "host": "obn-39.yszi265.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ed",
+        "2560"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.c2lmw.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/aa6ho/v3ap"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.c2lmw.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f968b5ca-0962-4746-94d1-21ce2d1268be"
+  }
+]

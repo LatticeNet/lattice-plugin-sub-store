@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"TW-ec92ia-02","server":"up-33.f1r92vu.example.org","port":443,"user_id":"f962a5ea-3ad2-40f0-a529-276f283a8f65","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.r79ll6b.example.org","skip_tls_verify":false,"reality":{"public_key":"dWg3dwQdO7WGR7_Rk6WrlyOis-kG9MVvy11W2Aq-HfE","short_id":"84d363f6"}}},"flow":"xtls-rprx-vision"}}

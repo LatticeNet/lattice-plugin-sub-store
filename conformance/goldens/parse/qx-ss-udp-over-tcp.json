@@ -1,0 +1,34 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "FR-w38-62",
+    "password": "whcR18hBEjkOVg",
+    "port": 38130,
+    "server": "rp8-33.wgzivs.example.org",
+    "type": "ss",
+    "udp": true,
+    "udp-over-tcp": true,
+    "udp-over-tcp-version": 1
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "GB-kzq-60",
+    "password": "6dNQLnVjNDH9zs",
+    "port": 50285,
+    "server": "r2s-07.paug3a4.example.org",
+    "type": "ss",
+    "udp": true,
+    "udp-over-tcp": true,
+    "udp-over-tcp-version": 2
+  },
+  {
+    "_ssr_python_uot": true,
+    "cipher": "aes-128-gcm",
+    "name": "TW-zh07-47",
+    "password": "s2wFoQVQ1mZzes",
+    "port": 60960,
+    "server": "vp-11.foz9zs.example.org",
+    "type": "ss",
+    "udp": true
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"AU-ivcx2g-23","server":"d0a-18.ni6i58o.example.org","port":443,"user_id":"d53cd4f4-5993-4fa8-a317-695738807b21","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

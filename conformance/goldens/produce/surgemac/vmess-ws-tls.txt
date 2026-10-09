@@ -1,0 +1,1 @@
+KR-tuq-74=vmess,k4-29.dbrm.example.org,443,username=f01fcc8c-d644-4e5c-9d5f-65cda7be0d62,ws=true,ws-path=/glnf,ws-headers="Host:"api.h0digvt.example.org"",vmess-aead=true,tls=true,sni="api.h0digvt.example.org",alpn="h2,http/1.1"

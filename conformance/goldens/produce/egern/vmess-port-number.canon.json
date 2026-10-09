@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "JP-vfw94-81",
+        "port": 49419,
+        "security": "auto",
+        "server": "o0-12.dadt3a.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "api.et37x8lil.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "d1842fe9-5aed-452a-a62f-b2a295668da1"
+      }
+    }
+  ]
+}

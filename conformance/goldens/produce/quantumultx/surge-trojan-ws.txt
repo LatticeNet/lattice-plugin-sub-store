@@ -1,0 +1,1 @@
+trojan=cgk-31.cs04sm.example.net:443,password=9L5yJZcSovc6F1lD,obfs=wss,obfs-uri=/tqh35/hy517k,obfs-host=img.dqmjej1k.example.net,tls-host=img.dqmjej1k.example.net,udp-relay=true,tag=AU-y5wy-94

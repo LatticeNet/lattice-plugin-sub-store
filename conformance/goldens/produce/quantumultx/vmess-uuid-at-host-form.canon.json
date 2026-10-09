@@ -1,0 +1,19 @@
+[
+  {
+    "address": "dz-19.pgekzw8.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "cdn.oah4gm49.example.net",
+      "obfs-uri": "/g89/nipgxvfka",
+      "password": "0c589e64-b7b7-442c-b647-b37f1db0e7a5",
+      "tag": "DE-x2v8vq-21",
+      "tls-host": "cdn.oah4gm49.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

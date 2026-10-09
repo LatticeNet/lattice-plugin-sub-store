@@ -1,0 +1,8 @@
+{
+  "id": "loon-trojan",
+  "family": "loon",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Loon trojan over TCP and over ws."
+}

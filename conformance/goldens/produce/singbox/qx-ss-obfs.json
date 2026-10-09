@@ -1,0 +1,45 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-qwr-38",
+      "type": "shadowsocks",
+      "server": "z91-16.s91x2fd.example.net",
+      "server_port": 16334,
+      "method": "aes-256-gcm",
+      "password": "Uks1P5PqASwY6q",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=cdn.hp815.example.net;obfs=http;path=/uqrnmcek"
+    },
+    {
+      "tag": "TW-v5vws1-72",
+      "type": "shadowsocks",
+      "server": "nfx-29.succ.example.net",
+      "server_port": 42929,
+      "method": "aes-256-gcm",
+      "password": "E6LyHSGUyZtgMP",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=img.tiqhalr80.example.com;obfs=tls"
+    },
+    {
+      "tag": "HK-dh5m8-89",
+      "type": "shadowsocks",
+      "server": "qi5-25.efnvp.example.org",
+      "server_port": 36610,
+      "method": "aes-256-gcm",
+      "password": "9ncr9Hw6RY7GCb",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=cdn.qw5vkkko.example.com;mode=websocket;path=/r4g5l"
+    },
+    {
+      "tag": "NL-qajnh-75",
+      "type": "shadowsocks",
+      "server": "ts-14.e6uxw.example.net",
+      "server_port": 53935,
+      "method": "aes-256-gcm",
+      "password": "BDhjpjvfP0r9Nn",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=img.f8ttbbe.example.net;mode=websocket;path=/syu/jw08g57qe;tls"
+    }
+  ],
+  "endpoints": []
+}

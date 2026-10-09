@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"SG-ljo-92","server":"sr-09.m6mi.example.org","port":443,"user_id":"35c16f41-6aaf-449b-a131-dbf28bb15d0f","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

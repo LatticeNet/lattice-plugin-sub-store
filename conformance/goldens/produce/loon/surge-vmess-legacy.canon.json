@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "g1d-13.yztv.example.org",
+      "80",
+      "chacha20-ietf-poly1305",
+      "f377bfa4-dd00-482f-8fdb-839994d4cc12"
+    ],
+    "name": "DE-ul2d-17",
+    "params": {
+      "alterId": "1",
+      "host": "g1d-13.yztv.example.org",
+      "path": "/r4nzwpx",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

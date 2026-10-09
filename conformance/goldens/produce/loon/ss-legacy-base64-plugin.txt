@@ -1,0 +1,1 @@
+JP-hhek-33=shadowsocks,fh-22.ov6ov1.example.net,26877,aes-128-gcm,"DrL9ISgTEl19He",obfs-name=http,obfs-host=api.tvsyc0.example.com,udp=true

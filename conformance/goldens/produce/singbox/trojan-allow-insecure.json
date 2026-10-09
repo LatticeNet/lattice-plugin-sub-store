@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-ptyg-62",
+      "type": "trojan",
+      "server": "192.0.2.32",
+      "server_port": 443,
+      "password": "7WEAVSvZGNTkAgpl",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.qx34w.example.net",
+        "insecure": true
+      }
+    }
+  ],
+  "endpoints": []
+}

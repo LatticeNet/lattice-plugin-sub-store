@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-nsuz9v-24",
+      "type": "trojan",
+      "server": "192.0.2.176",
+      "server_port": 443,
+      "password": "muju50zKO0N7ulsr",
+      "tls": {
+        "enabled": true,
+        "server_name": "192.0.2.176",
+        "insecure": true,
+        "disable_sni": true
+      }
+    }
+  ],
+  "endpoints": []
+}

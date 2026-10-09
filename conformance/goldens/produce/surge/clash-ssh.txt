@@ -1,0 +1,4 @@
+AU-wsyi3-89=ssh,lkt-29.pzlqhl.example.net,22,username="w925gli",password="pNrjwULAt2coYT"
+US-igpj-20=ssh,yo-34.prbku5n8.example.org,2222,username="ww2knbu",private-key="-----BEGIN OPENSSH PRIVATE KEY-----
+ouJ+RKK3MW/+8u3XzDkENlcqn+80p615M8ZepiUZnA1UaTsxwidV96b/5P5REJA2
+-----END OPENSSH PRIVATE KEY-----"

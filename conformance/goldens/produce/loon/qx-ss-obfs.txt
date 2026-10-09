@@ -1,0 +1,2 @@
+SG-qwr-38=shadowsocks,z91-16.s91x2fd.example.net,16334,aes-256-gcm,"Uks1P5PqASwY6q",obfs-name=http,obfs-host=cdn.hp815.example.net,obfs-uri=/uqrnmcek,udp=true
+TW-v5vws1-72=shadowsocks,nfx-29.succ.example.net,42929,aes-256-gcm,"E6LyHSGUyZtgMP",obfs-name=tls,obfs-host=img.tiqhalr80.example.com,udp=true

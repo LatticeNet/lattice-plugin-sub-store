@@ -1,0 +1,1 @@
+CA-e44-62=shadowsocks,is-28.lree.example.org,26241,aes-128-gcm,"rfrwJIQ8mprzJQ",block-quic=true,udp=true,ip-mode=v4-only

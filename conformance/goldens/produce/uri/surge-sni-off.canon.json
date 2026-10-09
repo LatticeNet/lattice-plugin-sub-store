@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "DE-nsuz9v-24",
+    "host": "192.0.2.176",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "sni",
+        "192.0.2.176"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "muju50zKO0N7ulsr"
+  }
+]

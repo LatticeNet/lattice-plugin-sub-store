@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "AU-u352sz-68",
+    "host": "f9-26.kn67t.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "api.yqlu287lg0.example.net"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/ep03"
+      ],
+      [
+        "pbk",
+        "iXRMGvhG9D_pZavsQdQ2jmq9Cblai39I5253eoTVt9A"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "92757c36"
+      ],
+      [
+        "sni",
+        "api.yqlu287lg0.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "4cf50411-4a0f-47e3-870b-c969f988326b"
+  }
+]

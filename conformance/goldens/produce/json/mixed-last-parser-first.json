@@ -1,0 +1,40 @@
+[
+  {
+    "name": "TW-us3jp-56",
+    "password": "7f05Zkf8ZVtN",
+    "port": 8080,
+    "server": "uf-21.emdqtlyc.example.com",
+    "type": "http",
+    "udp": true,
+    "username": "o36eae"
+  },
+  {
+    "name": "JP-j9kz9p-25",
+    "password": "hTEmO5BXf2cd",
+    "port": 8080,
+    "server": "rkm-18.ptwmbbq.example.net",
+    "type": "http",
+    "udp": true,
+    "username": "qw7wr1s"
+  },
+  {
+    "name": "AU-rqv-17",
+    "password": "gVR1jzrDk80Y",
+    "port": 443,
+    "server": "e6q-11.ld43.example.net",
+    "sni": "api.q9es445kaz.example.net",
+    "tls": true,
+    "type": "http",
+    "udp": true,
+    "username": "xc1e3"
+  },
+  {
+    "name": "KR-qw3f7r-39",
+    "password": "ROyQV6BdndOh",
+    "port": 1080,
+    "server": "w6-18.oxky0a.example.com",
+    "type": "socks5",
+    "udp": true,
+    "username": "bhzsv"
+  }
+]

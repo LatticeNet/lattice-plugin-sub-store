@@ -1,0 +1,2 @@
+AU-tx3-71=shadowsocks,v5-05.qb5b.example.org,34588,aes-128-gcm,"i0Xuxu3C1Z8mZe",udp=true
+TW-cdnh-17=trojan,bun-09.kwq8.example.net,443,"RbyQZY56IcdRRx5v",tls-name=cdn.bskwnh8rfx.example.com,udp=true

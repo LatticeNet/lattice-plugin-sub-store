@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "JP-p1syvh-64",
+    "host": "n5-29.y3tl5c83.example.org",
+    "path": "",
+    "port": "55302",
+    "query": [
+      [
+        "alpn",
+        "hysteria"
+      ],
+      [
+        "auth",
+        "B0p2seRMFqhxgu3r"
+      ],
+      [
+        "downmbps",
+        "100"
+      ],
+      [
+        "peer",
+        "img.xenfvo9gum.example.net"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

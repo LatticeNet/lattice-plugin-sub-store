@@ -1,0 +1,8 @@
+{
+  "id": "clash-direct",
+  "family": "clash",
+  "protocol": "direct",
+  "transport": "tcp",
+  "security": "none",
+  "description": "A direct entry with udp."
+}

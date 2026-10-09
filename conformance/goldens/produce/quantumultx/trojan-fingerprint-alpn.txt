@@ -1,0 +1,1 @@
+trojan=ufh-20.cskk.example.net:443,password=MqstkokkaMmCdlOb,over-tls=true,tls-alpn=02683208687474702f312e31,tls-host=www.pu7fx.example.net,udp-relay=true,tag=KR-i6c-08

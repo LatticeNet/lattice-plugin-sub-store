@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-etr-64",
+      "type": "vmess",
+      "server": "gz1-11.f67x.example.net",
+      "server_port": 443,
+      "uuid": "f26dc40c-98db-4600-b5f4-ed294aa9ecc4",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "grpc",
+        "service_name": "pupv0-cwl8xg"
+      }
+    }
+  ],
+  "endpoints": []
+}

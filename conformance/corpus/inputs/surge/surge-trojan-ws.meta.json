@@ -1,0 +1,8 @@
+{
+  "id": "surge-trojan-ws",
+  "family": "surge",
+  "protocol": "trojan",
+  "transport": "ws",
+  "security": "tls",
+  "description": "Surge trojan with ws and ws-headers."
+}

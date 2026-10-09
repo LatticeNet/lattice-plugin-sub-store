@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "wg-31.g7d1emnv.example.org",
+      "server_port": 443,
+      "tag": "TW-t0bp-90",
+      "type": "vmess",
+      "uuid": "cc1d4e55-c7f2-417a-9562-5e0abcc59b35"
+    }
+  ]
+}

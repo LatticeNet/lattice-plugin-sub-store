@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "yxu-08.nlefeegc.example.com",
+      "443",
+      "gSrCmBf82yAWUzLcfKSh"
+    ],
+    "name": "AU-c10c71-51",
+    "params": {
+      "fast-open": "false",
+      "hop-interval": "30",
+      "server-ports": "30000-40000",
+      "skip-cert-verify": "false",
+      "tls-name": "www.zmlvv.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

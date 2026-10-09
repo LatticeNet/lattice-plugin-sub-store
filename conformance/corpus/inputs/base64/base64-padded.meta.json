@@ -1,0 +1,7 @@
+{
+  "id": "base64-padded",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "base64-std",
+  "description": "A classic subscription: standard padded Base64 of newline-joined share links."
+}

@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "CA-mzhy-32",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "rv-14.nzag30.example.org",
+      "servername": "cdn.paznfzs.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "66f373aa-79e0-4754-ae9a-5aad2a7e4823"
+    }
+  ]
+}

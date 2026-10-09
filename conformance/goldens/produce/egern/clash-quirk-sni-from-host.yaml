@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"AU-tfsez1-75","server":"bee-29.xqbpipu.example.com","port":443,"user_id":"848a9969-7aa2-456b-9da9-69e9f413df30","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/hdm/xo87z7i","headers":{"Host":"www.v9p5uc3.example.net"},"sni":"www.v9p5uc3.example.net"}}}}
+  - {"trojan":{"name":"DE-pbrw-08","server":"xey-25.ohekj.example.net","port":443,"password":"50gcH1IrTZeRtSHn","tfo":false,"udp_relay":true,"sni":"xey-25.ohekj.example.net"}}

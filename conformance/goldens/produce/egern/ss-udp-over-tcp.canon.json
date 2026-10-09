@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-256-gcm",
+        "name": "TW-sgo-07",
+        "password": "f1RgjVO49Z5wYF",
+        "port": 41043,
+        "server": "su-23.ysq8riu.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-256-gcm",
+        "name": "TW-t0hv-35",
+        "password": "2rCTNDZG2jMTLF",
+        "port": 41982,
+        "server": "n4j-34.a620o39y.example.com",
+        "tfo": false,
+        "udp_relay": false
+      }
+    }
+  ]
+}

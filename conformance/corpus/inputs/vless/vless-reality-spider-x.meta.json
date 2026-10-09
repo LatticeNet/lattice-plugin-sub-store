@@ -1,0 +1,9 @@
+{
+  "id": "vless-reality-spider-x",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-spx",
+  "description": "Reality with an encoded spiderX path and query."
+}

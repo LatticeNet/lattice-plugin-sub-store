@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "TW-h11zpi-21",
+      "network": "tcp",
+      "password": "HwLmYAma9EMkZ8Q5",
+      "port": 443,
+      "server": "hh-01.imfbim.example.com",
+      "sni": "static.xxh5n1ybva.example.org",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

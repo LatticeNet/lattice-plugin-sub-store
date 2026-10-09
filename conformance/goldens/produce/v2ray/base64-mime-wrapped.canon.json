@@ -1,0 +1,151 @@
+[
+  {
+    "fragment": "TW-rdp8gd-72",
+    "host": "ip-34.ktwatttj.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "Jwdpp-Z2G7NTZD3sY9HvijP5esLDr7gXgKPgZnFBouQ"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "a40cc7aa"
+      ],
+      [
+        "sni",
+        "www.c9y35bt5.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "57c1458d-73c3-4e95-9c04-2670f53dbac0"
+  },
+  {
+    "body": {
+      "add": "c9-14.btap.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "api.gckl0.example.net",
+      "id": "402a4bf1-5660-46c2-8e1e-7c6df31b087e",
+      "net": "ws",
+      "path": "/kd8m/lfzp6iw",
+      "port": "443",
+      "ps": "CA-nzkp5h-77",
+      "scy": "auto",
+      "sni": "api.gckl0.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "fragment": "KR-nru02r-03",
+    "host": "d6b-40.a7xz.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.f7e3g.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Zu79DKkx19GwylRt"
+  },
+  {
+    "fragment": "US-p3pswm-02",
+    "host": "fe-04.w3s679.example.org",
+    "path": "",
+    "port": "21549",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206N3ppanlZV21ncXhSZjk=",
+    "userinfo_base64": "aes-128-gcm:7zijyYWmgqxRf9"
+  },
+  {
+    "fragment": "FR-umn-23",
+    "host": "en4-40.azvex2l.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.tq1ir0bnw1.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Q1q3ulUEQQHs6JO0vnb4"
+  },
+  {
+    "fragment": "FR-xem9-01",
+    "host": "ba-35.w8mcl.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "sni",
+        "img.lywm5oq1k5.example.com"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "76301c12-d394-44b9-816e-108885652251:Ls72fnKC7SbDjxHL"
+  }
+]

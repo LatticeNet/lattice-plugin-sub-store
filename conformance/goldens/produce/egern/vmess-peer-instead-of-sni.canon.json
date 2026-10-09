@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "JP-jo2-78",
+        "port": 443,
+        "security": "auto",
+        "server": "fwt-04.rega.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.pep8i.example.org"
+            },
+            "path": "/ntkx808b",
+            "sni": "api.pep8i.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3d0bd30a-5e31-4d2b-bc4d-7237cdd12157"
+      }
+    }
+  ]
+}

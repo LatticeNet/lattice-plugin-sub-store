@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "SG-yyh6-49",
+        "password": "N3BO5u3oKZ7MaAHU",
+        "port": 443,
+        "server": "ojd-26.jpya.example.org",
+        "sni": "cdn.z5n5auu.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "host": "cdn.z5n5auu.example.com",
+          "path": "/dmws/d43mz1k"
+        }
+      }
+    }
+  ]
+}

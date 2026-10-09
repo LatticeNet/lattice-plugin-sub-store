@@ -1,0 +1,1 @@
+DE-ctej2-56=shadowsocks,uwn-37.ixewfgf.example.net,18259,aes-128-gcm,"VcOgI5RQw1qi",udp=true

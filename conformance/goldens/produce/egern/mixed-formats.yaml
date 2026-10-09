@@ -1,0 +1,7 @@
+proxies:
+  - {"vless":{"name":"JP-kheg-39","server":"vko-36.wx04c.example.net","port":443,"user_id":"56846b9c-0cc0-4e6f-858e-d8b398d5dc89","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.svxk81.example.com","skip_tls_verify":false,"reality":{"public_key":"T8pgaHBbnRSiQZ2WyKmcDmNNyPlTjbOQosj2Y_DDKwQ","short_id":"f55db336"}}},"flow":"xtls-rprx-vision"}}
+  - {"trojan":{"name":"JP-fckt-50","server":"br-26.hq2o538.example.net","port":443,"password":"lFV1bVIWHZwLbmTy","tfo":false,"udp_relay":true,"sni":"img.z42yip5q6.example.com"}}
+  - {"shadowsocks":{"name":"SG-x0pl-12","method":"aes-128-gcm","server":"u3d-32.d1kvbm.example.org","port":56005,"password":"rq8MrAoExA7lnu","tfo":false,"udp_relay":true}}
+  - {"vmess":{"name":"GB-s1w-39","server":"zh-10.jyt81ic.example.com","port":443,"user_id":"71238152-25a5-4919-af05-50046127840d","security":"none","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"static.jmolihi.example.net"}}}}
+  - {"hysteria2":{"name":"KR-logo1-06","server":"cze-20.sxdhx8.example.com","port":443,"auth":"XksBeWvF8IOR34qt1nH9","tfo":false,"udp_relay":true,"sni":"img.uzyhj.example.net"}}
+  - {"shadowsocks":{"name":"SG-lui-26","method":"aes-128-gcm","server":"si-34.ge2k66hu.example.org","port":26289,"password":"VVGaOe4bC0fIF8","tfo":false,"udp_relay":true}}

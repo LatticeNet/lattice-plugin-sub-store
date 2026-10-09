@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "HK-rwl-68",
+    "host": "si-36.bnyc.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "bbr"
+      ],
+      [
+        "sni",
+        "www.zuzj9pi2d.example.org"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "v2DeBaasrThWvtaPa4ChcTJX:"
+  }
+]

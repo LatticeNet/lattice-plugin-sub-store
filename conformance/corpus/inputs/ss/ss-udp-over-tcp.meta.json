@@ -1,0 +1,9 @@
+{
+  "id": "ss-udp-over-tcp",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "uot",
+  "description": "uot=1 and udp=0 query keys."
+}

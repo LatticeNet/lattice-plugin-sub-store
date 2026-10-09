@@ -1,0 +1,8 @@
+{
+  "id": "ssr-origin-plain",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "ShadowsocksR link with protocol origin and obfs plain."
+}

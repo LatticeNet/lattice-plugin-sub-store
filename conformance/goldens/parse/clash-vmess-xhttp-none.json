@@ -1,0 +1,18 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "KR-kj5b5n-49",
+    "network": "xhttp",
+    "port": 443,
+    "server": "x50-29.t4oyq5wq.example.com",
+    "type": "vmess",
+    "udp": true,
+    "uuid": "d0d282fb-f19c-451a-a72c-8397dfd59c3c",
+    "xhttp-opts": {
+      "host": "api.b3uqf.example.com",
+      "mode": "auto",
+      "path": "/o8b5gqc"
+    }
+  }
+]

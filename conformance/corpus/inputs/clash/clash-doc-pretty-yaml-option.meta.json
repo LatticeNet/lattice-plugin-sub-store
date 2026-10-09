@@ -1,0 +1,10 @@
+{
+  "id": "clash-doc-pretty-yaml-option",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "produce-option-pretty-yaml",
+  "description": "Ordinary proxies produced with the prettyYaml option, which switches Clash-family output to a block YAML dump.",
+  "options": {
+    "prettyYaml": true
+  }
+}

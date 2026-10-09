@@ -1,0 +1,51 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-vda4-83",
+      "type": "shadowsocks",
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "Opq2jrdRKY7wNpHQEcQmFw==",
+      "detour": "FR-vda4-83_shadowtls"
+    },
+    {
+      "tag": "FR-vda4-83_shadowtls",
+      "type": "shadowtls",
+      "server": "ue-06.ur58k.example.org",
+      "server_port": 443,
+      "version": 2,
+      "password": "AwYmyi6NLk9PRaLy",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.hp3k0nb7i.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "tag": "SG-t1pkv-47",
+      "type": "shadowsocks",
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "FtP4+wFSRGrQIpo3+RS3CQ==",
+      "detour": "SG-t1pkv-47_shadowtls"
+    },
+    {
+      "tag": "SG-t1pkv-47_shadowtls",
+      "type": "shadowtls",
+      "server": "y2-20.givz.example.com",
+      "server_port": 443,
+      "version": 3,
+      "password": "whNg1PjgU7kQeTRU",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.gjnkueki2x.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

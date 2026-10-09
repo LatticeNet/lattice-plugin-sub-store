@@ -1,0 +1,29 @@
+[
+  {
+    "cipher": "chacha20-ietf-poly1305",
+    "name": "US-bzxjjw-87",
+    "password": "saTix03A7LqJTt",
+    "port": 13435,
+    "server": "h3a-14.by3uil1v.example.net",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "chacha20-ietf-poly1305",
+    "name": "HK-l2c9-96",
+    "password": "saTix03A7LqJTt",
+    "plugin": "v2ray-plugin",
+    "plugin-opts": {
+      "host": "cdn.zhjtr2ihal.example.org",
+      "mode": "websocket",
+      "path": "/gbzl/zzmxhj",
+      "skip-cert-verify": false
+    },
+    "port": 13435,
+    "server": "p3-32.s32r.example.net",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  }
+]

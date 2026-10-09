@@ -1,0 +1,15 @@
+[
+  {
+    "ip": "10.9.0.3",
+    "ip-cidr": 32,
+    "ipv6": "fd00:9::3",
+    "ipv6-cidr": 128,
+    "name": "HK-dp0ugx-68",
+    "port": 51820,
+    "private-key": "vdhhZ+I3ibrW3tIzqUZc8uUjV/UK+G+DTgW0fxPBiMg=",
+    "public-key": "vmwsGZrV3ufK4cHCr/lKFjjqnUIqnOCeGNFRXEbcC7k=",
+    "server": "2001:db8:5b5a:a2d4::b245",
+    "type": "wireguard",
+    "udp": true
+  }
+]

@@ -1,0 +1,1 @@
+SG-hqzi-96=anytls,xe-34.w3hx.example.net,443,password="bm91bewnfciiwnoMmrKb",sni="img.l2m9nw.example.com",skip-cert-verify=false,udp-relay=true

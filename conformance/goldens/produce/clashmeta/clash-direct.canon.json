@@ -1,0 +1,9 @@
+{
+  "proxies": [
+    {
+      "name": "AU-ojzfsa-01",
+      "type": "direct",
+      "udp": true
+    }
+  ]
+}

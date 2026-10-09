@@ -1,0 +1,9 @@
+{
+  "id": "ss-legacy-base64",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "legacy-base64",
+  "description": "Legacy form: Base64 of method:password@host:port with a fragment."
+}

@@ -1,0 +1,1 @@
+wireguard://RIi000nUcTCKdUz8MYCzm%2BtTi467vyUcHNfuedHHcmI%3D@tm-37.mmvgx6t.example.net:51820/?mtu=1420&publickey=hw45pauotWHyEn1rnGQqw0i9KGw%2Fz7lE9SSnKR80h9c%3D&udp=1&address=10.8.0.2%2F32#KR-nsly49-88

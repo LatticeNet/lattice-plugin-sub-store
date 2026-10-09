@@ -1,0 +1,13 @@
+[
+  {
+    "address": "c9v-36.klvhza.example.com:49167",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "password": "SYi2MlRJoQxEu7",
+      "tag": "CA-gfdgyx-54",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

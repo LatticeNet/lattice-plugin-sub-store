@@ -1,0 +1,8 @@
+{
+  "id": "clash-hysteria2",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "description": "Hysteria2 plain, with salamander and with port hopping."
+}

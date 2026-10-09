@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "2001:db8:d7c0:51b0::dfb9",
+      "21991"
+    ],
+    "name": "KR-uhyf-94",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "password": "OFWOx4wLiW8zkv",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

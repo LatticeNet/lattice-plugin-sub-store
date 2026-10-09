@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "cipher": "chacha20-ietf",
+      "name": "GB-k5on8-01",
+      "obfs": "http_simple",
+      "obfs-param": "cdn.tdzus3.example.org",
+      "password": "TcoqEFXQqroN",
+      "port": 51507,
+      "protocol": "auth_aes128_md5",
+      "protocol-param": "6455:ru4fAyUG",
+      "server": "y44-25.upfmkoug.example.org",
+      "type": "ssr",
+      "udp": true
+    }
+  ]
+}

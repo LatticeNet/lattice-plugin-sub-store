@@ -1,0 +1,84 @@
+[
+  {
+    "args": [
+      "qo-19.qfig1df.example.net",
+      "443",
+      "f1cb3c22-cadf-4741-a861-66e724042af6"
+    ],
+    "name": "US-gzy8-87",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "www.e9lh2mo5kh.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "cn-20.y8suksj3.example.net",
+      "443",
+      "b5793326-760d-46da-ab04-9d4e23d7b7ec"
+    ],
+    "name": "GB-vf8-03",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "www.mnmuuw.example.org",
+      "tls-profile": "safari-ios18",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "eu-07.fq689n3v.example.org",
+      "443",
+      "1a7cc116-66e1-46c2-91cf-cdc3005ee15f"
+    ],
+    "name": "CA-a4zwe-27",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "img.l1du25r1.example.net",
+      "tls-profile": "safari-ios18",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "ic-38.wgazw4.example.com",
+      "443",
+      "026e7152-84c8-4445-822e-a6780b289f13"
+    ],
+    "name": "SG-b0j-73",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "api.g2923vp2z.example.com",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "cp-24.gdg3qnvk.example.org",
+      "443",
+      "a7110413-9582-4b5d-8927-47ecae9eb14f"
+    ],
+    "name": "SG-wfvnp-71",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "static.tt0p1qp.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

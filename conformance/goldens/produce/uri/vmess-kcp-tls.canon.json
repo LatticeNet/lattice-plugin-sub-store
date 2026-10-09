@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "in2-39.xggzz5.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "4607727b-c6e4-4d64-819f-c18c356a81b6",
+      "net": "kcp",
+      "path": "mUPvhNzu",
+      "port": "443",
+      "ps": "NL-dka-55",
+      "scy": "auto",
+      "sni": "static.sig2boev.example.org",
+      "tls": "tls",
+      "type": "wechat-video",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

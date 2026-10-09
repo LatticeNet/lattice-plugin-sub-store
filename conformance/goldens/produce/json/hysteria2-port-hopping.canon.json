@@ -1,0 +1,28 @@
+[
+  {
+    "name": "US-ies-50",
+    "password": "AXowQtwCJ2X7XBnVt6nk",
+    "port": 443,
+    "ports": "20000-30000",
+    "server": "rf-16.wjqitx5.example.org",
+    "skip-cert-verify": false,
+    "sni": "www.ajvirme9a.example.net",
+    "tfo": false,
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  },
+  {
+    "name": "TW-gsc0f-98",
+    "password": "TZcdqJu02bczukbFdJ4M",
+    "port": 443,
+    "ports": "20000-21000,23000,25000-26000",
+    "server": "jt-14.ysbkn7no.example.net",
+    "skip-cert-verify": false,
+    "sni": "img.s5auoy5og.example.com",
+    "tfo": false,
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

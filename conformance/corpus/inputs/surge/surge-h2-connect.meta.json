@@ -1,0 +1,8 @@
+{
+  "id": "surge-h2-connect",
+  "family": "surge",
+  "protocol": "h2-connect",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Surge h2-connect with credentials and headers."
+}

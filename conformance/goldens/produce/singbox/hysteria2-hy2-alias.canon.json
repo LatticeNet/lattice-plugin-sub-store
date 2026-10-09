@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "7GLrM7cLUxbsgFrxj79Y",
+      "server": "qc5-23.ivrq3u.example.net",
+      "server_port": 443,
+      "tag": "DE-vvhh0b-20",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.o88ob.example.com"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

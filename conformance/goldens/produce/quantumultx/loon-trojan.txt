@@ -1,0 +1,2 @@
+trojan=ct-01.gktnpz.example.net:443,password=uY3bzTtZg5PWo0Gu,over-tls=true,tls-verification=false,tls-host=img.mfq6v7gy31.example.net,udp-relay=true,tag=NL-wmkko5-50
+trojan=exp-37.msqhu.example.net:443,password=Q0TFWQNDf9Objj0W,obfs=wss,obfs-uri=/h1xonc/ytq25w0leh,obfs-host=www.lyoh8.example.net,tls-host=www.lyoh8.example.net,udp-relay=true,tag=GB-g2r5-48

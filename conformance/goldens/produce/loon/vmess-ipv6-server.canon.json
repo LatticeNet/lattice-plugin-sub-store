@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "2001:db8:857e:9d0b::5799",
+      "443",
+      "auto",
+      "647ab532-add4-42dc-a365-5b4707a42f62"
+    ],
+    "name": "CA-nay-24",
+    "params": {
+      "alterId": "0",
+      "over-tls": "false",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

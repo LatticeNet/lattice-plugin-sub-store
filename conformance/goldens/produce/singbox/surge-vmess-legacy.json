@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-ul2d-17",
+      "type": "vmess",
+      "server": "g1d-13.yztv.example.org",
+      "server_port": 80,
+      "uuid": "f377bfa4-dd00-482f-8fdb-839994d4cc12",
+      "security": "chacha20-poly1305",
+      "alter_id": 1,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "g1d-13.yztv.example.org"
+        },
+        "path": "/r4nzwpx"
+      }
+    }
+  ],
+  "endpoints": []
+}

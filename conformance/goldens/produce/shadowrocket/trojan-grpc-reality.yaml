@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","grpc-opts":{"grpc-service-name":"bynk-z2iz"},"name":"TW-a5ein-14","network":"grpc","password":"HRnDNjf8DYwrNl3p","port":443,"reality-opts":{"_spider-x":"/","public-key":"0DMJL8k0Or-fcZw8rT_gtLvMnfFbuxoYHL8xsJ-8RRQ","short-id":"1313f761"},"server":"fg5-29.gdmnkb86.example.org","sni":"cdn.gldte5kfq.example.org","type":"trojan","udp":true}

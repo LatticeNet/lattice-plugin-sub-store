@@ -1,0 +1,12 @@
+[
+  {
+    "fragment": "TW-eq7d6q-62",
+    "host": "l2-10.au11r.example.org",
+    "path": "",
+    "port": "13306",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "emR4bnI5cTA6M2JvMlEzdlZPWTdQ",
+    "userinfo_base64": "zdxnr9q0:3bo2Q3vVOY7P"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "yek-01.z1l94dfo.example.net",
+      "server_port": 443,
+      "tag": "JP-kzkt-75",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "zCE4wn57ytbsLEcKRkmPjZyjTST7vUaKYGzKhwinXc0",
+          "short_id": "8444e6d5"
+        },
+        "server_name": "img.vc3ai.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "host": "img.vc3ai.example.com",
+        "path": "/ii0ls",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "fc79f00f-7e80-4d12-b9d1-ad060ff43fc0"
+    }
+  ]
+}

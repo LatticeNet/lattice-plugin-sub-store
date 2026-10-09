@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "fg-21.w02y.example.com",
+      "443"
+    ],
+    "name": "NL-k3j6-95",
+    "params": {
+      "password": "NVBxPabyTYwXnC8nXizj",
+      "sni": "www.ppj9s1u06.example.org"
+    },
+    "type": "anytls"
+  }
+]

@@ -1,0 +1,1 @@
+socks5=q7-18.vcxv4ay.example.net:443,username=tnh8mu9,password=rUm1xxOVNd0p,over-tls=true,tls-host=q7-18.vcxv4ay.example.net,udp-relay=true,tag=NL-dzsr6-04

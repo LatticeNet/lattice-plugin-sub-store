@@ -1,0 +1,8 @@
+{
+  "id": "loon-vmess-ws-tls",
+  "family": "loon",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "description": "Loon VMess with ws, over-tls and tls-name."
+}

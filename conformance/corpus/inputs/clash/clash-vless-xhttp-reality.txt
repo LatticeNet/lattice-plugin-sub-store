@@ -1,0 +1,18 @@
+proxies:
+  - name: CA-dl6m-29
+    type: vless
+    server: f1-21.fd5h.example.net
+    port: 443
+    uuid: b1c7a419-420b-488c-872e-aec562a67beb
+    udp: true
+    tls: true
+    servername: cdn.gwygnyy1zf.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: NeSVx1UZNX6mkG-MOP35s3re9-pc-7fFelYVLCgs4ho
+      short-id: f7a85b9c
+    network: xhttp
+    xhttp-opts:
+      path: /ohrezqi
+      host: cdn.gwygnyy1zf.example.org
+      mode: auto

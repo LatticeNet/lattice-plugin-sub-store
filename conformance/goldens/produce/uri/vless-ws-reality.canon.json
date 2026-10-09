@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "US-opo-77",
+    "host": "bu-22.u68e7.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.ipzjfg8.example.net"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/yn3/cg1s"
+      ],
+      [
+        "pbk",
+        "T3_rEwPJJ-F9B-y6jwjMQu7p0F-ijg9aJjgI_k977DY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "2ad1003c"
+      ],
+      [
+        "sni",
+        "www.ipzjfg8.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "8716fe3b-7305-46ba-91eb-4cb9a984fb0a"
+  }
+]

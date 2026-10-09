@@ -1,0 +1,1 @@
+KR-lzb3o3-05=trojan,rnh-12.ruiiz.example.net,443,"6mUNbxAlL0UIUSWD",transport=ws,path=/nco4s,host=www.adclk43nua.example.com,tls-name=www.adclk43nua.example.com,udp=true

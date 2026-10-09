@@ -1,0 +1,9 @@
+{
+  "id": "loon-ss-obfs",
+  "family": "loon",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "obfs",
+  "description": "Loon Shadowsocks with obfs-name http and the positional obfs form."
+}

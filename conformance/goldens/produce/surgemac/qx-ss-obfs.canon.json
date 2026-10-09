@@ -1,0 +1,33 @@
+[
+  {
+    "args": [
+      "z91-16.s91x2fd.example.net",
+      "16334"
+    ],
+    "name": "SG-qwr-38",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "obfs": "http",
+      "obfs-host": "cdn.hp815.example.net",
+      "obfs-uri": "/uqrnmcek",
+      "password": "Uks1P5PqASwY6q",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "nfx-29.succ.example.net",
+      "42929"
+    ],
+    "name": "TW-v5vws1-72",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "obfs": "tls",
+      "obfs-host": "img.tiqhalr80.example.com",
+      "password": "E6LyHSGUyZtgMP",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

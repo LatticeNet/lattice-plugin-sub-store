@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "192.0.2.32",
+      "443"
+    ],
+    "name": "KR-ptyg-62",
+    "params": {
+      "password": "7WEAVSvZGNTkAgpl",
+      "skip-cert-verify": "true",
+      "sni": "img.qx34w.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

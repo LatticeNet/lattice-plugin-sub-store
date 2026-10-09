@@ -1,0 +1,84 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "US-gzy8-87",
+        "port": 443,
+        "server": "qo-19.qfig1df.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.e9lh2mo5kh.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "f1cb3c22-cadf-4741-a861-66e724042af6"
+      }
+    },
+    {
+      "vless": {
+        "name": "GB-vf8-03",
+        "port": 443,
+        "server": "cn-20.y8suksj3.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.mnmuuw.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "b5793326-760d-46da-ab04-9d4e23d7b7ec"
+      }
+    },
+    {
+      "vless": {
+        "name": "CA-a4zwe-27",
+        "port": 443,
+        "server": "eu-07.fq689n3v.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "img.l1du25r1.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "1a7cc116-66e1-46c2-91cf-cdc3005ee15f"
+      }
+    },
+    {
+      "vless": {
+        "name": "SG-b0j-73",
+        "port": 443,
+        "server": "ic-38.wgazw4.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "api.g2923vp2z.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "026e7152-84c8-4445-822e-a6780b289f13"
+      }
+    },
+    {
+      "vless": {
+        "name": "SG-wfvnp-71",
+        "port": 443,
+        "server": "cp-24.gdg3qnvk.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "static.tt0p1qp.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "a7110413-9582-4b5d-8927-47ecae9eb14f"
+      }
+    }
+  ]
+}

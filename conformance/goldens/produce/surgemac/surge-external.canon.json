@@ -1,0 +1,17 @@
+[
+  {
+    "args": [],
+    "name": "AU-uyhd3-15",
+    "params": {
+      "addresses": "192.0.2.181",
+      "args": [
+        "-c",
+        "/etc/poen4ma.json"
+      ],
+      "exec": "/usr/local/bin/yg2t",
+      "local-port": "1080",
+      "udp-relay": "true"
+    },
+    "type": "external"
+  }
+]

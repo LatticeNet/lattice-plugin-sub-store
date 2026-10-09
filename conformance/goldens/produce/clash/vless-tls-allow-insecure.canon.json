@@ -1,0 +1,42 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "CA-yfey-66",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "qz-13.y0ltk.example.com",
+      "servername": "img.xgty3hb.example.com",
+      "skip-cert-verify": true,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "48a7baf3-16ad-478f-8e2e-74d287abc37b"
+    },
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "FR-ov7c4w-98",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "tp-27.lzti78d.example.net",
+      "servername": "img.uzh18wpk67.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "60c28923-6300-4bd5-b6fb-422aa3917feb"
+    }
+  ]
+}

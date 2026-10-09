@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "GB-coc-94",
+    "host": "ui-27.g6d8.example.com",
+    "path": "/",
+    "port": "80",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=www.z9bm8s.example.net;host=www.z9bm8s.example.net;path=/eibuy"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206MXN2czR6dXBGa1ZlYjg=",
+    "userinfo_base64": "aes-256-gcm:1svs4zupFkVeb8"
+  }
+]

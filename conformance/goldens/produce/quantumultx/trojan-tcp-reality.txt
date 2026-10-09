@@ -1,0 +1,1 @@
+trojan=cl3-20.f1i93c.example.com:443,password=8siqyovoAYVDDHHY,over-tls=true,tls-host=img.zz8yf8k7.example.net,udp-relay=true,tag=FR-gg4he-79,reality-base64-pubkey=7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8,reality-hex-shortid=fd7b5be3

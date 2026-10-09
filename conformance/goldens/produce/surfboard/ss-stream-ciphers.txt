@@ -1,0 +1,5 @@
+SG-at22-37=ss,uo-31.vohqvdh2.example.net,26672,encrypt-method=aes-128-cfb,password="e5XX5LpSFAz7",udp-relay=true
+FR-wjypay-70=ss,np-08.baeops7.example.org,33705,encrypt-method=aes-256-cfb,password="nmZltRLobntH",udp-relay=true
+JP-clgy1z-07=ss,pp0-31.brvt.example.net,23086,encrypt-method=aes-256-ctr,password="nlpoz8gL0b9I",udp-relay=true
+US-f3qx-51=ss,fx-28.zpthid.example.net,14978,encrypt-method=chacha20-ietf,password="Rpv1f9EyDV8H",udp-relay=true
+TW-odzmu-72=ss,ceq-08.xcl70pi.example.org,50721,encrypt-method=rc4-md5,password="0aSo41OohzpA",udp-relay=true

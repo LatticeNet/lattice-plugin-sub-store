@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "idle-session-check-interval": 30,
+      "idle-session-timeout": 30,
+      "min-idle-session": 0,
+      "name": "KR-w7e-46",
+      "password": "CD4xeu8GaEFg9Uc7b2yO",
+      "port": 443,
+      "server": "hac-37.k2fe.example.com",
+      "skip-cert-verify": false,
+      "sni": "static.ggzzb0.example.net",
+      "type": "anytls",
+      "udp": true
+    }
+  ]
+}

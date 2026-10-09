@@ -1,0 +1,29 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "h2-opts": {
+      "host": [
+        "api.yqlu287lg0.example.net"
+      ],
+      "path": "/ep03"
+    },
+    "name": "AU-u352sz-68",
+    "network": "h2",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "iXRMGvhG9D_pZavsQdQ2jmq9Cblai39I5253eoTVt9A",
+      "short-id": "92757c36"
+    },
+    "server": "f9-26.kn67t.example.com",
+    "skip-cert-verify": false,
+    "sni": "api.yqlu287lg0.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "4cf50411-4a0f-47e3-870b-c969f988326b"
+  }
+]

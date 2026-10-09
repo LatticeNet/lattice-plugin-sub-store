@@ -1,0 +1,1 @@
+shadowsocks=203.0.113.64:60693,method=aes-128-cfb,password=0oPbz7J7p3,ssr-protocol=origin,obfs=plain,udp-relay=true,tag=203.0.113.64

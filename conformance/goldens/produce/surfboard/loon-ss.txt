@@ -1,0 +1,2 @@
+CA-tf0-69=ss,sb-07.yw88.example.net,17650,encrypt-method=aes-128-gcm,password="z5WspQcJNHZLrl",udp-relay=true
+NL-jqprx9-50=ss,nl-04.jgtvz5jf.example.net,59621,encrypt-method=2022-blake3-aes-256-gcm,password="8NQWdu7foSa/JEy3qJHg+rfwAbZFQlGo18lRdRFDLZU=",udp-relay=true

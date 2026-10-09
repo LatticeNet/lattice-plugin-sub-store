@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"GB-i00-30","server":"ql-09.t1b1avhi.example.net","port":443,"user_id":"6fe5f0ff-e2ae-4aee-9797-d70539cbd43d","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"grpc":{"service_name":"fd7qno3-o0n"}}}}

@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "main": "c6-14.hrgx.example.net:43309:auth_sha1_v4:chacha20-ietf:tls1.2_ticket_auth:UTF4cHVSbFZoSUtI",
+      "params": [
+        [
+          "obfsparam",
+          "cdn.rp4ifyes.example.org"
+        ],
+        [
+          "protoparam",
+          "125:qPktyn"
+        ],
+        [
+          "remarks",
+          "KR-ku76-01"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

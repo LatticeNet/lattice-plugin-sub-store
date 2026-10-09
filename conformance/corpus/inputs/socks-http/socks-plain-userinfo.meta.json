@@ -1,0 +1,10 @@
+{
+  "id": "socks-plain-userinfo",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "plain-userinfo",
+  "description": "socks:// with plain userinfo.",
+  "oracle_dependency": "node-base64"
+}

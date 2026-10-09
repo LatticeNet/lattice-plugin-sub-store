@@ -1,0 +1,31 @@
+[
+  {
+    "args": [
+      "br9-22.im7ld.example.org",
+      "1080",
+      "otr1u",
+      "20ZIpGsmexUW"
+    ],
+    "name": "KR-swmn6t-78",
+    "params": {
+      "udp": "true"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "fsg-07.hr6g.example.com",
+      "443",
+      "piozqbgr",
+      "GlUpvenmjZCs"
+    ],
+    "name": "NL-xy1-70",
+    "params": {
+      "over-tls": "true",
+      "skip-cert-verify": "true",
+      "sni": "fsg-07.hr6g.example.com",
+      "udp": "true"
+    },
+    "type": "socks5"
+  }
+]

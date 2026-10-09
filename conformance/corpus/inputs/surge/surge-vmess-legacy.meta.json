@@ -1,0 +1,9 @@
+{
+  "id": "surge-vmess-legacy",
+  "family": "surge",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "vmess-aead-false",
+  "description": "Surge vmess with vmess-aead=false and an encrypt-method."
+}

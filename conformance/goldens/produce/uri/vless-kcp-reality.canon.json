@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "TW-uhdgu-02",
+    "host": "i5-22.ptbvro6.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "headerType",
+        "wechat-video"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "oSHx0-Bu3ynnqUMorAPSU-4fiaaO347ahOh8RIo2fTE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "seed",
+        "zvWT1wlHRs"
+      ],
+      [
+        "sid",
+        "c57a3e90"
+      ],
+      [
+        "sni",
+        "www.a3h3i.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "kcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "3d8c035c-eb24-425b-9f07-93da911e4b0c"
+  }
+]

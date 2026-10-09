@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "shadowsocksr": {
+        "method": "aes-256-cfb",
+        "name": "CA-lofwsu-12",
+        "obfs": "tls1.2_ticket_auth",
+        "obfs_param": "www.fq3qe5l.example.org",
+        "password": "FoDqSptYJpYf",
+        "port": 48243,
+        "protocol": "auth_chain_a",
+        "protocol_param": "1512:puvQRKIM",
+        "server": "ad8-40.stya5.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

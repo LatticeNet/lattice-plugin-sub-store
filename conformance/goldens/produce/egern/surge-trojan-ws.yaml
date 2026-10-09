@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"AU-y5wy-94","server":"cgk-31.cs04sm.example.net","port":443,"password":"9L5yJZcSovc6F1lD","tfo":false,"udp_relay":true,"sni":"img.dqmjej1k.example.net","websocket":{"path":"/tqh35/hy517k","host":"img.dqmjej1k.example.net"}}}

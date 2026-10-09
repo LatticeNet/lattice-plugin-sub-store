@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-ipv6",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "ipv6-literal",
+  "description": "IPv6 literal server."
+}

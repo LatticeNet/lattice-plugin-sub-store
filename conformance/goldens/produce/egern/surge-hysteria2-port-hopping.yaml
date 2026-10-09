@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"SG-rqk4-92","server":"v5p-17.d1bhi9.example.net","port":443,"auth":"CYgL6uhgoFGf48xcuOOM","tfo":false,"udp_relay":true,"sni":"cdn.vk6e5rjd.example.org","port_hopping":"20000-21000,23000","port_hopping_interval":20}}

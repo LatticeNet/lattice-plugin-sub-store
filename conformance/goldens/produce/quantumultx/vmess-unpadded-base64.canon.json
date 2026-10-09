@@ -1,0 +1,19 @@
+[
+  {
+    "address": "m9-20.ykh9.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "api.e6q1f3.example.net",
+      "obfs-uri": "/jo1/ybfztg",
+      "password": "a3420ae7-435f-4538-b1c3-84a8a1a321bd",
+      "tag": "HK-opvhpj-01",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.e6q1f3.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,104 @@
+[
+  {
+    "body": {
+      "add": "z3-24.jfke.example.net",
+      "aid": "0",
+      "id": "ce07d7cc-26d3-449a-86fc-6e8ab886b24c",
+      "net": "tcp",
+      "port": "443",
+      "ps": "JP-ppcq89-80",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "cc-35.jg3aqv.example.net",
+      "aid": "0",
+      "id": "5effff97-93b7-4844-935c-d3db48a3cb23",
+      "net": "tcp",
+      "port": "443",
+      "ps": "FR-nmudfw-61",
+      "scy": "aes-128-gcm",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "bn6-21.w1kc71bz.example.com",
+      "aid": "0",
+      "id": "c6ba407d-4f74-4b37-b37f-cfb2be550d4f",
+      "net": "tcp",
+      "port": "443",
+      "ps": "NL-v3tw-05",
+      "scy": "chacha20-poly1305",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "s63-29.nz70.example.com",
+      "aid": "0",
+      "id": "daf10bb1-b10a-4fb5-b126-54731df8df13",
+      "net": "tcp",
+      "port": "443",
+      "ps": "HK-g5t4-39",
+      "scy": "none",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "eb-36.mw37.example.org",
+      "aid": "0",
+      "id": "a455556c-1557-41d1-9f19-3eb3f30ee137",
+      "net": "tcp",
+      "port": "443",
+      "ps": "KR-gnw-02",
+      "scy": "zero",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "rz-14.f0p7h.example.org",
+      "aid": "0",
+      "id": "4d9a4d42-35d2-4cbd-9c0e-c9875d4dad26",
+      "net": "tcp",
+      "port": "443",
+      "ps": "GB-ran39-34",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

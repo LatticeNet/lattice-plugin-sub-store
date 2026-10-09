@@ -1,0 +1,42 @@
+[
+  {
+    "args": [
+      "i8-27.kwfus9v.example.net",
+      "443"
+    ],
+    "name": "AU-nfkxua-16",
+    "params": {
+      "password": "M6T4AbuJZ0cK2rOJKd86",
+      "sni": "static.l7apvb3w.example.org"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "c8-38.jmmx222a.example.net",
+      "443"
+    ],
+    "name": "SG-rjh-49",
+    "params": {
+      "password": "pi1OJ50UimhFUZX3qDUy",
+      "salamander-password": "uqubuTjtsMf7ml7X",
+      "skip-cert-verify": "true",
+      "sni": "www.ql954.example.net"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "oof-04.acf0m.example.net",
+      "443"
+    ],
+    "name": "FR-frs-09",
+    "params": {
+      "download-bandwidth": "200",
+      "ecn": "true",
+      "password": "PbkXjiQuX0VtooZQToHX",
+      "sni": "oof-04.acf0m.example.net"
+    },
+    "type": "hysteria2"
+  }
+]

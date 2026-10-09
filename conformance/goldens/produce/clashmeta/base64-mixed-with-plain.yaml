@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"HK-hqqur-72","password":"B7ztkGc3V2s1X2","port":11356,"server":"h4b-38.ex4c4j.example.com","skip-cert-verify":false,"type":"ss","udp":true}

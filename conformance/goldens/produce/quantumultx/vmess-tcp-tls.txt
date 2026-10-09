@@ -1,0 +1,1 @@
+vmess=ei-13.y2nd0g.example.org:443,method=chacha20-poly1305,password=d6179057-84a8-4647-9d34-691ebf2c8e7e,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-host=www.l24sjs8j.example.org,aead=true,udp-relay=true,tag=TW-xk9-16

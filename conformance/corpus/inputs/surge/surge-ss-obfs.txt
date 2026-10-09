@@ -1,0 +1,2 @@
+HK-j49-16 = ss, xb-13.pqdk.example.net, 58000, encrypt-method=aes-256-gcm, password=PHWfoNpnhijrRc, obfs=http, obfs-host=cdn.dbyv00vw9.example.com, obfs-uri=/ww79o
+US-yigh2w-55 = ss, lkd-11.nnc9idh.example.org, 37436, encrypt-method=aes-256-gcm, password=qS9zPuIj3SVVnT, obfs=tls, obfs-host=static.r2rzatcb.example.com

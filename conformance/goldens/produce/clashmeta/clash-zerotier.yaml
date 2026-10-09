@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"US-l5ssw-13","network-id":"b34777ff60ae5a5c","type":"zerotier","udp":true}

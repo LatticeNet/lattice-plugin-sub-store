@@ -1,0 +1,9 @@
+{
+  "id": "vmess-shadowrocket-form",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "shadowrocket-uri",
+  "description": "Shadowrocket form: Base64 of cipher:uuid@host:port plus a query."
+}

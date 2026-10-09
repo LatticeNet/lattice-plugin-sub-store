@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "yk-27.undo.example.com",
+      "443"
+    ],
+    "name": "DE-ef8y-71",
+    "params": {
+      "alpn": "h3",
+      "password": "wwW951G3pYb2fO4d",
+      "sni": "cdn.ji7v4na.example.com",
+      "udp-relay": "true",
+      "uuid": "c10f0629-f89a-499a-9e8a-d9c96a95a37b"
+    },
+    "type": "tuic-v5"
+  }
+]

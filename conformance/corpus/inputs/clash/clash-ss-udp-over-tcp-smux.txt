@@ -1,0 +1,13 @@
+proxies:
+  - name: NL-fm2xz-53
+    type: ss
+    server: zzt-26.y4jpnft5.example.org
+    port: 12899
+    cipher: aes-128-gcm
+    password: jQ2iqvOC7hkHUSoD
+    udp-over-tcp: true
+    udp-over-tcp-version: 2
+    smux:
+      enabled: true
+      protocol: h2mux
+      max-connections: 4

@@ -1,0 +1,8 @@
+{
+  "id": "clash-openvpn",
+  "family": "clash",
+  "protocol": "openvpn",
+  "transport": "udp",
+  "security": "none",
+  "description": "openvpn with an inline configuration reference."
+}

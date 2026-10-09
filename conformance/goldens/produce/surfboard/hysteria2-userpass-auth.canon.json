@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "mo-07.m625b9u.example.org",
+      "443"
+    ],
+    "name": "AU-zxd838-69",
+    "params": {
+      "password": "ushjygm7:KVGUTh8yVTWIts5R",
+      "skip-cert-verify": "false",
+      "sni": "static.sskdxnvab.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

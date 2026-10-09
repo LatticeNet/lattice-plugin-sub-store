@@ -1,0 +1,11 @@
+{
+  "proxies": [
+    {
+      "allow-other-interface": true,
+      "interface-name": "en0",
+      "name": "KR-b8i-60",
+      "type": "direct",
+      "udp": true
+    }
+  ]
+}

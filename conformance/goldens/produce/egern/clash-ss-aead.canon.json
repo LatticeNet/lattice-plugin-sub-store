@@ -1,0 +1,48 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "SG-jh0f-07",
+        "password": "EfioGItZtP7wLYMn",
+        "port": 47911,
+        "server": "m6u-16.g97y5tav.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "chacha20-poly1305",
+        "name": "US-r62-15",
+        "password": "nlTGgPUhQWw3bMbw",
+        "port": 47885,
+        "server": "qds-17.goiq4ag3.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "2022-blake3-aes-128-gcm",
+        "name": "CA-vrmh-72",
+        "password": "iPMlLeH2iF30UJL2j5+V9Q==",
+        "port": 21684,
+        "server": "st-14.tvrbzrjl.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "2022-blake3-aes-256-gcm",
+        "name": "GB-mtf6-36",
+        "password": "7agxqmwoU7bE0fIbuk5w7f0+M0gG5276auk7tf0NItc=",
+        "port": 53372,
+        "server": "rc1-02.u3nal2.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "address": "j4u-34.mklodu.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "59c564e5-a872-4740-bd9b-b642bbb08342",
+      "reality-base64-pubkey": "ywc8QbzkvzDeisgx1X01csEFub2ePLPHqtk9PXEEVCk",
+      "reality-hex-shortid": "47b71eea",
+      "tag": "香港 ggo 01",
+      "tls-host": "www.vib8ecj.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "ty3-18.sx3g3a.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "58ef9d98-f954-40e9-b8d2-325b2653d432",
+      "reality-base64-pubkey": "DGUAyaxkBOgjd2EEPdaafI2BFBi_PY4sC9A1N_X6la8",
+      "reality-hex-shortid": "51a0fcdc",
+      "tag": "Москва-jyya",
+      "tls-host": "api.rni6y1qd.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "kg0-03.hxvjre6.example.com:443",
+    "args": [
+      "f;g dlg"
+    ],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "ab044b25-d72b-45b9-8d5e-e67638742b61",
+      "reality-base64-pubkey": "rxRd_nrAKDe4SWKIq4aZAWw4SHJ11SBEZ1KUki7J1ow",
+      "reality-hex-shortid": "aa078e35",
+      "tag": "a#b%c&d=e",
+      "tls-host": "api.iughcpo.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

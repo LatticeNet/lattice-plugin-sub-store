@@ -1,0 +1,24 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "alterId": 0,
+    "cipher": "auto",
+    "client-fingerprint": "chrome",
+    "grpc-opts": {
+      "_grpc-type": "multi",
+      "grpc-service-name": "budblu-p78"
+    },
+    "name": "FR-zkz26-28",
+    "network": "grpc",
+    "port": 443,
+    "server": "h5v-21.rk5hk.example.net",
+    "sni": "static.fd270ja4ty.example.org",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "77b5371f-632c-4dae-ab52-8bd4555af91e"
+  }
+]

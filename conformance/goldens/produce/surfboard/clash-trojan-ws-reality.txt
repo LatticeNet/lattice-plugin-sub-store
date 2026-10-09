@@ -1,0 +1,1 @@
+HK-mg7g7-33=trojan,yqk-19.r69bdev.example.org,443,password=yiccfKubyAbJv2Cc,ws=true,ws-path=/fiz5/ilveyth9g,ws-headers=Host:"img.xbzfirh7.example.com",tls=true,sni="img.xbzfirh7.example.com",udp-relay=true

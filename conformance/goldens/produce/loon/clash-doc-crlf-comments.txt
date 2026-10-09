@@ -1,0 +1,2 @@
+TW-d6ahp-79=shadowsocks,gy-28.bbn1u9k5.example.org,44420,aes-128-gcm,"E5ZzS0B766tN",udp=true
+KR-mxcn-27=trojan,a6-32.jx3wy.example.net,443,"iF8MoEBbQ3gtc6mI",tls-name=img.i37u2y5i.example.org,udp=true

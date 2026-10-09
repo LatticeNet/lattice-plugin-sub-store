@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "qrg-20.nc9x.example.net",
+      "443"
+    ],
+    "name": "AU-htj-64",
+    "params": {
+      "password": "PJLn2tDSGfWvqS3p7dv0",
+      "skip-cert-verify": "false",
+      "sni": "api.abdoopble.example.com"
+    },
+    "type": "anytls"
+  },
+  {
+    "args": [
+      "s1-33.kogex.example.org",
+      "443"
+    ],
+    "name": "FR-mnt-40",
+    "params": {
+      "password": "zD32rCAiPcky6yiH8eWx",
+      "skip-cert-verify": "false",
+      "sni": "api.m123qkb.example.org"
+    },
+    "type": "anytls"
+  }
+]

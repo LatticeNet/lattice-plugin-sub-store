@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-sy7syv-03",
+      "type": "shadowsocks",
+      "server": "kgf-31.izo8.example.net",
+      "server_port": 15880,
+      "method": "2022-blake3-chacha20-poly1305",
+      "password": "+jOgDBeQ5Bp3OanWNRsdieSnYRXEml1Cb9rbJMxyBtM="
+    }
+  ],
+  "endpoints": []
+}

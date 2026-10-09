@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "2001:db8:9ef5:1c35::d99d",
+      "443"
+    ],
+    "name": "US-x5x-75",
+    "params": {
+      "password": "IOG2Yrjm3RD7ry51",
+      "sni": "api.z12lb15.example.net",
+      "tls": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"api.z12lb15.example.net\"",
+      "ws-path": "/hxz/otea8c"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "fragment": "SG 01",
+    "host": "opz-17.m4x19d5f.example.com",
+    "path": "",
+    "port": "20000",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "_t7o8LM4LKEJWR8ooHupyCp6G_oJep1ZztFu5yqq5AY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "5df7c89a"
+      ],
+      [
+        "sni",
+        "static.jr3vdg.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "86575217-5ed9-475c-9346-4d36c4c2d533"
+  },
+  {
+    "fragment": "GB 02",
+    "host": "opz-17.m4x19d5f.example.com",
+    "path": "",
+    "port": "20001",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "7OW5e3rAw6FBVjnMepaPKAaeXY3G1QiMUw_v6zx4DPE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "cf6b9f66"
+      ],
+      [
+        "sni",
+        "img.is5us.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1669ec10-e3f4-4444-9e37-68ee8799d234"
+  },
+  {
+    "fragment": "CA 03",
+    "host": "opz-17.m4x19d5f.example.com",
+    "path": "",
+    "port": "20002",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "zB9TZ6frfkSjkGKyogEBGxood6sn8sWgluyXzmU1WK0"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "755a12cd"
+      ],
+      [
+        "sni",
+        "www.nz2y6.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1714e4cf-c00e-4fad-bedf-f4a65e5d5be1"
+  },
+  {
+    "fragment": "JP 04",
+    "host": "opz-17.m4x19d5f.example.com",
+    "path": "",
+    "port": "20003",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "SKUns5A-LqRd_J87xoU8PMmgEeXIVghJzlkp-fcDFNk"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "8024f436"
+      ],
+      [
+        "sni",
+        "api.r4adza4ry.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "4aafe327-24c3-4dc7-b36a-3b1a72c368c2"
+  },
+  {
+    "fragment": "SG 05",
+    "host": "opz-17.m4x19d5f.example.com",
+    "path": "",
+    "port": "20004",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "7ysNDnYxvA9xCQ1V7DeOSkF8fRxItJKqQSf1dw0hW6c"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "a7d4dbf1"
+      ],
+      [
+        "sni",
+        "static.c228hbb.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "5e258726-ed04-43b5-973a-f4fb86184b28"
+  },
+  {
+    "fragment": "DE 06",
+    "host": "opz-17.m4x19d5f.example.com",
+    "path": "",
+    "port": "20005",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "m1cFcwclFlbJnTnrfX66yKUs1vnYKAM6L2-f8hRL7D4"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "f48604d5"
+      ],
+      [
+        "sni",
+        "cdn.cnmrr6l7.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "e1242596-c599-4569-8562-3df8919fca05"
+  }
+]

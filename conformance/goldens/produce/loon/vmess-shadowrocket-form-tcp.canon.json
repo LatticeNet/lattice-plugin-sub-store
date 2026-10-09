@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "203.0.113.127",
+      "21082",
+      "chacha20-ietf-poly1305",
+      "a1cc6600-15a6-4c63-9d5e-d82912fb67a8"
+    ],
+    "name": "FR-bky-82",
+    "params": {
+      "alterId": "0",
+      "over-tls": "false",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

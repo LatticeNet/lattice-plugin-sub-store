@@ -1,0 +1,27 @@
+[
+  {
+    "name": "KR-vm6d-06",
+    "password": "4CwYU2ZIM7LH4z",
+    "port": 443,
+    "server": "h7-30.d96rhl1.example.net",
+    "sni": "api.xw11kl7id.example.net",
+    "tls": true,
+    "type": "trusttunnel",
+    "udp": true,
+    "username": "xucfe"
+  },
+  {
+    "headers": {
+      "X-Client": "wonkh4"
+    },
+    "name": "TW-rt2do-89",
+    "password": "AYu12nzjxNlnPl",
+    "port": 443,
+    "server": "ck-23.mwugg250.example.org",
+    "sni": "ck-23.mwugg250.example.org",
+    "tls": true,
+    "type": "trusttunnel",
+    "udp": true,
+    "username": "dffvbq"
+  }
+]

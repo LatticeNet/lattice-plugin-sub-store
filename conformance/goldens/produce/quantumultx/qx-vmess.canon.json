@@ -1,0 +1,27 @@
+[
+  {
+    "address": "nz-05.lskztiz.example.net:52475",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "fast-open": "false",
+      "method": "chacha20-poly1305",
+      "password": "6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b",
+      "tag": "CA-xde9a-47",
+      "udp-relay": "false"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "mg-25.xclff6.example.com:17065",
+    "args": [],
+    "params": {
+      "aead": "false",
+      "method": "chacha20-poly1305",
+      "password": "c1a44a66-75d9-4db7-99e4-34d2a69bc33a",
+      "tag": "GB-rlvowq-05",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "fragment": "SG-qwr-38",
+    "host": "z91-16.s91x2fd.example.net",
+    "path": "/",
+    "port": "16334",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=http;obfs-host=cdn.hp815.example.net"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206VWtzMVA1UHFBU3dZNnE=",
+    "userinfo_base64": "aes-256-gcm:Uks1P5PqASwY6q"
+  },
+  {
+    "fragment": "TW-v5vws1-72",
+    "host": "nfx-29.succ.example.net",
+    "path": "/",
+    "port": "42929",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=tls;obfs-host=img.tiqhalr80.example.com"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206RTZMeUhTR1V5WnRnTVA=",
+    "userinfo_base64": "aes-256-gcm:E6LyHSGUyZtgMP"
+  },
+  {
+    "fragment": "HK-dh5m8-89",
+    "host": "qi5-25.efnvp.example.org",
+    "path": "/",
+    "port": "36610",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=cdn.qw5vkkko.example.com;host=cdn.qw5vkkko.example.com;path=/r4g5l"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206OW5jcjlIdzZSWTdHQ2I=",
+    "userinfo_base64": "aes-256-gcm:9ncr9Hw6RY7GCb"
+  },
+  {
+    "fragment": "NL-qajnh-75",
+    "host": "ts-14.e6uxw.example.net",
+    "path": "/",
+    "port": "53935",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=img.f8ttbbe.example.net;host=img.f8ttbbe.example.net;path=/syu/jw08g57qe;tls"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206QkRoanBqdmZQMHI5Tm4=",
+    "userinfo_base64": "aes-256-gcm:BDhjpjvfP0r9Nn"
+  }
+]

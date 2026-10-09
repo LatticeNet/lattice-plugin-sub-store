@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "JP-hhek-33",
+    "host": "fh-22.ov6ov1.example.net",
+    "path": "/",
+    "port": "26877",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=http;obfs-host=api.tvsyc0.example.com"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206RHJMOUlTZ1RFbDE5SGU=",
+    "userinfo_base64": "aes-128-gcm:DrL9ISgTEl19He"
+  }
+]

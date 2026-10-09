@@ -1,0 +1,8 @@
+{
+  "id": "clash-vmess-ws-none",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "none",
+  "description": "mihomo vmess proxy over ws with security none."
+}

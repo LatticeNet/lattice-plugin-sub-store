@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "fwt-04.rega.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "api.pep8i.example.org",
+      "id": "3d0bd30a-5e31-4d2b-bc4d-7237cdd12157",
+      "net": "ws",
+      "path": "/ntkx808b",
+      "port": "443",
+      "ps": "JP-jo2-78",
+      "scy": "auto",
+      "sni": "api.pep8i.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

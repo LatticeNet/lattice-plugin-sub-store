@@ -1,0 +1,1 @@
+vmess=jz-02.c8w0o.example.net:443,method=chacha20-poly1305,password=7ad81b79-8585-455e-bbbf-62760908d238,obfs=wss,obfs-uri=/jfanvq6wu,obfs-host=img.woqeq46.example.org,tls-verification=true,tls-host=img.woqeq46.example.org,aead=true,udp-relay=true,tag=US-zxcd-56

@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "cgk-31.cs04sm.example.net",
+      "443"
+    ],
+    "name": "AU-y5wy-94",
+    "params": {
+      "password": "9L5yJZcSovc6F1lD",
+      "sni": "img.dqmjej1k.example.net",
+      "tls": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.dqmjej1k.example.net\"",
+      "ws-path": "/tqh35/hy517k"
+    },
+    "type": "trojan"
+  }
+]

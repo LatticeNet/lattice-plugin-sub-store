@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-gs6-10",
+      "type": "vless",
+      "server": "ae-36.mpq7wcgj.example.org",
+      "server_port": 443,
+      "uuid": "9045a4fb-8b76-41d9-870a-08f5903c65da",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.vktuy3r.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

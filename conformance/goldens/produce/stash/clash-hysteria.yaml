@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"auth-str":"aAz3856ZQjqxVOTJ","name":"DE-hfwjs3-70","obfs":"HiQ2uYiYts","port":41261,"protocol":"udp","server":"eem-03.omri2b2.example.org","skip-cert-verify":false,"sni":"www.rsv0amup7.example.net","type":"hysteria","udp":true,"down-speed":"200","up-speed":"30"}

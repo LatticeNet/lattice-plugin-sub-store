@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "ahe-13.bx4bjkbt.example.net",
+      "443",
+      "auto",
+      "ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef"
+    ],
+    "name": "AU-d9j-96",
+    "params": {
+      "alterId": "0",
+      "host": "ahe-13.bx4bjkbt.example.net",
+      "path": "/lo0adt/oqsutga",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

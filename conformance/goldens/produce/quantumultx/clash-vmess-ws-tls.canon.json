@@ -1,0 +1,20 @@
+[
+  {
+    "address": "tau-38.aett40.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "static.rooc7abl.example.com",
+      "obfs-uri": "/kczba7vr",
+      "password": "4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93",
+      "tag": "TW-xhup-68",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.rooc7abl.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

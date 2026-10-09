@@ -1,0 +1,15 @@
+[
+  {
+    "address": "gav-13.l5s0ra.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "0WqVo2egBAnO",
+      "tag": "AU-f5qjs-75",
+      "tls-host": "gav-13.l5s0ra.example.com",
+      "udp-relay": "true",
+      "username": "owy7rh"
+    },
+    "type": "http"
+  }
+]

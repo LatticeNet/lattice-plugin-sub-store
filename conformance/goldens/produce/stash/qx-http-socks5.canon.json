@@ -1,0 +1,45 @@
+{
+  "proxies": [
+    {
+      "name": "AU-rqk1jl-33",
+      "password": "dip7H3HbE83J",
+      "port": 8080,
+      "server": "bkk-13.p8c5c.example.net",
+      "type": "http",
+      "udp": true,
+      "username": "wqmmnxz2"
+    },
+    {
+      "name": "US-fs5t-40",
+      "password": "r0BQxK7uTqqg",
+      "port": 443,
+      "server": "cam-37.l9ng5.example.org",
+      "sni": "img.xuix3v.example.org",
+      "tls": true,
+      "type": "http",
+      "udp": true,
+      "username": "jeafxl"
+    },
+    {
+      "name": "JP-yqa-41",
+      "password": "unNYLsz7kUcn",
+      "port": 1080,
+      "server": "aq-21.hay35e.example.net",
+      "type": "socks5",
+      "udp": true,
+      "username": "r5ti"
+    },
+    {
+      "name": "NL-sxupx-61",
+      "password": "mIaq5AnyasPj",
+      "port": 443,
+      "server": "h49-27.o5n4rf.example.net",
+      "skip-cert-verify": true,
+      "sni": "h49-27.o5n4rf.example.net",
+      "tls": true,
+      "type": "socks5",
+      "udp": true,
+      "username": "bptpo"
+    }
+  ]
+}

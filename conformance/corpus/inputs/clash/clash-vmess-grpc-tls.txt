@@ -1,0 +1,19 @@
+proxies:
+  - name: US-gv8d-49
+    type: vmess
+    server: gtx-40.blera0o.example.net
+    port: 443
+    uuid: fd4efde6-4152-4d96-9d0f-70c45c2d67f2
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: www.jrmm477.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: grpc
+    grpc-opts:
+      grpc-service-name: z9r672v-vjih0c

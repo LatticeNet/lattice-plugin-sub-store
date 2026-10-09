@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"HK-zb9a-35","server":"jj2-21.m5egq.example.com","port":443,"user_id":"4769c081-8c80-4949-a41e-30a1b2086716","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"method":"GET","path":"/f7a41","headers":{"Host":"cdn.lkwh7e7kt.example.net"}}}}}

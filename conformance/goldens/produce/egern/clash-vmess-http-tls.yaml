@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"JP-h6jaf0-06","server":"ok-34.w6xwil.example.com","port":443,"user_id":"000b0651-b029-4c70-8287-7e117f38cb56","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"method":"GET","path":"/jg4g","headers":{"Host":"img.rsvilob.example.com"},"skip_tls_verify":false}}}}

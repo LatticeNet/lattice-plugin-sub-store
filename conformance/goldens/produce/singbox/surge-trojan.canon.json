@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "Dw9cWcvIBMcXkupU",
+      "server": "jk5-23.fvpc.example.com",
+      "server_port": 443,
+      "tag": "DE-n3mife-19",
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "api.b0h8ez454.example.com"
+      },
+      "type": "trojan"
+    }
+  ]
+}

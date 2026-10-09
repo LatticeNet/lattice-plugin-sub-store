@@ -1,0 +1,7 @@
+{
+  "id": "base64-not-base64",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "invalid",
+  "description": "Text that looks like Base64 but is not, so nothing parses."
+}

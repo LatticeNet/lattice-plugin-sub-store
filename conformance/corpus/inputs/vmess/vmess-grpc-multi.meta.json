@@ -1,0 +1,9 @@
+{
+  "id": "vmess-grpc-multi",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "grpc",
+  "security": "tls",
+  "quirk": "grpc-mode",
+  "description": "gRPC with type multi."
+}

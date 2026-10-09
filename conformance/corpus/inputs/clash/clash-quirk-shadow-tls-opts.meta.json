@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-shadow-tls-opts",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "Legacy shadow-tls-opts on a Shadowsocks proxy."
+}

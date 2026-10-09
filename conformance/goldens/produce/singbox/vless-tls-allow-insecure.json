@@ -1,0 +1,47 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-yfey-66",
+      "type": "vless",
+      "server": "qz-13.y0ltk.example.com",
+      "server_port": 443,
+      "uuid": "48a7baf3-16ad-478f-8e2e-74d287abc37b",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xgty3hb.example.com",
+        "insecure": true,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "FR-ov7c4w-98",
+      "type": "vless",
+      "server": "tp-27.lzti78d.example.net",
+      "server_port": 443,
+      "uuid": "60c28923-6300-4bd5-b6fb-422aa3917feb",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.uzh18wpk67.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

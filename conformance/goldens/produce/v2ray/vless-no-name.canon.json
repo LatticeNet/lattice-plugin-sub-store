@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "VLESS cj-27.fm6khz.example.org:443",
+    "host": "cj-27.fm6khz.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "dBDBPiajTnd6TDJl5KmZPRDGJo58mXHiVYK6Q1vNB08"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "c811e1a0"
+      ],
+      [
+        "sni",
+        "api.af2ig.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "31284285-69fb-46f0-92da-19754ba10bf8"
+  }
+]

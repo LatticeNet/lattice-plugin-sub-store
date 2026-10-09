@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "US-bzxjjw-87",
+    "host": "h3a-14.by3uil1v.example.net",
+    "path": "",
+    "port": "13435",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpzYVRpeDAzQTdMcUpUdA==",
+    "userinfo_base64": "chacha20-ietf-poly1305:saTix03A7LqJTt"
+  },
+  {
+    "fragment": "HK-l2c9-96",
+    "host": "p3-32.s32r.example.net",
+    "path": "/",
+    "port": "13435",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=cdn.zhjtr2ihal.example.org;host=cdn.zhjtr2ihal.example.org;path=/gbzl/zzmxhj"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpzYVRpeDAzQTdMcUpUdA==",
+    "userinfo_base64": "chacha20-ietf-poly1305:saTix03A7LqJTt"
+  }
+]

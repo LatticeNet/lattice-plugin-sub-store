@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"DE-mpzqj-17","obfs":"salamander","obfs-password":"xXQDOuEUnq5oxkX3","password":"1IIiWOkEq6ROLNHa9ym5","port":443,"server":"ea-12.a5gk98h2.example.net","skip-cert-verify":false,"sni":"cdn.vw2osf1x3p.example.com","tfo":false,"type":"hysteria2","udp":true,"fast-open":false}

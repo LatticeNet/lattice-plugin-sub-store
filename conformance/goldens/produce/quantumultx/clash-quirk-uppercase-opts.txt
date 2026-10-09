@@ -1,0 +1,1 @@
+vmess=ahe-13.bx4bjkbt.example.net:443,method=chacha20-poly1305,password=ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef,obfs=ws,obfs-uri=/lo0adt/oqsutga,obfs-host=ahe-13.bx4bjkbt.example.net,aead=true,udp-relay=true,tag=AU-d9j-96

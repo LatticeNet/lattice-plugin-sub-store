@@ -1,0 +1,31 @@
+[
+  {
+    "address": "t66-10.q2w5m.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "7d9e2f8a-0400-4958-a9a0-86c2c3d797df",
+      "tag": "GB-npq0ne-18",
+      "tls-host": "www.zdx9yiirp.example.com",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "ihv-18.fxh80bt.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "static.cfdjp53j.example.com",
+      "obfs-uri": "/cspqc9wvkw",
+      "password": "283dfeac-72d9-457c-9499-faffee7e8706",
+      "tag": "AU-j1fz-50",
+      "tls-host": "static.cfdjp53j.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

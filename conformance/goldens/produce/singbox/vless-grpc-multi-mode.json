@@ -1,0 +1,31 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-fwb-56",
+      "type": "vless",
+      "server": "vag-38.u934x.example.com",
+      "server_port": 443,
+      "uuid": "ec17c0fc-f067-4944-9df0-241fb30a2a2a",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xn1od5rz.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "1n029i7oWkgUoNEV4lMxD7_EB5Kxl6u7tsRlY1sF1oE",
+          "short_id": "40baa25f"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "grpc",
+        "service_name": "b76xx-us2u"
+      }
+    }
+  ],
+  "endpoints": []
+}

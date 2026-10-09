@@ -1,0 +1,9 @@
+{
+  "id": "vless-ws-tls-early-data-path",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "WebSocket early data given inside the path as ?ed=2048."
+}

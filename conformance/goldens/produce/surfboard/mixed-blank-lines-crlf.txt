@@ -1,0 +1,2 @@
+US-trn-03=vmess,ju-20.l7scq.example.com,443,username=03b594a1-bf86-415d-977b-d29d3614dd03,ws=true,ws-path=/gesw94,ws-headers=Host:"img.k644qk.example.org",vmess-aead=true,tls=true,sni="img.k644qk.example.org",udp-relay=true
+CA-j53a-20=trojan,ysy-24.qhaz089.example.net,443,password=dAeTDVwyYRBMvbjs,tls=true,sni="www.ai2i3k.example.net",udp-relay=true

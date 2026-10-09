@@ -1,0 +1,30 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-iz7-59",
+      "type": "vless",
+      "server": "aiu-22.fcyj.example.com",
+      "server_port": 443,
+      "uuid": "22cb4178-c1da-448b-9052-aac7c2f3ccbc",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.kdm9z.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "IGDb3lo-iUKbXweDff0uorcnqTnH7AX4OLe7fyy9FPg",
+          "short_id": "53587fe4"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "bv8rt-z5y"
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,64 @@
+[
+  {
+    "fragment": "AU-fwb-56",
+    "host": "vag-38.u934x.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "authority",
+        "img.vggmju3.example.org"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "multi"
+      ],
+      [
+        "mode",
+        "multi"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "1n029i7oWkgUoNEV4lMxD7_EB5Kxl6u7tsRlY1sF1oE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "serviceName",
+        "b76xx-us2u"
+      ],
+      [
+        "sid",
+        "40baa25f"
+      ],
+      [
+        "sni",
+        "img.xn1od5rz.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ec17c0fc-f067-4944-9df0-241fb30a2a2a"
+  }
+]

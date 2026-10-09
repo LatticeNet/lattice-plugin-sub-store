@@ -1,0 +1,37 @@
+[
+  {
+    "fragment": "FR-rxs9-71",
+    "host": "gz6-27.nt3l3rl.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.yan934d.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "TfwevtKu5necBwQa"
+  },
+  {
+    "body": {
+      "add": "mc6-21.oy1wum6m.example.com",
+      "aid": "0",
+      "id": "4ada313e-c95d-437a-8322-4fedd24ee914",
+      "net": "tcp",
+      "port": "443",
+      "ps": "NL-nk245-43",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

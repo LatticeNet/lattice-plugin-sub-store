@@ -1,0 +1,2 @@
+vmess=q7-09.eahzxc.example.com:18927,method=chacha20-poly1305,password=08db3b80-c3c6-409e-98be-9d7b8962e4bd,aead=true,udp-relay=true,tag=SG-pden-75
+vmess=vq-18.sg82606.example.com:80,method=chacha20-poly1305,password=f8f86c57-0190-4106-8987-9d97a99989e9,obfs=http,obfs-uri=/anz3c/n7wlt5,obfs-host=www.h40id.example.net,aead=true,udp-relay=true,tag=FR-lb156b-04

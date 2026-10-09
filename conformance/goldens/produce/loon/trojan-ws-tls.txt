@@ -1,0 +1,1 @@
+SG-yyh6-49=trojan,ojd-26.jpya.example.org,443,"N3BO5u3oKZ7MaAHU",transport=ws,path=/dmws/d43mz1k,host=cdn.z5n5auu.example.com,tls-profile=chrome,alpn="h2,http/1.1",tls-name=cdn.z5n5auu.example.com,udp=true

@@ -1,0 +1,224 @@
+[
+  {
+    "args": [
+      "198.19.193.139",
+      "443",
+      "8b9f33af-caa6-4c6f-a6e4-05047096ae79"
+    ],
+    "name": "HK x2t5 01",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "VWs1Mh4tp9Po0dgUVYYpQt9T_EvUX5agBUEB0x-liD8",
+      "short-id": "e0a1d61f",
+      "skip-cert-verify": "false",
+      "sni": "www.sw0fkab9dp.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "198.19.31.38",
+      "34896",
+      "57f13eec-2e98-40bd-b91f-497e81b84d10"
+    ],
+    "name": "CA ggmeh 02",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "CGs4bJPGDZiLnoRXUFI88uqbLiy0pIyKAJr3EZQOTiI",
+      "short-id": "c7f154f7",
+      "skip-cert-verify": "false",
+      "sni": "www.wdvufwyh.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "iad-33.klsb.example.com",
+      "443",
+      "8e6e169a-3d4d-4a87-824d-e34ae1202514"
+    ],
+    "name": "NL y5ew 03",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "wA2anjDhWvhNhUg6OvIkDd15JsHqMtEaEhMe_TrVeHA",
+      "short-id": "8cead050",
+      "skip-cert-verify": "false",
+      "sni": "static.c56yhd8zi0.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "cn-25.jlgz5osi.example.net",
+      "10565",
+      "2255c95f-b857-4979-b656-07a113dbe12e"
+    ],
+    "name": "KR yll1 10",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "static.x7lc6odwh.example.net",
+      "over-tls": "true",
+      "path": "/nzg4",
+      "skip-cert-verify": "false",
+      "tls-name": "static.x7lc6odwh.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "198.18.16.39",
+      "443",
+      "290f7eb7-4546-4b7f-92cf-df0bfa0c4c58"
+    ],
+    "name": "NL s8g2b 11",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "www.wfh380j6j.example.net",
+      "over-tls": "true",
+      "path": "/x7bby1",
+      "skip-cert-verify": "false",
+      "tls-name": "www.wfh380j6j.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "rwg-06.xcmb70q.example.com",
+      "20264",
+      "e7b0ff63-a487-49de-8095-72b77be31250"
+    ],
+    "name": "CA edg1 12",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "api.j0u113hf.example.org",
+      "over-tls": "true",
+      "path": "/rr6996/i62v2lh2nv",
+      "skip-cert-verify": "false",
+      "tls-name": "api.j0u113hf.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "198.18.148.218",
+      "29549",
+      "auto",
+      "551bd7d1-f36a-44a2-8a0e-eac9c7adeba6"
+    ],
+    "name": "CA xhu62e 16",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "static.zm84v6.example.net",
+      "over-tls": "true",
+      "path": "/geww",
+      "tls-name": "static.zm84v6.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "nu-14.k2ek0al.example.com",
+      "443",
+      "auto",
+      "6d4d0ac3-23dc-494a-90b0-30847fd7db82"
+    ],
+    "name": "SG rn331 17",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "static.f2gz3.example.org",
+      "over-tls": "true",
+      "path": "/nv0kv3dn",
+      "tls-name": "static.f2gz3.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "xp-32.vbdf21b.example.com",
+      "443",
+      "auto",
+      "29135548-bcd3-416b-83e5-58bb6f8acb08"
+    ],
+    "name": "SG le9ktd 18",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "static.sihidp77qf.example.com",
+      "over-tls": "true",
+      "path": "/st6ecv/wxj9enp",
+      "tls-name": "static.sihidp77qf.example.com",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "h3-37.qy0c.example.com",
+      "443",
+      "wMDrtEAu0wo638AA"
+    ],
+    "name": "US xox0eo0 19",
+    "params": {
+      "tls-name": "img.f2fh7fqk.example.org",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "dk-32.moikar2m.example.net",
+      "60926",
+      "J3x2ZpgWGRvdUv3Z"
+    ],
+    "name": "DE rsmlz7 20",
+    "params": {
+      "tls-name": "cdn.ss60v6r8j.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "ui-34.l8f4rxhk.example.org",
+      "443",
+      "9ZPXv8kt4Gcoo4IL"
+    ],
+    "name": "JP lr55lmw 21",
+    "params": {
+      "tls-name": "cdn.v202cg4y.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

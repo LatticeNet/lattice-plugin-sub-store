@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "KR-t3yl-20",
+    "host": "nys-21.dm1aj.example.org",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=img.nz82a.example.org;host=img.nz82a.example.org;path=/zen85j47vr;tls;mux=1"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206bUxPWFRwTXBkRUFsamhKUg==",
+    "userinfo_base64": "aes-256-gcm:mLOXTpMpdEAljhJR"
+  }
+]

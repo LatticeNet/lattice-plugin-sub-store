@@ -1,0 +1,15 @@
+[
+  {
+    "address": "ufh-20.cskk.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "MqstkokkaMmCdlOb",
+      "tag": "KR-i6c-08",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.pu7fx.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,143 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "opz-17.m4x19d5f.example.com",
+      "server_port": 20000,
+      "tag": "SG 01",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "_t7o8LM4LKEJWR8ooHupyCp6G_oJep1ZztFu5yqq5AY",
+          "short_id": "5df7c89a"
+        },
+        "server_name": "static.jr3vdg.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "86575217-5ed9-475c-9346-4d36c4c2d533"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "opz-17.m4x19d5f.example.com",
+      "server_port": 20001,
+      "tag": "GB 02",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "7OW5e3rAw6FBVjnMepaPKAaeXY3G1QiMUw_v6zx4DPE",
+          "short_id": "cf6b9f66"
+        },
+        "server_name": "img.is5us.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "1669ec10-e3f4-4444-9e37-68ee8799d234"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "opz-17.m4x19d5f.example.com",
+      "server_port": 20002,
+      "tag": "CA 03",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "zB9TZ6frfkSjkGKyogEBGxood6sn8sWgluyXzmU1WK0",
+          "short_id": "755a12cd"
+        },
+        "server_name": "www.nz2y6.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "1714e4cf-c00e-4fad-bedf-f4a65e5d5be1"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "opz-17.m4x19d5f.example.com",
+      "server_port": 20003,
+      "tag": "JP 04",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "SKUns5A-LqRd_J87xoU8PMmgEeXIVghJzlkp-fcDFNk",
+          "short_id": "8024f436"
+        },
+        "server_name": "api.r4adza4ry.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "4aafe327-24c3-4dc7-b36a-3b1a72c368c2"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "opz-17.m4x19d5f.example.com",
+      "server_port": 20004,
+      "tag": "SG 05",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "7ysNDnYxvA9xCQ1V7DeOSkF8fRxItJKqQSf1dw0hW6c",
+          "short_id": "a7d4dbf1"
+        },
+        "server_name": "static.c228hbb.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "5e258726-ed04-43b5-973a-f4fb86184b28"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "opz-17.m4x19d5f.example.com",
+      "server_port": 20005,
+      "tag": "DE 06",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "m1cFcwclFlbJnTnrfX66yKUs1vnYKAM6L2-f8hRL7D4",
+          "short_id": "f48604d5"
+        },
+        "server_name": "cdn.cnmrr6l7.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "e1242596-c599-4569-8562-3df8919fca05"
+    }
+  ]
+}

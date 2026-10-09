@@ -1,0 +1,1 @@
+US-hnnp-27=shadowsocks,px-33.cokrjp66.example.com,54440,2022-blake3-aes-128-gcm,"XqibV6fKbKK81zHZlyw7mA==",udp=true

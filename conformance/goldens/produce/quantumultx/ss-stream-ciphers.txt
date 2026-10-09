@@ -1,0 +1,6 @@
+shadowsocks=uo-31.vohqvdh2.example.net:26672,method=aes-128-cfb,password=e5XX5LpSFAz7,udp-relay=true,tag=SG-at22-37
+shadowsocks=np-08.baeops7.example.org:33705,method=aes-256-cfb,password=nmZltRLobntH,udp-relay=true,tag=FR-wjypay-70
+shadowsocks=pp0-31.brvt.example.net:23086,method=aes-256-ctr,password=nlpoz8gL0b9I,udp-relay=true,tag=JP-clgy1z-07
+shadowsocks=fx-28.zpthid.example.net:14978,method=chacha20-ietf,password=Rpv1f9EyDV8H,udp-relay=true,tag=US-f3qx-51
+shadowsocks=ceq-08.xcl70pi.example.org:50721,method=rc4-md5,password=0aSo41OohzpA,udp-relay=true,tag=TW-odzmu-72
+shadowsocks=a8-24.ywoz.example.net:36201,method=none,password=HtRQC4aUfvKA,udp-relay=true,tag=CA-gs6jqm-70

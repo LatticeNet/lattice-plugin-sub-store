@@ -1,0 +1,37 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-w38-62",
+      "type": "shadowsocks",
+      "server": "rp8-33.wgzivs.example.org",
+      "server_port": 38130,
+      "method": "aes-128-gcm",
+      "password": "whcR18hBEjkOVg",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 1
+      }
+    },
+    {
+      "tag": "GB-kzq-60",
+      "type": "shadowsocks",
+      "server": "r2s-07.paug3a4.example.org",
+      "server_port": 50285,
+      "method": "aes-128-gcm",
+      "password": "6dNQLnVjNDH9zs",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      }
+    },
+    {
+      "tag": "TW-zh07-47",
+      "type": "shadowsocks",
+      "server": "vp-11.foz9zs.example.org",
+      "server_port": 60960,
+      "method": "aes-128-gcm",
+      "password": "s2wFoQVQ1mZzes"
+    }
+  ],
+  "endpoints": []
+}

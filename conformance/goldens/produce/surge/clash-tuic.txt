@@ -1,0 +1,2 @@
+DE-ef8y-71=tuic-v5,yk-27.undo.example.com,443,uuid=c10f0629-f89a-499a-9e8a-d9c96a95a37b,password="wwW951G3pYb2fO4d",sni="cdn.ji7v4na.example.com",alpn="h3"
+AU-odqqw-88=tuic,p4-04.g0lla3tp.example.net,443,token=1CDBTBx4csOjzwyAnuz7mS34,sni="off",alpn="h3",skip-cert-verify=true

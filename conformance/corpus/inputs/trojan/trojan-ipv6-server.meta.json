@@ -1,0 +1,9 @@
+{
+  "id": "trojan-ipv6-server",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ipv6-literal",
+  "description": "IPv6 literal server with WebSocket."
+}

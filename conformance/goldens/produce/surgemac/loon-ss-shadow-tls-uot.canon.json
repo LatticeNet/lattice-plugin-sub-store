@@ -1,0 +1,31 @@
+[
+  {
+    "args": [
+      "mps-24.qhsg5civ.example.net",
+      "443"
+    ],
+    "name": "NL-j75ymj-41",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "4SHEU4hDm3T20fw5fTCb2A==",
+      "shadow-tls-password": "SMBKDvOyOY2pTxfj",
+      "shadow-tls-sni": "api.fxcmfmxj.example.com",
+      "shadow-tls-version": "3",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "lb0-23.vw4fy2jt.example.net",
+      "53322"
+    ],
+    "name": "NL-snw-54",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "yVHmQka5AJDu0r",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

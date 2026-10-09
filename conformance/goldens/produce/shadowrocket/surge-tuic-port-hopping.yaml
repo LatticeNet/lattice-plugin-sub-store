@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"cubic","hop-interval":30,"name":"FR-ajaf6-93","password":"2b9zg3OPu2JaJ6xT","port":443,"ports":"20000-30000","server":"ot5-06.htbmu.example.net","sni":"api.we7fbrswnx.example.net","type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"b1d7c103-a53e-4c59-a49c-59e698ca7b41","version":5}

@@ -1,0 +1,2 @@
+SG-qx3wl-78=shadowsocks,jr-09.lmt9g.example.net,19626,aes-128-gcm,"jQjvT0KFTZfBgD",udp=true
+AU-cajil-62=vmess,fm8-06.y7l1.example.org,443,none,"7498ceaf-fb34-440c-bf61-be5cd2755c55",transport=ws,path=/wo1x7lvx,host=img.aiq2p.example.net,over-tls=true,tls-name=img.aiq2p.example.net,alterId=0,udp=true

@@ -1,0 +1,15 @@
+[
+  {
+    "address": "hh-01.imfbim.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "HwLmYAma9EMkZ8Q5",
+      "tag": "TW-h11zpi-21",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.xxh5n1ybva.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

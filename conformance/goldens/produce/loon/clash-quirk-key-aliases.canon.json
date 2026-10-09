@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "y2-31.xsea.example.net",
+      "443",
+      "319242a6-da46-498e-b7a4-2f1c17d0e0c5"
+    ],
+    "name": "CA-xmcwy-91",
+    "params": {
+      "host": "www.nfuzg.example.net",
+      "over-tls": "true",
+      "path": "/s05tj",
+      "tls-cert-sha256": "30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09",
+      "tls-name": "cdn.hdptwe1.example.org",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

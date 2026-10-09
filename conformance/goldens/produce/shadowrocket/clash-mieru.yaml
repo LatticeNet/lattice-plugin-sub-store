@@ -1,0 +1,2 @@
+proxies:
+  - {"multiplexing":"MULTIPLEXING_LOW","name":"FR-o4ir-08","password":"q08DsCXp5FXcgh","port-range":"32864-32873","server":"sd-12.nxsbnx.example.net","transport":"TCP","type":"mieru","udp":true,"username":"h3qfljd"}

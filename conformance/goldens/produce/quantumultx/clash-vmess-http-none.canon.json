@@ -1,0 +1,17 @@
+[
+  {
+    "address": "jj2-21.m5egq.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "http",
+      "obfs-host": "cdn.lkwh7e7kt.example.net",
+      "obfs-uri": "/f7a41",
+      "password": "4769c081-8c80-4949-a41e-30a1b2086716",
+      "tag": "HK-zb9a-35",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

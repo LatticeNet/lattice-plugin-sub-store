@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "aead-method": "chacha20-poly1305",
+      "key": "iCAikKXou6G6OcrUdQhoxCfb",
+      "name": "US-xyt-17",
+      "padding-max": 7,
+      "padding-min": 2,
+      "port": 18894,
+      "server": "iv3-32.n3z3w.example.org",
+      "table-type": "prefer_ascii",
+      "type": "sudoku",
+      "udp": true
+    }
+  ]
+}

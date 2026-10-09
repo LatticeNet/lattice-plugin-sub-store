@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "KR-pzy-50",
+    "host": "wr-33.wkzwfs.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/z3p/p2qf33"
+      ],
+      [
+        "pbk",
+        "GaQQLTaDbZBklEhABjfRfIXnB8uC1cc9gHJyoRKtOvs"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "24c79172"
+      ],
+      [
+        "sni",
+        "cdn.p44b7y.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "936cb29c-8253-4d54-9069-aa9e2e94cba7"
+  }
+]

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "KR-yoyh-58",
+    "host": "ku-30.yxff6xdm.example.com",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.7.0.2/32,fd00:7::2/128"
+      ],
+      [
+        "mtu",
+        "1280"
+      ],
+      [
+        "presharedkey",
+        "as/Irx3q8qo4g2qjighWF7+tioN+J5oKowEmwwSCMPI="
+      ],
+      [
+        "publickey",
+        "H1V+J29sG7CzK5jH0zH2J2X8KGiDnfwjnu3pmObU4dc="
+      ],
+      [
+        "reserved",
+        "1,2,3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "IHtY7LOisG3tXaVoMW1wfNLSd2C2nV/OppPLj06sHrs="
+  }
+]

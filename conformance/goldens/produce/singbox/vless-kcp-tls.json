@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-qch7x0-96",
+      "type": "vless",
+      "server": "hqq-35.n7jctp.example.org",
+      "server_port": 443,
+      "uuid": "2343d90e-6486-4ecc-b99b-f5642495fe8b",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.ohcnaml3.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

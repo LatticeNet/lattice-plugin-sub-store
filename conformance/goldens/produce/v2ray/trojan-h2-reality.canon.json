@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "SG-ro0-43",
+    "host": "hsq-14.xpij2qd.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "path",
+        "/jrl0q8h3"
+      ],
+      [
+        "pbk",
+        "T_fr_LGSSwV0mzQw0b8pWGX0pbJB3oHsy_iwRx_d5aY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "3fc1c699"
+      ],
+      [
+        "sni",
+        "cdn.v5re2x3tf.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "h2"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "epnayYh8ldlKPMhn"
+  }
+]

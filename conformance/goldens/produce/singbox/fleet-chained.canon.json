@@ -1,0 +1,305 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-01.mmsc1m.example.net",
+      "server_port": 30000,
+      "tag": "FR-FR relay 01",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "jXU8hWbQ2AgTrLU3FXChfTbxwpWWk37BoPeRIYyLJB8",
+          "short_id": "48aa6ec7"
+        },
+        "server_name": "cdn.irnxq6g.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "bc1b8b9f-e08f-40f5-a777-c3060a7e9bea"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-02.mmsc1m.example.net",
+      "server_port": 30001,
+      "tag": "SG-TW relay 02",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "0PK6rxcXlWDUyRWNlOki0m1OR1hFDgFUVJnRjH3XoOk",
+          "short_id": "61e15384"
+        },
+        "server_name": "img.n2ofnzleru.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "eba8aac2-3ea2-486e-9625-54b1c78536ea"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-03.mmsc1m.example.net",
+      "server_port": 30002,
+      "tag": "FR-GB relay 03",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Ub5Y--DNzCQ0t-hn8VOH-INnZcoX7YQjLSBBCQ0pjYo",
+          "short_id": "569411ee"
+        },
+        "server_name": "api.wwdm4kjo.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "b8674053-b830-4515-af17-e0c1522957dd"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-01.mmsc1m.example.net",
+      "server_port": 30003,
+      "tag": "AU-TW relay 04",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "FKPxA4DEK9BVxEubeTVng8qypO0p6BR6-j05Cofry7g",
+          "short_id": "f11444f3"
+        },
+        "server_name": "img.cbm6fw.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "872bc990-e685-47e7-a518-65a9e4cd070f"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-02.mmsc1m.example.net",
+      "server_port": 30004,
+      "tag": "AU-SG relay 05",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "dpl8quLoGf333Vn6TWrtKCQ39-P-4YK6IcLUtHU-1lo",
+          "short_id": "761a031f"
+        },
+        "server_name": "static.uutsxj.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "06941f47-be6d-46fd-abc9-8f76fcc7681a"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-03.mmsc1m.example.net",
+      "server_port": 30005,
+      "tag": "US-JP relay 06",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "apVRN0pBii1tamDAVn_skIuleJIKAEsUMjprDq-feNc",
+          "short_id": "28354921"
+        },
+        "server_name": "cdn.t4hctms4in.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "37951cda-38c0-4344-91c7-ed645e0cc2a5"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-01.mmsc1m.example.net",
+      "server_port": 30006,
+      "tag": "CA-SG relay 07",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "DkRBJzm9MaeyH7oQYyJr8ebdl36efgxzM7XaTjhbizs",
+          "short_id": "5c90a2c5"
+        },
+        "server_name": "www.xyv8wo.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "f205a91d-164b-44bd-9a66-34a19e10d99a"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-02.mmsc1m.example.net",
+      "server_port": 30007,
+      "tag": "NL-HK relay 08",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "vK7C8Z2NKqChurUlv8pdZ-WUcLegzkqSC86kNv5EVpI",
+          "short_id": "e556a097"
+        },
+        "server_name": "api.eev1s41.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "9f883746-1ec1-42d6-9c21-982e81f6a3bb"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-03.mmsc1m.example.net",
+      "server_port": 30008,
+      "tag": "GB-TW relay 09",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "H1uaqCqFfcv4ye56FcSVlDMMQ-HfJ153X5KKndE4hQY",
+          "short_id": "d08a3ff1"
+        },
+        "server_name": "cdn.dalu74j97.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "336a86e8-a7ae-4049-95d4-3b75ed6e4a6f"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-01.mmsc1m.example.net",
+      "server_port": 30009,
+      "tag": "HK-KR relay 10",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "j8jPTrR4p7l_2UkCFbGuJVk021kf6gZ2F_fnPbnSqOU",
+          "short_id": "40fe3a23"
+        },
+        "server_name": "static.endjqahk.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "57e09be9-598e-470a-a2cf-117ec062999f"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-02.mmsc1m.example.net",
+      "server_port": 30010,
+      "tag": "CA-SG relay 11",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "CxibHmqQ9VlgBDILh3KKQg8qKErbQMJ3LTYAPxI-wKI",
+          "short_id": "31e64c93"
+        },
+        "server_name": "www.jvyyer8b.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "bd470fa3-40b2-4262-883c-9834b37f7dc5"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "relay-03.mmsc1m.example.net",
+      "server_port": 30011,
+      "tag": "TW-HK relay 12",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "WlqYn5t5lETJpcRXb4vqLL1_fAx7t3MgPgNNb7laDJs",
+          "short_id": "614f5989"
+        },
+        "server_name": "api.jre9i3fcz.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "8329d5a5-0f07-4196-bc6d-16597f7e849d"
+    },
+    {
+      "password": "1aK4UZcb4qB4EeA3daT4",
+      "server": "relay-02.mmsc1m.example.net",
+      "server_port": 30016,
+      "tag": "KR-TW relay 17",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.lpaj01.example.org"
+      },
+      "type": "anytls"
+    },
+    {
+      "password": "v7cCms40kk8wSBg0m1Qx",
+      "server": "relay-03.mmsc1m.example.net",
+      "server_port": 30017,
+      "tag": "HK-HK relay 18",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.mhxeluq.example.com"
+      },
+      "type": "anytls"
+    }
+  ]
+}

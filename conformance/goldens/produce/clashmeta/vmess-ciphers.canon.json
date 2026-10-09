@@ -1,0 +1,76 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "JP-ppcq89-80",
+      "network": "tcp",
+      "port": 443,
+      "server": "z3-24.jfke.example.net",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "ce07d7cc-26d3-449a-86fc-6e8ab886b24c"
+    },
+    {
+      "alterId": 0,
+      "cipher": "aes-128-gcm",
+      "name": "FR-nmudfw-61",
+      "network": "tcp",
+      "port": 443,
+      "server": "cc-35.jg3aqv.example.net",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "5effff97-93b7-4844-935c-d3db48a3cb23"
+    },
+    {
+      "alterId": 0,
+      "cipher": "chacha20-poly1305",
+      "name": "NL-v3tw-05",
+      "network": "tcp",
+      "port": 443,
+      "server": "bn6-21.w1kc71bz.example.com",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "c6ba407d-4f74-4b37-b37f-cfb2be550d4f"
+    },
+    {
+      "alterId": 0,
+      "cipher": "none",
+      "name": "HK-g5t4-39",
+      "network": "tcp",
+      "port": 443,
+      "server": "s63-29.nz70.example.com",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "daf10bb1-b10a-4fb5-b126-54731df8df13"
+    },
+    {
+      "alterId": 0,
+      "cipher": "zero",
+      "name": "KR-gnw-02",
+      "network": "tcp",
+      "port": 443,
+      "server": "eb-36.mw37.example.org",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "a455556c-1557-41d1-9f19-3eb3f30ee137"
+    },
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "GB-ran39-34",
+      "network": "tcp",
+      "port": 443,
+      "server": "rz-14.f0p7h.example.org",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "4d9a4d42-35d2-4cbd-9c0e-c9875d4dad26"
+    }
+  ]
+}

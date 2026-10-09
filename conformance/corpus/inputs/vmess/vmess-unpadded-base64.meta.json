@@ -1,0 +1,9 @@
+{
+  "id": "vmess-unpadded-base64",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "base64-unpadded",
+  "description": "The JSON body Base64 encoded without padding."
+}

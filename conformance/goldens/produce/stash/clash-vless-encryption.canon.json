@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "mlkem768x25519plus.native.0rtt.OFKPI2O__IqtZfb1RJTiW2B6OwYbM6a0o1XTf9Nuz-k",
+      "flow": "xtls-rprx-vision",
+      "name": "NL-d4s0j-22",
+      "network": "tcp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "bShJBlB8UggH1OkPbszyqf0DUhgrHTtlmPdCoeSvmNk",
+        "short-id": "6eeeff95"
+      },
+      "server": "jj-17.s1ikpk8k.example.net",
+      "servername": "img.bg3uj3.example.net",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "9a4e6440-b8dd-41f2-97c3-171f8680fa0d"
+    }
+  ]
+}

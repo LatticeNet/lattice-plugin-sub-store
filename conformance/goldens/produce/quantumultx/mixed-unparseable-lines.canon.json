@@ -1,0 +1,14 @@
+[
+  {
+    "address": "p6-38.lmtzlp.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "LUeLHNE8d1oy9IvJ",
+      "tag": "US-hr20o-56",
+      "tls-host": "static.rvmzabz4i3.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

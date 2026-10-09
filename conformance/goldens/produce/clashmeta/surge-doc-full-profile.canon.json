@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "AU-tx3-71",
+      "password": "i0Xuxu3C1Z8mZe",
+      "port": 34588,
+      "server": "v5-05.qb5b.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "name": "TW-cdnh-17",
+      "network": "tcp",
+      "password": "RbyQZY56IcdRRx5v",
+      "port": 443,
+      "server": "bun-09.kwq8.example.net",
+      "sni": "cdn.bskwnh8rfx.example.com",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "name": "DIRECT-ALIAS",
+      "type": "direct",
+      "udp": true
+    }
+  ]
+}

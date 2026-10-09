@@ -1,0 +1,40 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "M6T4AbuJZ0cK2rOJKd86",
+        "name": "AU-nfkxua-16",
+        "port": 443,
+        "server": "i8-27.kwfus9v.example.net",
+        "sni": "static.l7apvb3w.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "pi1OJ50UimhFUZX3qDUy",
+        "name": "SG-rjh-49",
+        "obfs": "salamander",
+        "obfs_password": "uqubuTjtsMf7ml7X",
+        "port": 443,
+        "server": "c8-38.jmmx222a.example.net",
+        "skip_tls_verify": true,
+        "sni": "www.ql954.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "PbkXjiQuX0VtooZQToHX",
+        "name": "FR-frs-09",
+        "port": 443,
+        "server": "oof-04.acf0m.example.net",
+        "sni": "oof-04.acf0m.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

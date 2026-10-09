@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"SG-rsvy-31","server":"p7s-12.vxsga2t1.example.org","port":443,"user_id":"cb22c8ff-3921-4bca-aa16-d8a21097e463","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/xj1jlj/bmtb1lwh5","headers":{"Host":"static.vslcfo.example.org"},"sni":"static.vslcfo.example.org","skip_tls_verify":false}}}}

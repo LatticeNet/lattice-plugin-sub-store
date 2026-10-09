@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"CA-nay-24","server":"2001:db8:857e:9d0b::5799","port":443,"user_id":"647ab532-add4-42dc-a365-5b4707a42f62","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

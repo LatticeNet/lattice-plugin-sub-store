@@ -1,0 +1,1 @@
+US-opo-77=vless,bu-22.u68e7.example.com,443,"8716fe3b-7305-46ba-91eb-4cb9a984fb0a",transport=ws,path=/yn3/cg1s,host=www.ipzjfg8.example.net,over-tls=true,skip-cert-verify=false,tls-profile=chrome,sni=www.ipzjfg8.example.net,public-key="T3_rEwPJJ-F9B-y6jwjMQu7p0F-ijg9aJjgI_k977DY",short-id=2ad1003c,udp=true

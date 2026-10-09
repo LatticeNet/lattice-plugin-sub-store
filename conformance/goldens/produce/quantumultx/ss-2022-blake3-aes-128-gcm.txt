@@ -1,0 +1,1 @@
+shadowsocks=px-33.cokrjp66.example.com:54440,method=2022-blake3-aes-128-gcm,password=XqibV6fKbKK81zHZlyw7mA==,udp-relay=true,tag=US-hnnp-27

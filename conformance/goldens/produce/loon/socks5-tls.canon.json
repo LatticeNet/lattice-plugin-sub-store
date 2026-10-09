@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "q7-18.vcxv4ay.example.net",
+      "443",
+      "tnh8mu9",
+      "rUm1xxOVNd0p"
+    ],
+    "name": "NL-dzsr6-04",
+    "params": {
+      "over-tls": "true",
+      "sni": "q7-18.vcxv4ay.example.net",
+      "udp": "true"
+    },
+    "type": "socks5"
+  }
+]

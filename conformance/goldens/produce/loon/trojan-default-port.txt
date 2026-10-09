@@ -1,0 +1,1 @@
+AU-uj6a-60=trojan,sxl-01.jiyys7.example.net,443,"8RvhaFk0czErf7tJ",tls-name=static.x2tic.example.org,udp=true

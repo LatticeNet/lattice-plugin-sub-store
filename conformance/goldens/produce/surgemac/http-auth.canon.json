@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "q6-02.rzkx1wg.example.org",
+      "8080"
+    ],
+    "name": "US-r6m-13",
+    "params": {
+      "password": "CHzXFu3vME0v",
+      "username": "lesmf"
+    },
+    "type": "http"
+  }
+]

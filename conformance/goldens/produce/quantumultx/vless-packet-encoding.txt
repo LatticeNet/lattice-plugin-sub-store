@@ -1,0 +1,2 @@
+vless=vd-25.o41nav1j.example.com:443,method=none,password=1113eba7-5d19-424d-9454-7f55c674c2b7,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=api.vxv2ki9k85.example.org,udp-relay=true,tag=NL-ue77o-49
+vless=w2l-16.ymew3v.example.net:443,method=none,password=f2b5e03f-8233-4318-8fad-5f5d0167082f,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=api.x9auf.example.net,udp-relay=true,tag=GB-hkxj2-56

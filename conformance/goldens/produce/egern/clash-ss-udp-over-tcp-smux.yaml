@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-fm2xz-53","method":"aes-128-gcm","server":"zzt-26.y4jpnft5.example.org","port":12899,"password":"jQ2iqvOC7hkHUSoD","tfo":false,"udp_relay":true}}

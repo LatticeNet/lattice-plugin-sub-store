@@ -1,0 +1,17 @@
+[
+  {
+    "headers": {
+      "X-Client": "ohwi6"
+    },
+    "max-streams": 8,
+    "name": "AU-yxa-06",
+    "password": "Yw4WzfJ570cj",
+    "port": 443,
+    "server": "ayo-23.vt8d.example.com",
+    "sni": "www.vz5stu6r4.example.net",
+    "tls": true,
+    "type": "h2-connect",
+    "udp": true,
+    "username": "ix3qt58v"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "2001:db8:b10a:ac00::f036",
+      "34005",
+      "yKKdrNLMv32PgMZuqlnp"
+    ],
+    "name": "NL-cme-57",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "true",
+      "tls-name": "cdn.lct1cm2ewi.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

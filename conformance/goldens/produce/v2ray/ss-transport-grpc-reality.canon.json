@@ -1,0 +1,53 @@
+[
+  {
+    "fragment": "GB-o1e7f-30",
+    "host": "wf-33.flul.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "pbk",
+        "NMrDaAeM5T2RjNvLH9ytgxW8XjNJ02HjABJU4bDtyoM"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "serviceName",
+        "syti2-f1gn"
+      ],
+      [
+        "sid",
+        "ce175e59"
+      ],
+      [
+        "sni",
+        "img.sxbdy4m6aw.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "grpc"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206WGk5MDZjc2xEVE1HUXo=",
+    "userinfo_base64": "aes-128-gcm:Xi906cslDTMGQz"
+  }
+]

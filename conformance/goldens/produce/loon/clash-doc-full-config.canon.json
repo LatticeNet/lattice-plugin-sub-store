@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "gz6-27.nt3l3rl.example.com",
+      "443",
+      "TfwevtKu5necBwQa"
+    ],
+    "name": "FR-rxs9-71",
+    "params": {
+      "tls-name": "img.yan934d.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "mc6-21.oy1wum6m.example.com",
+      "443",
+      "auto",
+      "4ada313e-c95d-437a-8322-4fedd24ee914"
+    ],
+    "name": "NL-nk245-43",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

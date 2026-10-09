@@ -1,0 +1,15 @@
+[
+  {
+    "address": "d6y-20.oabma4i4.example.org:32468",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "http",
+      "obfs-host": "api.fc9ofw.example.org",
+      "password": "PUq0L4AbgcmLrQ",
+      "tag": "SG-yyjrva-54",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

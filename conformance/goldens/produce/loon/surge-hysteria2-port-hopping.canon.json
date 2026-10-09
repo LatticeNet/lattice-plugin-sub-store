@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "v5p-17.d1bhi9.example.net",
+      "443",
+      "CYgL6uhgoFGf48xcuOOM"
+    ],
+    "name": "SG-rqk4-92",
+    "params": {
+      "hop-interval": "20",
+      "server-ports": "20000-21000,23000",
+      "tls-name": "cdn.vk6e5rjd.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

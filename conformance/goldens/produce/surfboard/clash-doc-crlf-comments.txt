@@ -1,0 +1,2 @@
+TW-d6ahp-79=ss,gy-28.bbn1u9k5.example.org,44420,encrypt-method=aes-128-gcm,password="E5ZzS0B766tN",udp-relay=true
+KR-mxcn-27=trojan,a6-32.jx3wy.example.net,443,password=iF8MoEBbQ3gtc6mI,tls=true,sni="img.i37u2y5i.example.org",udp-relay=true

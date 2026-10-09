@@ -1,0 +1,17 @@
+[
+  {
+    "address": "c6-14.hrgx.example.net:43309",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "obfs": "tls1.2_ticket_auth",
+      "obfs-host": "cdn.rp4ifyes.example.org",
+      "password": "Q1xpuRlVhIKH",
+      "ssr-protocol": "auth_sha1_v4",
+      "ssr-protocol-param": "125:qPktyn",
+      "tag": "KR-ku76-01",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

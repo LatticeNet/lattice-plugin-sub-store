@@ -1,0 +1,7 @@
+{
+  "id": "html-lowercase-doctype",
+  "family": "html",
+  "protocol": "none",
+  "quirk": "html-body-lowercase",
+  "description": "An HTML body with a lowercase doctype, which the HTML test may not match."
+}

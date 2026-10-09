@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-i00-30",
+      "type": "vmess",
+      "server": "ql-09.t1b1avhi.example.net",
+      "server_port": 443,
+      "uuid": "6fe5f0ff-e2ae-4aee-9797-d70539cbd43d",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "grpc",
+        "service_name": "fd7qno3-o0n"
+      }
+    }
+  ],
+  "endpoints": []
+}

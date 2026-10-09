@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-gki4-71",
+      "type": "shadowsocks",
+      "server": "y5x-06.qsbxmtn.example.org",
+      "server_port": 34163,
+      "method": "aes-128-gcm",
+      "password": "WCk5pgZGKDGMo1"
+    },
+    {
+      "tag": "GB-t54-55",
+      "type": "shadowsocks",
+      "server": "pl3-12.rvki6p41.example.com",
+      "server_port": 55339,
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "NIFm94rVMD3O2AH3m+kvdw=="
+    }
+  ],
+  "endpoints": []
+}

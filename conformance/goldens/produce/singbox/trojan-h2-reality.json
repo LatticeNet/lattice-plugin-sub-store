@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-ro0-43",
+      "type": "trojan",
+      "server": "hsq-14.xpij2qd.example.net",
+      "server_port": 443,
+      "password": "epnayYh8ldlKPMhn",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.v5re2x3tf.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "T_fr_LGSSwV0mzQw0b8pWGX0pbJB3oHsy_iwRx_d5aY",
+          "short_id": "3fc1c699"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

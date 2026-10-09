@@ -1,0 +1,8 @@
+{
+  "id": "vless-xhttp-none",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "none",
+  "description": "VLESS share link over xhttp with security none."
+}

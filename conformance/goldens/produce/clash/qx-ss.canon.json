@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "CA-gki4-71",
+      "password": "WCk5pgZGKDGMo1",
+      "port": 34163,
+      "server": "y5x-06.qsbxmtn.example.org",
+      "tfo": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

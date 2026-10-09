@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "ur-05.u0srua.example.com",
+      "443",
+      "auto",
+      "5840f636-1f16-4327-8520-2c6d190b4fb9"
+    ],
+    "name": "KR-toisb-23",
+    "params": {
+      "alterId": "0",
+      "host": "img.rrs1s0l.example.com",
+      "over-tls": "true",
+      "path": "/ze3athc",
+      "tls-name": "img.rrs1s0l.example.com",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-256-gcm",
+      "password": "PHWfoNpnhijrRc",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=cdn.dbyv00vw9.example.com;obfs=http;path=/ww79o",
+      "server": "xb-13.pqdk.example.net",
+      "server_port": 58000,
+      "tag": "HK-j49-16",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-gcm",
+      "password": "qS9zPuIj3SVVnT",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=static.r2rzatcb.example.com;obfs=tls",
+      "server": "lkd-11.nnc9idh.example.org",
+      "server_port": 37436,
+      "tag": "US-yigh2w-55",
+      "type": "shadowsocks"
+    }
+  ]
+}

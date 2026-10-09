@@ -1,0 +1,1 @@
+TW-t0bp-90=vmess,wg-31.g7d1emnv.example.org,443,auto,"cc1d4e55-c7f2-417a-9562-5e0abcc59b35",transport=tcp,over-tls=false,alterId=0,udp=true

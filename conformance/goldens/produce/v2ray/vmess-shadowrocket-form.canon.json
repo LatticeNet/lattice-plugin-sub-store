@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "sz-12.bfsv3i.example.org",
+      "aid": "0",
+      "host": "api.h8w3p.example.net",
+      "id": "89ea35b3-b815-4c28-811f-5a628bf1fc26",
+      "net": "ws",
+      "path": "/adww/ksgu1id9v",
+      "port": "443",
+      "ps": "KR-z6tb1-68",
+      "scy": "auto",
+      "sni": "api.h8w3p.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

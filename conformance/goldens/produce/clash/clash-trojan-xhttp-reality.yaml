@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","name":"AU-nb56cs-96","network":"xhttp","password":"53P1CwiCd0J7NolN","port":443,"reality-opts":{"public-key":"p1DU-kqarpZBga_lY3n8HyRXpEytMrh1XeX5_KgIWzs","short-id":"b981b2c6"},"server":"vbt-33.k5kw.example.net","sni":"api.fxpo0defz.example.org","type":"trojan","udp":true,"xhttp-opts":{"host":"api.fxpo0defz.example.org","mode":"auto","path":"/gmx5bl3"}}

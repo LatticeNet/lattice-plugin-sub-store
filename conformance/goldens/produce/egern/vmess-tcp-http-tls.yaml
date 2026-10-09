@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"NL-q8q-98","server":"dj9-28.i9kdhan.example.com","port":443,"user_id":"2a2633f6-bffd-41e2-a5ed-a6e930144137","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"path":"/abv4ag6","headers":{"Host":"img.zvk38q37.example.org"}}}}}

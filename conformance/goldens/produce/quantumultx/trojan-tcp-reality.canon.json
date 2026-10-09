@@ -1,0 +1,16 @@
+[
+  {
+    "address": "cl3-20.f1i93c.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "8siqyovoAYVDDHHY",
+      "reality-base64-pubkey": "7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8",
+      "reality-hex-shortid": "fd7b5be3",
+      "tag": "FR-gg4he-79",
+      "tls-host": "img.zz8yf8k7.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

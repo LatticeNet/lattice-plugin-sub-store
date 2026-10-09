@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "umm-36.imjd.example.net",
+      "443"
+    ],
+    "name": "US-hilk-85",
+    "params": {
+      "password": "NJBWrIzIMGyilHmy",
+      "sni": "api.de4hx.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

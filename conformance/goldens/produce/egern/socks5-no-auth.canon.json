@@ -1,0 +1,13 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "AU-ar8sl-78",
+        "port": 1080,
+        "server": "203.0.113.215",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

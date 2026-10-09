@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "CA-bus8j-50",
+    "host": "o8-22.yd7la.example.com",
+    "path": "/",
+    "port": "41691",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=tls;obfs-host=static.vrb8iyo.example.net"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpEbkRoeWJ5NENVa1Y0SA==",
+    "userinfo_base64": "chacha20-ietf-poly1305:DnDhyby4CUkV4H"
+  }
+]

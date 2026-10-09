@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "DE-glbrf2-97",
+    "host": "j54-21.xixy.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "api.i6ar473.example.net"
+      ],
+      [
+        "mode",
+        "auto"
+      ],
+      [
+        "path",
+        "/hrubwmplp"
+      ],
+      [
+        "pbk",
+        "Dx3ppS5lobZLG-oJmppEbbEgoQ-G2P3EvkPk_fB2fR8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "7e621117"
+      ],
+      [
+        "sni",
+        "api.i6ar473.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "qHZJqurZulhTqItR"
+  }
+]

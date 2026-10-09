@@ -1,0 +1,3 @@
+FR-w38-62=ss,rp8-33.wgzivs.example.org,38130,encrypt-method=aes-128-gcm,password="whcR18hBEjkOVg",udp-relay=true
+GB-kzq-60=ss,r2s-07.paug3a4.example.org,50285,encrypt-method=aes-128-gcm,password="6dNQLnVjNDH9zs",udp-relay=true
+TW-zh07-47=ss,vp-11.foz9zs.example.org,60960,encrypt-method=aes-128-gcm,password="s2wFoQVQ1mZzes",udp-relay=true

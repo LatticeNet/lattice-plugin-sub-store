@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "lm-06.k25j9.example.org",
+      "443",
+      "aes-128-gcm",
+      "WhdU9BwFJtPtUMRX"
+    ],
+    "name": "HK-lb5-55",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

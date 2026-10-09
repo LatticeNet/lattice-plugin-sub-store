@@ -1,0 +1,8 @@
+{
+  "id": "trojan-httpupgrade-tls",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "httpupgrade",
+  "security": "tls",
+  "description": "Trojan share link over httpupgrade with security tls."
+}

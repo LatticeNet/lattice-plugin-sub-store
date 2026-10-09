@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ea-12.a5gk98h2.example.net",
+      "443"
+    ],
+    "name": "DE-mpzqj-17",
+    "params": {
+      "password": "1IIiWOkEq6ROLNHa9ym5",
+      "salamander-password": "xXQDOuEUnq5oxkX3",
+      "skip-cert-verify": "false",
+      "sni": "cdn.vw2osf1x3p.example.com",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

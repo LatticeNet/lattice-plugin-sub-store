@@ -1,0 +1,1 @@
+vless://f8db7cb5-5151-4acc-b72c-ca55afc4022c@jam-37.r0ecy.example.com:443?encryption=none&flow=xtls-rprx-vision&security=tls&sni=static.ooqjd.example.org&fp=chrome&alpn=h2%2Chttp%2F1.1&type=tcp#SG-qqz-51

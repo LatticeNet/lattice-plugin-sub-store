@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "TW-a5ein-14",
+    "host": "fg5-29.gdmnkb86.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "pbk",
+        "0DMJL8k0Or-fcZw8rT_gtLvMnfFbuxoYHL8xsJ-8RRQ"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "serviceName",
+        "bynk-z2iz"
+      ],
+      [
+        "sid",
+        "1313f761"
+      ],
+      [
+        "sni",
+        "cdn.gldte5kfq.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "HRnDNjf8DYwrNl3p"
+  }
+]

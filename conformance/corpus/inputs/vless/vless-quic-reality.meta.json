@@ -1,0 +1,8 @@
+{
+  "id": "vless-quic-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "quic",
+  "security": "reality",
+  "description": "VLESS share link over quic with security reality."
+}

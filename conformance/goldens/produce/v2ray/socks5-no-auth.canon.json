@@ -1,0 +1,12 @@
+[
+  {
+    "fragment": "AU-ar8sl-78",
+    "host": "203.0.113.215",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "Og==",
+    "userinfo_base64": ":"
+  }
+]

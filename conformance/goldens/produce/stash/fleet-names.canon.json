@@ -1,0 +1,182 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "香港 e2p",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "LU_0dOnxZp9pkYGwjTFCyooOZ3EAo20eGEbPuXJZXJU",
+        "short-id": "dc04453c"
+      },
+      "server": "yq4-22.z0ljn.example.org",
+      "servername": "static.vaei4qlgo2.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "c13248bd-65cd-46f8-9151-1db7211ee809"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "東京 p9g9 高速",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "ST7RCMMA68tYbfV5gnlMz81ZUTFS5gQ5swN5fgqN9QA",
+        "short-id": "aa60948f"
+      },
+      "server": "bs-01.eicd.example.net",
+      "servername": "api.xvwxei.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "5861ba04-b805-4d36-94e6-92082cf121e7"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "Москва dod4t",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 48651,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "tmJV4oJU9R4M4pCKyB-7-exeZiHLbc9Cp31UcMqPv3A",
+        "short-id": "458afcf0"
+      },
+      "server": "xv8-14.jf700k.example.org",
+      "servername": "www.paa0km.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "69e41d0b-bbf6-4343-8aa4-d27107d86bde"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "Санкт-Петербург mpj",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "m9htLZu4UxSCRlLTFkzPvYQVtoQf0kxYFT8GIJqkfKM",
+        "short-id": "c20b1dd0"
+      },
+      "server": "le9-33.n7knu26n.example.com",
+      "servername": "www.pl8a4f9wi.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "fc1d5db2-9b08-4e96-9ab5-48b8c6096822"
+    },
+    {
+      "auth": "Ewq90sghYDS5laZ7pzVz",
+      "fast-open": false,
+      "name": "a#b dwq",
+      "port": 19383,
+      "server": "g3-17.yyviqjt.example.org",
+      "skip-cert-verify": false,
+      "sni": "static.tbwbbjuq.example.com",
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "auth": "MrlYCwxibrD0cLaqwrcl",
+      "fast-open": false,
+      "name": "x%20y knhh",
+      "port": 49641,
+      "server": "so-35.y0obihc.example.org",
+      "skip-cert-verify": false,
+      "sni": "cdn.bty92.example.com",
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "bbr",
+      "name": "k=v&w outm",
+      "password": "o7m89ZEi9pM7FAjx",
+      "port": 48071,
+      "server": "uqj-22.kad2ow.example.net",
+      "sni": "cdn.yxh3iri9d.example.com",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "c3fff1a6-91d2-4e5c-a716-482679a49877",
+      "version": 5
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "bbr",
+      "name": "comma, semi; zom3q",
+      "password": "lqId57MKVuzYmDwf",
+      "port": 15988,
+      "server": "np-28.egxx.example.com",
+      "sni": "www.piqec8i3.example.org",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "d18654f6-4482-498f-8140-437b55782225",
+      "version": 5
+    },
+    {
+      "name": "slash/ques? g0w",
+      "network": "tcp",
+      "password": "8E6FVDNU8MpiMb8q",
+      "port": 443,
+      "server": "bsx-26.kcyk.example.com",
+      "sni": "static.jg7h5vfm.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "name": "quote \" apos ' zkth",
+      "network": "tcp",
+      "password": "4jmL7qr9xpGX1Csu",
+      "port": 443,
+      "server": "t3e-03.hieci.example.org",
+      "sni": "static.xhdjfx.example.com",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "cipher": "2022-blake3-aes-128-gcm",
+      "name": "  padded  ncb",
+      "password": "5zL1yhOgywAhZ+3z464/tA==",
+      "port": 57604,
+      "server": "uv-24.h3is.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "2022-blake3-aes-128-gcm",
+      "name": "f9i0d0wpgg5ra4a4jtqjfp8shtiua0 gmf91930qobke9uf2r9t la6x0vfujzmb9qmfhbqou",
+      "password": "ctkSSwDczowhPidegzUpMg==",
+      "port": 39964,
+      "server": "r9b-13.qm3y7m10.example.com",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

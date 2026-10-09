@@ -1,0 +1,60 @@
+[
+  {
+    "fragment": "US-ig0mn-42",
+    "host": "ga-21.r95t.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.hrq0u.example.org"
+      ],
+      [
+        "mode",
+        "auto"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/t3tz0/l5jdned3el"
+      ],
+      [
+        "pbk",
+        "4tAhbjKtre8pv_LX2Y0HsMtIkEqPHtoGZkCE7bpWN4I"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "0e175218"
+      ],
+      [
+        "sni",
+        "www.hrq0u.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "749a7176-8006-424d-8018-35e4006a44f1"
+  }
+]

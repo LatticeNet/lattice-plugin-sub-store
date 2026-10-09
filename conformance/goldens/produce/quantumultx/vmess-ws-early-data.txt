@@ -1,0 +1,1 @@
+vmess=fj-09.fcx8god.example.org:443,method=chacha20-poly1305,password=3cf24b8e-2838-480e-ad27-03657ab28a13,obfs=wss,obfs-uri=/zx2t,obfs-host=api.ubxoa09ik.example.com,tls-alpn=02683208687474702f312e31,tls-host=api.ubxoa09ik.example.com,aead=true,udp-relay=true,tag=TW-mc3w0h-48

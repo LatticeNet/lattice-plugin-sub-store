@@ -1,0 +1,13 @@
+[
+  {
+    "address": "yqq-20.shuir5.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "d702451b-9c9f-4ca7-be10-aa5e190adc18",
+      "tag": "KR-rx6-36",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

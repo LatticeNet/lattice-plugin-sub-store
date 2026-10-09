@@ -1,0 +1,24 @@
+[
+  {
+    "_h2": false,
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "DE-x2v8vq-21",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "dz-19.pgekzw8.example.org",
+    "skip-cert-verify": false,
+    "sni": "cdn.oah4gm49.example.net",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "0c589e64-b7b7-442c-b647-b37f1db0e7a5",
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.oah4gm49.example.net"
+      },
+      "path": "/g89/nipgxvfka"
+    }
+  }
+]

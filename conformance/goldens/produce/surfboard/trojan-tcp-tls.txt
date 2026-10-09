@@ -1,0 +1,1 @@
+TW-h11zpi-21=trojan,hh-01.imfbim.example.com,443,password=HwLmYAma9EMkZ8Q5,tls=true,sni="static.xxh5n1ybva.example.org",udp-relay=true

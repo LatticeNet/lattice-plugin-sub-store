@@ -1,0 +1,1 @@
+NL-fm2xz-53=ss,zzt-26.y4jpnft5.example.org,12899,encrypt-method=aes-128-gcm,password="jQ2iqvOC7hkHUSoD",udp-relay=true

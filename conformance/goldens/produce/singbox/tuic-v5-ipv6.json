@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-dshc6-86",
+      "type": "tuic",
+      "server": "2001:db8:5dea:9676::65f4",
+      "server_port": 443,
+      "uuid": "3d6086b8-489d-4975-955a-5055bdc30044",
+      "password": "GMbMPBfBRzCF7krc",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.vz9cc.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

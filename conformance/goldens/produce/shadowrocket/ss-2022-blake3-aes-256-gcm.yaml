@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"2022-blake3-aes-256-gcm","name":"US-kn0y3-61","password":"rGIvNiredv0sXS6wuEe17E8ShzoJZz1fPuI4140WnFw=","port":28315,"server":"d1-03.xf31pk.example.com","skip-cert-verify":false,"type":"ss","udp":true}

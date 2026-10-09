@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"DE-eec9l-77","server":"zs-01.d96h4u7.example.com","port":443,"user_id":"987a2697-2d80-4245-aab3-42a2e6ac081c","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/jhixtf/jbwudryxb","headers":{"Host":"img.cqi5al.example.net"},"sni":"cdn.cn3k79.example.net","skip_tls_verify":false}}}}

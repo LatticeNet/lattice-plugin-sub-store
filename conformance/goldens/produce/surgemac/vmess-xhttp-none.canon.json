@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "y66-38.inbufi2.example.net",
+      "443"
+    ],
+    "name": "DE-kmsvq4-78",
+    "params": {
+      "tls": "false",
+      "username": "d586cf7b-aa1f-4314-84df-a94b6c7ffde4",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "args": [
+      "i5-18.p8ci.example.net",
+      "12936",
+      "aes-128-gcm",
+      "ZLN8JTCnyC9vty"
+    ],
+    "name": "AU-zj535x-53",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "t8-08.tv1tnm7j.example.net",
+      "29530",
+      "2022-blake3-aes-256-gcm",
+      "3BaI3U+oiaQUQZ7EAiszUx40YJu0lpzPIYTA9XW/XW8="
+    ],
+    "name": "DE-e37-73",
+    "params": {
+      "fast-open": "true",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "bhl-34.c2qflj.example.com",
+      "32980",
+      "chacha20-ietf-poly1305",
+      "9RnEZgZgVPFMwU"
+    ],
+    "name": "KR-pfv-77",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

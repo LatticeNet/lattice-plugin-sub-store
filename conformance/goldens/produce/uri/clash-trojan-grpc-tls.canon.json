@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "NL-qqlje-16",
+    "host": "wjy-10.xmkx49.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "serviceName",
+        "dekrcdp-vg6"
+      ],
+      [
+        "sni",
+        "static.v11wq.example.com"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "vjSyAI79qfTnU7US"
+  }
+]

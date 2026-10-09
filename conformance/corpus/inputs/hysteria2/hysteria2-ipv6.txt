@@ -1,0 +1,1 @@
+hysteria2://yKKdrNLMv32PgMZuqlnp@[2001:db8:b10a:ac00::f036]:34005/?sni=cdn.lct1cm2ewi.example.net&insecure=1#NL-cme-57

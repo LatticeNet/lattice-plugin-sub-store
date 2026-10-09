@@ -1,0 +1,7 @@
+{
+  "id": "surge-direct",
+  "family": "surge",
+  "protocol": "direct",
+  "security": "none",
+  "description": "Surge direct with udp-relay and an interface."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "wireguard-ipv6-endpoint",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "ipv6-literal",
+  "description": "IPv6 literal endpoint and a reserved list given with brackets."
+}

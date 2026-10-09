@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "name": "GB-ycmz-27",
+      "password": "a31bA1CmoKR9",
+      "port": 37605,
+      "server": "a7-04.h9q2h.example.net",
+      "tls": false,
+      "type": "socks5",
+      "udp": true,
+      "username": "r2ddmw"
+    }
+  ]
+}

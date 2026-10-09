@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "max-streams": 4,
+      "name": "TW-xem-54",
+      "network": "h3",
+      "password": "3oiET4BqsC3Vfy",
+      "port": 443,
+      "server": "l0-33.u7bk1j.example.org",
+      "sni": "www.nppkxkb.example.com",
+      "type": "trusttunnel",
+      "udp": true,
+      "username": "whtb1lv"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"KR-ujr-38","server":"cz-09.xjov.example.org","port":443,"user_id":"4f4761e5-2f47-49f7-b8bf-227071e25c64","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/sgsh","headers":{"Host":"static.p9r88.example.net"},"sni":"static.p9r88.example.net","skip_tls_verify":false}}}}

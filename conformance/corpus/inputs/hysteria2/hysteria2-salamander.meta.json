@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-salamander",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "obfs",
+  "description": "Salamander obfuscation with a password."
+}

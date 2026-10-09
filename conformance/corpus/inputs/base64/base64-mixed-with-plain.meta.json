@@ -1,0 +1,7 @@
+{
+  "id": "base64-mixed-with-plain",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "partial",
+  "description": "One Base64 line next to a plain share link; the whole document is not valid Base64."
+}

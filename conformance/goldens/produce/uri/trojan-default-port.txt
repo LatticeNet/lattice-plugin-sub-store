@@ -1,0 +1,1 @@
+trojan://8RvhaFk0czErf7tJ@sxl-01.jiyys7.example.net:443?sni=static.x2tic.example.org&type=tcp#AU-uj6a-60

@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "GB-euqdb-55",
+        "port": 34827,
+        "security": "auto",
+        "server": "pa-38.pn5io.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "9baf1f26-b509-46b9-a4af-9617458cc1e4"
+      }
+    }
+  ]
+}

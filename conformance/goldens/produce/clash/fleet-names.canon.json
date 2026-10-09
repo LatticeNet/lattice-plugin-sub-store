@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "name": "slash/ques? g0w",
+      "network": "tcp",
+      "password": "8E6FVDNU8MpiMb8q",
+      "port": 443,
+      "server": "bsx-26.kcyk.example.com",
+      "sni": "static.jg7h5vfm.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "name": "quote \" apos ' zkth",
+      "network": "tcp",
+      "password": "4jmL7qr9xpGX1Csu",
+      "port": 443,
+      "server": "t3e-03.hieci.example.org",
+      "sni": "static.xhdjfx.example.com",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

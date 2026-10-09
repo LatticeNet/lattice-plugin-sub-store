@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","h2-opts":{"host":["cdn.v5re2x3tf.example.org"],"path":"/jrl0q8h3"},"name":"SG-ro0-43","network":"h2","password":"epnayYh8ldlKPMhn","port":443,"reality-opts":{"_spider-x":"/","public-key":"T_fr_LGSSwV0mzQw0b8pWGX0pbJB3oHsy_iwRx_d5aY","short-id":"3fc1c699"},"server":"hsq-14.xpij2qd.example.net","sni":"cdn.v5re2x3tf.example.org","type":"trojan","udp":true}

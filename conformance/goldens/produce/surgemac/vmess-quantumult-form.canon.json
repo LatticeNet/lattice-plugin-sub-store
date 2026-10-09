@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "euo-40.fr243lfo.example.org",
+      "443"
+    ],
+    "name": "GB-hrhuy-22",
+    "params": {
+      "encrypt-method": "chacha20-ietf-poly1305",
+      "tls": "false",
+      "username": "9ae08100-542d-494f-8ada-9dcdea9f4cca",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

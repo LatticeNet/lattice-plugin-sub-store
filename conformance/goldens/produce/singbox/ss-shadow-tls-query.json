@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-ak1isp-96",
+      "type": "shadowsocks",
+      "method": "aes-128-gcm",
+      "password": "CPUCbt54Maw3JC",
+      "detour": "NL-ak1isp-96_shadowtls"
+    },
+    {
+      "tag": "NL-ak1isp-96_shadowtls",
+      "type": "shadowtls",
+      "server": "mz-06.v4fzlgbl.example.net",
+      "server_port": 443,
+      "version": 3,
+      "password": "6yMGxseYVK5CQkW8",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.z5h1o.example.com"
+      }
+    }
+  ],
+  "endpoints": []
+}

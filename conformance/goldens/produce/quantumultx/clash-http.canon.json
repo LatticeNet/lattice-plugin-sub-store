@@ -1,0 +1,27 @@
+[
+  {
+    "address": "ia-17.raeya8.example.net:8080",
+    "args": [],
+    "params": {
+      "password": "cx0ri7gyAdT1",
+      "tag": "NL-i1l-37",
+      "udp-relay": "true",
+      "username": "dzpyhv6v"
+    },
+    "type": "http"
+  },
+  {
+    "address": "sn-35.itha1zf.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "1yxmCwBktXpQ",
+      "tag": "HK-hlx5z-75",
+      "tls-host": "static.ktyuunm.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "username": "jjbz6"
+    },
+    "type": "http"
+  }
+]

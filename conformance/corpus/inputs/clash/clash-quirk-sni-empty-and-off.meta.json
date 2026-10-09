@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-sni-empty-and-off",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "disable-sni",
+  "description": "sni set to an empty string and to off, which map to disable-sni."
+}

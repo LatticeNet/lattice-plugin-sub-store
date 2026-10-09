@@ -1,0 +1,1 @@
+KR-k7l6wk-28=shadowsocks,gy-35.bb16wip1.example.org,443,2022-blake3-aes-128-gcm,"ghMiarMyGPGfdKpB+sjHqg==",shadow-tls-password=qfVPDOCMCDN7DozD,shadow-tls-sni=static.x76bjg.example.org,shadow-tls-version=3,udp-port=13032,udp=true

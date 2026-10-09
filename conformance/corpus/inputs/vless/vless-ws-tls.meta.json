@@ -1,0 +1,8 @@
+{
+  "id": "vless-ws-tls",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "description": "VLESS share link over ws with security tls."
+}

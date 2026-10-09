@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"HK-mg7g7-33","server":"yqk-19.r69bdev.example.org","port":443,"password":"yiccfKubyAbJv2Cc","tfo":false,"udp_relay":true,"sni":"img.xbzfirh7.example.com","reality":{"public_key":"UKq0zxqr7fQwypkT3_R8FEgH_q_SlbqrKVCH1qIwI9k","short_id":"e8a04321"},"websocket":{"path":"/fiz5/ilveyth9g","host":"img.xbzfirh7.example.com"}}}

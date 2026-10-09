@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"SG-hqzi-96","server":"xe-34.w3hx.example.net","port":443,"password":"bm91bewnfciiwnoMmrKb","tfo":false,"udp_relay":true,"sni":"img.l2m9nw.example.com","skip_tls_verify":false}}

@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "2001:db8:7218:87a3::73e8",
+      "31656",
+      "e1aa4ec7-6130-4dae-ae96-2b8d7023de93"
+    ],
+    "name": "US-rjv6bu-47",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8",
+      "short-id": "a883a092",
+      "skip-cert-verify": "false",
+      "sni": "static.snrh2o75bk.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

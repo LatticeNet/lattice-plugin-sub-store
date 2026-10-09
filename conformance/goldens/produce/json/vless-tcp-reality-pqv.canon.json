@@ -1,0 +1,25 @@
+[
+  {
+    "_h2": false,
+    "_pqv": "tVtDyKMaGv0ElZfsGA658e8Za0VC_1HPVwGL56iq3P86bVYmr9EM0AqmxCF2cO4Wg6nW0RP5kASYc8F8ZeepXC72fHTiNEDE44csDd4efIuptmZrVm4pL_v_mf0Hjt-R",
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "flow": "xtls-rprx-vision",
+    "name": "FR-e74yhy-14",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "XsH0zzVsbUwKTqlNK1ycPEtEv8cqaY4J7U3YPR5nz-w",
+      "short-id": "845a9e77"
+    },
+    "server": "a9-05.le66p.example.org",
+    "skip-cert-verify": false,
+    "sni": "api.ip4wwzndjw.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "47bd133f-f4bb-4fb1-aad7-a238ff909c91"
+  }
+]

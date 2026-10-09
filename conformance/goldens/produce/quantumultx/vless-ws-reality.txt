@@ -1,0 +1,1 @@
+vless=bu-22.u68e7.example.com:443,method=none,password=8716fe3b-7305-46ba-91eb-4cb9a984fb0a,obfs=wss,obfs-uri=/yn3/cg1s,obfs-host=www.ipzjfg8.example.net,tls-verification=true,tls-host=www.ipzjfg8.example.net,udp-relay=true,tag=US-opo-77,reality-base64-pubkey=T3_rEwPJJ-F9B-y6jwjMQu7p0F-ijg9aJjgI_k977DY,reality-hex-shortid=2ad1003c

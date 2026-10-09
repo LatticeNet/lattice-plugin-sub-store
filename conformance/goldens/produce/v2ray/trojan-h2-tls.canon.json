@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "AU-xt8c-70",
+    "host": "si-29.ur8s.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "path",
+        "/oufkn68i"
+      ],
+      [
+        "sni",
+        "img.hgf27gzs.example.net"
+      ],
+      [
+        "type",
+        "h2"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "8MvDkVYuovpuC6Dt"
+  }
+]

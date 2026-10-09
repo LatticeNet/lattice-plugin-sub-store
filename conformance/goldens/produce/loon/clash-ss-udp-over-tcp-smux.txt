@@ -1,0 +1,1 @@
+NL-fm2xz-53=shadowsocks,zzt-26.y4jpnft5.example.org,12899,aes-128-gcm,"jQ2iqvOC7hkHUSoD",udp-over-tcp=true,udp=true

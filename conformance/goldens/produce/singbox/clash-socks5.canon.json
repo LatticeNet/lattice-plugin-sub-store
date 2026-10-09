@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "20ZIpGsmexUW",
+      "server": "br9-22.im7ld.example.org",
+      "server_port": 1080,
+      "tag": "KR-swmn6t-78",
+      "type": "socks",
+      "username": "otr1u",
+      "version": "5"
+    }
+  ]
+}

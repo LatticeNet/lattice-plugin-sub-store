@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"CA-mzhy-32","server":"rv-14.nzag30.example.org","port":443,"user_id":"66f373aa-79e0-4754-ae9a-5aad2a7e4823","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.paznfzs.example.net","skip_tls_verify":false}}}}

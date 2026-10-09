@@ -1,0 +1,1 @@
+trojan://G1X5dWOpnYCm7S5y@e5v-34.kxtb5hii.example.org:443?security=reality&sni=www.dzqcn9r4e.example.org&fp=chrome&pbk=LLn8fHjxlFAjKvNOsGJb1yjXwnbS19M-3iA-RyCpqj8&sid=35aece35&spx=%2F&type=httpupgrade&host=www.dzqcn9r4e.example.org&path=%2Fpmx34sl1p#SG-fsqg-13

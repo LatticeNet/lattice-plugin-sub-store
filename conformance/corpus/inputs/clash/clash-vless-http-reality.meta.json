@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-http-reality",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "http",
+  "security": "reality",
+  "description": "mihomo vless proxy over http with security reality."
+}

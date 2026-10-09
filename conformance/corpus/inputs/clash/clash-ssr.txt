@@ -1,0 +1,12 @@
+proxies:
+  - name: KR-ku76-01
+    type: ssr
+    server: c6-14.hrgx.example.net
+    port: 43309
+    cipher: chacha20-ietf
+    password: Q1xpuRlVhIKH
+    obfs: tls1.2_ticket_auth
+    protocol: auth_sha1_v4
+    obfs-param: cdn.rp4ifyes.example.org
+    protocol-param: "125:qPktyn"
+    udp: true

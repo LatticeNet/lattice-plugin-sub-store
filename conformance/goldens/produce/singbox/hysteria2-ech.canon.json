@@ -1,0 +1,25 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "wNErEnwtwNG5ixk200VV",
+      "server": "gj-03.d3ejf.example.net",
+      "server_port": 443,
+      "tag": "AU-rwg0qw-67",
+      "tls": {
+        "ech": {
+          "config": [
+            "-----BEGIN ECH CONFIGS-----",
+            "8R4LDPJaZRbTYEHWvUcwAAcLBWzHbaypdwyLwGZM84MkYQnME3v+FU4uM3+mK+ZAyOBN0DusfuRn05iZ5X10yU+9BPR74jsw",
+            "-----END ECH CONFIGS-----"
+          ],
+          "enabled": true
+        },
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.qutrl0x4py.example.net"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

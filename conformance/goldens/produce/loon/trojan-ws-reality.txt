@@ -1,0 +1,1 @@
+DE-w55-42=trojan,trr-05.cxu586h.example.com,443,"mnPm4xaG59F4J9VO",transport=ws,path=/x225kbvr,host=api.s066ycl2.example.com,tls-profile=chrome,sni=api.s066ycl2.example.com,public-key="PKU6M5-j3ysTiKBTojfFZWrNOubl9ZFmY1-M5bfrnKk",short-id=7662ad44,udp=true

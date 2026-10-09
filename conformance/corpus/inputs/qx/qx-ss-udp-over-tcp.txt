@@ -1,0 +1,3 @@
+shadowsocks=rp8-33.wgzivs.example.org:38130, method=aes-128-gcm, password=whcR18hBEjkOVg, udp-over-tcp=sp.v1, tag=FR-w38-62
+shadowsocks=r2s-07.paug3a4.example.org:50285, method=aes-128-gcm, password=6dNQLnVjNDH9zs, udp-over-tcp=sp.v2, tag=GB-kzq-60
+shadowsocks=vp-11.foz9zs.example.org:60960, method=aes-128-gcm, password=s2wFoQVQ1mZzes, udp-over-tcp=true, tag=TW-zh07-47

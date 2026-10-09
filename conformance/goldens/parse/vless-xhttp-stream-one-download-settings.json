@@ -1,0 +1,33 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "GB-g0cl-03",
+    "network": "xhttp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "7p1JM7NXzj25Zj4jbKFjlvYQtjfeB63coDmYA6LTgbQ",
+      "short-id": "bde6ee5e"
+    },
+    "server": "qb-24.l80hk9pk.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.aa8e5h0xk2.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "37c98ca3-2c93-4f9d-8cd8-fa2aaedf76ad",
+    "xhttp-opts": {
+      "download-settings": {
+        "network": "xhttp",
+        "port": 443,
+        "server": "j3n-11.upah.example.net",
+        "tls": true
+      },
+      "mode": "stream-one",
+      "path": "/xtqsfy/umn6qh6"
+    }
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "body": {
+      "add": "bee-29.xqbpipu.example.com",
+      "aid": "0",
+      "host": "www.v9p5uc3.example.net",
+      "id": "848a9969-7aa2-456b-9da9-69e9f413df30",
+      "net": "ws",
+      "path": "/hdm/xo87z7i",
+      "port": "443",
+      "ps": "AU-tfsez1-75",
+      "scy": "auto",
+      "sni": "www.v9p5uc3.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "fragment": "DE-pbrw-08",
+    "host": "xey-25.ohekj.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "xey-25.ohekj.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "50gcH1IrTZeRtSHn"
+  }
+]

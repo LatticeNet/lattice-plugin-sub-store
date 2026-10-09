@@ -1,0 +1,24 @@
+[
+  {
+    "args": [
+      "is-28.lree.example.org",
+      "26241"
+    ],
+    "name": "CA-e44-62",
+    "params": {
+      "block-quic": "on",
+      "encrypt-method": "aes-128-gcm",
+      "hybrid": "true",
+      "interface": "en0",
+      "ip-version": "v4-only",
+      "no-error-alert": "true",
+      "password": "rfrwJIQ8mprzJQ",
+      "test-timeout": "5",
+      "test-url": "http://jdd-34.qdzs7.example.com/generate_204",
+      "tos": "32",
+      "udp-relay": "true",
+      "underlying-proxy": "NL-o63-22"
+    },
+    "type": "ss"
+  }
+]

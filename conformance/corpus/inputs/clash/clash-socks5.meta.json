@@ -1,0 +1,8 @@
+{
+  "id": "clash-socks5",
+  "family": "clash",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "description": "SOCKS5 with credentials, and SOCKS5 over TLS."
+}

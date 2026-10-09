@@ -1,0 +1,93 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "TW-rdp8gd-72",
+        "port": 443,
+        "server": "ip-34.ktwatttj.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "Jwdpp-Z2G7NTZD3sY9HvijP5esLDr7gXgKPgZnFBouQ",
+              "short_id": "a40cc7aa"
+            },
+            "skip_tls_verify": false,
+            "sni": "www.c9y35bt5.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "57c1458d-73c3-4e95-9c04-2670f53dbac0"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "CA-nzkp5h-77",
+        "port": 443,
+        "security": "auto",
+        "server": "c9-14.btap.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.gckl0.example.net"
+            },
+            "path": "/kd8m/lfzp6iw",
+            "sni": "api.gckl0.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "402a4bf1-5660-46c2-8e1e-7c6df31b087e"
+      }
+    },
+    {
+      "trojan": {
+        "name": "KR-nru02r-03",
+        "password": "Zu79DKkx19GwylRt",
+        "port": 443,
+        "server": "d6b-40.a7xz.example.org",
+        "sni": "www.f7e3g.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "US-p3pswm-02",
+        "password": "7zijyYWmgqxRf9",
+        "port": 21549,
+        "server": "fe-04.w3s679.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "Q1q3ulUEQQHs6JO0vnb4",
+        "name": "FR-umn-23",
+        "port": 443,
+        "server": "en4-40.azvex2l.example.com",
+        "skip_tls_verify": false,
+        "sni": "api.tq1ir0bnw1.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "FR-xem9-01",
+        "password": "Ls72fnKC7SbDjxHL",
+        "port": 443,
+        "server": "ba-35.w8mcl.example.org",
+        "sni": "img.lywm5oq1k5.example.com",
+        "uuid": "76301c12-d394-44b9-816e-108885652251"
+      }
+    }
+  ]
+}

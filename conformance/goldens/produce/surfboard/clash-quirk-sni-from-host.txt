@@ -1,0 +1,2 @@
+AU-tfsez1-75=vmess,bee-29.xqbpipu.example.com,443,username=848a9969-7aa2-456b-9da9-69e9f413df30,ws=true,ws-path=/hdm/xo87z7i,ws-headers=Host:"www.v9p5uc3.example.net",vmess-aead=true,tls=true,sni="www.v9p5uc3.example.net",udp-relay=true
+DE-pbrw-08=trojan,xey-25.ohekj.example.net,443,password=50gcH1IrTZeRtSHn,tls=true,sni="xey-25.ohekj.example.net",udp-relay=true

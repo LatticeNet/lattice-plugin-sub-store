@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-xcg-14",
+      "type": "shadowsocks",
+      "server": "vgz-03.wijo.example.com",
+      "server_port": 19730,
+      "method": "aes-128-gcm",
+      "password": "485528"
+    },
+    {
+      "tag": "NL-yspkh0-87",
+      "type": "trojan",
+      "server": "frx-40.o7y8y1.example.org",
+      "server_port": 443,
+      "password": "70370695",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.mq1bb04d.example.net",
+        "insecure": false
+      },
+      "network": "tcp"
+    }
+  ],
+  "endpoints": []
+}

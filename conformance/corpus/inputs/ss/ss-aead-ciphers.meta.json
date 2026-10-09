@@ -1,0 +1,9 @@
+{
+  "id": "ss-aead-ciphers",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "sip002-base64url",
+  "description": "SIP002 links with Base64URL userinfo, one per AEAD cipher."
+}

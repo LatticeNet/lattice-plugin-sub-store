@@ -1,0 +1,8 @@
+{
+  "id": "clash-ssh",
+  "family": "clash",
+  "protocol": "ssh",
+  "transport": "tcp",
+  "security": "none",
+  "description": "SSH with password and with a private key and host key."
+}

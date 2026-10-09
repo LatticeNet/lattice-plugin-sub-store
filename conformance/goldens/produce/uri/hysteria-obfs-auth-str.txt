@@ -1,0 +1,1 @@
+hysteria://by-05.sxhabqpu.example.com:11795?obfs=xplus&auth=b6y1LjqiDr3JpbFN&downmbps=80&obfsParam=UwNBvR4dhTjf&protocol=udp&peer=api.aoey7lq4p.example.com&udp=true&upmbps=20#KR-bawy-93

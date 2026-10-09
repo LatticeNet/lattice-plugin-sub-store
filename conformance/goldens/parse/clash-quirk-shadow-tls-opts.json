@@ -1,0 +1,16 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "HK-lb5-55",
+    "password": "WhdU9BwFJtPtUMRX",
+    "port": 443,
+    "server": "lm-06.k25j9.example.org",
+    "shadow-tls-opts": {
+      "host": "api.y7r021k.example.org",
+      "password": "Mwlv82P4DNwKJpCD",
+      "version": 3
+    },
+    "type": "ss",
+    "udp": true
+  }
+]

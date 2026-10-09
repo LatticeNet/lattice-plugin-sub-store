@@ -1,0 +1,32 @@
+[
+  {
+    "address": "sp-32.tm7unoq.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-uri": "/lr90",
+      "password": "9bf01f9f-26db-45dd-8286-efcd31efd819",
+      "tag": "CA-n3w9j-79",
+      "tls-host": "sp-32.tm7unoq.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "xhw-30.mj0me.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-uri": "/rse2gc/i7dsee8t",
+      "password": "9bf01f9f-26db-45dd-8286-efcd31efd819",
+      "tag": "AU-q0l0b-46",
+      "tls-host": "xhw-30.mj0me.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

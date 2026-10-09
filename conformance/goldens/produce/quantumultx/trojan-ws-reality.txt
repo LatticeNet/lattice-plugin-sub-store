@@ -1,0 +1,1 @@
+trojan=trr-05.cxu586h.example.com:443,password=mnPm4xaG59F4J9VO,obfs=wss,obfs-uri=/x225kbvr,obfs-host=api.s066ycl2.example.com,tls-host=api.s066ycl2.example.com,udp-relay=true,tag=DE-w55-42,reality-base64-pubkey=PKU6M5-j3ysTiKBTojfFZWrNOubl9ZFmY1-M5bfrnKk,reality-hex-shortid=7662ad44

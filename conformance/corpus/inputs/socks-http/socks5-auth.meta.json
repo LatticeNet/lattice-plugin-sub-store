@@ -1,0 +1,8 @@
+{
+  "id": "socks5-auth",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "description": "socks5:// with username and password."
+}

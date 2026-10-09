@@ -1,0 +1,1 @@
+vmess=d3r-23.er9q6.example.net:443,method=chacha20-poly1305,password=d45031ed-edbf-4630-9a7e-3ea25d35210d,obfs=http,obfs-uri=/blc/cpyp,obfs-host=static.rf5mcrm8wm.example.org,aead=true,udp-relay=true,tag=KR-d8v6j-75

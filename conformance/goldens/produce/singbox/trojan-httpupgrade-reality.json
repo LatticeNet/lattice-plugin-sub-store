@@ -1,0 +1,32 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-fsqg-13",
+      "type": "trojan",
+      "server": "e5v-34.kxtb5hii.example.org",
+      "server_port": 443,
+      "password": "G1X5dWOpnYCm7S5y",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.dzqcn9r4e.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "LLn8fHjxlFAjKvNOsGJb1yjXwnbS19M-3iA-RyCpqj8",
+          "short_id": "35aece35"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/pmx34sl1p",
+        "host": "www.dzqcn9r4e.example.org"
+      }
+    }
+  ],
+  "endpoints": []
+}

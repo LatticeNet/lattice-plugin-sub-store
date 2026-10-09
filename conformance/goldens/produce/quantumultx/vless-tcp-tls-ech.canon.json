@@ -1,0 +1,17 @@
+[
+  {
+    "address": "uk-05.zeqc.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "1e63755b-a4fb-486a-9bf1-cfe455701da5",
+      "tag": "GB-t9p-56",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.ycqp18r6p5.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

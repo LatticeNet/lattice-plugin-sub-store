@@ -1,0 +1,10 @@
+proxies:
+  - name: DE-zrg-71
+    type: vless
+    server: csz-34.vuda.example.com
+    port: 443
+    uuid: bc410de2-5a75-4b93-a4ba-c8ee4485ba10
+    udp: true
+    network: grpc
+    grpc-opts:
+      grpc-service-name: oobemkp-f98k5

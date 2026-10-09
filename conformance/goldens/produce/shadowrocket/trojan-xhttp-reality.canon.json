@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "DE-glbrf2-97",
+      "network": "xhttp",
+      "password": "qHZJqurZulhTqItR",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "Dx3ppS5lobZLG-oJmppEbbEgoQ-G2P3EvkPk_fB2fR8",
+        "short-id": "7e621117"
+      },
+      "server": "j54-21.xixy.example.org",
+      "sni": "api.i6ar473.example.net",
+      "type": "trojan",
+      "udp": true,
+      "xhttp-opts": {
+        "headers": {
+          "Host": "api.i6ar473.example.net"
+        },
+        "path": "/hrubwmplp"
+      }
+    }
+  ]
+}

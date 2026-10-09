@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "y2-16.jnffzo.example.net",
+      "443"
+    ],
+    "name": "FR-q12au1-90",
+    "params": {
+      "password": "AqMA6wktK9PBJuK9gRNC",
+      "skip-cert-verify": "false",
+      "sni": "www.j5ultdi1.example.com",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

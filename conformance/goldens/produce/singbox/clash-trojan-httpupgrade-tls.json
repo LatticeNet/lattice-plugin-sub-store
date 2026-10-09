@@ -1,0 +1,31 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-wf6mw-41",
+      "type": "trojan",
+      "server": "sva-34.ljiws45y.example.org",
+      "server_port": 443,
+      "password": "UGF4CIWxdW2hW0zo",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.ub1g32.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/p2bpzcb",
+        "host": "static.ub1g32.example.org"
+      }
+    }
+  ],
+  "endpoints": []
+}

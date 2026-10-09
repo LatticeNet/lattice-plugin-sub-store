@@ -1,0 +1,14 @@
+proxies:
+  - name: FR-r7y7-81
+    type: vmess
+    server: bb8-01.l6d3.example.org
+    port: 443
+    uuid: 099e3a94-ac18-45fc-b68c-e1d7135dd02c
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: ws
+    ws-opts:
+      path: /bahe5/d975jk
+      headers:
+        Host: img.lxr7dc.example.org

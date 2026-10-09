@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"US-xksb8-53","method":"2022-blake3-aes-256-gcm","server":"id2-31.cfpw.example.net","port":14729,"password":"EWKRLbqKkrLmfPsRvWd5uJTj5kbWYatax0DDdbZtB/c=:nlVrFh4vj2g38X12H/jHY84zGfrHgdREZ832YLlTrbA=","tfo":false,"udp_relay":true}}

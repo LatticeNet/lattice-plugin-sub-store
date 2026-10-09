@@ -1,0 +1,14 @@
+[
+  {
+    "address": "fg-21.w02y.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "NVBxPabyTYwXnC8nXizj",
+      "tag": "NL-k3j6-95",
+      "tls-host": "www.ppj9s1u06.example.org",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

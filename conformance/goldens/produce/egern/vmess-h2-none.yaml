@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"TW-jify-67","server":"y7-38.n0e0hv.example.com","port":443,"user_id":"cafc6286-f7d7-4d2e-a35b-cd38a93e6fa4","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http2":{"path":"/ax0/brhwd6","headers":{"Host":"img.l481zufk5j.example.com"}}}}}

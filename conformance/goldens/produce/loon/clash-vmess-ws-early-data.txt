@@ -1,0 +1,1 @@
+DE-eec9l-77=vmess,zs-01.d96h4u7.example.com,443,auto,"987a2697-2d80-4245-aab3-42a2e6ac081c",transport=ws,path=/jhixtf/jbwudryxb,host=img.cqi5al.example.net,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=cdn.cn3k79.example.net,alterId=0,udp=true

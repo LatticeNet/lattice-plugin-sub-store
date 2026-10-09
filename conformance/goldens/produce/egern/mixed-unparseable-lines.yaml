@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"US-hr20o-56","server":"p6-38.lmtzlp.example.org","port":443,"password":"LUeLHNE8d1oy9IvJ","tfo":false,"udp_relay":true,"sni":"static.rvmzabz4i3.example.net"}}
+  - {"hysteria2":{"name":"FR-k6lz-15","server":"gp-09.lnzh34h.example.com","port":443,"auth":"Ed6W7Z5cNQiUnoxukCwd","tfo":false,"udp_relay":true,"sni":"img.jfk8scmbz.example.org","skip_tls_verify":false}}

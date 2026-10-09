@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-encryption",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "vless-encryption",
+  "description": "VLESS with an encryption value other than none."
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "TW-t8tm2-01",
+    "network": "xhttp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "a7j-28.e771.example.org",
+    "skip-cert-verify": false,
+    "sni": "img.fwtd6.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "59d5c507-3e46-40bc-8f61-af13a8bcaa69",
+    "xhttp-opts": {
+      "host": "img.fwtd6.example.net",
+      "mode": "auto",
+      "path": "/gdu0r/hl2hma1y"
+    }
+  }
+]

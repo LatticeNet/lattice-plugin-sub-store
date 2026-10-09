@@ -1,0 +1,1 @@
+socks5+tls://tnh8mu9:rUm1xxOVNd0p@q7-18.vcxv4ay.example.net:443?sni=img.uz460.example.com&skip-cert-verify=true#NL-dzsr6-04

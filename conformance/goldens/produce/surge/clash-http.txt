@@ -1,0 +1,3 @@
+NL-i1l-37=http,ia-17.raeya8.example.net,8080,username="dzpyhv6v",password="cx0ri7gyAdT1"
+HK-hlx5z-75=https,sn-35.itha1zf.example.net,443,username="jjbz6",password="1yxmCwBktXpQ",sni="static.ktyuunm.example.com",skip-cert-verify=false
+HK-puvo-98=http,udw-03.gq5aqn1.example.com,8080,headers="X-Client:"elixl""

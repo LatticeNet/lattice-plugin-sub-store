@@ -1,0 +1,8 @@
+{
+  "id": "clash-hysteria",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "description": "Hysteria v1 with auth-str, bandwidth and obfs."
+}

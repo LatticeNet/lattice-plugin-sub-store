@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "gy-28.bbn1u9k5.example.org",
+      "44420"
+    ],
+    "name": "TW-d6ahp-79",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "E5ZzS0B766tN",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "a6-32.jx3wy.example.net",
+      "443"
+    ],
+    "name": "KR-mxcn-27",
+    "params": {
+      "password": "iF8MoEBbQ3gtc6mI",
+      "sni": "img.i37u2y5i.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "AU-r7yklu-31",
+    "host": "bp-35.sdtq2r5.example.com",
+    "path": "",
+    "port": "27575",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206VFdwQTdQclFJRjNETzVa",
+    "userinfo_base64": "aes-256-gcm:TWpA7PrQIF3DO5Z"
+  }
+]

@@ -1,0 +1,2 @@
+AU-xcg-14=ss,vgz-03.wijo.example.com,19730,encrypt-method=aes-128-gcm,password="485528",udp-relay=true
+NL-yspkh0-87=trojan,frx-40.o7y8y1.example.org,443,password="70370695",tls=true,sni="static.mq1bb04d.example.net"

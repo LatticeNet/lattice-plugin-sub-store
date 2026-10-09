@@ -1,0 +1,21 @@
+proxies:
+  - name: TW-xhup-68
+    type: vmess
+    server: tau-38.aett40.example.net
+    port: 443
+    uuid: 4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: static.rooc7abl.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /kczba7vr
+      headers:
+        Host: static.rooc7abl.example.com

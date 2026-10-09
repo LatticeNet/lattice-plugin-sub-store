@@ -1,0 +1,8 @@
+{
+  "id": "vless-tcp-http-tls",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp-http",
+  "security": "tls",
+  "description": "VLESS share link over tcp-http with security tls."
+}

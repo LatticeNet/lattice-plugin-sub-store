@@ -1,0 +1,1 @@
+trojan=zh2-34.v0i498.example.com:443,password=x47D5mO8MxZGTHOg,over-tls=true,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=www.gm2apo.example.com,udp-relay=true,tag=FR-liz0ut-87

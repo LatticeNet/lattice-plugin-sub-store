@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "gj-03.d3ejf.example.net",
+      "443",
+      "wNErEnwtwNG5ixk200VV"
+    ],
+    "name": "AU-rwg0qw-67",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "api.qutrl0x4py.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

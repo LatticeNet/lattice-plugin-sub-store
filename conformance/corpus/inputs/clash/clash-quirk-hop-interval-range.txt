@@ -1,0 +1,9 @@
+proxies:
+  - name: JP-wqjm9-26
+    type: hysteria2
+    server: ry-31.ngpamb5.example.net
+    port: 443
+    ports: 20000-30000
+    hop-interval: 15-30
+    password: xBfmvQnqwyT2k1d0tmXj
+    sni: cdn.ygqhz.example.org

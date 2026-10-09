@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-n85w-12","method":"aes-256-gcm","server":"hgy-04.ex8w2.example.com","port":56250,"password":"5Xg4MTWmye3ZHg","tfo":false,"udp_relay":true}}
+  - {"vless":{"name":"FR-yyawg3-72","server":"sy-18.wxdgdec.example.net","port":443,"user_id":"f000938c-5920-49b5-a1b5-1e16f536a34e","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/v4pf3aroc","headers":{"Host":"static.l2taga7cax.example.net"},"sni":"www.w1foqxru.example.org"}}}}
+  - {"hysteria2":{"name":"SG-ep46mu-72","server":"sjt-07.jd6i.example.org","port":443,"auth":"Qw2OTIIkmqLDYdIFQUfL","tfo":false,"udp_relay":true,"sni":"www.b4d9c.example.org"}}

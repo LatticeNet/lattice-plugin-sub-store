@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "SG-hqzi-96",
+    "host": "xe-34.w3hx.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "img.l2m9nw.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "bm91bewnfciiwnoMmrKb"
+  }
+]

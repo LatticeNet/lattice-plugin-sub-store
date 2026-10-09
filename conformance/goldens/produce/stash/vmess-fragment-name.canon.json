@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "name": "SG-ljo-92",
+      "network": "tcp",
+      "port": 443,
+      "server": "sr-09.m6mi.example.org",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "35c16f41-6aaf-449b-a131-dbf28bb15d0f"
+    }
+  ]
+}

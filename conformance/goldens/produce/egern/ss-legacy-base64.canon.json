@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "CA-tol-36",
+        "password": "Wm8v66vvBpjFnF",
+        "port": 52039,
+        "server": "urj-24.ji6pn83.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

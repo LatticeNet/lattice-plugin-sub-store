@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "US-x5x-75",
+        "password": "IOG2Yrjm3RD7ry51",
+        "port": 443,
+        "server": "2001:db8:9ef5:1c35::d99d",
+        "sni": "api.z12lb15.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "host": "api.z12lb15.example.net",
+          "path": "/hxz/otea8c"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+vless://eea280a7-27f4-4a5e-84e2-04d68d560a7e@y0-02.s4aqxi.example.org:443?security=none&type=quic&packetEncoding=xudp&encryption=none#GB-ay5a4-67

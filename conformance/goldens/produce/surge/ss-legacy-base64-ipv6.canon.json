@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "2001:db8:67ef:80::edf3",
+      "33510"
+    ],
+    "name": "KR-fp9-11",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "password": "QsjbCL9G6dfT6l",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

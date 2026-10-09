@@ -1,0 +1,62 @@
+[
+  {
+    "address": "e4-39.vor9g.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "none",
+      "obfs": "ws",
+      "obfs-host": "www.j2stn.example.org",
+      "obfs-uri": "/pdlzh/kqamarys",
+      "password": "0ed5ed26-4b12-4d4f-a31c-9de5a377b458",
+      "tag": "JP-ijr-55",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "ty8-01.lvynkanu.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "img.pewtkvy.example.com",
+      "obfs-uri": "/xodx/z2maviu62v",
+      "password": "a00bab91-5bd3-46a9-b915-eaf312402b24",
+      "tag": "GB-njols-07",
+      "tls-host": "img.pewtkvy.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "ua4-11.ix24.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "93b4f3f3-326d-493f-9fe0-dcbb285ef223",
+      "tag": "SG-oma-59",
+      "tls-host": "api.bi8j2y.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "nb7-30.wryjwwi.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "none",
+      "obfs": "http",
+      "obfs-host": "img.e9d8gma.example.org",
+      "obfs-uri": "/iuy9",
+      "password": "984c9559-2091-4f77-ae2b-ca189cef3eb9",
+      "tag": "AU-fv5x-63",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

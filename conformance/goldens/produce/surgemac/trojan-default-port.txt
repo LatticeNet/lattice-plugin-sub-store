@@ -1,0 +1,1 @@
+AU-uj6a-60=trojan,sxl-01.jiyys7.example.net,443,password="8RvhaFk0czErf7tJ",tls=true,sni="static.x2tic.example.org"

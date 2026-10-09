@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"CA-n3w9j-79","server":"sp-32.tm7unoq.example.net","port":443,"user_id":"9bf01f9f-26db-45dd-8286-efcd31efd819","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/lr90","headers":{},"sni":"sp-32.tm7unoq.example.net"}}}}
+  - {"vmess":{"name":"AU-q0l0b-46","server":"xhw-30.mj0me.example.org","port":443,"user_id":"9bf01f9f-26db-45dd-8286-efcd31efd819","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/rse2gc/i7dsee8t","headers":{},"sni":"xhw-30.mj0me.example.org"}}}}

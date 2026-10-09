@@ -1,0 +1,2 @@
+KR-jnlp-45=trojan,hs7-14.fbk5i4m.example.net,443,password=joCobve956pHGbOP,tls=true,sni="127.0.0.1",udp-relay=true
+US-udm43-99=trojan,cm-29.o4a6p.example.org,443,password=rRZddt7F6fbdqRuD,tls=true,sni="127.0.0.1",udp-relay=true

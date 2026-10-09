@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "p6-38.lmtzlp.example.org",
+      "443"
+    ],
+    "name": "US-hr20o-56",
+    "params": {
+      "password": "LUeLHNE8d1oy9IvJ",
+      "sni": "static.rvmzabz4i3.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "gp-09.lnzh34h.example.com",
+      "443"
+    ],
+    "name": "FR-k6lz-15",
+    "params": {
+      "password": "Ed6W7Z5cNQiUnoxukCwd",
+      "skip-cert-verify": "false",
+      "sni": "img.jfk8scmbz.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

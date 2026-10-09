@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "1UjuEMWE7CI63SWK",
+      "server": "tz-12.a1opi5.example.com",
+      "server_port": 443,
+      "tag": "TW-hstpqi-80",
+      "tls": {
+        "alpn": [
+          "h3",
+          "spdy/3.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.b7u4wwuv.example.net"
+      },
+      "type": "tuic",
+      "udp_relay_mode": "quic",
+      "uuid": "3007e77b-5b38-41a6-aaf1-fe9710eb4bfe"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","name":"FR-gg4he-79","network":"tcp","password":"8siqyovoAYVDDHHY","port":443,"reality-opts":{"_spider-x":"/","public-key":"7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8","short-id":"fd7b5be3"},"server":"cl3-20.f1i93c.example.com","sni":"img.zz8yf8k7.example.net","type":"trojan","udp":true}

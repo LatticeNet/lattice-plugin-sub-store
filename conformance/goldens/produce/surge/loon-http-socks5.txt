@@ -1,0 +1,5 @@
+NL-h8a1-33=http,kqh-06.uqh0u.example.net,8080
+GB-kik2h-89=http,f4j-10.w9jum0.example.com,8080,username="g07jxnmb",password="ZdFAu1yrll0q"
+GB-pk1-63=https,up-20.duyj.example.net,443,username="t37cot",password="falAnotdFH7q",sni="www.l57hlg.example.org",skip-cert-verify=true
+GB-boqt-26=socks5,alj-33.xpvv6cx7.example.com,1080,username="uj1ml2dq",password="rCfg9lcjPcUp",udp-relay=true
+CA-a8gt-40=socks5-tls,x4x-06.ybkk4r6c.example.org,443,username=" oknlk",password="x3lm5Xvs7LV6",sni="static.rk9461.example.net",udp-relay=true

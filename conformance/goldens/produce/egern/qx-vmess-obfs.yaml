@@ -1,0 +1,5 @@
+proxies:
+  - {"vmess":{"name":"JP-ijr-55","server":"e4-39.vor9g.example.com","port":443,"user_id":"0ed5ed26-4b12-4d4f-a31c-9de5a377b458","security":"none","tfo":false,"legacy":false,"udp_relay":true,"transport":{"ws":{"path":"/pdlzh/kqamarys","headers":{"Host":"www.j2stn.example.org"}}}}}
+  - {"vmess":{"name":"GB-njols-07","server":"ty8-01.lvynkanu.example.net","port":443,"user_id":"a00bab91-5bd3-46a9-b915-eaf312402b24","security":"none","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/xodx/z2maviu62v","headers":{"Host":"img.pewtkvy.example.com"},"sni":"img.pewtkvy.example.com"}}}}
+  - {"vmess":{"name":"SG-oma-59","server":"ua4-11.ix24.example.com","port":443,"user_id":"93b4f3f3-326d-493f-9fe0-dcbb285ef223","security":"none","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"api.bi8j2y.example.net"}}}}
+  - {"vmess":{"name":"AU-fv5x-63","server":"nb7-30.wryjwwi.example.net","port":443,"user_id":"984c9559-2091-4f77-ae2b-ca189cef3eb9","security":"none","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"path":"/iuy9","headers":{"Host":"img.e9d8gma.example.org"}}}}}

@@ -1,0 +1,1 @@
+FR-ozyw6h-48 = trojan, 198.51.100.227, 443, password=2mUxZg0GFFQkZr1P, sni=api.meixt51op.example.org, server-cert-fingerprint-sha256=A7B75AE5BEB27252A005E1D70B80E40E02A4A53161951CE8BF2EE13A2B1C17BD, alpn="h2,http/1.1", server-cert-verify-name=cdn.eo4jw20rg5.example.net

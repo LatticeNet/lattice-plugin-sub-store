@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"KR-pml-30","server":"nvo-13.tiyto.example.com","port":443,"user_id":"19ce9141-5472-4909-b9dd-56d673bcefcd","tfo":false,"udp_relay":true,"transport":{"http1":{"method":"GET","path":"/re7z2/lfj8lceb","headers":{"Host":"cdn.flyi3.example.net"}}}}}

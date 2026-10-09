@@ -1,0 +1,43 @@
+[
+  {
+    "address": "k7n-34.k3dmj.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "x6ITjYHRYeEvJEsG",
+      "tag": "JP-g3y6-02",
+      "tls-host": "api.dv5ooq2v.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "z2n-18.xvyy2a.example.org:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "www.eao2iex89b.example.net",
+      "obfs-uri": "/soyeoey",
+      "password": "xOSzUMgiUfepNYrF",
+      "tag": "TW-w9xe07-13",
+      "tls-host": "www.eao2iex89b.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "ls-29.dd8veg7.example.org:80",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "api.pj96qv0q6.example.net",
+      "obfs-uri": "/ahi06l",
+      "password": "OLywOW0EdBxNnOvJ",
+      "tag": "FR-yuwlt-90",
+      "tls-host": "api.pj96qv0q6.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

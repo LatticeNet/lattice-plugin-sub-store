@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "l0-33.u7bk1j.example.org",
+      "443"
+    ],
+    "name": "TW-xem-54",
+    "params": {
+      "h3": "true",
+      "max-streams": "4",
+      "password": "3oiET4BqsC3Vfy",
+      "sni": "www.nppkxkb.example.com",
+      "username": "whtb1lv"
+    },
+    "type": "trust-tunnel"
+  }
+]

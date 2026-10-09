@@ -1,0 +1,12 @@
+[
+  {
+    "cipher": "aes-256-gcm",
+    "name": "KR-uhyf-94",
+    "password": "OFWOx4wLiW8zkv",
+    "port": 21991,
+    "server": "2001:db8:d7c0:51b0::dfb9",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true
+  }
+]

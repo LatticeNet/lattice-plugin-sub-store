@@ -1,0 +1,3 @@
+NL-nkzbk-02 = http, vb-17.e188i878.example.net, 8080
+DE-epqj-42 = http, g2c-07.eklb.example.com, 8080, ytqroxb5, kTH9PbaXBZbB
+FR-ikt0-49 = http, bpv-02.oqml6c.example.org, 8080, username=e0bqj, password=CNhUZkFflnfQ

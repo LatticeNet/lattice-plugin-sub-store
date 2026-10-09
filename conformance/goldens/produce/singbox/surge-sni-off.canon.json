@@ -1,0 +1,18 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "muju50zKO0N7ulsr",
+      "server": "192.0.2.176",
+      "server_port": 443,
+      "tag": "DE-nsuz9v-24",
+      "tls": {
+        "disable_sni": true,
+        "enabled": true,
+        "insecure": true,
+        "server_name": "192.0.2.176"
+      },
+      "type": "trojan"
+    }
+  ]
+}

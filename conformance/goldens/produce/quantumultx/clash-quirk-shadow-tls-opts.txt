@@ -1,0 +1,1 @@
+shadowsocks=lm-06.k25j9.example.org:443,method=aes-128-gcm,password=WhdU9BwFJtPtUMRX,udp-relay=true,tag=HK-lb5-55

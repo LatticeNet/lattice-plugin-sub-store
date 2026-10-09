@@ -1,0 +1,1 @@
+shadowsocks=hkt-10.p5shwz3q.example.org:443,method=aes-256-gcm,password=XEbhL0V9HaZzOJ,obfs=wss,obfs-host=img.xz1pgc.example.com,obfs-uri=/p9ec6ij,udp-relay=true,tag=KR-tw9n-85

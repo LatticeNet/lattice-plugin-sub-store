@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "AU-htj-64",
+        "password": "PJLn2tDSGfWvqS3p7dv0",
+        "port": 443,
+        "server": "qrg-20.nc9x.example.net",
+        "skip_tls_verify": false,
+        "sni": "api.abdoopble.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "anytls": {
+        "name": "FR-mnt-40",
+        "password": "zD32rCAiPcky6yiH8eWx",
+        "port": 443,
+        "server": "s1-33.kogex.example.org",
+        "skip_tls_verify": false,
+        "sni": "api.m123qkb.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

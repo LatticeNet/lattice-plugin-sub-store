@@ -1,0 +1,7 @@
+{
+  "id": "mixed-formats",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "mixed-formats",
+  "description": "Share links, Surge, Loon and Quantumult X lines and a Clash JSON line in one document."
+}

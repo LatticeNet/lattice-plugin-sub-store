@@ -1,0 +1,1 @@
+tuic://v2DeBaasrThWvtaPa4ChcTJX:@si-36.bnyc.example.net:443?alpn=h3&congestion_control=bbr&sni=www.zuzj9pi2d.example.org&udp=true&udp_relay_mode=native#HK-rwl-68

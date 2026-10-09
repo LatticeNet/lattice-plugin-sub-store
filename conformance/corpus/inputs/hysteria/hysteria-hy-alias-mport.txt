@@ -1,0 +1,1 @@
+hy://sa-22.w5fx9ur.example.org:443?auth=vs8zlZsoihB8rO1z&mport=20000-25000&peer=www.u7sud70.example.org&upmbps=10&downmbps=50#GB-ede-02

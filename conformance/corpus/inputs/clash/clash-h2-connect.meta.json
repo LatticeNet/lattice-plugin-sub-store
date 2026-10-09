@@ -1,0 +1,8 @@
+{
+  "id": "clash-h2-connect",
+  "family": "clash",
+  "protocol": "h2-connect",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "HTTP/2 CONNECT with credentials and max-streams."
+}

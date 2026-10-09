@@ -1,0 +1,22 @@
+proxies:
+  - name: DE-ef8y-71
+    type: tuic
+    server: yk-27.undo.example.com
+    port: 443
+    uuid: c10f0629-f89a-499a-9e8a-d9c96a95a37b
+    password: wwW951G3pYb2fO4d
+    alpn:
+      - h3
+    congestion-controller: bbr
+    udp-relay-mode: native
+    reduce-rtt: true
+    sni: cdn.ji7v4na.example.com
+  - name: AU-odqqw-88
+    type: tuic
+    server: p4-04.g0lla3tp.example.net
+    port: 443
+    token: 1CDBTBx4csOjzwyAnuz7mS34
+    alpn:
+      - h3
+    disable-sni: true
+    skip-cert-verify: true

@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "NL-e38ors-50",
+        "port": 443,
+        "server": "vpb-16.ifpx5.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "63f2ded1-1843-4dcf-bf13-76c8580b46a0"
+      }
+    }
+  ]
+}

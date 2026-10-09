@@ -1,0 +1,1 @@
+FR-yeun-59=tuic-v5,bl-19.cnqn4dxi.example.net,443,uuid=437379f7-bed5-4389-a11e-6732f703fc45,password="vArKjoDH8C0gXxIT",sni="bl-19.cnqn4dxi.example.net",alpn="h3"

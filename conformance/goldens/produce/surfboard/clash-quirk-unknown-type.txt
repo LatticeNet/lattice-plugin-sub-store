@@ -1,0 +1,1 @@
+DE-ctej2-56=ss,uwn-37.ixewfgf.example.net,18259,encrypt-method=aes-128-gcm,password="VcOgI5RQw1qi",udp-relay=true

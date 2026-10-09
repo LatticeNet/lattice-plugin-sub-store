@@ -1,0 +1,9 @@
+{
+  "id": "qx-vmess-obfs",
+  "family": "qx",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "obfs",
+  "description": "Quantumult X vmess with obfs ws, wss, over-tls and http."
+}

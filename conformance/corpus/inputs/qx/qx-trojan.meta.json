@@ -1,0 +1,8 @@
+{
+  "id": "qx-trojan",
+  "family": "qx",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "Quantumult X trojan with over-tls, with wss and with plain ws."
+}

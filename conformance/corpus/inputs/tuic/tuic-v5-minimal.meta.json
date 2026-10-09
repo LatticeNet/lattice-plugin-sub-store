@@ -1,0 +1,9 @@
+{
+  "id": "tuic-v5-minimal",
+  "family": "tuic",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "minimal",
+  "description": "uuid:password and host only."
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "AU-zxd838-69",
+    "host": "mo-07.m625b9u.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.sskdxnvab.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "ushjygm7:KVGUTh8yVTWIts5R"
+  }
+]

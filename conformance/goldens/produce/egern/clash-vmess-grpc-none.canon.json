@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "HK-etr-64",
+        "port": 443,
+        "security": "auto",
+        "server": "gz1-11.f67x.example.net",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "service_name": "pupv0-cwl8xg"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "f26dc40c-98db-4600-b5f4-ed294aa9ecc4"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+vmess=bee-29.xqbpipu.example.com:443,method=chacha20-poly1305,password=848a9969-7aa2-456b-9da9-69e9f413df30,obfs=wss,obfs-uri=/hdm/xo87z7i,obfs-host=www.v9p5uc3.example.net,tls-host=www.v9p5uc3.example.net,aead=true,udp-relay=true,tag=AU-tfsez1-75
+trojan=xey-25.ohekj.example.net:443,password=50gcH1IrTZeRtSHn,over-tls=true,tls-host=xey-25.ohekj.example.net,udp-relay=true,tag=DE-pbrw-08

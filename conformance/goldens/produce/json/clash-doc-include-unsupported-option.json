@@ -1,0 +1,32 @@
+[
+  {
+    "cipher": "aes-256-cfb",
+    "name": "HK-mnfi9-26",
+    "obfs": "plain",
+    "password": "37RbHUfiK5qZ",
+    "port": 57200,
+    "protocol": "origin",
+    "server": "kd-06.gvlm.example.org",
+    "type": "ssr",
+    "udp": true
+  },
+  {
+    "name": "GB-q3yeq-20",
+    "port": 49422,
+    "psk": "zf23H7WXJyCHIlhxKR0H",
+    "server": "l25-15.zi0q.example.org",
+    "type": "snell",
+    "udp": true,
+    "version": 4
+  },
+  {
+    "name": "DE-kfu-53",
+    "password": "Vc8VGELnQhHaOc",
+    "port-range": "47589-47598",
+    "server": "tu-19.q21z.example.com",
+    "transport": "TCP",
+    "type": "mieru",
+    "udp": true,
+    "username": "pw6q"
+  }
+]

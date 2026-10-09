@@ -1,0 +1,3 @@
+http=vb-17.e188i878.example.net:8080,udp-relay=true,tag=NL-nkzbk-02
+http=g2c-07.eklb.example.com:8080,username=ytqroxb5,password=kTH9PbaXBZbB,udp-relay=true,tag=DE-epqj-42
+http=bpv-02.oqml6c.example.org:8080,username=e0bqj,password=CNhUZkFflnfQ,udp-relay=true,tag=FR-ikt0-49

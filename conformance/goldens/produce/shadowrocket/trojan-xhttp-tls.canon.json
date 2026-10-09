@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "HK-dq7iy1-12",
+      "network": "xhttp",
+      "password": "WkXAvi3KHLWIejv8",
+      "port": 443,
+      "server": "de4-40.or91.example.net",
+      "sni": "cdn.f84uf0umu.example.org",
+      "type": "trojan",
+      "udp": true,
+      "xhttp-opts": {
+        "headers": {
+          "Host": "cdn.f84uf0umu.example.org"
+        },
+        "path": "/yd60xvm"
+      }
+    }
+  ]
+}

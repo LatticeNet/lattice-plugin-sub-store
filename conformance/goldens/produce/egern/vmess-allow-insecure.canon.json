@@ -1,0 +1,48 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "AU-nmg-47",
+        "port": 443,
+        "security": "auto",
+        "server": "oes-32.n24d5.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "cdn.ona5zaws.example.org"
+            },
+            "path": "/r17mh",
+            "skip_tls_verify": true,
+            "sni": "cdn.ona5zaws.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "c9dbfd76-55c7-44c4-8994-6664aa738d1c"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "US-woc-03",
+        "port": 443,
+        "security": "auto",
+        "server": "mp-03.vjrfhp59.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.mf2uv0vj.example.com"
+            },
+            "path": "/ex9zeq2",
+            "skip_tls_verify": true,
+            "sni": "static.mf2uv0vj.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3111cd1e-db1b-45c0-998d-ba3c52f64f32"
+      }
+    }
+  ]
+}

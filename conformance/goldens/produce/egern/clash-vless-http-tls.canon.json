@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "FR-fay-77",
+        "port": 443,
+        "server": "e56-01.seeo45qf.example.net",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "cdn.udpgihfrvr.example.net"
+            },
+            "method": "GET",
+            "path": "/jcn0",
+            "skip_tls_verify": false
+          }
+        },
+        "udp_relay": true,
+        "user_id": "6ca1dced-5ed7-4a6b-8dc7-ed9720264442"
+      }
+    }
+  ]
+}

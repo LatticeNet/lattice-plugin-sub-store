@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "AU-em7j3s-83",
+        "password": "aTLmH8rMvhzmoueREcQg",
+        "port": 443,
+        "server": "2001:db8:f051:f0e2::9775",
+        "skip_tls_verify": false,
+        "sni": "www.feai4.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "k0-39.u2rty.example.com",
+      "443"
+    ],
+    "name": "GB-ksvg-48",
+    "params": {
+      "alpn": "h3",
+      "password": "9AORdmp3pXEj396c",
+      "skip-cert-verify": "false",
+      "sni": "www.ei3acu3.example.org",
+      "uuid": "2db4c889-20e3-4ccc-ae01-977b9c46a552"
+    },
+    "type": "tuic-v5"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","name":"SG-yyh6-49","network":"ws","password":"N3BO5u3oKZ7MaAHU","port":443,"server":"ojd-26.jpya.example.org","sni":"cdn.z5n5auu.example.com","type":"trojan","udp":true,"ws-opts":{"headers":{"Host":"cdn.z5n5auu.example.com"},"path":"/dmws/d43mz1k"}}

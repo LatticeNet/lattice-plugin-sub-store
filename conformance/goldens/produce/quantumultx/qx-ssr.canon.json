@@ -1,0 +1,30 @@
+[
+  {
+    "address": "hs-06.ot0k647n.example.org:59541",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "obfs": "tls1.2_ticket_auth",
+      "obfs-host": "static.vzpfez9.example.net",
+      "password": "Fx5zCLLOqL0K",
+      "ssr-protocol": "auth_chain_a",
+      "ssr-protocol-param": "GUwOw4",
+      "tag": "AU-muj8-77",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "ayv-14.wqdf.example.com:16267",
+    "args": [],
+    "params": {
+      "method": "aes-256-cfb",
+      "obfs": "plain",
+      "password": "g9w4w8eWw1te",
+      "ssr-protocol": "origin",
+      "tag": "SG-ql89a-39",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

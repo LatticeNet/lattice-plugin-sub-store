@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-liz0ut-87",
+      "type": "trojan",
+      "server": "zh2-34.v0i498.example.com",
+      "server_port": 443,
+      "password": "x47D5mO8MxZGTHOg",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gm2apo.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

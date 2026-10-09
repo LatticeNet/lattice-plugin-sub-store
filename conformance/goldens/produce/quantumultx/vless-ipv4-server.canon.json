@@ -1,0 +1,19 @@
+[
+  {
+    "address": "203.0.113.48:8443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "www.chcyg0.example.org",
+      "obfs-uri": "/ogd6r7489",
+      "password": "946ca19d-458d-4607-a30c-d7d5c6af849a",
+      "tag": "US-uz1w8a-26",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.chcyg0.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

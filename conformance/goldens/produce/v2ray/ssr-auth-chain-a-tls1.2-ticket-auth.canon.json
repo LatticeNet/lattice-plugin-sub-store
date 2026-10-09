@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "main": "ad8-40.stya5.example.org:48243:auth_chain_a:aes-256-cfb:tls1.2_ticket_auth:Rm9EcVNwdFlKcFlm",
+      "params": [
+        [
+          "obfsparam",
+          "www.fq3qe5l.example.org"
+        ],
+        [
+          "protoparam",
+          "1512:puvQRKIM"
+        ],
+        [
+          "remarks",
+          "CA-lofwsu-12"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

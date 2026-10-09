@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "FR-liz0ut-87",
+    "host": "zh2-34.v0i498.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "sni",
+        "www.gm2apo.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "x47D5mO8MxZGTHOg"
+  }
+]

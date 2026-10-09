@@ -1,0 +1,33 @@
+[
+  {
+    "address": "vb-17.e188i878.example.net:8080",
+    "args": [],
+    "params": {
+      "tag": "NL-nkzbk-02",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  },
+  {
+    "address": "g2c-07.eklb.example.com:8080",
+    "args": [],
+    "params": {
+      "password": "kTH9PbaXBZbB",
+      "tag": "DE-epqj-42",
+      "udp-relay": "true",
+      "username": "ytqroxb5"
+    },
+    "type": "http"
+  },
+  {
+    "address": "bpv-02.oqml6c.example.org:8080",
+    "args": [],
+    "params": {
+      "password": "CNhUZkFflnfQ",
+      "tag": "FR-ikt0-49",
+      "udp-relay": "true",
+      "username": "e0bqj"
+    },
+    "type": "http"
+  }
+]

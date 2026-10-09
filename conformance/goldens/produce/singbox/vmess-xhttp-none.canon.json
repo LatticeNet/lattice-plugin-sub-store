@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "y66-38.inbufi2.example.net",
+      "server_port": 443,
+      "tag": "DE-kmsvq4-78",
+      "type": "vmess",
+      "uuid": "d586cf7b-aa1f-4314-84df-a94b6c7ffde4"
+    }
+  ]
+}

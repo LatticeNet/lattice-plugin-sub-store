@@ -1,0 +1,11 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "ig-08.qhnagy.example.org",
+      "server_port": 3128,
+      "tag": "KR-ez9-12",
+      "type": "http"
+    }
+  ]
+}

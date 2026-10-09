@@ -1,0 +1,162 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "CA nvmvre9 01",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "TsbDaDmNk39I3QjZ6nTjdcMoQXc7qr6ia4C_ezrAOk0",
+        "short-id": "ddc7f2f4"
+      },
+      "server": "2001:db8:7359:338e::2d96",
+      "servername": "img.l4xtzq.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "5f1d552f-5f02-47eb-8fa2-30b4bca71182"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "KR zk3b6de 02",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "5meyldo9pACfhYGnDS5afumnZECx4lw9dgW1IP_Cs9Y",
+        "short-id": "7a28aa83"
+      },
+      "server": "192.0.2.245",
+      "servername": "cdn.u18uxawg.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "1ceb8d22-208a-428f-8279-530177eb4b2e"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "NL otmrq7 03",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "iBo7lZL5t5o1NVX40DdGTWa2dq8Ug-DqqRU_6QcUwek",
+        "short-id": "fc986489"
+      },
+      "server": "2001:db8:2e10:817b::227e",
+      "servername": "cdn.w25izypd95.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "855cbc2c-5456-4aa8-8db8-ab7eb97ce2e0"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "SG jiql54 04",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "qJRr-InMluxIDqcV4Tszz2uIp5vpJ_1EjTLKgQAysA8",
+        "short-id": "b9d66e30"
+      },
+      "server": "203.0.113.230",
+      "servername": "img.xz7rx9.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "421b2969-9559-43a9-9f1e-6c8d60df126c"
+    },
+    {
+      "name": "US qofeu 05",
+      "password": "2QxCojek22G8oFQfytlF",
+      "port": 32847,
+      "server": "2001:db8:9f0b:1475::926d",
+      "skip-cert-verify": false,
+      "sni": "www.geqxkkkk.example.com",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "name": "GB ocoyqw 06",
+      "password": "CzYxEhdbtrnWDqiJybaV",
+      "port": 24056,
+      "server": "203.0.113.137",
+      "skip-cert-verify": false,
+      "sni": "www.dnkcgywu0r.example.org",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "bbr",
+      "name": "JP r2qg 07",
+      "password": "J4LevL1SKGtz0Eke",
+      "port": 55269,
+      "server": "2001:db8:2aa0:5968::13bd",
+      "sni": "www.ilslza0zge.example.org",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "0580008d-036b-4eb9-9a10-411023b5b282",
+      "version": 5
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "bbr",
+      "name": "US hdzeff0 08",
+      "password": "Oay4mTYSnaO7Sq21",
+      "port": 49424,
+      "server": "192.0.2.53",
+      "sni": "cdn.iq0x42tomr.example.net",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "880a4b71-3def-4b37-9f88-e3a1df4377bc",
+      "version": 5
+    },
+    {
+      "name": "TW j3pevb 09",
+      "network": "tcp",
+      "password": "UcUa9NajW3SboyGg",
+      "port": 443,
+      "server": "2001:db8:a7cc:2156::cd3",
+      "sni": "cdn.x80vf.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "name": "FR wov14 10",
+      "password": "LJ7zbnZeKtYc",
+      "port": 30590,
+      "server": "198.51.100.97",
+      "tls": false,
+      "type": "socks5",
+      "udp": true,
+      "username": "s9he0tm"
+    }
+  ]
+}

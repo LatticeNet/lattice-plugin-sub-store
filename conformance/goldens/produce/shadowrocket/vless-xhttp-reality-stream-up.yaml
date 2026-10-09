@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","encryption":"none","name":"SG-mhum-15","network":"xhttp","packet-encoding":"xudp","port":443,"reality-opts":{"_spider-x":"/","public-key":"TFRLovo-JHk7FdduxHHfqPmK0_CWFJZfmSd9I5ODNMc","short-id":"cd726fed"},"server":"l6-26.titr7ke.example.org","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"fb30b0fa-92a2-4034-a533-8987e286f68e","xhttp-opts":{"mode":"stream-up","path":"/s93pns/mx270"},"servername":"img.ueg06y.example.com"}

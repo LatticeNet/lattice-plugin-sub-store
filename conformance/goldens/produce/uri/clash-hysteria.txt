@@ -1,0 +1,1 @@
+hysteria://eem-03.omri2b2.example.org:41261?alpn=h3&auth=aAz3856ZQjqxVOTJ&downmbps=200 Mbps&obfsParam=HiQ2uYiYts&protocol=udp&peer=www.rsv0amup7.example.net&udp=true&upmbps=30 Mbps#DE-hfwjs3-70

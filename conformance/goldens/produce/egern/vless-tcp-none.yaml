@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"KR-rx6-36","server":"yqq-20.shuir5.example.net","port":443,"user_id":"d702451b-9c9f-4ca7-be10-aa5e190adc18","tfo":false,"udp_relay":true}}

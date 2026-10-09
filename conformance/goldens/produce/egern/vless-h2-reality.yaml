@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"JP-kzkt-75","server":"yek-01.z1l94dfo.example.net","port":443,"user_id":"fc79f00f-7e80-4d12-b9d1-ad060ff43fc0","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/ii0ls","headers":{"Host":"img.vc3ai.example.com"},"sni":"img.vc3ai.example.com","skip_tls_verify":false}}}}

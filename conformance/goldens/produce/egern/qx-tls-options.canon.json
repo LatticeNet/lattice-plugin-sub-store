@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "fingerprint_sha256": "f9f471e7cddb6aeb1276ea0c3908239ebdb48a21d09c2e632b9604f6126a518b",
+        "name": "GB-rc5go-89",
+        "password": "dHxn6dCKqdRZFujk",
+        "port": 443,
+        "server": "203.0.113.104",
+        "skip_tls_verify": true,
+        "sni": "www.t7f0lpmk.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

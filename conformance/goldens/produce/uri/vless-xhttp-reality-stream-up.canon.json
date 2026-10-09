@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "SG-mhum-15",
+    "host": "l6-26.titr7ke.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "stream-up"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/s93pns/mx270"
+      ],
+      [
+        "pbk",
+        "TFRLovo-JHk7FdduxHHfqPmK0_CWFJZfmSd9I5ODNMc"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "cd726fed"
+      ],
+      [
+        "sni",
+        "img.ueg06y.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "fb30b0fa-92a2-4034-a533-8987e286f68e"
+  }
+]

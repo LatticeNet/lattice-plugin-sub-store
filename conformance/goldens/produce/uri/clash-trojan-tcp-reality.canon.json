@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "KR-xu9-56",
+    "host": "i5-38.wplgwp.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "pbk",
+        "LWUwWsat9VWdMN6pB7bTcFjL2x2zY3C-fF8_PSjHwzc"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "93559da3"
+      ],
+      [
+        "sni",
+        "img.j92m5l.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "MeQWwGSYT5rbvAsd"
+  }
+]

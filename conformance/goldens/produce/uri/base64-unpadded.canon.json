@@ -1,0 +1,151 @@
+[
+  {
+    "fragment": "AU-cxi-77",
+    "host": "tps-37.pva9zd.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "jtv7j7z85025TU9zId8d9M-FAMD79dNVjMhrJNA9Zhs"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "1592679c"
+      ],
+      [
+        "sni",
+        "www.gbiq0k.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f64198e8-d28e-4e4d-b75d-e07d12b357ac"
+  },
+  {
+    "body": {
+      "add": "fu7-02.mfjqu2i.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "static.g7r5426cs.example.org",
+      "id": "f2bdd938-81b8-4368-a39e-c2a9a613e116",
+      "net": "ws",
+      "path": "/g2otj/ymf4re4hua",
+      "port": "443",
+      "ps": "US-ouk05-95",
+      "scy": "auto",
+      "sni": "static.g7r5426cs.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "fragment": "HK-yh8d-61",
+    "host": "jg-31.u3ch.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.x05j444xe.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "XJHJVgozMIIZs8u2"
+  },
+  {
+    "fragment": "CA-zd1e-56",
+    "host": "zn-37.bf0idg.example.org",
+    "path": "",
+    "port": "57092",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206WU1TTTBsUVhTeFliaGM=",
+    "userinfo_base64": "aes-128-gcm:YMSM0lQXSxYbhc"
+  },
+  {
+    "fragment": "NL-spigg-10",
+    "host": "jyq-32.ncxlos.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.r9gdfmb3.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "fF9g68KSSKUcCxKByB5x"
+  },
+  {
+    "fragment": "NL-xvaesr-61",
+    "host": "t04-17.pu23vd3.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "sni",
+        "www.zv2n5.example.net"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "1b3ffb3e-0f73-484c-a397-a025cfc6e86f:FLQl2Xo7wP7ALgxm"
+  }
+]

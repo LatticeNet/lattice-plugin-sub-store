@@ -1,0 +1,2 @@
+NL-j75ymj-41 = Shadowsocks, mps-24.qhsg5civ.example.net, 443, 2022-blake3-aes-128-gcm, "4SHEU4hDm3T20fw5fTCb2A==", shadow-tls-password=SMBKDvOyOY2pTxfj, shadow-tls-sni=api.fxcmfmxj.example.com, shadow-tls-version=3
+NL-snw-54 = Shadowsocks, lb0-23.vw4fy2jt.example.net, 53322, aes-128-gcm, "yVHmQka5AJDu0r", udp-over-tcp=true

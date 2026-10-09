@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "ju-20.l7scq.example.com",
+      "443"
+    ],
+    "name": "US-trn-03",
+    "params": {
+      "sni": "img.k644qk.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "03b594a1-bf86-415d-977b-d29d3614dd03",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.k644qk.example.org\"",
+      "ws-path": "/gesw94"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "ysy-24.qhaz089.example.net",
+      "443"
+    ],
+    "name": "CA-j53a-20",
+    "params": {
+      "password": "dAeTDVwyYRBMvbjs",
+      "sni": "www.ai2i3k.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

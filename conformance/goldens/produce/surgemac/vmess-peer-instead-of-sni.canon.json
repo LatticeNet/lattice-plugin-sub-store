@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "fwt-04.rega.example.com",
+      "443"
+    ],
+    "name": "JP-jo2-78",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "sni": "api.pep8i.example.org",
+      "tls": "true",
+      "username": "3d0bd30a-5e31-4d2b-bc4d-7237cdd12157",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"api.pep8i.example.org\"",
+      "ws-path": "/ntkx808b"
+    },
+    "type": "vmess"
+  }
+]

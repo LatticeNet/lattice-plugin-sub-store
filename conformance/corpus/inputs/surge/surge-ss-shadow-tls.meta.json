@@ -1,0 +1,9 @@
+{
+  "id": "surge-ss-shadow-tls",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls",
+  "description": "Surge ss with shadow-tls version 3 and a udp-port."
+}

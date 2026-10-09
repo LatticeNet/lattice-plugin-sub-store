@@ -1,0 +1,97 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "KR-hjpvms-94",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "PNa_Fxw9ecW4OeAtWgzwHIAvAw-4p49GzDSaLcbl0mY",
+        "short-id": "3e662250"
+      },
+      "server": "ro-18.sadoif3.example.net",
+      "servername": "api.xpkzg9ph1u.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "b75437c6-b6cb-4511-9b1d-c79cda076ca7"
+    },
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "alterId": 0,
+      "cipher": "auto",
+      "client-fingerprint": "chrome",
+      "name": "AU-jhpunk-18",
+      "network": "ws",
+      "port": 443,
+      "server": "ho-25.v2wnefcw.example.com",
+      "servername": "cdn.t9fq22a.example.com",
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "4f883949-d239-410d-b8fb-6d11e5b494d6",
+      "ws-opts": {
+        "headers": {
+          "Host": "cdn.t9fq22a.example.com"
+        },
+        "path": "/aro5ar6"
+      }
+    },
+    {
+      "name": "HK-uz6gi6-20",
+      "network": "tcp",
+      "password": "OsgVzWLqZ7SvuITN",
+      "port": 443,
+      "server": "tqu-24.c7flgl4e.example.org",
+      "sni": "static.xuipko.example.org",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "AU-ann-58",
+      "password": "vjCfXLw9JEOGRz",
+      "port": 51766,
+      "server": "g4-02.leh86.example.org",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "fast-open": false,
+      "name": "NL-wn6rz-57",
+      "password": "fb4dI72WZJOJptr6xumu",
+      "port": 443,
+      "server": "iw-04.ow7pt5mo.example.org",
+      "skip-cert-verify": false,
+      "sni": "www.xk4gon0e.example.org",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "TW-ij4-35",
+      "password": "jMIdbfkWALIF2VQF",
+      "port": 443,
+      "server": "kps-20.khgsw6.example.org",
+      "sni": "api.f3o5mjqto.example.org",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "1b55b7b5-7844-47c2-b6b8-edf78e031ce8",
+      "version": 5
+    }
+  ]
+}

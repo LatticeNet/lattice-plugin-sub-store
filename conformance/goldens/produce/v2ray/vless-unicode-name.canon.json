@@ -1,0 +1,140 @@
+[
+  {
+    "fragment": "香港 ggo 01",
+    "host": "j4u-34.mklodu.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "ywc8QbzkvzDeisgx1X01csEFub2ePLPHqtk9PXEEVCk"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "47b71eea"
+      ],
+      [
+        "sni",
+        "www.vib8ecj.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "59c564e5-a872-4740-bd9b-b642bbb08342"
+  },
+  {
+    "fragment": "Москва-jyya",
+    "host": "ty3-18.sx3g3a.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "DGUAyaxkBOgjd2EEPdaafI2BFBi_PY4sC9A1N_X6la8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "51a0fcdc"
+      ],
+      [
+        "sni",
+        "api.rni6y1qd.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "58ef9d98-f954-40e9-b8d2-325b2653d432"
+  },
+  {
+    "fragment": "a#b%c&d=e,f;g dlg",
+    "host": "kg0-03.hxvjre6.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "rxRd_nrAKDe4SWKIq4aZAWw4SHJ11SBEZ1KUki7J1ow"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "aa078e35"
+      ],
+      [
+        "sni",
+        "api.iughcpo.example.org"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ab044b25-d72b-45b9-8d5e-e67638742b61"
+  }
+]

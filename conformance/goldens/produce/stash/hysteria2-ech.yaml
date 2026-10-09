@@ -1,0 +1,2 @@
+proxies:
+  - {"ech-opts":{"config":"8R4LDPJaZRbTYEHWvUcwAAcLBWzHbaypdwyLwGZM84MkYQnME3v+FU4uM3+mK+ZAyOBN0DusfuRn05iZ5X10yU+9BPR74jsw","enable":true},"name":"AU-rwg0qw-67","port":443,"server":"gj-03.d3ejf.example.net","skip-cert-verify":false,"sni":"api.qutrl0x4py.example.net","type":"hysteria2","udp":true,"auth":"wNErEnwtwNG5ixk200VV","fast-open":false}

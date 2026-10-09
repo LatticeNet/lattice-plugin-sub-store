@@ -1,0 +1,92 @@
+[
+  {
+    "fragment": "US-k7el-33",
+    "host": "nu-33.bvmit5gs.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "q9rT8fyrmmnVS089xm9m-BuOLSIQBgsEKtOdJl5flh4"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "ee070f03"
+      ],
+      [
+        "sni",
+        "api.ywpu6579.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "3f2712ce-d8b6-42bb-a8fa-0ea40d599adc"
+  },
+  {
+    "body": {
+      "add": "ju-20.l7scq.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "img.k644qk.example.org",
+      "id": "03b594a1-bf86-415d-977b-d29d3614dd03",
+      "net": "ws",
+      "path": "/gesw94",
+      "port": "443",
+      "ps": "US-trn-03",
+      "scy": "auto",
+      "sni": "img.k644qk.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "fragment": "CA-j53a-20",
+    "host": "ysy-24.qhaz089.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.ai2i3k.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "dAeTDVwyYRBMvbjs"
+  }
+]

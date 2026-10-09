@@ -1,0 +1,22 @@
+proxies:
+  - name: NL-i1l-37
+    type: http
+    server: ia-17.raeya8.example.net
+    port: 8080
+    username: dzpyhv6v
+    password: cx0ri7gyAdT1
+  - name: HK-hlx5z-75
+    type: http
+    server: sn-35.itha1zf.example.net
+    port: 443
+    username: jjbz6
+    password: 1yxmCwBktXpQ
+    tls: true
+    sni: static.ktyuunm.example.com
+    skip-cert-verify: false
+  - name: HK-puvo-98
+    type: http
+    server: udw-03.gq5aqn1.example.com
+    port: 8080
+    headers:
+      X-Client: elixl

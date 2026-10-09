@@ -1,0 +1,1 @@
+shadowsocks=kd-06.gvlm.example.org:57200,method=aes-256-cfb,password=37RbHUfiK5qZ,ssr-protocol=origin,obfs=plain,udp-relay=true,tag=HK-mnfi9-26

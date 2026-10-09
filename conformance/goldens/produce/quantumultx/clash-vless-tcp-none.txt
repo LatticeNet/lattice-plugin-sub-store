@@ -1,0 +1,1 @@
+vless=vpb-16.ifpx5.example.com:443,method=none,password=63f2ded1-1843-4dcf-bf13-76c8580b46a0,udp-relay=true,tag=NL-e38ors-50

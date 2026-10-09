@@ -1,0 +1,15 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-256-gcm",
+      "password": "1svs4zupFkVeb8",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=www.z9bm8s.example.net;mode=websocket;path=/eibuy;skip-cert-verify=false",
+      "server": "ui-27.g6d8.example.com",
+      "server_port": 80,
+      "tag": "GB-coc-94",
+      "type": "shadowsocks"
+    }
+  ]
+}

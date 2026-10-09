@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "m9-20.ykh9.example.org",
+      "443"
+    ],
+    "name": "HK-opvhpj-01",
+    "params": {
+      "sni": "api.e6q1f3.example.net",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "a3420ae7-435f-4538-b1c3-84a8a1a321bd",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"api.e6q1f3.example.net\"",
+      "ws-path": "/jo1/ybfztg"
+    },
+    "type": "vmess"
+  }
+]

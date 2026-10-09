@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","grpc-opts":{"grpc-service-name":"nnyf05t-q8xe"},"name":"KR-wt1sz-93","network":"grpc","port":443,"server":"r5-16.k6xc.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"4d2d2c30-aec9-4423-89fb-34466783fb59","servername":"cdn.d7vte8ap.example.com"}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-doc-anchors",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "yaml-anchors",
+  "description": "YAML anchors and merge keys shared between proxies."
+}

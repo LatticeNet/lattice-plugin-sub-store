@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-obfs",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "plugin-obfs",
+  "description": "Shadowsocks with the obfs plugin in http and tls mode."
+}

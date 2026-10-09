@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"US-rjv6bu-47","server":"2001:db8:7218:87a3::73e8","port":31656,"user_id":"e1aa4ec7-6130-4dae-ae96-2b8d7023de93","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.snrh2o75bk.example.com","skip_tls_verify":false,"reality":{"public_key":"_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8","short_id":"a883a092"}}},"flow":"xtls-rprx-vision"}}

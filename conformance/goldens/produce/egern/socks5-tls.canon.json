@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "socks5_tls": {
+        "name": "NL-dzsr6-04",
+        "password": "rUm1xxOVNd0p",
+        "port": 443,
+        "server": "q7-18.vcxv4ay.example.net",
+        "sni": "q7-18.vcxv4ay.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "tnh8mu9"
+      }
+    }
+  ]
+}

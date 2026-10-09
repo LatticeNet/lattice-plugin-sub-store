@@ -1,0 +1,17 @@
+[
+  {
+    "address": "bb8-01.l6d3.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "img.lxr7dc.example.org",
+      "obfs-uri": "/bahe5/d975jk",
+      "password": "099e3a94-ac18-45fc-b68c-e1d7135dd02c",
+      "tag": "FR-r7y7-81",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

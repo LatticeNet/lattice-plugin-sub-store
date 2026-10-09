@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"US-zxcd-56","server":"jz-02.c8w0o.example.net","port":443,"user_id":"7ad81b79-8585-455e-bbbf-62760908d238","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/jfanvq6wu","headers":{"Host":"img.woqeq46.example.org"},"sni":"img.woqeq46.example.org","skip_tls_verify":false}}}}

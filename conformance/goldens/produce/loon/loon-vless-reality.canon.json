@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "r0s-30.c4uwb.example.net",
+      "443",
+      "6d782e85-da39-4b20-a244-57fdcce3fc38"
+    ],
+    "name": "DE-y0zd-81",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "mrhE7u2MseLBTtmpmZ_RmqywaKI0Ozvs3xMuzprE7RA",
+      "short-id": "4539d1dd",
+      "sni": "www.axl9awtm04.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

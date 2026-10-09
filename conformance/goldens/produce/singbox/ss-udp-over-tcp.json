@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-sgo-07",
+      "type": "shadowsocks",
+      "server": "su-23.ysq8riu.example.com",
+      "server_port": 41043,
+      "method": "aes-256-gcm",
+      "password": "f1RgjVO49Z5wYF",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 1
+      }
+    },
+    {
+      "tag": "TW-t0hv-35",
+      "type": "shadowsocks",
+      "server": "n4j-34.a620o39y.example.com",
+      "server_port": 41982,
+      "method": "aes-256-gcm",
+      "password": "2rCTNDZG2jMTLF",
+      "network": "tcp"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "is-28.lree.example.org",
+      "26241"
+    ],
+    "name": "CA-e44-62",
+    "params": {
+      "block-quic": "on",
+      "encrypt-method": "aes-128-gcm",
+      "password": "rfrwJIQ8mprzJQ",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

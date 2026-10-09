@@ -1,0 +1,13 @@
+proxies:
+  - name: DE-dg9tvk-01
+    type: vless
+    server: hfq-19.u6i36eha.example.net
+    port: 443
+    uuid: a5108bdd-c159-4487-baae-1538bff2c110
+    udp: true
+    network: ws
+    ws-opts:
+      path: /v5qagp/z3gz2a1e8n
+      headers:
+        Host: cdn.s01l5.example.org
+      v2ray-http-upgrade: true

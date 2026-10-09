@@ -1,0 +1,4 @@
+proxies:
+  - {"name":"AU-nfkxua-16","password":"M6T4AbuJZ0cK2rOJKd86","port":443,"server":"i8-27.kwfus9v.example.net","sni":"static.l7apvb3w.example.org","type":"hysteria2","udp":true}
+  - {"name":"SG-rjh-49","obfs":"salamander","obfs-password":"uqubuTjtsMf7ml7X","password":"pi1OJ50UimhFUZX3qDUy","port":443,"server":"c8-38.jmmx222a.example.net","skip-cert-verify":true,"sni":"www.ql954.example.net","type":"hysteria2","udp":true}
+  - {"down":"200","ecn":true,"name":"FR-frs-09","password":"PbkXjiQuX0VtooZQToHX","port":443,"server":"oof-04.acf0m.example.net","sni":"oof-04.acf0m.example.net","type":"hysteria2","udp":true}

@@ -1,0 +1,5 @@
+proxies:
+  - {"name":"JP-fckt-50","network":"tcp","password":"lFV1bVIWHZwLbmTy","port":443,"server":"br-26.hq2o538.example.net","sni":"img.z42yip5q6.example.com","type":"trojan","udp":true}
+  - {"cipher":"aes-128-gcm","name":"SG-x0pl-12","password":"rq8MrAoExA7lnu","port":56005,"server":"u3d-32.d1kvbm.example.org","type":"ss","udp":true}
+  - {"alterId":0,"cipher":"none","name":"GB-s1w-39","network":"tcp","port":443,"server":"zh-10.jyt81ic.example.com","tls":true,"type":"vmess","udp":true,"uuid":"71238152-25a5-4919-af05-50046127840d","servername":"static.jmolihi.example.net"}
+  - {"cipher":"aes-128-gcm","name":"SG-lui-26","password":"VVGaOe4bC0fIF8","port":26289,"server":"si-34.ge2k66hu.example.org","skip-cert-verify":false,"type":"ss","udp":true}

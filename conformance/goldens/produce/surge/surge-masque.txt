@@ -1,0 +1,1 @@
+GB-lri5kd-88=masque,e4-18.rzqbh1.example.net,443,username="phekv",password="uP2i0iimcSHFoE",port-hopping-interval=30,sni="img.imhtrnu.example.com"

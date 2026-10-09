@@ -1,0 +1,29 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "US-ig0mn-42",
+      "network": "xhttp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "4tAhbjKtre8pv_LX2Y0HsMtIkEqPHtoGZkCE7bpWN4I",
+        "short-id": "0e175218"
+      },
+      "server": "ga-21.r95t.example.net",
+      "servername": "www.hrq0u.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "749a7176-8006-424d-8018-35e4006a44f1",
+      "xhttp-opts": {
+        "host": "www.hrq0u.example.org",
+        "mode": "auto",
+        "path": "/t3tz0/l5jdned3el"
+      }
+    }
+  ]
+}

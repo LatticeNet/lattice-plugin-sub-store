@@ -1,0 +1,18 @@
+[
+  {
+    "address": "c5-11.ocg6mst.example.org:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "img.qb83s9o08.example.net",
+      "obfs-uri": "/ucuhm923u",
+      "password": "Ss3l3GXlwJPI9BmQ",
+      "tag": "DE-rnjso-15",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.qb83s9o08.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

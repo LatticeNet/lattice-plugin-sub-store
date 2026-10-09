@@ -1,0 +1,15 @@
+[
+  {
+    "address": "q7-18.vcxv4ay.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "rUm1xxOVNd0p",
+      "tag": "NL-dzsr6-04",
+      "tls-host": "q7-18.vcxv4ay.example.net",
+      "udp-relay": "true",
+      "username": "tnh8mu9"
+    },
+    "type": "socks5"
+  }
+]

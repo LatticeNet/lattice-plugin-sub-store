@@ -1,0 +1,12 @@
+[
+  {
+    "address": "ig-08.qhnagy.example.org:3128",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "tag": "KR-ez9-12",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

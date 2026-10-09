@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "auth-str": "vs8zlZsoihB8rO1z",
+      "down-speed": "50",
+      "name": "GB-ede-02",
+      "port": 443,
+      "ports": "20000-25000",
+      "protocol": "udp",
+      "server": "sa-22.w5fx9ur.example.org",
+      "sni": "www.u7sud70.example.org",
+      "type": "hysteria",
+      "udp": true,
+      "up-speed": "10"
+    }
+  ]
+}

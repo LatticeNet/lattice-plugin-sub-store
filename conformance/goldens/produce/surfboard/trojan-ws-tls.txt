@@ -1,0 +1,1 @@
+SG-yyh6-49=trojan,ojd-26.jpya.example.org,443,password=N3BO5u3oKZ7MaAHU,ws=true,ws-path=/dmws/d43mz1k,ws-headers=Host:"cdn.z5n5auu.example.com",tls=true,sni="cdn.z5n5auu.example.com",udp-relay=true

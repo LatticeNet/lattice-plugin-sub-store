@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "2001:db8:d7c0:51b0::dfb9",
+      "21991",
+      "aes-256-gcm",
+      "OFWOx4wLiW8zkv"
+    ],
+    "name": "KR-uhyf-94",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

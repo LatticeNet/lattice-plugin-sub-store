@@ -1,0 +1,2 @@
+KR-swmn6t-78=socks5,br9-22.im7ld.example.org,1080,username="otr1u",password="20ZIpGsmexUW",udp-relay=true
+NL-xy1-70=socks5-tls,fsg-07.hr6g.example.com,443,username="piozqbgr",password="GlUpvenmjZCs",sni="fsg-07.hr6g.example.com",skip-cert-verify=true,udp-relay=true

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "NL-rmz-42",
+    "host": "b9q-06.c3domqi.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "static.mj7j081a.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/ra5/ovxc"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "55e4b769-a555-4221-9d26-659441c651c6"
+  }
+]

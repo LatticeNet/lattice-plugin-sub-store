@@ -1,0 +1,1 @@
+FR-q12au1-90 = AnyTLS, y2-16.jnffzo.example.net, 443, "AqMA6wktK9PBJuK9gRNC", sni=www.j5ultdi1.example.com, skip-cert-verify=false, idle-session-check-interval=30, idle-session-timeout=30, min-idle-session=1, max-stream-count=4

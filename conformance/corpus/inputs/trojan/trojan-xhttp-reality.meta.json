@@ -1,0 +1,8 @@
+{
+  "id": "trojan-xhttp-reality",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "xhttp",
+  "security": "reality",
+  "description": "Trojan share link over xhttp with security reality."
+}

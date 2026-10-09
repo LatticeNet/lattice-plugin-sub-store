@@ -1,0 +1,30 @@
+[
+  {
+    "address": "bee-29.xqbpipu.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "www.v9p5uc3.example.net",
+      "obfs-uri": "/hdm/xo87z7i",
+      "password": "848a9969-7aa2-456b-9da9-69e9f413df30",
+      "tag": "AU-tfsez1-75",
+      "tls-host": "www.v9p5uc3.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "xey-25.ohekj.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "50gcH1IrTZeRtSHn",
+      "tag": "DE-pbrw-08",
+      "tls-host": "xey-25.ohekj.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

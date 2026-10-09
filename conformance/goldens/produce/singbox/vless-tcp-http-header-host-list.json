@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-m175-12",
+      "type": "vless",
+      "server": "jwn-16.xzxs3g.example.org",
+      "server_port": 80,
+      "uuid": "662f3d29-2c17-4083-957f-1b994cae8b9a",
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "path": "/rrozosr,/cotqh2vr",
+        "host": "api.llf804re.example.com,cdn.b7npvr.example.org"
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"FR-bme-99","server":"fa-12.pdht8.example.org","port":443,"user_id":"335f9710-f3d4-4e34-aa62-6b6c3e71f595","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"www.k11mos.example.com","skip_tls_verify":false}}}}

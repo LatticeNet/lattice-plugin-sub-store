@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","h2-opts":{"host":["img.hgf27gzs.example.net"],"path":"/oufkn68i"},"name":"AU-xt8c-70","network":"h2","password":"8MvDkVYuovpuC6Dt","port":443,"server":"si-29.ur8s.example.com","sni":"img.hgf27gzs.example.net","type":"trojan","udp":true}

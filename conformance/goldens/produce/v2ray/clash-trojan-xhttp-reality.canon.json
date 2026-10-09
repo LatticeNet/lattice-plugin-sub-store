@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "AU-nb56cs-96",
+    "host": "vbt-33.k5kw.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "path",
+        "/gmx5bl3"
+      ],
+      [
+        "pbk",
+        "p1DU-kqarpZBga_lY3n8HyRXpEytMrh1XeX5_KgIWzs"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "b981b2c6"
+      ],
+      [
+        "sni",
+        "api.fxpo0defz.example.org"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "53P1CwiCd0J7NolN"
+  }
+]

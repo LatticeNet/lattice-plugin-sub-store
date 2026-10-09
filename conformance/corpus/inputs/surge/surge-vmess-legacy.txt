@@ -1,0 +1,1 @@
+DE-ul2d-17 = vmess, g1d-13.yztv.example.org, 80, username=f377bfa4-dd00-482f-8fdb-839994d4cc12, encrypt-method=chacha20-ietf-poly1305, ws=true, ws-path=/r4nzwpx, vmess-aead=false

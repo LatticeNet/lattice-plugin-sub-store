@@ -1,0 +1,9 @@
+{
+  "id": "vless-grpc-multi-mode",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "grpc",
+  "security": "reality",
+  "quirk": "grpc-mode",
+  "description": "gRPC in multi mode with an authority."
+}

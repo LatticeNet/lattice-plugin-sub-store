@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "zh2-34.v0i498.example.com",
+      "443",
+      "x47D5mO8MxZGTHOg"
+    ],
+    "name": "FR-liz0ut-87",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "skip-cert-verify": "false",
+      "tls-name": "www.gm2apo.example.com",
+      "tls-profile": "chrome",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

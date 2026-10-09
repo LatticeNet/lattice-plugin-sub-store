@@ -1,0 +1,2 @@
+US-hr20o-56=trojan,p6-38.lmtzlp.example.org,443,"LUeLHNE8d1oy9IvJ",tls-name=static.rvmzabz4i3.example.net,udp=true
+FR-k6lz-15=Hysteria2,gp-09.lnzh34h.example.com,443,"Ed6W7Z5cNQiUnoxukCwd",tls-name=img.jfk8scmbz.example.org,skip-cert-verify=false,fast-open=false,udp=true

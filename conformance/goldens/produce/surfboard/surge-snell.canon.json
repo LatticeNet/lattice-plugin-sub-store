@@ -1,0 +1,44 @@
+[
+  {
+    "args": [
+      "yrb-06.y9cklk21.example.org",
+      "25555"
+    ],
+    "name": "KR-rullb-08",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "www.d58ryzg9.example.com",
+      "psk": "0ocFveFWWxVDg2nSAhoU",
+      "udp-relay": "true",
+      "version": "3"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "ya-05.zaq8hnv.example.com",
+      "12210"
+    ],
+    "name": "TW-vrkn-75",
+    "params": {
+      "psk": "URyP96aQ889P3tbOzmAx",
+      "tfo": "true",
+      "udp-relay": "true",
+      "version": "4"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "bz5-25.rzbm.example.org",
+      "26072"
+    ],
+    "name": "KR-t6z28b-60",
+    "params": {
+      "psk": "q3vUCA6N5YT5KQ39w5id",
+      "udp-relay": "true",
+      "version": "5"
+    },
+    "type": "snell"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["hysteria"],"auth-str":"RxIFQ9t4mdsr1c24","name":"FR-f7j-28","port":16090,"protocol":"faketcp","server":"ap-39.nxuyyahu.example.org","skip-cert-verify":false,"sni":"static.ycnztn1hm.example.org","type":"hysteria","udp":true,"down-speed":"100","up-speed":"30"}

@@ -1,0 +1,1 @@
+trojan://Dw9cWcvIBMcXkupU@jk5-23.fvpc.example.com:443?sni=api.b0h8ez454.example.com&allowInsecure=1&type=tcp#DE-n3mife-19

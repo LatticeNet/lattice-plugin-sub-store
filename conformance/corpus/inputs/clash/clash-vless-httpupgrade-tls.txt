@@ -1,0 +1,20 @@
+proxies:
+  - name: NL-nghiu-94
+    type: vless
+    server: o2r-22.xgob3bx.example.org
+    port: 443
+    uuid: 44c2f502-2dbf-4a6f-9efb-f6e6f1aefa5e
+    udp: true
+    tls: true
+    servername: cdn.jwrx2pim.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /ixrpq/cdvs3gu
+      headers:
+        Host: cdn.jwrx2pim.example.com
+      v2ray-http-upgrade: true

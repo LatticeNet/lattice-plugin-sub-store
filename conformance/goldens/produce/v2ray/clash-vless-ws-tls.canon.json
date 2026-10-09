@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "JP-g2jm75-03",
+    "host": "aa7-08.u4yp51.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "api.yfitrwjl.example.com"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/ndpw"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.yfitrwjl.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "e28e1350-3afc-4ca2-a4eb-85c3163bb32b"
+  }
+]

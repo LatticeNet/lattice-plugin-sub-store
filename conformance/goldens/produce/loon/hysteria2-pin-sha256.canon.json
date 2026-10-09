@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "203.0.113.199",
+      "443",
+      "bMN5nqsqHZLGqAa0vR7u"
+    ],
+    "name": "NL-mpnbv-08",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "true",
+      "tls-cert-sha256": "978672B7F947125E1C93D1BDF84BB7EC131D44BF6361A7CABEC3898A96236EF9",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

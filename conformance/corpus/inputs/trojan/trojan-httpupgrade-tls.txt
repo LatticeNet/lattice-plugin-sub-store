@@ -1,0 +1,1 @@
+trojan://gtHUSMIELp7dg7Rc@ymv-36.itmcte7r.example.net:443?security=tls&sni=img.wsp2o90ur.example.org&fp=chrome&alpn=h2%2Chttp%2F1.1&type=httpupgrade&host=img.wsp2o90ur.example.org&path=%2Fej2huafk9t#FR-fmqlb6-67

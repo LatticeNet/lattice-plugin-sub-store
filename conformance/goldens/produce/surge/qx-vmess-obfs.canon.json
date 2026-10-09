@@ -1,0 +1,48 @@
+[
+  {
+    "args": [
+      "e4-39.vor9g.example.com",
+      "443"
+    ],
+    "name": "JP-ijr-55",
+    "params": {
+      "username": "0ed5ed26-4b12-4d4f-a31c-9de5a377b458",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"www.j2stn.example.org\"",
+      "ws-path": "/pdlzh/kqamarys"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "ty8-01.lvynkanu.example.net",
+      "443"
+    ],
+    "name": "GB-njols-07",
+    "params": {
+      "sni": "img.pewtkvy.example.com",
+      "tls": "true",
+      "username": "a00bab91-5bd3-46a9-b915-eaf312402b24",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.pewtkvy.example.com\"",
+      "ws-path": "/xodx/z2maviu62v"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "ua4-11.ix24.example.com",
+      "443"
+    ],
+    "name": "SG-oma-59",
+    "params": {
+      "sni": "api.bi8j2y.example.net",
+      "tls": "true",
+      "username": "93b4f3f3-326d-493f-9fe0-dcbb285ef223",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

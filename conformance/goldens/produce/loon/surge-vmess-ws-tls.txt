@@ -1,0 +1,1 @@
+US-zxcd-56=vmess,jz-02.c8w0o.example.net,443,auto,"7ad81b79-8585-455e-bbbf-62760908d238",transport=ws,path=/jfanvq6wu,host=img.woqeq46.example.org,over-tls=true,skip-cert-verify=false,tls-name=img.woqeq46.example.org,alterId=0,udp=true

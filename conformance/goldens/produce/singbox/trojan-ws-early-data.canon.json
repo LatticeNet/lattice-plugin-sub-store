@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "6mUNbxAlL0UIUSWD",
+      "server": "rnh-12.ruiiz.example.net",
+      "server_port": 443,
+      "tag": "KR-lzb3o3-05",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.adclk43nua.example.com"
+      },
+      "transport": {
+        "early_data_header_name": "Sec-WebSocket-Protocol",
+        "headers": {
+          "Host": "www.adclk43nua.example.com"
+        },
+        "max_early_data": 2048,
+        "path": "/nco4s",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

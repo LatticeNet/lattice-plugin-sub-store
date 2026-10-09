@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-reality-encryption",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "vless-encryption",
+  "description": "VLESS encryption other than none (mlkem768x25519plus)."
+}

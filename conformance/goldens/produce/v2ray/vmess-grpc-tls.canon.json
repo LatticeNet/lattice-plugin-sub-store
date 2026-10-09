@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "wg-20.r82c0q6v.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "ac5cf1e4-0cda-4edf-8d67-88faeaee3d35",
+      "net": "grpc",
+      "path": "n1df-p13d4",
+      "port": "443",
+      "ps": "FR-pqt6-58",
+      "scy": "auto",
+      "sni": "cdn.owsbv1s1e.example.net",
+      "tls": "tls",
+      "type": "gun",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

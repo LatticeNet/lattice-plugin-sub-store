@@ -1,0 +1,16 @@
+proxies:
+  - name: JP-iz7-59
+    type: vless
+    server: aiu-22.fcyj.example.com
+    port: 443
+    uuid: 22cb4178-c1da-448b-9052-aac7c2f3ccbc
+    udp: true
+    tls: true
+    servername: img.kdm9z.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: IGDb3lo-iUKbXweDff0uorcnqTnH7AX4OLe7fyy9FPg
+      short-id: 53587fe4
+    network: grpc
+    grpc-opts:
+      grpc-service-name: bv8rt-z5y

@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"CA-gfdgyx-54","method":"aes-256-gcm","server":"c9v-36.klvhza.example.com","port":49167,"password":"SYi2MlRJoQxEu7","tfo":false,"udp_relay":true}}
+  - {"vless":{"name":"TW-ieag-11","server":"ov-39.vux11.example.com","port":443,"user_id":"34e6bf5e-6d00-4dbb-8dd8-7dc663c6d67b","tfo":false,"udp_relay":true,"transport":{"grpc":{"service_name":"l00c-mswa","sni":"www.l7qmk.example.com"}}}}
+  - {"tuic":{"name":"GB-bp8gu-20","server":"zi-07.l48kavu.example.com","port":443,"uuid":"fefe567f-b553-4594-80a8-74addab027e8","password":"M6TyTbObXLPFClXw","sni":"img.xogxm.example.com","alpn":["h3"]}}

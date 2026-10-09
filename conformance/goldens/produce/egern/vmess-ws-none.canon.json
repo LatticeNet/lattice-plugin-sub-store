@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-kqarv-32",
+        "port": 443,
+        "security": "auto",
+        "server": "zb-37.bkm1jc04.example.org",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "cdn.ntdq7.example.org"
+            },
+            "path": "/l9qryrkj"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "466e68b0-f500-4ae2-b943-fba35589f245"
+      }
+    }
+  ]
+}

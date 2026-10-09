@@ -1,0 +1,2 @@
+wireguard://X%2B7OWT%2B4zUaz8qCSCwSm03qXD%2BbyM3usEXizq5PY%2BRM%3D@jk8-30.wwys8.example.org:51820/?dns=198.51.100.214&mtu=1280&pre-shared-key=ea%2F6CsMprZpjtZJtXBDnVhPr8TFtbhkNagB1RlNAKAA%3D&publickey=2INb8aTAxDnTjtFZPu1cHNrvLO9oMJ7yXr6nlSPpn1g%3D&reserved=1%2C2%2C3&udp=1&address=10.7.0.2%2F32%2Cfd00%3A7%3A%3A2%2F128#FR-u1vt2-98
+wireguard://MiN3ngGoB5Yphs1O1Xcwi2Ni65eG6yghKgih2eZPpms%3D@undefined:undefined/?peers=%5Bobject%20Object%5D&udp=1&address=10.8.0.2%2F32#JP-fgs-23

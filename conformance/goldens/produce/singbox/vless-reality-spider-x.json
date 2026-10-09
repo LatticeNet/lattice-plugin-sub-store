@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-le0kdm-50",
+      "type": "vless",
+      "server": "f2-35.vnch.example.com",
+      "server_port": 443,
+      "uuid": "2358c8e5-46d7-4f60-946f-479250977580",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.acvph8.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "bImFmHXlk0wSoQGnkLNDjQJhwzaLtjYA8hPE7rhQ1iQ",
+          "short_id": "96de511e273eddaa"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

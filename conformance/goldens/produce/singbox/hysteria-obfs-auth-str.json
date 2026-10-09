@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-bawy-93",
+      "type": "hysteria",
+      "server": "by-05.sxhabqpu.example.com",
+      "server_port": 11795,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.aoey7lq4p.example.com",
+        "insecure": false
+      },
+      "auth_str": "b6y1LjqiDr3JpbFN",
+      "up_mbps": 20,
+      "down_mbps": 80,
+      "obfs": "UwNBvR4dhTjf"
+    }
+  ],
+  "endpoints": []
+}

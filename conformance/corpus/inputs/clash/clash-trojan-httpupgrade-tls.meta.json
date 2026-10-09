@@ -1,0 +1,8 @@
+{
+  "id": "clash-trojan-httpupgrade-tls",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "httpupgrade",
+  "security": "tls",
+  "description": "mihomo trojan proxy over httpupgrade with security tls."
+}

@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"TW-d6ahp-79","method":"aes-128-gcm","server":"gy-28.bbn1u9k5.example.org","port":44420,"password":"E5ZzS0B766tN","tfo":false,"udp_relay":true}}
+  - {"trojan":{"name":"KR-mxcn-27","server":"a6-32.jx3wy.example.net","port":443,"password":"iF8MoEBbQ3gtc6mI","tfo":false,"udp_relay":true,"sni":"img.i37u2y5i.example.org"}}

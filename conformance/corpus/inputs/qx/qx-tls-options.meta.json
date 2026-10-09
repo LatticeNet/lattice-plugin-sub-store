@@ -1,0 +1,9 @@
+{
+  "id": "qx-tls-options",
+  "family": "qx",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-options",
+  "description": "tls-verification=false, tls-cert-sha256, tls-pubkey-sha256, tls-alpn, tls-no-session-ticket and server_check_url."
+}

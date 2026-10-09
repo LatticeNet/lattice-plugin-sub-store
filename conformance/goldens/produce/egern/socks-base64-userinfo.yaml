@@ -1,0 +1,2 @@
+proxies:
+  - {"socks5":{"name":"TW-eq7d6q-62","server":"l2-10.au11r.example.org","port":13306,"username":"zdxnr9q0","password":"3bo2Q3vVOY7P","tfo":false,"udp_relay":true}}

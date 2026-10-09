@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "server": "e8-24.czdpwx7v.example.net",
+      "server_port": 41712,
+      "tag": "KR-fn5-71",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "server": "kfm-30.j86h.example.net",
+      "server_port": 41712,
+      "tag": "NL-vv8-63",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "server": "198.51.100.128",
+      "server_port": 41712,
+      "tag": "NL-jh0-83",
+      "type": "shadowsocks"
+    }
+  ]
+}

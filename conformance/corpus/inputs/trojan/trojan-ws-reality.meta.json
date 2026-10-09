@@ -1,0 +1,8 @@
+{
+  "id": "trojan-ws-reality",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "ws",
+  "security": "reality",
+  "description": "Trojan share link over ws with security reality."
+}

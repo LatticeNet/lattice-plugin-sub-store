@@ -1,0 +1,1 @@
+DE-n3mife-19 = trojan, jk5-23.fvpc.example.com, 443, password=Dw9cWcvIBMcXkupU, sni=api.b0h8ez454.example.com, skip-cert-verify=true, udp-relay=true

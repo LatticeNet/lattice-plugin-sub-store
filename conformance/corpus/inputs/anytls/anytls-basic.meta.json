@@ -1,0 +1,8 @@
+{
+  "id": "anytls-basic",
+  "family": "anytls",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "anytls:// with sni, fingerprint and alpn."
+}

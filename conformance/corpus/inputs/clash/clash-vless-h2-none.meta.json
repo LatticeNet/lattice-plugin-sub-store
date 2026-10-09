@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-h2-none",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "h2",
+  "security": "none",
+  "description": "mihomo vless proxy over h2 with security none."
+}

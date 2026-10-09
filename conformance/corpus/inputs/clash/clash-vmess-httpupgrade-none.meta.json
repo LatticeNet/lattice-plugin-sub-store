@@ -1,0 +1,8 @@
+{
+  "id": "clash-vmess-httpupgrade-none",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "httpupgrade",
+  "security": "none",
+  "description": "mihomo vmess proxy over httpupgrade with security none."
+}

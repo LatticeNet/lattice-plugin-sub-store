@@ -1,0 +1,1 @@
+GB-o1e7f-30=ss,wf-33.flul.example.com,443,encrypt-method=aes-128-gcm,password="Xi906cslDTMGQz",udp-relay=true

@@ -1,0 +1,41 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "tS12JGdEI3SMujA8",
+      "server": "lg-07.xzui.example.net",
+      "server_port": 443,
+      "tag": "mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd mfjmexsd",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.e4wxoq3ut.example.org"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "9Ne0DCSG9uVx41KX",
+      "server": "w0q-19.g99tmx.example.org",
+      "server_port": 443,
+      "tag": "jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo jno0h8bo",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.j1g6mm1mj.example.org"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "o2C17624t0c1iv6f",
+      "server": "xi-15.j388.example.net",
+      "server_port": 443,
+      "tag": "yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw yc5cwpcw",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.tlceuktr.example.com"
+      },
+      "type": "trojan"
+    }
+  ]
+}

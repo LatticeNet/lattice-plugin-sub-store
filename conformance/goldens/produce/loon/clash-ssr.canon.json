@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "c6-14.hrgx.example.net",
+      "43309",
+      "chacha20-ietf",
+      "Q1xpuRlVhIKH"
+    ],
+    "name": "KR-ku76-01",
+    "params": {
+      "obfs": "tls1.2_ticket_auth",
+      "obfs-param": "cdn.rp4ifyes.example.org",
+      "protocol": "auth_sha1_v4",
+      "protocol-param": "125:qPktyn",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

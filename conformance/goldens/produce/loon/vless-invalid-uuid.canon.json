@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "qz-19.lub5ieg.example.net",
+      "443",
+      "RHOvcranpksM"
+    ],
+    "name": "JP-ltu-81",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "img.uyhwdzq.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

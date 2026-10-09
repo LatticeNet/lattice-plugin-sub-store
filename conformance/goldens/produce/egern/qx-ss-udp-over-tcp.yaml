@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"FR-w38-62","method":"aes-128-gcm","server":"rp8-33.wgzivs.example.org","port":38130,"password":"whcR18hBEjkOVg","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"GB-kzq-60","method":"aes-128-gcm","server":"r2s-07.paug3a4.example.org","port":50285,"password":"6dNQLnVjNDH9zs","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"TW-zh07-47","method":"aes-128-gcm","server":"vp-11.foz9zs.example.org","port":60960,"password":"s2wFoQVQ1mZzes","tfo":false,"udp_relay":true}}

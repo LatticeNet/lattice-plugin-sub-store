@@ -1,0 +1,18 @@
+[
+  {
+    "address": "ph-34.o6gn73.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "863a99be-ece7-45f2-9427-07e17260efff",
+      "reality-base64-pubkey": "qDEIceLEQu1q-ypu1Nijlugg5cotRlnsq51eew1Au4k",
+      "reality-hex-shortid": "49afd48f",
+      "tag": "TW-gnwt-57",
+      "tls-host": "img.wzdewu.example.net",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

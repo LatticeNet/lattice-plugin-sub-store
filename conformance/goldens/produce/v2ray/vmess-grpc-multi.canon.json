@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "h5v-21.rk5hk.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "77b5371f-632c-4dae-ab52-8bd4555af91e",
+      "net": "grpc",
+      "path": "budblu-p78",
+      "port": "443",
+      "ps": "FR-zkz26-28",
+      "scy": "auto",
+      "sni": "static.fd270ja4ty.example.org",
+      "tls": "tls",
+      "type": "multi",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

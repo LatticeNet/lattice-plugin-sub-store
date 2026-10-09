@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-ede-02",
+      "type": "hysteria",
+      "server": "sa-22.w5fx9ur.example.org",
+      "server_port": 443,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.u7sud70.example.org",
+        "insecure": false
+      },
+      "server_ports": [
+        "20000:25000"
+      ],
+      "auth_str": "vs8zlZsoihB8rO1z",
+      "up_mbps": 10,
+      "down_mbps": 50
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "AU-b4sb-43",
+    "network": "tcp",
+    "port": 443,
+    "server": "iz-29.quabe9.example.net",
+    "tls": false,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "0f0e279d-0ca8-49f4-92c5-8739c23f766e"
+  }
+]

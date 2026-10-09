@@ -1,0 +1,2 @@
+trojan=gz6-27.nt3l3rl.example.com:443,password=TfwevtKu5necBwQa,over-tls=true,tls-host=img.yan934d.example.com,udp-relay=true,tag=FR-rxs9-71
+vmess=mc6-21.oy1wum6m.example.com:443,method=chacha20-poly1305,password=4ada313e-c95d-437a-8322-4fedd24ee914,aead=true,udp-relay=true,tag=NL-nk245-43

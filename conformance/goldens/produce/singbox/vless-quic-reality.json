@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-ca1-25",
+      "type": "vless",
+      "server": "ozp-10.wuhv.example.org",
+      "server_port": 443,
+      "uuid": "0e65c8b4-1d48-4840-9cc7-c9eb35bfeb19",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.qb467yo81g.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "yOXQp_ULPWLF8cfDOUfZ0IrsfOBqSWwuzl9bACIjJQ4",
+          "short_id": "e6b83e35"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

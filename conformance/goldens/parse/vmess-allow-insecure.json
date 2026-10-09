@@ -1,0 +1,52 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "alterId": 0,
+    "cipher": "auto",
+    "client-fingerprint": "chrome",
+    "name": "AU-nmg-47",
+    "network": "ws",
+    "port": 443,
+    "server": "oes-32.n24d5.example.net",
+    "skip-cert-verify": true,
+    "sni": "cdn.ona5zaws.example.org",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "c9dbfd76-55c7-44c4-8994-6664aa738d1c",
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.ona5zaws.example.org"
+      },
+      "path": "/r17mh"
+    }
+  },
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "alterId": 0,
+    "cipher": "auto",
+    "client-fingerprint": "chrome",
+    "name": "US-woc-03",
+    "network": "ws",
+    "port": 443,
+    "server": "mp-03.vjrfhp59.example.org",
+    "skip-cert-verify": true,
+    "sni": "static.mf2uv0vj.example.com",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "3111cd1e-db1b-45c0-998d-ba3c52f64f32",
+    "ws-opts": {
+      "headers": {
+        "Host": "static.mf2uv0vj.example.com"
+      },
+      "path": "/ex9zeq2"
+    }
+  }
+]

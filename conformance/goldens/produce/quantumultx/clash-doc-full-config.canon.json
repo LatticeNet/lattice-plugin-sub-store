@@ -1,0 +1,26 @@
+[
+  {
+    "address": "gz6-27.nt3l3rl.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "TfwevtKu5necBwQa",
+      "tag": "FR-rxs9-71",
+      "tls-host": "img.yan934d.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "mc6-21.oy1wum6m.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "4ada313e-c95d-437a-8322-4fedd24ee914",
+      "tag": "NL-nk245-43",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

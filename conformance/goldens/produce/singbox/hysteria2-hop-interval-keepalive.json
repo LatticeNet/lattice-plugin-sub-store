@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-c10c71-51",
+      "type": "hysteria2",
+      "server": "yxu-08.nlefeegc.example.com",
+      "server_port": 443,
+      "password": "gSrCmBf82yAWUzLcfKSh",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.zmlvv.example.org",
+        "insecure": false
+      },
+      "hop_interval": "30s",
+      "server_ports": [
+        "30000:40000"
+      ]
+    }
+  ],
+  "endpoints": []
+}

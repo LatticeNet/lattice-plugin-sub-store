@@ -1,0 +1,31 @@
+[
+  {
+    "cipher": "aes-256-gcm",
+    "name": "HK-j49-16",
+    "password": "PHWfoNpnhijrRc",
+    "plugin": "obfs",
+    "plugin-opts": {
+      "host": "cdn.dbyv00vw9.example.com",
+      "mode": "http",
+      "path": "/ww79o"
+    },
+    "port": 58000,
+    "server": "xb-13.pqdk.example.net",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-256-gcm",
+    "name": "US-yigh2w-55",
+    "password": "qS9zPuIj3SVVnT",
+    "plugin": "obfs",
+    "plugin-opts": {
+      "host": "static.r2rzatcb.example.com",
+      "mode": "tls"
+    },
+    "port": 37436,
+    "server": "lkd-11.nnc9idh.example.org",
+    "type": "ss",
+    "udp": true
+  }
+]

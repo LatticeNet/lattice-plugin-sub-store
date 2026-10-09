@@ -1,0 +1,7 @@
+{
+  "id": "mixed-same-server-many-ports",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "same-server",
+  "description": "One server on six ports, the relay fan-out shape."
+}

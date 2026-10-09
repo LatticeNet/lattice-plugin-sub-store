@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-b4sb-43",
+      "type": "vmess",
+      "server": "iz-29.quabe9.example.net",
+      "server_port": 443,
+      "uuid": "0f0e279d-0ca8-49f4-92c5-8739c23f766e",
+      "security": "auto",
+      "alter_id": 0
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,8 @@
+{
+  "id": "vless-grpc-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "grpc",
+  "security": "reality",
+  "description": "VLESS share link over grpc with security reality."
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "AU-dshc6-86",
+    "host": "2001:db8:5dea:9676::65f4",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "sni",
+        "static.vz9cc.example.org"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "3d6086b8-489d-4975-955a-5055bdc30044:GMbMPBfBRzCF7krc"
+  }
+]

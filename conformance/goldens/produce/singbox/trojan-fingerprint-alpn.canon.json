@@ -1,0 +1,25 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "MqstkokkaMmCdlOb",
+      "server": "ufh-20.cskk.example.net",
+      "server_port": 443,
+      "tag": "KR-i6c-08",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.pu7fx.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        }
+      },
+      "type": "trojan"
+    }
+  ]
+}

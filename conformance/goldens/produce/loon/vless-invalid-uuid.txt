@@ -1,0 +1,1 @@
+JP-ltu-81=vless,qz-19.lub5ieg.example.net,443,"RHOvcranpksM",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=img.uyhwdzq.example.com,udp=true

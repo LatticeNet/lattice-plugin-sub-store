@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-xde9a-47",
+      "type": "vmess",
+      "server": "nz-05.lskztiz.example.net",
+      "server_port": 52475,
+      "uuid": "6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b",
+      "security": "chacha20-poly1305",
+      "alter_id": 0,
+      "network": "tcp"
+    },
+    {
+      "tag": "GB-rlvowq-05",
+      "type": "vmess",
+      "server": "mg-25.xclff6.example.com",
+      "server_port": 17065,
+      "uuid": "c1a44a66-75d9-4db7-99e4-34d2a69bc33a",
+      "security": "aes-128-gcm",
+      "alter_id": 1
+    }
+  ],
+  "endpoints": []
+}

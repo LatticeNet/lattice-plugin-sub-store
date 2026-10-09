@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "KR-i6c-08",
+    "host": "ufh-20.cskk.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "firefox"
+      ],
+      [
+        "sni",
+        "www.pu7fx.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "MqstkokkaMmCdlOb"
+  }
+]

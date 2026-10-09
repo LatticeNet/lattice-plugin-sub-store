@@ -1,0 +1,4 @@
+proxies:
+  - {"vless":{"name":"DE-fagncp-27","server":"vhc-22.b83qsp3.example.com","port":443,"user_id":"f24854c1-a1cd-4117-83de-aeaa9945e26f","security":"none","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.xp6xe1z2a.example.com"}}}}
+  - {"vless":{"name":"GB-g1q-33","server":"e48-28.bjqzb1.example.net","port":443,"user_id":"e5725b74-ad03-45d1-97d8-0f370c592de2","security":"none","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/sihrottd","headers":{"Host":"www.mkib18bcs.example.com"},"sni":"www.mkib18bcs.example.com"}}}}
+  - {"vless":{"name":"CA-uubjbo-91","server":"g26-25.woad.example.net","port":443,"user_id":"f52b7a7b-96e0-4e9a-99d8-47501060ccfa","security":"none","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.uc0hl0gpi.example.org","reality":{"public_key":"OBocI0WjnnNvVCcnYmupwoWE7jK8bu1KdkpEsgzPWVc","short_id":"155bd2af"}}},"flow":"xtls-rprx-vision"}}

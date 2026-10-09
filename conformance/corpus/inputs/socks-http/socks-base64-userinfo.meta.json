@@ -1,0 +1,9 @@
+{
+  "id": "socks-base64-userinfo",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "base64-userinfo",
+  "description": "socks:// with Base64 userinfo, the v2rayN style."
+}

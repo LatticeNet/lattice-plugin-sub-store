@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "192.0.2.176",
+      "443",
+      "muju50zKO0N7ulsr"
+    ],
+    "name": "DE-nsuz9v-24",
+    "params": {
+      "skip-cert-verify": "true",
+      "tls-name": "192.0.2.176",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "JP-gwujg2-69",
+    "host": "j5z-07.o34t.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "stream-one"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/s87/h9jmdov"
+      ],
+      [
+        "pbk",
+        "-w5xD5GIIrVMUJdYiCGpszOfjPcdbYpD1fsfL643Sdk"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "1a7840b3"
+      ],
+      [
+        "sni",
+        "img.rv8aq.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "83b258ce-1088-4365-8d72-412eb5043a9a"
+  }
+]

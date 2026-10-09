@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "bee-29.xqbpipu.example.com",
+      "443"
+    ],
+    "name": "AU-tfsez1-75",
+    "params": {
+      "sni": "www.v9p5uc3.example.net",
+      "tls": "true",
+      "username": "848a9969-7aa2-456b-9da9-69e9f413df30",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"www.v9p5uc3.example.net\"",
+      "ws-path": "/hdm/xo87z7i"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "xey-25.ohekj.example.net",
+      "443"
+    ],
+    "name": "DE-pbrw-08",
+    "params": {
+      "password": "50gcH1IrTZeRtSHn",
+      "sni": "xey-25.ohekj.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

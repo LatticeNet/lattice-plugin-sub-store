@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "e56-01.seeo45qf.example.net",
+      "443",
+      "6ca1dced-5ed7-4a6b-8dc7-ed9720264442"
+    ],
+    "name": "FR-fay-77",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "cdn.udpgihfrvr.example.net",
+      "over-tls": "true",
+      "path": "/jcn0",
+      "skip-cert-verify": "false",
+      "tls-name": "cdn.udpgihfrvr.example.net",
+      "tls-profile": "chrome",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

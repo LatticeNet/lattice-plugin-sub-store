@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "HK-rwl-68",
+        "password": "",
+        "port": 443,
+        "server": "si-36.bnyc.example.net",
+        "sni": "www.zuzj9pi2d.example.org",
+        "uuid": "v2DeBaasrThWvtaPa4ChcTJX"
+      }
+    }
+  ]
+}

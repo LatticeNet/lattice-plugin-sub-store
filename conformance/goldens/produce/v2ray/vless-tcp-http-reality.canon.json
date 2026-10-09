@@ -1,0 +1,60 @@
+[
+  {
+    "fragment": "DE-c91jl2-23",
+    "host": "he6-03.ovjs.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "host",
+        "cdn.wzsdkzjiju.example.net"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/iqg/vykml1y"
+      ],
+      [
+        "pbk",
+        "emjZxaktnqUUU1L8ZHeTwp0cXCOZIYjZhdJ-fenlneY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "4ed9b6fe"
+      ],
+      [
+        "sni",
+        "cdn.wzsdkzjiju.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ec463757-1cd5-49db-9447-56e068dff801"
+  }
+]

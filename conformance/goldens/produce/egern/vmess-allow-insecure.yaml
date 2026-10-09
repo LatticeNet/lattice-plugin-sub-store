@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"AU-nmg-47","server":"oes-32.n24d5.example.net","port":443,"user_id":"c9dbfd76-55c7-44c4-8994-6664aa738d1c","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/r17mh","headers":{"Host":"cdn.ona5zaws.example.org"},"sni":"cdn.ona5zaws.example.org","skip_tls_verify":true}}}}
+  - {"vmess":{"name":"US-woc-03","server":"mp-03.vjrfhp59.example.org","port":443,"user_id":"3111cd1e-db1b-45c0-998d-ba3c52f64f32","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/ex9zeq2","headers":{"Host":"static.mf2uv0vj.example.com"},"sni":"static.mf2uv0vj.example.com","skip_tls_verify":true}}}}

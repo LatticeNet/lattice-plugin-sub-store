@@ -1,0 +1,354 @@
+[
+  {
+    "fragment": "香港 e2p",
+    "host": "yq4-22.z0ljn.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "LU_0dOnxZp9pkYGwjTFCyooOZ3EAo20eGEbPuXJZXJU"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "dc04453c"
+      ],
+      [
+        "sni",
+        "static.vaei4qlgo2.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "c13248bd-65cd-46f8-9151-1db7211ee809"
+  },
+  {
+    "fragment": "東京 p9g9 高速",
+    "host": "bs-01.eicd.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "ST7RCMMA68tYbfV5gnlMz81ZUTFS5gQ5swN5fgqN9QA"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "aa60948f"
+      ],
+      [
+        "sni",
+        "api.xvwxei.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "5861ba04-b805-4d36-94e6-92082cf121e7"
+  },
+  {
+    "fragment": "Москва dod4t",
+    "host": "xv8-14.jf700k.example.org",
+    "path": "",
+    "port": "48651",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "tmJV4oJU9R4M4pCKyB-7-exeZiHLbc9Cp31UcMqPv3A"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "458afcf0"
+      ],
+      [
+        "sni",
+        "www.paa0km.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "69e41d0b-bbf6-4343-8aa4-d27107d86bde"
+  },
+  {
+    "fragment": "Санкт-Петербург mpj",
+    "host": "le9-33.n7knu26n.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "m9htLZu4UxSCRlLTFkzPvYQVtoQf0kxYFT8GIJqkfKM"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "c20b1dd0"
+      ],
+      [
+        "sni",
+        "www.pl8a4f9wi.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "fc1d5db2-9b08-4e96-9ab5-48b8c6096822"
+  },
+  {
+    "fragment": "a#b dwq",
+    "host": "g3-17.yyviqjt.example.org",
+    "path": "",
+    "port": "19383",
+    "query": [
+      [
+        "sni",
+        "static.tbwbbjuq.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Ewq90sghYDS5laZ7pzVz"
+  },
+  {
+    "fragment": "x%20y knhh",
+    "host": "so-35.y0obihc.example.org",
+    "path": "",
+    "port": "49641",
+    "query": [
+      [
+        "sni",
+        "cdn.bty92.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "MrlYCwxibrD0cLaqwrcl"
+  },
+  {
+    "fragment": "k=v&w outm",
+    "host": "uqj-22.kad2ow.example.net",
+    "path": "",
+    "port": "48071",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "bbr"
+      ],
+      [
+        "sni",
+        "cdn.yxh3iri9d.example.com"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "c3fff1a6-91d2-4e5c-a716-482679a49877:o7m89ZEi9pM7FAjx"
+  },
+  {
+    "fragment": "comma, semi; zom3q",
+    "host": "np-28.egxx.example.com",
+    "path": "",
+    "port": "15988",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "bbr"
+      ],
+      [
+        "sni",
+        "www.piqec8i3.example.org"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "d18654f6-4482-498f-8140-437b55782225:lqId57MKVuzYmDwf"
+  },
+  {
+    "fragment": "slash/ques? g0w",
+    "host": "bsx-26.kcyk.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.jg7h5vfm.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "8E6FVDNU8MpiMb8q"
+  },
+  {
+    "fragment": "quote \" apos ' zkth",
+    "host": "t3e-03.hieci.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.xhdjfx.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "4jmL7qr9xpGX1Csu"
+  },
+  {
+    "fragment": "  padded  ncb",
+    "host": "uv-24.h3is.example.net",
+    "path": "",
+    "port": "57604",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:5zL1yhOgywAhZ+3z464/tA=="
+  },
+  {
+    "fragment": "f9i0d0wpgg5ra4a4jtqjfp8shtiua0 gmf91930qobke9uf2r9t la6x0vfujzmb9qmfhbqou",
+    "host": "r9b-13.qm3y7m10.example.com",
+    "path": "",
+    "port": "39964",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:ctkSSwDczowhPidegzUpMg=="
+  }
+]

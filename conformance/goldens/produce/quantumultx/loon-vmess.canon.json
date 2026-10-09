@@ -1,0 +1,29 @@
+[
+  {
+    "address": "q7-09.eahzxc.example.com:18927",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "08db3b80-c3c6-409e-98be-9d7b8962e4bd",
+      "tag": "SG-pden-75",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "vq-18.sg82606.example.com:80",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "http",
+      "obfs-host": "www.h40id.example.net",
+      "obfs-uri": "/anz3c/n7wlt5",
+      "password": "f8f86c57-0190-4106-8987-9d97a99989e9",
+      "tag": "FR-lb156b-04",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

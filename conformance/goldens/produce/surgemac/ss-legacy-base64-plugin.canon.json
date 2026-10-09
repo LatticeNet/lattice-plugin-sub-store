@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "fh-22.ov6ov1.example.net",
+      "26877"
+    ],
+    "name": "JP-hhek-33",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "obfs": "http",
+      "obfs-host": "api.tvsyc0.example.com",
+      "password": "DrL9ISgTEl19He",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

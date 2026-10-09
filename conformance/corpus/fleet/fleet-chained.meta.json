@@ -1,0 +1,21 @@
+{
+  "id": "fleet-chained",
+  "family": "fleet",
+  "description": "Chain roots: a few entry hosts fanned out over many ports, named by entry and exit region.",
+  "shape": "chained",
+  "lines": 18,
+  "mix": [
+    {
+      "protocol": "anytls",
+      "count": 2
+    },
+    {
+      "protocol": "vless-reality-vision",
+      "count": 12
+    },
+    {
+      "protocol": "vless-reality-xhttp",
+      "count": 4
+    }
+  ]
+}

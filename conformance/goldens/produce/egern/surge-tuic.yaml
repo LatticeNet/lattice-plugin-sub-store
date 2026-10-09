@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"GB-va61-64","server":"dp-23.ojwwxjul.example.net","port":443,"uuid":"4728e15e-50cf-48e9-bcf4-109a73b21ee5","password":"ANynptDVg71WtZdX","sni":"cdn.vciwrfciu.example.net","alpn":["h3"],"skip_tls_verify":false}}

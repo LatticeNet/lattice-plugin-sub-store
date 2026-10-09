@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "tz-12.a1opi5.example.com",
+      "443"
+    ],
+    "name": "TW-hstpqi-80",
+    "params": {
+      "alpn": "h3,spdy/3.1",
+      "password": "1UjuEMWE7CI63SWK",
+      "sni": "www.b7u4wwuv.example.net",
+      "uuid": "3007e77b-5b38-41a6-aaf1-fe9710eb4bfe"
+    },
+    "type": "tuic-v5"
+  }
+]

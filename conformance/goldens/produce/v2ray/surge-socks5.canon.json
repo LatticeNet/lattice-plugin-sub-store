@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "TW-i2gfvc-26",
+    "host": "gvo-12.lih7p9at.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "Z2h2dW81ZnQ6M1BXMk03cVppN3Zi",
+    "userinfo_base64": "ghvuo5ft:3PW2M7qZi7vb"
+  },
+  {
+    "fragment": "CA-ygv-96",
+    "host": "k0z-07.alq6rzpv.example.org",
+    "path": "",
+    "port": "443",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "cTVteXY6bWRKeldKQnpuOXVW",
+    "userinfo_base64": "q5myv:mdJzWJBzn9uV"
+  },
+  {
+    "fragment": "NL-glmiy7-28",
+    "host": "192.0.2.224",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "Og==",
+    "userinfo_base64": ":"
+  }
+]

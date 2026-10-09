@@ -1,0 +1,9 @@
+{
+  "id": "ss-sip002-plain-userinfo",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "sip002-plain",
+  "description": "SIP002 with a plain method:password userinfo for an AEAD cipher."
+}

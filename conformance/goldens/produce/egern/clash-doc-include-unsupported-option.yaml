@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocksr":{"name":"HK-mnfi9-26","method":"aes-256-cfb","server":"kd-06.gvlm.example.org","port":57200,"password":"37RbHUfiK5qZ","protocol":"origin","obfs":"plain","tfo":false,"udp_relay":true}}
+  - {"snell":{"name":"GB-q3yeq-20","server":"l25-15.zi0q.example.org","port":49422,"psk":"zf23H7WXJyCHIlhxKR0H","version":4,"udp_relay":true,"tfo":false}}

@@ -1,0 +1,28 @@
+[
+  {
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "GB-bh6-73",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "sx-39.xuvbo.example.org",
+    "skip-cert-verify": false,
+    "sni": "img.d6vdeaf.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "62baade6-6b72-456c-bedc-186a64cfc946",
+    "ws-opts": {
+      "headers": {
+        "Host": "img.d6vdeaf.example.net"
+      },
+      "path": "/xil2/s6dx"
+    }
+  }
+]

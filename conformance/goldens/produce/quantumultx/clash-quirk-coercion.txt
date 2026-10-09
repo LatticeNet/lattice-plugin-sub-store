@@ -1,0 +1,2 @@
+shadowsocks=vgz-03.wijo.example.com:19730,method=aes-128-gcm,password=485528,udp-relay=true,tag=AU-xcg-14
+trojan=frx-40.o7y8y1.example.org:443,password=70370695,over-tls=true,tls-host=static.mq1bb04d.example.net,udp-relay=false,tag=NL-yspkh0-87

@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "AU-uj6a-60",
+        "password": "8RvhaFk0czErf7tJ",
+        "port": 443,
+        "server": "sxl-01.jiyys7.example.net",
+        "sni": "static.x2tic.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

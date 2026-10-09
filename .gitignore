@@ -1,6 +1,8 @@
 system-go/lattice-plugin-sub-store
 ui/node_modules/
 ui/dist/
+# The vendored conformance checker's dependency (npm ci --prefix conformance/oracle).
+conformance/oracle/node_modules/
 # Playwright run artifacts (the drive in ui/e2e).
 ui/test-results/
 ui/playwright-report/

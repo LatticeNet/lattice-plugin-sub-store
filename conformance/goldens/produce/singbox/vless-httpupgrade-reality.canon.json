@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "vhr-38.koq5a.example.org",
+      "server_port": 443,
+      "tag": "KR-czj12s-29",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "YzlL1TM7jl8ut1WVdj-qrN4b7YcRMk1inNOcY2Fxxhc",
+          "short_id": "8b941762"
+        },
+        "server_name": "cdn.pt853yh.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "cdn.pt853yh.example.com",
+        "path": "/u3b/fys0w5eo",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "a03093d2-d5f0-45af-b2b2-fa22ee4af630"
+    }
+  ]
+}

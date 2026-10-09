@@ -1,0 +1,1 @@
+KR-ptyg-62=trojan,192.0.2.32,443,password="7WEAVSvZGNTkAgpl",tls=true,sni="img.qx34w.example.net",skip-cert-verify=true

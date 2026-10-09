@@ -1,0 +1,17 @@
+[
+  {
+    "address": "g1d-13.yztv.example.org:80",
+    "args": [],
+    "params": {
+      "aead": "false",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "g1d-13.yztv.example.org",
+      "obfs-uri": "/r4nzwpx",
+      "password": "f377bfa4-dd00-482f-8fdb-839994d4cc12",
+      "tag": "DE-ul2d-17",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

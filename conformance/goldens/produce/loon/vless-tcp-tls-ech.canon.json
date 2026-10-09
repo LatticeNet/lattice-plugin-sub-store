@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "uk-05.zeqc.example.net",
+      "443",
+      "1e63755b-a4fb-486a-9bf1-cfe455701da5"
+    ],
+    "name": "GB-t9p-56",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "www.ycqp18r6p5.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"US-bzxjjw-87","method":"chacha20-poly1305","server":"h3a-14.by3uil1v.example.net","port":13435,"password":"saTix03A7LqJTt","tfo":false,"udp_relay":true}}

@@ -1,0 +1,24 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "client-fingerprint": "chrome",
+    "grpc-opts": {
+      "grpc-service-name": "syti2-f1gn"
+    },
+    "name": "GB-o1e7f-30",
+    "network": "grpc",
+    "password": "Xi906cslDTMGQz",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "NMrDaAeM5T2RjNvLH9ytgxW8XjNJ02HjABJU4bDtyoM",
+      "short-id": "ce175e59"
+    },
+    "server": "wf-33.flul.example.com",
+    "skip-cert-verify": false,
+    "sni": "img.sxbdy4m6aw.example.net",
+    "tls": true,
+    "type": "ss",
+    "udp": true
+  }
+]

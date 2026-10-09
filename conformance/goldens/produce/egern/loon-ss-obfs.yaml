@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"CA-pb8e0-19","method":"aes-256-gcm","server":"ak-09.iunlgq.example.net","port":58424,"password":"yiTLxSbfJsIZ9W","tfo":false,"udp_relay":true,"obfs":"http","obfs_host":"static.cfnaq3a2d.example.org","obfs_uri":"/uxeo6q"}}
+  - {"shadowsocks":{"name":"KR-q219-86","method":"aes-256-gcm","server":"ob-17.d4tqtm2h.example.org","port":50927,"password":"ZRkmfm1bolJVer","tfo":false,"udp_relay":true,"obfs":"tls","obfs_host":"api.h7h7d5fqz.example.com"}}

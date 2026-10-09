@@ -1,0 +1,31 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-256-gcm",
+        "name": "SG-qwr-38",
+        "obfs": "http",
+        "obfs_host": "cdn.hp815.example.net",
+        "obfs_uri": "/uqrnmcek",
+        "password": "Uks1P5PqASwY6q",
+        "port": 16334,
+        "server": "z91-16.s91x2fd.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-256-gcm",
+        "name": "TW-v5vws1-72",
+        "obfs": "tls",
+        "obfs_host": "img.tiqhalr80.example.com",
+        "password": "E6LyHSGUyZtgMP",
+        "port": 42929,
+        "server": "nfx-29.succ.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

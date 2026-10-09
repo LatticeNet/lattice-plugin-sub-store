@@ -1,0 +1,39 @@
+[
+  {
+    "fragment": "NL-j75ymj-41",
+    "host": "mps-24.qhsg5civ.example.net",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "shadow-tls;host=api.fxcmfmxj.example.com;password=SMBKDvOyOY2pTxfj;version=3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:4SHEU4hDm3T20fw5fTCb2A=="
+  },
+  {
+    "fragment": "NL-snw-54",
+    "host": "lb0-23.vw4fy2jt.example.net",
+    "path": "",
+    "port": "53322",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206eVZIbVFrYTVBSkR1MHI=",
+    "userinfo_base64": "aes-128-gcm:yVHmQka5AJDu0r"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"SG-vhcg-10","server":"198.51.100.141","port":443,"password":"tXTMeRxFYxRlodBY","tfo":false,"udp_relay":true,"sni":"www.ynezx5akh.example.com","fingerprint_sha256":"a8a2916f802d5debbe8d31ba3fe64aa0899856a327d65307fcce5dadfadb1c26"}}

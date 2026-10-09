@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "uwn-37.ixewfgf.example.net",
+      "18259"
+    ],
+    "name": "DE-ctej2-56",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "VcOgI5RQw1qi",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "GB-x1csc-65",
+      "network": "ws",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "d91-21.hbwhds4.example.org",
+      "servername": "www.kh7h2.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "858c0ac5-dd21-4605-9e82-2fb011f2b838",
+      "ws-opts": {
+        "headers": {
+          "Host": "www.kh7h2.example.org"
+        },
+        "path": "/p860m/zaq07601",
+        "v2ray-http-upgrade": true
+      }
+    }
+  ]
+}

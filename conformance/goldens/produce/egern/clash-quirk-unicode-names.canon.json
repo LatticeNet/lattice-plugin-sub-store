@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "日本 东京 xp3wh",
+        "password": "RfBryVPcgbhP",
+        "port": 40259,
+        "server": "my3-20.shu2.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "Франкфурт ein23",
+        "password": "adqGqFf6jdjC",
+        "port": 28566,
+        "server": "x5d-17.b1ft75s.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "a: b # c [d] {e}, xcvo",
+        "password": "bXKC2TcvGpNl",
+        "port": 29015,
+        "server": "sth-08.xj5a.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

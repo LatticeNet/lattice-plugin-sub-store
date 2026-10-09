@@ -1,0 +1,9 @@
+{
+  "id": "vmess-shadowrocket-form-tcp",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "shadowrocket-uri",
+  "description": "Shadowrocket form without obfs."
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "lkt-29.pzlqhl.example.net",
+      "22"
+    ],
+    "name": "AU-wsyi3-89",
+    "params": {
+      "password": "pNrjwULAt2coYT",
+      "username": "w925gli"
+    },
+    "type": "ssh"
+  },
+  {
+    "args": [
+      "yo-34.prbku5n8.example.org",
+      "2222"
+    ],
+    "name": "US-igpj-20",
+    "params": {
+      "private-key": "\"-----BEGIN OPENSSH PRIVATE KEY-----",
+      "username": "ww2knbu"
+    },
+    "type": "ssh"
+  },
+  {
+    "raw": "ouJ+RKK3MW/+8u3XzDkENlcqn+80p615M8ZepiUZnA1UaTsxwidV96b/5P5REJA2"
+  },
+  {
+    "raw": "-----END OPENSSH PRIVATE KEY-----\""
+  }
+]

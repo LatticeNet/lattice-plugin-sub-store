@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"NL-ak1isp-96","password":"CPUCbt54Maw3JC","plugin":"shadow-tls","plugin-opts":{"host":"api.z5h1o.example.com","password":"6yMGxseYVK5CQkW8","version":3},"port":443,"server":"mz-06.v4fzlgbl.example.net","skip-cert-verify":false,"type":"ss","udp":true}

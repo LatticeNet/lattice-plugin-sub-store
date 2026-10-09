@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "q7-18.vcxv4ay.example.net",
+      "443"
+    ],
+    "name": "NL-dzsr6-04",
+    "params": {
+      "password": "rUm1xxOVNd0p",
+      "sni": "q7-18.vcxv4ay.example.net",
+      "udp-relay": "true",
+      "username": "tnh8mu9"
+    },
+    "type": "socks5-tls"
+  }
+]

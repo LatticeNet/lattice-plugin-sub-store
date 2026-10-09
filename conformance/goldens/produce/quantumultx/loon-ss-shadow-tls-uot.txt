@@ -1,0 +1,1 @@
+shadowsocks=lb0-23.vw4fy2jt.example.net:53322,method=aes-128-gcm,password=yVHmQka5AJDu0r,udp-relay=true,udp-over-tcp=sp.v2,tag=NL-snw-54

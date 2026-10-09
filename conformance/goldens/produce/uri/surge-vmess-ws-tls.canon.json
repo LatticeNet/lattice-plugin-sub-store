@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "jz-02.c8w0o.example.net",
+      "aid": "0",
+      "host": "img.woqeq46.example.org",
+      "id": "7ad81b79-8585-455e-bbbf-62760908d238",
+      "net": "ws",
+      "path": "/jfanvq6wu",
+      "port": "443",
+      "ps": "US-zxcd-56",
+      "scy": "auto",
+      "sni": "img.woqeq46.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "yv-25.jf4k95.example.net",
+      "server_port": 443,
+      "tag": "DE-x3tp2t-07",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.uz7n78n7b.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "host": "api.uz7n78n7b.example.net",
+        "path": "/t6wrj/n5s937uj",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "aa84951d-631e-40be-bb55-696f6a5c5b07"
+    }
+  ]
+}

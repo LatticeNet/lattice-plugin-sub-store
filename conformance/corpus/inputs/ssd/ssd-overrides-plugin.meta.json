@@ -1,0 +1,7 @@
+{
+  "id": "ssd-overrides-plugin",
+  "family": "ssd",
+  "protocol": "ss",
+  "quirk": "ssd",
+  "description": "SSD subscription where servers override port, cipher and password and add a simple-obfs plugin."
+}

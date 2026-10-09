@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ry-31.ngpamb5.example.net",
+      "443"
+    ],
+    "name": "JP-wqjm9-26",
+    "params": {
+      "password": "xBfmvQnqwyT2k1d0tmXj",
+      "port-hopping": "20000-30000",
+      "port-hopping-interval": "15",
+      "sni": "cdn.ygqhz.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

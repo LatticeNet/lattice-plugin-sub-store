@@ -1,0 +1,8 @@
+{
+  "id": "clash-trojan-grpc-reality",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "grpc",
+  "security": "reality",
+  "description": "mihomo trojan proxy over grpc with security reality."
+}

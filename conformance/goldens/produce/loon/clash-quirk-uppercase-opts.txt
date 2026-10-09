@@ -1,0 +1,1 @@
+AU-d9j-96=vmess,ahe-13.bx4bjkbt.example.net,443,auto,"ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef",transport=ws,path=/lo0adt/oqsutga,host=ahe-13.bx4bjkbt.example.net,alterId=0,udp=true

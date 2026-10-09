@@ -1,0 +1,37 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-vdbq-74",
+      "type": "vless",
+      "server": "m2-17.tb5k.example.net",
+      "server_port": 443,
+      "uuid": "93da0638-461c-40cd-919b-6c8aedb80cdd",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.bxp8z8.example.org",
+        "insecure": false
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "fn9jg-afzb"
+      }
+    },
+    {
+      "tag": "AU-d9j-96",
+      "type": "vmess",
+      "server": "ahe-13.bx4bjkbt.example.net",
+      "server_port": 443,
+      "uuid": "ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "ahe-13.bx4bjkbt.example.net"
+        },
+        "path": "/lo0adt/oqsutga"
+      }
+    }
+  ],
+  "endpoints": []
+}

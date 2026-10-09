@@ -1,0 +1,15 @@
+[
+  {
+    "address": "y2-16.jnffzo.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "AqMA6wktK9PBJuK9gRNC",
+      "tag": "FR-q12au1-90",
+      "tls-host": "www.j5ultdi1.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

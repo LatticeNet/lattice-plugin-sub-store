@@ -1,0 +1,2 @@
+CA-pb8e0-19=ss,ak-09.iunlgq.example.net,58424,encrypt-method=aes-256-gcm,password="yiTLxSbfJsIZ9W",obfs=http,obfs-host=static.cfnaq3a2d.example.org,obfs-uri=/uxeo6q,udp-relay=true
+KR-q219-86=ss,ob-17.d4tqtm2h.example.org,50927,encrypt-method=aes-256-gcm,password="ZRkmfm1bolJVer",obfs=tls,obfs-host=api.h7h7d5fqz.example.com,udp-relay=true

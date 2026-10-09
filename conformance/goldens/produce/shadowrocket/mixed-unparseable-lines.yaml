@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"US-hr20o-56","network":"tcp","password":"LUeLHNE8d1oy9IvJ","port":443,"server":"p6-38.lmtzlp.example.org","sni":"static.rvmzabz4i3.example.net","type":"trojan","udp":true}
+  - {"name":"FR-k6lz-15","password":"Ed6W7Z5cNQiUnoxukCwd","port":443,"server":"gp-09.lnzh34h.example.com","skip-cert-verify":false,"sni":"img.jfk8scmbz.example.org","tfo":false,"type":"hysteria2","udp":true,"fast-open":false}

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "US-lrtvt-76",
+    "host": "tk-21.xajh2ktf.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "headerType",
+        "wechat-video"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "seed",
+        "3cAAkz6Rfx"
+      ],
+      [
+        "type",
+        "kcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "41d1b28b-7459-4543-bfac-d7003b4f7aed"
+  }
+]

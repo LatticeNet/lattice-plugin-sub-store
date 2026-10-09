@@ -1,0 +1,1 @@
+trojan://2mUxZg0GFFQkZr1P@198.51.100.227:443?sni=api.meixt51op.example.org&type=tcp&alpn=h2%2Chttp%2F1.1&pcs=A7B75AE5BEB27252A005E1D70B80E40E02A4A53161951CE8BF2EE13A2B1C17BD&vcn=cdn.eo4jw20rg5.example.net#FR-ozyw6h-48

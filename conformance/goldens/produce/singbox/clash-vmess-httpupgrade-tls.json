@@ -1,0 +1,33 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-bi20-61",
+      "type": "vmess",
+      "server": "jqg-27.c54v7.example.com",
+      "server_port": 443,
+      "uuid": "91a7a9be-cdac-43f1-b90c-42bbdce195c1",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.tvrdvlzy.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/wzn/aevx5odj",
+        "host": "www.tvrdvlzy.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

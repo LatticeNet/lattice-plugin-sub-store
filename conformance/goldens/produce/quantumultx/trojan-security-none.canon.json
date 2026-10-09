@@ -1,0 +1,14 @@
+[
+  {
+    "address": "d78-40.oq5eh33.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "nrZ4GoNApLRurSNH",
+      "tag": "AU-ef8-23",
+      "tls-host": "d78-40.oq5eh33.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

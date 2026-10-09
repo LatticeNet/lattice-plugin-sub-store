@@ -1,0 +1,2 @@
+KR-swmn6t-78=socks5,br9-22.im7ld.example.org,1080,otr1u,"20ZIpGsmexUW",udp=true
+NL-xy1-70=socks5,fsg-07.hr6g.example.com,443,piozqbgr,"GlUpvenmjZCs",over-tls=true,sni=fsg-07.hr6g.example.com,skip-cert-verify=true,udp=true

@@ -1,0 +1,8 @@
+{
+  "id": "loon-http-socks5",
+  "family": "loon",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Loon http, https and socks5 with and without credentials."
+}

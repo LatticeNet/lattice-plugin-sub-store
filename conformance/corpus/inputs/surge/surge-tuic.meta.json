@@ -1,0 +1,8 @@
+{
+  "id": "surge-tuic",
+  "family": "surge",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "description": "Surge tuic (token) and tuic-v5 (uuid and password)."
+}

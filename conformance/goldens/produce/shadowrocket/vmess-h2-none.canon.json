@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "h2-opts": {
+        "host": [
+          "img.l481zufk5j.example.com"
+        ],
+        "path": "/ax0/brhwd6"
+      },
+      "name": "TW-jify-67",
+      "network": "h2",
+      "port": 443,
+      "server": "y7-38.n0e0hv.example.com",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "cafc6286-f7d7-4d2e-a35b-cd38a93e6fa4"
+    }
+  ]
+}

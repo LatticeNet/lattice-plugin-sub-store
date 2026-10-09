@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-json-lines",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "json-lines",
+  "description": "One JSON object per line without a proxies key."
+}

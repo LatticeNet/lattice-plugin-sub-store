@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "u9q-33.g5pnn.example.com",
+      "443"
+    ],
+    "name": "NL-h78vw3-34",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "sni": "cdn.p974vl.example.org",
+      "tls": "true",
+      "username": "b837354d-24b9-4e40-a7bd-36eaeb1b4a44",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

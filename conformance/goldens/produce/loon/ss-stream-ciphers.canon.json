@@ -1,0 +1,67 @@
+[
+  {
+    "args": [
+      "uo-31.vohqvdh2.example.net",
+      "26672",
+      "aes-128-cfb",
+      "e5XX5LpSFAz7"
+    ],
+    "name": "SG-at22-37",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "np-08.baeops7.example.org",
+      "33705",
+      "aes-256-cfb",
+      "nmZltRLobntH"
+    ],
+    "name": "FR-wjypay-70",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "pp0-31.brvt.example.net",
+      "23086",
+      "aes-256-ctr",
+      "nlpoz8gL0b9I"
+    ],
+    "name": "JP-clgy1z-07",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "fx-28.zpthid.example.net",
+      "14978",
+      "chacha20-ietf",
+      "Rpv1f9EyDV8H"
+    ],
+    "name": "US-f3qx-51",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "ceq-08.xcl70pi.example.org",
+      "50721",
+      "rc4-md5",
+      "0aSo41OohzpA"
+    ],
+    "name": "TW-odzmu-72",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

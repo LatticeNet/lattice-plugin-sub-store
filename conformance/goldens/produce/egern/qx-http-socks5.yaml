@@ -1,0 +1,5 @@
+proxies:
+  - {"http":{"name":"AU-rqk1jl-33","server":"bkk-13.p8c5c.example.net","port":8080,"username":"wqmmnxz2","password":"dip7H3HbE83J","tfo":false}}
+  - {"https":{"name":"US-fs5t-40","server":"cam-37.l9ng5.example.org","port":443,"username":"jeafxl","password":"r0BQxK7uTqqg","tfo":false,"sni":"img.xuix3v.example.org"}}
+  - {"socks5":{"name":"JP-yqa-41","server":"aq-21.hay35e.example.net","port":1080,"username":"r5ti","password":"unNYLsz7kUcn","tfo":false,"udp_relay":true}}
+  - {"socks5_tls":{"name":"NL-sxupx-61","server":"h49-27.o5n4rf.example.net","port":443,"username":"bptpo","password":"mIaq5AnyasPj","tfo":false,"udp_relay":true,"sni":"h49-27.o5n4rf.example.net","skip_tls_verify":true}}

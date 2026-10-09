@@ -1,0 +1,1 @@
+vless://aa84951d-631e-40be-bb55-696f6a5c5b07@yv-25.jf4k95.example.net:443?encryption=none&security=tls&sni=api.uz7n78n7b.example.net&fp=chrome&alpn=h2%2Chttp%2F1.1&type=h2&host=api.uz7n78n7b.example.net&path=%2Ft6wrj%2Fn5s937uj#DE-x3tp2t-07

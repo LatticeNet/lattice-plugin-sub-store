@@ -1,0 +1,1 @@
+FR-r7y7-81=vmess,bb8-01.l6d3.example.org,443,auto,"099e3a94-ac18-45fc-b68c-e1d7135dd02c",transport=ws,path=/bahe5/d975jk,host=img.lxr7dc.example.org,alterId=0,udp=true

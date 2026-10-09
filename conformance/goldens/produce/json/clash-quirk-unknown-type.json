@@ -1,0 +1,11 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "DE-ctej2-56",
+    "password": "VcOgI5RQw1qi",
+    "port": 18259,
+    "server": "uwn-37.ixewfgf.example.net",
+    "type": "ss",
+    "udp": true
+  }
+]

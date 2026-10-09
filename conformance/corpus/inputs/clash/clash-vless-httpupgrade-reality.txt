@@ -1,0 +1,19 @@
+proxies:
+  - name: JP-lqv8s-18
+    type: vless
+    server: fg-11.ly62w3au.example.com
+    port: 443
+    uuid: cce5ae76-9f0f-4cc2-8048-949f2bd9f033
+    udp: true
+    tls: true
+    servername: img.ogehpjgiz.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: nlTwFx-IbqCSkG9qR-RmqwJ5IX13wLGywMOfh9WklQc
+      short-id: 4353f6c9
+    network: ws
+    ws-opts:
+      path: /jssw7k/x3vxt
+      headers:
+        Host: img.ogehpjgiz.example.net
+      v2ray-http-upgrade: true
