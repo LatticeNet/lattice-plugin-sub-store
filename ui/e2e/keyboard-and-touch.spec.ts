@@ -71,7 +71,7 @@ test.describe("focus at 1440", () => {
 
   test("the palette gives focus back where Cmd+K was pressed, and its Edit lands on the editor heading", async ({ page }) => {
     await open(page, "?view=sources", ".layer-row");
-    const filter = page.getByRole("searchbox", { name: "Filter sources" });
+    const filter = page.getByRole("searchbox", { name: "Filter records" });
     await filter.focus();
     await page.keyboard.press("ControlOrMeta+k");
     await expect(page.getByRole("dialog", { name: "Search records and actions" })).toBeVisible();
@@ -104,10 +104,10 @@ test.describe("focus at 1440", () => {
     await expect(page.locator('[data-record-open="file-grace-surfboard"]')).toBeFocused();
   });
 
-  test("Show them moves focus to the Files layer it opened", async ({ page }) => {
+  test("Show them moves focus to the Records layer it opened", async ({ page }) => {
     await open(page, "", ".attention-item");
     await page.getByRole("button", { name: "Show them" }).click();
-    await expect(page.locator("#pc-panel-files")).toBeFocused();
+    await expect(page.locator("#pc-panel-records")).toBeFocused();
   });
 
   test("Home and End reach the ends of the row menu and the layer row; Tab closes the menu onto its trigger", async ({ page }) => {
@@ -123,7 +123,7 @@ test.describe("focus at 1440", () => {
     await expect(page.locator(".rec-menu")).toHaveCount(0);
     await expect(trigger).toBeFocused();
 
-    await page.getByRole("tab", { name: /Files/ }).focus();
+    await page.getByRole("tab", { name: /Records/ }).focus();
     await page.keyboard.press("End");
     await expect(page.getByRole("tab", { name: /Settings/ })).toBeFocused();
     await expect(page).toHaveURL(/[?&]view=settings/);
@@ -148,7 +148,7 @@ test.describe("focus at 1440", () => {
     await expect(page.locator('.lineage-chip[data-state="off"]')).toHaveCount(0);
   });
 
-  test("the Files page survives a reload, and a search starts again on page 1", async ({ page }) => {
+  test("the Records page survives a reload, and a search starts again on page 1", async ({ page }) => {
     await open(page, "?view=files&fixture=large", ".layer-row");
     const footer = page.locator(".pc-pagination");
     await footer.getByRole("button", { name: "Next" }).click();
@@ -156,8 +156,8 @@ test.describe("focus at 1440", () => {
     await expect(footer).toContainText("Page 3 of 4");
     await expect(page).toHaveURL(/[?&]page=3/);
     await page.reload();
-    await expect(footer).toContainText("Files 101 to 150 of 180");
-    await page.getByRole("searchbox", { name: "Filter files" }).fill("alice");
+    await expect(footer).toContainText("Records 101 to 150 of 180");
+    await page.getByRole("searchbox", { name: "Filter records" }).fill("alice");
     await expect(page).not.toHaveURL(/[?&]page=/);
   });
 
@@ -218,6 +218,8 @@ test.describe("touch at 375", () => {
   test("a tap beside a row's checkbox selects the row instead of opening its panel", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
     const box = page.getByRole("checkbox", { name: "Select for-cdcd-loon" });
+    // Stacked rows are taller than table rows, so the row may start below the fold.
+    await box.scrollIntoViewIfNeeded();
     const at = (await box.boundingBox())!;
     await page.touchscreen.tap(at.x + at.width + 10, at.y + at.height / 2);
     await expect(box).toBeChecked();

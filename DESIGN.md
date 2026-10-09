@@ -4,7 +4,7 @@
 
 - Status: Active
 - Last refreshed: 2026-08-21
-- Primary product surfaces: Subscriptions, Files, Settings, record previews and editors
+- Primary product surfaces: Overview, Records (every source, combination and file in one table), Shares, Settings, record previews and editors
 - Evidence reviewed: `README.md`, `../SUBSTORE-UI-DESIGN.md`, `../SUBSTORE-PARITY.md`, `../LATTICE-PRODUCT-DESIGN.md`, `../handoff-for-codex-lattice-substore-prompt.md`, `ui/src/tokens.css`, `ui/src/styles.css`, and the current Vue component layer
 
 ## Brand
@@ -27,7 +27,7 @@
 
 ## Information architecture
 
-- Primary navigation: Subscriptions, Files, and Settings as stable horizontal tabs
+- Primary navigation: Overview, Records, Shares, and Settings as stable horizontal tabs. Records holds every kind behind a kind filter (design 28, S1); the per-kind layers it replaced (`view=sources`, `combinations`, `files`) still land on it, narrowed to their kind
 - Core routes/screens: list, record detail, target preview, file preview, and settings tools
 - Content hierarchy: action and current state first, operational metadata second, raw IDs and rendered documents as supporting evidence
 
@@ -155,8 +155,9 @@ Narrow
 - Framework/styling system: Vue 3 SFCs, repo-local CSS tokens, and CodeMirror 6 in one lazy chunk
 - Design-token constraints: the host supplies 11 variables; literal fallbacks stay isolated in `ui/src/tokens.css`, including the documented semantic status block and the theme-invariant overlay shadow. Screens carry no palette of their own
 - Performance constraints: no new dependency; report main, CSS, and lazy-chunk deltas against the measured baseline rather than an obsolete budget
+- Recorded exception to the dependency rule: `@axe-core/playwright` (which brings `axe-core`), approved by the operator for S1 (2026-10-09) so the e2e suite can fail on serious or critical accessibility violations. It is a devDependency imported only by `ui/e2e/`, never by `src/`, so it never reaches the bundle; `npm run verify:build` scans what ships
 - Compatibility constraints: no direct network access, inline script, inline style, external URL, undeclared bridge method, or manifest capability expansion
-- Test/screenshot expectations: behavior-oriented Vitest tests, typecheck, build, CSP scan, and real-browser checks at 375 and 1440 in light and dark themes
+- Test/screenshot expectations: behavior-oriented Vitest tests, typecheck, build, CSP scan, and real-browser checks at 375 and 1440 in light and dark themes; `ui/e2e/record-table.spec.ts` asserts every Records state by a named element at both widths and runs axe on each
 
 ## Open questions
 

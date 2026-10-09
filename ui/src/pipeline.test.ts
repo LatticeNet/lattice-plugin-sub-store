@@ -272,8 +272,8 @@ describe("the attention rules", () => {
     expect(found[0]).toMatchObject({ tone: "warning", recordId: "imported-unnamed" });
     expect(found[0]!.claim).toBe("建材市场: provider expires in 6 days, 82% of its traffic used");
     expect(found[1]!.claim).toBe("15 files are not published, so no client can fetch them");
-    // Fifteen files: the Files layer narrowed to them, each row with its own Publish.
-    expect(found[1]!.action).toEqual({ label: "Show them", view: "files", facet: { published: "no" } });
+    // Fifteen files: Records narrowed to them, each row with its own Publish.
+    expect(found[1]!.action).toEqual({ label: "Show them", view: "records", facet: { kind: "file", published: "no" } });
   });
 
   it("puts every failure first, worst tone first, and masks what the provider said", () => {

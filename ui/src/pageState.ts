@@ -1,6 +1,6 @@
 import { pageFromState } from "./paging";
 import { VIEW_IDS, type ViewId } from "./pipeline";
-import type { SortKey } from "./lensChrome";
+import type { Density, SortKey } from "./lensChrome";
 
 /**
  * pageState.ts, the page's own state carried in the console's address.
@@ -68,9 +68,9 @@ export function canonicalState(state: PageState): string {
  * Everything the shell restores after a reload.
  *
  * `from` is the layer a record page goes back to; "" means the page was the
- * landing, and back then goes to the layer that lists the record. The facets
- * are the filters the tables keep: `published` and `type` on Files, `origin`
- * on every record table, `link` on Shares, `q` and `sort` in the toolbar.
+ * landing, and back then goes to Records. The facets are the filters the
+ * tables keep: `kind`, `published`, `origin`, `type` (files only) and
+ * `density` on Records, `link` on Shares, `q` and `sort` in the toolbar.
  */
 export interface ShellState {
   view: ViewId;
@@ -79,24 +79,31 @@ export interface ShellState {
   open: string;
   q: string;
   sort: SortKey;
+  kind: string;
+  density: Density;
   published: string;
   origin: string;
   type: string;
   link: string;
-  /** The Files table's page; 1 is left out of the address. */
+  /** The Records table's page; 1 is left out of the address. */
   page: number;
 }
 
-type FacetKey = "q" | "sort" | "published" | "origin" | "type" | "link";
+type FacetKey = "q" | "sort" | "kind" | "density" | "published" | "origin" | "type" | "link";
 
 /** The values each facet can take; anything else reads as unset. */
 const FACET_VALUES: Record<Exclude<FacetKey, "q">, readonly string[]> = {
-  sort: ["recent", "name", "status"],
+  sort: ["manual", "recent", "name", "status"],
+  kind: ["source", "combination", "file"],
+  density: ["expanded", "compact"],
   published: ["yes", "no"],
   origin: ["migrated", "local"],
   type: ["config", "script", "plain"],
   link: ["live", "dead"],
 };
+
+/** The value each facet takes when the address leaves it out. */
+const FACET_DEFAULTS: Partial<Record<FacetKey, string>> = { sort: "manual", density: "expanded" };
 
 /**
  * Which facets a layer reads. Only those go into the address, so a link to
@@ -105,19 +112,34 @@ const FACET_VALUES: Record<Exclude<FacetKey, "q">, readonly string[]> = {
  */
 const VIEW_FACETS: Record<ViewId, readonly FacetKey[]> = {
   overview: [],
-  sources: ["q", "sort", "origin"],
-  combinations: ["q", "sort", "origin"],
-  files: ["q", "published", "origin", "type"],
+  records: ["q", "sort", "kind", "density", "published", "origin", "type"],
   shares: ["q", "link"],
   settings: [],
 };
 
-/** The address this page used before its layers (`?lens=`) still lands. */
-const LEGACY_LENS: Record<string, ViewId> = { subscriptions: "sources", files: "files", shares: "shares", settings: "settings" };
+/**
+ * Addresses this page wrote before Records still land. The per-kind layers
+ * (`?view=sources`, `combinations`, `files`) open Records filtered to their
+ * kind, and the address before the layers (`?lens=`) does the same.
+ */
+const LEGACY_VIEWS: Record<string, { view: ViewId; kind?: string }> = {
+  sources: { view: "records", kind: "source" },
+  combinations: { view: "records", kind: "combination" },
+  files: { view: "records", kind: "file" },
+};
+const LEGACY_LENS: Record<string, { view: ViewId; kind?: string }> = {
+  subscriptions: { view: "records", kind: "source" },
+  files: { view: "records", kind: "file" },
+  shares: { view: "shares" },
+  settings: { view: "settings" },
+};
 const VIEWS = new Set<string>(VIEW_IDS);
 
 export function defaultShellState(): ShellState {
-  return { view: "overview", record: "", from: "", open: "", q: "", sort: "recent", published: "", origin: "", type: "", link: "", page: 1 };
+  return {
+    view: "overview", record: "", from: "", open: "", q: "", sort: "manual", kind: "", density: "expanded",
+    published: "", origin: "", type: "", link: "", page: 1,
+  };
 }
 
 /** The shell's state as the wire carries it: unset and default values are left out. */
@@ -137,11 +159,13 @@ export function encodeShellState(state: ShellState): PageState {
     put("open", state.open);
   }
   for (const key of table ? VIEW_FACETS[table] : []) {
-    if (key === "sort" && state.sort === "recent") continue;
+    if (FACET_DEFAULTS[key] === state[key]) continue;
+    // The file type narrows files only; with another kind on screen it filters nothing.
+    if (key === "type" && state.kind !== "file") continue;
     put(key, state[key]);
   }
   // The page of the one paged table, while that table is what is on screen.
-  if (table === "files" && !state.record && state.page > 1) put("page", String(state.page));
+  if (table === "records" && !state.record && state.page > 1) put("page", String(state.page));
   return out;
 }
 
@@ -150,7 +174,14 @@ export function decodeShellState(state: PageState): ShellState {
   const out = defaultShellState();
   const asked = state.view ?? "";
   const legacy = state.lens ?? "";
-  const view = VIEWS.has(asked) ? (asked as ViewId) : Object.hasOwn(LEGACY_LENS, legacy) ? LEGACY_LENS[legacy] : undefined;
+  const landing = VIEWS.has(asked)
+    ? { view: asked as ViewId }
+    : Object.hasOwn(LEGACY_VIEWS, asked)
+      ? LEGACY_VIEWS[asked]
+      : Object.hasOwn(LEGACY_LENS, legacy)
+        ? LEGACY_LENS[legacy]
+        : undefined;
+  const view = landing?.view;
   if (view) out.view = view;
   out.record = state.record ?? "";
   if (out.record) out.from = view ?? "";
@@ -161,6 +192,8 @@ export function decodeShellState(state: PageState): ShellState {
     const value = state[key] ?? "";
     if (FACET_VALUES[key].includes(value)) (out as unknown as Record<string, string>)[key] = value;
   }
+  // An old per-kind layer names its kind; an explicit `kind` beside it wins.
+  if (!out.kind && landing?.kind) out.kind = landing.kind;
   return out;
 }
 

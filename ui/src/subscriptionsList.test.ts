@@ -5,30 +5,22 @@ const SRC = new URL(".", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, SRC), "utf8");
 
 /**
- * Sources and Combinations are L1 collections (design 22, section 2): one
- * table each, columns that mean something for that kind, one affordance per
- * row. The row used to carry Open, a menu and a chevron at once, and its
- * chain unfolded in place; the chain now lives on the record page.
+ * Records is the one L1 collection for every kind (design 28, S1; design 22
+ * section 2 for the layering): one table, the kind as a filter rather than a
+ * second tab row, one affordance per row. The chain lives on the record page.
  */
-describe("the sources and combinations layers are tables with one affordance per row", () => {
+describe("the records layer is one table with one affordance per row", () => {
   const screen = read("screens/SubscriptionsScreen.vue");
   const shell = read("Shell.vue");
 
-  it("is one screen for two layers, split by kind", () => {
-    expect(shell).toMatch(/\{ id: "sources", label: "Sources", screen: SubscriptionsScreen, props: \{ kind: KIND_SUB \} \}/);
-    expect(shell).toMatch(/\{ id: "combinations", label: "Combinations", screen: SubscriptionsScreen, props: \{ kind: KIND_COLLECTION \} \}/);
-    expect(screen).toContain('defineProps<{ kind: "sub" | "collection" }>()');
-    // Kind is the layer now, so there is no second tab row inside it.
+  it("is one screen for every kind, the kind a filter rather than a tab row", () => {
+    expect(shell).toMatch(/\{ id: "records", label: "Records", screen: SubscriptionsScreen \}/);
+    expect(screen).not.toContain("defineProps");
+    expect(screen).toContain('<fieldset class="rec-kinds">');
+    expect(screen).toContain('v-model="kindFacet" type="radio"');
     expect(screen).not.toContain("RecKindTabs");
     expect(screen).not.toContain('role="tablist"');
-  });
-
-  it("keeps its columns at every width, first column sticky", () => {
-    expect(screen).toMatch(/<PcTable v-else :stacked="false"/);
-    expect(screen).toContain('<td class="pc-name" data-stack="name">');
-    for (const column of ["Name", "Kind", "Members", "Nodes", "Steps", "Provider", "Last fetch", "Used by"]) {
-      expect(screen, column).toMatch(new RegExp(`<PcTh[^>]*>${column}</PcTh>`));
-    }
+    expect(screen).not.toContain("<PcLensTabs");
   });
 
   it("opens the side panel from the row and keeps every other verb in one menu", () => {
@@ -43,12 +35,12 @@ describe("the sources and combinations layers are tables with one affordance per
 
   it("never prints n/a: a cell with nothing to say is empty and says why on hover", () => {
     expect(screen).not.toContain('"n/a"');
-    expect(screen).toContain(':title="figuresOf(row) ? undefined : NOT_A_PROVIDER"');
-    expect(screen).toContain(':title="isProviderLink(row) ? undefined : NOT_FETCHED"');
+    expect(screen).toContain(':title="cell(row).expiry.title"');
+    expect(screen).toContain(':title="cell(row).fetch ? undefined : TEXT.notFetched"');
   });
 
   it("filters the migration marker as a facet, not a chip on every row", () => {
-    expect(screen).toContain('v-model="originFilter.origin"');
+    expect(screen).toContain('v-model="facets.origin"');
     expect(screen).not.toContain("tagChips(");
     expect(screen).not.toMatch(/label="migrated"/);
   });
@@ -80,7 +72,7 @@ describe("the page chassis is a quiet Cloudflare header, not a KPI strip", () =>
 
   it("renders the create rules from createGate rather than deciding them", () => {
     // Which verb, when it shows and why it is disabled are tested in createGate.test.ts.
-    expect(shell).toContain("headerCreate({ tab: activeTab.value, catalogue: catalogueView.value");
+    expect(shell).toMatch(/headerCreate\(\{\s*tab: activeTab\.value,\s*kind: chrome\.facets\.kind,\s*catalogue: catalogueView\.value/);
     expect(shell).toContain('const blocks = computed(() => createBlocks(catalogueView.value));');
     expect(shell).toContain(':create-blocked="blocks"');
   });

@@ -18,10 +18,13 @@ import type { ViewId } from "./pipeline";
  * Navigation lives here too, because every layer needs it and only the shell
  * holds the page state the console keeps in its address: opening a record in
  * the side panel (`open`), on its own page (`record`), or switching layer with
- * a facet already applied (`view=files&published=no`).
+ * a facet already applied (`view=records&kind=file&published=no`).
  */
 export type TabId = ViewId;
-export type SortKey = "recent" | "name" | "status";
+/** "manual" is the store's own order (s1-plan section 3.3), and the default. */
+export type SortKey = "manual" | "recent" | "name" | "status";
+/** Expanded rows carry the kind icon and the remark; compact rows only the line. */
+export type Density = "expanded" | "compact";
 
 export interface LensReport {
   editing: boolean;
@@ -30,11 +33,13 @@ export interface LensReport {
 
 /** Filters a layer reads from the address, set by whoever sent the operator there. */
 export interface Facets {
-  /** Files: "no" keeps the files no live share serves. */
+  /** Records: "source", "combination" or "file"; every kind when unset. */
+  kind: string;
+  /** Records: "no" keeps the records no live share serves, "yes" the others. */
   published: string;
   /** Every table: "migrated" keeps imported records, "local" the ones made here. */
   origin: string;
-  /** Files: "config", "script" or "plain". */
+  /** Records narrowed to files: "config", "script" or "plain". */
   type: string;
   /** Shares: "live" keeps the links a client gets something from, "dead" the rest. */
   link: string;
@@ -48,6 +53,7 @@ export interface LensOpenOptions {
 export interface LensChrome {
   search: Ref<string>;
   sort: Ref<SortKey>;
+  density: Ref<Density>;
   facets: Facets;
   lenses: Record<TabId, LensReport>;
   /**
@@ -63,7 +69,7 @@ export interface LensChrome {
   openPage: (id: string) => void;
   /** The record the side panel shows, "" when it is closed. */
   openId: Ref<string>;
-  /** The Files table's page; carried in the address so a reload lands on it. */
+  /** The Records table's page; carried in the address so a reload lands on it. */
   page: Ref<number>;
 }
 
@@ -76,13 +82,12 @@ function report(): LensReport {
 export function createLensChrome(): LensChrome {
   return {
     search: ref(""),
-    sort: ref("recent"),
-    facets: reactive({ published: "", origin: "", type: "", link: "" }),
+    sort: ref("manual"),
+    density: ref("expanded"),
+    facets: reactive({ kind: "", published: "", origin: "", type: "", link: "" }),
     lenses: reactive({
       overview: report(),
-      sources: report(),
-      combinations: report(),
-      files: report(),
+      records: report(),
       shares: report(),
       settings: report(),
     }),

@@ -11,17 +11,12 @@ const page = readFileSync(new URL("./screens/RecordPage.vue", import.meta.url), 
  * rather than stacking under it.
  */
 describe("the layers", () => {
-  it("are six, in the design's order, Overview first and the default", () => {
+  it("are four, in the design's order, Overview first and the default", () => {
     // No icon per layer: the row is vpn-core's underline row (design 23 section 3.4).
+    // Records holds every kind (design 28); the three per-kind layers it
+    // replaced land on it through pageState's legacy views.
     const ids = [...shell.matchAll(/\{ id: "(\w+)", label: "([\w ]+)", screen:/g)].map((m) => `${m[1]}:${m[2]}`);
-    expect(ids).toEqual([
-      "overview:Overview",
-      "sources:Sources",
-      "combinations:Combinations",
-      "files:Files",
-      "shares:Shares",
-      "settings:Settings",
-    ]);
+    expect(ids).toEqual(["overview:Overview", "records:Records", "shares:Shares", "settings:Settings"]);
     expect(shell).toContain('const activeTab = ref<TabId>("overview");');
   });
 

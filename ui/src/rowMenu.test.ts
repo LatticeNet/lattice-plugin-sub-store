@@ -5,7 +5,6 @@ const menu = readFileSync(new URL("./components/RecordMenu.vue", import.meta.url
 const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const screens = [
   ["SubscriptionsScreen.vue", readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8")],
-  ["FilesScreen.vue", readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8")],
 ] as const;
 
 /**

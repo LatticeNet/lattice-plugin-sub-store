@@ -67,11 +67,11 @@ test.describe("375", () => {
       const tab = document.querySelector('[data-variant=layer] [aria-selected="true"]')!.getBoundingClientRect();
       return tab.left >= row.left && tab.right <= row.right;
     });
-    for (const view of ["files", "shares", "settings"]) {
+    for (const view of ["records", "shares", "settings"]) {
       await open(page, `?view=${view}`, "[data-variant=layer]");
       // The counts land after the layer is applied and widen every tab, so
       // the tab has to be in view once they are all there, not only before.
-      await expect(page.locator("[data-variant=layer] .pc-count"), view).toHaveCount(4);
+      await expect(page.locator("[data-variant=layer] .pc-count"), view).toHaveCount(2);
       await expect.poll(inView, view).toBe(true);
     }
     await page.getByRole("tab", { name: /Overview/ }).click();
@@ -104,16 +104,20 @@ test.describe("375", () => {
     expect(await docWidth(page)).toBe(375);
   });
 
-  test("a table keeps its columns and scrolls inside itself, name pinned", async ({ page }) => {
-    await open(page, "?view=sources", ".layer-row");
+  test("the records table becomes stacked rows instead of scrolling sideways", async ({ page }) => {
+    // Design 28: 375 is a floor, not a mode. The table used to keep its
+    // columns and scroll inside itself; the rows stack now, every one whole.
+    await open(page, "?view=records&kind=source", "[data-testid=record-row]");
     expect(await docWidth(page)).toBe(375);
-    const wrap = page.locator(".pc-table-wrap").first();
-    const name = page.locator(".layer-row td.pc-name").first();
-    await wrap.evaluate((el) => (el.scrollLeft = 400));
-    const box = (await name.boundingBox())!;
-    const wrapBox = (await wrap.boundingBox())!;
-    expect(Math.round(box.x)).toBeLessThanOrEqual(Math.round(wrapBox.x) + 1);
-    await expect(page.locator(".layer-row").first().locator("td", { hasText: /Provider link|Pasted nodes/ })).toHaveCount(1);
+    const table = page.getByTestId("records-table");
+    await expect(table.locator("table")).toHaveAttribute("data-stacked", "true");
+    await expect(table).not.toHaveAttribute("data-overflow", "x");
+    const wrap = (await table.boundingBox())!;
+    for (const row of await page.getByTestId("record-row").all()) {
+      const box = (await row.boundingBox())!;
+      expect(Math.round(box.x + box.width)).toBeLessThanOrEqual(Math.round(wrap.x + wrap.width) + 1);
+    }
+    await expect(page.getByTestId("record-row").first().locator("td", { hasText: /Provider link|Pasted nodes/ })).toHaveCount(1);
   });
 
   test("the side panel is a full-height sheet", async ({ page }) => {
@@ -165,14 +169,19 @@ test.describe("1440", () => {
     await expect(page.getByText("15 files are not published")).toBeVisible();
   });
 
-  test("each layer's own create action takes the header's place", async ({ page }) => {
-    await open(page, "?view=sources", ".layer-row");
+  test("the kind on screen names the header's create action, and each layer takes its place", async ({ page }) => {
+    await open(page, "?view=records", "[data-testid=record-row]");
     const header = page.locator(".ss-header");
-    for (const [tab, name] of [["Sources", "New source"], ["Combinations", "New combination"], ["Files", "New file"], ["Shares", "Open in Publishing"]] as const) {
-      await page.getByRole("tab", { name: new RegExp(`^${tab}`) }).click();
-      await expect(header.locator(".ss-head-primary"), tab).toHaveCount(1);
-      await expect(header.locator(".ss-head-primary"), tab).toContainText(name);
+    // Every kind showing: New source, with the other kinds behind the chevron.
+    await expect(header.locator(".ss-head-primary")).toContainText("New source");
+    await expect(header.getByRole("button", { name: "More things to create" })).toBeVisible();
+    for (const [kind, name] of [["Sources", "New source"], ["Combinations", "New combination"], ["Files", "New file"]] as const) {
+      await page.getByRole("radio", { name: new RegExp(`^${kind}`) }).check();
+      await expect(header.locator(".ss-head-primary"), kind).toHaveCount(1);
+      await expect(header.locator(".ss-head-primary"), kind).toContainText(name);
     }
+    await page.getByRole("tab", { name: /^Shares/ }).click();
+    await expect(header.locator(".ss-head-primary")).toContainText("Open in Publishing");
     await page.getByRole("tab", { name: /^Settings/ }).click();
     await expect(header.locator(".ss-head-primary")).toHaveCount(0);
   });
@@ -183,7 +192,7 @@ test.describe("1440", () => {
       await expect(page.locator(".ss-header .ss-head-primary"), view || "overview").toHaveCount(0);
     }
     await open(page, "?state=empty", ".pc-empty");
-    await expect(page.getByRole("button", { name: "Go to Sources" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Go to Records" })).toBeVisible();
   });
 
   test("with the record catalogue unread, create stays in place and is disabled with the reason", async ({ page }) => {
@@ -192,7 +201,8 @@ test.describe("1440", () => {
     await expect(header.getByRole("button", { name: "New source" })).toBeDisabled();
     await expect(header.getByRole("button", { name: "More things to create" })).toBeDisabled();
     await expect(header.getByRole("button", { name: "New source" })).toHaveAttribute("title", /could not be read.*Refresh first/);
-    await page.getByRole("tab", { name: /^Files/ }).click();
+    // Records narrowed to files, by the old Files address: the create is the file's.
+    await open(page, "?view=files&state=error", ".ss-header .ss-head-primary");
     await expect(header.getByRole("button", { name: "New file" })).toBeDisabled();
     // The palette's create commands carry the same reason, written out.
     await header.getByRole("button", { name: "Search records and actions (Cmd+K)" }).click();
@@ -377,8 +387,8 @@ test.describe("1440", () => {
     await expect(link).toHaveText("https://vip.ding202507.xyz/…?…");
     await page.getByRole("button", { name: "Reveal for 60s" }).click();
     await expect(link).toContainText("token=");
-    await page.getByRole("button", { name: /Sources/ }).click();
-    await expect(page.locator(".layer-row").first()).toBeVisible();
+    await page.getByRole("button", { name: /Records/ }).click();
+    await expect(page.getByTestId("record-row").first()).toBeVisible();
   });
 
   test("a long name ellipses instead of shoving columns off the row", async ({ page }) => {
@@ -419,30 +429,30 @@ test.describe("the large store's files, fifty a page", () => {
 
   test("pages by fifty, lands on the top of the next page, and a filter starts again on page 1", async ({ page }) => {
     await open(page, "?view=files&fixture=large", ".layer-row");
-    await expect(page.locator(".layer-row")).toHaveCount(50);
-    await expect(footer(page)).toContainText("Files 1 to 50 of 180");
+    await expect(page.getByTestId("record-row")).toHaveCount(50);
+    await expect(footer(page)).toContainText("Records 1 to 50 of 180");
     await expect(footer(page)).toContainText("Page 1 of 4");
     await footer(page).getByRole("button", { name: "Next" }).click();
-    await expect(footer(page)).toContainText("Files 51 to 100 of 180");
+    await expect(footer(page)).toContainText("Records 51 to 100 of 180");
     // Next sat under the last row; the new page shows from its top.
     const top = await page.locator(".rec-list").evaluate((el) => el.getBoundingClientRect().top);
     expect(top).toBeGreaterThanOrEqual(0);
     expect(top).toBeLessThan(900);
     // Select all takes the rows on screen, and the bar counts those.
-    await page.getByRole("checkbox", { name: "Select all 50 shown files" }).check();
+    await page.getByRole("checkbox", { name: "Select all 50 shown records" }).check();
     await expect(page.locator(".pc-batch-bar")).toContainText("50");
     await page.locator(".pc-batch-bar").getByRole("button", { name: "Clear" }).click();
-    await page.getByRole("searchbox", { name: "Filter files" }).fill("alice");
-    await expect(page.locator(".layer-row")).toHaveCount(15);
+    await page.getByRole("searchbox", { name: "Filter records" }).fill("alice");
+    await expect(page.getByTestId("record-row")).toHaveCount(15);
     await expect(footer(page)).toHaveCount(0);
   });
 
   test("select all on one page leaves the rows selected on another page alone", async ({ page }) => {
     await open(page, "?view=files&fixture=large", ".layer-row");
-    const selectAll = page.getByRole("checkbox", { name: "Select all 50 shown files" });
+    const selectAll = page.getByRole("checkbox", { name: "Select all 50 shown records" });
     await selectAll.check();
     await footer(page).getByRole("button", { name: "Next" }).click();
-    await expect(footer(page)).toContainText("Files 51 to 100 of 180");
+    await expect(footer(page)).toContainText("Records 51 to 100 of 180");
     await expect(selectAll).not.toBeChecked();
     await selectAll.check();
     await expect(page.locator(".pc-batch-bar")).toContainText("50");
@@ -450,7 +460,7 @@ test.describe("the large store's files, fifty a page", () => {
     await selectAll.uncheck();
     await expect(page.locator(".pc-batch-bar")).toHaveCount(0);
     await footer(page).getByRole("button", { name: "Previous" }).click();
-    await expect(footer(page)).toContainText("Files 1 to 50 of 180");
+    await expect(footer(page)).toContainText("Records 1 to 50 of 180");
     await expect(selectAll).toBeChecked();
     await expect(page.locator(".pc-batch-bar")).toContainText("50");
   });
@@ -536,7 +546,7 @@ test.describe("publishing and deleting files", () => {
     await boxes.nth(0).check();
     await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish .+…$/ })).toBeVisible();
     await boxes.nth(1).check();
-    await expect(page.locator(".pc-batch-bar")).toContainText("Publish one file at a time");
+    await expect(page.locator(".pc-batch-bar")).toContainText("Publish one record at a time");
     await expect(page.locator(".pc-batch-bar").getByRole("button", { name: /^Publish / })).toHaveCount(0);
   });
 
@@ -568,15 +578,16 @@ test.describe("page state in the console address", () => {
     await open(page, "?fixture=production", ".attention-item");
     await page.locator(".attention-item", { hasText: "not published" }).getByRole("button", { name: "Show them" }).click();
     await expect(page.locator(".layer-row")).toHaveCount(15);
-    await page.getByRole("searchbox", { name: "Filter files" }).fill("loon");
-    await expect(page.locator(".layer-row")).toHaveCount(3);
-    await page.locator(".layer-row", { hasText: "for-openjobs-loon" }).locator(".row-open").click();
+    await page.getByRole("searchbox", { name: "Filter records" }).fill("loon");
+    await expect(page.getByTestId("record-row")).toHaveCount(3);
+    await page.getByTestId("record-row").filter({ hasText: "for-openjobs-loon" }).getByTestId("record-name").click();
     await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
     await expect(page).toHaveURL(/[?&]open=imported-file-for-openjobs-loon(&|#|$)/);
     const url = new URL(page.url());
     expect(Object.fromEntries(url.searchParams)).toEqual({
       fixture: "production",
-      view: "files",
+      view: "records",
+      kind: "file",
       open: "imported-file-for-openjobs-loon",
       q: "loon",
       published: "no",
@@ -584,9 +595,10 @@ test.describe("page state in the console address", () => {
 
     await page.reload();
     await expect(page.locator(".pc-side-panel h2")).toHaveText("for-openjobs-loon");
-    await expect(page.getByRole("tab", { name: /Files/ })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("searchbox", { name: "Filter files" })).toHaveValue("loon");
-    await expect(page.locator(".layer-row")).toHaveCount(3);
+    await expect(page.getByRole("tab", { name: /Records/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("radio", { name: /^Files/ })).toBeChecked();
+    await expect(page.getByRole("searchbox", { name: "Filter records" })).toHaveValue("loon");
+    await expect(page.getByTestId("record-row")).toHaveCount(3);
     // The reload did not rewrite the address it landed on.
     expect(new URL(page.url()).search).toBe(url.search);
   });
@@ -676,14 +688,17 @@ test.describe("page state in the console address", () => {
     await page.locator(".pc-side-panel").getByRole("button", { name: "Open page" }).click();
     await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
     await expect(page).toHaveURL(/[?&]record=imported-col-merge-openjobs(&|#|$)/);
-    await expect(page).toHaveURL(/[?&]view=combinations(&|#|$)/);
+    // The old Combinations address landed on Records filtered to combinations,
+    // and the record page keeps that filter for the way back.
+    await expect(page).toHaveURL(/[?&]view=records(&|#|$)/);
+    await expect(page).toHaveURL(/[?&]kind=combination(&|#|$)/);
     await expect(page).not.toHaveURL(/[?&]open=/);
 
     await page.reload();
     await expect(page.locator("#record-title")).toHaveText("merge-openjobs");
-    await page.locator(".record-crumbs").getByRole("button", { name: "Combinations" }).click();
-    await expect(page.locator(".layer-row").first()).toBeVisible();
-    await expect(page).toHaveURL(/\?view=combinations(#|$)/);
+    await page.locator(".record-crumbs").getByRole("button", { name: "Records" }).click();
+    await expect(page.getByTestId("record-row").first()).toBeVisible();
+    await expect(page).toHaveURL(/\?view=records&kind=combination(#|$)/);
   });
 });
 

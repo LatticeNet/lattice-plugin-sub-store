@@ -1,3 +1,5 @@
+// First, so the fixtures are built on the clock `?clock=` asks for.
+import "./clock";
 import { createApp } from "vue";
 
 import "@latticenet/plugin-bridge/chassis.css";

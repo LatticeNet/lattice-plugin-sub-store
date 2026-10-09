@@ -152,8 +152,10 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
    column takes the width of its widest unwrapped cell, so without a cap one
    such name pushed the Actions column over the Published column at 1440. The
    design's budget for a two-line name cell is 250 to 380px; the title carries
-   the whole name. */
+   the whole name. The name inside its open button is capped the same way: a
+   nowrap name gives its whole width to the column otherwise. */
 .pc-name-line > strong,
+.pc-name-line > .row-open,
 .pc-toggle > strong { max-width: 380px; }
 
 /* The stacked row (480px and below): the checkbox leads the row rather than
@@ -485,6 +487,22 @@ input[type="radio"]:focus-visible { outline: none; box-shadow: var(--lt-focus-ri
 .empty-inline-form .masked-url input:focus-visible { box-shadow: var(--lt-focus-ring-tight); border-color: var(--primary); }
 
 .rec-list { min-width: 0; }
+
+/* A phone's toolbar: the kinds as a two by two grid rather than a pill row
+   that wraps one segment onto a line of its own, and the three selects with
+   their labels above them, two to a line. */
+@media (max-width: 480px) {
+  .rec-tools { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .rec-tools > .rec-kinds,
+  .rec-tools > .pc-search,
+  .rec-tools > .rec-list-note { grid-column: 1 / -1; }
+  /* Scoped to the toolbar: the base rules come later in this sheet. */
+  .rec-tools > .rec-kinds { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .rec-tools .rec-kind { justify-content: center; }
+  .rec-tools > .toolbar-sort { flex-direction: column; align-items: stretch; gap: 2px; }
+  .rec-tools > .toolbar-sort .pc-select { width: 100%; }
+  .rec-tools > .pc-count { justify-self: start; align-self: center; }
+}
 
 @media (max-width: 640px) {
   .rec-tools .pc-search { max-width: none; flex: 1 1 100%; }
@@ -2355,9 +2373,7 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .layer-provider { display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
 .layer-expiry { color: var(--muted-foreground); font-family: var(--font-mono); font-size: var(--lt-text-xs); }
 .layer-muted { color: var(--muted-foreground); font-size: var(--lt-text-xs); }
-.layer-members,
 .layer-record { display: flex; min-width: 0; align-items: center; gap: 6px; }
-.layer-members-names,
 .layer-record-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-publish {
   height: var(--lt-control-h-sm);
@@ -2372,6 +2388,161 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 .row-publish:hover { border-color: var(--lt-border-strong); }
 .row-publish:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 .batch-note { color: var(--muted-foreground); font-size: var(--lt-text-xs); }
+
+/* ── records ──────────────────────────────────────────────────────────────
+   One table for every kind (design 28, S1). The kind filter is the chassis's
+   pill group for a mode inside a layer, drawn over native radio inputs, so
+   the arrow keys and the form semantics come with it. */
+.rec-kinds {
+  display: inline-flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+.rec-kind {
+  position: relative;
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--lt-dur) var(--lt-ease);
+}
+.rec-kind:hover { color: var(--foreground); }
+/* The input covers its label: still focusable and named by the label's text,
+   with the label drawing the state. */
+.rec-kind > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.rec-kind.is-selected { color: var(--foreground); background: var(--muted); box-shadow: inset 0 0 0 1px var(--border); }
+.rec-kind:has(> input:focus-visible) { box-shadow: var(--lt-focus-ring-tight); }
+.rec-kind-count { color: var(--muted-foreground); font-size: var(--lt-text-xs); font-variant-numeric: tabular-nums; }
+
+.rec-density {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 6px;
+  padding: 3px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.rec-density:hover { color: var(--foreground); border-color: var(--lt-border-strong); }
+.rec-density[aria-pressed="true"] { color: var(--foreground); background: var(--muted); }
+.rec-density:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
+/* Fixed layout: every column but the name has its width, and the name takes
+   what is left, so a long name or a long node source ellipses inside its cell
+   instead of widening the table past the frame. */
+.records-table .pc-table:not([data-stacked="true"]) { table-layout: fixed; }
+.records-table .pc-table:not([data-stacked="true"]) td { overflow: hidden; }
+.records-table .pc-table:not([data-stacked="true"]) td .pc-td-body { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* The fixed layout bounds the name, so the 380px cap other tables need would
+   only cut a name short on a wide frame. The name takes its own width and the
+   flag and the tag follow it. One tag shows with its count, on one line: a
+   long tag ends in an ellipsis inside its share of the line (all of it on a
+   phone) rather than wrapping the count into a stack that would make the row
+   three lines tall, or pushing the row past the frame. */
+.records-table .pc-table:not([data-stacked="true"]) .pc-name-line > .row-open { flex: 0 1 auto; max-width: none; }
+.records-table .pc-table:not([data-stacked="true"]) .pc-name-after { flex: 0 0 auto; max-width: 40%; }
+.records-table .pc-name-after .pc-tag-list { min-width: 0; flex-wrap: nowrap; }
+.records-table .pc-name-after .pc-tag:not([title]) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Second lines that sit in narrow columns: the turned-off steps under the
+   count, and the traffic bar under the expiry. The chassis floors a cell's
+   sub-line at 126px, which a 64px column would clip on the wrong side. */
+.records-table td.rec-steps small { width: auto; min-width: 0; }
+.records-table .pc-table:not([data-stacked="true"]):not([data-density="compact"]) .layer-provider { flex-direction: column; align-items: flex-start; gap: 2px; }
+/* Compact rows have one line, so the bar goes, as every other sub-line does. */
+.records-table .pc-table[data-density="compact"]:not([data-stacked="true"]) .layer-provider:has(> .layer-expiry) > .usage { display: none; }
+
+/* The order rail: the record's place in the store's manual order, in mono,
+   and the grip that moves it. */
+.records-table td.rec-order { width: 56px; padding-right: var(--space-1); color: var(--muted-foreground); }
+.rec-order-inner { display: inline-flex; width: 100%; align-items: center; justify-content: flex-end; gap: 2px; }
+.rec-position { min-width: 2ch; font-family: var(--font-mono); font-size: var(--lt-text-xs); font-variant-numeric: tabular-nums; text-align: right; }
+.rec-grip {
+  display: inline-flex;
+  width: 24px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: grab;
+  /* The pointer drives the drag; a touch on the grip must not scroll. */
+  touch-action: none;
+}
+.rec-grip:hover { color: var(--foreground); background: var(--muted); }
+.rec-grip:focus-visible { outline: none; color: var(--foreground); box-shadow: var(--lt-focus-ring-tight); }
+/* The lifted row follows the pointer one to one (a transform set from the
+   pointer), above its neighbours, edged in the accent; the rows it passes
+   slide aside to open the gap it would land in. A cancelled drag slides
+   everything back. Zero duration under reduced motion, through --lt-dur. */
+.record-row.is-dragging { position: relative; z-index: 3; cursor: grabbing; }
+.record-row.is-dragging > td { background-color: var(--card); box-shadow: inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+.record-row.is-making-room,
+.record-row.is-settling { transition: transform var(--lt-dur) var(--lt-ease); }
+
+.rec-kind-icon { flex: 0 0 auto; align-self: center; color: var(--muted-foreground); }
+.rec-flag { display: inline-flex; flex: 0 0 auto; align-items: center; }
+.rec-kind-line { display: flex; min-width: 0; align-items: center; gap: 6px; }
+.rec-kind-label { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A reference that answers nothing stays whole; the kind's name gives way. */
+.rec-kind-line > .pc-state-dot { flex: 0 0 auto; }
+/* On the second line it sits on the line's own box: an inline-flex that clips
+   aligns by its bottom edge and would make the row a pixel taller. */
+.rec-kind-sub > .pc-state-dot { vertical-align: top; line-height: 16px; }
+.rec-nodes-pair { font-size: var(--lt-text-xs); white-space: nowrap; }
+.layer-expiry[data-tone="warn"] { color: var(--warning-text); }
+.layer-expiry[data-tone="danger"] { color: var(--lt-danger-ink); }
+
+/* The stacked rows of a phone: the rail is a number before the name, a long
+   name takes two lines before it ellipses, and the kind and what it connects
+   to read as one line (the icon would only repeat it). */
+.records-table .pc-table[data-stacked="true"] td.rec-order { width: auto; padding: 0; }
+.records-table .pc-table[data-stacked="true"] .rec-kind-icon { display: none; }
+.records-table .pc-table[data-stacked="true"] .row-open strong {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.records-table .pc-table[data-stacked="true"] td.rec-kind-cell { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-2); color: var(--muted-foreground); font-size: var(--lt-text-xs); }
+.records-table .pc-table[data-stacked="true"] td.rec-kind-cell small { margin-top: 0; }
+
+/* The rewrite offered for a pattern the native engine cannot run. */
+.regex-offer-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.regex-offer-item { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.regex-offer-step { font-weight: 600; }
+.regex-offer-pattern {
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+  overflow-wrap: anywhere;
+}
 
 /* Provider traffic: a bar the width of a word, and the percentage in mono. */
 .usage { display: inline-flex; align-items: center; gap: 6px; }
@@ -2443,4 +2614,7 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
      a thumb wide. */
   .layer-table td.pc-select,
   .layer-table th.pc-select { min-width: 48px; padding-right: 0; cursor: pointer; }
+  .rec-kind,
+  .rec-density { min-height: 44px; }
+  .rec-grip { width: 44px; height: 44px; }
 }

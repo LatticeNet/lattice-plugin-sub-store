@@ -36,7 +36,7 @@ describe("Escape closes exactly the top of the stack", () => {
     expect(text).not.toMatch(/@keydown\.esc/);
   });
 
-  it.each(["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"])(
+  it.each(["screens/SubscriptionsScreen.vue"])(
     "%s closes the top of the stack before it reads anything of its own",
     (file) => {
       const text = source(`./${file}`);
@@ -56,7 +56,7 @@ describe("Escape closes exactly the top of the stack", () => {
     // and Escape inside it clears a selection, which is a gesture scoped to the
     // bar rather than a layer to close. The chassis's bar keeps its own scoped
     // handler for exactly that reason; the screens draw that bar and no other.
-    for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"]) {
+    for (const file of ["screens/SubscriptionsScreen.vue"]) {
       const text = source(`./${file}`);
       expect(text, file).toContain("<PcBatchBar");
       expect(text, file).not.toContain("LtBatchBar");
@@ -73,9 +73,7 @@ describe("Escape closes exactly the top of the stack", () => {
     // that to the workspace.
     const shell = source("./Shell.vue");
     expect(shell).toContain('<PcWorkspace :batch="lens.selected > 0">');
-    for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"]) {
-      expect(source(`./${file}`), file).toMatch(/chrome\.lenses(\[viewId\.value\]|\.files)\.selected = count/);
-    }
+    expect(source("./screens/SubscriptionsScreen.vue")).toContain("chrome.lenses.records.selected = count");
   });
 });
 
@@ -83,7 +81,7 @@ describe("only the visible screen owns the document keys", () => {
   // The shell keeps both record screens alive across tab switches, so
   // onBeforeUnmount does not run on a tab change. Both screens' Escape
   // handlers stayed bound at once, and Escape acted on the hidden one.
-  it.each(["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue"])(
+  it.each(["screens/SubscriptionsScreen.vue"])(
     "%s releases its listeners on deactivate",
     (file) => {
       const text = source(`./${file}`);

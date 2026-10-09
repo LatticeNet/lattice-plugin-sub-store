@@ -188,10 +188,11 @@ describe("the palette's wiring", () => {
   });
 
   it("hands the work to the screen that owns the record", () => {
-    // The shell cannot open another screen's drawer; it posts an intent and
-    // switches tabs.
+    // The shell cannot open the Records screen's drawers; it posts an intent
+    // and switches to Records with the record's row in view.
     expect(shell).toMatch(/intent\.value = \{ recordId: record\.id, action \}/);
-    expect(shell).toContain("chrome.openLens(viewOfKind(record.kind));");
+    expect(shell).toMatch(/function runFromPalette[\s\S]{0,80}openRecords\(record\);/);
+    expect(shell).toContain("if (record && !matchesKind(record, chrome.facets.kind)) chrome.facets.kind = kindFacetOf(record.kind);");
   });
 
   it("tells assistive tech which row is active", () => {

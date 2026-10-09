@@ -37,9 +37,9 @@ import {
   providerFigures,
   sourceKindLabel,
   usedBySentence,
-  viewOfKind,
 } from "../pipeline";
 import { editorLanguageForContentType } from "../previewLanguage";
+import { TEXT as TABLE_TEXT, isFlagged } from "../recordTable";
 import { formatRelativeTime } from "../rowStatus";
 import { refreshStateFor, shareLinkOf, shareStateOf, stateTone } from "../shareState";
 import { safeErrorMessage } from "../subStoreModel";
@@ -135,16 +135,14 @@ const kindLabel = computed(() => {
   return `Source, ${sourceKindLabel(record).toLowerCase()}`;
 });
 
-const fromView = computed(() => viewOfKind(item.value?.kind));
 const VIEW_LABEL: Record<string, string> = {
   overview: "Overview",
-  sources: "Sources",
-  combinations: "Combinations",
-  files: "Files",
+  records: "Records",
   shares: "Shares",
   settings: "Settings",
 };
-const backLabel = computed(() => VIEW_LABEL[props.from] ?? VIEW_LABEL[fromView.value]!);
+/** The layer the page was opened from, else Records, which lists every record. */
+const backLabel = computed(() => VIEW_LABEL[props.from] ?? VIEW_LABEL.records!);
 
 function nameOf(id: string): string {
   const record = pipe.item(id);
@@ -257,6 +255,7 @@ const outputSheet = ref(false);
           <PcKindChip :label="kindLabel" />
           <PcKindChip v-if="item.imported" label="migrated" title="Imported from a standalone Sub-Store" />
           <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
+          <PcStateDot v-if="isFlagged(item)" tone="warning" :label="TABLE_TEXT.flagged" :title="TABLE_TEXT.flaggedTitle" data-testid="record-flagged" />
           <div class="record-actions">
             <PcButton v-if="subs.canRender.value" @click="outputSheet = true">Client output</PcButton>
             <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
@@ -281,6 +280,8 @@ const outputSheet = ref(false);
           <span v-if="lineageLine">{{ lineageLine }}</span>
           <span v-if="!upstream.length && !lineageLine" class="peek-note">Nothing feeds it and nothing uses it</span>
         </p>
+        <!-- The flag's reason in words, for a pointer with no hover; Edit is the way out. -->
+        <p v-if="isFlagged(item)" class="peek-why">{{ TABLE_TEXT.flaggedTitle }}</p>
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 

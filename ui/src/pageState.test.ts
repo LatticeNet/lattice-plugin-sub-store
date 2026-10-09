@@ -49,25 +49,30 @@ describe("the shell's state on the wire", () => {
     ["the landing", defaultShellState(), {}],
     ["a record peeked from the map", state({ open: "imported-sub-jiancai" }), { open: "imported-sub-jiancai" }],
     [
-      "Sources, searched, sorted, migrated only",
-      state({ view: "sources", q: "建材", sort: "name", origin: "migrated" }),
-      { view: "sources", q: "建材", sort: "name", origin: "migrated" },
+      "Records of every kind, searched, sorted, migrated only",
+      state({ view: "records", q: "建材", sort: "name", origin: "migrated" }),
+      { view: "records", q: "建材", sort: "name", origin: "migrated" },
     ],
     [
-      "Files not published, scripts only, with a record open",
-      state({ view: "files", published: "no", type: "script", open: "for-cdcd-loon" }),
-      { view: "files", published: "no", type: "script", open: "for-cdcd-loon" },
+      "sources in compact rows",
+      state({ view: "records", kind: "source", density: "compact" }),
+      { view: "records", kind: "source", density: "compact" },
+    ],
+    [
+      "files not published, scripts only, with a record open",
+      state({ view: "records", kind: "file", published: "no", type: "script", open: "for-cdcd-loon" }),
+      { view: "records", kind: "file", published: "no", type: "script", open: "for-cdcd-loon" },
     ],
     ["Shares that serve nothing", state({ view: "shares", link: "dead" }), { view: "shares", link: "dead" }],
     [
-      "page 3 of Files, searched",
-      state({ view: "files", q: "alice", page: 3 }),
-      { view: "files", q: "alice", page: "3" },
+      "page 3 of the files, searched",
+      state({ view: "records", kind: "file", q: "alice", page: 3 }),
+      { view: "records", kind: "file", q: "alice", page: "3" },
     ],
     [
-      "a record page opened from filtered Files",
-      state({ view: "files", record: "for-cdcd-loon", from: "files", published: "no" }),
-      { view: "files", record: "for-cdcd-loon", published: "no" },
+      "a record page opened from filtered files",
+      state({ view: "records", kind: "file", record: "for-cdcd-loon", from: "records", published: "no" }),
+      { view: "records", kind: "file", record: "for-cdcd-loon", published: "no" },
     ],
     ["a record page that was the landing", state({ record: "imported-sub-jiancai" }), { record: "imported-sub-jiancai" }],
     ["Settings", state({ view: "settings" }), { view: "settings" }],
@@ -83,7 +88,7 @@ describe("the shell's state on the wire", () => {
   }
 
   it("round-trips through the console's address, the way a reload does", () => {
-    const shell = state({ view: "files", published: "no", type: "config", origin: "local", q: "loon & stash", open: "for-cdcd-loon" });
+    const shell = state({ view: "records", kind: "file", published: "no", type: "config", origin: "local", q: "loon & stash", open: "for-cdcd-loon" });
     const address = addressForState("?fixture=production&theme=dark", encodeShellState(shell));
     expect(address).not.toBeNull();
     expect(new URLSearchParams(address!).get("fixture")).toBe("production");
@@ -91,40 +96,62 @@ describe("the shell's state on the wire", () => {
   });
 
   it("carries only the facets the layer on screen reads", () => {
-    const shell = state({ view: "sources", published: "no", type: "script", link: "dead", origin: "local" });
-    expect(encodeShellState(shell)).toEqual({ view: "sources", origin: "local" });
+    const shell = state({ view: "records", kind: "source", published: "no", type: "script", link: "dead", origin: "local" });
+    // The file type narrows files only, so beside sources it is left out.
+    expect(encodeShellState(shell)).toEqual({ view: "records", kind: "source", published: "no", origin: "local" });
+    expect(encodeShellState(state({ view: "shares", kind: "file", link: "dead" }))).toEqual({ view: "shares", link: "dead" });
     expect(encodeShellState(state({ view: "overview", q: "stale", origin: "local" }))).toEqual({});
   });
 
-  it("carries the page only for Files, and never page 1", () => {
-    expect(encodeShellState(state({ view: "files", page: 1 }))).toEqual({ view: "files" });
-    expect(encodeShellState(state({ view: "sources", page: 3 }))).toEqual({ view: "sources" });
-    expect(encodeShellState(state({ view: "files", record: "a", from: "files", page: 3 }))).toEqual({ view: "files", record: "a" });
-    expect(decodeShellState({ view: "files", page: "0" }).page).toBe(1);
+  it("carries the page only for Records, and never page 1", () => {
+    expect(encodeShellState(state({ view: "records", page: 1 }))).toEqual({ view: "records" });
+    expect(encodeShellState(state({ view: "shares", page: 3 }))).toEqual({ view: "shares" });
+    expect(encodeShellState(state({ view: "records", record: "a", from: "records", page: 3 }))).toEqual({ view: "records", record: "a" });
+    expect(decodeShellState({ view: "records", page: "0" }).page).toBe(1);
   });
 
-  it("leaves out the default sort and a closed panel", () => {
-    expect(encodeShellState(state({ view: "combinations", sort: "recent", open: "" }))).toEqual({ view: "combinations" });
+  it("leaves out the default sort, the default density and a closed panel", () => {
+    expect(encodeShellState(state({ view: "records", sort: "manual", density: "expanded", open: "" }))).toEqual({ view: "records" });
+    // The sort before manual order existed is a choice now, so it is kept.
+    expect(encodeShellState(state({ view: "records", sort: "recent" }))).toEqual({ view: "records", sort: "recent" });
   });
 
   it("does not carry the side panel under a record page", () => {
-    expect(encodeShellState(state({ record: "a", from: "sources", open: "b" }))).toEqual({ view: "sources", record: "a" });
+    expect(encodeShellState(state({ record: "a", from: "records", open: "b" }))).toEqual({ view: "records", record: "a" });
     expect(decodeShellState({ record: "a", open: "b" }).open).toBe("");
   });
 
   it("clips a long search so the message stays inside the rules", () => {
-    const encoded = encodeShellState(state({ view: "sources", q: "x".repeat(400) }));
+    const encoded = encodeShellState(state({ view: "records", q: "x".repeat(400) }));
     expect(encoded.q).toHaveLength(MAX_STATE_VALUE);
     expect(validPageState(encoded)).not.toBeNull();
   });
 
   it("reads an unknown view or facet value as unset", () => {
-    expect(decodeShellState({ view: "graph", sort: "size", published: "maybe", type: "yaml", link: "gone", origin: "x" })).toEqual(defaultShellState());
+    expect(
+      decodeShellState({ view: "graph", sort: "size", kind: "module", density: "tiny", published: "maybe", type: "yaml", link: "gone", origin: "x" }),
+    ).toEqual(defaultShellState());
+  });
+
+  it("lands the per-kind layers Records replaced on Records, filtered to their kind", () => {
+    expect(decodeShellState({ view: "sources" })).toEqual(state({ view: "records", kind: "source" }));
+    expect(decodeShellState({ view: "combinations", sort: "name" })).toEqual(state({ view: "records", kind: "combination", sort: "name" }));
+    expect(decodeShellState({ view: "files", published: "no", type: "script", page: "2" })).toEqual(
+      state({ view: "records", kind: "file", published: "no", type: "script", page: 2 }),
+    );
+    // A record page opened from an old layer goes back to Records.
+    expect(decodeShellState({ view: "files", record: "for-cdcd-loon" })).toEqual(
+      state({ view: "records", kind: "file", record: "for-cdcd-loon", from: "records" }),
+    );
+    // An explicit kind beside an old view is the newer word, and wins.
+    expect(decodeShellState({ view: "files", kind: "source" }).kind).toBe("source");
+    // Re-encoded, the old address becomes the new one.
+    expect(encodeShellState(decodeShellState({ view: "files", published: "no" }))).toEqual({ view: "records", kind: "file", published: "no" });
   });
 
   it("still lands the address this page used before its layers", () => {
-    expect(decodeShellState({ lens: "subscriptions" }).view).toBe("sources");
-    expect(decodeShellState({ lens: "files" }).view).toBe("files");
+    expect(decodeShellState({ lens: "subscriptions" })).toEqual(state({ view: "records", kind: "source" }));
+    expect(decodeShellState({ lens: "files" })).toEqual(state({ view: "records", kind: "file" }));
     expect(decodeShellState({ view: "shares", lens: "files" }).view).toBe("shares");
     expect(decodeShellState({ lens: "constructor" }).view).toBe("overview");
   });
@@ -132,14 +159,14 @@ describe("the shell's state on the wire", () => {
   it("never uses a key the console reserves", () => {
     expect([...RESERVED_STATE_KEYS].sort()).toEqual(["code", "mfa", "next", "redirect", "sso_error", "state", "token", "totp_challenge"]);
     const everything = state({
-      view: "files", open: "x", q: "x", sort: "name", published: "no", origin: "local", type: "script", link: "dead",
+      view: "records", open: "x", q: "x", sort: "name", kind: "file", density: "compact", published: "no", origin: "local", type: "script", link: "dead", page: 2,
     });
     const keys = new Set<string>();
-    for (const view of ["overview", "sources", "combinations", "files", "shares", "settings"] as const) {
+    for (const view of ["overview", "records", "shares", "settings"] as const) {
       for (const key of Object.keys(encodeShellState({ ...everything, view }))) keys.add(key);
       for (const key of Object.keys(encodeShellState({ ...everything, view, record: "r", from: view }))) keys.add(key);
     }
-    expect([...keys].sort()).toEqual(["link", "open", "origin", "published", "q", "record", "sort", "type", "view"]);
+    expect([...keys].sort()).toEqual(["density", "kind", "link", "open", "origin", "page", "published", "q", "record", "sort", "type", "view"]);
     for (const key of keys) expect(RESERVED_STATE_KEYS.has(key)).toBe(false);
   });
 

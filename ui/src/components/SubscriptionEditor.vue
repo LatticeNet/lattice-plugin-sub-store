@@ -9,6 +9,7 @@ import GraphSubscriptionEditor from "./GraphSubscriptionEditor.vue";
 import MaskedUrlInput from "./MaskedUrlInput.vue";
 import MemberPicker from "./MemberPicker.vue";
 import ProcessChain, { type ChainStep } from "./ProcessChain.vue";
+import RegexRewriteOffer from "./RegexRewriteOffer.vue";
 import SubscriptionPreviewSummary from "./SubscriptionPreviewSummary.vue";
 import LtButton from "./lt/LtButton.vue";
 import LtConfirmDialog from "./lt/LtConfirmDialog.vue";
@@ -94,7 +95,7 @@ function setEditorTab(id: string): void {
   <section class="configuration editor-shell" aria-labelledby="editor-title">
     <nav class="lt-breadcrumb" aria-label="Breadcrumb">
       <button type="button" class="lt-breadcrumb-root" @click="leaveEditor">
-        <ChevronLeft :size="14" aria-hidden="true" /> {{ isCollection ? "Combinations" : "Sources" }}
+        <ChevronLeft :size="14" aria-hidden="true" /> Records
       </button>
       <span class="lt-breadcrumb-sep" aria-hidden="true">/</span>
       <span class="lt-breadcrumb-here" aria-current="page">
@@ -435,6 +436,16 @@ function setEditorTab(id: string): void {
       </div>
       </PcPanelBody>
     </PcPanel>
+
+      <!-- A pattern the native engine cannot run, from the moment the record
+           opens: next to Save, which it refuses once the chain changes, and
+           under the chain it is about. -->
+      <RegexRewriteOffer
+        :refusal="subs.saveRefusal.value"
+        :chain="draft.process"
+        @apply="(chain) => (draft.process = chain)"
+        @resolved="subs.settleRefusal()"
+      />
 
       <!-- Sticky so Save stays reachable while a long form scrolls. -->
       <div class="editor-actions">

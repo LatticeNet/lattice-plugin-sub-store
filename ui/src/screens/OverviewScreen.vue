@@ -131,7 +131,7 @@ watch(host.init, (value) => {
           render them into a file for each client, and publish the file as a share.
         </p>
         <template #actions>
-          <PcButton @click="chrome.openLens('sources', undefined, { focus: true })">Go to Sources</PcButton>
+          <PcButton @click="chrome.openLens('records', { kind: 'source' }, { focus: true })">Go to Records</PcButton>
           <PcButton @click="chrome.openLens('settings', undefined, { focus: true })">Import from a Sub-Store</PcButton>
         </template>
       </PcEmptyState>
