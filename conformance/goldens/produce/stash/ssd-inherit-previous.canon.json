@@ -1,0 +1,34 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "AU-do2bi-94",
+      "password": "oTe2mcYzsduFTR",
+      "port": 39141,
+      "server": "ik4-24.pakq1pd.example.com",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "chacha20-ietf-poly1305",
+      "name": "SG-j37i-11",
+      "password": "oTe2mcYzsduFTR",
+      "port": 14150,
+      "server": "lpx-15.sisat.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "chacha20-ietf-poly1305",
+      "name": "NL-tw5z-43",
+      "password": "oTe2mcYzsduFTR",
+      "port": 14150,
+      "server": "dm-30.e2zlt1bx.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

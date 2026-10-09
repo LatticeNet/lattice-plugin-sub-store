@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "eh-02.e6fd.example.net",
+      "443"
+    ],
+    "name": "JP-ei5q-91",
+    "params": {
+      "download-bandwidth": "1",
+      "password": "Dxnae7hB8sq8H4nnLYFk",
+      "sni": "img.lgpapm0p.example.com"
+    },
+    "type": "hysteria2"
+  }
+]

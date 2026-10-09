@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-y9pq-57",
+      "type": "trojan",
+      "server": "sm-01.u4wqs351.example.net",
+      "server_port": 443,
+      "password": "fp2omGYeoDUnyAE7",
+      "tls": {
+        "enabled": true,
+        "server_name": "sm-01.u4wqs351.example.net",
+        "insecure": true
+      }
+    }
+  ],
+  "endpoints": []
+}

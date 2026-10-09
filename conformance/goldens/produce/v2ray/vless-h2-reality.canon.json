@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "JP-kzkt-75",
+    "host": "yek-01.z1l94dfo.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.vc3ai.example.com"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/ii0ls"
+      ],
+      [
+        "pbk",
+        "zCE4wn57ytbsLEcKRkmPjZyjTST7vUaKYGzKhwinXc0"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "8444e6d5"
+      ],
+      [
+        "sni",
+        "img.vc3ai.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "fc79f00f-7e80-4d12-b9d1-ad060ff43fc0"
+  }
+]

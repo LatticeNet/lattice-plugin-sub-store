@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "psk": "ICuSeaJfGTwP5kRTgkrh",
+      "server": "o5q-03.m5u4.example.net",
+      "server_port": 16923,
+      "tag": "JP-o1zi-67",
+      "type": "snell",
+      "version": 4
+    },
+    {
+      "psk": "eR2nBQ7LjZmeB66nHlNr",
+      "server": "n9-39.sw475vr.example.org",
+      "server_port": 27700,
+      "tag": "SG-x2h44-62",
+      "type": "snell",
+      "version": 4
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-rwl-68",
+      "type": "tuic",
+      "server": "si-36.bnyc.example.net",
+      "server_port": 443,
+      "uuid": "v2DeBaasrThWvtaPa4ChcTJX",
+      "password": "",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.zuzj9pi2d.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      },
+      "congestion_control": "bbr"
+    }
+  ],
+  "endpoints": []
+}

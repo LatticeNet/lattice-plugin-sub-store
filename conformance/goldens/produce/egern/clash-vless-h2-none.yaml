@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"JP-degn-79","server":"iu3-20.rum15qg.example.net","port":443,"user_id":"7c7012fe-e2a0-4029-b5d7-c6bca137fa6b","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/dq3bc6/vxutok6icq","headers":{"Host":"api.xbmupx62n.example.org"}}}}}

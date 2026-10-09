@@ -1,0 +1,18 @@
+proxies:
+  - name: US-syz8-29
+    type: vless
+    server: tcz-29.ppxe.example.net
+    port: 443
+    uuid: 03ba6920-4b55-435c-90f5-2dd82536c8dc
+    udp: true
+    tls: true
+    servername: static.lo63q03r9t.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    flow: xtls-rprx-vision
+    shadow-tls-opts:
+      password: vPD6gpNJzyrqSysH
+      version: 3

@@ -1,0 +1,9 @@
+{
+  "id": "vmess-uuid-at-host-form",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "vless-style-uri",
+  "description": "vmess://uuid@host:port with query keys, delegated to the VLESS reader."
+}

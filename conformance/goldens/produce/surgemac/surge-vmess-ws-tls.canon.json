@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "jz-02.c8w0o.example.net",
+      "443"
+    ],
+    "name": "US-zxcd-56",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "img.woqeq46.example.org",
+      "tls": "true",
+      "username": "7ad81b79-8585-455e-bbbf-62760908d238",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.woqeq46.example.org\"|User-Agent:\"o50x5tw8q\"",
+      "ws-path": "/jfanvq6wu"
+    },
+    "type": "vmess"
+  }
+]

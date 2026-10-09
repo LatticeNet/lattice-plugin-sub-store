@@ -1,0 +1,1 @@
+NL-ch4-64=vmess,cej-15.bkqvxt7.example.net,443,auto,"8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d",transport=ws,path=/xbne0,host=static.vn1oixf1.example.org,over-tls=true,skip-cert-verify=false,tls-name=static.vn1oixf1.example.org,alterId=0,udp=true

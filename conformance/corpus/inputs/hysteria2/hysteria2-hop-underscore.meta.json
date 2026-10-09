@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-hop-underscore",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "hop-interval",
+  "description": "hop_interval=0 and fastopen=1: the hop interval is removed and tfo is true."
+}

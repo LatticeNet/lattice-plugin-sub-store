@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ry-15.lipvx.example.net",
+      "33417",
+      "aes-128-cfb",
+      "srKjGdX2iwqG"
+    ],
+    "name": "ry-15.lipvx.example.net",
+    "params": {
+      "obfs": "plain",
+      "protocol": "origin",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

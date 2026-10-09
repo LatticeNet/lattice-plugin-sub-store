@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "ct-01.gktnpz.example.net",
+      "443"
+    ],
+    "name": "NL-wmkko5-50",
+    "params": {
+      "password": "uY3bzTtZg5PWo0Gu",
+      "skip-cert-verify": "true",
+      "sni": "img.mfq6v7gy31.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "exp-37.msqhu.example.net",
+      "443"
+    ],
+    "name": "GB-g2r5-48",
+    "params": {
+      "password": "Q0TFWQNDf9Objj0W",
+      "sni": "www.lyoh8.example.net",
+      "tls": "true",
+      "udp-relay": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"www.lyoh8.example.net\"",
+      "ws-path": "/h1xonc/ytq25w0leh"
+    },
+    "type": "trojan"
+  }
+]

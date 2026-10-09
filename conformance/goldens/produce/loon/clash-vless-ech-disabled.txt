@@ -1,0 +1,1 @@
+AU-owaf2-26=vless,pze-30.gl0zl.example.com,443,"34359908-5583-4f5c-a3ca-2973676f37b8",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=static.k1jwj.example.org,udp=true

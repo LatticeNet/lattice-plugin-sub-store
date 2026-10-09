@@ -1,0 +1,4 @@
+proxies:
+  - {"cipher":"none","name":"DE-fagncp-27","network":"tcp","port":443,"server":"vhc-22.b83qsp3.example.com","tls":true,"type":"vless","udp":true,"uuid":"f24854c1-a1cd-4117-83de-aeaa9945e26f","servername":"api.xp6xe1z2a.example.com"}
+  - {"cipher":"none","name":"GB-g1q-33","network":"ws","port":443,"server":"e48-28.bjqzb1.example.net","tls":true,"type":"vless","udp":true,"uuid":"e5725b74-ad03-45d1-97d8-0f370c592de2","ws-opts":{"headers":{"Host":"www.mkib18bcs.example.com"},"path":"/sihrottd"},"servername":"www.mkib18bcs.example.com"}
+  - {"cipher":"none","flow":"xtls-rprx-vision","name":"CA-uubjbo-91","network":"tcp","port":443,"reality-opts":{"public-key":"OBocI0WjnnNvVCcnYmupwoWE7jK8bu1KdkpEsgzPWVc","short-id":"155bd2af"},"server":"g26-25.woad.example.net","tls":true,"type":"vless","udp":true,"uuid":"f52b7a7b-96e0-4e9a-99d8-47501060ccfa","servername":"api.uc0hl0gpi.example.org"}

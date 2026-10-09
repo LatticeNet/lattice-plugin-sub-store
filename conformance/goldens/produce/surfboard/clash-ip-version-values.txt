@@ -1,0 +1,7 @@
+HK-cjx-77=trojan,iy-37.dc56k.example.org,443,password=Drttxdvccwfaxc4e,tls=true,sni="img.aramgppm3.example.com",udp-relay=true
+NL-rm1-76=trojan,fuz-28.uv8ot.example.com,443,password=Jnuuxv8gZVVRzh2t,tls=true,sni="api.rxocwwswkc.example.com",udp-relay=true
+SG-cl9-44=trojan,xy-34.u6n8sj2n.example.net,443,password=4Vm2vFAENjt6bylh,tls=true,sni="static.ppsw9hocg.example.net",udp-relay=true
+HK-n488o-76=trojan,uv-23.jocsspi.example.org,443,password=otgZ2PBAxIKEUXrS,tls=true,sni="cdn.z33tx93cbl.example.org",udp-relay=true
+US-gqu8sb-76=trojan,xw-05.xstlss.example.net,443,password=1i1Kr6u8pd838AxG,tls=true,sni="cdn.dn2x7pvo.example.com",udp-relay=true
+AU-wk1-50=trojan,c7l-25.ys3mkhv.example.net,443,password=JCwYvyUPiGX6GDPn,tls=true,sni="cdn.ymq4b.example.org",udp-relay=true
+GB-qumu-79=trojan,hmp-30.q92twj.example.com,443,password=b3XQHRCGOb8va6mh,tls=true,sni="static.rdwf05uk.example.org",udp-relay=true

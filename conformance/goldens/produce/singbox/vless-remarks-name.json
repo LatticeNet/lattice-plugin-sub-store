@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-actar-66",
+      "type": "vless",
+      "server": "fq-04.ri20owdn.example.net",
+      "server_port": 443,
+      "uuid": "6490f9f8-ff11-4f38-92bf-752ea9cb09b2",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.z96qqyye3z.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

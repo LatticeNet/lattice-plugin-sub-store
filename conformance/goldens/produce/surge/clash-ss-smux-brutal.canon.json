@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "lh-03.tvntg.example.org",
+      "10239"
+    ],
+    "name": "NL-rvfu-27",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "cf02XhToMNkAVl",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

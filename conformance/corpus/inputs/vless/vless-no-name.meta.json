@@ -1,0 +1,9 @@
+{
+  "id": "vless-no-name",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "missing-name",
+  "description": "No fragment, so the name is derived."
+}

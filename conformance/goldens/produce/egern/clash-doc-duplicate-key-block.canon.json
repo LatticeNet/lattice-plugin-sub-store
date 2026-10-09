@@ -1,0 +1,11 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "trojan undefined:undefined",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

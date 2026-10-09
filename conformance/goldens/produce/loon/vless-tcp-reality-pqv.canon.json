@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "a9-05.le66p.example.org",
+      "443",
+      "47bd133f-f4bb-4fb1-aad7-a238ff909c91"
+    ],
+    "name": "FR-e74yhy-14",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "XsH0zzVsbUwKTqlNK1ycPEtEv8cqaY4J7U3YPR5nz-w",
+      "short-id": "845a9e77",
+      "skip-cert-verify": "false",
+      "sni": "api.ip4wwzndjw.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

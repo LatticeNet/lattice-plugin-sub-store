@@ -1,0 +1,38 @@
+[
+  {
+    "body": {
+      "add": "q7-09.eahzxc.example.com",
+      "aid": "0",
+      "id": "08db3b80-c3c6-409e-98be-9d7b8962e4bd",
+      "net": "tcp",
+      "port": "18927",
+      "ps": "SG-pden-75",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "vq-18.sg82606.example.com",
+      "aid": "0",
+      "host": "www.h40id.example.net",
+      "id": "f8f86c57-0190-4106-8987-9d97a99989e9",
+      "net": "tcp",
+      "path": "/anz3c/n7wlt5",
+      "port": "80",
+      "ps": "FR-lb156b-04",
+      "scy": "auto",
+      "tls": "",
+      "type": "http",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "in-09.lpf7.example.org",
+      "43566",
+      "aes-128-ctr",
+      "ykOLcACoPcSC"
+    ],
+    "name": "GB-ikyosn-89",
+    "params": {
+      "obfs": "http_post",
+      "obfs-param": "cdn.z35d7v5.example.net",
+      "protocol": "auth_aes128_sha1",
+      "protocol-param": "8922:8Ak2P7eB",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

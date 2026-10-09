@@ -1,0 +1,1 @@
+hysteria://m6-39.trbk.example.net:29836?auth=MZURz8UXO1s6MWpC&fastopen=1&protocol=udp&recv_window_conn=1&peer=www.xz02a.example.net&udp=true#GB-nkn46-03

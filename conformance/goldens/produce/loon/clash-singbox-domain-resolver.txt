@@ -1,0 +1,3 @@
+FR-xzt8-87=trojan,r71-09.q6isz.example.com,443,"252osGcNC6rhBPot",tls-name=api.k66w9n0.example.com,udp=true,ip-mode=v4-only
+KR-kse4f-43=trojan,w7-10.olg8j.example.org,443,"pNnlkRSb5JLWlpyh",tls-name=img.ec3p3.example.com,udp=true
+HK-tm0vy-52=trojan,kuk-03.ztc4l.example.net,443,"7pxYY9U0dtY7Xt2x",tls-name=api.xevlb.example.org,udp=true,ip-mode=prefer-v6

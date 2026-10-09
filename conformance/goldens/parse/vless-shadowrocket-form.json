@@ -1,0 +1,23 @@
+[
+  {
+    "_h2": false,
+    "flow": "xtls-rprx-vision",
+    "name": "SG-lc2-75",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "cn8-05.u99h.example.org",
+    "skip-cert-verify": false,
+    "sni": "api.sfqet.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "ef04e78f-802d-4a7d-b13d-af45d17e4676",
+    "ws-opts": {
+      "headers": {
+        "Host": "api.sfqet.example.com"
+      },
+      "path": "/sufbag7zgs"
+    }
+  }
+]

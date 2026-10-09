@@ -1,0 +1,15 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "PUq0L4AbgcmLrQ",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=api.fc9ofw.example.org;obfs=http",
+      "server": "d6y-20.oabma4i4.example.org",
+      "server_port": 32468,
+      "tag": "SG-yyjrva-54",
+      "type": "shadowsocks"
+    }
+  ]
+}

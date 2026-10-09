@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "bc-25.jsgi.example.net",
+      "443"
+    ],
+    "name": "TW-n66eo-51",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "encrypt-method": "aes-128-gcm",
+      "password": "ZMG7STrb3w3XbD",
+      "shadow-tls-password": "6NEGLx6NVJT8j74j",
+      "shadow-tls-sni": "api.bcv8u0ou.example.net",
+      "shadow-tls-version": "2",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-i2gfvc-26",
+      "type": "socks",
+      "server": "gvo-12.lih7p9at.example.org",
+      "server_port": 1080,
+      "version": "5",
+      "username": "ghvuo5ft",
+      "password": "3PW2M7qZi7vb"
+    },
+    {
+      "tag": "NL-glmiy7-28",
+      "type": "socks",
+      "server": "192.0.2.224",
+      "server_port": 1080,
+      "version": "5"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,4 @@
+proxies:
+  - {"snell":{"name":"TW-s3d7ct-14","server":"lo-09.pupzz.example.org","port":41631,"psk":"WEL8Tz35Xhk4ci7EMfOz","version":1,"tfo":false}}
+  - {"snell":{"name":"US-ltp-81","server":"z6n-05.wlea.example.org","port":44320,"psk":"eWLnfe6pLNLmW1AXnyON","version":2,"obfs":"tls","obfs_host":"www.e4iyt7.example.com","tfo":false}}
+  - {"snell":{"name":"GB-f2i-83","server":"qhy-35.c5qlq6n7.example.com","port":53271,"psk":"klNi1Sarnw5ldI7JXdBy","udp_relay":true,"tfo":false}}

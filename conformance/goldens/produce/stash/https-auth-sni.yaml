@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"AU-f5qjs-75","password":"0WqVo2egBAnO","port":443,"server":"gav-13.l5s0ra.example.com","sni":"gav-13.l5s0ra.example.com","tls":true,"type":"http","udp":true,"username":"owy7rh"}

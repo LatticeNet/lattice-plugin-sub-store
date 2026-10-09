@@ -1,0 +1,1 @@
+US-o93-80=vmess,ph4-05.mx0tv.example.com,443,username=e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35,ws=true,ws-path=/zzha3a/pymm,ws-headers="Host:"img.bgickuqs.example.org"",vmess-aead=true,tls=true,sni="api.mmb7dk.example.org",skip-cert-verify=false,shadow-tls-password="FRUnGaggSJUwqE6q",shadow-tls-sni=api.mmb7dk.example.org,shadow-tls-version=3,alpn="h2,http/1.1"

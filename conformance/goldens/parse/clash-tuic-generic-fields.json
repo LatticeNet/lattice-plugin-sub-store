@@ -1,0 +1,26 @@
+[
+  {
+    "alpn": [
+      "h3"
+    ],
+    "congestion-controller": "cubic",
+    "max-open-streams": 20,
+    "name": "FR-s8k-58",
+    "password": "haySs7N4afsvUahP",
+    "port": 443,
+    "server": "m97-07.vapbfgw4.example.net",
+    "sni": "www.r0ym9flg0.example.net",
+    "tls": true,
+    "type": "tuic",
+    "udp": true,
+    "udp-relay-mode": "native",
+    "uuid": "8084f53b-14db-4353-bb2f-54266975fe35",
+    "x-tv8d": [
+      "krx3ew2",
+      "gch9p7"
+    ],
+    "x-zpymcx5": {
+      "x-o4ped1": "j3pmbu0g"
+    }
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "TW-iwic9-12",
+    "host": "gc-02.t78uot.example.org",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.7.0.2/32,fd00:7::2/128"
+      ],
+      [
+        "allowed-ips",
+        "0.0.0.0/0,::/0"
+      ],
+      [
+        "dns",
+        " 198.51.100.211, 2001:db8:b42d:846::37bc"
+      ],
+      [
+        "keepalive",
+        "25"
+      ],
+      [
+        "mtu",
+        "1280"
+      ],
+      [
+        "peers",
+        "[object Object]"
+      ],
+      [
+        "preshared-key",
+        " UbrD9CLCVGTVdH6tkE89VhNRy50rH47LAa3JhmjlaIo="
+      ],
+      [
+        "publickey",
+        " 9sQp8VfbRvZW0G1lqX+e7jUp8lYUIDnF5gpwxy6jtf4="
+      ],
+      [
+        "remote-dns-resolve",
+        "true"
+      ],
+      [
+        "reserved",
+        "1,2,3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": " Jyn+vFrBzaYrx3g/qwJIVUhmsl43bauXB8WYCCliMBA="
+  }
+]

@@ -1,0 +1,3 @@
+日本 东京 xp3wh=shadowsocks,my3-20.shu2.example.com,40259,aes-128-gcm,"RfBryVPcgbhP",udp=true
+Франкфурт ein23=shadowsocks,x5d-17.b1ft75s.example.net,28566,aes-128-gcm,"adqGqFf6jdjC",udp=true
+a: b # c [d] {e}, xcvo=shadowsocks,sth-08.xj5a.example.net,29015,aes-128-gcm,"bXKC2TcvGpNl",udp=true

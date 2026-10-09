@@ -1,0 +1,2 @@
+vless://5f9949e9-6942-4705-aac5-b20178fbf8d9@r7-03.i2erek.example.net:443?encryption=none&security=tls&sni=api.wcdec4b.example.org&fp=chrome&alpn=h2%2Chttp%2F1.1&type=ws&host=api.wcdec4b.example.org&path=%2Fyp7qbs%3Fed%3Dgi2i1#DE-mezs9r-33
+vless://6842ebd9-468c-4a1e-9123-2f04f5d85881@bjk-39.vo4vm.example.net:443?encryption=none&security=tls&sni=static.dc5l5z.example.org&fp=chrome&alpn=h2%2Chttp%2F1.1&type=ws&host=static.dc5l5z.example.org&path=%2Fmfg1ntda&ed=qq0#US-icgnin-77

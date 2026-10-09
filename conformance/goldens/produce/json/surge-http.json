@@ -1,0 +1,27 @@
+[
+  {
+    "name": "NL-nkzbk-02",
+    "port": 8080,
+    "server": "vb-17.e188i878.example.net",
+    "type": "http",
+    "udp": true
+  },
+  {
+    "name": "DE-epqj-42",
+    "password": "kTH9PbaXBZbB",
+    "port": 8080,
+    "server": "g2c-07.eklb.example.com",
+    "type": "http",
+    "udp": true,
+    "username": "ytqroxb5"
+  },
+  {
+    "name": "FR-ikt0-49",
+    "password": "CNhUZkFflnfQ",
+    "port": 8080,
+    "server": "bpv-02.oqml6c.example.org",
+    "type": "http",
+    "udp": true,
+    "username": "e0bqj"
+  }
+]

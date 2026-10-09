@@ -1,0 +1,14 @@
+{
+  "endpoints": [
+    {
+      "auth_key": "tskey-auth-f96uJC54nlLLuct6VpMD5K3dA41Ptl",
+      "control_http_client": {
+        "detour": "qo4bzy"
+      },
+      "hostname": "vml7zad4k1",
+      "tag": "AU-mzg2-91",
+      "type": "tailscale"
+    }
+  ],
+  "outbounds": []
+}

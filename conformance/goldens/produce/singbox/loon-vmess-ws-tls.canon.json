@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "cej-15.bkqvxt7.example.net",
+      "server_port": 443,
+      "tag": "NL-ch4-64",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.vn1oixf1.example.org"
+      },
+      "transport": {
+        "headers": {
+          "Host": "static.vn1oixf1.example.org"
+        },
+        "path": "/xbne0",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d"
+    }
+  ]
+}

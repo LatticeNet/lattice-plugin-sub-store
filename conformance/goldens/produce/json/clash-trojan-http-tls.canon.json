@@ -1,0 +1,30 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "img.mid588eb.example.com"
+        ]
+      },
+      "method": "GET",
+      "path": [
+        "/xt3a"
+      ]
+    },
+    "name": "TW-s2u-29",
+    "network": "http",
+    "password": "o28W1dYtBQkLXn8a",
+    "port": 443,
+    "server": "gi-20.mgnzx.example.net",
+    "skip-cert-verify": false,
+    "sni": "img.mid588eb.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

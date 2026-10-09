@@ -1,0 +1,13 @@
+[
+  {
+    "address": "g5p-26.ami9olc.example.com:16339",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "llh0CjZmE0ix7GJ5PcbvGSG4tZ3xd/240gi0+/vvF7M=",
+      "tag": "NL-mtc1-19",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

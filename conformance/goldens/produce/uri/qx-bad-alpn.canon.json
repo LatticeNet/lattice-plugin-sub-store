@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "US-jnq-88",
+    "host": "yev-28.xniy064.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.a6fucziy.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "jjPT3sFpPqTjDrbJ"
+  }
+]

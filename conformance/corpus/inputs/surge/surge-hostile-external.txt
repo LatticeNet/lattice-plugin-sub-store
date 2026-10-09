@@ -1,0 +1,2 @@
+AU-dmn5y5-44 = external, exec="/usr/local/bin/m2h7", args="-c", args="/etc/pn7l.json", local-port=1080, addresses=198.51.100.226
+NL-d0svs-69 = ss, ww-28.b6rk.example.com, 50551, encrypt-method=aes-128-gcm, password=2UkWNdG9ThWtTN

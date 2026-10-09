@@ -1,0 +1,1 @@
+FR-fay-77=vless,e56-01.seeo45qf.example.net,443,"6ca1dced-5ed7-4a6b-8dc7-ed9720264442",transport=http,path=/jcn0,host=cdn.udpgihfrvr.example.net,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=cdn.udpgihfrvr.example.net,udp=true

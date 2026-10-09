@@ -1,0 +1,2 @@
+proxies:
+  - {"wireguard":{"name":"GB-q5ik8-81","local_ipv4":"172.16.0.2/32","server":"203.0.113.233","port":51820,"private_key":"VN4Xef3XIrmD+3/5w5NAney9AvPzcC5jMiqeL9j49p8=","peer_public_key":"FqbbuZGEiRaCbdF8mXyBdv0CJV2vU2FAsTZ316vVdxA="}}

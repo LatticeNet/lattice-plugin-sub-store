@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "FR-f7j-28",
+    "host": "ap-39.nxuyyahu.example.org",
+    "path": "",
+    "port": "16090",
+    "query": [
+      [
+        "alpn",
+        "hysteria"
+      ],
+      [
+        "auth",
+        "RxIFQ9t4mdsr1c24"
+      ],
+      [
+        "downmbps",
+        "100"
+      ],
+      [
+        "peer",
+        "static.ycnztn1hm.example.org"
+      ],
+      [
+        "protocol",
+        "faketcp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

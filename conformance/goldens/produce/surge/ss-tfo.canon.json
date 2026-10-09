@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "r8-22.rqosi.example.com",
+      "39474"
+    ],
+    "name": "JP-x092-11",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "UurzHOXEvgK8m3",
+      "tfo": "true",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "bv-01.deuvl.example.net",
+      "31874"
+    ],
+    "name": "HK-xz4py5-57",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "sMIHATg9l4GXsa",
+      "tfo": "true",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

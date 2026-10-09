@@ -1,0 +1,9 @@
+{
+  "id": "vless-remarks-name",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "remarks-name",
+  "description": "No fragment and remarks=R: the name is R."
+}

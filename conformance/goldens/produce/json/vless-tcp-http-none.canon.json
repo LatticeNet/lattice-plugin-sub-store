@@ -1,0 +1,26 @@
+[
+  {
+    "_h2": false,
+    "encryption": "none",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "static.k844cgjqpc.example.org"
+        ]
+      },
+      "path": [
+        "/mxba"
+      ]
+    },
+    "name": "US-g9oft-73",
+    "network": "http",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "fy-15.rele.example.com",
+    "skip-cert-verify": false,
+    "tls": false,
+    "type": "vless",
+    "udp": true,
+    "uuid": "b71a594d-c0f7-4382-b55d-ffaaefacfc1f"
+  }
+]

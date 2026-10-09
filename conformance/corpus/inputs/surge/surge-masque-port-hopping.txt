@@ -1,0 +1,1 @@
+CA-i4r3o-16 = masque, i6r-05.o0s2r.example.com, 443, username=eg0p8, password=CAijEBqPquKFfV, sni=cdn.atshtof.example.com, port-hopping=53921-53930

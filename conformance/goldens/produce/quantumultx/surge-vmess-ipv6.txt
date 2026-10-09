@@ -1,0 +1,1 @@
+vmess=2001:db8:f4e1:9108::e11d:28811,method=chacha20-poly1305,password=4ddabfe1-ea65-4fc3-af13-ab9d288a30ce,obfs=ws,obfs-uri=/qpqlfvau,obfs-host=cdn.shsl3n.example.net,aead=true,udp-relay=true,tag=US-snz-75

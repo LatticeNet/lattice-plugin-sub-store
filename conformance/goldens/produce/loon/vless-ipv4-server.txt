@@ -1,0 +1,1 @@
+US-uz1w8a-26=vless,203.0.113.48,8443,"946ca19d-458d-4607-a30c-d7d5c6af849a",transport=ws,path=/ogd6r7489,host=www.chcyg0.example.org,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.chcyg0.example.org,udp=true

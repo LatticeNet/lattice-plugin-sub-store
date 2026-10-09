@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "cz-18.bqqq3e.example.org",
+      "443"
+    ],
+    "name": "vmess cz-18.bqqq3e.example.org:443",
+    "params": {
+      "tls": "false",
+      "username": "252586ae-8170-4126-8483-71740ee01d41",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

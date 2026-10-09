@@ -1,0 +1,1 @@
+vless://749a7176-8006-424d-8018-35e4006a44f1@ga-21.r95t.example.net:443?security=reality&type=xhttp&path=%2Ft3tz0%2Fl5jdned3el&host=www.hrq0u.example.org&packetEncoding=xudp&sni=www.hrq0u.example.org&fp=chrome&sid=0e175218&spx=%2F&pbk=4tAhbjKtre8pv_LX2Y0HsMtIkEqPHtoGZkCE7bpWN4I&mode=auto&encryption=none#US-ig0mn-42

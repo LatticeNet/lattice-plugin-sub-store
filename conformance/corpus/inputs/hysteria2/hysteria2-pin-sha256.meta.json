@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-pin-sha256",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "cert-pin",
+  "description": "pinSHA256 certificate pin with insecure=1."
+}

@@ -1,0 +1,172 @@
+[
+  {
+    "fragment": "US-gzy8-87",
+    "host": "qo-19.qfig1df.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "firefox"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.e9lh2mo5kh.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f1cb3c22-cadf-4741-a861-66e724042af6"
+  },
+  {
+    "fragment": "GB-vf8-03",
+    "host": "cn-20.y8suksj3.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "safari"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.mnmuuw.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b5793326-760d-46da-ab04-9d4e23d7b7ec"
+  },
+  {
+    "fragment": "CA-a4zwe-27",
+    "host": "eu-07.fq689n3v.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "ios"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "img.l1du25r1.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1a7cc116-66e1-46c2-91cf-cdc3005ee15f"
+  },
+  {
+    "fragment": "SG-b0j-73",
+    "host": "ic-38.wgazw4.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "random"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.g2923vp2z.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "026e7152-84c8-4445-822e-a6780b289f13"
+  },
+  {
+    "fragment": "SG-wfvnp-71",
+    "host": "cp-24.gdg3qnvk.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "randomized"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.tt0p1qp.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "a7110413-9582-4b5d-8927-47ecae9eb14f"
+  }
+]

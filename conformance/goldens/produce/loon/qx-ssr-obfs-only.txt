@@ -1,0 +1,1 @@
+KR-d1m-45=shadowsocksr,hb-21.rfbq.example.com,32659,aes-256-cfb,"vY9lKm8ZeVQS",protocol=origin,obfs=http_simple,obfs-param=static.yhydgl.example.org,udp=true

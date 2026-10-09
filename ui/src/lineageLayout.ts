@@ -26,7 +26,8 @@
 
 import { watch, type Ref, type WatchStopHandle } from "vue";
 
-import { groupByPrefix, plural, STAGES, type Lineage, type Stage } from "./pipeline";
+import { t } from "./i18n";
+import { groupByPrefix, STAGES, type Lineage, type Stage } from "./pipeline";
 
 export const COLUMN_CAP = 8;
 /** Above this many dependencies in the store the map draws paths, not everything. */
@@ -54,7 +55,13 @@ export interface MapItem {
   shown?: number;
 }
 
-const NOUN: Record<Stage, string> = { source: "source", combination: "combination", file: "file", share: "share" };
+/** A count of one stage's records in the active locale: "26 sources", "1 share". */
+export function stageCount(stage: Stage, count: number): string {
+  if (stage === "combination") return t.nouns.combinations(count);
+  if (stage === "file") return t.nouns.files(count);
+  if (stage === "share") return t.nouns.shares(count);
+  return t.nouns.sources(count);
+}
 
 /**
  * What a column's "N more" says. The rows above it are records and
@@ -63,10 +70,8 @@ const NOUN: Record<Stage, string> = { source: "source", combination: "combinatio
  * ("26 more sources"), because the button's text is its accessible name.
  */
 export function moreLabel(stage: Stage, total: number, families: number, singles: number): string {
-  const noun = NOUN[stage];
-  if (!families) return `${total} more ${total === 1 ? noun : `${noun}s`}`;
-  const kinds = `${families} more ${families === 1 ? "family" : "families"}${singles ? ` and ${plural(singles, noun)}` : ""}`;
-  return `${kinds}, ${plural(total, noun)}`;
+  if (!families) return t.map.moreOf[stage](total);
+  return t.map.moreFamilies(families, singles ? stageCount(stage, singles) : "", stageCount(stage, total));
 }
 
 export interface MapLayout {
@@ -177,7 +182,7 @@ export function layoutLineage(lineage: Lineage, options: LayoutOptions): MapLayo
       items.push({ key: moreKey(stage), kind: "more", stage, ids: hiddenIds, label: moreLabel(stage, hiddenIds.length, families, folded.length - families), open: false });
       for (const id of hiddenIds) anchor.set(id, moreKey(stage));
     } else if (over && expanded) {
-      items.push({ key: moreKey(stage), kind: "more", stage, ids: [], label: "Show fewer", open: true });
+      items.push({ key: moreKey(stage), kind: "more", stage, ids: [], label: t.map.showFewer, open: true });
     }
     columns[stage] = items;
   }

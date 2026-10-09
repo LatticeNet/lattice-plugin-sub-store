@@ -1,0 +1,1 @@
+SG-rsvy-31=vless,p7s-12.vxsga2t1.example.org,443,"cb22c8ff-3921-4bca-aa16-d8a21097e463",transport=ws,path=/xj1jlj/bmtb1lwh5,host=static.vslcfo.example.org,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=static.vslcfo.example.org,udp=true

@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "jk5-23.fvpc.example.com",
+      "443",
+      "Dw9cWcvIBMcXkupU"
+    ],
+    "name": "DE-n3mife-19",
+    "params": {
+      "skip-cert-verify": "true",
+      "tls-name": "api.b0h8ez454.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","http-opts":{"headers":{"Host":["static.rf5mcrm8wm.example.org"]},"path":["/blc/cpyp"]},"name":"KR-d8v6j-75","network":"http","port":443,"server":"d3r-23.er9q6.example.net","tls":false,"type":"vmess","udp":true,"uuid":"d45031ed-edbf-4630-9a7e-3ea25d35210d"}

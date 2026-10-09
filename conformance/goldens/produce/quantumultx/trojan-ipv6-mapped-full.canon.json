@@ -1,0 +1,14 @@
+[
+  {
+    "address": "::ffff:198.51.100.153:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "Ou8kTO0V9PYFpUBy",
+      "tag": "SG-i1osv-55",
+      "tls-host": "www.ok64r7bmn.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

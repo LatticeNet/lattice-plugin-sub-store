@@ -1,0 +1,51 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "O5JKgY3RhM4YtB2LW6sQ",
+      "server": "w5-33.b8gbhup.example.net",
+      "server_port": 443,
+      "tag": "TW-a8ef-18",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.gvbtkgnh.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "obfs": {
+        "password": "rYyQ9Pf4sBcZnEas",
+        "type": "salamander"
+      },
+      "password": "1ZwO87l7TwxoKe9JwQre",
+      "server": "v4z-07.bsiwk9.example.net",
+      "server_port": 443,
+      "tag": "SG-kutb-91",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.labnn7rfp.example.net"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "down_mbps": 200,
+      "hop_interval": "30s",
+      "password": "ZJsIFFB8Z3JgXRHfRBUu",
+      "server": "s4-29.i7snt2pt.example.net",
+      "server_port": 443,
+      "server_ports": [
+        "20000:30000"
+      ],
+      "tag": "FR-uu3v3-82",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.qkjsan.example.org"
+      },
+      "type": "hysteria2",
+      "up_mbps": 50
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+proxies:
+  - name: SG-vo9s-94
+    type: anytls
+    server: dob-07.qwxjve.example.net
+    port: 443
+    password: PlDLgcCgRJIg37LoV6c3
+    client-fingerprint: chrome
+    sni: www.wmxy45i.example.org
+    udp: true
+    network: ws
+    ws-opts:
+      path: /qrpgpv/d2nu413y
+      headers:
+        Host: cdn.ynkvgq.example.org

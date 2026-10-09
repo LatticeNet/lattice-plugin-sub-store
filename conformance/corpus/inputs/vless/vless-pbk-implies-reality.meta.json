@@ -1,0 +1,9 @@
+{
+  "id": "vless-pbk-implies-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "pbk-implies-reality",
+  "description": "security=none with pbk and support-x25519mlkem768=true: tls stays false and reality-opts is built."
+}

@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "ty4TysmKKjggHD",
+      "server": "hrc-22.zibc.example.net",
+      "server_port": 443,
+      "tag": "DE-bfs-55",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "tESlvXey4WRcbi",
+      "server": "ke6-36.rgn5ls.example.org",
+      "server_port": null,
+      "tag": "NL-xa8-63",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "e22RD6Xn1e8xf8",
+      "server": "jf1-18.gdljfe.example.org",
+      "server_port": null,
+      "tag": "JP-lf7-81",
+      "type": "shadowsocks"
+    }
+  ]
+}

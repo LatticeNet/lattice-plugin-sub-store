@@ -1,0 +1,22 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-rqk4-92",
+      "type": "hysteria2",
+      "server": "v5p-17.d1bhi9.example.net",
+      "server_port": 443,
+      "password": "CYgL6uhgoFGf48xcuOOM",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.vk6e5rjd.example.org",
+        "insecure": false
+      },
+      "hop_interval": "20s",
+      "server_ports": [
+        "20000:21000",
+        "23000:23000"
+      ]
+    }
+  ],
+  "endpoints": []
+}

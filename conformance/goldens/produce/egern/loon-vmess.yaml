@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"SG-pden-75","server":"q7-09.eahzxc.example.com","port":18927,"user_id":"08db3b80-c3c6-409e-98be-9d7b8962e4bd","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}
+  - {"vmess":{"name":"FR-lb156b-04","server":"vq-18.sg82606.example.com","port":80,"user_id":"f8f86c57-0190-4106-8987-9d97a99989e9","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"path":"/anz3c/n7wlt5","headers":{"Host":"www.h40id.example.net"}}}}}

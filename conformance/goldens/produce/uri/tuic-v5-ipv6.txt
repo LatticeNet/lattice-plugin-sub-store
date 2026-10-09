@@ -1,0 +1,1 @@
+tuic://3d6086b8-489d-4975-955a-5055bdc30044:GMbMPBfBRzCF7krc@[2001:db8:5dea:9676::65f4]:443?alpn=h3&congestion_control=cubic&sni=static.vz9cc.example.org&udp=true&udp_relay_mode=native#AU-dshc6-86

@@ -1,0 +1,1 @@
+vless=cr-03.ci0fvkp.example.com:443,method=none,password=eddf6c71-29a2-485e-977d-36d68b51ffa4,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-cert-sha256=69:24:7B:D1:F8:01:D5:23:CA:AE:2C:C3:37:9B:F1:F1:A2:31:50:49:8D:0B:43:4C:EC:0B:B5:4E:F5:79:F2:20,tls-verification=static.h05sqvoy.example.org,tls-host=img.lejb3z3.example.com,udp-relay=true,tag=SG-rvp97-26

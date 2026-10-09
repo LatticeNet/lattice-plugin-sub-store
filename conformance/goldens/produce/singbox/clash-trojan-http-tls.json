@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-s2u-29",
+      "type": "trojan",
+      "server": "gi-20.mgnzx.example.net",
+      "server_port": 443,
+      "password": "o28W1dYtBQkLXn8a",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.mid588eb.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

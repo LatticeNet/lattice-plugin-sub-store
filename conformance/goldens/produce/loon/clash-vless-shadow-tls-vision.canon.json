@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "tcz-29.ppxe.example.net",
+      "443",
+      "03ba6920-4b55-435c-90f5-2dd82536c8dc"
+    ],
+    "name": "US-syz8-29",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "static.lo63q03r9t.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

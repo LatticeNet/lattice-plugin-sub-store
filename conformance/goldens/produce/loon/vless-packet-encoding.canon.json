@@ -1,0 +1,38 @@
+[
+  {
+    "args": [
+      "vd-25.o41nav1j.example.com",
+      "443",
+      "1113eba7-5d19-424d-9454-7f55c674c2b7"
+    ],
+    "name": "NL-ue77o-49",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "api.vxv2ki9k85.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "w2l-16.ymew3v.example.net",
+      "443",
+      "f2b5e03f-8233-4318-8fad-5f5d0167082f"
+    ],
+    "name": "GB-hkxj2-56",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "api.x9auf.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

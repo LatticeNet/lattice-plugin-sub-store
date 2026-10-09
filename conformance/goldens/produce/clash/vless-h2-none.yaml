@@ -1,0 +1,2 @@
+proxies:
+  - {"encryption":"none","h2-opts":{"host":["img.htdo7.example.net"],"path":"/q9oylycib3"},"name":"CA-o9nv99-23","network":"h2","packet-encoding":"xudp","port":443,"server":"wg-36.g06hh9ti.example.com","skip-cert-verify":false,"tls":false,"type":"vless","udp":true,"uuid":"cc632db6-522a-4d2c-99b1-aa927e014af4"}

@@ -1,0 +1,7 @@
+{
+  "id": "clash-quirk-unknown-type",
+  "family": "clash",
+  "protocol": "unknown",
+  "quirk": "unknown-type",
+  "description": "A proxy type upstream does not accept next to a valid one."
+}

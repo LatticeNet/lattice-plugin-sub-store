@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-wca4te-67","method":"aes-128-gcm","server":"qq0-04.ywvxhzk.example.com","port":10060,"password":"UIyHcd6WdDKACc","tfo":false,"udp_relay":true}}

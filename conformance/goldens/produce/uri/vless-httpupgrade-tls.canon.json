@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "GB-x1csc-65",
+    "host": "d91-21.hbwhds4.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.kh7h2.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/p860m/zaq07601"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.kh7h2.example.org"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "858c0ac5-dd21-4605-9e82-2fb011f2b838"
+  }
+]

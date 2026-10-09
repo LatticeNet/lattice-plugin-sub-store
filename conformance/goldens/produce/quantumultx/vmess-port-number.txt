@@ -1,0 +1,1 @@
+vmess=o0-12.dadt3a.example.net:49419,method=chacha20-poly1305,password=d1842fe9-5aed-452a-a62f-b2a295668da1,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-host=api.et37x8lil.example.com,aead=true,udp-relay=true,tag=JP-vfw94-81

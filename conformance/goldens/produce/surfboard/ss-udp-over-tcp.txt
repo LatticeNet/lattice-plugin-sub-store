@@ -1,0 +1,2 @@
+TW-sgo-07=ss,su-23.ysq8riu.example.com,41043,encrypt-method=aes-256-gcm,password="f1RgjVO49Z5wYF",udp-relay=true
+TW-t0hv-35=ss,n4j-34.a620o39y.example.com,41982,encrypt-method=aes-256-gcm,password="2rCTNDZG2jMTLF",udp-relay=false

@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-tx3-71",
+      "type": "shadowsocks",
+      "server": "v5-05.qb5b.example.org",
+      "server_port": 34588,
+      "method": "aes-128-gcm",
+      "password": "i0Xuxu3C1Z8mZe"
+    },
+    {
+      "tag": "TW-cdnh-17",
+      "type": "trojan",
+      "server": "bun-09.kwq8.example.net",
+      "server_port": 443,
+      "password": "RbyQZY56IcdRRx5v",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.bskwnh8rfx.example.com",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

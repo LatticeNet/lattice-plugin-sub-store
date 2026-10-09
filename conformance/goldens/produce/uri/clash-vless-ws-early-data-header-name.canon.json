@@ -1,0 +1,98 @@
+[
+  {
+    "fragment": "TW-mk0-06",
+    "host": "bf-01.rvs3.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ed",
+        "2048"
+      ],
+      [
+        "eh",
+        "X-Ed"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.h72zog8.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/yjd5"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.bg8e5mi.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "604dfc35-2fab-41a6-9bd7-198f9bcbfa73"
+  },
+  {
+    "fragment": "KR-ysri-71",
+    "host": "nz-06.yv72.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ed",
+        "2048"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.nz70uzc.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/khjh8ejx"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.tjhpolxnn4.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "d036208d-6589-44d5-815b-421410e4aed5"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "jr-09.lmt9g.example.net",
+      "19626"
+    ],
+    "name": "SG-qx3wl-78",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "jQjvT0KFTZfBgD",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "fm8-06.y7l1.example.org",
+      "443"
+    ],
+    "name": "AU-cajil-62",
+    "params": {
+      "sni": "img.aiq2p.example.net",
+      "tls": "true",
+      "username": "7498ceaf-fb34-440c-bf61-be5cd2755c55",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.aiq2p.example.net\"",
+      "ws-path": "/wo1x7lvx"
+    },
+    "type": "vmess"
+  }
+]

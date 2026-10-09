@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ke0-40.lx6l.example.org",
+      "443"
+    ],
+    "name": "CA-n0gwa7-77",
+    "params": {
+      "download-bandwidth": "200",
+      "password": "rcGMeNXxjwztH1PuBrs5",
+      "skip-cert-verify": "false",
+      "sni": "www.md1rpi.example.com",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

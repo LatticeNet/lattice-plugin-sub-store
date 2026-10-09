@@ -1,0 +1,11 @@
+proxies:
+  - name: JP-cf9p0-05
+    type: hysteria2
+    server: krx-01.z80re.example.org
+    port: 443
+    password: 8RY6jGZbI7EkOQU9BxCP
+    sni: cdn.wgruy.example.net
+    obfs: gecko
+    obfs-password: W8lk4MDS8AdiS9s1
+    obfs-min-packet-size: 100
+    obfs-max-packet-size: 5000

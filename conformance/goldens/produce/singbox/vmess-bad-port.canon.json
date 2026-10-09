@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "wqb-29.gzhip.example.org",
+      "server_port": null,
+      "tag": "DE-rmkd-68",
+      "type": "vmess",
+      "uuid": "25c2e2a0-1f95-4953-9f36-a64e83e85446"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"SG-eh7-78","server":"jhs-39.peelab.example.org","port":443,"user_id":"0817af70-3653-4523-b59f-b1a1b00abc76","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/bz8mszs9e","headers":{"Host":"img.w3kpjhn.example.org"},"sni":"img.w3kpjhn.example.org"}}}}

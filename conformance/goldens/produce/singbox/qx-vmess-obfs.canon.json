@@ -1,0 +1,71 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "e4-39.vor9g.example.com",
+      "server_port": 443,
+      "tag": "JP-ijr-55",
+      "transport": {
+        "headers": {
+          "Host": "www.j2stn.example.org"
+        },
+        "path": "/pdlzh/kqamarys",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "0ed5ed26-4b12-4d4f-a31c-9de5a377b458"
+    },
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "ty8-01.lvynkanu.example.net",
+      "server_port": 443,
+      "tag": "GB-njols-07",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.pewtkvy.example.com"
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.pewtkvy.example.com"
+        },
+        "path": "/xodx/z2maviu62v",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "a00bab91-5bd3-46a9-b915-eaf312402b24"
+    },
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "ua4-11.ix24.example.com",
+      "server_port": 443,
+      "tag": "SG-oma-59",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.bi8j2y.example.net"
+      },
+      "type": "vmess",
+      "uuid": "93b4f3f3-326d-493f-9fe0-dcbb285ef223"
+    },
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "nb7-30.wryjwwi.example.net",
+      "server_port": 443,
+      "tag": "AU-fv5x-63",
+      "transport": {
+        "headers": {},
+        "host": "img.e9d8gma.example.org",
+        "path": "/iuy9",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "984c9559-2091-4f77-ae2b-ca189cef3eb9"
+    }
+  ]
+}

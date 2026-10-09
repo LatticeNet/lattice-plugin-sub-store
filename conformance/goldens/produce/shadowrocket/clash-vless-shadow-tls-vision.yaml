@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","flow":"xtls-rprx-vision","name":"US-syz8-29","network":"tcp","port":443,"server":"tcz-29.ppxe.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"03ba6920-4b55-435c-90f5-2dd82536c8dc","shadow-tls-opts":{"password":"vPD6gpNJzyrqSysH","version":3},"alpn":["h2","http/1.1"],"servername":"static.lo63q03r9t.example.com"}

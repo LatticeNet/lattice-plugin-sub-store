@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "JP-lqv8s-18",
+    "host": "fg-11.ly62w3au.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.ogehpjgiz.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/jssw7k/x3vxt"
+      ],
+      [
+        "pbk",
+        "nlTwFx-IbqCSkG9qR-RmqwJ5IX13wLGywMOfh9WklQc"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "4353f6c9"
+      ],
+      [
+        "sni",
+        "img.ogehpjgiz.example.net"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "cce5ae76-9f0f-4cc2-8048-949f2bd9f033"
+  }
+]

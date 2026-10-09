@@ -1,0 +1,1 @@
+HK-qt9-55=shadowsocksr,zk-35.ikvj4vc.example.org,43618,chacha20-ietf,"fwXoeoq3yymb",protocol=origin,obfs=plain,udp=true

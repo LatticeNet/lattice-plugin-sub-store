@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-nvtf84-42",
+      "type": "shadowsocks",
+      "server": "f9u-30.yunpr0j.example.com",
+      "server_port": 52428,
+      "method": "aes-128-gcm",
+      "password": "rfyxAU5zrOYf5L"
+    }
+  ],
+  "endpoints": []
+}

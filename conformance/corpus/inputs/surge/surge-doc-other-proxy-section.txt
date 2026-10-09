@@ -1,0 +1,11 @@
+[General]
+loglevel = notify
+
+[Remote Proxy]
+US-cokl-60 = ss, pf-09.b8jq.example.com, 50711, encrypt-method=aes-128-gcm, password=koqDbSBQ9l8LWr
+
+[Proxy]
+JP-kdsun4-82 = trojan, vt-10.fne1hkoa.example.net, 443, password=CjX1p9F2Tzf7PCPv, sni=www.nkaz6g6e.example.org
+
+[Rule]
+FINAL,DIRECT

@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "KR-bawy-93",
+    "host": "by-05.sxhabqpu.example.com",
+    "path": "",
+    "port": "11795",
+    "query": [
+      [
+        "auth",
+        "b6y1LjqiDr3JpbFN"
+      ],
+      [
+        "downmbps",
+        "80"
+      ],
+      [
+        "obfs",
+        "xplus"
+      ],
+      [
+        "obfsParam",
+        "UwNBvR4dhTjf"
+      ],
+      [
+        "peer",
+        "api.aoey7lq4p.example.com"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "20"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "8qQpen8qOJ4Ubo",
+      "server": "qo-38.xh0qf6.example.net",
+      "server_port": 22,
+      "tag": "FR-yvf3td-84",
+      "type": "ssh",
+      "user": "yok0o71f"
+    },
+    {
+      "host_key": [
+        "ssh-ed25519 Q8+WTH3rg7Xlf5am12m0d+44vNtsY8D+yvsPgt+aSMU="
+      ],
+      "host_key_algorithms": [
+        "ssh-ed25519"
+      ],
+      "server": "udx-39.glat.example.net",
+      "server_port": 2222,
+      "tag": "FR-uoc-38",
+      "type": "ssh",
+      "user": "tgh9b0vd"
+    }
+  ]
+}

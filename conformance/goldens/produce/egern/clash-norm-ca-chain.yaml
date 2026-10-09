@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"JP-chu7-11","server":"my4-31.fhft.example.com","port":443,"user_id":"ba462a80-ab01-4c3f-88b7-c47220841185","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.h1p5z.example.com","fingerprint_sha256":"7B:ED:04:14:B3:8E:E8:88:8F:0A:4E:D2:CB:DB:D5:D3:77:B3:43:E0:09:E5:C8:A4:8E:B2:AF:4C:24:5E:3D:6C"}}}}
+  - {"trojan":{"name":"HK-xgot1p-60","server":"b9-39.i1ubj.example.org","port":443,"password":"1nbSNxX7dKIzH5cg","tfo":false,"udp_relay":true,"sni":"cdn.xjvul.example.org","fingerprint_sha256":"09:58:49:FB:DB:82:83:32:BB:44:D9:0A:89:2C:3B:79:FF:27:CD:EE:4E:76:35:2B:C7:BE:CF:F4:D3:D3:07:9B"}}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-grpc-mode-twice",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "grpc",
+  "security": "reality",
+  "quirk": "grpc-mode-twice",
+  "description": "vless grpc with grpc-opts._grpc-type multi and _mode multi."
+}

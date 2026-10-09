@@ -1,0 +1,27 @@
+[
+  {
+    "_echConfigList": "Vr+JCeupCeH8nUII43fmZvMAW08aSjPecef/qlUi2oZ1ED/H0wXxM9P1qncTruDBU6zcMZfARZvUArzflfA4wbITJ4Ykt1B7",
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "ech-opts": {
+      "config": "Vr+JCeupCeH8nUII43fmZvMAW08aSjPecef/qlUi2oZ1ED/H0wXxM9P1qncTruDBU6zcMZfARZvUArzflfA4wbITJ4Ykt1B7",
+      "enable": true
+    },
+    "encryption": "none",
+    "name": "GB-t9p-56",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "uk-05.zeqc.example.net",
+    "skip-cert-verify": false,
+    "sni": "www.ycqp18r6p5.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "1e63755b-a4fb-486a-9bf1-cfe455701da5"
+  }
+]

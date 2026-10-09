@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "NL-fm2xz-53",
+    "host": "zzt-26.y4jpnft5.example.org",
+    "path": "",
+    "port": "12899",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206alEyaXF2T0M3aGtIVVNvRA==",
+    "userinfo_base64": "aes-128-gcm:jQ2iqvOC7hkHUSoD"
+  }
+]

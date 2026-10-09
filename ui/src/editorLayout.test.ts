@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { parse } from "vue/compiler-sfc";
 import { describe, expect, it } from "vitest";
 
+import { en } from "./messages/en";
+
 // The subscriptions editor is its own component now, with its state in
 // useRecordEditor; the screen routes between it and the list. These assertions
 // are about the editor, so they read the three files as one.
@@ -62,7 +64,7 @@ describe("the record editor and its compare panel", () => {
     // panel now, whose header wraps its end slot; the heading itself is the
     // one thing we still pin.
     expect(styles).toMatch(/\.editor-side \.pc-panel-header h2\s*\{[^}]*white-space:\s*nowrap/s);
-    expect(editorView).toContain('<PcPanel class="editor-side" role="complementary" label="Source and result">');
+    expect(editorView).toContain('<PcPanel class="editor-side" role="complementary" :label="t.editor.sourceAndResult">');
   });
 
   it("gives the pane the control that fills it, once", () => {
@@ -71,7 +73,7 @@ describe("the record editor and its compare panel", () => {
     expect(aside).toContain("subs.runPreview(draft)");
     // Two buttons for one job is two places to look when nothing happens.
     expect((editor.match(/subs\.runPreview\(draft\)/g) ?? []).length).toBe(1);
-    expect(aside).toContain('subs.preview.value ? "Refresh" : "Preview"');
+    expect(aside).toContain("subs.preview.value ? t.editor.refresh : t.editor.preview");
   });
 
   it("reports a failed preview where the preview would have been", () => {
@@ -83,13 +85,14 @@ describe("the record editor and its compare panel", () => {
     expect(aside).toMatch(/subs\.previewError\.value/);
     expect(aside).toContain('role="alert"');
     const composable = readFileSync(new URL("./useSubscriptions.ts", import.meta.url), "utf8");
-    expect(composable).toMatch(/previewError\.value = safeErrorMessage\(cause, "Preview failed"\)/);
+    expect(composable).toMatch(/previewError\.value = safeErrorMessage\(cause, t\.subs\.previewFailed\)/);
     expect(composable).toMatch(/previewError\.value = "";/);
   });
 
   it("says something true before the first run instead of showing an empty box", () => {
-    expect(screen).toContain("Nothing run yet.");
-    expect(screen).toContain("without saving it");
+    expect(screen).toContain("t.editor.nothingRun");
+    expect(en.editor.nothingRun).toContain("Nothing run yet.");
+    expect(en.editor.nothingRun).toContain("without saving it");
   });
   // An error raised inside the editor is about a draft that stops existing the
   // moment the editor closes. Left standing it sits above the list as an alert
@@ -148,7 +151,11 @@ describe("the record editor and its compare panel", () => {
 // screen and the breadcrumb, and then a 1400px single scroll of six fieldsets
 // next to a sticky pane, while its sibling was 356px behind three tabs.
 describe("the two record editors are the same shape", () => {
-  const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+  // The file editor is its state (useFileEditor) and its view (FileEditor.vue).
+  const files = [
+    readFileSync(new URL("./useFileEditor.ts", import.meta.url), "utf8"),
+    readFileSync(new URL("./components/FileEditor.vue", import.meta.url), "utf8"),
+  ].join("\n");
 
   it("splits both editors into the same sections", () => {
     expect(screen).toMatch(
@@ -161,7 +168,7 @@ describe("the two record editors are the same shape", () => {
     expect(files).toMatch(
       /EDITOR_TABS[\s\S]{0,220}id: "display"[\s\S]{0,80}id: "content"[\s\S]{0,80}id: "operations"/,
     );
-    expect(files).toContain('editorTab = ref<EditorTab>("display")');
+    expect(files).toContain('editorTab = ref<FileEditorTab>("display")');
     expect(files).toMatch(/editorTab\.value = "display";/);
     // A script is the whole job. The Operations panel is already hidden for
     // that type, so the tab is too. Config and plain keep the chain.
@@ -176,7 +183,7 @@ describe("the two record editors are the same shape", () => {
     const tabs = readFileSync(new URL("./components/EditorSectionTabs.vue", import.meta.url), "utf8");
     expect(tabs).toContain('class="editor-tab-flag"');
     expect(tabs).toContain("errorTab === tab.id && modelValue !== tab.id");
-    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FilesScreen.vue", files]] as const) {
+    for (const [name, source] of [["SubscriptionsScreen.vue", screen], ["FileEditor.vue", files]] as const) {
       expect(source, name).toMatch(/const errorTab = computed/);
       expect(source, name).toContain("<EditorSectionTabs");
       expect(source, name).toContain(':error-tab="errorTab"');
@@ -215,7 +222,7 @@ describe("the two record editors are the same shape", () => {
 });
 
 describe("a checkbox inside a field stays a square", () => {
-  const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+  const files = readFileSync(new URL("./components/FileEditor.vue", import.meta.url), "utf8");
   const css = withoutComments(styles);
 
   it("keeps field text inputs full width without stretching a checkbox", () => {
@@ -231,7 +238,8 @@ describe("a checkbox inside a field stays a square", () => {
     expect(files).toContain('class="field field-wide checkbox-field"');
     expect(files).toContain('v-model="draft.download"');
     expect(files).toContain('type="checkbox"');
-    expect(files).toContain("Save rather than show");
+    expect(files).toContain("t.fileEditor.download");
+    expect(en.fileEditor.download).toBe("Save rather than show");
     const fieldCheckboxes = files.match(/class="[^"]*field[^"]*"[\s\S]{0,80}type="checkbox"/g) ?? [];
     expect(fieldCheckboxes.length).toBe(1);
     expect(fieldCheckboxes[0]).toContain("checkbox-field");

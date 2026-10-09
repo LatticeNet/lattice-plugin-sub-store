@@ -1,0 +1,11 @@
+[
+  {
+    "args": [
+      "pri-05.hq82lhl.example.net",
+      "80"
+    ],
+    "name": "http pri-05.hq82lhl.example.net:80",
+    "params": {},
+    "type": "http"
+  }
+]

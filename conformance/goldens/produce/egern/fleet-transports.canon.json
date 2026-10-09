@@ -1,0 +1,286 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "HK x2t5 01",
+        "port": 443,
+        "server": "198.19.193.139",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "VWs1Mh4tp9Po0dgUVYYpQt9T_EvUX5agBUEB0x-liD8",
+              "short_id": "e0a1d61f"
+            },
+            "skip_tls_verify": false,
+            "sni": "www.sw0fkab9dp.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "8b9f33af-caa6-4c6f-a6e4-05047096ae79"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "CA ggmeh 02",
+        "port": 34896,
+        "server": "198.19.31.38",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "CGs4bJPGDZiLnoRXUFI88uqbLiy0pIyKAJr3EZQOTiI",
+              "short_id": "c7f154f7"
+            },
+            "skip_tls_verify": false,
+            "sni": "www.wdvufwyh.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "57f13eec-2e98-40bd-b91f-497e81b84d10"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "NL y5ew 03",
+        "port": 443,
+        "server": "iad-33.klsb.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "wA2anjDhWvhNhUg6OvIkDd15JsHqMtEaEhMe_TrVeHA",
+              "short_id": "8cead050"
+            },
+            "skip_tls_verify": false,
+            "sni": "static.c56yhd8zi0.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "8e6e169a-3d4d-4a87-824d-e34ae1202514"
+      }
+    },
+    {
+      "vless": {
+        "name": "GB tavdg9 04",
+        "port": 43454,
+        "server": "ecb-10.p6aqdsuh.example.net",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "reality": {
+              "public_key": "gkpUDZpnwnmn3TiIAl7-AJ7DLSJylrGHTlIUq183n_Y",
+              "short_id": "9b560150"
+            },
+            "service_name": "a5u1hj-gmgta",
+            "skip_tls_verify": false,
+            "sni": "static.k7uw3223q.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "085a0cc9-bc31-4a85-8ff0-9ecd8d0a6d13"
+      }
+    },
+    {
+      "vless": {
+        "name": "TW vl3o5fy 05",
+        "port": 443,
+        "server": "b24-35.kj1chx1.example.net",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "reality": {
+              "public_key": "2wOTGVh7D3B9jCBAiZWOxvcUglQoMQ8PU9paWawhkG4",
+              "short_id": "e415d76c"
+            },
+            "service_name": "fsngh-ug2",
+            "skip_tls_verify": false,
+            "sni": "img.d7jlua1.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "1dcc15f5-ce49-4f6c-a70c-287040408642"
+      }
+    },
+    {
+      "vless": {
+        "name": "CA k3e1w5 06",
+        "port": 28154,
+        "server": "udp-39.nhxy.example.net",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "reality": {
+              "public_key": "sDmNfJFRkUa365vWlZElFPBURWvCQnaB6BTLoB5xkJc",
+              "short_id": "f5477006"
+            },
+            "service_name": "n6ahy-nk7",
+            "skip_tls_verify": false,
+            "sni": "api.vn10z.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "b27f259e-c2ed-49e9-98fe-1f77645e6aac"
+      }
+    },
+    {
+      "vless": {
+        "name": "KR yll1 10",
+        "port": 10565,
+        "server": "cn-25.jlgz5osi.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.x7lc6odwh.example.net"
+            },
+            "path": "/nzg4",
+            "skip_tls_verify": false,
+            "sni": "static.x7lc6odwh.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "2255c95f-b857-4979-b656-07a113dbe12e"
+      }
+    },
+    {
+      "vless": {
+        "name": "NL s8g2b 11",
+        "port": 443,
+        "server": "198.18.16.39",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "www.wfh380j6j.example.net"
+            },
+            "path": "/x7bby1",
+            "skip_tls_verify": false,
+            "sni": "www.wfh380j6j.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "290f7eb7-4546-4b7f-92cf-df0bfa0c4c58"
+      }
+    },
+    {
+      "vless": {
+        "name": "CA edg1 12",
+        "port": 20264,
+        "server": "rwg-06.xcmb70q.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.j0u113hf.example.org"
+            },
+            "path": "/rr6996/i62v2lh2nv",
+            "skip_tls_verify": false,
+            "sni": "api.j0u113hf.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "e7b0ff63-a487-49de-8095-72b77be31250"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "CA xhu62e 16",
+        "port": 29549,
+        "security": "auto",
+        "server": "198.18.148.218",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.zm84v6.example.net"
+            },
+            "path": "/geww",
+            "sni": "static.zm84v6.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "551bd7d1-f36a-44a2-8a0e-eac9c7adeba6"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG rn331 17",
+        "port": 443,
+        "security": "auto",
+        "server": "nu-14.k2ek0al.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.f2gz3.example.org"
+            },
+            "path": "/nv0kv3dn",
+            "sni": "static.f2gz3.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "6d4d0ac3-23dc-494a-90b0-30847fd7db82"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG le9ktd 18",
+        "port": 443,
+        "security": "auto",
+        "server": "xp-32.vbdf21b.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.sihidp77qf.example.com"
+            },
+            "path": "/st6ecv/wxj9enp",
+            "sni": "static.sihidp77qf.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "29135548-bcd3-416b-83e5-58bb6f8acb08"
+      }
+    },
+    {
+      "trojan": {
+        "name": "US xox0eo0 19",
+        "password": "wMDrtEAu0wo638AA",
+        "port": 443,
+        "server": "h3-37.qy0c.example.com",
+        "sni": "img.f2fh7fqk.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "DE rsmlz7 20",
+        "password": "J3x2ZpgWGRvdUv3Z",
+        "port": 60926,
+        "server": "dk-32.moikar2m.example.net",
+        "sni": "cdn.ss60v6r8j.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "JP lr55lmw 21",
+        "password": "9ZPXv8kt4Gcoo4IL",
+        "port": 443,
+        "server": "ui-34.l8f4rxhk.example.org",
+        "sni": "cdn.v202cg4y.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "j9r-22.r5nnt.example.com:21000",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "8tBpgDAvkyCIM2",
+      "tag": "SG-fllz-67",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

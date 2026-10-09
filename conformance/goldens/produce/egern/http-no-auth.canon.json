@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "KR-ez9-12",
+        "port": 3128,
+        "server": "ig-08.qhnagy.example.org",
+        "tfo": false
+      }
+    }
+  ]
+}

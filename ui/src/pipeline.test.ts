@@ -100,7 +100,8 @@ describe("provider figures", () => {
     expect(formatExpiry(at(1), NOW)).toBe("expires tomorrow");
     expect(formatExpiry(at(0), NOW)).toBe("expires today");
     expect(formatExpiry({ expire: Math.floor((NOW - 3 * DAY) / 1000) }, NOW)).toBe("expired 3 days ago");
-    expect(formatExpiry({ expire: Math.floor(Date.parse("2027-03-01T00:00:00Z") / 1000) }, NOW)).toBe("expires 2027-03-01");
+    // Past sixty days the date itself, in the viewer's calendar: noon UTC is the same date from UTC-11 to UTC+11.
+    expect(formatExpiry({ expire: Math.floor(Date.parse("2027-03-01T12:00:00Z") / 1000) }, NOW)).toBe("expires Mar 1, 2027");
     expect(formatExpiry({}, NOW)).toBe("");
   });
 });
@@ -272,8 +273,8 @@ describe("the attention rules", () => {
     expect(found[0]).toMatchObject({ tone: "warning", recordId: "imported-unnamed" });
     expect(found[0]!.claim).toBe("建材市场: provider expires in 6 days, 82% of its traffic used");
     expect(found[1]!.claim).toBe("15 files are not published, so no client can fetch them");
-    // Fifteen files: the Files layer narrowed to them, each row with its own Publish.
-    expect(found[1]!.action).toEqual({ label: "Show them", view: "files", facet: { published: "no" } });
+    // Fifteen files: Records narrowed to them, each row with its own Publish.
+    expect(found[1]!.action).toEqual({ label: "Show them", view: "records", facet: { kind: "file", published: "no" } });
   });
 
   it("puts every failure first, worst tone first, and masks what the provider said", () => {

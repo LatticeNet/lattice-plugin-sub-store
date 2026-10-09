@@ -1,0 +1,34 @@
+[
+  {
+    "cipher": "2022-blake3-aes-128-gcm",
+    "client-fingerprint": "chrome",
+    "name": "FR-vda4-83",
+    "password": "Opq2jrdRKY7wNpHQEcQmFw==",
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "host": "img.hp3k0nb7i.example.net",
+      "password": "AwYmyi6NLk9PRaLy",
+      "version": 2
+    },
+    "port": 443,
+    "server": "ue-06.ur58k.example.org",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "2022-blake3-aes-128-gcm",
+    "client-fingerprint": "chrome",
+    "name": "SG-t1pkv-47",
+    "password": "FtP4+wFSRGrQIpo3+RS3CQ==",
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "host": "img.gjnkueki2x.example.org",
+      "password": "whNg1PjgU7kQeTRU",
+      "version": 3
+    },
+    "port": 443,
+    "server": "y2-20.givz.example.com",
+    "type": "ss",
+    "udp": true
+  }
+]

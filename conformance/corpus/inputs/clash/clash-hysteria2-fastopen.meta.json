@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-fastopen",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "fast-open",
+  "description": "hysteria2 with tfo: true, and one with only fast-open: true."
+}

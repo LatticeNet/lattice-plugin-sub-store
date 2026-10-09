@@ -1,0 +1,1 @@
+HK-zb9a-35=vmess,jj2-21.m5egq.example.com,443,auto,"4769c081-8c80-4949-a41e-30a1b2086716",transport=http,path=/f7a41,host=cdn.lkwh7e7kt.example.net,alterId=0,udp=true

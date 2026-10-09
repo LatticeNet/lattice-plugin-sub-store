@@ -1,0 +1,24 @@
+proxies:
+  - name: FR-zgr62-62
+    type: hysteria
+    server: qj-31.bnvjp5.example.org
+    port: 41321
+    protocol: udp
+    sni: img.swzlt3589.example.org
+    skip-cert-verify: false
+    auth_str: 0dScwdcFvTsgwoRw
+    alpn: h3
+    up: 30 Mbps
+    down: 100 Mbps
+  - name: HK-epef-89
+    type: hysteria
+    server: eq-11.iv7rmg4.example.net
+    port: 32670
+    protocol: udp
+    sni: www.x5csa.example.com
+    skip-cert-verify: false
+    auth-str: WMWle62v bypAvQ0U
+    alpn:
+      - h3
+    up: 30 Mbps
+    down: 100 Mbps

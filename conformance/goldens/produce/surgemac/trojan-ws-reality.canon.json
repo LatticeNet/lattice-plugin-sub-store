@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "trr-05.cxu586h.example.com",
+      "443"
+    ],
+    "name": "DE-w55-42",
+    "params": {
+      "password": "mnPm4xaG59F4J9VO",
+      "sni": "api.s066ycl2.example.com",
+      "tls": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"api.s066ycl2.example.com\"",
+      "ws-path": "/x225kbvr"
+    },
+    "type": "trojan"
+  }
+]

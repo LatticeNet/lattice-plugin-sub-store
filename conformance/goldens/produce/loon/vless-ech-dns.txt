@@ -1,0 +1,1 @@
+CA-zp5-38=vless,sd-32.hga9.example.net,443,"6040d5b2-dd22-4cdd-858e-88becead8f7d",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.keoob546.example.com,udp=true

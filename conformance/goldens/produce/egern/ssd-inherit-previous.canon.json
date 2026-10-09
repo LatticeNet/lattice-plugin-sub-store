@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "AU-do2bi-94",
+        "password": "oTe2mcYzsduFTR",
+        "port": 39141,
+        "server": "ik4-24.pakq1pd.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "chacha20-poly1305",
+        "name": "SG-j37i-11",
+        "password": "oTe2mcYzsduFTR",
+        "port": 14150,
+        "server": "lpx-15.sisat.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "chacha20-poly1305",
+        "name": "NL-tw5z-43",
+        "password": "oTe2mcYzsduFTR",
+        "port": 14150,
+        "server": "dm-30.e2zlt1bx.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

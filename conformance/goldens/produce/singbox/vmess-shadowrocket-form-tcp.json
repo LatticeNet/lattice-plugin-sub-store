@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-bky-82",
+      "type": "vmess",
+      "server": "203.0.113.127",
+      "server_port": 21082,
+      "uuid": "a1cc6600-15a6-4c63-9d5e-d82912fb67a8",
+      "security": "chacha20-poly1305",
+      "alter_id": 0
+    }
+  ],
+  "endpoints": []
+}

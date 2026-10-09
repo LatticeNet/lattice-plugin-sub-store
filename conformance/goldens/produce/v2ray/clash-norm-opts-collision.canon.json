@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "GB-psozs1-08",
+    "host": "u69-18.hhni.example.net",
+    "path": "",
+    "port": "15480",
+    "query": [
+      [
+        "host",
+        "api.ab4zjql.example.org"
+      ],
+      [
+        "path",
+        "/rwrrb/rsbnf"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206dkxOcWFQUkpVejY3VFE=",
+    "userinfo_base64": "aes-128-gcm:vLNqaPRJUz67TQ"
+  },
+  {
+    "body": {
+      "add": "nuu-30.bptlkz.example.com",
+      "aid": "0",
+      "host": "cdn.mub447v0m.example.net",
+      "id": "0a5d3415-a80e-41f0-9ff2-1292dc251a4e",
+      "net": "ws",
+      "path": "/ct25/e7005",
+      "port": "443",
+      "ps": "TW-neu8xy-54",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

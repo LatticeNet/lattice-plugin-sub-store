@@ -1,0 +1,8 @@
+{
+  "id": "trojan-httpupgrade-reality",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "httpupgrade",
+  "security": "reality",
+  "description": "Trojan share link over httpupgrade with security reality."
+}

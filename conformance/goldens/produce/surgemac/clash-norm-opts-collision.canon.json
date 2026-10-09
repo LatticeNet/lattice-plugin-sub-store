@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "u69-18.hhni.example.net",
+      "15480"
+    ],
+    "name": "GB-psozs1-08",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "vLNqaPRJUz67TQ",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "nuu-30.bptlkz.example.com",
+      "443"
+    ],
+    "name": "TW-neu8xy-54",
+    "params": {
+      "username": "0a5d3415-a80e-41f0-9ff2-1292dc251a4e",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"cdn.mub447v0m.example.net\"",
+      "ws-path": "/ct25/e7005"
+    },
+    "type": "vmess"
+  }
+]

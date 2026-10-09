@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "jhs-39.peelab.example.org",
+      "server_port": 443,
+      "tag": "SG-eh7-78",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "5Ljjcofv3eq-etEHfwPTrhX1potPY56bNU3ZKI0FkVU",
+          "short_id": "e6347b99"
+        },
+        "server_name": "img.w3kpjhn.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.w3kpjhn.example.org"
+        },
+        "path": "/bz8mszs9e",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "0817af70-3653-4523-b59f-b1a1b00abc76"
+    }
+  ]
+}

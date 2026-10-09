@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "DE-n3mife-19",
+        "password": "Dw9cWcvIBMcXkupU",
+        "port": 443,
+        "server": "jk5-23.fvpc.example.com",
+        "skip_tls_verify": true,
+        "sni": "api.b0h8ez454.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "NL-mtc1-19",
+    "host": "g5p-26.ami9olc.example.com",
+    "path": "",
+    "port": "16339",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "dW5kZWZpbmVkOmxsaDBDalptRTBpeDdHSjVQY2J2R1NHNHRaM3hkLzI0MGdpMCsvdnZGN009",
+    "userinfo_base64": "undefined:llh0CjZmE0ix7GJ5PcbvGSG4tZ3xd/240gi0+/vvF7M="
+  }
+]

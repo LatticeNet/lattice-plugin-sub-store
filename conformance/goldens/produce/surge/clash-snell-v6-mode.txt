@@ -1,0 +1,1 @@
+GB-uvpa-97=snell,nnv-08.qg4at.example.net,10273,version=6,psk="z28buU4hhgDebz86r0o7",mode=unshaped

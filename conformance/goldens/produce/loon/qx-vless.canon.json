@@ -1,0 +1,52 @@
+[
+  {
+    "args": [
+      "vhc-22.b83qsp3.example.com",
+      "443",
+      "f24854c1-a1cd-4117-83de-aeaa9945e26f"
+    ],
+    "name": "DE-fagncp-27",
+    "params": {
+      "over-tls": "true",
+      "tls-name": "api.xp6xe1z2a.example.com",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "e48-28.bjqzb1.example.net",
+      "443",
+      "e5725b74-ad03-45d1-97d8-0f370c592de2"
+    ],
+    "name": "GB-g1q-33",
+    "params": {
+      "host": "www.mkib18bcs.example.com",
+      "over-tls": "true",
+      "path": "/sihrottd",
+      "tls-name": "www.mkib18bcs.example.com",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "g26-25.woad.example.net",
+      "443",
+      "f52b7a7b-96e0-4e9a-99d8-47501060ccfa"
+    ],
+    "name": "CA-uubjbo-91",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "OBocI0WjnnNvVCcnYmupwoWE7jK8bu1KdkpEsgzPWVc",
+      "short-id": "155bd2af",
+      "sni": "api.uc0hl0gpi.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

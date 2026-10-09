@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "FR-noq-63",
+        "port": 443,
+        "security": "auto",
+        "server": "x1-34.mh3dtn.example.com",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "x1-34.mh3dtn.example.com"
+            },
+            "path": "/"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "dd30ca27-f54c-4355-b110-7639681794cf"
+      }
+    }
+  ]
+}

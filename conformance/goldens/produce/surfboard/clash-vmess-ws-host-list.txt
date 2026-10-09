@@ -1,0 +1,1 @@
+JP-sllha-25=vmess,du-21.xuqo.example.net,443,username=abeab29a-533c-49a8-9ea3-5fa5fd336813,ws=true,ws-path=/ohvx2r/ccu9,ws-headers=Host:"wk-11.bydc.example.org,bzy-26.x994q.example.com",vmess-aead=true,tls=true,sni="static.hj7i0uqi3t.example.net",skip-cert-verify=false,udp-relay=true

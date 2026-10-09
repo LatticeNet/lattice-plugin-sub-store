@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"GB-tar-46","server":"w7y-37.o465b4c.example.org","port":443,"user_id":"552931fd-1683-49b6-a34f-4ae883271012","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http2":{"path":"/emz38eglb","headers":{"X-zky3g71":"z16kcepj","Host":"img.h1c9g9r6o.example.com"},"sni":"img.h1c9g9r6o.example.com"}}}}
+  - {"vmess":{"name":"TW-oq52r2-15","server":"moi-07.uggey.example.org","port":443,"user_id":"6f3b98b5-cebc-4003-ab5c-c71f08f094f3","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http2":{"path":"/go6vp","headers":{"Host":"api.unensw1l.example.org"},"sni":"api.unensw1l.example.org"}}}}

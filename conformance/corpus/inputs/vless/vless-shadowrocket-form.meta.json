@@ -1,0 +1,9 @@
+{
+  "id": "vless-shadowrocket-form",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "shadowrocket-uri",
+  "description": "Shadowrocket form: Base64 of auto:uuid@host:port with remarks, obfs=websocket, path, obfsParam, tls=1, xtls=2 and peer: Reality is assumed but no reality-opts appears, tls is true, the flow is vision, and ws-opts carries the obfsParam host."
+}

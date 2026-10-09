@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "ad8-40.stya5.example.org",
+      "48243",
+      "aes-256-cfb",
+      "FoDqSptYJpYf"
+    ],
+    "name": "CA-lofwsu-12",
+    "params": {
+      "obfs": "tls1.2_ticket_auth",
+      "obfs-param": "www.fq3qe5l.example.org",
+      "protocol": "auth_chain_a",
+      "protocol-param": "1512:puvQRKIM",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

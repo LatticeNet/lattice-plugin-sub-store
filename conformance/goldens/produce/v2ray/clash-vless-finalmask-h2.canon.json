@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "KR-dgo-22",
+    "host": "elw-11.bhoj.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fm",
+        "{\"udp\":[{\"settings\":{\"password\":\"ldMdZjUUkLp1\"},\"type\":\"salamander\"}]}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "h2",
+        "1"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "0a3vFXinIBotdP8vPySCP-b7uEZ1yvPdFf6IZ9kFqwk"
+      ],
+      [
+        "pqv",
+        "7CtLKHEKLYxWHdrdHKbnliV5sRk7Rl6vOZBqqs7TvT-V2Iy4VFYd_LwF0_WCWu1UgJjEbSdRtqwHqbOOz-e2a7bTPBNhn_NL-IBl-HQjydhGNR-9NFgnqnkqIgH8pSoX"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "e4a6886e"
+      ],
+      [
+        "sni",
+        "img.av9b68r.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1d454515-6317-4a7b-ba58-0accbc55e3d8"
+  }
+]

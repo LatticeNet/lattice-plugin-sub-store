@@ -1,0 +1,9 @@
+{
+  "id": "ss-reality-without-type",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-without-type",
+  "description": "security=reality with pbk and no type: tls is true and the Reality items are ignored, so there is no reality-opts."
+}

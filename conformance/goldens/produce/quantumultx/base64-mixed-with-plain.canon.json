@@ -1,0 +1,13 @@
+[
+  {
+    "address": "h4b-38.ex4c4j.example.com:11356",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "B7ztkGc3V2s1X2",
+      "tag": "HK-hqqur-72",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

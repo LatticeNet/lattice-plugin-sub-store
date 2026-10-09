@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "AU-xfb4-33",
+        "port": 443,
+        "server": "jaf-26.euz8l.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.qj98n.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3fe877cd-15b1-4d4b-b1ab-e1181fca6e08"
+      }
+    }
+  ]
+}

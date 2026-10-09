@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "RfBryVPcgbhP",
+      "server": "my3-20.shu2.example.com",
+      "server_port": 40259,
+      "tag": "日本 东京 xp3wh",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "adqGqFf6jdjC",
+      "server": "x5d-17.b1ft75s.example.net",
+      "server_port": 28566,
+      "tag": "Франкфурт ein23",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "bXKC2TcvGpNl",
+      "server": "sth-08.xj5a.example.net",
+      "server_port": 29015,
+      "tag": "a: b # c [d] {e}, xcvo",
+      "type": "shadowsocks"
+    }
+  ]
+}

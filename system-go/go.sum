@@ -1,5 +1,5 @@
-github.com/LatticeNet/lattice-sdk v0.2.19-0.20260814044213-cf595fb04b7b h1:F3ldjkpn9MuQAlERGcJxk+kLnL36OdiVOrVJlWvM1cU=
-github.com/LatticeNet/lattice-sdk v0.2.19-0.20260814044213-cf595fb04b7b/go.mod h1:7ENUQ4EoS/TSW/eNomCGfZGliUPJZ46uAvp7dVcEXoE=
+github.com/LatticeNet/lattice-sdk v0.2.24-0.20261009044313-9075e7fc354e h1:nt7LXS5U3QJBmY4WpD97v0hBGkXk1cwCscb6/SEwIts=
+github.com/LatticeNet/lattice-sdk v0.2.24-0.20261009044313-9075e7fc354e/go.mod h1:jx9PFwMH2zT993VRwecQZBo/rP9W1lgWcZYDdqr5D9M=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fastschema/qjs v0.0.6 h1:C45KMmQMd21UwsUAmQHxUxiWOfzwTg1GJW0DA0AbFEE=
@@ -10,5 +10,7 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/tetratelabs/wazero v1.9.0 h1:IcZ56OuxrtaEz8UYNRHBrUa9bYeX9oVY93KspZZBf/I=
 github.com/tetratelabs/wazero v1.9.0/go.mod h1:TSbcXCfFP0L2FGkRPxHphadXPjo1T6W+CseNNY7EkjM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

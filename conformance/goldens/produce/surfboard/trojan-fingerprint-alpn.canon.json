@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "ufh-20.cskk.example.net",
+      "443"
+    ],
+    "name": "KR-i6c-08",
+    "params": {
+      "password": "MqstkokkaMmCdlOb",
+      "sni": "www.pu7fx.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

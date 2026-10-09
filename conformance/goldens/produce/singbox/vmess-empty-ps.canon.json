@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "cz-18.bqqq3e.example.org",
+      "server_port": 443,
+      "tag": "vmess cz-18.bqqq3e.example.org:443",
+      "type": "vmess",
+      "uuid": "252586ae-8170-4126-8483-71740ee01d41"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "args": [
+      "nx6-10.ccti3d5z.example.net",
+      "443",
+      "auto",
+      "56394afa-2189-4076-b77c-f314bdae667e"
+    ],
+    "name": "SG-mtlm4-76",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "f38-17.jfoeyse.example.net:8080",
+      "over-tls": "true",
+      "path": "/pyb3/uvxw9hba4o",
+      "skip-cert-verify": "false",
+      "tls-name": "www.fd76v0.example.com",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,70 @@
+[
+  {
+    "args": [
+      "af-14.f4rtg15a.example.net",
+      "443"
+    ],
+    "name": "DE-b2vm-85",
+    "params": {
+      "password": "3Q4boAkPXPYrXhI4oeep",
+      "port-hopping": "25081-25090",
+      "port-hopping-interval": "30",
+      "sni": "static.vebnlvmi.example.net"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "z9b-18.eqn2.example.net",
+      "443"
+    ],
+    "name": "CA-u9u7-99",
+    "params": {
+      "password": "zCa1WQdpSOWo53ctdO9o",
+      "port-hopping": "59987-59996",
+      "sni": "static.js3jrg.example.com"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "kd-35.wqm27.example.net",
+      "443"
+    ],
+    "name": "US-xcox-39",
+    "params": {
+      "password": "qUwyGRZ6bjyL6rQ0lDbH",
+      "port-hopping": "23048-23057",
+      "sni": "api.c4ihhz2m9.example.net"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "gr-37.q2q2ayz.example.org",
+      "443"
+    ],
+    "name": "HK-u2i-06",
+    "params": {
+      "alpn": "h3",
+      "password": "KXS0hkCcTRKpUySD",
+      "sni": "img.ikkexvao.example.org",
+      "uuid": "58d5daa7-9286-474a-a42d-641913310439"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "cs-29.vz4po.example.com",
+      "443"
+    ],
+    "name": "TW-erpc-43",
+    "params": {
+      "alpn": "h3",
+      "password": "FS0M8xufo1JYxhyJ",
+      "sni": "img.lc22qmoz1f.example.net",
+      "uuid": "03827299-ab27-4a40-afe3-0341a26b2b48"
+    },
+    "type": "tuic-v5"
+  }
+]

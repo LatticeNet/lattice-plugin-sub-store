@@ -1,0 +1,1 @@
+shadowsocks=jd-10.oalbzx.example.com:52189,method=aes-128-gcm,password=hcEXO3dMWoXyLL,obfs=over-tls,obfs-host=img.u80uu3rhf.example.net,tls-verification=false,udp-relay=true,tag=JP-doz-99

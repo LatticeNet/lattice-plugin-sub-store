@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "alterId": 0,
+      "cipher": "auto",
+      "client-fingerprint": "chrome",
+      "name": "TW-hbk7t-48",
+      "network": "tcp",
+      "port": 443,
+      "server": "e1t-28.pn1vrl.example.org",
+      "servername": "api.mszatet97q.example.org",
+      "shadow-tls-opts": {
+        "password": "yU68L74JHz9Hng25",
+        "version": 4
+      },
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "92dd7a9f-7483-4169-b5bc-9e1c9df883c9"
+    }
+  ]
+}

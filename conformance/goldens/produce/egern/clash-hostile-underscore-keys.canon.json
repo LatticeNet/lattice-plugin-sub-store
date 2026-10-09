@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "DE-njz7k-17",
+        "port": 443,
+        "server": "k4-16.jn75z1.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk",
+              "short_id": "095a09fb"
+            },
+            "sni": "static.ly0di.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "e23518f7-6bdf-4157-a78c-e04cd917c507"
+      }
+    }
+  ]
+}

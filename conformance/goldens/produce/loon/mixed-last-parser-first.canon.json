@@ -1,0 +1,50 @@
+[
+  {
+    "args": [
+      "uf-21.emdqtlyc.example.com",
+      "8080",
+      "o36eae",
+      "7f05Zkf8ZVtN"
+    ],
+    "name": "TW-us3jp-56",
+    "params": {},
+    "type": "http"
+  },
+  {
+    "args": [
+      "rkm-18.ptwmbbq.example.net",
+      "8080",
+      "qw7wr1s",
+      "hTEmO5BXf2cd"
+    ],
+    "name": "JP-j9kz9p-25",
+    "params": {},
+    "type": "http"
+  },
+  {
+    "args": [
+      "e6q-11.ld43.example.net",
+      "443",
+      "xc1e3",
+      "gVR1jzrDk80Y"
+    ],
+    "name": "AU-rqv-17",
+    "params": {
+      "sni": "api.q9es445kaz.example.net"
+    },
+    "type": "https"
+  },
+  {
+    "args": [
+      "w6-18.oxky0a.example.com",
+      "1080",
+      "bhzsv",
+      "ROyQV6BdndOh"
+    ],
+    "name": "KR-qw3f7r-39",
+    "params": {
+      "udp": "true"
+    },
+    "type": "socks5"
+  }
+]

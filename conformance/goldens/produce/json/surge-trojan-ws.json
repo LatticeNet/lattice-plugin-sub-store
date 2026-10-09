@@ -1,0 +1,19 @@
+[
+  {
+    "name": "AU-y5wy-94",
+    "network": "ws",
+    "password": "9L5yJZcSovc6F1lD",
+    "port": 443,
+    "server": "cgk-31.cs04sm.example.net",
+    "sni": "img.dqmjej1k.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "img.dqmjej1k.example.net"
+      },
+      "path": "/tqh35/hy517k"
+    }
+  }
+]

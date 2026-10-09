@@ -1,0 +1,9 @@
+{
+  "id": "trojan-udp-tfo",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "udp-tfo",
+  "description": "udp=0 and tfo=1: udp false and tfo true."
+}

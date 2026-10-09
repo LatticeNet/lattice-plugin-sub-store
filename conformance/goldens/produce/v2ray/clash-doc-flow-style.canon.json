@@ -1,0 +1,65 @@
+[
+  {
+    "fragment": "NL-n85w-12",
+    "host": "hgy-04.ex8w2.example.com",
+    "path": "",
+    "port": "56250",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206NVhnNE1UV215ZTNaSGc=",
+    "userinfo_base64": "aes-256-gcm:5Xg4MTWmye3ZHg"
+  },
+  {
+    "fragment": "FR-yyawg3-72",
+    "host": "sy-18.wxdgdec.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "static.l2taga7cax.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/v4pf3aroc"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.w1foqxru.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f000938c-5920-49b5-a1b5-1e16f536a34e"
+  },
+  {
+    "fragment": "SG-ep46mu-72",
+    "host": "sjt-07.jd6i.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.b4d9c.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Qw2OTIIkmqLDYdIFQUfL"
+  }
+]

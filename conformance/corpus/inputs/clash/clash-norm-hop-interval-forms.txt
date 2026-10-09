@@ -1,0 +1,5 @@
+{"name":"DE-b2vm-85","type":"hysteria2","server":"af-14.f4rtg15a.example.net","port":443,"password":"3Q4boAkPXPYrXhI4oeep","sni":"static.vebnlvmi.example.net","ports":"25081-25090","hop-interval":"30"}
+{"name":"CA-u9u7-99","type":"hysteria2","server":"z9b-18.eqn2.example.net","port":443,"password":"zCa1WQdpSOWo53ctdO9o","sni":"static.js3jrg.example.com","ports":"59987-59996","hop-interval":"30-10","hop-interval-max":99}
+{"name":"US-xcox-39","type":"hysteria2","server":"kd-35.wqm27.example.net","port":443,"password":"qUwyGRZ6bjyL6rQ0lDbH","sni":"api.c4ihhz2m9.example.net","ports":"23048-23057","hop-interval":"abc"}
+{"name":"HK-u2i-06","type":"tuic","server":"gr-37.q2q2ayz.example.org","port":443,"uuid":"58d5daa7-9286-474a-a42d-641913310439","password":"KXS0hkCcTRKpUySD","sni":"img.ikkexvao.example.org","hop-interval":0}
+{"name":"TW-erpc-43","type":"tuic","server":"cs-29.vz4po.example.com","port":443,"uuid":"03827299-ab27-4a40-afe3-0341a26b2b48","password":"FS0M8xufo1JYxhyJ","sni":"img.lc22qmoz1f.example.net","hop-interval-max":99}

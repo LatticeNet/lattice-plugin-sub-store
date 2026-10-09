@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "US-rjv6bu-47",
+        "port": 31656,
+        "server": "2001:db8:7218:87a3::73e8",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "_hgBOgvBIINWHoqpRtxNxAcFGAdJvO0PgVqqXCJTNI8",
+              "short_id": "a883a092"
+            },
+            "skip_tls_verify": false,
+            "sni": "static.snrh2o75bk.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "e1aa4ec7-6130-4dae-ae96-2b8d7023de93"
+      }
+    }
+  ]
+}

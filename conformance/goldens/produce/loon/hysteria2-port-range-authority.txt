@@ -1,0 +1,1 @@
+HK-ejulo-15=Hysteria2,ff5-28.t7an.example.org,20000,"EYnXrPpHMB0HZlxIMDfT",server-ports="20000-30000",tls-name=static.vse2b5.example.org,skip-cert-verify=false,fast-open=false,udp=true

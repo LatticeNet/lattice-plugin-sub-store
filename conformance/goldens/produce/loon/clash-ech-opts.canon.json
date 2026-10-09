@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "rma-16.h25sggv.example.org",
+      "443",
+      "3a8f9903-e409-4e47-95d6-f96b71ee33cb"
+    ],
+    "name": "TW-ygyta-67",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "api.chlscz.example.org",
+      "over-tls": "true",
+      "path": "/j1zy0u/avd77h9av",
+      "skip-cert-verify": "false",
+      "tls-name": "static.z0xp482.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

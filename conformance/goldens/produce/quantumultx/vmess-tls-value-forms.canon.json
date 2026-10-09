@@ -1,0 +1,120 @@
+[
+  {
+    "address": "mt-07.ap0n.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "04fea0d2-f068-4818-9e84-9fcd0cb64977",
+      "tag": "AU-qms18c-73",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "fi-07.zlmsj5zp.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "604b60bf-4a19-4cf3-984c-2750181358ed",
+      "tag": "KR-h6tw3-13",
+      "tls-host": "fi-07.zlmsj5zp.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "yj-35.ax320ck.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "c7982572-4530-4815-9e33-2d254bae810c",
+      "tag": "AU-kas6d-44",
+      "tls-host": "yj-35.ax320ck.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "a4j-40.xuz5ma.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "21fe4760-f458-454a-ad39-0db461b589e0",
+      "tag": "JP-gndw-67",
+      "tls-host": "a4j-40.xuz5ma.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "j0g-14.hg40a2n.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "2ef72e8e-9908-4085-9800-f337bbc3f059",
+      "tag": "DE-lb7ytx-50",
+      "tls-host": "j0g-14.hg40a2n.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "bx-31.x56tz.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "85f1e9b4-eba3-408a-8f1d-24c832e9b51b",
+      "tag": "NL-ysukf-56",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "e0-07.czbgd0.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "291987db-ea96-4f88-9236-e3c2f0a463a8",
+      "tag": "CA-ceca-80",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "clz-12.fjzed0y.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "4299b255-f1cf-40b5-a043-d866da1333c0",
+      "tag": "DE-p9o9ke-01",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "wgi-05.jlm73zvl.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "f59d0d38-5c8c-451f-8d84-9c6f93f70ed2",
+      "tag": "KR-h09-04",
+      "tls-host": "wgi-05.jlm73zvl.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

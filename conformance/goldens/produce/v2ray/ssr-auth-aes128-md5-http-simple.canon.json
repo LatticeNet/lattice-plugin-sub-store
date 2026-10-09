@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "main": "y44-25.upfmkoug.example.org:51507:auth_aes128_md5:chacha20-ietf:http_simple:VGNvcUVGWFFxcm9O",
+      "params": [
+        [
+          "obfsparam",
+          "cdn.tdzus3.example.org"
+        ],
+        [
+          "protoparam",
+          "6455:ru4fAyUG"
+        ],
+        [
+          "remarks",
+          "GB-k5on8-01"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

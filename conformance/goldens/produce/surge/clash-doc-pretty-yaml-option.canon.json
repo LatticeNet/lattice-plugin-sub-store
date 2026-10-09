@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "g5m-18.wbotb3.example.org",
+      "443"
+    ],
+    "name": "US-uglcc6-99",
+    "params": {
+      "password": "ENVVXv1clnMHgRJZZKpC",
+      "sni": "api.vfuu7.example.com"
+    },
+    "type": "hysteria2"
+  }
+]

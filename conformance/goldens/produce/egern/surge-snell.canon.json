@@ -1,0 +1,40 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "KR-rullb-08",
+        "obfs": "http",
+        "obfs_host": "www.d58ryzg9.example.com",
+        "port": 25555,
+        "psk": "0ocFveFWWxVDg2nSAhoU",
+        "server": "yrb-06.y9cklk21.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 3
+      }
+    },
+    {
+      "snell": {
+        "name": "TW-vrkn-75",
+        "port": 12210,
+        "psk": "URyP96aQ889P3tbOzmAx",
+        "reuse": true,
+        "server": "ya-05.zaq8hnv.example.com",
+        "tfo": true,
+        "udp_relay": true,
+        "version": 4
+      }
+    },
+    {
+      "snell": {
+        "name": "KR-t6z28b-60",
+        "port": 26072,
+        "psk": "q3vUCA6N5YT5KQ39w5id",
+        "server": "bz5-25.rzbm.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 5
+      }
+    }
+  ]
+}

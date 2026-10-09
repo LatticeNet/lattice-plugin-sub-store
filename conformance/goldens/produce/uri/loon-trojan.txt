@@ -1,0 +1,2 @@
+trojan://uY3bzTtZg5PWo0Gu@ct-01.gktnpz.example.net:443?sni=img.mfq6v7gy31.example.net&allowInsecure=1&type=tcp#NL-wmkko5-50
+trojan://Q0TFWQNDf9Objj0W@exp-37.msqhu.example.net:443?sni=www.lyoh8.example.net&type=ws&path=%2Fh1xonc%2Fytq25w0leh&host=www.lyoh8.example.net#GB-g2r5-48

@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "f2-35.rug0aa.example.com",
+      "443",
+      "auto",
+      "0a8a14d6-5fe1-47a4-b391-8e32145eedb9"
+    ],
+    "name": "SG-qa5-45",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "www.pj3n2fe.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

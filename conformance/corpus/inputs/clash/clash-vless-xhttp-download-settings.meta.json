@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-xhttp-download-settings",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-download-settings",
+  "description": "VLESS xhttp with download-settings on another host."
+}

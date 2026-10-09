@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "US-x5x-75",
+    "host": "2001:db8:9ef5:1c35::d99d",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "api.z12lb15.example.net"
+      ],
+      [
+        "path",
+        "/hxz/otea8c"
+      ],
+      [
+        "sni",
+        "api.z12lb15.example.net"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "IOG2Yrjm3RD7ry51"
+  }
+]

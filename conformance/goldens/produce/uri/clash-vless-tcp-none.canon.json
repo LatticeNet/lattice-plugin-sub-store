@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "NL-e38ors-50",
+    "host": "vpb-16.ifpx5.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "63f2ded1-1843-4dcf-bf13-76c8580b46a0"
+  }
+]

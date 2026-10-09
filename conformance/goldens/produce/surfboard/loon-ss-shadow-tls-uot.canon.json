@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "lb0-23.vw4fy2jt.example.net",
+      "53322"
+    ],
+    "name": "NL-snw-54",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "yVHmQka5AJDu0r",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

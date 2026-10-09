@@ -1,0 +1,30 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "sd-32.hga9.example.net",
+      "server_port": 443,
+      "tag": "CA-zp5-38",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "ech": {
+          "enabled": true,
+          "query_server_name": "www.bes7m.example.com"
+        },
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.keoob546.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "6040d5b2-dd22-4cdd-858e-88becead8f7d"
+    }
+  ]
+}

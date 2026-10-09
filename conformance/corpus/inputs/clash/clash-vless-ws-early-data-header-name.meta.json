@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-ws-early-data-header-name",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "vless ws with max-early-data 2048 and early-data-header-name X-Ed, and the same with Sec-WebSocket-Protocol."
+}

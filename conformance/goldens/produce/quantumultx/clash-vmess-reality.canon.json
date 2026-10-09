@@ -1,0 +1,18 @@
+[
+  {
+    "address": "nq-33.xwwdgm4.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "a42be7b0-8e81-4442-ae42-e9487199226b",
+      "reality-base64-pubkey": "6EC-s4L-Ektr8wxEyKG6gxEVbldWLckdisaAaGeNHxE",
+      "reality-hex-shortid": "29f1c4db",
+      "tag": "FR-w58zd-41",
+      "tls-host": "img.v5muog5j0.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "2001:db8:67ef:80::edf3:33510",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "password": "QsjbCL9G6dfT6l",
+      "tag": "KR-fp9-11",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "US-g9oft-73",
+    "host": "fy-15.rele.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "host",
+        "static.k844cgjqpc.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/mxba"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b71a594d-c0f7-4382-b55d-ffaaefacfc1f"
+  }
+]

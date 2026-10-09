@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-rvfu-27","method":"aes-128-gcm","server":"lh-03.tvntg.example.org","port":10239,"password":"cf02XhToMNkAVl","tfo":false,"udp_relay":true}}

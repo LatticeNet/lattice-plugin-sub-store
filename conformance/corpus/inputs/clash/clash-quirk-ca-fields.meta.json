@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-ca-fields",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ca-fields",
+  "description": "ca-str with an inline certificate and an _ca local path."
+}

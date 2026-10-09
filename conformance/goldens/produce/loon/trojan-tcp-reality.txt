@@ -1,0 +1,1 @@
+FR-gg4he-79=trojan,cl3-20.f1i93c.example.com,443,"8siqyovoAYVDDHHY",tls-profile=chrome,sni=img.zz8yf8k7.example.net,public-key="7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8",short-id=fd7b5be3,udp=true

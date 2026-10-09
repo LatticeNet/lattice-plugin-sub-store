@@ -1,0 +1,18 @@
+[
+  {
+    "raw": "fk5tg8"
+  },
+  {
+    "args": [
+      "xlh-33.n4sclexz.example.org",
+      "1080",
+      "zqhe3gwg",
+      "5OKlfrVLEtru"
+    ],
+    "name": "hyn1sg63",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  }
+]

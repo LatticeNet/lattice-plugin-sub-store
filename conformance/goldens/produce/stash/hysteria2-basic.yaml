@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"GB-s63s-21","port":443,"server":"bi-14.qievq7x.example.com","skip-cert-verify":false,"sni":"img.qj6n1.example.net","type":"hysteria2","udp":true,"auth":"vCWyidJwQyfuWrJv4pzN","fast-open":false}

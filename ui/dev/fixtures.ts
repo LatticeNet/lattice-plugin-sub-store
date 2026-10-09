@@ -8,8 +8,10 @@
  * the file contents, and the provider figures on 建材市场 (82 percent used,
  * six days to expiry, so the attention rules have something true-shaped to
  * trip). `failing` is the same store after a bad day, `large` fills the
- * 256-record budget, and `canned` is the small hand-made set the editor and
- * layout drives were written against.
+ * 256-record budget, `states` is the bad day plus every state the Records
+ * table must draw (a chain flagged for a regex rewrite, names long enough to
+ * truncate in two scripts, an expired provider), and `canned` is the small
+ * hand-made set the editor and layout drives were written against.
  *
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
@@ -62,8 +64,8 @@ export interface Fixture {
   counts: Record<string, [number, number]>;
 }
 
-export type FixtureName = "production" | "failing" | "large" | "canned";
-export const FIXTURE_NAMES: readonly FixtureName[] = ["production", "failing", "large", "canned"];
+export type FixtureName = "production" | "failing" | "large" | "states" | "canned";
+export const FIXTURE_NAMES: readonly FixtureName[] = ["production", "failing", "large", "states", "canned"];
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -362,9 +364,86 @@ function largeFixture(): Fixture {
   return { records, shares, counts };
 }
 
+/**
+ * Every state the Records table draws, on top of the failing store: the
+ * expired provider is already there (openjobs-host-trojan, two days past).
+ * Added: a provider whose chain keeps everything except a few words with a
+ * negative lookahead, the idiom the native engine cannot run and offers to
+ * rewrite; a second flagged record whose pattern has no rewrite (a
+ * backreference); and a source, a combination and a file whose names are long
+ * in Latin and in CJK, the source with three tags, the first itself long, and
+ * one of its two steps turned off, so the name's tag and the Steps column's
+ * second line are drawn.
+ */
+const LONG_SOURCE = "imported-sub-long-name";
+function statesFixture(): Fixture {
+  const base = failingFixture();
+  const records = base.records;
+  records.splice(5, 0, {
+    id: "imported-sub-flagged",
+    name: "lookahead-provider",
+    remark: "Keeps every node that does not mention expiry or the website",
+    source: "remote",
+    url: "https://sub.flagged-provider.example/api/v1/client/subscribe?token=flaggedtokenflaggedtoken&flag=clash",
+    process: [
+      { type: "Regex Filter", args: { regex: ["^(?!.*(过期|剩余|官网)).*$"], keep: true } },
+      { type: "Sort Operator", args: { value: "asc" } },
+    ],
+    origin: migrated("subscription"),
+    last_fetch_at: ago(5 * HOUR),
+    last_fetch_ok: true,
+    userinfo: `upload=${Math.round(2 * GB)}; download=${Math.round(40 * GB)}; total=${200 * GB}; expire=${Math.floor((Date.now() + 40 * DAY) / 1000)}`,
+  });
+  records.splice(6, 0, {
+    id: "imported-sub-backref",
+    name: "backreference-rename",
+    source: "local",
+    content: "trojan://password@backref.example:443#backref",
+    process: [{ type: "Regex Rename Operator", args: { value: [{ expr: "(\\w+)-\\1", now: "$1" }] } }],
+    origin: migrated("subscription"),
+  });
+  records.push(
+    {
+      id: LONG_SOURCE,
+      name: "一个非常非常长的机场订阅名称用来检查截断与换行-and-a-very-long-latin-provider-subscription-name-as-well",
+      remark: "备注也很长：这条订阅的名字在一行里放不下，表格必须省略而不是把其他列挤出去，手机上必须换行而不是横向滚动。",
+      tags: ["长名称-a-tag-long-enough-to-crowd-the-name", "long-name", "provider"],
+      source: "remote",
+      url: "https://a-provider-with-a-long-host-name.example-subscriptions.invalid/api/v1/client/subscribe?token=longtokenlongtoken",
+      process: steps(2).map((step, index) => (index === 1 ? { ...(step as object), disabled: true } : step)),
+      origin: migrated("subscription"),
+      last_fetch_at: ago(9 * HOUR),
+      last_fetch_ok: true,
+      userinfo: `upload=${Math.round(30 * GB)}; download=${Math.round(160 * GB)}; total=${200 * GB}; expire=${Math.floor((Date.now() + 10 * DAY) / 1000)}`,
+    },
+    {
+      id: "imported-col-long-name",
+      kind: "collection",
+      name: "combination-with-a-name-long-enough-to-need-truncation-on-every-screen-组合名称同样很长",
+      members: [LONG_SOURCE, OJ_HOST],
+      failure_mode: "strict",
+      process: [],
+      origin: migrated("collection"),
+    },
+    file("for-a-person-with-a-very-long-name-on-a-tablet-in-landscape-stash-给平板用的配置", LONG_SOURCE),
+  );
+  return {
+    records,
+    shares: base.shares,
+    counts: {
+      ...base.counts,
+      "imported-sub-flagged": [120, 96],
+      "imported-sub-backref": [12, 12],
+      [LONG_SOURCE]: [64, 40],
+      "imported-col-long-name": [126, 118],
+    },
+  };
+}
+
 export function fixture(name: FixtureName, canned: () => Fixture): Fixture {
   if (name === "failing") return failingFixture();
   if (name === "large") return largeFixture();
+  if (name === "states") return statesFixture();
   if (name === "canned") return canned();
   return { records: productionRecords(), shares: productionShares(), counts: { ...PRODUCTION_COUNTS } };
 }
@@ -378,4 +457,4 @@ export function fixtureName(search: string): FixtureName {
 export function productionFixture(): Fixture {
   return fixture("production", () => ({ records: [], shares: [], counts: {} }));
 }
-export { failingFixture, largeFixture };
+export { failingFixture, largeFixture, statesFixture };

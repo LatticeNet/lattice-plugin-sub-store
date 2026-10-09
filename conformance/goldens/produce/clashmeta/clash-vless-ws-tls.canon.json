@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "JP-g2jm75-03",
+      "network": "ws",
+      "port": 443,
+      "server": "aa7-08.u4yp51.example.com",
+      "servername": "api.yfitrwjl.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "e28e1350-3afc-4ca2-a4eb-85c3163bb32b",
+      "ws-opts": {
+        "headers": {
+          "Host": "api.yfitrwjl.example.com"
+        },
+        "path": "/ndpw"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-anytls-reuse-false",
+  "family": "clash",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "reuse-false",
+  "description": "anytls with reuse: false."
+}

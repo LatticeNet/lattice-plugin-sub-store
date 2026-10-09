@@ -1,0 +1,1 @@
+CA-tol-36=shadowsocks,urj-24.ji6pn83.example.org,52039,aes-128-gcm,"Wm8v66vvBpjFnF",udp=true

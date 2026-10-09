@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"HK-yulm9-28","method":"aes-256-gcm","server":"m5g-37.osr10ykk.example.com","port":57590,"password":"32oWLbrurkKWPK","tfo":false,"udp_relay":true}}

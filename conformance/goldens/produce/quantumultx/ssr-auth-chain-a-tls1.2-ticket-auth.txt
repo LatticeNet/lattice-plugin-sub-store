@@ -1,0 +1,1 @@
+shadowsocks=ad8-40.stya5.example.org:48243,method=aes-256-cfb,password=FoDqSptYJpYf,ssr-protocol=auth_chain_a,ssr-protocol-param=1512:puvQRKIM,obfs=tls1.2_ticket_auth,obfs-host=www.fq3qe5l.example.org,udp-relay=true,tag=CA-lofwsu-12

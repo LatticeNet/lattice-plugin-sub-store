@@ -1,0 +1,1 @@
+hysteria2://xBfmvQnqwyT2k1d0tmXj@ry-31.ngpamb5.example.net:443?hop-interval=15&sni=cdn.ygqhz.example.org&mport=20000-30000#JP-wqjm9-26

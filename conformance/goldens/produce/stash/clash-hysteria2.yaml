@@ -1,0 +1,4 @@
+proxies:
+  - {"name":"TW-a8ef-18","port":443,"server":"w5-33.b8gbhup.example.net","skip-cert-verify":false,"sni":"img.gvbtkgnh.example.org","type":"hysteria2","udp":true,"auth":"O5JKgY3RhM4YtB2LW6sQ"}
+  - {"name":"SG-kutb-91","obfs":"salamander","obfs-password":"rYyQ9Pf4sBcZnEas","port":443,"server":"v4z-07.bsiwk9.example.net","sni":"img.labnn7rfp.example.net","type":"hysteria2","udp":true,"auth":"1ZwO87l7TwxoKe9JwQre"}
+  - {"hop-interval":30,"name":"FR-uu3v3-82","port":443,"ports":"20000-30000","server":"s4-29.i7snt2pt.example.net","sni":"api.qkjsan.example.org","type":"hysteria2","udp":true,"auth":"ZJsIFFB8Z3JgXRHfRBUu","down-speed":"200","up-speed":"50"}

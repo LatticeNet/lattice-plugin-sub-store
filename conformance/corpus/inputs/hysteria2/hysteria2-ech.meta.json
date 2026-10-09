@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-ech",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "ech",
+  "description": "ECH config list on Hysteria2."
+}

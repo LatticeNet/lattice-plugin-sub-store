@@ -1,0 +1,48 @@
+[
+  {
+    "args": [
+      "k7n-34.k3dmj.example.com",
+      "443",
+      "x6ITjYHRYeEvJEsG"
+    ],
+    "name": "JP-g3y6-02",
+    "params": {
+      "skip-cert-verify": "false",
+      "tls-name": "api.dv5ooq2v.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "z2n-18.xvyy2a.example.org",
+      "443",
+      "xOSzUMgiUfepNYrF"
+    ],
+    "name": "TW-w9xe07-13",
+    "params": {
+      "host": "www.eao2iex89b.example.net",
+      "path": "/soyeoey",
+      "tls-name": "www.eao2iex89b.example.net",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "ls-29.dd8veg7.example.org",
+      "80",
+      "OLywOW0EdBxNnOvJ"
+    ],
+    "name": "FR-yuwlt-90",
+    "params": {
+      "host": "api.pj96qv0q6.example.net",
+      "path": "/ahi06l",
+      "tls-name": "api.pj96qv0q6.example.net",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

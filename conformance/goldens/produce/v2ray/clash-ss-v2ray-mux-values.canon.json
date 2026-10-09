@@ -1,0 +1,116 @@
+[
+  {
+    "fragment": "TW-qts-23",
+    "host": "uyv-27.lk8b.example.net",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=www.eq7ky3.example.net;host=www.eq7ky3.example.net;path=/fro/pmipe3a;tls;mux=1"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206YVRkUGYzWDJGUnJ2eGhFRA==",
+    "userinfo_base64": "aes-256-gcm:aTdPf3X2FRrvxhED"
+  },
+  {
+    "fragment": "NL-gsji0u-42",
+    "host": "fut-07.d11011qg.example.org",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=static.p5amke1.example.net;host=static.p5amke1.example.net;path=/p02pq64z7;tls;mux=0"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206MnBacWhacWNxTk80YVBzNw==",
+    "userinfo_base64": "aes-256-gcm:2pZqhZqcqNO4aPs7"
+  },
+  {
+    "fragment": "HK-q2n-72",
+    "host": "uq5-32.ruww3h1.example.net",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=img.oouls25938.example.com;host=img.oouls25938.example.com;path=/d72z/becp0c;tls;mux=1"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206eXhRMmEzZkhZaURmZWVnSw==",
+    "userinfo_base64": "aes-256-gcm:yxQ2a3fHYiDfeegK"
+  },
+  {
+    "fragment": "DE-ev25mc-51",
+    "host": "ha-35.m3mt.example.com",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=static.a8adea8px.example.net;host=static.a8adea8px.example.net;path=/s8l7um/hqy6oj1kz;tls;mux=0"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206TFdBdEdFY3JHWW92QzVnUg==",
+    "userinfo_base64": "aes-256-gcm:LWAtGEcrGYovC5gR"
+  },
+  {
+    "fragment": "NL-au68og-84",
+    "host": "b2g-29.rf4n.example.org",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=api.nziz93gqf.example.net;host=api.nziz93gqf.example.net;path=/ch2jp35t;tls;mux=2"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206ME1BcjFmOGYwNDFIbGhJcw==",
+    "userinfo_base64": "aes-256-gcm:0MAr1f8f041HlhIs"
+  },
+  {
+    "fragment": "AU-xnc9-71",
+    "host": "kd-36.kryii4.example.net",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=www.fjfyh.example.com;host=www.fjfyh.example.com;path=/u8s8x3;tls;mux=yes"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206bkI4N2JIN3o4RDFyUnJyRA==",
+    "userinfo_base64": "aes-256-gcm:nB87bH7z8D1rRrrD"
+  }
+]

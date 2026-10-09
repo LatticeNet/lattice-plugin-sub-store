@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-akxzd-86",
+      "type": "vmess",
+      "server": "teg-27.stq9lh.example.net",
+      "server_port": 443,
+      "uuid": "d321ac0f-ada0-4fbe-9eb1-0dc7f75a5a3f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/mocx/ijfdef3",
+        "host": "static.dbveya8hk.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

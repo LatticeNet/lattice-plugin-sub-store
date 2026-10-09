@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-256-gcm",
+      "password": "QsjbCL9G6dfT6l",
+      "server": "2001:db8:67ef:80::edf3",
+      "server_port": 33510,
+      "tag": "KR-fp9-11",
+      "type": "shadowsocks"
+    }
+  ]
+}

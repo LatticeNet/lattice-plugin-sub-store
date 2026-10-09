@@ -1,0 +1,15 @@
+proxies:
+  - name: HK-hgq-99
+    type: vmess
+    server: pgf-17.cv2qm174.example.net
+    port: 443
+    uuid: 2ec8f005-4bea-4ba2-be6f-7031ea6499b5
+    alterId: 4
+    cipher: auto
+    udp: true
+    tls: true
+    servername: cdn.v35bq7.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: XQzXzL4h3FQ9W7FdQA6nSbNjwV4m1eQPh5VZejtZhKw
+      short-id: d88948a8

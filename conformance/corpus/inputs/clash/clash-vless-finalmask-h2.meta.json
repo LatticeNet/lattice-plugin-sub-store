@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-finalmask-h2",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "finalmask-h2",
+  "description": "vless Reality with _finalmask (a mapping), _h2: true and _pqv."
+}

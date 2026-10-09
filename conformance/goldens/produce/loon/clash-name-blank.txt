@@ -1,0 +1,2 @@
+trojan fqu-05.gkq008mx.example.net:443=trojan,fqu-05.gkq008mx.example.net,443,"NHf9rBYljVdtJehr",tls-name=static.grofr.example.org,udp=true
+trojan yp-22.onpzeo.example.com:443=trojan,yp-22.onpzeo.example.com,443,"6HnaJbaINQaGBUdR",tls-name=www.nn9zf.example.net,udp=true

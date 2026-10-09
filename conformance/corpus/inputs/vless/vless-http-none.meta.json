@@ -1,0 +1,8 @@
+{
+  "id": "vless-http-none",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "http",
+  "security": "none",
+  "description": "VLESS share link over http with security none."
+}

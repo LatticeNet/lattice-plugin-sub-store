@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "m9-20.ykh9.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "api.e6q1f3.example.net",
+      "id": "a3420ae7-435f-4538-b1c3-84a8a1a321bd",
+      "net": "ws",
+      "path": "/jo1/ybfztg",
+      "port": "443",
+      "ps": "HK-opvhpj-01",
+      "scy": "auto",
+      "sni": "api.e6q1f3.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

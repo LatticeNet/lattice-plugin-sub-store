@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria-bandwidth-forms",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "bandwidth-forms",
+  "description": "hysteria nodes whose up and down are 100 Kbps, 30 Mbps, 2 gbps and a bare 50."
+}

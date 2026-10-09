@@ -1,0 +1,46 @@
+[
+  {
+    "fragment": "US-qy8r5q-63",
+    "host": "198.51.100.57",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "198.51.100.57"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "rG8Nc3sr69Ii4FNC"
+  },
+  {
+    "fragment": "SG-f009-90",
+    "host": "192.0.2.72",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "192.0.2.72"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "0b9d56fa-73e8-4c2b-acdd-1d958a773574"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-ntf7d-49",
+      "type": "vless",
+      "server": "kp4-08.zfwpxgh.example.com",
+      "server_port": 443,
+      "uuid": "84b19d3a-7625-45a1-a521-04705c110792",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.po8u28n.example.com"
+        },
+        "path": "/qk59z/b8mr"
+      }
+    }
+  ],
+  "endpoints": []
+}

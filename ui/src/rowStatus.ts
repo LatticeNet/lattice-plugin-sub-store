@@ -1,13 +1,16 @@
 /**
  * rowStatus.ts. The inline status a subscription row shows after a refresh.
  *
- * Two small formatters, kept pure so the row template stays declarative:
- *  - formatRelativeTime turns the record's RFC3339 last_fetch_at into
- *    "refreshed 3h ago"-style copy;
+ * Small helpers, kept pure so the row template stays declarative:
+ *  - formatRelativeTime and formatBytes, which live in i18n.ts with the other
+ *    locale-aware formatters and are re-exported here for the rows;
  *  - parseUserinfo reads the provider's subscription-userinfo header
  *    ("upload=…; download=…; total=…; expire=…") for a runtime too old to
  *    parse it itself, by the runtime's own rules.
  */
+import { t } from "./i18n";
+
+export { formatBytes, formatRelativeTime } from "./i18n";
 
 /**
  * The tags a row shows: the first `limit`, a "+N" for the rest, and the whole
@@ -20,29 +23,11 @@ export function tagChips(
   imported: boolean | undefined,
   limit = 2,
 ): { shown: string[]; more: number; all: string[] } {
-  const all = [...(tags ?? []), ...(imported ? ["migrated"] : [])];
+  const all = [...(tags ?? []), ...(imported ? [t.records.migratedTag] : [])];
   const shown = all.slice(0, limit);
   return { shown, more: all.length - shown.length, all };
 }
 
-/** "3h ago"-style phrasing for a timestamp, or "" when it does not parse. */
-export function formatRelativeTime(iso: string, now: number = Date.now()): string {
-  const then = Date.parse(iso);
-  if (Number.isNaN(then)) return "";
-  const seconds = Math.round((now - then) / 1000);
-  // A clock slightly ahead of the browser's is normal (the server stamps the
-  // fetch); treating a small negative gap as "just now" beats "-3s ago".
-  if (seconds < 45) return "just now";
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 14) return `${days}d ago`;
-  // Past two weeks the relative phrasing stops helping; the date is shorter to
-  // scan and exactly precise.
-  return new Date(then).toISOString().slice(0, 10);
-}
 
 export interface Userinfo {
   upload?: number;
@@ -99,16 +84,4 @@ export function parseUserinfo(raw: string | undefined): Userinfo | null {
   return seen ? out : null;
 }
 
-/** 1024-based, one decimal only when it adds information: 512 B, 1.5 GB, 2 TB. */
-export function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"] as const;
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  const rounded = value >= 100 || Number.isInteger(value) ? Math.round(value).toString() : value.toFixed(1);
-  return `${rounded} ${units[unit]}`;
-}
 

@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "SG-rvp97-26",
+      "name-cert-verify": "static.h05sqvoy.example.org",
+      "network": "tcp",
+      "packet-encoding": "",
+      "port": 443,
+      "server": "cr-03.ci0fvkp.example.com",
+      "server-cert-fingerprint": "69:24:7B:D1:F8:01:D5:23:CA:AE:2C:C3:37:9B:F1:F1:A2:31:50:49:8D:0B:43:4C:EC:0B:B5:4E:F5:79:F2:20",
+      "servername": "img.lejb3z3.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "eddf6c71-29a2-485e-977d-36d68b51ffa4"
+    }
+  ]
+}

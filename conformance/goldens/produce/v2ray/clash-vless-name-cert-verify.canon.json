@@ -1,0 +1,78 @@
+[
+  {
+    "fragment": "NL-ihl5x-86",
+    "host": "sp1-26.r1ybtf.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.gyfox1.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "vcn",
+        "img.isv3awbqj.example.com"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "dc40258c-70f7-4cc6-8f57-47f891ff5fdf"
+  },
+  {
+    "fragment": "SG-hkj1-48",
+    "host": "dpa-17.ht61.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.rmwsxjoka.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "vcn",
+        "cdn.ajjqw8ky.example.com,api.t9lgzju.example.com"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "12dfd962-9faf-4d0b-a5a1-86880db75bd8"
+  }
+]

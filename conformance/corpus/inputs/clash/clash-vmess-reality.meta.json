@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-reality",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "vmess-reality",
+  "description": "vmess with reality-opts and no client-fingerprint."
+}

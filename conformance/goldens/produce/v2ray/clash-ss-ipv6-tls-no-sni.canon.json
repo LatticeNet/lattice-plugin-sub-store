@@ -1,0 +1,33 @@
+[
+  {
+    "fragment": "TW-wrz9t8-60",
+    "host": "2001:db8:4d6e:23bd::9d87",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "path",
+        "/"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "[2001:db8:4d6e:23bd::9d87]"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206ejBGOTQwb0xNWVVVRko=",
+    "userinfo_base64": "aes-128-gcm:z0F940oLMYUUFJ"
+  }
+]

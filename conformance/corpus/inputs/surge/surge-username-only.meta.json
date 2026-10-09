@@ -1,0 +1,9 @@
+{
+  "id": "surge-username-only",
+  "family": "surge",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "partial-credentials",
+  "description": "http, host, 80, username=u: a lone username keyword still sets username."
+}

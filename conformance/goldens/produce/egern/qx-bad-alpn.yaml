@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"US-jnq-88","server":"yev-28.xniy064.example.net","port":443,"password":"jjPT3sFpPqTjDrbJ","tfo":false,"udp_relay":true,"sni":"cdn.a6fucziy.example.net"}}

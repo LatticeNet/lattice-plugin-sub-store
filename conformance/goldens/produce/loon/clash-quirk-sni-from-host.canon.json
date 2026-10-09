@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "bee-29.xqbpipu.example.com",
+      "443",
+      "auto",
+      "848a9969-7aa2-456b-9da9-69e9f413df30"
+    ],
+    "name": "AU-tfsez1-75",
+    "params": {
+      "alterId": "0",
+      "host": "www.v9p5uc3.example.net",
+      "over-tls": "true",
+      "path": "/hdm/xo87z7i",
+      "tls-name": "www.v9p5uc3.example.net",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "xey-25.ohekj.example.net",
+      "443",
+      "50gcH1IrTZeRtSHn"
+    ],
+    "name": "DE-pbrw-08",
+    "params": {
+      "tls-name": "xey-25.ohekj.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

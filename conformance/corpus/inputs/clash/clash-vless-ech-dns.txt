@@ -1,0 +1,18 @@
+proxies:
+  - name: GB-n96cy-04
+    type: vless
+    server: fgx-19.clzv92cm.example.com
+    port: 443
+    uuid: 77e2f0ee-a13a-4e15-9007-f20fbeccc43f
+    udp: true
+    tls: true
+    servername: static.cynpn55tzo.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    ech-opts:
+      enable: true
+      _dns: "https://p4-25.vt5g3d.example.com/dns-query"
+      query-server-name: www.nj74x8.example.com

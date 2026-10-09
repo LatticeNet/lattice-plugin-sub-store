@@ -368,7 +368,8 @@ describe("the record catalogue", () => {
     await subs.load();
     const catalogue = recordCatalogue(host);
     expect(catalogue.items.value).toEqual(subs.items.value);
-    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError", "reload"]);
+    // The store version rides along: the header's create reads it to refuse on a legacy store.
+    expect(Object.keys(catalogue)).toEqual(["state", "items", "loadError", "storeVersion", "reload"]);
   });
 });
 
@@ -647,7 +648,7 @@ describe("vpn-core graph workflow", () => {
     expect(calls).toEqual([{ service: BINDINGS.subPublish.service, method: "publish", payload: {
       subscription_id: "graph", destination: "https://destination.invalid/graph", method: "PATCH", format: "sing-box",
     } }]);
-    expect(subs.notice.value).toContain("321 bytes");
+    expect(subs.notice.value).toContain("Uploaded 321 B for");
   });
 
   it("surfaces publish failure without mutating the saved definition or target", async () => {
@@ -804,7 +805,7 @@ describe("refresh", () => {
     expect(fetches).toBe(1);
     expect(lists).toBe(2);
     expect(subs.items.value[0]?.last_fetch_ok).toBe(true);
-    expect(subs.notice.value).toContain("42 bytes");
+    expect(subs.notice.value).toContain("Checked 42 B for");
   });
 
   // A failed refresh still reloads: the failure badge on the row is the whole

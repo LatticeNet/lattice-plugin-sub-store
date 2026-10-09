@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-crlf-comments",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "crlf-comments",
+  "description": "CRLF line endings and YAML comments."
+}

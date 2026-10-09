@@ -1,0 +1,1 @@
+{"name":"SG-b68-73","type":"vmess","server":"gq-32.z66i.example.com","port":443,"uuid":"a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb","alterId":0,"cipher":"auto","tls":true,"sni":"img.caykblkqyh.example.org","alpn":["h2","http/1.1"],"shadow-tls-opts":{"password":"KQha0gVa25POdcjz","version":3}}

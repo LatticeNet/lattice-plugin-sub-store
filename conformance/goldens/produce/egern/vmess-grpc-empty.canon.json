@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "CA-uaxg-47",
+        "port": 443,
+        "security": "auto",
+        "server": "qb-25.b9184.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "eaf90f9a-7e2a-493a-9887-b669e8aa7e6b"
+      }
+    }
+  ]
+}

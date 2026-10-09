@@ -1,0 +1,21 @@
+proxies:
+  - name: CA-w6ys-30
+    type: vmess
+    server: l5-09.xmmas.example.net
+    port: 443
+    uuid: ab77cff5-961e-476f-98d3-a0ebed63aa20
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: static.b9eert.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: h2
+    h2-opts:
+      host:
+        - static.b9eert.example.com
+      path: /rxtxr2ob

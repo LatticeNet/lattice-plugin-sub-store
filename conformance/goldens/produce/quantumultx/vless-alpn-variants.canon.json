@@ -1,0 +1,53 @@
+[
+  {
+    "address": "sfy-07.n1gvt.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "cdn.ocjq6tpk05.example.org",
+      "obfs-uri": "/fcw/qsvid",
+      "password": "1b008b24-875e-4ab7-845d-4696cd5fc633",
+      "tag": "US-ispj8e-62",
+      "tls-alpn": "026833",
+      "tls-host": "cdn.ocjq6tpk05.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "uge-01.z7e0.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "www.b6qq9x1.example.org",
+      "obfs-uri": "/kddoysqct",
+      "password": "7d0757b2-62f8-4e9a-9928-2e5ac80ff5e6",
+      "tag": "TW-r4i9j-62",
+      "tls-alpn": "08687474702f312e31",
+      "tls-host": "www.b6qq9x1.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "l5b-09.z9jy6.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "img.c21mm.example.net",
+      "obfs-uri": "/yu95/h35n4cl",
+      "password": "db8995b6-b4cf-4840-b021-e8540a03da59",
+      "tag": "SG-oueeq-06",
+      "tls-alpn": "02683302683208687474702f312e31",
+      "tls-host": "img.c21mm.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "JP-iz7-59",
+    "host": "aiu-22.fcyj.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "gun"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "IGDb3lo-iUKbXweDff0uorcnqTnH7AX4OLe7fyy9FPg"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "serviceName",
+        "bv8rt-z5y"
+      ],
+      [
+        "sid",
+        "53587fe4"
+      ],
+      [
+        "sni",
+        "img.kdm9z.example.net"
+      ],
+      [
+        "type",
+        "grpc"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "22cb4178-c1da-448b-9052-aac7c2f3ccbc"
+  }
+]

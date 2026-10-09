@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "CA-actar-66",
+        "port": 443,
+        "server": "fq-04.ri20owdn.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "api.z96qqyye3z.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "6490f9f8-ff11-4f38-92bf-752ea9cb09b2"
+      }
+    }
+  ]
+}

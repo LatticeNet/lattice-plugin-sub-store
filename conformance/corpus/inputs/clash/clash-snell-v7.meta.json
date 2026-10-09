@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-v7",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "snell-version",
+  "description": "snell version 7."
+}

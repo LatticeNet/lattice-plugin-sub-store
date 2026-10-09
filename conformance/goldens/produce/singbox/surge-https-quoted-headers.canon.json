@@ -1,0 +1,22 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "headers": {
+        "X-A": "8",
+        "X-B": "\\\"bn73;t8a6o\\\""
+      },
+      "password": "pG781flwXCsl",
+      "server": "y7-34.vb5wyv5p.example.org",
+      "server_port": 443,
+      "tag": "NL-uweh-78",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.cefk3wbf7.example.org"
+      },
+      "type": "http",
+      "username": "vl82wc"
+    }
+  ]
+}

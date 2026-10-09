@@ -1,0 +1,1 @@
+vless://f968b5ca-0962-4746-94d1-21ce2d1268be@obn-39.yszi265.example.com:443?security=tls&type=ws&path=%2Faa6ho%2Fv3ap&host=static.c2lmw.example.org&ed=2560&packetEncoding=xudp&alpn=h2%2Chttp%2F1.1&sni=static.c2lmw.example.org&fp=chrome&encryption=none#TW-y1oz-65

@@ -1,0 +1,11 @@
+proxies:
+  - name: HK-lb5-55
+    type: ss
+    server: lm-06.k25j9.example.org
+    port: 443
+    cipher: aes-128-gcm
+    password: WhdU9BwFJtPtUMRX
+    shadow-tls-opts:
+      host: api.y7r021k.example.org
+      password: Mwlv82P4DNwKJpCD
+      version: 3

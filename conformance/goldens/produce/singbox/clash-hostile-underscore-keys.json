@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-njz7k-17",
+      "type": "vless",
+      "server": "k4-16.jn75z1.example.com",
+      "server_port": 443,
+      "uuid": "e23518f7-6bdf-4157-a78c-e04cd917c507",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.ly0di.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk",
+          "short_id": "095a09fb"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "flow": "xtls-rprx-vision"
+    }
+  ],
+  "endpoints": []
+}

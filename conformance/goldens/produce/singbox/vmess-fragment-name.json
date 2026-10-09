@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-ljo-92",
+      "type": "vmess",
+      "server": "sr-09.m6mi.example.org",
+      "server_port": 443,
+      "uuid": "35c16f41-6aaf-449b-a131-dbf28bb15d0f",
+      "security": "auto",
+      "alter_id": 0
+    }
+  ],
+  "endpoints": []
+}

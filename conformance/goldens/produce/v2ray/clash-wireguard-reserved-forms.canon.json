@@ -1,0 +1,76 @@
+[
+  {
+    "fragment": "FR-lkksca-49",
+    "host": "kfo-39.pxng8tol.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.159.118.196/32"
+      ],
+      [
+        "publickey",
+        "UpuO6PUmckOF93MXmoGRIiMuk1/91Hx5SAyO1EyMRLs="
+      ],
+      [
+        "reserved",
+        "TeqD"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "pwRLYLRcZklXfGwkDl4lc/W6Al19foQzBSHpRV2TWo0="
+  },
+  {
+    "fragment": "CA-qwozx-70",
+    "host": "y5o-21.lbt60v12.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.132.15.160/32"
+      ],
+      [
+        "publickey",
+        "3gtPvbnKbS5fjNYQJ5dbvaYTMQ8eYirbHXQvVIMO5Eg="
+      ],
+      [
+        "reserved",
+        "118,233,228"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "0e61tURiITdd8tyeW2Ls9sCzoAHWbzRy2r6d9MxNU1U="
+  },
+  {
+    "fragment": "SG-cg0a-25",
+    "host": "undefined",
+    "path": "/",
+    "port": "undefined",
+    "query": [
+      [
+        "address",
+        "10.120.251.57/32"
+      ],
+      [
+        "peers",
+        "[object Object]"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "HbbD+d3ms3OZAbG6m8IznmBTaRy6GZ1TwW61yAf3Wcc="
+  }
+]

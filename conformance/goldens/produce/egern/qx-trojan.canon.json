@@ -1,0 +1,46 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "JP-g3y6-02",
+        "password": "x6ITjYHRYeEvJEsG",
+        "port": 443,
+        "server": "k7n-34.k3dmj.example.com",
+        "skip_tls_verify": false,
+        "sni": "api.dv5ooq2v.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "TW-w9xe07-13",
+        "password": "xOSzUMgiUfepNYrF",
+        "port": 443,
+        "server": "z2n-18.xvyy2a.example.org",
+        "sni": "www.eao2iex89b.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "host": "www.eao2iex89b.example.net",
+          "path": "/soyeoey"
+        }
+      }
+    },
+    {
+      "trojan": {
+        "name": "FR-yuwlt-90",
+        "password": "OLywOW0EdBxNnOvJ",
+        "port": 80,
+        "server": "ls-29.dd8veg7.example.org",
+        "sni": "api.pj96qv0q6.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "host": "api.pj96qv0q6.example.net",
+          "path": "/ahi06l"
+        }
+      }
+    }
+  ]
+}

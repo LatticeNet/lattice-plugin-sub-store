@@ -1,0 +1,1 @@
+DE-rnjso-15=trojan,c5-11.ocg6mst.example.org,443,"Ss3l3GXlwJPI9BmQ",transport=ws,path=/ucuhm923u,host=img.qb83s9o08.example.net,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=img.qb83s9o08.example.net,udp=true

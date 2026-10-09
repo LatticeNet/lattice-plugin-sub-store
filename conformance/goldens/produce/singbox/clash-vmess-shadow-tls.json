@@ -1,0 +1,42 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-o93-80",
+      "type": "vmess",
+      "server": "ph4-05.mx0tv.example.com",
+      "server_port": 443,
+      "uuid": "e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "img.bgickuqs.example.org"
+        },
+        "path": "/zzha3a/pymm"
+      },
+      "detour": "US-o93-80_shadowtls"
+    },
+    {
+      "tag": "US-o93-80_shadowtls",
+      "type": "shadowtls",
+      "server": "ph4-05.mx0tv.example.com",
+      "server_port": 443,
+      "version": 3,
+      "password": "FRUnGaggSJUwqE6q",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.mmb7dk.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

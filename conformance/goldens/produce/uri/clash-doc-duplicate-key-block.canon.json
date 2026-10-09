@@ -1,0 +1,35 @@
+[
+  {
+    "fragment": "ss undefined:undefined",
+    "host": "undefined",
+    "path": "",
+    "port": "undefined",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "dW5kZWZpbmVkOnVuZGVmaW5lZA==",
+    "userinfo_base64": "undefined:undefined"
+  },
+  {
+    "fragment": "trojan undefined:undefined",
+    "host": "undefined",
+    "path": "",
+    "port": "undefined",
+    "query": [
+      [
+        "sni",
+        "undefined"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "undefined"
+  }
+]

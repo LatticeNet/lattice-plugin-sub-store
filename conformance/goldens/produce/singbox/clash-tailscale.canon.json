@@ -1,0 +1,11 @@
+{
+  "endpoints": [
+    {
+      "auth_key": "tskey-auth-iLMzHxrPXmqARxHWYBb54mcnuHjKTX",
+      "hostname": "uoqbk",
+      "tag": "JP-fmk0tn-96",
+      "type": "tailscale"
+    }
+  ],
+  "outbounds": []
+}

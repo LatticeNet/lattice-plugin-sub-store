@@ -1,0 +1,1 @@
+GB-fz8n-86=ss,c8k-13.e1l43f.example.org,43977,encrypt-method=aes-128-gcm,password="KYsCwZmKBjKgSF",udp-relay=true

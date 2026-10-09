@@ -1,0 +1,2 @@
+FR-rxs9-71=trojan,gz6-27.nt3l3rl.example.com,443,password=TfwevtKu5necBwQa,tls=true,sni="img.yan934d.example.com",udp-relay=true
+NL-nk245-43=vmess,mc6-21.oy1wum6m.example.com,443,username=4ada313e-c95d-437a-8322-4fedd24ee914,vmess-aead=true,udp-relay=true

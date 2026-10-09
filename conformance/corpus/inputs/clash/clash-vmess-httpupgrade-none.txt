@@ -1,0 +1,15 @@
+proxies:
+  - name: JP-p84tk-69
+    type: vmess
+    server: z2n-07.i1p3rsm.example.com
+    port: 443
+    uuid: 6b18ea51-a2ba-42ea-a8e4-ace92af5bf0a
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: ws
+    ws-opts:
+      path: /q9dd
+      headers:
+        Host: static.wzzu98.example.com
+      v2ray-http-upgrade: true

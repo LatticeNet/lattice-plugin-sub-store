@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3","spdy/3.1"],"congestion-controller":"cubic","name":"TW-hstpqi-80","password":"1UjuEMWE7CI63SWK","port":443,"server":"tz-12.a1opi5.example.com","sni":"www.b7u4wwuv.example.net","type":"tuic","udp":true,"udp-relay-mode":"quic","uuid":"3007e77b-5b38-41a6-aaf1-fe9710eb4bfe","version":5}

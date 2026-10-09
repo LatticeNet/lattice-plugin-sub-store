@@ -1,0 +1,9 @@
+{
+  "id": "vmess-ws-tls-no-host",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ws-without-host",
+  "description": "net ws with TLS and no host or sni: ws-opts.headers is {} and the sni comes from the server."
+}

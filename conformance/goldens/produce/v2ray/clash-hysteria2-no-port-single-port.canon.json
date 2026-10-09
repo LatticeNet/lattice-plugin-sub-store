@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "hysteria2 vq-35.tbtq.example.net:undefined",
+    "host": "vq-35.tbtq.example.net",
+    "path": "",
+    "port": "8443",
+    "query": [
+      [
+        "mport",
+        "8443"
+      ],
+      [
+        "sni",
+        "static.n6ugri.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "wY75JPRvaRRLEgYnTRuB"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "2001:db8:f4e1:9108::e11d",
+      "server_port": 28811,
+      "tag": "US-snz-75",
+      "transport": {
+        "headers": {
+          "Host": "cdn.shsl3n.example.net",
+          "User-Agent": "xlydrke"
+        },
+        "path": "/qpqlfvau",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "4ddabfe1-ea65-4fc3-af13-ab9d288a30ce"
+    }
+  ]
+}

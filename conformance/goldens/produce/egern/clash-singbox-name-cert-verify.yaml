@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"NL-y3n-41","server":"hc-40.nc5igzur.example.org","port":443,"user_id":"b2db72da-0421-48df-b34b-b536eca4d3f8","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.n2x9vi.example.org","skip_tls_verify":false}}}}

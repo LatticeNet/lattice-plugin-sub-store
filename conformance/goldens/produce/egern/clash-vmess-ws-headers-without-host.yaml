@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"DE-b7miyb-06","server":"h8-35.ke75.example.org","port":443,"user_id":"a63ff333-ba61-4ef6-a1fa-b2d5e8d6b680","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/utg25","headers":{},"sni":"img.bxztir.example.com","skip_tls_verify":false}}}}

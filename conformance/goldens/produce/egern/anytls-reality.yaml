@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"CA-c08t-42","server":"hbn-02.cg9uhh2v.example.net","port":443,"password":"ejgbYJ6mPnxvebxd9iNg","tfo":false,"udp_relay":true,"sni":"api.lvxt2kr.example.net","skip_tls_verify":false,"reality":{"public_key":"xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk","short_id":"81f82d48"}}}

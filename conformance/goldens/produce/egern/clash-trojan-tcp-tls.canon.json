@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "FR-liz0ut-87",
+        "password": "x47D5mO8MxZGTHOg",
+        "port": 443,
+        "server": "zh2-34.v0i498.example.com",
+        "skip_tls_verify": false,
+        "sni": "www.gm2apo.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

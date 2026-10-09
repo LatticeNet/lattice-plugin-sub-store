@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 )
 
 // resolveSubContent returns one sub's node text, before any of its operators run.
@@ -78,56 +80,71 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 // its last good snapshot. A member whose own chain filters every node away
 // still contributes nothing, as before.
 func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) {
-	raw, needsCount, err := rt.memberNodes(member)
+	out, err := rt.memberNodes(member)
 	if err != nil {
 		return "", err
 	}
-	if needsCount {
-		if err := rt.requireNodes(memberLabel(member), raw); err != nil {
+	if out.needsCount {
+		if _, err := rt.requireNodes(memberLabel(member), out.raw); err != nil {
 			return "", err
 		}
 	}
-	return raw, nil
+	return out.raw, nil
 }
 
 func memberLabel(member subscriptionRecord) string {
 	return fmt.Sprintf("subscription %q", member.ID)
 }
 
+// memberOutput is one member after its own chain.
+type memberOutput struct {
+	// raw is the member's node text: as it arrived for an unchained member,
+	// the chain's URI output for a chained one.
+	raw string
+	// nodes are the native chain's nodes, when the member's chain ran in Go.
+	nodes []*nodemodel.Node
+	// needsCount is true when raw came back as it arrived, so a combination
+	// can confirm all of its members at once. A chained member's count is
+	// already known from its conversion.
+	needsCount bool
+	// native reports that the member's chain runs in Go (an unchained member
+	// trivially does).
+	native bool
+}
+
 // memberNodes resolves one member and runs its own chain, leaving the node
-// count of an unchained member to the caller: needsCount is true when the text
-// came back as it arrived, so a combination can confirm all of its members in
-// one engine call. A chained member's count is already known from its
-// conversion.
-func (rt *runtime) memberNodes(member subscriptionRecord) (raw string, needsCount bool, err error) {
-	raw, err = rt.resolveSubContent(member)
+// count of an unchained member to the caller. A chained member goes through
+// the dispatcher to URI: in Go when its whole chain is native, on the
+// bundle's isolated path otherwise.
+func (rt *runtime) memberNodes(member subscriptionRecord) (memberOutput, error) {
+	raw, err := rt.resolveSubContent(member)
 	if err != nil {
-		return "", false, err
+		return memberOutput{}, err
 	}
-	operators, err := enabledOperators(member)
+	plan, err := rt.chainPlan(member)
 	if err != nil {
-		return "", false, fmt.Errorf("%s: %w", memberLabel(member), err)
+		return memberOutput{}, fmt.Errorf("%s: %w", memberLabel(member), err)
 	}
-	if len(operators) == 0 {
+	if enabledSteps(plan) == 0 {
 		// Returned as it arrived: the collection parses each member on its own,
 		// so a member's encoding never has to match its siblings'. Converting it
 		// to URI here would drop every node that format cannot express (HTTP,
 		// Snell, SSH), which a same-format combination serves today.
-		return raw, true, nil
+		return memberOutput{raw: raw, needsCount: true, native: true}, nil
 	}
 	// URI carries a chained member: the chain's output has to be node text the
 	// collection can parse again.
-	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
-		Raw:          raw,
+	converted, served, err := rt.convertNodes(nodeConvertRequest{
+		Parts:        []string{raw},
 		Target:       "URI",
-		Operators:    operators,
+		Plan:         plan,
 		CarrierCheck: true,
 	})
 	if err != nil {
-		return "", false, fmt.Errorf("%s: %w", memberLabel(member), err)
+		return memberOutput{}, fmt.Errorf("%s: %w", memberLabel(member), err)
 	}
 	if converted.SourceNodeCount == 0 {
-		return "", false, providerNoNodesError(memberLabel(member))
+		return memberOutput{}, providerNoNodesError(memberLabel(member))
 	}
 	// URI has no form for some protocols, so a chained member with HTTP, Snell
 	// or SSH nodes would lose them here while an unchained sibling keeps them.
@@ -135,9 +152,9 @@ func (rt *runtime) memberNodes(member subscriptionRecord) (raw string, needsCoun
 	// exists to prevent, so the member fails instead: strict refuses the
 	// refresh and keeps the last good snapshot, skip leaves the member out.
 	if converted.CarrierLostNodeCount > 0 {
-		return "", false, memberChainDropsNodesError(memberLabel(member), converted.CarrierLostNodeCount, converted.NodeCount, converted.CarrierLostProtocols)
+		return memberOutput{}, memberChainDropsNodesError(memberLabel(member), converted.CarrierLostNodeCount, converted.NodeCount, converted.CarrierLostProtocols)
 	}
-	return converted.Output, false, nil
+	return memberOutput{raw: converted.Output, nodes: converted.nodes, native: served == servedNative}, nil
 }
 
 func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) bool {
@@ -171,44 +188,119 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, target string, optio
 // base64 list or a Clash document), and served the rest as complete. Parts
 // also cover a snapshot the core stored before this change, whose members are
 // provider bodies exactly as they arrived.
+//
+// The collection renders in Go only when its own chain, every member's chain
+// and the target are native (plan section 1.3): the members' nodes are then
+// concatenated as the member chains left them, with no URI round trip, and
+// the collection chain runs over them. Otherwise the whole collection renders
+// on the bundle's isolated path from the members' texts.
 func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool) (subStoreConversionResult, error) {
-	var parts []string
-	if strings.TrimSpace(snapshotRaw) != "" {
-		var snap snapshotArtifacts
-		if err := json.Unmarshal([]byte(snapshotRaw), &snap); err == nil {
-			for _, member := range snap.Members {
-				if trimmed := strings.TrimSpace(member.Raw); trimmed != "" {
-					parts = append(parts, trimmed)
-				}
-			}
-		}
-		// A snapshot that does not decode or carries nothing is not a reason to
-		// fail the serve: fall through to the live path rather than deny a
-		// client its nodes.
-	}
-	if len(parts) == 0 {
-		members, err := rt.collectionMembers(rec)
-		if err != nil {
-			return subStoreConversionResult{}, err
-		}
-		chained, err := rt.chainMembers(rec, members)
-		if err != nil {
-			return subStoreConversionResult{}, err
-		}
-		for _, member := range chained {
-			parts = append(parts, member.Raw)
-		}
-	}
-
-	operators, err := enabledOperators(rec)
+	plan, err := rt.chainPlan(rec)
 	if err != nil {
 		return subStoreConversionResult{}, fmt.Errorf("collection %q: %w", rec.ID, err)
 	}
-	return rt.subStoreEngine().convert(subStoreConversionRequest{
-		RawParts:  parts,
-		Target:    target,
-		Operators: operators,
-		Options:   options,
-		Explain:   explain,
-	})
+	// A snapshot that does not decode or carries nothing is not a reason to
+	// fail the serve: the live path takes over rather than deny a client its
+	// nodes.
+	members, membersNative := snapshotMembers(snapshotRaw, nativeRoute(plan, target))
+	if len(members) == 0 {
+		gathered, err := rt.collectionMembers(rec)
+		if err != nil {
+			return subStoreConversionResult{}, err
+		}
+		if members, membersNative, err = rt.chainMembers(rec, gathered); err != nil {
+			return subStoreConversionResult{}, err
+		}
+	}
+	request := nodeConvertRequest{
+		Target:         target,
+		Plan:           plan,
+		MemberFallback: !membersNative,
+		Options:        options,
+		Explain:        explain,
+	}
+	for _, member := range members {
+		request.Parts = append(request.Parts, member.Raw)
+		request.Nodes = append(request.Nodes, member.nodes...)
+	}
+	converted, _, err := rt.convertNodes(request)
+	return converted, err
+}
+
+// snapshotMembers reads a collection snapshot's members: a version 2
+// envelope, or the members object a version 1 snapshot is (and snapshotText
+// gives back). Empty members are skipped.
+//
+// membersNative reports that every member's chain ran in Go when the snapshot
+// was taken, which only a version 2 envelope can say: its members carry their
+// nodes, or it says some or all were omitted for size. Anything else (a
+// version 1 snapshot, an envelope whose members ran on the bundle, one
+// written before member nodes existed) renders whole on the bundle, as the
+// members' texts came from it.
+//
+// Nodes are read only when the render will read them, and then every member
+// gets its nodes: decoded where the envelope carries them, parsed from the
+// member's text where the size bound left them out. Nodes that do not decode
+// leave every member to its text, as before.
+func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool) {
+	if strings.TrimSpace(snapshotRaw) == "" {
+		return nil, false
+	}
+	if env, ok := decodeSnapshotEnvelope(snapshotRaw); ok && len(env.Members) > 0 {
+		withNodes := 0
+		members := make([]fileScriptMember, 0, len(env.Members))
+		for _, member := range env.Members {
+			if strings.TrimSpace(member.Raw) == "" {
+				continue
+			}
+			if len(member.Nodes) > 0 {
+				withNodes++
+			}
+			members = append(members, fileScriptMember{SubName: member.SubName, Raw: strings.TrimSpace(member.Raw)})
+		}
+		membersNative := len(members) > 0 && (withNodes == len(members) || env.NodesOmitted == nodesOmittedSize)
+		if membersNative && decode {
+			at := 0
+			for _, member := range env.Members {
+				if strings.TrimSpace(member.Raw) == "" {
+					continue
+				}
+				var nodes []*nodemodel.Node
+				ok := true
+				if len(member.Nodes) > 0 {
+					nodes, ok = decodeNodes(member.Nodes)
+				} else {
+					// Left out for size: the member's text, parsed. For a
+					// member with no chain of its own that is what the live
+					// path does; a chained member's nodes go only when its
+					// chain's nodes alone pass the bound, and its text is
+					// that chain's URI output (encodeSnapshotEnvelope).
+					var err error
+					nodes, err = parseParts([]string{members[at].Raw})
+					ok = err == nil
+				}
+				if !ok {
+					// Undecodable nodes: parse the texts instead.
+					for i := range members {
+						members[i].nodes = nil
+					}
+					break
+				}
+				members[at].nodes = nodes
+				at++
+			}
+		}
+		return members, membersNative
+	}
+	var snap snapshotArtifacts
+	if err := json.Unmarshal([]byte(snapshotRaw), &snap); err != nil {
+		return nil, false
+	}
+	members := make([]fileScriptMember, 0, len(snap.Members))
+	for _, member := range snap.Members {
+		if trimmed := strings.TrimSpace(member.Raw); trimmed != "" {
+			members = append(members, fileScriptMember{SubName: member.SubName, Raw: trimmed})
+		}
+	}
+	return members, false
 }

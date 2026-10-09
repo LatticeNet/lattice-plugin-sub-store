@@ -1,0 +1,4 @@
+proxies:
+  - {"vless":{"name":"TW-rsq-92","server":"t21-20.eu3o.example.com","port":443,"user_id":"edaca863-c360-43e9-9c87-f8472d557124","tfo":false,"udp_relay":true}}
+  - {"vless":{"name":"TW-rvi-20","server":"dj7-13.at5nkb5c.example.org","port":443,"user_id":"e84da8f7-807b-4654-b474-792df7ee29e1","tfo":false,"udp_relay":true}}
+  - {"vmess":{"name":"TW-sweeks-49","server":"ev-36.o21g.example.com","port":443,"user_id":"46dd643a-1c5e-4996-8a18-5bbf15fdf184","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

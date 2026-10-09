@@ -1,0 +1,1 @@
+DE-njz7k-17=vless,k4-16.jn75z1.example.com,443,"e23518f7-6bdf-4157-a78c-e04cd917c507",transport=tcp,over-tls=true,tls-profile=chrome,flow=xtls-rprx-vision,sni=static.ly0di.example.org,public-key="bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk",short-id=095a09fb,udp=true

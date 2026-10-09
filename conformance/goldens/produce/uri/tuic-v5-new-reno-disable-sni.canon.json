@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "US-h3egcw-98",
+    "host": "198.51.100.201",
+    "path": "",
+    "port": "36615",
+    "query": [
+      [
+        "allow_insecure",
+        "1"
+      ],
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "new_reno"
+      ],
+      [
+        "disable_sni",
+        "1"
+      ],
+      [
+        "reduce_rtt",
+        "1"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "9eea581b-e095-479e-8335-2600857e8c62:gZGLLzkPlbpxp6zT"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "d3r-23.er9q6.example.net",
+      "server_port": 443,
+      "tag": "KR-d8v6j-75",
+      "transport": {
+        "headers": {},
+        "host": "static.rf5mcrm8wm.example.org",
+        "path": "/blc/cpyp",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "d45031ed-edbf-4630-9a7e-3ea25d35210d"
+    }
+  ]
+}

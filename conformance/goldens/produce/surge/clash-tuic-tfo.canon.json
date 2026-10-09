@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "x9j-17.cv7l2u.example.net",
+      "443"
+    ],
+    "name": "DE-tg4yf-12",
+    "params": {
+      "alpn": "h3",
+      "password": "yp4kKdg56ngpzODl",
+      "sni": "img.mbn182htgb.example.org",
+      "tfo": "true",
+      "uuid": "fe030823-567f-4fbf-b11e-9f282081bfdf"
+    },
+    "type": "tuic-v5"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "AU-m3cm0-96",
+      "network": "xhttp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "nRifQYEZ5dp2VNSvlyn32sz5cadDw6WI4mceeUrGWoA",
+        "short-id": "87f35d69"
+      },
+      "server": "z86-24.x11eum6.example.net",
+      "servername": "static.h4jmq30q4.example.com",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "862d1368-f42a-4a1d-a449-90c3f245c930",
+      "xhttp-opts": {
+        "mode": "packet-up",
+        "path": "/kgny8p/znry1vl",
+        "x-padding-bytes": "200-800"
+      }
+    }
+  ]
+}

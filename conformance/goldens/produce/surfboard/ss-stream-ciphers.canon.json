@@ -1,0 +1,67 @@
+[
+  {
+    "args": [
+      "uo-31.vohqvdh2.example.net",
+      "26672"
+    ],
+    "name": "SG-at22-37",
+    "params": {
+      "encrypt-method": "aes-128-cfb",
+      "password": "e5XX5LpSFAz7",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "np-08.baeops7.example.org",
+      "33705"
+    ],
+    "name": "FR-wjypay-70",
+    "params": {
+      "encrypt-method": "aes-256-cfb",
+      "password": "nmZltRLobntH",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "pp0-31.brvt.example.net",
+      "23086"
+    ],
+    "name": "JP-clgy1z-07",
+    "params": {
+      "encrypt-method": "aes-256-ctr",
+      "password": "nlpoz8gL0b9I",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "fx-28.zpthid.example.net",
+      "14978"
+    ],
+    "name": "US-f3qx-51",
+    "params": {
+      "encrypt-method": "chacha20-ietf",
+      "password": "Rpv1f9EyDV8H",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "ceq-08.xcl70pi.example.org",
+      "50721"
+    ],
+    "name": "TW-odzmu-72",
+    "params": {
+      "encrypt-method": "rc4-md5",
+      "password": "0aSo41OohzpA",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

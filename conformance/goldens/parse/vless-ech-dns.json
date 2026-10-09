@@ -1,0 +1,28 @@
+[
+  {
+    "_echConfigList": "www.bes7m.example.com+https://kz-15.iavn.example.net/dns-query",
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "ech-opts": {
+      "_dns": "https://kz-15.iavn.example.net/dns-query",
+      "enable": true,
+      "query-server-name": "www.bes7m.example.com"
+    },
+    "encryption": "none",
+    "name": "CA-zp5-38",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "sd-32.hga9.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.keoob546.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "6040d5b2-dd22-4cdd-858e-88becead8f7d"
+  }
+]

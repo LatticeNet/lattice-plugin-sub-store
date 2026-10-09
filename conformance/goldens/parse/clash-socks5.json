@@ -1,0 +1,23 @@
+[
+  {
+    "name": "KR-swmn6t-78",
+    "password": "20ZIpGsmexUW",
+    "port": 1080,
+    "server": "br9-22.im7ld.example.org",
+    "type": "socks5",
+    "udp": true,
+    "username": "otr1u"
+  },
+  {
+    "name": "NL-xy1-70",
+    "password": "GlUpvenmjZCs",
+    "port": 443,
+    "server": "fsg-07.hr6g.example.com",
+    "skip-cert-verify": true,
+    "sni": "fsg-07.hr6g.example.com",
+    "tls": true,
+    "type": "socks5",
+    "udp": true,
+    "username": "piozqbgr"
+  }
+]

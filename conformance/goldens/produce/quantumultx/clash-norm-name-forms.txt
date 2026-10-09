@@ -1,0 +1,6 @@
+shadowsocks=x20-02.n3yn8l1.example.org:59729,method=aes-128-gcm,password=Bs0eyeXZY2wVdb,udp-relay=true,tag=q0iaf
+shadowsocks=s4-21.ug12smk.example.org:15003,method=aes-128-gcm,password=RkZJjD4CjenlRK,udp-relay=true,tag=uiv3ylf
+shadowsocks=tb-31.uxxfa.example.com:11770,method=aes-128-gcm,password=jF5MfEg7XjE79E,udp-relay=true,tag=ss tb-31.uxxfa.example.com:11770
+shadowsocks=tpd-07.ezln.example.com:34430,method=aes-128-gcm,password=XDjDYeFfH7DLe6,udp-relay=true,tag=ss tpd-07.ezln.example.com:34430
+shadowsocks=t7m-12.ta0dvm.example.org:25237,method=aes-128-gcm,password=RJ96QClwTTf8Zc,udp-relay=true,tag=6916
+shadowsocks=j01-23.b75w.example.net:36055,method=aes-128-gcm,password=fOAmbK1CKzQpj4,udp-relay=true,tag=ss j01-23.b75w.example.net:36055

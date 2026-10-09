@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"日本 东京 xp3wh","method":"aes-128-gcm","server":"my3-20.shu2.example.com","port":40259,"password":"RfBryVPcgbhP","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"Франкфурт ein23","method":"aes-128-gcm","server":"x5d-17.b1ft75s.example.net","port":28566,"password":"adqGqFf6jdjC","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"a: b # c [d] {e}, xcvo","method":"aes-128-gcm","server":"sth-08.xj5a.example.net","port":29015,"password":"bXKC2TcvGpNl","tfo":false,"udp_relay":true}}

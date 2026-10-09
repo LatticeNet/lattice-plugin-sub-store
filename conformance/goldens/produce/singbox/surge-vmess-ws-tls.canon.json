@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "jz-02.c8w0o.example.net",
+      "server_port": 443,
+      "tag": "US-zxcd-56",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.woqeq46.example.org"
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.woqeq46.example.org",
+          "User-Agent": "o50x5tw8q"
+        },
+        "path": "/jfanvq6wu",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "7ad81b79-8585-455e-bbbf-62760908d238"
+    }
+  ]
+}

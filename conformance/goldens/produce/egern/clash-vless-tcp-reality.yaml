@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"AU-x15se-92","server":"hnp-23.vn41.example.com","port":443,"user_id":"555e8ea6-0aa2-446f-89d6-75d1ee8e7875","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.xao43je5k8.example.net","reality":{"public_key":"DA9oMSTOMkBmqRO7ZvP9oWoNpP0tHqBvwj7ZX17GLUo","short_id":"bab52219"}}},"flow":"xtls-rprx-vision"}}

@@ -1,0 +1,1 @@
+SG-e0n-36=vless,moe-25.xfbb.example.com,443,"7a0fb666-6ddd-4347-8b4c-2d81c515330b",transport=ws,path=/ryv3jdg?ed=fh9,host=www.z2kul.example.org,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.gulze.example.org,udp=true

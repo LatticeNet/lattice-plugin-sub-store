@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "e8-24.czdpwx7v.example.net",
+      "41712",
+      "aes-128-gcm",
+      "eQObS4ZKRCMB0Q"
+    ],
+    "name": "KR-fn5-71",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "kfm-30.j86h.example.net",
+      "41712",
+      "aes-128-gcm",
+      "eQObS4ZKRCMB0Q"
+    ],
+    "name": "NL-vv8-63",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "198.51.100.128",
+      "41712",
+      "aes-128-gcm",
+      "eQObS4ZKRCMB0Q"
+    ],
+    "name": "NL-jh0-83",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

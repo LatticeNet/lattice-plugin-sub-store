@@ -1,0 +1,2 @@
+GB-npq0ne-18=vless,t66-10.q2w5m.example.net,443,"7d9e2f8a-0400-4958-a9a0-86c2c3d797df",transport=tcp,over-tls=true,flow=xtls-rprx-vision,tls-name=www.zdx9yiirp.example.com,udp=true
+AU-j1fz-50=vless,ihv-18.fxh80bt.example.net,443,"283dfeac-72d9-457c-9499-faffee7e8706",transport=ws,path=/cspqc9wvkw,host=static.cfdjp53j.example.com,over-tls=true,tls-name=static.cfdjp53j.example.com,udp=true

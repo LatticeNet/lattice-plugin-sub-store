@@ -1,0 +1,20 @@
+proxies:
+  - name: FR-s4pa-17
+    type: hysteria2
+    server: a05-26.q0npk.example.net
+    port: 443
+    password: H4knqbki5VO6glZ0GAIi
+    sni: img.dqnh2.example.org
+    obfs: gecko
+    obfs-password: gYN0n7FMODePW3SE
+    obfs-min-packet-size: 1500
+    obfs-max-packet-size: 600
+  - name: US-rzgm8-24
+    type: hysteria2
+    server: j6-16.pt0d.example.com
+    port: 443
+    password: Bswmsu7Dabu1mM7QmduP
+    sni: www.jxgptr7.example.net
+    obfs: gecko
+    obfs-password: ZOkZD2ADUQ6tUiPg
+    obfs-min-packet-size: cnie

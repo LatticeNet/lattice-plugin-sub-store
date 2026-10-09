@@ -1,0 +1,1 @@
+SG-zof-93=vmess,si-01.pyt8o.example.com,443,auto,"e59cbec9-9e75-48b1-8c3b-c5b53fb1de09",transport=ws,path=/,host=si-01.pyt8o.example.com,alterId=0,udp=true

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "pf-09.b8jq.example.com",
+      "50711",
+      "aes-128-gcm",
+      "koqDbSBQ9l8LWr"
+    ],
+    "name": "US-cokl-60",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

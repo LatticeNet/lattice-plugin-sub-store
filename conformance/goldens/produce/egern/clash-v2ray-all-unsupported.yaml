@@ -1,0 +1,3 @@
+proxies:
+  - {"http":{"name":"DE-etktcw-02","server":"n8s-17.s0mpz.example.net","port":8080,"username":"bb25f","password":"QYrIC13bchqS","tfo":false}}
+  - {"http":{"name":"NL-pj3l7-41","server":"ihj-14.hf0kvu.example.net","port":8080,"username":"e2fw","password":"VMGYcj8oRohq","tfo":false}}

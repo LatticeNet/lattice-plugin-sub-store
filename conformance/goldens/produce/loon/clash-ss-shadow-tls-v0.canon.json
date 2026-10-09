@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "dfv-30.n17x4y.example.com",
+      "443",
+      "2022-blake3-aes-128-gcm",
+      "4YfhqDQVsO32MqJZd/tOSQ=="
+    ],
+    "name": "TW-y7bjl4-04",
+    "params": {
+      "shadow-tls-password": "U2Jt10iV1NVDp3ur",
+      "shadow-tls-sni": "static.a53ec6e.example.net",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

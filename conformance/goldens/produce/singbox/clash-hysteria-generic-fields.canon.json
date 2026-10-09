@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "1BvAeVxGOLa9Li1k",
+      "disable_mtu_discovery": false,
+      "down_mbps": 100,
+      "recv_window": 52428800,
+      "recv_window_conn": 12582912,
+      "server": "t3-06.uk6fxic.example.net",
+      "server_port": 45400,
+      "server_ports": [
+        "33137:33146"
+      ],
+      "tag": "DE-of38-16",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.jmvmn6obd.example.net"
+      },
+      "type": "hysteria",
+      "udp_fragment": true,
+      "up_mbps": 30
+    }
+  ]
+}

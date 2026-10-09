@@ -1,0 +1,14 @@
+[
+  {
+    "ip": "10.8.0.2",
+    "ip-cidr": 32,
+    "mtu": 1420,
+    "name": "KR-nsly49-88",
+    "port": 51820,
+    "private-key": "RIi000nUcTCKdUz8MYCzm+tTi467vyUcHNfuedHHcmI=",
+    "public-key": "hw45pauotWHyEn1rnGQqw0i9KGw/z7lE9SSnKR80h9c=",
+    "server": "tm-37.mmvgx6t.example.net",
+    "type": "wireguard",
+    "udp": true
+  }
+]

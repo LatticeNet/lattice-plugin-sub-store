@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "shadowsocksr": {
+        "method": "aes-256-cfb",
+        "name": "KR-d1m-45",
+        "obfs": "http_simple",
+        "obfs_param": "static.yhydgl.example.org",
+        "password": "vY9lKm8ZeVQS",
+        "port": 32659,
+        "protocol": "origin",
+        "server": "hb-21.rfbq.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

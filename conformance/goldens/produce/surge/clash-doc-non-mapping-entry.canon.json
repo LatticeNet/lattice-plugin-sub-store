@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "f9u-30.yunpr0j.example.com",
+      "52428"
+    ],
+    "name": "SG-nvtf84-42",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "rfyxAU5zrOYf5L",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

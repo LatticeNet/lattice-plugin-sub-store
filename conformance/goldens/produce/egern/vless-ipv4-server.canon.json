@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "US-uz1w8a-26",
+        "port": 8443,
+        "server": "203.0.113.48",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "www.chcyg0.example.org"
+            },
+            "path": "/ogd6r7489",
+            "skip_tls_verify": false,
+            "sni": "www.chcyg0.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "946ca19d-458d-4607-a30c-d7d5c6af849a"
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "CA-mzhy-32",
+    "host": "rv-14.nzag30.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "cdn.paznfzs.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "66f373aa-79e0-4754-ae9a-5aad2a7e4823"
+  }
+]

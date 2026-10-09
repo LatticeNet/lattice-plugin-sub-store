@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"AU-uj6a-60","network":"tcp","password":"8RvhaFk0czErf7tJ","port":443,"server":"sxl-01.jiyys7.example.net","sni":"static.x2tic.example.org","type":"trojan","udp":true}

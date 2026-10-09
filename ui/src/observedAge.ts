@@ -12,15 +12,20 @@
  */
 import { computed, getCurrentScope, onScopeDispose, ref, watch, type ComputedRef } from "vue";
 
-/** "43s", "2m", "3h", "2d". The console's formatAge (lib/format.ts), English units. */
+import { formatDateTime, formatUnit, t } from "./i18n";
+
+/**
+ * "43s", "2m", "3h", "2d": the console's formatAge (lib/format.ts), with the
+ * units the active locale writes narrow (43秒, 43 с).
+ */
 export function formatAge(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
-  if (s < 60) return `${s}s`;
+  if (s < 60) return formatUnit(s, "second");
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m`;
+  if (m < 60) return formatUnit(m, "minute");
   const h = Math.floor(m / 60);
-  if (h < 48) return `${h}h`;
-  return `${Math.floor(h / 24)}d`;
+  if (h < 48) return formatUnit(h, "hour");
+  return formatUnit(Math.floor(h / 24), "day");
 }
 
 /** Milliseconds until `formatAge` of an age that is `ms` old next changes. */
@@ -32,7 +37,7 @@ export function untilNextAge(ms: number): number {
 
 /** The absolute time for the title: "observed Sep 30, 2026, 12:12:16". */
 export function observedTitle(at: number): string {
-  return `observed ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium" }).format(new Date(at))}`;
+  return t.common.observedAt(formatDateTime(at));
 }
 
 export interface ObservedAge {

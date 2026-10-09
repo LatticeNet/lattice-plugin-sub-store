@@ -1,0 +1,19 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "fy-15.rele.example.com",
+      "server_port": 443,
+      "tag": "US-g9oft-73",
+      "transport": {
+        "headers": {},
+        "host": "static.k844cgjqpc.example.org",
+        "path": "/mxba",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "b71a594d-c0f7-4382-b55d-ffaaefacfc1f"
+    }
+  ]
+}

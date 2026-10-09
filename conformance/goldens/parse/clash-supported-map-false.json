@@ -1,0 +1,142 @@
+[
+  {
+    "name": "SG-mxrw1e-75",
+    "network": "tcp",
+    "password": "kTepawGO3AjkBJVt",
+    "port": 443,
+    "server": "cp-20.jw71rf.example.com",
+    "sni": "www.tbkalp.example.net",
+    "supported": {
+      "URI": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "HK-ax86-82",
+    "network": "tcp",
+    "password": "3RNTFc2beLg82aAo",
+    "port": 443,
+    "server": "p5-04.feey.example.org",
+    "sni": "static.ziv5g394s.example.net",
+    "supported": {
+      "V2Ray": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "NL-pkmbvt-41",
+    "network": "tcp",
+    "password": "vhJvxrLTpRHRfRPV",
+    "port": 443,
+    "server": "y0-35.wdcffic.example.org",
+    "sni": "cdn.ybdua.example.net",
+    "supported": {
+      "JSON": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "TW-bk4-46",
+    "network": "tcp",
+    "password": "bmUi5GJVTgZIzHcA",
+    "port": 443,
+    "server": "pa-28.vuyz.example.org",
+    "sni": "api.ocdd7vpvs.example.net",
+    "supported": {
+      "sing-box": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "GB-pep-83",
+    "network": "tcp",
+    "password": "I7JJza3Y885Hhp4R",
+    "port": 443,
+    "server": "s52-03.k2kzr.example.org",
+    "sni": "www.kgw5zfakhz.example.net",
+    "supported": {
+      "ClashMeta": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "CA-bxm-15",
+    "network": "tcp",
+    "password": "Ask6g1xO23Dib1uN",
+    "port": 443,
+    "server": "gki-38.z3rkzlw.example.net",
+    "sni": "www.u8x9y8.example.net",
+    "supported": {
+      "Stash": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "TW-lat6-53",
+    "network": "tcp",
+    "password": "7ePXq4jqWdv19scY",
+    "port": 443,
+    "server": "jyz-13.is8wm.example.com",
+    "sni": "cdn.i8zl1hhbgv.example.com",
+    "supported": {
+      "Shadowrocket": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "HK-pdh3s2-73",
+    "network": "tcp",
+    "password": "fGCyF2qeRAtQuer7",
+    "port": 443,
+    "server": "qxj-15.bjv0ij.example.net",
+    "sni": "api.w8op1d7c4.example.org",
+    "supported": {
+      "Surge": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "JP-mog-09",
+    "network": "tcp",
+    "password": "v9HWkJwL5BIBqaUF",
+    "port": 443,
+    "server": "s9z-20.cf5oazt.example.com",
+    "sni": "www.ws36rvxzs.example.com",
+    "supported": {
+      "QX": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "AU-a8pf2k-05",
+    "network": "tcp",
+    "password": "ec6G8V8ffMYPurFG",
+    "port": 443,
+    "server": "fwl-26.obmfk01k.example.org",
+    "sni": "img.zat9xlm.example.net",
+    "supported": {
+      "uri": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

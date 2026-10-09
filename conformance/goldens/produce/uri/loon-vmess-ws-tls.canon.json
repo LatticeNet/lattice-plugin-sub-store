@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "cej-15.bkqvxt7.example.net",
+      "aid": "0",
+      "host": "static.vn1oixf1.example.org",
+      "id": "8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d",
+      "net": "ws",
+      "path": "/xbne0",
+      "port": "443",
+      "ps": "NL-ch4-64",
+      "scy": "auto",
+      "sni": "static.vn1oixf1.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

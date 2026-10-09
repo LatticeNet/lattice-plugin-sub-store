@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-name-forms",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "name-forms",
+  "description": "N29: name as {data: bytes}, as a byte list, as true, as 1.5, as a number and absent: the decoded text twice, the fallback ss <server>:<port> for true and 1.5, the digits, and the fallback when absent."
+}

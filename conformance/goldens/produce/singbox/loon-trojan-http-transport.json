@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-hgyp5c-78",
+      "type": "trojan",
+      "server": "ye-18.h7d833x.example.org",
+      "server_port": 443,
+      "password": "HVfwSq7vAQp7quel",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.w7zhe.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

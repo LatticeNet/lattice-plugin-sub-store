@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"GB-uq8k-07","server":"198.51.100.140","port":45821,"password":"M9Mlcffeicbj8UV6dfeJ","tfo":false,"udp_relay":true,"sni":"198.51.100.140","skip_tls_verify":true}}

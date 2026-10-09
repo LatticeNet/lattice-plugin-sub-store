@@ -1,0 +1,10 @@
+US pgma 01=hysteria2,o0-15.sijz.example.com,16662,password="XRc2Rhh9n0MNeD9Osn6p",port-hopping="38000-40000",sni="cdn.rea9jflnqu.example.org",skip-cert-verify=false,tfo=false
+AU qc0u 02=hysteria2,198.19.55.70,36570,password="Q5jqF6PQTCa32sfClqYv",port-hopping="32000-38000",sni="img.vscl1m.example.org",skip-cert-verify=false,tfo=false
+FR lv8v 03=hysteria2,l2n-40.dgoj8hx.example.org,27704,password="wIIFVONBOr8IMuYUnCZN",port-hopping="25000-28000",sni="api.lc30f36.example.com",skip-cert-verify=false,tfo=false
+GB et9g77w 04=hysteria2,yz-31.n6swpw.example.org,11883,password="2MYSf0Z3EFj2tRJB54M8",port-hopping="37000-40000",sni="img.qla2g.example.net",skip-cert-verify=false,tfo=false
+KR eevkwok 05=hysteria2,198.19.131.101,32863,password="LfdYQaW89EgxuquEBj4g",port-hopping="33000-38000",sni="www.e8zqu19l.example.com",skip-cert-verify=false,tfo=false
+GB wvgj8 06=hysteria2,z2-35.v20t.example.org,33661,password="ScZhJ4Nmy2sIo8e2EbCK",port-hopping="34000-37000",sni="static.gz4a1m.example.org",skip-cert-verify=false,tfo=false
+SG z1ddg 07=hysteria2,l5-40.vz2o.example.org,59282,password="riu7loizAoaCDcpiYrv6",port-hopping="39000-44000",sni="api.sf7nmsyq7.example.org",skip-cert-verify=false,tfo=false
+TW ob20 08=hysteria2,h2s-21.zwmeh.example.net,55515,password="7UCTFyxhU6piDOiAhUXz",salamander-password="GRJrhJ3NmtFL0vrp",sni="www.k2e5c3vwxn.example.com",skip-cert-verify=false,tfo=false
+HK otl54y 09=hysteria2,198.19.72.54,40995,password="zdOMu2dptuUZp2z4nZDk",salamander-password="vLhwVop3iFArEYTg",sni="img.h4oro21z.example.com",skip-cert-verify=false,tfo=false
+KR eiwqt 10=hysteria2,riz-17.q237m.example.com,49280,password="43tYkyhNFh9iS0V92bX0",salamander-password="CqMwN7q1gAQVVf48",sni="img.df9i3fo.example.net",skip-cert-verify=false,tfo=false

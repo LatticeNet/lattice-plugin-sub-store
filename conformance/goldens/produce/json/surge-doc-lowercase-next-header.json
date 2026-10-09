@@ -1,0 +1,22 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "HK-v33w-32",
+    "password": "AbkBDfOEHReXUn",
+    "port": 15190,
+    "server": "uw-26.rku62.example.org",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "name": "KR-wrh-40",
+    "network": "tcp",
+    "password": "jktIH5m0728JHCM4",
+    "port": 443,
+    "server": "lgc-08.chq4.example.org",
+    "sni": "img.t3kxz.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

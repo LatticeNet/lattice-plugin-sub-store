@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "GB-ckpmjo-57",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY",
+        "support-x25519mlkem768": true
+      },
+      "server": "fb-07.r6uukg.example.net",
+      "skip-cert-verify": false,
+      "tls": false,
+      "type": "vless",
+      "udp": true,
+      "uuid": "5a606251-0e3b-472a-a3a8-45ca68b9011e"
+    }
+  ]
+}

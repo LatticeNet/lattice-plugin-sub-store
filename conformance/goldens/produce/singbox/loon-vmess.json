@@ -1,0 +1,29 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-pden-75",
+      "type": "vmess",
+      "server": "q7-09.eahzxc.example.com",
+      "server_port": 18927,
+      "uuid": "08db3b80-c3c6-409e-98be-9d7b8962e4bd",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "tag": "FR-lb156b-04",
+      "type": "vmess",
+      "server": "vq-18.sg82606.example.com",
+      "server_port": 80,
+      "uuid": "f8f86c57-0190-4106-8987-9d97a99989e9",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "path": "/anz3c/n7wlt5",
+        "host": "www.h40id.example.net"
+      }
+    }
+  ],
+  "endpoints": []
+}

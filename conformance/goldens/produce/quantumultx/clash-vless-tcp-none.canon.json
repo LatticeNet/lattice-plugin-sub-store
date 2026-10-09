@@ -1,0 +1,13 @@
+[
+  {
+    "address": "vpb-16.ifpx5.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "63f2ded1-1843-4dcf-bf13-76c8580b46a0",
+      "tag": "NL-e38ors-50",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

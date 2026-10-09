@@ -1,0 +1,19 @@
+proxies:
+  - name: NL-jj6cfx-97
+    type: trojan
+    server: dry-29.z57qgl.example.com
+    port: 443
+    password: k9vUxnz501ueaagO
+    udp: true
+    tls: true
+    sni: www.g53fzh.example.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: KBE_MGWu5bVgEMZ9sIr-IaBxGbcF6l8F6aoe4Q9zX7E
+      short-id: b7383d6a
+    network: ws
+    ws-opts:
+      path: /gew16/mnfs2
+      headers:
+        Host: www.g53fzh.example.com
+      v2ray-http-upgrade: true

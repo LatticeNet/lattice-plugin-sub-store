@@ -1,0 +1,22 @@
+[
+  {
+    "address": "du-21.xuqo.example.net:443",
+    "args": [
+      "bzy-26.x994q.example.com"
+    ],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "wk-11.bydc.example.org",
+      "obfs-uri": "/ohvx2r/ccu9",
+      "password": "abeab29a-533c-49a8-9ea3-5fa5fd336813",
+      "tag": "JP-sllha-25",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.hj7i0uqi3t.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

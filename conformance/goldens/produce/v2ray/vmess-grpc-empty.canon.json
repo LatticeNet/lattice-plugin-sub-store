@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "qb-25.b9184.example.net",
+      "aid": "0",
+      "id": "eaf90f9a-7e2a-493a-9887-b669e8aa7e6b",
+      "net": "tcp",
+      "port": "443",
+      "ps": "CA-uaxg-47",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

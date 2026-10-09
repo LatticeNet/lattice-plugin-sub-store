@@ -1,0 +1,1 @@
+vless://319242a6-da46-498e-b7a4-2f1c17d0e0c5@y2-31.xsea.example.net:443?security=tls&type=ws&path=%2Fs05tj&host=www.nfuzg.example.net&packetEncoding=none&pcs=30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09&sni=cdn.hdptwe1.example.org#CA-xmcwy-91

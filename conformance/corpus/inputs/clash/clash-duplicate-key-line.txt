@@ -1,0 +1,1 @@
+{name: AU-u66xu-77, type: ss, server: vz-10.lltl.example.org, port: 44611, cipher: aes-128-gcm, password: GaFFycXyGPUwbl, port: 38891}

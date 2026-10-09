@@ -1,0 +1,35 @@
+[
+  {
+    "address": "ik4-24.pakq1pd.example.com:39141",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "oTe2mcYzsduFTR",
+      "tag": "AU-do2bi-94",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "lpx-15.sisat.example.net:14150",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "password": "oTe2mcYzsduFTR",
+      "tag": "SG-j37i-11",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "dm-30.e2zlt1bx.example.net:14150",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "password": "oTe2mcYzsduFTR",
+      "tag": "NL-tw5z-43",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

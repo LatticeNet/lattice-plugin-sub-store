@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ey-03.rkflh.example.net",
+      "36086",
+      "5ZocLkGvDb1zfs84dU7A"
+    ],
+    "name": "GB-z7rol-66:443",
+    "params": {
+      "tls-name": "ey-03.rkflh.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

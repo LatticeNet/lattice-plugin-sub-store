@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "rf-16.wjqitx5.example.org",
+      "443"
+    ],
+    "name": "US-ies-50",
+    "params": {
+      "password": "AXowQtwCJ2X7XBnVt6nk",
+      "port-hopping": "20000-30000",
+      "skip-cert-verify": "false",
+      "sni": "www.ajvirme9a.example.net",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "jt-14.ysbkn7no.example.net",
+      "443"
+    ],
+    "name": "TW-gsc0f-98",
+    "params": {
+      "password": "TZcdqJu02bczukbFdJ4M",
+      "port-hopping": "20000-21000;23000;25000-26000",
+      "skip-cert-verify": "false",
+      "sni": "img.s5auoy5og.example.com",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

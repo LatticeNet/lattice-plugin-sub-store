@@ -1,0 +1,1 @@
+NL-dzsr6-04=socks5-tls,q7-18.vcxv4ay.example.net,443,username="tnh8mu9",password="rUm1xxOVNd0p",sni="q7-18.vcxv4ay.example.net",udp-relay=true

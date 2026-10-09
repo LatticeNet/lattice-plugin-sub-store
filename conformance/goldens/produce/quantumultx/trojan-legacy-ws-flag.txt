@@ -1,0 +1,1 @@
+trojan=cb-23.mmndug.example.com:443,password=QF8oCcvBNMnLwtsA,obfs=wss,obfs-uri=/du3hede,tls-host=static.b7zcm8.example.net,udp-relay=true,tag=GB-e5b-15

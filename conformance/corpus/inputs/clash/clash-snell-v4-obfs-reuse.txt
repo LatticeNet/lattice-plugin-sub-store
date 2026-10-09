@@ -1,0 +1,11 @@
+proxies:
+  - name: NL-wj4-65
+    type: snell
+    server: on5-10.vyf1qk.example.org
+    port: 21532
+    psk: D7w7zk21tmdo3Ta891fW
+    version: 4
+    obfs-opts:
+      mode: http
+      host: static.mq5rbfy.example.com
+    reuse: true

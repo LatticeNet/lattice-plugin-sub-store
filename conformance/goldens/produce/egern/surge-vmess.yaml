@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"GB-euqdb-55","server":"pa-38.pn5io.example.org","port":34827,"user_id":"9baf1f26-b509-46b9-a4af-9617458cc1e4","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

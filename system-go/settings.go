@@ -35,6 +35,28 @@ func (rt *runtime) loadSettings() (pluginSettings, error) {
 	return out, nil
 }
 
+// settingsCache is the settings document as one invocation read it.
+type settingsCache struct {
+	loaded bool
+	value  pluginSettings
+}
+
+// invocationSettings reads the settings at most once per invocation. Render
+// reads them only when nothing else names the target and fetch only when a
+// record names no agent, so the host call is spent only where a default can
+// apply (plan section 7, decision 14).
+func (rt *runtime) invocationSettings() (pluginSettings, error) {
+	if rt.settings.loaded {
+		return rt.settings.value, nil
+	}
+	settings, err := rt.loadSettings()
+	if err != nil {
+		return pluginSettings{}, err
+	}
+	rt.settings = settingsCache{loaded: true, value: settings}
+	return settings, nil
+}
+
 func (rt *runtime) saveSettings(s pluginSettings) error {
 	if s.SchemaVersion == 0 {
 		s.SchemaVersion = 1

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "px-33.cokrjp66.example.com",
+      "54440"
+    ],
+    "name": "US-hnnp-27",
+    "params": {
+      "encrypt-method": "2022-blake3-aes-128-gcm",
+      "password": "XqibV6fKbKK81zHZlyw7mA==",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

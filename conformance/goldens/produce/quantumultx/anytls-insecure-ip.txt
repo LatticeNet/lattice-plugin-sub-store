@@ -1,0 +1,1 @@
+anytls=198.51.100.140:45821,password=M9Mlcffeicbj8UV6dfeJ,over-tls=true,tls-verification=false,udp-relay=true,tag=GB-uq8k-07

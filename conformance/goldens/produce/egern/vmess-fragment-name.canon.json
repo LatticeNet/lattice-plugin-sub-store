@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-ljo-92",
+        "port": 443,
+        "security": "auto",
+        "server": "sr-09.m6mi.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "35c16f41-6aaf-449b-a131-dbf28bb15d0f"
+      }
+    }
+  ]
+}

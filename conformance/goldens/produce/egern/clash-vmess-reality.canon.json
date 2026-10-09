@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "FR-w58zd-41",
+        "port": 443,
+        "security": "auto",
+        "server": "nq-33.xwwdgm4.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "img.v5muog5j0.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "a42be7b0-8e81-4442-ae42-e9487199226b"
+      }
+    }
+  ]
+}

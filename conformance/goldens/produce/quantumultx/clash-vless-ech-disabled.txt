@@ -1,0 +1,1 @@
+vless=pze-30.gl0zl.example.com:443,method=none,password=34359908-5583-4f5c-a3ca-2973676f37b8,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.k1jwj.example.org,udp-relay=true,tag=AU-owaf2-26

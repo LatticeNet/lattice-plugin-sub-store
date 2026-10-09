@@ -1,0 +1,14 @@
+[
+  {
+    "address": "w6-35.z4kqx.example.net:43185",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "none",
+      "password": "345830f4-42b9-453c-b800-bcaa2447cb46",
+      "tag": "KR-x0i8i-78",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

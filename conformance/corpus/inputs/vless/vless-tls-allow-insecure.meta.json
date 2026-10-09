@@ -1,0 +1,9 @@
+{
+  "id": "vless-tls-allow-insecure",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "allow-insecure",
+  "description": "allowInsecure=1 and the insecure=1 spelling."
+}

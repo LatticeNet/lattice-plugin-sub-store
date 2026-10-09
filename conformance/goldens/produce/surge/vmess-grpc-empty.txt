@@ -1,0 +1,1 @@
+CA-uaxg-47=vmess,qb-25.b9184.example.net,443,username=eaf90f9a-7e2a-493a-9887-b669e8aa7e6b,vmess-aead=true,tls=false

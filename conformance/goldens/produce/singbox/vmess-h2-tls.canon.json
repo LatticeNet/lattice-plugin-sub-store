@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "nke-20.w8vgbow.example.net",
+      "server_port": 443,
+      "tag": "TW-gfzm-84",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.vauf4f7l.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "host": "www.vauf4f7l.example.net",
+        "path": "/h4dmjov",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "41dd4a66-fe5e-45f3-9266-4e449a743449"
+    }
+  ]
+}

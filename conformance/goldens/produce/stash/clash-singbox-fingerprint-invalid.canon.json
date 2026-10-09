@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "fingerprint": "cfa0652d596fff52864e5c2c7ae1cdd72414dfd74aa3ba626999902136a39b4",
+      "name": "KR-r6gn-96",
+      "network": "tcp",
+      "password": "pPnCGkjyaqHJ0MfE",
+      "port": 443,
+      "server": "ow-28.dtz3rnpm.example.net",
+      "server-cert-fingerprint": "cfa0652d596fff52864e5c2c7ae1cdd72414dfd74aa3ba626999902136a39b4",
+      "sni": "cdn.jg0x6mx4e.example.net",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

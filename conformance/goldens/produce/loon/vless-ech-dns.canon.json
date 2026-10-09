@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "sd-32.hga9.example.net",
+      "443",
+      "6040d5b2-dd22-4cdd-858e-88becead8f7d"
+    ],
+    "name": "CA-zp5-38",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "api.keoob546.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

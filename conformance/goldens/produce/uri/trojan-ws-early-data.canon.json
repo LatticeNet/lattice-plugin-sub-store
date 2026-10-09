@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "KR-lzb3o3-05",
+    "host": "rnh-12.ruiiz.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "host",
+        "www.adclk43nua.example.com"
+      ],
+      [
+        "path",
+        "/nco4s?ed=2048"
+      ],
+      [
+        "sni",
+        "www.adclk43nua.example.com"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "6mUNbxAlL0UIUSWD"
+  }
+]

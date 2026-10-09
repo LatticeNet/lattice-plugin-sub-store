@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "auth": "kjhClV1ZL1nzoBZOKHyq",
+      "fast-open": false,
+      "name": "AU-gg9uw-50",
+      "obfs-password": "QSFnmheRMZEtq74g",
+      "port": 443,
+      "server": "qb-21.dzh8.example.org",
+      "skip-cert-verify": false,
+      "sni": "static.dtrwbre6f.example.com",
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

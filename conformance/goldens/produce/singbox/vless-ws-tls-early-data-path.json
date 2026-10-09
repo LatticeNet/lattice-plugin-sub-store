@@ -1,0 +1,35 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-rsvy-31",
+      "type": "vless",
+      "server": "p7s-12.vxsga2t1.example.org",
+      "server_port": 443,
+      "uuid": "cb22c8ff-3921-4bca-aa16-d8a21097e463",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.vslcfo.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.vslcfo.example.org"
+        },
+        "early_data_header_name": "Sec-WebSocket-Protocol",
+        "max_early_data": 2048,
+        "path": "/xj1jlj/bmtb1lwh5"
+      }
+    }
+  ],
+  "endpoints": []
+}

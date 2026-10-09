@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "d43-15.jjgyxd.example.org",
+      "1080"
+    ],
+    "name": "cyyr3 / #xqd 東京",
+    "params": {
+      "password": "ySxTDEzPais6",
+      "udp-relay": "true",
+      "username": "h0py"
+    },
+    "type": "socks5"
+  }
+]

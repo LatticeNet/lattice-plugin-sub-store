@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "gz6-27.nt3l3rl.example.com",
+      "443"
+    ],
+    "name": "FR-rxs9-71",
+    "params": {
+      "password": "TfwevtKu5necBwQa",
+      "sni": "img.yan934d.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "mc6-21.oy1wum6m.example.com",
+      "443"
+    ],
+    "name": "NL-nk245-43",
+    "params": {
+      "udp-relay": "true",
+      "username": "4ada313e-c95d-437a-8322-4fedd24ee914",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

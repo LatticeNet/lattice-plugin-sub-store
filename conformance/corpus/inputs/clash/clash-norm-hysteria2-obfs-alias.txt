@@ -1,0 +1,2 @@
+{"name":"FR-e45-21","type":"hysteria2","server":"yz-31.o9t4ry4.example.org","port":443,"password":"yyAyzyg3eRCFuhg2AQyT","sni":"img.i57tmk4cc8.example.org","obfs":"salamander","obfs_password":"HSJKygToOAME6To1"}
+{"name":"HK-zlv-67","type":"hysteria2","server":"a13-12.ezd38.example.org","port":443,"password":"UoAwyPUyCmcsX8fUl5z4","sni":"api.rtpzqpp.example.org","obfs":"dT6lnZU72e","obfs_password":"2EtPLq4iwIxq53z9"}

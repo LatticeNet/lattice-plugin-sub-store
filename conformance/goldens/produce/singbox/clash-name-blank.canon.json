@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "NHf9rBYljVdtJehr",
+      "server": "fqu-05.gkq008mx.example.net",
+      "server_port": 443,
+      "tag": "trojan fqu-05.gkq008mx.example.net:443",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.grofr.example.org"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "6HnaJbaINQaGBUdR",
+      "server": "yp-22.onpzeo.example.com",
+      "server_port": 443,
+      "tag": "trojan yp-22.onpzeo.example.com:443",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.nn9zf.example.net"
+      },
+      "type": "trojan"
+    }
+  ]
+}

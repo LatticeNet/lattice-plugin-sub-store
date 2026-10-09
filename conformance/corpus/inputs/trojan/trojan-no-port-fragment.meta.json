@@ -1,0 +1,9 @@
+{
+  "id": "trojan-no-port-fragment",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "missing-port-fragment",
+  "description": "trojan://password@host#name with neither a port nor a query: :443 is appended after the fragment and the line is rejected."
+}

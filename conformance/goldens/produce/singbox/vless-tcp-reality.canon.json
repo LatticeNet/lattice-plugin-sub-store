@@ -1,0 +1,27 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "po-05.ffnf.example.org",
+      "server_port": 443,
+      "tag": "FR-mf93w-88",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Mic2QwIq6JbEXpWa5B-P3iwyfJnFN8r5J39tAFwLFcI",
+          "short_id": "0d6b0e72"
+        },
+        "server_name": "www.mlxcbxx3qp.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "403fe2bd-5d7f-437d-83e1-d5318d7f5888"
+    }
+  ]
+}

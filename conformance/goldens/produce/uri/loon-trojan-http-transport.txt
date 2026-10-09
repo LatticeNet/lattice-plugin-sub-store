@@ -1,0 +1,1 @@
+trojan://HVfwSq7vAQp7quel@ye-18.h7d833x.example.org:443?sni=img.w7zhe.example.org&type=http&path=%2F&host=img.w7zhe.example.org#CA-hgyp5c-78

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "hum-22.nsl1n.example.com",
+      "443"
+    ],
+    "name": "KR-m37jau-89",
+    "params": {
+      "over-tls": "true",
+      "sni": "hum-22.nsl1n.example.com",
+      "udp": "true"
+    },
+    "type": "socks5"
+  }
+]

@@ -1,0 +1,1 @@
+hysteria://ap-39.nxuyyahu.example.org:16090?alpn=hysteria&auth=RxIFQ9t4mdsr1c24&downmbps=100&protocol=faketcp&peer=static.ycnztn1hm.example.org&udp=true&upmbps=30#FR-f7j-28

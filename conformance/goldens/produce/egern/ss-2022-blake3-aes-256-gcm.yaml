@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"US-kn0y3-61","method":"2022-blake3-aes-256-gcm","server":"d1-03.xf31pk.example.com","port":28315,"password":"rGIvNiredv0sXS6wuEe17E8ShzoJZz1fPuI4140WnFw=","tfo":false,"udp_relay":true}}

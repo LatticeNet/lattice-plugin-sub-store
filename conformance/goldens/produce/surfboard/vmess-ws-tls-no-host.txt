@@ -1,0 +1,1 @@
+HK-irkxn-71=vmess,enz-06.ks1z.example.org,443,username=d29f522d-b0af-4e45-b5ff-63db7cb42577,ws=true,ws-path=/u2za/ks2mqc,vmess-aead=true,tls=true,sni="enz-06.ks1z.example.org",udp-relay=true

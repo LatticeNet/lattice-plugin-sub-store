@@ -1,0 +1,1 @@
+TW-m5o0-21=trojan,i0-17.w4oe.example.net,443,password=oX6y6U3NunXBPYcG,tls=true,sni="img.kratp2kn.example.net",udp-relay=true

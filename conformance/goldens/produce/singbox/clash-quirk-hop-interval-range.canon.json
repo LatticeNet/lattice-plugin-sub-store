@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "hop_interval": "15s",
+      "password": "xBfmvQnqwyT2k1d0tmXj",
+      "server": "ry-31.ngpamb5.example.net",
+      "server_port": 443,
+      "server_ports": [
+        "20000:30000"
+      ],
+      "tag": "JP-wqjm9-26",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.ygqhz.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

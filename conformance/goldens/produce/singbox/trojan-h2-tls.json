@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-xt8c-70",
+      "type": "trojan",
+      "server": "si-29.ur8s.example.com",
+      "server_port": 443,
+      "password": "8MvDkVYuovpuC6Dt",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.hgf27gzs.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

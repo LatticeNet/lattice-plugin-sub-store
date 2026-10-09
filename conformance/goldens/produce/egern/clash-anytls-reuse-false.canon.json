@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "GB-pth3-15",
+        "password": "fWYv5uOVHB7nhZioJ7XS",
+        "port": 443,
+        "server": "m6p-14.scrh.example.org",
+        "sni": "static.s3ey79smsd.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

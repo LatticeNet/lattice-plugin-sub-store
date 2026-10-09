@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "GB-xg93w-33",
+    "host": "b7-18.kmcodbo.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.aifby1prv.example.net"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/lqu7b/jfvvr716ye"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "img.m0ma8.example.net"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "2df16dbd-66db-48f2-80ff-ef1f78228057"
+  }
+]

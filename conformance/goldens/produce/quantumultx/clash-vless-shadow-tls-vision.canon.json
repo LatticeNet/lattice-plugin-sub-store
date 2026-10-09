@@ -1,0 +1,17 @@
+[
+  {
+    "address": "tcz-29.ppxe.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "03ba6920-4b55-435c-90f5-2dd82536c8dc",
+      "tag": "US-syz8-29",
+      "tls-host": "static.lo63q03r9t.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

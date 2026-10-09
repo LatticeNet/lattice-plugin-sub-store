@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "zf-02.xhdpfu.example.org",
+      "server_port": 443,
+      "tag": "US-nylb2q-40",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "RKj201Nm5L7XtprMQE7RQFqzIasU04LCV5nQL0p6AlQ",
+          "short_id": "f2a8fc3f"
+        },
+        "server_name": "cdn.i0k5x5o72b.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "cdn.i0k5x5o72b.example.org",
+        "method": "GET",
+        "path": "/wx9v9ad4j7",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "1ffa6856-dcf2-4d13-9853-3181f8d4fe4d"
+    }
+  ]
+}

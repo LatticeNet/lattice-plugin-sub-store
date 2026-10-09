@@ -1,0 +1,76 @@
+[
+  {
+    "_h2": false,
+    "alpn": [
+      "h3"
+    ],
+    "encryption": "none",
+    "name": "US-ispj8e-62",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "sfy-07.n1gvt.example.com",
+    "skip-cert-verify": false,
+    "sni": "cdn.ocjq6tpk05.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "1b008b24-875e-4ab7-845d-4696cd5fc633",
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.ocjq6tpk05.example.org"
+      },
+      "path": "/fcw/qsvid"
+    }
+  },
+  {
+    "_h2": false,
+    "alpn": [
+      "http/1.1"
+    ],
+    "encryption": "none",
+    "name": "TW-r4i9j-62",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "uge-01.z7e0.example.org",
+    "skip-cert-verify": false,
+    "sni": "www.b6qq9x1.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "7d0757b2-62f8-4e9a-9928-2e5ac80ff5e6",
+    "ws-opts": {
+      "headers": {
+        "Host": "www.b6qq9x1.example.org"
+      },
+      "path": "/kddoysqct"
+    }
+  },
+  {
+    "_h2": false,
+    "alpn": [
+      "h3",
+      "h2",
+      "http/1.1"
+    ],
+    "encryption": "none",
+    "name": "SG-oueeq-06",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "l5b-09.z9jy6.example.net",
+    "skip-cert-verify": false,
+    "sni": "img.c21mm.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "db8995b6-b4cf-4840-b021-e8540a03da59",
+    "ws-opts": {
+      "headers": {
+        "Host": "img.c21mm.example.net"
+      },
+      "path": "/yu95/h35n4cl"
+    }
+  }
+]

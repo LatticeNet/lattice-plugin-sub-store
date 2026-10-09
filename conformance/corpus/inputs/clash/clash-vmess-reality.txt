@@ -1,0 +1,14 @@
+proxies:
+  - name: FR-w58zd-41
+    type: vmess
+    server: nq-33.xwwdgm4.example.com
+    port: 443
+    uuid: a42be7b0-8e81-4442-ae42-e9487199226b
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: img.v5muog5j0.example.net
+    reality-opts:
+      public-key: 6EC-s4L-Ektr8wxEyKG6gxEVbldWLckdisaAaGeNHxE
+      short-id: 29f1c4db

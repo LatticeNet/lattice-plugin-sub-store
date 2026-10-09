@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "kp4-08.zfwpxgh.example.com",
+      "443",
+      "84b19d3a-7625-45a1-a521-04705c110792"
+    ],
+    "name": "AU-ntf7d-49",
+    "params": {
+      "host": "www.po8u28n.example.com",
+      "path": "/qk59z/b8mr",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

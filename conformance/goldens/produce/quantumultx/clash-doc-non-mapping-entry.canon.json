@@ -1,0 +1,13 @@
+[
+  {
+    "address": "f9u-30.yunpr0j.example.com:52428",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "rfyxAU5zrOYf5L",
+      "tag": "SG-nvtf84-42",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

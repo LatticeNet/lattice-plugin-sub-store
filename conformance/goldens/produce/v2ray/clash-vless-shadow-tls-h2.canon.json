@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "AU-jwzsq-86",
+    "host": "yb-14.ftkl.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.t3tolezml9.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/gd2xn7xk2"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.eafsr4p4.example.net"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "77ae0d55-6292-4898-bd24-56a17d4c8a99"
+  }
+]

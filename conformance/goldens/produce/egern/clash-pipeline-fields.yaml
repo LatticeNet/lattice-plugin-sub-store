@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"FR-mw0ad-11","server":"wtr-25.tgodt.example.org","port":443,"password":"iEbzUJm2r7ZFhxxz","tfo":false,"udp_relay":true,"sni":"img.xashyl2j67.example.net"}}

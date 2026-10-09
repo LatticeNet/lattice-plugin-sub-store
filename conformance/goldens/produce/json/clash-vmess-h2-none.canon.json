@@ -1,0 +1,19 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "h2-opts": {
+      "host": [
+        "api.vro8l.example.org"
+      ],
+      "path": "/zhx/rjbd"
+    },
+    "name": "NL-fw1ejd-08",
+    "network": "h2",
+    "port": 443,
+    "server": "kjp-29.vlx04.example.net",
+    "type": "vmess",
+    "udp": true,
+    "uuid": "9babbf34-1232-42d4-8b32-90aa536d4c3f"
+  }
+]

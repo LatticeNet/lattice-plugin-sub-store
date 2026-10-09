@@ -1,0 +1,25 @@
+proxies:
+  - name: FR-vda4-83
+    type: ss
+    server: ue-06.ur58k.example.org
+    port: 443
+    cipher: 2022-blake3-aes-128-gcm
+    password: Opq2jrdRKY7wNpHQEcQmFw==
+    plugin: shadow-tls
+    client-fingerprint: chrome
+    plugin-opts:
+      host: img.hp3k0nb7i.example.net
+      password: AwYmyi6NLk9PRaLy
+      version: 2
+  - name: SG-t1pkv-47
+    type: ss
+    server: y2-20.givz.example.com
+    port: 443
+    cipher: 2022-blake3-aes-128-gcm
+    password: FtP4+wFSRGrQIpo3+RS3CQ==
+    plugin: shadow-tls
+    client-fingerprint: chrome
+    plugin-opts:
+      host: img.gjnkueki2x.example.org
+      password: whNg1PjgU7kQeTRU
+      version: 3

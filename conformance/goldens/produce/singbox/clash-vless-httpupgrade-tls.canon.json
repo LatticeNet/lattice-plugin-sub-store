@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "o2r-22.xgob3bx.example.org",
+      "server_port": 443,
+      "tag": "NL-nghiu-94",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.jwrx2pim.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "cdn.jwrx2pim.example.com",
+        "path": "/ixrpq/cdvs3gu",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "44c2f502-2dbf-4a6f-9efb-f6e6f1aefa5e"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "args": [
+      "ttp-13.hgduq8t.example.org",
+      "1080",
+      "x746rjcm",
+      "a6YV4jhq3YYs"
+    ],
+    "name": "FR-skjup-87",
+    "params": {},
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "mo-35.oieb9.example.com",
+      "1080",
+      "zos1msg0",
+      "npyOMD5jBROX"
+    ],
+    "name": "US-ki5-48",
+    "params": {
+      "udp": "true"
+    },
+    "type": "socks5"
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "fragment": "DE-rcz-30",
+    "host": "zh-03.tgkqxx.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.nfkm4eg.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/f05/wrutp3e?ed=4096"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.z196aua.example.org"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "7b57aebd-6a68-444c-a14d-516c3be6d408"
+  },
+  {
+    "fragment": "GB-wovgf-47",
+    "host": "r9-29.bteohk.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "api.z4kra7h.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/srn3txw?x=1&ed=4096"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.bs5oowllw.example.net"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "5fcab3f9-2f93-4438-8cf4-e4c11940008c"
+  }
+]

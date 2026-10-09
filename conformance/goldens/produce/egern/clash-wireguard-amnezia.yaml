@@ -1,0 +1,2 @@
+proxies:
+  - {"wireguard":{"name":"SG-hzt-46","local_ipv4":"10.9.0.2/32","server":"lj-17.ox6nx9zr.example.net","port":51820,"private_key":"FjZC9ZM/4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs=","peer_public_key":"UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q+vw="}}

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "CA-saq36m-81",
+    "password": "60Xt0FmFgKCvZJufrosV",
+    "port": 443,
+    "server": "quz-07.xsbt.example.net",
+    "skip-cert-verify": false,
+    "sni": "www.t5tqzt5.example.org",
+    "tfo": true,
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-euqdb-55",
+      "type": "vmess",
+      "server": "pa-38.pn5io.example.org",
+      "server_port": 34827,
+      "uuid": "9baf1f26-b509-46b9-a4af-9617458cc1e4",
+      "security": "auto",
+      "alter_id": 0
+    }
+  ],
+  "endpoints": []
+}

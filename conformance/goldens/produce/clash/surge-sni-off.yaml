@@ -1,0 +1,2 @@
+proxies:
+  - {"disable-sni":true,"name":"DE-nsuz9v-24","network":"tcp","password":"muju50zKO0N7ulsr","port":443,"server":"192.0.2.176","skip-cert-verify":true,"type":"trojan","udp":true,"sni":"192.0.2.176"}

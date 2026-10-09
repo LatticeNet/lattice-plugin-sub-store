@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { X } from "@lucide/vue";
 
+import { t } from "../i18n";
 import { parseNumericArg, schemaFor, type OperatorField } from "../operatorSchema";
 import { safeErrorMessage } from "../subStoreModel";
 import CodeEditor from "./CodeEditor.vue";
@@ -166,7 +167,7 @@ function setRaw(text: string): void {
   try {
     const parsed: unknown = JSON.parse(text || "{}");
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      rawError.value = "Arguments must be a JSON object.";
+      rawError.value = t.operatorArgs.notObject;
       return;
     }
     rawError.value = "";
@@ -177,7 +178,7 @@ function setRaw(text: string): void {
     // pastes into an argument is routinely a node or provider URI whose
     // userinfo IS the credential. Every error this UI shows goes through the
     // redactor, this one included.
-    rawError.value = safeErrorMessage(cause, "This is not valid JSON.");
+    rawError.value = safeErrorMessage(cause, t.operatorArgs.notJson);
   }
 }
 </script>
@@ -186,7 +187,7 @@ function setRaw(text: string): void {
   <div class="op-args">
     <template v-if="schema">
       <p v-if="schema.fields.length === 0" class="op-none">
-        {{ schema.summary }} No settings.
+        {{ t.operatorArgs.noSettings(schema.summary) }}
       </p>
 
       <div v-for="field in schema.fields" :key="field.key" class="op-field">
@@ -244,7 +245,7 @@ function setRaw(text: string): void {
             :checked="boolValue(field)"
             @change="set(field.key, ($event.target as HTMLInputElement).checked)"
           />
-          <span>{{ boolValue(field) ? "Yes" : "No" }}</span>
+          <span>{{ boolValue(field) ? t.operatorArgs.yes : t.operatorArgs.no }}</span>
         </label>
 
         <div v-else-if="field.kind === 'tristate'" class="op-tri">
@@ -257,7 +258,7 @@ function setRaw(text: string): void {
             :class="{ 'is-active': triValue(field) === choice }"
             @click="setTri(field, choice)"
           >
-            {{ choice === "unset" ? "Leave" : choice === "on" ? "On" : "Off" }}
+            {{ choice === "unset" ? t.operatorArgs.leave : choice === "on" ? t.operatorArgs.on : t.operatorArgs.off }}
           </button>
         </div>
 
@@ -296,14 +297,14 @@ function setRaw(text: string): void {
             <button
               type="button"
               class="op-pair-drop"
-              :aria-label="`Remove rule ${index + 1}`"
-              title="Remove this rule"
+              :aria-label="t.operatorArgs.removeRule(index + 1)"
+              :title="t.operatorArgs.removeRuleTitle"
               @click="removePair(field, index)"
             >
               <X :size="13" aria-hidden="true" />
             </button>
           </div>
-          <button type="button" class="op-pair-add" @click="addPair(field)">Add a rule</button>
+          <button type="button" class="op-pair-add" @click="addPair(field)">{{ t.operatorArgs.addRule }}</button>
         </div>
 
         <span v-if="field.hint" class="op-hint">{{ field.hint }}</span>
@@ -311,7 +312,7 @@ function setRaw(text: string): void {
     </template>
 
     <div v-else class="op-field">
-      <span class="op-label">Arguments</span>
+      <span class="op-label">{{ t.operatorArgs.arguments }}</span>
       <textarea
         class="code-area"
         rows="5"
@@ -320,10 +321,7 @@ function setRaw(text: string): void {
         @input="setRaw(($event.target as HTMLTextAreaElement).value)"
       ></textarea>
       <span v-if="rawError" class="op-hint op-hint-error" role="alert">{{ rawError }}</span>
-      <span v-else class="op-hint">
-        This operator has no form yet, so its arguments are edited as JSON. The engine still
-        validates the type.
-      </span>
+      <span v-else class="op-hint">{{ t.operatorArgs.rawHint }}</span>
     </div>
   </div>
 </template>

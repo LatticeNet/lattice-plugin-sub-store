@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-shadow-tls-reality",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "vmess with shadow-tls-opts and reality-opts."
+}

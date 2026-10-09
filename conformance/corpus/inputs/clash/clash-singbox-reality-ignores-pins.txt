@@ -1,0 +1,16 @@
+proxies:
+  - name: NL-aubv0-64
+    type: vless
+    server: wu-38.euvmfc6.example.com
+    port: 443
+    uuid: 36c5070e-ab86-4902-b8b8-c21e8e439fd4
+    udp: true
+    tls: true
+    servername: static.bc9l6j77.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 2eoGiDdAjppnR9VLLP_GhA9eTuo8xyhhBO9Syc-sj8A
+      short-id: e55d3799
+    fingerprint: c9c44a3751374a82531e53fc8f545ae4d90b978881350926a19d34fa866903ec
+    _certificate_sha256:
+      - 00KB7SWJ37rpySYwqJM15asJ5EEVAJ/8/VNn/9odr2c=

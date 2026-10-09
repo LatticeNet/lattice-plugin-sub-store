@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "SG-fllz-67",
+    "host": "j9r-22.r5nnt.example.com",
+    "path": "",
+    "port": "21000",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206OHRCcGdEQXZreUNJTTI=",
+    "userinfo_base64": "aes-128-gcm:8tBpgDAvkyCIM2"
+  }
+]

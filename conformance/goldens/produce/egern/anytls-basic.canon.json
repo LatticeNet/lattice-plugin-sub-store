@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "SG-hqzi-96",
+        "password": "bm91bewnfciiwnoMmrKb",
+        "port": 443,
+        "server": "xe-34.w3hx.example.net",
+        "skip_tls_verify": false,
+        "sni": "img.l2m9nw.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

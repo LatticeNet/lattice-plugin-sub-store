@@ -1,0 +1,1 @@
+anytls://aTLmH8rMvhzmoueREcQg@[2001:db8:f051:f0e2::9775]:443?security=tls&type=tcp&packetEncoding=xudp&sni=www.feai4.example.org&packet_encoding=xudp&udp=1#AU-em7j3s-83

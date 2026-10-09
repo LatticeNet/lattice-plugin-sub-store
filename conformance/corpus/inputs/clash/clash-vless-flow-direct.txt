@@ -1,0 +1,15 @@
+proxies:
+  - name: NL-wo1x2-93
+    type: vless
+    server: s3-34.cgec.example.net
+    port: 443
+    uuid: 9b65e8b4-b29c-43b1-89f9-88bc90af1539
+    udp: true
+    tls: true
+    servername: static.x2andpnt9.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    flow: xtls-rprx-direct

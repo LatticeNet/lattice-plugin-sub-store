@@ -1,0 +1,1 @@
+wireguard://eYFtgcfZFlM%2Bh2S35AIzzrUyT20Uijna1BVllbt1jCo%3D@undefined:undefined/?peers=%5Bobject%20Object%5D%2C%5Bobject%20Object%5D&udp=1#TW-pv2r-62

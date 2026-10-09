@@ -1,0 +1,69 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-k7el-33",
+      "type": "vless",
+      "server": "nu-33.bvmit5gs.example.org",
+      "server_port": 443,
+      "uuid": "3f2712ce-d8b6-42bb-a8fa-0ea40d599adc",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.ywpu6579.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "q9rT8fyrmmnVS089xm9m-BuOLSIQBgsEKtOdJl5flh4",
+          "short_id": "ee070f03"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "US-trn-03",
+      "type": "vmess",
+      "server": "ju-20.l7scq.example.com",
+      "server_port": 443,
+      "uuid": "03b594a1-bf86-415d-977b-d29d3614dd03",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "img.k644qk.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "img.k644qk.example.org"
+        },
+        "path": "/gesw94"
+      }
+    },
+    {
+      "tag": "CA-j53a-20",
+      "type": "trojan",
+      "server": "ysy-24.qhaz089.example.net",
+      "server_port": 443,
+      "password": "dAeTDVwyYRBMvbjs",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ai2i3k.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

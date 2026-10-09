@@ -1,0 +1,1 @@
+CA-nay-24=vmess,2001:db8:857e:9d0b::5799,443,auto,"647ab532-add4-42dc-a365-5b4707a42f62",transport=tcp,over-tls=false,alterId=0,udp=true

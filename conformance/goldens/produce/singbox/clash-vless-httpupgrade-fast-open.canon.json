@@ -1,0 +1,57 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "zh-03.tgkqxx.example.net",
+      "server_port": 443,
+      "tag": "DE-rcz-30",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.z196aua.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "cdn.nfkm4eg.example.org",
+        "path": "/f05/wrutp3e",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "7b57aebd-6a68-444c-a14d-516c3be6d408"
+    },
+    {
+      "server": "r9-29.bteohk.example.com",
+      "server_port": 443,
+      "tag": "GB-wovgf-47",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.bs5oowllw.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "api.z4kra7h.example.org",
+        "path": "/srn3txw?x=1",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "5fcab3f9-2f93-4438-8cf4-e4c11940008c"
+    }
+  ]
+}

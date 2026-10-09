@@ -1,0 +1,70 @@
+[
+  {
+    "fragment": "AU-htj-64",
+    "host": "qrg-20.nc9x.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.abdoopble.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "PJLn2tDSGfWvqS3p7dv0"
+  },
+  {
+    "fragment": "FR-mnt-40",
+    "host": "s1-33.kogex.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.m123qkb.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "zD32rCAiPcky6yiH8eWx"
+  }
+]

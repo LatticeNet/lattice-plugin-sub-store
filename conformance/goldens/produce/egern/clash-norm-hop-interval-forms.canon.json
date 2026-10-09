@@ -1,0 +1,67 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "3Q4boAkPXPYrXhI4oeep",
+        "name": "DE-b2vm-85",
+        "port": 443,
+        "port_hopping": "25081-25090",
+        "port_hopping_interval": 30,
+        "server": "af-14.f4rtg15a.example.net",
+        "sni": "static.vebnlvmi.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "zCa1WQdpSOWo53ctdO9o",
+        "name": "CA-u9u7-99",
+        "port": 443,
+        "port_hopping": "59987-59996",
+        "server": "z9b-18.eqn2.example.net",
+        "sni": "static.js3jrg.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "qUwyGRZ6bjyL6rQ0lDbH",
+        "name": "US-xcox-39",
+        "port": 443,
+        "port_hopping": "23048-23057",
+        "server": "kd-35.wqm27.example.net",
+        "sni": "api.c4ihhz2m9.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "HK-u2i-06",
+        "password": "KXS0hkCcTRKpUySD",
+        "port": 443,
+        "server": "gr-37.q2q2ayz.example.org",
+        "sni": "img.ikkexvao.example.org",
+        "uuid": "58d5daa7-9286-474a-a42d-641913310439"
+      }
+    },
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "TW-erpc-43",
+        "password": "FS0M8xufo1JYxhyJ",
+        "port": 443,
+        "server": "cs-29.vz4po.example.com",
+        "sni": "img.lc22qmoz1f.example.net",
+        "uuid": "03827299-ab27-4a40-afe3-0341a26b2b48"
+      }
+    }
+  ]
+}

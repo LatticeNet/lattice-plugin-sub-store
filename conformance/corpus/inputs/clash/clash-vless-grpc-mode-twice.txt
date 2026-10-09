@@ -1,0 +1,18 @@
+proxies:
+  - name: CA-z11d-11
+    type: vless
+    server: qjy-31.fujk8r.example.org
+    port: 443
+    uuid: 664f8904-9864-4d15-b8b9-f8662f69fa31
+    udp: true
+    tls: true
+    servername: cdn.saf9gr6.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: tGXOBKCRc-FPDIJMFrHVhlPC_cCWCWM0zh_wqFQmIpw
+      short-id: 7e67fbaa
+    network: grpc
+    grpc-opts:
+      grpc-service-name: azws-m7u
+      _grpc-type: multi
+    _mode: multi

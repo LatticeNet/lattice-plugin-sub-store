@@ -1,0 +1,43 @@
+[
+  {
+    "fragment": "JP-wwxzz-36",
+    "host": "k0-09.xp6f.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "static.l862e7.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "1Iz84ILzrS9Neqpv"
+  },
+  {
+    "fragment": "US-iqkz-62",
+    "host": "izc-22.l21tl33.example.com",
+    "path": "",
+    "port": "34054",
+    "query": [
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "izc-22.l21tl33.example.com"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206dDc1Ynk5VWVVTXhOSFM=",
+    "userinfo_base64": "aes-128-gcm:t75by9UeUMxNHS"
+  }
+]

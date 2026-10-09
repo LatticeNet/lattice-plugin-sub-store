@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-v4-obfs-reuse",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "snell-obfs-reuse",
+  "description": "snell version 4 with obfs-opts http and a host, and reuse: true."
+}

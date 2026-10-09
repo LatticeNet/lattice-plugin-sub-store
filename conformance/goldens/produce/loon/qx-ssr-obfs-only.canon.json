@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "hb-21.rfbq.example.com",
+      "32659",
+      "aes-256-cfb",
+      "vY9lKm8ZeVQS"
+    ],
+    "name": "KR-d1m-45",
+    "params": {
+      "obfs": "http_simple",
+      "obfs-param": "static.yhydgl.example.org",
+      "protocol": "origin",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

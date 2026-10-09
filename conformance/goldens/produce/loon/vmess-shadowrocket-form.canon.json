@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "sz-12.bfsv3i.example.org",
+      "443",
+      "auto",
+      "89ea35b3-b815-4c28-811f-5a628bf1fc26"
+    ],
+    "name": "KR-z6tb1-68",
+    "params": {
+      "alterId": "0",
+      "host": "api.h8w3p.example.net",
+      "over-tls": "true",
+      "path": "/adww/ksgu1id9v",
+      "tls-name": "api.h8w3p.example.net",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

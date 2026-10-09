@@ -1,0 +1,41 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "ph-02.bapy.example.org",
+      "server_port": 443,
+      "tag": "US-ym0l-16",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.wouhuc1z7w.example.org"
+      },
+      "type": "vless",
+      "uuid": "6c4622e0-64ad-4d8e-a4bb-b3eab53c4c54"
+    },
+    {
+      "alter_id": 0,
+      "packet_encoding": "packetaddr",
+      "security": "auto",
+      "server": "wox-27.fknu.example.org",
+      "server_port": 443,
+      "tag": "NL-yzu-01",
+      "type": "vmess",
+      "uuid": "3f5ddbaa-1428-47db-8c42-5461d36dc1b2"
+    },
+    {
+      "packet_encoding": "packetaddr",
+      "server": "kw-04.bxqyy.example.org",
+      "server_port": 443,
+      "tag": "KR-pjl-56",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.s8xo0hw.example.org"
+      },
+      "type": "vless",
+      "uuid": "8e3fa44a-72bc-4952-88e2-71cd10bc8ed2"
+    }
+  ]
+}

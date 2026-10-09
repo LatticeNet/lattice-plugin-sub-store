@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "US-up97r-76",
+      "password": "zDjr7cCx7FMMHr",
+      "port": 443,
+      "server": "e9c-27.aqvroil.example.org",
+      "servername": "e9c-27.aqvroil.example.org",
+      "skip-cert-verify": false,
+      "sni": "e9c-27.aqvroil.example.org",
+      "tls": true,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "address": "yp-02.if8lse.example.org:28238",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "password": "v9OkbPqqHAZGWPr1",
+      "tag": "AU-qsa-88",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

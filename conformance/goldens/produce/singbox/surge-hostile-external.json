@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-d0svs-69",
+      "type": "shadowsocks",
+      "server": "ww-28.b6rk.example.com",
+      "server_port": 50551,
+      "method": "aes-128-gcm",
+      "password": "2UkWNdG9ThWtTN"
+    }
+  ],
+  "endpoints": []
+}

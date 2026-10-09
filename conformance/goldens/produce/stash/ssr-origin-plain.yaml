@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"chacha20-ietf","name":"HK-qt9-55","obfs":"plain","password":"fwXoeoq3yymb","port":43618,"protocol":"origin","server":"zk-35.ikvj4vc.example.org","type":"ssr","udp":true}

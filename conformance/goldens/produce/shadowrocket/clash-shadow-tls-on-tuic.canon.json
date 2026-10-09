@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "SG-gcy25-16",
+      "password": "JPjcD1TqtosA8Mr2",
+      "plugin": "shadow-tls",
+      "plugin-opts": {
+        "host": "www.f8siw4.example.net",
+        "password": "aPhiEmiurn0eLpR9",
+        "version": 3
+      },
+      "port": 443,
+      "server": "qx-36.osr5h7m.example.net",
+      "sni": "api.t64iuoc.example.net",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "9a09dfbd-f8d5-4469-bd9e-639ec24665d2",
+      "version": 5
+    }
+  ]
+}

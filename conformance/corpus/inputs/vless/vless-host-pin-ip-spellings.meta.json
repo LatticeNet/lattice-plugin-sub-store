@@ -1,0 +1,9 @@
+{
+  "id": "vless-host-pin-ip-spellings",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "host-pin-ip-grammar",
+  "description": "N22: VLESS ws without TLS on [0:0:0:0:0:ffff:<IPv4>] and on [::ffff:<IPv4>]: the first is not an IP literal under parser.md 1.5, so ws-opts.headers.Host is pinned to the server on the first line only."
+}

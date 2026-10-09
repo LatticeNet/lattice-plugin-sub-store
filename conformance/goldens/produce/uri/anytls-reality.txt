@@ -1,0 +1,1 @@
+anytls://ejgbYJ6mPnxvebxd9iNg@hbn-02.cg9uhh2v.example.net:443?security=reality&type=tcp&packetEncoding=xudp&sni=api.lvxt2kr.example.net&sid=81f82d48&pbk=xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk&network=tcp&packet_encoding=xudp&udp=1#CA-c08t-42

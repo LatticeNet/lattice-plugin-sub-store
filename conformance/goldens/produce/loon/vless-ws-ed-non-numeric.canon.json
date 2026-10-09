@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "r7-03.i2erek.example.net",
+      "443",
+      "5f9949e9-6942-4705-aac5-b20178fbf8d9"
+    ],
+    "name": "DE-mezs9r-33",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "api.wcdec4b.example.org",
+      "over-tls": "true",
+      "path": "/yp7qbs?ed=gi2i1",
+      "skip-cert-verify": "false",
+      "tls-name": "api.wcdec4b.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

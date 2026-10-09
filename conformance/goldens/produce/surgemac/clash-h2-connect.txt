@@ -1,0 +1,1 @@
+HK-lcjr-25=h2-connect,vc-33.qqyb.example.org,443,username="bltth",password="8AbL4xRKqpAZ38",max-streams=8,sni="img.yj14l8li.example.com",udp-relay=true

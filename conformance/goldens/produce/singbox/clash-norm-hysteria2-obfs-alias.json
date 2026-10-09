@@ -1,0 +1,37 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-e45-21",
+      "type": "hysteria2",
+      "server": "yz-31.o9t4ry4.example.org",
+      "server_port": 443,
+      "password": "yyAyzyg3eRCFuhg2AQyT",
+      "obfs": {
+        "type": "salamander",
+        "password": "HSJKygToOAME6To1"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "img.i57tmk4cc8.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "HK-zlv-67",
+      "type": "hysteria2",
+      "server": "a13-12.ezd38.example.org",
+      "server_port": 443,
+      "password": "UoAwyPUyCmcsX8fUl5z4",
+      "obfs": {
+        "type": "salamander",
+        "password": "dT6lnZU72e"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "api.rtpzqpp.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

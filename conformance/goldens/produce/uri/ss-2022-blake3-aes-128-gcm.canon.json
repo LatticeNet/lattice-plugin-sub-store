@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "US-hnnp-27",
+    "host": "px-33.cokrjp66.example.com",
+    "path": "",
+    "port": "54440",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:XqibV6fKbKK81zHZlyw7mA=="
+  }
+]

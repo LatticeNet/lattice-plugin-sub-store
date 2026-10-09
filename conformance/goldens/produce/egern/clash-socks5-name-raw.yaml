@@ -1,0 +1,2 @@
+proxies:
+  - {"socks5":{"name":"cyyr3 / #xqd 東京","server":"d43-15.jjgyxd.example.org","port":1080,"username":"h0py","password":"ySxTDEzPais6","tfo":false,"udp_relay":true}}

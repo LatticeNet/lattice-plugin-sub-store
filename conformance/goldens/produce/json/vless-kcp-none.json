@@ -1,0 +1,18 @@
+[
+  {
+    "_h2": false,
+    "encryption": "none",
+    "headerType": "wechat-video",
+    "name": "US-lrtvt-76",
+    "network": "kcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "seed": "3cAAkz6Rfx",
+    "server": "tk-21.xajh2ktf.example.net",
+    "skip-cert-verify": false,
+    "tls": false,
+    "type": "vless",
+    "udp": true,
+    "uuid": "41d1b28b-7459-4543-bfac-d7003b4f7aed"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"KR-ptyg-62","network":"tcp","password":"7WEAVSvZGNTkAgpl","port":443,"server":"192.0.2.32","skip-cert-verify":true,"sni":"img.qx34w.example.net","type":"trojan","udp":true}

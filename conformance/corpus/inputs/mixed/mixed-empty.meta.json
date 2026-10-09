@@ -1,0 +1,8 @@
+{
+  "id": "mixed-empty",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "empty",
+  "description": "An empty document; producers run over zero nodes.",
+  "produce": "always"
+}

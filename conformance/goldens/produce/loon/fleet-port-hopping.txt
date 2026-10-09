@@ -1,0 +1,10 @@
+US pgma 01=Hysteria2,o0-15.sijz.example.com,16662,"XRc2Rhh9n0MNeD9Osn6p",server-ports="38000-40000",tls-name=cdn.rea9jflnqu.example.org,skip-cert-verify=false,fast-open=false,udp=true
+AU qc0u 02=Hysteria2,198.19.55.70,36570,"Q5jqF6PQTCa32sfClqYv",server-ports="32000-38000",tls-name=img.vscl1m.example.org,skip-cert-verify=false,fast-open=false,udp=true
+FR lv8v 03=Hysteria2,l2n-40.dgoj8hx.example.org,27704,"wIIFVONBOr8IMuYUnCZN",server-ports="25000-28000",tls-name=api.lc30f36.example.com,skip-cert-verify=false,fast-open=false,udp=true
+GB et9g77w 04=Hysteria2,yz-31.n6swpw.example.org,11883,"2MYSf0Z3EFj2tRJB54M8",server-ports="37000-40000",tls-name=img.qla2g.example.net,skip-cert-verify=false,fast-open=false,udp=true
+KR eevkwok 05=Hysteria2,198.19.131.101,32863,"LfdYQaW89EgxuquEBj4g",server-ports="33000-38000",tls-name=www.e8zqu19l.example.com,skip-cert-verify=false,fast-open=false,udp=true
+GB wvgj8 06=Hysteria2,z2-35.v20t.example.org,33661,"ScZhJ4Nmy2sIo8e2EbCK",server-ports="34000-37000",tls-name=static.gz4a1m.example.org,skip-cert-verify=false,fast-open=false,udp=true
+SG z1ddg 07=Hysteria2,l5-40.vz2o.example.org,59282,"riu7loizAoaCDcpiYrv6",server-ports="39000-44000",tls-name=api.sf7nmsyq7.example.org,skip-cert-verify=false,fast-open=false,udp=true
+TW ob20 08=Hysteria2,h2s-21.zwmeh.example.net,55515,"7UCTFyxhU6piDOiAhUXz",tls-name=www.k2e5c3vwxn.example.com,skip-cert-verify=false,salamander-password=GRJrhJ3NmtFL0vrp,fast-open=false,udp=true
+HK otl54y 09=Hysteria2,198.19.72.54,40995,"zdOMu2dptuUZp2z4nZDk",tls-name=img.h4oro21z.example.com,skip-cert-verify=false,salamander-password=vLhwVop3iFArEYTg,fast-open=false,udp=true
+KR eiwqt 10=Hysteria2,riz-17.q237m.example.com,49280,"43tYkyhNFh9iS0V92bX0",tls-name=img.df9i3fo.example.net,skip-cert-verify=false,salamander-password=CqMwN7q1gAQVVf48,fast-open=false,udp=true

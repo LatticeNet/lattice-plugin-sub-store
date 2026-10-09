@@ -1,0 +1,8 @@
+{
+  "id": "clash-trojan-xhttp-tls",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "xhttp",
+  "security": "tls",
+  "description": "mihomo trojan proxy over xhttp with security tls."
+}

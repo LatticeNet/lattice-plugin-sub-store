@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "disable-sni": true,
+      "name": "US-qy8r5q-63",
+      "network": "tcp",
+      "password": "rG8Nc3sr69Ii4FNC",
+      "port": 443,
+      "server": "198.51.100.57",
+      "sni": "198.51.100.57",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "disable-sni": true,
+      "name": "SG-f009-90",
+      "network": "tcp",
+      "port": 443,
+      "server": "192.0.2.72",
+      "servername": "192.0.2.72",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "0b9d56fa-73e8-4c2b-acdd-1d958a773574"
+    }
+  ]
+}

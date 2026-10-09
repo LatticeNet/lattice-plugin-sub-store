@@ -1,0 +1,59 @@
+{
+  "proxies": [
+    {
+      "name": "HK-rhm6-27",
+      "obfs-opts": {
+        "host": "cdn.c63carmp78.example.com",
+        "mode": "http"
+      },
+      "port": 48974,
+      "psk": "6Q4HRMpMpQCcCXIuY8tH",
+      "server": "ra-32.h0tg9ic.example.org",
+      "type": "snell",
+      "version": 1
+    },
+    {
+      "name": "GB-kqh1gc-35",
+      "obfs-opts": {
+        "host": "api.bel58blvlj.example.net",
+        "mode": "http"
+      },
+      "port": 59047,
+      "psk": "gyR7URAUQAEbWH7sPU9e",
+      "server": "pm-08.opgo1xb.example.net",
+      "type": "snell",
+      "version": 2
+    },
+    {
+      "name": "CA-ev71-65",
+      "obfs-opts": {
+        "host": "www.g0pcoj.example.com",
+        "mode": "http"
+      },
+      "port": 58173,
+      "psk": "n9DfzukgsdkhYkLycGRK",
+      "server": "bm-26.r14jdl4e.example.com",
+      "type": "snell",
+      "udp": true,
+      "version": 3
+    },
+    {
+      "name": "JP-o1zi-67",
+      "port": 16923,
+      "psk": "ICuSeaJfGTwP5kRTgkrh",
+      "server": "o5q-03.m5u4.example.net",
+      "type": "snell",
+      "udp": true,
+      "version": 4
+    },
+    {
+      "name": "SG-x2h44-62",
+      "port": 27700,
+      "psk": "eR2nBQ7LjZmeB66nHlNr",
+      "server": "n9-39.sw475vr.example.org",
+      "type": "snell",
+      "udp": true,
+      "version": 5
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","name":"CA-h69-06","network":"xhttp","password":"sXWbICGuf14KW9WE","port":443,"server":"tjt-19.nsrz8c0.example.com","skip-cert-verify":false,"sni":"cdn.h9dywa.example.net","type":"trojan","udp":true,"xhttp-opts":{"host":"cdn.h9dywa.example.net","mode":"auto","path":"/p1saz3vuw"}}

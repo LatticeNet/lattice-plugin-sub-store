@@ -1,0 +1,25 @@
+[
+  {
+    "address": "y5x-06.qsbxmtn.example.org:34163",
+    "args": [],
+    "params": {
+      "fast-open": "false",
+      "method": "aes-128-gcm",
+      "password": "WCk5pgZGKDGMo1",
+      "tag": "CA-gki4-71",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "pl3-12.rvki6p41.example.com:55339",
+    "args": [],
+    "params": {
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "NIFm94rVMD3O2AH3m+kvdw==",
+      "tag": "GB-t54-55",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

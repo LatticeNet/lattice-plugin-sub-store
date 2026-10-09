@@ -1,0 +1,1 @@
+anytls://NVBxPabyTYwXnC8nXizj@fg-21.w02y.example.com:443?security=tls&type=tcp&packetEncoding=none&sni=www.ppj9s1u06.example.org&udp=1#NL-k3j6-95

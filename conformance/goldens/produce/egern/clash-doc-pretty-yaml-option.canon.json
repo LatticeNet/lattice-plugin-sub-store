@@ -1,0 +1,35 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "TW-gnwt-57",
+        "port": 443,
+        "server": "ph-34.o6gn73.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "qDEIceLEQu1q-ypu1Nijlugg5cotRlnsq51eew1Au4k",
+              "short_id": "49afd48f"
+            },
+            "sni": "img.wzdewu.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "863a99be-ece7-45f2-9427-07e17260efff"
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "ENVVXv1clnMHgRJZZKpC",
+        "name": "US-uglcc6-99",
+        "port": 443,
+        "server": "g5m-18.wbotb3.example.org",
+        "sni": "api.vfuu7.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

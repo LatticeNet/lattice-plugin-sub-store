@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"HK-etr-64","server":"gz1-11.f67x.example.net","port":443,"user_id":"f26dc40c-98db-4600-b5f4-ed294aa9ecc4","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"grpc":{"service_name":"pupv0-cwl8xg"}}}}

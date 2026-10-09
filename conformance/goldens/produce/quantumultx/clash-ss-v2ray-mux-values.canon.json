@@ -1,0 +1,86 @@
+[
+  {
+    "address": "uyv-27.lk8b.example.net:443",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "www.eq7ky3.example.net",
+      "obfs-uri": "/fro/pmipe3a",
+      "password": "aTdPf3X2FRrvxhED",
+      "tag": "TW-qts-23",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "fut-07.d11011qg.example.org:443",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "static.p5amke1.example.net",
+      "obfs-uri": "/p02pq64z7",
+      "password": "2pZqhZqcqNO4aPs7",
+      "tag": "NL-gsji0u-42",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "uq5-32.ruww3h1.example.net:443",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "img.oouls25938.example.com",
+      "obfs-uri": "/d72z/becp0c",
+      "password": "yxQ2a3fHYiDfeegK",
+      "tag": "HK-q2n-72",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "ha-35.m3mt.example.com:443",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "static.a8adea8px.example.net",
+      "obfs-uri": "/s8l7um/hqy6oj1kz",
+      "password": "LWAtGEcrGYovC5gR",
+      "tag": "DE-ev25mc-51",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "b2g-29.rf4n.example.org:443",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "api.nziz93gqf.example.net",
+      "obfs-uri": "/ch2jp35t",
+      "password": "0MAr1f8f041HlhIs",
+      "tag": "NL-au68og-84",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "kd-36.kryii4.example.net:443",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "wss",
+      "obfs-host": "www.fjfyh.example.com",
+      "obfs-uri": "/u8s8x3",
+      "password": "nB87bH7z8D1rRrrD",
+      "tag": "AU-xnc9-71",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

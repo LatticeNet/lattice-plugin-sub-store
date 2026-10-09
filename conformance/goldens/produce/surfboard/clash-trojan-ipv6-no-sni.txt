@@ -1,0 +1,1 @@
+SG-kcw-48=trojan,2001:db8:e063:b663::82e8,443,password=g3gXaBy4RFjQr2HJ,tls=true,udp-relay=true

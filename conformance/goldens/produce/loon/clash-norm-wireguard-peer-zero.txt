@@ -1,0 +1,1 @@
+TW-pv2r-62=wireguard,private-key="eYFtgcfZFlM+h2S35AIzzrUyT20Uijna1BVllbt1jCo=",peers=[{public-key="hQsmleyfagjgdtM+gXJapFxE86tBEivr+Glw6/+7tuU=",allowed-ips="0.0.0.0/0",endpoint=u1-34.l923l.example.com:51820}]

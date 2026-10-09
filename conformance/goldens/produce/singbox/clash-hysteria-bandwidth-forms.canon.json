@@ -1,0 +1,65 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "rBwOeuzSarUHEA3A",
+      "disable_mtu_discovery": false,
+      "down": "100 Kbps",
+      "server": "ycz-07.yvm8d.example.net",
+      "server_port": 56000,
+      "tag": "CA-vwb-88",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.g1s9fk7e6g.example.com"
+      },
+      "type": "hysteria",
+      "up": "100 Kbps"
+    },
+    {
+      "auth_str": "qIYVFY0V27VALMCN",
+      "disable_mtu_discovery": false,
+      "down_mbps": 30,
+      "server": "v0-09.bss6ok.example.org",
+      "server_port": 60157,
+      "tag": "FR-iu2o-35",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.rc5w2d8lp.example.org"
+      },
+      "type": "hysteria",
+      "up_mbps": 30
+    },
+    {
+      "auth_str": "k352VYfvB3ADKewW",
+      "disable_mtu_discovery": false,
+      "down_mbps": 2,
+      "server": "mky-06.glrpk.example.com",
+      "server_port": 54722,
+      "tag": "JP-si8yhs-07",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.kqe32e.example.com"
+      },
+      "type": "hysteria",
+      "up_mbps": 2
+    },
+    {
+      "auth_str": "mlsOMeRL3a2ijCbj",
+      "disable_mtu_discovery": false,
+      "down_mbps": 50,
+      "server": "oav-11.uyi5.example.com",
+      "server_port": 56546,
+      "tag": "NL-s0to-52",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.mjj2fjq.example.net"
+      },
+      "type": "hysteria",
+      "up_mbps": 50
+    }
+  ]
+}

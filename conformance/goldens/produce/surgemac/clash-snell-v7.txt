@@ -1,0 +1,1 @@
+JP-z1p4n-56=snell,qe-33.ttqwd.example.net,35334,version=7,psk="aHolZGsIjJLxzWXwOPFR"

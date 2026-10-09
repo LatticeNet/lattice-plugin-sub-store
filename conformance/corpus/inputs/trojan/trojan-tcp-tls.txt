@@ -1,0 +1,1 @@
+trojan://HwLmYAma9EMkZ8Q5@hh-01.imfbim.example.com:443?security=tls&sni=static.xxh5n1ybva.example.org&fp=chrome&alpn=h2%2Chttp%2F1.1&type=tcp#TW-h11zpi-21

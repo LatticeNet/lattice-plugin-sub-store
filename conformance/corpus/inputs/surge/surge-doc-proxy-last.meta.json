@@ -1,0 +1,7 @@
+{
+  "id": "surge-doc-proxy-last",
+  "family": "surge",
+  "protocol": "mixed",
+  "quirk": "full-profile-proxy-last",
+  "description": "A Surge profile whose [Proxy] section is the last: no header follows it, so the extraction returns the profile unchanged and it is parsed line by line."
+}

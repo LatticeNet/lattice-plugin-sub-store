@@ -1,0 +1,1 @@
+ss://2022-blake3-aes-128-gcm:4YfhqDQVsO32MqJZd%2FtOSQ%3D%3D@dfv-30.n17x4y.example.com:443/?plugin=shadow-tls%3Bhost%3Dstatic.a53ec6e.example.net%3Bpassword%3DU2Jt10iV1NVDp3ur%3Bversion%3D0&udp=1#TW-y7bjl4-04

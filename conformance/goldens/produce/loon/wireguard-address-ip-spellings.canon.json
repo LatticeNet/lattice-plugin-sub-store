@@ -1,0 +1,33 @@
+[
+  {
+    "args": [],
+    "name": "JP-m9lyhg-04",
+    "params": {
+      "interface-ip": "10.124.21.97",
+      "peers": "[{public-key=\"mFEsja8x3OE6+BjPN2UGGmladOTwXnFiCY1YsM9lj10=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=ndc-13.rvwm6ae.example.org:51820}]",
+      "private-key": "g5eHcupYUE3u7tKAsiFRV9AeXLBYmjVlc/G/vwZo98w="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "HK-se95-11",
+    "params": {
+      "interface-ip": "10.190.178.214",
+      "peers": "[{public-key=\"4XaaxXhTf28tItMSVgrrB8NlQaKNeRi1Sw649shDQUs=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=mvx-12.kgjnmatg.example.org:51820}]",
+      "private-key": "ybhsK2RjTDeR1fTbmGHs9iFZ8pHbT1ituJsp6ayBZjQ="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "US-ugnln1-10",
+    "params": {
+      "interface-ip": "10.234.23.20",
+      "interface-ipv6": "::ffff:10.80.197.21",
+      "peers": "[{public-key=\"TLI0ga2wz/vuL4yrnH9/K8TS2iZkGXPbnEy5phdbbjo=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=zg-26.y1sp0bh.example.net:51820}]",
+      "private-key": "Sf+s581KivW/ps7S2Q7guwmbbasW35iu0wGRSctPaN8="
+    },
+    "type": "wireguard"
+  }
+]

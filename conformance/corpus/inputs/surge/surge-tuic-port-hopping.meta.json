@@ -1,0 +1,9 @@
+{
+  "id": "surge-tuic-port-hopping",
+  "family": "surge",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "port-hopping",
+  "description": "Surge tuic-v5 with port-hopping and an interval."
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "si-01.pyt8o.example.com",
+      "aid": "0",
+      "host": "si-01.pyt8o.example.com",
+      "id": "e59cbec9-9e75-48b1-8c3b-c5b53fb1de09",
+      "net": "ws",
+      "path": "/",
+      "port": "443",
+      "ps": "SG-zof-93",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

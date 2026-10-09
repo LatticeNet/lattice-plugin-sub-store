@@ -1,0 +1,7 @@
+{
+  "id": "base64-wrapped-ssd",
+  "family": "base64",
+  "protocol": "ss",
+  "quirk": "base64-of-ssd",
+  "description": "Base64 of an ssd:// line: the known-scheme preprocessor decodes it, the SSD preprocessor never sees it, and no node is read."
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "kd-06.gvlm.example.org",
+      "57200",
+      "aes-256-cfb",
+      "37RbHUfiK5qZ"
+    ],
+    "name": "HK-mnfi9-26",
+    "params": {
+      "obfs": "plain",
+      "protocol": "origin",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

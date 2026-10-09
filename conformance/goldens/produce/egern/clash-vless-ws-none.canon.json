@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "AU-ntf7d-49",
+        "port": 443,
+        "server": "kp4-08.zfwpxgh.example.com",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "www.po8u28n.example.com"
+            },
+            "path": "/qk59z/b8mr"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "84b19d3a-7625-45a1-a521-04705c110792"
+      }
+    }
+  ]
+}

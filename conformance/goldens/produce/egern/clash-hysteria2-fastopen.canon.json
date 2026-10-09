@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "hF9IuU0ISd7Gz9sI9VrY",
+        "name": "SG-vwk2-66",
+        "port": 443,
+        "server": "ur-40.nw6l.example.net",
+        "sni": "static.jzfhs115.example.net",
+        "tfo": true,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "4GlcBhFWc9on08dqocz0",
+        "name": "HK-wv1-55",
+        "port": 443,
+        "server": "vr-05.xhjbigia.example.org",
+        "sni": "api.zldsqhz5l.example.net",
+        "tfo": true,
+        "udp_relay": true
+      }
+    }
+  ]
+}

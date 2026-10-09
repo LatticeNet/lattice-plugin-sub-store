@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ww-28.b6rk.example.com",
+      "50551",
+      "aes-128-gcm",
+      "2UkWNdG9ThWtTN"
+    ],
+    "name": "NL-d0svs-69",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

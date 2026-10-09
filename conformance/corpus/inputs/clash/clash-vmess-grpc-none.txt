@@ -1,0 +1,12 @@
+proxies:
+  - name: HK-etr-64
+    type: vmess
+    server: gz1-11.f67x.example.net
+    port: 443
+    uuid: f26dc40c-98db-4600-b5f4-ed294aa9ecc4
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: grpc
+    grpc-opts:
+      grpc-service-name: pupv0-cwl8xg

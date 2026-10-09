@@ -1,0 +1,15 @@
+proxies:
+  - name: AU-xcg-14
+    type: ss
+    server: vgz-03.wijo.example.com
+    port: "19730"
+    cipher: aes-128-gcm
+    password: 485528
+    udp: "true"
+  - name: NL-yspkh0-87
+    type: trojan
+    server: frx-40.o7y8y1.example.org
+    port: 443
+    password: 70370695
+    udp: "false"
+    sni: static.mq1bb04d.example.net

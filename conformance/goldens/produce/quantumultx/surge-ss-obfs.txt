@@ -1,0 +1,2 @@
+shadowsocks=xb-13.pqdk.example.net:58000,method=aes-256-gcm,password=PHWfoNpnhijrRc,obfs=http,obfs-host=cdn.dbyv00vw9.example.com,obfs-uri=/ww79o,udp-relay=true,tag=HK-j49-16
+shadowsocks=lkd-11.nnc9idh.example.org:37436,method=aes-256-gcm,password=qS9zPuIj3SVVnT,obfs=tls,obfs-host=static.r2rzatcb.example.com,udp-relay=true,tag=US-yigh2w-55

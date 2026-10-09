@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-d6ahp-79",
+      "type": "shadowsocks",
+      "server": "gy-28.bbn1u9k5.example.org",
+      "server_port": 44420,
+      "method": "aes-128-gcm",
+      "password": "E5ZzS0B766tN"
+    },
+    {
+      "tag": "KR-mxcn-27",
+      "type": "trojan",
+      "server": "a6-32.jx3wy.example.net",
+      "server_port": 443,
+      "password": "iF8MoEBbQ3gtc6mI",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.i37u2y5i.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "undefined",
+      "undefined",
+      "undefined"
+    ],
+    "name": "trojan undefined:undefined",
+    "params": {
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

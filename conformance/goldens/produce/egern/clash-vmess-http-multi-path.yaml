@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"JP-dlo0l-90","server":"lyy-32.bzir.example.org","port":443,"user_id":"c1fdca40-1054-4b30-a6f8-dac53a265e4e","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"method":"GET","path":"/amaez","headers":{"Host":"www.bsjjx6bz0t.example.com"}}}}}

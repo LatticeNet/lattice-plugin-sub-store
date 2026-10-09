@@ -1,0 +1,24 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "alterId": 0,
+    "cipher": "auto",
+    "client-fingerprint": "chrome",
+    "grpc-opts": {
+      "_grpc-type": "gun",
+      "grpc-service-name": "n1df-p13d4"
+    },
+    "name": "FR-pqt6-58",
+    "network": "grpc",
+    "port": 443,
+    "server": "wg-20.r82c0q6v.example.org",
+    "sni": "cdn.owsbv1s1e.example.net",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "ac5cf1e4-0cda-4edf-8d67-88faeaee3d35"
+  }
+]

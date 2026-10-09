@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "TW-y9pq-57",
+    "host": "sm-01.u4wqs351.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "sni",
+        "sm-01.u4wqs351.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "fp2omGYeoDUnyAE7"
+  }
+]

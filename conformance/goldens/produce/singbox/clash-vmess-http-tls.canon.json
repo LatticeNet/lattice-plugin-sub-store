@@ -1,0 +1,34 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "ok-34.w6xwil.example.com",
+      "server_port": 443,
+      "tag": "JP-h6jaf0-06",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.rsvilob.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "img.rsvilob.example.com",
+        "method": "GET",
+        "path": "/jg4g",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "000b0651-b029-4c70-8287-7e117f38cb56"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "JP-sllha-25",
+        "port": 443,
+        "security": "auto",
+        "server": "du-21.xuqo.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "wk-11.bydc.example.org,bzy-26.x994q.example.com"
+            },
+            "path": "/ohvx2r/ccu9",
+            "skip_tls_verify": false,
+            "sni": "static.hj7i0uqi3t.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "abeab29a-533c-49a8-9ea3-5fa5fd336813"
+      }
+    }
+  ]
+}

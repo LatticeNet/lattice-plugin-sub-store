@@ -1,0 +1,82 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "vko-36.wx04c.example.net",
+      "server_port": 443,
+      "tag": "JP-kheg-39",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "T8pgaHBbnRSiQZ2WyKmcDmNNyPlTjbOQosj2Y_DDKwQ",
+          "short_id": "f55db336"
+        },
+        "server_name": "static.svxk81.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "56846b9c-0cc0-4e6f-858e-d8b398d5dc89"
+    },
+    {
+      "password": "lFV1bVIWHZwLbmTy",
+      "server": "br-26.hq2o538.example.net",
+      "server_port": 443,
+      "tag": "JP-fckt-50",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.z42yip5q6.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "rq8MrAoExA7lnu",
+      "server": "u3d-32.d1kvbm.example.org",
+      "server_port": 56005,
+      "tag": "SG-x0pl-12",
+      "type": "shadowsocks"
+    },
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "zh-10.jyt81ic.example.com",
+      "server_port": 443,
+      "tag": "GB-s1w-39",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.jmolihi.example.net"
+      },
+      "type": "vmess",
+      "uuid": "71238152-25a5-4919-af05-50046127840d"
+    },
+    {
+      "password": "XksBeWvF8IOR34qt1nH9",
+      "server": "cze-20.sxdhx8.example.com",
+      "server_port": 443,
+      "tag": "KR-logo1-06",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.uzyhj.example.net"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "VVGaOe4bC0fIF8",
+      "server": "si-34.ge2k66hu.example.org",
+      "server_port": 26289,
+      "tag": "SG-lui-26",
+      "type": "shadowsocks"
+    }
+  ]
+}

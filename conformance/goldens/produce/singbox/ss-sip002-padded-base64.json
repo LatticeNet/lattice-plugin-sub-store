@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-r7yklu-31",
+      "type": "shadowsocks",
+      "server": "bp-35.sdtq2r5.example.com",
+      "server_port": 27575,
+      "method": "aes-256-gcm",
+      "password": "TWpA7PrQIF3DO5Z"
+    }
+  ],
+  "endpoints": []
+}

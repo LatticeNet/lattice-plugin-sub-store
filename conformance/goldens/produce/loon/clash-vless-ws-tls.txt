@@ -1,0 +1,1 @@
+JP-g2jm75-03=vless,aa7-08.u4yp51.example.com,443,"e28e1350-3afc-4ca2-a4eb-85c3163bb32b",transport=ws,path=/ndpw,host=api.yfitrwjl.example.com,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.yfitrwjl.example.com,udp=true

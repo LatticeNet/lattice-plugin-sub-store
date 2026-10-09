@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "CA-tf0-69",
+        "password": "z5WspQcJNHZLrl",
+        "port": 17650,
+        "server": "sb-07.yw88.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "2022-blake3-aes-256-gcm",
+        "name": "NL-jqprx9-50",
+        "password": "8NQWdu7foSa/JEy3qJHg+rfwAbZFQlGo18lRdRFDLZU=",
+        "port": 59621,
+        "server": "nl-04.jgtvz5jf.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

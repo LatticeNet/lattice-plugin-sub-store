@@ -1,0 +1,19 @@
+[
+  {
+    "address": "dj9-28.i9kdhan.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "http",
+      "obfs-host": "img.zvk38q37.example.org",
+      "obfs-uri": "/abv4ag6",
+      "password": "2a2633f6-bffd-41e2-a5ed-a6e930144137",
+      "tag": "NL-q8q-98",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.zvk38q37.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

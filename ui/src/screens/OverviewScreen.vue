@@ -13,6 +13,7 @@ import {
 import AttentionList from "../components/AttentionList.vue";
 import LineageMap from "../components/LineageMap.vue";
 import { useHost } from "../host";
+import { t } from "../i18n";
 import { hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import { useLensChrome } from "../lensChrome";
 import type { AttentionItem } from "../pipeline";
@@ -105,34 +106,31 @@ watch(host.init, (value) => {
 
 <template>
   <section class="lens overview" aria-labelledby="overview-title">
-    <h2 id="overview-title" class="pc-sr-only">Overview</h2>
+    <h2 id="overview-title" class="pc-sr-only">{{ t.overview.title }}</h2>
 
-    <PcPanel v-if="!host.init.value || pipe.catalogue.state.value === 'loading' || pipe.catalogue.state.value === 'idle'" label="Loading the overview">
-      <PcSkeleton :count="5" label="Reading the record catalogue" />
+    <PcPanel v-if="!host.init.value || pipe.catalogue.state.value === 'loading' || pipe.catalogue.state.value === 'idle'" :label="t.overview.loadingPanel">
+      <PcSkeleton :count="5" :label="t.overview.loading" />
     </PcPanel>
 
     <template v-else-if="pipe.catalogue.state.value === 'error'">
-      <PcNotice tone="danger" title="The record catalogue could not be read">
+      <PcNotice tone="danger" :title="t.overview.loadFailed">
         {{ pipe.catalogue.loadError.value }}
-        <template #actions><PcButton compact @click="load()">Try again</PcButton></template>
+        <template #actions><PcButton compact @click="load()">{{ t.common.tryAgain }}</PcButton></template>
       </PcNotice>
-      <PcPanel label="Pipeline">
-        <PcEmptyState kind="error" title="Nothing could be loaded">
-          <p>This is not an empty store, it is an unanswered question. The map stays away until the list is read.</p>
+      <PcPanel :label="t.overview.pipeline">
+        <PcEmptyState kind="error" :title="t.overview.nothingLoaded">
+          <p>{{ t.overview.nothingLoadedBody }}</p>
         </PcEmptyState>
       </PcPanel>
     </template>
 
-    <PcPanel v-else-if="!pipe.items.value.length" label="Pipeline">
-      <PcEmptyState title="Nothing in the store yet">
+    <PcPanel v-else-if="!pipe.items.value.length" :label="t.overview.pipeline">
+      <PcEmptyState :title="t.overview.emptyTitle">
         <template #icon><Workflow :size="26" aria-hidden="true" /></template>
-        <p>
-          A pipeline starts with a source: this fleet's nodes, a provider link, or nodes you paste. Combine sources,
-          render them into a file for each client, and publish the file as a share.
-        </p>
+        <p>{{ t.overview.emptyBody }}</p>
         <template #actions>
-          <PcButton @click="chrome.openLens('sources', undefined, { focus: true })">Go to Sources</PcButton>
-          <PcButton @click="chrome.openLens('settings', undefined, { focus: true })">Import from a Sub-Store</PcButton>
+          <PcButton @click="chrome.openLens('records', { kind: 'source' }, { focus: true })">{{ t.overview.goToRecords }}</PcButton>
+          <PcButton @click="chrome.openLens('settings', undefined, { focus: true })">{{ t.overview.importFromSubStore }}</PcButton>
         </template>
       </PcEmptyState>
     </PcPanel>
@@ -144,16 +142,13 @@ watch(host.init, (value) => {
         @open="(id) => chrome.openRecord(id)"
         @act="act"
       />
-      <PcNotice v-if="pipe.shareStore.error.value && !pipe.attention.value.some((i) => i.key === 'shares:unread')" tone="warning" title="The share list could not be read">
+      <PcNotice v-if="pipe.shareStore.error.value && !pipe.attention.value.some((i) => i.key === 'shares:unread')" tone="warning" :title="t.overview.sharesUnread">
         {{ pipe.shareStore.error.value }}
       </PcNotice>
 
-      <PcPanel class="overview-map" label="Pipeline">
-        <PcPanelHeader
-          title="Pipeline"
-          description="Sources feed combinations, both render into client files, and shares publish them. Select a record to light its path."
-        >
-          <PcButton v-if="selected" compact @click="selected = ''">Clear selection</PcButton>
+      <PcPanel class="overview-map" :label="t.overview.pipeline">
+        <PcPanelHeader :title="t.overview.pipeline" :description="t.overview.mapDescription">
+          <PcButton v-if="selected" compact @click="selected = ''">{{ t.overview.clearSelection }}</PcButton>
         </PcPanelHeader>
         <LineageMap :lineage="pipe.lineage.value" :facts="pipe.chipFacts" :selected="selected" :attention="attentionNodes" @select="select" />
       </PcPanel>

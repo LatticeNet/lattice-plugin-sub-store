@@ -1,0 +1,1 @@
+GB-qklg2i-09 = ss, pg2-40.gqryb.example.com, 443, encrypt-method=aes-128-gcm, password=PpyO0LJX8ZlksZ, shadow-tls-password=vkmO9hAv5YqfxCNO, shadow-tls-sni=static.wjxo6j8.example.org, shadow-tls-version=1

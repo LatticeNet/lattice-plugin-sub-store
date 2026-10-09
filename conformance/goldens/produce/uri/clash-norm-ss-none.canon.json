@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "NL-ahs6-94",
+    "host": "vv4-07.bwxx.example.com",
+    "path": "",
+    "port": "43689",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "bm9uZTo=",
+    "userinfo_base64": "none:"
+  }
+]

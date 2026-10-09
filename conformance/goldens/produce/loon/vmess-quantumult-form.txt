@@ -1,0 +1,1 @@
+GB-hrhuy-22=vmess,euo-40.fr243lfo.example.org,443,chacha20-ietf-poly1305,"9ae08100-542d-494f-8ada-9dcdea9f4cca",transport=tcp,over-tls=false,alterId=0,udp=true

@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "rwplh9bxjD888I3D",
+      "server": "rg-19.lbk8.example.net",
+      "server_port": 443,
+      "tag": "GB-awkc9t-85",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "9EEwC_h3v-9sFWZoS8BMUuaMzNa9XziR7fqSikR-JN8",
+          "short_id": "021916ae"
+        },
+        "server_name": "img.ijy1nfbt.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "trojan"
+    }
+  ]
+}

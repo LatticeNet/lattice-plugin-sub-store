@@ -1,0 +1,1 @@
+US-jnq-88=trojan,yev-28.xniy064.example.net,443,password=jjPT3sFpPqTjDrbJ,tls=true,sni="cdn.a6fucziy.example.net",udp-relay=true

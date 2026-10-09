@@ -1,0 +1,2 @@
+SG-ck7-23=vless,0:0:0:0:0:ffff:203.0.113.235,443,"ee69dd3c-2163-4541-b3ab-e25b917d57f7",transport=ws,path=/qj6af,host=0:0:0:0:0:ffff:203.0.113.235,over-tls=false,skip-cert-verify=false,udp=true
+HK-dr76-41=vless,::ffff:198.51.100.36,443,"bfe383f4-6a95-4843-a6d3-04bf5e8e4124",transport=ws,path=/zxtb,over-tls=false,skip-cert-verify=false,udp=true

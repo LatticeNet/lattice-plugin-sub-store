@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "NL-d0svs-69",
+    "host": "ww-28.b6rk.example.com",
+    "path": "",
+    "port": "50551",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206MlVrV05kRzlUaFd0VE4=",
+    "userinfo_base64": "aes-128-gcm:2UkWNdG9ThWtTN"
+  }
+]

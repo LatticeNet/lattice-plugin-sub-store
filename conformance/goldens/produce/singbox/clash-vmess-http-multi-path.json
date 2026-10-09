@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-dlo0l-90",
+      "type": "vmess",
+      "server": "lyy-32.bzir.example.org",
+      "server_port": 443,
+      "uuid": "c1fdca40-1054-4b30-a6f8-dac53a265e4e",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "method": "GET",
+        "path": "/amaez",
+        "host": [
+          "www.bsjjx6bz0t.example.com",
+          "api.bwc8x.example.org"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

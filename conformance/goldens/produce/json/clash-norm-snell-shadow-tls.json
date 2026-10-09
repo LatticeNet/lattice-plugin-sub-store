@@ -1,0 +1,20 @@
+[
+  {
+    "name": "US-hrzu1-40",
+    "plugin": "shadow-tls",
+    "plugin-opts": {
+      "alpn": [
+        "h2"
+      ],
+      "host": "api.pc9gay6ya.example.com",
+      "password": "JyusLIVRCdQytKeC",
+      "version": 3
+    },
+    "port": 443,
+    "psk": "fs4dQCnc0K27Snsb0pa4",
+    "server": "xe-40.qjvo2.example.org",
+    "type": "snell",
+    "udp": true,
+    "version": 4
+  }
+]

@@ -1,0 +1,68 @@
+{
+  "proxies": [
+    {
+      "hop-interval": 30,
+      "name": "DE-b2vm-85",
+      "password": "3Q4boAkPXPYrXhI4oeep",
+      "port": 443,
+      "ports": "25081-25090",
+      "server": "af-14.f4rtg15a.example.net",
+      "sni": "static.vebnlvmi.example.net",
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "name": "CA-u9u7-99",
+      "password": "zCa1WQdpSOWo53ctdO9o",
+      "port": 443,
+      "ports": "59987-59996",
+      "server": "z9b-18.eqn2.example.net",
+      "sni": "static.js3jrg.example.com",
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "name": "US-xcox-39",
+      "password": "qUwyGRZ6bjyL6rQ0lDbH",
+      "port": 443,
+      "ports": "23048-23057",
+      "server": "kd-35.wqm27.example.net",
+      "sni": "api.c4ihhz2m9.example.net",
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "HK-u2i-06",
+      "password": "KXS0hkCcTRKpUySD",
+      "port": 443,
+      "server": "gr-37.q2q2ayz.example.org",
+      "sni": "img.ikkexvao.example.org",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "58d5daa7-9286-474a-a42d-641913310439",
+      "version": 5
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "hop-interval-max": 99,
+      "name": "TW-erpc-43",
+      "password": "FS0M8xufo1JYxhyJ",
+      "port": 443,
+      "server": "cs-29.vz4po.example.com",
+      "sni": "img.lc22qmoz1f.example.net",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "03827299-ab27-4a40-afe3-0341a26b2b48",
+      "version": 5
+    }
+  ]
+}

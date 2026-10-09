@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"HK-v33w-32","method":"aes-128-gcm","server":"uw-26.rku62.example.org","port":15190,"password":"AbkBDfOEHReXUn","tfo":false,"udp_relay":true}}
+  - {"trojan":{"name":"KR-wrh-40","server":"lgc-08.chq4.example.org","port":443,"password":"jktIH5m0728JHCM4","tfo":false,"udp_relay":true,"sni":"img.t3kxz.example.net"}}

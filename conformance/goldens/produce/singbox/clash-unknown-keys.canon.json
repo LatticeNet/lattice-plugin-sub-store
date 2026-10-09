@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "vhy-37.kbjlbsej.example.com",
+      "server_port": 443,
+      "tag": "FR-hh0-05",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.o9kp42xjx.example.org"
+      },
+      "transport": {
+        "headers": {
+          "Host": "cdn.o9kp42xjx.example.org"
+        },
+        "path": "/jui0ogbt30",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "9ed65cb0-7a2c-45a9-ad68-97b05846f77e"
+    }
+  ]
+}

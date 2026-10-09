@@ -1,0 +1,22 @@
+[
+  {
+    "fragment": "TW-j9w6qk-36",
+    "host": "er-31.mtwnt.example.net",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "aDA2eTpXUmxEaE5KVTI1Q2s=",
+    "userinfo_base64": "h06y:WRlDhNJU25Ck"
+  },
+  {
+    "fragment": "HK-xka4u-94",
+    "host": "ar-10.yy6s.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "eW14ZjBuem86TjhGd2xLaElJREdJ",
+    "userinfo_base64": "ymxf0nzo:N8FwlKhIIDGI"
+  }
+]

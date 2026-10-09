@@ -1,0 +1,22 @@
+[
+  {
+    "fragment": "NL-lztg-36",
+    "host": "cg-29.ysunden.example.com",
+    "path": "",
+    "port": "80a",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "bmtwZGc5MzpiMnBEWG1LMVdla3U=",
+    "userinfo_base64": "nkpdg93:b2pDXmK1Weku"
+  },
+  {
+    "fragment": "GB-p124z9-66",
+    "host": "kim-20.bwqt.example.org",
+    "path": "",
+    "port": "abc",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "aW1oc2xhdnk6c0wxYU5Fcko2MkR3",
+    "userinfo_base64": "imhslavy:sL1aNErJ62Dw"
+  }
+]

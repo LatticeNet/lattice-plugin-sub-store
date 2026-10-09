@@ -1,0 +1,16 @@
+[
+  {
+    "address": "i5-38.wplgwp.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "MeQWwGSYT5rbvAsd",
+      "reality-base64-pubkey": "LWUwWsat9VWdMN6pB7bTcFjL2x2zY3C-fF8_PSjHwzc",
+      "reality-hex-shortid": "93559da3",
+      "tag": "KR-xu9-56",
+      "tls-host": "img.j92m5l.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

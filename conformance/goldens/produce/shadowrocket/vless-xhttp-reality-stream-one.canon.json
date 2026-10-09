@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "JP-gwujg2-69",
+      "network": "xhttp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "-w5xD5GIIrVMUJdYiCGpszOfjPcdbYpD1fsfL643Sdk",
+        "short-id": "1a7840b3"
+      },
+      "server": "j5z-07.o34t.example.net",
+      "servername": "img.rv8aq.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "83b258ce-1088-4365-8d72-412eb5043a9a",
+      "xhttp-opts": {
+        "mode": "stream-one",
+        "path": "/s87/h9jmdov"
+      }
+    }
+  ]
+}

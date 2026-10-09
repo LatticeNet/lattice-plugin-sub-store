@@ -1,0 +1,16 @@
+proxies:
+  - name: FR-mw0ad-11
+    type: trojan
+    server: wtr-25.tgodt.example.org
+    port: 443
+    password: iEbzUJm2r7ZFhxxz
+    sni: img.xashyl2j67.example.net
+    udp: true
+    subName: r3xc
+    collectionName: g442
+    id: "77"
+    resolved: true
+    no-resolve: true
+    client-fingerprint: null
+    _cftp0pt: xc3p3z0b
+    _q68f34: 43

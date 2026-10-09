@@ -1,0 +1,93 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "US-ziee7e-52",
+        "port": 443,
+        "server": "i6-39.xljv3m.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "1hVhCEoKb5noq5g0q6kswRLXNh-lICJksGt6lEwc2AY",
+              "short_id": "4fbf4227"
+            },
+            "skip_tls_verify": false,
+            "sni": "static.uvy43dwt0.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "c592040d-1265-45c4-b732-2a1dd210e58b"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-p38om-82",
+        "port": 443,
+        "security": "auto",
+        "server": "fe6-05.r69b3t.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.sl054p.example.org"
+            },
+            "path": "/e2x9n/mplfy6wjxn",
+            "sni": "api.sl054p.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "35426d1f-cc04-4546-8730-231ca6122328"
+      }
+    },
+    {
+      "trojan": {
+        "name": "NL-mhju-64",
+        "password": "t1YFlAuSEaQ2KF0C",
+        "port": 443,
+        "server": "m4z-35.tbhf.example.net",
+        "sni": "img.ub640mtmc2.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "US-yc77p-57",
+        "password": "aEtoOa4TfScmbm",
+        "port": 14512,
+        "server": "g9-23.jhrk3yps.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "hysteria2": {
+        "auth": "3irOfZG93dvVEukGjzAP",
+        "name": "TW-ipbn1f-53",
+        "port": 443,
+        "server": "gsj-38.ntnr.example.com",
+        "skip_tls_verify": false,
+        "sni": "img.sj87z.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "DE-a5wp-93",
+        "password": "C8QHqKPXLdHjPqBa",
+        "port": 443,
+        "server": "pu-35.jimor.example.org",
+        "sni": "cdn.te7vni44o.example.net",
+        "uuid": "4a32fd11-004b-4225-80e5-a78d12cfb3ba"
+      }
+    }
+  ]
+}

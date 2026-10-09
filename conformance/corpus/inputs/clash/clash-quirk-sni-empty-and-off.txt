@@ -1,0 +1,20 @@
+proxies:
+  - name: KR-jnlp-45
+    type: trojan
+    server: hs7-14.fbk5i4m.example.net
+    port: 443
+    password: joCobve956pHGbOP
+    sni: ""
+  - name: US-udm43-99
+    type: trojan
+    server: cm-29.o4a6p.example.org
+    port: 443
+    password: rRZddt7F6fbdqRuD
+    sni: "off"
+  - name: HK-av3-92
+    type: vless
+    server: oyc-16.u9lrca1q.example.org
+    port: 443
+    uuid: 72a8e00b-8c2d-4e2f-80fa-592feab63300
+    tls: true
+    servername: ""

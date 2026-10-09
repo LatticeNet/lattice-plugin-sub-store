@@ -1,0 +1,1 @@
+CA-e44-62=ss,is-28.lree.example.org,26241,encrypt-method=aes-128-gcm,password="rfrwJIQ8mprzJQ",udp-relay=true,block-quic=on

@@ -1,0 +1,8 @@
+{
+  "id": "trojan-tcp-reality",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "reality",
+  "description": "Trojan share link over tcp with security reality."
+}

@@ -12,19 +12,26 @@
  * `readonly` rather than `disabled`: a disabled control cannot be focused or
  * selected, which would defeat the entire point.
  */
-import { nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
+
+import { t } from "../../i18n";
 
 const props = withDefaults(
   defineProps<{
     value: string;
-    /** What the value is, for the label and the instruction. */
-    subject?: string;
+    /**
+     * What the value is, for the label and the instruction. A fixed set
+     * rather than free text, because the sentence around it changes with the
+     * noun in Russian (the case and the pronoun for it).
+     */
+    subject?: "link" | "text" | "document" | "value";
     /** A document is many lines and needs a textarea; a link needs one line. */
     multiline?: boolean;
   }>(),
   { subject: "value", multiline: false },
 );
 
+const words = computed(() => t.manualCopy[props.subject]);
 const field = ref<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
 /** The shortcut to name. Naming the wrong one is worse than naming none. */
@@ -48,10 +55,9 @@ defineExpose({ selectAll });
 </script>
 
 <template>
-  <div class="lt-manual-copy" role="group" :aria-label="`Copy the ${props.subject} manually`">
+  <div class="lt-manual-copy" role="group" :aria-label="words.group">
     <p class="lt-manual-copy__note">
-      The console could not reach the clipboard. The {{ props.subject }} is selected below, press
-      <kbd>{{ shortcut }}</kbd> to copy it.
+      {{ words.before }} <kbd>{{ shortcut }}</kbd> {{ words.after }}
     </p>
     <textarea
       v-if="props.multiline"
@@ -59,7 +65,7 @@ defineExpose({ selectAll });
       class="lt-manual-copy__field is-multiline"
       readonly
       spellcheck="false"
-      :aria-label="props.subject"
+      :aria-label="words.name"
       :value="props.value"
       @focus="($event.target as HTMLTextAreaElement).select()"
     />
@@ -70,7 +76,7 @@ defineExpose({ selectAll });
       type="text"
       readonly
       spellcheck="false"
-      :aria-label="props.subject"
+      :aria-label="words.name"
       :value="props.value"
       @focus="($event.target as HTMLInputElement).select()"
     />

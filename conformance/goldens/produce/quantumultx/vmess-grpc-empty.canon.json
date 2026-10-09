@@ -1,0 +1,14 @@
+[
+  {
+    "address": "qb-25.b9184.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "eaf90f9a-7e2a-493a-9887-b669e8aa7e6b",
+      "tag": "CA-uaxg-47",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

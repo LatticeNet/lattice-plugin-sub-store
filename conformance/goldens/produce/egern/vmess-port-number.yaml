@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"JP-vfw94-81","server":"o0-12.dadt3a.example.net","port":49419,"user_id":"d1842fe9-5aed-452a-a62f-b2a295668da1","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"api.et37x8lil.example.com"}}}}

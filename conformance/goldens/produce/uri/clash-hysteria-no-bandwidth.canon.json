@@ -1,0 +1,28 @@
+[
+  {
+    "fragment": "GB-x2x-24",
+    "host": "uy-23.pcyw.example.org",
+    "path": "",
+    "port": "13157",
+    "query": [
+      [
+        "auth",
+        "dGDmD7MGaDNmJyUh"
+      ],
+      [
+        "peer",
+        "www.k076tb.example.org"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

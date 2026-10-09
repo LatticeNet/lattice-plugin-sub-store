@@ -1,0 +1,17 @@
+[
+  {
+    "address": "hbn-02.cg9uhh2v.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "ejgbYJ6mPnxvebxd9iNg",
+      "reality-base64-pubkey": "xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk",
+      "reality-hex-shortid": "81f82d48",
+      "tag": "CA-c08t-42",
+      "tls-host": "api.lvxt2kr.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

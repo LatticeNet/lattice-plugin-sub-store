@@ -1,0 +1,7 @@
+{
+  "id": "clash-v2ray-blank-lines",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "blank-lines",
+  "description": "socks5, http, snell, socks5 and ss with plugin kcptun, in that order: blank lines for the unsupported types and nothing for the node that fails."
+}

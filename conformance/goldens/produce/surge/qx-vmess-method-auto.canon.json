@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "w6-35.z4kqx.example.net",
+      "43185"
+    ],
+    "name": "KR-x0i8i-78",
+    "params": {
+      "username": "345830f4-42b9-453c-b800-bcaa2447cb46",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

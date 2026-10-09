@@ -1,0 +1,7 @@
+{
+  "id": "mixed-long-names",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "long-names",
+  "description": "Names of about 135 characters."
+}

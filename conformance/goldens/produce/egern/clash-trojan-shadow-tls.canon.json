@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "TW-m5o0-21",
+        "password": "oX6y6U3NunXBPYcG",
+        "port": 443,
+        "server": "i0-17.w4oe.example.net",
+        "shadow_tls": {
+          "password": "is4ZqRqigeoIFBat",
+          "sni": "img.kratp2kn.example.net"
+        },
+        "sni": "img.kratp2kn.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

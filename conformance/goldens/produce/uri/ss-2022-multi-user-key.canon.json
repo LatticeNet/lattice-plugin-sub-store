@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "US-xksb8-53",
+    "host": "id2-31.cfpw.example.net",
+    "path": "",
+    "port": "14729",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-256-gcm:EWKRLbqKkrLmfPsRvWd5uJTj5kbWYatax0DDdbZtB/c=:nlVrFh4vj2g38X12H/jHY84zGfrHgdREZ832YLlTrbA="
+  }
+]

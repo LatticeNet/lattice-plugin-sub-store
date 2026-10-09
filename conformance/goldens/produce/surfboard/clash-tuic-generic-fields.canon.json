@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "m97-07.vapbfgw4.example.net",
+      "443"
+    ],
+    "name": "FR-s8k-58",
+    "params": {
+      "alpn": "h3",
+      "password": "haySs7N4afsvUahP",
+      "sni": "www.r0ym9flg0.example.net",
+      "udp-relay": "true",
+      "uuid": "8084f53b-14db-4353-bb2f-54266975fe35"
+    },
+    "type": "tuic-v5"
+  }
+]

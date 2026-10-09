@@ -1,0 +1,1 @@
+SG-mtlm4-76=vmess,nx6-10.ccti3d5z.example.net,443,username=56394afa-2189-4076-b77c-f314bdae667e,ws=true,ws-path=/pyb3/uvxw9hba4o,ws-headers="Host:"f38-17.jfoeyse.example.net:8080"",vmess-aead=true,tls=true,sni="www.fd76v0.example.com",alpn="h2,http/1.1",skip-cert-verify=false

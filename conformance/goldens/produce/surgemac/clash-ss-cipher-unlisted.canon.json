@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "z0p-14.h7qm2mrm.example.com",
+      "34037"
+    ],
+    "name": "KR-t5c4a4-23",
+    "params": {
+      "encrypt-method": "camellia-128-cfb",
+      "password": "sno5kIgnhB6Fsk",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "clash-port-not-numeric",
+  "family": "clash",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "port-not-numeric",
+  "description": "A socks5 node with port \"80a\" and one with port \"abc\"."
+}

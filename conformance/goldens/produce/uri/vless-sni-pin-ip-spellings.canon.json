@@ -1,0 +1,88 @@
+[
+  {
+    "fragment": "AU-nq4-74",
+    "host": "::ffff:203.0.113.13",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "::FFFF:203.0.113.13"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f3ebf17c-58c0-4334-9180-f10707b10ee9"
+  },
+  {
+    "fragment": "CA-ksx-50",
+    "host": "fe80::4ad9%25eth0",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "FE80::4AD9%25eth0"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "18970a1b-eb66-439e-963f-2ec5e118bae0"
+  },
+  {
+    "fragment": "NL-fkhqa-70",
+    "host": "::ffff:192.0.2.2",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "00afba75-b3d3-4726-ab6b-19606121bf02"
+  }
+]

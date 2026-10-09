@@ -1,0 +1,9 @@
+proxies:
+  - rb69p1f
+  - null
+  - name: SG-nvtf84-42
+    type: ss
+    server: f9u-30.yunpr0j.example.com
+    port: 52428
+    cipher: aes-128-gcm
+    password: rfyxAU5zrOYf5L

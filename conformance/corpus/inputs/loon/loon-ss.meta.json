@@ -1,0 +1,8 @@
+{
+  "id": "loon-ss",
+  "family": "loon",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Loon Shadowsocks with AEAD and 2022 ciphers."
+}

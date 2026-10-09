@@ -1,0 +1,10 @@
+{
+  "id": "clash-include-unsupported-bypass",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "produce-option-include-unsupported",
+  "description": "With include-unsupported-proxy: a node whose supported map is false for every Tier 1 platform, http with headers, h2-connect, ss over TLS without a plugin, naive, vless Reality without public-key, and vless xhttp stream-one with download-settings. The option lifts the support map, root headers, Shadowsocks over TLS and the admission filter, not the Reality and stream-one rules.",
+  "options": {
+    "include-unsupported-proxy": true
+  }
+}

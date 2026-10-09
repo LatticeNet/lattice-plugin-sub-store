@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "enz-06.ks1z.example.org",
+      "443"
+    ],
+    "name": "HK-irkxn-71",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "sni": "enz-06.ks1z.example.org",
+      "tls": "true",
+      "username": "d29f522d-b0af-4e45-b5ff-63db7cb42577",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-path": "/u2za/ks2mqc"
+    },
+    "type": "vmess"
+  }
+]

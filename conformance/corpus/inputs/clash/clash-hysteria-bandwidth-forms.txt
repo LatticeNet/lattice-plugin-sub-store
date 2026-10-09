@@ -1,0 +1,41 @@
+proxies:
+  - name: CA-vwb-88
+    type: hysteria
+    server: ycz-07.yvm8d.example.net
+    port: 56000
+    protocol: udp
+    sni: static.g1s9fk7e6g.example.com
+    skip-cert-verify: false
+    auth-str: rBwOeuzSarUHEA3A
+    up: 100 Kbps
+    down: 100 Kbps
+  - name: FR-iu2o-35
+    type: hysteria
+    server: v0-09.bss6ok.example.org
+    port: 60157
+    protocol: udp
+    sni: img.rc5w2d8lp.example.org
+    skip-cert-verify: false
+    auth-str: qIYVFY0V27VALMCN
+    up: 30 Mbps
+    down: 30 Mbps
+  - name: JP-si8yhs-07
+    type: hysteria
+    server: mky-06.glrpk.example.com
+    port: 54722
+    protocol: udp
+    sni: static.kqe32e.example.com
+    skip-cert-verify: false
+    auth-str: k352VYfvB3ADKewW
+    up: 2 gbps
+    down: 2 gbps
+  - name: NL-s0to-52
+    type: hysteria
+    server: oav-11.uyi5.example.com
+    port: 56546
+    protocol: udp
+    sni: img.mjj2fjq.example.net
+    skip-cert-verify: false
+    auth-str: mlsOMeRL3a2ijCbj
+    up: 50
+    down: 50

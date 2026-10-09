@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "fa-12.pdht8.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "335f9710-f3d4-4e34-aa62-6b6c3e71f595",
+      "net": "tcp",
+      "port": "443",
+      "ps": "FR-bme-99",
+      "scy": "auto",
+      "sni": "www.k11mos.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

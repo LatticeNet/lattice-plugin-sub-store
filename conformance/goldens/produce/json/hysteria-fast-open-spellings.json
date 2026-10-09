@@ -1,0 +1,15 @@
+[
+  {
+    "auth-str": "MZURz8UXO1s6MWpC",
+    "fastopen": "1",
+    "name": "GB-nkn46-03",
+    "port": 29836,
+    "protocol": "udp",
+    "recv-window_conn": "1",
+    "server": "m6-39.trbk.example.net",
+    "sni": "www.xz02a.example.net",
+    "tls": true,
+    "type": "hysteria",
+    "udp": true
+  }
+]

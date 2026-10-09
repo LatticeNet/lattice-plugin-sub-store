@@ -1,0 +1,9 @@
+{
+  "id": "trojan-no-fragment",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "missing-name",
+  "description": "trojan://password@host:443?udp=0&tfo=1 without a fragment: the name is host:443."
+}

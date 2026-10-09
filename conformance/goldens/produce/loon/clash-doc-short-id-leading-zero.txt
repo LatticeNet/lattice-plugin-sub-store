@@ -1,0 +1,2 @@
+HK-rzpg-20=vless,u16-26.sz1teg.example.com,443,"9f1ba0a5-a979-48eb-9d96-caff0917c849",transport=tcp,over-tls=true,tls-profile=chrome,flow=xtls-rprx-vision,sni=www.t88723n10.example.com,public-key="TeoTSdir_kbAvA2e-B4-6IMCsUuZMfVNtPhy3yII6Pc",short-id=0086,udp=true
+AU-ctw-23=vless,qjb-11.e5y6.example.net,443,"c3465fc6-122b-40a0-bbd8-a5eb6460d054",transport=tcp,over-tls=true,tls-profile=chrome,flow=xtls-rprx-vision,sni=api.mc05ho3.example.org,public-key="Vinz4N9PuKGQ1h5Kx4f4po9zhPr0euemOLqUNPcukKk",short-id=,udp=true

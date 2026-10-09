@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "QYrIC13bchqS",
+      "server": "n8s-17.s0mpz.example.net",
+      "server_port": 8080,
+      "tag": "DE-etktcw-02",
+      "type": "http",
+      "username": "bb25f"
+    },
+    {
+      "password": "VMGYcj8oRohq",
+      "server": "ihj-14.hf0kvu.example.net",
+      "server_port": 8080,
+      "tag": "NL-pj3l7-41",
+      "type": "http",
+      "username": "e2fw"
+    }
+  ]
+}

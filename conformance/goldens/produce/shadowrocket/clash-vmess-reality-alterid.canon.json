@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "alterId": 4,
+      "cipher": "auto",
+      "client-fingerprint": "chrome",
+      "name": "HK-hgq-99",
+      "network": "tcp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "XQzXzL4h3FQ9W7FdQA6nSbNjwV4m1eQPh5VZejtZhKw",
+        "short-id": "d88948a8"
+      },
+      "server": "pgf-17.cv2qm174.example.net",
+      "servername": "cdn.v35bq7.example.net",
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "2ec8f005-4bea-4ba2-be6f-7031ea6499b5"
+    }
+  ]
+}

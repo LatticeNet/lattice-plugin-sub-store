@@ -1,0 +1,1 @@
+vless://e57cc12e-3818-4c8c-b661-355086cbc0aa@c2m-07.cloa.example.com:443?security=tls&type=xhttp&path=%2Fucr%2Fj32i&packetEncoding=xudp&alpn=h2%2Chttp%2F1.1&sni=api.ppnmc0.example.com&fp=chrome&mode=auto&extra=%7Bklb&encryption=none#FR-tpci-48

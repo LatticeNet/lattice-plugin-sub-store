@@ -164,23 +164,55 @@ type subscriptionRenderRequest struct {
 	SubscriptionID string
 	Format         string
 	UAClass        string
-	Target         string
-	Options        map[string]bool
-	Raw            string
-	Query          map[string]string
+	// UATarget is the client target the core derived from the agent when the
+	// URL named none (lattice-server share_render_plan.go). It ranks below
+	// the record's pin and above this plugin's own ua_class table: the core
+	// sends ua_class "clash" to a mihomo client for the sake of plugins that
+	// predate the clashmeta class, and only ua_target says ClashMeta.
+	UATarget string
+	Target   string
+	Options  map[string]bool
+	Raw      string
+	Query    map[string]string
 	// Explain asks for the diagnosis alongside the document.
 	Explain bool
 }
 
 // resolveRenderTarget picks the client for one render. Priority is explicit
-// caller target, then the record's pin, then the UA classification, then the
-// universally accepted URI list — an operator or URL that names a client is
-// never overridden by a header.
-func resolveRenderTarget(rec subscriptionRecord, explicit, uaClass string) string {
+// caller target, then the record's pin, then the operator's default target
+// from Settings (the pin of every record that names none), then the core's
+// target for the agent, then the UA classification, then the universally
+// accepted URI list. An operator or URL that names a client is never
+// overridden by a header.
+func resolveRenderTarget(rec subscriptionRecord, explicit, defaultTarget, uaTarget, uaClass string) string {
 	if t := strings.TrimSpace(explicit); t != "" {
 		return t
 	}
+	if t := strings.TrimSpace(rec.Target); t != "" {
+		return t
+	}
+	if t := strings.TrimSpace(defaultTarget); t != "" {
+		return t
+	}
+	if t := strings.TrimSpace(uaTarget); t != "" {
+		return t
+	}
 	return subscriptionTarget(rec, uaClass)
+}
+
+// renderTarget is resolveRenderTarget for one render request, reading the
+// default target from Settings only when neither the request nor the record
+// names a client, so a pinned record or an explicit URL costs no host call.
+func (rt *runtime) renderTarget(rec subscriptionRecord, req subscriptionRenderRequest) (string, error) {
+	explicit, defaultTarget := requestTarget(req), ""
+	if strings.TrimSpace(explicit) == "" && strings.TrimSpace(rec.Target) == "" {
+		settings, err := rt.invocationSettings()
+		if err != nil {
+			return "", err
+		}
+		defaultTarget = settings.DefaultTarget
+	}
+	return resolveRenderTarget(rec, explicit, defaultTarget, req.UATarget, req.UAClass), nil
 }
 
 // requestTarget is the client a render request names explicitly: ?target=
@@ -200,7 +232,7 @@ func requestTarget(req subscriptionRenderRequest) string {
 // successful subscription deletes every node it had, so the failure is worth
 // stopping twice rather than relying on either layer alone.
 func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResult, error) {
-	subscriptionID, format, uaClass, raw, query := req.SubscriptionID, req.Format, req.UAClass, req.Raw, req.Query
+	subscriptionID, format, uaClass, query := req.SubscriptionID, req.Format, req.UAClass, req.Query
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return renderResult{}, err
@@ -210,7 +242,10 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	// target. The core's format only decides how a NODE LIST is carried, and a
 	// configuration is not a node list.
 	if recordKind(rec) == kindFile {
-		output, headers, err := rt.renderFile(rec, uaClass, query, raw)
+		// The core hands back whatever fetch stored: a snapshot envelope, or a
+		// version 1 snapshot from a runtime before it. Both read as the text
+		// the file paths always took.
+		output, headers, err := rt.renderFile(rec, uaClass, query, snapshotText(req.Raw))
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -239,18 +274,30 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{Content: output, ContentType: contentType, Headers: headers}, nil
 	}
 
-	target := resolveRenderTarget(rec, requestTarget(req), uaClass)
+	target, err := rt.renderTarget(rec, req)
+	if err != nil {
+		return renderResult{}, err
+	}
 
 	// A collection has no content of its own — it is defined entirely by the
 	// subs it gathers, so the core's snapshot is not an input here.
 	if recordKind(rec) == kindCollection {
-		converted, err := rt.renderCollectionResult(rec, target, req.Options, raw, req.Explain)
+		// The snapshot as fetch stored it: a version 2 envelope carries the
+		// members' nodes, which snapshotText would drop.
+		converted, err := rt.renderCollectionResult(rec, target, req.Options, req.Raw, req.Explain)
 		if err != nil {
 			return renderResult{}, err
 		}
 		return rt.finishNodeRender(rec, "collection "+quoteLabel(subscriptionID), target, format, req.Explain, converted)
 	}
 
+	// The snapshot as fetch stored it, decoded once: at 4096 nodes an envelope
+	// is about 3 MB, and decoding it costs as much as parsing its nodes.
+	env, enveloped := decodeSnapshotEnvelope(req.Raw)
+	raw := req.Raw
+	if enveloped {
+		raw = envelopeText(env)
+	}
 	// The core hands back the snapshot it holds for this subscription. Inline
 	// content is the fallback for a record that has no remote source at all.
 	source := raw
@@ -277,17 +324,23 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 		return renderResult{}, fmt.Errorf("subscription %q has no content to render", subscriptionID)
 	}
 
-	operators, err := enabledOperators(rec)
+	plan, err := rt.chainPlan(rec)
 	if err != nil {
 		return renderResult{}, fmt.Errorf("subscription %q: %w", subscriptionID, err)
 	}
-	converted, err := rt.subStoreEngine().convert(subStoreConversionRequest{
-		Raw:       source,
-		Target:    target,
-		Operators: operators,
-		Options:   req.Options,
-		Explain:   req.Explain,
-	})
+	request := nodeConvertRequest{
+		Parts:   []string{source},
+		Target:  target,
+		Plan:    plan,
+		Options: req.Options,
+		Explain: req.Explain,
+	}
+	// A snapshot envelope carries the nodes fetch parsed from the same text;
+	// a native render reads them instead of parsing again.
+	if enveloped && source == raw && nativeRoute(plan, target) {
+		request.Nodes = envelopeNodes(env)
+	}
+	converted, _, err := rt.convertNodes(request)
 	if err != nil {
 		return renderResult{}, err
 	}
@@ -445,6 +498,11 @@ func targetContentType(target string) string {
 // subscription body. It is deliberately tiny: the only method is a read, and the
 // only thing it returns is content plus a content type.
 func (rt *runtime) handleSubscriptionCall(call callPayload) response {
+	// The legacy document is cached for one call. Production builds a runtime
+	// per invocation anyway; a test that drives several calls through one
+	// runtime must not read one call's cache in the next.
+	rt.legacy = legacyCache{}
+	rt.settings = settingsCache{}
 	switch call.Method {
 	case "fetch":
 		var req struct {
@@ -460,7 +518,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		// Bookkeeping whether the fetch worked or not: this method is the
 		// refresh path — the core calls it on a schedule and the UI on a click —
 		// so it is the one place that knows when the served snapshot last moved.
-		rt.noteFetchOutcome(req.SubscriptionID, fetchedAt, out.Userinfo, err)
+		rt.noteFetchOutcome(req.SubscriptionID, fetchOutcome{at: fetchedAt, userinfo: out.Userinfo, nodesIn: out.nodesIn, nodesOut: out.nodesOut, err: err})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -572,85 +630,9 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		}
 		return latticeplugin.RawResultResponse(body, "")
 	case "list":
-		records, err := rt.listSubscriptions()
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
-		}
-		// The list is a management view, so it reports what a subscription IS
-		// without its stored content: a definition list must not double as a
-		// dump of every provider payload.
-		type view struct {
-			ID          string   `json:"id"`
-			Kind        string   `json:"kind"`
-			Name        string   `json:"name"`
-			DisplayName string   `json:"display_name,omitempty"`
-			Remark      string   `json:"remark,omitempty"`
-			Tags        []string `json:"tags,omitempty"`
-			Source      string   `json:"source,omitempty"`
-			HasURL      bool     `json:"has_url"`
-			HasInline   bool     `json:"has_inline_content"`
-			Members     []string `json:"members,omitempty"`
-			MemberTags  []string `json:"member_tags,omitempty"`
-			Target      string   `json:"target,omitempty"`
-			FileType    string   `json:"file_type,omitempty"`
-			NodeSource  string   `json:"node_source,omitempty"`
-			Steps       int      `json:"step_count"`
-			StepsOff    int      `json:"disabled_step_count"`
-			Imported    bool     `json:"imported"`
-			// Fetch bookkeeping, emitted only once the record has been fetched at
-			// all: before that there is no status to report, and emitting zero
-			// values would read as "refresh failed" rather than "never fetched".
-			// LastFetchOK is a pointer so a real false survives encoding.
-			LastFetchAt string `json:"last_fetch_at,omitempty"`
-			LastFetchOK *bool  `json:"last_fetch_ok,omitempty"`
-			LastError   string `json:"last_error,omitempty"`
-			Userinfo    string `json:"userinfo,omitempty"`
-			// The same header, parsed: bytes used up and down, the provider's
-			// total, and the expiry in unix seconds. Each is present only when
-			// the provider sent it and it parsed, so the overview and the sources
-			// table can draw traffic and expiry without a `get` per row.
-			providerUsage
-			// UserinfoParsed is true on every row that carries the header, and
-			// says the figures above are this runtime's whole answer: a field
-			// missing beside it was refused (negative, past int64, not a
-			// number), and the UI must not parse the header again and bring it
-			// back. A runtime without it predates the parse, and the UI falls
-			// back to reading the header itself.
-			UserinfoParsed bool `json:"userinfo_parsed,omitempty"`
-		}
-		views := make([]view, 0, len(records))
-		for _, rec := range records {
-			steps := processSteps(rec)
-			off := 0
-			for _, raw := range steps {
-				if meta, err := decodeStep(raw); err == nil && meta.Disabled {
-					off++
-				}
-			}
-			entry := view{
-				ID: rec.ID, Kind: recordKind(rec), Name: rec.Name,
-				DisplayName: rec.DisplayName, Remark: rec.Remark, Tags: rec.Tags,
-				Source: rec.Source,
-				HasURL: strings.TrimSpace(rec.URL) != "", HasInline: strings.TrimSpace(rec.Content) != "",
-				Members: rec.Members, MemberTags: rec.MemberTags,
-				Target: rec.Target, FileType: rec.FileType, NodeSource: rec.NodeSource,
-				Steps: len(steps), StepsOff: off, Imported: rec.Origin != nil,
-			}
-			if rec.LastFetchAt != "" {
-				ok := rec.LastFetchOK
-				entry.LastFetchAt, entry.LastFetchOK = rec.LastFetchAt, &ok
-				entry.LastError, entry.Userinfo = rec.LastError, rec.Userinfo
-				// Under the same gate as the header: figures from a record
-				// that was never fetched would describe a fetch that never
-				// happened.
-				if rec.Userinfo != "" {
-					entry.providerUsage = parseProviderUsage(rec.Userinfo)
-					entry.UserinfoParsed = true
-				}
-			}
-			views = append(views, entry)
-		}
-		body, err := json.Marshal(map[string]any{"subscriptions": views})
+		// One key on the split store: the index carries every row and its
+		// fetch bookkeeping (store_index.go).
+		body, err := rt.listSubscriptionsReply()
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
@@ -717,74 +699,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 				return latticeplugin.ErrorResponse(err)
 			}
 		}
-		// The document is loaded once and serves both reads this dispatch used
-		// to make: provenance and fetch bookkeeping are preserved from the
-		// in-memory copy, and the response is built from what was written. The
-		// old shape — get, save, get again — billed up to seven host round trips
-		// for one save against a budget of three, so every UI save 502'd once
-		// the store held a script file.
-		doc, err := rt.loadSubscriptionRecords()
+		// A caller must not be able to forge provenance: a new record gets
+		// none, and an existing one keeps what is stored.
+		rec.Origin = nil
+		saved, conflict, err := rt.storeSave(rec, req.IfRevision, true)
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
-		wasScript := false
-		found := false
-		var stored subscriptionRecord
-		for _, existing := range doc.Records {
-			if existing.ID != rec.ID {
-				continue
-			}
-			stored = existing
-			// Origin records where a record came from during migration. A caller
-			// must not be able to forge it, so it is preserved from the stored
-			// record rather than taken from the request.
-			rec.Origin = existing.Origin
-			// Fetch bookkeeping belongs to the record's life, not to this edit:
-			// a save that zeroed it would tell the operator a fetched record was
-			// never refreshed.
-			rec.LastFetchAt, rec.LastFetchOK = existing.LastFetchAt, existing.LastFetchOK
-			rec.LastError, rec.Userinfo = existing.LastError, existing.Userinfo
-			wasScript = isScriptFile(existing)
-			found = true
-			break
-		}
-		if !found {
-			rec.Origin = nil
-			rec.LastFetchAt, rec.LastFetchOK = "", false
-			rec.LastError, rec.Userinfo = "", ""
-		}
-		// The conditional write. A blind full-record overwrite is a lost-update
-		// defect: two operators editing one record, or one operator editing a
-		// record a refresh or a restore has already moved, and the loser's work
-		// disappeared with nothing on screen to say it had happened.
-		//
-		// The comparison is against the document already in memory, so this
-		// costs no extra host round trip and the save stays inside its budget.
-		if req.IfRevision != "" {
-			if !found {
-				// Editing something that no longer exists. Saving would silently
-				// recreate a deleted record, which is its own kind of surprise,
-				// so it is refused and named as what it is.
-				return conflictResponse(rec.ID, "deleted", subscriptionRecord{}, "")
-			}
-			current := subscriptionRevision(stored)
-			if current != req.IfRevision {
-				// The stored record is handed back so the caller can say what
-				// changed. Only the caller can: it is the one holding the copy
-				// that was read, and the store has no memory of it.
-				out := withRevision(stored)
-				if isScriptFile(out) {
-					// Answering with a script file whose program is missing would
-					// make the diff claim the program was emptied. Better to say
-					// the program is not included than to describe it wrongly.
-					out.Content = ""
-				}
-				return conflictResponse(rec.ID, "stale", out, current)
-			}
-		}
-		saved, err := rt.saveSubscriptionInDoc(&doc, rec, wasScript)
-		if err != nil {
-			return latticeplugin.ErrorResponse(err)
+		if conflict != nil {
+			return conflictResponse(rec.ID, conflict.reason, conflict.current, conflict.revision)
 		}
 		body, err := json.Marshal(map[string]any{"subscription": saved, "saved": true})
 		if err != nil {
@@ -806,14 +729,68 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		if err := rt.deleteSubscription(req.SubscriptionID); err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
-		// Deleting the definition does not retract anything already published:
-		// the share lives in the core, and removing it is a separate decision
-		// the operator makes there.
-		body, err := json.Marshal(map[string]any{"id": req.SubscriptionID, "deleted": true})
+		// Delete archives (store_archive.go): restore brings the record back
+		// under the same id until purge. Deleting the definition does not
+		// retract anything already published: the share lives in the core,
+		// and the UI archives it there through the gateway.
+		body, err := json.Marshal(map[string]any{"id": req.SubscriptionID, "deleted": true, "archived": true})
 		if err != nil {
 			return latticeplugin.ErrorResponse(err)
 		}
 		return latticeplugin.RawResultResponse(body, "")
+	case "restore", "purge":
+		var req struct {
+			SubscriptionID string `json:"subscription_id"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid %s payload: %w", call.Method, err))
+			}
+		}
+		if strings.TrimSpace(req.SubscriptionID) == "" {
+			return latticeplugin.ErrorResponse(fmt.Errorf("subscription_id is required"))
+		}
+		reply := map[string]any{"id": req.SubscriptionID}
+		if call.Method == "restore" {
+			restored, err := rt.restoreSubscription(req.SubscriptionID)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			reply["restored"], reply["subscription"] = true, restored
+		} else {
+			if err := rt.purgeSubscription(req.SubscriptionID); err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			reply["purged"] = true
+		}
+		return latticeplugin.RawResultResponse(mustJSON(reply), "")
+	case "reorder":
+		var req struct {
+			IDs []string `json:"ids"`
+		}
+		if len(call.Payload) > 0 {
+			if err := json.Unmarshal(call.Payload, &req); err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("invalid reorder payload: %w", err))
+			}
+		}
+		if err := rt.reorderSubscriptions(req.IDs); err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(map[string]any{"reordered": true, "count": len(req.IDs)}), "")
+	case "migrate_store":
+		out, err := rt.migrateStore(call.Payload)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(mustJSON(out), "")
+	case "depends_on":
+		body, err := rt.dependsOn(call.Payload)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		return latticeplugin.RawResultResponse(body, "")
+	case "apply_revision":
+		return latticeplugin.ErrorResponse(applyRevisionRefusal())
 	case "operators":
 		// Both vocabularies, each flagged. A file editing a document needs the
 		// response steps; a subscription's chain needs the proxy operators.
@@ -866,7 +843,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			VPNIdentity string `json:"vpn_identity,omitempty"`
 		}
 		if len(call.Payload) > 0 {
-			if len(call.Payload) > model.MaxSubscriptionResponseBytes {
+			if len(call.Payload) > model.MaxSubscriptionRequestBytes {
 				return latticeplugin.ErrorResponse(errors.New("preview payload exceeds bounds"))
 			}
 			if err := decodeStrictVPNCoreGraphJSON(call.Payload, &req); err != nil {
@@ -1072,6 +1049,9 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			SubscriptionID string `json:"subscription_id"`
 			Format         string `json:"format"`
 			UAClass        string `json:"ua_class"`
+			// UATarget is what the core resolved from the agent; it travels
+			// only when the URL named no target (subscriptionRenderRequest).
+			UATarget string `json:"ua_target"`
 			// Target names the client explicitly — the parity contract with
 			// Sub-Store, whose subscription URLs carry ?target=. An explicit
 			// target outranks both the record's pin and the UA class: the
@@ -1098,6 +1078,7 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 			SubscriptionID: req.SubscriptionID,
 			Format:         req.Format,
 			UAClass:        req.UAClass,
+			UATarget:       req.UATarget,
 			Target:         req.Target,
 			Options:        req.Options,
 			Raw:            req.Raw,

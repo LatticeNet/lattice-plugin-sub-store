@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "HK-mg7g7-33",
+        "password": "yiccfKubyAbJv2Cc",
+        "port": 443,
+        "reality": {
+          "public_key": "UKq0zxqr7fQwypkT3_R8FEgH_q_SlbqrKVCH1qIwI9k",
+          "short_id": "e8a04321"
+        },
+        "server": "yqk-19.r69bdev.example.org",
+        "sni": "img.xbzfirh7.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "host": "img.xbzfirh7.example.com",
+          "path": "/fiz5/ilveyth9g"
+        }
+      }
+    }
+  ]
+}

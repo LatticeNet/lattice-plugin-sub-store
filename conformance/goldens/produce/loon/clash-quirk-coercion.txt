@@ -1,0 +1,2 @@
+AU-xcg-14=shadowsocks,vgz-03.wijo.example.com,19730,aes-128-gcm,"485528",udp=true
+NL-yspkh0-87=trojan,frx-40.o7y8y1.example.org,443,"70370695",tls-name=static.mq1bb04d.example.net

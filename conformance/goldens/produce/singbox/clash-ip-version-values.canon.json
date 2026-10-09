@@ -1,0 +1,109 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "Drttxdvccwfaxc4e",
+      "server": "iy-37.dc56k.example.org",
+      "server_port": 443,
+      "tag": "HK-cjx-77",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.aramgppm3.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "ox7z41tk",
+        "strategy": "ipv4_only"
+      },
+      "password": "Jnuuxv8gZVVRzh2t",
+      "server": "fuz-28.uv8ot.example.com",
+      "server_port": 443,
+      "tag": "NL-rm1-76",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.rxocwwswkc.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "vh5zu",
+        "strategy": "ipv6_only"
+      },
+      "password": "4Vm2vFAENjt6bylh",
+      "server": "xy-34.u6n8sj2n.example.net",
+      "server_port": 443,
+      "tag": "SG-cl9-44",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.ppsw9hocg.example.net"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "h71g7t",
+        "strategy": "prefer_ipv4"
+      },
+      "password": "otgZ2PBAxIKEUXrS",
+      "server": "uv-23.jocsspi.example.org",
+      "server_port": 443,
+      "tag": "HK-n488o-76",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.z33tx93cbl.example.org"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "og5v",
+        "strategy": "prefer_ipv6"
+      },
+      "password": "1i1Kr6u8pd838AxG",
+      "server": "xw-05.xstlss.example.net",
+      "server_port": 443,
+      "tag": "US-gqu8sb-76",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.dn2x7pvo.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "domain_resolver": {
+        "server": "xr0jy",
+        "strategy": "prefer_ipv4"
+      },
+      "password": "JCwYvyUPiGX6GDPn",
+      "server": "c7l-25.ys3mkhv.example.net",
+      "server_port": 443,
+      "tag": "AU-wk1-50",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.ymq4b.example.org"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "b3XQHRCGOb8va6mh",
+      "server": "hmp-30.q92twj.example.com",
+      "server_port": 443,
+      "tag": "GB-qumu-79",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.rdwf05uk.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

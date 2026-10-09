@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-c08t-42",
+      "type": "anytls",
+      "server": "hbn-02.cg9uhh2v.example.net",
+      "server_port": 443,
+      "password": "ejgbYJ6mPnxvebxd9iNg",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.lvxt2kr.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk",
+          "short_id": "81f82d48"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

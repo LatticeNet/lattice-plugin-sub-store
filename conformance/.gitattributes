@@ -1,0 +1,4 @@
+# Corpus inputs and goldens are data compared byte for byte; never convert
+# their line endings.
+corpus/** -text
+goldens/** -text

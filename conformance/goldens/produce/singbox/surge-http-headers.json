@@ -1,0 +1,16 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-kgzien-25",
+      "type": "http",
+      "server": "ml-07.u7hv109.example.net",
+      "server_port": 8080,
+      "username": "po05d",
+      "password": "H4oijwVP8mye",
+      "headers": {
+        "X-Client": "gss2r"
+      }
+    }
+  ],
+  "endpoints": []
+}

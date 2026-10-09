@@ -1,0 +1,27 @@
+[
+  {
+    "name": "FR-e45-21",
+    "obfs": "salamander",
+    "obfs-password": "HSJKygToOAME6To1",
+    "password": "yyAyzyg3eRCFuhg2AQyT",
+    "port": 443,
+    "server": "yz-31.o9t4ry4.example.org",
+    "sni": "img.i57tmk4cc8.example.org",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  },
+  {
+    "name": "HK-zlv-67",
+    "obfs": "salamander",
+    "obfs-password": "dT6lnZU72e",
+    "obfs_password": "2EtPLq4iwIxq53z9",
+    "password": "UoAwyPUyCmcsX8fUl5z4",
+    "port": 443,
+    "server": "a13-12.ezd38.example.org",
+    "sni": "api.rtpzqpp.example.org",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

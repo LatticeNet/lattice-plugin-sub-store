@@ -1,0 +1,1 @@
+TW-y9pq-57=trojan,sm-01.u4wqs351.example.net,443,"fp2omGYeoDUnyAE7",skip-cert-verify=true,tls-name=sm-01.u4wqs351.example.net,udp=true

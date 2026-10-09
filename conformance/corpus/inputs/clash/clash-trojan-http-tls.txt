@@ -1,0 +1,22 @@
+proxies:
+  - name: TW-s2u-29
+    type: trojan
+    server: gi-20.mgnzx.example.net
+    port: 443
+    password: o28W1dYtBQkLXn8a
+    udp: true
+    tls: true
+    sni: img.mid588eb.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /xt3a
+      headers:
+        Host:
+          - img.mid588eb.example.com

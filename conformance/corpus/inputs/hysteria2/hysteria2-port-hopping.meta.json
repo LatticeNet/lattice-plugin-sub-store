@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-port-hopping",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "port-hopping",
+  "description": "mport ranges, a single range and a comma list."
+}

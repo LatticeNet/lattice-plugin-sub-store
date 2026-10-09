@@ -1,0 +1,11 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "onxbae3@orp-12.iliuew1v.example.org",
+      "server_port": 80,
+      "tag": "TW-z9qv3-83",
+      "type": "http"
+    }
+  ]
+}

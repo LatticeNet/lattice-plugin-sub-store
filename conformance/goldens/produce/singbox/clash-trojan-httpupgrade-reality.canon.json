@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "k9vUxnz501ueaagO",
+      "server": "dry-29.z57qgl.example.com",
+      "server_port": 443,
+      "tag": "NL-jj6cfx-97",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "KBE_MGWu5bVgEMZ9sIr-IaBxGbcF6l8F6aoe4Q9zX7E",
+          "short_id": "b7383d6a"
+        },
+        "server_name": "www.g53fzh.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "www.g53fzh.example.com",
+        "path": "/gew16/mnfs2",
+        "type": "httpupgrade"
+      },
+      "type": "trojan"
+    }
+  ]
+}

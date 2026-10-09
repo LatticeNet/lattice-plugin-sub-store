@@ -1,0 +1,21 @@
+[
+  {
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "fp": "chrome",
+    "name": "SG-hqzi-96",
+    "packet-encoding": "xudp",
+    "password": "bm91bewnfciiwnoMmrKb",
+    "port": 443,
+    "server": "xe-34.w3hx.example.net",
+    "skip-cert-verify": false,
+    "sni": "img.l2m9nw.example.com",
+    "tls": true,
+    "type": "anytls",
+    "udp": true
+  }
+]

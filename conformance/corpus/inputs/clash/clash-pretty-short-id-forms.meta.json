@@ -1,0 +1,12 @@
+{
+  "id": "clash-pretty-short-id-forms",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "produce-option-pretty-yaml",
+  "description": "With prettyYaml: Reality nodes with short-id \"0<digit>\", a four-digit YAML number (which the reader stores as a string) and \"\".",
+  "options": {
+    "prettyYaml": true
+  }
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "f2-35.vnch.example.com",
+      "443",
+      "2358c8e5-46d7-4f60-946f-479250977580"
+    ],
+    "name": "KR-le0kdm-50",
+    "params": {
+      "over-tls": "true",
+      "public-key": "bImFmHXlk0wSoQGnkLNDjQJhwzaLtjYA8hPE7rhQ1iQ",
+      "short-id": "96de511e273eddaa",
+      "skip-cert-verify": "false",
+      "sni": "img.acvph8.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

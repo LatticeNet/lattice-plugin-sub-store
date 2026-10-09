@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "zv-23.f2kz3r.example.com",
+      "57656",
+      "aes-256-gcm",
+      "rp81zpm9W9bVp4"
+    ],
+    "name": "CA-xewu-02",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

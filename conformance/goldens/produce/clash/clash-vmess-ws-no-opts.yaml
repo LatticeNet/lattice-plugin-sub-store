@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","name":"SG-zof-93","network":"ws","port":443,"server":"si-01.pyt8o.example.com","type":"vmess","udp":true,"uuid":"e59cbec9-9e75-48b1-8c3b-c5b53fb1de09","ws-opts":{"headers":{"Host":"si-01.pyt8o.example.com"},"path":"/"}}

@@ -1,0 +1,5 @@
+AU-imjl-84=vmess,mt-36.svugfc.example.org,443,username=6928eda3-0db2-4f7d-b34c-65a85724a2ee,ws=true,ws-path=/rpzh,ws-headers="Host:"www.i5t74l2.example.org"",vmess-aead=true,tls=true,sni="www.i5t74l2.example.org",alpn="h2,http/1.1"
+CA-x9xd-31=trojan,a7d-05.usdw.example.net,443,password="TJWOZ2tKI2Tk6oSU",tls=true,sni="static.rly9hq.example.org"
+CA-x9xd-31=ss,kiz-01.a7xeu.example.org,20121,encrypt-method=aes-128-gcm,password="mLHEkenbf7A3gl",udp-relay=true
+CA-x9xd-31=hysteria2,s7-18.e36fp22h.example.com,443,password="5WrFCAlw6tPiRzbAxHBN",sni="www.cepwu5q.example.org",skip-cert-verify=false,tfo=false
+CA-x9xd-31=tuic-v5,mra-04.q98lu.example.com,443,uuid=358003a2-c13c-44ef-a1d0-3f45a34d2ef0,password="W8FlBwmBhA0WLADf",sni="img.zuvypgkl0.example.net",alpn="h3"

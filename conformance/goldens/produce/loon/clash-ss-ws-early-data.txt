@@ -1,0 +1,1 @@
+NL-wca4te-67=shadowsocks,qq0-04.ywvxhzk.example.com,10060,aes-128-gcm,"UIyHcd6WdDKACc",udp=true

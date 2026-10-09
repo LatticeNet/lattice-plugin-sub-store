@@ -1,0 +1,32 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-yyh6-49",
+      "type": "trojan",
+      "server": "ojd-26.jpya.example.org",
+      "server_port": 443,
+      "password": "N3BO5u3oKZ7MaAHU",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.z5n5auu.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "cdn.z5n5auu.example.com"
+        },
+        "path": "/dmws/d43mz1k"
+      }
+    }
+  ],
+  "endpoints": []
+}

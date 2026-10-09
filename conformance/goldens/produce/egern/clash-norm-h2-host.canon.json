@@ -1,0 +1,47 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "GB-tar-46",
+        "port": 443,
+        "security": "auto",
+        "server": "w7y-37.o465b4c.example.org",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "img.h1c9g9r6o.example.com",
+              "X-zky3g71": "z16kcepj"
+            },
+            "path": "/emz38eglb",
+            "sni": "img.h1c9g9r6o.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "552931fd-1683-49b6-a34f-4ae883271012"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "TW-oq52r2-15",
+        "port": 443,
+        "security": "auto",
+        "server": "moi-07.uggey.example.org",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "api.unensw1l.example.org"
+            },
+            "path": "/go6vp",
+            "sni": "api.unensw1l.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "6f3b98b5-cebc-4003-ab5c-c71f08f094f3"
+      }
+    }
+  ]
+}

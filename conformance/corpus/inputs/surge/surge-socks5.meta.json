@@ -1,0 +1,8 @@
+{
+  "id": "surge-socks5",
+  "family": "surge",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Surge socks5 and socks5-tls with credentials."
+}

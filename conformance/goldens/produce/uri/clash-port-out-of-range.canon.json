@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "US-bfrb-66",
+    "host": "fkb-23.g95rfl34.example.com",
+    "path": "",
+    "port": "70000",
+    "query": [
+      [
+        "sni",
+        "api.gdqao1.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "2WkYTw57EFOugGjI"
+  }
+]

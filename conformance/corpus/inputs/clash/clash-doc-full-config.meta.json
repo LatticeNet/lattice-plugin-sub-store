@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-full-config",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "full-config",
+  "description": "A complete mihomo profile with general keys, dns, groups and rules around the proxies."
+}

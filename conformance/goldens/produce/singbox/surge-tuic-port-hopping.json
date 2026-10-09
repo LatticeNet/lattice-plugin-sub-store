@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-ajaf6-93",
+      "type": "tuic",
+      "server": "ot5-06.htbmu.example.net",
+      "server_port": 443,
+      "uuid": "b1d7c103-a53e-4c59-a49c-59e698ca7b41",
+      "password": "2b9zg3OPu2JaJ6xT",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.we7fbrswnx.example.net",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

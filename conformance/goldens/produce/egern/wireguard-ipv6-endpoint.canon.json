@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "wireguard": {
+        "local_ipv4": "10.9.0.3/32",
+        "local_ipv6": "fd00:9::3/128",
+        "name": "HK-dp0ugx-68",
+        "peer_public_key": "vmwsGZrV3ufK4cHCr/lKFjjqnUIqnOCeGNFRXEbcC7k=",
+        "port": 51820,
+        "private_key": "vdhhZ+I3ibrW3tIzqUZc8uUjV/UK+G+DTgW0fxPBiMg=",
+        "server": "2001:db8:5b5a:a2d4::b245"
+      }
+    }
+  ]
+}

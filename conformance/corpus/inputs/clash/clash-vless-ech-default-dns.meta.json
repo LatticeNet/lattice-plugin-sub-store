@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-ech-default-dns",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ech",
+  "description": "vless with ech-opts enable and only query-server-name."
+}

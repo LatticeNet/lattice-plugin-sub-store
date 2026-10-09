@@ -9,7 +9,11 @@ import {
   paletteEntries,
   PALETTE_COMMANDS,
 } from "./commandPalette";
-import { NO_SOURCE_REASON, READING_REASON, createBlocks } from "./createGate";
+import { createBlocks } from "./createGate";
+import { t } from "./i18n";
+
+const NO_SOURCE_REASON = t.create.noSource;
+const READING_REASON = t.create.reading;
 import type { ActionCapabilities } from "./recordActions";
 
 function record(over: Partial<SubscriptionListItem> = {}): SubscriptionListItem {
@@ -188,10 +192,11 @@ describe("the palette's wiring", () => {
   });
 
   it("hands the work to the screen that owns the record", () => {
-    // The shell cannot open another screen's drawer; it posts an intent and
-    // switches tabs.
+    // The shell cannot open the Records screen's drawers; it posts an intent
+    // and switches to Records with the record's row in view.
     expect(shell).toMatch(/intent\.value = \{ recordId: record\.id, action \}/);
-    expect(shell).toContain("chrome.openLens(viewOfKind(record.kind));");
+    expect(shell).toMatch(/function runFromPalette[\s\S]{0,80}openRecords\(record\);/);
+    expect(shell).toContain("if (record && !matchesKind(record, chrome.facets.kind)) chrome.facets.kind = kindFacetOf(record.kind);");
   });
 
   it("tells assistive tech which row is active", () => {

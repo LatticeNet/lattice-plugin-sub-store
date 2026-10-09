@@ -1,0 +1,20 @@
+[
+  {
+    "address": "nx6-10.ccti3d5z.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "f38-17.jfoeyse.example.net:8080",
+      "obfs-uri": "/pyb3/uvxw9hba4o",
+      "password": "56394afa-2189-4076-b77c-f314bdae667e",
+      "tag": "SG-mtlm4-76",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.fd76v0.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

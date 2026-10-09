@@ -1,0 +1,23 @@
+#!MANAGED-CONFIG https://lu-22.rpzs70hq.example.org/sub interval=86400
+
+[General]
+loglevel = notify
+dns-server = system
+
+[Proxy]
+# comment line
+AU-tx3-71 = ss, v5-05.qb5b.example.org, 34588, encrypt-method=aes-128-gcm, password=i0Xuxu3C1Z8mZe
+// another comment
+TW-cdnh-17 = trojan, bun-09.kwq8.example.net, 443, password=RbyQZY56IcdRRx5v, sni=cdn.bskwnh8rfx.example.com
+DIRECT-ALIAS = direct
+
+[Proxy Group]
+Proxy = select, JP-g22c-33
+
+[WireGuard wwjv]
+private-key = 5UmTub88oHCN58HFLZu0ocydC1nluWsua9hCqFEG504=
+self-ip = 10.7.0.2
+peer = (public-key = oD1jvK1hKa7C6F2Mod/yE2yVUIjp+uIEZi+4KuFdCsc=, endpoint = dk-16.lpfuy.example.com:51820)
+
+[Rule]
+FINAL,Proxy

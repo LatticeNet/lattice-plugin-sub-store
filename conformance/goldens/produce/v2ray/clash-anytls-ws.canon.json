@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "SG-vo9s-94",
+    "host": "dob-07.qwxjve.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.ynkvgq.example.org"
+      ],
+      [
+        "network",
+        "ws"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/qrpgpv/d2nu413y"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.wmxy45i.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "PlDLgcCgRJIg37LoV6c3"
+  }
+]

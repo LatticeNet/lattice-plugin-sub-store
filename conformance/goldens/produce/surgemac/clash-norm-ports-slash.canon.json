@@ -1,0 +1,27 @@
+[
+  {
+    "args": [
+      "mkg-09.nh61g.example.net",
+      "443"
+    ],
+    "name": "GB-rw9-06",
+    "params": {
+      "password": "wKl8PntEJYrIyLHXdG2j",
+      "port-hopping": "59018-59027;14159",
+      "sni": "www.kup71ude7q.example.org"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "xis-35.v7fm.example.com",
+      "443"
+    ],
+    "name": "HK-uqr5-06",
+    "params": {
+      "password": "YSTm6wIrazS7SxyeUBSh",
+      "sni": "static.w381uvl.example.org"
+    },
+    "type": "hysteria2"
+  }
+]

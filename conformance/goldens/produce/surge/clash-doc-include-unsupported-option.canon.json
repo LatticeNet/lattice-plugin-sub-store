@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "l25-15.zi0q.example.org",
+      "49422"
+    ],
+    "name": "GB-q3yeq-20",
+    "params": {
+      "psk": "zf23H7WXJyCHIlhxKR0H",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

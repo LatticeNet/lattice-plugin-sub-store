@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "2001:db8:4d6e:23bd::9d87",
+      "443"
+    ],
+    "name": "TW-wrz9t8-60",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "z0F940oLMYUUFJ",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

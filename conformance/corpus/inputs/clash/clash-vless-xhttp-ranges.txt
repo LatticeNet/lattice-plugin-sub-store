@@ -1,0 +1,42 @@
+proxies:
+  - name: AU-pnw4-54
+    type: vless
+    server: a3-27.acgmr.example.org
+    port: 443
+    uuid: 2ce1df91-ad5d-44f4-a325-b7df9801c023
+    udp: true
+    tls: true
+    servername: img.ylx0bqftm9.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 0IEKpPNyJxLbBKDQQHMlBMxYXdTIJM2xxjBBzy-jTVM
+      short-id: 40ef9828
+    network: xhttp
+    xhttp-opts:
+      path: /zl19
+      mode: packet-up
+      sc-max-each-post-bytes: 1000-2000
+      reuse-settings:
+        max-connections: 16-32
+        h-keep-alive-period: 30
+  - name: SG-zla4t-17
+    type: vless
+    server: hj-06.jfepn.example.net
+    port: 443
+    uuid: 589aba3b-116f-429a-8016-a11025189894
+    udp: true
+    tls: true
+    servername: img.p55l8.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: jhmzvuY77XcGOfno1No20qGgxgHTnivlWxM3pvii9F8
+      short-id: acf66ac6
+    network: xhttp
+    xhttp-opts:
+      path: /dp96nska2
+      mode: packet-up
+      sc-max-each-post-bytes: "0"
+      x-padding-bytes: 2000-1000
+      reuse-settings:
+        max-connections: "-1"
+        h-keep-alive-period: x

@@ -1,0 +1,8 @@
+{
+  "id": "vmess-h2-none",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "h2",
+  "security": "none",
+  "description": "v2rayN JSON VMess link over h2 with security none."
+}

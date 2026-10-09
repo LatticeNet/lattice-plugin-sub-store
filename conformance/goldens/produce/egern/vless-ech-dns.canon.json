@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "CA-zp5-38",
+        "port": 443,
+        "server": "sd-32.hga9.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "api.keoob546.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "6040d5b2-dd22-4cdd-858e-88becead8f7d"
+      }
+    }
+  ]
+}

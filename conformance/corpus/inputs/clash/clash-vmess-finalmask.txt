@@ -1,0 +1,21 @@
+proxies:
+  - name: SG-qa5-45
+    type: vmess
+    server: f2-35.rug0aa.example.com
+    port: 443
+    uuid: 0a8a14d6-5fe1-47a4-b391-8e32145eedb9
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: www.pj3n2fe.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    _finalmask:
+      udp:
+        - type: salamander
+          settings:
+            password: qCvgzRBhc3pT

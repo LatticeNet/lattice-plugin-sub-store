@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "si-01.pyt8o.example.com",
+      "server_port": 443,
+      "tag": "SG-zof-93",
+      "transport": {
+        "headers": {
+          "Host": "si-01.pyt8o.example.com"
+        },
+        "path": "/",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "e59cbec9-9e75-48b1-8c3b-c5b53fb1de09"
+    }
+  ]
+}

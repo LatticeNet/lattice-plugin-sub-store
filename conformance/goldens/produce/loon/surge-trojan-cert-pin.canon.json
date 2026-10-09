@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "198.51.100.227",
+      "443",
+      "2mUxZg0GFFQkZr1P"
+    ],
+    "name": "FR-ozyw6h-48",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "tls-cert-sha256": "A7B75AE5BEB27252A005E1D70B80E40E02A4A53161951CE8BF2EE13A2B1C17BD",
+      "tls-name": "api.meixt51op.example.org",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

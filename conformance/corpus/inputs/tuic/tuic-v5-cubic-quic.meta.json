@@ -1,0 +1,8 @@
+{
+  "id": "tuic-v5-cubic-quic",
+  "family": "tuic",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "description": "TUIC v5 with cubic and quic relay mode."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"alterId":0,"cipher":"auto","client-fingerprint":"chrome","kcp-opts":{"_kcp-path":"mUPvhNzu","_kcp-type":"wechat-video"},"name":"NL-dka-55","network":"kcp","port":443,"server":"in2-39.xggzz5.example.net","tls":true,"type":"vmess","udp":true,"uuid":"4607727b-c6e4-4d64-819f-c18c356a81b6","servername":"static.sig2boev.example.org"}

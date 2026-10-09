@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-xhttp-ranges",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-ranges",
+  "description": "vless xhttp with range values (sc-max-each-post-bytes 1000-2000, reuse-settings.max-connections 16-32, h-keep-alive-period 30), and a second node with out-of-bound values."
+}

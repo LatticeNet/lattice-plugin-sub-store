@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"NL-snw-54","password":"yVHmQka5AJDu0r","port":53322,"server":"lb0-23.vw4fy2jt.example.net","type":"ss","udp":true,"udp-over-tcp":true,"udp-over-tcp-version":2}

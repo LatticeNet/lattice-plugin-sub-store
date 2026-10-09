@@ -1,0 +1,8 @@
+{
+  "id": "clash-sudoku",
+  "family": "clash",
+  "protocol": "sudoku",
+  "transport": "tcp",
+  "security": "none",
+  "description": "sudoku with key and padding options."
+}

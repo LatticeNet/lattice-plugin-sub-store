@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "cipher": "2022-blake3-aes-256-gcm",
+      "name": "US-xksb8-53",
+      "password": "EWKRLbqKkrLmfPsRvWd5uJTj5kbWYatax0DDdbZtB/c=:nlVrFh4vj2g38X12H/jHY84zGfrHgdREZ832YLlTrbA=",
+      "port": 14729,
+      "server": "id2-31.cfpw.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

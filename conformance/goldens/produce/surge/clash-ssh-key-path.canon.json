@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "zm-38.z1bz19i8.example.net",
+      "22"
+    ],
+    "name": "DE-rdjkty-17",
+    "params": {
+      "private-key": "y5wh3781.pem",
+      "username": "ymp5emb"
+    },
+    "type": "ssh"
+  }
+]

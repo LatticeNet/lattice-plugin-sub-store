@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-qtt8e-54",
+      "type": "shadowsocks",
+      "server": "y5b-21.kxhr8n4g.example.com",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "Rfy86lHUaoNBuXr7",
+      "plugin_opts": ""
+    }
+  ],
+  "endpoints": []
+}

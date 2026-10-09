@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "ufh-20.cskk.example.net",
+      "443",
+      "MqstkokkaMmCdlOb"
+    ],
+    "name": "KR-i6c-08",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "tls-name": "www.pu7fx.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

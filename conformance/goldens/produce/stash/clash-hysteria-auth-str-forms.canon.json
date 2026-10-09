@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "auth-str": "0dScwdcFvTsgwoRw",
+      "auth_str": "0dScwdcFvTsgwoRw",
+      "down-speed": "100",
+      "name": "FR-zgr62-62",
+      "port": 41321,
+      "protocol": "udp",
+      "server": "qj-31.bnvjp5.example.org",
+      "skip-cert-verify": false,
+      "sni": "img.swzlt3589.example.org",
+      "type": "hysteria",
+      "udp": true,
+      "up-speed": "30"
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "auth-str": "WMWle62v bypAvQ0U",
+      "down-speed": "100",
+      "name": "HK-epef-89",
+      "port": 32670,
+      "protocol": "udp",
+      "server": "eq-11.iv7rmg4.example.net",
+      "skip-cert-verify": false,
+      "sni": "www.x5csa.example.com",
+      "type": "hysteria",
+      "udp": true,
+      "up-speed": "30"
+    }
+  ]
+}

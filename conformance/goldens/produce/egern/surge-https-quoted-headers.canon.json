@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "https": {
+        "headers": {
+          "X-A": "8",
+          "X-B": "\\\"bn73;t8a6o\\\""
+        },
+        "name": "NL-uweh-78",
+        "password": "pG781flwXCsl",
+        "port": 443,
+        "server": "y7-34.vb5wyv5p.example.org",
+        "sni": "cdn.cefk3wbf7.example.org",
+        "tfo": false,
+        "username": "vl82wc"
+      }
+    }
+  ]
+}

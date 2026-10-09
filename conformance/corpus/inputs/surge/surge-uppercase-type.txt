@@ -1,0 +1,1 @@
+KR-sdl-93 = SS, t0f-30.ijwyw.example.org, 54557, encrypt-method=aes-128-gcm, password=HEngghkp19yRjn

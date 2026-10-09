@@ -1,0 +1,18 @@
+[
+  {
+    "address": "yqk-19.r69bdev.example.org:443",
+    "args": [],
+    "params": {
+      "obfs": "wss",
+      "obfs-host": "img.xbzfirh7.example.com",
+      "obfs-uri": "/fiz5/ilveyth9g",
+      "password": "yiccfKubyAbJv2Cc",
+      "reality-base64-pubkey": "UKq0zxqr7fQwypkT3_R8FEgH_q_SlbqrKVCH1qIwI9k",
+      "reality-hex-shortid": "e8a04321",
+      "tag": "HK-mg7g7-33",
+      "tls-host": "img.xbzfirh7.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

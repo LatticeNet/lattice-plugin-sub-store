@@ -1,0 +1,9 @@
+{
+  "id": "clash-tuic-tfo",
+  "family": "clash",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "fast-open",
+  "description": "tuic with tfo: true and no fast-open."
+}

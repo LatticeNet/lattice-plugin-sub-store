@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"GB-s63s-21","server":"bi-14.qievq7x.example.com","port":443,"auth":"vCWyidJwQyfuWrJv4pzN","tfo":false,"udp_relay":true,"sni":"img.qj6n1.example.net","skip_tls_verify":false}}

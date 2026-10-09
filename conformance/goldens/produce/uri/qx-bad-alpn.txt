@@ -1,0 +1,1 @@
+trojan://jjPT3sFpPqTjDrbJ@yev-28.xniy064.example.net:443?sni=cdn.a6fucziy.example.net&type=tcp#US-jnq-88

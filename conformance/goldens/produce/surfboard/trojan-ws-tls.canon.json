@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "ojd-26.jpya.example.org",
+      "443"
+    ],
+    "name": "SG-yyh6-49",
+    "params": {
+      "password": "N3BO5u3oKZ7MaAHU",
+      "sni": "cdn.z5n5auu.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"cdn.z5n5auu.example.com\"",
+      "ws-path": "/dmws/d43mz1k"
+    },
+    "type": "trojan"
+  }
+]

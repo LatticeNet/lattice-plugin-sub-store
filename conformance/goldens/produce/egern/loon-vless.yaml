@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"GB-npq0ne-18","server":"t66-10.q2w5m.example.net","port":443,"user_id":"7d9e2f8a-0400-4958-a9a0-86c2c3d797df","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.zdx9yiirp.example.com"}},"flow":"xtls-rprx-vision"}}
+  - {"vless":{"name":"AU-j1fz-50","server":"ihv-18.fxh80bt.example.net","port":443,"user_id":"283dfeac-72d9-457c-9499-faffee7e8706","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/cspqc9wvkw","headers":{"Host":"static.cfdjp53j.example.com"},"sni":"static.cfdjp53j.example.com"}}}}

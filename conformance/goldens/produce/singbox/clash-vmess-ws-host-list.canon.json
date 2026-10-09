@@ -1,0 +1,37 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "du-21.xuqo.example.net",
+      "server_port": 443,
+      "tag": "JP-sllha-25",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.hj7i0uqi3t.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": [
+            "wk-11.bydc.example.org",
+            "bzy-26.x994q.example.com"
+          ]
+        },
+        "path": "/ohvx2r/ccu9",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "abeab29a-533c-49a8-9ea3-5fa5fd336813"
+    }
+  ]
+}

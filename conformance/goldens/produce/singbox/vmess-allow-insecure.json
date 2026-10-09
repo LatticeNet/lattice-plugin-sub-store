@@ -1,0 +1,63 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-nmg-47",
+      "type": "vmess",
+      "server": "oes-32.n24d5.example.net",
+      "server_port": 443,
+      "uuid": "c9dbfd76-55c7-44c4-8994-6664aa738d1c",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.ona5zaws.example.org",
+        "insecure": true,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "cdn.ona5zaws.example.org"
+        },
+        "path": "/r17mh"
+      }
+    },
+    {
+      "tag": "US-woc-03",
+      "type": "vmess",
+      "server": "mp-03.vjrfhp59.example.org",
+      "server_port": 443,
+      "uuid": "3111cd1e-db1b-45c0-998d-ba3c52f64f32",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.mf2uv0vj.example.com",
+        "insecure": true,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.mf2uv0vj.example.com"
+        },
+        "path": "/ex9zeq2"
+      }
+    }
+  ],
+  "endpoints": []
+}

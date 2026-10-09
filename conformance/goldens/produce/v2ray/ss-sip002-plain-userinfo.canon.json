@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "AU-qsa-88",
+    "host": "yp-02.if8lse.example.org",
+    "path": "",
+    "port": "28238",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp2OU9rYlBxcUhBWkdXUHIx",
+    "userinfo_base64": "chacha20-ietf-poly1305:v9OkbPqqHAZGWPr1"
+  }
+]

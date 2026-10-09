@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"AU-xcg-14","method":"aes-128-gcm","server":"vgz-03.wijo.example.com","port":19730,"password":"485528","tfo":false,"udp_relay":true}}
+  - {"trojan":{"name":"NL-yspkh0-87","server":"frx-40.o7y8y1.example.org","port":443,"password":"70370695","tfo":false,"udp_relay":false,"sni":"static.mq1bb04d.example.net"}}

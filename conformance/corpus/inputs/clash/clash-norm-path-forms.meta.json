@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-path-forms",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "path-forms",
+  "description": "N16 and N30: a ws path given as a number and one without a leading slash, a grpc path list with a blank element, trojan on http with a text path, and masque on ws without a path."
+}

@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-s8k-58",
+      "type": "tuic",
+      "server": "m97-07.vapbfgw4.example.net",
+      "server_port": 443,
+      "uuid": "8084f53b-14db-4353-bb2f-54266975fe35",
+      "password": "haySs7N4afsvUahP",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.r0ym9flg0.example.net",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

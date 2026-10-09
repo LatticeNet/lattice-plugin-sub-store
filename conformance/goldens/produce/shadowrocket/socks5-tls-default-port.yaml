@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"KR-m37jau-89","port":443,"server":"hum-22.nsl1n.example.com","sni":"hum-22.nsl1n.example.com","tls":true,"type":"socks5","udp":true}

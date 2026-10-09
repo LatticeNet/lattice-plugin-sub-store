@@ -1,0 +1,11 @@
+[
+  {
+    "address": "pri-05.hq82lhl.example.net:80",
+    "args": [],
+    "params": {
+      "tag": "http pri-05.hq82lhl.example.net:80",
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

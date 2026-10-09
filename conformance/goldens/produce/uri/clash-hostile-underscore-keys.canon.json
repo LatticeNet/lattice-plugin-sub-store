@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "DE-njz7k-17",
+    "host": "k4-16.jn75z1.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "095a09fb"
+      ],
+      [
+        "sni",
+        "static.ly0di.example.org"
+      ],
+      [
+        "spx",
+        "/san/uymw9"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "e23518f7-6bdf-4157-a78c-e04cd917c507"
+  }
+]

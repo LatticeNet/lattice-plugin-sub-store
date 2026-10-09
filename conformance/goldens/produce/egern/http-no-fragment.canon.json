@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "http kuj-37.whmza.example.org:8080",
+        "port": 8080,
+        "server": "kuj-37.whmza.example.org",
+        "tfo": false
+      }
+    }
+  ]
+}

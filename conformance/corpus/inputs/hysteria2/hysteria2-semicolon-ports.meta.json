@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-semicolon-ports",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "port-list-semicolon",
+  "description": "An authority port list host:443;8443: port is not-a-number and ports is 443;8443 as written."
+}

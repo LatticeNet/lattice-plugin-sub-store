@@ -1,0 +1,34 @@
+[
+  {
+    "args": [
+      "sp-32.tm7unoq.example.net",
+      "443"
+    ],
+    "name": "CA-n3w9j-79",
+    "params": {
+      "sni": "sp-32.tm7unoq.example.net",
+      "tls": "true",
+      "username": "9bf01f9f-26db-45dd-8286-efcd31efd819",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-path": "/lr90"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "xhw-30.mj0me.example.org",
+      "443"
+    ],
+    "name": "AU-q0l0b-46",
+    "params": {
+      "sni": "xhw-30.mj0me.example.org",
+      "tls": "true",
+      "username": "9bf01f9f-26db-45dd-8286-efcd31efd819",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-path": "/rse2gc/i7dsee8t"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "JP-ei5q-91",
+    "host": "eh-02.e6fd.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.lgpapm0p.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "Dxnae7hB8sq8H4nnLYFk"
+  }
+]

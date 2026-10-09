@@ -1,0 +1,7 @@
+proxy-groups:
+  - name: s7j9as38
+    type: url-test
+    proxies:
+      - DIRECT
+    url: http://i07-13.jawx.example.com/generate_204
+    interval: 300

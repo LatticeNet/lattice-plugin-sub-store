@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "FR-gg4he-79",
+    "host": "cl3-20.f1i93c.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "pbk",
+        "7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "fd7b5be3"
+      ],
+      [
+        "sni",
+        "img.zz8yf8k7.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "8siqyovoAYVDDHHY"
+  }
+]

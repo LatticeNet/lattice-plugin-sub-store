@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "NL-ch4-64",
+        "port": 443,
+        "security": "auto",
+        "server": "cej-15.bkqvxt7.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.vn1oixf1.example.org"
+            },
+            "path": "/xbne0",
+            "skip_tls_verify": false,
+            "sni": "static.vn1oixf1.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d"
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "args": [
+      "yi-18.nwuw0vdq.example.com",
+      "443"
+    ],
+    "name": "SG-ndx7f-75",
+    "params": {
+      "alpn": "h3",
+      "password": "LiA8wWkAmjun7p5p",
+      "sni": "cdn.uybowyulgx.example.net",
+      "uuid": "e36e543d-430c-4504-95a2-fcb1e9e8c41e"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "cn-35.vy0b.example.net",
+      "443"
+    ],
+    "name": "US-qkl-19",
+    "params": {
+      "alpn": "h3",
+      "password": "MLs179LcEU5gAAyL",
+      "sni": "static.hiqwqs.example.org",
+      "uuid": "79338101-7e19-4bf8-bd50-bc577e9913a8"
+    },
+    "type": "tuic-v5"
+  },
+  {
+    "args": [
+      "i4p-30.pqvll.example.com",
+      "443"
+    ],
+    "name": "TW-w25-72",
+    "params": {
+      "alpn": "h3,spdy/3.1",
+      "password": "RxcZJzwe8DttDIdv",
+      "sni": "cdn.augcru5.example.org",
+      "uuid": "5c112dae-2e13-4949-b4c1-e96e3d222134"
+    },
+    "type": "tuic-v5"
+  }
+]

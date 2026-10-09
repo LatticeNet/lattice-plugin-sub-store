@@ -1,0 +1,3 @@
+TW-a8ef-18=hysteria2,w5-33.b8gbhup.example.net,443,password="O5JKgY3RhM4YtB2LW6sQ",sni="img.gvbtkgnh.example.org",skip-cert-verify=false,udp-relay=true
+SG-kutb-91=hysteria2,v4z-07.bsiwk9.example.net,443,password="1ZwO87l7TwxoKe9JwQre",salamander-password="rYyQ9Pf4sBcZnEas",sni="img.labnn7rfp.example.net",udp-relay=true
+FR-uu3v3-82=hysteria2,s4-29.i7snt2pt.example.net,443,password="ZJsIFFB8Z3JgXRHfRBUu",port-hopping="20000-30000",port-hopping-interval=30,sni="api.qkjsan.example.org",download-bandwidth=200,udp-relay=true

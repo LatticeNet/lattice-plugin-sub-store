@@ -1,0 +1,1 @@
+anytls://rvM8Z05R12RcqZmZCiEk@j4-13.xm3tt.example.org:443?sni=static.s3f3pn.example.com&idle-session-check-interval=30&idle-session-timeout=30&min-idle-session=1#NL-m714hc-32

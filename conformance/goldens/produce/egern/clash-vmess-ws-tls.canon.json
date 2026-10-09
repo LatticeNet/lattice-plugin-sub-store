@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "TW-xhup-68",
+        "port": 443,
+        "security": "auto",
+        "server": "tau-38.aett40.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.rooc7abl.example.com"
+            },
+            "path": "/kczba7vr",
+            "skip_tls_verify": false,
+            "sni": "static.rooc7abl.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93"
+      }
+    }
+  ]
+}

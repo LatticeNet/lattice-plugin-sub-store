@@ -1,0 +1,1 @@
+JP-wqjm9-26=Hysteria2,ry-31.ngpamb5.example.net,443,"xBfmvQnqwyT2k1d0tmXj",server-ports="20000-30000",hop-interval=15,tls-name=cdn.ygqhz.example.org,udp=true

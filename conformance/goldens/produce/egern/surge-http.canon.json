@@ -1,0 +1,32 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "NL-nkzbk-02",
+        "port": 8080,
+        "server": "vb-17.e188i878.example.net",
+        "tfo": false
+      }
+    },
+    {
+      "http": {
+        "name": "DE-epqj-42",
+        "password": "kTH9PbaXBZbB",
+        "port": 8080,
+        "server": "g2c-07.eklb.example.com",
+        "tfo": false,
+        "username": "ytqroxb5"
+      }
+    },
+    {
+      "http": {
+        "name": "FR-ikt0-49",
+        "password": "CNhUZkFflnfQ",
+        "port": 8080,
+        "server": "bpv-02.oqml6c.example.org",
+        "tfo": false,
+        "username": "e0bqj"
+      }
+    }
+  ]
+}

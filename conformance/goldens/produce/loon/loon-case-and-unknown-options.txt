@@ -1,0 +1,2 @@
+CA-zey-95=shadowsocks,e1-22.bfb12rc2.example.net,10502,aes-128-gcm,"GPUCzjamTorayo",block-quic=true,udp=true,ip-mode=v4-only
+KR-jpsq-90=vmess,cd-20.poht.example.org,51894,auto,"66613e63-dc32-4b93-8350-1eec860bb5d0",transport=tcp,alterId=0,udp=true

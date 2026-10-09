@@ -1,0 +1,1 @@
+DE-b7miyb-06=vmess,h8-35.ke75.example.org,443,username=a63ff333-ba61-4ef6-a1fa-b2d5e8d6b680,ws=true,ws-path=/utg25,ws-headers="X-A:"z9ce"",vmess-aead=true,tls=true,sni="img.bxztir.example.com",alpn="h2,http/1.1",skip-cert-verify=false

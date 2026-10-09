@@ -1,0 +1,15 @@
+[
+  {
+    "address": "ec-33.vvz9nnx.example.net:443",
+    "args": [],
+    "params": {
+      "fast-open": "true",
+      "over-tls": "true",
+      "password": "rIMI2l87ZUcn0Dio",
+      "tag": "ec-33.vvz9nnx.example.net:443",
+      "tls-host": "ec-33.vvz9nnx.example.net",
+      "udp-relay": "false"
+    },
+    "type": "trojan"
+  }
+]

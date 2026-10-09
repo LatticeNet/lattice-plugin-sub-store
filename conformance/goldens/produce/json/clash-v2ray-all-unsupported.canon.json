@@ -1,0 +1,20 @@
+[
+  {
+    "name": "DE-etktcw-02",
+    "password": "QYrIC13bchqS",
+    "port": 8080,
+    "server": "n8s-17.s0mpz.example.net",
+    "type": "http",
+    "udp": true,
+    "username": "bb25f"
+  },
+  {
+    "name": "NL-pj3l7-41",
+    "password": "VMGYcj8oRohq",
+    "port": 8080,
+    "server": "ihj-14.hf0kvu.example.net",
+    "type": "http",
+    "udp": true,
+    "username": "e2fw"
+  }
+]

@@ -2,6 +2,8 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { PcCount } from "@latticenet/plugin-bridge/chassis";
 
+import { t } from "../i18n";
+
 /**
  * Underline section tabs inside an editor. Quieter than the page lens pills:
  * no filled track, a 2px primary bar, optional count, and a warning dot when
@@ -58,7 +60,8 @@ onBeforeUnmount(() => ro?.disconnect());
         v-if="errorTab === tab.id && modelValue !== tab.id"
         class="editor-tab-flag"
         :title="errorTitle"
-        aria-label="This section has a problem"
+        role="img"
+        :aria-label="t.sectionTabs.problem"
       />
     </button>
     <span class="ed-tabs-ink" :style="{ transform: `translateX(${ink.x}px)`, width: `${ink.w}px` }" aria-hidden="true" />

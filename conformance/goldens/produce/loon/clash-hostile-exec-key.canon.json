@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "c8k-13.e1l43f.example.org",
+      "43977",
+      "aes-128-gcm",
+      "KYsCwZmKBjKgSF"
+    ],
+    "name": "GB-fz8n-86",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "b6x-20.i8josg.example.org",
+      "10947",
+      "chacha20-ietf",
+      "bcFPcct0YV3p"
+    ],
+    "name": "KR-ndqkk-68",
+    "params": {
+      "obfs": "plain",
+      "protocol": "origin",
+      "udp": "true"
+    },
+    "type": "shadowsocksr"
+  }
+]

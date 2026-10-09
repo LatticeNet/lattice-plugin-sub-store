@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "CA-e44-62",
+    "host": "is-28.lree.example.org",
+    "path": "",
+    "port": "26241",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206cmZyd0pJUThtcHJ6SlE=",
+    "userinfo_base64": "aes-128-gcm:rfrwJIQ8mprzJQ"
+  }
+]

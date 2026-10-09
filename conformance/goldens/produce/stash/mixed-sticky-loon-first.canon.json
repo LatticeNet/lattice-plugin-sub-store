@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "name": "HK-mz0r-89",
+      "password": "kaX16lgCD924",
+      "port": 8080,
+      "server": "kf-11.i58wm.example.com",
+      "tfo": true,
+      "type": "http",
+      "udp": true,
+      "username": " o052km1"
+    },
+    {
+      "name": "HK-mz0r-89",
+      "password": "kaX16lgCD924",
+      "port": 8080,
+      "server": "kf-11.i58wm.example.com",
+      "type": "http",
+      "udp": true,
+      "username": " o052km1"
+    }
+  ]
+}

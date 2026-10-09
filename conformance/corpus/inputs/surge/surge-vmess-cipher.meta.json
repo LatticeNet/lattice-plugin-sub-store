@@ -1,0 +1,9 @@
+{
+  "id": "surge-vmess-cipher",
+  "family": "surge",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "vmess-cipher",
+  "description": "VMess encrypt-method chacha20-poly1305, then chacha20-ietf-poly1305: auto, then chacha20-poly1305."
+}

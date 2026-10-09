@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "auth_str": "aAz3856ZQjqxVOTJ",
+      "disable_mtu_discovery": false,
+      "down_mbps": 200,
+      "obfs": "HiQ2uYiYts",
+      "server": "eem-03.omri2b2.example.org",
+      "server_port": 41261,
+      "tag": "DE-hfwjs3-70",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.rsv0amup7.example.net"
+      },
+      "type": "hysteria",
+      "up_mbps": 30
+    }
+  ]
+}

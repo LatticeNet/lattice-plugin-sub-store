@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "GB-va61-64",
+        "password": "ANynptDVg71WtZdX",
+        "port": 443,
+        "server": "dp-23.ojwwxjul.example.net",
+        "skip_tls_verify": false,
+        "sni": "cdn.vciwrfciu.example.net",
+        "uuid": "4728e15e-50cf-48e9-bcf4-109a73b21ee5"
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"AU-do2bi-94","method":"aes-128-gcm","server":"ik4-24.pakq1pd.example.com","port":39141,"password":"oTe2mcYzsduFTR","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"SG-j37i-11","method":"chacha20-poly1305","server":"lpx-15.sisat.example.net","port":14150,"password":"oTe2mcYzsduFTR","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"NL-tw5z-43","method":"chacha20-poly1305","server":"dm-30.e2zlt1bx.example.net","port":14150,"password":"oTe2mcYzsduFTR","tfo":false,"udp_relay":true}}

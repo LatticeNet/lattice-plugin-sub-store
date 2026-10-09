@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"SG-yyjrva-54","method":"aes-128-gcm","server":"d6y-20.oabma4i4.example.org","port":32468,"password":"PUq0L4AbgcmLrQ","tfo":false,"udp_relay":true,"obfs":"http","obfs_host":"api.fc9ofw.example.org"}}

@@ -1,0 +1,1 @@
+AU-d9j-96=vmess,ahe-13.bx4bjkbt.example.net,443,username=ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef,ws=true,ws-path=/lo0adt/oqsutga,ws-headers="Host:"ahe-13.bx4bjkbt.example.net"",vmess-aead=true

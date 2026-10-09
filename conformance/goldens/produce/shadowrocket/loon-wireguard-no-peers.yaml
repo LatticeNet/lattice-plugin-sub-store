@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"NL-ciu-52","type":"wireguard-surge","udp":true}

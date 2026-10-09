@@ -1,0 +1,31 @@
+{
+  "proxies": [
+    {
+      "name": "TW-pv2r-62",
+      "peers": [
+        {
+          "allowed-ips": [
+            "0.0.0.0/0"
+          ],
+          "port": 51820,
+          "public-key": "hQsmleyfagjgdtM+gXJapFxE86tBEivr+Glw6/+7tuU=",
+          "server": "u1-34.l923l.example.com"
+        },
+        {
+          "allowed-ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "ip": "10.202.41.218",
+          "ipv6": "fd00:1762::aebc",
+          "port": 51820,
+          "public-key": "R67gJ+9ya8s8x2Fag8G8FUQ+s0h3OICCGO4/hdoStQI=",
+          "server": "btb-14.g5s1m.example.com"
+        }
+      ],
+      "private-key": "eYFtgcfZFlM+h2S35AIzzrUyT20Uijna1BVllbt1jCo=",
+      "type": "wireguard",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+vmess=iy-03.lvd0u.example.com:80,method=chacha20-poly1305,password=d7d256b8-aa72-41a5-952a-4a1c853b315b,obfs=ws,obfs-uri=/iz57g9,obfs-host=iy-03.lvd0u.example.com,aead=true,udp-relay=true,tag=JP-pbg8g-55

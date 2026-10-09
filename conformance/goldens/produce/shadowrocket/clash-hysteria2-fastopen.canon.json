@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "fast-open": true,
+      "name": "SG-vwk2-66",
+      "password": "hF9IuU0ISd7Gz9sI9VrY",
+      "port": 443,
+      "server": "ur-40.nw6l.example.net",
+      "sni": "static.jzfhs115.example.net",
+      "tfo": true,
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "fast-open": true,
+      "name": "HK-wv1-55",
+      "password": "4GlcBhFWc9on08dqocz0",
+      "port": 443,
+      "server": "vr-05.xhjbigia.example.org",
+      "sni": "api.zldsqhz5l.example.net",
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

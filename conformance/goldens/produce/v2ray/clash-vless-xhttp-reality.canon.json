@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "CA-dl6m-29",
+    "host": "f1-21.fd5h.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "cdn.gwygnyy1zf.example.org"
+      ],
+      [
+        "mode",
+        "auto"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/ohrezqi"
+      ],
+      [
+        "pbk",
+        "NeSVx1UZNX6mkG-MOP35s3re9-pc-7fFelYVLCgs4ho"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "f7a85b9c"
+      ],
+      [
+        "sni",
+        "cdn.gwygnyy1zf.example.org"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b1c7a419-420b-488c-872e-aec562a67beb"
+  }
+]

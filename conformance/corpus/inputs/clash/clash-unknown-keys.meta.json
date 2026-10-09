@@ -1,0 +1,7 @@
+{
+  "id": "clash-unknown-keys",
+  "family": "clash",
+  "protocol": "vless",
+  "quirk": "unknown-keys",
+  "description": "A VLESS proxy with unknown top-level keys and an unknown key inside ws-opts: they pass through unchanged."
+}

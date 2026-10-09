@@ -1,0 +1,24 @@
+proxies:
+  - name: DE-t9cd-62
+    type: vless
+    server: uv7-24.kgk0hqd2.example.org
+    port: 443
+    uuid: 56599273-9afb-4b52-9681-272d5bf6b71e
+    udp: true
+    tls: true
+    servername: www.wo8vb50bg.example.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7vu-Y-YnXHoUbAKIKq2nvV-_WfgFt8jGLAx4O7TGP_Q
+      short-id: ff1ad8ff
+    network: xhttp
+    xhttp-opts:
+      path: /gcs/uzso1x
+      mode: packet-up
+      download-settings:
+        path: /lku4/pbpp9t3570
+        server: o0-04.p4q2d28l.example.net
+        port: 443
+        tls: true
+        servername: cdn.vo0bc0m.example.net
+        client-fingerprint: chrome

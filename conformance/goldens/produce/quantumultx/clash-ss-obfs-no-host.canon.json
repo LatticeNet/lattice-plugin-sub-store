@@ -1,0 +1,14 @@
+[
+  {
+    "address": "nqj-39.vj1nhp.example.net:26246",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "http",
+      "password": "39ic9wEqGqdWx6",
+      "tag": "HK-lyqz-03",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

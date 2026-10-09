@@ -1,0 +1,1 @@
+socks5+tls://hum-22.nsl1n.example.com#KR-m37jau-89

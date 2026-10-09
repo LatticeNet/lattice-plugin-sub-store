@@ -1,0 +1,1 @@
+http=bg-20.koifso.example.org:443,username=xmmwh,password=qMhtBNRElE5A,over-tls=true,tls-verification=true,tls-host=img.bxln43ak.example.net,udp-relay=true,tag=HK-bdzvs-31

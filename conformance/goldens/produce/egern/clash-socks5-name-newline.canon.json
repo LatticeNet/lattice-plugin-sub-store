@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "fk5tg8\nhyn1sg63",
+        "password": "5OKlfrVLEtru",
+        "port": 1080,
+        "server": "xlh-33.n4sclexz.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "zqhe3gwg"
+      }
+    }
+  ]
+}

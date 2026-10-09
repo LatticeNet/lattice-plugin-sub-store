@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue";
 import { PcButton, PcKindChip, PcNotice, PcSidePanel, PcStateDot } from "@latticenet/plugin-bridge/chassis";
 
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB } from "../client";
+import { t } from "../i18n";
 import { SHARES_LIST_ROUTE, hostOriginFromHash, postNavigate, sharesRoute } from "../navigate";
 import {
   clientOfFile,
@@ -13,6 +14,7 @@ import {
   reachingShares,
   sourceKindLabel,
 } from "../pipeline";
+import { isFlagged } from "../recordTable";
 import type { Pipeline } from "../usePipeline";
 import { copyText } from "../hostClipboard";
 import { refreshStateFor, shareLinkOf, stateTone } from "../shareState";
@@ -93,7 +95,7 @@ watch(
 /** The share-copy path every surface uses: the clipboard, or the link on screen. */
 async function copyShare(link: string): Promise<void> {
   manualLink.value = "";
-  if (await copyText(link)) status.value = { text: "Copied the link.", tone: "success" };
+  if (await copyText(link)) status.value = { text: t.record.copiedLink, tone: "success" };
   else manualLink.value = link;
 }
 
@@ -113,11 +115,8 @@ watch(
 const kindLabel = computed(() => {
   const item = record.value;
   if (!item) return "";
-  if (kind.value === KIND_COLLECTION) return "Combination";
-  if (kind.value === KIND_FILE) {
-    const type = item.file_type === "plain" ? "plain text" : item.file_type === "script" ? "script" : "configuration";
-    return `File, ${type}`;
-  }
+  if (kind.value === KIND_COLLECTION) return t.record.kindCombination;
+  if (kind.value === KIND_FILE) return t.record.fileKind[item.file_type === "plain" ? "plain" : item.file_type === "script" ? "script" : "config"];
   return sourceKindLabel(item);
 });
 
@@ -139,8 +138,8 @@ const reachedThrough = computed(() =>
     .filter((reach) => reach.via.length)
     .map((reach) => {
       const node = props.pipe.lineage.value.nodes.get(reach.share);
-      const off = node?.share && !node.share.enabled ? " (disabled)" : "";
-      return { key: reach.share, label: `${node?.label ?? reach.share}${off}`, via: reach.via.map(nameOf).join(" → ") };
+      const label = node?.label ?? reach.share;
+      return { key: reach.share, label: node?.share && !node.share.enabled ? t.record.shareDisabled(label) : label, via: reach.via.map(nameOf).join(" → ") };
     }),
 );
 
@@ -148,8 +147,8 @@ const steps = computed(() => {
   const item = record.value;
   if (!item) return "";
   const n = item.step_count;
-  if (!n) return "none";
-  return `${n} step${n === 1 ? "" : "s"}${item.disabled_step_count ? `, ${item.disabled_step_count} off` : ""}`;
+  if (!n) return t.record.stepsNone;
+  return t.record.stepsCount(n, item.disabled_step_count || 0);
 });
 
 const refresh = computed(() => (record.value && isProviderLink(record.value) ? refreshStateFor(record.value, props.pipe.now.value) : null));
@@ -167,7 +166,7 @@ function publish(): void {
     :open="!!id && !!record"
     :title="record ? record.display_name || record.name : ''"
     :description="kindLabel"
-    close-label="Close the side panel"
+    :close-label="t.record.closePanel"
     :return-focus-to="returnTarget"
     @close="close()"
   >
@@ -176,98 +175,101 @@ function publish(): void {
       <LtManualCopy v-if="manualLink" :value="manualLink" subject="link" />
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
-        <PcKindChip v-if="record.imported" label="migrated" title="Imported from a standalone Sub-Store" />
+        <PcKindChip v-if="record.imported" :label="t.records.migratedTag" :title="t.record.importedTitle" />
+        <PcStateDot v-if="isFlagged(record)" tone="warning" :label="t.records.flagged" :title="t.records.flaggedTitle" data-testid="record-flagged" />
       </div>
       <!-- The reason behind a broken state; a warning's facts are in the list below. -->
       <p v-if="health.tone === 'error'" class="peek-why">{{ health.title }}</p>
+      <!-- The flag's reason in words, with the way out: Edit, below. -->
+      <p v-if="isFlagged(record)" class="peek-why">{{ t.records.flaggedTitle }}</p>
 
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">
-          <dt>Nodes</dt>
-          <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span v-if="pipe.nodes(id).includes('→')" class="peek-note">in → out</span></dd>
-          <dt>Steps</dt>
+          <dt>{{ t.record.nodes }}</dt>
+          <dd class="peek-mono" :title="pipe.nodesTitle(id)">{{ pipe.nodes(id) }}<span v-if="pipe.nodes(id).includes('→')" class="peek-note">{{ t.record.inOut }}</span></dd>
+          <dt>{{ t.record.steps }}</dt>
           <dd>{{ steps }}</dd>
         </template>
 
         <template v-if="figures">
-          <dt>Provider</dt>
+          <dt>{{ t.record.provider }}</dt>
           <dd class="peek-usage">
             <UsageBar :figures="figures" />
-            <span class="peek-note">{{ [formatUsage(figures), formatExpiry(figures, pipe.now.value)].filter(Boolean).join(", ") }}</span>
+            <span class="peek-note">{{ t.common.joinFacts([formatUsage(figures), formatExpiry(figures, pipe.now.value)].filter(Boolean)) }}</span>
           </dd>
         </template>
         <template v-if="refresh">
-          <dt>Last refresh</dt>
+          <dt>{{ t.record.lastRefresh }}</dt>
           <dd><PcStateDot :tone="stateTone(refresh.tone)" :label="refresh.label" :title="refresh.title || refresh.label" /></dd>
         </template>
 
         <template v-if="kind === KIND_COLLECTION">
-          <dt>Members</dt>
+          <dt>{{ t.record.members }}</dt>
           <dd>
             <ul class="peek-links">
               <li v-for="member in upstream" :key="member">
                 <button type="button" class="peek-link" @click="emit('open', member)">{{ nameOf(member) }}</button>
               </li>
               <li v-for="ref in broken" :key="ref.ref" class="peek-broken">{{ ref.ref }} <span>{{ ref.reason }}</span></li>
-              <li v-if="!upstream.length && !broken.length" class="peek-note">No members resolve</li>
+              <li v-if="!upstream.length && !broken.length" class="peek-note">{{ t.record.noMembersResolve }}</li>
             </ul>
-            <p v-if="record.member_tags?.length" class="peek-note">Plus every source tagged {{ record.member_tags.join(", ") }}</p>
+            <p v-if="record.member_tags?.length" class="peek-note">{{ t.record.plusTagged(record.member_tags.join(", ")) }}</p>
           </dd>
         </template>
 
         <template v-if="kind === KIND_FILE">
-          <dt>Renders</dt>
+          <dt>{{ t.record.renders }}</dt>
           <dd>
             <button v-if="upstream[0]" type="button" class="peek-link" @click="emit('open', upstream[0]!)">{{ nameOf(upstream[0]!) }}</button>
             <span v-else-if="broken[0]" class="peek-broken">{{ broken[0].ref }} <span>{{ broken[0].reason }}</span></span>
-            <span v-else class="peek-note">Nothing: the document is served as written</span>
+            <span v-else class="peek-note">{{ t.record.servedAsWritten }}</span>
           </dd>
-          <dt>Client</dt>
+          <dt>{{ t.record.client }}</dt>
           <dd>
             <span v-if="client">{{ client.label }}</span>
-            <span v-else class="peek-note" title="The file's name does not name a client app.">Not named</span>
+            <span v-else class="peek-note" :title="t.record.clientNotNamedTitle">{{ t.record.clientNotNamed }}</span>
           </dd>
         </template>
 
-        <dt>Feeds</dt>
+        <dt>{{ t.record.feeds }}</dt>
         <dd>
           <ul v-if="downstreamRecords.length" class="peek-links">
             <li v-for="child in downstreamRecords" :key="child">
               <button type="button" class="peek-link" @click="emit('open', child)">{{ nameOf(child) }}</button>
             </li>
           </ul>
-          <span v-else class="peek-note">{{ kind === KIND_FILE ? "A file is the end of the chain" : "Nothing uses this record" }}</span>
+          <span v-else class="peek-note">{{ kind === KIND_FILE ? t.record.fileEnd : t.record.nothingUses }}</span>
         </dd>
 
-        <dt>Published</dt>
+        <dt>{{ t.record.published }}</dt>
         <dd>
           <template v-if="pipe.shares.value === undefined">
-            <span class="peek-note">{{ pipe.shareStore.error.value || "The share list has not been read" }}</span>
+            <span class="peek-note">{{ pipe.shareStore.error.value || t.record.sharesUnread }}</span>
           </template>
           <ul v-else-if="shares.length" class="peek-links">
             <li v-for="share in shares" :key="share.share_id" class="peek-share">
               <span class="peek-mono">/{{ share.slug }}</span>
-              <span class="peek-note">{{ pipe.liveShares(id).includes(share) ? "live" : share.enabled ? "expired" : "disabled" }}</span>
-              <PcButton v-if="shareLinkOf(share)" compact @click="copyShare(shareLinkOf(share))">Copy link</PcButton>
+              <span class="peek-note">{{ pipe.liveShares(id).includes(share) ? t.shareState.live : share.enabled ? t.shareState.expired : t.shareState.disabled }}</span>
+              <PcButton v-if="shareLinkOf(share)" compact @click="copyShare(shareLinkOf(share))">{{ t.record.copyLink }}</PcButton>
             </li>
           </ul>
           <ul v-else-if="reachedThrough.length" class="peek-links">
             <li v-for="reach in reachedThrough" :key="reach.key" class="peek-share">
-              <span class="peek-note">Not published itself; clients get it through <span class="peek-mono">{{ reach.label }}</span>, via {{ reach.via }}</span>
+              <span class="peek-note">{{ t.record.reachedBefore }} <span class="peek-mono">{{ reach.label }}</span>{{ t.record.reachedAfter(reach.via) }}</span>
             </li>
           </ul>
-          <span v-else class="peek-note">Not published, so no client can fetch it</span>
+          <span v-else class="peek-note">{{ t.record.notPublished }}</span>
           <PcButton v-if="shareOrigin && pipe.shares.value !== undefined" compact class="peek-publish" @click="publish()">
-            {{ shares.length ? "Open in Publishing" : "Publish" }}
+            {{ shares.length ? t.records.openInPublishing : t.record.publish }}
           </PcButton>
         </dd>
 
         <template v-if="record.tags?.length">
-          <dt>Tags</dt>
+          <dt>{{ t.record.tags }}</dt>
           <dd>{{ record.tags.join(", ") }}</dd>
         </template>
         <template v-if="record.remark">
-          <dt>Remark</dt>
+          <dt>{{ t.record.remark }}</dt>
           <dd>{{ record.remark }}</dd>
         </template>
       </dl>
@@ -281,8 +283,8 @@ function publish(): void {
         @status="(text, tone) => (status = { text, tone })"
         @deleted="(kind, text, broken) => emit('deleted', kind, text, broken)"
       />
-      <PcButton :disabled="!canEdit" :title="canEdit ? 'Change this record' : 'This session cannot change records here.'" @click="emit('edit', id)">Edit</PcButton>
-      <PcButton variant="primary" @click="emit('page', id)">Open page</PcButton>
+      <PcButton :disabled="!canEdit" :title="canEdit ? t.record.editTitle : t.record.editBlocked" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
+      <PcButton variant="primary" @click="emit('page', id)">{{ t.record.openPage }}</PcButton>
     </template>
   </PcSidePanel>
 </template>

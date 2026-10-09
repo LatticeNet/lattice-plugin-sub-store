@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "hh-01.imfbim.example.com",
+      "443"
+    ],
+    "name": "TW-h11zpi-21",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "password": "HwLmYAma9EMkZ8Q5",
+      "sni": "static.xxh5n1ybva.example.org",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

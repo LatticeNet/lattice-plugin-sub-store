@@ -1,0 +1,45 @@
+{
+  "id": "fleet-small-mixed",
+  "family": "fleet",
+  "description": "Sixteen lines across every fleet protocol, the typical small operator fleet.",
+  "shape": "small-mixed",
+  "lines": 16,
+  "mix": [
+    {
+      "protocol": "anytls",
+      "count": 1
+    },
+    {
+      "protocol": "hysteria2",
+      "count": 1
+    },
+    {
+      "protocol": "hysteria2-salamander",
+      "count": 1
+    },
+    {
+      "protocol": "ss-2022",
+      "count": 1
+    },
+    {
+      "protocol": "trojan-tls",
+      "count": 1
+    },
+    {
+      "protocol": "tuic",
+      "count": 2
+    },
+    {
+      "protocol": "vless-reality-vision",
+      "count": 6
+    },
+    {
+      "protocol": "vless-ws-tls",
+      "count": 2
+    },
+    {
+      "protocol": "vmess-ws-tls",
+      "count": 1
+    }
+  ]
+}

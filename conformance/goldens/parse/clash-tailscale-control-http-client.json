@@ -1,0 +1,14 @@
+[
+  {
+    "auth-key": "tskey-auth-f96uJC54nlLLuct6VpMD5K3dA41Ptl",
+    "control-http-client": {
+      "detour": "qo4bzy"
+    },
+    "dialer-proxy": "HK-oy69ce-65",
+    "hostname": "vml7zad4k1",
+    "name": "AU-mzg2-91",
+    "type": "tailscale",
+    "udp": true,
+    "underlying-proxy": "HK-oy69ce-65"
+  }
+]

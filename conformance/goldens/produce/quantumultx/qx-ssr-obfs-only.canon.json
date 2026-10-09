@@ -1,0 +1,16 @@
+[
+  {
+    "address": "hb-21.rfbq.example.com:32659",
+    "args": [],
+    "params": {
+      "method": "aes-256-cfb",
+      "obfs": "http_simple",
+      "obfs-host": "static.yhydgl.example.org",
+      "password": "vY9lKm8ZeVQS",
+      "ssr-protocol": "origin",
+      "tag": "KR-d1m-45",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

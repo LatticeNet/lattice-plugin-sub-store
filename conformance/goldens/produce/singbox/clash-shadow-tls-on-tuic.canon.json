@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "JPjcD1TqtosA8Mr2",
+      "server": "qx-36.osr5h7m.example.net",
+      "server_port": 443,
+      "tag": "SG-gcy25-16",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.t64iuoc.example.net"
+      },
+      "type": "tuic",
+      "uuid": "9a09dfbd-f8d5-4469-bd9e-639ec24665d2"
+    }
+  ]
+}

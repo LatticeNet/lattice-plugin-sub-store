@@ -1,0 +1,1 @@
+trojan://HRnDNjf8DYwrNl3p@fg5-29.gdmnkb86.example.org:443?security=reality&sni=cdn.gldte5kfq.example.org&fp=chrome&pbk=0DMJL8k0Or-fcZw8rT_gtLvMnfFbuxoYHL8xsJ-8RRQ&sid=1313f761&spx=%2F&type=grpc&serviceName=bynk-z2iz&mode=gun#TW-a5ein-14

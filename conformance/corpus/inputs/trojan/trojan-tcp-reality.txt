@@ -1,0 +1,1 @@
+trojan://8siqyovoAYVDDHHY@cl3-20.f1i93c.example.com:443?security=reality&sni=img.zz8yf8k7.example.net&fp=chrome&pbk=7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8&sid=fd7b5be3&spx=%2F&type=tcp#FR-gg4he-79

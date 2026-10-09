@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","name":"FR-liz0ut-87","network":"tcp","password":"x47D5mO8MxZGTHOg","port":443,"server":"zh2-34.v0i498.example.com","skip-cert-verify":false,"sni":"www.gm2apo.example.com","type":"trojan","udp":true}

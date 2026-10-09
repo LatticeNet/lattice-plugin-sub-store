@@ -1,0 +1,1 @@
+AU-yxa-06 = h2-connect, ayo-23.vt8d.example.com, 443, ix3qt58v, Yw4WzfJ570cj, sni=www.vz5stu6r4.example.net, max-streams="8", headers=X-Client:ohwi6

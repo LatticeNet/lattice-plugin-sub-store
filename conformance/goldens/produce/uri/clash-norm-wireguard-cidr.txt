@@ -1,0 +1,2 @@
+wireguard://RkcYtgRmnY%2FuG61FlNPyYxoBEIem3rMIBvLzgPzgLfs%3D@e8-16.m20ou6xn.example.net:51820/?publickey=%2FnqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8%3D&udp=1&address=10.25.96.50%2F24%2Cfd00%3A9946%3A%3A7d85%2F64#GB-itui-59
+wireguard://GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc%3D@nwc-26.vov4gi.example.com:51820/?publickey=FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8%3D&udp=1#TW-lql-28

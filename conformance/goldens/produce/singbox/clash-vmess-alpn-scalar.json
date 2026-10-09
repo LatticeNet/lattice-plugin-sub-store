@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-nhs7w3-33",
+      "type": "vmess",
+      "server": "jv-05.vi5q.example.com",
+      "server_port": 443,
+      "uuid": "a4251e45-8c27-43ce-9bb2-ce33100ace04",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.g0ri20uyg.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

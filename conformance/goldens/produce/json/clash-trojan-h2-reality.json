@@ -1,0 +1,24 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "h2-opts": {
+      "host": [
+        "img.ijy1nfbt.example.net"
+      ],
+      "path": "/h389t/vx2hh7mu3j"
+    },
+    "name": "GB-awkc9t-85",
+    "network": "h2",
+    "password": "rwplh9bxjD888I3D",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "9EEwC_h3v-9sFWZoS8BMUuaMzNa9XziR7fqSikR-JN8",
+      "short-id": "021916ae"
+    },
+    "server": "rg-19.lbk8.example.net",
+    "sni": "img.ijy1nfbt.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "yp4kKdg56ngpzODl",
+      "server": "x9j-17.cv7l2u.example.net",
+      "server_port": 443,
+      "tag": "DE-tg4yf-12",
+      "tcp_fast_open": true,
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.mbn182htgb.example.org"
+      },
+      "type": "tuic",
+      "udp_fragment": true,
+      "uuid": "fe030823-567f-4fbf-b11e-9f282081bfdf"
+    }
+  ]
+}

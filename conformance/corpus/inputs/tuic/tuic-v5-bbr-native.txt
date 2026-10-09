@@ -1,0 +1,1 @@
+tuic://2db4c889-20e3-4ccc-ae01-977b9c46a552:9AORdmp3pXEj396c@k0-39.u2rty.example.com:443?congestion_control=bbr&udp_relay_mode=native&alpn=h3&sni=www.ei3acu3.example.org&allow_insecure=0#GB-ksvg-48

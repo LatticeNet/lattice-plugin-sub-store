@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "GB-e5b-15",
+        "password": "QF8oCcvBNMnLwtsA",
+        "port": 443,
+        "server": "cb-23.mmndug.example.com",
+        "sni": "static.b7zcm8.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "websocket": {
+          "path": "/du3hede"
+        }
+      }
+    }
+  ]
+}

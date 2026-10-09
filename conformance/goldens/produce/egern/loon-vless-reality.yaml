@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"DE-y0zd-81","server":"r0s-30.c4uwb.example.net","port":443,"user_id":"6d782e85-da39-4b20-a244-57fdcce3fc38","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.axl9awtm04.example.org","reality":{"public_key":"mrhE7u2MseLBTtmpmZ_RmqywaKI0Ozvs3xMuzprE7RA","short_id":"4539d1dd"}}},"flow":"xtls-rprx-vision"}}

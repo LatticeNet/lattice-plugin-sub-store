@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"KR-vm6d-06","password":"4CwYU2ZIM7LH4z","port":443,"server":"h7-30.d96rhl1.example.net","sni":"api.xw11kl7id.example.net","type":"trusttunnel","udp":true,"username":"xucfe"}

@@ -1,0 +1,22 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-pth3-15",
+      "type": "anytls",
+      "server": "m6p-14.scrh.example.org",
+      "server_port": 443,
+      "password": "fWYv5uOVHB7nhZioJ7XS",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.s3ey79smsd.example.com",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "disable_reuse": true
+    }
+  ],
+  "endpoints": []
+}

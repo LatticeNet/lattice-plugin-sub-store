@@ -1,0 +1,7 @@
+{
+  "id": "base64-url-safe",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "base64-url",
+  "description": "URL-safe alphabet with padding."
+}

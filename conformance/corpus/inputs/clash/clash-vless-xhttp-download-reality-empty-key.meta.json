@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-xhttp-download-reality-empty-key",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-download-reality-empty-key",
+  "description": "vless xhttp Reality whose download-settings.reality-opts.public-key is an explicit empty string."
+}

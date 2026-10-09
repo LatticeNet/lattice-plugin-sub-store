@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "AU-em7j3s-83",
+    "host": "2001:db8:f051:f0e2::9775",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "packet_encoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.feai4.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "aTLmH8rMvhzmoueREcQg"
+  }
+]

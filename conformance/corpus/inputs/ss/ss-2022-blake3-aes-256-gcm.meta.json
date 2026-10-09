@@ -1,0 +1,9 @@
+{
+  "id": "ss-2022-blake3-aes-256-gcm",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "ss2022-plain-userinfo",
+  "description": "Shadowsocks 2022 with a plain percent-encoded userinfo, as SIP022 recommends."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "loon-trojan-http-transport",
+  "family": "loon",
+  "protocol": "trojan",
+  "transport": "http",
+  "security": "tls",
+  "quirk": "http-transport",
+  "description": "trojan with transport=http, a path and a host: the normaliser replaces the text path on http with [\"/\"]."
+}

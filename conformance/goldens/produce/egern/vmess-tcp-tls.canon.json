@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "TW-xk9-16",
+        "port": 443,
+        "security": "auto",
+        "server": "ei-13.y2nd0g.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "www.l24sjs8j.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "d6179057-84a8-4647-9d34-691ebf2c8e7e"
+      }
+    }
+  ]
+}

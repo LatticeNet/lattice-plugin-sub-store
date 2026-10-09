@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"JP-ei5q-91","server":"eh-02.e6fd.example.net","port":443,"auth":"Dxnae7hB8sq8H4nnLYFk","bandwidth":200,"tfo":false,"udp_relay":true,"sni":"img.lgpapm0p.example.com"}}

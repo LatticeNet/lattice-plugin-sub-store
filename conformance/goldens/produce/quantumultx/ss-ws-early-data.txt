@@ -1,0 +1,1 @@
+shadowsocks=stt-32.z59voz2.example.net:22070,method=aes-256-gcm,password=NWK7YAngJaA9OC,udp-relay=true,tag=NL-gjx-28

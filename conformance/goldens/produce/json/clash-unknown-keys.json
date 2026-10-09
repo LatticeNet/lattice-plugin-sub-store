@@ -1,0 +1,29 @@
+[
+  {
+    "name": "FR-hh0-05",
+    "network": "ws",
+    "port": 443,
+    "server": "vhy-37.kbjlbsej.example.com",
+    "sni": "cdn.o9kp42xjx.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "9ed65cb0-7a2c-45a9-ad68-97b05846f77e",
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.o9kp42xjx.example.org"
+      },
+      "path": "/jui0ogbt30",
+      "x-k6xm": {
+        "x-txkcrq": 33
+      }
+    },
+    "x-iphc5ag": {
+      "x-pfv88iu": [
+        "wg67",
+        "x4iq"
+      ]
+    },
+    "x-rdbkh": "yp08u"
+  }
+]

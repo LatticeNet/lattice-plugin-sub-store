@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "qc5-23.ivrq3u.example.net",
+      "443",
+      "7GLrM7cLUxbsgFrxj79Y"
+    ],
+    "name": "DE-vvhh0b-20",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "api.o88ob.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

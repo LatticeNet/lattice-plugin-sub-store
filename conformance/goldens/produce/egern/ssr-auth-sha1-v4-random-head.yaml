@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"FR-uad-37","method":"aes-128-ctr","server":"vs-40.mby1pyzm.example.com","port":27306,"password":"jxPaBdo2ttDX","protocol":"auth_sha1_v4","protocol_param":"8037:xAMvNMp0","obfs":"random_head","obfs_param":"api.x5769u6.example.com","tfo":false,"udp_relay":true}}

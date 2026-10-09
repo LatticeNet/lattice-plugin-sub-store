@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-b68-73",
+        "port": 443,
+        "security": "auto",
+        "server": "gq-32.z66i.example.com",
+        "shadow_tls": {
+          "password": "KQha0gVa25POdcjz",
+          "sni": "img.caykblkqyh.example.org"
+        },
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "img.caykblkqyh.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb"
+      }
+    }
+  ]
+}

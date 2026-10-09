@@ -1,0 +1,88 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "ip_version": "dual_stack",
+        "name": "HK-cjx-77",
+        "password": "Drttxdvccwfaxc4e",
+        "port": 443,
+        "server": "iy-37.dc56k.example.org",
+        "sni": "img.aramgppm3.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "v4_only",
+        "name": "NL-rm1-76",
+        "password": "Jnuuxv8gZVVRzh2t",
+        "port": 443,
+        "server": "fuz-28.uv8ot.example.com",
+        "sni": "api.rxocwwswkc.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "v6_only",
+        "name": "SG-cl9-44",
+        "password": "4Vm2vFAENjt6bylh",
+        "port": 443,
+        "server": "xy-34.u6n8sj2n.example.net",
+        "sni": "static.ppsw9hocg.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "v4_prefer",
+        "name": "HK-n488o-76",
+        "password": "otgZ2PBAxIKEUXrS",
+        "port": 443,
+        "server": "uv-23.jocsspi.example.org",
+        "sni": "cdn.z33tx93cbl.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "v6_prefer",
+        "name": "US-gqu8sb-76",
+        "password": "1i1Kr6u8pd838AxG",
+        "port": 443,
+        "server": "xw-05.xstlss.example.net",
+        "sni": "cdn.dn2x7pvo.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "v4_prefer",
+        "name": "AU-wk1-50",
+        "password": "JCwYvyUPiGX6GDPn",
+        "port": 443,
+        "server": "c7l-25.ys3mkhv.example.net",
+        "sni": "cdn.ymq4b.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "eh8bd",
+        "name": "GB-qumu-79",
+        "password": "b3XQHRCGOb8va6mh",
+        "port": 443,
+        "server": "hmp-30.q92twj.example.com",
+        "sni": "static.rdwf05uk.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

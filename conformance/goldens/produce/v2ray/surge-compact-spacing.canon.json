@@ -1,0 +1,35 @@
+[
+  {
+    "fragment": "GB-olr-41",
+    "host": "aq-35.vulb.example.net",
+    "path": "",
+    "port": "22941",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206cUJ5bjgzdFo0b0dkR2s=",
+    "userinfo_base64": "aes-128-gcm:qByn83tZ4oGdGk"
+  },
+  {
+    "fragment": "TW-y1ya-22",
+    "host": "tf-16.x3ejb.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.hn25j.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "oy52YBDBHXQ7wfCu "
+  }
+]

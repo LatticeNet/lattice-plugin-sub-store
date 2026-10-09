@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "DE-ef8y-71",
+    "host": "yk-27.undo.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "bbr"
+      ],
+      [
+        "reduce_rtt",
+        "1"
+      ],
+      [
+        "sni",
+        "cdn.ji7v4na.example.com"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "c10f0629-f89a-499a-9e8a-d9c96a95a37b:wwW951G3pYb2fO4d"
+  }
+]

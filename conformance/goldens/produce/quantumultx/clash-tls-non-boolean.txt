@@ -1,0 +1,1 @@
+vmess=m0-15.db68mym.example.net:443,method=chacha20-poly1305,password=c3cea05f-d893-4aaa-900d-53e2e4591837,obfs=over-tls,tls-host=cdn.ozhoh8.example.com,aead=true,udp-relay=true,tag=HK-k90ug1-59

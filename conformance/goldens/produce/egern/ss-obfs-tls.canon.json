@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "chacha20-poly1305",
+        "name": "CA-bus8j-50",
+        "obfs": "tls",
+        "obfs_host": "static.vrb8iyo.example.net",
+        "password": "DnDhyby4CUkV4H",
+        "port": 41691,
+        "server": "o8-22.yd7la.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

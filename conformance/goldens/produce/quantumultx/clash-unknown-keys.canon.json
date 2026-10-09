@@ -1,0 +1,17 @@
+[
+  {
+    "address": "vhy-37.kbjlbsej.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "cdn.o9kp42xjx.example.org",
+      "obfs-uri": "/jui0ogbt30",
+      "password": "9ed65cb0-7a2c-45a9-ad68-97b05846f77e",
+      "tag": "FR-hh0-05",
+      "tls-host": "cdn.o9kp42xjx.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

@@ -1,0 +1,1 @@
+vless://4f4761e5-2f47-49f7-b8bf-227071e25c64@cz-09.xjov.example.org:443?security=tls&type=http&path=%2Fsgsh&host=static.p9r88.example.net&packetEncoding=none&alpn=h2%2Chttp%2F1.1&sni=static.p9r88.example.net&fp=chrome#KR-ujr-38

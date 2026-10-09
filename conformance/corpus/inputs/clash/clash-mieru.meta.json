@@ -1,0 +1,8 @@
+{
+  "id": "clash-mieru",
+  "family": "clash",
+  "protocol": "mieru",
+  "transport": "tcp",
+  "security": "none",
+  "description": "mieru with a port range and multiplexing."
+}

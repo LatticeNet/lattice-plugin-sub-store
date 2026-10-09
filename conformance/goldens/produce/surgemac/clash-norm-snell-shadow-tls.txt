@@ -1,0 +1,1 @@
+US-hrzu1-40=snell,xe-40.qjvo2.example.org,443,version=4,psk="fs4dQCnc0K27Snsb0pa4",shadow-tls-password="JyusLIVRCdQytKeC",shadow-tls-sni=api.pc9gay6ya.example.com,shadow-tls-version=3,alpn="h2"

@@ -1,0 +1,114 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "SG-mxrw1e-75",
+        "password": "kTepawGO3AjkBJVt",
+        "port": 443,
+        "server": "cp-20.jw71rf.example.com",
+        "sni": "www.tbkalp.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "HK-ax86-82",
+        "password": "3RNTFc2beLg82aAo",
+        "port": 443,
+        "server": "p5-04.feey.example.org",
+        "sni": "static.ziv5g394s.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "NL-pkmbvt-41",
+        "password": "vhJvxrLTpRHRfRPV",
+        "port": 443,
+        "server": "y0-35.wdcffic.example.org",
+        "sni": "cdn.ybdua.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "TW-bk4-46",
+        "password": "bmUi5GJVTgZIzHcA",
+        "port": 443,
+        "server": "pa-28.vuyz.example.org",
+        "sni": "api.ocdd7vpvs.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "GB-pep-83",
+        "password": "I7JJza3Y885Hhp4R",
+        "port": 443,
+        "server": "s52-03.k2kzr.example.org",
+        "sni": "www.kgw5zfakhz.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "CA-bxm-15",
+        "password": "Ask6g1xO23Dib1uN",
+        "port": 443,
+        "server": "gki-38.z3rkzlw.example.net",
+        "sni": "www.u8x9y8.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "TW-lat6-53",
+        "password": "7ePXq4jqWdv19scY",
+        "port": 443,
+        "server": "jyz-13.is8wm.example.com",
+        "sni": "cdn.i8zl1hhbgv.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "HK-pdh3s2-73",
+        "password": "fGCyF2qeRAtQuer7",
+        "port": 443,
+        "server": "qxj-15.bjv0ij.example.net",
+        "sni": "api.w8op1d7c4.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "JP-mog-09",
+        "password": "v9HWkJwL5BIBqaUF",
+        "port": 443,
+        "server": "s9z-20.cf5oazt.example.com",
+        "sni": "www.ws36rvxzs.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "AU-a8pf2k-05",
+        "password": "ec6G8V8ffMYPurFG",
+        "port": 443,
+        "server": "fwl-26.obmfk01k.example.org",
+        "sni": "img.zat9xlm.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

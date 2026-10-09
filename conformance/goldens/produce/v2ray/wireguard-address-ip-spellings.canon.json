@@ -1,0 +1,68 @@
+[
+  {
+    "fragment": "JP-m9lyhg-04",
+    "host": "ndc-13.rvwm6ae.example.org",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.124.21.97/32"
+      ],
+      [
+        "publickey",
+        "mFEsja8x3OE6+BjPN2UGGmladOTwXnFiCY1YsM9lj10="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "g5eHcupYUE3u7tKAsiFRV9AeXLBYmjVlc/G/vwZo98w="
+  },
+  {
+    "fragment": "HK-se95-11",
+    "host": "mvx-12.kgjnmatg.example.org",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.190.178.214/32"
+      ],
+      [
+        "publickey",
+        "4XaaxXhTf28tItMSVgrrB8NlQaKNeRi1Sw649shDQUs="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "ybhsK2RjTDeR1fTbmGHs9iFZ8pHbT1ituJsp6ayBZjQ="
+  },
+  {
+    "fragment": "US-ugnln1-10",
+    "host": "zg-26.y1sp0bh.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.234.23.20/32,::ffff:10.80.197.21/128"
+      ],
+      [
+        "publickey",
+        "TLI0ga2wz/vuL4yrnH9/K8TS2iZkGXPbnEy5phdbbjo="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "Sf+s581KivW/ps7S2Q7guwmbbasW35iu0wGRSctPaN8="
+  }
+]

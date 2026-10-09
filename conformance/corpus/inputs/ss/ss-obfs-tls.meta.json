@@ -1,0 +1,9 @@
+{
+  "id": "ss-obfs-tls",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "plugin-obfs",
+  "description": "simple-obfs plugin in tls mode."
+}

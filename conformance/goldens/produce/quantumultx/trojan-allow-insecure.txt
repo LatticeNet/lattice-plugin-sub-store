@@ -1,0 +1,1 @@
+trojan=192.0.2.32:443,password=7WEAVSvZGNTkAgpl,over-tls=true,tls-verification=false,tls-host=img.qx34w.example.net,udp-relay=true,tag=KR-ptyg-62

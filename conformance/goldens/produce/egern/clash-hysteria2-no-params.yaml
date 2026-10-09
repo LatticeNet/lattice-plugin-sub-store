@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"CA-c80r-97","server":"203.0.113.47","port":443,"auth":"TRVXCERjoTB5gXhbzIx9","tfo":false,"udp_relay":true,"sni":"203.0.113.47"}}

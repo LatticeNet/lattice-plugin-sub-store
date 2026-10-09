@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "hac-37.k2fe.example.com",
+      "443",
+      "CD4xeu8GaEFg9Uc7b2yO"
+    ],
+    "name": "KR-w7e-46",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "idle-session-timeout": "30",
+      "skip-cert-verify": "false",
+      "tls-name": "static.ggzzb0.example.net",
+      "tls-profile": "chrome",
+      "udp": "true"
+    },
+    "type": "anytls"
+  }
+]

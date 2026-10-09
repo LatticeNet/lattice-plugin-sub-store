@@ -1,0 +1,14 @@
+[
+  {
+    "flow": "xtls-rprx-vision",
+    "name": "US-qe4q1x-80",
+    "network": "tcp",
+    "password": "rc0xyjyaXcBn0bBO",
+    "port": 443,
+    "server": "a2g-25.z48tqd9.example.net",
+    "sni": "cdn.xie8kv58.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "surge-vmess-ipv6",
+  "family": "surge",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "ipv6-server",
+  "description": "VMess with a bare IPv6 server and quoted ws headers: the server is read and the headers split on the vertical bar."
+}

@@ -1,0 +1,37 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "obfs": {
+        "password": "HSJKygToOAME6To1",
+        "type": "salamander"
+      },
+      "password": "yyAyzyg3eRCFuhg2AQyT",
+      "server": "yz-31.o9t4ry4.example.org",
+      "server_port": 443,
+      "tag": "FR-e45-21",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.i57tmk4cc8.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "obfs": {
+        "password": "dT6lnZU72e",
+        "type": "salamander"
+      },
+      "password": "UoAwyPUyCmcsX8fUl5z4",
+      "server": "a13-12.ezd38.example.org",
+      "server_port": 443,
+      "tag": "HK-zlv-67",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.rtpzqpp.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

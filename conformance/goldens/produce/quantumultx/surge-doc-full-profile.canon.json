@@ -1,0 +1,25 @@
+[
+  {
+    "address": "v5-05.qb5b.example.org:34588",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "i0Xuxu3C1Z8mZe",
+      "tag": "AU-tx3-71",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "bun-09.kwq8.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "RbyQZY56IcdRRx5v",
+      "tag": "TW-cdnh-17",
+      "tls-host": "cdn.bskwnh8rfx.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

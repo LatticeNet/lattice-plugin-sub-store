@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "2022-blake3-aes-128-gcm",
+        "name": "US-hnnp-27",
+        "password": "XqibV6fKbKK81zHZlyw7mA==",
+        "port": 54440,
+        "server": "px-33.cokrjp66.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

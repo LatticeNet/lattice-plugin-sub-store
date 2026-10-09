@@ -1,0 +1,25 @@
+[
+  {
+    "address": "e1-22.bfb12rc2.example.net:10502",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "GPUCzjamTorayo",
+      "tag": "CA-zey-95",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "cd-20.poht.example.org:51894",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "66613e63-dc32-4b93-8350-1eec860bb5d0",
+      "tag": "KR-jpsq-90",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

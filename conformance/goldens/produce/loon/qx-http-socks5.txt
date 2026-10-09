@@ -1,0 +1,4 @@
+AU-rqk1jl-33=http,bkk-13.p8c5c.example.net,8080,wqmmnxz2,"dip7H3HbE83J"
+US-fs5t-40=https,cam-37.l9ng5.example.org,443,jeafxl,"r0BQxK7uTqqg",sni=img.xuix3v.example.org
+JP-yqa-41=socks5,aq-21.hay35e.example.net,1080,r5ti,"unNYLsz7kUcn",udp=true
+NL-sxupx-61=socks5,h49-27.o5n4rf.example.net,443,bptpo,"mIaq5AnyasPj",over-tls=true,sni=h49-27.o5n4rf.example.net,skip-cert-verify=true,udp=true

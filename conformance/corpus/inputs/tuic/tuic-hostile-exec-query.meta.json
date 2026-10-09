@@ -1,0 +1,9 @@
+{
+  "id": "tuic-hostile-exec-query",
+  "family": "tuic",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "hostile-exec-query",
+  "description": "H3 on URI-derived keys: a tuic:// link with an exec query item, which the TUIC parser copies as the key exec: upstream keeps the node; Lattice drops it on remote input."
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "address": "198.51.100.140:45821",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "M9Mlcffeicbj8UV6dfeJ",
+      "tag": "GB-uq8k-07",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

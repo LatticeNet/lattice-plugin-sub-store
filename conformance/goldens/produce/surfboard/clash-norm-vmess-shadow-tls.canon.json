@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "gq-32.z66i.example.com",
+      "443"
+    ],
+    "name": "SG-b68-73",
+    "params": {
+      "sni": "img.caykblkqyh.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

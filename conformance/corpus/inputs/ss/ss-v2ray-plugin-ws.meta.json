@@ -1,0 +1,9 @@
+{
+  "id": "ss-v2ray-plugin-ws",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "none",
+  "quirk": "plugin-v2ray",
+  "description": "v2ray-plugin over plain WebSocket with host and path."
+}

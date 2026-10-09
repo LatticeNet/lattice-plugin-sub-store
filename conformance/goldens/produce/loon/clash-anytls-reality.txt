@@ -1,0 +1,1 @@
+JP-uine-40=anytls,wja-38.mypjmxik.example.org,443,"CHDxZquybD5tKCFbF3uw",tls-profile=chrome,sni=api.d36fk.example.com,public-key="x1d1tn0PXiRTV539e9f0sdqIxB9Q3QtSK3WWsvOYFYU",short-id=36529070,udp=true

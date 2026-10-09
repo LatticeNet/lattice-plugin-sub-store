@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "AU-ef8-23",
+    "host": "d78-40.oq5eh33.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "d78-40.oq5eh33.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "nrZ4GoNApLRurSNH"
+  }
+]

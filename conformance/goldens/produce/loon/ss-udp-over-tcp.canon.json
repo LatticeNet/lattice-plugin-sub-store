@@ -1,0 +1,26 @@
+[
+  {
+    "args": [
+      "su-23.ysq8riu.example.com",
+      "41043",
+      "aes-256-gcm",
+      "f1RgjVO49Z5wYF"
+    ],
+    "name": "TW-sgo-07",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "n4j-34.a620o39y.example.com",
+      "41982",
+      "aes-256-gcm",
+      "2rCTNDZG2jMTLF"
+    ],
+    "name": "TW-t0hv-35",
+    "params": {},
+    "type": "shadowsocks"
+  }
+]

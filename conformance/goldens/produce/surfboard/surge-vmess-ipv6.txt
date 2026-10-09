@@ -1,0 +1,1 @@
+US-snz-75=vmess,2001:db8:f4e1:9108::e11d,28811,username=4ddabfe1-ea65-4fc3-af13-ab9d288a30ce,ws=true,ws-path=/qpqlfvau,ws-headers=Host:"cdn.shsl3n.example.net"|User-Agent:xlydrke,vmess-aead=true,udp-relay=true

@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "flow": "xtls-rprx-vision",
+      "name": "US-syz8-29",
+      "network": "tcp",
+      "plugin": "shadow-tls",
+      "plugin-opts": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "host": "static.lo63q03r9t.example.com",
+        "password": "vPD6gpNJzyrqSysH",
+        "version": 3
+      },
+      "port": 443,
+      "server": "tcz-29.ppxe.example.net",
+      "servername": "static.lo63q03r9t.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "03ba6920-4b55-435c-90f5-2dd82536c8dc"
+    }
+  ]
+}

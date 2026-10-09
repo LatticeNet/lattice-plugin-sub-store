@@ -1,0 +1,91 @@
+proxies:
+  - name: SG-mxrw1e-75
+    type: trojan
+    server: cp-20.jw71rf.example.com
+    port: 443
+    password: kTepawGO3AjkBJVt
+    sni: www.tbkalp.example.net
+    udp: true
+    supported:
+      URI: false
+  - name: HK-ax86-82
+    type: trojan
+    server: p5-04.feey.example.org
+    port: 443
+    password: 3RNTFc2beLg82aAo
+    sni: static.ziv5g394s.example.net
+    udp: true
+    supported:
+      V2Ray: false
+  - name: NL-pkmbvt-41
+    type: trojan
+    server: y0-35.wdcffic.example.org
+    port: 443
+    password: vhJvxrLTpRHRfRPV
+    sni: cdn.ybdua.example.net
+    udp: true
+    supported:
+      JSON: false
+  - name: TW-bk4-46
+    type: trojan
+    server: pa-28.vuyz.example.org
+    port: 443
+    password: bmUi5GJVTgZIzHcA
+    sni: api.ocdd7vpvs.example.net
+    udp: true
+    supported:
+      sing-box: false
+  - name: GB-pep-83
+    type: trojan
+    server: s52-03.k2kzr.example.org
+    port: 443
+    password: I7JJza3Y885Hhp4R
+    sni: www.kgw5zfakhz.example.net
+    udp: true
+    supported:
+      ClashMeta: false
+  - name: CA-bxm-15
+    type: trojan
+    server: gki-38.z3rkzlw.example.net
+    port: 443
+    password: Ask6g1xO23Dib1uN
+    sni: www.u8x9y8.example.net
+    udp: true
+    supported:
+      Stash: false
+  - name: TW-lat6-53
+    type: trojan
+    server: jyz-13.is8wm.example.com
+    port: 443
+    password: 7ePXq4jqWdv19scY
+    sni: cdn.i8zl1hhbgv.example.com
+    udp: true
+    supported:
+      Shadowrocket: false
+  - name: HK-pdh3s2-73
+    type: trojan
+    server: qxj-15.bjv0ij.example.net
+    port: 443
+    password: fGCyF2qeRAtQuer7
+    sni: api.w8op1d7c4.example.org
+    udp: true
+    supported:
+      Surge: false
+  - name: JP-mog-09
+    type: trojan
+    server: s9z-20.cf5oazt.example.com
+    port: 443
+    password: v9HWkJwL5BIBqaUF
+    sni: www.ws36rvxzs.example.com
+    udp: true
+    supported:
+      QX: false
+  - name: AU-a8pf2k-05
+    type: trojan
+    server: fwl-26.obmfk01k.example.org
+    port: 443
+    password: ec6G8V8ffMYPurFG
+    sni: img.zat9xlm.example.net
+    udp: true
+    supported:
+      uri: false

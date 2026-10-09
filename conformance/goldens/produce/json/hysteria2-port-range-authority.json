@@ -1,0 +1,15 @@
+[
+  {
+    "name": "HK-ejulo-15",
+    "password": "EYnXrPpHMB0HZlxIMDfT",
+    "port": 20000,
+    "ports": "20000-30000",
+    "server": "ff5-28.t7an.example.org",
+    "skip-cert-verify": false,
+    "sni": "static.vse2b5.example.org",
+    "tfo": false,
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

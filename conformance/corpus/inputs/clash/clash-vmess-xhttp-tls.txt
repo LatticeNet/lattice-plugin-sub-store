@@ -1,0 +1,21 @@
+proxies:
+  - name: FR-xrzgi-77
+    type: vmess
+    server: udz-17.fr89hw9c.example.com
+    port: 443
+    uuid: 893e5cf5-876b-4152-b4bf-af94e9f05285
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: static.pbvaoqy.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: xhttp
+    xhttp-opts:
+      path: /d9awl
+      host: static.pbvaoqy.example.net
+      mode: auto

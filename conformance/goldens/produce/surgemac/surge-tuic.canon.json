@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "qo8-35.bpsranmz.example.com",
+      "443"
+    ],
+    "name": "US-mpg-08",
+    "params": {
+      "alpn": "h3",
+      "sni": "www.vq2ksua1g.example.net",
+      "token": "R5rEO2foB2yWnIVbCTctE5jr"
+    },
+    "type": "tuic"
+  },
+  {
+    "args": [
+      "dp-23.ojwwxjul.example.net",
+      "443"
+    ],
+    "name": "GB-va61-64",
+    "params": {
+      "alpn": "h3",
+      "password": "ANynptDVg71WtZdX",
+      "skip-cert-verify": "false",
+      "sni": "cdn.vciwrfciu.example.net",
+      "uuid": "4728e15e-50cf-48e9-bcf4-109a73b21ee5"
+    },
+    "type": "tuic-v5"
+  }
+]

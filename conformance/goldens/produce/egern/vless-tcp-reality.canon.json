@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "FR-mf93w-88",
+        "port": 443,
+        "server": "po-05.ffnf.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "Mic2QwIq6JbEXpWa5B-P3iwyfJnFN8r5J39tAFwLFcI",
+              "short_id": "0d6b0e72"
+            },
+            "skip_tls_verify": false,
+            "sni": "www.mlxcbxx3qp.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "403fe2bd-5d7f-437d-83e1-d5318d7f5888"
+      }
+    }
+  ]
+}

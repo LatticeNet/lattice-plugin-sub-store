@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"JP-g2jm75-03","server":"aa7-08.u4yp51.example.com","port":443,"user_id":"e28e1350-3afc-4ca2-a4eb-85c3163bb32b","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/ndpw","headers":{"Host":"api.yfitrwjl.example.com"},"sni":"api.yfitrwjl.example.com","skip_tls_verify":false}}}}

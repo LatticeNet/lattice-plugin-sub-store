@@ -1,0 +1,43 @@
+proxies:
+  - name: HK-rhm6-27
+    type: snell
+    server: ra-32.h0tg9ic.example.org
+    port: 48974
+    psk: 6Q4HRMpMpQCcCXIuY8tH
+    version: 1
+    obfs-opts:
+      mode: http
+      host: cdn.c63carmp78.example.com
+  - name: GB-kqh1gc-35
+    type: snell
+    server: pm-08.opgo1xb.example.net
+    port: 59047
+    psk: gyR7URAUQAEbWH7sPU9e
+    version: 2
+    obfs-opts:
+      mode: http
+      host: api.bel58blvlj.example.net
+  - name: CA-ev71-65
+    type: snell
+    server: bm-26.r14jdl4e.example.com
+    port: 58173
+    psk: n9DfzukgsdkhYkLycGRK
+    version: 3
+    obfs-opts:
+      mode: http
+      host: www.g0pcoj.example.com
+    udp: true
+  - name: JP-o1zi-67
+    type: snell
+    server: o5q-03.m5u4.example.net
+    port: 16923
+    psk: ICuSeaJfGTwP5kRTgkrh
+    version: 4
+    udp: true
+  - name: SG-x2h44-62
+    type: snell
+    server: n9-39.sw475vr.example.org
+    port: 27700
+    psk: eR2nBQ7LjZmeB66nHlNr
+    version: 5
+    udp: true

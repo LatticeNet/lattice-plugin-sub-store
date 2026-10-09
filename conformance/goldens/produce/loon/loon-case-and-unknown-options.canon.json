@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "e1-22.bfb12rc2.example.net",
+      "10502",
+      "aes-128-gcm",
+      "GPUCzjamTorayo"
+    ],
+    "name": "CA-zey-95",
+    "params": {
+      "block-quic": "true",
+      "ip-mode": "v4-only",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "cd-20.poht.example.org",
+      "51894",
+      "auto",
+      "66613e63-dc32-4b93-8350-1eec860bb5d0"
+    ],
+    "name": "KR-jpsq-90",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

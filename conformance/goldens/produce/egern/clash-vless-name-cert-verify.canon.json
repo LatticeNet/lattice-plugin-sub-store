@@ -1,0 +1,36 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "NL-ihl5x-86",
+        "port": 443,
+        "server": "sp1-26.r1ybtf.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.gyfox1.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "dc40258c-70f7-4cc6-8f57-47f891ff5fdf"
+      }
+    },
+    {
+      "vless": {
+        "name": "SG-hkj1-48",
+        "port": 443,
+        "server": "dpa-17.ht61.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.rmwsxjoka.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "12dfd962-9faf-4d0b-a5a1-86880db75bd8"
+      }
+    }
+  ]
+}

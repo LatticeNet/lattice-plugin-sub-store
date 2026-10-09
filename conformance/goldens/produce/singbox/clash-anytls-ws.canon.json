@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "PlDLgcCgRJIg37LoV6c3",
+      "server": "dob-07.qwxjve.example.net",
+      "server_port": 443,
+      "tag": "SG-vo9s-94",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.wmxy45i.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "anytls"
+    }
+  ]
+}

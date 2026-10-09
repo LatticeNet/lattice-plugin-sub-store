@@ -1,0 +1,16 @@
+[
+  {
+    "address": "jd-10.oalbzx.example.com:52189",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "over-tls",
+      "obfs-host": "img.u80uu3rhf.example.net",
+      "password": "hcEXO3dMWoXyLL",
+      "tag": "JP-doz-99",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

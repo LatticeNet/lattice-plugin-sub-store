@@ -70,7 +70,8 @@ describe("the handshake into the shell", () => {
     init({ pageState: { view: "files", open: "file_a", q: "hk" } });
     await adopted;
     expect(seen).toEqual({ view: "files", open: "file_a", q: "hk" });
-    expect(decodeShellState(host.pageState.value)).toMatchObject({ view: "files", open: "file_a", q: "hk" });
+    // The Files layer's old address lands on Records filtered to files.
+    expect(decodeShellState(host.pageState.value)).toMatchObject({ view: "records", kind: "file", open: "file_a", q: "hk" });
     client.dispose();
   });
 

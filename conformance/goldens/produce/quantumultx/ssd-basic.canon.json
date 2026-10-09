@@ -1,0 +1,35 @@
+[
+  {
+    "address": "e8-24.czdpwx7v.example.net:41712",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "tag": "KR-fn5-71",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "kfm-30.j86h.example.net:41712",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "tag": "NL-vv8-63",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "198.51.100.128:41712",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "tag": "NL-jh0-83",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

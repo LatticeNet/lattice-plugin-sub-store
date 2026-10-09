@@ -1,0 +1,25 @@
+proxies:
+  - name: NL-pm7iw-59
+    type: trojan
+    server: b8-22.em4epvh.example.com
+    port: 443
+    password: Oj98GoGK2yo8X5kh
+    sni: www.o9brwd5iyu.example.com
+    udp: true
+    resolved: true
+  - name: TW-pmsd-69
+    type: trojan
+    server: rm-23.gpdij.example.com
+    port: 443
+    password: rwsWD8q5dDmSp7ad
+    sni: cdn.a7telas.example.com
+    udp: true
+    resolved: false
+  - name: JP-yhuvq-44
+    type: trojan
+    server: ja-17.ko8cxerr.example.net
+    port: 443
+    password: dCiWPhM9pvnCz35E
+    sni: static.hrqb83a.example.org
+    udp: true
+    resolved: null

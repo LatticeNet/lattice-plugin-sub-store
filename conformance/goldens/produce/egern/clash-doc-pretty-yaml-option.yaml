@@ -1,0 +1,23 @@
+proxies:
+  - vless:
+      name: TW-gnwt-57
+      server: ph-34.o6gn73.example.com
+      port: 443
+      user_id: 863a99be-ece7-45f2-9427-07e17260efff
+      tfo: false
+      udp_relay: true
+      transport:
+        tls:
+          sni: img.wzdewu.example.net
+          reality:
+            public_key: qDEIceLEQu1q-ypu1Nijlugg5cotRlnsq51eew1Au4k
+            short_id: 49afd48f
+      flow: xtls-rprx-vision
+  - hysteria2:
+      name: US-uglcc6-99
+      server: g5m-18.wbotb3.example.org
+      port: 443
+      auth: ENVVXv1clnMHgRJZZKpC
+      tfo: false
+      udp_relay: true
+      sni: api.vfuu7.example.com

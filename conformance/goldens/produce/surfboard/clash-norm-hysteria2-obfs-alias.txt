@@ -1,0 +1,2 @@
+FR-e45-21=hysteria2,yz-31.o9t4ry4.example.org,443,password="yyAyzyg3eRCFuhg2AQyT",salamander-password="HSJKygToOAME6To1",sni="img.i57tmk4cc8.example.org",udp-relay=true
+HK-zlv-67=hysteria2,a13-12.ezd38.example.org,443,password="UoAwyPUyCmcsX8fUl5z4",salamander-password="dT6lnZU72e",sni="api.rtpzqpp.example.org",udp-relay=true

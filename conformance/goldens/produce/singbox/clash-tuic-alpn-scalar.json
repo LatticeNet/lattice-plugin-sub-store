@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-eto-47",
+      "type": "tuic",
+      "server": "d7-33.qik8.example.org",
+      "server_port": 443,
+      "uuid": "d460fbae-3516-46ca-8059-5fc12c392a35",
+      "password": "eZWHMzI9K0roXvB1",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.d33qfam9h6.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

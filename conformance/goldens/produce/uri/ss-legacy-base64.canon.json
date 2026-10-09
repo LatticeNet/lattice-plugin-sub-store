@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "CA-tol-36",
+    "host": "urj-24.ji6pn83.example.org",
+    "path": "",
+    "port": "52039",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206V204djY2dnZCcGpGbkY=",
+    "userinfo_base64": "aes-128-gcm:Wm8v66vvBpjFnF"
+  }
+]

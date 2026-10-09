@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "NL-jj6cfx-97",
+    "host": "dry-29.z57qgl.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.g53fzh.example.com"
+      ],
+      [
+        "path",
+        "/gew16/mnfs2"
+      ],
+      [
+        "pbk",
+        "KBE_MGWu5bVgEMZ9sIr-IaBxGbcF6l8F6aoe4Q9zX7E"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "b7383d6a"
+      ],
+      [
+        "sni",
+        "www.g53fzh.example.com"
+      ],
+      [
+        "type",
+        "httpupgrade"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "k9vUxnz501ueaagO"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "fkb-23.g95rfl34.example.com",
+      "70000",
+      "2WkYTw57EFOugGjI"
+    ],
+    "name": "US-bfrb-66",
+    "params": {
+      "tls-name": "api.gdqao1.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

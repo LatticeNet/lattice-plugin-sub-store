@@ -1,0 +1,1 @@
+NL-d0svs-69=ss,ww-28.b6rk.example.com,50551,encrypt-method=aes-128-gcm,password="2UkWNdG9ThWtTN",udp-relay=true

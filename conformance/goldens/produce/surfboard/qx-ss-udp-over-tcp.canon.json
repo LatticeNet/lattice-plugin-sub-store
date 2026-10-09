@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "rp8-33.wgzivs.example.org",
+      "38130"
+    ],
+    "name": "FR-w38-62",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "whcR18hBEjkOVg",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "r2s-07.paug3a4.example.org",
+      "50285"
+    ],
+    "name": "GB-kzq-60",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "6dNQLnVjNDH9zs",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "vp-11.foz9zs.example.org",
+      "60960"
+    ],
+    "name": "TW-zh07-47",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "s2wFoQVQ1mZzes",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

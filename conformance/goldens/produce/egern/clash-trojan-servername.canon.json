@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "GB-ypr0ot-83",
+        "password": "pFz9FbdHbazUQpJZ",
+        "port": 443,
+        "server": "hp-05.gks3u9.example.org",
+        "sni": "hp-05.gks3u9.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

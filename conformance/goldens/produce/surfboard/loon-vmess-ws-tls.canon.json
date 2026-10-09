@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "cej-15.bkqvxt7.example.net",
+      "443"
+    ],
+    "name": "NL-ch4-64",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "static.vn1oixf1.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"static.vn1oixf1.example.org\"",
+      "ws-path": "/xbne0"
+    },
+    "type": "vmess"
+  }
+]

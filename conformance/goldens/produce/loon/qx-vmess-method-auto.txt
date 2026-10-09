@@ -1,0 +1,1 @@
+KR-x0i8i-78=vmess,w6-35.z4kqx.example.net,43185,none,"345830f4-42b9-453c-b800-bcaa2447cb46",transport=tcp,alterId=0,udp=true

@@ -1,0 +1,15 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "9Iz4XwQRVYotgD",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=cdn.zuzdhm.example.org;mode=quic",
+      "server": "nu4-28.oyouu.example.net",
+      "server_port": 48808,
+      "tag": "FR-x7stf5-56",
+      "type": "shadowsocks"
+    }
+  ]
+}

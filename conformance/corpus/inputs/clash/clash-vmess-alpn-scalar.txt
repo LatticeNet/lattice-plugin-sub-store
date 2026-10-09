@@ -1,0 +1,14 @@
+proxies:
+  - name: JP-nhs7w3-33
+    type: vmess
+    server: jv-05.vi5q.example.com
+    port: 443
+    uuid: a4251e45-8c27-43ce-9bb2-ce33100ace04
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: cdn.g0ri20uyg.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn: h2

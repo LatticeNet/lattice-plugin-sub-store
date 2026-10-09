@@ -1,0 +1,1 @@
+anytls=y2-16.jnffzo.example.net:443,password=AqMA6wktK9PBJuK9gRNC,over-tls=true,tls-verification=true,tls-host=www.j5ultdi1.example.com,udp-relay=true,tag=FR-q12au1-90

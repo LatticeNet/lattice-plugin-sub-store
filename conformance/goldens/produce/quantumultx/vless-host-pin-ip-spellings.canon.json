@@ -1,0 +1,29 @@
+[
+  {
+    "address": "0:0:0:0:0:ffff:203.0.113.235:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "ws",
+      "obfs-host": "0:0:0:0:0:ffff:203.0.113.235",
+      "obfs-uri": "/qj6af",
+      "password": "ee69dd3c-2163-4541-b3ab-e25b917d57f7",
+      "tag": "SG-ck7-23",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "::ffff:198.51.100.36:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "ws",
+      "obfs-uri": "/zxtb",
+      "password": "bfe383f4-6a95-4843-a6d3-04bf5e8e4124",
+      "tag": "HK-dr76-41",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

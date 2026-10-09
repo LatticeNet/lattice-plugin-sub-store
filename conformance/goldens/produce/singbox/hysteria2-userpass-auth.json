@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-zxd838-69",
+      "type": "hysteria2",
+      "server": "mo-07.m625b9u.example.org",
+      "server_port": 443,
+      "password": "ushjygm7:KVGUTh8yVTWIts5R",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.sskdxnvab.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

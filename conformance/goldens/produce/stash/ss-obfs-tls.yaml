@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"chacha20-ietf-poly1305","name":"CA-bus8j-50","password":"DnDhyby4CUkV4H","plugin":"obfs","plugin-opts":{"host":"static.vrb8iyo.example.net","mode":"tls"},"port":41691,"server":"o8-22.yd7la.example.com","skip-cert-verify":false,"type":"ss","udp":true}

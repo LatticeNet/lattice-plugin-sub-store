@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "JP-wqjm9-26",
+    "host": "ry-31.ngpamb5.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "hop-interval",
+        "15"
+      ],
+      [
+        "mport",
+        "20000-30000"
+      ],
+      [
+        "sni",
+        "cdn.ygqhz.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "xBfmvQnqwyT2k1d0tmXj"
+  }
+]

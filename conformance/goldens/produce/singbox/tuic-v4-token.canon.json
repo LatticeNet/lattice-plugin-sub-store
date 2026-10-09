@@ -1,0 +1,22 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "congestion_control": "bbr",
+      "password": "",
+      "server": "si-36.bnyc.example.net",
+      "server_port": 443,
+      "tag": "HK-rwl-68",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.zuzj9pi2d.example.org"
+      },
+      "type": "tuic",
+      "uuid": "v2DeBaasrThWvtaPa4ChcTJX"
+    }
+  ]
+}

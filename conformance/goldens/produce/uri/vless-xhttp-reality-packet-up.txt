@@ -1,0 +1,1 @@
+vless://936cb29c-8253-4d54-9069-aa9e2e94cba7@wr-33.wkzwfs.example.net:443?security=reality&type=xhttp&path=%2Fz3p%2Fp2qf33&packetEncoding=xudp&sni=cdn.p44b7y.example.net&fp=chrome&sid=24c79172&spx=%2F&pbk=GaQQLTaDbZBklEhABjfRfIXnB8uC1cc9gHJyoRKtOvs&mode=packet-up&encryption=none#KR-pzy-50

@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "CA-cqz7w-71",
+        "port": 443,
+        "security": "chacha20-poly1305",
+        "server": "b7-04.wu1sho.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "a050dd43-7c9a-43a4-8c46-b9ab4c4d3f97"
+      }
+    }
+  ]
+}

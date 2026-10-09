@@ -1,0 +1,12 @@
+{
+  "id": "clash-snell-versions-include-unsupported",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "produce-option-include-unsupported",
+  "description": "With include-unsupported-proxy: snell versions 1, 2, 5 and 6.",
+  "options": {
+    "include-unsupported-proxy": true
+  }
+}

@@ -1,0 +1,7 @@
+proxies:
+  - name: SG-kcw-48
+    type: trojan
+    server: "2001:db8:e063:b663::82e8"
+    port: 443
+    password: g3gXaBy4RFjQr2HJ
+    udp: true

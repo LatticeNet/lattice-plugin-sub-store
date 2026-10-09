@@ -1,0 +1,16 @@
+[
+  {
+    "body": {
+      "main": "ry-15.lipvx.example.net:33417:origin:aes-128-cfb:plain:c3JLakdkWDJpd3FH",
+      "params": [
+        [
+          "remarks",
+          "ry-15.lipvx.example.net"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

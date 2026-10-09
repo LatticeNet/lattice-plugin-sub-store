@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "SG-eh7-78",
+    "host": "jhs-39.peelab.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "img.w3kpjhn.example.org"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/bz8mszs9e"
+      ],
+      [
+        "pbk",
+        "5Ljjcofv3eq-etEHfwPTrhX1potPY56bNU3ZKI0FkVU"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "e6347b99"
+      ],
+      [
+        "sni",
+        "img.w3kpjhn.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "0817af70-3653-4523-b59f-b1a1b00abc76"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"FR-q12au1-90","server":"y2-16.jnffzo.example.net","port":443,"password":"AqMA6wktK9PBJuK9gRNC","tfo":false,"udp_relay":true,"sni":"www.j5ultdi1.example.com","skip_tls_verify":false}}

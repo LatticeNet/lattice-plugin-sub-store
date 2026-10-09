@@ -1,0 +1,1 @@
+anytls=wja-38.mypjmxik.example.org:443,password=CHDxZquybD5tKCFbF3uw,over-tls=true,tls-host=api.d36fk.example.com,udp-relay=true,tag=JP-uine-40,reality-base64-pubkey=x1d1tn0PXiRTV539e9f0sdqIxB9Q3QtSK3WWsvOYFYU,reality-hex-shortid=36529070

@@ -1,0 +1,15 @@
+[
+  {
+    "address": "z3x-34.bxl4g0.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "55bt96ZFfIhJqsPD",
+      "tag": "DE-ir4-01",
+      "tls-cert-sha256": "F4:34:B0:E6:CC:78:E6:7F:98:23:15:8B:C8:6F:30:67:AF:F7:66:9B:B2:91:87:AF:3A:C3:CE:68:54:4F:95:DC",
+      "tls-host": "cdn.v644j5.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

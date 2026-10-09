@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "DE-kmsvq4-78",
+        "port": 443,
+        "security": "auto",
+        "server": "y66-38.inbufi2.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "d586cf7b-aa1f-4314-84df-a94b6c7ffde4"
+      }
+    }
+  ]
+}

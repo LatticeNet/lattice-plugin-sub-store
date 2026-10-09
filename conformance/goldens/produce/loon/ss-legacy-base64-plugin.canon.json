@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "fh-22.ov6ov1.example.net",
+      "26877",
+      "aes-128-gcm",
+      "DrL9ISgTEl19He"
+    ],
+    "name": "JP-hhek-33",
+    "params": {
+      "obfs-host": "api.tvsyc0.example.com",
+      "obfs-name": "http",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

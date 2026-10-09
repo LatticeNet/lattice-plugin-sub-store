@@ -1,0 +1,1 @@
+hysteria2://wY75JPRvaRRLEgYnTRuB@vq-35.tbtq.example.net:8443?sni=static.n6ugri.example.com&mport=8443#hysteria2%20vq-35.tbtq.example.net%3Aundefined

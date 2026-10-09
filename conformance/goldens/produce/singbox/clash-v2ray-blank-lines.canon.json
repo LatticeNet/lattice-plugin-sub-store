@@ -1,0 +1,48 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "WRlDhNJU25Ck",
+      "server": "er-31.mtwnt.example.net",
+      "server_port": 1080,
+      "tag": "TW-j9w6qk-36",
+      "type": "socks",
+      "username": "h06y",
+      "version": "5"
+    },
+    {
+      "password": "dJSY4pWnnmYU",
+      "server": "gt-07.b9min995.example.net",
+      "server_port": 8080,
+      "tag": "FR-ukui-94",
+      "type": "http",
+      "username": "uxvyk117"
+    },
+    {
+      "psk": "tIJ6AYLXWg2uopx7EdBS",
+      "server": "na-25.a29v3id.example.org",
+      "server_port": 58650,
+      "tag": "US-rrjn-36",
+      "type": "snell",
+      "version": 4
+    },
+    {
+      "password": "N8FwlKhIIDGI",
+      "server": "ar-10.yy6s.example.org",
+      "server_port": 1080,
+      "tag": "HK-xka4u-94",
+      "type": "socks",
+      "username": "ymxf0nzo",
+      "version": "5"
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "FNO39eNJhWcf5R",
+      "plugin_opts": "",
+      "server": "gr-13.j8un730.example.net",
+      "server_port": 12010,
+      "tag": "SG-sqaa-44",
+      "type": "shadowsocks"
+    }
+  ]
+}

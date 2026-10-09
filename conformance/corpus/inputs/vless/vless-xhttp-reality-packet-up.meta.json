@@ -1,0 +1,9 @@
+{
+  "id": "vless-xhttp-reality-packet-up",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-mode",
+  "description": "XHTTP with mode packet-up over Reality."
+}

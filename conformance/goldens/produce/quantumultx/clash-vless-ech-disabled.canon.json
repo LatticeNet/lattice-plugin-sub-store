@@ -1,0 +1,17 @@
+[
+  {
+    "address": "pze-30.gl0zl.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "34359908-5583-4f5c-a3ca-2973676f37b8",
+      "tag": "AU-owaf2-26",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.k1jwj.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

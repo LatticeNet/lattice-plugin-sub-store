@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"cubic","name":"DE-tg4yf-12","password":"yp4kKdg56ngpzODl","port":443,"server":"x9j-17.cv7l2u.example.net","sni":"img.mbn182htgb.example.org","type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"fe030823-567f-4fbf-b11e-9f282081bfdf","fast-open":true,"version":5}

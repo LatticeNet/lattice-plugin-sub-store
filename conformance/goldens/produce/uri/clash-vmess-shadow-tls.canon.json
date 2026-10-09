@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "ph4-05.mx0tv.example.com",
+      "aid": "0",
+      "fp": "chrome",
+      "host": "img.bgickuqs.example.org",
+      "id": "e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35",
+      "net": "ws",
+      "path": "/zzha3a/pymm",
+      "port": "443",
+      "ps": "US-o93-80",
+      "scy": "auto",
+      "sni": "api.mmb7dk.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

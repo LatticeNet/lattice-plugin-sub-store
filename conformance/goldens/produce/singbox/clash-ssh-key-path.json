@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-rdjkty-17",
+      "type": "ssh",
+      "server": "zm-38.z1bz19i8.example.net",
+      "server_port": 22,
+      "user": "ymp5emb",
+      "private_key_path": "y5wh3781.pem"
+    }
+  ],
+  "endpoints": []
+}

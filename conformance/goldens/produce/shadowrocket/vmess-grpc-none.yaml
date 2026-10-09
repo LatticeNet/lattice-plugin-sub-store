@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","grpc-opts":{"grpc-service-name":"fd7qno3-o0n"},"name":"GB-i00-30","network":"grpc","port":443,"server":"ql-09.t1b1avhi.example.net","tls":false,"type":"vmess","udp":true,"uuid":"6fe5f0ff-e2ae-4aee-9797-d70539cbd43d"}

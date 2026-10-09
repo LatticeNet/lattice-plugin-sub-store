@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-str-tag",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "yaml-str-tag",
+  "description": "Passwords written !<str> 0<digits>, !!str 0<digits> and !foo <digits>: all three are read as strings, the first two keeping the leading zero."
+}

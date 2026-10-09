@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "xoh-25.q38e9.example.com",
+      "53769",
+      "j�]�jԍ��y�!"
+    ],
+    "name": "HK-m3vio-67",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "socks5"
+  }
+]

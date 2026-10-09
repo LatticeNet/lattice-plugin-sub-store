@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "stt-32.z59voz2.example.net",
+      "22070",
+      "aes-256-gcm",
+      "NWK7YAngJaA9OC"
+    ],
+    "name": "NL-gjx-28",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

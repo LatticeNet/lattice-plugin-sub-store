@@ -1,0 +1,2 @@
+{"name":"GB-psozs1-08","type":"ss","server":"u69-18.hhni.example.net","port":15480,"cipher":"AES-128-GCM","password":"vLNqaPRJUz67TQ","network":"ws","WS-OPTS":{"path":"/tdp/nmy8y6wm"},"ws-opts":{"Path":"/rwrrb/rsbnf","Headers":{"Host":"api.ab4zjql.example.org"}}}
+{"name":"TW-neu8xy-54","type":"vmess","server":"nuu-30.bptlkz.example.com","port":443,"uuid":"0a5d3415-a80e-41f0-9ff2-1292dc251a4e","alterId":0,"cipher":"auto","network":"ws","Ws-Opts":{"Path":"/ct25/e7005","Headers":{"Host":"cdn.mub447v0m.example.net"}}}

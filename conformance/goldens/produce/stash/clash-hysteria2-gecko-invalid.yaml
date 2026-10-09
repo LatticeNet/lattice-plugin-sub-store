@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"FR-s4pa-17","obfs":"gecko","obfs-max-packet-size":600,"obfs-min-packet-size":1500,"obfs-password":"gYN0n7FMODePW3SE","port":443,"server":"a05-26.q0npk.example.net","sni":"img.dqnh2.example.org","type":"hysteria2","udp":true,"auth":"H4knqbki5VO6glZ0GAIi"}
+  - {"name":"US-rzgm8-24","obfs":"gecko","obfs-min-packet-size":"cnie","obfs-password":"ZOkZD2ADUQ6tUiPg","port":443,"server":"j6-16.pt0d.example.com","sni":"www.jxgptr7.example.net","type":"hysteria2","udp":true,"auth":"Bswmsu7Dabu1mM7QmduP"}

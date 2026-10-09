@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "name": "NL-wj4-65",
+      "obfs-opts": {
+        "host": "static.mq5rbfy.example.com",
+        "mode": "http"
+      },
+      "port": 21532,
+      "psk": "D7w7zk21tmdo3Ta891fW",
+      "reuse": true,
+      "server": "on5-10.vyf1qk.example.org",
+      "type": "snell",
+      "udp": true,
+      "version": 4
+    }
+  ]
+}

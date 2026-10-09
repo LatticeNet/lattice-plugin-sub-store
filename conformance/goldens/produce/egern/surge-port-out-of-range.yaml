@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"CA-m7m-68","method":"aes-128-gcm","server":"ndr-05.gbn77.example.com","password":"ALdras0pPBr1sZ","tfo":false,"udp_relay":true}}

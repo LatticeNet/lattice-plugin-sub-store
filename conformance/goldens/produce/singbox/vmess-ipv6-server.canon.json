@@ -1,0 +1,14 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "2001:db8:857e:9d0b::5799",
+      "server_port": 443,
+      "tag": "CA-nay-24",
+      "type": "vmess",
+      "uuid": "647ab532-add4-42dc-a365-5b4707a42f62"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "fragment": "FR-skjup-87",
+    "host": "ttp-13.hgduq8t.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "eDc0NnJqY206YTZZVjRqaHEzWVlz",
+    "userinfo_base64": "x746rjcm:a6YV4jhq3YYs"
+  },
+  {
+    "fragment": "US-ki5-48",
+    "host": "mo-35.oieb9.example.com",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "em9zMW1zZzA6bnB5T01ENWpCUk9Y",
+    "userinfo_base64": "zos1msg0:npyOMD5jBROX"
+  }
+]

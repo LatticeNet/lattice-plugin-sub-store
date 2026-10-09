@@ -1,0 +1,130 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "SG 01",
+        "port": 20000,
+        "server": "opz-17.m4x19d5f.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "_t7o8LM4LKEJWR8ooHupyCp6G_oJep1ZztFu5yqq5AY",
+              "short_id": "5df7c89a"
+            },
+            "skip_tls_verify": false,
+            "sni": "static.jr3vdg.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "86575217-5ed9-475c-9346-4d36c4c2d533"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "GB 02",
+        "port": 20001,
+        "server": "opz-17.m4x19d5f.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "7OW5e3rAw6FBVjnMepaPKAaeXY3G1QiMUw_v6zx4DPE",
+              "short_id": "cf6b9f66"
+            },
+            "skip_tls_verify": false,
+            "sni": "img.is5us.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "1669ec10-e3f4-4444-9e37-68ee8799d234"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "CA 03",
+        "port": 20002,
+        "server": "opz-17.m4x19d5f.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "zB9TZ6frfkSjkGKyogEBGxood6sn8sWgluyXzmU1WK0",
+              "short_id": "755a12cd"
+            },
+            "skip_tls_verify": false,
+            "sni": "www.nz2y6.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "1714e4cf-c00e-4fad-bedf-f4a65e5d5be1"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "JP 04",
+        "port": 20003,
+        "server": "opz-17.m4x19d5f.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "SKUns5A-LqRd_J87xoU8PMmgEeXIVghJzlkp-fcDFNk",
+              "short_id": "8024f436"
+            },
+            "skip_tls_verify": false,
+            "sni": "api.r4adza4ry.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "4aafe327-24c3-4dc7-b36a-3b1a72c368c2"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "SG 05",
+        "port": 20004,
+        "server": "opz-17.m4x19d5f.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "7ysNDnYxvA9xCQ1V7DeOSkF8fRxItJKqQSf1dw0hW6c",
+              "short_id": "a7d4dbf1"
+            },
+            "skip_tls_verify": false,
+            "sni": "static.c228hbb.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "5e258726-ed04-43b5-973a-f4fb86184b28"
+      }
+    },
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "DE 06",
+        "port": 20005,
+        "server": "opz-17.m4x19d5f.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "m1cFcwclFlbJnTnrfX66yKUs1vnYKAM6L2-f8hRL7D4",
+              "short_id": "f48604d5"
+            },
+            "skip_tls_verify": false,
+            "sni": "cdn.cnmrr6l7.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "e1242596-c599-4569-8562-3df8919fca05"
+      }
+    }
+  ]
+}

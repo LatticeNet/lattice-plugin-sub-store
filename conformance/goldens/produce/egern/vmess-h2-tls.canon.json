@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "TW-gfzm-84",
+        "port": 443,
+        "security": "auto",
+        "server": "nke-20.w8vgbow.example.net",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "www.vauf4f7l.example.net"
+            },
+            "path": "/h4dmjov",
+            "sni": "www.vauf4f7l.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "41dd4a66-fe5e-45f3-9266-4e449a743449"
+      }
+    }
+  ]
+}

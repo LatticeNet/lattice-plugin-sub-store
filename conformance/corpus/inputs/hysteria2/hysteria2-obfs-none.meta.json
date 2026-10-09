@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-obfs-none",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "obfs-none",
+  "description": "obfs=none with an obfs-password: no obfs, and obfs-password is kept."
+}

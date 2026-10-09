@@ -1,0 +1,1 @@
+DE-vvhh0b-20=Hysteria2,qc5-23.ivrq3u.example.net,443,"7GLrM7cLUxbsgFrxj79Y",tls-name=api.o88ob.example.com,skip-cert-verify=false,fast-open=false,udp=true

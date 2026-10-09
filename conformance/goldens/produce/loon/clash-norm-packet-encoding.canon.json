@@ -1,0 +1,47 @@
+[
+  {
+    "args": [
+      "ph-02.bapy.example.org",
+      "443",
+      "6c4622e0-64ad-4d8e-a4bb-b3eab53c4c54"
+    ],
+    "name": "US-ym0l-16",
+    "params": {
+      "over-tls": "true",
+      "tls-name": "cdn.wouhuc1z7w.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "wox-27.fknu.example.org",
+      "443",
+      "auto",
+      "3f5ddbaa-1428-47db-8c42-5461d36dc1b2"
+    ],
+    "name": "NL-yzu-01",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "kw-04.bxqyy.example.org",
+      "443",
+      "8e3fa44a-72bc-4952-88e2-71cd10bc8ed2"
+    ],
+    "name": "KR-pjl-56",
+    "params": {
+      "over-tls": "true",
+      "tls-name": "img.s8xo0hw.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

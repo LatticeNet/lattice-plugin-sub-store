@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "krx-01.z80re.example.org",
+      "443"
+    ],
+    "name": "JP-cf9p0-05",
+    "params": {
+      "gecko-password": "W8lk4MDS8AdiS9s1",
+      "password": "8RY6jGZbI7EkOQU9BxCP",
+      "sni": "cdn.wgruy.example.net"
+    },
+    "type": "hysteria2"
+  }
+]

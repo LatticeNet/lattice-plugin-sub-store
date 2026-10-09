@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"US-uyycd7-94","server":"nyg-31.rua1.example.org","port":443,"user_id":"1b75496d-b70a-4fde-ad0d-9c0374bbc393","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.j8fg2.example.com","reality":{"public_key":"E047wKfHFupR2T6z-dJaq8F4mDJihX13_iBiBjM-dvg","short_id":"55154019"}}}}}

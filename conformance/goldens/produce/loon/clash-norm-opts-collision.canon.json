@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "u69-18.hhni.example.net",
+      "15480",
+      "aes-128-gcm",
+      "vLNqaPRJUz67TQ"
+    ],
+    "name": "GB-psozs1-08",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "nuu-30.bptlkz.example.com",
+      "443",
+      "auto",
+      "0a5d3415-a80e-41f0-9ff2-1292dc251a4e"
+    ],
+    "name": "TW-neu8xy-54",
+    "params": {
+      "alterId": "0",
+      "host": "cdn.mub447v0m.example.net",
+      "path": "/ct25/e7005",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

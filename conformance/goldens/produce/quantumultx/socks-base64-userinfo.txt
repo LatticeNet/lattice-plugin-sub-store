@@ -1,0 +1,1 @@
+socks5=l2-10.au11r.example.org:13306,username=zdxnr9q0,password=3bo2Q3vVOY7P,udp-relay=true,tag=TW-eq7d6q-62

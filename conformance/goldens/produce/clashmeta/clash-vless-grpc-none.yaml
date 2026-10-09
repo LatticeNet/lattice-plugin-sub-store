@@ -1,0 +1,2 @@
+proxies:
+  - {"grpc-opts":{"grpc-service-name":"oobemkp-f98k5"},"name":"DE-zrg-71","network":"grpc","port":443,"server":"csz-34.vuda.example.com","type":"vless","udp":true,"uuid":"bc410de2-5a75-4b93-a4ba-c8ee4485ba10"}

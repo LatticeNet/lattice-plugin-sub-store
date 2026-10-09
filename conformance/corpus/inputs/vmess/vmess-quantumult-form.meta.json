@@ -1,0 +1,9 @@
+{
+  "id": "vmess-quantumult-form",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "quantumult-uri",
+  "description": "Quantumult form: Base64 of a name = vmess line with over-tls."
+}

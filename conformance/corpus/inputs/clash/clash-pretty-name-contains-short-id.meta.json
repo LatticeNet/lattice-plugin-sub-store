@@ -1,0 +1,12 @@
+{
+  "id": "clash-pretty-name-contains-short-id",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "produce-option-pretty-yaml",
+  "description": "With prettyYaml: a Reality node whose name is short-id: <label>, which the textual short-id rewrite of the pretty form corrupts. The input is a Clash JSON line because a proxies: document would meet the parse-side rewrite first.",
+  "options": {
+    "prettyYaml": true
+  }
+}

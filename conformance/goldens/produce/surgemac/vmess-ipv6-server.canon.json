@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "2001:db8:857e:9d0b::5799",
+      "443"
+    ],
+    "name": "CA-nay-24",
+    "params": {
+      "tls": "false",
+      "username": "647ab532-add4-42dc-a365-5b4707a42f62",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

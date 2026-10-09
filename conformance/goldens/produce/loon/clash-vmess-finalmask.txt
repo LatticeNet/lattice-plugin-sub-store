@@ -1,0 +1,1 @@
+SG-qa5-45=vmess,f2-35.rug0aa.example.com,443,auto,"0a8a14d6-5fe1-47a4-b391-8e32145eedb9",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.pj3n2fe.example.com,alterId=0,udp=true

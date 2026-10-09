@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "jwn-16.xzxs3g.example.org",
+      "80",
+      "662f3d29-2c17-4083-957f-1b994cae8b9a",
+      "/cotqh2vr",
+      "cdn.b7npvr.example.org"
+    ],
+    "name": "GB-m175-12",
+    "params": {
+      "host": "api.llf804re.example.com",
+      "over-tls": "false",
+      "path": "/rrozosr",
+      "skip-cert-verify": "false",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

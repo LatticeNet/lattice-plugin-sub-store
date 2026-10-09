@@ -1,0 +1,9 @@
+{
+  "id": "trojan-port-zero",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "port-zero",
+  "description": "Port 0: the line is rejected."
+}

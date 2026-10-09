@@ -1,0 +1,1 @@
+NL-aubv0-64=vless,wu-38.euvmfc6.example.com,443,"36c5070e-ab86-4902-b8b8-c21e8e439fd4",transport=tcp,over-tls=true,tls-profile=chrome,sni=static.bc9l6j77.example.net,public-key="2eoGiDdAjppnR9VLLP_GhA9eTuo8xyhhBO9Syc-sj8A",short-id=e55d3799,udp=true

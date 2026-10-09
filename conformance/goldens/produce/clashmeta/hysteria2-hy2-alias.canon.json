@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "DE-vvhh0b-20",
+      "password": "7GLrM7cLUxbsgFrxj79Y",
+      "port": 443,
+      "server": "qc5-23.ivrq3u.example.net",
+      "skip-cert-verify": false,
+      "sni": "api.o88ob.example.com",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

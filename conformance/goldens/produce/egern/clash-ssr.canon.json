@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "shadowsocksr": {
+        "method": "chacha20-ietf",
+        "name": "KR-ku76-01",
+        "obfs": "tls1.2_ticket_auth",
+        "obfs_param": "cdn.rp4ifyes.example.org",
+        "password": "Q1xpuRlVhIKH",
+        "port": 43309,
+        "protocol": "auth_sha1_v4",
+        "protocol_param": "125:qPktyn",
+        "server": "c6-14.hrgx.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-gjx-28",
+      "type": "shadowsocks",
+      "server": "stt-32.z59voz2.example.net",
+      "server_port": 22070,
+      "method": "aes-256-gcm",
+      "password": "NWK7YAngJaA9OC"
+    }
+  ],
+  "endpoints": []
+}

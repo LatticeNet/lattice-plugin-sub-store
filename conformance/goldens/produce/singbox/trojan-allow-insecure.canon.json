@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "7WEAVSvZGNTkAgpl",
+      "server": "192.0.2.32",
+      "server_port": 443,
+      "tag": "KR-ptyg-62",
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "img.qx34w.example.net"
+      },
+      "type": "trojan"
+    }
+  ]
+}

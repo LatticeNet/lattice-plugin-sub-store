@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-json5-lines",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "json5-lines",
+  "description": "One JSON5 object per line: unquoted keys, single quotes, trailing commas."
+}

@@ -1,0 +1,1 @@
+trojan=cr-16.cdqa6v.example.net:443, password=C8bMswquchFUpuny, over-tls=true, tls-host=img.hnno2ut.example.net, udp-over-tcp=true, tag=SG-a0p-04

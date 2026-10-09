@@ -1,0 +1,2 @@
+CA-zey-95 = shadowsocks, e1-22.bfb12rc2.example.net, 10502, aes-128-gcm, "GPUCzjamTorayo", ip-mode=v4-only, block-quic=true, x-unknown=1
+KR-jpsq-90 = VMESS, cd-20.poht.example.org, 51894, auto, "66613e63-dc32-4b93-8350-1eec860bb5d0"

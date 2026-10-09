@@ -1,0 +1,7 @@
+{
+  "id": "clash-duplicate-key-line",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "yaml-duplicate-key-line",
+  "description": "One flow-YAML line that repeats port: JSON5 does not read the unquoted values, YAML refuses the duplicate key, and the line is rejected."
+}

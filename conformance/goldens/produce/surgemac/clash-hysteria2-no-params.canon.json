@@ -1,0 +1,13 @@
+[
+  {
+    "args": [
+      "203.0.113.47",
+      "443"
+    ],
+    "name": "CA-c80r-97",
+    "params": {
+      "password": "TRVXCERjoTB5gXhbzIx9"
+    },
+    "type": "hysteria2"
+  }
+]

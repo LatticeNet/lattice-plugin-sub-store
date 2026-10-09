@@ -1,0 +1,40 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "DE-vdbq-74",
+        "port": 443,
+        "server": "m2-17.tb5k.example.net",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "service_name": "fn9jg-afzb",
+            "sni": "www.bxp8z8.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "93da0638-461c-40cd-919b-6c8aedb80cdd"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "AU-d9j-96",
+        "port": 443,
+        "security": "auto",
+        "server": "ahe-13.bx4bjkbt.example.net",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "ahe-13.bx4bjkbt.example.net"
+            },
+            "path": "/lo0adt/oqsutga"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ce137d82-8bf9-47ea-85b2-3a7a6d6c65ef"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+GB-m175-12=vless,jwn-16.xzxs3g.example.org,80,"662f3d29-2c17-4083-957f-1b994cae8b9a",transport=http,path=/rrozosr,/cotqh2vr,host=api.llf804re.example.com,cdn.b7npvr.example.org,over-tls=false,skip-cert-verify=false,udp=true

@@ -1,0 +1,36 @@
+[
+  {
+    "args": [
+      "mm-07.zva7.example.org",
+      "443",
+      "2af04e13-4545-4714-82d0-708f4f737598"
+    ],
+    "name": "KR-rdkf-69",
+    "params": {
+      "over-tls": "true",
+      "public-key": "4psMYhB3ei_ddJVbFn4Gz59J6iMmun8n4d4aU-auVls",
+      "short-id": "dd872937",
+      "sni": "cdn.fn1g7pq.example.net",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "xl-19.a0gaynq.example.com",
+      "443",
+      "7ac6db26-2930-4189-b140-e6645c3ec41b"
+    ],
+    "name": "CA-t7vt-14",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "cdn.p9aj7.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

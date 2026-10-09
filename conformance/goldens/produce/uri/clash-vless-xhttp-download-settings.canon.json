@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "DE-t9cd-62",
+    "host": "uv7-24.kgk0hqd2.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"downloadSettings\":{\"address\":\"o0-04.p4q2d28l.example.net\",\"network\":\"xhttp\",\"port\":443,\"security\":\"tls\",\"tlsSettings\":{\"serverName\":\"cdn.vo0bc0m.example.net\",\"fingerprint\":\"chrome\"},\"xhttpSettings\":{\"path\":\"/lku4/pbpp9t3570\",\"mode\":\"packet-up\"}}}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/gcs/uzso1x"
+      ],
+      [
+        "pbk",
+        "7vu-Y-YnXHoUbAKIKq2nvV-_WfgFt8jGLAx4O7TGP_Q"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "ff1ad8ff"
+      ],
+      [
+        "sni",
+        "www.wo8vb50bg.example.com"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "56599273-9afb-4b52-9681-272d5bf6b71e"
+  }
+]

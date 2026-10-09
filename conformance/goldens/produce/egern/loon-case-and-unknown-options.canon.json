@@ -1,0 +1,29 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "block_quic": true,
+        "ip_version": "v4_only",
+        "method": "aes-128-gcm",
+        "name": "CA-zey-95",
+        "password": "GPUCzjamTorayo",
+        "port": 10502,
+        "server": "e1-22.bfb12rc2.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-jpsq-90",
+        "port": 51894,
+        "security": "auto",
+        "server": "cd-20.poht.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "66613e63-dc32-4b93-8350-1eec860bb5d0"
+      }
+    }
+  ]
+}

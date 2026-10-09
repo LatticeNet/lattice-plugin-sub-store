@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "hp-05.gks3u9.example.org",
+      "443"
+    ],
+    "name": "GB-ypr0ot-83",
+    "params": {
+      "password": "pFz9FbdHbazUQpJZ",
+      "sni": "hp-05.gks3u9.example.org",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

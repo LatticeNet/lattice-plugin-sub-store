@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"US-o93-80","server":"ph4-05.mx0tv.example.com","port":443,"user_id":"e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/zzha3a/pymm","headers":{"Host":"img.bgickuqs.example.org"},"sni":"api.mmb7dk.example.org","skip_tls_verify":false}},"shadow_tls":{"password":"FRUnGaggSJUwqE6q","sni":"api.mmb7dk.example.org"}}}

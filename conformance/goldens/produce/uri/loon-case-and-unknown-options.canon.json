@@ -1,0 +1,34 @@
+[
+  {
+    "fragment": "CA-zey-95",
+    "host": "e1-22.bfb12rc2.example.net",
+    "path": "",
+    "port": "10502",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206R1BVQ3pqYW1Ub3JheW8=",
+    "userinfo_base64": "aes-128-gcm:GPUCzjamTorayo"
+  },
+  {
+    "body": {
+      "add": "cd-20.poht.example.org",
+      "aid": "0",
+      "id": "66613e63-dc32-4b93-8350-1eec860bb5d0",
+      "net": "tcp",
+      "port": "51894",
+      "ps": "KR-jpsq-90",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

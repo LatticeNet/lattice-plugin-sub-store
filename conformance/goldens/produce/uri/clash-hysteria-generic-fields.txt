@@ -1,0 +1,1 @@
+hysteria://t3-06.uk6fxic.example.net:45400?auth=1BvAeVxGOLa9Li1k&downmbps=100 Mbps&fastopen=1&mport=33137-33146&protocol=udp&recv_window=52428800&recv_window-conn=12582912&peer=static.jmvmn6obd.example.net&udp=true&upmbps=30 Mbps&x_e0dev=tm5is#DE-of38-16

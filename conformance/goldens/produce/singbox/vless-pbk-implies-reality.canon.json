@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "fb-07.r6uukg.example.net",
+      "server_port": 443,
+      "tag": "GB-ckpmjo-57",
+      "type": "vless",
+      "uuid": "5a606251-0e3b-472a-a3a8-45ca68b9011e"
+    }
+  ]
+}

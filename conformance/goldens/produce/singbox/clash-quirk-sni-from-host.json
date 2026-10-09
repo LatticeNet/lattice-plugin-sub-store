@@ -1,0 +1,38 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-tfsez1-75",
+      "type": "vmess",
+      "server": "bee-29.xqbpipu.example.com",
+      "server_port": 443,
+      "uuid": "848a9969-7aa2-456b-9da9-69e9f413df30",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.v9p5uc3.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.v9p5uc3.example.net"
+        },
+        "path": "/hdm/xo87z7i"
+      }
+    },
+    {
+      "tag": "DE-pbrw-08",
+      "type": "trojan",
+      "server": "xey-25.ohekj.example.net",
+      "server_port": 443,
+      "password": "50gcH1IrTZeRtSHn",
+      "tls": {
+        "enabled": true,
+        "server_name": "xey-25.ohekj.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "surge-trailing-space",
+  "family": "surge",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "trailing-space",
+  "description": "password = pw , and sni=\"q\" ,: the password keeps its trailing space, and the trailing space defeats quote stripping so the sni keeps its quotes."
+}

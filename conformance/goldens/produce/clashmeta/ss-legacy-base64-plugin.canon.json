@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "JP-hhek-33",
+      "password": "DrL9ISgTEl19He",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "api.tvsyc0.example.com",
+        "mode": "http"
+      },
+      "port": 26877,
+      "server": "fh-22.ov6ov1.example.net",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

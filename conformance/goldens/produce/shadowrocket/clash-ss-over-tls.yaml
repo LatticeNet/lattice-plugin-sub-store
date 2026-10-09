@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"FR-pc7-02","password":"g4gPi8XOZGfWfq","port":51380,"server":"q0-09.sbh6s.example.net","sni":"q0-09.sbh6s.example.net","tls":true,"type":"ss","udp":true,"servername":"q0-09.sbh6s.example.net"}

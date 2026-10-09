@@ -1,0 +1,94 @@
+[
+  {
+    "address": "2001:db8:7359:338e::2d96:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "5f1d552f-5f02-47eb-8fa2-30b4bca71182",
+      "reality-base64-pubkey": "TsbDaDmNk39I3QjZ6nTjdcMoQXc7qr6ia4C_ezrAOk0",
+      "reality-hex-shortid": "ddc7f2f4",
+      "tag": "CA nvmvre9 01",
+      "tls-host": "img.l4xtzq.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "192.0.2.245:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "1ceb8d22-208a-428f-8279-530177eb4b2e",
+      "reality-base64-pubkey": "5meyldo9pACfhYGnDS5afumnZECx4lw9dgW1IP_Cs9Y",
+      "reality-hex-shortid": "7a28aa83",
+      "tag": "KR zk3b6de 02",
+      "tls-host": "cdn.u18uxawg.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "2001:db8:2e10:817b::227e:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "855cbc2c-5456-4aa8-8db8-ab7eb97ce2e0",
+      "reality-base64-pubkey": "iBo7lZL5t5o1NVX40DdGTWa2dq8Ug-DqqRU_6QcUwek",
+      "reality-hex-shortid": "fc986489",
+      "tag": "NL otmrq7 03",
+      "tls-host": "cdn.w25izypd95.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "203.0.113.230:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "421b2969-9559-43a9-9f1e-6c8d60df126c",
+      "reality-base64-pubkey": "qJRr-InMluxIDqcV4Tszz2uIp5vpJ_1EjTLKgQAysA8",
+      "reality-hex-shortid": "b9d66e30",
+      "tag": "SG jiql54 04",
+      "tls-host": "img.xz7rx9.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "2001:db8:a7cc:2156::cd3:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "UcUa9NajW3SboyGg",
+      "tag": "TW j3pevb 09",
+      "tls-host": "cdn.x80vf.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "198.51.100.97:30590",
+    "args": [],
+    "params": {
+      "over-tls": "false",
+      "password": "LJ7zbnZeKtYc",
+      "tag": "FR wov14 10",
+      "udp-relay": "true",
+      "username": "s9he0tm"
+    },
+    "type": "socks5"
+  }
+]

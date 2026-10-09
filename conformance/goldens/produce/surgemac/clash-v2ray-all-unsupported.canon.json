@@ -1,0 +1,26 @@
+[
+  {
+    "args": [
+      "n8s-17.s0mpz.example.net",
+      "8080"
+    ],
+    "name": "DE-etktcw-02",
+    "params": {
+      "password": "QYrIC13bchqS",
+      "username": "bb25f"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "ihj-14.hf0kvu.example.net",
+      "8080"
+    ],
+    "name": "NL-pj3l7-41",
+    "params": {
+      "password": "VMGYcj8oRohq",
+      "username": "e2fw"
+    },
+    "type": "http"
+  }
+]

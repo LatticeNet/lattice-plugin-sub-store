@@ -1,0 +1,42 @@
+[
+  {
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "NL-ue77o-49",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "vd-25.o41nav1j.example.com",
+    "skip-cert-verify": false,
+    "sni": "api.vxv2ki9k85.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "1113eba7-5d19-424d-9454-7f55c674c2b7"
+  },
+  {
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "GB-hkxj2-56",
+    "network": "tcp",
+    "packet-encoding": "",
+    "port": 443,
+    "server": "w2l-16.ymew3v.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.x9auf.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "f2b5e03f-8233-4318-8fad-5f5d0167082f"
+  }
+]

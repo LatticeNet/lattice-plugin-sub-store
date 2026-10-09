@@ -1,0 +1,1 @@
+GB-z7rol-66:443=trojan,ey-03.rkflh.example.net,36086,password=5ZocLkGvDb1zfs84dU7A,tls=true,sni="ey-03.rkflh.example.net",udp-relay=true

@@ -1,0 +1,15 @@
+[
+  {
+    "address": "rmq-28.tr5vrx1y.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "05eDffSebg6pvqS7baU1",
+      "tag": "CA-nixq-24",
+      "tls-host": "cdn.sgclf.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

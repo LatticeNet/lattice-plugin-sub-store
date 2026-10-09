@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "cl3-20.f1i93c.example.com",
+      "443",
+      "8siqyovoAYVDDHHY"
+    ],
+    "name": "FR-gg4he-79",
+    "params": {
+      "public-key": "7TR37Rt1uKphGVndTK4CwinHrJI2GZZOT1L3acMJAz8",
+      "short-id": "fd7b5be3",
+      "sni": "img.zz8yf8k7.example.net",
+      "tls-profile": "chrome",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

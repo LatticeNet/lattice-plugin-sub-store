@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-tol-36",
+      "type": "shadowsocks",
+      "server": "urj-24.ji6pn83.example.org",
+      "server_port": 52039,
+      "method": "aes-128-gcm",
+      "password": "Wm8v66vvBpjFnF"
+    }
+  ],
+  "endpoints": []
+}

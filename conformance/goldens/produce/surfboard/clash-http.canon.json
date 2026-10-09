@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "ia-17.raeya8.example.net",
+      "8080",
+      "dzpyhv6v",
+      "cx0ri7gyAdT1"
+    ],
+    "name": "NL-i1l-37",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "sn-35.itha1zf.example.net",
+      "443",
+      "jjbz6",
+      "1yxmCwBktXpQ"
+    ],
+    "name": "HK-hlx5z-75",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "static.ktyuunm.example.com",
+      "udp-relay": "true"
+    },
+    "type": "https"
+  }
+]

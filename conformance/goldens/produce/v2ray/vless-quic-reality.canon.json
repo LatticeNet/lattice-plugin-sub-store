@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "FR-ca1-25",
+    "host": "ozp-10.wuhv.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "yOXQp_ULPWLF8cfDOUfZ0IrsfOBqSWwuzl9bACIjJQ4"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "e6b83e35"
+      ],
+      [
+        "sni",
+        "static.qb467yo81g.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "quic"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "0e65c8b4-1d48-4840-9cc7-c9eb35bfeb19"
+  }
+]

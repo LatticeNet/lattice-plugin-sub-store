@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "DE-tg4yf-12",
+    "host": "x9j-17.cv7l2u.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "fast_open",
+        "1"
+      ],
+      [
+        "sni",
+        "img.mbn182htgb.example.org"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "fe030823-567f-4fbf-b11e-9f282081bfdf:yp4kKdg56ngpzODl"
+  }
+]

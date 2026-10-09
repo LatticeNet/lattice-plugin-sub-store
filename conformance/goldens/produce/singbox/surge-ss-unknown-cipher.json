@@ -1,0 +1,12 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-mtc1-19",
+      "type": "shadowsocks",
+      "server": "g5p-26.ami9olc.example.com",
+      "server_port": 16339,
+      "password": "llh0CjZmE0ix7GJ5PcbvGSG4tZ3xd/240gi0+/vvF7M="
+    }
+  ],
+  "endpoints": []
+}

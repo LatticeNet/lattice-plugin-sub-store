@@ -1,0 +1,1 @@
+HK-rwl-68=tuic-v5,si-36.bnyc.example.net,443,uuid=v2DeBaasrThWvtaPa4ChcTJX,password="",alpn="h3",sni="www.zuzj9pi2d.example.org",udp-relay=true

@@ -9,7 +9,7 @@ function source(path: string): string {
 
 describe("rendered documents use the shared read-only code viewer", () => {
   const targetSheet = source("components/TargetSheet.vue");
-  const filesScreen = source("screens/FilesScreen.vue");
+  const filesScreen = source("components/FileEditor.vue");
   const editor = source("components/CodeEditor.vue");
   const styles = source("styles.css");
 
@@ -33,7 +33,7 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(filesScreen).not.toContain("row-popover-document");
     for (const [name, markup] of [
       ["TargetSheet.vue", targetSheet],
-      ["FilesScreen.vue", filesScreen],
+      ["FileEditor.vue", filesScreen],
     ] as const) {
       const previews = markup.match(/<CodeEditor[^>]*(preview|readonly)/g) ?? [];
       expect(previews, name + " mounts an editor for a read-only preview").toHaveLength(0);
@@ -50,7 +50,7 @@ describe("rendered documents use the shared read-only code viewer", () => {
   // host, where the structured clone rejects them and the call never leaves.
   it("routes every call through the one door that flattens the payload", () => {
     expect(source("client.ts")).toMatch(/callMethod[\s\S]*?wireSafe\(payload\)/);
-    for (const file of ["screens/SubscriptionsScreen.vue", "screens/FilesScreen.vue", "screens/SettingsScreen.vue", "useSubscriptions.ts"]) {
+    for (const file of ["screens/SubscriptionsScreen.vue", "components/FileEditor.vue", "useFileEditor.ts", "screens/SettingsScreen.vue", "useSubscriptions.ts"]) {
       expect(source(file), file + " calls the bridge directly").not.toMatch(/bridge\.call\(/);
     }
   });
@@ -75,7 +75,7 @@ describe("rendered documents use the shared read-only code viewer", () => {
     expect(editor).toContain('v-if="!ready"');
     expect(editor).toContain("failed.value = true");
     expect(editor).toContain('class="code-editor-fallback-note" role="status"');
-    expect(editor).toContain("Syntax highlighting is unavailable.");
+    expect(editor).toContain("t.codeEditor.fallbackEditor");
   });
 
   it("lets the current draft source decide whether its retained url is live", () => {

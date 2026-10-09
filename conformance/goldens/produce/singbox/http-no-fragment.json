@@ -1,0 +1,11 @@
+{
+  "outbounds": [
+    {
+      "tag": "http kuj-37.whmza.example.org:8080",
+      "type": "http",
+      "server": "kuj-37.whmza.example.org",
+      "server_port": 8080
+    }
+  ],
+  "endpoints": []
+}

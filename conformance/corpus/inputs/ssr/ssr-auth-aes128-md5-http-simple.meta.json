@@ -1,0 +1,8 @@
+{
+  "id": "ssr-auth-aes128-md5-http-simple",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "ShadowsocksR link with protocol auth_aes128_md5 and obfs http_simple."
+}

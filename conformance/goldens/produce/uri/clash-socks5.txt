@@ -1,0 +1,2 @@
+socks://b3RyMXU6MjBaSXBHc21leFVX@br9-22.im7ld.example.org:1080#KR-swmn6t-78
+socks://cGlvenFiZ3I6R2xVcHZlbm1qWkNz@fsg-07.hr6g.example.com:443#NL-xy1-70

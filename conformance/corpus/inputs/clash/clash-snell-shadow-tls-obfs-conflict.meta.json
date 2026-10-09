@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-shadow-tls-obfs-conflict",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "snell-shadow-tls-obfs",
+  "description": "snell with plugin shadow-tls and obfs-opts mode http (ClashMeta A8 drops it)."
+}

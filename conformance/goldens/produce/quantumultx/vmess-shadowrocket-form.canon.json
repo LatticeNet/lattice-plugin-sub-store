@@ -1,0 +1,18 @@
+[
+  {
+    "address": "sz-12.bfsv3i.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "api.h8w3p.example.net",
+      "obfs-uri": "/adww/ksgu1id9v",
+      "password": "89ea35b3-b815-4c28-811f-5a628bf1fc26",
+      "tag": "KR-z6tb1-68",
+      "tls-host": "api.h8w3p.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

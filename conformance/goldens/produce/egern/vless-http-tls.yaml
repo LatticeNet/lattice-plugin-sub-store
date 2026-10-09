@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"NL-dd2-51","server":"db-20.zbq9y.example.org","port":443,"user_id":"b9bd841a-80d7-437c-bcf4-0708409fd2c7","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/cnm/jd7wsdlyt9","headers":{"Host":"static.van88za0.example.com"},"sni":"static.van88za0.example.com","skip_tls_verify":false}}}}

@@ -1,0 +1,2 @@
+FR-z36pm-76=shadowsocks,yxc-13.y93b07h.example.net,31170,aes-128-gcm,"EA9fxeuWqVq6",udp=true
+HK-trui-14=trojan,sz-26.icrty1.example.net,443,"isDtVJNKTKm3AVxl",skip-cert-verify=false,tls-name=api.o2pcyahkl3.example.com,udp=true

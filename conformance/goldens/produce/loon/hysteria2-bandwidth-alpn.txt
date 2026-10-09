@@ -1,0 +1,1 @@
+CA-n0gwa7-77=Hysteria2,ke0-40.lx6l.example.org,443,"rcGMeNXxjwztH1PuBrs5",tls-name=www.md1rpi.example.com,skip-cert-verify=false,fast-open=false,udp=true,download-bandwidth=200

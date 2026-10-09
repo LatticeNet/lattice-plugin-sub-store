@@ -1,0 +1,98 @@
+[
+  {
+    "args": [
+      "198.18.148.218",
+      "29549"
+    ],
+    "name": "CA xhu62e 16",
+    "params": {
+      "sni": "static.zm84v6.example.net",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "551bd7d1-f36a-44a2-8a0e-eac9c7adeba6",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"static.zm84v6.example.net\"",
+      "ws-path": "/geww"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "nu-14.k2ek0al.example.com",
+      "443"
+    ],
+    "name": "SG rn331 17",
+    "params": {
+      "sni": "static.f2gz3.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "6d4d0ac3-23dc-494a-90b0-30847fd7db82",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"static.f2gz3.example.org\"",
+      "ws-path": "/nv0kv3dn"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "xp-32.vbdf21b.example.com",
+      "443"
+    ],
+    "name": "SG le9ktd 18",
+    "params": {
+      "sni": "static.sihidp77qf.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "29135548-bcd3-416b-83e5-58bb6f8acb08",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"static.sihidp77qf.example.com\"",
+      "ws-path": "/st6ecv/wxj9enp"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "h3-37.qy0c.example.com",
+      "443"
+    ],
+    "name": "US xox0eo0 19",
+    "params": {
+      "password": "wMDrtEAu0wo638AA",
+      "sni": "img.f2fh7fqk.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "dk-32.moikar2m.example.net",
+      "60926"
+    ],
+    "name": "DE rsmlz7 20",
+    "params": {
+      "password": "J3x2ZpgWGRvdUv3Z",
+      "sni": "cdn.ss60v6r8j.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "ui-34.l8f4rxhk.example.org",
+      "443"
+    ],
+    "name": "JP lr55lmw 21",
+    "params": {
+      "password": "9ZPXv8kt4Gcoo4IL",
+      "sni": "cdn.v202cg4y.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "address": "x1-34.mh3dtn.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "x1-34.mh3dtn.example.com",
+      "obfs-uri": "/",
+      "password": "dd30ca27-f54c-4355-b110-7639681794cf",
+      "tag": "FR-noq-63",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

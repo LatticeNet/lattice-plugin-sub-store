@@ -1,0 +1,9 @@
+{
+  "id": "anytls-insecure-ip",
+  "family": "anytls",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "allow-insecure",
+  "description": "IPv4 server with insecure=1 and no sni."
+}

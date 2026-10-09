@@ -1,0 +1,25 @@
+[
+  {
+    "address": "kf-11.i58wm.example.com:8080",
+    "args": [],
+    "params": {
+      "fast-open": "true",
+      "password": "kaX16lgCD924",
+      "tag": "HK-mz0r-89",
+      "udp-relay": "true",
+      "username": "o052km1"
+    },
+    "type": "http"
+  },
+  {
+    "address": "kf-11.i58wm.example.com:8080",
+    "args": [],
+    "params": {
+      "password": "kaX16lgCD924",
+      "tag": "HK-mz0r-89",
+      "udp-relay": "true",
+      "username": "o052km1"
+    },
+    "type": "http"
+  }
+]

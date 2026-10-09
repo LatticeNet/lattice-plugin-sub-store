@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-256-gcm","name":"AU-r7yklu-31","password":"TWpA7PrQIF3DO5Z","port":27575,"server":"bp-35.sdtq2r5.example.com","skip-cert-verify":false,"type":"ss","udp":true}

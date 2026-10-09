@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "alterId": 0,
+      "cipher": "auto",
+      "kcp-opts": {
+        "_kcp-path": "dhGFOFkn",
+        "_kcp-type": "wechat-video"
+      },
+      "name": "CA-v5jh-82",
+      "network": "kcp",
+      "port": 443,
+      "server": "ix-23.awml9a.example.com",
+      "tls": false,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "71171f09-e4c0-4572-aa3a-ecca7440ef71"
+    }
+  ]
+}

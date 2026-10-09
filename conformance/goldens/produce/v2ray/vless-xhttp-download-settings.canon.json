@@ -1,0 +1,60 @@
+[
+  {
+    "fragment": "SG-mrkd-08",
+    "host": "a72-23.ei2lnbs.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "extra",
+        "{\"xPaddingBytes\":\"100-1000\",\"downloadSettings\":{\"address\":\"j2-20.xw5qgz.example.org\",\"network\":\"xhttp\",\"port\":443,\"security\":\"tls\",\"tlsSettings\":{\"serverName\":\"static.ri2gkv835v.example.com\",\"fingerprint\":\"chrome\"},\"xhttpSettings\":{\"path\":\"/plbm30r6\",\"mode\":\"packet-up\"}}}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/lcs6c"
+      ],
+      [
+        "pbk",
+        "gbbri-1Hp-YR80fpbZ2pM-YxhyPEYRKILtkvdiFJDTA"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "708975c5"
+      ],
+      [
+        "sni",
+        "img.b0uvyz.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "3e5fcf2b-c467-4f07-98d5-aaad1b702509"
+  }
+]

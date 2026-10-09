@@ -1,0 +1,1 @@
+NL-mpnbv-08=Hysteria2,203.0.113.199,443,"bMN5nqsqHZLGqAa0vR7u",tls-cert-sha256=978672B7F947125E1C93D1BDF84BB7EC131D44BF6361A7CABEC3898A96236EF9,skip-cert-verify=true,fast-open=false,udp=true

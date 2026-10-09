@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "zh2-34.v0i498.example.com",
+      "443"
+    ],
+    "name": "FR-liz0ut-87",
+    "params": {
+      "password": "x47D5mO8MxZGTHOg",
+      "skip-cert-verify": "false",
+      "sni": "www.gm2apo.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

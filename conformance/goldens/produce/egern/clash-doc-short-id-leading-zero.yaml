@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"HK-rzpg-20","server":"u16-26.sz1teg.example.com","port":443,"user_id":"9f1ba0a5-a979-48eb-9d96-caff0917c849","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.t88723n10.example.com","reality":{"public_key":"TeoTSdir_kbAvA2e-B4-6IMCsUuZMfVNtPhy3yII6Pc","short_id":"0086"}}},"flow":"xtls-rprx-vision"}}
+  - {"vless":{"name":"AU-ctw-23","server":"qjb-11.e5y6.example.net","port":443,"user_id":"c3465fc6-122b-40a0-bbd8-a5eb6460d054","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"api.mc05ho3.example.org","reality":{"public_key":"Vinz4N9PuKGQ1h5Kx4f4po9zhPr0euemOLqUNPcukKk"}}},"flow":"xtls-rprx-vision"}}

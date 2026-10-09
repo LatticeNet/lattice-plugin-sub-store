@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "NL-dd2-51",
+    "host": "db-20.zbq9y.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "static.van88za0.example.com"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/cnm/jd7wsdlyt9"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.van88za0.example.com"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "b9bd841a-80d7-437c-bcf4-0708409fd2c7"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ksr-38.odza5qa.example.com",
+      "59597"
+    ],
+    "name": "US-dodyb9-55",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "4BuXR7BK2HwHfH",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

@@ -1,0 +1,9 @@
+proxies:
+  - name: GB-x2x-24
+    type: hysteria
+    server: uy-23.pcyw.example.org
+    port: 13157
+    protocol: udp
+    sni: www.k076tb.example.org
+    skip-cert-verify: false
+    auth-str: dGDmD7MGaDNmJyUh

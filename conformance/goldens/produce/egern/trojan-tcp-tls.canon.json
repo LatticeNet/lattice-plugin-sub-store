@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "TW-h11zpi-21",
+        "password": "HwLmYAma9EMkZ8Q5",
+        "port": 443,
+        "server": "hh-01.imfbim.example.com",
+        "sni": "static.xxh5n1ybva.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

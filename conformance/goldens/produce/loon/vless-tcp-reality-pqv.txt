@@ -1,0 +1,1 @@
+FR-e74yhy-14=vless,a9-05.le66p.example.org,443,"47bd133f-f4bb-4fb1-aad7-a238ff909c91",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,flow=xtls-rprx-vision,sni=api.ip4wwzndjw.example.org,public-key="XsH0zzVsbUwKTqlNK1ycPEtEv8cqaY4J7U3YPR5nz-w",short-id=845a9e77,udp=true

@@ -1,0 +1,2 @@
+shadowsocks=uw-26.rku62.example.org:15190,method=aes-128-gcm,password=AbkBDfOEHReXUn,udp-relay=true,tag=HK-v33w-32
+trojan=lgc-08.chq4.example.org:443,password=jktIH5m0728JHCM4,over-tls=true,tls-host=img.t3kxz.example.net,udp-relay=true,tag=KR-wrh-40

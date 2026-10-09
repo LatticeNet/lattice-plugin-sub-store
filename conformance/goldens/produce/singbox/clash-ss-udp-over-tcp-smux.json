@@ -1,0 +1,22 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-fm2xz-53",
+      "type": "shadowsocks",
+      "server": "zzt-26.y4jpnft5.example.org",
+      "server_port": 12899,
+      "method": "aes-128-gcm",
+      "password": "jQ2iqvOC7hkHUSoD",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      },
+      "multiplex": {
+        "enabled": true,
+        "protocol": "h2mux",
+        "max_connections": 4
+      }
+    }
+  ],
+  "endpoints": []
+}

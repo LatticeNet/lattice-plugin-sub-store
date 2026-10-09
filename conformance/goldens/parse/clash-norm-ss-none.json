@@ -1,0 +1,11 @@
+[
+  {
+    "cipher": "none",
+    "name": "NL-ahs6-94",
+    "password": "",
+    "port": 43689,
+    "server": "vv4-07.bwxx.example.com",
+    "type": "ss",
+    "udp": true
+  }
+]

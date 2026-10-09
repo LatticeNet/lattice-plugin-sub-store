@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "DE-x3tp2t-07",
+        "port": 443,
+        "server": "yv-25.jf4k95.example.net",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "api.uz7n78n7b.example.net"
+            },
+            "path": "/t6wrj/n5s937uj",
+            "skip_tls_verify": false,
+            "sni": "api.uz7n78n7b.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "aa84951d-631e-40be-bb55-696f6a5c5b07"
+      }
+    }
+  ]
+}

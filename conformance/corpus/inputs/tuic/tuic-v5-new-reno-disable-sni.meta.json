@@ -1,0 +1,9 @@
+{
+  "id": "tuic-v5-new-reno-disable-sni",
+  "family": "tuic",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "disable-sni",
+  "description": "new_reno, disable_sni and reduce_rtt."
+}

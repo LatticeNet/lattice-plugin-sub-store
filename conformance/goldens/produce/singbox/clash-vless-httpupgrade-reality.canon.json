@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "fg-11.ly62w3au.example.com",
+      "server_port": 443,
+      "tag": "JP-lqv8s-18",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "nlTwFx-IbqCSkG9qR-RmqwJ5IX13wLGywMOfh9WklQc",
+          "short_id": "4353f6c9"
+        },
+        "server_name": "img.ogehpjgiz.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "img.ogehpjgiz.example.net",
+        "path": "/jssw7k/x3vxt",
+        "type": "httpupgrade"
+      },
+      "type": "vless",
+      "uuid": "cce5ae76-9f0f-4cc2-8048-949f2bd9f033"
+    }
+  ]
+}

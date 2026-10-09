@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "br9-22.im7ld.example.org",
+      "1080"
+    ],
+    "name": "KR-swmn6t-78",
+    "params": {
+      "password": "20ZIpGsmexUW",
+      "udp-relay": "true",
+      "username": "otr1u"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "fsg-07.hr6g.example.com",
+      "443"
+    ],
+    "name": "NL-xy1-70",
+    "params": {
+      "password": "GlUpvenmjZCs",
+      "skip-cert-verify": "true",
+      "sni": "fsg-07.hr6g.example.com",
+      "udp-relay": "true",
+      "username": "piozqbgr"
+    },
+    "type": "socks5-tls"
+  }
+]

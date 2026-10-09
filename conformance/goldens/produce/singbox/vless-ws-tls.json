@@ -1,0 +1,33 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-bh6-73",
+      "type": "vless",
+      "server": "sx-39.xuvbo.example.org",
+      "server_port": 443,
+      "uuid": "62baade6-6b72-456c-bedc-186a64cfc946",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.d6vdeaf.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "img.d6vdeaf.example.net"
+        },
+        "path": "/xil2/s6dx"
+      }
+    }
+  ],
+  "endpoints": []
+}

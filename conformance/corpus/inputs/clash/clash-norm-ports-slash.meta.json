@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-ports-slash",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "quirk": "ports-slash",
+  "description": "N25: Hysteria2 ports a-b/c becomes a-b,c, and an empty ports is removed."
+}

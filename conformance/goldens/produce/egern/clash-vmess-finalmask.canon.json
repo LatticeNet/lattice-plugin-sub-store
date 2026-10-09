@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-qa5-45",
+        "port": 443,
+        "security": "auto",
+        "server": "f2-35.rug0aa.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.pj3n2fe.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "0a8a14d6-5fe1-47a4-b391-8e32145eedb9"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+US-nylb2q-40=vless,zf-02.xhdpfu.example.org,443,"1ffa6856-dcf2-4d13-9853-3181f8d4fe4d",transport=http,path=/wx9v9ad4j7,host=cdn.i0k5x5o72b.example.org,over-tls=true,tls-profile=chrome,sni=cdn.i0k5x5o72b.example.org,public-key="RKj201Nm5L7XtprMQE7RQFqzIasU04LCV5nQL0p6AlQ",short-id=f2a8fc3f,udp=true

@@ -1,0 +1,2 @@
+US-mpg-08 = tuic, qo8-35.bpsranmz.example.com, 443, token=R5rEO2foB2yWnIVbCTctE5jr, alpn=h3, sni=www.vq2ksua1g.example.net
+GB-va61-64 = tuic-v5, dp-23.ojwwxjul.example.net, 443, uuid=4728e15e-50cf-48e9-bcf4-109a73b21ee5, password=ANynptDVg71WtZdX, alpn=h3, sni=cdn.vciwrfciu.example.net, skip-cert-verify=false

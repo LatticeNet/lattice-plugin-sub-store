@@ -1,0 +1,3 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"AU-xcg-14","password":"485528","port":19730,"server":"vgz-03.wijo.example.com","type":"ss","udp":true}
+  - {"name":"NL-yspkh0-87","network":"tcp","password":"70370695","port":443,"server":"frx-40.o7y8y1.example.org","sni":"static.mq1bb04d.example.net","type":"trojan","udp":false}

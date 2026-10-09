@@ -1,0 +1,28 @@
+[
+  {
+    "_h2": false,
+    "name": "AU-htj-64",
+    "packet-encoding": "xudp",
+    "password": "PJLn2tDSGfWvqS3p7dv0",
+    "port": 443,
+    "server": "qrg-20.nc9x.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.abdoopble.example.com",
+    "tls": true,
+    "type": "anytls",
+    "udp": true
+  },
+  {
+    "_h2": false,
+    "name": "FR-mnt-40",
+    "packet-encoding": "xudp",
+    "password": "zD32rCAiPcky6yiH8eWx",
+    "port": 443,
+    "server": "s1-33.kogex.example.org",
+    "skip-cert-verify": false,
+    "sni": "api.m123qkb.example.org",
+    "tls": true,
+    "type": "anytls",
+    "udp": true
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-alpn-scalar",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "alpn-scalar",
+  "description": "vmess TLS with a scalar alpn h2."
+}

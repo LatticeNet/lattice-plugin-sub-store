@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "name": "TW-z9qv3-83",
+      "port": 80,
+      "server": "onxbae3@orp-12.iliuew1v.example.org",
+      "tls": false,
+      "type": "http",
+      "udp": true
+    }
+  ]
+}

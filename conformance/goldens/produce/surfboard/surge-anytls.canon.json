@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "rmq-28.tr5vrx1y.example.net",
+      "443"
+    ],
+    "name": "CA-nixq-24",
+    "params": {
+      "password": "05eDffSebg6pvqS7baU1",
+      "reuse": "true",
+      "skip-cert-verify": "false",
+      "sni": "cdn.sgclf.example.net",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

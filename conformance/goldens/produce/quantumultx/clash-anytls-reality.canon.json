@@ -1,0 +1,16 @@
+[
+  {
+    "address": "wja-38.mypjmxik.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "CHDxZquybD5tKCFbF3uw",
+      "reality-base64-pubkey": "x1d1tn0PXiRTV539e9f0sdqIxB9Q3QtSK3WWsvOYFYU",
+      "reality-hex-shortid": "36529070",
+      "tag": "JP-uine-40",
+      "tls-host": "api.d36fk.example.com",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

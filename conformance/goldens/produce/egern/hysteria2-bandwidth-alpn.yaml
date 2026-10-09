@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"CA-n0gwa7-77","server":"ke0-40.lx6l.example.org","port":443,"auth":"rcGMeNXxjwztH1PuBrs5","bandwidth":50,"tfo":false,"udp_relay":true,"sni":"www.md1rpi.example.com","skip_tls_verify":false}}

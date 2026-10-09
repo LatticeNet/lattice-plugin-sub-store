@@ -1,0 +1,8 @@
+proxies:
+  - name: US-bfrb-66
+    type: trojan
+    server: fkb-23.g95rfl34.example.com
+    port: 70000
+    password: 2WkYTw57EFOugGjI
+    sni: api.gdqao1.example.net
+    udp: true

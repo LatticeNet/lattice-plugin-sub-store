@@ -1,0 +1,176 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA nvmvre9 01",
+      "type": "vless",
+      "server": "2001:db8:7359:338e::2d96",
+      "server_port": 443,
+      "uuid": "5f1d552f-5f02-47eb-8fa2-30b4bca71182",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.l4xtzq.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "TsbDaDmNk39I3QjZ6nTjdcMoQXc7qr6ia4C_ezrAOk0",
+          "short_id": "ddc7f2f4"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "KR zk3b6de 02",
+      "type": "vless",
+      "server": "192.0.2.245",
+      "server_port": 443,
+      "uuid": "1ceb8d22-208a-428f-8279-530177eb4b2e",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.u18uxawg.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "5meyldo9pACfhYGnDS5afumnZECx4lw9dgW1IP_Cs9Y",
+          "short_id": "7a28aa83"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "NL otmrq7 03",
+      "type": "vless",
+      "server": "2001:db8:2e10:817b::227e",
+      "server_port": 443,
+      "uuid": "855cbc2c-5456-4aa8-8db8-ab7eb97ce2e0",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.w25izypd95.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "iBo7lZL5t5o1NVX40DdGTWa2dq8Ug-DqqRU_6QcUwek",
+          "short_id": "fc986489"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "SG jiql54 04",
+      "type": "vless",
+      "server": "203.0.113.230",
+      "server_port": 443,
+      "uuid": "421b2969-9559-43a9-9f1e-6c8d60df126c",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xz7rx9.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "qJRr-InMluxIDqcV4Tszz2uIp5vpJ_1EjTLKgQAysA8",
+          "short_id": "b9d66e30"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "US qofeu 05",
+      "type": "hysteria2",
+      "server": "2001:db8:9f0b:1475::926d",
+      "server_port": 32847,
+      "password": "2QxCojek22G8oFQfytlF",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.geqxkkkk.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "GB ocoyqw 06",
+      "type": "hysteria2",
+      "server": "203.0.113.137",
+      "server_port": 24056,
+      "password": "CzYxEhdbtrnWDqiJybaV",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.dnkcgywu0r.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "JP r2qg 07",
+      "type": "tuic",
+      "server": "2001:db8:2aa0:5968::13bd",
+      "server_port": 55269,
+      "uuid": "0580008d-036b-4eb9-9a10-411023b5b282",
+      "password": "J4LevL1SKGtz0Eke",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ilslza0zge.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      },
+      "congestion_control": "bbr"
+    },
+    {
+      "tag": "US hdzeff0 08",
+      "type": "tuic",
+      "server": "192.0.2.53",
+      "server_port": 49424,
+      "uuid": "880a4b71-3def-4b37-9f88-e3a1df4377bc",
+      "password": "Oay4mTYSnaO7Sq21",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.iq0x42tomr.example.net",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      },
+      "congestion_control": "bbr"
+    },
+    {
+      "tag": "TW j3pevb 09",
+      "type": "trojan",
+      "server": "2001:db8:a7cc:2156::cd3",
+      "server_port": 443,
+      "password": "UcUa9NajW3SboyGg",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.x80vf.example.net",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "FR wov14 10",
+      "type": "socks",
+      "server": "198.51.100.97",
+      "server_port": 30590,
+      "version": "5",
+      "username": "s9he0tm",
+      "password": "LJ7zbnZeKtYc"
+    }
+  ],
+  "endpoints": []
+}

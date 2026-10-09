@@ -1,0 +1,2 @@
+trojan=198.51.100.57:443,password=rG8Nc3sr69Ii4FNC,over-tls=true,tls-host=198.51.100.57,udp-relay=true,tag=US-qy8r5q-63
+vless=192.0.2.72:443,method=none,password=0b9d56fa-73e8-4c2b-acdd-1d958a773574,obfs=over-tls,tls-host=192.0.2.72,udp-relay=true,tag=SG-f009-90

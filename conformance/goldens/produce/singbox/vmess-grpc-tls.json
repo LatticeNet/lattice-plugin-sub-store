@@ -1,0 +1,31 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-pqt6-58",
+      "type": "vmess",
+      "server": "wg-20.r82c0q6v.example.org",
+      "server_port": 443,
+      "uuid": "ac5cf1e4-0cda-4edf-8d67-88faeaee3d35",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.owsbv1s1e.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "n1df-p13d4"
+      }
+    }
+  ],
+  "endpoints": []
+}

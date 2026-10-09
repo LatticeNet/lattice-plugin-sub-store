@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-ef8-23",
+      "type": "trojan",
+      "server": "d78-40.oq5eh33.example.net",
+      "server_port": 443,
+      "password": "nrZ4GoNApLRurSNH",
+      "tls": {
+        "enabled": true,
+        "server_name": "d78-40.oq5eh33.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

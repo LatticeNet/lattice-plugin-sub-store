@@ -1,0 +1,1 @@
+TW-xk9-16=vmess,ei-13.y2nd0g.example.org,443,auto,"d6179057-84a8-4647-9d34-691ebf2c8e7e",transport=tcp,over-tls=true,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.l24sjs8j.example.org,alterId=0,udp=true

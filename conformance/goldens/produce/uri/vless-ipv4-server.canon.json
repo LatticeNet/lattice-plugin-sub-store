@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "US-uz1w8a-26",
+    "host": "203.0.113.48",
+    "path": "",
+    "port": "8443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.chcyg0.example.org"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/ogd6r7489"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "www.chcyg0.example.org"
+      ],
+      [
+        "type",
+        "ws"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "946ca19d-458d-4607-a30c-d7d5c6af849a"
+  }
+]

@@ -8,9 +8,9 @@ describe("import from a running Sub-Store uses migrate, not a second path", () =
   it("unwraps the official ?api= address and confirms before writing", () => {
     expect(settings).toContain("resolveSubStoreBase");
     expect(settings).toContain("describeSubStoreBase");
-    expect(settings).toContain("Import from a running Sub-Store");
+    expect(settings).toContain("t.settings.importTitle");
     expect(settings).toContain("requestMigrate()");
-    expect(settings).toContain('verb="Import"');
+    expect(settings).toContain(':verb="t.records.importVerb"');
     expect(settings).not.toContain("ops.migrate(migrateUrl)");
     expect(empty).toContain("resolveSubStoreBase");
     expect(empty).toContain("confirmMigrate()");
@@ -29,7 +29,7 @@ describe("import from a running Sub-Store uses migrate, not a second path", () =
   });
 
   it("keeps backup restore as the envelope path, separate from migrate", () => {
-    expect(settings).toContain("Backup envelope");
+    expect(settings).toContain("t.settings.backupTitle");
     expect(settings).toContain("importBackup");
     expect(settings).toContain("exportBackup");
   });

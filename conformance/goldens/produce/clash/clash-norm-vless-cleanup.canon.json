@@ -1,0 +1,31 @@
+{
+  "proxies": [
+    {
+      "name": "HK-k2i26o-60",
+      "network": "tcp",
+      "port": 443,
+      "server": "ql-28.mfh74.example.org",
+      "servername": "static.n3c5y9f2.example.org",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "4bfba380-5bc4-4df4-86d0-90a44bdaca86"
+    },
+    {
+      "http-opts": {
+        "path": [
+          "/"
+        ]
+      },
+      "name": "SG-ujrq5-92",
+      "network": "http",
+      "port": 443,
+      "server": "hf-04.l37ml.example.org",
+      "servername": "api.clpf8qt.example.net",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "493e1001-6c2d-406a-bdb3-9386878d202f"
+    }
+  ]
+}

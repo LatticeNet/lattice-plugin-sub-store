@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "h4b-38.ex4c4j.example.com",
+      "11356",
+      "aes-128-gcm",
+      "B7ztkGc3V2s1X2"
+    ],
+    "name": "HK-hqqur-72",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

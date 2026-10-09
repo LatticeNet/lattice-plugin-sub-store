@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-hop-interval-keepalive",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "hop-interval",
+  "description": "Port hopping with hop interval and keepalive keys."
+}

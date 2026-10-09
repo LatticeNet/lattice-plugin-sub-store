@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "hysteria2 vq-35.tbtq.example.net:undefined",
+      "type": "hysteria2",
+      "server": "vq-35.tbtq.example.net",
+      "server_port": 8443,
+      "password": "wY75JPRvaRRLEgYnTRuB",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.n6ugri.example.com",
+        "insecure": false
+      },
+      "server_ports": [
+        "8443:8443"
+      ]
+    }
+  ],
+  "endpoints": []
+}

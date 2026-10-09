@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"SG-e0n-36","server":"moe-25.xfbb.example.com","port":443,"user_id":"7a0fb666-6ddd-4347-8b4c-2d81c515330b","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/ryv3jdg?ed=fh9","headers":{"Host":"www.z2kul.example.org"},"sni":"api.gulze.example.org","skip_tls_verify":false}}}}

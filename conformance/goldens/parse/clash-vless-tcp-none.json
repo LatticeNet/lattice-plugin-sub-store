@@ -1,0 +1,11 @@
+[
+  {
+    "name": "NL-e38ors-50",
+    "network": "tcp",
+    "port": 443,
+    "server": "vpb-16.ifpx5.example.com",
+    "type": "vless",
+    "udp": true,
+    "uuid": "63f2ded1-1843-4dcf-bf13-76c8580b46a0"
+  }
+]

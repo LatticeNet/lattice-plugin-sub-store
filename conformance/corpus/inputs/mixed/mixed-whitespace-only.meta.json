@@ -1,0 +1,7 @@
+{
+  "id": "mixed-whitespace-only",
+  "family": "mixed",
+  "protocol": "mixed",
+  "quirk": "whitespace-only",
+  "description": "A document of blank lines and spaces."
+}

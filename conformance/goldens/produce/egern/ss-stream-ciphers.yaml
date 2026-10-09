@@ -1,0 +1,7 @@
+proxies:
+  - {"shadowsocks":{"name":"SG-at22-37","method":"aes-128-cfb","server":"uo-31.vohqvdh2.example.net","port":26672,"password":"e5XX5LpSFAz7","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"FR-wjypay-70","method":"aes-256-cfb","server":"np-08.baeops7.example.org","port":33705,"password":"nmZltRLobntH","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"JP-clgy1z-07","method":"aes-256-ctr","server":"pp0-31.brvt.example.net","port":23086,"password":"nlpoz8gL0b9I","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"US-f3qx-51","method":"chacha20-ietf","server":"fx-28.zpthid.example.net","port":14978,"password":"Rpv1f9EyDV8H","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"TW-odzmu-72","method":"rc4-md5","server":"ceq-08.xcl70pi.example.org","port":50721,"password":"0aSo41OohzpA","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"CA-gs6jqm-70","method":"none","server":"a8-24.ywoz.example.net","port":36201,"password":"HtRQC4aUfvKA","tfo":false,"udp_relay":true}}

@@ -1,0 +1,1 @@
+hysteria2://r7cmfc1rRfj8qGskOnXt@b5-14.vhmjhduu.example.org:NaN?sni=www.c2znodw.example.org&mport=443;8443#TW-o2aaj-10

@@ -1,0 +1,1 @@
+US-o93-80=vmess,ph4-05.mx0tv.example.com,443,auto,"e59dd2d8-ebb9-4ba8-aed6-68d0bdf45a35",transport=ws,path=/zzha3a/pymm,host=img.bgickuqs.example.org,over-tls=true,skip-cert-verify=false,tls-profile=chrome,tls-name=api.mmb7dk.example.org,alterId=0,udp=true

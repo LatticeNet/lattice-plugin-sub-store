@@ -1,0 +1,17 @@
+[
+  {
+    "address": "jaf-26.euz8l.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "3fe877cd-15b1-4d4b-b1ab-e1181fca6e08",
+      "tag": "AU-xfb4-33",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "www.qj98n.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

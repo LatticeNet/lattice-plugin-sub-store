@@ -1,0 +1,2 @@
+shadowsocks=e1-22.bfb12rc2.example.net:10502,method=aes-128-gcm,password=GPUCzjamTorayo,udp-relay=true,tag=CA-zey-95
+vmess=cd-20.poht.example.org:51894,method=chacha20-poly1305,password=66613e63-dc32-4b93-8350-1eec860bb5d0,aead=true,udp-relay=true,tag=KR-jpsq-90

@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "GB-ckpmjo-57",
+    "host": "fb-07.r6uukg.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "0zQ58V8rGnyj4YXDE-ExCr1o96JZpMg2ntTqR7uxKSY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "support-x25519mlkem768",
+        "true"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "5a606251-0e3b-472a-a3a8-45ca68b9011e"
+  }
+]

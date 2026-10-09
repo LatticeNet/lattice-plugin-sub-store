@@ -1,0 +1,21 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "NL-rvfu-27",
+    "password": "cf02XhToMNkAVl",
+    "port": 10239,
+    "server": "lh-03.tvntg.example.org",
+    "smux": {
+      "brutal-opts": {
+        "down": 100,
+        "enabled": true,
+        "up": 50
+      },
+      "enabled": true,
+      "max-connections": 4,
+      "protocol": "h2mux"
+    },
+    "type": "ss",
+    "udp": true
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "nyg-31.rua1.example.org",
+      "server_port": 443,
+      "tag": "US-uyycd7-94",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "E047wKfHFupR2T6z-dJaq8F4mDJihX13_iBiBjM-dvg",
+          "short_id": "55154019"
+        },
+        "server_name": "static.j8fg2.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "1b75496d-b70a-4fde-ad0d-9c0374bbc393"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"FR-r6j6l-31","server":"b1-03.pywg7w10.example.org","port":443,"user_id":"b7fd1d5b-18b6-47d1-af4d-c3bc916c2490","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.dki3ak.example.org","skip_tls_verify":false}}}}

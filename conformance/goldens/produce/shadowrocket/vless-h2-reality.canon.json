@@ -1,0 +1,30 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "h2-opts": {
+        "host": [
+          "img.vc3ai.example.com"
+        ],
+        "path": "/ii0ls"
+      },
+      "name": "JP-kzkt-75",
+      "network": "h2",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "zCE4wn57ytbsLEcKRkmPjZyjTST7vUaKYGzKhwinXc0",
+        "short-id": "8444e6d5"
+      },
+      "server": "yek-01.z1l94dfo.example.net",
+      "servername": "img.vc3ai.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "fc79f00f-7e80-4d12-b9d1-ad060ff43fc0"
+    }
+  ]
+}

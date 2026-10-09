@@ -1,0 +1,2 @@
+proxies:
+  - {"encryption":"none","h2-opts":{"host":["static.ieawv9q.example.com"],"path":"/yiqui4hle"},"name":"CA-g3mj-01","network":"h2","packet-encoding":"xudp","port":443,"server":"xl-03.m6a6k56.example.net","skip-cert-verify":false,"tls":false,"type":"vless","udp":true,"uuid":"3b41240f-1d10-41a0-b19e-9645d0934813"}

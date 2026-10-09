@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "wNErEnwtwNG5ixk200VV",
+        "name": "AU-rwg0qw-67",
+        "port": 443,
+        "server": "gj-03.d3ejf.example.net",
+        "skip_tls_verify": false,
+        "sni": "api.qutrl0x4py.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

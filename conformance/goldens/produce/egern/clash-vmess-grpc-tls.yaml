@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"US-gv8d-49","server":"gtx-40.blera0o.example.net","port":443,"user_id":"fd4efde6-4152-4d96-9d0f-70c45c2d67f2","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"grpc":{"service_name":"z9r672v-vjih0c","sni":"www.jrmm477.example.net","skip_tls_verify":false}}}}

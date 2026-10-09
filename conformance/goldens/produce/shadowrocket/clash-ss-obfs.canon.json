@@ -1,0 +1,32 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-256-gcm",
+      "name": "HK-olzp-81",
+      "password": "wtoWMi8it1w603vL",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "static.v1d0c.example.org",
+        "mode": "http"
+      },
+      "port": 52725,
+      "server": "aa-40.dp1puv.example.net",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-gcm",
+      "name": "DE-w59nld-21",
+      "password": "7PlXMjUk18NdUlCm",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "www.gsnwk4z3.example.net",
+        "mode": "tls"
+      },
+      "port": 29794,
+      "server": "x1i-33.f9r5w.example.com",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

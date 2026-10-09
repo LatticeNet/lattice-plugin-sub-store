@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "US-opo-77",
+        "port": 443,
+        "server": "bu-22.u68e7.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "www.ipzjfg8.example.net"
+            },
+            "path": "/yn3/cg1s",
+            "skip_tls_verify": false,
+            "sni": "www.ipzjfg8.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "8716fe3b-7305-46ba-91eb-4cb9a984fb0a"
+      }
+    }
+  ]
+}

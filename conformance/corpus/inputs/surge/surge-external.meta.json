@@ -1,0 +1,8 @@
+{
+  "id": "surge-external",
+  "family": "surge",
+  "protocol": "external",
+  "security": "none",
+  "quirk": "external-exec",
+  "description": "Surge external with exec, args, local-port and addresses."
+}

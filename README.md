@@ -55,7 +55,7 @@ which is what lets `dev/` mount the same screens against a fake host.
 
 All method names live in `src/client.ts` in two tiers:
 
-- **active** declared by the manifest: 16 `…/subscription` methods, 7
+- **active** declared by the manifest: 21 `…/subscription` methods, 7
   `…/engine` methods, and `…/shares.list`, which is core-backed and used only to
   tell an operator whether a record already has a published share;
 - **pending** proposed but undeclared methods (empty between contract waves; the
@@ -104,6 +104,15 @@ scopes. The bundle document is served with `connect-src 'none'`.
 The runtime declares six host-risk capabilities: `rpc:call`, `http:egress`,
 `http:operator-target`, `kv:read`, `kv:write`, and `subscription:serve`. The last
 is what lets the core serve a published subscription document at a share URL.
+`kv:write` also covers `kv.delete`, which the split record store uses to
+archive, restore and purge records. That host call and the per-method
+`http_response_bytes` budget both first exist in the server release
+`compatibility.server` names as its floor; the release before it refuses the
+manifest. Every method that can reach a provider body declares 8 MiB, the cap
+the provider fetch itself enforces: `fetch`, `probe`, `render`, `publish`,
+`preview` and `preview_draft`. The others keep the host default of 256 KiB, and
+a script's own requests stay at 256 KiB per response in every method, enforced
+by the plugin where the method budget is larger.
 
 The signed outbound RPC dependencies are exactly `latticenet.vpn-core/nodes.export`
 and `latticenet.vpn-core/subscription-sources` (`compose`, `graph_options`).
@@ -147,6 +156,18 @@ expires with the call, and a watchdog cancels the warm runtime's context and
 retires it, so a catastrophic regex or an oversized document on the scriptless
 path costs one call its budget, not the worker.
 
+Node-list conversions go through a native dispatcher first
+(`system-go/engine_dispatch.go`). A render, a collection, a preview or a
+`convert` answers in Go when its target is URI, V2Ray, JSON, sing-box or
+ClashMeta and every enabled step of its chain compiles natively; otherwise the
+whole chain runs on the bundle's isolated runtime, never half in each. Resolve
+Domain, the two script steps, a pattern RE2 refuses and arguments only the
+bundle reads keep a chain on the bundle. Operator patterns compile with their
+ECMAScript meaning of `\s`, `\S` and the dot (`system-go/operators/regex.go`).
+The warm runtime still serves the node count of a refresh whose chain runs on
+the bundle, previews of scriptless chains that do, and the legacy engine
+service.
+
 Rebuild the pinned bundle with:
 
 ```sh
@@ -188,18 +209,110 @@ compatibility last, only after canonical grants have been migrated or removed.
 `GITHUB_TOKEN` in the environment.
 
 ```sh
-node --test tools/substore-core/build.test.mjs
+node --test tools/substore-core/build.test.mjs tools/conformance-end-to-end.test.mjs
 cd system-go && go test -race ./...
 cd ../ui && npm ci && npm test && npm run typecheck && npm run build && npm run verify:build
+npx playwright install chromium && npm run test:e2e
 cd ../tools/pluginpack && go test -race ./...
+cd ../perfgate && go test -race ./...
 ```
 
 Release automation must build the UI with Node.js 22 and both Linux runtime
-binaries with Go 1.26.4 and `-trimpath -buildvcs=false`. Both pinned toolchains
+binaries with Go 1.26.9 and `-trimpath -buildvcs=false`. Both pinned toolchains
 are part of the signed byte contract. It then packs a deterministic artifact,
 sets `bundle.digest_sha256`, signs the manifest with the trusted LatticeNet
 Ed25519 publisher seed, and publishes the alpha release without making it GitHub
 Latest.
+
+## Conformance data
+
+`conformance/` is a copy of the private conformance harness
+(`lattice-substore-conformance`) laid out as the harness root, so its checker
+runs unmodified: the corpus, the goldens, the divergence allowlist,
+`oracle/check.mjs` with its library, the upstream pin and the package files.
+It is Lattice-authored code and synthetic data. The harness's behaviour
+specifications are written from reading upstream Sub-Store and are never
+copied. `conformance/HARNESS_COMMIT` names the harness commit the copy came
+from; refresh it only with the sync script, which copies exactly those paths
+from that commit:
+
+```sh
+tools/conformance-sync.sh ../lattice-substore-conformance v0.1.0-alpha.1
+```
+
+`TestVendoredDataCarriesNoUpstreamText` refuses upstream text and any path the
+script does not copy, and `TestVendoredCheckerMatchesHarnessCommit` compares
+every vendored file with the harness at that commit when a harness checkout is
+present (`LATTICE_SUBSTORE_CONFORMANCE`, or the sibling directory); CI has
+none and skips it. `system-go/cmd/substore-conformance` is the candidate the
+checker drives over its line protocol; it is never part of the plugin
+artifact:
+
+```sh
+(cd system-go && go build -o "${TMPDIR:-/tmp}/substore-conformance" ./cmd/substore-conformance)
+npm ci --prefix conformance/oracle
+node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
+  --targets uri,v2ray,json,singbox,clashmeta --report "${TMPDIR:-/tmp}/conformance-report.json"
+```
+
+The runner answers `parse` from `system-go/parse` with the external opt-in off,
+so the hostile-content rules apply as they do to remote input, and `produce`
+from `system-go/producers`. It applies no operator, node ceiling or zero-node
+refusal. The `conformance` CI job runs the checker from the golden nodes with
+`--expect conformance/conformance.json`, so a corpus, golden or allowlist
+change regenerates that file in the same commit:
+
+```sh
+node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
+  --targets uri,v2ray,json,singbox,clashmeta --conformance conformance/conformance.json
+```
+
+It then runs the checker with `--end-to-end`, producing from the runner's own
+parse output. A case whose parse matches its golden only under the allowlist
+cannot match produce goldens written from nodes Lattice does not build, so
+`tools/conformance-end-to-end.mjs` judges that run: it passes when every
+produce failure is one of the cases a second run with an empty allowlist
+fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
+
+### Conformance numbers
+
+Design 28 publishes three numbers per release. Measured on the S1 native
+engine against harness commit de74ccf (upstream 2.42.3, a3e6106):
+
+| Number | Result |
+|---|---|
+| Parse | 607 of 607 corpus cases (100 percent) |
+| Produce, URI | 579 of 579, byte for byte |
+| Produce, V2Ray | 579 of 579, byte for byte |
+| Produce, JSON | 579 of 579 |
+| Produce, sing-box | 579 of 579 |
+| Produce, ClashMeta | 579 of 579 |
+| Script | not measured until S3, which fixes the named community script set |
+
+The parse number counts corpus cases as `check.mjs` does, not lines: a case is
+one subscription document, and it passes when every node the document yields
+deep-equals the golden. One case (`clash-norm-ca-not-pem`) is a whole-document
+failure in the golden and passes by failing the same way. The run relied on
+three of the four allowlist
+entries: `external`, `underscore` and `ca` (`require` applies to scripts and
+stays pending until S3). End to end, from the runner's own parse, the five
+targets match 568, 567, 558, 573 and 573 of 579; every miss is one of the 21
+cases that parse only under those entries, and the other 558 cases match for
+every target. The other nine targets are answered by the embedded bundle.
+
+`system-go/perfgen` generates the perf gate's synthetic VLESS Reality nodes.
+The pipeline benchmarks time design 28's measure, the nodes through four
+non-script operators to sing-box; the parse of the same nodes' links is a
+benchmark of its own. The `perf` job runs the pipeline, parse and producer
+benchmarks ten times on ubuntu-24.04 and `tools/perfgate` judges the medians
+against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`. That
+baseline is the job's output from two runs that landed on different CPUs (an
+Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
+is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
+run happens to get. Move it the same way, from at least two CPUs, with the
+reason in the commit. The `memory` job runs the
+allocation and heap gates without the race detector and records the built
+worker's resident set (`TestWorkerVmRSS`), which S2 starts enforcing.
 
 ## Looking at the UI
 

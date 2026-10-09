@@ -1,0 +1,7 @@
+{
+  "id": "ssd-inherit-previous",
+  "family": "ssd",
+  "protocol": "ss",
+  "quirk": "ssd",
+  "description": "SSD with three servers where the second overrides port and cipher and the third overrides nothing: the third inherits the second's port and cipher, not the airport defaults."
+}

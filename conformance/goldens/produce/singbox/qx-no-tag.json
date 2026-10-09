@@ -1,0 +1,11 @@
+{
+  "outbounds": [
+    {
+      "tag": "http pri-05.hq82lhl.example.net:80",
+      "type": "http",
+      "server": "pri-05.hq82lhl.example.net",
+      "server_port": 80
+    }
+  ],
+  "endpoints": []
+}

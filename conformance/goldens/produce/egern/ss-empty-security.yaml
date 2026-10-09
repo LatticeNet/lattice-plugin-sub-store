@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"JP-tee2k7-36","method":"aes-128-gcm","server":"wz-14.huhsgb.example.org","port":44206,"password":"XBgXU8v1hEoPJA","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"CA-bvq-13","method":"aes-128-gcm","server":"g8-14.x5adht.example.org","port":33639,"password":"SZDTUPhJwtveeW","tfo":false,"udp_relay":true}}

@@ -1,0 +1,1 @@
+shadowsocks=wf-33.flul.example.com:443,method=aes-128-gcm,password=Xi906cslDTMGQz,tls-verification=true,tls-host=img.sxbdy4m6aw.example.net,udp-relay=true,tag=GB-o1e7f-30,reality-base64-pubkey=NMrDaAeM5T2RjNvLH9ytgxW8XjNJ02HjABJU4bDtyoM,reality-hex-shortid=ce175e59

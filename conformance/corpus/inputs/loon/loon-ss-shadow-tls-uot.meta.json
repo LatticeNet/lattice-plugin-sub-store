@@ -1,0 +1,9 @@
+{
+  "id": "loon-ss-shadow-tls-uot",
+  "family": "loon",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls",
+  "description": "Loon Shadowsocks with shadow-tls and udp-over-tcp."
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ey-03.rkflh.example.net",
+      "36086"
+    ],
+    "name": "GB-z7rol-66:443",
+    "params": {
+      "password": "5ZocLkGvDb1zfs84dU7A",
+      "sni": "ey-03.rkflh.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

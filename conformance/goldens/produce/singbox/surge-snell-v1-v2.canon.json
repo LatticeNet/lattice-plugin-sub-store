@@ -1,0 +1,12 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "psk": "klNi1Sarnw5ldI7JXdBy",
+      "server": "qhy-35.c5qlq6n7.example.com",
+      "server_port": 53271,
+      "tag": "GB-f2i-83",
+      "type": "snell"
+    }
+  ]
+}

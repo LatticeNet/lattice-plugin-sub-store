@@ -1,0 +1,1 @@
+FR-liz0ut-87=trojan,zh2-34.v0i498.example.com,443,"x47D5mO8MxZGTHOg",skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.gm2apo.example.com,udp=true

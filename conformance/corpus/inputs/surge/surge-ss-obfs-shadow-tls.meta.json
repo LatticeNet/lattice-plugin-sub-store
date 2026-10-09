@@ -1,0 +1,9 @@
+{
+  "id": "surge-ss-obfs-shadow-tls",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "obfs-and-shadow-tls",
+  "description": "obfs=http together with Shadow-TLS options and alpn: the Shadow-TLS plugin replaces obfs, the version defaults to 2, and alpn moves into plugin-opts."
+}

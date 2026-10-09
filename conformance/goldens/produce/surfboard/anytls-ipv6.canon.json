@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "2001:db8:f051:f0e2::9775",
+      "443"
+    ],
+    "name": "AU-em7j3s-83",
+    "params": {
+      "password": "aTLmH8rMvhzmoueREcQg",
+      "skip-cert-verify": "false",
+      "sni": "www.feai4.example.org",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

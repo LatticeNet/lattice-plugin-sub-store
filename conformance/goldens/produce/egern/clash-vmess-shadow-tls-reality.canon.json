@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-e3w4-95",
+        "port": 443,
+        "security": "auto",
+        "server": "aq-17.vsn27vzi.example.org",
+        "shadow_tls": {
+          "password": "gcMjfz8eDgDNnlql",
+          "sni": "api.agy7vgm3k.example.net"
+        },
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "api.agy7vgm3k.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "23df0336-e6e4-4d67-a1a5-a858d0c3a07d"
+      }
+    }
+  ]
+}

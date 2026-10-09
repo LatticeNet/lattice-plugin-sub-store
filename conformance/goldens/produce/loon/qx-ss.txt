@@ -1,0 +1,2 @@
+CA-gki4-71=shadowsocks,y5x-06.qsbxmtn.example.org,34163,aes-128-gcm,"WCk5pgZGKDGMo1",fast-open=false,udp=true
+GB-t54-55=shadowsocks,pl3-12.rvki6p41.example.com,55339,2022-blake3-aes-128-gcm,"NIFm94rVMD3O2AH3m+kvdw==",udp=true

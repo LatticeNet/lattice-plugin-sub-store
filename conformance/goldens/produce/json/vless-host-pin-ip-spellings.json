@@ -1,0 +1,39 @@
+[
+  {
+    "_h2": false,
+    "encryption": "none",
+    "name": "SG-ck7-23",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "0:0:0:0:0:ffff:203.0.113.235",
+    "skip-cert-verify": false,
+    "tls": false,
+    "type": "vless",
+    "udp": true,
+    "uuid": "ee69dd3c-2163-4541-b3ab-e25b917d57f7",
+    "ws-opts": {
+      "headers": {
+        "Host": "0:0:0:0:0:ffff:203.0.113.235"
+      },
+      "path": "/qj6af"
+    }
+  },
+  {
+    "_h2": false,
+    "encryption": "none",
+    "name": "HK-dr76-41",
+    "network": "ws",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "::ffff:198.51.100.36",
+    "skip-cert-verify": false,
+    "tls": false,
+    "type": "vless",
+    "udp": true,
+    "uuid": "bfe383f4-6a95-4843-a6d3-04bf5e8e4124",
+    "ws-opts": {
+      "path": "/zxtb"
+    }
+  }
+]

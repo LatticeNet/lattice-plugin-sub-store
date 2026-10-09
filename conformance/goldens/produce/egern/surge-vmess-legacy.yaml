@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"DE-ul2d-17","server":"g1d-13.yztv.example.org","port":80,"user_id":"f377bfa4-dd00-482f-8fdb-839994d4cc12","security":"chacha20-poly1305","tfo":false,"legacy":true,"udp_relay":true,"transport":{"ws":{"path":"/r4nzwpx","headers":{"Host":"g1d-13.yztv.example.org"}}}}}

@@ -1,0 +1,1 @@
+tuic://8084f53b-14db-4353-bb2f-54266975fe35:haySs7N4afsvUahP@m97-07.vapbfgw4.example.net:443?alpn=h3&congestion_control=cubic&max_open_streams=20&sni=www.r0ym9flg0.example.net&udp=true&udp_relay_mode=native&x_tv8d=krx3ew2%2Cgch9p7&x_zpymcx5=%5Bobject%20Object%5D#FR-s8k-58

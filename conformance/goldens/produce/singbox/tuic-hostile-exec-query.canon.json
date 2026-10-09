@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "xBFRjdH4b8mIwbA7",
+      "server": "l1-03.zh7zvdv.example.net",
+      "server_port": 443,
+      "tag": "TW-n4sg-69",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.vspcc22n.example.com"
+      },
+      "type": "tuic",
+      "uuid": "13980a81-2a49-45de-9d78-14135a92db7a"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "198.51.100.57",
+      "443"
+    ],
+    "name": "US-qy8r5q-63",
+    "params": {
+      "password": "rG8Nc3sr69Ii4FNC",
+      "sni": "198.51.100.57",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

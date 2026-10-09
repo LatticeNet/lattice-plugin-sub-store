@@ -1,0 +1,62 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-blkq5-54",
+      "type": "vmess",
+      "server": "az-01.ra66.example.org",
+      "server_port": 443,
+      "uuid": "5c489657-08cd-4391-9302-18b20b2463d9",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "az-01.ra66.example.org"
+        },
+        "path": "/8923"
+      }
+    },
+    {
+      "tag": "AU-ewmlbc-18",
+      "type": "vmess",
+      "server": "xp0-33.njrtp.example.org",
+      "server_port": 443,
+      "uuid": "ef5ef9c3-4a75-48a6-afe2-294c7afc5197",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "xp0-33.njrtp.example.org"
+        },
+        "path": "/l2fi"
+      }
+    },
+    {
+      "tag": "FR-rprs-23",
+      "type": "vmess",
+      "server": "bpt-21.nwy7.example.net",
+      "server_port": 443,
+      "uuid": "9780c28e-3733-41d1-b2ed-cbd2b08b0621",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "grpc",
+        "service_name": "ps7ys-i3y"
+      }
+    },
+    {
+      "tag": "GB-l0y0-75",
+      "type": "trojan",
+      "server": "cq-10.a54n9l7t.example.org",
+      "server_port": 443,
+      "password": "TifAT0yjW7Y0dzla",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.nf4ckmsolx.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "FR-x7stf5-56",
+    "host": "nu4-28.oyouu.example.net",
+    "path": "/",
+    "port": "48808",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=quic;mode=quic;obfs-host=cdn.zuzdhm.example.org;host=cdn.zuzdhm.example.org"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206OUl6NFh3UVJWWW90Z0Q=",
+    "userinfo_base64": "aes-128-gcm:9Iz4XwQRVYotgD"
+  }
+]

@@ -1,0 +1,1 @@
+GB-s63s-21=Hysteria2,bi-14.qievq7x.example.com,443,"vCWyidJwQyfuWrJv4pzN",tls-name=img.qj6n1.example.net,skip-cert-verify=false,fast-open=false,udp=true

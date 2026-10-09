@@ -1,0 +1,1 @@
+NL-cme-57=hysteria2,2001:db8:b10a:ac00::f036,34005,password="yKKdrNLMv32PgMZuqlnp",sni="cdn.lct1cm2ewi.example.net",skip-cert-verify=true,tfo=false

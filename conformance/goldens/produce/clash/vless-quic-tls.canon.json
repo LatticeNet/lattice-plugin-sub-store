@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "name": "TW-sqdso-56",
+      "network": "quic",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "qkn-04.k5pm3f.example.net",
+      "servername": "static.zbtxuowoes.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "bebdc7bb-58e3-41c5-976c-d719ac2b2a0d"
+    }
+  ]
+}

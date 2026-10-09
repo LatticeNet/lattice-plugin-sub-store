@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "xe-34.w3hx.example.net",
+      "443"
+    ],
+    "name": "SG-hqzi-96",
+    "params": {
+      "password": "bm91bewnfciiwnoMmrKb",
+      "skip-cert-verify": "false",
+      "sni": "img.l2m9nw.example.com",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

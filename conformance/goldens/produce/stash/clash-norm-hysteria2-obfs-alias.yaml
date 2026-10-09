@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"FR-e45-21","obfs":"salamander","obfs-password":"HSJKygToOAME6To1","port":443,"server":"yz-31.o9t4ry4.example.org","sni":"img.i57tmk4cc8.example.org","type":"hysteria2","udp":true,"auth":"yyAyzyg3eRCFuhg2AQyT"}
+  - {"name":"HK-zlv-67","obfs":"salamander","obfs-password":"dT6lnZU72e","obfs_password":"2EtPLq4iwIxq53z9","port":443,"server":"a13-12.ezd38.example.org","sni":"api.rtpzqpp.example.org","type":"hysteria2","udp":true,"auth":"UoAwyPUyCmcsX8fUl5z4"}

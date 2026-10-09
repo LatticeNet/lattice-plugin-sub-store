@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "JP-hmq3o7-72",
+    "host": "qo-07.fsqxwcko.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "host",
+        "api.cp0bb8.example.com"
+      ],
+      [
+        "mode",
+        "auto"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "path",
+        "/qs4yyl/f134d7cml"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "666e05bb-b202-4690-b49c-5f31a2054e2d"
+  }
+]

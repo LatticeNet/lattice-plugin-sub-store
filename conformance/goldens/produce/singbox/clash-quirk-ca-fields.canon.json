@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "cyz-24.e9dn21w.example.org",
+      "server_port": 443,
+      "tag": "NL-do9b0q-21",
+      "tls": {
+        "certificate": [
+          "-----BEGIN CERTIFICATE-----\nl9ZYEiYe1wv6hn8k5WKxty2+kbdvqLUqICQL+xHPaPbXI4ewI1LdVultsGlFWUU1\n-----END CERTIFICATE-----"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.dlvsk0q.example.org"
+      },
+      "type": "vless",
+      "uuid": "9dd1f389-f74c-4747-96b5-19b4af4d55ac"
+    },
+    {
+      "password": "NJBWrIzIMGyilHmy",
+      "server": "umm-36.imjd.example.net",
+      "server_port": 443,
+      "tag": "US-hilk-85",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.de4hx.example.com"
+      },
+      "type": "trojan"
+    }
+  ]
+}

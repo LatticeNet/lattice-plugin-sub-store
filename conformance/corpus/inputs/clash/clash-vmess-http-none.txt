@@ -1,0 +1,17 @@
+proxies:
+  - name: HK-zb9a-35
+    type: vmess
+    server: jj2-21.m5egq.example.com
+    port: 443
+    uuid: 4769c081-8c80-4949-a41e-30a1b2086716
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /f7a41
+      headers:
+        Host:
+          - cdn.lkwh7e7kt.example.net

@@ -1,0 +1,20 @@
+proxies:
+  - name: FR-hh0-05
+    type: vless
+    server: vhy-37.kbjlbsej.example.com
+    port: 443
+    uuid: 9ed65cb0-7a2c-45a9-ad68-97b05846f77e
+    tls: true
+    servername: cdn.o9kp42xjx.example.org
+    x-rdbkh: yp08u
+    network: ws
+    ws-opts:
+      path: /jui0ogbt30
+      headers:
+        Host: cdn.o9kp42xjx.example.org
+      x-k6xm:
+        x-txkcrq: 33
+    x-iphc5ag:
+      x-pfv88iu:
+        - wg67
+        - x4iq

@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-flow-direct",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "flow-direct",
+  "description": "vless with flow xtls-rprx-direct."
+}

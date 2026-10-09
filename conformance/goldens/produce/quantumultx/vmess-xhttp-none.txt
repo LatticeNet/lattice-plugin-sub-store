@@ -1,0 +1,1 @@
+vmess=y66-38.inbufi2.example.net:443,method=chacha20-poly1305,password=d586cf7b-aa1f-4314-84df-a94b6c7ffde4,aead=true,udp-relay=true,tag=DE-kmsvq4-78

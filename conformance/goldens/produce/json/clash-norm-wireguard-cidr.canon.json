@@ -1,0 +1,27 @@
+[
+  {
+    "ip": "10.25.96.50",
+    "ip-cidr": 24,
+    "ipv6": "fd00:9946::7d85",
+    "ipv6-cidr": 64,
+    "name": "GB-itui-59",
+    "port": 51820,
+    "private-key": "RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs=",
+    "public-key": "/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8=",
+    "server": "e8-16.m20ou6xn.example.net",
+    "type": "wireguard",
+    "udp": true
+  },
+  {
+    "ip": "theee7",
+    "ip-cidr": 24,
+    "ipv6": "",
+    "name": "TW-lql-28",
+    "port": 51820,
+    "private-key": "GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc=",
+    "public-key": "FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8=",
+    "server": "nwc-26.vov4gi.example.com",
+    "type": "wireguard",
+    "udp": true
+  }
+]

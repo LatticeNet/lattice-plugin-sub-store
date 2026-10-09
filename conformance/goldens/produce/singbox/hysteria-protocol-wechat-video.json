@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-r4c2jf-02",
+      "type": "hysteria",
+      "server": "rzd-26.ept8.example.com",
+      "server_port": 13880,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.fpyqi2.example.org",
+        "insecure": false,
+        "alpn": [
+          "hysteria"
+        ]
+      },
+      "auth_str": "Qk0ihmeKudCglzGs",
+      "up_mbps": 30,
+      "down_mbps": 100
+    }
+  ],
+  "endpoints": []
+}

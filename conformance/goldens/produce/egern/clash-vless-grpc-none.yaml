@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"DE-zrg-71","server":"csz-34.vuda.example.com","port":443,"user_id":"bc410de2-5a75-4b93-a4ba-c8ee4485ba10","tfo":false,"udp_relay":true,"transport":{"grpc":{"service_name":"oobemkp-f98k5"}}}}

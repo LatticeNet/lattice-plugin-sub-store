@@ -1,0 +1,9 @@
+{
+  "id": "vless-xhttp-bad-extra",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "tls",
+  "quirk": "xhttp-bad-extra",
+  "description": "xhttp with an extra that is not JSON: _extra holds the text."
+}

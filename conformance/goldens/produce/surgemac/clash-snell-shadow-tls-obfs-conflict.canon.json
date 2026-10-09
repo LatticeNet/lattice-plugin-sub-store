@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "xo-23.xbwv0pop.example.net",
+      "40231"
+    ],
+    "name": "FR-ngk2i-88",
+    "params": {
+      "obfs": "http",
+      "obfs-host": "cdn.ixxoeq.example.com",
+      "psk": "mClhBBZmCVzR0IpkaeFe",
+      "shadow-tls-password": "cr2BrE41G1Ek7tgM",
+      "shadow-tls-sni": "static.wa6r8.example.org",
+      "shadow-tls-version": "3",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

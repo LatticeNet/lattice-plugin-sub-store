@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"alterId":0,"cipher":"auto","client-fingerprint":"chrome","http-opts":{"headers":{"Host":["img.zvk38q37.example.org"]},"path":["/abv4ag6"]},"name":"NL-q8q-98","network":"http","port":443,"server":"dj9-28.i9kdhan.example.com","tls":true,"type":"vmess","udp":true,"uuid":"2a2633f6-bffd-41e2-a5ed-a6e930144137","servername":"img.zvk38q37.example.org"}

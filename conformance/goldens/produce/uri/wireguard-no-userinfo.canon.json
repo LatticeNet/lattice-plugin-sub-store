@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "SG-hpjmwu-57",
+    "host": "k95-36.hs4w7i.example.com",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.0.92.165/32"
+      ],
+      [
+        "publickey",
+        "8LsHaJEyLaMqY1L7gW6cag0RfYlg8ccbuJ4MVLUEaiI="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "undefined"
+  }
+]

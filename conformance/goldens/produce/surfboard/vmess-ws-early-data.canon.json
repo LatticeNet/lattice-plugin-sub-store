@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "fj-09.fcx8god.example.org",
+      "443"
+    ],
+    "name": "TW-mc3w0h-48",
+    "params": {
+      "sni": "api.ubxoa09ik.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "3cf24b8e-2838-480e-ad27-03657ab28a13",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"api.ubxoa09ik.example.com\"",
+      "ws-path": "/zx2t"
+    },
+    "type": "vmess"
+  }
+]

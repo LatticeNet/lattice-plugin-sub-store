@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "TW-zqdt-64",
+    "host": "nw-25.gx808qo.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "obfs",
+        "salamander"
+      ],
+      [
+        "obfs-password",
+        "xVZfLLQWOS2O"
+      ],
+      [
+        "sni",
+        "static.refup.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "sPOmVik1yMye21bMsDsr"
+  }
+]

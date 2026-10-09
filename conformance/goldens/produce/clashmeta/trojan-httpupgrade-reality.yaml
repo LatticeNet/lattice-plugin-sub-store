@@ -1,0 +1,2 @@
+proxies:
+  - {"client-fingerprint":"chrome","name":"SG-fsqg-13","network":"ws","password":"G1X5dWOpnYCm7S5y","port":443,"reality-opts":{"_spider-x":"/","public-key":"LLn8fHjxlFAjKvNOsGJb1yjXwnbS19M-3iA-RyCpqj8","short-id":"35aece35"},"server":"e5v-34.kxtb5hii.example.org","sni":"www.dzqcn9r4e.example.org","type":"trojan","udp":true,"ws-opts":{"headers":{"Host":"www.dzqcn9r4e.example.org"},"path":"/pmx34sl1p","v2ray-http-upgrade":true}}

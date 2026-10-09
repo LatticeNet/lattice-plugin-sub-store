@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "x1-34.mh3dtn.example.com",
+      "server_port": 443,
+      "tag": "FR-noq-63",
+      "transport": {
+        "headers": {
+          "Host": "x1-34.mh3dtn.example.com"
+        },
+        "path": "/",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "dd30ca27-f54c-4355-b110-7639681794cf"
+    }
+  ]
+}

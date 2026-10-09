@@ -1,0 +1,3 @@
+FR-xzt8-87=trojan,r71-09.q6isz.example.com,443,password=252osGcNC6rhBPot,tls=true,sni="api.k66w9n0.example.com",udp-relay=true
+KR-kse4f-43=trojan,w7-10.olg8j.example.org,443,password=pNnlkRSb5JLWlpyh,tls=true,sni="img.ec3p3.example.com",udp-relay=true
+HK-tm0vy-52=trojan,kuk-03.ztc4l.example.net,443,password=7pxYY9U0dtY7Xt2x,tls=true,sni="api.xevlb.example.org",udp-relay=true

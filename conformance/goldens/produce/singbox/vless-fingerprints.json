@@ -1,0 +1,90 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-gzy8-87",
+      "type": "vless",
+      "server": "qo-19.qfig1df.example.net",
+      "server_port": 443,
+      "uuid": "f1cb3c22-cadf-4741-a861-66e724042af6",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.e9lh2mo5kh.example.org",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        }
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "GB-vf8-03",
+      "type": "vless",
+      "server": "cn-20.y8suksj3.example.net",
+      "server_port": 443,
+      "uuid": "b5793326-760d-46da-ab04-9d4e23d7b7ec",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.mnmuuw.example.org",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "safari"
+        }
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "CA-a4zwe-27",
+      "type": "vless",
+      "server": "eu-07.fq689n3v.example.org",
+      "server_port": 443,
+      "uuid": "1a7cc116-66e1-46c2-91cf-cdc3005ee15f",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.l1du25r1.example.net",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "ios"
+        }
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "SG-b0j-73",
+      "type": "vless",
+      "server": "ic-38.wgazw4.example.com",
+      "server_port": 443,
+      "uuid": "026e7152-84c8-4445-822e-a6780b289f13",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.g2923vp2z.example.com",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "random"
+        }
+      },
+      "packet_encoding": "xudp"
+    },
+    {
+      "tag": "SG-wfvnp-71",
+      "type": "vless",
+      "server": "cp-24.gdg3qnvk.example.org",
+      "server_port": 443,
+      "uuid": "a7110413-9582-4b5d-8927-47ecae9eb14f",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.tt0p1qp.example.org",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "randomized"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

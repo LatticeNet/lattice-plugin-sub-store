@@ -1,0 +1,1 @@
+HK-bdzvs-31=https,bg-20.koifso.example.org,443,username="xmmwh",password="qMhtBNRElE5A",sni="img.bxln43ak.example.net",skip-cert-verify=false

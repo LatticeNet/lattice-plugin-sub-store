@@ -1,0 +1,9 @@
+{
+  "id": "http-path-in-authority",
+  "family": "socks-http",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "path-in-authority",
+  "description": "http://host:8080/path#name: the path is not understood, so server is host:8080/path and the port is 80."
+}

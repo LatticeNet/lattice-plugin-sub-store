@@ -1,0 +1,9 @@
+{
+  "id": "clash-wireguard-address-forms",
+  "family": "clash",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "wireguard-address",
+  "description": "wireguard with ip <IPv4>/24, a bracketed ipv6 with a prefix and an explicit ip-cidr, and a second node with an invalid ip."
+}

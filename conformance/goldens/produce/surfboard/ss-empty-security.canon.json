@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "wz-14.huhsgb.example.org",
+      "44206"
+    ],
+    "name": "JP-tee2k7-36",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "XBgXU8v1hEoPJA",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "g8-14.x5adht.example.org",
+      "33639"
+    ],
+    "name": "CA-bvq-13",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "SZDTUPhJwtveeW",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

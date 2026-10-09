@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "FR-zy6i6-82",
+        "password": "g0W5qYXucvY1IN",
+        "port": 25709,
+        "server": "bb-27.sc6zg0dg.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

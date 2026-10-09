@@ -1,0 +1,17 @@
+[
+  {
+    "address": "fq-04.ri20owdn.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "6490f9f8-ff11-4f38-92bf-752ea9cb09b2",
+      "tag": "CA-actar-66",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.z96qqyye3z.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

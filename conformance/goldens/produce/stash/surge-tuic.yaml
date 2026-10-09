@@ -1,0 +1,3 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"cubic","name":"US-mpg-08","port":443,"server":"qo8-35.bpsranmz.example.com","sni":"www.vq2ksua1g.example.net","token":"R5rEO2foB2yWnIVbCTctE5jr","type":"tuic","udp":true,"udp-relay-mode":"native"}
+  - {"alpn":["h3"],"congestion-controller":"cubic","name":"GB-va61-64","password":"ANynptDVg71WtZdX","port":443,"server":"dp-23.ojwwxjul.example.net","skip-cert-verify":false,"sni":"cdn.vciwrfciu.example.net","type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"4728e15e-50cf-48e9-bcf4-109a73b21ee5","version":5}

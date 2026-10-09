@@ -1,0 +1,20 @@
+[
+  {
+    "body": {
+      "add": "ix-23.awml9a.example.com",
+      "aid": "0",
+      "id": "71171f09-e4c0-4572-aa3a-ecca7440ef71",
+      "net": "kcp",
+      "path": "dhGFOFkn",
+      "port": "443",
+      "ps": "CA-v5jh-82",
+      "scy": "auto",
+      "tls": "",
+      "type": "wechat-video",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

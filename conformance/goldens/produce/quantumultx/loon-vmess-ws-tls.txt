@@ -1,0 +1,1 @@
+vmess=cej-15.bkqvxt7.example.net:443,method=chacha20-poly1305,password=8a2bd8c2-bb2c-4b77-8c5c-0f9cbfbd0c6d,obfs=wss,obfs-uri=/xbne0,obfs-host=static.vn1oixf1.example.org,tls-verification=true,tls-host=static.vn1oixf1.example.org,aead=true,udp-relay=true,tag=NL-ch4-64

@@ -1,0 +1,15 @@
+[
+  {
+    "address": "o8-22.yd7la.example.com:41691",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf-poly1305",
+      "obfs": "tls",
+      "obfs-host": "static.vrb8iyo.example.net",
+      "password": "DnDhyby4CUkV4H",
+      "tag": "CA-bus8j-50",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

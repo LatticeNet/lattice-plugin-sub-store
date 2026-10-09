@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "b5-14.vhmjhduu.example.org",
+      "NaN",
+      "r7cmfc1rRfj8qGskOnXt"
+    ],
+    "name": "TW-o2aaj-10",
+    "params": {
+      "fast-open": "false",
+      "server-ports": "443;8443",
+      "skip-cert-verify": "false",
+      "tls-name": "www.c2znodw.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

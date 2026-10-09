@@ -1,0 +1,1 @@
+SG-qa5-45=vmess,f2-35.rug0aa.example.com,443,username=0a8a14d6-5fe1-47a4-b391-8e32145eedb9,vmess-aead=true,tls=true,sni="www.pj3n2fe.example.com",alpn="h2,http/1.1",skip-cert-verify=false

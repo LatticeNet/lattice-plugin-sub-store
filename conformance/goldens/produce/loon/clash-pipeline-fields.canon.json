@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "wtr-25.tgodt.example.org",
+      "443",
+      "iEbzUJm2r7ZFhxxz"
+    ],
+    "name": "FR-mw0ad-11",
+    "params": {
+      "tls-name": "img.xashyl2j67.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

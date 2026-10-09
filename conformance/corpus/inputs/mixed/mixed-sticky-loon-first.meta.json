@@ -1,0 +1,9 @@
+{
+  "id": "mixed-sticky-loon-first",
+  "family": "mixed",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "parser-order",
+  "description": "A Loon http line with fast-open=true followed by the same line without it: the Loon-only option sends the first to the Loon grammar, the second is offered to the Loon grammar first because it read the previous line, and both user names keep their leading space."
+}

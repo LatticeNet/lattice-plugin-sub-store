@@ -1,0 +1,9 @@
+{
+  "id": "wireguard-unencoded-key",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "unencoded-key",
+  "description": "A private key with raw + / = in the userinfo."
+}

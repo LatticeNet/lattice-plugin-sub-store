@@ -1,0 +1,38 @@
+[
+  {
+    "address": "wz-14.huhsgb.example.org:44206",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "XBgXU8v1hEoPJA",
+      "tag": "JP-tee2k7-36",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "g8-14.x5adht.example.org:33639",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "SZDTUPhJwtveeW",
+      "tag": "CA-bvq-13",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "mgz-18.jad1an.example.net:45471",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "over-tls",
+      "obfs-host": "mgz-18.jad1an.example.net",
+      "password": "E6Ms689vI6sJyL",
+      "tag": "SG-bot-82",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

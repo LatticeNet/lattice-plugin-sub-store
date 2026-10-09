@@ -1,0 +1,8 @@
+{
+  "id": "clash-wireguard",
+  "family": "clash",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "description": "WireGuard flat form and peers form."
+}

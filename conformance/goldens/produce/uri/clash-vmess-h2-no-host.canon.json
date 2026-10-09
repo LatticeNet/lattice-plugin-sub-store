@@ -1,0 +1,23 @@
+[
+  {
+    "body": {
+      "add": "wnt-34.v5lbu.example.net",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "d3f3ec96-793c-4363-92c9-e8ad01ce29b0",
+      "net": "h2",
+      "path": "/cdxbxd",
+      "port": "443",
+      "ps": "SG-q60-82",
+      "scy": "auto",
+      "sni": "www.pjpqvxmy.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

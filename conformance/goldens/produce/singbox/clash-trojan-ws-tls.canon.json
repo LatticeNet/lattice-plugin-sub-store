@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "Ss3l3GXlwJPI9BmQ",
+      "server": "c5-11.ocg6mst.example.org",
+      "server_port": 443,
+      "tag": "DE-rnjso-15",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.qb83s9o08.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.qb83s9o08.example.net"
+        },
+        "path": "/ucuhm923u",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

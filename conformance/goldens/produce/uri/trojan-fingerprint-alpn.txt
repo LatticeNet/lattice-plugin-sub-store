@@ -1,0 +1,1 @@
+trojan://MqstkokkaMmCdlOb@ufh-20.cskk.example.net:443?sni=www.pu7fx.example.net&type=tcp&alpn=h2%2Chttp%2F1.1&fp=firefox#KR-i6c-08

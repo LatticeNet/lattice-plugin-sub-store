@@ -1,0 +1,9 @@
+{
+  "id": "vless-tcp-reality-no-public-key",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality-missing-pbk",
+  "description": "Reality without pbk; parsers keep it, producers drop it."
+}

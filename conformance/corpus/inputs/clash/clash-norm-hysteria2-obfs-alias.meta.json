@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-hysteria2-obfs-alias",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "quirk": "obfs-password-alias",
+  "description": "N26 and N27: obfs salamander with obfs_password moves it to obfs-password; a non-salamander obfs with obfs_password takes the obfs value first, so obfs_password stays where it is."
+}

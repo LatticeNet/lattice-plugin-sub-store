@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "EYnXrPpHMB0HZlxIMDfT",
+        "name": "HK-ejulo-15",
+        "port": 20000,
+        "port_hopping": "20000-30000",
+        "server": "ff5-28.t7an.example.org",
+        "skip_tls_verify": false,
+        "sni": "static.vse2b5.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

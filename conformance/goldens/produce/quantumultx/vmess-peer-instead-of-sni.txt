@@ -1,0 +1,1 @@
+vmess=fwt-04.rega.example.com:443,method=chacha20-poly1305,password=3d0bd30a-5e31-4d2b-bc4d-7237cdd12157,obfs=wss,obfs-uri=/ntkx808b,obfs-host=api.pep8i.example.org,tls-alpn=02683208687474702f312e31,tls-host=api.pep8i.example.org,aead=true,udp-relay=true,tag=JP-jo2-78

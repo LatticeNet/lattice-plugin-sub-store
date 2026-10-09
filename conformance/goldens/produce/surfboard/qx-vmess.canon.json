@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "nz-05.lskztiz.example.net",
+      "52475"
+    ],
+    "name": "CA-xde9a-47",
+    "params": {
+      "udp-relay": "false",
+      "username": "6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "mg-25.xclff6.example.com",
+      "17065"
+    ],
+    "name": "GB-rlvowq-05",
+    "params": {
+      "udp-relay": "true",
+      "username": "c1a44a66-75d9-4db7-99e4-34d2a69bc33a",
+      "vmess-aead": "false"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-ak1isp-96","method":"aes-128-gcm","server":"mz-06.v4fzlgbl.example.net","port":443,"password":"CPUCbt54Maw3JC","tfo":false,"udp_relay":true,"shadow_tls":{"password":"6yMGxseYVK5CQkW8","sni":"api.z5h1o.example.com"}}}

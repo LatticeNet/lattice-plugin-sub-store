@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-vrkn-75",
+      "type": "snell",
+      "server": "ya-05.zaq8hnv.example.com",
+      "server_port": 12210,
+      "psk": "URyP96aQ889P3tbOzmAx",
+      "version": 4,
+      "reuse": true,
+      "tcp_fast_open": true
+    },
+    {
+      "tag": "KR-t6z28b-60",
+      "type": "snell",
+      "server": "bz5-25.rzbm.example.org",
+      "server_port": 26072,
+      "psk": "q3vUCA6N5YT5KQ39w5id",
+      "version": 4
+    }
+  ],
+  "endpoints": []
+}

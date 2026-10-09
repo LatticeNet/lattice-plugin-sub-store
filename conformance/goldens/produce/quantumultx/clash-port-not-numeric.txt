@@ -1,0 +1,2 @@
+socks5=cg-29.ysunden.example.com:80a,username=nkpdg93,password=b2pDXmK1Weku,udp-relay=true,tag=NL-lztg-36
+socks5=kim-20.bwqt.example.org:abc,username=imhslavy,password=sL1aNErJ62Dw,udp-relay=true,tag=GB-p124z9-66

@@ -1,0 +1,25 @@
+[
+  {
+    "args": [
+      "du-21.xuqo.example.net",
+      "443",
+      "auto",
+      "abeab29a-533c-49a8-9ea3-5fa5fd336813",
+      "bzy-26.x994q.example.com"
+    ],
+    "name": "JP-sllha-25",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "wk-11.bydc.example.org",
+      "over-tls": "true",
+      "path": "/ohvx2r/ccu9",
+      "skip-cert-verify": "false",
+      "tls-name": "static.hj7i0uqi3t.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

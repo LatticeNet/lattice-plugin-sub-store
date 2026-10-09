@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","name":"US-snz-75","network":"ws","port":28811,"server":"2001:db8:f4e1:9108::e11d","type":"vmess","udp":true,"uuid":"4ddabfe1-ea65-4fc3-af13-ab9d288a30ce","ws-opts":{"headers":{"Host":"cdn.shsl3n.example.net","User-Agent":"xlydrke"},"path":"/qpqlfvau"}}

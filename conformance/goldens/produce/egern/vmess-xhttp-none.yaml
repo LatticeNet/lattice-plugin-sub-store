@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"DE-kmsvq4-78","server":"y66-38.inbufi2.example.net","port":443,"user_id":"d586cf7b-aa1f-4314-84df-a94b6c7ffde4","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

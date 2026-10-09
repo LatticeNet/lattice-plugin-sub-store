@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"bbr","name":"GB-ksvg-48","password":"9AORdmp3pXEj396c","port":443,"server":"k0-39.u2rty.example.com","skip-cert-verify":false,"sni":"www.ei3acu3.example.org","type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"2db4c889-20e3-4ccc-ae01-977b9c46a552","version":5}

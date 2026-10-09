@@ -34,7 +34,7 @@ describe("every component parses", () => {
   it("finds the screens and the components", () => {
     const names = files.map((f) => f.name);
     expect(names.some((n) => n.includes("SubscriptionsScreen.vue"))).toBe(true);
-    expect(names.some((n) => n.includes("FilesScreen.vue"))).toBe(true);
+    expect(names.some((n) => n.includes("FileEditor.vue"))).toBe(true);
     expect(files.length).toBeGreaterThan(10);
   });
 

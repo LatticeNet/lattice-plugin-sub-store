@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-wrz9t8-60",
+      "type": "shadowsocks",
+      "server": "2001:db8:4d6e:23bd::9d87",
+      "server_port": 443,
+      "method": "aes-128-gcm",
+      "password": "z0F940oLMYUUFJ"
+    }
+  ],
+  "endpoints": []
+}

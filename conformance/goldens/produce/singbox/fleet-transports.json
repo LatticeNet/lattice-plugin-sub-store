@@ -1,0 +1,488 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK x2t5 01",
+      "type": "vless",
+      "server": "198.19.193.139",
+      "server_port": 443,
+      "uuid": "8b9f33af-caa6-4c6f-a6e4-05047096ae79",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.sw0fkab9dp.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "VWs1Mh4tp9Po0dgUVYYpQt9T_EvUX5agBUEB0x-liD8",
+          "short_id": "e0a1d61f"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "CA ggmeh 02",
+      "type": "vless",
+      "server": "198.19.31.38",
+      "server_port": 34896,
+      "uuid": "57f13eec-2e98-40bd-b91f-497e81b84d10",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.wdvufwyh.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "CGs4bJPGDZiLnoRXUFI88uqbLiy0pIyKAJr3EZQOTiI",
+          "short_id": "c7f154f7"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "NL y5ew 03",
+      "type": "vless",
+      "server": "iad-33.klsb.example.com",
+      "server_port": 443,
+      "uuid": "8e6e169a-3d4d-4a87-824d-e34ae1202514",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.c56yhd8zi0.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "wA2anjDhWvhNhUg6OvIkDd15JsHqMtEaEhMe_TrVeHA",
+          "short_id": "8cead050"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    },
+    {
+      "tag": "GB tavdg9 04",
+      "type": "vless",
+      "server": "ecb-10.p6aqdsuh.example.net",
+      "server_port": 43454,
+      "uuid": "085a0cc9-bc31-4a85-8ff0-9ecd8d0a6d13",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.k7uw3223q.example.com",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "gkpUDZpnwnmn3TiIAl7-AJ7DLSJylrGHTlIUq183n_Y",
+          "short_id": "9b560150"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "grpc",
+        "service_name": "a5u1hj-gmgta"
+      }
+    },
+    {
+      "tag": "TW vl3o5fy 05",
+      "type": "vless",
+      "server": "b24-35.kj1chx1.example.net",
+      "server_port": 443,
+      "uuid": "1dcc15f5-ce49-4f6c-a70c-287040408642",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.d7jlua1.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "2wOTGVh7D3B9jCBAiZWOxvcUglQoMQ8PU9paWawhkG4",
+          "short_id": "e415d76c"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "grpc",
+        "service_name": "fsngh-ug2"
+      }
+    },
+    {
+      "tag": "CA k3e1w5 06",
+      "type": "vless",
+      "server": "udp-39.nhxy.example.net",
+      "server_port": 28154,
+      "uuid": "b27f259e-c2ed-49e9-98fe-1f77645e6aac",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.vn10z.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "sDmNfJFRkUa365vWlZElFPBURWvCQnaB6BTLoB5xkJc",
+          "short_id": "f5477006"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "grpc",
+        "service_name": "n6ahy-nk7"
+      }
+    },
+    {
+      "tag": "KR yll1 10",
+      "type": "vless",
+      "server": "cn-25.jlgz5osi.example.net",
+      "server_port": 10565,
+      "uuid": "2255c95f-b857-4979-b656-07a113dbe12e",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.x7lc6odwh.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.x7lc6odwh.example.net"
+        },
+        "path": "/nzg4"
+      }
+    },
+    {
+      "tag": "NL s8g2b 11",
+      "type": "vless",
+      "server": "198.18.16.39",
+      "server_port": 443,
+      "uuid": "290f7eb7-4546-4b7f-92cf-df0bfa0c4c58",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.wfh380j6j.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "www.wfh380j6j.example.net"
+        },
+        "path": "/x7bby1"
+      }
+    },
+    {
+      "tag": "CA edg1 12",
+      "type": "vless",
+      "server": "rwg-06.xcmb70q.example.com",
+      "server_port": 20264,
+      "uuid": "e7b0ff63-a487-49de-8095-72b77be31250",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.j0u113hf.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "api.j0u113hf.example.org"
+        },
+        "path": "/rr6996/i62v2lh2nv"
+      }
+    },
+    {
+      "tag": "HK ujmwt 13",
+      "type": "vless",
+      "server": "uy3-14.c2yl6.example.com",
+      "server_port": 443,
+      "uuid": "b27833c6-ff63-4e8a-8b75-881e3bdc941b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ueqf2x287.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/yb6/p89o",
+        "host": "www.ueqf2x287.example.net"
+      }
+    },
+    {
+      "tag": "TW yqbf8 14",
+      "type": "vless",
+      "server": "rm-20.aiw7ns.example.org",
+      "server_port": 16054,
+      "uuid": "d3e0d84c-dff5-4559-ae84-9652eafb0bc4",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.i9tpyg.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/uktubh",
+        "host": "static.i9tpyg.example.net"
+      }
+    },
+    {
+      "tag": "US ey3hv 15",
+      "type": "vless",
+      "server": "rl8-28.m14uq.example.com",
+      "server_port": 443,
+      "uuid": "53960fc7-2dd7-4d7b-947a-e2b5b24c29c1",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.xe6yfvx23.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/j719/vd01cfokm5",
+        "host": "img.xe6yfvx23.example.org"
+      }
+    },
+    {
+      "tag": "CA xhu62e 16",
+      "type": "vmess",
+      "server": "198.18.148.218",
+      "server_port": 29549,
+      "uuid": "551bd7d1-f36a-44a2-8a0e-eac9c7adeba6",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.zm84v6.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.zm84v6.example.net"
+        },
+        "path": "/geww"
+      }
+    },
+    {
+      "tag": "SG rn331 17",
+      "type": "vmess",
+      "server": "nu-14.k2ek0al.example.com",
+      "server_port": 443,
+      "uuid": "6d4d0ac3-23dc-494a-90b0-30847fd7db82",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.f2gz3.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.f2gz3.example.org"
+        },
+        "path": "/nv0kv3dn"
+      }
+    },
+    {
+      "tag": "SG le9ktd 18",
+      "type": "vmess",
+      "server": "xp-32.vbdf21b.example.com",
+      "server_port": 443,
+      "uuid": "29135548-bcd3-416b-83e5-58bb6f8acb08",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.sihidp77qf.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "static.sihidp77qf.example.com"
+        },
+        "path": "/st6ecv/wxj9enp"
+      }
+    },
+    {
+      "tag": "US xox0eo0 19",
+      "type": "trojan",
+      "server": "h3-37.qy0c.example.com",
+      "server_port": 443,
+      "password": "wMDrtEAu0wo638AA",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.f2fh7fqk.example.org",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "DE rsmlz7 20",
+      "type": "trojan",
+      "server": "dk-32.moikar2m.example.net",
+      "server_port": 60926,
+      "password": "J3x2ZpgWGRvdUv3Z",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.ss60v6r8j.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "JP lr55lmw 21",
+      "type": "trojan",
+      "server": "ui-34.l8f4rxhk.example.org",
+      "server_port": 443,
+      "password": "9ZPXv8kt4Gcoo4IL",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.v202cg4y.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "SG g7piid 22",
+      "type": "trojan",
+      "server": "ouc-39.tju60i.example.com",
+      "server_port": 443,
+      "password": "6mtOTQFuwrfbZ4ks",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.d0dx96.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "pbnx8-ar4"
+      }
+    },
+    {
+      "tag": "GB anm811 23",
+      "type": "trojan",
+      "server": "v0r-04.bwdhm.example.net",
+      "server_port": 443,
+      "password": "PZiiSMJlUZ7IMKjq",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.mdt8v7hods.example.org",
+        "insecure": false
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "aizy-u9gb7s"
+      }
+    },
+    {
+      "tag": "JP zj3u 24",
+      "type": "trojan",
+      "server": "m3v-40.x7mn.example.com",
+      "server_port": 443,
+      "password": "YNPqO1SQsWySYZrj",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.oe9z2p1.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "p6x7-hlqghw"
+      }
+    }
+  ],
+  "endpoints": []
+}

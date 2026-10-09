@@ -1,0 +1,9 @@
+proxies:
+  - name: KR-r6gn-96
+    type: trojan
+    server: ow-28.dtz3rnpm.example.net
+    port: 443
+    password: pPnCGkjyaqHJ0MfE
+    sni: cdn.jg0x6mx4e.example.net
+    udp: true
+    fingerprint: cfa0652d596fff52864e5c2c7ae1cdd72414dfd74aa3ba626999902136a39b4

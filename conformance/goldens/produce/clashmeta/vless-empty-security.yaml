@@ -1,0 +1,4 @@
+proxies:
+  - {"encryption":"none","name":"TW-rsq-92","network":"tcp","packet-encoding":"xudp","port":443,"server":"t21-20.eu3o.example.com","skip-cert-verify":false,"type":"vless","udp":true,"uuid":"edaca863-c360-43e9-9c87-f8472d557124"}
+  - {"encryption":"none","name":"TW-rvi-20","network":"tcp","packet-encoding":"xudp","port":443,"server":"dj7-13.at5nkb5c.example.org","skip-cert-verify":false,"type":"vless","udp":true,"uuid":"e84da8f7-807b-4654-b474-792df7ee29e1"}
+  - {"alterId":0,"cipher":"auto","name":"TW-sweeks-49","network":"tcp","packet-encoding":"xudp","port":443,"server":"ev-36.o21g.example.com","skip-cert-verify":false,"type":"vmess","udp":true,"uuid":"46dd643a-1c5e-4996-8a18-5bbf15fdf184"}

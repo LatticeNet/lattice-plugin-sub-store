@@ -1,0 +1,9 @@
+{
+  "id": "surge-repeated-option",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "repeated-option",
+  "description": "password given twice: the last value wins."
+}

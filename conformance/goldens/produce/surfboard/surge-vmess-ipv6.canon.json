@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "2001:db8:f4e1:9108::e11d",
+      "28811"
+    ],
+    "name": "US-snz-75",
+    "params": {
+      "udp-relay": "true",
+      "username": "4ddabfe1-ea65-4fc3-af13-ab9d288a30ce",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"cdn.shsl3n.example.net\"|User-Agent:xlydrke",
+      "ws-path": "/qpqlfvau"
+    },
+    "type": "vmess"
+  }
+]

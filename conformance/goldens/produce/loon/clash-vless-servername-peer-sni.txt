@@ -1,0 +1,2 @@
+JP-f94zlg-44=vless,u6c-29.l2ck05d.example.org,443,"ae8a4d40-fd2d-471e-957c-4533ddfe7ffa",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.xqq9sjsn.example.net,udp=true
+AU-c1i4-58=vless,qyd-10.ho2a.example.net,443,"907c4f53-0a20-4f51-9e41-4c6edc229092",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=www.yx83fdfg.example.org,udp=true

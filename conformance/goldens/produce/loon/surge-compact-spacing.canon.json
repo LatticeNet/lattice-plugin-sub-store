@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "aq-35.vulb.example.net",
+      "22941",
+      "aes-128-gcm",
+      "qByn83tZ4oGdGk"
+    ],
+    "name": "GB-olr-41",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "tf-16.x3ejb.example.com",
+      "443",
+      "oy52YBDBHXQ7wfCu "
+    ],
+    "name": "TW-y1ya-22",
+    "params": {
+      "tls-name": "cdn.hn25j.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

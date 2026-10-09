@@ -1,0 +1,9 @@
+{
+  "id": "clash-ech-opts",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ech",
+  "description": "ech-opts with a config on a VLESS ws proxy."
+}

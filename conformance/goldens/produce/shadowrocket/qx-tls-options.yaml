@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"GB-rc5go-89","network":"tcp","password":"dHxn6dCKqdRZFujk","port":443,"server":"203.0.113.104","skip-cert-verify":true,"sni":"www.t7f0lpmk.example.org","test-url":"http://um-30.dgak244.example.net/generate_204","tls-alpn":"h2","tls-no-session-reuse":true,"tls-no-session-ticket":true,"tls-pubkey-sha256":"f723dc786f6f061b58fa21d1abd98d4f9c54924aa51159c5a23e40538a6f8e8a","type":"trojan","udp":true,"fingerprint":"f9f471e7cddb6aeb1276ea0c3908239ebdb48a21d09c2e632b9604f6126a518b"}

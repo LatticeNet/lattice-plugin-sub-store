@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "r8-22.rqosi.example.com",
+      "39474",
+      "aes-128-gcm",
+      "UurzHOXEvgK8m3"
+    ],
+    "name": "JP-x092-11",
+    "params": {
+      "fast-open": "true",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "bv-01.deuvl.example.net",
+      "31874",
+      "aes-128-gcm",
+      "sMIHATg9l4GXsa"
+    ],
+    "name": "HK-xz4py5-57",
+    "params": {
+      "fast-open": "true",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

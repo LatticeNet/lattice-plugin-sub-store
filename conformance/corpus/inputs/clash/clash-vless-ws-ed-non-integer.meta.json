@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-ws-ed-non-integer",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data-non-integer",
+  "description": "vless ws with a non-numeric ed in the path and max-early-data \"2k\"."
+}

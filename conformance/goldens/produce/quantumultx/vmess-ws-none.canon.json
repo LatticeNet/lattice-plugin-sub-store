@@ -1,0 +1,17 @@
+[
+  {
+    "address": "zb-37.bkm1jc04.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "cdn.ntdq7.example.org",
+      "obfs-uri": "/l9qryrkj",
+      "password": "466e68b0-f500-4ae2-b943-fba35589f245",
+      "tag": "KR-kqarv-32",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

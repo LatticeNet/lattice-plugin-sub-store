@@ -1,0 +1,4 @@
+proxies:
+  - {"hysteria2":{"name":"AU-nfkxua-16","server":"i8-27.kwfus9v.example.net","port":443,"auth":"M6T4AbuJZ0cK2rOJKd86","tfo":false,"udp_relay":true,"sni":"static.l7apvb3w.example.org"}}
+  - {"hysteria2":{"name":"SG-rjh-49","server":"c8-38.jmmx222a.example.net","port":443,"auth":"pi1OJ50UimhFUZX3qDUy","tfo":false,"udp_relay":true,"sni":"www.ql954.example.net","skip_tls_verify":true,"obfs":"salamander","obfs_password":"uqubuTjtsMf7ml7X"}}
+  - {"hysteria2":{"name":"FR-frs-09","server":"oof-04.acf0m.example.net","port":443,"auth":"PbkXjiQuX0VtooZQToHX","tfo":false,"udp_relay":true,"sni":"oof-04.acf0m.example.net"}}

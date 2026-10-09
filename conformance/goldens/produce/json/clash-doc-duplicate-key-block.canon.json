@@ -1,0 +1,14 @@
+[
+  {
+    "name": "ss undefined:undefined",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "name": "trojan undefined:undefined",
+    "network": "tcp",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

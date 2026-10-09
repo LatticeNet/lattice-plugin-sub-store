@@ -1,0 +1,78 @@
+[
+  {
+    "fragment": "NL-ue77o-49",
+    "host": "vd-25.o41nav1j.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.vxv2ki9k85.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1113eba7-5d19-424d-9454-7f55c674c2b7"
+  },
+  {
+    "fragment": "GB-hkxj2-56",
+    "host": "w2l-16.ymew3v.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.x9auf.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "f2b5e03f-8233-4318-8fad-5f5d0167082f"
+  }
+]

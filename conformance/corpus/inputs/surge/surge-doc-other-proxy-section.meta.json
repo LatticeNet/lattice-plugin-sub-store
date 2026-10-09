@@ -1,0 +1,7 @@
+{
+  "id": "surge-doc-other-proxy-section",
+  "family": "surge",
+  "protocol": "mixed",
+  "quirk": "full-profile-other-proxy-section",
+  "description": "A [Remote Proxy] section before [Proxy]: the extraction anchors on the first section name ending in proxy], so only the [Remote Proxy] body is read and the nodes under [Proxy] are lost."
+}

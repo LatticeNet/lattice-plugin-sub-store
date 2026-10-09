@@ -1,0 +1,27 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "name": "GB-wf6mw-41",
+      "network": "ws",
+      "password": "UGF4CIWxdW2hW0zo",
+      "port": 443,
+      "server": "sva-34.ljiws45y.example.org",
+      "skip-cert-verify": false,
+      "sni": "static.ub1g32.example.org",
+      "type": "trojan",
+      "udp": true,
+      "ws-opts": {
+        "headers": {
+          "Host": "static.ub1g32.example.org"
+        },
+        "path": "/p2bpzcb",
+        "v2ray-http-upgrade": true
+      }
+    }
+  ]
+}

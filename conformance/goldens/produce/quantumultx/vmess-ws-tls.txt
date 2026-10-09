@@ -1,0 +1,1 @@
+vmess=k4-29.dbrm.example.org:443,method=chacha20-poly1305,password=f01fcc8c-d644-4e5c-9d5f-65cda7be0d62,obfs=wss,obfs-uri=/glnf,obfs-host=api.h0digvt.example.org,tls-alpn=02683208687474702f312e31,tls-host=api.h0digvt.example.org,aead=true,udp-relay=true,tag=KR-tuq-74

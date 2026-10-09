@@ -1,0 +1,16 @@
+[
+  {
+    "body": {
+      "main": "kd-06.gvlm.example.org:57200:origin:aes-256-cfb:plain:MzdSYkhVZmlLNXFa",
+      "params": [
+        [
+          "remarks",
+          "HK-mnfi9-26"
+        ]
+      ]
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "ssr"
+  }
+]

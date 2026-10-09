@@ -1,0 +1,1 @@
+trojan://7WEAVSvZGNTkAgpl@192.0.2.32:443?peer=img.qx34w.example.net&allowInsecure=1#KR-ptyg-62

@@ -1,0 +1,1 @@
+vmess=iz-29.quabe9.example.net:443,method=chacha20-poly1305,password=0f0e279d-0ca8-49f4-92c5-8739c23f766e,aead=true,udp-relay=true,tag=AU-b4sb-43

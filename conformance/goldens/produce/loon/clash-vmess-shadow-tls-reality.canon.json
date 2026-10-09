@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "aq-17.vsn27vzi.example.org",
+      "443",
+      "auto",
+      "23df0336-e6e4-4d67-a1a5-a858d0c3a07d"
+    ],
+    "name": "KR-e3w4-95",
+    "params": {
+      "alterId": "0",
+      "over-tls": "true",
+      "public-key": "LqfNLMKbhMVX8W_M2RJXCK_jRri5GjmOqeZXexE0BoQ",
+      "short-id": "f2a67485",
+      "sni": "api.agy7vgm3k.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

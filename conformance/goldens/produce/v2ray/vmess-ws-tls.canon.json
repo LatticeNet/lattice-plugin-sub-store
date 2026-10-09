@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "k4-29.dbrm.example.org",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "api.h0digvt.example.org",
+      "id": "f01fcc8c-d644-4e5c-9d5f-65cda7be0d62",
+      "net": "ws",
+      "path": "/glnf",
+      "port": "443",
+      "ps": "KR-tuq-74",
+      "scy": "auto",
+      "sni": "api.h0digvt.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

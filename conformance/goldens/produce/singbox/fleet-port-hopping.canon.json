@@ -1,0 +1,158 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "XRc2Rhh9n0MNeD9Osn6p",
+      "server": "o0-15.sijz.example.com",
+      "server_port": 16662,
+      "server_ports": [
+        "38000:40000"
+      ],
+      "tag": "US pgma 01",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.rea9jflnqu.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "Q5jqF6PQTCa32sfClqYv",
+      "server": "198.19.55.70",
+      "server_port": 36570,
+      "server_ports": [
+        "32000:38000"
+      ],
+      "tag": "AU qc0u 02",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.vscl1m.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "wIIFVONBOr8IMuYUnCZN",
+      "server": "l2n-40.dgoj8hx.example.org",
+      "server_port": 27704,
+      "server_ports": [
+        "25000:28000"
+      ],
+      "tag": "FR lv8v 03",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.lc30f36.example.com"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "2MYSf0Z3EFj2tRJB54M8",
+      "server": "yz-31.n6swpw.example.org",
+      "server_port": 11883,
+      "server_ports": [
+        "37000:40000"
+      ],
+      "tag": "GB et9g77w 04",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.qla2g.example.net"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "LfdYQaW89EgxuquEBj4g",
+      "server": "198.19.131.101",
+      "server_port": 32863,
+      "server_ports": [
+        "33000:38000"
+      ],
+      "tag": "KR eevkwok 05",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.e8zqu19l.example.com"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "ScZhJ4Nmy2sIo8e2EbCK",
+      "server": "z2-35.v20t.example.org",
+      "server_port": 33661,
+      "server_ports": [
+        "34000:37000"
+      ],
+      "tag": "GB wvgj8 06",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.gz4a1m.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "password": "riu7loizAoaCDcpiYrv6",
+      "server": "l5-40.vz2o.example.org",
+      "server_port": 59282,
+      "server_ports": [
+        "39000:44000"
+      ],
+      "tag": "SG z1ddg 07",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.sf7nmsyq7.example.org"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "obfs": {
+        "password": "GRJrhJ3NmtFL0vrp",
+        "type": "salamander"
+      },
+      "password": "7UCTFyxhU6piDOiAhUXz",
+      "server": "h2s-21.zwmeh.example.net",
+      "server_port": 55515,
+      "tag": "TW ob20 08",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.k2e5c3vwxn.example.com"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "obfs": {
+        "password": "vLhwVop3iFArEYTg",
+        "type": "salamander"
+      },
+      "password": "zdOMu2dptuUZp2z4nZDk",
+      "server": "198.19.72.54",
+      "server_port": 40995,
+      "tag": "HK otl54y 09",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.h4oro21z.example.com"
+      },
+      "type": "hysteria2"
+    },
+    {
+      "obfs": {
+        "password": "CqMwN7q1gAQVVf48",
+        "type": "salamander"
+      },
+      "password": "43tYkyhNFh9iS0V92bX0",
+      "server": "riz-17.q237m.example.com",
+      "server_port": 49280,
+      "tag": "KR eiwqt 10",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.df9i3fo.example.net"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

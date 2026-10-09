@@ -1,0 +1,3 @@
+proxies:
+  - {"http":{"name":"HK-mz0r-89","server":"kf-11.i58wm.example.com","port":8080,"username":" o052km1","password":"kaX16lgCD924","tfo":true}}
+  - {"http":{"name":"HK-mz0r-89","server":"kf-11.i58wm.example.com","port":8080,"username":" o052km1","password":"kaX16lgCD924","tfo":false}}

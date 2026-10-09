@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"DE-w55-42","server":"trr-05.cxu586h.example.com","port":443,"password":"mnPm4xaG59F4J9VO","tfo":false,"udp_relay":true,"sni":"api.s066ycl2.example.com","reality":{"public_key":"PKU6M5-j3ysTiKBTojfFZWrNOubl9ZFmY1-M5bfrnKk","short_id":"7662ad44"},"websocket":{"path":"/x225kbvr","host":"api.s066ycl2.example.com"}}}

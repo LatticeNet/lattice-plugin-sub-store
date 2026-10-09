@@ -1,0 +1,9 @@
+{
+  "id": "vmess-ipv6-server",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "ipv6-literal",
+  "description": "IPv6 literal in add."
+}

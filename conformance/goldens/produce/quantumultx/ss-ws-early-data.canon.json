@@ -1,0 +1,13 @@
+[
+  {
+    "address": "stt-32.z59voz2.example.net:22070",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "password": "NWK7YAngJaA9OC",
+      "tag": "NL-gjx-28",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

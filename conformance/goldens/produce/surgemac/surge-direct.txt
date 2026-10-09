@@ -1,0 +1,1 @@
+KR-b8i-60=direct,allow-other-interface=true,interface=en0

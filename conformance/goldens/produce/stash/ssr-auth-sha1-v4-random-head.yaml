@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-ctr","name":"FR-uad-37","obfs":"random_head","obfs-param":"api.x5769u6.example.com","password":"jxPaBdo2ttDX","port":27306,"protocol":"auth_sha1_v4","protocol-param":"8037:xAMvNMp0","server":"vs-40.mby1pyzm.example.com","type":"ssr","udp":true}

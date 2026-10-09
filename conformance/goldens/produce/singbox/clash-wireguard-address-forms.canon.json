@@ -1,0 +1,43 @@
+{
+  "endpoints": [
+    {
+      "address": [
+        "10.62.213.85/28",
+        "fd00:2a0d::e32/64"
+      ],
+      "peers": [
+        {
+          "address": "k8-23.iefkaz2.example.com",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "public_key": "oyiYyfyZhBjaHHoiJ5xjaeukQl3v+0D9vtbqw5nQGuo="
+        }
+      ],
+      "private_key": "CzWYNoo2tFnVTknmWB0FYPOL2Y0gAM0qurdfhjTWdPw=",
+      "system": false,
+      "tag": "HK-z9kib-51",
+      "type": "wireguard"
+    },
+    {
+      "address": [],
+      "peers": [
+        {
+          "address": "fxv-34.sjojf.example.org",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "port": 51820,
+          "public_key": "Xjv4vaWAuSn0vvB0bC5mpjjTnzkOiYe9abu+Od7rnrI="
+        }
+      ],
+      "private_key": "Gy3ZPk2zUnhR9lt8Ab1VnPi2UbIMhRJvuiM5aZMtX+U=",
+      "system": false,
+      "tag": "CA-cvee-04",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

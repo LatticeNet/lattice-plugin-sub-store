@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-extra-override",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "reality",
+  "quirk": "xhttp-extra-override",
+  "description": "vless xhttp with _extra as a string beside structured xhttp-opts."
+}

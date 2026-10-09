@@ -1,0 +1,25 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "name": "FR-fmqlb6-67",
+    "network": "ws",
+    "password": "gtHUSMIELp7dg7Rc",
+    "port": 443,
+    "server": "ymv-36.itmcte7r.example.net",
+    "sni": "img.wsp2o90ur.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "img.wsp2o90ur.example.org"
+      },
+      "path": "/ej2huafk9t",
+      "v2ray-http-upgrade": true
+    }
+  }
+]

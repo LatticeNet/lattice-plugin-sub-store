@@ -1,0 +1,6 @@
+proxies:
+  - {"http":{"name":"NL-h8a1-33","server":"kqh-06.uqh0u.example.net","port":8080,"tfo":false}}
+  - {"http":{"name":"GB-kik2h-89","server":"f4j-10.w9jum0.example.com","port":8080,"username":"g07jxnmb","password":"ZdFAu1yrll0q","tfo":false}}
+  - {"https":{"name":"GB-pk1-63","server":"up-20.duyj.example.net","port":443,"username":"t37cot","password":"falAnotdFH7q","tfo":false,"sni":"www.l57hlg.example.org","skip_tls_verify":true}}
+  - {"socks5":{"name":"GB-boqt-26","server":"alj-33.xpvv6cx7.example.com","port":1080,"username":"uj1ml2dq","password":"rCfg9lcjPcUp","tfo":false,"udp_relay":true}}
+  - {"socks5_tls":{"name":"CA-a8gt-40","server":"x4x-06.ybkk4r6c.example.org","port":443,"username":" oknlk","password":"x3lm5Xvs7LV6","tfo":false,"udp_relay":true,"sni":"static.rk9461.example.net"}}

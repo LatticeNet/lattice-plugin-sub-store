@@ -1,0 +1,1 @@
+TW-y1oz-65=vless,obn-39.yszi265.example.com,443,"f968b5ca-0962-4746-94d1-21ce2d1268be",transport=ws,path=/aa6ho/v3ap,host=static.c2lmw.example.org,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=static.c2lmw.example.org,udp=true

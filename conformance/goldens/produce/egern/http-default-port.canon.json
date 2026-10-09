@@ -1,0 +1,12 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "name": "NL-itwlx-02",
+        "port": 80,
+        "server": "je-18.obs1jo.example.com",
+        "tfo": false
+      }
+    }
+  ]
+}

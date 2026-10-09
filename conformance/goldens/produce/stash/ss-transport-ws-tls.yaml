@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","client-fingerprint":"chrome","name":"FR-ylrg-19","network":"ws","password":"Rz7W2d6kyIQmQk","port":443,"server":"ha-30.mwovt.example.org","skip-cert-verify":false,"sni":"api.zr0uvpv2.example.net","tls":true,"type":"ss","udp":true,"ws-opts":{"headers":{"Host":"api.zr0uvpv2.example.net"},"path":"/v7d7s30"}}

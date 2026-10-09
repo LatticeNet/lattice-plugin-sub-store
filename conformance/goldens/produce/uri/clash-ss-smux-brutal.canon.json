@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "NL-rvfu-27",
+    "host": "lh-03.tvntg.example.org",
+    "path": "",
+    "port": "10239",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Y2YwMlhoVG9NTmtBVmw=",
+    "userinfo_base64": "aes-128-gcm:cf02XhToMNkAVl"
+  }
+]

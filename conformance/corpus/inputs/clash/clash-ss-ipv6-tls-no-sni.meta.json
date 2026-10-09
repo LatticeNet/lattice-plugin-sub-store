@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-ipv6-tls-no-sni",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ipv6-literal",
+  "description": "ss on an IPv6 literal with tls: true, network ws and no sni."
+}

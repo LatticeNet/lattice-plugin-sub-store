@@ -1,0 +1,1 @@
+KR-m37jau-89=socks5,hum-22.nsl1n.example.com,443,over-tls=true,sni=hum-22.nsl1n.example.com,udp=true

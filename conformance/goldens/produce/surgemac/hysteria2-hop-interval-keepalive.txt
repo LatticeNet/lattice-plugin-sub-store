@@ -1,0 +1,1 @@
+AU-c10c71-51=hysteria2,yxu-08.nlefeegc.example.com,443,password="gSrCmBf82yAWUzLcfKSh",port-hopping="30000-40000",port-hopping-interval=30,sni="www.zmlvv.example.org",skip-cert-verify=false,tfo=false

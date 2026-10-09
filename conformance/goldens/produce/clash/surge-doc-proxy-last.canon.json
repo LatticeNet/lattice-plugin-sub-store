@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "HK-jscx-03",
+      "password": "F92aTOMG5tnYx1",
+      "port": 32470,
+      "server": "vu3-01.e7b60u5.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "name": "NL-gblee-19",
+      "network": "tcp",
+      "password": "loD9lFOy1tBHPvkb",
+      "port": 443,
+      "server": "f8j-38.pujymc1.example.net",
+      "sni": "static.jj1xaxhl.example.net",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

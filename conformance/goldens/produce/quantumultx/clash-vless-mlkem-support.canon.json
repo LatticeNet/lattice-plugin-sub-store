@@ -1,0 +1,17 @@
+[
+  {
+    "address": "nyg-31.rua1.example.org:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "1b75496d-b70a-4fde-ad0d-9c0374bbc393",
+      "reality-base64-pubkey": "E047wKfHFupR2T6z-dJaq8F4mDJihX13_iBiBjM-dvg",
+      "reality-hex-shortid": "55154019",
+      "tag": "US-uyycd7-94",
+      "tls-host": "static.j8fg2.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

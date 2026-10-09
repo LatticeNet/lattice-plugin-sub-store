@@ -1,0 +1,7 @@
+{
+  "id": "base64-fallback-no-protocol",
+  "family": "base64",
+  "protocol": "none",
+  "quirk": "base64-no-protocol-line",
+  "description": "Base64 of prose with no known-scheme marker and no protocol line: the fallback preprocessor logs an error and returns the raw text, and no node is read."
+}

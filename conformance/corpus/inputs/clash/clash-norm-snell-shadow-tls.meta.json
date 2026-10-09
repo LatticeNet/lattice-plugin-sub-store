@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-snell-shadow-tls",
+  "family": "clash",
+  "protocol": "snell",
+  "quirk": "snell-shadow-tls",
+  "description": "N12: Snell with obfs-opts mode shadow-tls: plugin shadow-tls with host, password, version and alpn from obfs-opts, and obfs-opts removed."
+}

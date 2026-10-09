@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "jk5-23.fvpc.example.com",
+      "443"
+    ],
+    "name": "DE-n3mife-19",
+    "params": {
+      "password": "Dw9cWcvIBMcXkupU",
+      "skip-cert-verify": "true",
+      "sni": "api.b0h8ez454.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

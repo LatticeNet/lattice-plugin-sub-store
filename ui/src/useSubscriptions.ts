@@ -5,6 +5,11 @@ import { computed, ref, watch, type Ref } from "vue";
 import {
   BINDINGS,
   callMethod,
+  errorCodeOf,
+  ERROR_REGEX_INCOMPATIBLE,
+  ERROR_STORE_MIGRATION_REQUIRED,
+  MIGRATE_STORE_CHUNK,
+  STORE_VERSION_LEGACY,
   MAX_SUBSCRIPTION_INLINE_BYTES,
   MAX_SUBSCRIPTION_RECORDS,
   SOURCE_VPN_CORE,
@@ -21,6 +26,7 @@ import {
   type OperatorCatalogResponse,
   type OperatorInfo,
   type GraphOptionsResponse,
+  type MigrateStoreResponse,
   type SubscriptionDeleteResponse,
   type SubscriptionFetchResponse,
   type SubscriptionPublishResponse,
@@ -31,13 +37,17 @@ import {
   type SubscriptionPreviewResponse,
   type SubscriptionRecord,
   type SubscriptionRenderResponse,
+  type SubscriptionReorderResponse,
   type SubscriptionSaveResponse,
   type SubscriptionSaveConflict,
 } from "./client";
+import { inStoreOrder, withOrder } from "./recordOrder";
+import { regexDiagnostics, type RegexDiagnostic } from "./regexRewrite";
 import { conflictChanges, conflictSummary, type FieldChange } from "./recordConflict";
 import { deletedNotice } from "./recordActions";
 import { filePreviewSupport } from "./filePreview";
 import type { HostContext } from "./host";
+import { formatBytes, t } from "./i18n";
 import { safeErrorMessage } from "./subStoreModel";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
@@ -257,32 +267,32 @@ export function draftFromRecord(record: SubscriptionRecord): SubscriptionDraft {
 export function validateDraft(draft: SubscriptionDraft): string {
   // The name is what the operator types; the id is derived from it. Asking for
   // both was asking for a detail with no decision attached to it.
-  if (!draft.name.trim()) return "Give it a name.";
+  if (!draft.name.trim()) return t.draft.giveName;
   // Byte length, not character count: the backend limit is bytes and content
   // full of non-ASCII names would otherwise pass here and fail there. A client
   // configuration is the likeliest thing to reach the cap, so this runs for
   // every kind rather than only for pasted nodes.
   const bytes = new TextEncoder().encode(draft.content).length;
   if (bytes > MAX_SUBSCRIPTION_INLINE_BYTES) {
-    return `Inline content is ${Math.round(bytes / 1024)} KB; the limit is ${MAX_SUBSCRIPTION_INLINE_BYTES / 1024} KB.`;
+    return t.draft.tooLarge(bytes, MAX_SUBSCRIPTION_INLINE_BYTES);
   }
   // A file is the document itself. Without one there is nothing to serve, and
   // a node source alone produces a proxy list with no config around it.
   if (draft.kind === KIND_FILE) {
     if (draft.source === SOURCE_REMOTE) {
-      if (!draft.url.trim()) return "Paste the link the template is fetched from.";
+      if (!draft.url.trim()) return t.draft.templateLink;
       return "";
     }
     if (!draft.content.trim()) {
-      if (draft.fileType === FILE_TYPE_PLAIN) return "Write the text you want served.";
-      if (draft.fileType === FILE_TYPE_SCRIPT) return "Paste the script that builds this file.";
-      return "Paste the client configuration this file is built from.";
+      if (draft.fileType === FILE_TYPE_PLAIN) return t.draft.plainText;
+      if (draft.fileType === FILE_TYPE_SCRIPT) return t.draft.script;
+      return t.draft.config;
     }
     // A program that calls produceArtifact with nothing declared fails at
     // request time with an error only the operator's logs would show.
     if (draft.fileType === FILE_TYPE_SCRIPT && !draft.nodeSource.trim()) {
       if (/produceArtifact\s*\(/.test(draft.content)) {
-        return "This script asks for nodes, choose the subscription or combination it should get them from.";
+        return t.draft.scriptSource;
       }
     }
     return "";
@@ -290,21 +300,21 @@ export function validateDraft(draft: SubscriptionDraft): string {
   // A collection is defined by what it gathers, not by a source of its own.
   if (draft.kind === KIND_COLLECTION) {
     if (draft.members.length === 0 && draft.memberTags.length === 0) {
-      return "Choose at least one subscription, or a tag to gather by.";
+      return t.draft.members;
     }
     return "";
   }
   if (draft.source === SOURCE_REMOTE && !draft.url.trim()) {
-    return "Paste the provider's subscription link.";
+    return t.draft.providerLink;
   }
   if (draft.source === SOURCE_LOCAL && !draft.content.trim()) {
-    return "Paste the nodes you want served.";
+    return t.draft.nodes;
   }
   if (draft.source === SOURCE_VPN_CORE_GRAPH) {
-    if (!draft.vpnIdentity.trim()) return "Choose an eligible VPN identity.";
-    if (draft.entryRoots.length === 0) return "Choose at least one eligible graph root.";
-    if (new Set(draft.entryRoots).size !== draft.entryRoots.length) return "Graph roots must be unique.";
-    if (!draft.optionsVersion) return "Reload graph options before saving.";
+    if (!draft.vpnIdentity.trim()) return t.draft.identity;
+    if (draft.entryRoots.length === 0) return t.draft.root;
+    if (new Set(draft.entryRoots).size !== draft.entryRoots.length) return t.draft.uniqueRoots;
+    if (!draft.optionsVersion) return t.draft.reloadOptions;
   }
   return "";
 }
@@ -351,6 +361,17 @@ interface Catalogue {
   loadError: Ref<string>;
   /** A failed background reload: the rows on screen are the last good ones. */
   staleError: Ref<string>;
+  /**
+   * The store layout the last list reported: 1 legacy single document, 2
+   * split index, undefined from a runtime before S1.
+   */
+  storeVersion: Ref<number | undefined>;
+  /** The order the store last accepted, which a refused reorder puts back. */
+  confirmedOrder: string[];
+  /** Reorders go out one at a time, in the order the operator made them. */
+  reorderQueue: Promise<unknown>;
+  /** Moves made before a refused reorder are dropped rather than sent after it. */
+  reorderGeneration: number;
   /** A read already in flight is joined, not repeated: the shell and the
    *  visible lens both ask for the list when the handshake lands. */
   inFlight: Promise<void> | null;
@@ -372,6 +393,10 @@ function catalogueFor(host: HostContext): Catalogue {
     items: ref<SubscriptionListItem[]>([]),
     loadError: ref(""),
     staleError: ref(""),
+    storeVersion: ref<number | undefined>(undefined),
+    confirmedOrder: [],
+    reorderQueue: Promise.resolve(),
+    reorderGeneration: 0,
     inFlight: null,
   };
   catalogues.set(host, fresh);
@@ -401,10 +426,12 @@ async function readCatalogueOnce(host: HostContext, catalogue: Catalogue): Promi
   staleError.value = "";
   try {
     const response = await callMethod<SubscriptionListResponse>(host.bridge, BINDINGS.subList, {}).promise;
-    items.value = response.subscriptions ?? [];
+    items.value = inStoreOrder(response.subscriptions ?? []);
+    catalogue.storeVersion.value = typeof response.store_version === "number" ? response.store_version : undefined;
+    catalogue.confirmedOrder = items.value.map((item) => item.id);
     state.value = "ready";
   } catch (cause) {
-    const message = safeErrorMessage(cause, "Subscriptions could not be loaded");
+    const message = safeErrorMessage(cause, t.subs.loadFailed);
     if (silent) {
       staleError.value = message;
     } else {
@@ -420,12 +447,13 @@ async function readCatalogueOnce(host: HostContext, catalogue: Catalogue): Promi
  *  shell's Refresh reads them again through `reload`. */
 export function recordCatalogue(host: HostContext) {
   const catalogue = catalogueFor(host);
-  const { state, items, loadError } = catalogue;
-  return { state, items, loadError, reload: () => readCatalogue(host, catalogue) };
+  const { state, items, loadError, storeVersion } = catalogue;
+  return { state, items, loadError, storeVersion, reload: () => readCatalogue(host, catalogue) };
 }
 
 export function useSubscriptions(host: HostContext) {
-  const { state, items, loadError, staleError } = catalogueFor(host);
+  const catalogue = catalogueFor(host);
+  const { state, items, loadError, staleError, storeVersion } = catalogue;
   /** Whether the operator catalogue is still coming, or is simply not there. */
   const operatorsState = ref<LoadState>("idle");
   const actionError = ref("");
@@ -474,7 +502,42 @@ export function useSubscriptions(host: HostContext) {
   const canRender = computed(() => host.available(BINDINGS.subRender));
   const canPublish = computed(() => host.available(BINDINGS.subPublish));
   const canLoadGraphOptions = computed(() => host.available(BINDINGS.subGraphOptions));
+  /** `reorder` and `migrate_store` are signed with the S1 manifest; pending until then. */
+  const canReorder = computed(() => canMutate.value && host.available(BINDINGS.subReorder));
+  const canMigrateStore = computed(() => canMutate.value && host.available(BINDINGS.subMigrateStore));
   const atRecordLimit = computed(() => items.value.length >= MAX_SUBSCRIPTION_RECORDS);
+
+  /**
+   * Why the last save was refused, when the reason is one the editor can act
+   * on: a pattern the native engine cannot run (`regex_incompatible`). The
+   * diagnostics are read from the draft the save carried, so the editor can
+   * name the step and offer the rewrite; `message` is what was put beside
+   * Save, so it can be withdrawn once the chain no longer has the pattern.
+   * Cleared by the next save.
+   */
+  const saveRefusal = ref<{ code: string; diagnostics: RegexDiagnostic[]; message: string } | null>(null);
+
+  /**
+   * The chain on screen no longer has what the last save was refused for, so
+   * "Not saved: step 1 uses lookaround" beside Save is no longer true. Only
+   * that message is withdrawn: a later failure (a preview, a conflict) put its
+   * own message there and keeps it.
+   */
+  function settleRefusal(): void {
+    const refusal = saveRefusal.value;
+    if (refusal && actionError.value === refusal.message) actionError.value = "";
+  }
+
+  /**
+   * A write refused because the store is still the legacy single document.
+   * The list said so too if it was read since; this makes the migration
+   * prompt appear for a store migrated away under the page as well.
+   */
+  function migrationRefusal(cause: unknown): string {
+    if (errorCodeOf(cause) !== ERROR_STORE_MIGRATION_REQUIRED) return "";
+    storeVersion.value = STORE_VERSION_LEGACY;
+    return t.subs.legacyRefusal;
+  }
 
   /**
    * A reload that fails behind a successful write must not replace the list.
@@ -513,7 +576,7 @@ export function useSubscriptions(host: HostContext) {
     try {
       const response = await callMethod<GraphOptionsResponse>(host.bridge, BINDINGS.subGraphOptions, {}).promise;
       if (!response.ok || response.schema_version !== 1 || !response.options_version) {
-        throw new Error("The server returned a graph option set this page cannot trust, so the editor was left closed rather than shown with stale choices.");
+        throw new Error(t.subs.untrustedOptions);
       }
       graphOptions.value = {
         ...response,
@@ -523,7 +586,7 @@ export function useSubscriptions(host: HostContext) {
       return true;
     } catch (cause) {
       graphOptions.value = null;
-      actionError.value = safeErrorMessage(cause, "Graph options could not be loaded");
+      actionError.value = safeErrorMessage(cause, t.subs.optionsFailed);
       return false;
     } finally {
       graphOptionsLoading.value = false;
@@ -543,7 +606,7 @@ export function useSubscriptions(host: HostContext) {
       lastRead.value = response.subscription ?? null;
       return response.subscription ?? null;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Subscription could not be read");
+      actionError.value = safeErrorMessage(cause, t.subs.readFailed);
       return null;
     } finally {
       busyId.value = null;
@@ -560,6 +623,7 @@ export function useSubscriptions(host: HostContext) {
   async function save(draft: SubscriptionDraft, force = false): Promise<boolean> {
     if (!host.bridge || !canMutate.value || saving.value) return false;
     saveConflict.value = null;
+    saveRefusal.value = null;
     const invalid = validateDraft(draft);
     if (invalid) {
       actionError.value = invalid;
@@ -570,7 +634,7 @@ export function useSubscriptions(host: HostContext) {
       const identity = options?.identities.find((item) => item.id === draft.vpnIdentity && item.selectable);
       const eligible = new Set(options?.roots.filter((item) => item.selectable && item.eligible_identity_ids.includes(draft.vpnIdentity)).map((item) => item.line_uuid));
       if (!options || options.options_version !== draft.optionsVersion || !identity || draft.entryRoots.some((root) => !eligible.has(root))) {
-        actionError.value = "Graph options changed. Reload and review the identity and roots before saving.";
+        actionError.value = t.editor.graphChanged;
         return false;
       }
     }
@@ -657,17 +721,17 @@ export function useSubscriptions(host: HostContext) {
           conflict: response.conflict,
           changes,
           summary: response.conflict.reason === "deleted"
-            ? "This record was deleted while you had it open. Saving would create it again as a new record."
+            ? t.subs.deletedWhileOpen
             : conflictSummary(changes),
           attempted: record,
         };
         return false;
       }
       if (!response.saved) {
-        actionError.value = "The server did not confirm the save, so this record may or may not have been written. Reload the list before saving again.";
+        actionError.value = t.subs.saveUnconfirmed;
         return false;
       }
-      notice.value = `Saved ${record.name}.`;
+      notice.value = t.subs.saved(record.name);
       // The saved record comes back with its new revision. Keeping it as the
       // "last read" copy means a second save from the still-open editor is
       // checked against what was just written rather than against the copy
@@ -676,7 +740,17 @@ export function useSubscriptions(host: HostContext) {
       await load();
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Subscription could not be saved");
+      if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
+        const diagnostics = regexDiagnostics(draft.process);
+        const steps = [...new Set(diagnostics.map((entry) => entry.step))];
+        const message = steps.length
+          ? t.subs.regexRefused(steps)
+          : t.subs.regexRefusedReason(safeErrorMessage(cause, t.subs.regexFallback));
+        saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics, message };
+        actionError.value = message;
+        return false;
+      }
+      actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, t.subs.saveFailed);
       return false;
     } finally {
       saving.value = false;
@@ -710,20 +784,20 @@ export function useSubscriptions(host: HostContext) {
         subscription_id: id,
       }).promise;
       if (!response.deleted) {
-        actionError.value = "The server did not confirm the deletion, so this record may or may not still exist. Reload the list before deleting again.";
+        actionError.value = t.subs.deleteUnconfirmed;
         return false;
       }
       // Deleting the definition does not retract anything already published.
       // Named as the operator knows it, not by its id.
       const gone = items.value.find((entry) => entry.id === id);
-      const label = gone ? gone.display_name || gone.name : "The record";
+      const label = gone ? gone.display_name || gone.name : t.subs.theRecord;
       brokenNotice = deletedNotice(label, ownShares);
       brokenShares.value = [...(ownShares ?? [])];
       notice.value = brokenNotice;
       await load();
       return true;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Subscription could not be deleted");
+      actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, t.subs.deleteFailed);
       return false;
     } finally {
       busyId.value = null;
@@ -743,16 +817,16 @@ export function useSubscriptions(host: HostContext) {
       if (!response.ok) {
         // A failed fetch is not a failed subscription: the server keeps the
         // last good snapshot and clients stay working. Say both things.
-        actionError.value = "The provider refresh failed and changed nothing. Clients keep getting whatever this record already had, which may be nothing.";
+        actionError.value = t.subs.refreshNoop;
         return false;
       }
       notice.value =
         typeof response.bytes === "number"
-          ? `Checked ${response.bytes} bytes for ${id}${response.source_version ? ` at ${response.source_version}` : ""}.`
-          : `Refreshed ${id}.`;
+          ? t.subs.checked(formatBytes(response.bytes), id, response.source_version ?? "")
+          : t.subs.refreshed(id);
       return true;
     } catch (cause) {
-      actionError.value = `${safeErrorMessage(cause, "Subscription could not be refreshed")}. The refresh did not complete, so nothing about this record changed.`;
+      actionError.value = t.subs.refreshFailed(safeErrorMessage(cause, t.subs.refreshFallback));
       return false;
     } finally {
       busyId.value = null;
@@ -783,16 +857,16 @@ export function useSubscriptions(host: HostContext) {
       }).promise;
       if (response.subscription_id !== id || response.status_code < 200 || response.status_code >= 300) {
         throw new Error(
-          `the publish call came back with status ${response.status_code} for record ${response.subscription_id || "(none)"}`,
+          t.subs.publishStatus(response.status_code, response.subscription_id || t.subs.noRecord),
         );
       }
-      notice.value = `Uploaded ${response.bytes} bytes for ${id}. The destination accepted them; whether anything downstream serves them is not visible from here.`;
+      notice.value = t.subs.uploaded(formatBytes(response.bytes), id);
       return true;
     } catch (cause) {
       // The cause is what separates "the destination refused the credentials"
       // from "the host is unreachable". Discarding it made every failure read
       // the same and left the operator with nothing to act on.
-      actionError.value = `Upload failed: ${safeErrorMessage(cause, "the destination did not accept it")}. The saved record and the destination were not changed.`;
+      actionError.value = t.subs.uploadFailed(safeErrorMessage(cause, t.subs.uploadFallback));
       return false;
     } finally {
       busyId.value = null;
@@ -881,7 +955,7 @@ export function useSubscriptions(host: HostContext) {
       rowPreview.value = {
         id,
         loading: false,
-        error: safeErrorMessage(cause, viaRender ? "The document could not be rendered" : "Preview failed"),
+        error: safeErrorMessage(cause, viaRender ? t.subs.renderFailed : t.subs.previewFailed),
         nodes: [],
         count: 0,
       };
@@ -947,15 +1021,13 @@ export function useSubscriptions(host: HostContext) {
         if (draft.id.trim() && sourceUnchanged(draft)) {
           namesASource = false;
           sourceFields = {};
-          previewNote.value =
-            "Previewed from the saved source with this draft's operations. This session cannot resolve a source a draft names, so a changed link or user would not show here until an admin saves it.";
+          previewNote.value = t.subs.savedSourceNote;
         } else {
           // Also on the preview channel, which is the pane the button lives
           // in. Sent to the action channel alone it landed at the bottom of
           // the form, so the pane went on saying nothing had run yet while the
           // reason it had not sat somewhere the click never looked.
-          const refusal =
-            "This session cannot resolve the source a draft names: that needs admin access (substore:admin), because naming a source is naming a host for the control plane to read. It can preview pasted nodes, a converged path, and any saved record's stored source. Ask an operator with admin access to save this record; its preview then works here.";
+          const refusal = t.subs.draftSourceRefused;
           actionError.value = refusal;
           previewError.value = refusal;
           return;
@@ -986,7 +1058,7 @@ export function useSubscriptions(host: HostContext) {
       // row: since the control moved into the preview pane, a failure that
       // only surfaced at the bottom of a long form was a failure the operator
       // could press the button for and never see.
-      previewError.value = safeErrorMessage(cause, "Preview failed");
+      previewError.value = safeErrorMessage(cause, t.subs.previewFailed);
       actionError.value = previewError.value;
     } finally {
       previewing.value = false;
@@ -1010,7 +1082,7 @@ export function useSubscriptions(host: HostContext) {
     // The NAME has to be unique too, not only the id. Copying twice produced
     // two rows reading "Home nodes copy", which is a list an operator cannot
     // act on. The id that distinguishes them is not shown.
-    const name = uniqueName(`${record.name || id} copy`, items.value.map((item) => item.name));
+    const name = uniqueName(t.subs.copyName(record.name || id), items.value.map((item) => item.name));
     const copy: SubscriptionRecord = {
       ...record,
       id: uniqueId(name, items.value.map((item) => item.id)),
@@ -1033,17 +1105,94 @@ export function useSubscriptions(host: HostContext) {
         subscription: copy,
       }).promise;
       if (!response.saved) {
-        actionError.value = "The server did not confirm the copy, so the new record may or may not have been written. Reload the list before copying again.";
+        actionError.value = t.subs.copyUnconfirmed;
         return null;
       }
-      notice.value = `Copied to ${name}.`;
+      notice.value = t.subs.copied(name);
       await load();
       return copy.id;
     } catch (cause) {
-      actionError.value = safeErrorMessage(cause, "Record could not be copied");
+      actionError.value = safeErrorMessage(cause, t.subs.copyFailed);
       return null;
     } finally {
       saving.value = false;
+      await host.resize();
+    }
+  }
+
+  /**
+   * The store's new manual order, shown at once and saved behind it.
+   *
+   * `reorder` names every live id (s1-plan section 3.3), so the whole order
+   * goes out each time. Moves are sent one after another in the order they
+   * were made: a keyboard operator presses Arrow Up four times faster than four
+   * calls return. A refusal puts back the order the store last accepted and
+   * drops the moves queued behind it, which were made on top of the refused
+   * one. The reason comes back for the live region; "" means saved.
+   */
+  function reorder(order: string[]): Promise<{ ok: boolean; reason: string; dropped: boolean }> {
+    const bridge = host.bridge;
+    if (!bridge || !canReorder.value) return Promise.resolve({ ok: false, reason: t.subs.reorderUnavailable, dropped: false });
+    const generation = catalogue.reorderGeneration;
+    items.value = withOrder(items.value, order);
+    const run = catalogue.reorderQueue.then(async () => {
+      if (generation !== catalogue.reorderGeneration) return { ok: false, reason: "", dropped: true };
+      try {
+        await callMethod<SubscriptionReorderResponse>(bridge, BINDINGS.subReorder, { ids: order }).promise;
+        catalogue.confirmedOrder = [...order];
+        return { ok: true, reason: "", dropped: false };
+      } catch (cause) {
+        catalogue.reorderGeneration += 1;
+        items.value = withOrder(items.value, catalogue.confirmedOrder);
+        return { ok: false, reason: migrationRefusal(cause) || safeErrorMessage(cause, t.subs.reorderRefused), dropped: false };
+      }
+    });
+    catalogue.reorderQueue = run;
+    return run;
+  }
+
+  /** Where a migration run stands, for the prompt that started it. */
+  const migration = ref<{ running: boolean; migrated: number; remaining: number; error: string; done: boolean }>({
+    running: false,
+    migrated: 0,
+    remaining: 0,
+    error: "",
+    done: false,
+  });
+
+  /**
+   * Split a legacy store, one chunk per call, until the runtime says done.
+   *
+   * Each call migrates up to MIGRATE_STORE_CHUNK records and verifies on the
+   * last one (s1-plan section 3.1); progress lives in the store, so a run that
+   * stops resumes where it left off when it is started again. The loop is
+   * bounded: 64 chunks is 4,096 records, sixteen times the record budget, and a
+   * chunk that moves nothing while records remain is a stall, not progress.
+   */
+  async function migrateStore(): Promise<boolean> {
+    const bridge = host.bridge;
+    if (!bridge || !canMigrateStore.value || migration.value.running) return false;
+    migration.value = { running: true, migrated: 0, remaining: 0, error: "", done: false };
+    try {
+      for (let chunk = 0; chunk < 64; chunk += 1) {
+        const reply = await callMethod<MigrateStoreResponse>(bridge, BINDINGS.subMigrateStore, { chunk: MIGRATE_STORE_CHUNK }).promise;
+        migration.value.migrated += Math.max(0, reply.migrated ?? 0);
+        migration.value.remaining = Math.max(0, reply.remaining ?? 0);
+        if (reply.done) {
+          migration.value.done = true;
+          break;
+        }
+        if (!reply.migrated) throw new Error(t.subs.migrationStalled(reply.remaining));
+        await host.resize();
+      }
+      if (!migration.value.done) throw new Error(t.subs.migrationUnfinished);
+      await load();
+      return true;
+    } catch (cause) {
+      migration.value.error = safeErrorMessage(cause, t.subs.migrationFailed);
+      return false;
+    } finally {
+      migration.value.running = false;
       await host.resize();
     }
   }
@@ -1062,6 +1211,7 @@ export function useSubscriptions(host: HostContext) {
   function clearErrors(): void {
     actionError.value = "";
     previewError.value = "";
+    saveRefusal.value = null;
   }
 
   return {
@@ -1081,6 +1231,10 @@ export function useSubscriptions(host: HostContext) {
     previewing,
     previewStep,
     staleError,
+    storeVersion,
+    saveRefusal,
+    settleRefusal,
+    migration,
     operatorsState,
     graphOptions,
     graphOptionsLoading,
@@ -1093,6 +1247,8 @@ export function useSubscriptions(host: HostContext) {
     canRender,
     canPublish,
     canLoadGraphOptions,
+    canReorder,
+    canMigrateStore,
     atRecordLimit,
     load,
     loadOperators,
@@ -1103,6 +1259,8 @@ export function useSubscriptions(host: HostContext) {
     duplicate,
     refresh,
     publish,
+    reorder,
+    migrateStore,
     runPreview,
     toggleRowPreview,
     clearMessages,

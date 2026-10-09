@@ -1,0 +1,1 @@
+shadowsocks=uwn-37.ixewfgf.example.net:18259,method=aes-128-gcm,password=VcOgI5RQw1qi,udp-relay=true,tag=DE-ctej2-56

@@ -1,0 +1,64 @@
+proxies:
+  - name: HK-cjx-77
+    type: trojan
+    server: iy-37.dc56k.example.org
+    port: 443
+    password: Drttxdvccwfaxc4e
+    sni: img.aramgppm3.example.com
+    udp: true
+    ip-version: dual
+    _dns_server: unbcljtf
+  - name: NL-rm1-76
+    type: trojan
+    server: fuz-28.uv8ot.example.com
+    port: 443
+    password: Jnuuxv8gZVVRzh2t
+    sni: api.rxocwwswkc.example.com
+    udp: true
+    ip-version: v4-only
+    _dns_server: ox7z41tk
+  - name: SG-cl9-44
+    type: trojan
+    server: xy-34.u6n8sj2n.example.net
+    port: 443
+    password: 4Vm2vFAENjt6bylh
+    sni: static.ppsw9hocg.example.net
+    udp: true
+    ip-version: v6-only
+    _dns_server: vh5zu
+  - name: HK-n488o-76
+    type: trojan
+    server: uv-23.jocsspi.example.org
+    port: 443
+    password: otgZ2PBAxIKEUXrS
+    sni: cdn.z33tx93cbl.example.org
+    udp: true
+    ip-version: prefer-v4
+    _dns_server: h71g7t
+  - name: US-gqu8sb-76
+    type: trojan
+    server: xw-05.xstlss.example.net
+    port: 443
+    password: 1i1Kr6u8pd838AxG
+    sni: cdn.dn2x7pvo.example.com
+    udp: true
+    ip-version: prefer-v6
+    _dns_server: og5v
+  - name: AU-wk1-50
+    type: trojan
+    server: c7l-25.ys3mkhv.example.net
+    port: 443
+    password: JCwYvyUPiGX6GDPn
+    sni: cdn.ymq4b.example.org
+    udp: true
+    ip-version: ipv4-prefer
+    _dns_server: xr0jy
+  - name: GB-qumu-79
+    type: trojan
+    server: hmp-30.q92twj.example.com
+    port: 443
+    password: b3XQHRCGOb8va6mh
+    sni: static.rdwf05uk.example.org
+    udp: true
+    ip-version: eh8bd
+    _dns_server: natkrwdc

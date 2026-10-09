@@ -1,0 +1,3 @@
+proxies:
+  - {name: KR-i8m-21, type: ss, server: mr-33.oycp.example.com, port: 41468, cipher: aes-128-gcm, password: e9gPtqoCpA4M3t}
+  - {name: SG-vrs-46, type: trojan, server: pp3-32.brly.example.net, port: 443, password: QSWVoT7iHV9eG9M5, name: FR-q3h2s-11}

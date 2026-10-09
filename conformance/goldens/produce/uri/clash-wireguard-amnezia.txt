@@ -1,0 +1,1 @@
+wireguard://FjZC9ZM%2F4W9cnK0ivLTAJGc5GgoL77cozCYeCS7CWNs%3D@lj-17.ox6nx9zr.example.net:51820/?amnezia-wg-option=%5Bobject%20Object%5D&publickey=UGmXeRt7hpShylMxS2o66BegrwGSEWIhwhkYYM2Q%2Bvw%3D&udp=1&address=10.9.0.2%2F32#SG-hzt-46

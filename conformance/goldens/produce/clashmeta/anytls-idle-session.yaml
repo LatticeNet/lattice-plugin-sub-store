@@ -1,0 +1,2 @@
+proxies:
+  - {"idle-session-check-interval":"30","idle-session-timeout":"30","min-idle-session":"1","name":"NL-m714hc-32","packet-encoding":"xudp","password":"rvM8Z05R12RcqZmZCiEk","port":443,"server":"j4-13.xm3tt.example.org","skip-cert-verify":false,"sni":"static.s3f3pn.example.com","type":"anytls","udp":true}

@@ -1,0 +1,19 @@
+[
+  {
+    "name": "US-x5x-75",
+    "network": "ws",
+    "password": "IOG2Yrjm3RD7ry51",
+    "port": 443,
+    "server": "2001:db8:9ef5:1c35::d99d",
+    "sni": "api.z12lb15.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "api.z12lb15.example.net"
+      },
+      "path": "/hxz/otea8c"
+    }
+  }
+]

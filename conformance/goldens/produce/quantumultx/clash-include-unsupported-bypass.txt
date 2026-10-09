@@ -1,0 +1,3 @@
+trojan=k0-09.xp6f.example.com:443,password=1Iz84ILzrS9Neqpv,over-tls=true,tls-host=static.l862e7.example.com,udp-relay=true,tag=JP-wwxzz-36
+http=fpd-08.dl483.example.org:8080,username=tqtzpi,password=cg4QWBilRQRo,udp-relay=true,tag=KR-tq2-07
+shadowsocks=izc-22.l21tl33.example.com:34054,method=aes-128-gcm,password=t75by9UeUMxNHS,obfs=over-tls,obfs-host=izc-22.l21tl33.example.com,udp-relay=true,tag=US-iqkz-62

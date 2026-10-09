@@ -1,0 +1,8 @@
+{
+  "id": "vmess-xhttp-tls",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "xhttp",
+  "security": "tls",
+  "description": "v2rayN JSON VMess link over xhttp with security tls."
+}

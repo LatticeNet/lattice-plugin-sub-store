@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-256-gcm","name":"KR-tw9n-85","password":"XEbhL0V9HaZzOJ","plugin":"v2ray-plugin","plugin-opts":{"host":"img.xz1pgc.example.com","mode":"websocket","mux":true,"path":"/p9ec6ij","skip-cert-verify":false,"tls":true},"port":443,"server":"hkt-10.p5shwz3q.example.org","skip-cert-verify":false,"type":"ss","udp":true}

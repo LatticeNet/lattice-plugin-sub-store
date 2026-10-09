@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "2022-blake3-aes-128-gcm",
+        "name": "SG-t1pkv-47",
+        "password": "FtP4+wFSRGrQIpo3+RS3CQ==",
+        "port": 443,
+        "server": "y2-20.givz.example.com",
+        "shadow_tls": {
+          "password": "whNg1PjgU7kQeTRU",
+          "sni": "img.gjnkueki2x.example.org"
+        },
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

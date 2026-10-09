@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "b5-14.vhmjhduu.example.org",
+      "NaN"
+    ],
+    "name": "TW-o2aaj-10",
+    "params": {
+      "password": "r7cmfc1rRfj8qGskOnXt",
+      "port-hopping": "443;8443",
+      "skip-cert-verify": "false",
+      "sni": "www.c2znodw.example.org",
+      "tfo": "false"
+    },
+    "type": "hysteria2"
+  }
+]

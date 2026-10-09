@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "moe-25.xfbb.example.com",
+      "443",
+      "7a0fb666-6ddd-4347-8b4c-2d81c515330b"
+    ],
+    "name": "SG-e0n-36",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "host": "www.z2kul.example.org",
+      "over-tls": "true",
+      "path": "/ryv3jdg?ed=fh9",
+      "skip-cert-verify": "false",
+      "tls-name": "api.gulze.example.org",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

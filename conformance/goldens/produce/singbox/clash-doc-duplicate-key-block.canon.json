@@ -1,0 +1,19 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server_port": null,
+      "tag": "ss undefined:undefined",
+      "type": "shadowsocks"
+    },
+    {
+      "server_port": null,
+      "tag": "trojan undefined:undefined",
+      "tls": {
+        "enabled": true,
+        "insecure": false
+      },
+      "type": "trojan"
+    }
+  ]
+}

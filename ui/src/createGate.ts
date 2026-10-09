@@ -11,6 +11,7 @@
  * while the catalogue is unread.
  */
 import { KIND_COLLECTION, KIND_FILE, KIND_SUB, MAX_SUBSCRIPTION_RECORDS } from "./client";
+import { t } from "./i18n";
 import type { ViewId } from "./pipeline";
 import type { LoadState } from "./useSubscriptions";
 
@@ -28,20 +29,22 @@ export interface CatalogueView {
   failed: boolean;
   /** The records as read. Only looked at once the state is "ready". */
   records: readonly { kind?: string }[];
+  /**
+   * The store is the legacy single document (list said store_version 1), so
+   * every save is refused with store_migration_required until it is migrated.
+   */
+  legacy?: boolean;
 }
 
-export const UNREAD_REASON =
-  "The record catalogue could not be read, so the record budget and the names in use are unknown. Refresh first";
-export const READING_REASON =
-  "The record catalogue is still being read, so the record budget and the names in use are not known yet";
-export const LIMIT_REASON = `The store holds ${MAX_SUBSCRIPTION_RECORDS} records; delete one to add another`;
-export const NO_SOURCE_REASON = "Create a source first. There is nothing to combine";
-
-/** Why the store cannot take any new record right now; empty when it can. */
+/**
+ * Why the store cannot take any new record right now; empty when it can.
+ * The reasons are the message table's `t.create`, read when asked.
+ */
 export function storeBlock(catalogue: CatalogueView, limit = MAX_SUBSCRIPTION_RECORDS): string {
-  if (catalogue.state === "error") return UNREAD_REASON;
-  if (catalogue.state !== "ready") return READING_REASON;
-  return catalogue.records.length >= limit ? LIMIT_REASON : "";
+  if (catalogue.state === "error") return t.create.unread;
+  if (catalogue.state !== "ready") return t.create.reading;
+  if (catalogue.legacy) return t.create.legacy;
+  return catalogue.records.length >= limit ? t.create.limit(MAX_SUBSCRIPTION_RECORDS) : "";
 }
 
 function kindOf(record: { kind?: string }): string {
@@ -60,7 +63,7 @@ export function createBlocks(catalogue: CatalogueView, limit = MAX_SUBSCRIPTION_
   const noSource = !unread && !catalogue.records.some((record) => kindOf(record) === KIND_SUB);
   return {
     "new-subscription": store,
-    "new-collection": unread ? store : noSource ? NO_SOURCE_REASON : store,
+    "new-collection": unread ? store : noSource ? t.create.noSource : store,
     "new-file": store,
   };
 }
@@ -72,43 +75,65 @@ interface LayerCreate {
   hint: string;
 }
 
+/* Getters, so a label is read in the locale that is active when it is drawn. */
 const SUBSCRIPTION: LayerCreate = {
   command: "new-subscription",
-  label: "New source",
-  hint: "One source of nodes, processed and served",
+  get label() {
+    return t.create.newSource;
+  },
+  get hint() {
+    return t.create.newSourceHint;
+  },
 };
 
-/** The layers that create, and what. Shares and Settings have no create of their own. */
-const LAYER_CREATE: Partial<Record<ViewId, LayerCreate>> = {
-  overview: SUBSCRIPTION,
-  sources: SUBSCRIPTION,
-  combinations: {
+/** What each kind of record is created with. */
+const KIND_CREATE: Record<string, LayerCreate> = {
+  [KIND_SUB]: SUBSCRIPTION,
+  [KIND_COLLECTION]: {
     command: "new-collection",
-    label: "New combination",
-    hint: "Merge several sources and process the result as one",
+    get label() {
+      return t.create.newCombination;
+    },
+    get hint() {
+      return t.create.newCombinationHint;
+    },
   },
-  files: {
+  [KIND_FILE]: {
     command: "new-file",
-    label: "New file",
-    hint: "A document served as it is, with its proxy list kept in step",
+    get label() {
+      return t.create.newFile;
+    },
+    get hint() {
+      return t.create.newFileHint;
+    },
   },
 };
 
-const LAYER_KIND: Partial<Record<ViewId, string>> = {
-  sources: KIND_SUB,
-  combinations: KIND_COLLECTION,
-  files: KIND_FILE,
-};
+/** The kind the Records layer's kind filter stands for, "" for every kind. */
+const FACET_KIND: Record<string, string> = { source: KIND_SUB, combination: KIND_COLLECTION, file: KIND_FILE };
 
-/** The layer's list was read and holds nothing; the Overview counts every record. */
-function layerEmpty(tab: ViewId, records: readonly { kind?: string }[]): boolean {
-  if (tab === "overview") return records.length === 0;
-  const kind = LAYER_KIND[tab];
-  return !!kind && !records.some((record) => kindOf(record) === kind);
+/**
+ * The layer's create, and the kind it is narrowed to: Records creates the
+ * kind its filter shows, a source with every kind showing. Shares and
+ * Settings have no create of their own.
+ */
+function layerCreate(tab: ViewId, kindFacet: string): { create: LayerCreate; kind: string } | null {
+  if (tab === "overview") return { create: SUBSCRIPTION, kind: "" };
+  if (tab !== "records") return null;
+  const kind = FACET_KIND[kindFacet] ?? "";
+  return { create: KIND_CREATE[kind || KIND_SUB]!, kind };
+}
+
+/** The layer's list was read and holds nothing of the kind it shows. */
+function layerEmpty(kind: string, records: readonly { kind?: string }[]): boolean {
+  if (!kind) return records.length === 0;
+  return !records.some((record) => kindOf(record) === kind);
 }
 
 export interface HeaderCreateInput {
   tab: ViewId;
+  /** The Records layer's kind filter (`source`, `combination`, `file`), "" for all. */
+  kind?: string;
   catalogue: CatalogueView;
   caps: { ready: boolean; mutate: boolean };
   /** A record page or an editor is up; neither carries the layer's create. */
@@ -119,7 +144,7 @@ export interface HeaderCreate extends LayerCreate {
   disabled: boolean;
   /** The control's title: why it is disabled, or what it makes. */
   title: string;
-  /** The Overview's split button, with the other kinds behind a chevron. */
+  /** The split button, with the other kinds behind a chevron (Overview, and Records showing every kind). */
   menu: boolean;
   /**
    * The chevron is disabled while the catalogue is unread. At the record
@@ -139,17 +164,19 @@ export interface HeaderCreate extends LayerCreate {
  * reason. A read and empty layer leaves create to its empty state.
  */
 export function headerCreate(input: HeaderCreateInput): HeaderCreate | null {
-  const layer = LAYER_CREATE[input.tab];
+  const layer = layerCreate(input.tab, input.kind ?? "");
   if (!layer || input.covered || !input.caps.ready || !input.caps.mutate) return null;
   const { state, failed, records } = input.catalogue;
   if (state !== "ready" && state !== "error" && !failed) return null;
-  if (state === "ready" && layerEmpty(input.tab, records)) return null;
-  const reason = createBlocks(input.catalogue)[layer.command];
+  if (state === "ready" && layerEmpty(layer.kind, records)) return null;
+  const reason = createBlocks(input.catalogue)[layer.create.command];
   return {
-    ...layer,
+    command: layer.create.command,
+    label: layer.create.label,
+    hint: layer.create.hint,
     disabled: reason !== "",
-    title: reason || layer.hint,
-    menu: input.tab === "overview",
+    title: reason || layer.create.hint,
+    menu: !layer.kind,
     menuDisabled: state !== "ready",
   };
 }

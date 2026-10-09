@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "down": "1 Gbps",
+      "name": "JP-ei5q-91",
+      "password": "Dxnae7hB8sq8H4nnLYFk",
+      "port": 443,
+      "server": "eh-02.e6fd.example.net",
+      "sni": "img.lgpapm0p.example.com",
+      "type": "hysteria2",
+      "udp": true,
+      "up": "200 Mbps"
+    }
+  ]
+}

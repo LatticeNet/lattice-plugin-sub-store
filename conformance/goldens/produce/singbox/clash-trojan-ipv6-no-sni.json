@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-kcw-48",
+      "type": "trojan",
+      "server": "2001:db8:e063:b663::82e8",
+      "server_port": 443,
+      "password": "g3gXaBy4RFjQr2HJ",
+      "tls": {
+        "enabled": true,
+        "server_name": "2001:db8:e063:b663::82e8",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

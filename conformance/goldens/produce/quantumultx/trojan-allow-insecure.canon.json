@@ -1,0 +1,15 @@
+[
+  {
+    "address": "192.0.2.32:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "7WEAVSvZGNTkAgpl",
+      "tag": "KR-ptyg-62",
+      "tls-host": "img.qx34w.example.net",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

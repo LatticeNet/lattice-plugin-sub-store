@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"CA-xmcwy-91","server":"y2-31.xsea.example.net","port":443,"user_id":"319242a6-da46-498e-b7a4-2f1c17d0e0c5","tfo":false,"udp_relay":true,"transport":{"wss":{"path":"/s05tj","headers":{"Host":"www.nfuzg.example.net"},"sni":"cdn.hdptwe1.example.org","fingerprint_sha256":"30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09"}},"prev_hop":"HK-tf0-80"}}

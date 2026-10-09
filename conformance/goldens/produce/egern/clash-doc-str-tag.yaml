@@ -1,0 +1,4 @@
+proxies:
+  - {"shadowsocks":{"name":"JP-oxhcw-81","method":"aes-128-gcm","server":"d3-40.imv854.example.com","port":11307,"password":"0464","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"SG-tqhn9e-94","method":"aes-128-gcm","server":"l4o-04.bk9b.example.com","port":20956,"password":"0566","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"FR-zp3m-01","method":"aes-128-gcm","server":"jo-14.ikr1e9o.example.net","port":42874,"password":"560","tfo":false,"udp_relay":true}}

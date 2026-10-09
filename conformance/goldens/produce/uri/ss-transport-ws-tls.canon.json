@@ -1,0 +1,41 @@
+[
+  {
+    "fragment": "FR-ylrg-19",
+    "host": "ha-30.mwovt.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "api.zr0uvpv2.example.net"
+      ],
+      [
+        "path",
+        "/v7d7s30"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.zr0uvpv2.example.net"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206Uno3VzJkNmt5SVFtUWs=",
+    "userinfo_base64": "aes-128-gcm:Rz7W2d6kyIQmQk"
+  }
+]

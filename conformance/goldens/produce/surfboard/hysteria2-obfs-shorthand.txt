@@ -1,0 +1,1 @@
+TW-zqdt-64=hysteria2,nw-25.gx808qo.example.net,443,password="sPOmVik1yMye21bMsDsr",salamander-password="xVZfLLQWOS2O",sni="static.refup.example.org",skip-cert-verify=false,udp-relay=true

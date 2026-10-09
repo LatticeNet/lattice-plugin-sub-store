@@ -1,0 +1,2 @@
+FR-vda4-83=shadowsocks,ue-06.ur58k.example.org,443,2022-blake3-aes-128-gcm,"Opq2jrdRKY7wNpHQEcQmFw==",shadow-tls-password=AwYmyi6NLk9PRaLy,shadow-tls-sni=img.hp3k0nb7i.example.net,shadow-tls-version=2,tls-profile=chrome,udp=true
+SG-t1pkv-47=shadowsocks,y2-20.givz.example.com,443,2022-blake3-aes-128-gcm,"FtP4+wFSRGrQIpo3+RS3CQ==",shadow-tls-password=whNg1PjgU7kQeTRU,shadow-tls-sni=img.gjnkueki2x.example.org,shadow-tls-version=3,tls-profile=chrome,udp=true

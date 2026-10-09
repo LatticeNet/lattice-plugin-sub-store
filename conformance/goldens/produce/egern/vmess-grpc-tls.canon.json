@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "FR-pqt6-58",
+        "port": 443,
+        "security": "auto",
+        "server": "wg-20.r82c0q6v.example.org",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "service_name": "n1df-p13d4",
+            "sni": "cdn.owsbv1s1e.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ac5cf1e4-0cda-4edf-8d67-88faeaee3d35"
+      }
+    }
+  ]
+}

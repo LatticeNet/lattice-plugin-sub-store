@@ -1,0 +1,8 @@
+{
+  "id": "loon-hysteria2",
+  "family": "loon",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "description": "Loon Hysteria2 plain and with salamander, server-ports and hop-interval."
+}

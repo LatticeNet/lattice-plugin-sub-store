@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"AU-uj6a-60","server":"sxl-01.jiyys7.example.net","port":443,"password":"8RvhaFk0czErf7tJ","tfo":false,"udp_relay":true,"sni":"static.x2tic.example.org"}}

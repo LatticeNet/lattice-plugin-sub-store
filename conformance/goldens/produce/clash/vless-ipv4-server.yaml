@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","name":"US-uz1w8a-26","network":"ws","packet-encoding":"xudp","port":8443,"server":"203.0.113.48","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"946ca19d-458d-4607-a30c-d7d5c6af849a","ws-opts":{"headers":{"Host":"www.chcyg0.example.org"},"path":"/ogd6r7489"},"servername":"www.chcyg0.example.org"}

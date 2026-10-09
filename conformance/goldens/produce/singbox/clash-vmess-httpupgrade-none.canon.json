@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "z2n-07.i1p3rsm.example.com",
+      "server_port": 443,
+      "tag": "JP-p84tk-69",
+      "transport": {
+        "headers": {},
+        "host": "static.wzzu98.example.com",
+        "path": "/q9dd",
+        "type": "httpupgrade"
+      },
+      "type": "vmess",
+      "uuid": "6b18ea51-a2ba-42ea-a8e4-ace92af5bf0a"
+    }
+  ]
+}

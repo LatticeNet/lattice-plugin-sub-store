@@ -1,0 +1,1 @@
+anytls=hac-37.k2fe.example.com:443,password=CD4xeu8GaEFg9Uc7b2yO,over-tls=true,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.ggzzb0.example.net,udp-relay=true,tag=KR-w7e-46

@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "fast-open": false,
+      "name": "TW-o2aaj-10",
+      "password": "r7cmfc1rRfj8qGskOnXt",
+      "port": null,
+      "ports": "443;8443",
+      "server": "b5-14.vhmjhduu.example.org",
+      "skip-cert-verify": false,
+      "sni": "www.c2znodw.example.org",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

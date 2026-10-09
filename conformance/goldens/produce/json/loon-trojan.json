@@ -1,0 +1,31 @@
+[
+  {
+    "name": "NL-wmkko5-50",
+    "network": "tcp",
+    "password": "uY3bzTtZg5PWo0Gu",
+    "port": 443,
+    "server": "ct-01.gktnpz.example.net",
+    "skip-cert-verify": true,
+    "sni": "img.mfq6v7gy31.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "GB-g2r5-48",
+    "network": "ws",
+    "password": "Q0TFWQNDf9Objj0W",
+    "port": 443,
+    "server": "exp-37.msqhu.example.net",
+    "sni": "www.lyoh8.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "www.lyoh8.example.net"
+      },
+      "path": "/h1xonc/ytq25w0leh"
+    }
+  }
+]

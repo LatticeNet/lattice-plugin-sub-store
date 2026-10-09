@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"GB-k5on8-01","method":"chacha20-ietf","server":"y44-25.upfmkoug.example.org","port":51507,"password":"TcoqEFXQqroN","protocol":"auth_aes128_md5","protocol_param":"6455:ru4fAyUG","obfs":"http_simple","obfs_param":"cdn.tdzus3.example.org","tfo":false,"udp_relay":true}}

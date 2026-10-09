@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "oTe2mcYzsduFTR",
+      "server": "ik4-24.pakq1pd.example.com",
+      "server_port": 39141,
+      "tag": "AU-do2bi-94",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "chacha20-ietf-poly1305",
+      "password": "oTe2mcYzsduFTR",
+      "server": "lpx-15.sisat.example.net",
+      "server_port": 14150,
+      "tag": "SG-j37i-11",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "chacha20-ietf-poly1305",
+      "password": "oTe2mcYzsduFTR",
+      "server": "dm-30.e2zlt1bx.example.net",
+      "server_port": 14150,
+      "tag": "NL-tw5z-43",
+      "type": "shadowsocks"
+    }
+  ]
+}

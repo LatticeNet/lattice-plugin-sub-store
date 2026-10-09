@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "teg-27.stq9lh.example.net",
+      "aid": "0",
+      "host": "static.dbveya8hk.example.net",
+      "id": "d321ac0f-ada0-4fbe-9eb1-0dc7f75a5a3f",
+      "net": "httpupgrade",
+      "path": "/mocx/ijfdef3",
+      "port": "443",
+      "ps": "US-akxzd-86",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

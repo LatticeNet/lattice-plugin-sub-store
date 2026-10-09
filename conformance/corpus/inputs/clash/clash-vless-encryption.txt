@@ -1,0 +1,14 @@
+proxies:
+  - name: NL-d4s0j-22
+    type: vless
+    server: jj-17.s1ikpk8k.example.net
+    port: 443
+    uuid: 9a4e6440-b8dd-41f2-97c3-171f8680fa0d
+    flow: xtls-rprx-vision
+    encryption: mlkem768x25519plus.native.0rtt.OFKPI2O__IqtZfb1RJTiW2B6OwYbM6a0o1XTf9Nuz-k
+    tls: true
+    servername: img.bg3uj3.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: bShJBlB8UggH1OkPbszyqf0DUhgrHTtlmPdCoeSvmNk
+      short-id: 6eeeff95

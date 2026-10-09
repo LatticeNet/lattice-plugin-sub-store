@@ -1,0 +1,7 @@
+{
+  "id": "base64-unpadded",
+  "family": "base64",
+  "protocol": "mixed",
+  "quirk": "base64-unpadded",
+  "description": "Standard alphabet without padding."
+}

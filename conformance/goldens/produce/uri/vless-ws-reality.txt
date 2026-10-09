@@ -1,0 +1,1 @@
+vless://8716fe3b-7305-46ba-91eb-4cb9a984fb0a@bu-22.u68e7.example.com:443?security=reality&type=ws&path=%2Fyn3%2Fcg1s&host=www.ipzjfg8.example.net&packetEncoding=xudp&sni=www.ipzjfg8.example.net&fp=chrome&sid=2ad1003c&spx=%2F&pbk=T3_rEwPJJ-F9B-y6jwjMQu7p0F-ijg9aJjgI_k977DY&encryption=none#US-opo-77

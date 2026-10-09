@@ -1,0 +1,19 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "down_mbps": 200,
+      "password": "rcGMeNXxjwztH1PuBrs5",
+      "server": "ke0-40.lx6l.example.org",
+      "server_port": 443,
+      "tag": "CA-n0gwa7-77",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.md1rpi.example.com"
+      },
+      "type": "hysteria2",
+      "up_mbps": 50
+    }
+  ]
+}

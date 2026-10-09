@@ -1,0 +1,8 @@
+{
+  "id": "surge-vmess-ws-tls",
+  "family": "surge",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "description": "Surge vmess with ws, ws-path, ws-headers, tls and sni."
+}

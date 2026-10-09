@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "fq-04.ri20owdn.example.net",
+      "443",
+      "6490f9f8-ff11-4f38-92bf-752ea9cb09b2"
+    ],
+    "name": "CA-actar-66",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "api.z96qqyye3z.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

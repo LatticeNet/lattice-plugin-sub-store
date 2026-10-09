@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "US-azqyme-37",
+    "host": "h83-35.dddyb.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "host",
+        "www.rjpp4m.example.net"
+      ],
+      [
+        "path",
+        "/edtufnk"
+      ],
+      [
+        "pbk",
+        "Y-oqjpzvrEFhzsNYdKxrM2e6U5TlygyE9xcNaNucksY"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "f0fac1e7"
+      ],
+      [
+        "sni",
+        "www.rjpp4m.example.net"
+      ],
+      [
+        "type",
+        "http"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "7HS5JSFsX9d7nVF2"
+  }
+]

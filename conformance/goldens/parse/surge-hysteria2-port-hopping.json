@@ -1,0 +1,14 @@
+[
+  {
+    "hop-interval": 20,
+    "name": "SG-rqk4-92",
+    "password": "CYgL6uhgoFGf48xcuOOM",
+    "port": 443,
+    "ports": "20000-21000,23000",
+    "server": "v5p-17.d1bhi9.example.net",
+    "sni": "cdn.vk6e5rjd.example.org",
+    "tls": true,
+    "type": "hysteria2",
+    "udp": true
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "NL-do9b0q-21",
+        "port": 443,
+        "server": "cyz-24.e9dn21w.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "fingerprint_sha256": "82:80:74:3B:0D:B9:A0:48:92:C9:08:C2:3B:CB:07:FF:43:8B:5E:8B:E7:D8:9F:86:B8:91:5E:21:1C:82:D1:64",
+            "sni": "img.dlvsk0q.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "9dd1f389-f74c-4747-96b5-19b4af4d55ac"
+      }
+    },
+    {
+      "trojan": {
+        "name": "US-hilk-85",
+        "password": "NJBWrIzIMGyilHmy",
+        "port": 443,
+        "server": "umm-36.imjd.example.net",
+        "sni": "api.de4hx.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

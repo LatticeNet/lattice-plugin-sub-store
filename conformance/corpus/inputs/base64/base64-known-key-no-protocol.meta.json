@@ -1,0 +1,7 @@
+{
+  "id": "base64-known-key-no-protocol",
+  "family": "base64",
+  "protocol": "none",
+  "quirk": "base64-no-protocol-line",
+  "description": "Base64 that carries the vmess marker but decodes to prose without a protocol line: the known-scheme preprocessor logs an error and returns the raw text, the fallback does not run, and no node is read."
+}

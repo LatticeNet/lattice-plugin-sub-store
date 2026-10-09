@@ -1,0 +1,1 @@
+trojan undefined:undefined=trojan,undefined,undefined,tls=true,udp-relay=true

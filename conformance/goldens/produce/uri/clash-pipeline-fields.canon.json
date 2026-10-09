@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "FR-mw0ad-11",
+    "host": "wtr-25.tgodt.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.xashyl2j67.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "iEbzUJm2r7ZFhxxz"
+  }
+]

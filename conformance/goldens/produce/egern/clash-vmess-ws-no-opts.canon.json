@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-zof-93",
+        "port": 443,
+        "security": "auto",
+        "server": "si-01.pyt8o.example.com",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "si-01.pyt8o.example.com"
+            },
+            "path": "/"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "e59cbec9-9e75-48b1-8c3b-c5b53fb1de09"
+      }
+    }
+  ]
+}

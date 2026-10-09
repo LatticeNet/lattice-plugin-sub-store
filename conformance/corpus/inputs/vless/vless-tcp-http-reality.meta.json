@@ -1,0 +1,8 @@
+{
+  "id": "vless-tcp-http-reality",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp-http",
+  "security": "reality",
+  "description": "VLESS share link over tcp-http with security reality."
+}

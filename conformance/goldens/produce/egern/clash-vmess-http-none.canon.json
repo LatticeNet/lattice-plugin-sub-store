@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "HK-zb9a-35",
+        "port": 443,
+        "security": "auto",
+        "server": "jj2-21.m5egq.example.com",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "cdn.lkwh7e7kt.example.net"
+            },
+            "method": "GET",
+            "path": "/f7a41"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "4769c081-8c80-4949-a41e-30a1b2086716"
+      }
+    }
+  ]
+}

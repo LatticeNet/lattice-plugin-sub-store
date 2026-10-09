@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "vhy-37.kbjlbsej.example.com",
+      "443",
+      "9ed65cb0-7a2c-45a9-ad68-97b05846f77e"
+    ],
+    "name": "FR-hh0-05",
+    "params": {
+      "host": "cdn.o9kp42xjx.example.org",
+      "over-tls": "true",
+      "path": "/jui0ogbt30",
+      "tls-name": "cdn.o9kp42xjx.example.org",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

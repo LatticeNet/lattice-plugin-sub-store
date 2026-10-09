@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-ycmz-27",
+      "type": "socks",
+      "server": "a7-04.h9q2h.example.net",
+      "server_port": 37605,
+      "version": "5",
+      "username": "r2ddmw",
+      "password": "a31bA1CmoKR9"
+    }
+  ],
+  "endpoints": []
+}

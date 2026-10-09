@@ -1,0 +1,98 @@
+proxies:
+  - name: NL-c0jwf0-27
+    type: vless
+    server: r53-20.yhgq.example.com
+    port: 443
+    uuid: 912e7571-7154-452b-9b82-c6026c6953fb
+    udp: true
+    tls: true
+    servername: static.o74wal.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    packet-encoding: ""
+  - name: FR-r7ml8-20
+    type: vless
+    server: z0-06.qzoy.example.net
+    port: 443
+    uuid: 5348b7f1-9e4e-4515-b51b-189559424870
+    udp: true
+    tls: true
+    servername: cdn.bm38g6wqs.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    packet-encoding: packetaddr
+  - name: JP-qrm-35
+    type: vless
+    server: v9-03.agwj3.example.org
+    port: 443
+    uuid: c1ec7aa9-f92b-4bfd-9d36-d1e428bb8682
+    udp: true
+    tls: true
+    servername: api.b8k1h6kf9z.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    packet-encoding: XUDP
+  - name: HK-d710yj-84
+    type: vless
+    server: vp-08.qfttqrq.example.com
+    port: 443
+    uuid: b7f70ac5-0730-43bf-ac0c-eb767e9b3c49
+    udp: true
+    tls: true
+    servername: cdn.f87ffy7ut.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    packet-encoding: mf9u2t9
+  - name: CA-hjc4-51
+    type: vless
+    server: zl5-12.cr9r.example.org
+    port: 443
+    uuid: 061b0719-0e25-4525-8b66-c18c5ff0aa8c
+    udp: true
+    tls: true
+    servername: img.jip6g5tw.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    xudp: true
+  - name: HK-futh-87
+    type: vless
+    server: hfc-25.hcxldu.example.net
+    port: 443
+    uuid: 11275432-b68d-408c-9676-e6fa18c06530
+    udp: true
+    tls: true
+    servername: www.zeenb.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    packet-addr: true
+  - name: KR-ez31fy-14
+    type: vless
+    server: qgd-06.g02h.example.com
+    port: 443
+    uuid: 8a1a0a05-cd82-45f8-82c5-249933f55d4f
+    udp: false
+    tls: true
+    servername: cdn.w1qjmg.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1

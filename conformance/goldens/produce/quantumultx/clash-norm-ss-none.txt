@@ -1,0 +1,1 @@
+shadowsocks=vv4-07.bwxx.example.com:43689,method=none,password=,udp-relay=true,tag=NL-ahs6-94

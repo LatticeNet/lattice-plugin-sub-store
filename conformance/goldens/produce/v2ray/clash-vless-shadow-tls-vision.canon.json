@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "US-syz8-29",
+    "host": "tcz-29.ppxe.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.lo63q03r9t.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "03ba6920-4b55-435c-90f5-2dd82536c8dc"
+  }
+]

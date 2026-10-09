@@ -1,0 +1,9 @@
+{
+  "id": "clash-anytls-ws",
+  "family": "clash",
+  "protocol": "anytls",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "anytls-network",
+  "description": "anytls with network ws (ClashMeta A11 drops it)."
+}

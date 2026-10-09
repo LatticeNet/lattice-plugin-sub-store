@@ -1,0 +1,16 @@
+[
+  {
+    "address": "b9q-06.c3domqi.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "ws",
+      "obfs-host": "static.mj7j081a.example.org",
+      "obfs-uri": "/ra5/ovxc",
+      "password": "55e4b769-a555-4221-9d26-659441c651c6",
+      "tag": "NL-rmz-42",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

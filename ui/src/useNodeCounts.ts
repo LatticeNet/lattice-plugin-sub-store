@@ -10,6 +10,7 @@
  */
 import { BINDINGS, callMethod, type SubscriptionPreviewResponse } from "./client";
 import type { HostContext } from "./host";
+import { t } from "./i18n";
 import { createNodeCountQueue, type NodeCountQueue } from "./nodeCounts";
 import { safeErrorMessage } from "./subStoreModel";
 
@@ -19,12 +20,12 @@ export function useNodeCounts(host: HostContext): NodeCountQueue {
   const existing = queues.get(host);
   if (existing) return existing;
   const queue = createNodeCountQueue((id) => {
-    if (!host.bridge) return Promise.reject(new Error("The console is not connected"));
+    if (!host.bridge) return Promise.reject(new Error(t.boot.notConnected));
     return callMethod<SubscriptionPreviewResponse>(host.bridge, BINDINGS.subPreview, { subscription_id: id })
       .promise.catch((cause) => {
         // The reason is shown in a title, so it goes through the same redaction
         // every other error does: a fetch failure quotes the link.
-        throw new Error(safeErrorMessage(cause, "Preview failed"));
+        throw new Error(safeErrorMessage(cause, t.subs.previewFailed));
       });
   });
   queues.set(host, queue);

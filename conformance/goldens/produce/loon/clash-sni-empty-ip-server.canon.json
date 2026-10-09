@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "198.51.100.57",
+      "443",
+      "rG8Nc3sr69Ii4FNC"
+    ],
+    "name": "US-qy8r5q-63",
+    "params": {
+      "tls-name": "198.51.100.57",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "192.0.2.72",
+      "443",
+      "0b9d56fa-73e8-4c2b-acdd-1d958a773574"
+    ],
+    "name": "SG-f009-90",
+    "params": {
+      "over-tls": "true",
+      "tls-name": "192.0.2.72",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "clash-ip-version-values",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ip-version",
+  "description": "Nodes with ip-version dual, v4-only, v6-only, prefer-v4, prefer-v6, ipv4-prefer and an unknown value, each with _dns_server."
+}

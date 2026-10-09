@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "mnPm4xaG59F4J9VO",
+      "server": "trr-05.cxu586h.example.com",
+      "server_port": 443,
+      "tag": "DE-w55-42",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "PKU6M5-j3ysTiKBTojfFZWrNOubl9ZFmY1-M5bfrnKk",
+          "short_id": "7662ad44"
+        },
+        "server_name": "api.s066ycl2.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {
+          "Host": "api.s066ycl2.example.com"
+        },
+        "path": "/x225kbvr",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

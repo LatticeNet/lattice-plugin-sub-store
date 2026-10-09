@@ -1,0 +1,42 @@
+[
+  {
+    "args": [
+      "qgr-29.ijwj.example.net",
+      "443",
+      "7a9e5f0c-5fbb-41db-84c3-f3451a397d9f"
+    ],
+    "name": "KR-m4pcf9-54",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "Q1dAvQMkI3_YMgWm1dCa7_0Df1UUowiUOPgfBsssjF0",
+      "short-id": "33f4d073",
+      "skip-cert-verify": "false",
+      "sni": "cdn.tyfz9tsjjb.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "ar-26.nwpt.example.org",
+      "443",
+      "1b2f873e-9224-4f7f-84b1-3a35b0d9fb3b"
+    ],
+    "name": "NL-x3oc-18",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "KwtJvxpWqjFazT5N1vz0_w6WR-yFZK0FVqexnENgVMw",
+      "short-id": "775f4291",
+      "skip-cert-verify": "false",
+      "sni": "api.zgvtw96xq.example.net",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

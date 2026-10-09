@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "cyyr3 / #xqd 東京",
+      "type": "socks",
+      "server": "d43-15.jjgyxd.example.org",
+      "server_port": 1080,
+      "version": "5",
+      "username": "h0py",
+      "password": "ySxTDEzPais6"
+    }
+  ],
+  "endpoints": []
+}

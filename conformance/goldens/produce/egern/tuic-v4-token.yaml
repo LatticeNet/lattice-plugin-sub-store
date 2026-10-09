@@ -1,0 +1,2 @@
+proxies:
+  - {"tuic":{"name":"HK-rwl-68","server":"si-36.bnyc.example.net","port":443,"uuid":"v2DeBaasrThWvtaPa4ChcTJX","password":"","sni":"www.zuzj9pi2d.example.org","alpn":["h3"]}}

@@ -1,0 +1,14 @@
+# generated profile
+proxies:
+  - name: TW-d6ahp-79  # entry
+    type: ss
+    server: gy-28.bbn1u9k5.example.org
+    port: 44420
+    cipher: aes-128-gcm
+    password: E5ZzS0B766tN
+  - name: KR-mxcn-27  # entry
+    type: trojan
+    server: a6-32.jx3wy.example.net
+    port: 443
+    password: iF8MoEBbQ3gtc6mI
+    sni: img.i37u2y5i.example.org

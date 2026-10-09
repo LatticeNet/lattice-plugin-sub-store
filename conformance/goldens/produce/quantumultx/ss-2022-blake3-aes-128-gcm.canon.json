@@ -1,0 +1,13 @@
+[
+  {
+    "address": "px-33.cokrjp66.example.com:54440",
+    "args": [],
+    "params": {
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "XqibV6fKbKK81zHZlyw7mA==",
+      "tag": "US-hnnp-27",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

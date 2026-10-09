@@ -1,0 +1,19 @@
+proxies:
+  - name: AU-m3cm0-96
+    type: vless
+    server: z86-24.x11eum6.example.net
+    port: 443
+    uuid: 862d1368-f42a-4a1d-a449-90c3f245c930
+    udp: true
+    tls: true
+    servername: static.h4jmq30q4.example.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: nRifQYEZ5dp2VNSvlyn32sz5cadDw6WI4mceeUrGWoA
+      short-id: 87f35d69
+    network: xhttp
+    xhttp-opts:
+      path: /kgny8p/znry1vl
+      mode: packet-up
+      x-padding-bytes: 200-800
+    _extra: "{\"xPaddingBytes\":\"100-1000\",\"noGRPCHeader\":true}"

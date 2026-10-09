@@ -1,0 +1,9 @@
+{
+  "id": "surge-typed-prefix",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "typed-value-prefix",
+  "description": "udp-relay=true1, obfs=https and test-timeout=5s, one per line: each value starts with an accepted token and goes on, so every line is rejected."
+}

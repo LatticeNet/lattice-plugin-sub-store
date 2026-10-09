@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-host-list",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ws-headers",
+  "description": "vmess ws whose Host is two names joined by a comma."
+}

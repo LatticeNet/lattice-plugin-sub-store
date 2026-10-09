@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"KR-e3w4-95","server":"aq-17.vsn27vzi.example.org","port":443,"user_id":"23df0336-e6e4-4d67-a1a5-a858d0c3a07d","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"api.agy7vgm3k.example.net"}},"shadow_tls":{"password":"gcMjfz8eDgDNnlql","sni":"api.agy7vgm3k.example.net"}}}

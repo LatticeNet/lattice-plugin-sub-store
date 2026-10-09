@@ -1,0 +1,9 @@
+{
+  "id": "clash-socks5-name-newline",
+  "family": "clash",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "name-newline",
+  "description": "socks5 whose name contains a newline."
+}

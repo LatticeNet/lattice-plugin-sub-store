@@ -1,0 +1,8 @@
+{
+  "id": "surge-http",
+  "family": "surge",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "description": "Surge http without and with credentials, positional and keyword."
+}

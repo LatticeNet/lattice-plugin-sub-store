@@ -11,6 +11,7 @@
  * printing "Never refreshed" on them read as a fault on every row.
  */
 import type { SubStoreShareRow, SubscriptionListItem } from "./client";
+import { t } from "./i18n";
 import { formatRelativeTime } from "./rowStatus";
 import { refreshFailureText } from "./urlMask";
 
@@ -52,32 +53,36 @@ function expired(share: SubStoreShareRow, now: number): boolean {
 
 export function publishStateFor(shares: readonly SubStoreShareRow[] | undefined, subscriptionId: string, now: number = Date.now()): PublishState {
   if (shares === undefined) {
-    return { tone: "neutral", label: "—", title: "The share list has not been read yet.", shares: [] };
+    return { tone: "neutral", label: t.publish.unread, title: t.publish.unreadTitle, shares: [] };
   }
   const mine = shares.filter((share) => share.subscription_id === subscriptionId);
   if (!mine.length) {
-    return { tone: "neutral", label: "not published", title: "No share exists for this record, so no client can fetch it.", shares: [] };
+    return { tone: "neutral", label: t.publish.none, title: t.publish.noneTitle, shares: [] };
   }
   const live = mine.filter((share) => share.enabled && !expired(share, now));
   const first = live[0] ?? mine[0];
   if (live.length) {
-    const more = live.length > 1 ? ` and ${live.length - 1} more` : "";
     // By slug: the path carries the share's token, and a hover title is no place for it.
-    return { tone: "ok", label: `/${first.slug}`, title: `Served at /${first.slug}${more}.`, slug: first.slug, shares: mine };
+    return { tone: "ok", label: `/${first.slug}`, title: t.publish.servedAt(`/${first.slug}`, live.length - 1), slug: first.slug, shares: mine };
   }
-  const why = mine.some((share) => expired(share, now)) ? "expired" : "disabled";
+  const isExpired = mine.some((share) => expired(share, now));
   return {
     tone: "warn",
-    label: `/${first.slug} ${why}`,
-    title: `A share exists but is ${why}; clients that fetch it get nothing.`,
+    label: isExpired ? t.publish.expiredLabel(`/${first.slug}`) : t.publish.disabledLabel(`/${first.slug}`),
+    title: isExpired ? t.publish.expiredTitle : t.publish.disabledTitle,
     slug: first.slug,
     shares: mine,
   };
 }
 
+/** What a share does for a client that fetches it, worst first; `orphan` serves nothing. */
+export type ShareStateId = "live" | "disabled" | "expired" | "orphan";
+
 export interface ShareState {
   tone: Tone;
-  label: "live" | "disabled" | "expired" | "serves nothing";
+  state: ShareStateId;
+  /** The state in the active locale's words. */
+  label: string;
   title: string;
 }
 
@@ -92,15 +97,15 @@ export interface ShareState {
  */
 export function shareStateOf(share: SubStoreShareRow, now: number = Date.now(), recordKnown = true): ShareState {
   if (!recordKnown) {
-    return { tone: "danger", label: "serves nothing", title: "Its record is not in this store any more, so a client that fetches it gets nothing. Remove it, or point it at another record, under Platform → Publishing." };
+    return { tone: "danger", state: "orphan", label: t.shareState.orphan, title: t.shareState.orphanTitle };
   }
   if (expired(share, now)) {
-    return { tone: "warn", label: "expired", title: "Past its expiry: a client that fetches it gets nothing." };
+    return { tone: "warn", state: "expired", label: t.shareState.expired, title: t.shareState.expiredTitle };
   }
   if (!share.enabled) {
-    return { tone: "warn", label: "disabled", title: "Switched off in the console: a client that fetches it gets nothing." };
+    return { tone: "warn", state: "disabled", label: t.shareState.disabled, title: t.shareState.disabledTitle };
   }
-  return { tone: "ok", label: "live", title: `Served at /${share.slug}.` };
+  return { tone: "ok", state: "live", label: t.shareState.live, title: t.publish.servedAt(`/${share.slug}`, 0) };
 }
 
 export interface RefreshState {
@@ -116,7 +121,7 @@ export function isFetched(item: SubscriptionListItem): boolean {
 
 export function refreshStateFor(item: SubscriptionListItem, now: number = Date.now()): RefreshState {
   if (!isFetched(item)) {
-    return { tone: "neutral", label: "n/a", title: "Only a provider link is refreshed. This record's nodes are already in hand." };
+    return { tone: "neutral", label: t.refresh.notApplicable, title: t.refresh.notFetched };
   }
   if (item.last_fetch_ok === false) {
     // When it failed matters as much as that it failed: a row reading only
@@ -125,18 +130,18 @@ export function refreshStateFor(item: SubscriptionListItem, now: number = Date.n
     const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, now) : "";
     // The server trims the reason, and the reason quotes the link it fetched;
     // the title keeps only the link's host, as the attention list does.
-    return { tone: "danger", label: when ? `Failed ${when}` : "Failed", title: refreshFailureText(item.last_error) || "The last refresh failed" };
+    return { tone: "danger", label: when ? t.refresh.failedAt(when) : t.refresh.failed, title: refreshFailureText(item.last_error) || t.refresh.failedTitle };
   }
-  if (!item.last_fetch_at) return { tone: "neutral", label: "Never refreshed" };
+  if (!item.last_fetch_at) return { tone: "neutral", label: t.refresh.never };
   const relative = formatRelativeTime(item.last_fetch_at, now);
   if (item.last_fetch_ok !== true) {
     // Fetched at some point, outcome not reported. Not a failure, and not a
     // success either: rendering it green was the only wrong option.
     return {
       tone: "neutral",
-      label: relative ? `Fetched ${relative}, outcome not reported` : "Outcome not reported",
-      title: "The server recorded a fetch for this record but not whether it succeeded.",
+      label: relative ? t.refresh.unreportedAt(relative) : t.refresh.unreported,
+      title: t.refresh.unreportedTitle,
     };
   }
-  return { tone: "ok", label: relative ? `Refreshed ${relative}` : "Refreshed" };
+  return { tone: "ok", label: relative ? t.refresh.refreshedAt(relative) : t.refresh.refreshed };
 }

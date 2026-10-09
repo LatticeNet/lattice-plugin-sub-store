@@ -1,0 +1,9 @@
+{
+  "id": "surge-sni-off",
+  "family": "surge",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "disable-sni",
+  "description": "Surge trojan with sni=off."
+}

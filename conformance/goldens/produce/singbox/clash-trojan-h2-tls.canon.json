@@ -1,0 +1,25 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "2EnJLQPqixnrG6Ht",
+      "server": "o1-30.zmrsp.example.org",
+      "server_port": 443,
+      "tag": "SG-t7bm-84",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.yt9i0ts.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "trojan"
+    }
+  ]
+}

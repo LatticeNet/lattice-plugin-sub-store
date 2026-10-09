@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"FR-hyp1xj-35","method":"chacha20-ietf","server":"tho-35.kq7ylba.example.org","port":42879,"password":"y8VYhN7CYhd6","protocol":"auth_aes128_md5","protocol_param":"403:zeSAwq","obfs":"http_simple","obfs_param":"static.z29d1.example.net","tfo":false,"udp_relay":true}}

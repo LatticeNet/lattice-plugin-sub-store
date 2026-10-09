@@ -1,0 +1,2 @@
+proxies:
+  - {"wireguard":{"name":"TW-pv2r-62","server":"u1-34.l923l.example.com","port":51820,"private_key":"eYFtgcfZFlM+h2S35AIzzrUyT20Uijna1BVllbt1jCo=","peer_public_key":"hQsmleyfagjgdtM+gXJapFxE86tBEivr+Glw6/+7tuU="}}

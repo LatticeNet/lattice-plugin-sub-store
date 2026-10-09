@@ -1,0 +1,83 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-b2vm-85",
+      "type": "hysteria2",
+      "server": "af-14.f4rtg15a.example.net",
+      "server_port": 443,
+      "password": "3Q4boAkPXPYrXhI4oeep",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.vebnlvmi.example.net",
+        "insecure": false
+      },
+      "hop_interval": "30s",
+      "server_ports": [
+        "25081:25090"
+      ]
+    },
+    {
+      "tag": "CA-u9u7-99",
+      "type": "hysteria2",
+      "server": "z9b-18.eqn2.example.net",
+      "server_port": 443,
+      "password": "zCa1WQdpSOWo53ctdO9o",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.js3jrg.example.com",
+        "insecure": false
+      },
+      "server_ports": [
+        "59987:59996"
+      ]
+    },
+    {
+      "tag": "US-xcox-39",
+      "type": "hysteria2",
+      "server": "kd-35.wqm27.example.net",
+      "server_port": 443,
+      "password": "qUwyGRZ6bjyL6rQ0lDbH",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.c4ihhz2m9.example.net",
+        "insecure": false
+      },
+      "server_ports": [
+        "23048:23057"
+      ]
+    },
+    {
+      "tag": "HK-u2i-06",
+      "type": "tuic",
+      "server": "gr-37.q2q2ayz.example.org",
+      "server_port": 443,
+      "uuid": "58d5daa7-9286-474a-a42d-641913310439",
+      "password": "KXS0hkCcTRKpUySD",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.ikkexvao.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    },
+    {
+      "tag": "TW-erpc-43",
+      "type": "tuic",
+      "server": "cs-29.vz4po.example.com",
+      "server_port": 443,
+      "uuid": "03827299-ab27-4a40-afe3-0341a26b2b48",
+      "password": "FS0M8xufo1JYxhyJ",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.lc22qmoz1f.example.net",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

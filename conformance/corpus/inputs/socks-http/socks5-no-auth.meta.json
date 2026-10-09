@@ -1,0 +1,9 @@
+{
+  "id": "socks5-no-auth",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "no-auth",
+  "description": "socks5:// without credentials."
+}

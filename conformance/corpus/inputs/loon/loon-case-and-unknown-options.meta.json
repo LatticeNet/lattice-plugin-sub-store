@@ -1,0 +1,9 @@
+{
+  "id": "loon-case-and-unknown-options",
+  "family": "loon",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "case-insensitive-type",
+  "description": "Mixed-case type names, ip-mode, block-quic and an unknown option."
+}

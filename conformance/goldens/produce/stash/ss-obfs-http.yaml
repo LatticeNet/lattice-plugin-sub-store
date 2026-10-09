@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"SG-yyjrva-54","password":"PUq0L4AbgcmLrQ","plugin":"obfs","plugin-opts":{"host":"api.fc9ofw.example.org","mode":"http"},"port":32468,"server":"d6y-20.oabma4i4.example.org","skip-cert-verify":false,"type":"ss","udp":true}

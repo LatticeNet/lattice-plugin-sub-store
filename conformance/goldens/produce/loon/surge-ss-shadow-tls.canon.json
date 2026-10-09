@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "gy-35.bb16wip1.example.org",
+      "443",
+      "2022-blake3-aes-128-gcm",
+      "ghMiarMyGPGfdKpB+sjHqg=="
+    ],
+    "name": "KR-k7l6wk-28",
+    "params": {
+      "shadow-tls-password": "qfVPDOCMCDN7DozD",
+      "shadow-tls-sni": "static.x76bjg.example.org",
+      "shadow-tls-version": "3",
+      "udp": "true",
+      "udp-port": "13032"
+    },
+    "type": "shadowsocks"
+  }
+]

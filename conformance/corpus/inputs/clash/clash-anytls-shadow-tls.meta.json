@@ -1,0 +1,9 @@
+{
+  "id": "clash-anytls-shadow-tls",
+  "family": "clash",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "anytls with shadow-tls-opts, password and version 3."
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ha-30.mwovt.example.org",
+      "443"
+    ],
+    "name": "FR-ylrg-19",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "Rz7W2d6kyIQmQk",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

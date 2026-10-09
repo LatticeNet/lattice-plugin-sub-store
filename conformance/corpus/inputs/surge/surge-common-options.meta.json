@@ -1,0 +1,9 @@
+{
+  "id": "surge-common-options",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "common-options",
+  "description": "Surge options shared by every type: underlying-proxy, ip-version, tos, interface, test-url, test-timeout, hybrid, block-quic, and an unknown key."
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "TW-pv2r-62",
+    "host": "undefined",
+    "path": "/",
+    "port": "undefined",
+    "query": [
+      [
+        "peers",
+        "[object Object],[object Object]"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "eYFtgcfZFlM+h2S35AIzzrUyT20Uijna1BVllbt1jCo="
+  }
+]

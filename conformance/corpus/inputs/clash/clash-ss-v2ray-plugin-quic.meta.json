@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-v2ray-plugin-quic",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "quic",
+  "security": "none",
+  "quirk": "plugin-v2ray-quic",
+  "description": "ss with v2ray-plugin in mode quic (ClashMeta A4 drops it)."
+}

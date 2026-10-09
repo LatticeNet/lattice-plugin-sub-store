@@ -1,0 +1,90 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "qo-19.qfig1df.example.net",
+      "server_port": 443,
+      "tag": "US-gzy8-87",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.e9lh2mo5kh.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        }
+      },
+      "type": "vless",
+      "uuid": "f1cb3c22-cadf-4741-a861-66e724042af6"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "cn-20.y8suksj3.example.net",
+      "server_port": 443,
+      "tag": "GB-vf8-03",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.mnmuuw.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "safari"
+        }
+      },
+      "type": "vless",
+      "uuid": "b5793326-760d-46da-ab04-9d4e23d7b7ec"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "eu-07.fq689n3v.example.org",
+      "server_port": 443,
+      "tag": "CA-a4zwe-27",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.l1du25r1.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "ios"
+        }
+      },
+      "type": "vless",
+      "uuid": "1a7cc116-66e1-46c2-91cf-cdc3005ee15f"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "ic-38.wgazw4.example.com",
+      "server_port": 443,
+      "tag": "SG-b0j-73",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.g2923vp2z.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "random"
+        }
+      },
+      "type": "vless",
+      "uuid": "026e7152-84c8-4445-822e-a6780b289f13"
+    },
+    {
+      "packet_encoding": "xudp",
+      "server": "cp-24.gdg3qnvk.example.org",
+      "server_port": 443,
+      "tag": "SG-wfvnp-71",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.tt0p1qp.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "randomized"
+        }
+      },
+      "type": "vless",
+      "uuid": "a7110413-9582-4b5d-8927-47ecae9eb14f"
+    }
+  ]
+}

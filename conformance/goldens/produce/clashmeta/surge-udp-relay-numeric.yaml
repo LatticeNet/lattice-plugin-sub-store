@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"SG-fllz-67","password":"8tBpgDAvkyCIM2","port":21000,"server":"j9r-22.r5nnt.example.com","type":"ss","udp":true}

@@ -1,0 +1,1 @@
+CA-caxc0-59=vless,uw-19.sjh726zc.example.net,443,"b00f0c79-f649-44af-925c-4e6d05ba7bf6",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.mpluewkbpx.example.net,udp=true

@@ -1,0 +1,21 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "JP-s2s3k-83",
+        "port": 443,
+        "server": "at-19.vz29j36.example.com",
+        "tfo": false,
+        "transport": {
+          "grpc": {
+            "service_name": "oasx-bkp",
+            "skip_tls_verify": false,
+            "sni": "img.m1abmvjb1.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "40bbb1dd-0047-48f0-9179-00e17f805fef"
+      }
+    }
+  ]
+}

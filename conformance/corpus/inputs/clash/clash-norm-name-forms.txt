@@ -1,0 +1,6 @@
+{"name":{"type":"Buffer","data":[113,48,105,97,102]},"type":"ss","server":"x20-02.n3yn8l1.example.org","port":59729,"cipher":"aes-128-gcm","password":"Bs0eyeXZY2wVdb"}
+{"name":[117,105,118,51,121,108,102],"type":"ss","server":"s4-21.ug12smk.example.org","port":15003,"cipher":"aes-128-gcm","password":"RkZJjD4CjenlRK"}
+{"name":true,"type":"ss","server":"tb-31.uxxfa.example.com","port":11770,"cipher":"aes-128-gcm","password":"jF5MfEg7XjE79E"}
+{"name":1.5,"type":"ss","server":"tpd-07.ezln.example.com","port":34430,"cipher":"aes-128-gcm","password":"XDjDYeFfH7DLe6"}
+{"name":6916,"type":"ss","server":"t7m-12.ta0dvm.example.org","port":25237,"cipher":"aes-128-gcm","password":"RJ96QClwTTf8Zc"}
+{"type":"ss","server":"j01-23.b75w.example.net","port":36055,"cipher":"aes-128-gcm","password":"fOAmbK1CKzQpj4"}

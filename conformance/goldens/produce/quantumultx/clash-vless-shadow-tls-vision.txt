@@ -1,0 +1,1 @@
+vless=tcz-29.ppxe.example.net:443,method=none,password=03ba6920-4b55-435c-90f5-2dd82536c8dc,obfs=over-tls,tls-verification=true,tls-host=static.lo63q03r9t.example.com,vless-flow=xtls-rprx-vision,udp-relay=true,tag=US-syz8-29

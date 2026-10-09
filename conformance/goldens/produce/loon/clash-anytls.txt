@@ -1,0 +1,1 @@
+KR-w7e-46=anytls,hac-37.k2fe.example.com,443,"CD4xeu8GaEFg9Uc7b2yO",idle-session-timeout=30,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=static.ggzzb0.example.net,udp=true

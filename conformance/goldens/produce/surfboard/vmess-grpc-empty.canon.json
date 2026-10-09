@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "qb-25.b9184.example.net",
+      "443"
+    ],
+    "name": "CA-uaxg-47",
+    "params": {
+      "tls": "false",
+      "udp-relay": "true",
+      "username": "eaf90f9a-7e2a-493a-9887-b669e8aa7e6b",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

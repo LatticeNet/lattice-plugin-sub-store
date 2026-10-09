@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "nqj-39.vj1nhp.example.net",
+      "26246",
+      "aes-128-gcm",
+      "39ic9wEqGqdWx6"
+    ],
+    "name": "HK-lyqz-03",
+    "params": {
+      "obfs-name": "http",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

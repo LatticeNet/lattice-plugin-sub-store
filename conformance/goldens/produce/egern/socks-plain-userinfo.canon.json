@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "HK-m3vio-67",
+        "port": 53769,
+        "server": "xoh-25.q38e9.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "j�]�jԍ��y�!"
+      }
+    }
+  ]
+}

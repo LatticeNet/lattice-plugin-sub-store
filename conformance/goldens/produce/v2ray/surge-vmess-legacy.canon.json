@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "g1d-13.yztv.example.org",
+      "aid": "1",
+      "host": "g1d-13.yztv.example.org",
+      "id": "f377bfa4-dd00-482f-8fdb-839994d4cc12",
+      "net": "ws",
+      "path": "/r4nzwpx",
+      "port": "80",
+      "ps": "DE-ul2d-17",
+      "scy": "chacha20-poly1305",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

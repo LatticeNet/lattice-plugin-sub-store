@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "yxc-13.y93b07h.example.net",
+      "31170",
+      "aes-128-gcm",
+      "EA9fxeuWqVq6"
+    ],
+    "name": "FR-z36pm-76",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "sz-26.icrty1.example.net",
+      "443",
+      "isDtVJNKTKm3AVxl"
+    ],
+    "name": "HK-trui-14",
+    "params": {
+      "skip-cert-verify": "false",
+      "tls-name": "api.o2pcyahkl3.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "TW-y1oz-65",
+        "port": 443,
+        "server": "obn-39.yszi265.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "static.c2lmw.example.org"
+            },
+            "path": "/aa6ho/v3ap",
+            "skip_tls_verify": false,
+            "sni": "static.c2lmw.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "f968b5ca-0962-4746-94d1-21ce2d1268be"
+      }
+    }
+  ]
+}

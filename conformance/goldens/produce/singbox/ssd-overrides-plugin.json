@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-bzxjjw-87",
+      "type": "shadowsocks",
+      "server": "h3a-14.by3uil1v.example.net",
+      "server_port": 13435,
+      "method": "chacha20-ietf-poly1305",
+      "password": "saTix03A7LqJTt"
+    },
+    {
+      "tag": "HK-l2c9-96",
+      "type": "shadowsocks",
+      "server": "p3-32.s32r.example.net",
+      "server_port": 13435,
+      "method": "chacha20-ietf-poly1305",
+      "password": "saTix03A7LqJTt",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=cdn.zhjtr2ihal.example.org;mode=websocket;path=/gbzl/zzmxhj;skip-cert-verify=false"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "GB-hrhuy-22",
+        "port": 443,
+        "security": "chacha20-poly1305",
+        "server": "euo-40.fr243lfo.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "9ae08100-542d-494f-8ada-9dcdea9f4cca"
+      }
+    }
+  ]
+}

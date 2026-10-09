@@ -1,0 +1,55 @@
+[
+  {
+    "args": [
+      "k0-09.xp6f.example.com",
+      "443"
+    ],
+    "name": "JP-wwxzz-36",
+    "params": {
+      "password": "1Iz84ILzrS9Neqpv",
+      "sni": "static.l862e7.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "fpd-08.dl483.example.org",
+      "8080"
+    ],
+    "name": "KR-tq2-07",
+    "params": {
+      "headers": "X-mtt3tr5w:\"u1xh\"",
+      "password": "cg4QWBilRQRo",
+      "username": "tqtzpi"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "x8-22.mg48nyeu.example.org",
+      "443"
+    ],
+    "name": "KR-q0x6gr-90",
+    "params": {
+      "password": "To8KpR6jvXOqiC",
+      "sni": "api.lnwr9ajf.example.org",
+      "udp-relay": "true",
+      "username": "s8px6qug"
+    },
+    "type": "h2-connect"
+  },
+  {
+    "args": [
+      "izc-22.l21tl33.example.com",
+      "34054"
+    ],
+    "name": "US-iqkz-62",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "t75by9UeUMxNHS",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

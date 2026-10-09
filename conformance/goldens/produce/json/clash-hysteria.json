@@ -1,0 +1,20 @@
+[
+  {
+    "alpn": [
+      "h3"
+    ],
+    "auth-str": "aAz3856ZQjqxVOTJ",
+    "down": "200 Mbps",
+    "name": "DE-hfwjs3-70",
+    "obfs": "HiQ2uYiYts",
+    "port": 41261,
+    "protocol": "udp",
+    "server": "eem-03.omri2b2.example.org",
+    "skip-cert-verify": false,
+    "sni": "www.rsv0amup7.example.net",
+    "tls": true,
+    "type": "hysteria",
+    "udp": true,
+    "up": "30 Mbps"
+  }
+]

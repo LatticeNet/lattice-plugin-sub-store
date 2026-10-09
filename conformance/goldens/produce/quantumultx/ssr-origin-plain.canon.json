@@ -1,0 +1,15 @@
+[
+  {
+    "address": "zk-35.ikvj4vc.example.org:43618",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "obfs": "plain",
+      "password": "fwXoeoq3yymb",
+      "ssr-protocol": "origin",
+      "tag": "HK-qt9-55",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "CA-g3mj-01",
+        "port": 443,
+        "server": "xl-03.m6a6k56.example.net",
+        "tfo": false,
+        "transport": {
+          "http2": {
+            "headers": {
+              "Host": "static.ieawv9q.example.com"
+            },
+            "path": "/yiqui4hle",
+            "skip_tls_verify": false
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3b41240f-1d10-41a0-b19e-9645d0934813"
+      }
+    }
+  ]
+}

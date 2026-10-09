@@ -1,0 +1,2 @@
+proxies:
+  - {"http":{"name":"US-r6m-13","server":"q6-02.rzkx1wg.example.org","port":8080,"username":"lesmf","password":"CHzXFu3vME0v","tfo":false}}

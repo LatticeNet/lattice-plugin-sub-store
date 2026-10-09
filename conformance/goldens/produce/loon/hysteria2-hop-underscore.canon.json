@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "quz-07.xsbt.example.net",
+      "443",
+      "60Xt0FmFgKCvZJufrosV"
+    ],
+    "name": "CA-saq36m-81",
+    "params": {
+      "fast-open": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "www.t5tqzt5.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

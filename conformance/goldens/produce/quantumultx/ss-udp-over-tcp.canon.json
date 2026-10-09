@@ -1,0 +1,25 @@
+[
+  {
+    "address": "su-23.ysq8riu.example.com:41043",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "password": "f1RgjVO49Z5wYF",
+      "tag": "TW-sgo-07",
+      "udp-over-tcp": "sp.v1",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "n4j-34.a620o39y.example.com:41982",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "password": "2rCTNDZG2jMTLF",
+      "tag": "TW-t0hv-35",
+      "udp-relay": "false"
+    },
+    "type": "shadowsocks"
+  }
+]

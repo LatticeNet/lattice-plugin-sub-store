@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "my3-20.shu2.example.com",
+      "40259",
+      "aes-128-gcm",
+      "RfBryVPcgbhP"
+    ],
+    "name": "日本 东京 xp3wh",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "x5d-17.b1ft75s.example.net",
+      "28566",
+      "aes-128-gcm",
+      "adqGqFf6jdjC"
+    ],
+    "name": "Франкфурт ein23",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "sth-08.xj5a.example.net",
+      "29015",
+      "aes-128-gcm",
+      "bXKC2TcvGpNl"
+    ],
+    "name": "a: b # c [d] {e}, xcvo",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

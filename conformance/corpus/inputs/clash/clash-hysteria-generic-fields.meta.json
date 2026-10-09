@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria-generic-fields",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "generic-fields",
+  "description": "hysteria with recv-window-conn, recv-window, fast-open, ports and an unknown kebab-case field."
+}

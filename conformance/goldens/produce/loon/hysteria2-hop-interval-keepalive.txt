@@ -1,0 +1,1 @@
+AU-c10c71-51=Hysteria2,yxu-08.nlefeegc.example.com,443,"gSrCmBf82yAWUzLcfKSh",server-ports="30000-40000",hop-interval=30,tls-name=www.zmlvv.example.org,skip-cert-verify=false,fast-open=false,udp=true

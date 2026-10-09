@@ -1,0 +1,3 @@
+proxies:
+  - {"anytls":{"name":"AU-htj-64","server":"qrg-20.nc9x.example.net","port":443,"password":"PJLn2tDSGfWvqS3p7dv0","tfo":false,"udp_relay":true,"sni":"api.abdoopble.example.com","skip_tls_verify":false}}
+  - {"anytls":{"name":"FR-mnt-40","server":"s1-33.kogex.example.org","port":443,"password":"zD32rCAiPcky6yiH8eWx","tfo":false,"udp_relay":true,"sni":"api.m123qkb.example.org","skip_tls_verify":false}}

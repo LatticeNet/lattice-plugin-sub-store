@@ -1,0 +1,2 @@
+HK-mz0r-89=http,kf-11.i58wm.example.com,8080,username=" o052km1",password="kaX16lgCD924",tfo=true
+HK-mz0r-89=http,kf-11.i58wm.example.com,8080,username=" o052km1",password="kaX16lgCD924"

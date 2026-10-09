@@ -1,0 +1,9 @@
+{
+  "id": "qx-bad-alpn",
+  "family": "qx",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "bad-alpn",
+  "description": "tls-alpn=zz, which is not length-prefixed hex: tls-alpn is kept and no alpn is set."
+}

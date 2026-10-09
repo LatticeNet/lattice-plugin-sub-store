@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "TW-wrz9t8-60",
+        "password": "z0F940oLMYUUFJ",
+        "port": 443,
+        "server": "2001:db8:4d6e:23bd::9d87",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

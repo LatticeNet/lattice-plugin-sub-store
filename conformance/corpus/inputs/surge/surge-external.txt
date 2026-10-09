@@ -1,0 +1,1 @@
+AU-uyhd3-15 = external, exec="/usr/local/bin/yg2t", args="-c", args="/etc/poen4ma.json", local-port=1080, addresses=192.0.2.181

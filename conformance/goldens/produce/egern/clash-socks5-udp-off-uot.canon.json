@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "FR-skjup-87",
+        "password": "a6YV4jhq3YYs",
+        "port": 1080,
+        "server": "ttp-13.hgduq8t.example.org",
+        "tfo": false,
+        "udp_relay": false,
+        "username": "x746rjcm"
+      }
+    },
+    {
+      "socks5": {
+        "name": "US-ki5-48",
+        "password": "npyOMD5jBROX",
+        "port": 1080,
+        "server": "mo-35.oieb9.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "zos1msg0"
+      }
+    }
+  ]
+}

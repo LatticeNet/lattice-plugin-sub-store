@@ -1,0 +1,25 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "DE-w55-42",
+    "network": "ws",
+    "password": "mnPm4xaG59F4J9VO",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "PKU6M5-j3ysTiKBTojfFZWrNOubl9ZFmY1-M5bfrnKk",
+      "short-id": "7662ad44"
+    },
+    "server": "trr-05.cxu586h.example.com",
+    "sni": "api.s066ycl2.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "api.s066ycl2.example.com"
+      },
+      "path": "/x225kbvr"
+    }
+  }
+]

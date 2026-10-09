@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-e44-62",
+      "type": "shadowsocks",
+      "server": "is-28.lree.example.org",
+      "server_port": 26241,
+      "method": "aes-128-gcm",
+      "password": "rfrwJIQ8mprzJQ",
+      "detour": "NL-o63-22"
+    }
+  ],
+  "endpoints": []
+}

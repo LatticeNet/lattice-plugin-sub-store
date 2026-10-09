@@ -1,0 +1,23 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "CA-dl6m-29",
+    "network": "xhttp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "NeSVx1UZNX6mkG-MOP35s3re9-pc-7fFelYVLCgs4ho",
+      "short-id": "f7a85b9c"
+    },
+    "server": "f1-21.fd5h.example.net",
+    "sni": "cdn.gwygnyy1zf.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "b1c7a419-420b-488c-872e-aec562a67beb",
+    "xhttp-opts": {
+      "host": "cdn.gwygnyy1zf.example.org",
+      "mode": "auto",
+      "path": "/ohrezqi"
+    }
+  }
+]

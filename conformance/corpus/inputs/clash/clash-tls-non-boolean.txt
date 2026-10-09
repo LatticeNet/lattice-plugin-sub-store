@@ -1,0 +1,11 @@
+proxies:
+  - name: HK-k90ug1-59
+    type: vmess
+    server: m0-15.db68mym.example.net
+    port: 443
+    uuid: c3cea05f-d893-4aaa-900d-53e2e4591837
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: "true"
+    servername: cdn.ozhoh8.example.com

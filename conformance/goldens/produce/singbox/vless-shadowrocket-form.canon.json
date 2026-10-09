@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "cn8-05.u99h.example.org",
+      "server_port": 443,
+      "tag": "SG-lc2-75",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.sfqet.example.com"
+      },
+      "transport": {
+        "headers": {
+          "Host": "api.sfqet.example.com"
+        },
+        "path": "/sufbag7zgs",
+        "type": "ws"
+      },
+      "type": "vless",
+      "uuid": "ef04e78f-802d-4a7d-b13d-af45d17e4676"
+    }
+  ]
+}

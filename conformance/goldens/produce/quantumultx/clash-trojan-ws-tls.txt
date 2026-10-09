@@ -1,0 +1,1 @@
+trojan=c5-11.ocg6mst.example.org:443,password=Ss3l3GXlwJPI9BmQ,obfs=wss,obfs-uri=/ucuhm923u,obfs-host=img.qb83s9o08.example.net,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=img.qb83s9o08.example.net,udp-relay=true,tag=DE-rnjso-15

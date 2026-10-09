@@ -1,0 +1,21 @@
+proxies:
+  - name: JP-sllha-25
+    type: vmess
+    server: du-21.xuqo.example.net
+    port: 443
+    uuid: abeab29a-533c-49a8-9ea3-5fa5fd336813
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: static.hj7i0uqi3t.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: ws
+    ws-opts:
+      path: /ohvx2r/ccu9
+      headers:
+        Host: "wk-11.bydc.example.org,bzy-26.x994q.example.com"

@@ -1,0 +1,9 @@
+{
+  "id": "hysteria-obfs-auth-str",
+  "family": "hysteria",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "obfs",
+  "description": "obfs xplus with obfsParam and auth_str."
+}

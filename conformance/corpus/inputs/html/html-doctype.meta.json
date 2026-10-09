@@ -1,0 +1,7 @@
+{
+  "id": "html-doctype",
+  "family": "html",
+  "protocol": "none",
+  "quirk": "html-body",
+  "description": "An HTML error page served instead of a subscription; the HTML preprocessor discards it."
+}

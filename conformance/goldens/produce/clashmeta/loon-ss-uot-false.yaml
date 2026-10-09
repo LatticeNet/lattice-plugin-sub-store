@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"FR-zy6i6-82","password":"g0W5qYXucvY1IN","port":25709,"server":"bb-27.sc6zg0dg.example.net","type":"ss","udp":true,"udp-over-tcp":true,"udp-over-tcp-version":2}

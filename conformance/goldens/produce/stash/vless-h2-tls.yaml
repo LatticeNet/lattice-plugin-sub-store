@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","h2-opts":{"host":["api.uz7n78n7b.example.net"],"path":"/t6wrj/n5s937uj"},"name":"DE-x3tp2t-07","network":"h2","packet-encoding":"xudp","port":443,"server":"yv-25.jf4k95.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"aa84951d-631e-40be-bb55-696f6a5c5b07","servername":"api.uz7n78n7b.example.net"}

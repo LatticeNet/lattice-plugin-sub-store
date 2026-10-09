@@ -1,0 +1,1 @@
+KR-i6c-08=trojan,ufh-20.cskk.example.net,443,password="MqstkokkaMmCdlOb",tls=true,sni="www.pu7fx.example.net",alpn="h2,http/1.1"

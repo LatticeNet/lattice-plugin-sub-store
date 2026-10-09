@@ -1,0 +1,80 @@
+[
+  {
+    "args": [
+      "x20-02.n3yn8l1.example.org",
+      "59729",
+      "aes-128-gcm",
+      "Bs0eyeXZY2wVdb"
+    ],
+    "name": "q0iaf",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "s4-21.ug12smk.example.org",
+      "15003",
+      "aes-128-gcm",
+      "RkZJjD4CjenlRK"
+    ],
+    "name": "uiv3ylf",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "tb-31.uxxfa.example.com",
+      "11770",
+      "aes-128-gcm",
+      "jF5MfEg7XjE79E"
+    ],
+    "name": "ss tb-31.uxxfa.example.com:11770",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "tpd-07.ezln.example.com",
+      "34430",
+      "aes-128-gcm",
+      "XDjDYeFfH7DLe6"
+    ],
+    "name": "ss tpd-07.ezln.example.com:34430",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "t7m-12.ta0dvm.example.org",
+      "25237",
+      "aes-128-gcm",
+      "RJ96QClwTTf8Zc"
+    ],
+    "name": "6916",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "j01-23.b75w.example.net",
+      "36055",
+      "aes-128-gcm",
+      "fOAmbK1CKzQpj4"
+    ],
+    "name": "ss j01-23.b75w.example.net:36055",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

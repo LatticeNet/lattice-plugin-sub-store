@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-vcn-empty-list",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "vcn-empty",
+  "description": "vless with _vcn: []."
+}

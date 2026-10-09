@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "wqb-29.gzhip.example.org",
+      "aid": "0",
+      "id": "25c2e2a0-1f95-4953-9f36-a64e83e85446",
+      "net": "tcp",
+      "port": "undefined",
+      "ps": "DE-rmkd-68",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

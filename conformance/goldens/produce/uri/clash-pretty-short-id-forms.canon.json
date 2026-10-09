@@ -1,0 +1,112 @@
+[
+  {
+    "fragment": "GB-j4jbp-16",
+    "host": "xa-19.fz1x.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "dxPZYhDvIeLZ761HJirAZz4EbYetSR6NZlnhvQgTQTo"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "04"
+      ],
+      [
+        "sni",
+        "img.esiuqo7.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "0e526871-862b-4d73-a848-aab3ea993bdf"
+  },
+  {
+    "fragment": "US-t0mf3n-79",
+    "host": "tqw-07.pqvs.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "bp3s-aoBX2vXeeqAx5K8Nv7v8VL-y5OEQYYDX3FJlDc"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "2472"
+      ],
+      [
+        "sni",
+        "static.rrxh5ypyk.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "ba94dd39-fe0f-4749-b544-3228372c6101"
+  },
+  {
+    "fragment": "JP-vfsdd-25",
+    "host": "l8c-36.h50kejm.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "nUFeuc8He7RDI_LsYlLLB5ot2_N_rPjxEoiwFIXZcPE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sni",
+        "static.g0xektbde.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "a1cc7a5c-b9ac-4d5a-99e1-4444a17a2999"
+  }
+]

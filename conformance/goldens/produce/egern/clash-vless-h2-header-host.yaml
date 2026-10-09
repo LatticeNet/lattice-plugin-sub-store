@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"GB-xg93w-33","server":"b7-18.kmcodbo.example.org","port":443,"user_id":"2df16dbd-66db-48f2-80ff-ef1f78228057","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/lqu7b/jfvvr716ye","headers":{"Host":"static.aifby1prv.example.net"},"sni":"img.m0ma8.example.net","skip_tls_verify":false}}}}

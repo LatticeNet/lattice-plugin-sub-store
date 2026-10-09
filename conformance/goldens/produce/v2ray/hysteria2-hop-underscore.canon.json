@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "CA-saq36m-81",
+    "host": "quz-07.xsbt.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fastopen",
+        "1"
+      ],
+      [
+        "sni",
+        "www.t5tqzt5.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "60Xt0FmFgKCvZJufrosV"
+  }
+]

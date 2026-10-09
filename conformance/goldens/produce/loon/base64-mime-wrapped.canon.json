@@ -1,0 +1,84 @@
+[
+  {
+    "args": [
+      "ip-34.ktwatttj.example.org",
+      "443",
+      "57c1458d-73c3-4e95-9c04-2670f53dbac0"
+    ],
+    "name": "TW-rdp8gd-72",
+    "params": {
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "public-key": "Jwdpp-Z2G7NTZD3sY9HvijP5esLDr7gXgKPgZnFBouQ",
+      "short-id": "a40cc7aa",
+      "skip-cert-verify": "false",
+      "sni": "www.c9y35bt5.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "c9-14.btap.example.org",
+      "443",
+      "auto",
+      "402a4bf1-5660-46c2-8e1e-7c6df31b087e"
+    ],
+    "name": "CA-nzkp5h-77",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "host": "api.gckl0.example.net",
+      "over-tls": "true",
+      "path": "/kd8m/lfzp6iw",
+      "tls-name": "api.gckl0.example.net",
+      "tls-profile": "chrome",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "d6b-40.a7xz.example.org",
+      "443",
+      "Zu79DKkx19GwylRt"
+    ],
+    "name": "KR-nru02r-03",
+    "params": {
+      "tls-name": "www.f7e3g.example.org",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "fe-04.w3s679.example.org",
+      "21549",
+      "aes-128-gcm",
+      "7zijyYWmgqxRf9"
+    ],
+    "name": "US-p3pswm-02",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "en4-40.azvex2l.example.com",
+      "443",
+      "Q1q3ulUEQQHs6JO0vnb4"
+    ],
+    "name": "FR-umn-23",
+    "params": {
+      "fast-open": "false",
+      "skip-cert-verify": "false",
+      "tls-name": "api.tq1ir0bnw1.example.com",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

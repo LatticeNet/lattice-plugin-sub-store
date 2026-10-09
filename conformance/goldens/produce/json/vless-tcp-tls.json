@@ -1,0 +1,22 @@
+[
+  {
+    "_h2": false,
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "CA-mzhy-32",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "server": "rv-14.nzag30.example.org",
+    "skip-cert-verify": false,
+    "sni": "cdn.paznfzs.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "66f373aa-79e0-4754-ae9a-5aad2a7e4823"
+  }
+]

@@ -1,0 +1,6 @@
+{"name":"DE-cx3puo-07","type":"ss","server":"ax-36.fvpemab.example.com","port":59231,"cipher":"aes-128-gcm","password":"MHdJWa7fG13ezc","udp":"FALSE"}
+{"name":"JP-c0up-16","type":"ss","server":"gb-35.qorj2ra.example.org","port":11115,"cipher":"aes-128-gcm","password":"BmmjUHS9k3fbBy","udp":0}
+{"name":"CA-db7t-24","type":"ss","server":"rv-32.lqs3ow7.example.net","port":43102,"cipher":"aes-128-gcm","password":"tUUPWI9j6Sm7EX","udp":"off"}
+{"name":"CA-n9cjl5-36","type":"ss","server":"ri-36.p6ef54x.example.com","port":17632,"cipher":"aes-128-gcm","password":"vqz906wdsejnXw","udp":null}
+{"name":"AU-m13e-41","type":"ss","server":"vqc-37.ogl0g.example.com","port":43916,"cipher":"aes-128-gcm","password":"sbRptMTtjvSD6t"}
+{"name":"DE-cg3m-43","type":"ss","server":"ka2-34.mp8l.example.net","port":19976,"cipher":"aes-128-gcm","password":"pdDTOI0XOYT2z7","udp":"yes"}

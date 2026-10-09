@@ -1,0 +1,15 @@
+proxies:
+  - name: FR-ngk2i-88
+    type: snell
+    server: xo-23.xbwv0pop.example.net
+    port: 40231
+    psk: mClhBBZmCVzR0IpkaeFe
+    version: 4
+    plugin: shadow-tls
+    plugin-opts:
+      host: static.wa6r8.example.org
+      password: cr2BrE41G1Ek7tgM
+      version: 3
+    obfs-opts:
+      mode: http
+      host: cdn.ixxoeq.example.com

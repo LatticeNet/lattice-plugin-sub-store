@@ -1,0 +1,1 @@
+KR-pml-30=vless,nvo-13.tiyto.example.com,443,"19ce9141-5472-4909-b9dd-56d673bcefcd",transport=http,path=/re7z2/lfj8lceb,host=cdn.flyi3.example.net,udp=true

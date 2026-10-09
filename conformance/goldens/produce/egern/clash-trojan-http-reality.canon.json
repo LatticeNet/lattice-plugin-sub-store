@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "US-azqyme-37",
+        "password": "7HS5JSFsX9d7nVF2",
+        "port": 443,
+        "reality": {
+          "public_key": "Y-oqjpzvrEFhzsNYdKxrM2e6U5TlygyE9xcNaNucksY",
+          "short_id": "f0fac1e7"
+        },
+        "server": "h83-35.dddyb.example.net",
+        "sni": "www.rjpp4m.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

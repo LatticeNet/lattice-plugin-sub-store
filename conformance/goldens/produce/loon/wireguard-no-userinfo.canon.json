@@ -1,0 +1,12 @@
+[
+  {
+    "args": [],
+    "name": "SG-hpjmwu-57",
+    "params": {
+      "interface-ip": "10.0.92.165",
+      "peers": "[{public-key=\"8LsHaJEyLaMqY1L7gW6cag0RfYlg8ccbuJ4MVLUEaiI=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=k95-36.hs4w7i.example.com:51820}]",
+      "private-key": "undefined"
+    },
+    "type": "wireguard"
+  }
+]

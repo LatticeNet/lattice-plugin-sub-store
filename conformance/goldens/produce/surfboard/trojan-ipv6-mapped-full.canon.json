@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "::ffff:198.51.100.153",
+      "443"
+    ],
+    "name": "SG-i1osv-55",
+    "params": {
+      "password": "Ou8kTO0V9PYFpUBy",
+      "sni": "www.ok64r7bmn.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

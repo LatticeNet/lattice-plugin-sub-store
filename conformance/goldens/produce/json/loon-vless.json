@@ -1,0 +1,31 @@
+[
+  {
+    "flow": "xtls-rprx-vision",
+    "name": "GB-npq0ne-18",
+    "network": "tcp",
+    "port": 443,
+    "server": "t66-10.q2w5m.example.net",
+    "sni": "www.zdx9yiirp.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "7d9e2f8a-0400-4958-a9a0-86c2c3d797df"
+  },
+  {
+    "name": "AU-j1fz-50",
+    "network": "ws",
+    "port": 443,
+    "server": "ihv-18.fxh80bt.example.net",
+    "sni": "static.cfdjp53j.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "283dfeac-72d9-457c-9499-faffee7e8706",
+    "ws-opts": {
+      "headers": {
+        "Host": "static.cfdjp53j.example.com"
+      },
+      "path": "/cspqc9wvkw"
+    }
+  }
+]

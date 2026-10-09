@@ -1,0 +1,3 @@
+DE-b2vm-85=Hysteria2,af-14.f4rtg15a.example.net,443,"3Q4boAkPXPYrXhI4oeep",server-ports="25081-25090",hop-interval=30,tls-name=static.vebnlvmi.example.net,udp=true
+CA-u9u7-99=Hysteria2,z9b-18.eqn2.example.net,443,"zCa1WQdpSOWo53ctdO9o",server-ports="59987-59996",tls-name=static.js3jrg.example.com,udp=true
+US-xcox-39=Hysteria2,kd-35.wqm27.example.net,443,"qUwyGRZ6bjyL6rQ0lDbH",server-ports="23048-23057",tls-name=api.c4ihhz2m9.example.net,udp=true

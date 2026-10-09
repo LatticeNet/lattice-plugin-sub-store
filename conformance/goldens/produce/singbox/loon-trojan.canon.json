@@ -1,0 +1,36 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "uY3bzTtZg5PWo0Gu",
+      "server": "ct-01.gktnpz.example.net",
+      "server_port": 443,
+      "tag": "NL-wmkko5-50",
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "img.mfq6v7gy31.example.net"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "Q0TFWQNDf9Objj0W",
+      "server": "exp-37.msqhu.example.net",
+      "server_port": 443,
+      "tag": "GB-g2r5-48",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "www.lyoh8.example.net"
+      },
+      "transport": {
+        "headers": {
+          "Host": "www.lyoh8.example.net"
+        },
+        "path": "/h1xonc/ytq25w0leh",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

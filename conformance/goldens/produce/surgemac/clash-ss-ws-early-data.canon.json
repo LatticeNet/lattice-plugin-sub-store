@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "qq0-04.ywvxhzk.example.com",
+      "10060"
+    ],
+    "name": "NL-wca4te-67",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "UIyHcd6WdDKACc",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

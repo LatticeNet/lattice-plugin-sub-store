@@ -1,0 +1,2 @@
+GB-psozs1-08=shadowsocks,u69-18.hhni.example.net,15480,aes-128-gcm,"vLNqaPRJUz67TQ",udp=true
+TW-neu8xy-54=vmess,nuu-30.bptlkz.example.com,443,auto,"0a5d3415-a80e-41f0-9ff2-1292dc251a4e",transport=ws,path=/ct25/e7005,host=cdn.mub447v0m.example.net,alterId=0,udp=true

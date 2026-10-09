@@ -1,0 +1,1 @@
+CA-hgyp5c-78 = trojan, ye-18.h7d833x.example.org, 443, "HVfwSq7vAQp7quel", transport=http, path=/nh7o, host=img.w7zhe.example.org

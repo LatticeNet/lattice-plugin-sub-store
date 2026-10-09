@@ -1,0 +1,36 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "detour": "NL-j75ymj-41_shadowtls",
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "4SHEU4hDm3T20fw5fTCb2A==",
+      "tag": "NL-j75ymj-41",
+      "type": "shadowsocks"
+    },
+    {
+      "password": "SMBKDvOyOY2pTxfj",
+      "server": "mps-24.qhsg5civ.example.net",
+      "server_port": 443,
+      "tag": "NL-j75ymj-41_shadowtls",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.fxcmfmxj.example.com"
+      },
+      "type": "shadowtls",
+      "version": 3
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "yVHmQka5AJDu0r",
+      "server": "lb0-23.vw4fy2jt.example.net",
+      "server_port": 53322,
+      "tag": "NL-snw-54",
+      "type": "shadowsocks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      }
+    }
+  ]
+}

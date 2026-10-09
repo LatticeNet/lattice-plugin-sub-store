@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "c5-11.ocg6mst.example.org",
+      "443"
+    ],
+    "name": "DE-rnjso-15",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "password": "Ss3l3GXlwJPI9BmQ",
+      "skip-cert-verify": "false",
+      "sni": "img.qb83s9o08.example.net",
+      "tls": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.qb83s9o08.example.net\"",
+      "ws-path": "/ucuhm923u"
+    },
+    "type": "trojan"
+  }
+]

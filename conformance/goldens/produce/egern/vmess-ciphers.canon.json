@@ -1,0 +1,76 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "JP-ppcq89-80",
+        "port": 443,
+        "security": "auto",
+        "server": "z3-24.jfke.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "ce07d7cc-26d3-449a-86fc-6e8ab886b24c"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "FR-nmudfw-61",
+        "port": 443,
+        "security": "aes-128-gcm",
+        "server": "cc-35.jg3aqv.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "5effff97-93b7-4844-935c-d3db48a3cb23"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "NL-v3tw-05",
+        "port": 443,
+        "security": "chacha20-poly1305",
+        "server": "bn6-21.w1kc71bz.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "c6ba407d-4f74-4b37-b37f-cfb2be550d4f"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "HK-g5t4-39",
+        "port": 443,
+        "security": "none",
+        "server": "s63-29.nz70.example.com",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "daf10bb1-b10a-4fb5-b126-54731df8df13"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-gnw-02",
+        "port": 443,
+        "security": "zero",
+        "server": "eb-36.mw37.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "a455556c-1557-41d1-9f19-3eb3f30ee137"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "GB-ran39-34",
+        "port": 443,
+        "security": "auto",
+        "server": "rz-14.f0p7h.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "user_id": "4d9a4d42-35d2-4cbd-9c0e-c9875d4dad26"
+      }
+    }
+  ]
+}

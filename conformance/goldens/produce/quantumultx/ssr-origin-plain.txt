@@ -1,0 +1,1 @@
+shadowsocks=zk-35.ikvj4vc.example.org:43618,method=chacha20-ietf,password=fwXoeoq3yymb,ssr-protocol=origin,obfs=plain,udp-relay=true,tag=HK-qt9-55

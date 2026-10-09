@@ -1,0 +1,1 @@
+KR-yoyh-58=wireguard,interface-ip=10.7.0.2,interface-ipv6=fd00:7::2,private-key="IHtY7LOisG3tXaVoMW1wfNLSd2C2nV/OppPLj06sHrs=",mtu=1280,peers=[{public-key="H1V+J29sG7CzK5jH0zH2J2X8KGiDnfwjnu3pmObU4dc=",allowed-ips="0.0.0.0/0,::/0",endpoint=ku-30.yxff6xdm.example.com:51820,reserved=[1,2,3]}]

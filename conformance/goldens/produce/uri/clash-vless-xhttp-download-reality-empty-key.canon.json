@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "SG-u4gm-64",
+    "host": "q7-21.ctotah.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"downloadSettings\":{\"address\":\"a6o-18.lz4va.example.net\",\"network\":\"xhttp\",\"port\":443,\"security\":\"reality\",\"tlsSettings\":{\"serverName\":\"api.rqvry.example.net\"},\"realitySettings\":{\"serverName\":\"api.rqvry.example.net\"},\"xhttpSettings\":{\"path\":\"/i9c1tcimu\",\"mode\":\"packet-up\"}}}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/qbye/oq5e5hk8"
+      ],
+      [
+        "pbk",
+        "KgMh4n27ehm-38dybjboHSbcxSLxw_d1fRO7DKCPr1Q"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "56a88599"
+      ],
+      [
+        "sni",
+        "cdn.la456g.example.net"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "60a5687f-ba67-404a-a2c8-56ca44ec8062"
+  }
+]

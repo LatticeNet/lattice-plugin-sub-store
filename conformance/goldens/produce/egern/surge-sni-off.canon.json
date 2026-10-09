@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "DE-nsuz9v-24",
+        "password": "muju50zKO0N7ulsr",
+        "port": 443,
+        "server": "192.0.2.176",
+        "skip_tls_verify": true,
+        "sni": "192.0.2.176",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

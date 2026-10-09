@@ -1,0 +1,33 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "cdn.wzsdkzjiju.example.net"
+        ]
+      },
+      "path": [
+        "/iqg/vykml1y"
+      ]
+    },
+    "name": "DE-c91jl2-23",
+    "network": "http",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "_spider-x": "/",
+      "public-key": "emjZxaktnqUUU1L8ZHeTwp0cXCOZIYjZhdJ-fenlneY",
+      "short-id": "4ed9b6fe"
+    },
+    "server": "he6-03.ovjs.example.org",
+    "skip-cert-verify": false,
+    "sni": "cdn.wzsdkzjiju.example.net",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "ec463757-1cd5-49db-9447-56e068dff801"
+  }
+]

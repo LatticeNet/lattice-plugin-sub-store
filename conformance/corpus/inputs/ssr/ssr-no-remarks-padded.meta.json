@@ -1,0 +1,9 @@
+{
+  "id": "ssr-no-remarks-padded",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "missing-remarks",
+  "description": "ShadowsocksR link with no remarks and standard padded Base64."
+}

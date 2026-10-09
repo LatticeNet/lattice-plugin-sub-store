@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"KR-ku76-01","method":"chacha20-ietf","server":"c6-14.hrgx.example.net","port":43309,"password":"Q1xpuRlVhIKH","protocol":"auth_sha1_v4","protocol_param":"125:qPktyn","obfs":"tls1.2_ticket_auth","obfs_param":"cdn.rp4ifyes.example.org","tfo":false,"udp_relay":true}}

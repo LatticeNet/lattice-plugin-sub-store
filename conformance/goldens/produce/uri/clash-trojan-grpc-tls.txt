@@ -1,0 +1,1 @@
+trojan://vjSyAI79qfTnU7US@wjy-10.xmkx49.example.net:443?sni=static.v11wq.example.com&type=grpc&serviceName=dekrcdp-vg6&mode=gun&alpn=h2%2Chttp%2F1.1&fp=chrome#NL-qqlje-16

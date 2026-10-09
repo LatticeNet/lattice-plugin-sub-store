@@ -11,6 +11,7 @@ import { computed, ref, type Ref } from "vue";
 
 import { BINDINGS, callMethod, type SubStoreShareRow, type SubStoreSharesResponse } from "./client";
 import type { HostContext } from "./host";
+import { t } from "./i18n";
 import { safeErrorMessage } from "./subStoreModel";
 
 interface ShareStore {
@@ -47,7 +48,7 @@ export function useShares(host: HostContext) {
         store.error.value = "";
       })
       .catch((cause) => {
-        store.error.value = safeErrorMessage(cause, "The share list could not be read");
+        store.error.value = safeErrorMessage(cause, t.boot.sharesUnread);
       })
       .finally(() => {
         store.loading.value = false;

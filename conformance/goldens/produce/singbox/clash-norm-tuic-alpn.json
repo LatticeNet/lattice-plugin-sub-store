@@ -1,0 +1,54 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-ndx7f-75",
+      "type": "tuic",
+      "server": "yi-18.nwuw0vdq.example.com",
+      "server_port": 443,
+      "uuid": "e36e543d-430c-4504-95a2-fcb1e9e8c41e",
+      "password": "LiA8wWkAmjun7p5p",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.uybowyulgx.example.net",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    },
+    {
+      "tag": "US-qkl-19",
+      "type": "tuic",
+      "server": "cn-35.vy0b.example.net",
+      "server_port": 443,
+      "uuid": "79338101-7e19-4bf8-bd50-bc577e9913a8",
+      "password": "MLs179LcEU5gAAyL",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.hiqwqs.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    },
+    {
+      "tag": "TW-w25-72",
+      "type": "tuic",
+      "server": "i4p-30.pqvll.example.com",
+      "server_port": 443,
+      "uuid": "5c112dae-2e13-4949-b4c1-e96e3d222134",
+      "password": "RxcZJzwe8DttDIdv",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.augcru5.example.org",
+        "insecure": false,
+        "alpn": [
+          "h3",
+          "spdy/3.1"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

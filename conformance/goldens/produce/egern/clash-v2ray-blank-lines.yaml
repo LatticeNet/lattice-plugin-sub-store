@@ -1,0 +1,5 @@
+proxies:
+  - {"socks5":{"name":"TW-j9w6qk-36","server":"er-31.mtwnt.example.net","port":1080,"username":"h06y","password":"WRlDhNJU25Ck","tfo":false,"udp_relay":true}}
+  - {"http":{"name":"FR-ukui-94","server":"gt-07.b9min995.example.net","port":8080,"username":"uxvyk117","password":"dJSY4pWnnmYU","tfo":false}}
+  - {"snell":{"name":"US-rrjn-36","server":"na-25.a29v3id.example.org","port":58650,"psk":"tIJ6AYLXWg2uopx7EdBS","version":4,"udp_relay":true,"tfo":false}}
+  - {"socks5":{"name":"HK-xka4u-94","server":"ar-10.yy6s.example.org","port":1080,"username":"ymxf0nzo","password":"N8FwlKhIIDGI","tfo":false,"udp_relay":true}}

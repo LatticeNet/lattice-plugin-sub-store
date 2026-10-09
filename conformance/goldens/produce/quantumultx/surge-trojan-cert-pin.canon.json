@@ -1,0 +1,17 @@
+[
+  {
+    "address": "198.51.100.227:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "2mUxZg0GFFQkZr1P",
+      "tag": "FR-ozyw6h-48",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-cert-sha256": "A7B75AE5BEB27252A005E1D70B80E40E02A4A53161951CE8BF2EE13A2B1C17BD",
+      "tls-host": "api.meixt51op.example.org",
+      "tls-verification": "cdn.eo4jw20rg5.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

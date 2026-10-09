@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": true,
+        "name": "DE-ul2d-17",
+        "port": 80,
+        "security": "chacha20-poly1305",
+        "server": "g1d-13.yztv.example.org",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "g1d-13.yztv.example.org"
+            },
+            "path": "/r4nzwpx"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "f377bfa4-dd00-482f-8fdb-839994d4cc12"
+      }
+    }
+  ]
+}

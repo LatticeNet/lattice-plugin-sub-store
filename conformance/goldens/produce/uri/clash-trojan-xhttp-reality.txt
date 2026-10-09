@@ -1,0 +1,1 @@
+trojan://53P1CwiCd0J7NolN@vbt-33.k5kw.example.net:443?sni=api.fxpo0defz.example.org&type=xhttp&path=%2Fgmx5bl3&fp=chrome&security=reality&sid=b981b2c6&pbk=p1DU-kqarpZBga_lY3n8HyRXpEytMrh1XeX5_KgIWzs#AU-nb56cs-96

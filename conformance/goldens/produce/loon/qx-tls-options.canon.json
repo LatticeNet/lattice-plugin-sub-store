@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "203.0.113.104",
+      "443",
+      "dHxn6dCKqdRZFujk"
+    ],
+    "name": "GB-rc5go-89",
+    "params": {
+      "skip-cert-verify": "true",
+      "tls-cert-sha256": "f9f471e7cddb6aeb1276ea0c3908239ebdb48a21d09c2e632b9604f6126a518b",
+      "tls-name": "www.t7f0lpmk.example.org",
+      "tls-pubkey-sha256": "f723dc786f6f061b58fa21d1abd98d4f9c54924aa51159c5a23e40538a6f8e8a",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

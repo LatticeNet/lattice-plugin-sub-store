@@ -1,0 +1,16 @@
+[
+  {
+    "address": "hac-37.k2fe.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "CD4xeu8GaEFg9Uc7b2yO",
+      "tag": "KR-w7e-46",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "static.ggzzb0.example.net",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

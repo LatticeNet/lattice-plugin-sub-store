@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "hjk-11.n8bcfl8.example.org",
+      "server_port": 443,
+      "tag": "KR-vmn6-08",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "SatSks34KwPD6RbqZHLLXtOFBk-N3BHQqqcfq57fSkQ",
+          "short_id": "34dd5478"
+        },
+        "server_name": "img.l7xuf8e.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "service_name": "sibyc6-bowmb1",
+        "type": "grpc"
+      },
+      "type": "vless",
+      "uuid": "0d0a9e5e-ac8d-4fb3-9f5a-68f67d221d0e"
+    }
+  ]
+}

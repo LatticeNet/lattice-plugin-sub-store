@@ -1,0 +1,21 @@
+[
+  {
+    "_h2": false,
+    "client-fingerprint": "chrome",
+    "encryption": "none",
+    "name": "CA-kq3ai-63",
+    "network": "tcp",
+    "packet-encoding": "xudp",
+    "port": 443,
+    "reality-opts": {
+      "short-id": "54eb4828"
+    },
+    "server": "x0-27.bn0ps.example.net",
+    "skip-cert-verify": false,
+    "sni": "cdn.mrdbw7i.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "fe226254-99bd-46f9-91ef-add3a47ebd2c"
+  }
+]

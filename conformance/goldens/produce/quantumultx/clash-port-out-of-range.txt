@@ -1,0 +1,1 @@
+trojan=fkb-23.g95rfl34.example.com:70000,password=2WkYTw57EFOugGjI,over-tls=true,tls-host=api.gdqao1.example.net,udp-relay=true,tag=US-bfrb-66

@@ -1,0 +1,116 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "NL-c0jwf0-27",
+        "port": 443,
+        "server": "r53-20.yhgq.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "static.o74wal.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "912e7571-7154-452b-9b82-c6026c6953fb"
+      }
+    },
+    {
+      "vless": {
+        "name": "FR-r7ml8-20",
+        "port": 443,
+        "server": "z0-06.qzoy.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "cdn.bm38g6wqs.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "5348b7f1-9e4e-4515-b51b-189559424870"
+      }
+    },
+    {
+      "vless": {
+        "name": "JP-qrm-35",
+        "port": 443,
+        "server": "v9-03.agwj3.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "api.b8k1h6kf9z.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "c1ec7aa9-f92b-4bfd-9d36-d1e428bb8682"
+      }
+    },
+    {
+      "vless": {
+        "name": "HK-d710yj-84",
+        "port": 443,
+        "server": "vp-08.qfttqrq.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "cdn.f87ffy7ut.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "b7f70ac5-0730-43bf-ac0c-eb767e9b3c49"
+      }
+    },
+    {
+      "vless": {
+        "name": "CA-hjc4-51",
+        "port": 443,
+        "server": "zl5-12.cr9r.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "img.jip6g5tw.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "061b0719-0e25-4525-8b66-c18c5ff0aa8c"
+      }
+    },
+    {
+      "vless": {
+        "name": "HK-futh-87",
+        "port": 443,
+        "server": "hfc-25.hcxldu.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "www.zeenb.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "11275432-b68d-408c-9676-e6fa18c06530"
+      }
+    },
+    {
+      "vless": {
+        "name": "KR-ez31fy-14",
+        "port": 443,
+        "server": "qgd-06.g02h.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "cdn.w1qjmg.example.org"
+          }
+        },
+        "udp_relay": false,
+        "user_id": "8a1a0a05-cd82-45f8-82c5-249933f55d4f"
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-ck7-23",
+      "type": "vless",
+      "server": "0:0:0:0:0:ffff:203.0.113.235",
+      "server_port": 443,
+      "uuid": "ee69dd3c-2163-4541-b3ab-e25b917d57f7",
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "0"
+        },
+        "path": "/qj6af"
+      }
+    },
+    {
+      "tag": "HK-dr76-41",
+      "type": "vless",
+      "server": "::ffff:198.51.100.36",
+      "server_port": 443,
+      "uuid": "bfe383f4-6a95-4843-a6d3-04bf5e8e4124",
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {},
+        "path": "/zxtb"
+      }
+    }
+  ],
+  "endpoints": []
+}

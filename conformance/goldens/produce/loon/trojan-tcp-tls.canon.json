@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "hh-01.imfbim.example.com",
+      "443",
+      "HwLmYAma9EMkZ8Q5"
+    ],
+    "name": "TW-h11zpi-21",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "tls-name": "static.xxh5n1ybva.example.org",
+      "tls-profile": "chrome",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

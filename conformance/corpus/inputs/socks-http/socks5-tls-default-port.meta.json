@@ -1,0 +1,9 @@
+{
+  "id": "socks5-tls-default-port",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "missing-port",
+  "description": "socks5+tls://host#name without a port: the port is 443 and tls is true."
+}

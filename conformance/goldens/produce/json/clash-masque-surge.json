@@ -1,0 +1,12 @@
+[
+  {
+    "name": "AU-z6s-42",
+    "password": "roxpJPx7ZaqvKJ",
+    "port": 443,
+    "server": "zzx-38.bv5vfzm.example.org",
+    "sni": "static.g7i4er3704.example.com",
+    "type": "masque-surge",
+    "udp": true,
+    "username": "ardyzxtg"
+  }
+]

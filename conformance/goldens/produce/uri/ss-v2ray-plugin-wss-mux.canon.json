@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "KR-tw9n-85",
+    "host": "hkt-10.p5shwz3q.example.org",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=img.xz1pgc.example.com;host=img.xz1pgc.example.com;path=/p9ec6ij;tls;mux=4"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206WEViaEwwVjlIYVp6T0o=",
+    "userinfo_base64": "aes-256-gcm:XEbhL0V9HaZzOJ"
+  }
+]

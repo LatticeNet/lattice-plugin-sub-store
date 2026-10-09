@@ -1,0 +1,37 @@
+[
+  {
+    "fragment": "SG-qx3wl-78",
+    "host": "jr-09.lmt9g.example.net",
+    "path": "",
+    "port": "19626",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206alFqdlQwS0ZUWmZCZ0Q=",
+    "userinfo_base64": "aes-128-gcm:jQjvT0KFTZfBgD"
+  },
+  {
+    "body": {
+      "add": "fm8-06.y7l1.example.org",
+      "aid": "0",
+      "host": "img.aiq2p.example.net",
+      "id": "7498ceaf-fb34-440c-bf61-be5cd2755c55",
+      "net": "ws",
+      "path": "/wo1x7lvx",
+      "port": "443",
+      "ps": "AU-cajil-62",
+      "scy": "none",
+      "sni": "img.aiq2p.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

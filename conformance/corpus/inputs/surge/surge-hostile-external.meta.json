@@ -1,0 +1,8 @@
+{
+  "id": "surge-hostile-external",
+  "family": "surge",
+  "protocol": "external",
+  "security": "none",
+  "quirk": "hostile-external",
+  "description": "H3 type rule: a Surge external line next to an ordinary line: upstream reads both; Lattice drops the external node on remote input and keeps it only on a local record with the opt-in, which the plugin's unit tests cover because the oracle has no such switch."
+}

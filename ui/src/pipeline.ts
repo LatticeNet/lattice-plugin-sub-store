@@ -22,22 +22,20 @@ import {
   type SubStoreShareRow,
   type SubscriptionListItem,
 } from "./client";
+import { compareText, formatDate, formatDays, formatList, formatPercent, t } from "./i18n";
 import { formatBytes, formatRelativeTime, parseUserinfo } from "./rowStatus";
 import { maskUrlsIn, refreshFailureText } from "./urlMask";
 
 export type Stage = "source" | "combination" | "file" | "share";
 export const STAGES: readonly Stage[] = ["source", "combination", "file", "share"];
 
-/** The layers of the page, in tab order. The id is what `?view=` carries. */
-export type ViewId = "overview" | "sources" | "combinations" | "files" | "shares" | "settings";
-export const VIEW_IDS: readonly ViewId[] = ["overview", "sources", "combinations", "files", "shares", "settings"];
-
-/** The layer that lists a record of this kind. */
-export function viewOfKind(kind: string | undefined): ViewId {
-  if (kind === KIND_COLLECTION) return "combinations";
-  if (kind === KIND_FILE) return "files";
-  return "sources";
-}
+/**
+ * The layers of the page, in tab order. The id is what `?view=` carries.
+ * Records lists every kind (design 28, S1); the three per-kind layers it
+ * replaced still land through pageState's legacy views.
+ */
+export type ViewId = "overview" | "records" | "shares" | "settings";
+export const VIEW_IDS: readonly ViewId[] = ["overview", "records", "shares", "settings"];
 
 export function stageOfKind(kind: string | undefined): Exclude<Stage, "share"> {
   if (kind === KIND_COLLECTION) return "combination";
@@ -113,27 +111,24 @@ export function formatUsage(figures: ProviderFigures | null): string {
   if (!figures) return "";
   const used = usedBytes(figures);
   const ratio = usageRatio(figures);
-  if (ratio !== null) return `${formatBytes(used)} of ${formatBytes(figures.total!)} · ${Math.round(ratio * 100)}%`;
-  if (figures.upload !== undefined || figures.download !== undefined) return `${formatBytes(used)} used`;
+  if (ratio !== null) return t.provider.usage(formatBytes(used), formatBytes(figures.total!), formatPercent(Math.round(ratio * 100) / 100));
+  if (figures.upload !== undefined || figures.download !== undefined) return t.provider.usedOnly(formatBytes(used));
   return "";
 }
 
-/** "expires in 6 days", "expires today", "expired 3 days ago", or "". */
+/**
+ * "expires in 6 days", "expires today", "expired 3 days ago", or "". Past
+ * sixty days the date itself, in the active locale.
+ */
 export function formatExpiry(figures: ProviderFigures | null, now: number): string {
   const days = daysUntilExpiry(figures, now);
   if (days === null) return "";
   if (days < 0) {
-    if (now - figures!.expire! * 1000 < DAY_MS) return "expired today";
-    return `expired ${-days === 1 ? "1 day" : `${-days} days`} ago`;
+    if (now - figures!.expire! * 1000 < DAY_MS) return t.provider.expiredToday;
+    return t.provider.expiredAgo(-days, formatDays(days));
   }
-  if (days === 0) return "expires today";
-  if (days === 1) return "expires tomorrow";
-  if (days <= 60) return `expires in ${days} days`;
-  return `expires ${isoDate(figures!.expire! * 1000)}`;
-}
-
-function isoDate(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 10);
+  if (days <= 60) return t.provider.expiresIn(days, formatDays(days));
+  return t.provider.expiresOn(formatDate(figures!.expire! * 1000));
 }
 
 /** The attention thresholds the design names. */
@@ -144,11 +139,11 @@ export const USAGE_WARN_RATIO = 0.8;
 
 /** Where a source's nodes come from, in the operator's words. */
 export function sourceKindLabel(item: SubscriptionListItem): string {
-  if (item.source === SOURCE_VPN_CORE) return "This fleet";
-  if (item.source === SOURCE_VPN_CORE_GRAPH) return "Relay path";
-  if (item.source === SOURCE_REMOTE) return "Provider link";
-  if (item.source === SOURCE_LOCAL) return "Pasted nodes";
-  return item.has_url ? "Provider link" : "Pasted nodes";
+  if (item.source === SOURCE_VPN_CORE) return t.kinds.fleet;
+  if (item.source === SOURCE_VPN_CORE_GRAPH) return t.kinds.relay;
+  if (item.source === SOURCE_REMOTE) return t.kinds.provider;
+  if (item.source === SOURCE_LOCAL) return t.kinds.pasted;
+  return item.has_url ? t.kinds.provider : t.kinds.pasted;
 }
 
 /** True for the one source kind that is fetched and reports provider figures. */
@@ -350,9 +345,9 @@ export function buildLineage(
     if (kind === KIND_COLLECTION) {
       for (const ref of item.members ?? []) {
         const member = byId.get(ref);
-        if (!member) broken.push({ owner: item.id, ref, via: "member", reason: "no longer exists" });
+        if (!member) broken.push({ owner: item.id, ref, via: "member", reason: t.lineage.reasonGone });
         else if ((member.kind || KIND_SUB) !== KIND_SUB) {
-          broken.push({ owner: item.id, ref, via: "member", reason: `is a ${kindWord(member.kind)}, not a subscription` });
+          broken.push({ owner: item.id, ref, via: "member", reason: notASubscription(member.kind) });
         } else link({ from: ref, to: item.id, via: "member" });
       }
       for (const tag of item.member_tags ?? []) {
@@ -366,8 +361,8 @@ export function buildLineage(
       const ref = (item.node_source ?? "").trim();
       if (!ref) continue;
       const source = byId.get(ref);
-      if (!source) broken.push({ owner: item.id, ref, via: "node-source", reason: "no longer exists" });
-      else if (source.kind === KIND_FILE) broken.push({ owner: item.id, ref, via: "node-source", reason: "is a file, not a node source" });
+      if (!source) broken.push({ owner: item.id, ref, via: "node-source", reason: t.lineage.reasonGone });
+      else if (source.kind === KIND_FILE) broken.push({ owner: item.id, ref, via: "node-source", reason: t.lineage.reasonFileSource });
       else link({ from: ref, to: item.id, via: "node-source" });
     }
   }
@@ -377,7 +372,7 @@ export function buildLineage(
     shareNodes.set(share.share_id, id);
     nodes.set(id, { id, stage: "share", label: `/${share.slug}`, share });
     if (byId.has(share.subscription_id)) link({ from: share.subscription_id, to: id, via: "share" });
-    else broken.push({ owner: id, ref: share.subscription_id, via: "share", reason: "no longer exists" });
+    else broken.push({ owner: id, ref: share.subscription_id, via: "share", reason: t.lineage.reasonGone });
   }
 
   const upstream = new Map<string, string[]>();
@@ -390,10 +385,11 @@ export function buildLineage(
   return { nodes, columns: orderColumns(nodes, upstream, downstream), edges, broken, upstream, downstream, shareNodes };
 }
 
-function kindWord(kind: string | undefined): string {
-  if (kind === KIND_COLLECTION) return "combination";
-  if (kind === KIND_FILE) return "file";
-  return "subscription";
+/** Why a combination's member is the wrong kind, as a clause after its name. */
+function notASubscription(kind: string | undefined): string {
+  if (kind === KIND_COLLECTION) return t.lineage.reasonIsCombination;
+  if (kind === KIND_FILE) return t.lineage.reasonIsFile;
+  return t.lineage.reasonWrongKind;
 }
 
 /**
@@ -408,7 +404,7 @@ function orderColumns(
   downstream: Map<string, string[]>,
 ): Record<Stage, string[]> {
   const of = (stage: Stage) => [...nodes.values()].filter((node) => node.stage === stage);
-  const byName = (a: LineageNode, b: LineageNode) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id);
+  const byName = (a: LineageNode, b: LineageNode) => compareText(a.label, b.label) || compareText(a.id, b.id);
   const combos = of("combination").sort(byName).map((node) => node.id);
   const comboIndex = new Map(combos.map((id, index) => [id, index]));
   const firstCombo = (id: string) => {
@@ -510,16 +506,12 @@ export function usedBy(lineage: Lineage, id: string): { combinations: string[]; 
 export function usedBySentence(lineage: Lineage, id: string): string {
   const used = usedBy(lineage, id);
   const parts: string[] = [];
-  if (used.combinations.length) parts.push(plural(used.combinations.length, "combination"));
-  if (used.files.length) parts.push(plural(used.files.length, "file"));
-  const feeds = parts.length ? `feeds ${parts.join(" and ")}` : "";
+  if (used.combinations.length) parts.push(t.nouns.combinations(used.combinations.length));
+  if (used.files.length) parts.push(t.nouns.files(used.files.length));
+  const feeds = parts.length ? t.lineage.feeds(formatList(parts)) : "";
   const shares = used.shares.map((share) => lineage.nodes.get(share)?.label ?? share);
-  const published = shares.length ? `published at ${shares.join(", ")}` : "";
-  return [feeds, published].filter(Boolean).join(", ");
-}
-
-export function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+  const published = shares.length ? t.lineage.publishedAt(shares.join(", ")) : "";
+  return t.common.joinFacts([feeds, published].filter(Boolean));
 }
 
 // ── attention ────────────────────────────────────────────────────────────────
@@ -576,13 +568,12 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
     if (item.last_fetch_ok === false) {
       const when = item.last_fetch_at ? formatRelativeTime(item.last_fetch_at, now) : "";
       const reason = refreshFailureText(item.last_error);
-      const why = reason ? `: ${reason}` : "";
       out.push({
         key: `fetch:${item.id}`,
         tone: "danger",
-        claim: `${recordLabel(item)} failed its last refresh${when ? ` ${when}` : ""}${why}`,
+        claim: t.attention.fetchFailed(recordLabel(item), when, reason),
         recordId: item.id,
-        action: { label: "Open", recordId: item.id },
+        action: { label: t.attention.open, recordId: item.id },
       });
     }
     const figures = providerFigures(item);
@@ -592,15 +583,15 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
     const heavy = ratio !== null && ratio > USAGE_WARN_RATIO;
     if (expiring || heavy) {
       const facts: string[] = [];
-      if (expiring) facts.push(`provider ${formatExpiry(figures, now)}`);
-      if (heavy) facts.push(`${Math.round(ratio! * 100)}% of its traffic used`);
+      if (expiring) facts.push(t.attention.providerExpiry(formatExpiry(figures, now)));
+      if (heavy) facts.push(t.attention.providerTraffic(formatPercent(Math.round(ratio! * 100) / 100)));
       const dead = (days !== null && days < 0) || (ratio !== null && ratio >= 1);
       out.push({
         key: `provider:${item.id}`,
         tone: dead ? "danger" : "warning",
-        claim: `${recordLabel(item)}: ${facts.join(", ")}`,
+        claim: t.attention.providerClaim(recordLabel(item), t.common.joinFacts(facts)),
         recordId: item.id,
-        action: { label: "Open", recordId: item.id },
+        action: { label: t.attention.open, recordId: item.id },
       });
     }
   }
@@ -620,27 +611,25 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
       out.push({
         key: `members:${owner}`,
         tone: "danger",
-        claim:
-          `${node.label} names ${plural(refs.length, "member")} that ${refs.length === 1 ? "does" : "do"} not resolve (${missing})` +
-          (files ? `, and ${plural(files, "file")} ${files === 1 ? "renders" : "render"} it` : ""),
+        claim: t.attention.membersBroken(node.label, refs.length, missing, files),
         recordId: owner,
-        action: { label: "Open", recordId: owner },
+        action: { label: t.attention.open, recordId: owner },
       });
     } else if (node.stage === "file") {
       const ref = refs[0]!;
       out.push({
         key: `source:${owner}`,
         tone: "danger",
-        claim: `${node.label} renders ${ref.ref}, which ${ref.reason}`,
+        claim: t.attention.sourceBroken(node.label, ref.ref, ref.reason),
         recordId: owner,
-        action: { label: "Open", recordId: owner },
+        action: { label: t.attention.open, recordId: owner },
       });
     } else if (node.stage === "share") {
       out.push({
         key: `orphan:${owner}`,
         tone: "danger",
-        claim: `Share ${node.label} publishes ${ref0(refs)}, which no longer exists, so it serves nothing`,
-        action: { label: "Review", view: "shares", search: node.share?.slug },
+        claim: t.attention.shareOrphan(node.label, ref0(refs)),
+        action: { label: t.attention.review, view: "shares", search: node.share?.slug },
       });
     }
   }
@@ -651,9 +640,9 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
     out.push({
       key: `unused:${item.id}`,
       tone: "neutral",
-      claim: `${recordLabel(item)} is not used by any file or share`,
+      claim: t.attention.unused(recordLabel(item)),
       recordId: item.id,
-      action: { label: "Open", recordId: item.id },
+      action: { label: t.attention.open, recordId: item.id },
     });
   }
 
@@ -662,8 +651,8 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
       out.push({
         key: "shares:unread",
         tone: "warning",
-        claim: `The share list could not be read, so which records are published is unknown (${input.sharesError})`,
-        action: { label: "Review", view: "shares" },
+        claim: t.attention.sharesUnread(input.sharesError),
+        action: { label: t.attention.review, view: "shares" },
       });
     }
   } else {
@@ -677,14 +666,16 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
         key: "files:unpublished",
         tone: "warning",
         claim: one
-          ? `${recordLabel(one)} is not published, so no client can fetch it`
-          : `${all ? "No file is" : `${unpublished.length} files are not`} published, so no client can fetch ${all ? "any of them" : "them"}`,
-        // One file: Publish opens the share form on it. Several: the Files
-        // layer narrowed to them, where each row carries its own Publish.
+          ? t.attention.fileUnpublished(recordLabel(one))
+          : all
+            ? t.attention.noFilePublished
+            : t.attention.filesUnpublished(unpublished.length),
+        // One file: Publish opens the share form on it. Several: the Records
+        // table narrowed to them, where each row carries its own Publish.
         recordId: one?.id,
         action: one
-          ? { label: "Publish", publish: one.id }
-          : { label: "Show them", view: "files", facet: { published: "no" } },
+          ? { label: t.attention.publish, publish: one.id }
+          : { label: t.attention.showThem, view: "records", facet: { kind: "file", published: "no" } },
       });
     }
     for (const share of shares) {
@@ -698,11 +689,8 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
       out.push({
         key: `share:${share.share_id}`,
         tone: at <= now ? "danger" : "warning",
-        claim:
-          at <= now
-            ? `Share /${share.slug} for ${record} ${when}, and clients fetching it get nothing`
-            : `Share /${share.slug} for ${record} ${when}`,
-        action: { label: "Review", view: "shares", search: share.slug },
+        claim: at <= now ? t.attention.shareExpired(`/${share.slug}`, record, when) : t.attention.shareExpiring(`/${share.slug}`, record, when),
+        action: { label: t.attention.review, view: "shares", search: share.slug },
       });
     }
   }
@@ -714,7 +702,7 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
 }
 
 function ref0(refs: BrokenRef[]): string {
-  return refs[0]?.ref ?? "a record";
+  return refs[0]?.ref ?? t.attention.aRecord;
 }
 
 /** Enabled and not past its expiry: a client fetching it gets a document. */
@@ -753,38 +741,38 @@ export function recordHealth(
   const broken = lineage.broken.filter((ref) => ref.owner === item.id);
   if (broken.length) {
     const ref = broken[0]!;
-    return { tone: "error", label: "broken", title: `Names ${ref.ref}, which ${ref.reason}.` };
+    return { tone: "error", label: t.health.broken, title: t.health.brokenTitle(ref.ref, ref.reason) };
   }
   if (kind === KIND_SUB) {
     if (item.last_fetch_ok === false) {
-      return { tone: "error", label: "refresh failed", title: refreshFailureText(item.last_error) || "The last refresh failed." };
+      return { tone: "error", label: t.health.refreshFailed, title: refreshFailureText(item.last_error) || t.health.refreshFailedTitle };
     }
     const figures = providerFigures(item);
     const days = daysUntilExpiry(figures, now);
     const ratio = usageRatio(figures);
     if ((days !== null && days < 0) || (ratio !== null && ratio >= 1)) {
-      return { tone: "error", label: days !== null && days < 0 ? "expired" : "quota spent", title: [formatExpiry(figures, now), formatUsage(figures)].filter(Boolean).join(", ") };
+      return { tone: "error", label: days !== null && days < 0 ? t.health.expired : t.health.quotaSpent, title: t.common.joinFacts([formatExpiry(figures, now), formatUsage(figures)].filter(Boolean)) };
     }
     if ((days !== null && days <= EXPIRY_WARN_DAYS) || (ratio !== null && ratio > USAGE_WARN_RATIO)) {
-      return { tone: "warning", label: days !== null && days <= EXPIRY_WARN_DAYS ? formatExpiry(figures, now) : "quota low", title: [formatExpiry(figures, now), formatUsage(figures)].filter(Boolean).join(", ") };
+      return { tone: "warning", label: days !== null && days <= EXPIRY_WARN_DAYS ? formatExpiry(figures, now) : t.health.quotaLow, title: t.common.joinFacts([formatExpiry(figures, now), formatUsage(figures)].filter(Boolean)) };
     }
   }
   if (kind === KIND_COLLECTION) {
     const failing = (lineage.upstream.get(item.id) ?? []).filter((id) => lineage.nodes.get(id)?.item?.last_fetch_ok === false);
     if (failing.length) {
-      return { tone: "warning", label: "member failing", title: `${plural(failing.length, "member")} failed the last refresh: ${failing.join(", ")}.` };
+      return { tone: "warning", label: t.health.memberFailing, title: t.health.memberFailingTitle(failing.length, failing.join(", ")) };
     }
   }
   const published = shares?.some((share) => share.subscription_id === item.id && shareLive(share, now));
   if (kind === KIND_FILE) {
-    if (shares === undefined) return { tone: "neutral", label: "unknown", title: "The share list has not been read." };
+    if (shares === undefined) return { tone: "neutral", label: t.health.unknown, title: t.health.unreadTitle };
     return published
-      ? { tone: "healthy", label: "published", title: "A live share serves this file." }
-      : { tone: "neutral", label: "not published", title: "No live share serves this file, so no client can fetch it." };
+      ? { tone: "healthy", label: t.health.published, title: t.health.publishedTitle }
+      : { tone: "neutral", label: t.health.notPublished, title: t.health.notPublishedTitle };
   }
   if (preview && !preview.ok) {
-    return { tone: "warning", label: "preview failed", title: maskUrlsIn(`The preview failed: ${preview.reason || "no reason given"}.`) };
+    return { tone: "warning", label: t.health.previewFailed, title: maskUrlsIn(t.health.previewFailedTitle(preview.reason || t.health.noReason)) };
   }
-  if (!preview) return { tone: "neutral", label: "not counted", title: "No preview has run for this record in this session." };
-  return { tone: "healthy", label: "ok", title: published ? "The preview ran and a live share serves this record." : "The preview ran and nothing is wrong with this record." };
+  if (!preview) return { tone: "neutral", label: t.health.notCounted, title: t.health.notCountedTitle };
+  return { tone: "healthy", label: t.health.ok, title: published ? t.health.okPublished : t.health.okTitle };
 }

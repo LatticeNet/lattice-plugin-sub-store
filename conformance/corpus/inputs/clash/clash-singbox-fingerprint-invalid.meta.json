@@ -1,0 +1,9 @@
+{
+  "id": "clash-singbox-fingerprint-invalid",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "fingerprint-invalid",
+  "description": "trojan with a fingerprint of 63 hex digits."
+}

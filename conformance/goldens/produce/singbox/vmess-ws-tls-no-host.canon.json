@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "enz-06.ks1z.example.org",
+      "server_port": 443,
+      "tag": "HK-irkxn-71",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "enz-06.ks1z.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "path": "/u2za/ks2mqc",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "d29f522d-b0af-4e45-b5ff-63db7cb42577"
+    }
+  ]
+}

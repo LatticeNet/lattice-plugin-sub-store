@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "US-bfrb-66",
+        "password": "2WkYTw57EFOugGjI",
+        "port": 70000,
+        "server": "fkb-23.g95rfl34.example.com",
+        "sni": "api.gdqao1.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

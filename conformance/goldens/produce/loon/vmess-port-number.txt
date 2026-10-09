@@ -1,0 +1,1 @@
+JP-vfw94-81=vmess,o0-12.dadt3a.example.net,49419,auto,"d1842fe9-5aed-452a-a62f-b2a295668da1",transport=tcp,over-tls=true,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.et37x8lil.example.com,alterId=0,udp=true

@@ -1,0 +1,16 @@
+{
+  "proxies": [
+    {
+      "anytls": {
+        "name": "GB-uq8k-07",
+        "password": "M9Mlcffeicbj8UV6dfeJ",
+        "port": 45821,
+        "server": "198.51.100.140",
+        "skip_tls_verify": true,
+        "sni": "198.51.100.140",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

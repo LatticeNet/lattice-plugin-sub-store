@@ -1,0 +1,1 @@
+{"name":"short-id: fzpp","type":"vless","server":"jhs-40.ixwhbpn.example.net","port":443,"uuid":"a0da4f1d-63c0-43f2-b194-924674712637","udp":true,"tls":true,"servername":"api.ncfc5tg.example.com","client-fingerprint":"chrome","reality-opts":{"public-key":"kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE","short-id":"8d112c21"}}

@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "FR-r7y7-81",
+        "port": 443,
+        "security": "auto",
+        "server": "bb8-01.l6d3.example.org",
+        "tfo": false,
+        "transport": {
+          "ws": {
+            "headers": {
+              "Host": "img.lxr7dc.example.org"
+            },
+            "path": "/bahe5/d975jk"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "099e3a94-ac18-45fc-b68c-e1d7135dd02c"
+      }
+    }
+  ]
+}

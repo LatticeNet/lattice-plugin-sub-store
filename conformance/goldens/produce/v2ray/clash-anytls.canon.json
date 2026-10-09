@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "KR-w7e-46",
+    "host": "hac-37.k2fe.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "idle_session_check_interval",
+        "30"
+      ],
+      [
+        "idle_session_timeout",
+        "30"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "static.ggzzb0.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "CD4xeu8GaEFg9Uc7b2yO"
+  }
+]

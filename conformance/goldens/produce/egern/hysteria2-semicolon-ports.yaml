@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"TW-o2aaj-10","server":"b5-14.vhmjhduu.example.org","port":null,"auth":"r7cmfc1rRfj8qGskOnXt","tfo":false,"udp_relay":true,"sni":"www.c2znodw.example.org","skip_tls_verify":false,"port_hopping":"443;8443"}}

@@ -1,0 +1,51 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "qgr-29.ijwj.example.net",
+      "server_port": 443,
+      "tag": "KR-m4pcf9-54",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Q1dAvQMkI3_YMgWm1dCa7_0Df1UUowiUOPgfBsssjF0",
+          "short_id": "33f4d073"
+        },
+        "server_name": "cdn.tyfz9tsjjb.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "7a9e5f0c-5fbb-41db-84c3-f3451a397d9f"
+    },
+    {
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "ar-26.nwpt.example.org",
+      "server_port": 443,
+      "tag": "NL-x3oc-18",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "KwtJvxpWqjFazT5N1vz0_w6WR-yFZK0FVqexnENgVMw",
+          "short_id": "775f4291"
+        },
+        "server_name": "api.zgvtw96xq.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "1b2f873e-9224-4f7f-84b1-3a35b0d9fb3b"
+    }
+  ]
+}

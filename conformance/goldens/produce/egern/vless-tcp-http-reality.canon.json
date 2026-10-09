@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "DE-c91jl2-23",
+        "port": 443,
+        "server": "he6-03.ovjs.example.org",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "cdn.wzsdkzjiju.example.net"
+            },
+            "path": "/iqg/vykml1y",
+            "skip_tls_verify": false
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ec463757-1cd5-49db-9447-56e068dff801"
+      }
+    }
+  ]
+}

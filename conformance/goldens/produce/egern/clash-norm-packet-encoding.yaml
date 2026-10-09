@@ -1,0 +1,4 @@
+proxies:
+  - {"vless":{"name":"US-ym0l-16","server":"ph-02.bapy.example.org","port":443,"user_id":"6c4622e0-64ad-4d8e-a4bb-b3eab53c4c54","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"cdn.wouhuc1z7w.example.org"}}}}
+  - {"vmess":{"name":"NL-yzu-01","server":"wox-27.fknu.example.org","port":443,"user_id":"3f5ddbaa-1428-47db-8c42-5461d36dc1b2","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}
+  - {"vless":{"name":"KR-pjl-56","server":"kw-04.bxqyy.example.org","port":443,"user_id":"8e3fa44a-72bc-4952-88e2-71cd10bc8ed2","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"img.s8xo0hw.example.org"}}}}

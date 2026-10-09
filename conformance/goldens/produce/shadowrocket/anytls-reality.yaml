@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"CA-c08t-42","network":"tcp","packet-encoding":"xudp","password":"ejgbYJ6mPnxvebxd9iNg","pbk":"xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk","port":443,"reality-opts":{"public-key":"xrWGzfv6gBFlYRkxS3VPaOYmHHFNpzIUydEb5zso_vk","short-id":"81f82d48"},"security":"reality","server":"hbn-02.cg9uhh2v.example.net","sid":"81f82d48","skip-cert-verify":false,"sni":"api.lvxt2kr.example.net","type":"anytls","udp":true}

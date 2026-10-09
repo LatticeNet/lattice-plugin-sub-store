@@ -1,0 +1,4 @@
+proxies:
+  - {"trojan":{"name":"FR-xzt8-87","server":"r71-09.q6isz.example.com","port":443,"password":"252osGcNC6rhBPot","tfo":false,"udp_relay":true,"sni":"api.k66w9n0.example.com","ip_version":"v4_only"}}
+  - {"trojan":{"name":"KR-kse4f-43","server":"w7-10.olg8j.example.org","port":443,"password":"pNnlkRSb5JLWlpyh","tfo":false,"udp_relay":true,"sni":"img.ec3p3.example.com"}}
+  - {"trojan":{"name":"HK-tm0vy-52","server":"kuk-03.ztc4l.example.net","port":443,"password":"7pxYY9U0dtY7Xt2x","tfo":false,"udp_relay":true,"sni":"api.xevlb.example.org","ip_version":"v6_prefer"}}

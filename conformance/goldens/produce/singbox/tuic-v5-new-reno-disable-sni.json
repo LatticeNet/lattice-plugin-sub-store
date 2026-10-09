@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-h3egcw-98",
+      "type": "tuic",
+      "server": "198.51.100.201",
+      "server_port": 36615,
+      "uuid": "9eea581b-e095-479e-8335-2600857e8c62",
+      "password": "gZGLLzkPlbpxp6zT",
+      "tls": {
+        "enabled": true,
+        "server_name": "198.51.100.201",
+        "insecure": true,
+        "disable_sni": true,
+        "alpn": [
+          "h3"
+        ]
+      },
+      "congestion_control": "new_reno",
+      "zero_rtt_handshake": true
+    }
+  ],
+  "endpoints": []
+}

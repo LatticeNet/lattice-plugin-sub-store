@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "pa-38.pn5io.example.org",
+      "34827",
+      "auto",
+      "9baf1f26-b509-46b9-a4af-9617458cc1e4"
+    ],
+    "name": "GB-euqdb-55",
+    "params": {
+      "alterId": "0",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

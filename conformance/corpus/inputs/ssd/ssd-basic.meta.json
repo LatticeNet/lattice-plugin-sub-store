@@ -1,0 +1,7 @@
+{
+  "id": "ssd-basic",
+  "family": "ssd",
+  "protocol": "ss",
+  "quirk": "ssd",
+  "description": "SSD subscription with airport defaults inherited by every server."
+}

@@ -1,0 +1,1 @@
+DE-mezs9r-33=vless,r7-03.i2erek.example.net,443,"5f9949e9-6942-4705-aac5-b20178fbf8d9",transport=ws,path=/yp7qbs?ed=gi2i1,host=api.wcdec4b.example.org,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.wcdec4b.example.org,udp=true

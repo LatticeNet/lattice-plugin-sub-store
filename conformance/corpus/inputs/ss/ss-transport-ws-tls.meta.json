@@ -1,0 +1,9 @@
+{
+  "id": "ss-transport-ws-tls",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "ss-transport",
+  "description": "type=ws with security=tls on a Shadowsocks link."
+}

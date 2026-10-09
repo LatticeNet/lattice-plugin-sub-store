@@ -1,0 +1,29 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "www.rjpp4m.example.net"
+        ]
+      },
+      "method": "GET",
+      "path": [
+        "/edtufnk"
+      ]
+    },
+    "name": "US-azqyme-37",
+    "network": "http",
+    "password": "7HS5JSFsX9d7nVF2",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "Y-oqjpzvrEFhzsNYdKxrM2e6U5TlygyE9xcNaNucksY",
+      "short-id": "f0fac1e7"
+    },
+    "server": "h83-35.dddyb.example.net",
+    "sni": "www.rjpp4m.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

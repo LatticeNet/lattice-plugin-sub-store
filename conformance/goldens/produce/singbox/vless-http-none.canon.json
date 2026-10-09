@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "xl-03.m6a6k56.example.net",
+      "server_port": 443,
+      "tag": "CA-g3mj-01",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "xl-03.m6a6k56.example.net"
+      },
+      "transport": {
+        "host": "static.ieawv9q.example.com",
+        "path": "/yiqui4hle",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "3b41240f-1d10-41a0-b19e-9645d0934813"
+    }
+  ]
+}

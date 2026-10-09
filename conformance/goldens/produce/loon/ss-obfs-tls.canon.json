@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "o8-22.yd7la.example.com",
+      "41691",
+      "chacha20-ietf-poly1305",
+      "DnDhyby4CUkV4H"
+    ],
+    "name": "CA-bus8j-50",
+    "params": {
+      "obfs-host": "static.vrb8iyo.example.net",
+      "obfs-name": "tls",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

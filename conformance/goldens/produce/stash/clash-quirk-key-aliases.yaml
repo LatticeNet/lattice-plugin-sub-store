@@ -1,0 +1,2 @@
+proxies:
+  - {"dialer-proxy":"HK-tf0-80","fingerprint":"30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09","name":"CA-xmcwy-91","network":"ws","port":443,"server":"y2-31.xsea.example.net","tls":true,"type":"vless","udp":true,"uuid":"319242a6-da46-498e-b7a4-2f1c17d0e0c5","ws-opts":{"headers":{"Host":"www.nfuzg.example.net"},"path":"/s05tj"},"servername":"cdn.hdptwe1.example.org","server-cert-fingerprint":"30ea0e7d7e8896e32d21f7b808274b4055c2eba18ee04fed98dd76ec57167c09"}

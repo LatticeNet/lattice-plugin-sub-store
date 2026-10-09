@@ -1,0 +1,31 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "JP-tee2k7-36",
+    "password": "XBgXU8v1hEoPJA",
+    "port": 44206,
+    "server": "wz-14.huhsgb.example.org",
+    "skip-cert-verify": false,
+    "tls": "",
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "CA-bvq-13",
+    "network": "ws",
+    "password": "SZDTUPhJwtveeW",
+    "port": 33639,
+    "server": "g8-14.x5adht.example.org",
+    "skip-cert-verify": false,
+    "tls": "",
+    "type": "ss",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "g8-14.x5adht.example.org"
+      },
+      "path": "/"
+    }
+  }
+]

@@ -1,0 +1,1 @@
+trojan=yev-28.xniy064.example.net:443,password=jjPT3sFpPqTjDrbJ,over-tls=true,tls-alpn=zz,tls-host=cdn.a6fucziy.example.net,udp-relay=true,tag=US-jnq-88

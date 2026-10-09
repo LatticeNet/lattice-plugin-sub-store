@@ -1,0 +1,15 @@
+proxies:
+  - name: FR-s8k-58
+    type: tuic
+    server: m97-07.vapbfgw4.example.net
+    port: 443
+    uuid: 8084f53b-14db-4353-bb2f-54266975fe35
+    password: haySs7N4afsvUahP
+    sni: www.r0ym9flg0.example.net
+    x-zpymcx5:
+      x-o4ped1: j3pmbu0g
+    x-tv8d:
+      - krx3ew2
+      - gch9p7
+    udp: true
+    max-open-streams: 20

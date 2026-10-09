@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "ct-01.gktnpz.example.net",
+      "443",
+      "uY3bzTtZg5PWo0Gu"
+    ],
+    "name": "NL-wmkko5-50",
+    "params": {
+      "skip-cert-verify": "true",
+      "tls-name": "img.mfq6v7gy31.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "exp-37.msqhu.example.net",
+      "443",
+      "Q0TFWQNDf9Objj0W"
+    ],
+    "name": "GB-g2r5-48",
+    "params": {
+      "host": "www.lyoh8.example.net",
+      "path": "/h1xonc/ytq25w0leh",
+      "tls-name": "www.lyoh8.example.net",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

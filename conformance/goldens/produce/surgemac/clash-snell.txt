@@ -1,0 +1,5 @@
+HK-rhm6-27=snell,ra-32.h0tg9ic.example.org,48974,version=1,psk="6Q4HRMpMpQCcCXIuY8tH",obfs=http,obfs-host=cdn.c63carmp78.example.com
+GB-kqh1gc-35=snell,pm-08.opgo1xb.example.net,59047,version=2,psk="gyR7URAUQAEbWH7sPU9e",obfs=http,obfs-host=api.bel58blvlj.example.net
+CA-ev71-65=snell,bm-26.r14jdl4e.example.com,58173,version=3,psk="n9DfzukgsdkhYkLycGRK",obfs=http,obfs-host=www.g0pcoj.example.com
+JP-o1zi-67=snell,o5q-03.m5u4.example.net,16923,version=4,psk="ICuSeaJfGTwP5kRTgkrh"
+SG-x2h44-62=snell,n9-39.sw475vr.example.org,27700,version=5,psk="eR2nBQ7LjZmeB66nHlNr"

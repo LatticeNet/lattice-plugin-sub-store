@@ -1,0 +1,2 @@
+AU-htj-64=anytls,qrg-20.nc9x.example.net,443,password="PJLn2tDSGfWvqS3p7dv0",sni="api.abdoopble.example.com",skip-cert-verify=false,udp-relay=true
+FR-mnt-40=anytls,s1-33.kogex.example.org,443,password="zD32rCAiPcky6yiH8eWx",sni="api.m123qkb.example.org",skip-cert-verify=false,udp-relay=true

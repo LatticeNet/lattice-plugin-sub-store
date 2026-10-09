@@ -1,0 +1,1 @@
+DE-mpzqj-17=Hysteria2,ea-12.a5gk98h2.example.net,443,"1IIiWOkEq6ROLNHa9ym5",tls-name=cdn.vw2osf1x3p.example.com,skip-cert-verify=false,salamander-password=xXQDOuEUnq5oxkX3,fast-open=false,udp=true

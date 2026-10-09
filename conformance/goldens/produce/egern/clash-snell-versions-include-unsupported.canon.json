@@ -1,0 +1,35 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "AU-voji-39",
+        "port": 44923,
+        "psk": "qy4Ski0CRbGm7cZh3dsR",
+        "server": "plt-35.fr9ce.example.com",
+        "tfo": false,
+        "version": 1
+      }
+    },
+    {
+      "snell": {
+        "name": "SG-kau-01",
+        "port": 12361,
+        "psk": "9XKg0BnUWylNk0MI5SRO",
+        "server": "hl6-08.vqbj.example.net",
+        "tfo": false,
+        "version": 2
+      }
+    },
+    {
+      "snell": {
+        "name": "CA-cpszh-53",
+        "port": 42820,
+        "psk": "PiOQ8ZkWtdHzke3JjM8D",
+        "server": "eod-34.v0aybnc.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 5
+      }
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+[
+  {
+    "fragment": "JP-kheg-39",
+    "host": "vko-36.wx04c.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "T8pgaHBbnRSiQZ2WyKmcDmNNyPlTjbOQosj2Y_DDKwQ"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "f55db336"
+      ],
+      [
+        "sni",
+        "static.svxk81.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "56846b9c-0cc0-4e6f-858e-d8b398d5dc89"
+  },
+  {
+    "fragment": "JP-fckt-50",
+    "host": "br-26.hq2o538.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.z42yip5q6.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "lFV1bVIWHZwLbmTy"
+  },
+  {
+    "fragment": "SG-x0pl-12",
+    "host": "u3d-32.d1kvbm.example.org",
+    "path": "",
+    "port": "56005",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206cnE4TXJBb0V4QTdsbnU=",
+    "userinfo_base64": "aes-128-gcm:rq8MrAoExA7lnu"
+  },
+  {
+    "body": {
+      "add": "zh-10.jyt81ic.example.com",
+      "aid": "0",
+      "id": "71238152-25a5-4919-af05-50046127840d",
+      "net": "tcp",
+      "port": "443",
+      "ps": "GB-s1w-39",
+      "scy": "none",
+      "sni": "static.jmolihi.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "fragment": "KR-logo1-06",
+    "host": "cze-20.sxdhx8.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.uzyhj.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "XksBeWvF8IOR34qt1nH9"
+  },
+  {
+    "fragment": "SG-lui-26",
+    "host": "si-34.ge2k66hu.example.org",
+    "path": "",
+    "port": "26289",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206VlZHYU9lNGJDMGZJRjg=",
+    "userinfo_base64": "aes-128-gcm:VVGaOe4bC0fIF8"
+  }
+]

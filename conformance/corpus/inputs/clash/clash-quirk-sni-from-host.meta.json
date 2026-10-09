@@ -1,0 +1,9 @@
+{
+  "id": "clash-quirk-sni-from-host",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "sni-derivation",
+  "description": "TLS without sni; the reader derives it from the ws Host header or the server name."
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "cipher": "aes-256-gcm",
+    "name": "NL-gjx-28",
+    "network": "ws",
+    "password": "NWK7YAngJaA9OC",
+    "port": 22070,
+    "server": "stt-32.z59voz2.example.net",
+    "skip-cert-verify": false,
+    "type": "ss",
+    "udp": true,
+    "ws-opts": {
+      "early-data-header-name": "Sec-WebSocket-Protocol",
+      "headers": {
+        "Host": "stt-32.z59voz2.example.net"
+      },
+      "max-early-data": 2048,
+      "path": "/cix90cjon"
+    }
+  }
+]

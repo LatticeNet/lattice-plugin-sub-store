@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-nkn46-03",
+      "type": "hysteria",
+      "server": "m6-39.trbk.example.net",
+      "server_port": 29836,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.xz02a.example.net",
+        "insecure": false
+      },
+      "auth_str": "MZURz8UXO1s6MWpC",
+      "up_mbps": null,
+      "down_mbps": null
+    }
+  ],
+  "endpoints": []
+}

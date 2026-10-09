@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-y3n-41",
+      "type": "vless",
+      "server": "hc-40.nc5igzur.example.org",
+      "server_port": 443,
+      "uuid": "b2db72da-0421-48df-b34b-b536eca4d3f8",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.n2x9vi.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "certificate_server_name": "img.gx3fkjiqom.example.com"
+      }
+    }
+  ],
+  "endpoints": []
+}

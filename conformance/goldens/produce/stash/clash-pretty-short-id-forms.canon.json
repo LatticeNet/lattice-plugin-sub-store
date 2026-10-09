@@ -1,0 +1,52 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "name": "GB-j4jbp-16",
+      "network": "tcp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "dxPZYhDvIeLZ761HJirAZz4EbYetSR6NZlnhvQgTQTo",
+        "short-id": "04"
+      },
+      "server": "xa-19.fz1x.example.com",
+      "servername": "img.esiuqo7.example.net",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "0e526871-862b-4d73-a848-aab3ea993bdf"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "name": "US-t0mf3n-79",
+      "network": "tcp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "bp3s-aoBX2vXeeqAx5K8Nv7v8VL-y5OEQYYDX3FJlDc",
+        "short-id": "2472"
+      },
+      "server": "tqw-07.pqvs.example.org",
+      "servername": "static.rrxh5ypyk.example.com",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "ba94dd39-fe0f-4749-b544-3228372c6101"
+    },
+    {
+      "client-fingerprint": "chrome",
+      "name": "JP-vfsdd-25",
+      "network": "tcp",
+      "port": 443,
+      "reality-opts": {
+        "public-key": "nUFeuc8He7RDI_LsYlLLB5ot2_N_rPjxEoiwFIXZcPE",
+        "short-id": ""
+      },
+      "server": "l8c-36.h50kejm.example.net",
+      "servername": "static.g0xektbde.example.com",
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "a1cc7a5c-b9ac-4d5a-99e1-4444a17a2999"
+    }
+  ]
+}

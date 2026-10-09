@@ -1,0 +1,9 @@
+{
+  "id": "surge-ss-unknown-cipher",
+  "family": "surge",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "unknown-cipher",
+  "description": "encrypt-method=2022-blake3-chacha20-poly1305, which is not in the Surge list: cipher is absent."
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "ei-13.y2nd0g.example.org",
+      "443",
+      "auto",
+      "d6179057-84a8-4647-9d34-691ebf2c8e7e"
+    ],
+    "name": "TW-xk9-16",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "over-tls": "true",
+      "tls-name": "www.l24sjs8j.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

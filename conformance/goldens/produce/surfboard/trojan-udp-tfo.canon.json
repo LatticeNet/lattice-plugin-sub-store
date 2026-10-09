@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "u2l-25.nave.example.org",
+      "443"
+    ],
+    "name": "NL-iyg-35",
+    "params": {
+      "password": "5Q3Okkl4B6XFYtv1",
+      "sni": "cdn.jvk2wurwv.example.org",
+      "tfo": "true",
+      "tls": "true",
+      "udp-relay": "false"
+    },
+    "type": "trojan"
+  }
+]

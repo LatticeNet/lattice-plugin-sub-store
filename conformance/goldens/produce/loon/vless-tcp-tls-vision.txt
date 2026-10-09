@@ -1,0 +1,1 @@
+SG-qqz-51=vless,jam-37.r0ecy.example.com,443,"f8db7cb5-5151-4acc-b72c-ca55afc4022c",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",flow=xtls-rprx-vision,tls-name=static.ooqjd.example.org,udp=true

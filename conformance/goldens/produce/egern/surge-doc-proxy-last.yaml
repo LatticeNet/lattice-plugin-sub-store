@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"HK-jscx-03","method":"aes-128-gcm","server":"vu3-01.e7b60u5.example.org","port":32470,"password":"F92aTOMG5tnYx1","tfo":false,"udp_relay":true}}
+  - {"trojan":{"name":"NL-gblee-19","server":"f8j-38.pujymc1.example.net","port":443,"password":"loD9lFOy1tBHPvkb","tfo":false,"udp_relay":true,"sni":"static.jj1xaxhl.example.net"}}

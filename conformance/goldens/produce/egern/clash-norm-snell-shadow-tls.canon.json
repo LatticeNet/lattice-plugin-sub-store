@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "US-hrzu1-40",
+        "port": 443,
+        "psk": "fs4dQCnc0K27Snsb0pa4",
+        "server": "xe-40.qjvo2.example.org",
+        "shadow_tls": {
+          "password": "JyusLIVRCdQytKeC",
+          "sni": "api.pc9gay6ya.example.com"
+        },
+        "tfo": false,
+        "udp_relay": true,
+        "version": 4
+      }
+    }
+  ]
+}

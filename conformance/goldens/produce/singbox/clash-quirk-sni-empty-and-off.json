@@ -1,0 +1,43 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-jnlp-45",
+      "type": "trojan",
+      "server": "hs7-14.fbk5i4m.example.net",
+      "server_port": 443,
+      "password": "joCobve956pHGbOP",
+      "tls": {
+        "enabled": true,
+        "server_name": "hs7-14.fbk5i4m.example.net",
+        "insecure": false,
+        "disable_sni": true
+      }
+    },
+    {
+      "tag": "US-udm43-99",
+      "type": "trojan",
+      "server": "cm-29.o4a6p.example.org",
+      "server_port": 443,
+      "password": "rRZddt7F6fbdqRuD",
+      "tls": {
+        "enabled": true,
+        "server_name": "off",
+        "insecure": false,
+        "disable_sni": true
+      }
+    },
+    {
+      "tag": "HK-av3-92",
+      "type": "vless",
+      "server": "oyc-16.u9lrca1q.example.org",
+      "server_port": 443,
+      "uuid": "72a8e00b-8c2d-4e2f-80fa-592feab63300",
+      "tls": {
+        "enabled": true,
+        "server_name": "oyc-16.u9lrca1q.example.org",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

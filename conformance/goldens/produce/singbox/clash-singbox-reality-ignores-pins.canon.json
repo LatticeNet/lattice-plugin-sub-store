@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "wu-38.euvmfc6.example.com",
+      "server_port": 443,
+      "tag": "NL-aubv0-64",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "2eoGiDdAjppnR9VLLP_GhA9eTuo8xyhhBO9Syc-sj8A",
+          "short_id": "e55d3799"
+        },
+        "server_name": "static.bc9l6j77.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "36c5070e-ab86-4902-b8b8-c21e8e439fd4"
+    }
+  ]
+}

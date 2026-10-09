@@ -1,0 +1,1 @@
+tuic://d460fbae-3516-46ca-8059-5fc12c392a35:eZWHMzI9K0roXvB1@d7-33.qik8.example.org:443?alpn=h3&congestion_control=cubic&sni=cdn.d33qfam9h6.example.org&udp=true&udp_relay_mode=native#NL-eto-47

@@ -1,0 +1,2 @@
+FR-s4pa-17=hysteria2,a05-26.q0npk.example.net,443,password="H4knqbki5VO6glZ0GAIi",gecko-password="gYN0n7FMODePW3SE",sni="img.dqnh2.example.org"
+US-rzgm8-24=hysteria2,j6-16.pt0d.example.com,443,password="Bswmsu7Dabu1mM7QmduP",gecko-password="ZOkZD2ADUQ6tUiPg",sni="www.jxgptr7.example.net"

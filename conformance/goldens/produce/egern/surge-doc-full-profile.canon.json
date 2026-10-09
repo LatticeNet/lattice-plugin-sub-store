@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "AU-tx3-71",
+        "password": "i0Xuxu3C1Z8mZe",
+        "port": 34588,
+        "server": "v5-05.qb5b.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "TW-cdnh-17",
+        "password": "RbyQZY56IcdRRx5v",
+        "port": 443,
+        "server": "bun-09.kwq8.example.net",
+        "sni": "cdn.bskwnh8rfx.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

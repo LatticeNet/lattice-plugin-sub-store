@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "h3a-14.by3uil1v.example.net",
+      "13435",
+      "chacha20-ietf-poly1305",
+      "saTix03A7LqJTt"
+    ],
+    "name": "US-bzxjjw-87",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

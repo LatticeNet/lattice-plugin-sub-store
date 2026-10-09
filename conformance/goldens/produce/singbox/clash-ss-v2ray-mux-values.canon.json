@@ -1,0 +1,77 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-256-gcm",
+      "multiplex": {
+        "enabled": true
+      },
+      "password": "aTdPf3X2FRrvxhED",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=www.eq7ky3.example.net;mode=websocket;mux=1;path=/fro/pmipe3a;tls",
+      "server": "uyv-27.lk8b.example.net",
+      "server_port": 443,
+      "tag": "TW-qts-23",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-gcm",
+      "password": "2pZqhZqcqNO4aPs7",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=static.p5amke1.example.net;mode=websocket;mux=0;path=/p02pq64z7;tls",
+      "server": "fut-07.d11011qg.example.org",
+      "server_port": 443,
+      "tag": "NL-gsji0u-42",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-gcm",
+      "multiplex": {
+        "enabled": true
+      },
+      "password": "yxQ2a3fHYiDfeegK",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=img.oouls25938.example.com;mode=websocket;mux=1;path=/d72z/becp0c;tls",
+      "server": "uq5-32.ruww3h1.example.net",
+      "server_port": 443,
+      "tag": "HK-q2n-72",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-gcm",
+      "password": "LWAtGEcrGYovC5gR",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=static.a8adea8px.example.net;mode=websocket;mux=0;path=/s8l7um/hqy6oj1kz;tls",
+      "server": "ha-35.m3mt.example.com",
+      "server_port": 443,
+      "tag": "DE-ev25mc-51",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-gcm",
+      "multiplex": {
+        "enabled": true
+      },
+      "password": "0MAr1f8f041HlhIs",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=api.nziz93gqf.example.net;mode=websocket;mux=1;path=/ch2jp35t;tls",
+      "server": "b2g-29.rf4n.example.org",
+      "server_port": 443,
+      "tag": "NL-au68og-84",
+      "type": "shadowsocks"
+    },
+    {
+      "method": "aes-256-gcm",
+      "multiplex": {
+        "enabled": true
+      },
+      "password": "nB87bH7z8D1rRrrD",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=www.fjfyh.example.com;mode=websocket;mux=1;path=/u8s8x3;tls",
+      "server": "kd-36.kryii4.example.net",
+      "server_port": 443,
+      "tag": "AU-xnc9-71",
+      "type": "shadowsocks"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "is-28.lree.example.org",
+      "26241",
+      "aes-128-gcm",
+      "rfrwJIQ8mprzJQ"
+    ],
+    "name": "CA-e44-62",
+    "params": {
+      "block-quic": "true",
+      "ip-mode": "v4-only",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

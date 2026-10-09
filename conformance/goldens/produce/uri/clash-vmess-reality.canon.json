@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "FR-w58zd-41",
+    "host": "nq-33.xwwdgm4.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "auto"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "6EC-s4L-Ektr8wxEyKG6gxEVbldWLckdisaAaGeNHxE"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "29f1c4db"
+      ],
+      [
+        "sni",
+        "img.v5muog5j0.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vmess",
+    "userinfo": "a42be7b0-8e81-4442-ae42-e9487199226b"
+  }
+]

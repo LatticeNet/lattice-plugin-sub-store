@@ -1,0 +1,3 @@
+proxies:
+  - {"ip":"10.62.213.85","ipv6":"fd00:2a0d::e32","name":"HK-z9kib-51","port":51820,"private-key":"CzWYNoo2tFnVTknmWB0FYPOL2Y0gAM0qurdfhjTWdPw=","public-key":"oyiYyfyZhBjaHHoiJ5xjaeukQl3v+0D9vtbqw5nQGuo=","server":"k8-23.iefkaz2.example.com","type":"wireguard","udp":true}
+  - {"ip":"xhs82","name":"CA-cvee-04","port":51820,"private-key":"Gy3ZPk2zUnhR9lt8Ab1VnPi2UbIMhRJvuiM5aZMtX+U=","public-key":"Xjv4vaWAuSn0vvB0bC5mpjjTnzkOiYe9abu+Od7rnrI=","server":"fxv-34.sjojf.example.org","type":"wireguard","udp":true}

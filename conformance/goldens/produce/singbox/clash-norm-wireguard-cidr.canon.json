@@ -1,0 +1,43 @@
+{
+  "endpoints": [
+    {
+      "address": [
+        "10.25.96.50/24",
+        "fd00:9946::7d85/64"
+      ],
+      "peers": [
+        {
+          "address": "e8-16.m20ou6xn.example.net",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "public_key": "/nqClJ80dP4ekzZ3xoIX8icmSpTyyOVnxyqhivPtBG8="
+        }
+      ],
+      "private_key": "RkcYtgRmnY/uG61FlNPyYxoBEIem3rMIBvLzgPzgLfs=",
+      "system": false,
+      "tag": "GB-itui-59",
+      "type": "wireguard"
+    },
+    {
+      "address": [],
+      "peers": [
+        {
+          "address": "nwc-26.vov4gi.example.com",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "port": 51820,
+          "public_key": "FIdxltC6QoGSyeWNyl2ph9NgFRh68sdh2BafByfZiE8="
+        }
+      ],
+      "private_key": "GgUjMYoUAYyQQckatAPw2RN8dAtd3zweLXD6GvkH0Rc=",
+      "system": false,
+      "tag": "TW-lql-28",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

@@ -1,0 +1,29 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-caxc0-59",
+      "type": "vless",
+      "server": "uw-19.sjh726zc.example.net",
+      "server_port": 443,
+      "uuid": "b00f0c79-f649-44af-925c-4e6d05ba7bf6",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.mpluewkbpx.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "ech": {
+          "enabled": true,
+          "query_server_name": "static.nvb3a.example.org"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

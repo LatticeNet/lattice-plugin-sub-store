@@ -1,0 +1,23 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "congestion_control": "bbr",
+      "password": "wwW951G3pYb2fO4d",
+      "server": "yk-27.undo.example.com",
+      "server_port": 443,
+      "tag": "DE-ef8y-71",
+      "tls": {
+        "alpn": [
+          "h3"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.ji7v4na.example.com"
+      },
+      "type": "tuic",
+      "uuid": "c10f0629-f89a-499a-9e8a-d9c96a95a37b",
+      "zero_rtt_handshake": true
+    }
+  ]
+}

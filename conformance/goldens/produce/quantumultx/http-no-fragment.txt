@@ -1,0 +1,1 @@
+http=kuj-37.whmza.example.org:8080,over-tls=false,udp-relay=true,tag=http kuj-37.whmza.example.org:8080

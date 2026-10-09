@@ -34,7 +34,7 @@ import (
 const (
 	pluginID             = "latticenet.sub-store"
 	pluginName           = "Sub-Store companion"
-	pluginVersion        = "0.16.0-alpha.4"
+	pluginVersion        = "0.17.0-alpha.1"
 	pipelineRecordsKey   = "engine-pipelines-v1"
 	maxExportLinks       = 10_000
 	maxExportBytes       = 1 << 20
@@ -100,15 +100,16 @@ type pipelineRecordListItem struct {
 	OperatorCount int    `json:"operator_count"`
 }
 
-// hostFrameCap is how big one host-channel frame may get here. The SDK's
-// host-response default is 4 MiB since the v2 runtime, but the request side
-// still defaults to 1 MiB (DefaultMaxRequestBytes), and that was fine until
-// the record store grew: one kv.get of the store document base64's to 1.4×
-// its size, so past ~770 KiB of store every call answered "bufio.Scanner:
-// token too long" and the plugin died mid-invocation (2026-08-11,
-// production). 4 MiB covers the 1 MiB store cap as base64 with envelope
-// headroom so a big backup import fits too.
-const hostFrameCap = 4 << 20
+// hostFrameCap is how big one frame on the invocation channel may get here.
+// The SDK's request side defaults to 1 MiB (DefaultMaxRequestBytes), and that
+// was fine until the record store grew: one kv.get of the store document
+// base64's to 1.4 times its size, so past about 770 KiB of store every call
+// answered "bufio.Scanner: token too long" and the plugin died mid-invocation
+// (2026-08-11, production). The core now sends a render request of up to
+// model.MaxSubscriptionRequestBytes (8 MiB, a 4 MiB snapshot envelope JSON
+// escaped) and a convert request of up to model.MaxConvertRequestBytes
+// (6 MiB), so the cap is the larger of those plus the frame envelope.
+const hostFrameCap = 12 << 20
 
 func main() {
 	if err := servePluginV2(context.Background(), os.Stdin, os.Stdout, os.Getenv); err != nil {
@@ -128,14 +129,21 @@ func servePluginV2(ctx context.Context, in io.Reader, out io.Writer, getenv func
 	// before traffic); after it, every scriptless call answers warm.
 	go func() { _ = engine.prewarm() }()
 	base := &runtime{engine: engine}
-	rt := latticeplugin.NewRuntime(latticeplugin.RuntimeOptions{
+	rt := latticeplugin.NewRuntime(pluginRuntimeOptions(in, out))
+	defer rt.Close()
+	return rt.ServeV2(ctx, invocationHandler(base), generation)
+}
+
+// pluginRuntimeOptions is the transport production serves with. A test that
+// drives the framed transport swaps the host for a pipe and keeps the rest,
+// the frame cap included.
+func pluginRuntimeOptions(in io.Reader, out io.Writer) latticeplugin.RuntimeOptions {
+	return latticeplugin.RuntimeOptions{
 		In:              in,
 		Out:             out,
 		OpenHostFromEnv: true,
 		MaxRequestBytes: hostFrameCap,
-	})
-	defer rt.Close()
-	return rt.ServeV2(ctx, invocationHandler(base), generation)
+	}
 }
 
 func parseRuntimeV2Environment(getenv func(string) string) (uint64, error) {
@@ -181,6 +189,12 @@ func serveInvocation(engine *subStoreEngine, host hostCaller, req request) respo
 type runtime struct {
 	host   hostCaller
 	engine *subStoreEngine
+	// legacy caches the legacy document for one invocation, so a store that
+	// has not migrated pays its read once rather than once per record.
+	legacy legacyCache
+	// settings caches the settings document for one invocation, so a
+	// collection of remote members reads the default agent once.
+	settings settingsCache
 }
 
 type hostCaller interface {
@@ -660,6 +674,14 @@ func (rt *runtime) kvPut(key string, value []byte) error {
 		"key":          key,
 		"value_base64": base64.StdEncoding.EncodeToString(value),
 	})
+	return err
+}
+
+// kvDelete removes one key. It speaks the SDK's kv.delete exactly as
+// HostClient.KVDelete does, through the runtime's host seam so a test host
+// counts it like every other call. Deleting a missing key is not an error.
+func (rt *runtime) kvDelete(key string) error {
+	_, err := rt.callHost(latticeplugin.HostMethodKVDelete, map[string]any{"key": key})
 	return err
 }
 

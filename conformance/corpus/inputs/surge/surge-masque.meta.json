@@ -1,0 +1,8 @@
+{
+  "id": "surge-masque",
+  "family": "surge",
+  "protocol": "masque",
+  "transport": "quic",
+  "security": "tls",
+  "description": "Surge masque with credentials and port-hopping-interval."
+}

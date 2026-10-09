@@ -1,0 +1,23 @@
+[
+  {
+    "args": [],
+    "name": "HK-z9kib-51",
+    "params": {
+      "interface-ip": "10.62.213.85",
+      "interface-ipv6": "fd00:2a0d::e32",
+      "peers": "[{public-key=\"oyiYyfyZhBjaHHoiJ5xjaeukQl3v+0D9vtbqw5nQGuo=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=k8-23.iefkaz2.example.com:51820}]",
+      "private-key": "CzWYNoo2tFnVTknmWB0FYPOL2Y0gAM0qurdfhjTWdPw="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "CA-cvee-04",
+    "params": {
+      "interface-ip": "xhs82",
+      "peers": "[{public-key=\"Xjv4vaWAuSn0vvB0bC5mpjjTnzkOiYe9abu+Od7rnrI=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=fxv-34.sjojf.example.org:51820}]",
+      "private-key": "Gy3ZPk2zUnhR9lt8Ab1VnPi2UbIMhRJvuiM5aZMtX+U="
+    },
+    "type": "wireguard"
+  }
+]

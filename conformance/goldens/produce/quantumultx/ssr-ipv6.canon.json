@@ -1,0 +1,16 @@
+[
+  {
+    "address": "2001:db8:4504:7576::5d4a:15683",
+    "args": [],
+    "params": {
+      "method": "aes-128-cfb",
+      "obfs": "plain",
+      "obfs-host": "api.ih9gp.example.com",
+      "password": "rcFtHdIJ2k06",
+      "ssr-protocol": "origin",
+      "tag": "[2001:db8:4504:7576::5d4a]",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

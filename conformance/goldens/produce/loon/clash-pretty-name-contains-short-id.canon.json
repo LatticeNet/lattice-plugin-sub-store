@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "jhs-40.ixwhbpn.example.net",
+      "443",
+      "a0da4f1d-63c0-43f2-b194-924674712637"
+    ],
+    "name": "short-id: fzpp",
+    "params": {
+      "over-tls": "true",
+      "public-key": "kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE",
+      "short-id": "8d112c21",
+      "sni": "api.ncfc5tg.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

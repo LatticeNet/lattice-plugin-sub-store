@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-ahs6-94",
+      "type": "shadowsocks",
+      "server": "vv4-07.bwxx.example.com",
+      "server_port": 43689,
+      "method": "none",
+      "password": ""
+    }
+  ],
+  "endpoints": []
+}

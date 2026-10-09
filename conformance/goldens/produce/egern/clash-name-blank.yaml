@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"trojan fqu-05.gkq008mx.example.net:443","server":"fqu-05.gkq008mx.example.net","port":443,"password":"NHf9rBYljVdtJehr","tfo":false,"udp_relay":true,"sni":"static.grofr.example.org"}}
+  - {"trojan":{"name":"trojan yp-22.onpzeo.example.com:443","server":"yp-22.onpzeo.example.com","port":443,"password":"6HnaJbaINQaGBUdR","tfo":false,"udp_relay":true,"sni":"www.nn9zf.example.net"}}

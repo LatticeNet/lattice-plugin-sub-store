@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "ip": "10.0.92.165/32",
+      "name": "SG-hpjmwu-57",
+      "port": 51820,
+      "private-key": "undefined",
+      "public-key": "8LsHaJEyLaMqY1L7gW6cag0RfYlg8ccbuJ4MVLUEaiI=",
+      "server": "k95-36.hs4w7i.example.com",
+      "type": "wireguard",
+      "udp": true
+    }
+  ]
+}

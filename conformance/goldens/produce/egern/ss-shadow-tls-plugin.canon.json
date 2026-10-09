@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "2022-blake3-aes-128-gcm",
+        "name": "KR-qk6-89",
+        "password": "IOxAxDp0UwYKIdSPz55N9A==",
+        "port": 443,
+        "server": "d0-09.xvx49.example.org",
+        "shadow_tls": {
+          "password": "vEWeernNDjSYNe0O",
+          "sni": "www.ukc5nfbm3m.example.org"
+        },
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+US-hilk-85=trojan,umm-36.imjd.example.net,443,password="NJBWrIzIMGyilHmy",tls=true,sni="api.de4hx.example.com"

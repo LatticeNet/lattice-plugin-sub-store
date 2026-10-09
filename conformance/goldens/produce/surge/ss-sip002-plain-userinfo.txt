@@ -1,0 +1,1 @@
+AU-qsa-88=ss,yp-02.if8lse.example.org,28238,encrypt-method=chacha20-ietf-poly1305,password="v9OkbPqqHAZGWPr1",udp-relay=true

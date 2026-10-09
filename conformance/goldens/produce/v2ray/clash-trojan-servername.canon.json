@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "GB-ypr0ot-83",
+    "host": "hp-05.gks3u9.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "hp-05.gks3u9.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "pFz9FbdHbazUQpJZ"
+  }
+]

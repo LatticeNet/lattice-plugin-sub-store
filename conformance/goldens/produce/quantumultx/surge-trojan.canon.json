@@ -1,0 +1,15 @@
+[
+  {
+    "address": "jk5-23.fvpc.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "Dw9cWcvIBMcXkupU",
+      "tag": "DE-n3mife-19",
+      "tls-host": "api.b0h8ez454.example.com",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

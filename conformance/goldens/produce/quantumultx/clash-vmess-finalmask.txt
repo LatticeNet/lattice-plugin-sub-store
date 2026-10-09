@@ -1,0 +1,1 @@
+vmess=f2-35.rug0aa.example.com:443,method=chacha20-poly1305,password=0a8a14d6-5fe1-47a4-b391-8e32145eedb9,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=www.pj3n2fe.example.com,aead=true,udp-relay=true,tag=SG-qa5-45

@@ -1,0 +1,2 @@
+shadowsocks=y5x-06.qsbxmtn.example.org:34163,method=aes-128-gcm,password=WCk5pgZGKDGMo1,fast-open=false,udp-relay=true,tag=CA-gki4-71
+shadowsocks=pl3-12.rvki6p41.example.com:55339,method=2022-blake3-aes-128-gcm,password=NIFm94rVMD3O2AH3m+kvdw==,udp-relay=true,tag=GB-t54-55

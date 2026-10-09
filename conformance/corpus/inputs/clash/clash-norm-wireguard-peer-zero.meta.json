@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-wireguard-peer-zero",
+  "family": "clash",
+  "protocol": "wireguard",
+  "quirk": "wireguard-peer-zero",
+  "description": "N35: WireGuard without node addresses whose first peer has no address and whose second has both: the addresses come from the first peer, so the node gets none (quirk)."
+}

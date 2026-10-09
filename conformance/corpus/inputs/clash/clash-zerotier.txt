@@ -1,0 +1,5 @@
+proxies:
+  - name: US-l5ssw-13
+    type: zerotier
+    network-id: b34777ff60ae5a5c
+    udp: true

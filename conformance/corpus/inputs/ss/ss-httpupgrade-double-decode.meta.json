@@ -1,0 +1,9 @@
+{
+  "id": "ss-httpupgrade-double-decode",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "httpupgrade",
+  "security": "none",
+  "quirk": "host-double-decode",
+  "description": "type=httpupgrade with a host ending in %2525, a path and ed: the host is decoded twice and ends with a single %, and ed gives the HTTPUpgrade fast-open flag and _v2ray-http-upgrade-ed."
+}

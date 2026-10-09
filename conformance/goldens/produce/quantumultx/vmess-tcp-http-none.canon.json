@@ -1,0 +1,17 @@
+[
+  {
+    "address": "d3r-23.er9q6.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "http",
+      "obfs-host": "static.rf5mcrm8wm.example.org",
+      "obfs-uri": "/blc/cpyp",
+      "password": "d45031ed-edbf-4630-9a7e-3ea25d35210d",
+      "tag": "KR-d8v6j-75",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

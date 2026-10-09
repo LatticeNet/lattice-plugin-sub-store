@@ -1,0 +1,9 @@
+{
+  "id": "trojan-security-none",
+  "family": "trojan",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "security-none",
+  "description": "security=none on a protocol that implies TLS."
+}

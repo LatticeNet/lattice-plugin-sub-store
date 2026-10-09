@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "7HS5JSFsX9d7nVF2",
+      "server": "h83-35.dddyb.example.net",
+      "server_port": 443,
+      "tag": "US-azqyme-37",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Y-oqjpzvrEFhzsNYdKxrM2e6U5TlygyE9xcNaNucksY",
+          "short_id": "f0fac1e7"
+        },
+        "server_name": "www.rjpp4m.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "trojan"
+    }
+  ]
+}

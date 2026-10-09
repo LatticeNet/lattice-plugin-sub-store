@@ -1,0 +1,58 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "q0iaf",
+      "password": "Bs0eyeXZY2wVdb",
+      "port": 59729,
+      "server": "x20-02.n3yn8l1.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "uiv3ylf",
+      "password": "RkZJjD4CjenlRK",
+      "port": 15003,
+      "server": "s4-21.ug12smk.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "ss tb-31.uxxfa.example.com:11770",
+      "password": "jF5MfEg7XjE79E",
+      "port": 11770,
+      "server": "tb-31.uxxfa.example.com",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "ss tpd-07.ezln.example.com:34430",
+      "password": "XDjDYeFfH7DLe6",
+      "port": 34430,
+      "server": "tpd-07.ezln.example.com",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "6916",
+      "password": "RJ96QClwTTf8Zc",
+      "port": 25237,
+      "server": "t7m-12.ta0dvm.example.org",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "ss j01-23.b75w.example.net:36055",
+      "password": "fOAmbK1CKzQpj4",
+      "port": 36055,
+      "server": "j01-23.b75w.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

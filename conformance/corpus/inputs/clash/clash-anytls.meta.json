@@ -1,0 +1,8 @@
+{
+  "id": "clash-anytls",
+  "family": "clash",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "AnyTLS with idle session tuning."
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "ok-34.w6xwil.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "img.rsvilob.example.com",
+      "id": "000b0651-b029-4c70-8287-7e117f38cb56",
+      "net": "tcp",
+      "path": "/jg4g",
+      "port": "443",
+      "ps": "JP-h6jaf0-06",
+      "scy": "auto",
+      "sni": "img.rsvilob.example.com",
+      "tls": "tls",
+      "type": "http",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

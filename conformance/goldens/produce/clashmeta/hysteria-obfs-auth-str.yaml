@@ -1,0 +1,2 @@
+proxies:
+  - {"auth-str":"b6y1LjqiDr3JpbFN","down":"80","name":"KR-bawy-93","obfs":"UwNBvR4dhTjf","port":11795,"protocol":"udp","server":"by-05.sxhabqpu.example.com","sni":"api.aoey7lq4p.example.com","type":"hysteria","udp":true,"up":"20"}

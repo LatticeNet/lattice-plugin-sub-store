@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-shadow-tls-h2",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "h2",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-opts",
+  "description": "vless h2 with shadow-tls-opts."
+}

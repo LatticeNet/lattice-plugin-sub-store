@@ -1,0 +1,14 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "DE-kmsvq4-78",
+    "network": "tcp",
+    "port": 443,
+    "server": "y66-38.inbufi2.example.net",
+    "tls": false,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "d586cf7b-aa1f-4314-84df-a94b6c7ffde4"
+  }
+]

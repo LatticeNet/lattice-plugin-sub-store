@@ -1,0 +1,102 @@
+[
+  {
+    "fragment": "AU-pnw4-54",
+    "host": "a3-27.acgmr.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"scMaxEachPostBytes\":\"1000-2000\",\"xmux\":{\"maxConnections\":\"16-32\",\"hKeepAlivePeriod\":30}}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/zl19"
+      ],
+      [
+        "pbk",
+        "0IEKpPNyJxLbBKDQQHMlBMxYXdTIJM2xxjBBzy-jTVM"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "40ef9828"
+      ],
+      [
+        "sni",
+        "img.ylx0bqftm9.example.org"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "2ce1df91-ad5d-44f4-a325-b7df9801c023"
+  },
+  {
+    "fragment": "SG-zla4t-17",
+    "host": "hj-06.jfepn.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "extra",
+        "{\"xPaddingBytes\":\"2000-1000\"}"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "mode",
+        "packet-up"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/dp96nska2"
+      ],
+      [
+        "pbk",
+        "jhmzvuY77XcGOfno1No20qGgxgHTnivlWxM3pvii9F8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "acf66ac6"
+      ],
+      [
+        "sni",
+        "img.p55l8.example.org"
+      ],
+      [
+        "type",
+        "xhttp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "589aba3b-116f-429a-8016-a11025189894"
+  }
+]

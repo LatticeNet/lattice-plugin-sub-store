@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"NL-iyg-35","server":"u2l-25.nave.example.org","port":443,"password":"5Q3Okkl4B6XFYtv1","tfo":true,"udp_relay":false,"sni":"cdn.jvk2wurwv.example.org"}}

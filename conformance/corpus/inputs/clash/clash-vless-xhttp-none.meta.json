@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-xhttp-none",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "xhttp",
+  "security": "none",
+  "description": "mihomo vless proxy over xhttp with security none."
+}

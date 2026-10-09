@@ -1,0 +1,7 @@
+{
+  "id": "clash-doc-duplicate-key-block",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "yaml-duplicate-key-block",
+  "description": "A block-style document whose trojan entry repeats name: the YAML error fails the Clash preprocessor, and the lines type: ss and type: trojan each become a bare node (ss undefined:undefined, trojan undefined:undefined) while - type: vless and the select group yield nothing."
+}

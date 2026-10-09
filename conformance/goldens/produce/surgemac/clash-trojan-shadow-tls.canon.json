@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "i0-17.w4oe.example.net",
+      "443"
+    ],
+    "name": "TW-m5o0-21",
+    "params": {
+      "password": "oX6y6U3NunXBPYcG",
+      "shadow-tls-password": "is4ZqRqigeoIFBat",
+      "shadow-tls-sni": "img.kratp2kn.example.net",
+      "shadow-tls-version": "3",
+      "sni": "img.kratp2kn.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

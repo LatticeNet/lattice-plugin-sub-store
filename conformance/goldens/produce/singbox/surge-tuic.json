@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-va61-64",
+      "type": "tuic",
+      "server": "dp-23.ojwwxjul.example.net",
+      "server_port": 443,
+      "uuid": "4728e15e-50cf-48e9-bcf4-109a73b21ee5",
+      "password": "ANynptDVg71WtZdX",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.vciwrfciu.example.net",
+        "insecure": false,
+        "alpn": [
+          "h3"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "fragment": "DE-of38-16",
+    "host": "t3-06.uk6fxic.example.net",
+    "path": "",
+    "port": "45400",
+    "query": [
+      [
+        "auth",
+        "1BvAeVxGOLa9Li1k"
+      ],
+      [
+        "downmbps",
+        "100 Mbps"
+      ],
+      [
+        "fastopen",
+        "1"
+      ],
+      [
+        "mport",
+        "33137-33146"
+      ],
+      [
+        "peer",
+        "static.jmvmn6obd.example.net"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "recv_window",
+        "52428800"
+      ],
+      [
+        "recv_window-conn",
+        "12582912"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "upmbps",
+        "30 Mbps"
+      ],
+      [
+        "x_e0dev",
+        "tm5is"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

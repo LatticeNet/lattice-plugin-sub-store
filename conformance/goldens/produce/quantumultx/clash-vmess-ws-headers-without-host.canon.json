@@ -1,0 +1,19 @@
+[
+  {
+    "address": "h8-35.ke75.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-uri": "/utg25",
+      "password": "a63ff333-ba61-4ef6-a1fa-b2d5e8d6b680",
+      "tag": "DE-b7miyb-06",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.bxztir.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "kaX16lgCD924",
+      "server": "kf-11.i58wm.example.com",
+      "server_port": 8080,
+      "tag": "HK-mz0r-89",
+      "tcp_fast_open": true,
+      "type": "http",
+      "username": " o052km1"
+    },
+    {
+      "password": "kaX16lgCD924",
+      "server": "kf-11.i58wm.example.com",
+      "server_port": 8080,
+      "tag": "HK-mz0r-89",
+      "type": "http",
+      "username": " o052km1"
+    }
+  ]
+}

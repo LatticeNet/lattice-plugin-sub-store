@@ -1,0 +1,1 @@
+vless=r7-03.i2erek.example.net:443,method=none,password=5f9949e9-6942-4705-aac5-b20178fbf8d9,obfs=wss,obfs-uri=/yp7qbs?ed=gi2i1,obfs-host=api.wcdec4b.example.org,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=api.wcdec4b.example.org,udp-relay=true,tag=DE-mezs9r-33

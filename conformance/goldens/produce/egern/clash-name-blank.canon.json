@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "trojan fqu-05.gkq008mx.example.net:443",
+        "password": "NHf9rBYljVdtJehr",
+        "port": 443,
+        "server": "fqu-05.gkq008mx.example.net",
+        "sni": "static.grofr.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "trojan yp-22.onpzeo.example.com:443",
+        "password": "6HnaJbaINQaGBUdR",
+        "port": 443,
+        "server": "yp-22.onpzeo.example.com",
+        "sni": "www.nn9zf.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

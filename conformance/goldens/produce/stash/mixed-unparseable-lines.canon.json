@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "name": "US-hr20o-56",
+      "network": "tcp",
+      "password": "LUeLHNE8d1oy9IvJ",
+      "port": 443,
+      "server": "p6-38.lmtzlp.example.org",
+      "sni": "static.rvmzabz4i3.example.net",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "auth": "Ed6W7Z5cNQiUnoxukCwd",
+      "fast-open": false,
+      "name": "FR-k6lz-15",
+      "port": 443,
+      "server": "gp-09.lnzh34h.example.com",
+      "skip-cert-verify": false,
+      "sni": "img.jfk8scmbz.example.org",
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

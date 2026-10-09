@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "TW-n4sg-69",
+    "host": "l1-03.zh7zvdv.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "cubic"
+      ],
+      [
+        "exec",
+        "/usr/local/bin/xoif"
+      ],
+      [
+        "sni",
+        "www.vspcc22n.example.com"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "13980a81-2a49-45de-9d78-14135a92db7a:xBFRjdH4b8mIwbA7"
+  }
+]

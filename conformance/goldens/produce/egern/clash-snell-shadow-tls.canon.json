@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "US-wy3-51",
+        "port": 57692,
+        "psk": "NZq6UaXbsTlmroOZ7STZ",
+        "server": "dx-34.uzidmcd.example.org",
+        "shadow_tls": {
+          "password": "ZBhhkwByhlgdUUYT",
+          "sni": "static.jgcbpwv1f3.example.com"
+        },
+        "tfo": false,
+        "udp_relay": true,
+        "version": 4
+      }
+    }
+  ]
+}

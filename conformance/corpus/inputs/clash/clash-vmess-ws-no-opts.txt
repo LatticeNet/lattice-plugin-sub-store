@@ -1,0 +1,10 @@
+proxies:
+  - name: SG-zof-93
+    type: vmess
+    server: si-01.pyt8o.example.com
+    port: 443
+    uuid: e59cbec9-9e75-48b1-8c3b-c5b53fb1de09
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: ws

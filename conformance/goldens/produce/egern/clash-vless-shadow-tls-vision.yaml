@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"US-syz8-29","server":"tcz-29.ppxe.example.net","port":443,"user_id":"03ba6920-4b55-435c-90f5-2dd82536c8dc","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"static.lo63q03r9t.example.com","skip_tls_verify":false}},"flow":"xtls-rprx-vision","shadow_tls":{"password":"vPD6gpNJzyrqSysH","sni":"static.lo63q03r9t.example.com"}}}

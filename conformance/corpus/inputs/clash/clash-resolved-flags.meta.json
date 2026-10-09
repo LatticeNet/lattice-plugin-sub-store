@@ -1,0 +1,9 @@
+{
+  "id": "clash-resolved-flags",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "resolved-flags",
+  "description": "Three nodes with resolved true, false and null."
+}

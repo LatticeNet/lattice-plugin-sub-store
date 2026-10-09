@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "HK-ejulo-15",
+    "host": "ff5-28.t7an.example.org",
+    "path": "",
+    "port": "20000",
+    "query": [
+      [
+        "mport",
+        "20000-30000"
+      ],
+      [
+        "sni",
+        "static.vse2b5.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "EYnXrPpHMB0HZlxIMDfT"
+  }
+]

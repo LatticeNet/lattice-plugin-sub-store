@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "jv-05.vi5q.example.com",
+      "443"
+    ],
+    "name": "JP-nhs7w3-33",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "cdn.g0ri20uyg.example.org",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "a4251e45-8c27-43ce-9bb2-ce33100ace04",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

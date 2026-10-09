@@ -1,0 +1,33 @@
+[
+  {
+    "args": [
+      "ql-28.mfh74.example.org",
+      "443",
+      "4bfba380-5bc4-4df4-86d0-90a44bdaca86"
+    ],
+    "name": "HK-k2i26o-60",
+    "params": {
+      "over-tls": "true",
+      "tls-name": "static.n3c5y9f2.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "args": [
+      "hf-04.l37ml.example.org",
+      "443",
+      "493e1001-6c2d-406a-bdb3-9386878d202f"
+    ],
+    "name": "SG-ujrq5-92",
+    "params": {
+      "over-tls": "true",
+      "path": "/",
+      "tls-name": "api.clpf8qt.example.net",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

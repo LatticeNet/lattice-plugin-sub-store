@@ -1,0 +1,1 @@
+NL-ak1isp-96=ss,mz-06.v4fzlgbl.example.net,443,encrypt-method=aes-128-gcm,password="CPUCbt54Maw3JC",udp-relay=true,shadow-tls-password="6yMGxseYVK5CQkW8",shadow-tls-sni=api.z5h1o.example.com,shadow-tls-version=3

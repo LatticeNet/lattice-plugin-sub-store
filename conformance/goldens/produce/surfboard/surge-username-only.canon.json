@@ -1,0 +1,14 @@
+[
+  {
+    "args": [
+      "dyt-27.fldz.example.com",
+      "80",
+      "fyv7ffic"
+    ],
+    "name": "TW-zy6l-07",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  }
+]

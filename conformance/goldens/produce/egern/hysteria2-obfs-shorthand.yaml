@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"TW-zqdt-64","server":"nw-25.gx808qo.example.net","port":443,"auth":"sPOmVik1yMye21bMsDsr","tfo":false,"udp_relay":true,"sni":"static.refup.example.org","skip_tls_verify":false,"obfs":"salamander","obfs_password":"xVZfLLQWOS2O"}}

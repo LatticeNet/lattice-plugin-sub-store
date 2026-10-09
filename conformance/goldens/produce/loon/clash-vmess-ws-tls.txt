@@ -1,0 +1,1 @@
+TW-xhup-68=vmess,tau-38.aett40.example.net,443,auto,"4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93",transport=ws,path=/kczba7vr,host=static.rooc7abl.example.com,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=static.rooc7abl.example.com,alterId=0,udp=true

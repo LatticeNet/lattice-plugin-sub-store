@@ -1,0 +1,2 @@
+SG-vwk2-66=Hysteria2,ur-40.nw6l.example.net,443,"hF9IuU0ISd7Gz9sI9VrY",tls-name=static.jzfhs115.example.net,fast-open=true,udp=true
+HK-wv1-55=Hysteria2,vr-05.xhjbigia.example.org,443,"4GlcBhFWc9on08dqocz0",tls-name=api.zldsqhz5l.example.net,udp=true

@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "NL-m714hc-32",
+      "type": "anytls",
+      "server": "j4-13.xm3tt.example.org",
+      "server_port": 443,
+      "password": "rvM8Z05R12RcqZmZCiEk",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.s3f3pn.example.com",
+        "insecure": false
+      },
+      "idle_session_check_interval": "30s",
+      "idle_session_timeout": "30s",
+      "min_idle_session": 1
+    }
+  ],
+  "endpoints": []
+}

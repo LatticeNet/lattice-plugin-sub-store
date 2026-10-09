@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "dx-34.uzidmcd.example.org",
+      "57692"
+    ],
+    "name": "US-wy3-51",
+    "params": {
+      "psk": "NZq6UaXbsTlmroOZ7STZ",
+      "udp-relay": "true",
+      "version": "4"
+    },
+    "type": "snell"
+  }
+]

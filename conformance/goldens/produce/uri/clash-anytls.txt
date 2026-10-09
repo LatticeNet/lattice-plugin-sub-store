@@ -1,0 +1,1 @@
+anytls://CD4xeu8GaEFg9Uc7b2yO@hac-37.k2fe.example.com:443?security=tls&type=tcp&packetEncoding=none&alpn=h2&sni=static.ggzzb0.example.net&fp=chrome&idle_session_check_interval=30&idle_session_timeout=30&udp=1#KR-w7e-46

@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "FR-ozyw6h-48",
+    "host": "198.51.100.227",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "pcs",
+        "A7B75AE5BEB27252A005E1D70B80E40E02A4A53161951CE8BF2EE13A2B1C17BD"
+      ],
+      [
+        "sni",
+        "api.meixt51op.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "vcn",
+        "cdn.eo4jw20rg5.example.net"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "2mUxZg0GFFQkZr1P"
+  }
+]

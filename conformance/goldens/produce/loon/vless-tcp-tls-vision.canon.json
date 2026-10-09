@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "jam-37.r0ecy.example.com",
+      "443",
+      "f8db7cb5-5151-4acc-b72c-ca55afc4022c"
+    ],
+    "name": "SG-qqz-51",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "flow": "xtls-rprx-vision",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "static.ooqjd.example.org",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vless"
+  }
+]

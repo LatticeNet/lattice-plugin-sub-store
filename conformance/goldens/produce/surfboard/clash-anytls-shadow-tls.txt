@@ -1,0 +1,1 @@
+AU-qdf2nu-60=anytls,s2-22.kay4.example.org,443,password="pMULWF6GVsIKxHkmeJrH",sni="static.nbazeta.example.com",udp-relay=true

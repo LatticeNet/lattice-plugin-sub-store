@@ -1,0 +1,9 @@
+{
+  "id": "tuic-v4-token",
+  "family": "tuic",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "tuic-v4",
+  "description": "TUIC v4 shape: a token as userinfo."
+}

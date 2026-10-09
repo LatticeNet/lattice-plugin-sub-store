@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "h7-30.d96rhl1.example.net",
+      "443"
+    ],
+    "name": "KR-vm6d-06",
+    "params": {
+      "password": "4CwYU2ZIM7LH4z",
+      "sni": "api.xw11kl7id.example.net",
+      "username": "xucfe"
+    },
+    "type": "trust-tunnel"
+  },
+  {
+    "args": [
+      "ck-23.mwugg250.example.org",
+      "443"
+    ],
+    "name": "TW-rt2do-89",
+    "params": {
+      "headers": "X-Client:\"wonkh4\"",
+      "password": "AYu12nzjxNlnPl",
+      "sni": "ck-23.mwugg250.example.org",
+      "username": "dffvbq"
+    },
+    "type": "trust-tunnel"
+  }
+]

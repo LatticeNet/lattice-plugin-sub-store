@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"GB-z7rol-66:443","server":"ey-03.rkflh.example.net","port":36086,"password":"5ZocLkGvDb1zfs84dU7A","tfo":false,"udp_relay":true,"sni":"ey-03.rkflh.example.net"}}

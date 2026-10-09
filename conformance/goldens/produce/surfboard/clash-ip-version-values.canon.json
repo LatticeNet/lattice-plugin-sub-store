@@ -1,0 +1,100 @@
+[
+  {
+    "args": [
+      "iy-37.dc56k.example.org",
+      "443"
+    ],
+    "name": "HK-cjx-77",
+    "params": {
+      "password": "Drttxdvccwfaxc4e",
+      "sni": "img.aramgppm3.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "fuz-28.uv8ot.example.com",
+      "443"
+    ],
+    "name": "NL-rm1-76",
+    "params": {
+      "password": "Jnuuxv8gZVVRzh2t",
+      "sni": "api.rxocwwswkc.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "xy-34.u6n8sj2n.example.net",
+      "443"
+    ],
+    "name": "SG-cl9-44",
+    "params": {
+      "password": "4Vm2vFAENjt6bylh",
+      "sni": "static.ppsw9hocg.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "uv-23.jocsspi.example.org",
+      "443"
+    ],
+    "name": "HK-n488o-76",
+    "params": {
+      "password": "otgZ2PBAxIKEUXrS",
+      "sni": "cdn.z33tx93cbl.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "xw-05.xstlss.example.net",
+      "443"
+    ],
+    "name": "US-gqu8sb-76",
+    "params": {
+      "password": "1i1Kr6u8pd838AxG",
+      "sni": "cdn.dn2x7pvo.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "c7l-25.ys3mkhv.example.net",
+      "443"
+    ],
+    "name": "AU-wk1-50",
+    "params": {
+      "password": "JCwYvyUPiGX6GDPn",
+      "sni": "cdn.ymq4b.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "hmp-30.q92twj.example.com",
+      "443"
+    ],
+    "name": "GB-qumu-79",
+    "params": {
+      "password": "b3XQHRCGOb8va6mh",
+      "sni": "static.rdwf05uk.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

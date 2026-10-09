@@ -1,0 +1,23 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-w9f9-50",
+      "type": "vmess",
+      "server": "x5-10.v543o.example.org",
+      "server_port": 43099,
+      "uuid": "d4c82b99-ab27-4c78-b7a6-a67a987675aa",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "tag": "TW-sph-32",
+      "type": "vmess",
+      "server": "lh6-09.tkdfx8sd.example.net",
+      "server_port": 51833,
+      "uuid": "ffe806aa-3175-4477-9210-b5ef908b99ac",
+      "security": "chacha20-poly1305",
+      "alter_id": 0
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "fragment": "KR-m37jau-89",
+    "host": "hum-22.nsl1n.example.com",
+    "path": "",
+    "port": "443",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "Og==",
+    "userinfo_base64": ":"
+  }
+]

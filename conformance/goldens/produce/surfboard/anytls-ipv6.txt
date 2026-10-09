@@ -1,0 +1,1 @@
+AU-em7j3s-83=anytls,2001:db8:f051:f0e2::9775,443,password="aTLmH8rMvhzmoueREcQg",sni="www.feai4.example.org",skip-cert-verify=false,udp-relay=true

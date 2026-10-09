@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "CA-zp5-38",
+    "host": "sd-32.hga9.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "ech",
+        "www.bes7m.example.com+https://kz-15.iavn.example.net/dns-query"
+      ],
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.keoob546.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "6040d5b2-dd22-4cdd-858e-88becead8f7d"
+  }
+]

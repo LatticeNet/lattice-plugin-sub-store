@@ -1,0 +1,14 @@
+{
+  "outbounds": [
+    {
+      "tag": "CA-uaxg-47",
+      "type": "vmess",
+      "server": "qb-25.b9184.example.net",
+      "server_port": 443,
+      "uuid": "eaf90f9a-7e2a-493a-9887-b669e8aa7e6b",
+      "security": "auto",
+      "alter_id": 0
+    }
+  ],
+  "endpoints": []
+}

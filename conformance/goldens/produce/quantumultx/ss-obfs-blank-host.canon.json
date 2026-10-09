@@ -1,0 +1,14 @@
+[
+  {
+    "address": "fe-35.h9jtz.example.org:54028",
+    "args": [],
+    "params": {
+      "method": "aes-256-gcm",
+      "obfs": "tls",
+      "password": "JK18oGXD1oVPvp",
+      "tag": "NL-emsp-35",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

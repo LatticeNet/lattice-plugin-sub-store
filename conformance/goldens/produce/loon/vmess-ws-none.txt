@@ -1,0 +1,1 @@
+KR-kqarv-32=vmess,zb-37.bkm1jc04.example.org,443,auto,"466e68b0-f500-4ae2-b943-fba35589f245",transport=ws,path=/l9qryrkj,host=cdn.ntdq7.example.org,over-tls=false,alterId=0,udp=true

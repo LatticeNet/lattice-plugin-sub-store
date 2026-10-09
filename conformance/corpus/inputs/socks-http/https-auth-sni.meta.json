@@ -1,0 +1,8 @@
+{
+  "id": "https-auth-sni",
+  "family": "socks-http",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "https:// with credentials and an sni query."
+}

@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/fastschema/qjs"
 )
 
@@ -163,7 +164,10 @@ type subStoreConversionRequest struct {
 	// combination merges members that arrive in different encodings. Joining
 	// them as text first lost whole members, because the engine recognises a
 	// base64 list or a YAML document only when it is the entire input.
-	RawParts  []string          `json:"raw_parts,omitempty"`
+	RawParts []string `json:"raw_parts,omitempty"`
+	// Nodes, when set, replaces Raw and RawParts: pre-parsed node-model
+	// objects handed straight to the producer (produceNodes).
+	Nodes     []json.RawMessage `json:"nodes,omitempty"`
 	Target    string            `json:"target"`
 	Operators []json.RawMessage `json:"operators,omitempty"`
 	// Options is the produce() opts object — Sub-Store's own flag names, e.g.
@@ -223,6 +227,10 @@ type subStoreConversionResult struct {
 	// have received them anyway.
 	CarrierLostNodeCount int      `json:"carrier_lost_node_count"`
 	CarrierLostProtocols []string `json:"carrier_lost_protocols,omitempty"`
+	// nodes are the native path's nodes after the chain, so a collection
+	// member that ran natively reaches the collection without a URI round
+	// trip. Never set by the bundle and never encoded.
+	nodes []*nodemodel.Node
 }
 
 type subStoreResponseTransformResult struct {
@@ -258,7 +266,35 @@ func newEmbeddedSubStoreEngine() *subStoreEngine {
 	return newSubStoreEngine(embeddedSubStoreCoreJS)
 }
 
-func (engine *subStoreEngine) convert(req subStoreConversionRequest) (result subStoreConversionResult, err error) {
+func (engine *subStoreEngine) convert(req subStoreConversionRequest) (subStoreConversionResult, error) {
+	run := engine.runCoreScript
+	if containsScriptingOperator(req.Operators) {
+		// User JavaScript never touches the warm runtime.
+		run = engine.runIsolatedScript
+	}
+	return engine.convertOn(req, run)
+}
+
+// convertIsolated is convert on the isolated path whatever the chain holds:
+// the whole-chain fallback of the native dispatcher (engine_dispatch.go). It
+// builds the same script convert builds.
+func (engine *subStoreEngine) convertIsolated(req subStoreConversionRequest) (subStoreConversionResult, error) {
+	return engine.convertOn(req, engine.runIsolatedScript)
+}
+
+// produceNodes hands pre-parsed node-model objects to the bundle's producer
+// on the isolated path, with no chain. It exists for convert with nodes,
+// which answers every allowed target while only five have a Go producer. It
+// runs the conversion script with its parse step replaced, so the zero-node
+// rule is the one every other conversion applies.
+func (engine *subStoreEngine) produceNodes(nodes []json.RawMessage, target string, options map[string]bool) (subStoreConversionResult, error) {
+	if nodes == nil {
+		nodes = []json.RawMessage{}
+	}
+	return engine.convertIsolated(subStoreConversionRequest{Nodes: nodes, Target: target, Options: options})
+}
+
+func (engine *subStoreEngine) convertOn(req subStoreConversionRequest, run func(stage, file, script string) (string, error)) (result subStoreConversionResult, err error) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			err = redactSubStoreEnginePanic(recovered)
@@ -275,11 +311,6 @@ func (engine *subStoreEngine) convert(req subStoreConversionRequest) (result sub
 	script, err := subStoreConversionScript(req)
 	if err != nil {
 		return subStoreConversionResult{}, err
-	}
-	run := engine.runCoreScript
-	if containsScriptingOperator(req.Operators) {
-		// User JavaScript never touches the warm runtime.
-		run = engine.runIsolatedScript
 	}
 	rawResult, err := run("convert", "lattice-substore-convert.js", script)
 	if err != nil {
@@ -828,6 +859,12 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode raw subscription parts: %w", err)
 	}
+	// null unless the request hands over parsed nodes; json.Marshal of a nil
+	// slice is null.
+	nodes, err := json.Marshal(req.Nodes)
+	if err != nil {
+		return "", fmt.Errorf("encode nodes: %w", err)
+	}
 	target, err := json.Marshal(req.Target)
 	if err != nil {
 		return "", fmt.Errorf("encode target: %w", err)
@@ -864,6 +901,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
 	return fmt.Sprintf(`%s
   const raw = %s;
   const rawParts = %s;
+  const nodes = %s;
   const target = %s;
   const operators = %s || [];
   const produceOptions = %s || {};
@@ -878,12 +916,17 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
   // YAML document only when it is the whole input, so text-joined members in
   // different encodings lost whole members.
   let proxies = [];
-  for (const source of (rawParts.length > 0 ? rawParts : [raw])) {
-    const parsed = core.parse(source);
-    if (!Array.isArray(parsed)) {
-      throw new Error("Sub-Store parse(raw) must return an array");
+  if (Array.isArray(nodes)) {
+    // Pre-parsed nodes (produceNodes) skip the parse.
+    for (const proxy of nodes) proxies.push(proxy);
+  } else {
+    for (const source of (rawParts.length > 0 ? rawParts : [raw])) {
+      const parsed = core.parse(source);
+      if (!Array.isArray(parsed)) {
+        throw new Error("Sub-Store parse(raw) must return an array");
+      }
+      for (const proxy of parsed) proxies.push(proxy);
     }
-    for (const proxy of parsed) proxies.push(proxy);
   }
   const sourceNodeCount = proxies.length;
   if (!Array.isArray(operators)) {
@@ -996,7 +1039,7 @@ func subStoreConversionScript(req subStoreConversionRequest) (string, error) {
     carrier_lost_protocols: carrierLostTypes.sort(),
     output,
   });
-})()`, prefix, raw, rawParts, target, operators, options, explain, carrierCheck, processBlock, subStoreMaxEmptyDocumentBytes), nil
+})()`, prefix, raw, rawParts, nodes, target, operators, options, explain, carrierCheck, processBlock, subStoreMaxEmptyDocumentBytes), nil
 }
 
 func subStoreResponseTransformScript(req subStoreResponseTransformRequest) (string, error) {

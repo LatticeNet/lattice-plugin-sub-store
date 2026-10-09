@@ -1,0 +1,7 @@
+{
+  "id": "clash-bare-type-line",
+  "family": "clash",
+  "protocol": "direct",
+  "quirk": "bare-type-line",
+  "description": "A document that is the one line type: direct: the Clash object reader accepts it and the normaliser names the node direct undefined:undefined."
+}

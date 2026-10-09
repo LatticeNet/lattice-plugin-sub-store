@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-of38-16",
+      "type": "hysteria",
+      "server": "t3-06.uk6fxic.example.net",
+      "server_port": 45400,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.jmvmn6obd.example.net",
+        "insecure": false
+      },
+      "server_ports": [
+        "33137:33146"
+      ],
+      "auth_str": "1BvAeVxGOLa9Li1k",
+      "udp_fragment": true,
+      "up_mbps": 30,
+      "down_mbps": 100,
+      "recv_window_conn": 12582912,
+      "recv_window": 52428800
+    }
+  ],
+  "endpoints": []
+}

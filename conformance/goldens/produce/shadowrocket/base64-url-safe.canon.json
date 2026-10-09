@@ -1,0 +1,97 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "chrome",
+      "encryption": "none",
+      "flow": "xtls-rprx-vision",
+      "name": "SG-aed895-64",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "reality-opts": {
+        "_spider-x": "/",
+        "public-key": "2sn1ajpTsIIAykb9vOLufhKZx4_Y_HImq2G8CU6N7IA",
+        "short-id": "f1e9bc03"
+      },
+      "server": "akc-28.vlmqr.example.com",
+      "servername": "static.tlcka1.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "4abef220-a6e5-448d-b2f3-04452d87eac6"
+    },
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "alterId": 0,
+      "cipher": "auto",
+      "client-fingerprint": "chrome",
+      "name": "SG-ybikbz-82",
+      "network": "ws",
+      "port": 443,
+      "server": "wg-40.njl6w.example.com",
+      "servername": "www.xrum8py.example.net",
+      "tls": true,
+      "type": "vmess",
+      "udp": true,
+      "uuid": "70a23224-58d5-4ff5-a6be-afb912028894",
+      "ws-opts": {
+        "headers": {
+          "Host": "www.xrum8py.example.net"
+        },
+        "path": "/gde0wl/vhc9mxn1"
+      }
+    },
+    {
+      "name": "SG-x6r3x-95",
+      "network": "tcp",
+      "password": "R2FJHiqey4AtGEiJ",
+      "port": 443,
+      "server": "vgg-21.fgdulnj.example.com",
+      "sni": "cdn.cqi8qg6g.example.org",
+      "type": "trojan",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "FR-zkt-81",
+      "password": "kFN9Nc8uRPE3TH",
+      "port": 21245,
+      "server": "ps-30.cpkgqe.example.org",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "fast-open": false,
+      "name": "TW-m27sbr-28",
+      "password": "7nslbrhrvWZasFblxtDn",
+      "port": 443,
+      "server": "tf6-24.yoxexf2.example.com",
+      "skip-cert-verify": false,
+      "sni": "static.f5i952jxr.example.net",
+      "tfo": false,
+      "type": "hysteria2",
+      "udp": true
+    },
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "KR-q7n-83",
+      "password": "FNLPvjMPnduGEePD",
+      "port": 443,
+      "server": "w4-11.bah5ly.example.org",
+      "sni": "img.rl9ih5jmyu.example.net",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "595c0427-bc80-4124-bdd9-42698446e492",
+      "version": 5
+    }
+  ]
+}

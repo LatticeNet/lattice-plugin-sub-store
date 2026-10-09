@@ -1,0 +1,1 @@
+GB-e5b-15=trojan,cb-23.mmndug.example.com,443,"QF8oCcvBNMnLwtsA",transport=ws,path=/du3hede,tls-name=static.b7zcm8.example.net,udp=true

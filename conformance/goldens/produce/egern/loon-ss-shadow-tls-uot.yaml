@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-j75ymj-41","method":"2022-blake3-aes-128-gcm","server":"mps-24.qhsg5civ.example.net","port":443,"password":"4SHEU4hDm3T20fw5fTCb2A==","tfo":false,"udp_relay":true,"shadow_tls":{"password":"SMBKDvOyOY2pTxfj","sni":"api.fxcmfmxj.example.com"}}}
+  - {"shadowsocks":{"name":"NL-snw-54","method":"aes-128-gcm","server":"lb0-23.vw4fy2jt.example.net","port":53322,"password":"yVHmQka5AJDu0r","tfo":false,"udp_relay":true}}

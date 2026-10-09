@@ -1,0 +1,81 @@
+proxies:
+  - name: JP-wwxzz-36
+    type: trojan
+    server: k0-09.xp6f.example.com
+    port: 443
+    password: 1Iz84ILzrS9Neqpv
+    sni: static.l862e7.example.com
+    udp: true
+    supported:
+      URI: false
+      V2Ray: false
+      JSON: false
+      sing-box: false
+      ClashMeta: false
+      Stash: false
+      Shadowrocket: false
+      Surge: false
+      QX: false
+  - name: KR-tq2-07
+    type: http
+    server: fpd-08.dl483.example.org
+    port: 8080
+    username: tqtzpi
+    password: cg4QWBilRQRo
+    headers:
+      X-mtt3tr5w: u1xh
+  - name: KR-q0x6gr-90
+    type: h2-connect
+    server: x8-22.mg48nyeu.example.org
+    port: 443
+    username: s8px6qug
+    password: To8KpR6jvXOqiC
+    sni: api.lnwr9ajf.example.org
+  - name: US-iqkz-62
+    type: ss
+    server: izc-22.l21tl33.example.com
+    port: 34054
+    cipher: aes-128-gcm
+    password: t75by9UeUMxNHS
+    udp: true
+    tls: true
+  - name: TW-fjq-18
+    type: naive
+    server: cb3-39.s76z0sai.example.com
+    port: 443
+    username: n8s9
+    password: 89l2Ul4BYHzFTg
+    sni: www.ma5xw.example.com
+  - name: KR-jx4wg-85
+    type: vless
+    server: v6-30.aeykl1.example.com
+    port: 443
+    uuid: e023c060-1478-448e-b566-11aa8d89046c
+    udp: true
+    tls: true
+    servername: img.qxczgs7gx.example.com
+    client-fingerprint: chrome
+    reality-opts:
+      short-id: 150ab4b7
+  - name: KR-vwk-25
+    type: vless
+    server: mr-40.ofpnx.example.org
+    port: 443
+    uuid: 035c3155-1432-485e-a8a4-f6ffb17522c8
+    udp: true
+    tls: true
+    servername: api.m0jc5gn8vz.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: zmhQZSp6Wu0yGhUaomavVGMkpra815XwmPdRWjPc6MI
+      short-id: b81e4412
+    network: xhttp
+    xhttp-opts:
+      path: /t5u887v2xc
+      mode: stream-one
+      download-settings:
+        path: /x5p/njx53
+        server: zdg-10.ypn7b.example.com
+        port: 443
+        tls: true
+        servername: api.jse963690f.example.net

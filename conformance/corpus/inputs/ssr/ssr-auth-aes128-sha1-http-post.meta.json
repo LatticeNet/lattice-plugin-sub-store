@@ -1,0 +1,8 @@
+{
+  "id": "ssr-auth-aes128-sha1-http-post",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "ShadowsocksR link with protocol auth_aes128_sha1 and obfs http_post."
+}

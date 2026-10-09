@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "FR-x7stf5-56",
+      "password": "9Iz4XwQRVYotgD",
+      "plugin": "v2ray-plugin",
+      "plugin-opts": {
+        "host": "cdn.zuzdhm.example.org",
+        "mode": "quic"
+      },
+      "port": 48808,
+      "server": "nu4-28.oyouu.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h3"],"congestion-controller":"cubic","exec":"/usr/local/bin/xoif","name":"TW-n4sg-69","password":"xBFRjdH4b8mIwbA7","port":443,"server":"l1-03.zh7zvdv.example.net","sni":"www.vspcc22n.example.com","type":"tuic","udp":true,"udp-relay-mode":"native","uuid":"13980a81-2a49-45de-9d78-14135a92db7a","version":5}

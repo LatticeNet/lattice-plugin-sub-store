@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-fllz-67",
+      "type": "shadowsocks",
+      "server": "j9r-22.r5nnt.example.com",
+      "server_port": 21000,
+      "method": "aes-128-gcm",
+      "password": "8tBpgDAvkyCIM2"
+    }
+  ],
+  "endpoints": []
+}

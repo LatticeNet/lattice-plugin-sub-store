@@ -1,0 +1,57 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "flow": "xtls-rprx-vision",
+        "name": "US-k7el-33",
+        "port": 443,
+        "server": "nu-33.bvmit5gs.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "reality": {
+              "public_key": "q9rT8fyrmmnVS089xm9m-BuOLSIQBgsEKtOdJl5flh4",
+              "short_id": "ee070f03"
+            },
+            "skip_tls_verify": false,
+            "sni": "api.ywpu6579.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3f2712ce-d8b6-42bb-a8fa-0ea40d599adc"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "US-trn-03",
+        "port": 443,
+        "security": "auto",
+        "server": "ju-20.l7scq.example.com",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "img.k644qk.example.org"
+            },
+            "path": "/gesw94",
+            "sni": "img.k644qk.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "03b594a1-bf86-415d-977b-d29d3614dd03"
+      }
+    },
+    {
+      "trojan": {
+        "name": "CA-j53a-20",
+        "password": "dAeTDVwyYRBMvbjs",
+        "port": 443,
+        "server": "ysy-24.qhaz089.example.net",
+        "sni": "www.ai2i3k.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

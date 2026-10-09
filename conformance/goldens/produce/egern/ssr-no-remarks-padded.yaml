@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocksr":{"name":"203.0.113.64","method":"aes-128-cfb","server":"203.0.113.64","port":60693,"password":"0oPbz7J7p3","protocol":"origin","obfs":"plain","tfo":false,"udp_relay":true}}

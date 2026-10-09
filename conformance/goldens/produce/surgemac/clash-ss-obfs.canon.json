@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "aa-40.dp1puv.example.net",
+      "52725"
+    ],
+    "name": "HK-olzp-81",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "obfs": "http",
+      "obfs-host": "static.v1d0c.example.org",
+      "password": "wtoWMi8it1w603vL",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "x1i-33.f9r5w.example.com",
+      "29794"
+    ],
+    "name": "DE-w59nld-21",
+    "params": {
+      "encrypt-method": "aes-256-gcm",
+      "obfs": "tls",
+      "obfs-host": "www.gsnwk4z3.example.net",
+      "password": "7PlXMjUk18NdUlCm",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

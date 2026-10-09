@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"SG-vhcg-10","network":"tcp","password":"tXTMeRxFYxRlodBY","port":443,"server":"198.51.100.141","sni":"www.ynezx5akh.example.com","tls-pubkey-sha256":"41bce388be7a093dd397d16ea43a2b31ad3678afe85b131ef8bf8c638ff82295","type":"trojan","udp":true,"server-cert-fingerprint":"a8a2916f802d5debbe8d31ba3fe64aa0899856a327d65307fcce5dadfadb1c26"}

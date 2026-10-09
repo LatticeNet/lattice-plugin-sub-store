@@ -1,0 +1,1 @@
+KR-ez9-12=http,ig-08.qhnagy.example.org,3128,udp-relay=true

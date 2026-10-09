@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "KR-k7l6wk-28",
+    "host": "gy-35.bb16wip1.example.org",
+    "path": "/",
+    "port": "443",
+    "query": [
+      [
+        "plugin",
+        "shadow-tls;host=static.x76bjg.example.org;password=qfVPDOCMCDN7DozD;version=3"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "2022-blake3-aes-128-gcm:ghMiarMyGPGfdKpB+sjHqg=="
+  }
+]

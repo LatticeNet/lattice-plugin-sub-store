@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-mpzqj-17",
+      "type": "hysteria2",
+      "server": "ea-12.a5gk98h2.example.net",
+      "server_port": 443,
+      "password": "1IIiWOkEq6ROLNHa9ym5",
+      "obfs": {
+        "type": "salamander",
+        "password": "xXQDOuEUnq5oxkX3"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.vw2osf1x3p.example.com",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

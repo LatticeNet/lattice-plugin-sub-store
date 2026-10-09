@@ -1,0 +1,9 @@
+{
+  "id": "clash-port-out-of-range",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "port-out-of-range",
+  "description": "A trojan node with port 70000."
+}

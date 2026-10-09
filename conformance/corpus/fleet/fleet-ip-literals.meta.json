@@ -1,0 +1,29 @@
+{
+  "id": "fleet-ip-literals",
+  "family": "fleet",
+  "description": "Servers given as IPv6 and IPv4 literals rather than names.",
+  "shape": "ip-literals",
+  "lines": 10,
+  "mix": [
+    {
+      "protocol": "hysteria2",
+      "count": 2
+    },
+    {
+      "protocol": "socks5",
+      "count": 1
+    },
+    {
+      "protocol": "trojan-tls",
+      "count": 1
+    },
+    {
+      "protocol": "tuic",
+      "count": 2
+    },
+    {
+      "protocol": "vless-reality-vision",
+      "count": 4
+    }
+  ]
+}

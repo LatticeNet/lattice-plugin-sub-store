@@ -1,0 +1,9 @@
+{
+  "id": "clash-sni-empty-ip-server",
+  "family": "clash",
+  "protocol": "mixed",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "disable-sni",
+  "description": "trojan and vless on IPv4 literals with sni \"\"."
+}

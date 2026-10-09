@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "KR-z6tb1-68",
+        "port": 443,
+        "security": "auto",
+        "server": "sz-12.bfsv3i.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.h8w3p.example.net"
+            },
+            "path": "/adww/ksgu1id9v",
+            "sni": "api.h8w3p.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "89ea35b3-b815-4c28-811f-5a628bf1fc26"
+      }
+    }
+  ]
+}

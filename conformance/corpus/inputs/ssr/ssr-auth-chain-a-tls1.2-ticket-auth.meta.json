@@ -1,0 +1,8 @@
+{
+  "id": "ssr-auth-chain-a-tls1.2-ticket-auth",
+  "family": "ssr",
+  "protocol": "ssr",
+  "transport": "tcp",
+  "security": "none",
+  "description": "ShadowsocksR link with protocol auth_chain_a and obfs tls1.2_ticket_auth."
+}

@@ -1,0 +1,1 @@
+vless://77e2f0ee-a13a-4e15-9007-f20fbeccc43f@fgx-19.clzv92cm.example.com:443?security=tls&type=tcp&packetEncoding=none&alpn=h2%2Chttp%2F1.1&ech=www.nj74x8.example.com%2Bhttps%3A%2F%2Fp4-25.vt5g3d.example.com%2Fdns-query&sni=static.cynpn55tzo.example.net&fp=chrome#GB-n96cy-04

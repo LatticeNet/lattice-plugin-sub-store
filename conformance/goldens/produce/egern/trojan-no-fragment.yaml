@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"ec-33.vvz9nnx.example.net:443","server":"ec-33.vvz9nnx.example.net","port":443,"password":"rIMI2l87ZUcn0Dio","tfo":true,"udp_relay":false,"sni":"ec-33.vvz9nnx.example.net"}}

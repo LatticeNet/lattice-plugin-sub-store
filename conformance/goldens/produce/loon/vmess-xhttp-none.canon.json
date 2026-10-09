@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "y66-38.inbufi2.example.net",
+      "443",
+      "auto",
+      "d586cf7b-aa1f-4314-84df-a94b6c7ffde4"
+    ],
+    "name": "DE-kmsvq4-78",
+    "params": {
+      "alterId": "0",
+      "over-tls": "false",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

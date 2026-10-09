@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "KR-xu9-56",
+        "password": "MeQWwGSYT5rbvAsd",
+        "port": 443,
+        "reality": {
+          "public_key": "LWUwWsat9VWdMN6pB7bTcFjL2x2zY3C-fF8_PSjHwzc",
+          "short_id": "93559da3"
+        },
+        "server": "i5-38.wplgwp.example.net",
+        "sni": "img.j92m5l.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

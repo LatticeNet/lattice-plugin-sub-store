@@ -1,0 +1,1 @@
+ec-33.vvz9nnx.example.net:443=trojan,ec-33.vvz9nnx.example.net,443,password="rIMI2l87ZUcn0Dio",tls=true,sni="ec-33.vvz9nnx.example.net",tfo=true

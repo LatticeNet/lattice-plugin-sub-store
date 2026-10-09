@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "EYnXrPpHMB0HZlxIMDfT",
+      "server": "ff5-28.t7an.example.org",
+      "server_port": 20000,
+      "server_ports": [
+        "20000:30000"
+      ],
+      "tag": "HK-ejulo-15",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.vse2b5.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

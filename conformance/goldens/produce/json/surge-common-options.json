@@ -1,0 +1,20 @@
+[
+  {
+    "block-quic": "on",
+    "cipher": "aes-128-gcm",
+    "hybrid": true,
+    "interface-name": "en0",
+    "ip-version": "v4-only",
+    "name": "CA-e44-62",
+    "no-error-alert": "true",
+    "password": "rfrwJIQ8mprzJQ",
+    "port": 26241,
+    "server": "is-28.lree.example.org",
+    "test-timeout": 5,
+    "test-url": "http://jdd-34.qdzs7.example.com/generate_204",
+    "tos": 32,
+    "type": "ss",
+    "udp": true,
+    "underlying-proxy": "NL-o63-22"
+  }
+]

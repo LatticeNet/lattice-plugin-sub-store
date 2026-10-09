@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "9L5yJZcSovc6F1lD",
+      "server": "cgk-31.cs04sm.example.net",
+      "server_port": 443,
+      "tag": "AU-y5wy-94",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.dqmjej1k.example.net"
+      },
+      "transport": {
+        "headers": {
+          "Host": "img.dqmjej1k.example.net"
+        },
+        "path": "/tqh35/hy517k",
+        "type": "ws"
+      },
+      "type": "trojan"
+    }
+  ]
+}

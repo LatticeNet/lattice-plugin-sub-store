@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-over-tls",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ss-over-tls",
+  "description": "ss with tls: true, no plugin and no network."
+}

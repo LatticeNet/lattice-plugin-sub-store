@@ -1,0 +1,37 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-voji-39",
+      "type": "snell",
+      "server": "plt-35.fr9ce.example.com",
+      "server_port": 44923,
+      "psk": "qy4Ski0CRbGm7cZh3dsR",
+      "version": 1
+    },
+    {
+      "tag": "SG-kau-01",
+      "type": "snell",
+      "server": "hl6-08.vqbj.example.net",
+      "server_port": 12361,
+      "psk": "9XKg0BnUWylNk0MI5SRO",
+      "version": 2
+    },
+    {
+      "tag": "CA-cpszh-53",
+      "type": "snell",
+      "server": "eod-34.v0aybnc.example.net",
+      "server_port": 42820,
+      "psk": "PiOQ8ZkWtdHzke3JjM8D",
+      "version": 5
+    },
+    {
+      "tag": "JP-qty-61",
+      "type": "snell",
+      "server": "r57-35.n27cw2z.example.org",
+      "server_port": 43212,
+      "psk": "LsywgDXBCASaBetQKsQs",
+      "version": 6
+    }
+  ],
+  "endpoints": []
+}

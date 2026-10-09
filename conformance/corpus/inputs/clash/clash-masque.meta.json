@@ -1,0 +1,8 @@
+{
+  "id": "clash-masque",
+  "family": "clash",
+  "protocol": "masque",
+  "transport": "quic",
+  "security": "tls",
+  "description": "MASQUE with WireGuard-style keys and addresses."
+}

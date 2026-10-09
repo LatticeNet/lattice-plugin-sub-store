@@ -1,0 +1,68 @@
+[
+  {
+    "address": "uo-31.vohqvdh2.example.net:26672",
+    "args": [],
+    "params": {
+      "method": "aes-128-cfb",
+      "password": "e5XX5LpSFAz7",
+      "tag": "SG-at22-37",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "np-08.baeops7.example.org:33705",
+    "args": [],
+    "params": {
+      "method": "aes-256-cfb",
+      "password": "nmZltRLobntH",
+      "tag": "FR-wjypay-70",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "pp0-31.brvt.example.net:23086",
+    "args": [],
+    "params": {
+      "method": "aes-256-ctr",
+      "password": "nlpoz8gL0b9I",
+      "tag": "JP-clgy1z-07",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "fx-28.zpthid.example.net:14978",
+    "args": [],
+    "params": {
+      "method": "chacha20-ietf",
+      "password": "Rpv1f9EyDV8H",
+      "tag": "US-f3qx-51",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "ceq-08.xcl70pi.example.org:50721",
+    "args": [],
+    "params": {
+      "method": "rc4-md5",
+      "password": "0aSo41OohzpA",
+      "tag": "TW-odzmu-72",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "a8-24.ywoz.example.net:36201",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "HtRQC4aUfvKA",
+      "tag": "CA-gs6jqm-70",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

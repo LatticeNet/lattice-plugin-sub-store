@@ -1,0 +1,18 @@
+proxies:
+  - name: AU-nb56cs-96
+    type: trojan
+    server: vbt-33.k5kw.example.net
+    port: 443
+    password: 53P1CwiCd0J7NolN
+    udp: true
+    tls: true
+    sni: api.fxpo0defz.example.org
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: p1DU-kqarpZBga_lY3n8HyRXpEytMrh1XeX5_KgIWzs
+      short-id: b981b2c6
+    network: xhttp
+    xhttp-opts:
+      path: /gmx5bl3
+      host: api.fxpo0defz.example.org
+      mode: auto

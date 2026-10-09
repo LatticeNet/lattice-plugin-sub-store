@@ -1,0 +1,9 @@
+{
+  "id": "hysteria-protocol-wechat-video",
+  "family": "hysteria",
+  "protocol": "hysteria",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "protocol",
+  "description": "Hysteria v1 with protocol wechat-video."
+}

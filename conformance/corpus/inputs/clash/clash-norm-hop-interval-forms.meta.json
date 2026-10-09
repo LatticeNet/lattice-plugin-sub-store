@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-hop-interval-forms",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "hop-interval-forms",
+  "description": "N6: hop-interval \"30\", \"30-10\" beside hop-interval-max 99, \"abc\" and 0, and hop-interval-max without hop-interval, on Hysteria2 and TUIC: a number, both keys removed, both keys removed, both keys removed, and hop-interval-max left alone."
+}

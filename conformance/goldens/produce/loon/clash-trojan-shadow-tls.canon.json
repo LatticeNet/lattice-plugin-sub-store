@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "i0-17.w4oe.example.net",
+      "443",
+      "oX6y6U3NunXBPYcG"
+    ],
+    "name": "TW-m5o0-21",
+    "params": {
+      "tls-name": "img.kratp2kn.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "FR-mw0ad-11",
+        "password": "iEbzUJm2r7ZFhxxz",
+        "port": 443,
+        "server": "wtr-25.tgodt.example.org",
+        "sni": "img.xashyl2j67.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

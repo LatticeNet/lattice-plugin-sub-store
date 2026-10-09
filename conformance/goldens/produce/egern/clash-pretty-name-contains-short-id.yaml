@@ -1,0 +1,14 @@
+proxies:
+  - vless:
+      name: "short-id: "fzpp""
+      server: jhs-40.ixwhbpn.example.net
+      port: 443
+      user_id: a0da4f1d-63c0-43f2-b194-924674712637
+      tfo: false
+      udp_relay: true
+      transport:
+        tls:
+          sni: api.ncfc5tg.example.com
+          reality:
+            public_key: kCIW3Q2xtUorhNxcC00sfz2Z7J9orORMgW6xyLMspiE
+            short_id: 8d112c21

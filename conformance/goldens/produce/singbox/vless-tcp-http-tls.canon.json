@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "packet_encoding": "xudp",
+      "server": "yv4-30.js8ob4v.example.net",
+      "server_port": 443,
+      "tag": "TW-p3zzj-91",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.ynpyk6s.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "headers": {},
+        "host": "static.ynpyk6s.example.net",
+        "path": "/qhpev8/oe3v9fez",
+        "type": "http"
+      },
+      "type": "vless",
+      "uuid": "6801b885-ba5e-4acc-8682-00d5bcb07dc3"
+    }
+  ]
+}

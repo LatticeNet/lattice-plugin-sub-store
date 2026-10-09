@@ -1,0 +1,2 @@
+shadowsocks=gy-28.bbn1u9k5.example.org:44420,method=aes-128-gcm,password=E5ZzS0B766tN,udp-relay=true,tag=TW-d6ahp-79
+trojan=a6-32.jx3wy.example.net:443,password=iF8MoEBbQ3gtc6mI,over-tls=true,tls-host=img.i37u2y5i.example.org,udp-relay=true,tag=KR-mxcn-27

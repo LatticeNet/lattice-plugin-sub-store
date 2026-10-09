@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "cipher": "chacha20-ietf",
+      "name": "AU-muj8-77",
+      "obfs": "tls1.2_ticket_auth",
+      "obfs-param": "static.vzpfez9.example.net",
+      "password": "Fx5zCLLOqL0K",
+      "port": 59541,
+      "protocol": "auth_chain_a",
+      "protocol-param": "GUwOw4",
+      "server": "hs-06.ot0k647n.example.org",
+      "type": "ssr",
+      "udp": true
+    },
+    {
+      "cipher": "aes-256-cfb",
+      "name": "SG-ql89a-39",
+      "obfs": "plain",
+      "password": "g9w4w8eWw1te",
+      "port": 16267,
+      "protocol": "origin",
+      "server": "ayv-14.wqdf.example.com",
+      "type": "ssr",
+      "udp": true
+    }
+  ]
+}

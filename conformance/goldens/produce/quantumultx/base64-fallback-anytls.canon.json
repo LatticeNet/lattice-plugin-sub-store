@@ -1,0 +1,28 @@
+[
+  {
+    "address": "qrg-20.nc9x.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "PJLn2tDSGfWvqS3p7dv0",
+      "tag": "AU-htj-64",
+      "tls-host": "api.abdoopble.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  },
+  {
+    "address": "s1-33.kogex.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "zD32rCAiPcky6yiH8eWx",
+      "tag": "FR-mnt-40",
+      "tls-host": "api.m123qkb.example.org",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

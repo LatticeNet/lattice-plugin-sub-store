@@ -7,6 +7,9 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -25,13 +28,19 @@ type fetchResult struct {
 	Userinfo       string          `json:"userinfo,omitempty"`
 	SourceVersion  string          `json:"source_version,omitempty"`
 	SourceManifest json.RawMessage `json:"source_manifest,omitempty"`
+	// nodesIn is the source node count the refresh read, when it counted one.
+	nodesIn *int
+	// nodesOut is the count after the record's chain, when the chain is
+	// native and could run at refresh.
+	nodesOut *int
 }
 
 func isVPNCoreSource(source string) bool {
 	return source == subscriptionSourceVPNCore || source == subscriptionSourceVPNCoreGraph
 }
 
-// fetchSubscription retrieves the record's current content.
+// fetchSubscription retrieves the record's current content as the snapshot
+// envelope the core stores (snapshot_envelope.go).
 //
 // Every record kind resolves to its variable content here, because the core
 // stores the answer as the snapshot a share renders from: without it a share
@@ -39,38 +48,135 @@ func isVPNCoreSource(source string) bool {
 // ran. What each kind stores:
 //
 //   - sub: the provider body, the vpn-core export, or the pasted content.
-//   - collection: a snapshotArtifacts envelope — every member's nodes after
-//     its own chain, with the name a later stage filters on. Merging members
-//     into one blob here would lose that name and the per-member chains at
-//     render would have nothing to apply to.
+//   - collection: every member's nodes after its own chain, with the name a
+//     later stage filters on. Merging members into one blob here would lose
+//     that name and the per-member chains at render would have nothing to
+//     apply to.
 //   - config file: its node source resolved the same way (chained, merged).
-//   - script file: the same envelope as its node source — scripts read
-//     per-member provenance, so the members travel whole.
+//   - script file: its node source's members, whole: scripts read per-member
+//     provenance.
 //   - plain file / anything without a node source: the stored template, which
-//     is constant until edited — edits invalidate the render cache directly.
+//     is constant until edited (edits invalidate the render cache directly).
 func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error) {
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return fetchResult{}, err
 	}
+	var out fetchResult
+	var env snapshotEnvelope
 	switch recordKind(rec) {
 	case kindCollection:
-		return rt.fetchCollectionSnapshot(rec)
-	case kindFile:
-		return rt.fetchFileSnapshot(rec)
-	default:
-		out, err := rt.fetchRecordContent(rec)
+		members, membersNative, err := rt.fetchCollectionSnapshot(rec)
 		if err != nil {
 			return fetchResult{}, err
 		}
-		if err := rt.requireNodes(fmt.Sprintf("subscription %q", rec.ID), out.Raw); err != nil {
+		env = membersEnvelope(kindCollection, members)
+		if err := withMemberNodes(&env, members, membersNative); err != nil {
 			return fetchResult{}, err
 		}
-		return out, nil
+	case kindFile:
+		if env, err = rt.fetchFileSnapshot(rec); err != nil {
+			return fetchResult{}, err
+		}
+	default:
+		if out, err = rt.fetchRecordContent(rec); err != nil {
+			return fetchResult{}, err
+		}
+		plan, err := rt.chainPlan(rec)
+		if err != nil {
+			return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
+		}
+		env = textEnvelope(kindSub, out.Raw, out.SourceVersion)
+		label := fmt.Sprintf("subscription %q", rec.ID)
+		if !planIsNative(plan) {
+			// The bundle renders this record whatever the target, so the
+			// bundle counts it, on the warm runtime: a refresh never pays an
+			// isolated boot (plan section 7, decision 4).
+			count, err := rt.requireNodes(label, out.Raw)
+			if err != nil {
+				return fetchResult{}, err
+			}
+			out.nodesIn = &count
+			env.NodesOmitted = nodesOmittedFallback
+			break
+		}
+		if len(out.Raw) > parse.MaxDocumentBytes {
+			// Past the raw bound the core keeps, which is also the parser's:
+			// the envelope refuses it with its stated reason, before a parse
+			// would refuse it with a less useful one.
+			_, err := encodeSnapshotEnvelope(env)
+			return fetchResult{}, err
+		}
+		nodes, err := requireNativeNodes(label, out.Raw)
+		if err != nil {
+			return fetchResult{}, err
+		}
+		count := len(nodes)
+		out.nodesIn = &count
+		if env.Nodes, err = encodeNodes(nodes); err != nil {
+			return fetchResult{}, err
+		}
+		// The envelope holds the nodes before the chain; the count after it
+		// is the row's nodes out. The chain runs over the nodes in place,
+		// after they were encoded.
+		after := len(runChain(plan, nodes, out.Raw))
+		out.nodesOut = &after
 	}
+	if env.Raw == "" && len(env.Members) == 0 {
+		// An empty fetch is a failure, not a subscription with no nodes: the
+		// core would otherwise replace a good snapshot with an envelope of
+		// nothing.
+		return fetchResult{}, fmt.Errorf("subscription %q fetched no content", rec.ID)
+	}
+	if out.Raw, err = encodeSnapshotEnvelope(env); err != nil {
+		return fetchResult{}, err
+	}
+	return out, nil
 }
 
-// requireNodes refuses node text the engine finds no node in.
+// runChain runs a native plan over nodes with the context a render gives it,
+// before any target is known.
+func runChain(plan *operators.Plan, nodes []*nodemodel.Node, raw string) []*nodemodel.Node {
+	if plan == nil {
+		return nodes
+	}
+	return plan.Run(nodes, &operators.Context{Raw: raw})
+}
+
+// withMemberNodes puts each member's nodes in a collection envelope when
+// every chain of the collection ran in Go, and says why they are absent
+// otherwise.
+func withMemberNodes(env *snapshotEnvelope, members []fileScriptMember, membersNative bool) error {
+	if !membersNative {
+		env.NodesOmitted = nodesOmittedFallback
+		return nil
+	}
+	for i, member := range members {
+		nodes, err := encodeNodes(member.nodes)
+		if err != nil {
+			return err
+		}
+		env.Members[i].Nodes = nodes
+		env.Members[i].parsedRaw = member.unchained
+	}
+	return nil
+}
+
+// requireNativeNodes parses node text in Go and refuses it when it holds no
+// node, as requireNodes does with the bundle.
+func requireNativeNodes(label, raw string) ([]*nodemodel.Node, error) {
+	nodes, err := parseParts([]string{raw})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+	if len(nodes) == 0 {
+		return nil, providerNoNodesError(label)
+	}
+	return nodes, nil
+}
+
+// requireNodes refuses node text the engine finds no node in, and returns the
+// count it found.
 //
 // The refresh path used to accept any non-empty 2xx body, so a provider's
 // "429 Too Many Requests" page replaced the last good snapshot and then
@@ -85,20 +191,20 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 // passes through here too; its composition is a non-empty list of canonical
 // VLESS Reality URIs (validateVPNCoreGraphResponse), which the engine reads as
 // one node each (TestVPNCoreGraphCanonicalRawIsOneNodePerEntry).
-func (rt *runtime) requireNodes(label, raw string) error {
+func (rt *runtime) requireNodes(label, raw string) (int, error) {
 	count, err := rt.subStoreEngine().countNodes(raw)
 	if err != nil {
-		return fmt.Errorf("%s: %w", label, err)
+		return 0, fmt.Errorf("%s: %w", label, err)
 	}
 	if count == 0 {
-		return providerNoNodesError(label)
+		return 0, providerNoNodesError(label)
 	}
-	return nil
+	return count, nil
 }
 
-// snapshotArtifacts is the serialized variable content of a collection or a
-// script-sourced file. The plugin writes it in fetch and reads it in render —
-// the two never disagree, because both ends are this plugin.
+// snapshotArtifacts is the members object of a collection or a script-sourced
+// file as the render paths decode it. A version 1 snapshot is this object; a
+// version 2 envelope with members is turned back into it by snapshotText.
 type snapshotArtifacts struct {
 	SourceID   string             `json:"source_id,omitempty"`
 	SourceName string             `json:"source_name,omitempty"`
@@ -109,32 +215,36 @@ type snapshotArtifacts struct {
 // fetchCollectionSnapshot resolves a collection's members to their chained
 // node text. Member content moves at provider cadence; resolving it at refresh
 // time is what lets a render skip the network entirely.
-func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) (fetchResult, error) {
+func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScriptMember, bool, error) {
 	members, err := rt.collectionMembers(rec)
 	if err != nil {
-		return fetchResult{}, err
+		return nil, false, err
 	}
-	out, err := rt.chainMembers(rec, members)
-	if err != nil {
-		return fetchResult{}, err
-	}
-	envelope, err := json.Marshal(snapshotArtifacts{Members: out})
-	if err != nil {
-		return fetchResult{}, err
-	}
-	return fetchResult{Raw: string(envelope)}, nil
+	return rt.chainMembers(rec, members)
 }
 
 // chainMembers renders each member through its own chain, honoring the
 // collection's failure mode. Shared by the collection snapshot and the live
 // render paths so the two can never drift apart.
-func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, error) {
+//
+// membersNative reports that the collection's own chain and every member's
+// chain run in Go. Each member then carries its nodes, and the members that
+// arrived unchained are counted by parsing them in Go; otherwise they are
+// counted on the bundle's warm runtime in one call, as before, and no member
+// carries nodes. A chained member runs on whichever engine its own chain
+// allows: the snapshot is taken before any target is known, and its member
+// texts have to be what a live render of the same collection computes.
+func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, bool, error) {
 	type resolvedMember struct {
-		member     subscriptionRecord
-		raw        string
-		needsCount bool
-		dropped    bool
+		member  subscriptionRecord
+		out     memberOutput
+		dropped bool
 	}
+	plan, err := rt.chainPlan(rec)
+	if err != nil {
+		return nil, false, fmt.Errorf("collection %q: %w", rec.ID, err)
+	}
+	membersNative := planIsNative(plan)
 	resolved := make([]resolvedMember, 0, len(members))
 	skipped := make([]string, 0)
 	// fail applies the collection's failure mode to one member.
@@ -154,79 +264,99 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 		return nil
 	}
 	for _, member := range members {
-		raw, needsCount, err := rt.memberNodes(member)
+		out, err := rt.memberNodes(member)
 		if err != nil {
 			if err := fail(member, err); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 			continue
 		}
-		resolved = append(resolved, resolvedMember{member: member, raw: raw, needsCount: needsCount})
+		membersNative = membersNative && out.native
+		resolved = append(resolved, resolvedMember{member: member, out: out})
 	}
 	// A member whose source parses to no nodes (a provider's error page) is a
-	// failed member, not an empty one. Every unchained member is counted in
-	// one engine call rather than one call per member.
+	// failed member, not an empty one. When the collection runs in Go each
+	// unchained member is parsed in Go, which is also where its nodes come
+	// from; otherwise every unchained member is counted in one engine call
+	// rather than one call per member.
 	var texts []string
 	var at []int
 	for i, entry := range resolved {
-		if entry.needsCount {
-			texts, at = append(texts, entry.raw), append(at, i)
+		if entry.out.needsCount {
+			texts, at = append(texts, entry.out.raw), append(at, i)
 		}
 	}
-	if len(texts) > 0 {
+	if len(texts) > 0 && membersNative {
+		for _, i := range at {
+			nodes, err := requireNativeNodes(memberLabel(resolved[i].member), resolved[i].out.raw)
+			if err != nil {
+				if err := fail(resolved[i].member, err); err != nil {
+					return nil, false, err
+				}
+				resolved[i].dropped = true
+				continue
+			}
+			resolved[i].out.nodes = nodes
+		}
+	} else if len(texts) > 0 {
 		counts, err := rt.subStoreEngine().countNodesEach(texts)
 		if err != nil {
-			return nil, fmt.Errorf("collection %q: %w", rec.ID, err)
+			return nil, false, fmt.Errorf("collection %q: %w", rec.ID, err)
 		}
 		for j, i := range at {
 			if counts[j] > 0 {
 				continue
 			}
 			if err := fail(resolved[i].member, providerNoNodesError(memberLabel(resolved[i].member))); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 			resolved[i].dropped = true
 		}
 	}
 	out := make([]fileScriptMember, 0, len(resolved))
 	for _, entry := range resolved {
-		if !entry.dropped && strings.TrimSpace(entry.raw) != "" {
-			out = append(out, fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.raw})
+		if !entry.dropped && strings.TrimSpace(entry.out.raw) != "" {
+			member := fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.out.raw}
+			if membersNative {
+				member.nodes = entry.out.nodes
+				member.unchained = entry.out.needsCount
+			}
+			out = append(out, member)
 		}
 	}
 	// Every member failing is not "skip the failures" — it is a collection with
 	// nothing in it, and that must never be served as a success.
 	if len(out) == 0 && len(members) > 0 {
-		return nil, fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
+		return nil, false, fmt.Errorf("collection %q: every member failed (%s)", rec.ID, strings.Join(skipped, ", "))
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("collection %q produced no nodes", rec.ID)
+		return nil, false, fmt.Errorf("collection %q produced no nodes", rec.ID)
 	}
-	return out, nil
+	return out, membersNative, nil
 }
 
 // fetchFileSnapshot resolves what a file's render varies by: its node source,
 // or nothing at all (the template is the answer until someone edits it).
-func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (fetchResult, error) {
+func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, error) {
 	source := strings.TrimSpace(rec.NodeSource)
 	if source == "" {
 		// A file without a node source is static until edited; the template is
 		// the honest content, and an edit changes its hash.
-		return fetchResult{Raw: rec.Content}, nil
+		return textEnvelope(kindFile, rec.Content, ""), nil
 	}
 	sourceRecord, err := rt.getSubscription(source)
 	if err != nil {
-		return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+		return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 	}
 	if recordKind(sourceRecord) == kindFile {
-		return fetchResult{}, fmt.Errorf("file %q names another file as its node source", rec.ID)
+		return snapshotEnvelope{}, fmt.Errorf("file %q names another file as its node source", rec.ID)
 	}
 	if fileType(rec) == fileTypeConfig {
 		nodes, err := rt.resolveNodesFor(sourceRecord)
 		if err != nil {
-			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
-		return fetchResult{Raw: nodes}, nil
+		return textEnvelope(kindFile, nodes, ""), nil
 	}
 	// A script file reads per-member provenance, so its snapshot carries the
 	// members whole rather than a merged blob.
@@ -234,29 +364,22 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (fetchResult, error
 	if recordKind(sourceRecord) == kindCollection {
 		gathered, err := rt.collectionMembers(sourceRecord)
 		if err != nil {
-			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
-		members, err = rt.chainMembers(sourceRecord, gathered)
+		members, _, err = rt.chainMembers(sourceRecord, gathered)
 		if err != nil {
-			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
 	} else {
 		raw, err := rt.renderMemberNodes(sourceRecord)
 		if err != nil {
-			return fetchResult{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
 		}
 		members = []fileScriptMember{{SubName: memberSubName(sourceRecord), Raw: raw}}
 	}
-	envelope, err := json.Marshal(snapshotArtifacts{
-		SourceID:   sourceRecord.ID,
-		SourceName: sourceRecord.Name,
-		SourceKind: recordKind(sourceRecord),
-		Members:    members,
-	})
-	if err != nil {
-		return fetchResult{}, err
-	}
-	return fetchResult{Raw: string(envelope)}, nil
+	env := membersEnvelope(kindFile, members)
+	env.SourceID, env.SourceName, env.SourceKind = sourceRecord.ID, sourceRecord.Name, recordKind(sourceRecord)
+	return env, nil
 }
 
 // fetchRecordContent resolves where a record's current content lives and reads
@@ -323,7 +446,17 @@ func (rt *runtime) fetchRecordContent(rec subscriptionRecord) (fetchResult, erro
 		return fetchResult{}, fmt.Errorf("subscription %q URL must be http or https", label)
 	}
 
+	// The record's own agent, then the operator's default from Settings, then
+	// the plugin's. Settings are read only here, once per invocation, so a
+	// record that names its agent costs no extra host call.
 	ua := strings.TrimSpace(rec.UA)
+	if ua == "" {
+		settings, err := rt.invocationSettings()
+		if err != nil {
+			return fetchResult{}, err
+		}
+		ua = settings.DefaultUA
+	}
 	if ua == "" {
 		ua = defaultProviderUA
 	}

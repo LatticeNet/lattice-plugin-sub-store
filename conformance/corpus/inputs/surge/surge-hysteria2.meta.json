@@ -1,0 +1,8 @@
+{
+  "id": "surge-hysteria2",
+  "family": "surge",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "description": "Surge hysteria2 plain, with salamander, and with download-bandwidth."
+}

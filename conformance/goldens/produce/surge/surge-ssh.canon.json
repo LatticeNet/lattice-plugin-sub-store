@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "qo-38.xh0qf6.example.net",
+      "22"
+    ],
+    "name": "FR-yvf3td-84",
+    "params": {
+      "password": "8qQpen8qOJ4Ubo",
+      "username": "yok0o71f"
+    },
+    "type": "ssh"
+  },
+  {
+    "args": [
+      "udx-39.glat.example.net",
+      "2222"
+    ],
+    "name": "FR-uoc-38",
+    "params": {
+      "idle-timeout": "180",
+      "private-key": "nxwhcm",
+      "server-fingerprint": "ssh-ed25519 Q8+WTH3rg7Xlf5am12m0d+44vNtsY8D+yvsPgt+aSMU=",
+      "username": "tgh9b0vd"
+    },
+    "type": "ssh"
+  }
+]

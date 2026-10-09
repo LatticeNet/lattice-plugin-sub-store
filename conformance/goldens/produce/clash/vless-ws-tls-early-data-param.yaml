@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","name":"TW-y1oz-65","network":"ws","packet-encoding":"xudp","port":443,"server":"obn-39.yszi265.example.com","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"f968b5ca-0962-4746-94d1-21ce2d1268be","ws-opts":{"early-data-header-name":"Sec-WebSocket-Protocol","headers":{"Host":"static.c2lmw.example.org"},"max-early-data":2560,"path":"/aa6ho/v3ap"},"servername":"static.c2lmw.example.org"}

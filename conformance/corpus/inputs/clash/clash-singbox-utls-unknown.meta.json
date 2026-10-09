@@ -1,0 +1,9 @@
+{
+  "id": "clash-singbox-utls-unknown",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "utls-fingerprint",
+  "description": "vless Reality with an unknown client-fingerprint, and vless TLS with \" Chrome \" (case and spaces)."
+}

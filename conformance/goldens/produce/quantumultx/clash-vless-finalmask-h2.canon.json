@@ -1,0 +1,17 @@
+[
+  {
+    "address": "elw-11.bhoj.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "1d454515-6317-4a7b-ba58-0accbc55e3d8",
+      "reality-base64-pubkey": "0a3vFXinIBotdP8vPySCP-b7uEZ1yvPdFf6IZ9kFqwk",
+      "reality-hex-shortid": "e4a6886e",
+      "tag": "KR-dgo-22",
+      "tls-host": "img.av9b68r.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

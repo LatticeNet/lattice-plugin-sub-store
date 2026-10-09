@@ -1,0 +1,14 @@
+[
+  {
+    "name": "GB-ypr0ot-83",
+    "network": "tcp",
+    "password": "pFz9FbdHbazUQpJZ",
+    "port": 443,
+    "server": "hp-05.gks3u9.example.org",
+    "servername": "static.srwrv1ynu.example.net",
+    "sni": "hp-05.gks3u9.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

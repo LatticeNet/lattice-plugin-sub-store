@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "nqj-39.vj1nhp.example.net",
+      "26246"
+    ],
+    "name": "HK-lyqz-03",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "obfs": "http",
+      "password": "39ic9wEqGqdWx6",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

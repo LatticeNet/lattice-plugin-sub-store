@@ -1,0 +1,14 @@
+proxies:
+  - name: KR-kj5b5n-49
+    type: vmess
+    server: x50-29.t4oyq5wq.example.com
+    port: 443
+    uuid: d0d282fb-f19c-451a-a72c-8397dfd59c3c
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: xhttp
+    xhttp-opts:
+      path: /o8b5gqc
+      host: api.b3uqf.example.com
+      mode: auto

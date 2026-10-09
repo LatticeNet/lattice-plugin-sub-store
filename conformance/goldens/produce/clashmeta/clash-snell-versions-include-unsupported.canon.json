@@ -1,0 +1,38 @@
+{
+  "proxies": [
+    {
+      "name": "AU-voji-39",
+      "port": 44923,
+      "psk": "qy4Ski0CRbGm7cZh3dsR",
+      "server": "plt-35.fr9ce.example.com",
+      "type": "snell",
+      "version": 1
+    },
+    {
+      "name": "SG-kau-01",
+      "port": 12361,
+      "psk": "9XKg0BnUWylNk0MI5SRO",
+      "server": "hl6-08.vqbj.example.net",
+      "type": "snell",
+      "version": 2
+    },
+    {
+      "name": "CA-cpszh-53",
+      "port": 42820,
+      "psk": "PiOQ8ZkWtdHzke3JjM8D",
+      "server": "eod-34.v0aybnc.example.net",
+      "type": "snell",
+      "udp": true,
+      "version": 5
+    },
+    {
+      "name": "JP-qty-61",
+      "port": 43212,
+      "psk": "LsywgDXBCASaBetQKsQs",
+      "server": "r57-35.n27cw2z.example.org",
+      "type": "snell",
+      "udp": true,
+      "version": 6
+    }
+  ]
+}

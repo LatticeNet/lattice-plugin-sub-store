@@ -1,0 +1,318 @@
+[
+  {
+    "fragment": "CA nvmvre9 01",
+    "host": "2001:db8:7359:338e::2d96",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "TsbDaDmNk39I3QjZ6nTjdcMoQXc7qr6ia4C_ezrAOk0"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "ddc7f2f4"
+      ],
+      [
+        "sni",
+        "img.l4xtzq.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "5f1d552f-5f02-47eb-8fa2-30b4bca71182"
+  },
+  {
+    "fragment": "KR zk3b6de 02",
+    "host": "192.0.2.245",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "5meyldo9pACfhYGnDS5afumnZECx4lw9dgW1IP_Cs9Y"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "7a28aa83"
+      ],
+      [
+        "sni",
+        "cdn.u18uxawg.example.net"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1ceb8d22-208a-428f-8279-530177eb4b2e"
+  },
+  {
+    "fragment": "NL otmrq7 03",
+    "host": "2001:db8:2e10:817b::227e",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "iBo7lZL5t5o1NVX40DdGTWa2dq8Ug-DqqRU_6QcUwek"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "fc986489"
+      ],
+      [
+        "sni",
+        "cdn.w25izypd95.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "855cbc2c-5456-4aa8-8db8-ab7eb97ce2e0"
+  },
+  {
+    "fragment": "SG jiql54 04",
+    "host": "203.0.113.230",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "encryption",
+        "none"
+      ],
+      [
+        "flow",
+        "xtls-rprx-vision"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "xudp"
+      ],
+      [
+        "pbk",
+        "qJRr-InMluxIDqcV4Tszz2uIp5vpJ_1EjTLKgQAysA8"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "b9d66e30"
+      ],
+      [
+        "sni",
+        "img.xz7rx9.example.com"
+      ],
+      [
+        "spx",
+        "/"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "421b2969-9559-43a9-9f1e-6c8d60df126c"
+  },
+  {
+    "fragment": "US qofeu 05",
+    "host": "2001:db8:9f0b:1475::926d",
+    "path": "",
+    "port": "32847",
+    "query": [
+      [
+        "sni",
+        "www.geqxkkkk.example.com"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "2QxCojek22G8oFQfytlF"
+  },
+  {
+    "fragment": "GB ocoyqw 06",
+    "host": "203.0.113.137",
+    "path": "",
+    "port": "24056",
+    "query": [
+      [
+        "sni",
+        "www.dnkcgywu0r.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "CzYxEhdbtrnWDqiJybaV"
+  },
+  {
+    "fragment": "JP r2qg 07",
+    "host": "2001:db8:2aa0:5968::13bd",
+    "path": "",
+    "port": "55269",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "bbr"
+      ],
+      [
+        "sni",
+        "www.ilslza0zge.example.org"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "0580008d-036b-4eb9-9a10-411023b5b282:J4LevL1SKGtz0Eke"
+  },
+  {
+    "fragment": "US hdzeff0 08",
+    "host": "192.0.2.53",
+    "path": "",
+    "port": "49424",
+    "query": [
+      [
+        "alpn",
+        "h3"
+      ],
+      [
+        "congestion_control",
+        "bbr"
+      ],
+      [
+        "sni",
+        "cdn.iq0x42tomr.example.net"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "udp_relay_mode",
+        "native"
+      ]
+    ],
+    "scheme": "tuic",
+    "userinfo": "880a4b71-3def-4b37-9f88-e3a1df4377bc:Oay4mTYSnaO7Sq21"
+  },
+  {
+    "fragment": "TW j3pevb 09",
+    "host": "2001:db8:a7cc:2156::cd3",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.x80vf.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "UcUa9NajW3SboyGg"
+  },
+  {
+    "fragment": "FR wov14 10",
+    "host": "198.51.100.97",
+    "path": "",
+    "port": "30590",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "czloZTB0bTpMSjd6Ym5aZUt0WWM=",
+    "userinfo_base64": "s9he0tm:LJ7zbnZeKtYc"
+  }
+]

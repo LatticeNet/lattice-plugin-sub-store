@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "vLNqaPRJUz67TQ",
+      "server": "u69-18.hhni.example.net",
+      "server_port": 15480,
+      "tag": "GB-psozs1-08",
+      "type": "shadowsocks"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "nuu-30.bptlkz.example.com",
+      "server_port": 443,
+      "tag": "TW-neu8xy-54",
+      "transport": {
+        "headers": {
+          "Host": "cdn.mub447v0m.example.net"
+        },
+        "path": "/ct25/e7005",
+        "type": "ws"
+      },
+      "type": "vmess",
+      "uuid": "0a5d3415-a80e-41f0-9ff2-1292dc251a4e"
+    }
+  ]
+}

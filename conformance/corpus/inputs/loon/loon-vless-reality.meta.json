@@ -1,0 +1,8 @@
+{
+  "id": "loon-vless-reality",
+  "family": "loon",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "reality",
+  "description": "Loon VLESS with public-key, short-id and flow."
+}

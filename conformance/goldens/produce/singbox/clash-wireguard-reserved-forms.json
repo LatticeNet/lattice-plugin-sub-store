@@ -1,0 +1,71 @@
+{
+  "outbounds": [],
+  "endpoints": [
+    {
+      "system": false,
+      "tag": "FR-lkksca-49",
+      "type": "wireguard",
+      "address": [
+        "10.159.118.196/32"
+      ],
+      "private_key": "pwRLYLRcZklXfGwkDl4lc/W6Al19foQzBSHpRV2TWo0=",
+      "peers": [
+        {
+          "address": "kfo-39.pxng8tol.example.net",
+          "port": 51820,
+          "public_key": "UpuO6PUmckOF93MXmoGRIiMuk1/91Hx5SAyO1EyMRLs=",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "reserved": "TeqD"
+        }
+      ]
+    },
+    {
+      "system": false,
+      "tag": "CA-qwozx-70",
+      "type": "wireguard",
+      "address": [
+        "10.132.15.160/32"
+      ],
+      "private_key": "0e61tURiITdd8tyeW2Ls9sCzoAHWbzRy2r6d9MxNU1U=",
+      "peers": [
+        {
+          "address": "y5o-21.lbt60v12.example.net",
+          "port": 51820,
+          "public_key": "3gtPvbnKbS5fjNYQJ5dbvaYTMQ8eYirbHXQvVIMO5Eg=",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "reserved": [
+            118,
+            233,
+            228
+          ]
+        }
+      ]
+    },
+    {
+      "system": false,
+      "tag": "SG-cg0a-25",
+      "type": "wireguard",
+      "address": [
+        "10.120.251.57/32"
+      ],
+      "private_key": "HbbD+d3ms3OZAbG6m8IznmBTaRy6GZ1TwW61yAf3Wcc=",
+      "peers": [
+        {
+          "address": "szw-03.qo26jwj.example.net",
+          "port": 51820,
+          "public_key": "jeP3nnldu7Ss5vTGMyIkEnUGp38gyeIqFAyKxAs0pDA=",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ],
+          "reserved": [
+            "gFNh"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "l5-09.xmmas.example.net",
+      "server_port": 443,
+      "tag": "CA-w6ys-30",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.b9eert.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "host": "static.b9eert.example.com",
+        "path": "/rxtxr2ob",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "ab77cff5-961e-476f-98d3-a0ebed63aa20"
+    }
+  ]
+}

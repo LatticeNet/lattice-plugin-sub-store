@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"alterId":0,"cipher":"auto","client-fingerprint":"chrome","name":"NL-jik8qm-21","network":"quic","port":443,"quic-opts":{"_quic-host":"none","_quic-type":"none"},"server":"f4-15.wefzt.example.com","tls":true,"type":"vmess","udp":true,"uuid":"f67a67ee-8473-43b2-9e10-fcef0a7c9b9c","servername":"img.xho6mzl.example.org"}

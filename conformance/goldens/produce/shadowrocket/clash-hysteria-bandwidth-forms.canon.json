@@ -1,0 +1,56 @@
+{
+  "proxies": [
+    {
+      "auth-str": "rBwOeuzSarUHEA3A",
+      "down": "100 Kbps",
+      "name": "CA-vwb-88",
+      "port": 56000,
+      "protocol": "udp",
+      "server": "ycz-07.yvm8d.example.net",
+      "skip-cert-verify": false,
+      "sni": "static.g1s9fk7e6g.example.com",
+      "type": "hysteria",
+      "udp": true,
+      "up": "100 Kbps"
+    },
+    {
+      "auth-str": "qIYVFY0V27VALMCN",
+      "down": "30 Mbps",
+      "name": "FR-iu2o-35",
+      "port": 60157,
+      "protocol": "udp",
+      "server": "v0-09.bss6ok.example.org",
+      "skip-cert-verify": false,
+      "sni": "img.rc5w2d8lp.example.org",
+      "type": "hysteria",
+      "udp": true,
+      "up": "30 Mbps"
+    },
+    {
+      "auth-str": "k352VYfvB3ADKewW",
+      "down": "2 gbps",
+      "name": "JP-si8yhs-07",
+      "port": 54722,
+      "protocol": "udp",
+      "server": "mky-06.glrpk.example.com",
+      "skip-cert-verify": false,
+      "sni": "static.kqe32e.example.com",
+      "type": "hysteria",
+      "udp": true,
+      "up": "2 gbps"
+    },
+    {
+      "auth-str": "mlsOMeRL3a2ijCbj",
+      "down": 50,
+      "name": "NL-s0to-52",
+      "port": 56546,
+      "protocol": "udp",
+      "server": "oav-11.uyi5.example.com",
+      "skip-cert-verify": false,
+      "sni": "img.mjj2fjq.example.net",
+      "type": "hysteria",
+      "udp": true,
+      "up": 50
+    }
+  ]
+}

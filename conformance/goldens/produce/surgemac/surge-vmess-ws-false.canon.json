@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "iy-03.lvd0u.example.com",
+      "80"
+    ],
+    "name": "JP-pbg8g-55",
+    "params": {
+      "username": "d7d256b8-aa72-41a5-952a-4a1c853b315b",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"iy-03.lvd0u.example.com\"",
+      "ws-path": "/iz57g9"
+    },
+    "type": "vmess"
+  }
+]

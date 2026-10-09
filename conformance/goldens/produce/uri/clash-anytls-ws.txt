@@ -1,0 +1,1 @@
+anytls://PlDLgcCgRJIg37LoV6c3@dob-07.qwxjve.example.net:443?security=tls&type=ws&path=%2Fqrpgpv%2Fd2nu413y&host=cdn.ynkvgq.example.org&packetEncoding=none&sni=www.wmxy45i.example.org&fp=chrome&network=ws&udp=1#SG-vo9s-94

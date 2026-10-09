@@ -1,0 +1,1 @@
+vless=r0s-30.c4uwb.example.net:443,method=none,password=6d782e85-da39-4b20-a244-57fdcce3fc38,obfs=over-tls,tls-host=www.axl9awtm04.example.org,vless-flow=xtls-rprx-vision,udp-relay=true,tag=DE-y0zd-81,reality-base64-pubkey=mrhE7u2MseLBTtmpmZ_RmqywaKI0Ozvs3xMuzprE7RA,reality-hex-shortid=4539d1dd

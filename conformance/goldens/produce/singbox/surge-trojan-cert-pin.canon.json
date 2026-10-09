@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "2mUxZg0GFFQkZr1P",
+      "server": "198.51.100.227",
+      "server_port": 443,
+      "tag": "FR-ozyw6h-48",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "certificate_sha256": [
+          "p7da5b6yclKgBeHXC4DkDgKkpTFhlRzovy7hOiscF70="
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.meixt51op.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

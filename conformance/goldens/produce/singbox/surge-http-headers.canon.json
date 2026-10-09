@@ -1,0 +1,16 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "headers": {
+        "X-Client": "gss2r"
+      },
+      "password": "H4oijwVP8mye",
+      "server": "ml-07.u7hv109.example.net",
+      "server_port": 8080,
+      "tag": "GB-kgzien-25",
+      "type": "http",
+      "username": "po05d"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
+import { t } from "../i18n";
 import { useReveal } from "../reveal";
 import { maskUrl } from "../urlMask";
 
@@ -15,6 +16,8 @@ const props = defineProps<{
   placeholder?: string;
   /** For the input's own label; the caller wraps it in a <label>. */
   ariaLabel?: string;
+  /** A field the session may not edit; the masked value still reads. */
+  disabled?: boolean;
 }>();
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
 
@@ -43,7 +46,8 @@ function onBlur(): void {
       :value="shown"
       :placeholder="placeholder"
       :aria-label="ariaLabel"
-      :title="showing ? undefined : 'Masked after the host. Click to edit, or Reveal to read it for a minute.'"
+      :disabled="disabled"
+      :title="showing ? undefined : t.maskedUrl.maskedTitle"
       @focus="onFocus"
       @blur="onBlur"
       @input="onInput"
@@ -53,10 +57,10 @@ function onBlur(): void {
       type="button"
       class="masked-url-reveal"
       :aria-pressed="reveal.on.value"
-      :title="reveal.on.value ? 'Masks itself again after a minute' : 'Show the whole link for a minute'"
+      :title="reveal.on.value ? t.maskedUrl.revealedTitle : t.maskedUrl.revealTitle"
       @click="reveal.toggle()"
     >
-      {{ reveal.on.value ? "Hide" : "Reveal" }}
+      {{ reveal.on.value ? t.maskedUrl.hide : t.maskedUrl.reveal }}
     </button>
   </span>
 </template>

@@ -1,0 +1,20 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-p84tk-69",
+      "type": "vmess",
+      "server": "z2n-07.i1p3rsm.example.com",
+      "server_port": 443,
+      "uuid": "6b18ea51-a2ba-42ea-a8e4-ace92af5bf0a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/q9dd",
+        "host": "static.wzzu98.example.com"
+      }
+    }
+  ],
+  "endpoints": []
+}

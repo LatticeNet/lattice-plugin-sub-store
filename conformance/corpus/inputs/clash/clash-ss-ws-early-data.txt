@@ -1,0 +1,13 @@
+proxies:
+  - name: NL-wca4te-67
+    type: ss
+    server: qq0-04.ywvxhzk.example.com
+    port: 10060
+    cipher: aes-128-gcm
+    password: UIyHcd6WdDKACc
+    udp: true
+    tls: true
+    network: ws
+    ws-opts:
+      path: /l372je9y
+      max-early-data: 2048

@@ -1,0 +1,25 @@
+[
+  {
+    "address": "vgz-03.wijo.example.com:19730",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "485528",
+      "tag": "AU-xcg-14",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "frx-40.o7y8y1.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "70370695",
+      "tag": "NL-yspkh0-87",
+      "tls-host": "static.mq1bb04d.example.net",
+      "udp-relay": "false"
+    },
+    "type": "trojan"
+  }
+]

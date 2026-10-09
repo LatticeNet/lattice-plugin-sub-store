@@ -1,0 +1,1 @@
+trojan undefined:undefined=trojan,undefined,undefined,"undefined",udp=true

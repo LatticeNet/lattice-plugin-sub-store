@@ -27,7 +27,7 @@ describe("describeValue", () => {
   // The operator is deciding whose edit wins, not reading a diff of a 40 KB
   // config, so long values become a size.
   it("summarises long text by length", () => {
-    expect(describeValue("x".repeat(4000))).toBe("4000 characters");
+    expect(describeValue("x".repeat(4000))).toBe("4,000 characters");
   });
 
   it("counts structured values instead of dumping them", () => {
@@ -44,6 +44,23 @@ describe("conflictChanges", () => {
     );
     expect(changes.map((change) => change.label)).toEqual(["Name"]);
     expect(changes[0]).toMatchObject({ before: "old", after: "new", contested: false });
+  });
+
+  // A short provider link fits under the length limit, and printing it would
+  // print its token. Credential-bearing fields never show their value.
+  it("never prints a provider link, inline content or query parameters", () => {
+    const changes = conflictChanges(
+      rec({ url: "https://p.example/s?t=ab12", content: "ss://pw@h:1", query_params: ["token=s3cr3t"] }),
+      rec({ url: "https://p.example/s?t=cd34", content: "ss://pw2@h:1", query_params: ["token=0ther"] }),
+    );
+    expect(changes.map((change) => change.label)).toEqual(["Provider URL", "Content", "Query parameters"]);
+    const shown = changes.map((change) => `${change.before} ${change.after}`).join(" ");
+    for (const secret of ["ab12", "cd34", "pw@", "pw2@", "s3cr3t", "0ther", "t="]) {
+      expect(shown).not.toContain(secret);
+    }
+    expect(changes[0]).toMatchObject({ before: "https://p.example/…?…", after: "https://p.example/…?…" });
+    expect(changes[1]).toMatchObject({ before: "11 characters", after: "12 characters" });
+    expect(changes[2]).toMatchObject({ before: "1 entry", after: "1 entry" });
   });
 
   it("marks a field the operator also edited as contested", () => {

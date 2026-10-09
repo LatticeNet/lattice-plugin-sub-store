@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "FR-mf93w-88",
+      "type": "vless",
+      "server": "po-05.ffnf.example.org",
+      "server_port": 443,
+      "uuid": "403fe2bd-5d7f-437d-83e1-d5318d7f5888",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.mlxcbxx3qp.example.net",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "Mic2QwIq6JbEXpWa5B-P3iwyfJnFN8r5J39tAFwLFcI",
+          "short_id": "0d6b0e72"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp"
+    }
+  ],
+  "endpoints": []
+}

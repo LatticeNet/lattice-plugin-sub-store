@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-qqz-51",
+      "type": "vless",
+      "server": "jam-37.r0ecy.example.com",
+      "server_port": 443,
+      "uuid": "f8db7cb5-5151-4acc-b72c-ca55afc4022c",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.ooqjd.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "flow": "xtls-rprx-vision"
+    }
+  ],
+  "endpoints": []
+}

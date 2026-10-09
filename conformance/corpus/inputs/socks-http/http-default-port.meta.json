@@ -1,0 +1,9 @@
+{
+  "id": "http-default-port",
+  "family": "socks-http",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "missing-port",
+  "description": "http://host#name without a port: the port is 80."
+}

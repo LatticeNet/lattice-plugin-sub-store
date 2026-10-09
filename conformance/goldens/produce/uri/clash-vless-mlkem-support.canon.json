@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "US-uyycd7-94",
+    "host": "nyg-31.rua1.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "E047wKfHFupR2T6z-dJaq8F4mDJihX13_iBiBjM-dvg"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "55154019"
+      ],
+      [
+        "sni",
+        "static.j8fg2.example.com"
+      ],
+      [
+        "support-x25519mlkem768",
+        "true"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1b75496d-b70a-4fde-ad0d-9c0374bbc393"
+  }
+]

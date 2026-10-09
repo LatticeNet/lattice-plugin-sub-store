@@ -1,0 +1,2 @@
+proxies:
+  - {"flow":"xtls-rprx-vision","name":"DE-y0zd-81","network":"tcp","port":443,"reality-opts":{"public-key":"mrhE7u2MseLBTtmpmZ_RmqywaKI0Ozvs3xMuzprE7RA","short-id":"4539d1dd"},"server":"r0s-30.c4uwb.example.net","tls":true,"type":"vless","udp":true,"uuid":"6d782e85-da39-4b20-a244-57fdcce3fc38","client-fingerprint":"chrome","servername":"www.axl9awtm04.example.org"}

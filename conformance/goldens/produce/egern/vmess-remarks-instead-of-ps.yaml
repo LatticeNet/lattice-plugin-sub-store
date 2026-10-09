@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"TW-t0bp-90","server":"wg-31.g7d1emnv.example.org","port":443,"user_id":"cc1d4e55-c7f2-417a-9562-5e0abcc59b35","security":"auto","tfo":false,"legacy":false,"udp_relay":true}}

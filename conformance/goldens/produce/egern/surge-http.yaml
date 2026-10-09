@@ -1,0 +1,4 @@
+proxies:
+  - {"http":{"name":"NL-nkzbk-02","server":"vb-17.e188i878.example.net","port":8080,"tfo":false}}
+  - {"http":{"name":"DE-epqj-42","server":"g2c-07.eklb.example.com","port":8080,"username":"ytqroxb5","password":"kTH9PbaXBZbB","tfo":false}}
+  - {"http":{"name":"FR-ikt0-49","server":"bpv-02.oqml6c.example.org","port":8080,"username":"e0bqj","password":"CNhUZkFflnfQ","tfo":false}}

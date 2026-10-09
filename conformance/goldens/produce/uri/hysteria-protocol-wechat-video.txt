@@ -1,0 +1,1 @@
+hysteria://rzd-26.ept8.example.com:13880?alpn=hysteria&auth=Qk0ihmeKudCglzGs&downmbps=100&protocol=wechat-video&peer=www.fpyqi2.example.org&udp=true&upmbps=30#NL-r4c2jf-02

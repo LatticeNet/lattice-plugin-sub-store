@@ -1,0 +1,9 @@
+{
+  "id": "vmess-empty-ps",
+  "family": "vmess",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "empty-name",
+  "description": "v2rayN JSON with ps \"\" and no fragment: the name is the empty text."
+}

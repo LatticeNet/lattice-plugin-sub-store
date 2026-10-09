@@ -1,0 +1,39 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "ip_version": "v4_only",
+        "name": "FR-xzt8-87",
+        "password": "252osGcNC6rhBPot",
+        "port": 443,
+        "server": "r71-09.q6isz.example.com",
+        "sni": "api.k66w9n0.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "KR-kse4f-43",
+        "password": "pNnlkRSb5JLWlpyh",
+        "port": 443,
+        "server": "w7-10.olg8j.example.org",
+        "sni": "img.ec3p3.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "ip_version": "v6_prefer",
+        "name": "HK-tm0vy-52",
+        "password": "7pxYY9U0dtY7Xt2x",
+        "port": 443,
+        "server": "kuk-03.ztc4l.example.net",
+        "sni": "api.xevlb.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

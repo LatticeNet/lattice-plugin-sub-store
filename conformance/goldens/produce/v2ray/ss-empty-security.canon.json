@@ -1,0 +1,44 @@
+[
+  {
+    "fragment": "JP-tee2k7-36",
+    "host": "wz-14.huhsgb.example.org",
+    "path": "",
+    "port": "44206",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206WEJnWFU4djFoRW9QSkE=",
+    "userinfo_base64": "aes-128-gcm:XBgXU8v1hEoPJA"
+  },
+  {
+    "fragment": "CA-bvq-13",
+    "host": "g8-14.x5adht.example.org",
+    "path": "",
+    "port": "33639",
+    "query": [
+      [
+        "host",
+        "g8-14.x5adht.example.org"
+      ],
+      [
+        "path",
+        "/"
+      ],
+      [
+        "type",
+        "ws"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206U1pEVFVQaEp3dHZlZVc=",
+    "userinfo_base64": "aes-128-gcm:SZDTUPhJwtveeW"
+  }
+]

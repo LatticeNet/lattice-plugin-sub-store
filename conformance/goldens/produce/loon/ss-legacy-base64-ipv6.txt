@@ -1,0 +1,1 @@
+KR-fp9-11=shadowsocks,2001:db8:67ef:80::edf3,33510,aes-256-gcm,"QsjbCL9G6dfT6l",udp=true

@@ -1,0 +1,21 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "jj2-21.m5egq.example.com",
+      "server_port": 443,
+      "tag": "HK-zb9a-35",
+      "transport": {
+        "headers": {},
+        "host": "cdn.lkwh7e7kt.example.net",
+        "method": "GET",
+        "path": "/f7a41",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "4769c081-8c80-4949-a41e-30a1b2086716"
+    }
+  ]
+}

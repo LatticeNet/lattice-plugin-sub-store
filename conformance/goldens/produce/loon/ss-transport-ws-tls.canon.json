@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ha-30.mwovt.example.org",
+      "443",
+      "aes-128-gcm",
+      "Rz7W2d6kyIQmQk"
+    ],
+    "name": "FR-ylrg-19",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

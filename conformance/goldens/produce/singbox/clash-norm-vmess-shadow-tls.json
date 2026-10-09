@@ -1,0 +1,31 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-b68-73",
+      "type": "vmess",
+      "server": "gq-32.z66i.example.com",
+      "server_port": 443,
+      "uuid": "a71b8c01-1b10-40bd-bf8c-0ccd1826c2cb",
+      "security": "auto",
+      "alter_id": 0,
+      "detour": "SG-b68-73_shadowtls"
+    },
+    {
+      "tag": "SG-b68-73_shadowtls",
+      "type": "shadowtls",
+      "server": "gq-32.z66i.example.com",
+      "server_port": 443,
+      "version": 3,
+      "password": "KQha0gVa25POdcjz",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.caykblkqyh.example.org",
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ]
+      }
+    }
+  ],
+  "endpoints": []
+}

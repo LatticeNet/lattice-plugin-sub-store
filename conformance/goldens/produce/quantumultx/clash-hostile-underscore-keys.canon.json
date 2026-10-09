@@ -1,0 +1,18 @@
+[
+  {
+    "address": "k4-16.jn75z1.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "e23518f7-6bdf-4157-a78c-e04cd917c507",
+      "reality-base64-pubkey": "bhdrfB8E9J2fOKSSKVQqygVYj1DkMRXpo51oslg5wJk",
+      "reality-hex-shortid": "095a09fb",
+      "tag": "DE-njz7k-17",
+      "tls-host": "static.ly0di.example.org",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

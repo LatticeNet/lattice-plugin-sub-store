@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-name-cert-verify",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "name-cert-verify",
+  "description": "vless with name-cert-verify, and vless with _vcn as a list."
+}

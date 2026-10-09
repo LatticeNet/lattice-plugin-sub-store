@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "server": "pze-30.gl0zl.example.com",
+      "server_port": 443,
+      "tag": "AU-owaf2-26",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "ech": {
+          "config": [
+            "-----BEGIN ECH CONFIGS-----",
+            "p2dTGAPmq1h5UDDIvBQEbVviYQeuepyfdhxSk1nNKPmEmvnvTbSzUR+PKn96PQlEZl+Q097zCu+IMAD0++dx6lknwmRUps7I",
+            "-----END ECH CONFIGS-----"
+          ],
+          "enabled": false
+        },
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.k1jwj.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vless",
+      "uuid": "34359908-5583-4f5c-a3ca-2973676f37b8"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+proxies:
+  - {"vless":{"name":"NL-ihl5x-86","server":"sp1-26.r1ybtf.example.com","port":443,"user_id":"dc40258c-70f7-4cc6-8f57-47f891ff5fdf","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.gyfox1.example.org","skip_tls_verify":false}}}}
+  - {"vless":{"name":"SG-hkj1-48","server":"dpa-17.ht61.example.net","port":443,"user_id":"12dfd962-9faf-4d0b-a5a1-86880db75bd8","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"www.rmwsxjoka.example.org","skip_tls_verify":false}}}}

@@ -1,0 +1,1 @@
+hysteria2://EYnXrPpHMB0HZlxIMDfT@ff5-28.t7an.example.org:20000?sni=static.vse2b5.example.org&mport=20000-30000#HK-ejulo-15

@@ -1,0 +1,40 @@
+[
+  {
+    "body": {
+      "add": "sp-32.tm7unoq.example.net",
+      "aid": "0",
+      "id": "9bf01f9f-26db-45dd-8286-efcd31efd819",
+      "net": "ws",
+      "path": "/lr90",
+      "port": "443",
+      "ps": "CA-n3w9j-79",
+      "scy": "auto",
+      "sni": "sp-32.tm7unoq.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "xhw-30.mj0me.example.org",
+      "aid": "0",
+      "id": "9bf01f9f-26db-45dd-8286-efcd31efd819",
+      "net": "ws",
+      "path": "/rse2gc/i7dsee8t",
+      "port": "443",
+      "ps": "AU-q0l0b-46",
+      "scy": "auto",
+      "sni": "xhw-30.mj0me.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

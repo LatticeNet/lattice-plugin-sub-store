@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-ss-none",
+  "family": "clash",
+  "protocol": "ss",
+  "quirk": "ss-none-password",
+  "description": "N7: type ss with cipher none and no password: password becomes the empty text."
+}

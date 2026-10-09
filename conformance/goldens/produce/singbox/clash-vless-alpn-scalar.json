@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-mc0h2-32",
+      "type": "vless",
+      "server": "tk-32.xvijvsjy.example.org",
+      "server_port": 443,
+      "uuid": "4710275e-e11c-42f3-ba9a-67c63306551e",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.w88jy1fal.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

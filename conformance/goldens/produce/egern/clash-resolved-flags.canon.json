@@ -1,0 +1,37 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "NL-pm7iw-59",
+        "password": "Oj98GoGK2yo8X5kh",
+        "port": 443,
+        "server": "b8-22.em4epvh.example.com",
+        "sni": "www.o9brwd5iyu.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "TW-pmsd-69",
+        "password": "rwsWD8q5dDmSp7ad",
+        "port": 443,
+        "server": "rm-23.gpdij.example.com",
+        "sni": "cdn.a7telas.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "JP-yhuvq-44",
+        "password": "dCiWPhM9pvnCz35E",
+        "port": 443,
+        "server": "ja-17.ko8cxerr.example.net",
+        "sni": "static.hrqb83a.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

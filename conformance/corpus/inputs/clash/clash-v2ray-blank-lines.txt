@@ -1,0 +1,36 @@
+proxies:
+  - name: TW-j9w6qk-36
+    type: socks5
+    server: er-31.mtwnt.example.net
+    port: 1080
+    username: h06y
+    password: WRlDhNJU25Ck
+  - name: FR-ukui-94
+    type: http
+    server: gt-07.b9min995.example.net
+    port: 8080
+    username: uxvyk117
+    password: dJSY4pWnnmYU
+  - name: US-rrjn-36
+    type: snell
+    server: na-25.a29v3id.example.org
+    port: 58650
+    psk: tIJ6AYLXWg2uopx7EdBS
+    version: 4
+  - name: HK-xka4u-94
+    type: socks5
+    server: ar-10.yy6s.example.org
+    port: 1080
+    username: ymxf0nzo
+    password: N8FwlKhIIDGI
+  - name: SG-sqaa-44
+    type: ss
+    server: gr-13.j8un730.example.net
+    port: 12010
+    cipher: aes-128-gcm
+    password: FNO39eNJhWcf5R
+    udp: true
+    plugin: kcptun
+    plugin-opts:
+      key: j4IhNAIOJlPs
+      crypt: aes

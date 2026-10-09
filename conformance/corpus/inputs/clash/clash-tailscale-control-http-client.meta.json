@@ -1,0 +1,8 @@
+{
+  "id": "clash-tailscale-control-http-client",
+  "family": "clash",
+  "protocol": "tailscale",
+  "security": "none",
+  "quirk": "control-http-client",
+  "description": "tailscale with a control-http-client mapping and dialer-proxy."
+}

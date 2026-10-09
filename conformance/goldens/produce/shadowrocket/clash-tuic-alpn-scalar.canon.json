@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h3"
+      ],
+      "congestion-controller": "cubic",
+      "name": "NL-eto-47",
+      "password": "eZWHMzI9K0roXvB1",
+      "port": 443,
+      "server": "d7-33.qik8.example.org",
+      "sni": "cdn.d33qfam9h6.example.org",
+      "type": "tuic",
+      "udp": true,
+      "udp-relay-mode": "native",
+      "uuid": "d460fbae-3516-46ca-8059-5fc12c392a35",
+      "version": 5
+    }
+  ]
+}

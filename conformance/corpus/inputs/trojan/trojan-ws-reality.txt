@@ -1,0 +1,1 @@
+trojan://mnPm4xaG59F4J9VO@trr-05.cxu586h.example.com:443?security=reality&sni=api.s066ycl2.example.com&fp=chrome&pbk=PKU6M5-j3ysTiKBTojfFZWrNOubl9ZFmY1-M5bfrnKk&sid=7662ad44&spx=%2F&type=ws&host=api.s066ycl2.example.com&path=%2Fx225kbvr#DE-w55-42

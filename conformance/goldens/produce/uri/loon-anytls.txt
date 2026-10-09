@@ -1,0 +1,1 @@
+anytls://AqMA6wktK9PBJuK9gRNC@y2-16.jnffzo.example.net:443?security=tls&type=tcp&packetEncoding=none&sni=www.j5ultdi1.example.com&idle_session_check_interval=30&idle_session_timeout=30&max_stream_count=4&min_idle_session=1&udp=1#FR-q12au1-90

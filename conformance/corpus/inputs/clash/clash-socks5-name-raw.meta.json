@@ -1,0 +1,9 @@
+{
+  "id": "clash-socks5-name-raw",
+  "family": "clash",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "name-raw",
+  "description": "socks5 whose name contains a space, /, # and non-ASCII text."
+}

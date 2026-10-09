@@ -1,0 +1,111 @@
+[
+  {
+    "name": "JP-wwxzz-36",
+    "network": "tcp",
+    "password": "1Iz84ILzrS9Neqpv",
+    "port": 443,
+    "server": "k0-09.xp6f.example.com",
+    "sni": "static.l862e7.example.com",
+    "supported": {
+      "ClashMeta": false,
+      "JSON": false,
+      "QX": false,
+      "Shadowrocket": false,
+      "Stash": false,
+      "Surge": false,
+      "URI": false,
+      "V2Ray": false,
+      "sing-box": false
+    },
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "headers": {
+      "X-mtt3tr5w": "u1xh"
+    },
+    "name": "KR-tq2-07",
+    "password": "cg4QWBilRQRo",
+    "port": 8080,
+    "server": "fpd-08.dl483.example.org",
+    "type": "http",
+    "udp": true,
+    "username": "tqtzpi"
+  },
+  {
+    "name": "KR-q0x6gr-90",
+    "password": "To8KpR6jvXOqiC",
+    "port": 443,
+    "server": "x8-22.mg48nyeu.example.org",
+    "sni": "api.lnwr9ajf.example.org",
+    "tls": true,
+    "type": "h2-connect",
+    "udp": true,
+    "username": "s8px6qug"
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "US-iqkz-62",
+    "password": "t75by9UeUMxNHS",
+    "port": 34054,
+    "server": "izc-22.l21tl33.example.com",
+    "sni": "izc-22.l21tl33.example.com",
+    "tls": true,
+    "type": "ss",
+    "udp": true
+  },
+  {
+    "name": "TW-fjq-18",
+    "password": "89l2Ul4BYHzFTg",
+    "port": 443,
+    "server": "cb3-39.s76z0sai.example.com",
+    "sni": "www.ma5xw.example.com",
+    "tls": true,
+    "type": "naive",
+    "udp": true,
+    "username": "n8s9"
+  },
+  {
+    "client-fingerprint": "chrome",
+    "name": "KR-jx4wg-85",
+    "network": "tcp",
+    "port": 443,
+    "reality-opts": {
+      "short-id": "150ab4b7"
+    },
+    "server": "v6-30.aeykl1.example.com",
+    "sni": "img.qxczgs7gx.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "e023c060-1478-448e-b566-11aa8d89046c"
+  },
+  {
+    "client-fingerprint": "chrome",
+    "name": "KR-vwk-25",
+    "network": "xhttp",
+    "port": 443,
+    "reality-opts": {
+      "public-key": "zmhQZSp6Wu0yGhUaomavVGMkpra815XwmPdRWjPc6MI",
+      "short-id": "b81e4412"
+    },
+    "server": "mr-40.ofpnx.example.org",
+    "sni": "api.m0jc5gn8vz.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "035c3155-1432-485e-a8a4-f6ffb17522c8",
+    "xhttp-opts": {
+      "download-settings": {
+        "path": "/x5p/njx53",
+        "port": 443,
+        "server": "zdg-10.ypn7b.example.com",
+        "servername": "api.jse963690f.example.net",
+        "tls": true
+      },
+      "mode": "stream-one",
+      "path": "/t5u887v2xc"
+    }
+  }
+]

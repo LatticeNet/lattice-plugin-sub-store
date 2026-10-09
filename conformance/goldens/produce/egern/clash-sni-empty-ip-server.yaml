@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"US-qy8r5q-63","server":"198.51.100.57","port":443,"password":"rG8Nc3sr69Ii4FNC","tfo":false,"udp_relay":true,"sni":"198.51.100.57"}}
+  - {"vless":{"name":"SG-f009-90","server":"192.0.2.72","port":443,"user_id":"0b9d56fa-73e8-4c2b-acdd-1d958a773574","tfo":false,"udp_relay":true,"transport":{"tls":{"sni":"192.0.2.72"}}}}

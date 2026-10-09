@@ -1,0 +1,1 @@
+JP-nhs7w3-33=vmess,jv-05.vi5q.example.com,443,auto,"a4251e45-8c27-43ce-9bb2-ce33100ace04",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2",tls-name=cdn.g0ri20uyg.example.org,alterId=0,udp=true

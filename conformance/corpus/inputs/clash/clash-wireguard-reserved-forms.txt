@@ -1,0 +1,34 @@
+proxies:
+  - name: FR-lkksca-49
+    type: wireguard
+    server: kfo-39.pxng8tol.example.net
+    port: 51820
+    private-key: pwRLYLRcZklXfGwkDl4lc/W6Al19foQzBSHpRV2TWo0=
+    public-key: UpuO6PUmckOF93MXmoGRIiMuk1/91Hx5SAyO1EyMRLs=
+    udp: true
+    ip: 10.159.118.196
+    reserved: TeqD
+  - name: CA-qwozx-70
+    type: wireguard
+    server: y5o-21.lbt60v12.example.net
+    port: 51820
+    private-key: 0e61tURiITdd8tyeW2Ls9sCzoAHWbzRy2r6d9MxNU1U=
+    public-key: 3gtPvbnKbS5fjNYQJ5dbvaYTMQ8eYirbHXQvVIMO5Eg=
+    udp: true
+    ip: 10.132.15.160
+    reserved:
+      - 118
+      - 233
+      - 228
+  - name: SG-cg0a-25
+    type: wireguard
+    ip: 10.120.251.57
+    private-key: HbbD+d3ms3OZAbG6m8IznmBTaRy6GZ1TwW61yAf3Wcc=
+    udp: true
+    peers:
+      - server: szw-03.qo26jwj.example.net
+        port: 51820
+        public-key: jeP3nnldu7Ss5vTGMyIkEnUGp38gyeIqFAyKxAs0pDA=
+        allowed-ips:
+          - 0.0.0.0/0
+        reserved: gFNh

@@ -1,0 +1,41 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "KR-jnlp-45",
+        "password": "joCobve956pHGbOP",
+        "port": 443,
+        "server": "hs7-14.fbk5i4m.example.net",
+        "sni": "127.0.0.1",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "US-udm43-99",
+        "password": "rRZddt7F6fbdqRuD",
+        "port": 443,
+        "server": "cm-29.o4a6p.example.org",
+        "sni": "127.0.0.1",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "vless": {
+        "name": "HK-av3-92",
+        "port": 443,
+        "server": "oyc-16.u9lrca1q.example.org",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "sni": "oyc-16.u9lrca1q.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "72a8e00b-8c2d-4e2f-80fa-592feab63300"
+      }
+    }
+  ]
+}

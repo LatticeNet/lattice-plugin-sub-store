@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"CA-xde9a-47","server":"nz-05.lskztiz.example.net","port":52475,"user_id":"6d2251df-f4cc-4f5d-8e34-ae3b96fc7f9b","security":"chacha20-poly1305","tfo":false,"legacy":false,"udp_relay":false}}
+  - {"vmess":{"name":"GB-rlvowq-05","server":"mg-25.xclff6.example.com","port":17065,"user_id":"c1a44a66-75d9-4db7-99e4-34d2a69bc33a","security":"aes-128-gcm","tfo":false,"legacy":true,"udp_relay":true}}

@@ -1,0 +1,79 @@
+{
+  "proxies": [
+    {
+      "client-fingerprint": "firefox",
+      "encryption": "none",
+      "name": "US-gzy8-87",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "qo-19.qfig1df.example.net",
+      "servername": "www.e9lh2mo5kh.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "f1cb3c22-cadf-4741-a861-66e724042af6"
+    },
+    {
+      "client-fingerprint": "safari",
+      "encryption": "none",
+      "name": "GB-vf8-03",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "cn-20.y8suksj3.example.net",
+      "servername": "www.mnmuuw.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "b5793326-760d-46da-ab04-9d4e23d7b7ec"
+    },
+    {
+      "client-fingerprint": "ios",
+      "encryption": "none",
+      "name": "CA-a4zwe-27",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "eu-07.fq689n3v.example.org",
+      "servername": "img.l1du25r1.example.net",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "1a7cc116-66e1-46c2-91cf-cdc3005ee15f"
+    },
+    {
+      "client-fingerprint": "random",
+      "encryption": "none",
+      "name": "SG-b0j-73",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "ic-38.wgazw4.example.com",
+      "servername": "api.g2923vp2z.example.com",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "026e7152-84c8-4445-822e-a6780b289f13"
+    },
+    {
+      "client-fingerprint": "randomized",
+      "encryption": "none",
+      "name": "SG-wfvnp-71",
+      "network": "tcp",
+      "packet-encoding": "xudp",
+      "port": 443,
+      "server": "cp-24.gdg3qnvk.example.org",
+      "servername": "static.tt0p1qp.example.org",
+      "skip-cert-verify": false,
+      "tls": true,
+      "type": "vless",
+      "udp": true,
+      "uuid": "a7110413-9582-4b5d-8927-47ecae9eb14f"
+    }
+  ]
+}

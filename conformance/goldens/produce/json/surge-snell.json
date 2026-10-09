@@ -1,0 +1,35 @@
+[
+  {
+    "name": "KR-rullb-08",
+    "obfs-opts": {
+      "host": "www.d58ryzg9.example.com",
+      "mode": "http"
+    },
+    "port": 25555,
+    "psk": "0ocFveFWWxVDg2nSAhoU",
+    "server": "yrb-06.y9cklk21.example.org",
+    "type": "snell",
+    "udp": true,
+    "version": 3
+  },
+  {
+    "name": "TW-vrkn-75",
+    "port": 12210,
+    "psk": "URyP96aQ889P3tbOzmAx",
+    "reuse": true,
+    "server": "ya-05.zaq8hnv.example.com",
+    "tfo": true,
+    "type": "snell",
+    "udp": true,
+    "version": 4
+  },
+  {
+    "name": "KR-t6z28b-60",
+    "port": 26072,
+    "psk": "q3vUCA6N5YT5KQ39w5id",
+    "server": "bz5-25.rzbm.example.org",
+    "type": "snell",
+    "udp": true,
+    "version": 5
+  }
+]

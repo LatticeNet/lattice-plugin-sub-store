@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "SG-lc2-75",
+        "port": 443,
+        "server": "cn8-05.u99h.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.sfqet.example.com"
+            },
+            "path": "/sufbag7zgs",
+            "skip_tls_verify": false,
+            "sni": "api.sfqet.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ef04e78f-802d-4a7d-b13d-af45d17e4676"
+      }
+    }
+  ]
+}

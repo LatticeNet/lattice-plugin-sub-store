@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-256-gcm","name":"KR-t3yl-20","password":"mLOXTpMpdEAljhJR","plugin":"v2ray-plugin","plugin-opts":{"host":"img.nz82a.example.org","mode":"websocket","mux":true,"path":"/zen85j47vr","skip-cert-verify":false,"tls":true},"port":443,"server":"nys-21.dm1aj.example.org","type":"ss","udp":true}

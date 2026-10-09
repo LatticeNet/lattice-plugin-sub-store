@@ -1,0 +1,2 @@
+proxies:
+  - {"alpn":["h2","http/1.1"],"client-fingerprint":"chrome","encryption":"none","name":"JP-ltu-81","network":"tcp","packet-encoding":"xudp","port":443,"server":"qz-19.lub5ieg.example.net","skip-cert-verify":false,"tls":true,"type":"vless","udp":true,"uuid":"RHOvcranpksM","servername":"img.uyhwdzq.example.com"}

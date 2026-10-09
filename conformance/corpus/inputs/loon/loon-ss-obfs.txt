@@ -1,0 +1,2 @@
+CA-pb8e0-19 = Shadowsocks, ak-09.iunlgq.example.net, 58424, aes-256-gcm, "yiTLxSbfJsIZ9W", obfs-name=http, obfs-host=static.cfnaq3a2d.example.org, obfs-uri=/uxeo6q
+KR-q219-86 = Shadowsocks, ob-17.d4tqtm2h.example.org, 50927, aes-256-gcm, "ZRkmfm1bolJVer", tls, api.h7h7d5fqz.example.com

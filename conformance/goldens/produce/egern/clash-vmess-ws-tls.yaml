@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"TW-xhup-68","server":"tau-38.aett40.example.net","port":443,"user_id":"4bf5dc09-d4c6-4e9b-9ca0-b477cf3d2e93","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/kczba7vr","headers":{"Host":"static.rooc7abl.example.com"},"sni":"static.rooc7abl.example.com","skip_tls_verify":false}}}}

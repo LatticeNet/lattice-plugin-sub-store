@@ -65,10 +65,14 @@ func TestCollectionRenderFromSnapshotMatchesLive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	snap, err := rt.fetchCollectionSnapshot(rec)
+	snap, err := rt.fetchSubscription("coll")
 	if err != nil {
 		t.Fatalf("fetch snapshot: %v", err)
 	}
+	if _, ok := decodeSnapshotEnvelope(snap.Raw); !ok {
+		t.Fatalf("fetch did not write a version 2 envelope: %.120s", snap.Raw)
+	}
+	// The envelope as fetch stored it, which is what the core hands render.
 	fromSnapshot, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, snap.Raw)
 	if err != nil {
 		t.Fatalf("render from snapshot: %v", err)
@@ -90,11 +94,15 @@ func TestScriptFileRenderFromSnapshotMatchesLive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	snap, err := rt.fetchFileSnapshot(rec)
+	snap, err := rt.fetchSubscription("scripty")
 	if err != nil {
 		t.Fatalf("fetch snapshot: %v", err)
 	}
-	fromSnapshot, _, err := rt.renderFile(rec, "", nil, snap.Raw)
+	text := snapshotText(snap.Raw)
+	if !strings.Contains(text, `"source_id":"coll"`) {
+		t.Fatalf("the envelope did not read back as the members object: %.120s", text)
+	}
+	fromSnapshot, _, err := rt.renderFile(rec, "", nil, text)
 	if err != nil {
 		t.Fatalf("render from snapshot: %v", err)
 	}

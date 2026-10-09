@@ -1,0 +1,32 @@
+[
+  {
+    "address": "qz-13.y0ltk.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "48a7baf3-16ad-478f-8e2e-74d287abc37b",
+      "tag": "CA-yfey-66",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.xgty3hb.example.com",
+      "tls-verification": "false",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "tp-27.lzti78d.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "60c28923-6300-4bd5-b6fb-422aa3917feb",
+      "tag": "FR-ov7c4w-98",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.uzh18wpk67.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

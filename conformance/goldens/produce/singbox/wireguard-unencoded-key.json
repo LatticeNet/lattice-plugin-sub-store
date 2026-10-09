@@ -1,0 +1,25 @@
+{
+  "outbounds": [],
+  "endpoints": [
+    {
+      "system": false,
+      "mtu": 1420,
+      "tag": "KR-nsly49-88",
+      "type": "wireguard",
+      "address": [
+        "10.8.0.2/32"
+      ],
+      "private_key": "RIi000nUcTCKdUz8MYCzm+tTi467vyUcHNfuedHHcmI=",
+      "peers": [
+        {
+          "address": "tm-37.mmvgx6t.example.net",
+          "port": 51820,
+          "public_key": "hw45pauotWHyEn1rnGQqw0i9KGw/z7lE9SSnKR80h9c=",
+          "allowed_ips": [
+            "0.0.0.0/0"
+          ]
+        }
+      ]
+    }
+  ]
+}

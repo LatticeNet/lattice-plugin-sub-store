@@ -1,0 +1,3 @@
+proxies:
+  - {"name":"SG-vwk2-66","port":443,"server":"ur-40.nw6l.example.net","sni":"static.jzfhs115.example.net","type":"hysteria2","udp":true,"auth":"hF9IuU0ISd7Gz9sI9VrY","fast-open":true}
+  - {"fast-open":true,"name":"HK-wv1-55","port":443,"server":"vr-05.xhjbigia.example.org","sni":"api.zldsqhz5l.example.net","type":"hysteria2","udp":true,"auth":"4GlcBhFWc9on08dqocz0"}

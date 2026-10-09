@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "SG-mtlm4-76",
+        "port": 443,
+        "security": "auto",
+        "server": "nx6-10.ccti3d5z.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "f38-17.jfoeyse.example.net:8080"
+            },
+            "path": "/pyb3/uvxw9hba4o",
+            "skip_tls_verify": false,
+            "sni": "www.fd76v0.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "56394afa-2189-4076-b77c-f314bdae667e"
+      }
+    }
+  ]
+}

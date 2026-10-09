@@ -1,0 +1,17 @@
+[
+  {
+    "address": "si-01.pyt8o.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "ws",
+      "obfs-host": "si-01.pyt8o.example.com",
+      "obfs-uri": "/",
+      "password": "e59cbec9-9e75-48b1-8c3b-c5b53fb1de09",
+      "tag": "SG-zof-93",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

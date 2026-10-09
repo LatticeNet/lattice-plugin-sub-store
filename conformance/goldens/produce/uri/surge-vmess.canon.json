@@ -1,0 +1,19 @@
+[
+  {
+    "body": {
+      "add": "pa-38.pn5io.example.org",
+      "aid": "0",
+      "id": "9baf1f26-b509-46b9-a4af-9617458cc1e4",
+      "net": "tcp",
+      "port": "34827",
+      "ps": "GB-euqdb-55",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

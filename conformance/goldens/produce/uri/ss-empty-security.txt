@@ -1,0 +1,2 @@
+ss://YWVzLTEyOC1nY206WEJnWFU4djFoRW9QSkE=@wz-14.huhsgb.example.org:44206?udp=1#JP-tee2k7-36
+ss://YWVzLTEyOC1nY206U1pEVFVQaEp3dHZlZVc=@g8-14.x5adht.example.org:33639?udp=1&type=ws&path=%2F&host=g8-14.x5adht.example.org#CA-bvq-13

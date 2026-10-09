@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "ur-05.u0srua.example.com",
+      "aid": "0",
+      "host": "img.rrs1s0l.example.com",
+      "id": "5840f636-1f16-4327-8520-2c6d190b4fb9",
+      "net": "ws",
+      "path": "/ze3athc",
+      "port": "443",
+      "ps": "KR-toisb-23",
+      "scy": "auto",
+      "sni": "img.rrs1s0l.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

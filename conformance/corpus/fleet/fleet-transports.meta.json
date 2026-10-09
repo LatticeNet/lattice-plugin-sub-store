@@ -1,0 +1,41 @@
+{
+  "id": "fleet-transports",
+  "family": "fleet",
+  "description": "Every transport the fleet templates use: Reality over TCP, gRPC and XHTTP, TLS over ws and httpupgrade, VMess ws and Trojan gRPC.",
+  "shape": "transports",
+  "lines": 24,
+  "mix": [
+    {
+      "protocol": "trojan-grpc-tls",
+      "count": 3
+    },
+    {
+      "protocol": "trojan-tls",
+      "count": 3
+    },
+    {
+      "protocol": "vless-httpupgrade-tls",
+      "count": 3
+    },
+    {
+      "protocol": "vless-reality-grpc",
+      "count": 3
+    },
+    {
+      "protocol": "vless-reality-vision",
+      "count": 3
+    },
+    {
+      "protocol": "vless-reality-xhttp",
+      "count": 3
+    },
+    {
+      "protocol": "vless-ws-tls",
+      "count": 3
+    },
+    {
+      "protocol": "vmess-ws-tls",
+      "count": 3
+    }
+  ]
+}

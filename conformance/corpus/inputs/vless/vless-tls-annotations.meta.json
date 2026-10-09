@@ -1,0 +1,9 @@
+{
+  "id": "vless-tls-annotations",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-annotations",
+  "description": "TLS with pcs, vcn, packetEncoding=none, pqv, an fm JSON object and h2=1: tls-fingerprint, _vcn, name-cert-verify, packet-encoding \"\", _pqv, _finalmask and _h2 true."
+}

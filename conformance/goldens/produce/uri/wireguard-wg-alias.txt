@@ -1,0 +1,1 @@
+wireguard://VN4Xef3XIrmD%2B3%2F5w5NAney9AvPzcC5jMiqeL9j49p8%3D@203.0.113.233:51820/?publickey=FqbbuZGEiRaCbdF8mXyBdv0CJV2vU2FAsTZ316vVdxA%3D&udp=1&address=172.16.0.2%2F32#GB-q5ik8-81

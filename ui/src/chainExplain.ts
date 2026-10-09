@@ -11,6 +11,7 @@
  */
 import type { SubscriptionPreviewNode, SubscriptionPreviewResponse } from "./client";
 import type { ChainStep } from "./components/ProcessChain.vue";
+import { t } from "./i18n";
 import { schemaFor } from "./operatorSchema";
 
 export interface StepDelta {
@@ -42,7 +43,7 @@ export function enabledStepIndexes(steps: readonly ChainStep[]): number[] {
 /** The operator's own label, or the catalogue's wording for the type. */
 export function stepLabelOf(step: ChainStep, index: number): string {
   const name = (step.customName ?? "").trim() || schemaFor(step.type)?.label || step.type;
-  return `${index + 1}. ${name}`;
+  return t.chain.stepLabel(index + 1, name);
 }
 
 /**
@@ -69,9 +70,9 @@ export function stepDeltas(steps: readonly ChainStep[], sourceCount: number, cou
  * the record page uses ("kept all") rather than as a count to compare.
  */
 export function describeDelta(delta: StepDelta): string {
-  if (delta.after === delta.before) return `${delta.label}: kept all ${delta.after}`;
-  if (delta.after < delta.before) return `${delta.label}: kept ${delta.after} of ${delta.before}`;
-  return `${delta.label}: ${delta.before} became ${delta.after}`;
+  if (delta.after === delta.before) return t.previewSummary.keptAll(delta.label, delta.after);
+  if (delta.after < delta.before) return t.previewSummary.keptSome(delta.label, delta.after, delta.before);
+  return t.previewSummary.became(delta.label, delta.before, delta.after);
 }
 
 /**
@@ -103,7 +104,7 @@ export function groupDropped(
   const order: string[] = [];
   const buckets = new Map<string, SubscriptionPreviewNode[]>();
   for (const node of nodes) {
-    const label = droppedBy.get(nodeKey(node)) ?? "the chain";
+    const label = droppedBy.get(nodeKey(node)) ?? t.chainDetail.theChain;
     let bucket = buckets.get(label);
     if (!bucket) {
       bucket = [];

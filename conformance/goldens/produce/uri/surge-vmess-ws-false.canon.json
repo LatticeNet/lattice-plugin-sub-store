@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "iy-03.lvd0u.example.com",
+      "aid": "0",
+      "host": "iy-03.lvd0u.example.com",
+      "id": "d7d256b8-aa72-41a5-952a-4a1c853b315b",
+      "net": "ws",
+      "path": "/iz57g9",
+      "port": "80",
+      "ps": "JP-pbg8g-55",
+      "scy": "auto",
+      "tls": "",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

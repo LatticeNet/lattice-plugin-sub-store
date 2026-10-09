@@ -1,0 +1,50 @@
+[
+  {
+    "args": [
+      "plt-35.fr9ce.example.com",
+      "44923"
+    ],
+    "name": "AU-voji-39",
+    "params": {
+      "psk": "qy4Ski0CRbGm7cZh3dsR",
+      "version": "1"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "hl6-08.vqbj.example.net",
+      "12361"
+    ],
+    "name": "SG-kau-01",
+    "params": {
+      "psk": "9XKg0BnUWylNk0MI5SRO",
+      "version": "2"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "eod-34.v0aybnc.example.net",
+      "42820"
+    ],
+    "name": "CA-cpszh-53",
+    "params": {
+      "psk": "PiOQ8ZkWtdHzke3JjM8D",
+      "version": "5"
+    },
+    "type": "snell"
+  },
+  {
+    "args": [
+      "r57-35.n27cw2z.example.org",
+      "43212"
+    ],
+    "name": "JP-qty-61",
+    "params": {
+      "psk": "LsywgDXBCASaBetQKsQs",
+      "version": "6"
+    },
+    "type": "snell"
+  }
+]

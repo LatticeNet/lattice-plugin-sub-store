@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "HK-lb5-55",
+        "password": "WhdU9BwFJtPtUMRX",
+        "port": 443,
+        "server": "lm-06.k25j9.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "GB-fz8n-86",
+        "password": "KYsCwZmKBjKgSF",
+        "port": 43977,
+        "server": "c8k-13.e1l43f.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "shadowsocksr": {
+        "method": "chacha20-ietf",
+        "name": "KR-ndqkk-68",
+        "obfs": "plain",
+        "password": "bcFPcct0YV3p",
+        "port": 10947,
+        "protocol": "origin",
+        "server": "b6x-20.i8josg.example.org",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

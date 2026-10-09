@@ -1,0 +1,8 @@
+{
+  "id": "clash-http",
+  "family": "clash",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "none",
+  "description": "HTTP with credentials, HTTPS with sni, and HTTP with headers."
+}

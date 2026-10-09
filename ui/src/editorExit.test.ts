@@ -34,24 +34,29 @@ describe("leaving the record editor", () => {
 
 import { readFileSync } from "node:fs";
 
-// The subscriptions editor is three files: the screen routes between the list
-// and the editor, useRecordEditor holds the draft and the guard, and
-// SubscriptionEditor.vue draws it. What these tests guard is a property of the
-// editor, not of a file, so they read the three as one. The Files editor is
-// still one screen and is checked as it stands.
-const subsScreen = readFileSync(new URL("./screens/SubscriptionsScreen.vue", import.meta.url), "utf8");
-const subsEditorState = readFileSync(new URL("./useRecordEditor.ts", import.meta.url), "utf8");
-const subsEditorView = readFileSync(new URL("./components/SubscriptionEditor.vue", import.meta.url), "utf8");
-const screen = [subsScreen, subsEditorState, subsEditorView].join("\n");
-const files = readFileSync(new URL("./screens/FilesScreen.vue", import.meta.url), "utf8");
+import { en } from "./messages/en";
 
-// Both screens have a record editor, and the second one to grow it is where a
-// rule like this silently diverges: Files had the detail screen and the
+// Each editor is three files: the Records screen routes between the list and
+// the editors, a composable holds the draft and the guard (useRecordEditor,
+// useFileEditor), and a component draws it (SubscriptionEditor.vue,
+// FileEditor.vue). What these tests guard is a property of the editor, not of
+// a file, so they read each editor's three as one.
+const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
+const subsScreen = read("./screens/SubscriptionsScreen.vue");
+const subsEditorState = read("./useRecordEditor.ts");
+const subsEditorView = read("./components/SubscriptionEditor.vue");
+const screen = [subsScreen, subsEditorState, subsEditorView].join("\n");
+const filesEditorState = read("./useFileEditor.ts");
+const filesEditorView = read("./components/FileEditor.vue");
+const files = [subsScreen, filesEditorState, filesEditorView].join("\n");
+
+// Both kinds of record have an editor, and the second one to grow it is where
+// a rule like this silently diverges: Files had the detail screen and the
 // breadcrumb and none of the guard, so its Cancel threw work away without
 // asking and its Escape did nothing at all. They are checked together.
 const EDITORS = [
-  ["SubscriptionsScreen.vue", screen],
-  ["FilesScreen.vue", files],
+  ["the record editor", screen],
+  ["the file editor", files],
 ] as const;
 
 // The decision above is only worth anything if the screens actually ask it.
@@ -63,7 +68,7 @@ describe("the editor screens delegate their exits", () => {
         'class="lt-breadcrumb-root" @click="leaveEditor"',
       );
       expect(source, name + " has a Cancel that skips the guard").toContain(
-        '@click="leaveEditor">Cancel</button>',
+        '@click="leaveEditor">{{ t.common.cancel }}</button>',
       );
       // The unconditional teardown. Only the guard and the confirm's own
       // handler may reach it.
@@ -82,7 +87,8 @@ describe("the editor screens delegate their exits", () => {
     expect(screen).toMatch(/overlayOpen: \(\) => overlayDepth\(\) > 0/);
     expect(files).toMatch(/overlayOpen: \(\) => overlayDepth\(\) > 0/);
     expect(subsEditorState).toContain('from "./overlayStack"');
-    expect(files).toContain('from "../overlayStack"');
+    expect(subsScreen).toContain('from "../overlayStack"');
+    expect(filesEditorState).toContain("overlayOpen: options.overlayOpen");
   });
 
   it("snapshots each editor against the fields that screen can edit", () => {
@@ -107,18 +113,18 @@ describe("the editor screens delegate their exits", () => {
     // has not drifted back out to the screen beside the list's dialogs.
     expect(subsEditorView, "the discard confirm left the editor").toContain(':open="discarding"');
     expect(subsScreen, "the discard confirm is back beside the list").not.toContain(':open="discarding"');
-    const filesEditor = files.slice(files.indexOf('<section v-if="editing"'));
-    const listStart = filesEditor.indexOf('<section v-else class="configuration"');
-    const editorOnly = listStart > 0 ? filesEditor.slice(0, listStart) : filesEditor;
-    expect(editorOnly, "the discard confirm is outside the Files editor section").toContain(
-      ':open="discarding"',
-    );
+    expect(filesEditorView, "the discard confirm left the file editor").toContain(':open="discarding"');
   });
 
   it("says what is at stake before discarding", () => {
     expect(screen).toMatch(/:open="discarding"/);
-    expect(screen).toContain("Leave without saving?");
-    expect(screen).toContain("will be lost");
-    expect(screen).toContain('verb="Discard changes"');
+    expect(screen).toContain(':title="t.editor.leaveConfirm"');
+    expect(screen).toContain(':verb="t.editor.discardVerb"');
+    expect(files).toContain(':title="t.fileEditor.leaveConfirm"');
+    // The words themselves, in the English table every locale mirrors.
+    expect(en.editor.leaveConfirm).toContain("Leave without saving?");
+    expect(en.editor.leaveConfirm).toContain("will be lost");
+    expect(en.fileEditor.leaveConfirm).toContain("will be lost");
+    expect(en.editor.discardVerb).toBe("Discard changes");
   });
 });

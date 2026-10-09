@@ -1,0 +1,9 @@
+{
+  "id": "vless-alpn-variants",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "alpn",
+  "description": "ALPN as h3, http/1.1 alone, and an encoded list."
+}

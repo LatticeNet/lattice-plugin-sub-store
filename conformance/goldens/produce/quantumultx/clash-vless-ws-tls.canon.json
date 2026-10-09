@@ -1,0 +1,19 @@
+[
+  {
+    "address": "aa7-08.u4yp51.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "wss",
+      "obfs-host": "api.yfitrwjl.example.com",
+      "obfs-uri": "/ndpw",
+      "password": "e28e1350-3afc-4ca2-a4eb-85c3163bb32b",
+      "tag": "JP-g2jm75-03",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.yfitrwjl.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

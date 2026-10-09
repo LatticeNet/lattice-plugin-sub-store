@@ -1,0 +1,24 @@
+[
+  {
+    "body": {
+      "add": "jqg-27.c54v7.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "host": "www.tvrdvlzy.example.net",
+      "id": "91a7a9be-cdac-43f1-b90c-42bbdce195c1",
+      "net": "httpupgrade",
+      "path": "/wzn/aevx5odj",
+      "port": "443",
+      "ps": "TW-bi20-61",
+      "scy": "auto",
+      "sni": "www.tvrdvlzy.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

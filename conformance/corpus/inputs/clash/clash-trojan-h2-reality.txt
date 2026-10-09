@@ -1,0 +1,18 @@
+proxies:
+  - name: GB-awkc9t-85
+    type: trojan
+    server: rg-19.lbk8.example.net
+    port: 443
+    password: rwplh9bxjD888I3D
+    udp: true
+    tls: true
+    sni: img.ijy1nfbt.example.net
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 9EEwC_h3v-9sFWZoS8BMUuaMzNa9XziR7fqSikR-JN8
+      short-id: 021916ae
+    network: h2
+    h2-opts:
+      host:
+        - img.ijy1nfbt.example.net
+      path: /h389t/vx2hh7mu3j

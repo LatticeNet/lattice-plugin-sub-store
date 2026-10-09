@@ -1,0 +1,2 @@
+{"name":"GB-fz8n-86","type":"ss","server":"c8k-13.e1l43f.example.org","port":43977,"cipher":"aes-128-gcm","password":"KYsCwZmKBjKgSF","exec":"/usr/local/bin/avtul"}
+{"name":"KR-ndqkk-68","type":"ssr","server":"b6x-20.i8josg.example.org","port":10947,"cipher":"chacha20-ietf","password":"bcFPcct0YV3p","obfs":"plain","protocol":"origin","local-address":"198.51.100.122"}

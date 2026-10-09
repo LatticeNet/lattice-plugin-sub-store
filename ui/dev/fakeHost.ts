@@ -4,6 +4,7 @@ import { BINDINGS, type MethodBinding } from "../src/client";
 import type { HostContext } from "../src/host";
 import type { PageState } from "../src/pageState";
 import { addressForState, pageStateFromAddress, stateRateLimit } from "./consoleAddress";
+import { regexDiagnostics } from "../src/regexRewrite";
 import { parseUserinfo } from "../src/rowStatus";
 import { fixture, fixtureName, type Fixture, type ShareRow, type StoredRecord } from "./fixtures";
 
@@ -396,8 +397,53 @@ function countedPreview(source: number, kept: number, label: string) {
   };
 }
 
-function listView(rec: StoredRecord) {
+/**
+ * Which store layout the harness plays, from `?store=` on its URL: the split
+ * index S1 writes (the default), a `legacy` single document not yet migrated
+ * (list says store_version 1, every write is refused until migrate_store is
+ * done), or `none`, a runtime from before the split that sends no
+ * store_version and no index fields at all.
+ */
+type StoreMode = "split" | "legacy" | "none";
+function storeMode(): StoreMode {
+  const asked = new URLSearchParams(window.location.search).get("store");
+  return asked === "legacy" || asked === "none" ? asked : "split";
+}
+/** The legacy store migrates in place once migrate_store reports done. */
+let legacy = storeMode() === "legacy";
+let migratedSoFar = 0;
+const MIGRATION_REQUIRED = "store_migration_required: the subscription store still holds the legacy single document; run migrate_store until it reports done, then retry";
+
+const FALLBACK_STEPS = new Set(["Script Operator", "Script Filter", "Resolve Domain Operator"]);
+
+/**
+ * The index flags (s1-plan section 2.5) as the chain compiler sets them: a
+ * pattern RE2 refuses, and a step that only the fallback bundle runs.
+ */
+function flagsOf(rec: StoredRecord): { regex_incompatible?: boolean; has_fallback_step?: boolean } | undefined {
+  const chain = (rec.process ?? []) as { type?: string; disabled?: boolean }[];
+  const flags: { regex_incompatible?: boolean; has_fallback_step?: boolean } = {};
+  if (regexDiagnostics(chain).length) flags.regex_incompatible = true;
+  if (chain.some((step) => !step.disabled && FALLBACK_STEPS.has(step.type ?? ""))) flags.has_fallback_step = true;
+  return Object.keys(flags).length ? flags : undefined;
+}
+
+/**
+ * The index's node counts: what the last fetch read, and what the chain
+ * handed on when it ran natively (a flagged or fallback chain records no
+ * out). A record the fixture has no counts for was never counted.
+ */
+function indexCounts(rec: StoredRecord): { nodes_in?: number; nodes_out?: number } {
+  if (storeMode() === "none" || legacy || rec.kind === "file") return {};
+  const counted = active.counts[rec.id];
+  if (!counted) return {};
+  const flags = flagsOf(rec);
+  return flags ? { nodes_in: counted[0] } : { nodes_in: counted[0], nodes_out: counted[1] };
+}
+
+function listView(rec: StoredRecord, order: number) {
   const steps = (rec.process ?? []) as { disabled?: boolean }[];
+  const index = storeMode() === "none" ? {} : { revision: `rev-${rec.id}-1`, order, flags: flagsOf(rec), ...indexCounts(rec) };
   return {
     id: rec.id,
     kind: rec.kind || "sub",
@@ -418,6 +464,7 @@ function listView(rec: StoredRecord) {
     step_count: steps.length,
     disabled_step_count: steps.filter((s) => s.disabled).length,
     imported: Boolean(rec.origin),
+    ...index,
     // Only once fetched, like the backend: absent reads as "never fetched".
     ...(rec.last_fetch_at
       ? {
@@ -431,13 +478,93 @@ function listView(rec: StoredRecord) {
   };
 }
 
+/** Records deleted under the split store, kept until purge (s1-plan section 3.2). */
+const archived: StoredRecord[] = [];
+let listReads = 0;
+
+/** The records whose sources reach vpn-core, directly, as a member or as a file's node source. */
+function fleetReaders(): StoredRecord[] {
+  const fleet = new Set(records.filter((rec) => rec.source === "vpn-core" || rec.source === "vpn-core-graph").map((rec) => rec.id));
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const rec of records) {
+      if (fleet.has(rec.id)) continue;
+      const reaches = (rec.members ?? []).some((id) => fleet.has(id)) || (rec.node_source ? fleet.has(rec.node_source) : false);
+      if (reaches) {
+        fleet.add(rec.id);
+        grew = true;
+      }
+    }
+  }
+  return records.filter((rec) => fleet.has(rec.id));
+}
+
 const HANDLERS: Record<string, (payload: any) => unknown> = {
   "subscription/list": () => {
     const state = harnessState();
-    if (state === "empty") return { subscriptions: [] };
+    listReads += 1;
+    if (state === "empty") return { subscriptions: [], ...(storeMode() === "none" ? {} : { store_version: 2, order: "manual" }) };
     if (state === "error") throw new Error("the store could not be read (harness ?state=error)");
-    return { subscriptions: records.map(listView) };
+    // The first read lands; every read after it fails, so the rows on screen
+    // become the last good read the moment anything reloads the list.
+    if (state === "stale" && listReads > 1) throw new Error("the store could not be read (harness ?state=stale)");
+    const subscriptions = records.map((rec, order) => listView(rec, order));
+    if (storeMode() === "none") return { subscriptions };
+    return { subscriptions, store_version: legacy ? 1 : 2, order: "manual" };
   },
+  /**
+   * `{ids}`, every live id once. `?reorder=fail` refuses every call, so the
+   * table's revert and its announcement can be looked at.
+   */
+  "subscription/reorder": ({ ids }) => {
+    if (legacy) throw new Error(MIGRATION_REQUIRED);
+    if (new URLSearchParams(window.location.search).get("reorder") === "fail") {
+      throw new Error("the index changed under the reorder (harness ?reorder=fail)");
+    }
+    const wanted = Array.isArray(ids) ? (ids as string[]) : [];
+    if (wanted.length !== records.length || new Set(wanted).size !== wanted.length) {
+      throw new Error(`reorder names ${wanted.length} records, the store holds ${records.length}; list again and resend every id once`);
+    }
+    const byId = new Map(records.map((rec) => [rec.id, rec]));
+    const next = wanted.map((id) => {
+      const found = byId.get(id);
+      if (!found) throw new Error(`reorder names "${id}", which is not a live record or is named twice`);
+      return found;
+    });
+    records.splice(0, records.length, ...next);
+    return { reordered: true, count: next.length };
+  },
+  /** One chunk of the legacy store per call, until it reports done and verified. */
+  "subscription/migrate_store": ({ chunk }) => {
+    if (!legacy) return { migrated: 0, remaining: 0, done: true, verified: true, store_version: 2 };
+    const size = Math.max(1, Math.min(Number(chunk) || 64, 64));
+    const step = Math.min(size, records.length - migratedSoFar);
+    migratedSoFar += step;
+    const remaining = records.length - migratedSoFar;
+    if (remaining === 0) legacy = false;
+    const flagged = records.filter((rec) => flagsOf(rec)?.regex_incompatible).map((rec) => rec.id);
+    return { migrated: step, remaining, done: remaining === 0, verified: remaining === 0, store_version: remaining === 0 ? 2 : 1, regex_incompatible: flagged };
+  },
+  "subscription/restore": ({ subscription_id }) => {
+    if (legacy) throw new Error(MIGRATION_REQUIRED);
+    const index = archived.findIndex((rec) => rec.id === subscription_id);
+    if (index === -1) throw new Error(`subscription "${subscription_id}" is not archived`);
+    const [restored] = archived.splice(index, 1);
+    records.push(restored!);
+    return { id: subscription_id, restored: true, subscription: restored };
+  },
+  "subscription/purge": ({ subscription_id }) => {
+    if (legacy) throw new Error(MIGRATION_REQUIRED);
+    const index = archived.findIndex((rec) => rec.id === subscription_id);
+    if (index === -1) throw new Error(`subscription "${subscription_id}" is not archived`);
+    archived.splice(index, 1);
+    return { id: subscription_id, purged: true };
+  },
+  "subscription/depends_on": () => ({
+    records: fleetReaders().map((rec) => ({ id: rec.id, revision: `rev-${rec.id}-1` })),
+    version: `idx-${records.length}`,
+  }),
   "subscription/operators": () => ({
     operators: [
       ...OPERATORS.map((type) => ({ type, scripting: SCRIPTING.has(type) })),
@@ -477,6 +604,17 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
    * `?conflict=deleted` gives the other reason: the record went away.
    */
   "subscription/save": ({ subscription, if_revision }) => {
+    if (legacy) throw new Error(MIGRATION_REQUIRED);
+    // Save-time strict compile (s1-plan section 3.1): a chain the caller
+    // changed must compile under RE2. An unchanged chain on a flagged record
+    // saves, so an edit to its name is never refused for its old patterns.
+    const before = records.find((r) => r.id === subscription.id);
+    const changed = JSON.stringify(before?.process ?? []) !== JSON.stringify(subscription.process ?? []);
+    const refused = changed ? regexDiagnostics((subscription.process ?? []) as unknown[]) : [];
+    if (refused.length) {
+      const first = refused[0]!;
+      throw new Error(`regex_incompatible: step ${first.step} pattern ${JSON.stringify(first.pattern)} needs lookaround or a backreference, which RE2 cannot compile`);
+    }
     const mode = new URLSearchParams(window.location.search).get("conflict");
     if (mode && if_revision) {
       if (mode === "deleted") {
@@ -506,10 +644,13 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
     return { subscription: { ...subscription, revision: `rev-${subscription.id}-2` }, saved: true };
   },
   "subscription/delete": ({ subscription_id }) => {
+    if (legacy) throw new Error(MIGRATION_REQUIRED);
     const index = records.findIndex((r) => r.id === subscription_id);
     if (index === -1) throw new Error(`subscription "${subscription_id}" was not found`);
-    records.splice(index, 1);
-    return { id: subscription_id, deleted: true };
+    const [gone] = records.splice(index, 1);
+    // The split store archives on delete; restore brings it back under the same id.
+    if (storeMode() !== "none") archived.push(gone!);
+    return { id: subscription_id, deleted: true, ...(storeMode() !== "none" ? { archived: true } : {}) };
   },
   /**
    * What the row's Refresh button actually calls. It has to move the record's
@@ -750,6 +891,20 @@ function delay<T>(value: T): Promise<T> {
  */
 export type HarnessState = "ok" | "empty" | "error" | "slow" | "readonly" | "stale" | "noadmin" | "sharesfail";
 
+/**
+ * The locale the handshake hands over, from `?locale=` (a BCP 47 tag, as the
+ * console sends it: `zh-CN`, `ru-RU`, `en-US`). Without it the harness says
+ * `en`. Any tag goes through, so an unsupported one shows the English fallback.
+ */
+export function harnessLocale(): string {
+  return new URLSearchParams(window.location.search).get("locale") || "en";
+}
+
+/** Whether the handshake declares the S1 capability-wave methods (`?manifest=s1`). */
+export function s1Manifest(): boolean {
+  return new URLSearchParams(window.location.search).get("manifest") === "s1";
+}
+
 export function harnessState(): HarnessState {
   const asked = new URLSearchParams(window.location.search).get("state");
   const known: HarnessState[] = ["ok", "empty", "error", "slow", "readonly", "stale", "noadmin", "sharesfail"];
@@ -772,6 +927,7 @@ export function createFakeHost(): HostContext {
       version: "1",
       pluginId: "latticenet.sub-store",
       route: "sub-store",
+      locale: harnessLocale(),
       interfaces: [
         {
           service: "latticenet.sub-store/subscription",
@@ -782,6 +938,11 @@ export function createFakeHost(): HostContext {
           methods: [
             "fetch", "probe", "render", "operators", "graph_options", "preview", "preview_draft", "list",
             "get", "save", "delete", "migrate", "export", "import", "get_settings", "save_settings", "publish",
+            // `?manifest=s1` plays the capability-wave manifest (s1-plan
+            // section 6), which declares the store split's methods. Without
+            // it the handshake is what manifest.json declares today, and the
+            // UI keeps every control those methods drive out of reach.
+            ...(s1Manifest() ? ["restore", "purge", "reorder", "migrate_store", "depends_on"] : []),
           ],
         },
         {
@@ -805,10 +966,13 @@ export function createFakeHost(): HostContext {
   // `noadmin` keeps the editor but withholds the one admin-scoped preview,
   // which is the session the compare panel's stored-source path exists for.
   const WITHHELD: Record<string, true> = harnessState() === "readonly"
-    ? { save: true, delete: true, publish: true, preview_draft: true }
+    ? { save: true, delete: true, publish: true, preview_draft: true, reorder: true, migrate_store: true, restore: true, purge: true }
     : harnessState() === "noadmin"
       ? { preview_draft: true }
       : {};
+  // The share list is substore:admin plus proxy:admin, so a read-only session
+  // cannot read it at all and the Published column says it does not know.
+  const SHARES_WITHHELD = harnessState() === "readonly";
 
   const bridge = {
     call<T>(service: string, method: string, payload: unknown) {
@@ -857,6 +1021,7 @@ export function createFakeHost(): HostContext {
     bootError,
     available: (target: MethodBinding) =>
       !WITHHELD[target.method] &&
+      !(SHARES_WITHHELD && target.service === BINDINGS.sharesList.service) &&
       init.value?.interfaces.some(
         (contract: any) =>
           contract.service === target.service && contract.methods.includes(target.method),

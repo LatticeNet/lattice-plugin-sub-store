@@ -1,0 +1,1 @@
+HK-hgq-99=vmess,pgf-17.cv2qm174.example.net,443,auto,"2ec8f005-4bea-4ba2-be6f-7031ea6499b5",transport=tcp,over-tls=true,tls-profile=chrome,sni=cdn.v35bq7.example.net,public-key="XQzXzL4h3FQ9W7FdQA6nSbNjwV4m1eQPh5VZejtZhKw",short-id=d88948a8,alterId=4,udp=true

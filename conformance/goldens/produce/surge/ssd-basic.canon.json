@@ -1,0 +1,41 @@
+[
+  {
+    "args": [
+      "e8-24.czdpwx7v.example.net",
+      "41712"
+    ],
+    "name": "KR-fn5-71",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "kfm-30.j86h.example.net",
+      "41712"
+    ],
+    "name": "NL-vv8-63",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "198.51.100.128",
+      "41712"
+    ],
+    "name": "NL-jh0-83",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "eQObS4ZKRCMB0Q",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

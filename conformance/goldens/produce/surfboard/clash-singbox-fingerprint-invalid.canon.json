@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "ow-28.dtz3rnpm.example.net",
+      "443"
+    ],
+    "name": "KR-r6gn-96",
+    "params": {
+      "password": "pPnCGkjyaqHJ0MfE",
+      "server-cert-fingerprint-sha256": "cfa0652d596fff52864e5c2c7ae1cdd72414dfd74aa3ba626999902136a39b4",
+      "sni": "cdn.jg0x6mx4e.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

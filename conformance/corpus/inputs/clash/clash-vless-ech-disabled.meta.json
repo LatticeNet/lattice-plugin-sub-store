@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-ech-disabled",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ech",
+  "description": "vless with ech-opts enable: false and a config."
+}

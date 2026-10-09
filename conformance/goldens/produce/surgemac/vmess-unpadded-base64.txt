@@ -1,0 +1,1 @@
+HK-opvhpj-01=vmess,m9-20.ykh9.example.org,443,username=a3420ae7-435f-4538-b1c3-84a8a1a321bd,ws=true,ws-path=/jo1/ybfztg,ws-headers="Host:"api.e6q1f3.example.net"",vmess-aead=true,tls=true,sni="api.e6q1f3.example.net",alpn="h2,http/1.1"

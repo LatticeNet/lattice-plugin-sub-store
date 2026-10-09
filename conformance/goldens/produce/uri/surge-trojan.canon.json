@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "DE-n3mife-19",
+    "host": "jk5-23.fvpc.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "sni",
+        "api.b0h8ez454.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "Dw9cWcvIBMcXkupU"
+  }
+]

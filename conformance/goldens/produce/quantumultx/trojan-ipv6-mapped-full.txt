@@ -1,0 +1,1 @@
+trojan=::ffff:198.51.100.153:443,password=Ou8kTO0V9PYFpUBy,over-tls=true,tls-host=www.ok64r7bmn.example.net,udp-relay=true,tag=SG-i1osv-55

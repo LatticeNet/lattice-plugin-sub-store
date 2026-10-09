@@ -1,0 +1,17 @@
+[
+  {
+    "fragment": "KR-uhyf-94",
+    "host": "2001:db8:d7c0:51b0::dfb9",
+    "path": "",
+    "port": "21991",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTI1Ni1nY206T0ZXT3g0d0xpVzh6a3Y=",
+    "userinfo_base64": "aes-256-gcm:OFWOx4wLiW8zkv"
+  }
+]

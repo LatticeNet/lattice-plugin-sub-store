@@ -1,0 +1,2 @@
+proxies:
+  - {"vless":{"name":"AU-jwzsq-86","server":"yb-14.ftkl.example.org","port":443,"user_id":"77ae0d55-6292-4898-bd24-56a17d4c8a99","tfo":false,"udp_relay":true,"transport":{"http2":{"path":"/gd2xn7xk2","headers":{"Host":"static.t3tolezml9.example.org"},"sni":"www.eafsr4p4.example.net","skip_tls_verify":false}},"shadow_tls":{"password":"sJsf5OZ1VPm1lqg2","sni":"www.eafsr4p4.example.net"}}}

@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"auto","grpc-opts":{"grpc-service-name":"pupv0-cwl8xg"},"name":"HK-etr-64","network":"grpc","port":443,"server":"gz1-11.f67x.example.net","type":"vmess","udp":true,"uuid":"f26dc40c-98db-4600-b5f4-ed294aa9ecc4"}

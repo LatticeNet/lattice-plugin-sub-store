@@ -1,0 +1,1 @@
+vless://b71a594d-c0f7-4382-b55d-ffaaefacfc1f@fy-15.rele.example.com:443?security=none&type=tcp&headerType=http&path=%2Fmxba&host=static.k844cgjqpc.example.org&packetEncoding=xudp&encryption=none#US-g9oft-73

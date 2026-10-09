@@ -1,0 +1,33 @@
+[
+  {
+    "address": "u16-26.sz1teg.example.com:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "9f1ba0a5-a979-48eb-9d96-caff0917c849",
+      "reality-base64-pubkey": "TeoTSdir_kbAvA2e-B4-6IMCsUuZMfVNtPhy3yII6Pc",
+      "reality-hex-shortid": "0086",
+      "tag": "HK-rzpg-20",
+      "tls-host": "www.t88723n10.example.com",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "qjb-11.e5y6.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "c3465fc6-122b-40a0-bbd8-a5eb6460d054",
+      "reality-base64-pubkey": "Vinz4N9PuKGQ1h5Kx4f4po9zhPr0euemOLqUNPcukKk",
+      "tag": "AU-ctw-23",
+      "tls-host": "api.mc05ho3.example.org",
+      "udp-relay": "true",
+      "vless-flow": "xtls-rprx-vision"
+    },
+    "type": "vless"
+  }
+]

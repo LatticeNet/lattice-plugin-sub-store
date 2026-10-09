@@ -1,0 +1,1 @@
+FR-mw0ad-11=trojan,wtr-25.tgodt.example.org,443,password="iEbzUJm2r7ZFhxxz",tls=true,sni="img.xashyl2j67.example.net"

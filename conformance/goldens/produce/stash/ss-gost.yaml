@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"HK-voe-34","password":"9pCtpEtMribSrs","plugin":"gost-plugin","plugin-opts":{"host":"static.ri00zo0hq.example.com","mode":"websocket","path":"/e4yr0/rnz6","tls":true,"skip-cert-verify":false},"port":43870,"server":"ply-13.dlty.example.com","skip-cert-verify":false,"type":"ss","udp":true}

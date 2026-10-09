@@ -1,0 +1,49 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-wwxzz-36",
+      "type": "trojan",
+      "server": "k0-09.xp6f.example.com",
+      "server_port": 443,
+      "password": "1Iz84ILzrS9Neqpv",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.l862e7.example.com",
+        "insecure": false
+      }
+    },
+    {
+      "tag": "KR-tq2-07",
+      "type": "http",
+      "server": "fpd-08.dl483.example.org",
+      "server_port": 8080,
+      "username": "tqtzpi",
+      "password": "cg4QWBilRQRo",
+      "headers": {
+        "X-mtt3tr5w": "u1xh"
+      }
+    },
+    {
+      "tag": "US-iqkz-62",
+      "type": "shadowsocks",
+      "server": "izc-22.l21tl33.example.com",
+      "server_port": 34054,
+      "method": "aes-128-gcm",
+      "password": "t75by9UeUMxNHS"
+    },
+    {
+      "tag": "TW-fjq-18",
+      "type": "naive",
+      "server": "cb3-39.s76z0sai.example.com",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.ma5xw.example.com",
+        "insecure": false
+      },
+      "username": "n8s9",
+      "password": "89l2Ul4BYHzFTg"
+    }
+  ],
+  "endpoints": []
+}

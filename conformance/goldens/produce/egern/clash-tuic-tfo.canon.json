@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "tuic": {
+        "alpn": [
+          "h3"
+        ],
+        "name": "DE-tg4yf-12",
+        "password": "yp4kKdg56ngpzODl",
+        "port": 443,
+        "server": "x9j-17.cv7l2u.example.net",
+        "sni": "img.mbn182htgb.example.org",
+        "uuid": "fe030823-567f-4fbf-b11e-9f282081bfdf"
+      }
+    }
+  ]
+}

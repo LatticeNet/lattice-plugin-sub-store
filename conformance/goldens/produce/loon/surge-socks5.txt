@@ -1,0 +1,3 @@
+TW-i2gfvc-26=socks5,gvo-12.lih7p9at.example.org,1080,ghvuo5ft,"3PW2M7qZi7vb",udp=true
+CA-ygv-96=socks5,k0z-07.alq6rzpv.example.org,443,q5myv,"mdJzWJBzn9uV",over-tls=true,sni=www.v376zlisy8.example.net,skip-cert-verify=true,udp=true
+NL-glmiy7-28=socks5,192.0.2.224,1080,udp=true

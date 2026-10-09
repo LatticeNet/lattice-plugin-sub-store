@@ -1,0 +1,9 @@
+{
+  "id": "wireguard-no-userinfo",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "missing-userinfo",
+  "description": "wg://host with the keys and the address in the query and no user info: private-key holds the text undefined because private_key is ignored, public_key gives public-key, and ip gets ip-cidr 32."
+}

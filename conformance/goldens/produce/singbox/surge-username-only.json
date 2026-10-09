@@ -1,0 +1,12 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-zy6l-07",
+      "type": "http",
+      "server": "dyt-27.fldz.example.com",
+      "server_port": 80,
+      "username": "fyv7ffic"
+    }
+  ],
+  "endpoints": []
+}

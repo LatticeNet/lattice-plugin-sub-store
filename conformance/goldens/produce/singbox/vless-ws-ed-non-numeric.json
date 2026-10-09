@@ -1,0 +1,33 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-mezs9r-33",
+      "type": "vless",
+      "server": "r7-03.i2erek.example.net",
+      "server_port": 443,
+      "uuid": "5f9949e9-6942-4705-aac5-b20178fbf8d9",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.wcdec4b.example.org",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "packet_encoding": "xudp",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "api.wcdec4b.example.org"
+        },
+        "path": "/yp7qbs?ed=gi2i1"
+      }
+    }
+  ],
+  "endpoints": []
+}

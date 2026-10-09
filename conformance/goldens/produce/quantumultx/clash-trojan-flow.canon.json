@@ -1,0 +1,14 @@
+[
+  {
+    "address": "a2g-25.z48tqd9.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "rc0xyjyaXcBn0bBO",
+      "tag": "US-qe4q1x-80",
+      "tls-host": "cdn.xie8kv58.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "ss-gost",
+  "family": "ss",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "query-gost",
+  "description": "gost= with percent-encoded Base64 JSON naming route wss, an address, a port, a host and a path: plugin gost-plugin in websocket mode with tls, and the server and port replaced."
+}

@@ -1,0 +1,31 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "h5v-21.rk5hk.example.net",
+      "server_port": 443,
+      "tag": "FR-zkz26-28",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.fd270ja4ty.example.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "service_name": "budblu-p78",
+        "type": "grpc"
+      },
+      "type": "vmess",
+      "uuid": "77b5371f-632c-4dae-ab52-8bd4555af91e"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "name": "AU-ef8-23",
+    "network": "tcp",
+    "password": "nrZ4GoNApLRurSNH",
+    "port": 443,
+    "server": "d78-40.oq5eh33.example.net",
+    "sni": "d78-40.oq5eh33.example.net",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

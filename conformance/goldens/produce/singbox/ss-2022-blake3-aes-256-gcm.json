@@ -1,0 +1,13 @@
+{
+  "outbounds": [
+    {
+      "tag": "US-kn0y3-61",
+      "type": "shadowsocks",
+      "server": "d1-03.xf31pk.example.com",
+      "server_port": 28315,
+      "method": "2022-blake3-aes-256-gcm",
+      "password": "rGIvNiredv0sXS6wuEe17E8ShzoJZz1fPuI4140WnFw="
+    }
+  ],
+  "endpoints": []
+}

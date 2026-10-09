@@ -1,0 +1,15 @@
+proxies:
+  - name: NL-y3n-41
+    type: vless
+    server: hc-40.nc5igzur.example.org
+    port: 443
+    uuid: b2db72da-0421-48df-b34b-b536eca4d3f8
+    udp: true
+    tls: true
+    servername: api.n2x9vi.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    name-cert-verify: img.gx3fkjiqom.example.com

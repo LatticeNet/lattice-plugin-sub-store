@@ -1,0 +1,8 @@
+{
+  "id": "socks5-tls",
+  "family": "socks-http",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "tls",
+  "description": "socks5+tls:// with sni and skip-cert-verify."
+}

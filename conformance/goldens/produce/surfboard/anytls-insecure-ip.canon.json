@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "198.51.100.140",
+      "45821"
+    ],
+    "name": "GB-uq8k-07",
+    "params": {
+      "password": "M9Mlcffeicbj8UV6dfeJ",
+      "skip-cert-verify": "true",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

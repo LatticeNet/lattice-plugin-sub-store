@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "FR-zy6i6-82",
+    "host": "bb-27.sc6zg0dg.example.net",
+    "path": "",
+    "port": "25709",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206ZzBXNXFZWHVjdlkxSU4=",
+    "userinfo_base64": "aes-128-gcm:g0W5qYXucvY1IN"
+  }
+]

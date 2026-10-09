@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"US-wy3-51","port":57692,"psk":"NZq6UaXbsTlmroOZ7STZ","server":"dx-34.uzidmcd.example.org","type":"snell","udp":true,"version":4,"obfs-opts":{"mode":"shadow-tls","host":"static.jgcbpwv1f3.example.com","password":"ZBhhkwByhlgdUUYT","version":3}}

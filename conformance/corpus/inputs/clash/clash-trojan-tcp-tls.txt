@@ -1,0 +1,15 @@
+proxies:
+  - name: FR-liz0ut-87
+    type: trojan
+    server: zh2-34.v0i498.example.com
+    port: 443
+    password: x47D5mO8MxZGTHOg
+    udp: true
+    tls: true
+    sni: www.gm2apo.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+    network: tcp

@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "du-21.xuqo.example.net",
+      "443"
+    ],
+    "name": "JP-sllha-25",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "static.hj7i0uqi3t.example.net",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "abeab29a-533c-49a8-9ea3-5fa5fd336813",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"wk-11.bydc.example.org,bzy-26.x994q.example.com\"",
+      "ws-path": "/ohvx2r/ccu9"
+    },
+    "type": "vmess"
+  }
+]

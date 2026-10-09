@@ -1,0 +1,14 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "",
+    "network": "tcp",
+    "port": 443,
+    "server": "cz-18.bqqq3e.example.org",
+    "tls": false,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "252586ae-8170-4126-8483-71740ee01d41"
+  }
+]

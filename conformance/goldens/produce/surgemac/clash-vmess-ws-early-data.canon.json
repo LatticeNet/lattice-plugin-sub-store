@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "zs-01.d96h4u7.example.com",
+      "443"
+    ],
+    "name": "DE-eec9l-77",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "skip-cert-verify": "false",
+      "sni": "cdn.cn3k79.example.net",
+      "tls": "true",
+      "username": "987a2697-2d80-4245-aab3-42a2e6ac081c",
+      "vmess-aead": "true",
+      "ws": "true",
+      "ws-headers": "Host:\"img.cqi5al.example.net\"",
+      "ws-path": "/jhixtf/jbwudryxb"
+    },
+    "type": "vmess"
+  }
+]

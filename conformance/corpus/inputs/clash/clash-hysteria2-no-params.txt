@@ -1,0 +1,6 @@
+proxies:
+  - name: CA-c80r-97
+    type: hysteria2
+    server: 203.0.113.47
+    port: 443
+    password: TRVXCERjoTB5gXhbzIx9

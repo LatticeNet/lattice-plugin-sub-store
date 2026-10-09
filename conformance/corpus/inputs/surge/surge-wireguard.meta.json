@@ -1,0 +1,9 @@
+{
+  "id": "surge-wireguard",
+  "family": "surge",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "section-name",
+  "description": "Surge wireguard proxy lines that reference a section."
+}

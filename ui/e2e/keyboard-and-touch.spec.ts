@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { m } from "./messages";
+
 /**
  * Where focus goes, and how big a thumb's target is: the 2026-10-01 design
  * review drove these by hand and found focus on <body> after most overlays
@@ -25,11 +27,11 @@ test.describe("focus at 1440", () => {
 
   test("the confirm dialog keeps Tab inside, and Escape and Cancel give focus back to the menu trigger", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
-    const trigger = page.getByRole("button", { name: "Actions for for-cdcd-egern", exact: true });
+    const trigger = page.getByRole("button", { name: m.records.actionsFor("for-cdcd-egern"), exact: true });
     await trigger.focus();
     await page.keyboard.press("Enter");
     await page.keyboard.press("End");
-    await expect.poll(() => focused(page)).toBe("Delete");
+    await expect.poll(() => focused(page)).toBe(m.actions.delete);
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeFocused();
@@ -46,35 +48,35 @@ test.describe("focus at 1440", () => {
     await page.keyboard.press("Enter");
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
-    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await dialog.getByRole("button", { name: m.common.cancel }).click();
     await expect(trigger).toBeFocused();
   });
 
   test("a confirmed delete moves focus to the row above, and names the share it left serving nothing", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
-    await page.getByRole("button", { name: "Actions for for-cdcd-loon", exact: true }).click();
-    await page.getByRole("menuitem", { name: /Delete/ }).click();
+    await page.getByRole("button", { name: m.records.actionsFor("for-cdcd-loon"), exact: true }).click();
+    await page.getByRole("menuitem", { name: m.actions.delete }).click();
     const dialog = page.getByRole("alertdialog");
     await dialog.locator("input").fill("for-cdcd-loon");
-    await dialog.getByRole("button", { name: "Delete" }).click();
+    await dialog.getByRole("button", { name: m.common.delete }).click();
     await expect(dialog).toHaveCount(0);
     await expect(page.locator('[data-record-open="imported-file-for-cdcd-egern"]')).toBeFocused();
-    const notice = page.locator(".pc-notice", { hasText: "Deleted for-cdcd-loon" });
+    const notice = page.locator(".pc-notice", { hasText: m.deletion.deleted("for-cdcd-loon") });
     await expect(notice).toContainText("/cdcd still exists and now serves nothing");
-    await expect(notice.getByRole("button", { name: "Open in Publishing" })).toBeVisible();
+    await expect(notice.getByRole("button", { name: m.records.openInPublishing })).toBeVisible();
 
     // The share stays in the console: Shares says it serves nothing, and the proof line no longer counts it live.
-    await page.getByRole("tab", { name: /Shares/ }).click();
+    await page.locator("#pc-tab-shares").click();
     await expect(page.locator(".layer-row", { hasText: "/cdcd" })).toContainText("serves nothing");
     await expect(page.locator(".ss-header")).toContainText("0 shares live");
   });
 
   test("the palette gives focus back where Cmd+K was pressed, and its Edit lands on the editor heading", async ({ page }) => {
     await open(page, "?view=sources", ".layer-row");
-    const filter = page.getByRole("searchbox", { name: "Filter sources" });
+    const filter = page.getByRole("searchbox", { name: m.records.filterLabel });
     await filter.focus();
     await page.keyboard.press("ControlOrMeta+k");
-    await expect(page.getByRole("dialog", { name: "Search records and actions" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: m.palette.dialogLabel })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(filter).toBeFocused();
 
@@ -82,7 +84,7 @@ test.describe("focus at 1440", () => {
     await page.keyboard.type("openjobs-host-trojan");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("heading", { name: /Edit source/ })).toBeFocused();
+    await expect(page.locator("#editor-title")).toBeFocused();
   });
 
   test("a delete chosen in the palette gives focus to the record's row when cancelled", async ({ page }) => {
@@ -90,7 +92,7 @@ test.describe("focus at 1440", () => {
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.type("cdcd-self-host.bak");
     await page.keyboard.press("Enter");
-    await page.locator(".palette-row", { hasText: "Delete" }).click();
+    await page.locator(".palette-row", { hasText: m.actions.delete }).click();
     await expect(page.getByRole("alertdialog")).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(page.locator('[data-record-open="imported-cdcd-self-hostbak-20260820"]')).toBeFocused();
@@ -104,31 +106,31 @@ test.describe("focus at 1440", () => {
     await expect(page.locator('[data-record-open="file-grace-surfboard"]')).toBeFocused();
   });
 
-  test("Show them moves focus to the Files layer it opened", async ({ page }) => {
+  test("Show them moves focus to the Records layer it opened", async ({ page }) => {
     await open(page, "", ".attention-item");
-    await page.getByRole("button", { name: "Show them" }).click();
-    await expect(page.locator("#pc-panel-files")).toBeFocused();
+    await page.getByRole("button", { name: m.attention.showThem }).click();
+    await expect(page.locator("#pc-panel-records")).toBeFocused();
   });
 
   test("Home and End reach the ends of the row menu and the layer row; Tab closes the menu onto its trigger", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
-    const trigger = page.getByRole("button", { name: "Actions for for-cdcd-loon", exact: true });
+    const trigger = page.getByRole("button", { name: m.records.actionsFor("for-cdcd-loon"), exact: true });
     await trigger.focus();
     await page.keyboard.press("Enter");
     await page.keyboard.press("End");
-    await expect.poll(() => focused(page)).toBe("Delete");
+    await expect.poll(() => focused(page)).toBe(m.actions.delete);
     await page.keyboard.press("Home");
-    await expect.poll(() => focused(page)).toBe("Publish…");
+    await expect.poll(() => focused(page)).toBe(m.actions.share);
     await page.keyboard.press("Tab");
     await expect(page.locator(".rec-menu")).toHaveCount(0);
     await expect(trigger).toBeFocused();
 
-    await page.getByRole("tab", { name: /Files/ }).focus();
+    await page.locator("#pc-tab-records").focus();
     await page.keyboard.press("End");
-    await expect(page.getByRole("tab", { name: /Settings/ })).toBeFocused();
+    await expect(page.locator("#pc-tab-settings")).toBeFocused();
     await expect(page).toHaveURL(/[?&]view=settings/);
     await page.keyboard.press("Home");
-    await expect(page.getByRole("tab", { name: /Overview/ })).toBeFocused();
+    await expect(page.locator("#pc-tab-overview")).toBeFocused();
   });
 
   test("after the panel closes, the selected chip opens it again; Escape on the map puts the path out", async ({ page }) => {
@@ -148,26 +150,26 @@ test.describe("focus at 1440", () => {
     await expect(page.locator('.lineage-chip[data-state="off"]')).toHaveCount(0);
   });
 
-  test("the Files page survives a reload, and a search starts again on page 1", async ({ page }) => {
+  test("the Records page survives a reload, and a search starts again on page 1", async ({ page }) => {
     await open(page, "?view=files&fixture=large", ".layer-row");
     const footer = page.locator(".pc-pagination");
-    await footer.getByRole("button", { name: "Next" }).click();
-    await footer.getByRole("button", { name: "Next" }).click();
+    await footer.getByTestId("page-next").click();
+    await footer.getByTestId("page-next").click();
     await expect(footer).toContainText("Page 3 of 4");
     await expect(page).toHaveURL(/[?&]page=3/);
     await page.reload();
-    await expect(footer).toContainText("Files 101 to 150 of 180");
-    await page.getByRole("searchbox", { name: "Filter files" }).fill("alice");
+    await expect(footer).toContainText("Records 101 to 150 of 180");
+    await page.getByRole("searchbox", { name: m.records.filterLabel }).fill("alice");
     await expect(page).not.toHaveURL(/[?&]page=/);
   });
 
   test("one share expiry reads the same in attention and in Shares, and Review narrows Shares to it", async ({ page }) => {
     await open(page, "?fixture=failing", ".attention-item");
-    await page.getByRole("button", { name: /Show \d+ more/ }).click();
+    await page.locator(".attention-more").getByRole("button").click();
     const claim = await page.locator(".attention-item", { hasText: "/oj-stash" }).locator(".attention-claim").innerText();
     const when = claim.match(/expires in \d+ days/)?.[0];
     expect(when).toBeTruthy();
-    await page.locator(".attention-item", { hasText: "/oj-stash" }).getByRole("button", { name: "Review" }).click();
+    await page.locator(".attention-item", { hasText: "/oj-stash" }).getByRole("button", { name: m.attention.review }).click();
     await expect(page).toHaveURL(/[?&]q=oj-stash/);
     await expect(page.locator(".layer-row")).toHaveCount(1);
     await expect(page.locator(".layer-row")).toContainText(when!);
@@ -175,9 +177,9 @@ test.describe("focus at 1440", () => {
 
   test("an attention line offers one control per destination, and names records rather than ids", async ({ page }) => {
     await open(page, "?fixture=failing", ".attention-item");
-    const line = page.locator(".attention-item", { hasText: "failed its last refresh" });
+    const line = page.locator('.attention-item[data-attention^="fetch:"]');
     await expect(line.locator("button")).toHaveCount(1);
-    await expect(line.getByRole("button", { name: "Open" })).toHaveAttribute("title", "Show openjobs-host-trojan in the side panel");
+    await expect(line.getByRole("button", { name: m.attention.open })).toHaveAttribute("title", m.attentionList.showInPanel("openjobs-host-trojan"));
   });
 });
 
@@ -210,14 +212,16 @@ test.describe("touch at 375", () => {
     await open(page, "?view=combinations&open=imported-col-merge-cd-openjobs", ".pc-side-panel");
     for (const [name, side] of await shortSides(page, ".pc-side-panel button")) expect(side, name).toBeGreaterThanOrEqual(44);
     await open(page, "?view=files", ".layer-row");
-    await page.getByRole("button", { name: "Actions for for-cdcd-loon", exact: true }).tap();
-    await page.getByRole("menuitem", { name: /Delete/ }).tap();
+    await page.getByRole("button", { name: m.records.actionsFor("for-cdcd-loon"), exact: true }).tap();
+    await page.getByRole("menuitem", { name: m.actions.delete }).tap();
     for (const [name, side] of await shortSides(page, "[role=alertdialog] button, [role=alertdialog] input")) expect(side, name).toBeGreaterThanOrEqual(44);
   });
 
   test("a tap beside a row's checkbox selects the row instead of opening its panel", async ({ page }) => {
     await open(page, "?view=files", ".layer-row");
-    const box = page.getByRole("checkbox", { name: "Select for-cdcd-loon" });
+    const box = page.getByRole("checkbox", { name: m.records.select("for-cdcd-loon") });
+    // Stacked rows are taller than table rows, so the row may start below the fold.
+    await box.scrollIntoViewIfNeeded();
     const at = (await box.boundingBox())!;
     await page.touchscreen.tap(at.x + at.width + 10, at.y + at.height / 2);
     await expect(box).toBeChecked();
@@ -246,7 +250,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 
 
     async function fromRowMenu(page: Page, item: RegExp): Promise<void> {
       await open(page, "?view=files", ".layer-row");
-      await page.getByRole("button", { name: "Actions for for-cdcd-loon", exact: true }).click();
+      await page.getByRole("button", { name: m.records.actionsFor("for-cdcd-loon"), exact: true }).click();
       await page.getByRole("menuitem", { name: item }).click();
     }
 

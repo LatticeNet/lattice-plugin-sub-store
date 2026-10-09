@@ -1,0 +1,14 @@
+[
+  {
+    "address": "2001:db8:857e:9d0b::5799:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "password": "647ab532-add4-42dc-a365-5b4707a42f62",
+      "tag": "CA-nay-24",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

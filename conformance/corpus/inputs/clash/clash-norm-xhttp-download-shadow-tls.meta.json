@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-xhttp-download-shadow-tls",
+  "family": "clash",
+  "protocol": "vless",
+  "quirk": "xhttp-download-shadow-tls",
+  "description": "N14: VLESS xhttp whose download-settings has servername, shadow-tls-opts and alpn: inside the download settings, plugin shadow-tls with host from servername, and alpn moved into plugin-opts."
+}

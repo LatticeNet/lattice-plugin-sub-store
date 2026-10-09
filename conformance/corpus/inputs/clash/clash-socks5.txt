@@ -1,0 +1,16 @@
+proxies:
+  - name: KR-swmn6t-78
+    type: socks5
+    server: br9-22.im7ld.example.org
+    port: 1080
+    username: otr1u
+    password: 20ZIpGsmexUW
+    udp: true
+  - name: NL-xy1-70
+    type: socks5
+    server: fsg-07.hr6g.example.com
+    port: 443
+    username: piozqbgr
+    password: GlUpvenmjZCs
+    tls: true
+    skip-cert-verify: true

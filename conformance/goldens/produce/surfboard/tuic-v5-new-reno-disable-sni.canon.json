@@ -1,0 +1,17 @@
+[
+  {
+    "args": [
+      "198.51.100.201",
+      "36615"
+    ],
+    "name": "US-h3egcw-98",
+    "params": {
+      "alpn": "h3",
+      "password": "gZGLLzkPlbpxp6zT",
+      "skip-cert-verify": "true",
+      "udp-relay": "true",
+      "uuid": "9eea581b-e095-479e-8335-2600857e8c62"
+    },
+    "type": "tuic-v5"
+  }
+]

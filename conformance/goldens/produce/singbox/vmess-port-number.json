@@ -1,0 +1,27 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-vfw94-81",
+      "type": "vmess",
+      "server": "o0-12.dadt3a.example.net",
+      "server_port": 49419,
+      "uuid": "d1842fe9-5aed-452a-a62f-b2a295668da1",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.et37x8lil.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

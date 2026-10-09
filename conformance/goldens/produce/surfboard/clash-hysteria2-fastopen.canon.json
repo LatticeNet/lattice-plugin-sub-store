@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "ur-40.nw6l.example.net",
+      "443"
+    ],
+    "name": "SG-vwk2-66",
+    "params": {
+      "password": "hF9IuU0ISd7Gz9sI9VrY",
+      "sni": "static.jzfhs115.example.net",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  },
+  {
+    "args": [
+      "vr-05.xhjbigia.example.org",
+      "443"
+    ],
+    "name": "HK-wv1-55",
+    "params": {
+      "password": "4GlcBhFWc9on08dqocz0",
+      "sni": "api.zldsqhz5l.example.net",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

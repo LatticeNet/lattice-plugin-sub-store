@@ -1,0 +1,22 @@
+{
+  "proxies": [
+    {
+      "name": "NL-lztg-36",
+      "password": "b2pDXmK1Weku",
+      "port": "80a",
+      "server": "cg-29.ysunden.example.com",
+      "type": "socks5",
+      "udp": true,
+      "username": "nkpdg93"
+    },
+    {
+      "name": "GB-p124z9-66",
+      "password": "sL1aNErJ62Dw",
+      "port": "abc",
+      "server": "kim-20.bwqt.example.org",
+      "type": "socks5",
+      "udp": true,
+      "username": "imhslavy"
+    }
+  ]
+}

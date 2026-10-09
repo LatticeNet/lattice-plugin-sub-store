@@ -1,0 +1,28 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-w7e-46",
+      "type": "anytls",
+      "server": "hac-37.k2fe.example.com",
+      "server_port": 443,
+      "password": "CD4xeu8GaEFg9Uc7b2yO",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.ggzzb0.example.net",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "idle_session_check_interval": "30s",
+      "idle_session_timeout": "30s",
+      "min_idle_session": 0
+    }
+  ],
+  "endpoints": []
+}

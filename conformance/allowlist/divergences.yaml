@@ -1,0 +1,129 @@
+# Divergence allowlist for the native Sub-Store conformance gate (design 28).
+#
+# The list is closed: at most four entries, and adding, removing or widening
+# one is a reviewed change to design 28, not a harness edit. check.mjs
+# refuses a file with more than four entries or with an entry that does not
+# follow the schema below. The four entries are the four divergences design
+# 28 names. Each is pending until the slice that implements it removes
+# `pending` and adds its normalisation; a pending entry holds its slot, is
+# validated like any other, and applies to no comparison. external,
+# underscore and ca have landed for S1; require stays pending until S3. The
+# specifications refer to them by id (specs/normaliser.md, section 4).
+#
+# Schema of one entry:
+#
+#   - id: kebab-case, stable; conformance.json lists the ids it relied on
+#     stage: parse | produce | script
+#     pending: S1 to S6     (optional; the slice that lands the entry)
+#     targets: [<target id>, ...] or ["*"]   (produce only; ids from
+#              oracle/lib/targets.mjs; never uri or v2ray, which are
+#              compared byte for byte, and "*" skips them)
+#     cases: [<non-empty case id prefix>, ...] or ["*"]
+#     upstream: what upstream does, in one or two sentences
+#     chosen: what the plugin does instead
+#     reason: why the plugin diverges
+#     normalise:            applied to the golden and to the candidate before
+#                           they are compared, only for matching stage,
+#                           targets and cases; optional while pending
+#       - strip_keys: <regex>              delete object keys (and URI query
+#                                          keys) matching the pattern,
+#                                          at any depth
+#       - drop_entries:                    delete array elements that are
+#           field: <key>                   objects whose field equals one
+#           equals: [<value>, ...]         of the values, at any depth
+#       - drop_entries_with_keys:          delete array elements that are
+#           [<key>, ...]                   objects carrying any of the keys
+#                                          (matched without regard to case),
+#                                          at any depth; parse stage only
+#
+# A strip_keys pattern may not match the empty key or any key in
+# PROTECTED_KEYS (oracle/lib/allowlist.mjs: node identity, document
+# containers, canonical structure), drop_entries needs at least one value,
+# and drop_entries_with_keys may not name a node identity key or a document
+# container (DROP_GUARD_KEYS) and applies only at parse stage, where every
+# array element is a node, so one entry cannot hide a whole node list or
+# document.
+#
+# A divergence counts as allowed only when the comparison fails without the
+# normalisation and passes with it; conformance.json records which ids were
+# needed.
+#
+# The three S1 entries are parse-stage entries (S1 implementation plan,
+# decision 18). Producers keep upstream's produce-stage behaviour in S1, so
+# no produce-stage entry is needed and the cap holds.
+#
+# external drops the elements whose type is external. Upstream's Clash
+# reader rejects that type, so such a node only comes from a Surge external
+# line, whose type keyword is lower case. Its second step states the other
+# half of rule H3: a node of any type that carries exec, args, local-port,
+# local-address or local_address is dropped too (clash-hostile-exec-key,
+# tuic-hostile-exec-query). drop_entries_with_keys was added for this half
+# (design 28, decision of 2026-10-09); before it, the schema could match a
+# field's value but not a key's presence.
+#
+# underscore and ca apply to the cases whose nodes come from Clash or mihomo
+# objects, which are the cases whose ids start with clash-. In every other
+# case an underscore key is a parser annotation both sides produce
+# (specs/normaliser.md, section 6). The corpus never points _ca at a file
+# that exists, so the key is the only difference ca has to hide.
+divergences:
+  - id: external
+    stage: parse
+    upstream: >-
+      Parses a Surge external line into a node of type external with its
+      exec, args and local-port, keeps any proxy that carries an exec-style
+      key, and producers such as Surge for Mac, ClashMeta and JSON write them
+      back out.
+    chosen: >-
+      The normaliser drops external and exec-shaped nodes from remote and
+      pasted input and keeps them only on a local record whose operator set
+      the explicit opt-in (specs/normaliser.md, rule H3).
+    reason: >-
+      An external entry makes the client that installs the profile run a
+      local command, so a provider feed or pasted text must not be able to
+      add one.
+    normalise:
+      - drop_entries:
+          field: type
+          equals: [external]
+      - drop_entries_with_keys: [exec, args, local-port, local-address, local_address]
+  - id: underscore
+    stage: parse
+    cases: [clash-]
+    upstream: >-
+      Keeps every key starting with an underscore that a Clash or mihomo
+      object carries, at any depth, and acts on some of them (an input
+      _loon_tls_profile triggers a normalisation step).
+    chosen: >-
+      The normaliser strips underscore keys from object input
+      (specs/normaliser.md, rule H1); underscore fields a script sets live in
+      the model's script map and never reach a producer.
+    reason: >-
+      Underscore keys are upstream's internal annotations, and accepting them
+      from input lets a feed steer internal behaviour.
+    normalise:
+      - strip_keys: ^_
+  - id: ca
+    stage: parse
+    cases: [clash-]
+    upstream: >-
+      Reads the local file a _ca field names to compute the certificate
+      fingerprint.
+    chosen: >-
+      Never reads a file; the fingerprint comes only from ca-str or ca_str
+      (specs/normaliser.md, rule H2).
+    reason: >-
+      A field from a feed must not make the plugin read a local path.
+    normalise:
+      - strip_keys: ^_ca$
+  - id: require
+    stage: script
+    pending: S3
+    upstream: >-
+      Runs operator scripts with Node's require available.
+    chosen: >-
+      require is unresolved in the script isolate, and the editor says why
+      (design 28, script surface).
+    reason: >-
+      require reaches the filesystem, the network and the host process outside
+      every budget and grant a script runs under.

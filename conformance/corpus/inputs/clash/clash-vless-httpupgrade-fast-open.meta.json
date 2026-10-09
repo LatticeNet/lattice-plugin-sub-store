@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-httpupgrade-fast-open",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "httpupgrade",
+  "security": "tls",
+  "quirk": "httpupgrade-fast-open",
+  "description": "vless ws with v2ray-http-upgrade and v2ray-http-upgrade-fast-open, one path plain and one with a query, both with _v2ray-http-upgrade-ed 4096."
+}

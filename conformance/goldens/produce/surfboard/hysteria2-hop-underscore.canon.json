@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "quz-07.xsbt.example.net",
+      "443"
+    ],
+    "name": "CA-saq36m-81",
+    "params": {
+      "password": "60Xt0FmFgKCvZJufrosV",
+      "skip-cert-verify": "false",
+      "sni": "www.t5tqzt5.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "client-fingerprint": "chrome",
+    "name": "SG-vo9s-94",
+    "network": "ws",
+    "password": "PlDLgcCgRJIg37LoV6c3",
+    "port": 443,
+    "server": "dob-07.qwxjve.example.net",
+    "sni": "www.wmxy45i.example.org",
+    "tls": true,
+    "type": "anytls",
+    "udp": true,
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.ynkvgq.example.org"
+      },
+      "path": "/qrpgpv/d2nu413y"
+    }
+  }
+]

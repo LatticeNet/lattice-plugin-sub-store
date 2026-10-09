@@ -1,0 +1,7 @@
+{
+  "id": "clash-norm-ca-chain",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "ca-chain",
+  "description": "N33: a ca-str holding two PEM certificates gets the fingerprint of the last one; ca_str beside a given tls-fingerprint moves to ca-str and the given fingerprint is kept."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"congestion-control":"bbr","name":"JP-i90b-46","password":"eNE7xQ9dV5KlnUDf","port":443,"server":"xnb-29.y0wjh.example.org","skip-cert-verify":false,"sni":"www.npmw6566x.example.com","type":"juicity","udp":true,"uuid":"7a0e3e15-8d2e-4bec-b476-6693196053cb"}

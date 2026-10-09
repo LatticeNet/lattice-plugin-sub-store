@@ -1,0 +1,1 @@
+AU-rwg0qw-67=Hysteria2,gj-03.d3ejf.example.net,443,"wNErEnwtwNG5ixk200VV",tls-name=api.qutrl0x4py.example.net,skip-cert-verify=false,fast-open=false,udp=true

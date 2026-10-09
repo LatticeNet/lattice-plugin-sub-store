@@ -1,0 +1,9 @@
+{
+  "id": "clash-tuic-alpn-scalar",
+  "family": "clash",
+  "protocol": "tuic",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "alpn-scalar",
+  "description": "tuic with a scalar alpn h3; the normaliser makes it a list, so the producer only sees a list."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-ws-early-data",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data",
+  "description": "ss with network ws, tls: true, a ws-opts path and max-early-data 2048."
+}

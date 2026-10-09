@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"NL-gjx-28","method":"aes-256-gcm","server":"stt-32.z59voz2.example.net","port":22070,"password":"NWK7YAngJaA9OC","tfo":false,"udp_relay":true}}

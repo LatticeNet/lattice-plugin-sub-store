@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "TW-mc3w0h-48",
+        "port": 443,
+        "security": "auto",
+        "server": "fj-09.fcx8god.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "api.ubxoa09ik.example.com"
+            },
+            "path": "/zx2t",
+            "sni": "api.ubxoa09ik.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "3cf24b8e-2838-480e-ad27-03657ab28a13"
+      }
+    }
+  ]
+}

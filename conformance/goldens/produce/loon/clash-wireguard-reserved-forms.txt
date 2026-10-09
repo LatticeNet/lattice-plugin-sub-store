@@ -1,0 +1,3 @@
+FR-lkksca-49=wireguard,interface-ip=10.159.118.196,private-key="pwRLYLRcZklXfGwkDl4lc/W6Al19foQzBSHpRV2TWo0=",peers=[{public-key="UpuO6PUmckOF93MXmoGRIiMuk1/91Hx5SAyO1EyMRLs=",allowed-ips="0.0.0.0/0,::/0",endpoint=kfo-39.pxng8tol.example.net:51820,reserved=[TeqD]}]
+CA-qwozx-70=wireguard,interface-ip=10.132.15.160,private-key="0e61tURiITdd8tyeW2Ls9sCzoAHWbzRy2r6d9MxNU1U=",peers=[{public-key="3gtPvbnKbS5fjNYQJ5dbvaYTMQ8eYirbHXQvVIMO5Eg=",allowed-ips="0.0.0.0/0,::/0",endpoint=y5o-21.lbt60v12.example.net:51820,reserved=[118,233,228]}]
+SG-cg0a-25=wireguard,private-key="HbbD+d3ms3OZAbG6m8IznmBTaRy6GZ1TwW61yAf3Wcc=",peers=[{public-key="jeP3nnldu7Ss5vTGMyIkEnUGp38gyeIqFAyKxAs0pDA=",allowed-ips="0.0.0.0/0",endpoint=szw-03.qo26jwj.example.net:51820,reserved=[gFNh]}]

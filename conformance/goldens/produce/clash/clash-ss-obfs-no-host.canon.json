@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "HK-lyqz-03",
+      "password": "39ic9wEqGqdWx6",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "mode": "http"
+      },
+      "port": 26246,
+      "server": "nqj-39.vj1nhp.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "hysteria2-basic",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "description": "hysteria2:// with password, sni and insecure=0."
+}

@@ -1,0 +1,23 @@
+{
+  "proxies": [
+    {
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "client-fingerprint": "chrome",
+      "grpc-opts": {
+        "grpc-service-name": "dekrcdp-vg6"
+      },
+      "name": "NL-qqlje-16",
+      "network": "grpc",
+      "password": "vjSyAI79qfTnU7US",
+      "port": 443,
+      "server": "wjy-10.xmkx49.example.net",
+      "skip-cert-verify": false,
+      "sni": "static.v11wq.example.com",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

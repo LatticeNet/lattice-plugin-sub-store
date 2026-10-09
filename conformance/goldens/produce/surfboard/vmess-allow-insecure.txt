@@ -1,0 +1,2 @@
+AU-nmg-47=vmess,oes-32.n24d5.example.net,443,username=c9dbfd76-55c7-44c4-8994-6664aa738d1c,ws=true,ws-path=/r17mh,ws-headers=Host:"cdn.ona5zaws.example.org",vmess-aead=true,tls=true,sni="cdn.ona5zaws.example.org",skip-cert-verify=true,udp-relay=true
+US-woc-03=vmess,mp-03.vjrfhp59.example.org,443,username=3111cd1e-db1b-45c0-998d-ba3c52f64f32,ws=true,ws-path=/ex9zeq2,ws-headers=Host:"static.mf2uv0vj.example.com",vmess-aead=true,tls=true,sni="static.mf2uv0vj.example.com",skip-cert-verify=true,udp-relay=true

@@ -1,0 +1,8 @@
+{
+  "id": "clash-vless-httpupgrade-tls",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "httpupgrade",
+  "security": "tls",
+  "description": "mihomo vless proxy over httpupgrade with security tls."
+}

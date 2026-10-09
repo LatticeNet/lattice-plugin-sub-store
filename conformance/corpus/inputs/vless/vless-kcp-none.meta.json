@@ -1,0 +1,8 @@
+{
+  "id": "vless-kcp-none",
+  "family": "vless",
+  "protocol": "vless",
+  "transport": "kcp",
+  "security": "none",
+  "description": "VLESS share link over kcp with security none."
+}

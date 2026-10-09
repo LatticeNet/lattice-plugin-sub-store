@@ -1,0 +1,25 @@
+[
+  {
+    "args": [
+      "undefined",
+      "undefined"
+    ],
+    "name": "ss undefined:undefined",
+    "params": {
+      "encrypt-method": "none",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "undefined",
+      "undefined"
+    ],
+    "name": "trojan undefined:undefined",
+    "params": {
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

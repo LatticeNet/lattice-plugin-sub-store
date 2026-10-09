@@ -1,0 +1,1 @@
+trojan://7WEAVSvZGNTkAgpl@192.0.2.32:443?sni=img.qx34w.example.net&allowInsecure=1&type=tcp#KR-ptyg-62

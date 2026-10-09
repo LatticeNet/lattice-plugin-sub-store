@@ -1,0 +1,1 @@
+CA-actar-66=vless,fq-04.ri20owdn.example.net,443,"6490f9f8-ff11-4f38-92bf-752ea9cb09b2",transport=tcp,over-tls=true,skip-cert-verify=false,tls-profile=chrome,alpn="h2,http/1.1",tls-name=api.z96qqyye3z.example.net,udp=true
