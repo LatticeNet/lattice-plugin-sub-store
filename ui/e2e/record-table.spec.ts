@@ -202,12 +202,14 @@ test.describe("manual order", () => {
     const start = (await grip.boundingBox())!;
     const rowAtRest = (await rowNamed(page, order[0]!).boundingBox())!;
     const third = (await rowNamed(page, order[2]!).boundingBox())!;
+    // Past the next row's middle, far enough that letting go here would move it.
+    const travel = Math.round(rowAtRest.height * 1.6);
     await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
     await page.mouse.down();
-    await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2 + 30, { steps: 4 });
+    await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2 + travel, { steps: 4 });
     // The row moves with the pointer, as far as the pointer went.
     const moved = (await rowNamed(page, order[0]!).boundingBox())!;
-    expect(Math.round(moved.y - rowAtRest.y)).toBe(30);
+    expect(Math.round(moved.y - rowAtRest.y)).toBe(travel);
     // Escape mid-drag puts it back where it came from, and nothing is saved.
     await page.keyboard.press("Escape");
     await page.mouse.up();
