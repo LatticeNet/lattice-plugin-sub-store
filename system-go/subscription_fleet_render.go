@@ -236,9 +236,17 @@ func (p *fleetPlaceholders) recover(n *nodemodel.Node) (string, bool) {
 	return "", false
 }
 
+// fleetDrop is one selected row that has no node, and why.
+type fleetDrop struct {
+	LineUUID string
+	// Protocol is the template's protocol, or the row's when it has none.
+	Protocol string
+	Reason   string
+}
+
 // fleetRowNodes builds the node of every row that has one, minting its
-// placeholders. drops counts the rows without a node by reason.
-func fleetRowNodes(rows []fleetRow, options *fleetOptions, table *fleetPlaceholders) (nodes []*nodemodel.Node, drops map[string][]string, err error) {
+// placeholders, and lists the rows without one.
+func fleetRowNodes(rows []fleetRow, options *fleetOptions, table *fleetPlaceholders) (nodes []*nodemodel.Node, drops []fleetDrop, err error) {
 	nodes = make([]*nodemodel.Node, 0, len(rows))
 	for _, row := range rows {
 		placeholders, err := table.mint(row)
@@ -250,10 +258,11 @@ func fleetRowNodes(rows []fleetRow, options *fleetOptions, table *fleetPlacehold
 			return nil, nil, fmt.Errorf("line %s: %w", row.LineUUID, err)
 		}
 		if drop != "" {
-			if drops == nil {
-				drops = map[string][]string{}
+			protocol := row.Protocol
+			if row.Template != nil {
+				protocol = row.Template.Protocol
 			}
-			drops[drop] = append(drops[drop], row.LineUUID)
+			drops = append(drops, fleetDrop{LineUUID: row.LineUUID, Protocol: protocol, Reason: drop})
 			continue
 		}
 		table.lattice[row.LineUUID] = node.Lattice
@@ -279,10 +288,10 @@ type fleetPlanInput struct {
 type fleetPlanOutput struct {
 	// Encoded is the plan as the render reply carries it.
 	Encoded json.RawMessage
-	// NodeCount counts the plan's nodes; Dropped counts the rows that had no
-	// node, by reason, each with its lines.
+	// NodeCount counts the plan's nodes; Dropped lists the rows that had
+	// no node.
 	NodeCount int
-	Dropped   map[string][]string
+	Dropped   []fleetDrop
 }
 
 // buildFleetPlan computes a fleet sub's plan: nodes from rows, the chain,
@@ -420,3 +429,88 @@ func fleetNodesOut(rec subscriptionRecord, rows []fleetRow) (int, bool) {
 // errProcessNodesUnavailable is processNodes' answer until the bundle entry
 // lands.
 var errProcessNodesUnavailable = errors.New("a fleet record whose chain runs on the bundle needs engine.processNodes, which this build does not carry yet")
+
+// fleetRenderOptions are the parts of a render request the fleet path reads
+// beside subscriptionRenderRequest: the revision core names and, for a
+// collection, the member revisions it names (S2 plan section 2.7).
+type fleetRenderOptions struct {
+	// Revision names the revision to render: empty or the live revision is
+	// the serve path; the staged revision renders the staged record.
+	Revision string
+	// MemberRevisions names, for a collection, the revision each member
+	// renders at; "" names a deleted member.
+	MemberRevisions map[string]string
+}
+
+// staged reports whether a render is a staged one: it names a revision
+// other than the live one, or carries member revisions. A staged render
+// neither reads nor writes the plan cache and may read the catalogue live.
+func (o fleetRenderOptions) staged(liveRevision string) bool {
+	return (o.Revision != "" && o.Revision != liveRevision) || o.MemberRevisions != nil
+}
+
+// fleetRendered is a fleet render's result: the encoded plan, the record's
+// live revision, and the counts an explaining caller reads.
+type fleetRendered struct {
+	Plan         json.RawMessage
+	LiveRevision string
+	Target       string
+	NodeCount    int
+	Dropped      []fleetDrop
+}
+
+// renderFleetSub is render for a fleet sub (S2 plan section 1.2).
+//
+// On the serve path (no revision named, or the live one) it reads only the
+// snapshot core hands it: a fleet record with no snapshot refuses
+// fleet_snapshot_missing rather than reading the catalogue, an envelope that
+// is not a fleet envelope refuses fleet_envelope_mismatch (whatever it holds
+// is never decoded as nodes, so a legacy envelope's export links cannot
+// reach a plan), and rows selected by another leading run refuse
+// fleet_selector_mismatch. The plan is cached per worker by envelope digest,
+// revision, target, format and options.
+//
+// A named revision other than the live one is revision_unknown until the
+// staged store lands (lane 4's storeLoadRecord); a staged render then reads
+// the catalogue live under the staged revision's selector unless the
+// envelope's rows already answer it.
+func (rt *runtime) renderFleetSub(rec subscriptionRecord, req subscriptionRenderRequest, opts fleetRenderOptions, target string) (fleetRendered, error) {
+	label := "subscription " + quoteLabel(rec.ID)
+	live := rec.Revision
+	if opts.staged(live) {
+		return fleetRendered{}, fmt.Errorf("%s: %s has no revision %q; its live revision is %q", codeRevisionUnknown, label, opts.Revision, live)
+	}
+	if strings.TrimSpace(req.Raw) == "" {
+		return fleetRendered{}, fmt.Errorf("%s: %s has no snapshot yet; the next refresh fetches it", codeFleetSnapshotMissing, label)
+	}
+	env, ok := decodeSnapshotEnvelope(req.Raw)
+	if !ok || env.Kind != kindSub || env.SourceKind != subscriptionSourceFleet || env.CatalogueVersion == "" || env.Rows == nil {
+		return fleetRendered{}, fmt.Errorf("%s: %s is a fleet record and its snapshot is not a fleet snapshot; the next refresh replaces it", codeFleetEnvelopeMismatch, label)
+	}
+	if !fleetSelectorAnswers(processSteps(rec), env.Selector) {
+		return fleetRendered{}, fmt.Errorf("%s: %s's snapshot was selected by another leading Structured Filter run; the next refresh selects again", codeFleetSelectorMismatch, label)
+	}
+	key := newFleetPlanKey(env.SourceVersion, live, nil, target, req.Format, req.Options)
+	plan, err := fleetPlans.get(key, func() (fleetPlanOutput, error) {
+		var rows []fleetRow
+		if err := json.Unmarshal(env.Rows, &rows); err != nil {
+			return fleetPlanOutput{}, fmt.Errorf("%s: %s's snapshot rows do not decode", codeSnapshotMalformed, label)
+		}
+		return rt.buildFleetPlan(fleetPlanInput{Label: label, Record: rec, CatalogueVersion: env.CatalogueVersion, Rows: rows, Target: target})
+	})
+	if err != nil {
+		return fleetRendered{}, err
+	}
+	return fleetRendered{Plan: plan.Encoded, LiveRevision: live, Target: target, NodeCount: plan.NodeCount, Dropped: plan.Dropped}, nil
+}
+
+// fleetSelectorAnswers reports whether a snapshot's rows answer a revision's
+// selection: the envelope records how many leading steps the fetch
+// evaluated and their digest, and the revision's first steps must hash the
+// same. Steps after them run at render, so a change there needs no new rows.
+func fleetSelectorAnswers(steps []json.RawMessage, sel *fleetSelectorRecord) bool {
+	if sel == nil || sel.Leading < 0 || sel.Leading > len(steps) {
+		return false
+	}
+	return fleetStepHash(steps[:sel.Leading]) == sel.StepHash
+}

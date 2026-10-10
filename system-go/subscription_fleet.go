@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
@@ -267,42 +268,28 @@ func (s fleetSelection) record() *fleetSelectorRecord {
 	return &fleetSelectorRecord{Pushed: s.Pushed, Leading: s.Leading, StepHash: s.StepHash}
 }
 
-// fleetSelectionFor splits a chain's leading Structured Filter run.
+// fleetSelectionFor splits a record's leading Structured Filter run between
+// core and the fetch: operators.Pushdown names the selector core evaluates
+// and how many leading steps it covers, and the steps the fetch evaluated
+// are hashed as stored so render can tell whether a revision's run still
+// answers the snapshot's rows. Fields not in advertised are never pushed.
 //
-// yagni: until the Structured Filter step type and operators.Pushdown land
-// (lane 2, S2 plan section 2.4) no chain has a leading structured run, so
-// every fleet record selects every line and its whole chain runs at render.
-// That is exact for every chain the vocabulary admits today; when the step
-// type lands this function asks Pushdown for the selector and the covered
-// count, and evaluates the remaining leading steps with Predicate.Evaluate.
-func fleetSelectionFor(steps []json.RawMessage, advertised []string) (fleetSelection, error) {
-	_ = advertised
-	leading := fleetLeadingRun(steps)
-	return fleetSelection{Leading: len(leading), StepHash: fleetStepHash(leading)}, nil
-}
-
-// fleetStructuredFilterType is the step type of the Structured Filter.
-const fleetStructuredFilterType = "Structured Filter"
-
-// fleetLeadingRun is the chain's leading run of enabled Structured Filter
-// steps, as stored. Disabled steps inside the run are skipped, because the
-// chain skips them too.
-func fleetLeadingRun(steps []json.RawMessage) []json.RawMessage {
-	var run []json.RawMessage
-	for _, raw := range steps {
-		meta, err := decodeStep(raw)
-		if err != nil {
-			break
-		}
-		if meta.Disabled {
-			continue
-		}
-		if meta.Type != fleetStructuredFilterType {
-			break
-		}
-		run = append(run, raw)
+// yagni: until Predicate.Evaluate lands (lane 2, S2 plan section 2.4) the
+// fetch evaluates only the pushed steps, so Leading is the covered count and
+// the leading steps core cannot evaluate run at render with the rest of the
+// chain, over a wider row set. When Evaluate lands, Leading becomes
+// operators.LeadingRun and Keep evaluates the steps between.
+func fleetSelectionFor(rec subscriptionRecord, advertised []string) (fleetSelection, error) {
+	plan, err := (&runtime{}).chainPlan(rec)
+	if err != nil {
+		return fleetSelection{}, err
 	}
-	return run
+	pushed, covered := operators.Pushdown(plan, advertised)
+	steps := processSteps(rec)
+	if covered > len(steps) {
+		return fleetSelection{}, fmt.Errorf("the pushed run covers %d of %d steps", covered, len(steps))
+	}
+	return fleetSelection{Pushed: pushed, Leading: covered, StepHash: fleetStepHash(steps[:covered])}, nil
 }
 
 // fleetStepHash is the digest of a leading structured run as stored.
@@ -397,12 +384,7 @@ func encodeFleetEnvelope(env snapshotEnvelope, rowCount int) (string, error) {
 // when it runs in Go, built over placeholder credentials that are never
 // stored.
 func (rt *runtime) fetchFleetSub(rec subscriptionRecord) (fetchResult, error) {
-	steps := processSteps(rec)
-	sel, err := fleetSelectionFor(steps, model.LineCatalogueSelectorFields())
-	if err != nil {
-		return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
-	}
-	read, err := rt.readFleetCatalogue(sel.Pushed, sel.Keep, model.MaxSubscriptionRecordNodes)
+	sel, read, err := rt.readFleetSelection(rec)
 	if err != nil {
 		return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
@@ -421,4 +403,38 @@ func (rt *runtime) fetchFleetSub(rec subscriptionRecord) (fetchResult, error) {
 		out.nodesOut = &after
 	}
 	return out, nil
+}
+
+// readFleetSelection reads the catalogue under a record's selection. The
+// selector is first computed against every field the SDK defines; when the
+// first page advertises fewer and the pushed selector names one it does not,
+// the selection is computed again against what core advertised and read
+// again, so a narrower core still answers rather than refusing the field.
+func (rt *runtime) readFleetSelection(rec subscriptionRecord) (fleetSelection, fleetCatalogueRead, error) {
+	sel, err := fleetSelectionFor(rec, model.LineCatalogueSelectorFields())
+	if err != nil {
+		return fleetSelection{}, fleetCatalogueRead{}, err
+	}
+	read, err := rt.readFleetCatalogue(sel.Pushed, sel.Keep, model.MaxSubscriptionRecordNodes)
+	if err != nil {
+		return fleetSelection{}, fleetCatalogueRead{}, err
+	}
+	if sel.Pushed == nil || len(sel.Pushed.UnsupportedFields(read.SelectorFields)) == 0 {
+		return sel, read, nil
+	}
+	if sel, err = fleetSelectionFor(rec, read.SelectorFields); err != nil {
+		return fleetSelection{}, fleetCatalogueRead{}, err
+	}
+	pages := read.Pages
+	read, err = rt.readFleetCatalogue(sel.Pushed, sel.Keep, model.MaxSubscriptionRecordNodes)
+	read.Pages += pages
+	return sel, read, err
+}
+
+// ownerCredentialsWithheldError is the answer of every path that would read
+// a legacy vpn-core or vpn-core-graph record's export outside core's
+// refresh: the export carries line owner credentials, or an identity's, and
+// only the fetch core issues may read it (S2 plan section 1.2).
+func ownerCredentialsWithheldError(id string) error {
+	return fmt.Errorf("%s: subscription %q serves line owner credentials, which only core's refresh may read; migrate it to a fleet record to render it here", codeOwnerCredentialsWithheld, id)
 }

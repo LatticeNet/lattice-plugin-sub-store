@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/LatticeNet/lattice-sdk/model"
@@ -25,10 +26,20 @@ import (
 // successful subscription deletes every node it had, so the failure is worth
 // stopping twice rather than relying on either layer alone.
 func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResult, error) {
-	subscriptionID, format, uaClass, query := req.SubscriptionID, req.Format, req.UAClass, req.Query
-	rec, err := rt.getSubscription(subscriptionID)
+	rec, err := rt.getSubscription(req.SubscriptionID)
 	if err != nil {
 		return renderResult{}, err
+	}
+	return rt.renderRecord(rec, req)
+}
+
+// renderRecord is renderSubscription for a record already read. A fleet sub
+// has no document of its own: it renders to a selection plan through render
+// (renderFleetSub), so every other caller is refused.
+func (rt *runtime) renderRecord(rec subscriptionRecord, req subscriptionRenderRequest) (renderResult, error) {
+	subscriptionID, format, uaClass, query := req.SubscriptionID, req.Format, req.UAClass, req.Query
+	if recordKind(rec) == kindSub && rec.Source == subscriptionSourceFleet {
+		return renderResult{}, fmt.Errorf("subscription %q is a fleet record: it renders to a selection plan that core binds per identity, and has no document of its own", subscriptionID)
 	}
 
 	// A file is served as the document it is: no base64 envelope, no client
@@ -97,19 +108,14 @@ func (rt *runtime) renderSubscription(req subscriptionRenderRequest) (renderResu
 	if strings.TrimSpace(source) == "" {
 		source = rec.Content
 	}
-	// A vpn-core record carries no inline content, so on the very first request
-	// — before the core holds a snapshot — there is nothing to fall back to.
-	// Reading the export here means such a subscription serves correctly the
-	// first time it is fetched rather than failing until something warms it.
+	// A vpn-core record carries no inline content. Render used to read the
+	// export here when core held no snapshot, which handed line owner and
+	// identity credentials to any operator who called render through the
+	// gateway with no raw (S2 plan section 1.2). Core refreshes before it
+	// renders, so the serve path always carries the snapshot, and the
+	// fallback is gone for every source.
 	if strings.TrimSpace(source) == "" && isVPNCoreSource(rec.Source) {
-		// fetchRecordContent dispatches on the source: the plain vpn-core
-		// export over rpc:call, or the composed graph subscription. Both are
-		// resolved from the record itself so an unsaved draft is honest too.
-		fetched, err := rt.fetchRecordContent(rec)
-		if err != nil {
-			return renderResult{}, err
-		}
-		source = fetched.Raw
+		return renderResult{}, ownerCredentialsWithheldError(rec.ID)
 	}
 	if strings.TrimSpace(source) == "" {
 		// Saying so beats serving an empty subscription: a client that receives
@@ -431,13 +437,20 @@ func (rt *runtime) renderCall(payload json.RawMessage) response {
 		// dropped. The console sets it; the path that serves a client does
 		// not, so serving pays nothing for a diagnosis nobody reads.
 		Explain bool `json:"explain"`
+		// Revision names the revision to render (S2 plan section 2.7):
+		// empty or the live one serves, the staged one previews. Core's
+		// previews and plans name it; an older core sends none.
+		Revision string `json:"revision"`
+		// MemberRevisions names, for a collection, the revision each member
+		// renders at; "" names a deleted member.
+		MemberRevisions map[string]string `json:"member_revisions"`
 	}
 	if len(payload) > 0 {
 		if err := json.Unmarshal(payload, &req); err != nil {
 			return latticeplugin.ErrorResponse(fmt.Errorf("invalid render payload: %w", err))
 		}
 	}
-	out, err := rt.renderSubscription(subscriptionRenderRequest{
+	out, err := rt.render(subscriptionRenderRequest{
 		SubscriptionID: req.SubscriptionID,
 		Format:         req.Format,
 		UAClass:        req.UAClass,
@@ -447,7 +460,7 @@ func (rt *runtime) renderCall(payload json.RawMessage) response {
 		Raw:            req.Raw,
 		Query:          req.Query,
 		Explain:        req.Explain,
-	})
+	}, fleetRenderOptions{Revision: req.Revision, MemberRevisions: req.MemberRevisions})
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
@@ -456,4 +469,70 @@ func (rt *runtime) renderCall(payload json.RawMessage) response {
 		return latticeplugin.ErrorResponse(err)
 	}
 	return latticeplugin.RawResultResponse(body, "")
+}
+
+// renderReply is render's reply: the S1 result, the live revision of the
+// record (which core checks a plan's from_revision against), and, for a
+// fleet-bound record, the selection plan in place of a document.
+type renderReply struct {
+	renderResult
+	Plan         json.RawMessage `json:"plan,omitempty"`
+	LiveRevision string          `json:"live_revision,omitempty"`
+}
+
+// render is the render method: a fleet sub renders to a plan
+// (renderFleetSub), every other record to its document as before. A named
+// revision other than the live one is revision_unknown until the staged
+// store lands (lane 4); the live one renders as if none were named.
+func (rt *runtime) render(req subscriptionRenderRequest, opts fleetRenderOptions) (renderReply, error) {
+	rec, err := rt.getSubscription(req.SubscriptionID)
+	if err != nil {
+		return renderReply{}, err
+	}
+	if recordKind(rec) == kindSub && rec.Source == subscriptionSourceFleet {
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, err := rt.renderFleetSub(rec, req, opts, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		result := renderResult{ContentType: targetContentType(target), Target: target, NodeCount: explainedNodeCount(req.Explain, out.NodeCount)}
+		if req.Explain {
+			result.DroppedNodeCount, result.DroppedProtocols = fleetDroppedSummary(out.Dropped)
+		}
+		return renderReply{renderResult: result, Plan: out.Plan, LiveRevision: out.LiveRevision}, nil
+	}
+	if opts.staged(rec.Revision) {
+		return renderReply{}, fmt.Errorf("%s: subscription %q has no revision %q; its live revision is %q", codeRevisionUnknown, rec.ID, opts.Revision, rec.Revision)
+	}
+	result, err := rt.renderRecord(rec, req)
+	if err != nil {
+		return renderReply{}, err
+	}
+	return renderReply{renderResult: result, LiveRevision: rec.Revision}, nil
+}
+
+// fleetDroppedSummary counts the rows that had no node and names their
+// protocols, sorted, "unknown" for a row with none, as an explaining render
+// reports the nodes a client dropped.
+func fleetDroppedSummary(dropped []fleetDrop) (int, []string) {
+	if len(dropped) == 0 {
+		return 0, nil
+	}
+	seen := map[string]bool{}
+	var protocols []string
+	for _, drop := range dropped {
+		protocol := drop.Protocol
+		if protocol == "" {
+			protocol = "unknown"
+		}
+		if !seen[protocol] {
+			seen[protocol] = true
+			protocols = append(protocols, protocol)
+		}
+	}
+	sort.Strings(protocols)
+	return len(dropped), protocols
 }

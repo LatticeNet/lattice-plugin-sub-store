@@ -131,23 +131,34 @@ func TestVPNCoreEmptyExportIsAnError(t *testing.T) {
 	}
 }
 
-// The core holds the snapshot, but on the very first request it has none. A
-// vpn-core record has no inline content to fall back to, so render must reach
-// the export itself or the subscription fails until something warms it.
-func TestVPNCoreRendersOnFirstRequestWithNoSnapshot(t *testing.T) {
-	rt, _ := newVPNCoreRuntime(t, "vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a")
+// Render used to read the export itself when core held no snapshot, which
+// handed owner credentials to any operator who called render with no raw.
+// Core refreshes before it renders, so a vpn-core record rendered with no
+// snapshot is refused with owner_credentials_withheld and reads nothing (S2
+// plan section 1.2); the refresh path still reads the export.
+func TestVPNCoreRenderWithNoSnapshotIsWithheld(t *testing.T) {
+	rt, host := newVPNCoreRuntime(t, "vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a")
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "fleet", Name: "Fleet", Source: subscriptionSourceVPNCore, Target: "URI",
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
+	before := len(host.rpcCalls)
 
-	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Format: "", UAClass: ""})
-	if err != nil {
-		t.Fatalf("render with no snapshot failed: %v", err)
+	_, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Format: "", UAClass: ""})
+	if err == nil || !strings.HasPrefix(err.Error(), codeOwnerCredentialsWithheld) {
+		t.Fatalf("render with no snapshot: err %v", err)
 	}
-	if strings.TrimSpace(out.Content) == "" {
-		t.Fatal("render produced nothing; an empty body is never servable")
+	if len(host.rpcCalls) != before {
+		t.Fatal("render with no snapshot read the export")
+	}
+	fetched, err := rt.fetchSubscription("fleet")
+	if err != nil {
+		t.Fatalf("the refresh no longer reads the export: %v", err)
+	}
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Raw: fetched.Raw})
+	if err != nil || strings.TrimSpace(out.Content) == "" {
+		t.Fatalf("render over the refreshed snapshot: %q, %v", out.Content, err)
 	}
 }
 

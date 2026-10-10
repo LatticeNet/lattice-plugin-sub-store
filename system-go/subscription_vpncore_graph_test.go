@@ -389,15 +389,18 @@ func TestVPNCoreGraphDraftPreviewSaveAndPublishPreserveOneOrder(t *testing.T) {
 	if !saved.OK {
 		t.Fatalf("save=%+v", saved)
 	}
-	if _, err := rt.publishSubscription("graph", "https://destination.invalid/graph", "PUT", "plain"); err != nil {
-		t.Fatal(err)
+	// Publishing a graph record used to compose the identity's credentials
+	// and ship them to the operator's target. Only core's refresh may read
+	// them now (S2 plan section 1.2), so publish refuses and sends nothing.
+	if _, err := rt.publishSubscription("graph", "https://destination.invalid/graph", "PUT", "plain"); err == nil || !strings.HasPrefix(err.Error(), codeOwnerCredentialsWithheld) {
+		t.Fatalf("publish of a graph record: err %v", err)
 	}
 	stored, err := rt.getSubscription("graph")
 	if err != nil || !reflect.DeepEqual(stored.EntryRoots, roots) {
 		t.Fatalf("stored roots=%+v err=%v", stored.EntryRoots, err)
 	}
-	if len(host.published) != 1 || !strings.Contains(host.published[0], graphCredentialB) || strings.Index(host.published[0], graphCredentialB) >= strings.Index(host.published[0], graphCredentialA) {
-		t.Fatalf("published order=%q", host.published)
+	if len(host.published) != 0 {
+		t.Fatalf("publish sent the graph record's credentials: %q", host.published)
 	}
 	for _, call := range host.calls {
 		if call["method"] != "compose" {
@@ -810,9 +813,18 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: roots, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI"}); err != nil {
 		t.Fatal(err)
 	}
-	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: ""})
+	// A cold render no longer composes (S2 plan section 1.2): core refreshes
+	// first, and render reads the composition from that snapshot.
+	if _, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: ""}); err == nil || !strings.HasPrefix(err.Error(), codeOwnerCredentialsWithheld) {
+		t.Fatalf("cold render: err %v", err)
+	}
+	fetched, err := rt.fetchSubscription("graph")
 	if err != nil {
-		t.Fatalf("cold render failed: %v", err)
+		t.Fatalf("refresh failed: %v", err)
+	}
+	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: "", Raw: fetched.Raw})
+	if err != nil {
+		t.Fatalf("render over the refreshed snapshot failed: %v", err)
 	}
 
 	preview := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]string{"subscription_id": "graph"})})
@@ -826,18 +838,18 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 	if len(summary.Nodes) != 2 || summary.Nodes[0].Name != "entry-1" || summary.Nodes[1].Name != "entry-2" {
 		t.Fatalf("preview order = %+v", summary.Nodes)
 	}
-	if _, err := rt.publishSubscription("graph", "https://destination.invalid/graph", "PUT", "plain"); err != nil {
-		t.Fatal(err)
+	if _, err := rt.publishSubscription("graph", "https://destination.invalid/graph", "PUT", "plain"); err == nil || !strings.HasPrefix(err.Error(), codeOwnerCredentialsWithheld) {
+		t.Fatalf("publish of a graph record: err %v", err)
 	}
-	if len(host.published) != 1 || host.published[0] != rendered.Content {
-		t.Fatalf("published bytes = %q, want exact cold-render bytes %q", host.published, rendered.Content)
+	if len(host.published) != 0 {
+		t.Fatalf("publish sent the graph record's credentials: %q", host.published)
 	}
 	rootBIndex, rootAIndex := strings.Index(rendered.Content, graphCredentialB), strings.Index(rendered.Content, graphCredentialA)
 	if !strings.Contains(rendered.Content, graphCredentialB) || rootBIndex >= rootAIndex {
 		t.Fatalf("rendered root order changed: %q", rendered.Content)
 	}
-	if len(host.calls) != 3 {
-		t.Fatalf("compose calls = %d, want one per cold operation", len(host.calls))
+	if len(host.calls) != 2 {
+		t.Fatalf("compose calls = %d, want one for the refresh and one for the preview", len(host.calls))
 	}
 	for _, call := range host.calls {
 		request, _ := call["request"].(map[string]any)
@@ -882,7 +894,11 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 	if !reflect.DeepEqual(stored.Process, record.Process) || len(stored.Operators) != 0 {
 		t.Fatalf("stored process was not canonical: process=%s operators=%s", stored.Process, stored.Operators)
 	}
-	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: ""})
+	fetched, err := rt.fetchSubscription("graph")
+	if err != nil {
+		t.Fatalf("refresh failed: %v", err)
+	}
+	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "graph", Format: "plain", UAClass: "", Raw: fetched.Raw})
 	if err != nil {
 		t.Fatalf("stored process render failed: %v", err)
 	}
