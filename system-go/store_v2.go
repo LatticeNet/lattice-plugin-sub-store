@@ -320,26 +320,6 @@ type saveConflict struct {
 	revision string
 }
 
-// saveSubscription writes one record unconditionally through storeWriteRecord
-// with import's rules: provider and legacy records land live, a fleet-bound
-// one is staged. Tests seed stores with it; no method calls it.
-func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
-	results, err := rt.storeWriteRecords([]writeRequest{{Record: rec}}, originImport)
-	if err != nil {
-		return err
-	}
-	res := results[0]
-	switch {
-	case res.Skipped != "":
-		return fmt.Errorf("subscription %q: %s", rec.ID, res.Skipped)
-	case res.Refused != nil:
-		return refusalErr(*res.Refused)
-	case res.Conflict != nil:
-		return fmt.Errorf("subscription %q: %s", rec.ID, res.Conflict.reason)
-	}
-	return nil
-}
-
 // batchOutcome is what a batch write stored, staged, refused and skipped.
 type batchOutcome struct {
 	skipped  map[string]string

@@ -272,6 +272,9 @@ func carriesAny(tags []string, wanted map[string]bool) bool {
 	return false
 }
 
+// isFleetSource reports whether a record's source is the fleet catalogue.
+func isFleetSource(source string) bool { return source == subscriptionSourceFleet }
+
 // seedFleet accepts a fleet sub; seedLegacy a vpn-core or vpn-core-graph one.
 func seedFleet(f recordFacts) bool  { return isFleetSource(f.Source) }
 func seedLegacy(f recordFacts) bool { return isVPNCoreSource(f.Source) }

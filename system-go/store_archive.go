@@ -119,8 +119,9 @@ func (rt *runtime) restoreSubscription(id string) (restoreOutcome, error) {
 		effective: newStoreGraph(idx.Records, graphEffective),
 	}
 	stage := ctx.stage()
-	if r := ctx.refusal(stage); r != nil {
-		return restoreOutcome{}, refusalErr(*r)
+	rec, refusal := ctx.rules()
+	if refusal != nil {
+		return restoreOutcome{}, refusalErr(*refusal)
 	}
 	now := time.Now().UTC().Format(time.RFC3339)
 	mutate := func(target *indexDocument) error {

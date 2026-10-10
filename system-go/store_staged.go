@@ -118,6 +118,9 @@ func asRefusal(err error) (storeRefusal, bool) {
 	if errors.As(err, &re) {
 		return re.refusal, true
 	}
+	if r, ok := ruleRefusal(err); ok {
+		return r, true
+	}
 	if errors.Is(err, errStoreMigrationRequired) {
 		return storeRefusal{Code: refusedMigrationRequired, Message: "the subscription store still holds the legacy single document; run migrate_store until it reports done, then retry"}, true
 	}
@@ -696,8 +699,9 @@ func (rt *runtime) decideWrite(idx *indexDocument, w *pendingWrite, origin write
 		ctx.union.facts = append(ctx.union.facts, facts)
 	}
 	stage := ctx.stage()
-	if r := ctx.refusal(stage); r != nil {
-		res.Refused = r
+	nrec, refusal := ctx.rules()
+	if refusal != nil {
+		res.Refused = refusal
 		return nil
 	}
 	w.rec, w.stage, w.decided = nrec, stage, true

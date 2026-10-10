@@ -1,17 +1,22 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 )
 
-// The guards storeWriteRecord runs for every origin (plan sections 1.2, 1.4,
-// 2.1 and 2.2), and the staging decision. Each reads the state the plan fixes
-// for it; store_graph.go says which state is which.
+// The staging decision, and the bridge to the record rules every write runs
+// (plan sections 1.2, 1.4, 2.1 and 2.2). The rules themselves are lane 1's
+// applyFleetWriteRules (subscription_store.go): fleet_to_legacy_refused,
+// legacy_source_retired, fleet_mixed_owner_credentials,
+// fleet_file_unavailable and fleet_script_link_unavailable. This file hands
+// it the other records' facts at the state the plan fixes for each origin
+// and turns its refusal into the structured one a mutating method answers.
+// store_graph.go says which state is which.
 
-// writeContext is what the staging decision and the guards read for one
+// writeContext is what the staging decision and the rules read for one
 // written record. The three graphs hold the other records only (and, in the
 // union, the written record's own live facts, since a staged edit removes no
 // edge until it is promoted); the written record joins them through facts.
@@ -46,171 +51,65 @@ func (c writeContext) stage() bool {
 	return (c.liveEntry() && c.entry.Flags.FleetBound) || c.fleetBoundAfter()
 }
 
-// refusal runs the guards in order and answers the first that refuses.
-func (c writeContext) refusal(stage bool) *storeRefusal {
-	if stage {
-		if r := scriptLinkRefusal(c.rec); r != nil {
-			return r
-		}
+// rules runs applyFleetWriteRules and answers the record to store (a
+// collection that gathers no fleet record loses its Fleet options) or the
+// refusal. At save, import, migrate and restore the other records count at
+// their effective state. At migrate_record the plan reads live state only,
+// with the written record at its live state too, so no collection that
+// gathers the record can be mixed by this write: those collections are left
+// out of the call, and migrate_record has already refused the files over
+// them, the one rule they would still matter for.
+func (c writeContext) rules() (subscriptionRecord, *storeRefusal) {
+	live := fleetLiveFacts{}
+	if c.liveEntry() {
+		live = fleetLiveFacts{Revision: c.entry.Revision, Source: c.entry.Source, FleetBound: c.entry.Flags.FleetBound}
 	}
-	if r := c.fleetToLegacyRefusal(); r != nil {
-		return r
-	}
-	if r := c.legacySourceRetiredRefusal(); r != nil {
-		return r
-	}
-	if r := c.mixingRefusal(); r != nil {
-		return r
-	}
-	return c.fileRefusal()
-}
-
-// scriptLinkRefusal refuses a fleet-bound record carrying an enabled Script
-// Operator or Script Filter in link mode: the program is fetched at run time,
-// so an approved plan would preview one program and the serve path would run
-// whatever the host serves next (plan section 1.4). Inline scripts are in the
-// record, and the revision hashes them.
-func scriptLinkRefusal(rec subscriptionRecord) *storeRefusal {
-	for index, raw := range processSteps(rec) {
-		if linkModeScriptStep(raw) {
-			return &storeRefusal{
-				Code: refusedScriptLink, IDs: []string{rec.ID},
-				Message: fmt.Sprintf("subscription %q is fleet-bound and step %d fetches its script from a link; link-mode scripts on fleet-bound records arrive in S3, so paste the script inline", rec.ID, index+1),
-			}
-		}
-	}
-	return nil
-}
-
-// linkModeScriptStep reports whether a step is an enabled link-mode script.
-func linkModeScriptStep(raw json.RawMessage) bool {
-	var step struct {
-		Type     string `json:"type"`
-		Disabled bool   `json:"disabled"`
-		Args     struct {
-			Mode string `json:"mode"`
-		} `json:"args"`
-	}
-	if json.Unmarshal(raw, &step) != nil || step.Disabled {
-		return false
-	}
-	if step.Type != "Script Operator" && step.Type != "Script Filter" {
-		return false
-	}
-	return strings.EqualFold(strings.TrimSpace(step.Args.Mode), "link")
-}
-
-// fleetToLegacyRefusal: a record that is fleet-bound live (its live flag, or
-// a live fleet source) refuses a legacy source, and a collection membership
-// that gathers a legacy record, resolved over the other records' effective
-// state (plan section 2.1).
-func (c writeContext) fleetToLegacyRefusal() *storeRefusal {
-	if !c.liveEntry() || !(c.entry.Flags.FleetBound || isFleetSource(c.entry.Source)) {
-		return nil
-	}
-	if isVPNCoreSource(c.rec.Source) {
-		return &storeRefusal{
-			Code: refusedFleetToLegacy, IDs: []string{c.rec.ID},
-			Message: fmt.Sprintf("subscription %q is fleet-bound and cannot take the legacy source %q, which serves line owner credentials", c.rec.ID, c.rec.Source),
-		}
-	}
-	if c.facts.Kind == kindCollection {
-		if legacy := sourcesGathered(c.effective.with(c.facts), c.facts, seedLegacy); len(legacy) > 0 {
-			return &storeRefusal{
-				Code: refusedFleetToLegacy, IDs: append([]string{c.rec.ID}, legacy...),
-				Message: fmt.Sprintf("collection %q is fleet-bound and cannot gather the legacy records %s; migrate them to fleet first", c.rec.ID, strings.Join(legacy, ", ")),
-			}
-		}
-	}
-	return nil
-}
-
-// legacySourceRetiredRefusal: save creates no new owner-credential record,
-// neither a new one nor a provider, fleet or never-live record switched to
-// the export. Import, migrate and restore still write legacy records,
-// because a backup must restore what it holds.
-func (c writeContext) legacySourceRetiredRefusal() *storeRefusal {
-	if c.origin != originSave || !isVPNCoreSource(c.rec.Source) {
-		return nil
-	}
-	if c.liveEntry() && isVPNCoreSource(c.entry.Source) {
-		return nil
-	}
-	return &storeRefusal{
-		Code: refusedLegacySourceRetired, IDs: []string{c.rec.ID},
-		Message: fmt.Sprintf("subscription %q cannot take the legacy source %q: new records select fleet lines instead", c.rec.ID, c.rec.Source),
-	}
-}
-
-// mixingRefusal is fleet_mixed_owner_credentials from all three sides: a
-// collection whose membership would mix a legacy and a fleet record, a legacy
-// record that a fleet-bound collection would gather, and a fleet record that
-// a collection with a legacy member would gather. Core serves provider-side
-// nodes unvalidated to every identity, so a legacy member beside a fleet one
-// would hand owner credentials to identity holders.
-//
-// At save, import, migrate and restore the other records count at their
-// effective state, so a legacy member with a pending migration is not legacy
-// and fleet at once. At migrate_record the guard reads live state only, with
-// the written record at its live state too: that write exists to turn a
-// legacy member into a fleet one, and the co_migrate list covers its
-// collections instead.
-func (c writeContext) mixingRefusal() *storeRefusal {
-	g, facts := c.effective, c.facts
+	others := c.effective.facts
+	origin := fleetWriteOrigin(c.origin)
 	if c.origin == originMigrateRecord {
-		g = c.live
-		live, ok := liveFactsOf(c.entry)
-		if !c.hasEntry || !ok {
-			return nil
+		full := c.live.with(c.facts)
+		others = nil
+		for _, f := range c.live.facts {
+			if f.Kind == kindCollection && contains(full.gathered(f), c.facts.ID) {
+				continue
+			}
+			others = append(others, f)
 		}
-		facts = live
 	}
-	full := g.with(facts)
-	if facts.Kind == kindCollection {
-		legacy := sourcesGathered(full, facts, seedLegacy)
-		fleet := sourcesGathered(full, facts, seedFleet)
-		if len(legacy) > 0 && len(fleet) > 0 {
-			return mixedRefusal(facts.ID, nil, legacy, fleet)
-		}
-		return nil
-	}
-	if facts.Kind != kindSub || !(seedLegacy(facts) || seedFleet(facts)) {
-		return nil
-	}
-	var collections []string
-	for _, collection := range full.collections() {
-		if !contains(full.gathered(collection), facts.ID) {
+	converted := make([]fleetRecordFacts, 0, len(others))
+	for _, f := range others {
+		if f.ID == c.rec.ID {
 			continue
 		}
-		legacy := sourcesGathered(full, collection, seedLegacy)
-		fleet := sourcesGathered(full, collection, seedFleet)
-		if len(legacy) > 0 && len(fleet) > 0 {
-			collections = appendUnique(collections, collection.ID)
+		converted = append(converted, fleetRecordFacts{
+			ID: f.ID, Kind: f.Kind, Source: f.Source, Tags: f.Tags,
+			Members: f.Members, MemberTags: f.MemberTags, NodeSource: f.NodeSource,
+		})
+	}
+	rec, err := applyFleetWriteRules(c.rec, live, converted, origin)
+	if err != nil {
+		if r, ok := asRefusal(err); ok {
+			return c.rec, &r
 		}
+		r := storeRefusal{Code: refusedFleetToLegacy, IDs: []string{c.rec.ID}, Message: fmt.Sprintf("subscription %q was refused by a record rule", c.rec.ID)}
+		return c.rec, &r
 	}
-	if len(collections) == 0 {
-		return nil
-	}
-	return mixedRefusal(facts.ID, collections, nil, nil)
+	return rec, nil
 }
 
-func mixedRefusal(id string, collections, legacy, fleet []string) *storeRefusal {
-	r := &storeRefusal{Code: refusedMixedOwnerCreds, IDs: append([]string{id}, append(legacy, fleet...)...), Collections: collections}
-	if len(collections) > 0 {
-		r.Message = fmt.Sprintf("subscription %q would put a legacy record and a fleet record in the collections %s; migrate the legacy members to fleet together first", id, strings.Join(collections, ", "))
-	} else {
-		r.Message = fmt.Sprintf("collection %q would gather the legacy records %s beside the fleet records %s; migrate the legacy members to fleet together first", id, strings.Join(legacy, ", "), strings.Join(fleet, ", "))
+// ruleRefusal maps lane 1's fleetRuleError onto the structured refusal.
+func ruleRefusal(err error) (storeRefusal, bool) {
+	var rule *fleetRuleError
+	if !errors.As(err, &rule) {
+		return storeRefusal{}, false
 	}
-	return r
+	return storeRefusal{Code: rule.Code, IDs: rule.IDs, Files: rule.Files, Collections: rule.Collections, Message: rule.Message}, true
 }
 
-// fileRefusal is fleet_file_unavailable at write time, over the union: a file
-// whose node source is or would be fleet-bound. A fleet-bound file would hand
-// clients configs whose uuid fields are placeholders, served unbound because
-// a file render carries no plan, so such files do not exist until S3. Only
-// files the write itself binds are named: the written file over a fleet-bound
-// source, or a file over a record the write makes fleet-bound (the record
-// itself, or a collection that gathers it).
+// fileRefusal is fleet_file_unavailable over the union, for apply_revision's
+// promotion: a file whose node source the promotion would make fleet-bound
+// (the record itself, or a collection that gathers it). Only files the
+// promotion binds are named.
 func (c writeContext) fileRefusal() *storeRefusal {
 	full := c.union.with(c.facts)
 	after := full.closure(seedFleet, false)
