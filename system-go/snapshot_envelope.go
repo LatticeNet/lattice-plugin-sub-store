@@ -54,18 +54,118 @@ type snapshotEnvelope struct {
 	SourceName string           `json:"source_name,omitempty"`
 	SourceKind string           `json:"source_kind,omitempty"`
 	Members    []envelopeMember `json:"members,omitempty"`
-	// SourceVersion is the graph composition version (vpn-core-graph).
+	// SourceVersion is the graph composition version (vpn-core-graph). On a
+	// fleet envelope it is a copy of the envelope digest the fetch reply
+	// carries ("lfe1-..."); core never reads this copy.
 	SourceVersion string `json:"source_version,omitempty"`
+	// CatalogueVersion and Rows are the fleet block (S2 plan section 2.2), at
+	// the top level because core reads the selection there; core reads only
+	// catalogue_version and rows[].line_uuid. A fleet sub writes its
+	// catalogue version and its selected rows as fleetRow. A collection with
+	// a fleet member writes a derived version, "lcv1-" + sha256 over its
+	// fleet members' versions in member order, and Rows holds one
+	// fleetUnionRow per selected line; the members' own rows travel in
+	// Members and are never copied to the top level.
+	CatalogueVersion string `json:"catalogue_version,omitempty"`
+	// Rows is []fleetRow for a sub and []fleetUnionRow for a collection: the
+	// literal [] when the selection matched nothing, never absent on a fleet
+	// envelope.
+	Rows json.RawMessage `json:"rows,omitempty"`
+	// Selector is the selector fetch pushed down and the leading structured
+	// steps it evaluated itself, so render can tell whether the snapshot's
+	// rows still answer the revision's selection.
+	Selector *fleetSelectorRecord `json:"selector,omitempty"`
+}
+
+// fleetSelectorRecord says how a fleet block's rows were selected: the
+// selector core evaluated, how many leading Structured Filter steps the
+// fetch evaluated in all (pushed or in Go), and the digest of those steps as
+// stored. Render compares StepHash with the rendered revision's own leading
+// run before it trusts the rows.
+type fleetSelectorRecord struct {
+	Pushed   *model.LineCatalogueSelector `json:"pushed,omitempty"`
+	Leading  int                          `json:"leading"`
+	StepHash string                       `json:"step_hash"`
+}
+
+// fleetUnionRow is one selected line of a collection's top-level block:
+// the line and the index of the member block it came from (about 60 bytes).
+type fleetUnionRow struct {
+	LineUUID string `json:"line_uuid"`
+	Member   int    `json:"member"`
 }
 
 type envelopeMember struct {
 	SubName string            `json:"sub_name"`
 	Raw     string            `json:"raw"`
 	Nodes   []json.RawMessage `json:"nodes,omitempty"`
+	// ID, Source and Revision name the member the block was built from, so
+	// render can dispatch per block and the plan cache key can read the
+	// member revisions from the envelope instead of member records. Fetch
+	// writes them on every block, provider blocks included; a block without
+	// them is an S1 or legacy-shaped block.
+	ID       string `json:"id,omitempty"`
+	Source   string `json:"source,omitempty"`
+	Revision string `json:"revision,omitempty"`
+	// Steps is the member's process chain as stored. A fleet member's chain
+	// runs at render over the block's rows, so the block carries it.
+	Steps []json.RawMessage `json:"steps,omitempty"`
+	// The member's fleet block, the same shape as the top level of a fleet
+	// sub. Rows is present on every fleet block, the literal [] for a
+	// selection that matched nothing, which keeps a zero-row fleet member
+	// distinguishable from a provider block (no rows field at all).
+	CatalogueVersion string               `json:"catalogue_version,omitempty"`
+	Selector         *fleetSelectorRecord `json:"selector,omitempty"`
+	Rows             json.RawMessage      `json:"rows,omitempty"`
 	// parsedRaw says Nodes are Raw parsed and nothing more (the member has no
 	// chain of its own), so the size bound can leave them out first. Never
 	// stored: render tells the members apart by whether they carry nodes.
 	parsedRaw bool
+}
+
+// fleetRow is the catalogue row projected to what render and the post-fetch
+// steps read: every field a Structured Filter predicate names, the template,
+// the names, the label render names the node by, and the Lattice block.
+// Field names and JSON tags are the SDK row's own (model.LineCatalogueRow),
+// so core's reader of rows[].line_uuid and the UI's CatalogueRow type both
+// read it; extra, usage, public_port, template.dropped and template.digest
+// are left out. TestFleetRowProjectionCoversRenderFields holds the type to
+// every field render and the predicates read.
+type fleetRow struct {
+	LineUUID      string                        `json:"line_uuid"`
+	LineHashID    string                        `json:"line_hash_id"`
+	NodeID        string                        `json:"node_id"`
+	NodeName      string                        `json:"node_name,omitempty"`
+	Name          string                        `json:"name,omitempty"`
+	Label         string                        `json:"label,omitempty"`
+	NodeTags      []string                      `json:"node_tags,omitempty"`
+	GroupIDs      []string                      `json:"group_ids,omitempty"`
+	Geo           *model.NodeGeo                `json:"geo,omitempty"`
+	Machine       *model.LineCatalogueMachine   `json:"machine,omitempty"`
+	DDNSNames     []model.LineCatalogueDDNSName `json:"ddns_names,omitempty"`
+	Protocol      string                        `json:"protocol"`
+	Transport     string                        `json:"transport,omitempty"`
+	Security      string                        `json:"security,omitempty"`
+	PublicHost    string                        `json:"public_host,omitempty"`
+	ProviderEdge  string                        `json:"provider_edge,omitempty"`
+	Addresses     []string                      `json:"addresses,omitempty"`
+	Managed       bool                          `json:"managed,omitempty"`
+	Overlay       bool                          `json:"overlay,omitempty"`
+	OverlayStatus string                        `json:"overlay_status,omitempty"`
+	Status        string                        `json:"status,omitempty"`
+	ServiceState  string                        `json:"service_state,omitempty"`
+	Chain         model.LineCatalogueChain      `json:"chain"`
+	Probe         *model.LineCatalogueProbe     `json:"probe"`
+	Template      *fleetTemplate                `json:"template,omitempty"`
+}
+
+// fleetTemplate is the catalogue template without its dropped list and
+// digest: what a row's node is built from.
+type fleetTemplate struct {
+	Protocol string            `json:"protocol"`
+	Host     string            `json:"host"`
+	Port     int               `json:"port"`
+	Params   map[string]string `json:"params,omitempty"`
 }
 
 // textEnvelope wraps one text snapshot.
