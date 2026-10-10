@@ -121,6 +121,72 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 	}
 }
 
+// TestS2DocumentSizesWhenEveryNodeIsWritten sizes the worst case the fleet
+// mix hides for the four S2 targets: 4096 nodes that the target writes every
+// one of, the mix's written shapes repeated, so a regression that grows a
+// fully written Surge or Quantumult X document is seen even though the mix
+// leaves Surge 1200 entries and Quantumult X 2604.
+func TestS2DocumentSizesWhenEveryNodeIsWritten(t *testing.T) {
+	const count = 4096
+	raw, err := perfgen.FleetMix("../conformance", count)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mix := make([]*nodemodel.Node, len(raw))
+	for i, r := range raw {
+		mix[i] = &nodemodel.Node{}
+		if err := json.Unmarshal(r, mix[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	stdout := ackedRuntimeBudgets()[pluginID+"/subscription/render"].StdoutBytes
+	for _, target := range nativeProducerTargets {
+		if !fleetMixTargets[target] {
+			continue
+		}
+		t.Run(target, func(t *testing.T) {
+			p := nativeProducer(t, target)
+			var buf bytes.Buffer
+			res, err := p.Produce(&buf, mix, target, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			dropped := map[int]bool{}
+			for _, d := range res.Dropped {
+				dropped[d.Index] = true
+			}
+			var written []*nodemodel.Node
+			for i, n := range mix {
+				if !dropped[i] {
+					written = append(written, n)
+				}
+			}
+			nodes := make([]*nodemodel.Node, count)
+			for i := range nodes {
+				nodes[i] = written[i%len(written)]
+			}
+			buf.Reset()
+			if res, err = p.Produce(&buf, nodes, target, nil); err != nil {
+				t.Fatal(err)
+			}
+			if res.Entries != count {
+				t.Fatalf("produced %d entries for %d written shapes, want %d", res.Entries, count, count)
+			}
+			body, err := json.Marshal(buf.String())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if buf.Len() > model.MaxSubscriptionResponseBytes {
+				t.Errorf("document is %d bytes, over the %d byte response bound", buf.Len(), model.MaxSubscriptionResponseBytes)
+			}
+			if len(body) > stdout {
+				t.Errorf("render body is %d bytes, over the %d byte render stdout budget", len(body), stdout)
+			}
+			t.Logf("%s, every node written: %d entries, document %d bytes, render body %d bytes (bounds %d and %d)", target, res.Entries, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
+		})
+	}
+}
+
 // fleetMixEntries counts the fleet mix's nodes a target writes, by the
 // rejections each S2 specification names for the fleet shapes: Stash drops
 // VLESS Reality over gRPC and XHTTP and HTTPUpgrade (stash.md), Shadowrocket

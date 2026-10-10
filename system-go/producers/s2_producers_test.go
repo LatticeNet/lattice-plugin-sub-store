@@ -165,3 +165,25 @@ func BenchmarkProduce4096FleetMix(b *testing.B) {
 		})
 	}
 }
+
+// TestShadowrocketV2rayPluginModes pins the whole v2ray-plugin mode list of
+// shadowrocket.md's admission filter, which the corpus reaches only for
+// websocket and quic: the five modes are kept, trimmed and in any letter
+// case, and any other mode drops the node.
+func TestShadowrocketV2rayPluginModes(t *testing.T) {
+	ss := func(mode string) *nodemodel.Node {
+		return node(map[string]any{"type": "ss", "name": "m", "server": "192.0.2.70", "port": float64(8388),
+			"cipher": "aes-128-gcm", "password": "p", "udp": true, "plugin": "v2ray-plugin",
+			"plugin-opts": map[string]any{"mode": mode, "host": "v.example.com"}})
+	}
+	for _, mode := range []string{"websocket", "quic", "http2", "mkcp", "grpc", " GRPC "} {
+		if _, res := produce(t, "Shadowrocket", []*nodemodel.Node{ss(mode)}, nil); res.Entries != 1 {
+			t.Errorf("mode %q: entries %d, dropped %v; want the node kept", mode, res.Entries, res.Dropped)
+		}
+	}
+	for _, mode := range []string{"tls", "h2", ""} {
+		if _, res := produce(t, "Shadowrocket", []*nodemodel.Node{ss(mode)}, nil); res.Entries != 0 {
+			t.Errorf("mode %q: entries %d; want the node dropped", mode, res.Entries)
+		}
+	}
+}
