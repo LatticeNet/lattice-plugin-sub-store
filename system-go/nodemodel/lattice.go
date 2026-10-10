@@ -28,6 +28,11 @@ type LatticeFields struct {
 	Groups     []string                  `json:"groups,omitempty"`
 	Probe      *model.LineCatalogueProbe `json:"probe,omitempty"`
 	Addresses  []string                  `json:"addresses,omitempty"`
+	// Provenance carries a collection's provider mark through the bundle,
+	// which keeps "_lattice" and drops the Script map: a provider node goes
+	// in with the mark and no other field, and comes back recognisable. It
+	// is not a field core carries, so MarshalPlanNode never writes it.
+	Provenance string `json:"provenance,omitempty"`
 
 	// Row fields predicates and Structured Sort read and core never sees:
 	// kept here, never written by MarshalJSON or MarshalPlanNode.

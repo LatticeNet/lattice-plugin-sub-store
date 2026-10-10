@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -59,11 +60,6 @@ func (rt *runtime) resolveFileTemplate(rec subscriptionRecord) (string, error) {
 // snapshotRaw is the refresh path's resolved node content: the render spends
 // nothing reaching it again. Empty renders live, which is how previews work.
 func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[string]string, snapshotRaw string) (string, map[string]string, error) {
-	// A file over a fleet-bound node source is refused before anything is
-	// read or run, whether or not a snapshot came with the request.
-	if err := rt.refuseFleetNodeSource(rec); err != nil {
-		return "", nil, err
-	}
 	// A script file has no template to resolve: the program is the document, and
 	// it decides for itself what the nodes turn into.
 	if isScriptFile(rec) {
@@ -77,7 +73,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 
 	operators, err := enabledOperators(rec)
 	if err != nil {
-		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fileError(rec.ID, err)
 	}
 
 	// Plain text has no node list to fill: its operations run over the document
@@ -91,7 +87,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 			Operators: operators,
 		})
 		if err != nil {
-			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fileError(rec.ID, err)
 		}
 		if strings.TrimSpace(out.Body) == "" {
 			return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
@@ -109,7 +105,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 		}
 		nodeRecord, err := rt.getSubscription(source)
 		if err != nil {
-			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fileError(rec.ID, err)
 		}
 		if recordKind(nodeRecord) == kindFile {
 			// A file sourcing a file would let two of them reference each
@@ -119,7 +115,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 		}
 		nodes, err = rt.resolveNodesFor(nodeRecord)
 		if err != nil {
-			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fileError(rec.ID, err)
 		}
 	}
 
@@ -129,7 +125,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 		Operators: operators,
 	})
 	if err != nil {
-		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fileError(rec.ID, err)
 	}
 	if strings.TrimSpace(merged.Output) == "" {
 		return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
@@ -157,7 +153,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 	}
 	sourceRecord, err := rt.getSubscription(source)
 	if err != nil {
-		return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return nil, fileError(rec.ID, err)
 	}
 	if recordKind(sourceRecord) == kindFile {
 		return nil, fmt.Errorf("file %q names another file as its node source", rec.ID)
@@ -168,7 +164,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 	if kind == kindCollection {
 		gathered, err := rt.collectionMembers(sourceRecord)
 		if err != nil {
-			return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return nil, fileError(rec.ID, err)
 		}
 		for _, member := range gathered {
 			raw, err := rt.renderMemberNodes(member)
@@ -176,7 +172,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 				// A collection's own failure mode decides this: strict refuses so
 				// a client never silently loses nodes, skip-failed keeps serving.
 				if !collectionMemberFailureIsSkippable(sourceRecord, member) {
-					return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+					return nil, fileError(rec.ID, err)
 				}
 				continue
 			}
@@ -188,7 +184,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 	} else {
 		raw, err := rt.renderMemberNodes(sourceRecord)
 		if err != nil {
-			return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return nil, fileError(rec.ID, err)
 		}
 		members = []fileScriptMember{{SubName: memberSubName(sourceRecord), Raw: raw}}
 	}
@@ -256,7 +252,7 @@ func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]str
 		Query:     filterQuery(rec, query),
 	})
 	if err != nil {
-		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fileError(rec.ID, err)
 	}
 	if strings.TrimSpace(out.Content) == "" {
 		return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
@@ -365,34 +361,39 @@ func downloadFilename(rec subscriptionRecord) string {
 	return cleaned
 }
 
-// refuseFleetNodeSource refuses a file whose node source is fleet-bound over
-// the live store, with fleet_file_unavailable naming the file (S2 plan
-// section 1.2). A file render carries no plan, so a fleet source would hand
-// clients configs whose credential fields are placeholder strings, served
-// unbound. Fleet-bound files therefore do not exist before S3: the write
-// path refuses to create one and render refuses to serve one. It costs one
-// listing read; a record staged to become fleet-bound is not fleet-bound
-// live, so a file over it keeps serving until the promotion.
-func (rt *runtime) refuseFleetNodeSource(file subscriptionRecord) error {
-	source := strings.TrimSpace(file.NodeSource)
-	if source == "" {
-		return nil
+// fleetNodesForFile is the refusal every file path gives a fleet record met
+// on its way to nodes (S2 plan section 1.2): a file render carries no plan,
+// so a fleet record's nodes would reach the file's clients with placeholder
+// credentials, served unbound. Fleet-bound files do not exist before S3: the
+// write path refuses to create one, and each live path below refuses at the
+// point it meets the fleet record, at no extra host call.
+//
+// yagni: a file rendered from its snapshot is not checked here, because the
+// fetch that wrote the snapshot refused and the write path keeps a file's
+// node source from becoming fleet-bound; when lane 4's index entry read
+// lands in render, its node source's live fleet_bound flag is checked there
+// at no extra host call.
+func fleetNodesForFile(ids []string, collection string) error {
+	message := fmt.Sprintf("the fleet records %s reach a file only from S3", strings.Join(ids, ", "))
+	refusal := &fleetRuleError{Code: codeFleetFileUnavailable, IDs: ids, Message: message}
+	if collection != "" {
+		refusal.Collections = []string{collection}
+		refusal.Message = fmt.Sprintf("collection %q gathers the fleet records %s, which reach a file only from S3", collection, strings.Join(ids, ", "))
 	}
-	listing, err := rt.storeListing()
-	if err != nil {
-		return err
+	return refusal
+}
+
+// fileError wraps an error a file's node work returned. A fleet refusal is
+// returned unwrapped, its code leading and the file named in it, so core
+// and the UI read fleet_file_unavailable; anything else is prefixed with the
+// file as before.
+func fileError(fileID string, err error) error {
+	var refusal *fleetRuleError
+	if errors.As(err, &refusal) && refusal.Code == codeFleetFileUnavailable {
+		named := *refusal
+		named.Files = []string{fileID}
+		named.Message = fmt.Sprintf("file %q: %s", fileID, refusal.Message)
+		return &named
 	}
-	universe := make([]fleetRecordFacts, 0, len(listing.Records))
-	node := -1
-	for _, entry := range listing.Records {
-		if entry.ID == source {
-			node = len(universe)
-		}
-		universe = append(universe, factsOfEntry(entry))
-	}
-	if node < 0 || !fleetBoundUnder(universe[node], universe) {
-		return nil
-	}
-	return &fleetRuleError{Code: codeFleetFileUnavailable, IDs: []string{source}, Files: []string{file.ID},
-		Message: fmt.Sprintf("file %q reads its nodes from %q, which is fleet-bound; fleet-bound files arrive with S3", file.ID, source)}
+	return fmt.Errorf("file %q: %w", fileID, err)
 }

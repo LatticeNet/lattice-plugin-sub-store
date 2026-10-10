@@ -80,6 +80,11 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 // its last good snapshot. A member whose own chain filters every node away
 // still contributes nothing, as before.
 func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) {
+	// Every caller is a file's node work, and a fleet record has no node
+	// text a file may carry.
+	if member.Source == subscriptionSourceFleet {
+		return "", fleetNodesForFile([]string{member.ID}, "")
+	}
 	out, err := rt.memberNodes(member)
 	if err != nil {
 		return "", err
@@ -221,7 +226,7 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 		if err != nil {
 			return subStoreConversionResult{}, err
 		}
-		if members, membersNative, err = rt.chainMembers(rec, gathered); err != nil {
+		if members, membersNative, err = rt.chainMembers(rec, gathered, false); err != nil {
 			return subStoreConversionResult{}, err
 		}
 	}

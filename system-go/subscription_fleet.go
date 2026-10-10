@@ -449,36 +449,33 @@ func factsOfEntry(entry indexEntry) fleetRecordFacts {
 
 // fleetBoundLive reports whether a record is fleet-bound over the live
 // store: a fleet sub, a collection that gathers one, or a file whose node
-// source is either. A sub costs no host call; a collection or a file reads
-// the listing once.
+// source is either. A sub costs no host call and a collection reads the
+// listing once. A file is never fleet-bound in S2 (the write path refuses
+// one), and its live node work refuses a fleet source on its own
+// (fleetNodesForFile), so a file costs no host call here either.
 //
 // yagni: lane 4's index carries the live fleet_bound flag (S2 plan section
 // 2.2), computed at every index write; when it lands this reads the
 // record's entry instead of recomputing the closure here.
 func (rt *runtime) fleetBoundLive(rec subscriptionRecord) (bool, error) {
 	self := factsOf(rec)
-	if self.Kind == kindSub {
+	switch self.Kind {
+	case kindSub:
 		return self.Source == subscriptionSourceFleet, nil
+	case kindFile:
+		return false, nil
 	}
 	listing, err := rt.storeListing()
 	if err != nil {
 		return false, err
 	}
 	universe := make([]fleetRecordFacts, 0, len(listing.Records)+1)
-	byID := map[string]fleetRecordFacts{}
 	for _, entry := range listing.Records {
-		if entry.ID == rec.ID {
-			continue
+		if entry.ID != rec.ID {
+			universe = append(universe, factsOfEntry(entry))
 		}
-		facts := factsOfEntry(entry)
-		universe = append(universe, facts)
-		byID[facts.ID] = facts
 	}
 	universe = append(universe, self)
-	if self.Kind == kindFile {
-		source, ok := byID[strings.TrimSpace(self.NodeSource)]
-		return ok && fleetBoundUnder(source, universe), nil
-	}
 	return fleetBoundUnder(self, universe), nil
 }
 

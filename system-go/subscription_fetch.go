@@ -240,7 +240,7 @@ func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScript
 	if err != nil {
 		return nil, false, err
 	}
-	return rt.chainMembers(rec, members)
+	return rt.chainMembers(rec, members, true)
 }
 
 // chainMembers renders each member through its own chain, honoring the
@@ -254,7 +254,7 @@ func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScript
 // carries nodes. A chained member runs on whichever engine its own chain
 // allows: the snapshot is taken before any target is known, and its member
 // texts have to be what a live render of the same collection computes.
-func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord) ([]fileScriptMember, bool, error) {
+func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord, allowFleet bool) ([]fileScriptMember, bool, error) {
 	type resolvedMember struct {
 		member  subscriptionRecord
 		out     memberOutput
@@ -268,6 +268,21 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 	// before any member is read (S2 plan section 1.2).
 	if err := refuseMixedMembers(rec.ID, members); err != nil {
 		return nil, false, err
+	}
+	// Only a collection's own snapshot holds fleet blocks. Every other
+	// caller (a script file's snapshot, the live path that renders a
+	// document) would put placeholder credentials in a document no plan
+	// binds, so a fleet member is refused there.
+	if !allowFleet {
+		var fleet []string
+		for _, member := range members {
+			if member.Source == subscriptionSourceFleet {
+				fleet = append(fleet, member.ID)
+			}
+		}
+		if len(fleet) > 0 {
+			return nil, false, fleetNodesForFile(fleet, rec.ID)
+		}
 	}
 	plan, err := rt.chainPlan(rec)
 	if err != nil {
@@ -397,12 +412,9 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 		// the honest content, and an edit changes its hash.
 		return textEnvelope(kindFile, rec.Content, ""), nil
 	}
-	if err := rt.refuseFleetNodeSource(rec); err != nil {
-		return snapshotEnvelope{}, err
-	}
 	sourceRecord, err := rt.getSubscription(source)
 	if err != nil {
-		return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
+		return snapshotEnvelope{}, fileError(rec.ID, err)
 	}
 	if recordKind(sourceRecord) == kindFile {
 		return snapshotEnvelope{}, fmt.Errorf("file %q names another file as its node source", rec.ID)
@@ -410,7 +422,7 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 	if fileType(rec) == fileTypeConfig {
 		nodes, err := rt.resolveNodesFor(sourceRecord)
 		if err != nil {
-			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
 		return textEnvelope(kindFile, nodes, ""), nil
 	}
@@ -420,16 +432,16 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 	if recordKind(sourceRecord) == kindCollection {
 		gathered, err := rt.collectionMembers(sourceRecord)
 		if err != nil {
-			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
-		members, _, err = rt.chainMembers(sourceRecord, gathered)
+		members, _, err = rt.chainMembers(sourceRecord, gathered, false)
 		if err != nil {
-			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
 	} else {
 		raw, err := rt.renderMemberNodes(sourceRecord)
 		if err != nil {
-			return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)
+			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
 		members = []fileScriptMember{{SubName: memberSubName(sourceRecord), Raw: raw}}
 	}

@@ -376,7 +376,7 @@ func (rt *runtime) runFleetChain(plan *operators.Plan, nodes []*nodemodel.Node, 
 	if planIsNative(plan) {
 		return plan.Run(nodes, &operators.Context{Target: target}), nil
 	}
-	return rt.subStoreEngine().processNodes(nodes, bundleOperators(plan))
+	return rt.subStoreEngine().processNodes(nodes, bundleOperators(plan), target)
 }
 
 // fleetPlanNodes turns post-chain nodes into plan nodes. A node whose
@@ -444,10 +444,6 @@ func fleetNodesOut(rec subscriptionRecord, rows []fleetRow) (int, bool) {
 	}
 	return len(nodes), true
 }
-
-// errProcessNodesUnavailable is processNodes' answer until the bundle entry
-// lands.
-var errProcessNodesUnavailable = errors.New("a fleet record whose chain runs on the bundle needs engine.processNodes, which this build does not carry yet")
 
 // fleetRenderOptions are the parts of a render request the fleet path reads
 // beside subscriptionRenderRequest: the revision core names and, for a
