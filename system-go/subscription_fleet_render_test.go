@@ -11,25 +11,19 @@ import (
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
-// decodeRenderPlan reads an encoded fleet plan with the SDK's own decoder
-// for its SDK part, so a field the SDK would refuse fails the test.
-func decodeRenderPlan(t *testing.T, encoded []byte) fleetRenderPlan {
+// decodeRenderPlan reads an encoded fleet plan with the SDK's strict
+// decoder, which refuses an unknown field, a duplicate key and a plan that
+// fails Validate, so a plan core would refuse fails the test.
+func decodeRenderPlan(t *testing.T, encoded []byte) model.SelectionPlan {
 	t.Helper()
-	var plan fleetRenderPlan
-	if err := json.Unmarshal(encoded, &plan); err != nil {
-		t.Fatalf("plan does not decode: %v", err)
-	}
-	sdk, err := json.Marshal(plan.SelectionPlan)
+	plan, err := model.DecodeSelectionPlan(encoded)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := model.DecodeSelectionPlan(sdk); err != nil {
 		t.Fatalf("the SDK refuses the plan: %v", err)
 	}
 	return plan
 }
 
-func projectRows(rows []catalogueRow) []fleetRow {
+func projectRows(rows []model.LineCatalogueRow) []fleetRow {
 	out := make([]fleetRow, len(rows))
 	for i, row := range rows {
 		out[i] = projectFleetRow(row)
@@ -37,7 +31,7 @@ func projectRows(rows []catalogueRow) []fleetRow {
 	return out
 }
 
-func buildTestPlan(t *testing.T, rec subscriptionRecord, rows []fleetRow) (fleetPlanOutput, fleetRenderPlan) {
+func buildTestPlan(t *testing.T, rec subscriptionRecord, rows []fleetRow) (fleetPlanOutput, model.SelectionPlan) {
 	t.Helper()
 	rec.Source = subscriptionSourceFleet
 	normalised, err := normalizeSubscriptionForStore(rec)
@@ -208,7 +202,7 @@ func TestDDNSDialSubstitutesVerifiedNamesOnly(t *testing.T) {
 	rows := projectRows(fleetTestRows(3, "trojan"))
 	rows[0].DDNSNames = []model.LineCatalogueDDNSName{{Name: "jp1-stale.ddns.example"}, {Name: "jp1.ddns.example", Verified: true}}
 	rows[1].DDNSNames = []model.LineCatalogueDDNSName{{Name: "jp2.ddns.example"}}
-	servers := func(plan fleetRenderPlan) []map[string]any {
+	servers := func(plan model.SelectionPlan) []map[string]any {
 		var out []map[string]any
 		for _, node := range plan.Nodes {
 			var fields map[string]any
@@ -252,6 +246,20 @@ func TestDDNSDialKeepsNATLinesOnEdge(t *testing.T) {
 	if fields["server"] != "edge.provider.example" {
 		t.Fatalf("a NAT line dials %v", fields["server"])
 	}
+
+	// A verified CNAME whose target is the edge may stand in for it; one
+	// pointing elsewhere may not.
+	rows[0].DDNSNames = []model.LineCatalogueDDNSName{
+		{Name: "elsewhere.ddns.example", Verified: true, Target: "other-edge.example"},
+		{Name: "edge-alias.ddns.example", Verified: true, Target: "edge.provider.example"},
+	}
+	_, plan = buildTestPlan(t, subscriptionRecord{ID: "nat", Name: "nat", Fleet: &fleetOptions{DDNSDial: true}}, rows)
+	if err := json.Unmarshal(plan.Nodes[0].Node, &fields); err != nil {
+		t.Fatal(err)
+	}
+	if fields["server"] != "edge-alias.ddns.example" {
+		t.Fatalf("a NAT line with an edge-target name dials %v", fields["server"])
+	}
 }
 
 // TestFleetRenderRefusesResponseTransformerUntilS3 pins that a fleet record
@@ -290,7 +298,7 @@ func TestFleetRecordRefusesLinkModeScriptStepAtRender(t *testing.T) {
 // sits below the SDK's own plan bound by the reply overhead.
 func TestRenderRefusesPlanOverCap(t *testing.T) {
 	node := model.SelectionPlanNode{Node: json.RawMessage(`{"name":"` + strings.Repeat("x", 4000) + `","type":"vless"}`)}
-	plan := fleetRenderPlan{SelectionPlan: model.SelectionPlan{Kind: model.SelectionPlanKindNodes}}
+	plan := model.SelectionPlan{Kind: model.SelectionPlanKindNodes}
 	for len(plan.Nodes) < 1500 {
 		plan.Nodes = append(plan.Nodes, node)
 	}
@@ -301,7 +309,7 @@ func TestRenderRefusesPlanOverCap(t *testing.T) {
 	if _, err := encodeFleetPlan(plan); err != nil {
 		t.Fatalf("a small plan: %v", err)
 	}
-	if maxRenderPlanBytes >= model.MaxSelectionPlanBytes {
+	if model.MaxRenderPlanBytes >= model.MaxSelectionPlanBytes {
 		t.Fatal("the render cap does not leave room for the reply")
 	}
 }

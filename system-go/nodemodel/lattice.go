@@ -10,9 +10,9 @@ import "github.com/LatticeNet/lattice-sdk/model"
 // snapshot envelope and the bundle round trip use, writes the tagged fields
 // under the node's "_lattice" key. MarshalPlanNode writes the tagged fields
 // other than line_uuid at the top level under core's names
-// (PlanLatticeFields), because core admits no "_lattice" key. The untagged
-// fields are row facts the Structured Filter predicates read and core never
-// sees; neither encoder writes them.
+// (model.SelectionPlanLatticeFields), because core admits no "_lattice" key.
+// The untagged fields are row facts the Structured Filter predicates read and
+// core never sees; neither encoder writes them.
 //
 // The block is shared, not copied, by Node.Clone: nothing writes to it after
 // the fleet render builds it (scripts write Script, and the fleet render

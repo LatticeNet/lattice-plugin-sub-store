@@ -69,27 +69,6 @@ const (
 // fleetNow is the clock the fetch-time predicates read. Tests replace it.
 var fleetNow = func() time.Time { return time.Now().UTC() }
 
-// catalogueRow is a catalogue page row as this plugin decodes it: the SDK
-// row plus the fields the S2 SDK adds that the pinned SDK does not carry
-// yet. Label is core's entry label for the line (S2 plan section 2.5); when
-// the SDK pin carries LineCatalogueRow.Label, the outer field shadows the
-// inner one for decoding and this wrapper can go.
-type catalogueRow struct {
-	model.LineCatalogueRow
-	Label string `json:"label,omitempty"`
-}
-
-// cataloguePage is one page of the catalogue as this plugin decodes it.
-type cataloguePage struct {
-	CatalogueVersion string         `json:"catalogue_version"`
-	Rows             []catalogueRow `json:"rows"`
-	Cursor           string         `json:"cursor,omitempty"`
-	SelectorFields   []string       `json:"selector_fields,omitempty"`
-	// Unavailable names the row fields this core never fills, for example
-	// ["probe"] (S2 plan section 2.5).
-	Unavailable []string `json:"unavailable,omitempty"`
-}
-
 // fleetCatalogueRead is one complete read of the catalogue under a selector.
 type fleetCatalogueRead struct {
 	CatalogueVersion string
@@ -189,11 +168,12 @@ func fleetSelectionTooLarge(found, limit int) error {
 }
 
 // fetchCataloguePage reads one catalogue page over rpc.call and validates
-// it: its version and cursor, its row count, every row by the SDK's
-// Validate, each label, and that the version carries core's prefix. Errors
-// never quote a row: a row is credential-free by contract, but a page that
-// fails validation is exactly the page whose content is not trusted.
-func (rt *runtime) fetchCataloguePage(sel *model.LineCatalogueSelector, cursor string) (cataloguePage, error) {
+// it: the SDK's page Validate (version, cursor, row count, every row by the
+// row's own Validate, duplicates, the page byte bound), core's version
+// prefix, and a label without control characters. Errors never quote a row:
+// a row is credential-free by contract, but a page that fails validation is
+// exactly the page whose content is not trusted.
+func (rt *runtime) fetchCataloguePage(sel *model.LineCatalogueSelector, cursor string) (model.LineCatalogueResponse, error) {
 	request := model.LineCatalogueRequest{Selector: sel, Cursor: cursor, Limit: fleetCataloguePageRows}
 	raw, err := rt.callHost(latticeplugin.HostMethodRPCCall, map[string]any{
 		"service": fleetCatalogueService,
@@ -201,54 +181,40 @@ func (rt *runtime) fetchCataloguePage(sel *model.LineCatalogueSelector, cursor s
 		"request": request,
 	})
 	if err != nil {
-		return cataloguePage{}, fmt.Errorf("%s: the line catalogue could not be read", codeCatalogueUnavailable)
+		return model.LineCatalogueResponse{}, fmt.Errorf("%s: the line catalogue could not be read", codeCatalogueUnavailable)
 	}
-	var page cataloguePage
+	var page model.LineCatalogueResponse
 	if err := json.Unmarshal(raw, &page); err != nil {
-		return cataloguePage{}, fmt.Errorf("%s: the line catalogue page does not decode", codeCatalogueUnavailable)
+		return model.LineCatalogueResponse{}, fmt.Errorf("%s: the line catalogue page does not decode", codeCatalogueUnavailable)
 	}
 	if err := validateCataloguePage(page); err != nil {
-		return cataloguePage{}, fmt.Errorf("%s: %w", codeCatalogueUnavailable, err)
+		return model.LineCatalogueResponse{}, fmt.Errorf("%s: %w", codeCatalogueUnavailable, err)
 	}
 	return page, nil
 }
 
 // validateCataloguePage is the page-level check of fetchCataloguePage.
-func validateCataloguePage(page cataloguePage) error {
-	if !strings.HasPrefix(page.CatalogueVersion, fleetCatalogueVersionPrefix) || !validCatalogueText(page.CatalogueVersion, model.MaxLineCatalogueTokenBytes) {
-		return errors.New("catalogue page has no valid catalogue_version")
+func validateCataloguePage(page model.LineCatalogueResponse) error {
+	if err := page.Validate(); err != nil {
+		return err
 	}
-	if page.Cursor != "" && !validCatalogueText(page.Cursor, model.MaxLineCatalogueTokenBytes) {
-		return errors.New("catalogue page has an invalid cursor")
+	if !strings.HasPrefix(page.CatalogueVersion, fleetCatalogueVersionPrefix) {
+		return errors.New("catalogue page version does not carry core's prefix")
 	}
-	if len(page.Rows) > model.MaxLineCataloguePageRows {
-		return fmt.Errorf("catalogue page has more than %d rows", model.MaxLineCataloguePageRows)
-	}
-	for _, name := range append(append([]string(nil), page.SelectorFields...), page.Unavailable...) {
-		if !validCatalogueText(name, 64) {
-			return errors.New("catalogue page names an invalid field")
-		}
-	}
+	// A label becomes a node name, which line-oriented clients read whole.
 	for i := range page.Rows {
-		if err := page.Rows[i].Validate(); err != nil {
-			return fmt.Errorf("catalogue row %d: %w", i, err)
-		}
-		if len(page.Rows[i].Label) > model.MaxSubscriptionURIBytes || strings.ContainsFunc(page.Rows[i].Label, unicode.IsControl) {
+		if strings.ContainsFunc(page.Rows[i].Label, unicode.IsControl) {
 			return fmt.Errorf("catalogue row %d has an invalid label", i)
 		}
 	}
 	return nil
 }
 
-func validCatalogueText(value string, maxBytes int) bool {
-	return value != "" && value == strings.TrimSpace(value) && len(value) <= maxBytes && !strings.ContainsFunc(value, unicode.IsControl)
-}
-
 // projectFleetRow is the row as a fleet envelope stores it: every field
 // render and the predicates read, nothing else (fleetRow). Slices and
 // pointers are shared with the decoded page, which is discarded after the
 // read.
-func projectFleetRow(row catalogueRow) fleetRow {
+func projectFleetRow(row model.LineCatalogueRow) fleetRow {
 	out := fleetRow{
 		LineUUID: row.LineUUID, LineHashID: row.LineHashID, NodeID: row.NodeID,
 		NodeName: row.NodeName, Name: row.Name, Label: row.Label,

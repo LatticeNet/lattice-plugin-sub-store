@@ -44,7 +44,7 @@ func TestPlanNodeEncodesLatticeFieldsAtTopLevel(t *testing.T) {
 	if err := json.Unmarshal(encoded, &got); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range PlanLatticeFields {
+	for _, key := range model.SelectionPlanLatticeFields {
 		if _, ok := got[key]; !ok {
 			t.Errorf("plan node lacks the Lattice field %q: %s", key, encoded)
 		}
@@ -109,7 +109,7 @@ func TestPlanNodeNeverCarriesLatticeKey(t *testing.T) {
 	if err := json.Unmarshal(encoded, &got); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range PlanStrippedFields {
+	for _, key := range model.SelectionPlanStrippedFields {
 		if _, ok := got[key]; ok {
 			t.Errorf("a node without a Lattice block carries %q", key)
 		}
@@ -142,7 +142,7 @@ func TestUnmarshalPlanNodeMovesLatticeFieldsAndStripRemovesThem(t *testing.T) {
 	if err := n.UnmarshalPlanNode(raw); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range PlanLatticeFields {
+	for _, key := range model.SelectionPlanLatticeFields {
 		if _, ok := n.Fields[key]; ok {
 			t.Errorf("Fields still holds the Lattice key %q", key)
 		}
@@ -157,7 +157,7 @@ func TestUnmarshalPlanNodeMovesLatticeFieldsAndStripRemovesThem(t *testing.T) {
 		t.Error("UnmarshalPlanNode removed line_uuid; StripLattice owns that")
 	}
 	StripLattice(&n)
-	for _, key := range append(PlanStrippedFields, "_lattice") {
+	for _, key := range append(model.SelectionPlanStrippedFields, "_lattice") {
 		if _, ok := n.Fields[key]; ok {
 			t.Errorf("StripLattice left %q", key)
 		}
@@ -188,14 +188,14 @@ func TestUnmarshalPlanNodeMovesLatticeFieldsAndStripRemovesThem(t *testing.T) {
 	}
 }
 
-// TestPlanStrippedFieldsAreTheLatticeFieldsAndLineUUID keeps the two lists
-// in the shape S2 plan section 2.3 states.
-func TestPlanStrippedFieldsAreTheLatticeFieldsAndLineUUID(t *testing.T) {
-	if PlanStrippedFields[0] != "line_uuid" || !reflect.DeepEqual(PlanStrippedFields[1:], PlanLatticeFields) {
-		t.Fatalf("stripped %v, lattice %v", PlanStrippedFields, PlanLatticeFields)
+// TestPlanNodeFieldListsAreTheSDKLists keeps the SDK lists the plan node
+// encoders read in the shape S2 plan section 2.3 states.
+func TestPlanNodeFieldListsAreTheSDKLists(t *testing.T) {
+	if model.SelectionPlanStrippedFields[0] != "line_uuid" || !reflect.DeepEqual(model.SelectionPlanStrippedFields[1:], model.SelectionPlanLatticeFields) {
+		t.Fatalf("stripped %v, lattice %v", model.SelectionPlanStrippedFields, model.SelectionPlanLatticeFields)
 	}
 	want := []string{"line_hash_id", "node_id", "geo", "chain", "tags", "groups", "probe", "addresses"}
-	if !reflect.DeepEqual(PlanLatticeFields, want) {
-		t.Fatalf("PlanLatticeFields = %v, want %v", PlanLatticeFields, want)
+	if !reflect.DeepEqual(model.SelectionPlanLatticeFields, want) {
+		t.Fatalf("model.SelectionPlanLatticeFields = %v, want %v", model.SelectionPlanLatticeFields, want)
 	}
 }

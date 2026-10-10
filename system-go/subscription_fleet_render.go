@@ -29,11 +29,6 @@ import (
 // placeholders, the selection the rows came from and the record's bind
 // policy.
 
-// maxRenderPlanBytes is the largest plan a render reply may carry: the render
-// stdout budget, which equals model.MaxSelectionPlanBytes, less the reply's
-// other fields and framing. It mirrors model.MaxRenderPlanBytes (lane 5a).
-const maxRenderPlanBytes = model.MaxSelectionPlanBytes - 512<<10
-
 // fleetCredentialFields are the credential fields of each template protocol
 // a fleet node can be built for, sorted, in the node field names core
 // compares (srv/substore_bind.go, substoreBindTemplateShape). A protocol
@@ -58,55 +53,22 @@ var fleetNodeCredentialKeys = []string{"password", "username", "uuid"}
 // (store.LineClientTemplateReservedParams in core).
 var fleetTemplateReservedParams = model.LineTemplateReservedParams
 
-// planSelection is the selection a plan was rendered from: the catalogue
-// version and the lines it selected, in selection order. It mirrors
-// model.PlanSelection (lane 5a, S2 plan section 2.5).
-type planSelection struct {
-	CatalogueVersion string   `json:"catalogue_version"`
-	LineUUIDs        []string `json:"line_uuids"`
-}
-
-// bindPolicy is a record's opt-in exclusion rules, applied by core at bind.
-// It mirrors model.BindPolicy.
-type bindPolicy struct {
-	Probe    *probeExclusionPolicy `json:"probe,omitempty"`
-	Usage    *usageExclusionPolicy `json:"usage,omitempty"`
-	DDNSDial bool                  `json:"ddns_dial,omitempty"`
-}
-
-type probeExclusionPolicy struct {
-	ConsecutiveFailures int `json:"consecutive_failures"`
-}
-
-type usageExclusionPolicy struct {
-	MaxBytesPerLine int64 `json:"max_bytes_per_line"`
-}
-
-// fleetRenderPlan is the plan a fleet render returns: the SDK's plan plus the
-// two S2 fields, encoded flat. It is replaced by model.SelectionPlan once the
-// SDK pin carries Selection and Policy.
-type fleetRenderPlan struct {
-	model.SelectionPlan
-	Selection *planSelection `json:"selection,omitempty"`
-	Policy    *bindPolicy    `json:"policy,omitempty"`
-}
-
 // policyOf is the bind policy a record's fleet options ask for, or nil when
 // they ask for nothing.
-func policyOf(options *fleetOptions) *bindPolicy {
+func policyOf(options *fleetOptions) *model.BindPolicy {
 	if options == nil {
 		return nil
 	}
-	policy := &bindPolicy{DDNSDial: options.DDNSDial}
+	policy := &model.BindPolicy{DDNSDial: options.DDNSDial}
 	if p := options.ProbeExclusion; p != nil && p.Enabled {
 		n := p.ConsecutiveFailures
 		if n == 0 {
 			n = defaultProbeConsecutiveFailures
 		}
-		policy.Probe = &probeExclusionPolicy{ConsecutiveFailures: n}
+		policy.Probe = &model.ProbeExclusionPolicy{ConsecutiveFailures: n}
 	}
 	if u := options.UsageExclusion; u != nil && u.Enabled {
-		policy.Usage = &usageExclusionPolicy{MaxBytesPerLine: u.MaxBytesPerLine}
+		policy.Usage = &model.UsageExclusionPolicy{MaxBytesPerLine: u.MaxBytesPerLine}
 	}
 	if policy.Probe == nil && policy.Usage == nil && !policy.DDNSDial {
 		return nil
@@ -214,22 +176,11 @@ func fleetDialName(row fleetRow) string {
 		if !name.Verified {
 			continue
 		}
-		if nat && !strings.EqualFold(ddnsNameTarget(name), row.ProviderEdge) {
+		if nat && !strings.EqualFold(name.Target, row.ProviderEdge) {
 			continue
 		}
 		return name.Name
 	}
-	return ""
-}
-
-// ddnsNameTarget is the CNAME target core verified for a name
-// (LineCatalogueDDNSName.Target, S2 plan section 2.5).
-//
-// yagni: the pinned SDK has no Target field, so every name reads as having
-// none and a NAT line never substitutes, which is the safe answer. When the
-// SDK pin carries the field this returns name.Target.
-func ddnsNameTarget(name model.LineCatalogueDDNSName) string {
-	_ = name
 	return ""
 }
 
@@ -338,7 +289,7 @@ type fleetPlanOutput struct {
 // line recovery, encoding. It refuses a chain with a Response Transformer
 // (fleet_response_chain_unavailable, until S3 runs response chains in
 // convert), a link-mode script step (fleet_script_link_unavailable, until S3
-// pins links by digest) and a plan past maxRenderPlanBytes (plan_too_large).
+// pins links by digest) and a plan past model.MaxRenderPlanBytes (plan_too_large).
 func (rt *runtime) buildFleetPlan(in fleetPlanInput) (fleetPlanOutput, error) {
 	plan, err := rt.chainPlan(in.Record)
 	if err != nil {
@@ -356,7 +307,7 @@ func (rt *runtime) buildFleetPlan(in fleetPlanInput) (fleetPlanOutput, error) {
 	if err != nil {
 		return fleetPlanOutput{}, fmt.Errorf("%s: %w", in.Label, err)
 	}
-	selection := &planSelection{CatalogueVersion: in.CatalogueVersion, LineUUIDs: make([]string, 0, len(in.Rows))}
+	selection := &model.PlanSelection{CatalogueVersion: in.CatalogueVersion, LineUUIDs: make([]string, 0, len(in.Rows))}
 	for _, row := range in.Rows {
 		selection.LineUUIDs = append(selection.LineUUIDs, row.LineUUID)
 	}
@@ -364,10 +315,11 @@ func (rt *runtime) buildFleetPlan(in fleetPlanInput) (fleetPlanOutput, error) {
 	if err != nil {
 		return fleetPlanOutput{}, fmt.Errorf("%s: %w", in.Label, err)
 	}
-	out := fleetRenderPlan{
-		SelectionPlan: model.SelectionPlan{Kind: model.SelectionPlanKindNodes, Nodes: planNodes},
-		Selection:     selection,
-		Policy:        policyOf(in.Record.Fleet),
+	out := model.SelectionPlan{
+		Kind:      model.SelectionPlanKindNodes,
+		Nodes:     planNodes,
+		Selection: selection,
+		Policy:    policyOf(in.Record.Fleet),
 	}
 	encoded, err := encodeFleetPlan(out)
 	if err != nil {
@@ -428,23 +380,21 @@ func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.
 	return out, nil
 }
 
-// encodeFleetPlan validates a plan's SDK part and encodes the whole plan,
-// refusing one past maxRenderPlanBytes with plan_too_large: a larger plan
-// would pass the SDK's own bound and still be killed by core for exceeding
-// render's stdout budget once the reply's other fields are added.
-func encodeFleetPlan(plan fleetRenderPlan) (json.RawMessage, error) {
-	if err := plan.SelectionPlan.Validate(); err != nil {
+// encodeFleetPlan validates a plan (its selection and policy included) and
+// encodes it, refusing one past model.MaxRenderPlanBytes with plan_too_large:
+// a larger plan would pass the SDK's own bound and still be killed by core
+// for exceeding render's stdout budget once the reply's other fields are
+// added.
+func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
+	if err := plan.Validate(); err != nil {
 		return nil, err
-	}
-	if plan.Selection != nil && len(plan.Selection.LineUUIDs) > model.MaxSubscriptionRecordNodes {
-		return nil, fmt.Errorf("%s: the plan selects %d lines, over %d", codePlanTooLarge, len(plan.Selection.LineUUIDs), model.MaxSubscriptionRecordNodes)
 	}
 	raw, err := json.Marshal(plan)
 	if err != nil {
 		return nil, err
 	}
-	if len(raw) > maxRenderPlanBytes {
-		return nil, fmt.Errorf("%s: the plan encodes to %d bytes, and a render reply carries at most %d; narrow the selection or split the record", codePlanTooLarge, len(raw), maxRenderPlanBytes)
+	if len(raw) > model.MaxRenderPlanBytes {
+		return nil, fmt.Errorf("%s: the plan encodes to %d bytes, and a render reply carries at most %d; narrow the selection or split the record", codePlanTooLarge, len(raw), model.MaxRenderPlanBytes)
 	}
 	return raw, nil
 }
