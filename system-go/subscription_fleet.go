@@ -481,3 +481,106 @@ func (rt *runtime) fleetBoundLive(rec subscriptionRecord) (bool, error) {
 	}
 	return fleetBoundUnder(self, universe), nil
 }
+
+// refuseMixedMembers refuses a collection whose members are a legacy and a
+// fleet record together, naming both sides (fleet_mixed_owner_credentials).
+// Core serves a collection's provider nodes to every identity unvalidated,
+// so a legacy member beside a fleet member would hand line owner
+// credentials, or another identity's, to the collection's identity holders.
+func refuseMixedMembers(collectionID string, members []subscriptionRecord) error {
+	var fleet, legacy []string
+	for _, member := range members {
+		switch {
+		case member.Source == subscriptionSourceFleet:
+			fleet = append(fleet, member.ID)
+		case isVPNCoreSource(member.Source):
+			legacy = append(legacy, member.ID)
+		}
+	}
+	if len(fleet) > 0 && len(legacy) > 0 {
+		return mixedRefusal(collectionID, fleet, legacy)
+	}
+	return nil
+}
+
+// fetchFleetMemberBlock reads a fleet member's selection for its collection's
+// snapshot: the catalogue under the member's own pushed selector, its own
+// leading run, its rows projected. The member's chain is not run.
+func (rt *runtime) fetchFleetMemberBlock(member subscriptionRecord) (*fleetMemberBlock, error) {
+	sel, read, err := rt.readFleetSelection(member)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", memberLabel(member), err)
+	}
+	rows, err := encodeFleetRows(read.Rows)
+	if err != nil {
+		return nil, err
+	}
+	return &fleetMemberBlock{catalogueVersion: read.CatalogueVersion, selector: sel.record(), rows: rows, count: len(read.Rows)}, nil
+}
+
+// fleetCollectionVersion is a collection's derived catalogue version: "lcv1-"
+// plus the sha256 of its fleet members' versions in member order, so core's
+// unchanged selection reader reads a collection envelope as it reads a sub's.
+func fleetCollectionVersion(versions []string) string {
+	sum := sha256.Sum256([]byte(strings.Join(versions, "\n")))
+	return fleetCatalogueVersionPrefix + hex.EncodeToString(sum[:])
+}
+
+// finishFleetCollectionEnvelope writes a collection envelope's top-level
+// fleet block when any member is a fleet member: the derived catalogue
+// version, one union row per selected line (the first member that selected
+// it), and the envelope digest as the source version. It reports whether the
+// collection has a fleet member.
+func finishFleetCollectionEnvelope(env *snapshotEnvelope) (bool, error) {
+	var versions []string
+	union := []fleetUnionRow{}
+	seen := map[string]bool{}
+	for i, member := range env.Members {
+		if member.Source != subscriptionSourceFleet {
+			continue
+		}
+		versions = append(versions, member.CatalogueVersion)
+		var rows []struct {
+			LineUUID string `json:"line_uuid"`
+		}
+		if err := json.Unmarshal(member.Rows, &rows); err != nil {
+			return false, err
+		}
+		for _, row := range rows {
+			if !seen[row.LineUUID] {
+				seen[row.LineUUID] = true
+				union = append(union, fleetUnionRow{LineUUID: row.LineUUID, Member: i})
+			}
+		}
+	}
+	if versions == nil {
+		return false, nil
+	}
+	rows, err := json.Marshal(union)
+	if err != nil {
+		return false, err
+	}
+	env.CatalogueVersion, env.Rows = fleetCollectionVersion(versions), rows
+	env.SourceVersion, err = fleetEnvelopeDigest(*env)
+	return true, err
+}
+
+// fleetCollectionTooLarge restates an envelope refusal for a collection with
+// fleet members, naming the collection and the member that holds the most
+// lines, so the operator knows which selection to narrow.
+func fleetCollectionTooLarge(collectionID string, members []fileScriptMember, cause error) error {
+	total, largest, largestID := 0, -1, ""
+	for _, member := range members {
+		if member.block.fleet == nil {
+			continue
+		}
+		total += member.block.fleet.count
+		if member.block.fleet.count > largest {
+			largest, largestID = member.block.fleet.count, member.block.id
+		}
+	}
+	if largestID == "" {
+		return cause
+	}
+	return fmt.Errorf("%s: collection %q holds %d fleet lines and its snapshot is over the %d MiB the core keeps; member %q holds the most, %d; narrow its selection or split the collection", snapshotTooLargeCode, collectionID, total, model.MaxSubscriptionRawBytes>>20, largestID, largest)
+}

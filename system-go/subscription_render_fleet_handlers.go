@@ -489,12 +489,27 @@ func (rt *runtime) render(req subscriptionRenderRequest, opts fleetRenderOptions
 	if err != nil {
 		return renderReply{}, err
 	}
-	if recordKind(rec) == kindSub && rec.Source == subscriptionSourceFleet {
+	fleetSub := recordKind(rec) == kindSub && rec.Source == subscriptionSourceFleet
+	fleetCollection, owner := false, false
+	if recordKind(rec) == kindCollection {
+		// A fleet-bound collection never takes a path that reads member
+		// text as provider content: its plan is built node-wise from its
+		// blocks, and a legacy-shaped snapshot is refused.
+		if fleetCollection, owner, err = rt.collectionFleetState(rec); err != nil {
+			return renderReply{}, err
+		}
+	}
+	if fleetSub || fleetCollection {
 		target, err := rt.renderTarget(rec, req)
 		if err != nil {
 			return renderReply{}, err
 		}
-		out, err := rt.renderFleetSub(rec, req, opts, target)
+		var out fleetRendered
+		if fleetSub {
+			out, err = rt.renderFleetSub(rec, req, opts, target)
+		} else {
+			out, err = rt.renderFleetCollection(rec, req, opts, target, owner)
+		}
 		if err != nil {
 			return renderReply{}, err
 		}

@@ -74,6 +74,20 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 		if err := withMemberNodes(&env, members, membersNative); err != nil {
 			return fetchResult{}, err
 		}
+		fleet, err := finishFleetCollectionEnvelope(&env)
+		if err != nil {
+			return fetchResult{}, err
+		}
+		if fleet {
+			// The envelope digest moves with every member's content, provider
+			// blocks included, so core's body cache never outlives a member
+			// change (S2 plan section 2.2).
+			out.SourceVersion = env.SourceVersion
+			if out.Raw, err = encodeSnapshotEnvelope(env); err != nil {
+				return fetchResult{}, fleetCollectionTooLarge(rec.ID, members, err)
+			}
+			return out, nil
+		}
 	case kindFile:
 		if env, err = rt.fetchFileSnapshot(rec); err != nil {
 			return fetchResult{}, err
@@ -245,6 +259,15 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 		member  subscriptionRecord
 		out     memberOutput
 		dropped bool
+		// fleet is a fleet member's block: rows, no text.
+		fleet *fleetMemberBlock
+	}
+	// A legacy member beside a fleet member would hand line owner
+	// credentials to the collection's identity holders, because core serves
+	// a collection's provider nodes to every identity unvalidated; refused
+	// before any member is read (S2 plan section 1.2).
+	if err := refuseMixedMembers(rec.ID, members); err != nil {
+		return nil, false, err
 	}
 	plan, err := rt.chainPlan(rec)
 	if err != nil {
@@ -270,6 +293,21 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 		return nil
 	}
 	for _, member := range members {
+		if member.Source == subscriptionSourceFleet {
+			// A fleet member's chain runs at render, over its rows: run here
+			// its output would carry placeholders, which are fresh per plan
+			// and would make the snapshot volatile. A selection that matches
+			// nothing is a block with rows [], not a failed member.
+			block, err := rt.fetchFleetMemberBlock(member)
+			if err != nil {
+				if err := fail(member, err); err != nil {
+					return nil, false, err
+				}
+				continue
+			}
+			resolved = append(resolved, resolvedMember{member: member, out: memberOutput{native: true}, fleet: block})
+			continue
+		}
 		out, err := rt.memberNodes(member)
 		if err != nil {
 			if err := fail(member, err); err != nil {
@@ -321,8 +359,17 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 	}
 	out := make([]fileScriptMember, 0, len(resolved))
 	for _, entry := range resolved {
+		// Every block names its member, provider blocks included, so a
+		// staged render can match a block to its member by id and render can
+		// dispatch per block (S2 plan section 1.2).
+		block := memberBlock{id: entry.member.ID, source: entry.member.Source, revision: entry.member.Revision}
+		if entry.fleet != nil {
+			block.steps, block.fleet = processSteps(entry.member), entry.fleet
+			out = append(out, fileScriptMember{SubName: memberSubName(entry.member), block: block})
+			continue
+		}
 		if !entry.dropped && strings.TrimSpace(entry.out.raw) != "" {
-			member := fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.out.raw}
+			member := fileScriptMember{SubName: memberSubName(entry.member), Raw: entry.out.raw, block: block}
 			if membersNative {
 				member.nodes = entry.out.nodes
 				member.unchained = entry.out.needsCount

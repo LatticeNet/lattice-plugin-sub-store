@@ -109,6 +109,13 @@ type fleetCatalogueHost struct {
 	calls       int
 	requests    []model.LineCatalogueRequest
 	other       int
+	// readSets, when set, answers the n-th read (a request with no cursor)
+	// with readSets[n], the last set repeating, so collection members
+	// select different lines without a pushed selector.
+	readSets [][]model.LineCatalogueRow
+	reads    int
+	// fail makes every catalogue call fail.
+	fail error
 }
 
 func newFleetCatalogueHost(rows []model.LineCatalogueRow) *fleetCatalogueHost {
@@ -134,6 +141,16 @@ func (h *fleetCatalogueHost) call(method string, params any) (json.RawMessage, e
 	}
 	h.calls++
 	h.requests = append(h.requests, p.Request)
+	if h.fail != nil {
+		return nil, h.fail
+	}
+	if p.Request.Cursor == "" {
+		h.reads++
+	}
+	rows := h.rows
+	if len(h.readSets) > 0 {
+		rows = h.readSets[min(h.reads-1, len(h.readSets)-1)]
+	}
 	version := fleetTestVersion
 	if h.versionAt != nil {
 		version = h.versionAt(h.calls)
@@ -146,13 +163,13 @@ func (h *fleetCatalogueHost) call(method string, params any) (json.RawMessage, e
 	if limit <= 0 {
 		limit = model.MaxLineCataloguePageRows
 	}
-	end := min(start+limit, len(h.rows))
-	page := model.LineCatalogueResponse{CatalogueVersion: version, Rows: h.rows[start:end]}
+	end := min(start+limit, len(rows))
+	page := model.LineCatalogueResponse{CatalogueVersion: version, Rows: rows[start:end]}
 	if start == 0 {
 		page.SelectorFields = model.LineCatalogueSelectorFields()
 		page.Unavailable = h.unavailable
 	}
-	if end < len(h.rows) {
+	if end < len(rows) {
 		page.Cursor = "c" + strconv.Itoa(end)
 	}
 	if page.Rows == nil {

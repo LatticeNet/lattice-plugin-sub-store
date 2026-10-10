@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -191,7 +193,16 @@ type fleetPlaceholders struct {
 	line    map[string]string            // placeholder to line_uuid
 	fields  map[string]map[string]string // line_uuid to field to placeholder
 	lattice map[string]*nodemodel.LatticeFields
+	// provider is the computation's provider mark, a fresh random value no
+	// parser, producer or stored step emits; a collection's provider nodes
+	// carry it so provenance survives the collection chain. Empty for a sub.
+	provider string
 }
+
+// fleetProviderMark is the Script key a provider node's mark travels under
+// through a native chain. Script is never encoded into a plan or a document,
+// and native operators carry it when they clone a node.
+const fleetProviderMark = "\x00lattice_provider"
 
 func newFleetPlaceholders(rows int) *fleetPlaceholders {
 	return &fleetPlaceholders{
@@ -202,10 +213,16 @@ func newFleetPlaceholders(rows int) *fleetPlaceholders {
 }
 
 // mint draws one placeholder per credential field of the row's template
-// protocol. A row with no template or no bind shape gets none.
+// protocol. A row with no template or no bind shape gets none. A line seen
+// again in the same computation (two collection members selecting it) keeps
+// the placeholders first drawn for it, so every node of the line carries the
+// set the plan names and core counts them as clones.
 func (p *fleetPlaceholders) mint(row fleetRow) (map[string]string, error) {
 	if row.Template == nil {
 		return nil, nil
+	}
+	if existing, ok := p.fields[row.LineUUID]; ok {
+		return existing, nil
 	}
 	fields := fleetCredentialFields[row.Template.Protocol]
 	out := make(map[string]string, len(fields))
@@ -365,9 +382,10 @@ func (rt *runtime) runFleetChain(plan *operators.Plan, nodes []*nodemodel.Node, 
 // fleetPlanNodes turns post-chain nodes into plan nodes. A node whose
 // credential field holds a placeholder this computation minted is that line:
 // its Lattice block is attached again from the row and its placeholders are
-// the ones minted for the line, so core can check every one is intact. Any
-// other node carries no line and no Lattice block, and core excludes it with
-// no_line.
+// the ones minted for the line, so core can check every one is intact. A
+// node that carries the computation's provider mark and no placeholder came
+// from a provider member and is a provider node. Any other node carries no
+// line and no Lattice block, and core excludes it with no_line.
 func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.SelectionPlanNode, error) {
 	out := make([]model.SelectionPlanNode, 0, len(nodes))
 	for i, n := range nodes {
@@ -378,6 +396,7 @@ func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.
 			node.Placeholders = table.fields[line]
 		} else {
 			n.Lattice = nil
+			node.Provider = table.provider != "" && n.Script[fleetProviderMark] == table.provider
 		}
 		encoded, err := n.MarshalPlanNode()
 		if err != nil {
@@ -513,4 +532,204 @@ func fleetSelectorAnswers(steps []json.RawMessage, sel *fleetSelectorRecord) boo
 		return false
 	}
 	return fleetStepHash(steps[:sel.Leading]) == sel.StepHash
+}
+
+// collectionFleetState reads, over the live store, whether a collection is
+// fleet-bound (it gathers a fleet record) and whether it gathers a legacy
+// record. Both together are a collection mid-way through a multi-record
+// migration, which serves nothing.
+//
+// yagni: lane 4's index entry carries both flags (fleet_bound,
+// owner_credentials), computed at every index write; when it lands this
+// reads the collection's entry. Until then it recomputes them from the
+// listing, one host call either way.
+func (rt *runtime) collectionFleetState(rec subscriptionRecord) (bound, owner bool, err error) {
+	listing, err := rt.storeListing()
+	if err != nil {
+		return false, false, err
+	}
+	universe := make([]fleetRecordFacts, 0, len(listing.Records))
+	for _, entry := range listing.Records {
+		if entry.ID != rec.ID {
+			universe = append(universe, factsOfEntry(entry))
+		}
+	}
+	fleet, legacy := gatheredSources(factsOf(rec), universe)
+	return len(fleet) > 0, len(legacy) > 0, nil
+}
+
+// renderFleetCollection is render for a fleet-bound collection (S2 plan
+// section 1.2). It renders node-wise from the member blocks of the snapshot
+// core hands it and nothing else: no member record, no catalogue page, no
+// live path. A collection that gathers a legacy record beside its fleet
+// members refuses fleet_mixed_owner_credentials before any block is read; a
+// snapshot that is not a collection envelope, or a block that names no
+// source, a source outside fleet, remote and local, or a fleet block without
+// its catalogue version, selector or rows, refuses fleet_envelope_mismatch
+// naming the member. A fleet block whose rows are [] is well formed and
+// contributes nothing.
+func (rt *runtime) renderFleetCollection(rec subscriptionRecord, req subscriptionRenderRequest, opts fleetRenderOptions, target string, owner bool) (fleetRendered, error) {
+	label := "collection " + quoteLabel(rec.ID)
+	live := rec.Revision
+	if opts.staged(live) {
+		return fleetRendered{}, fmt.Errorf("%s: %s has no revision %q; its live revision is %q", codeRevisionUnknown, label, opts.Revision, live)
+	}
+	if owner {
+		return fleetRendered{}, fmt.Errorf("%s: %s gathers fleet records and legacy records together; it serves nothing until every legacy member is migrated", codeFleetMixedOwnerCredentials, label)
+	}
+	if strings.TrimSpace(req.Raw) == "" {
+		return fleetRendered{}, fmt.Errorf("%s: %s has no snapshot yet; the next refresh fetches it", codeFleetSnapshotMissing, label)
+	}
+	env, ok := decodeSnapshotEnvelope(req.Raw)
+	if !ok || env.Kind != kindCollection || len(env.Members) == 0 {
+		return fleetRendered{}, fmt.Errorf("%s: %s is fleet-bound and its snapshot is not a fleet collection snapshot; the next refresh replaces it", codeFleetEnvelopeMismatch, label)
+	}
+	members := make([]string, 0, len(env.Members))
+	for i, block := range env.Members {
+		if err := fleetBlockWellFormed(block); err != nil {
+			name := block.ID
+			if name == "" {
+				name = fmt.Sprintf("member %d (%s)", i, block.SubName)
+			}
+			return fleetRendered{}, fmt.Errorf("%s: %s's snapshot block for %q %s; the next refresh replaces it", codeFleetEnvelopeMismatch, label, name, err.Error())
+		}
+		members = append(members, block.ID+"@"+block.Revision)
+	}
+	key := newFleetPlanKey(env.SourceVersion, live, members, target, req.Format, req.Options)
+	plan, err := fleetPlans.get(key, func() (fleetPlanOutput, error) {
+		return rt.buildFleetCollectionPlan(label, rec, env, target)
+	})
+	if err != nil {
+		return fleetRendered{}, err
+	}
+	return fleetRendered{Plan: plan.Encoded, LiveRevision: live, Target: target, NodeCount: plan.NodeCount, Dropped: plan.Dropped}, nil
+}
+
+// fleetBlockWellFormed checks one member block of a fleet-bound collection's
+// snapshot, saying what is wrong in fixed text.
+func fleetBlockWellFormed(block envelopeMember) error {
+	switch block.Source {
+	case subscriptionSourceFleet:
+		if block.ID == "" || block.CatalogueVersion == "" || block.Selector == nil || block.Selector.StepHash == "" || block.Rows == nil {
+			return errors.New("lacks its catalogue version, selector or rows")
+		}
+	case subscriptionSourceRemote, subscriptionSourceLocal:
+		if block.ID == "" {
+			return errors.New("names no member")
+		}
+	case "":
+		return errors.New("names no source, so an older plugin wrote it")
+	default:
+		return fmt.Errorf("names the %s source, which cannot serve provider nodes", block.Source)
+	}
+	return nil
+}
+
+// buildFleetCollectionPlan computes a fleet-bound collection's plan. Each
+// fleet block's rows become nodes over fresh placeholders and run the
+// block's own chain; each provider block's nodes are read from the block
+// (decoded, or its text parsed in Go: a provider block's text is already its
+// member chain's output) and carry the computation's provider mark. The
+// collection's own chain runs over all of them, and the plan's provider flag
+// comes from that mark, never from a node field. The selection is the union
+// of the fleet blocks' lines in member order; the policy is the collection's
+// own, never a member's.
+func (rt *runtime) buildFleetCollectionPlan(label string, rec subscriptionRecord, env snapshotEnvelope, target string) (fleetPlanOutput, error) {
+	collectionPlan, err := rt.chainPlan(rec)
+	if err != nil {
+		return fleetPlanOutput{}, fmt.Errorf("%s: %w", label, err)
+	}
+	if err := fleetChainRefusals(label, rec, collectionPlan); err != nil {
+		return fleetPlanOutput{}, err
+	}
+	mark, err := newProvenanceToken()
+	if err != nil {
+		return fleetPlanOutput{}, err
+	}
+	table := newFleetPlaceholders(0)
+	table.provider = mark
+	selection := &model.PlanSelection{CatalogueVersion: env.CatalogueVersion, LineUUIDs: []string{}}
+	selected := map[string]bool{}
+	var nodes []*nodemodel.Node
+	var drops []fleetDrop
+	for _, block := range env.Members {
+		if block.Source != subscriptionSourceFleet {
+			provider, err := providerBlockNodes(block)
+			if err != nil {
+				return fleetPlanOutput{}, fmt.Errorf("%s: %w", label, err)
+			}
+			for _, n := range provider {
+				n.Lattice = nil
+				n.Script = map[string]any{fleetProviderMark: mark}
+			}
+			nodes = append(nodes, provider...)
+			continue
+		}
+		var rows []fleetRow
+		if err := json.Unmarshal(block.Rows, &rows); err != nil {
+			return fleetPlanOutput{}, fmt.Errorf("%s: %s's snapshot rows for %q do not decode", codeSnapshotMalformed, label, block.ID)
+		}
+		member := subscriptionRecord{ID: block.ID, Source: subscriptionSourceFleet, Revision: block.Revision, Process: block.Steps}
+		memberLabel := "subscription " + quoteLabel(block.ID) + " in " + label
+		memberPlan, err := rt.chainPlan(member)
+		if err != nil {
+			return fleetPlanOutput{}, fmt.Errorf("%s: %w", memberLabel, err)
+		}
+		if err := fleetChainRefusals(memberLabel, member, memberPlan); err != nil {
+			return fleetPlanOutput{}, err
+		}
+		memberNodes, memberDrops, err := fleetRowNodes(rows, rec.Fleet, table)
+		if err != nil {
+			return fleetPlanOutput{}, fmt.Errorf("%s: %w", memberLabel, err)
+		}
+		if memberNodes, err = rt.runFleetChain(memberPlan, memberNodes, target); err != nil {
+			return fleetPlanOutput{}, fmt.Errorf("%s: %w", memberLabel, err)
+		}
+		nodes = append(nodes, memberNodes...)
+		drops = append(drops, memberDrops...)
+		for _, row := range rows {
+			if !selected[row.LineUUID] {
+				selected[row.LineUUID] = true
+				selection.LineUUIDs = append(selection.LineUUIDs, row.LineUUID)
+			}
+		}
+	}
+	if nodes, err = rt.runFleetChain(collectionPlan, nodes, target); err != nil {
+		return fleetPlanOutput{}, fmt.Errorf("%s: %w", label, err)
+	}
+	planNodes, err := fleetPlanNodes(nodes, table)
+	if err != nil {
+		return fleetPlanOutput{}, fmt.Errorf("%s: %w", label, err)
+	}
+	encoded, err := encodeFleetPlan(model.SelectionPlan{
+		Kind: model.SelectionPlanKindNodes, Nodes: planNodes, Selection: selection, Policy: policyOf(rec.Fleet),
+	})
+	if err != nil {
+		return fleetPlanOutput{}, fmt.Errorf("%s: %w", label, err)
+	}
+	return fleetPlanOutput{Encoded: encoded, NodeCount: len(planNodes), Dropped: drops}, nil
+}
+
+// providerBlockNodes reads a provider block's nodes: decoded where the block
+// carries them, its text parsed in Go otherwise. The text is the member's
+// chain output, so no member chain runs again.
+func providerBlockNodes(block envelopeMember) ([]*nodemodel.Node, error) {
+	if len(block.Nodes) > 0 {
+		if nodes, ok := decodeNodes(block.Nodes); ok {
+			return nodes, nil
+		}
+	}
+	if strings.TrimSpace(block.Raw) == "" {
+		return nil, nil
+	}
+	return parseParts([]string{block.Raw})
+}
+
+// newProvenanceToken draws a provider mark: 16 random bytes, hex.
+func newProvenanceToken() (string, error) {
+	raw := make([]byte, 16)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(raw), nil
 }

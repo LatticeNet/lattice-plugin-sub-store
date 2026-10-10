@@ -157,8 +157,15 @@ func (rt *runtime) memberNodes(member subscriptionRecord) (memberOutput, error) 
 	return memberOutput{raw: converted.Output, nodes: converted.nodes, native: served == servedNative}, nil
 }
 
+// collectionMemberFailureIsSkippable reports whether the collection's failure
+// mode may leave a failed member out. A graph member never may: its
+// composition is authoritative. A fleet member never may either: a
+// collection that silently dropped its fleet half would serve its provider
+// half to identity-bound shares as if nothing happened (S2 plan section
+// 1.2).
 func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) bool {
-	return collection.FailureMode == failureModeSkip && member.Source != subscriptionSourceVPNCoreGraph
+	return collection.FailureMode == failureModeSkip && member.Source != subscriptionSourceVPNCoreGraph &&
+		member.Source != subscriptionSourceFleet
 }
 
 // renderCollection merges every member's processed nodes, then runs the
@@ -199,10 +206,16 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 	if err != nil {
 		return subStoreConversionResult{}, fmt.Errorf("collection %q: %w", rec.ID, err)
 	}
-	// A snapshot that does not decode or carries nothing is not a reason to
-	// fail the serve: the live path takes over rather than deny a client its
-	// nodes.
+	// Core hands back only snapshots this plugin wrote, so a non-empty one
+	// that does not decode, or holds no usable member block, is an error and
+	// never a reason to resolve the members live (S2 plan section 1.2): the
+	// live path would read a legacy member's export for whoever called
+	// render with a broken raw. An empty one renders live, which is how
+	// previews and unsaved drafts work.
 	members, membersNative := snapshotMembers(snapshotRaw, nativeRoute(plan, target))
+	if len(members) == 0 && strings.TrimSpace(snapshotRaw) != "" {
+		return subStoreConversionResult{}, fmt.Errorf("%s: collection %q has a snapshot this plugin cannot read; the next refresh replaces it", codeSnapshotMalformed, rec.ID)
+	}
 	if len(members) == 0 {
 		gathered, err := rt.collectionMembers(rec)
 		if err != nil {
