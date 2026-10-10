@@ -1,6 +1,11 @@
 package main
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+
+	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
+)
 
 // apply_revision is the plugin's half of an approved Sub-Store plan (design
 // 28, S2): core claims the approval, then asks the plugin to apply a staged
@@ -16,4 +21,9 @@ const revisionStagingUnavailableCode = "revision_staging_unavailable"
 
 func applyRevisionRefusal() error {
 	return errors.New(revisionStagingUnavailableCode + ": this runtime stages no revisions, so there is no revision to apply; apply_revision answers from S2, when plans stage record revisions")
+}
+
+// applyRevisionCall serves apply_revision.
+func (rt *runtime) applyRevisionCall(_ json.RawMessage) response {
+	return latticeplugin.ErrorResponse(applyRevisionRefusal())
 }
