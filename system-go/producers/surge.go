@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	"unicode"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 )
@@ -35,7 +36,10 @@ func (surgeProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, target 
 	// The module header: a target string starting with an upper-case Surge,
 	// and every node that reached the producer a mihomo WireGuard node.
 	if strings.HasPrefix(target, "Surge") && len(ps) > 0 && allWireGuard(ps) {
-		dst.WriteString("#!name=" + textOf(ps[0].node.Fields, "_subName") + "\n")
+		// The header belongs to no node, so a line-breaking character in the
+		// subscription name is removed rather than rejected (surge.md, "Line
+		// safety").
+		dst.WriteString("#!name=" + stripLineBreaking(textOf(ps[0].node.Fields, "_subName")) + "\n")
 		// The description and category exist only when a script sets them,
 		// and a scripted chain never reaches a native producer.
 		dst.WriteString("#!desc=\n#!category=\n")
@@ -294,8 +298,44 @@ var surgeSSCiphers = map[string]bool{
 // node was most of the producer's allocation.
 var surgeNameCleaner = strings.NewReplacer("=", "", ",", "")
 
+// lineBreaking reports a character that may end a line of a Surge or
+// Quantumult X profile: every Unicode control character (C0, DEL and C1, so
+// CR, LF, VT, FF, tab and NEL among them) and the line and paragraph
+// separators U+2028 and U+2029, which Apple platform text APIs also read as
+// line breaks.
+func lineBreaking(r rune) bool {
+	return unicode.IsControl(r) || r == '\u2028' || r == '\u2029'
+}
+
+// lineSafe reports whether s holds no line-breaking character. Both formats
+// write field text as it is, so a name, password or path that held one would
+// add lines of its own, such as a [Script] or [MITM] section, to the profile
+// the client imports (surge.md and quantumultx.md, "Line safety").
+func lineSafe(s string) bool {
+	for _, r := range s {
+		if lineBreaking(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// stripLineBreaking removes every line-breaking character from s.
+func stripLineBreaking(s string) string {
+	if lineSafe(s) {
+		return s
+	}
+	return strings.Map(func(r rune) rune {
+		if lineBreaking(r) {
+			return -1
+		}
+		return r
+	}, s)
+}
+
 // surgeEntry writes one node's entry, or returns errSurgeUnsupported for a
-// node the producer rejects (surge.md, "Unsupported rule").
+// node the producer rejects (surge.md, "Unsupported rule"), which includes an
+// entry that would hold a line-breaking character ("Line safety").
 func surgeEntry(f map[string]any, include bool) (string, error) {
 	typ, _ := f["type"].(string)
 	if wsHTTPUpgrade(f) {
@@ -311,7 +351,7 @@ func surgeEntry(f map[string]any, include bool) (string, error) {
 		if !include {
 			return "", errSurgeUnsupported
 		}
-		return surgeWireGuardTemplate(f, name), nil
+		return surgeWireGuardTemplate(f, name)
 	}
 
 	var l surgeLine
@@ -571,7 +611,12 @@ func surgeEntry(f map[string]any, include bool) (string, error) {
 	default:
 		return "", errSurgeUnsupported
 	}
-	return l.b.String(), nil
+	// One check over the finished line covers every field it writes.
+	entry := l.b.String()
+	if !lineSafe(entry) {
+		return "", errSurgeUnsupported
+	}
+	return entry, nil
 }
 
 // ws writes ws=true, ws-path and ws-headers for a ws node.
@@ -626,7 +671,10 @@ func surgeVMessMethod(f map[string]any) (string, bool) {
 
 // surgeWireGuardTemplate is the WireGuard template (surge.md, "WireGuard
 // template"): a commented proxy line and its [WireGuard] section, one entry.
-func surgeWireGuardTemplate(src map[string]any, name string) string {
+// The line breaks between its lines are the producer's own, so each line is
+// checked on its own, and one that holds a line-breaking character rejects
+// the node with errSurgeUnsupported.
+func surgeWireGuardTemplate(src map[string]any, name string) (string, error) {
 	f := src
 	if peers, ok := f["peers"].([]any); ok && len(peers) > 0 {
 		// The first peer's values replace the node's, as they are; a value
@@ -707,7 +755,12 @@ func surgeWireGuardTemplate(src map[string]any, name string) string {
 		pair("preshared-key", v, ok)
 	}
 	lines = append(lines, "peer = ("+strings.Join(pairs, ", ")+")")
-	return strings.Join(lines, "\n")
+	for _, line := range lines {
+		if !lineSafe(line) {
+			return "", errSurgeUnsupported
+		}
+	}
+	return strings.Join(lines, "\n"), nil
 }
 
 // replaceFrom sets f[key] to src[from], or removes it when src lacks it.

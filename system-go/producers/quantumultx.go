@@ -14,8 +14,9 @@ import (
 // node, "<kind>=<server>:<port>" and ",key=value" parameters ending in
 // ",tag=<name>" and the two Reality parameters, lines joined by "\n" with no
 // trailing newline. Values are written verbatim, the name included, as the
-// oracle writes them. Parameters follow each kind's reference order, so the
-// output also matches the golden bytes.
+// oracle writes them, except that a line holding a line-breaking character is
+// rejected (quantumultx.md, "Line safety"). Parameters follow each kind's
+// reference order, so the output also matches the golden bytes.
 
 type quantumultXProducer struct{}
 
@@ -79,7 +80,8 @@ func (q *qxParams) verbatim(key string, f map[string]any, src string) {
 }
 
 // qxLine writes one node's line, or returns errQXUnsupported for a node the
-// producer rejects (quantumultx.md, "Unsupported rule").
+// producer rejects (quantumultx.md, "Unsupported rule"), which includes a
+// line that would hold a line-breaking character ("Line safety").
 func qxLine(f map[string]any) (string, error) {
 	typ, _ := f["type"].(string)
 	if wsHTTPUpgrade(f) {
@@ -264,7 +266,13 @@ func qxLine(f map[string]any) (string, error) {
 	if v := f["flow"]; truthy(v) && v != "xtls-rprx-vision" {
 		return "", errQXUnsupported
 	}
-	return q.b.String(), nil
+	// One check over the finished line covers every field it writes
+	// (quantumultx.md, "Line safety").
+	line := q.b.String()
+	if !lineSafe(line) {
+		return "", errQXUnsupported
+	}
+	return line, nil
 }
 
 // tlsGroup writes the TLS group: tls-pubkey-sha256, tls-alpn,

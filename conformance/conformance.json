@@ -1,6 +1,6 @@
 {
   "upstream_commit": "a3e61061e50b40e5c5938969aab915d05d8d7069",
-  "generated_at": "2026-10-10T03:14:17Z",
+  "generated_at": "2026-10-10T04:12:33Z",
   "parse": {
     "cases": 639,
     "passed": 639
@@ -51,6 +51,7 @@
   "divergences": [
     "ca",
     "external",
+    "line-safety",
     "underscore"
   ]
 }
