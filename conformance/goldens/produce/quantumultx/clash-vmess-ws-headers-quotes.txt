@@ -1,0 +1,1 @@
+vmess=dh-09.j8zxvm8y.example.org:443,method=chacha20-poly1305,password=306a27fc-af1d-47fe-bc69-c42b06e4e615,obfs=wss,obfs-uri=/t2og2q7t,obfs-host=img.juflq2qmv.example.net,tls-host=static.lnmdy7bpz4.example.com,aead=true,udp-relay=true,tag=GB-vzdsx-11

@@ -1,0 +1,24 @@
+[
+  {
+    "name": "p51lwo,q5xv2=vneuu",
+    "network": "tcp",
+    "password": "8QsCNMzX7CR5z2hj",
+    "port": 443,
+    "server": "lr-19.afx2.example.org",
+    "sni": "cdn.yg3td9n.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "bxn3ri==ms29x1,,",
+    "network": "tcp",
+    "password": "bKNxX9UNTsJT4Ln3",
+    "port": 443,
+    "server": "j6-01.btegk1da.example.net",
+    "sni": "api.wvhu20wr5.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

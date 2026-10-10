@@ -1,0 +1,6 @@
+AU-fq4p08-96=trojan,e3p-17.pbyk.example.net,443,password=hrhQq1Eva9c1tZrs,tls=true,sni="www.zh6dny627.example.com",udp-relay=true
+KR-gbcp-42=trojan,qfs-27.rx02oc.example.net,443,password=KKzkHAhEuTVXi8Qz,tls=true,sni="cdn.b3piyy0xi.example.org",udp-relay=true
+DE-ch7j-82=trojan,lg-26.jbwp6.example.net,443,password=Ci559TWRue38r8Hf,tls=true,sni="www.i7ktit.example.com",udp-relay=true
+KR-b3nkw-75=trojan,xgm-38.ef06e0xl.example.net,443,password=j159bHN0pWCL4RaB,tls=true,sni="static.hui3ck.example.net",udp-relay=true
+FR-r5w-95=trojan,mr-38.n1c49sk.example.net,443,password=DV0R4WYjtXVHbrLZ,tls=true,sni="img.tb6alpmc.example.org",udp-relay=true
+FR-b8ah7p-66=trojan,d9-20.lf905r.example.org,443,password=kKi9ZFYemNrRsNWK,tls=true,sni="www.acs4lg.example.net",udp-relay=true

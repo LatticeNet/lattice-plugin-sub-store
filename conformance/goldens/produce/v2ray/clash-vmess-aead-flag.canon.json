@@ -1,0 +1,38 @@
+[
+  {
+    "body": {
+      "add": "h4-22.oafo.example.net",
+      "aid": "64",
+      "id": "d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5",
+      "net": "tcp",
+      "port": "443",
+      "ps": "GB-z2wqhu-65",
+      "scy": "auto",
+      "sni": "api.qfc0dfetd.example.org",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  },
+  {
+    "body": {
+      "add": "q6-01.rmt6.example.net",
+      "aid": "0",
+      "id": "bec5b668-7a33-4c0a-81b3-9093bc9ddb33",
+      "net": "tcp",
+      "port": "443",
+      "ps": "FR-hnulbn-18",
+      "scy": "auto",
+      "sni": "static.hpte5et6dp.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

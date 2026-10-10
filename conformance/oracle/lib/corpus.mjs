@@ -47,10 +47,24 @@ export function listCases(root = CORPUS_DIR) {
             meta,
             options: meta.options || {},
             produceAlways: meta.produce === 'always',
+            recordName: meta.record_name ?? null,
             dependency,
         };
     });
     return cases.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+// produceInput is the node list a case produces from: the nodes as given,
+// or, when the case's meta names a record_name, each node with _subName set
+// to it and its keys sorted again. The plugin sets _subName to the record's
+// name before producing, and the Surge module header reads it from the first
+// node (specs/producers/surge.md). The nodes are not changed.
+export function produceInput(c, nodes) {
+    if (c.recordName === null || !Array.isArray(nodes)) return nodes;
+    return nodes.map((n) => {
+        const withName = { ...n, _subName: c.recordName };
+        return Object.fromEntries(Object.keys(withName).sort().map((k) => [k, withName[k]]));
+    });
 }
 
 // filterCases keeps cases whose id starts with one of the given prefixes.

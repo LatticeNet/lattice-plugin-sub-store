@@ -1,0 +1,9 @@
+{
+  "id": "qx-vmess-http-obfs-token",
+  "family": "qx",
+  "protocol": "vmess",
+  "transport": "http",
+  "security": "none",
+  "quirk": "obfs-token",
+  "description": "vmess with obfs=vmess-http: network http, and Quantumult X writes the token back."
+}

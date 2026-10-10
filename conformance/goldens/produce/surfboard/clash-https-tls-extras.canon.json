@@ -1,0 +1,33 @@
+[
+  {
+    "args": [
+      "yo-32.t7tq.example.org",
+      "443",
+      "vf6vjpt2",
+      "gGYHIQZCdJix"
+    ],
+    "name": "AU-qwcrw-85",
+    "params": {
+      "server-cert-fingerprint-sha256": "2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac",
+      "skip-cert-verify": "true",
+      "sni": "static.yaq2i7izym.example.org",
+      "udp-relay": "true"
+    },
+    "type": "https"
+  },
+  {
+    "args": [
+      "ek-36.e2k6k0z.example.net",
+      "443",
+      "bfas9x",
+      "rYehLxWCwT2h"
+    ],
+    "name": "SG-yge45-73",
+    "params": {
+      "skip-cert-verify": "true",
+      "sni": "www.wgksq6.example.net",
+      "udp-relay": "true"
+    },
+    "type": "https"
+  }
+]

@@ -1,0 +1,7 @@
+proxies:
+  - {"ip-version":"dual","name":"AU-fq4p08-96","network":"tcp","password":"hrhQq1Eva9c1tZrs","port":443,"server":"e3p-17.pbyk.example.net","sni":"www.zh6dny627.example.com","type":"trojan","udp":true}
+  - {"ip-version":"ipv4","name":"KR-gbcp-42","network":"tcp","password":"KKzkHAhEuTVXi8Qz","port":443,"server":"qfs-27.rx02oc.example.net","sni":"cdn.b3piyy0xi.example.org","type":"trojan","udp":true}
+  - {"ip-version":"ipv6","name":"DE-ch7j-82","network":"tcp","password":"Ci559TWRue38r8Hf","port":443,"server":"lg-26.jbwp6.example.net","sni":"www.i7ktit.example.com","type":"trojan","udp":true}
+  - {"ip-version":"ipv4-prefer","name":"KR-b3nkw-75","network":"tcp","password":"j159bHN0pWCL4RaB","port":443,"server":"xgm-38.ef06e0xl.example.net","sni":"static.hui3ck.example.net","type":"trojan","udp":true}
+  - {"ip-version":"ipv6-prefer","name":"FR-r5w-95","network":"tcp","password":"DV0R4WYjtXVHbrLZ","port":443,"server":"mr-38.n1c49sk.example.net","sni":"img.tb6alpmc.example.org","type":"trojan","udp":true}
+  - {"ip-version":"d8qht","name":"FR-b8ah7p-66","network":"tcp","password":"kKi9ZFYemNrRsNWK","port":443,"server":"d9-20.lf905r.example.org","sni":"www.acs4lg.example.net","type":"trojan","udp":true}

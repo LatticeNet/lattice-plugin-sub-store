@@ -1,0 +1,2 @@
+proxies:
+  - {"alterId":0,"cipher":"none","http-opts":{"headers":{"Host":["api.xg1imi.example.net"]},"path":["/l27n"]},"name":"KR-uxrg5q-10","network":"http","port":80,"server":"e8-03.xwf0d.example.com","type":"vmess","udp":true,"uuid":"d7ba9972-04c5-451a-ac3e-fe027bbdd7ba"}

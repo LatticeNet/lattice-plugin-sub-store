@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "y97-38.rn04h.example.com",
+      "30252"
+    ],
+    "name": "DE-m589t-55",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "obfs": "http",
+      "obfs-host": "api.bjn3w2ond.example.net",
+      "obfs-uri": "/jwnph6w",
+      "password": "iiQPgx4YdvOrzD",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

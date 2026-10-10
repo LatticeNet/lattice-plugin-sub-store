@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "SG-syh-07",
+    "host": "v6-31.yinf.example.com",
+    "path": "",
+    "port": "80",
+    "query": [
+      [
+        "headerType",
+        "http"
+      ],
+      [
+        "host",
+        "cdn.e0fgqdebd.example.com"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "path",
+        "/a7zqz"
+      ],
+      [
+        "security",
+        "none"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "1748603e-89ff-435c-aeb4-2384b76fe9ac"
+  }
+]

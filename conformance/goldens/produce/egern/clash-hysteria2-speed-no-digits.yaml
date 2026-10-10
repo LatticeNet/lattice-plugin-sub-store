@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"HK-c5l-76","server":"rs-36.i0j0wh.example.net","port":443,"auth":"TpTxv5boO3l0uVdiTAX5","bandwidth":0,"tfo":false,"udp_relay":true,"sni":"cdn.zf18dl.example.net"}}

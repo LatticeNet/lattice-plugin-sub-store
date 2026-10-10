@@ -1,0 +1,86 @@
+[
+  {
+    "args": [
+      "e3p-17.pbyk.example.net",
+      "443"
+    ],
+    "name": "AU-fq4p08-96",
+    "params": {
+      "password": "hrhQq1Eva9c1tZrs",
+      "sni": "www.zh6dny627.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "qfs-27.rx02oc.example.net",
+      "443"
+    ],
+    "name": "KR-gbcp-42",
+    "params": {
+      "password": "KKzkHAhEuTVXi8Qz",
+      "sni": "cdn.b3piyy0xi.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "lg-26.jbwp6.example.net",
+      "443"
+    ],
+    "name": "DE-ch7j-82",
+    "params": {
+      "password": "Ci559TWRue38r8Hf",
+      "sni": "www.i7ktit.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "xgm-38.ef06e0xl.example.net",
+      "443"
+    ],
+    "name": "KR-b3nkw-75",
+    "params": {
+      "password": "j159bHN0pWCL4RaB",
+      "sni": "static.hui3ck.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "mr-38.n1c49sk.example.net",
+      "443"
+    ],
+    "name": "FR-r5w-95",
+    "params": {
+      "password": "DV0R4WYjtXVHbrLZ",
+      "sni": "img.tb6alpmc.example.org",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "d9-20.lf905r.example.org",
+      "443"
+    ],
+    "name": "FR-b8ah7p-66",
+    "params": {
+      "password": "kKi9ZFYemNrRsNWK",
+      "sni": "www.acs4lg.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

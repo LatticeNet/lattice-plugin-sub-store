@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "DE-z9c-43",
+    "host": "h6-24.etbin6vt.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "allowInsecure",
+        "1"
+      ],
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "pcs",
+        "a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761"
+      ],
+      [
+        "sni",
+        "cdn.ze02y.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "CpuBPWHlwbta01at"
+  }
+]

@@ -1,0 +1,1 @@
+trojan://CpuBPWHlwbta01at@h6-24.etbin6vt.example.net:443?sni=cdn.ze02y.example.com&allowInsecure=1&type=tcp&alpn=h2%2Chttp%2F1.1&pcs=a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761#DE-z9c-43

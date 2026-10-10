@@ -47,12 +47,33 @@ type harnessTarget struct {
 }
 
 // produceCase is one corpus case check.mjs produces from: its golden nodes,
-// the options of its meta.json, and the input file beside it.
+// the options and record name of its meta.json, and the input file beside it.
 type produceCase struct {
-	id        string
-	options   Options
-	nodes     json.RawMessage
-	inputPath string
+	id         string
+	options    Options
+	recordName *string
+	nodes      json.RawMessage
+	inputPath  string
+}
+
+// produceInput is the node list check.mjs produces a case from
+// (oracle/lib/corpus.mjs, produceInput): the nodes as given, or, when the
+// case's meta names a record_name, each node with _subName set to it, as the
+// plugin sets it from the record's name. The nodes are not changed.
+func (c produceCase) produceInput(nodes []*nodemodel.Node) []*nodemodel.Node {
+	if c.recordName == nil {
+		return nodes
+	}
+	out := make([]*nodemodel.Node, len(nodes))
+	for i, n := range nodes {
+		f := maps.Clone(n.Fields)
+		if f == nil {
+			f = map[string]any{}
+		}
+		f["_subName"] = *c.recordName
+		out[i] = &nodemodel.Node{Fields: f, Script: n.Script, Lattice: n.Lattice}
+	}
+	return out
 }
 
 // produceCases lists the corpus cases whose parse golden is a node list, the
@@ -67,15 +88,16 @@ func produceCases(t *testing.T) []produceCase {
 				return err
 			}
 			var meta struct {
-				ID      string  `json:"id"`
-				Options Options `json:"options"`
+				ID         string  `json:"id"`
+				Options    Options `json:"options"`
+				RecordName *string `json:"record_name"`
 			}
 			if err := json.Unmarshal(readFile(t, path), &meta); err != nil {
 				t.Fatalf("%s: %v", path, err)
 			}
 			nodes := readFile(t, filepath.Join(conformanceDir, "goldens", "parse", meta.ID+".json"))
 			if bytes.HasPrefix(bytes.TrimSpace(nodes), []byte("[")) {
-				cases = append(cases, produceCase{id: meta.ID, options: meta.Options, nodes: nodes, inputPath: strings.TrimSuffix(path, ".meta.json") + ".txt"})
+				cases = append(cases, produceCase{id: meta.ID, options: meta.Options, recordName: meta.RecordName, nodes: nodes, inputPath: strings.TrimSuffix(path, ".meta.json") + ".txt"})
 			}
 			return nil
 		})
@@ -140,7 +162,7 @@ func TestProduceCorpusMatchesGoldens(t *testing.T) {
 					continue
 				}
 				judged++
-				got, _ := produce(t, target.platform, decodeNodes(t, c.nodes), c.options)
+				got, _ := produce(t, target.platform, c.produceInput(decodeNodes(t, c.nodes)), c.options)
 				if diff := differsFromGolden(t, target, c.id, got); diff != "" {
 					t.Errorf("%s: %s", c.id, diff)
 					continue

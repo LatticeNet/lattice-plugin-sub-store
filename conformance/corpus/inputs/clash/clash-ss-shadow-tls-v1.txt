@@ -1,0 +1,13 @@
+proxies:
+  - name: FR-h8s2yv-49
+    type: ss
+    server: x7-31.xbezg1w.example.net
+    port: 26155
+    cipher: aes-128-gcm
+    password: fpeZh5oEvSXq18
+    udp: true
+    plugin: shadow-tls
+    plugin-opts:
+      host: api.pfq8b.example.net
+      password: gCCUjYsuxncEvIZP
+      version: 1

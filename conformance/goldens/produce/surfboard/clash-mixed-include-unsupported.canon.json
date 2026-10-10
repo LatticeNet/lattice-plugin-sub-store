@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "ep-36.ladi.example.org",
+      "8080",
+      "zoushga",
+      "LLudeRwOBV80"
+    ],
+    "name": "NL-zep7-46",
+    "params": {
+      "udp-relay": "true"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "j3d-04.e29g.example.com",
+      "17410"
+    ],
+    "name": "FR-g8uxz-35",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "4hvmdU03O0JArG",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

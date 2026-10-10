@@ -1,0 +1,36 @@
+[
+  {
+    "args": [
+      "h4-22.oafo.example.net",
+      "443",
+      "auto",
+      "d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5"
+    ],
+    "name": "GB-z2wqhu-65",
+    "params": {
+      "alterId": "0",
+      "over-tls": "true",
+      "tls-name": "api.qfc0dfetd.example.org",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "q6-01.rmt6.example.net",
+      "443",
+      "auto",
+      "bec5b668-7a33-4c0a-81b3-9093bc9ddb33"
+    ],
+    "name": "FR-hnulbn-18",
+    "params": {
+      "alterId": "1",
+      "over-tls": "true",
+      "tls-name": "static.hpte5et6dp.example.net",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

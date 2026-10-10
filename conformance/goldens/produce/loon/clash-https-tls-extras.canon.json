@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "yo-32.t7tq.example.org",
+      "443",
+      "vf6vjpt2",
+      "gGYHIQZCdJix"
+    ],
+    "name": "AU-qwcrw-85",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "skip-cert-verify": "true",
+      "sni": "static.yaq2i7izym.example.org"
+    },
+    "type": "https"
+  },
+  {
+    "args": [
+      "ek-36.e2k6k0z.example.net",
+      "443",
+      "bfas9x",
+      "rYehLxWCwT2h"
+    ],
+    "name": "SG-yge45-73",
+    "params": {
+      "alpn": "\"h2\",http/1.1",
+      "skip-cert-verify": "true",
+      "sni": "www.wgksq6.example.net"
+    },
+    "type": "https"
+  }
+]

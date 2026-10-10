@@ -1,0 +1,55 @@
+[
+  {
+    "args": [
+      "a8-40.m00wg.example.com",
+      "43251",
+      "aes-128-gcm",
+      "DEWleTgrsJ4kcF"
+    ],
+    "name": "CA-kaxsse-35",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "i1d-13.qx6y2f.example.org",
+      "26397",
+      "aes-128-gcm",
+      "SYmxkhN9wKVTwg"
+    ],
+    "name": "KR-dbvnq3-06",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "fxt-39.ye77foo.example.net",
+      "42748",
+      "aes-128-gcm",
+      "vJoieZSjxuSiZ3"
+    ],
+    "name": "KR-hrq5ux-65",
+    "params": {
+      "udp": "true",
+      "udp-over-tcp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "ph-04.zkgqvz.example.com",
+      "56871",
+      "aes-128-gcm",
+      "H3T4hxz2n0INym"
+    ],
+    "name": "GB-blw-94",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

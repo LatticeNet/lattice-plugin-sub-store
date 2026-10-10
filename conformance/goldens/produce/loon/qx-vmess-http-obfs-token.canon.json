@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "e8-03.xwf0d.example.com",
+      "80",
+      "none",
+      "d7ba9972-04c5-451a-ac3e-fe027bbdd7ba"
+    ],
+    "name": "KR-uxrg5q-10",
+    "params": {
+      "alterId": "0",
+      "host": "api.xg1imi.example.net",
+      "path": "/l27n",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

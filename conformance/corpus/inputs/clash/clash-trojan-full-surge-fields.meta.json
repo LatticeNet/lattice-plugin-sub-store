@@ -1,0 +1,9 @@
+{
+  "id": "clash-trojan-full-surge-fields",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "shared-fields",
+  "description": "trojan with ip-version, no-error-alert, test-url, test-timeout, test-udp, hybrid, tos, allow-other-interface, interface-name, block-quic, underlying-proxy, tls-fingerprint and tls-pubkey-sha256: Surge writes the IP, TEST and END groups and server-cert-fingerprint-sha256, Stash writes dialer-proxy and server-cert-fingerprint, Shadowrocket writes dialer-proxy and fingerprint, Quantumult X writes server_check_url and the two certificate pins."
+}

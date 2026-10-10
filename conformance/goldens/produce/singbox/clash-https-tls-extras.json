@@ -1,0 +1,42 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-qwcrw-85",
+      "type": "http",
+      "server": "yo-32.t7tq.example.org",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "static.yaq2i7izym.example.org",
+        "insecure": true,
+        "alpn": [
+          "h2, http/1.1"
+        ],
+        "certificate_sha256": [
+          "K5IgOtN+Iql2qHMKJIPGEaph/v08Ott8iSLdblmfv6w="
+        ]
+      },
+      "username": "vf6vjpt2",
+      "password": "gGYHIQZCdJix"
+    },
+    {
+      "tag": "SG-yge45-73",
+      "type": "http",
+      "server": "ek-36.e2k6k0z.example.net",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.wgksq6.example.net",
+        "insecure": true,
+        "alpn": [
+          "\"h2\"",
+          "",
+          " http/1.1 "
+        ]
+      },
+      "username": "bfas9x",
+      "password": "rYehLxWCwT2h"
+    }
+  ],
+  "endpoints": []
+}

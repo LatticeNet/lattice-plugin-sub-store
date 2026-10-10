@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"GB-vzdsx-11","server":"dh-09.j8zxvm8y.example.org","port":443,"user_id":"306a27fc-af1d-47fe-bc69-c42b06e4e615","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"wss":{"path":"/t2og2q7t","headers":{"Host":"img.juflq2qmv.example.net"},"sni":"static.lnmdy7bpz4.example.com"}}}}

@@ -1,0 +1,19 @@
+proxies:
+  - name: KR-cmxq1g-03
+    type: vmess
+    server: y3-21.jx7s4u.example.net
+    port: 443
+    uuid: 5baf4bf2-f757-4999-9c4b-21940ec33b57
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: www.opgmot6ma.example.net
+    network: ws
+    ws-opts:
+      path: /nwhgc/x3hi?ed=2048
+      headers:
+        Host: img.vrryn09i.example.com
+      v2ray-http-upgrade: true
+      early-data-header-name: Sec-WebSocket-Protocol
+      max-early-data: 2048

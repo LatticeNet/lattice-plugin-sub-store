@@ -1,0 +1,9 @@
+{
+  "id": "hysteria2-salamander-mport",
+  "family": "hysteria2",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "obfs-port-hopping",
+  "description": "hysteria2:// with salamander obfs, an mport list, fastopen=1 and alpn h3: Stash moves tfo to fast-open, Shadowrocket copies it, Surge writes salamander-password and port-hopping with semicolons, Quantumult X rejects the type."
+}

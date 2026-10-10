@@ -1,0 +1,10 @@
+{
+  "id": "clash-mixed-include-unsupported",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "produce-option-include-unsupported",
+  "description": "With include-unsupported-proxy: h2-connect, naive, vmess ws with v2ray-http-upgrade and a path carrying ?ed=2048 beside both early-data keys, http with headers, vmess over http, and ss over TLS without a plugin. Stash keeps every type and gives the http-upgrade node the early-data handling, Surge writes vmess over http as tcp and ss over TLS as a plain ss line, Quantumult X writes the http node without its headers.",
+  "options": {
+    "include-unsupported-proxy": true
+  }
+}

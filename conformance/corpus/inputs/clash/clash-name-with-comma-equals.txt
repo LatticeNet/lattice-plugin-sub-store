@@ -1,0 +1,15 @@
+proxies:
+  - name: "p51lwo,q5xv2=vneuu"
+    type: trojan
+    server: lr-19.afx2.example.org
+    port: 443
+    password: 8QsCNMzX7CR5z2hj
+    sni: cdn.yg3td9n.example.org
+    udp: true
+  - name: "bxn3ri==ms29x1,,"
+    type: trojan
+    server: j6-01.btegk1da.example.net
+    port: 443
+    password: bKNxX9UNTsJT4Ln3
+    sni: api.wvhu20wr5.example.org
+    udp: true

@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "US-w7au2y-48",
+      "password": "JFj2WdWpQ2SEYt",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "www.ysbqjyq.example.com",
+        "mode": "http",
+        "path": "/llvm5b0o"
+      },
+      "port": 53931,
+      "server": "vg6-01.myky5zq.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

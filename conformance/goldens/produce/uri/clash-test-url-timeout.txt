@@ -1,0 +1,1 @@
+trojan://87KwLxH2WIUqKHKx@z8-36.o0oc23my.example.com:443?sni=api.l0te6v7bhr.example.com&type=tcp#TW-cna4sp-21

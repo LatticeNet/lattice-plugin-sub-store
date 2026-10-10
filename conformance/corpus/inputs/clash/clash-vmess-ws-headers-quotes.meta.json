@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-headers-quotes",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "header-quotes",
+  "description": "vmess ws whose headers hold a double-quoted value and a single-quoted value beside Host: Surge strips one pair of outer quotes per value, quotes each and quotes the joined list."
+}

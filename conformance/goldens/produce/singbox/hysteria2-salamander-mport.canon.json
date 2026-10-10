@@ -1,0 +1,26 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "obfs": {
+        "password": "Em9uhvQ8uMiwK95e",
+        "type": "salamander"
+      },
+      "password": "axh3vCkuX5XttJITA3Nw",
+      "server": "fm-04.a3i4jy.example.net",
+      "server_port": 443,
+      "server_ports": [
+        "20000:30000",
+        "40000:40000"
+      ],
+      "tag": "CA-bux-89",
+      "tcp_fast_open": true,
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.gudkt.example.org"
+      },
+      "type": "hysteria2"
+    }
+  ]
+}

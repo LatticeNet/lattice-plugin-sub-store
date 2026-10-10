@@ -1,0 +1,16 @@
+[
+  {
+    "fragment": "HK-c5l-76",
+    "host": "rs-36.i0j0wh.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "cdn.zf18dl.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "TpTxv5boO3l0uVdiTAX5"
+  }
+]

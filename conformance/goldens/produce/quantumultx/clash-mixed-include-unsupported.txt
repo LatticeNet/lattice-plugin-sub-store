@@ -1,0 +1,3 @@
+http=ep-36.ladi.example.org:8080,username=zoushga,password=LLudeRwOBV80,udp-relay=true,tag=NL-zep7-46
+vmess=vl-27.jpxff.example.org:80,method=chacha20-poly1305,password=daa4605b-ff81-4e52-b134-26d91c376a3e,obfs=http,obfs-uri=/g76/zhpwfk7oof,obfs-host=cdn.bzkynldo.example.com,aead=true,udp-relay=true,tag=HK-g5wzd-51
+shadowsocks=j3d-04.e29g.example.com:17410,method=aes-128-gcm,password=4hvmdU03O0JArG,obfs=over-tls,obfs-host=j3d-04.e29g.example.com,udp-relay=true,tag=FR-g8uxz-35

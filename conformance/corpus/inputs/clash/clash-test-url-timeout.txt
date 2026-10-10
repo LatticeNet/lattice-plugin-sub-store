@@ -1,0 +1,10 @@
+proxies:
+  - name: TW-cna4sp-21
+    type: trojan
+    server: z8-36.o0oc23my.example.com
+    port: 443
+    password: 87KwLxH2WIUqKHKx
+    sni: api.l0te6v7bhr.example.com
+    udp: true
+    test-url: "http://hht-15.nja40.example.net/generate_204"
+    test-timeout: 5

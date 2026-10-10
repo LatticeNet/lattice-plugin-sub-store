@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "hysteria2": {
+        "auth": "axh3vCkuX5XttJITA3Nw",
+        "name": "CA-bux-89",
+        "obfs": "salamander",
+        "obfs_password": "Em9uhvQ8uMiwK95e",
+        "port": 443,
+        "port_hopping": "20000-30000,40000",
+        "server": "fm-04.a3i4jy.example.net",
+        "skip_tls_verify": false,
+        "sni": "img.gudkt.example.org",
+        "tfo": true,
+        "udp_relay": true
+      }
+    }
+  ]
+}

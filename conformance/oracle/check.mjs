@@ -12,7 +12,7 @@
 // the corpus input; parse conformance is a deep comparison of its nodes with
 // goldens/parse/<case>.json, key order ignored. For every case and target
 // that has a golden, the candidate produces from the golden nodes with the
-// case's options; produce conformance compares the canonical structural form
+// case's options (and _subName from its record_name, lib/corpus.mjs); produce conformance compares the canonical structural form
 // of its output with the golden's, and for URI and V2Ray also compares the
 // bytes. Allowlist normalisations (allowlist/divergences.yaml) apply before
 // a comparison is failed; they never apply to URI and V2Ray, whose bytes must
@@ -45,7 +45,7 @@ import path from 'node:path';
 import { applicable, loadAllowlist, normalise } from './lib/allowlist.mjs';
 import { canonical, sortKeys, stableJSON } from './lib/canonical.mjs';
 import { Runner } from './lib/client.mjs';
-import { filterCases, listCases } from './lib/corpus.mjs';
+import { filterCases, listCases, produceInput } from './lib/corpus.mjs';
 import { ALLOWLIST_FILE, GOLDENS_DIR, ORACLE_DIR, ROOT, readPin } from './lib/paths.mjs';
 import { TARGETS, findTarget } from './lib/targets.mjs';
 
@@ -170,7 +170,7 @@ try {
                 bucket.failures.push({ case: c.id, path: '$', golden: 'output', candidate: 'no end-to-end input: the parse did not match' });
                 continue;
             }
-            const res = await runner.request({ op: 'produce', target: t.id, nodes: produceNodes, options: c.options });
+            const res = await runner.request({ op: 'produce', target: t.id, nodes: produceInput(c, produceNodes), options: c.options });
             let pr;
             if (goldenCanon && goldenCanon.error === true && Object.keys(goldenCanon).length === 1) {
                 pr = res.ok ? { pass: false, diff: { path: '$', golden: 'error', candidate: 'output' } } : { pass: true };

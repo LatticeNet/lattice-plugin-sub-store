@@ -1,0 +1,20 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "none",
+      "server": "e8-03.xwf0d.example.com",
+      "server_port": 80,
+      "tag": "KR-uxrg5q-10",
+      "transport": {
+        "headers": {},
+        "host": "api.xg1imi.example.net",
+        "path": "/l27n",
+        "type": "http"
+      },
+      "type": "vmess",
+      "uuid": "d7ba9972-04c5-451a-ac3e-fe027bbdd7ba"
+    }
+  ]
+}

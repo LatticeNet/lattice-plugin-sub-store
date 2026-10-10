@@ -1,0 +1,4 @@
+CA-kaxsse-35=ss,a8-40.m00wg.example.com,43251,encrypt-method=aes-128-gcm,password="DEWleTgrsJ4kcF",udp-relay=true
+KR-dbvnq3-06=ss,i1d-13.qx6y2f.example.org,26397,encrypt-method=aes-128-gcm,password="SYmxkhN9wKVTwg",udp-relay=true
+KR-hrq5ux-65=ss,fxt-39.ye77foo.example.net,42748,encrypt-method=aes-128-gcm,password="vJoieZSjxuSiZ3",udp-relay=true
+GB-blw-94=ss,ph-04.zkgqvz.example.com,56871,encrypt-method=aes-128-gcm,password="H3T4hxz2n0INym",udp-relay=true

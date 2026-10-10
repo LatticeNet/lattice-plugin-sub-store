@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-q4q-65",
+      "type": "hysteria2",
+      "server": "hh-39.vosqj.example.org",
+      "server_port": 443,
+      "password": "CaRJvNo3wLi7CJWZCiPC",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.g09qao7vc4.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

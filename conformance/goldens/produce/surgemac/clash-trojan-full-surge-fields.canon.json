@@ -1,0 +1,29 @@
+[
+  {
+    "args": [
+      "h6-24.etbin6vt.example.net",
+      "443"
+    ],
+    "name": "DE-z9c-43",
+    "params": {
+      "allow-other-interface": "true",
+      "alpn": "h2,http/1.1",
+      "block-quic": "on",
+      "hybrid": "true",
+      "interface": "en0",
+      "ip-version": "prefer-v6",
+      "no-error-alert": "true",
+      "password": "CpuBPWHlwbta01at",
+      "server-cert-fingerprint-sha256": "a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761",
+      "skip-cert-verify": "true",
+      "sni": "cdn.ze02y.example.com",
+      "test-timeout": "5",
+      "test-udp": "vvt-19.h1jbg23.example.org@203.0.113.154",
+      "test-url": "http://ak-39.x32l9wqp.example.com/generate_204",
+      "tls": "true",
+      "tos": "184",
+      "underlying-proxy": "US-gzux-22"
+    },
+    "type": "trojan"
+  }
+]

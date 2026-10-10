@@ -1,0 +1,10 @@
+proxies:
+  - name: SG-m4fp-35
+    type: snell
+    server: b2u-40.t3q6mf.example.net
+    port: 53020
+    psk: 3iGcay32vRLGT2gG9NJk
+    version: 6
+    obfs-opts:
+      mode: http
+      host: www.zcz3j7o3g.example.net

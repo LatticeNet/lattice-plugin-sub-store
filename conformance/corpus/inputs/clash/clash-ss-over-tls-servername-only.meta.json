@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-over-tls-servername-only",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ss-over-tls",
+  "description": "ss with tls true, no plugin, no sni and a servername on an IPv4 server: Quantumult X takes obfs-host from servername."
+}

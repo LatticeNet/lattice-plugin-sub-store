@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "HK-i8vgyu-91",
+      "password": "pTGrp2fiEDXhD7",
+      "plugin": "v2ray-plugin",
+      "plugin-opts": {
+        "host": "static.hvzw68jlz.example.com",
+        "mode": " GRPC "
+      },
+      "port": 54104,
+      "server": "yjz-38.bexr4.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

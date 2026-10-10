@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-speed-no-digits",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "bandwidth-no-digits",
+  "description": "hysteria2 whose up and down hold no digit: Stash writes the number 0 for down-speed and up-speed, Surge writes download-bandwidth=0."
+}
