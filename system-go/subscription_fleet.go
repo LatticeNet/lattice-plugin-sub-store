@@ -438,3 +438,46 @@ func (rt *runtime) readFleetSelection(rec subscriptionRecord) (fleetSelection, f
 func ownerCredentialsWithheldError(id string) error {
 	return fmt.Errorf("%s: subscription %q serves line owner credentials, which only core's refresh may read; migrate it to a fleet record to render it here", codeOwnerCredentialsWithheld, id)
 }
+
+// factsOfEntry is a live index entry as the fleet rules read it.
+func factsOfEntry(entry indexEntry) fleetRecordFacts {
+	return fleetRecordFacts{
+		ID: entry.ID, Kind: entry.Kind, Source: entry.Source, Tags: entry.Tags,
+		Members: entry.Members, MemberTags: entry.MemberTags, NodeSource: entry.NodeSource,
+	}
+}
+
+// fleetBoundLive reports whether a record is fleet-bound over the live
+// store: a fleet sub, a collection that gathers one, or a file whose node
+// source is either. A sub costs no host call; a collection or a file reads
+// the listing once.
+//
+// yagni: lane 4's index carries the live fleet_bound flag (S2 plan section
+// 2.2), computed at every index write; when it lands this reads the
+// record's entry instead of recomputing the closure here.
+func (rt *runtime) fleetBoundLive(rec subscriptionRecord) (bool, error) {
+	self := factsOf(rec)
+	if self.Kind == kindSub {
+		return self.Source == subscriptionSourceFleet, nil
+	}
+	listing, err := rt.storeListing()
+	if err != nil {
+		return false, err
+	}
+	universe := make([]fleetRecordFacts, 0, len(listing.Records)+1)
+	byID := map[string]fleetRecordFacts{}
+	for _, entry := range listing.Records {
+		if entry.ID == rec.ID {
+			continue
+		}
+		facts := factsOfEntry(entry)
+		universe = append(universe, facts)
+		byID[facts.ID] = facts
+	}
+	universe = append(universe, self)
+	if self.Kind == kindFile {
+		source, ok := byID[strings.TrimSpace(self.NodeSource)]
+		return ok && fleetBoundUnder(source, universe), nil
+	}
+	return fleetBoundUnder(self, universe), nil
+}

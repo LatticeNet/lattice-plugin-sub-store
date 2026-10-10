@@ -350,6 +350,9 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 		// the honest content, and an edit changes its hash.
 		return textEnvelope(kindFile, rec.Content, ""), nil
 	}
+	if err := rt.refuseFleetNodeSource(rec); err != nil {
+		return snapshotEnvelope{}, err
+	}
 	sourceRecord, err := rt.getSubscription(source)
 	if err != nil {
 		return snapshotEnvelope{}, fmt.Errorf("file %q: %w", rec.ID, err)

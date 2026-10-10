@@ -59,6 +59,11 @@ func (rt *runtime) resolveFileTemplate(rec subscriptionRecord) (string, error) {
 // snapshotRaw is the refresh path's resolved node content: the render spends
 // nothing reaching it again. Empty renders live, which is how previews work.
 func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[string]string, snapshotRaw string) (string, map[string]string, error) {
+	// A file over a fleet-bound node source is refused before anything is
+	// read or run, whether or not a snapshot came with the request.
+	if err := rt.refuseFleetNodeSource(rec); err != nil {
+		return "", nil, err
+	}
 	// A script file has no template to resolve: the program is the document, and
 	// it decides for itself what the nodes turn into.
 	if isScriptFile(rec) {
@@ -209,9 +214,11 @@ func (rt *runtime) scriptArtifactsFor(rec subscriptionRecord, snapshotRaw string
 	}
 	var snap snapshotArtifacts
 	if err := json.Unmarshal([]byte(snapshotRaw), &snap); err != nil || len(snap.Members) == 0 || snap.SourceID == "" {
-		// An unreadable snapshot falls back to live resolution rather than
-		// failing the serve.
-		return rt.resolveScriptArtifacts(rec)
+		// Core hands back only snapshots this plugin wrote, so one that does
+		// not read is an error, never a reason to resolve the node source
+		// live (S2 plan section 1.2): the live path would read a legacy
+		// source's export for whoever called render with a broken raw.
+		return nil, fmt.Errorf("%s: file %q has a snapshot this plugin cannot read; the next refresh replaces it", codeSnapshotMalformed, rec.ID)
 	}
 	kind := snap.SourceKind
 	if kind == "" {
@@ -356,4 +363,36 @@ func downloadFilename(rec subscriptionRecord) string {
 		return cleaned + ".yaml"
 	}
 	return cleaned
+}
+
+// refuseFleetNodeSource refuses a file whose node source is fleet-bound over
+// the live store, with fleet_file_unavailable naming the file (S2 plan
+// section 1.2). A file render carries no plan, so a fleet source would hand
+// clients configs whose credential fields are placeholder strings, served
+// unbound. Fleet-bound files therefore do not exist before S3: the write
+// path refuses to create one and render refuses to serve one. It costs one
+// listing read; a record staged to become fleet-bound is not fleet-bound
+// live, so a file over it keeps serving until the promotion.
+func (rt *runtime) refuseFleetNodeSource(file subscriptionRecord) error {
+	source := strings.TrimSpace(file.NodeSource)
+	if source == "" {
+		return nil
+	}
+	listing, err := rt.storeListing()
+	if err != nil {
+		return err
+	}
+	universe := make([]fleetRecordFacts, 0, len(listing.Records))
+	node := -1
+	for _, entry := range listing.Records {
+		if entry.ID == source {
+			node = len(universe)
+		}
+		universe = append(universe, factsOfEntry(entry))
+	}
+	if node < 0 || !fleetBoundUnder(universe[node], universe) {
+		return nil
+	}
+	return &fleetRuleError{Code: codeFleetFileUnavailable, IDs: []string{source}, Files: []string{file.ID},
+		Message: fmt.Sprintf("file %q reads its nodes from %q, which is fleet-bound; fleet-bound files arrive with S3", file.ID, source)}
 }
