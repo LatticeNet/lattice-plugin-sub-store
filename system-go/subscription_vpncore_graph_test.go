@@ -639,7 +639,10 @@ func TestLegacyVPNCorePreviewRejectsScriptingBeforeCredentialFetch(t *testing.T)
 	}
 }
 
-func TestLegacyVPNCorePreviewAllowsNonScriptingBuiltIns(t *testing.T) {
+// A legacy record's preview used to read the export with non-scripting
+// steps; since S2 only core's refresh may read it (plan section 1.2), so
+// the preview answers owner_credentials_withheld and makes no rpc call.
+func TestLegacyVPNCorePreviewIsWithheld(t *testing.T) {
 	rt, host := newVPNCoreGraphRuntime(t, nil)
 	host.legacyLinks = []string{"vless://dddddddd-dddd-5ddd-8ddd-dddddddddddd@legacy.example.com:443?security=reality&sni=legacy.example.com&fp=chrome&pbk=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA#legacy"}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "legacy", Source: subscriptionSourceVPNCore, VPNIdentity: "identity-a"}); err != nil {
@@ -649,8 +652,8 @@ func TestLegacyVPNCorePreviewAllowsNonScriptingBuiltIns(t *testing.T) {
 		"subscription_id": "legacy",
 		"operators":       []json.RawMessage{json.RawMessage(`{"type":"Regex Filter","args":{"keywords":["legacy"]}}`)},
 	})})
-	if !response.OK || len(host.calls) != 1 || host.calls[0]["method"] != "export" {
-		t.Fatalf("non-scripting legacy preview failed: response=%+v calls=%+v", response, host.calls)
+	if response.OK || !strings.HasPrefix(response.Error, codeOwnerCredentialsWithheld) || len(host.calls) != 0 {
+		t.Fatalf("legacy preview: response=%+v calls=%+v", response, host.calls)
 	}
 }
 

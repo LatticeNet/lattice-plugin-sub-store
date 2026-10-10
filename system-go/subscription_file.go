@@ -113,7 +113,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 			// contain a collection.
 			return "", nil, fmt.Errorf("file %q names another file as its node source", rec.ID)
 		}
-		nodes, err = rt.resolveNodesFor(nodeRecord)
+		nodes, err = rt.resolveNodesFor(nodeRecord, legacyWithheld)
 		if err != nil {
 			return "", nil, fileError(rec.ID, err)
 		}
@@ -167,7 +167,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 			return nil, fileError(rec.ID, err)
 		}
 		for _, member := range gathered {
-			raw, err := rt.renderMemberNodes(member)
+			raw, err := rt.renderMemberNodes(member, legacyWithheld)
 			if err != nil {
 				// A collection's own failure mode decides this: strict refuses so
 				// a client never silently loses nodes, skip-failed keeps serving.
@@ -182,7 +182,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 			return nil, fmt.Errorf("file %q: collection %q produced no members", rec.ID, sourceRecord.ID)
 		}
 	} else {
-		raw, err := rt.renderMemberNodes(sourceRecord)
+		raw, err := rt.renderMemberNodes(sourceRecord, legacyWithheld)
 		if err != nil {
 			return nil, fileError(rec.ID, err)
 		}
@@ -301,13 +301,13 @@ func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Resp
 // A collection runs its members and its own chain; a subscription resolves its
 // source and runs its chain. Either way the caller gets node text it can hand
 // to the config merge.
-func (rt *runtime) resolveNodesFor(rec subscriptionRecord) (string, error) {
+func (rt *runtime) resolveNodesFor(rec subscriptionRecord, authority legacyAuthority) (string, error) {
 	if recordKind(rec) == kindCollection {
 		// URI is the interchange format: it round-trips through a second parse,
 		// which is what handing the result to another stage requires.
-		return rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "")
+		return rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "", authority)
 	}
-	return rt.renderMemberNodes(rec)
+	return rt.renderMemberNodes(rec, authority)
 }
 
 // fileContentType picks what the core sends back. A config is YAML; plain text
@@ -385,9 +385,12 @@ func fleetNodesForFile(ids []string, collection string) error {
 
 // fileError wraps an error a file's node work returned. A fleet refusal is
 // returned unwrapped, its code leading and the file named in it, so core
-// and the UI read fleet_file_unavailable; anything else is prefixed with the
-// file as before.
+// and the UI read fleet_file_unavailable, and owner_credentials_withheld is
+// returned as it is; anything else is prefixed with the file as before.
 func fileError(fileID string, err error) error {
+	if w, ok := asWithheld(err); ok {
+		return w
+	}
 	var refusal *fleetRuleError
 	if errors.As(err, &refusal) && refusal.Code == codeFleetFileUnavailable {
 		named := *refusal

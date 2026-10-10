@@ -58,6 +58,14 @@ func isVPNCoreSource(source string) bool {
 //   - plain file / anything without a node source: the stored template, which
 //     is constant until edited (edits invalidate the render cache directly).
 func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error) {
+	return rt.fetchSubscriptionAs(subscriptionID, legacyRefresh)
+}
+
+// fetchSubscriptionAs is fetchSubscription with the legacy authority named:
+// the fetch method grants it, probe (the UI's "Fetch now") must not, so a
+// legacy record's probe answers owner_credentials_withheld (S2 plan section
+// 1.2) and never reads the export.
+func (rt *runtime) fetchSubscriptionAs(subscriptionID string, authority legacyAuthority) (fetchResult, error) {
 	rec, err := rt.getSubscription(subscriptionID)
 	if err != nil {
 		return fetchResult{}, err
@@ -66,7 +74,7 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 	var env snapshotEnvelope
 	switch recordKind(rec) {
 	case kindCollection:
-		members, membersNative, err := rt.fetchCollectionSnapshot(rec)
+		members, membersNative, err := rt.fetchCollectionSnapshot(rec, authority)
 		if err != nil {
 			return fetchResult{}, err
 		}
@@ -89,7 +97,7 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 			return out, nil
 		}
 	case kindFile:
-		if env, err = rt.fetchFileSnapshot(rec); err != nil {
+		if env, err = rt.fetchFileSnapshot(rec, authority); err != nil {
 			return fetchResult{}, err
 		}
 	default:
@@ -99,7 +107,7 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 			// core answers its shares with the decoy (S2 plan section 1.2).
 			return rt.fetchFleetSub(rec)
 		}
-		if out, err = rt.fetchRecordContent(rec); err != nil {
+		if out, err = rt.fetchRecordContentAs(rec, authority); err != nil {
 			return fetchResult{}, err
 		}
 		plan, err := rt.chainPlan(rec)
@@ -235,12 +243,12 @@ type snapshotArtifacts struct {
 // fetchCollectionSnapshot resolves a collection's members to their chained
 // node text. Member content moves at provider cadence; resolving it at refresh
 // time is what lets a render skip the network entirely.
-func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScriptMember, bool, error) {
+func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord, authority legacyAuthority) ([]fileScriptMember, bool, error) {
 	members, err := rt.collectionMembers(rec)
 	if err != nil {
 		return nil, false, err
 	}
-	return rt.chainMembers(rec, members, true)
+	return rt.chainMembers(rec, members, true, authority)
 }
 
 // chainMembers renders each member through its own chain, honoring the
@@ -254,7 +262,7 @@ func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord) ([]fileScript
 // carries nodes. A chained member runs on whichever engine its own chain
 // allows: the snapshot is taken before any target is known, and its member
 // texts have to be what a live render of the same collection computes.
-func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord, allowFleet bool) ([]fileScriptMember, bool, error) {
+func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord, allowFleet bool, authority legacyAuthority) ([]fileScriptMember, bool, error) {
 	type resolvedMember struct {
 		member  subscriptionRecord
 		out     memberOutput
@@ -301,6 +309,9 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 	// composition is authoritative, and silently serving a graph collection
 	// without them would misrepresent it.
 	fail := func(member subscriptionRecord, err error) error {
+		if w, ok := asWithheld(err); ok {
+			return w
+		}
 		if !collectionMemberFailureIsSkippable(rec, member) {
 			return fmt.Errorf("collection %q: %w", rec.ID, err)
 		}
@@ -323,7 +334,7 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 			resolved = append(resolved, resolvedMember{member: member, out: memberOutput{native: true}, fleet: block})
 			continue
 		}
-		out, err := rt.memberNodes(member)
+		out, err := rt.memberNodes(member, authority)
 		if err != nil {
 			if err := fail(member, err); err != nil {
 				return nil, false, err
@@ -405,7 +416,7 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 
 // fetchFileSnapshot resolves what a file's render varies by: its node source,
 // or nothing at all (the template is the answer until someone edits it).
-func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, error) {
+func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord, authority legacyAuthority) (snapshotEnvelope, error) {
 	source := strings.TrimSpace(rec.NodeSource)
 	if source == "" {
 		// A file without a node source is static until edited; the template is
@@ -420,7 +431,7 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 		return snapshotEnvelope{}, fmt.Errorf("file %q names another file as its node source", rec.ID)
 	}
 	if fileType(rec) == fileTypeConfig {
-		nodes, err := rt.resolveNodesFor(sourceRecord)
+		nodes, err := rt.resolveNodesFor(sourceRecord, authority)
 		if err != nil {
 			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
@@ -434,12 +445,12 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 		if err != nil {
 			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
-		members, _, err = rt.chainMembers(sourceRecord, gathered, false)
+		members, _, err = rt.chainMembers(sourceRecord, gathered, false, authority)
 		if err != nil {
 			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
 	} else {
-		raw, err := rt.renderMemberNodes(sourceRecord)
+		raw, err := rt.renderMemberNodes(sourceRecord, authority)
 		if err != nil {
 			return snapshotEnvelope{}, fileError(rec.ID, err)
 		}
@@ -451,15 +462,26 @@ func (rt *runtime) fetchFileSnapshot(rec subscriptionRecord) (snapshotEnvelope, 
 }
 
 // fetchRecordContent resolves where a record's current content lives and reads
-// it: the live vpn-core export over rpc:call, pasted text, or a provider URL
-// behind guarded egress. It backs both the refresh path (a stored record) and
-// the preview path (an unsaved draft — the engine otherwise never sees the
-// draft's source, and a fleet-sourced preview would report "no content" while
-// the nodes are right there).
+// it: pasted text, or a provider URL behind guarded egress. It backs the
+// paths that are not core's refresh (a file's remote template, a draft
+// preview), so a legacy vpn-core or vpn-core-graph source answers
+// owner_credentials_withheld here: its export carries owner credentials,
+// which only the refresh may read (fetchRecordContentAs).
 func (rt *runtime) fetchRecordContent(rec subscriptionRecord) (fetchResult, error) {
+	return rt.fetchRecordContentAs(rec, legacyWithheld)
+}
+
+// fetchRecordContentAs is fetchRecordContent with the legacy authority named.
+// Under the refresh a legacy source reads the live vpn-core export over
+// rpc:call or the composed graph subscription; under any other authority it
+// is refused before any rpc call leaves the plugin.
+func (rt *runtime) fetchRecordContentAs(rec subscriptionRecord, authority legacyAuthority) (fetchResult, error) {
 	label := rec.ID
 	if label == "" {
 		label = "the unsaved draft"
+	}
+	if isVPNCoreSource(rec.Source) && authority != legacyRefresh {
+		return fetchResult{}, ownerCredentialsWithheldError(label)
 	}
 	// A vpn-core subscription has no provider to reach: its content is the
 	// current node export, read over rpc:call. It is handled before the URL

@@ -436,7 +436,26 @@ func (rt *runtime) readFleetSelection(rec subscriptionRecord) (fleetSelection, f
 // refresh: the export carries line owner credentials, or an identity's, and
 // only the fetch core issues may read it (S2 plan section 1.2).
 func ownerCredentialsWithheldError(id string) error {
-	return fmt.Errorf("%s: subscription %q serves line owner credentials, which only core's refresh may read; migrate it to a fleet record to render it here", codeOwnerCredentialsWithheld, id)
+	return &withheldError{id: id}
+}
+
+// withheldError is owner_credentials_withheld for one record. Every path that
+// meets it passes it on unwrapped, so its code leads the message wherever it
+// surfaces, and a collection never skips the member it names: a collection
+// that served its provider half without its legacy member would hide why.
+type withheldError struct{ id string }
+
+func (e *withheldError) Error() string {
+	return fmt.Sprintf("%s: subscription %q serves line owner credentials, which only core's refresh may read; migrate it to a fleet record to render it here", codeOwnerCredentialsWithheld, e.id)
+}
+
+// asWithheld finds a withheldError in an error chain.
+func asWithheld(err error) (*withheldError, bool) {
+	var w *withheldError
+	if errors.As(err, &w) {
+		return w, true
+	}
+	return nil, false
 }
 
 // factsOfEntry is a live index entry as the fleet rules read it.
@@ -581,3 +600,20 @@ func fleetCollectionTooLarge(collectionID string, members []fileScriptMember, ca
 	}
 	return fmt.Errorf("%s: collection %q holds %d fleet lines and its snapshot is over the %d MiB the core keeps; member %q holds the most, %d; narrow its selection or split the collection", snapshotTooLargeCode, collectionID, total, model.MaxSubscriptionRawBytes>>20, largestID, largest)
 }
+
+// legacyAuthority says whether a code path may read a legacy vpn-core or
+// vpn-core-graph record's export: the line owner's credentials, or an
+// identity's. Only core's refresh may, through fetch (S2 plan section 1.2);
+// every other path, render, preview, publish, probe and every live
+// resolution they reach, is withheld, and answers
+// owner_credentials_withheld where the export would have been read. The
+// authority is passed down explicitly from the one place that grants it,
+// fetchSubscription, so no new caller gets it by default.
+type legacyAuthority bool
+
+const (
+	// legacyWithheld refuses a legacy export.
+	legacyWithheld legacyAuthority = false
+	// legacyRefresh is core's refresh: fetch reads the export.
+	legacyRefresh legacyAuthority = true
+)

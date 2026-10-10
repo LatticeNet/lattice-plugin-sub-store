@@ -12,7 +12,12 @@ import (
 //
 // The three sources are the whole vocabulary: the fleet's own vpn-core nodes, a
 // remote provider, or content pasted by hand.
-func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
+func (rt *runtime) resolveSubContent(rec subscriptionRecord, authority legacyAuthority) (string, error) {
+	// The two legacy sources read owner or identity credentials, which only
+	// core's refresh may (S2 plan section 1.2).
+	if isVPNCoreSource(rec.Source) && authority != legacyRefresh {
+		return "", ownerCredentialsWithheldError(rec.ID)
+	}
 	switch rec.Source {
 	case subscriptionSourceVPNCore:
 		links, err := rt.fetchExport(subStoreRequest{UserID: rec.VPNIdentity})
@@ -79,13 +84,13 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 // mode decides what happens next, and a strict refresh fails so the core keeps
 // its last good snapshot. A member whose own chain filters every node away
 // still contributes nothing, as before.
-func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) {
+func (rt *runtime) renderMemberNodes(member subscriptionRecord, authority legacyAuthority) (string, error) {
 	// Every caller is a file's node work, and a fleet record has no node
 	// text a file may carry.
 	if member.Source == subscriptionSourceFleet {
 		return "", fleetNodesForFile([]string{member.ID}, "")
 	}
-	out, err := rt.memberNodes(member)
+	out, err := rt.memberNodes(member, authority)
 	if err != nil {
 		return "", err
 	}
@@ -121,8 +126,8 @@ type memberOutput struct {
 // count of an unchained member to the caller. A chained member goes through
 // the dispatcher to URI: in Go when its whole chain is native, on the
 // bundle's isolated path otherwise.
-func (rt *runtime) memberNodes(member subscriptionRecord) (memberOutput, error) {
-	raw, err := rt.resolveSubContent(member)
+func (rt *runtime) memberNodes(member subscriptionRecord, authority legacyAuthority) (memberOutput, error) {
+	raw, err := rt.resolveSubContent(member, authority)
 	if err != nil {
 		return memberOutput{}, err
 	}
@@ -180,8 +185,8 @@ func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) b
 // resolved and chained at fetch time, so the render pays no network and no
 // per-member work — only the collection's own chain. An empty one renders
 // live, which is how previews and unsaved drafts work.
-func (rt *runtime) renderCollection(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string) (string, error) {
-	converted, err := rt.renderCollectionResult(rec, target, options, snapshotRaw, false)
+func (rt *runtime) renderCollection(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, authority legacyAuthority) (string, error) {
+	converted, err := rt.renderCollectionResult(rec, target, options, snapshotRaw, false, authority)
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +211,7 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, target string, optio
 // concatenated as the member chains left them, with no URI round trip, and
 // the collection chain runs over them. Otherwise the whole collection renders
 // on the bundle's isolated path from the members' texts.
-func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool) (subStoreConversionResult, error) {
+func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool, authority legacyAuthority) (subStoreConversionResult, error) {
 	plan, err := rt.chainPlan(rec)
 	if err != nil {
 		return subStoreConversionResult{}, fmt.Errorf("collection %q: %w", rec.ID, err)
@@ -226,7 +231,7 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 		if err != nil {
 			return subStoreConversionResult{}, err
 		}
-		if members, membersNative, err = rt.chainMembers(rec, gathered, false); err != nil {
+		if members, membersNative, err = rt.chainMembers(rec, gathered, false, authority); err != nil {
 			return subStoreConversionResult{}, err
 		}
 	}

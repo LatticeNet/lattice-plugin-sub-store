@@ -88,7 +88,7 @@ func (rt *runtime) renderRecord(rec subscriptionRecord, req subscriptionRenderRe
 	if recordKind(rec) == kindCollection {
 		// The snapshot as fetch stored it: a version 2 envelope carries the
 		// members' nodes, which snapshotText would drop.
-		converted, err := rt.renderCollectionResult(rec, target, req.Options, req.Raw, req.Explain)
+		converted, err := rt.renderCollectionResult(rec, target, req.Options, req.Raw, req.Explain, legacyWithheld)
 		if err != nil {
 			return renderResult{}, err
 		}
@@ -319,7 +319,7 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 			// record's serving target is.
 			previewRec := rec
 			previewRec.Target = ""
-			merged, err := rt.renderCollection(previewRec, "URI", nil, "")
+			merged, err := rt.renderCollection(previewRec, "URI", nil, "", legacyWithheld)
 			if err != nil {
 				return latticeplugin.ErrorResponse(err)
 			}
