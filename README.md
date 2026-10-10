@@ -279,7 +279,7 @@ fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
 ### Conformance numbers
 
 Design 28 publishes three numbers per release. Measured on the native
-engine against harness commit 7186dbf (upstream 2.42.3, a3e6106):
+engine against harness commit 0e771cf (upstream 2.42.3, a3e6106):
 
 | Number | Result |
 |---|---|
@@ -301,9 +301,9 @@ deep-equals the golden. One case (`clash-norm-ca-not-pem`) is a whole-document
 failure in the golden and passes by failing the same way. The run relied on
 four of the five allowlist entries: `external`, `underscore` and `ca` at
 parse, and `line-safety` for Surge and Quantumult X (`require` applies to
-scripts and stays pending until S3). `line-safety` covers the two cases whose
-golden carries a line break from a node field, `clash-socks5-name-newline`
-and `clash-ssh`: the native Surge and Quantumult X producers reject a node
+scripts and stays pending until S3). `line-safety` covers, by exact id, the
+two cases whose golden carries a line break from a node field,
+`clash-socks5-name-newline` and `clash-ssh`: the native Surge and Quantumult X producers reject a node
 whose entry would hold a control character, U+2028 or U+2029, where upstream
 writes the text as it is and lets a feed add lines such as a `[Script]`
 section to the profile. Those cases match the harness's line-safe golden,

@@ -121,6 +121,9 @@ export function loadAllowlist(file) {
                     throw new Error(`${where}: without_line_breaking_nodes names its targets, each one whose canonical form is lines or qx`);
                 }
                 if (e.cases.includes('*')) throw new Error(`${where}: without_line_breaking_nodes names the cases it covers`);
+                // The entry's cases are exact ids (applicable): a prefix
+                // would also cover a later case that shares it, and regen
+                // would write that case a line-safe golden without review.
                 step.lineSafe = true;
             } else {
                 throw new Error(`${where}: unknown normalise kind ${keys[0]}`);
@@ -133,7 +136,10 @@ export function loadAllowlist(file) {
 // applicable returns the entries that apply to one comparison. No entry
 // applies to a byte-exact target: a canonical difference there is a byte
 // difference, which the checker fails regardless. A pending entry applies to
-// nothing until its slice removes the pending field.
+// nothing until its slice removes the pending field. An entry's cases are id
+// prefixes, except for an entry with a without_line_breaking_nodes step,
+// whose cases are exact ids: that step lets a case match a second golden, so
+// it covers only the cases a reviewer named.
 export function applicable(entries, stage, targetId, caseId) {
     if (stage === 'produce' && findTarget(targetId)?.bytes) return [];
     return entries.filter(
@@ -141,7 +147,7 @@ export function applicable(entries, stage, targetId, caseId) {
             e.pending === undefined &&
             e.stage === stage &&
             (stage !== 'produce' || e.targets.includes('*') || e.targets.some((t) => findTarget(t)?.id === targetId)) &&
-            (e.cases.includes('*') || e.cases.some((p) => caseId.startsWith(p))),
+            (e.cases.includes('*') || e.cases.some((p) => (comparesWithoutLineBreaks([e]) ? caseId === p : caseId.startsWith(p)))),
     );
 }
 

@@ -239,8 +239,10 @@ type allowEntry struct {
 // comparesWithoutLineBreaks reports whether a landed produce-stage entry of
 // the vendored allowlist with a without_line_breaking_nodes step covers the
 // target and case, by the checker's rule (oracle/lib/allowlist.mjs,
-// applicable). The S1 and S2 produce goldens need no value normalisation, so
-// this is the only allowlist step the Go corpus tests apply.
+// applicable): such an entry names its cases by exact id, never as a prefix,
+// so a later case whose id starts with a named one is not covered. The S1 and
+// S2 produce goldens need no value normalisation, so this is the only
+// allowlist step the Go corpus tests apply.
 func comparesWithoutLineBreaks(t *testing.T, targetID, caseID string) bool {
 	t.Helper()
 	var doc struct {
@@ -256,7 +258,7 @@ func comparesWithoutLineBreaks(t *testing.T, targetID, caseID string) bool {
 		if !slices.Contains(e.Targets, targetID) {
 			continue
 		}
-		if slices.ContainsFunc(e.Cases, func(prefix string) bool { return strings.HasPrefix(caseID, prefix) }) {
+		if slices.Contains(e.Cases, caseID) {
 			return true
 		}
 	}
@@ -451,6 +453,28 @@ func reasons(d []Dropped) []string {
 		out[i] = strconv.Itoa(x.Index) + ":" + x.Reason
 	}
 	return out
+}
+
+// TestLineSafetyCoversExactCaseIDs holds comparesWithoutLineBreaks to the
+// harness rule: line-safety lets Surge and Quantumult X match the line-safe
+// golden for the two cases it names and for no case whose id merely starts
+// with one of them, such as clash-ssh-key-path.
+func TestLineSafetyCoversExactCaseIDs(t *testing.T) {
+	for _, target := range []string{"surge", "quantumultx"} {
+		for _, id := range []string{"clash-socks5-name-newline", "clash-ssh"} {
+			if !comparesWithoutLineBreaks(t, target, id) {
+				t.Errorf("%s %s: line-safety does not cover a case it names", target, id)
+			}
+		}
+		for _, id := range []string{"clash-ssh-key-path", "clash-ssh-note", "clash-socks5-name-newline-2"} {
+			if comparesWithoutLineBreaks(t, target, id) {
+				t.Errorf("%s %s: line-safety covers a case whose id only starts with one it names", target, id)
+			}
+		}
+	}
+	if comparesWithoutLineBreaks(t, "clashmeta", "clash-ssh") {
+		t.Error("clashmeta clash-ssh: line-safety covers a target it does not name")
+	}
 }
 
 // TestSupportMapKeyedByExactTarget pins that the per-node supported map is

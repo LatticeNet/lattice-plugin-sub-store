@@ -21,7 +21,9 @@
 #     targets: [<target id>, ...] or ["*"]   (produce only; ids from
 #              oracle/lib/targets.mjs; never uri or v2ray, which are
 #              compared byte for byte, and "*" skips them)
-#     cases: [<non-empty case id prefix>, ...] or ["*"]
+#     cases: [<non-empty case id prefix>, ...] or ["*"]   (exact case
+#            ids, never "*", for an entry with a
+#            without_line_breaking_nodes step)
 #     upstream: what upstream does, in one or two sentences
 #     chosen: what the plugin does instead
 #     reason: why the plugin diverges
@@ -48,7 +50,8 @@
 #                                          U+2028 or U+2029; produce stage
 #                                          only, explicit targets whose
 #                                          canonical form is lines or qx,
-#                                          explicit cases
+#                                          explicit cases matched by exact
+#                                          id
 #
 # A strip_keys pattern may not match the empty key or any key in
 # PROTECTED_KEYS (oracle/lib/allowlist.mjs: node identity, document
@@ -87,10 +90,11 @@
 # names the two corpus cases whose Surge or Quantumult X golden carries a
 # line break from a field: clash-socks5-name-newline (a name holding a
 # newline) and clash-ssh (an inline PEM private key, which Surge writes into
-# the line). The clash-ssh prefix also matches clash-ssh-key-path, whose
-# nodes carry no line break, so it has no line-safe golden and the entry
-# changes nothing there. A new corpus case with a line break in a field
-# these targets write fails until this entry names it.
+# the line). Because of its without_line_breaking_nodes step the entry
+# matches those ids exactly, not as prefixes, so it does not cover
+# clash-ssh-key-path or any later case whose id starts with a named one. A
+# new corpus case with a line break in a field these targets write fails
+# until this entry names its exact id.
 divergences:
   - id: external
     stage: parse
