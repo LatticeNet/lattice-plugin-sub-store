@@ -50,7 +50,7 @@ func TestNodeJSONRoundTripSortsKeys(t *testing.T) {
 	if !reflect.DeepEqual(back.Fields, n.Fields) {
 		t.Errorf("decoded fields differ\n got  %#v\n want %#v", back.Fields, n.Fields)
 	}
-	if back.Lattice == nil || *back.Lattice != *n.Lattice {
+	if back.Lattice == nil || !reflect.DeepEqual(*back.Lattice, *n.Lattice) {
 		t.Errorf("decoded lattice %+v, want %+v", back.Lattice, n.Lattice)
 	}
 	if back.Script != nil {

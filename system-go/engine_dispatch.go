@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -317,4 +319,105 @@ func decodeNodes(raws []json.RawMessage) ([]*nodemodel.Node, bool) {
 		}
 	}
 	return out, true
+}
+
+// fleetPlanCacheBytes bounds the encoded fleet plans one worker keeps.
+const fleetPlanCacheBytes = 32 << 20
+
+// fleetPlanKey names one serve-path plan computation (S2 plan section 2.3).
+// SourceVersion is the envelope's source_version: for a fleet envelope the
+// digest over catalogue_version, selector and rows, so a clock-dependent
+// leading step that moves the rows under an unmoved catalogue version still
+// misses. Members is a collection's ordered member (id, revision) list read
+// from its envelope blocks, because a member's chain runs at render.
+type fleetPlanKey struct {
+	SourceVersion string
+	Revision      string
+	Members       string
+	Target        string
+	Format        string
+	Options       string
+}
+
+// newFleetPlanKey builds a key; members are "id@revision" pairs in member
+// order and options are folded in sorted order.
+func newFleetPlanKey(sourceVersion, revision string, members []string, target, format string, options map[string]bool) fleetPlanKey {
+	keys := make([]string, 0, len(options))
+	for name, on := range options {
+		keys = append(keys, name+"="+strconv.FormatBool(on))
+	}
+	sort.Strings(keys)
+	return fleetPlanKey{
+		SourceVersion: sourceVersion, Revision: revision, Members: strings.Join(members, "\n"),
+		Target: target, Format: format, Options: strings.Join(keys, "&"),
+	}
+}
+
+// fleetPlanCache is an LRU of encoded fleet plans, bounded by their bytes.
+// Only a serve-path render reads or writes it: one with no revision or the
+// live revision, no member_revisions and no catalogue read inside render. A
+// staged render bypasses it on both sides, because its plan depends on
+// inputs the key does not carry. It is per worker process, as nativePlans
+// is, and the placeholders inside a cached plan are fresh per computation:
+// they never leave core, and core binds every identity from the same plan.
+type fleetPlanCache struct {
+	mu      sync.Mutex
+	limit   int
+	bytes   int
+	entries map[fleetPlanKey]*list.Element
+	order   *list.List // front is most recent
+	// computes counts the plans computed through get, for tests.
+	computes int
+}
+
+type fleetPlanCacheEntry struct {
+	key  fleetPlanKey
+	plan fleetPlanOutput
+}
+
+func newFleetPlanCache(limit int) *fleetPlanCache {
+	return &fleetPlanCache{limit: limit, entries: map[fleetPlanKey]*list.Element{}, order: list.New()}
+}
+
+// fleetPlans is the worker's fleet plan cache.
+var fleetPlans = newFleetPlanCache(fleetPlanCacheBytes)
+
+// get returns the plan for key, computing it on a miss. A plan larger than
+// the whole bound is returned and not kept.
+func (c *fleetPlanCache) get(key fleetPlanKey, compute func() (fleetPlanOutput, error)) (fleetPlanOutput, error) {
+	c.mu.Lock()
+	if element, ok := c.entries[key]; ok {
+		c.order.MoveToFront(element)
+		plan := element.Value.(*fleetPlanCacheEntry).plan
+		c.mu.Unlock()
+		return plan, nil
+	}
+	c.mu.Unlock()
+	plan, err := compute()
+	if err != nil {
+		return fleetPlanOutput{}, err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.computes++
+	if _, ok := c.entries[key]; ok || len(plan.Encoded) > c.limit {
+		return plan, nil
+	}
+	c.entries[key] = c.order.PushFront(&fleetPlanCacheEntry{key: key, plan: plan})
+	c.bytes += len(plan.Encoded)
+	for c.bytes > c.limit {
+		oldest := c.order.Back()
+		entry := oldest.Value.(*fleetPlanCacheEntry)
+		c.order.Remove(oldest)
+		delete(c.entries, entry.key)
+		c.bytes -= len(entry.plan.Encoded)
+	}
+	return plan, nil
+}
+
+// computeCount reports how many plans the cache computed, for tests.
+func (c *fleetPlanCache) computeCount() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.computes
 }

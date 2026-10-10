@@ -1,0 +1,458 @@
+package main
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+	"time"
+	"unicode"
+
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-sdk/model"
+	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
+)
+
+// The fleet source (design 28, S2 plan section 1.2). A fleet record selects
+// lines from core's line catalogue with its leading run of Structured Filter
+// steps. Fetch reads the catalogue under the part of that run core can
+// evaluate (the pushed selector), evaluates the rest of the run in Go,
+// projects each kept row to fleetRow and stores the rows in the snapshot
+// envelope. Render builds one node per row with placeholder credentials,
+// runs the record's chain and returns a selection plan; core binds each share
+// identity's credentials into it. No fleet credential ever reaches the
+// plugin.
+
+const (
+	// fleetCatalogueService and fleetCatalogueMethod are core's catalogue,
+	// read over rpc.call (srv/server_vpncore.go).
+	fleetCatalogueService = "latticenet.vpn-core/lines"
+	fleetCatalogueMethod  = "catalogue"
+	// fleetCataloguePageRows is the page size every fleet read asks for.
+	fleetCataloguePageRows = model.MaxLineCataloguePageRows
+	// fleetCatalogueMaxPagesPerPass bounds one pass over the catalogue: ten
+	// pages of a thousand rows read a 10000-line catalogue whole.
+	fleetCatalogueMaxPagesPerPass = 10
+	// fleetCatalogueMaxPasses is the first pass and the one restart a
+	// catalogue version move allows (the reader contract,
+	// srv/line_catalogue.go:1182-1190). A second move fails the read.
+	fleetCatalogueMaxPasses = 2
+	// fleetCatalogueVersionPrefix starts every catalogue version core writes
+	// (srv/line_catalogue.go:67-69); core refuses a fleet snapshot whose
+	// version does not carry it.
+	fleetCatalogueVersionPrefix = "lcv1-"
+	// fleetEnvelopeDigestPrefix starts a fleet envelope's source_version.
+	fleetEnvelopeDigestPrefix = "lfe1-"
+	// fleetStepHashPrefix starts the digest of a leading structured run.
+	fleetStepHashPrefix = "lsh1-"
+)
+
+// Refusal and error codes of the fleet path. Each leads its message, so core
+// and the UI can match it.
+const (
+	codeFleetEnvelopeMismatch         = "fleet_envelope_mismatch"
+	codeFleetSelectorMismatch         = "fleet_selector_mismatch"
+	codeFleetSnapshotMissing          = "fleet_snapshot_missing"
+	codeSnapshotMalformed             = "snapshot_malformed"
+	codeSnapshotPredatesS2            = "snapshot_predates_s2"
+	codeRevisionUnknown               = "revision_unknown"
+	codeStoreInconsistent             = "store_inconsistent"
+	codeOwnerCredentialsWithheld      = "owner_credentials_withheld"
+	codeFleetResponseChainUnavailable = "fleet_response_chain_unavailable"
+	codeFleetPublishUnavailable       = "fleet_publish_unavailable"
+	codePlanTooLarge                  = "plan_too_large"
+	codeCatalogueUnavailable          = "catalogue_unavailable"
+)
+
+// fleetNow is the clock the fetch-time predicates read. Tests replace it.
+var fleetNow = func() time.Time { return time.Now().UTC() }
+
+// catalogueRow is a catalogue page row as this plugin decodes it: the SDK
+// row plus the fields the S2 SDK adds that the pinned SDK does not carry
+// yet. Label is core's entry label for the line (S2 plan section 2.5); when
+// the SDK pin carries LineCatalogueRow.Label, the outer field shadows the
+// inner one for decoding and this wrapper can go.
+type catalogueRow struct {
+	model.LineCatalogueRow
+	Label string `json:"label,omitempty"`
+}
+
+// cataloguePage is one page of the catalogue as this plugin decodes it.
+type cataloguePage struct {
+	CatalogueVersion string         `json:"catalogue_version"`
+	Rows             []catalogueRow `json:"rows"`
+	Cursor           string         `json:"cursor,omitempty"`
+	SelectorFields   []string       `json:"selector_fields,omitempty"`
+	// Unavailable names the row fields this core never fills, for example
+	// ["probe"] (S2 plan section 2.5).
+	Unavailable []string `json:"unavailable,omitempty"`
+}
+
+// fleetCatalogueRead is one complete read of the catalogue under a selector.
+type fleetCatalogueRead struct {
+	CatalogueVersion string
+	SelectorFields   []string
+	Unavailable      []string
+	// Rows are the rows keep admitted, projected, in catalogue order.
+	Rows []fleetRow
+	// Scanned is how many rows the final pass read.
+	Scanned int
+	// Pages counts the catalogue calls made, restarts included.
+	Pages     int
+	Restarted bool
+}
+
+// fleetRowKeep decides, for one validated row of a read, whether the fetch
+// keeps it. It evaluates the part of the leading structured run core did not;
+// nil keeps every row.
+type fleetRowKeep func(row fleetRow, now time.Time) (bool, error)
+
+// readFleetCatalogue reads every page of the catalogue under sel with
+// fleetCataloguePageRows per page, validating every row once with the SDK's
+// Validate, keeping the rows keep admits and projecting them. A page whose
+// catalogue_version differs from the first page's restarts the read without
+// a cursor, once. maxRows bounds the kept rows (zero: unbounded); past it
+// the read stops and the error says how many it found.
+func (rt *runtime) readFleetCatalogue(sel *model.LineCatalogueSelector, keep fleetRowKeep, maxRows int) (fleetCatalogueRead, error) {
+	if sel != nil {
+		if err := sel.Validate(); err != nil {
+			return fleetCatalogueRead{}, fmt.Errorf("fleet selector: %w", err)
+		}
+	}
+	now := fleetNow()
+	var read fleetCatalogueRead
+	for pass := 0; pass < fleetCatalogueMaxPasses; pass++ {
+		read.Rows, read.Scanned, read.CatalogueVersion = read.Rows[:0], 0, ""
+		seen := map[string]bool{}
+		cursor := ""
+		moved := false
+		for page := 0; ; page++ {
+			if page >= fleetCatalogueMaxPagesPerPass {
+				return fleetCatalogueRead{}, fmt.Errorf("%s: the catalogue holds more than %d lines under this selection; narrow the selection", codeCatalogueUnavailable, fleetCatalogueMaxPagesPerPass*fleetCataloguePageRows)
+			}
+			got, err := rt.fetchCataloguePage(sel, cursor)
+			read.Pages++
+			if err != nil {
+				return fleetCatalogueRead{}, err
+			}
+			if read.CatalogueVersion == "" {
+				read.CatalogueVersion = got.CatalogueVersion
+				read.SelectorFields = got.SelectorFields
+				read.Unavailable = got.Unavailable
+			} else if got.CatalogueVersion != read.CatalogueVersion {
+				moved = true
+				break
+			}
+			for i := range got.Rows {
+				row := &got.Rows[i]
+				if seen[row.LineUUID] {
+					return fleetCatalogueRead{}, fmt.Errorf("%s: the catalogue listed line %s twice in one read", codeCatalogueUnavailable, row.LineUUID)
+				}
+				seen[row.LineUUID] = true
+				read.Scanned++
+				projected := projectFleetRow(*row)
+				if keep != nil {
+					ok, err := keep(projected, now)
+					if err != nil {
+						return fleetCatalogueRead{}, err
+					}
+					if !ok {
+						continue
+					}
+				}
+				read.Rows = append(read.Rows, projected)
+				if maxRows > 0 && len(read.Rows) > maxRows {
+					return fleetCatalogueRead{}, fleetSelectionTooLarge(len(read.Rows), maxRows)
+				}
+			}
+			if got.Cursor == "" {
+				break
+			}
+			cursor = got.Cursor
+		}
+		if !moved {
+			if read.Rows == nil {
+				read.Rows = []fleetRow{}
+			}
+			return read, nil
+		}
+		read.Restarted = true
+	}
+	return fleetCatalogueRead{}, fmt.Errorf("%s: the catalogue moved twice during one read; the next refresh reads it again", codeCatalogueUnavailable)
+}
+
+// fleetSelectionTooLarge refuses a selection past the plan node bound.
+func fleetSelectionTooLarge(found, limit int) error {
+	return fmt.Errorf("%s: the selection holds more than %d lines (at least %d); one record carries at most %d; narrow the selection or split the record", snapshotTooLargeCode, limit, found, limit)
+}
+
+// fetchCataloguePage reads one catalogue page over rpc.call and validates
+// it: its version and cursor, its row count, every row by the SDK's
+// Validate, each label, and that the version carries core's prefix. Errors
+// never quote a row: a row is credential-free by contract, but a page that
+// fails validation is exactly the page whose content is not trusted.
+func (rt *runtime) fetchCataloguePage(sel *model.LineCatalogueSelector, cursor string) (cataloguePage, error) {
+	request := model.LineCatalogueRequest{Selector: sel, Cursor: cursor, Limit: fleetCataloguePageRows}
+	raw, err := rt.callHost(latticeplugin.HostMethodRPCCall, map[string]any{
+		"service": fleetCatalogueService,
+		"method":  fleetCatalogueMethod,
+		"request": request,
+	})
+	if err != nil {
+		return cataloguePage{}, fmt.Errorf("%s: the line catalogue could not be read", codeCatalogueUnavailable)
+	}
+	var page cataloguePage
+	if err := json.Unmarshal(raw, &page); err != nil {
+		return cataloguePage{}, fmt.Errorf("%s: the line catalogue page does not decode", codeCatalogueUnavailable)
+	}
+	if err := validateCataloguePage(page); err != nil {
+		return cataloguePage{}, fmt.Errorf("%s: %w", codeCatalogueUnavailable, err)
+	}
+	return page, nil
+}
+
+// validateCataloguePage is the page-level check of fetchCataloguePage.
+func validateCataloguePage(page cataloguePage) error {
+	if !strings.HasPrefix(page.CatalogueVersion, fleetCatalogueVersionPrefix) || !validCatalogueText(page.CatalogueVersion, model.MaxLineCatalogueTokenBytes) {
+		return errors.New("catalogue page has no valid catalogue_version")
+	}
+	if page.Cursor != "" && !validCatalogueText(page.Cursor, model.MaxLineCatalogueTokenBytes) {
+		return errors.New("catalogue page has an invalid cursor")
+	}
+	if len(page.Rows) > model.MaxLineCataloguePageRows {
+		return fmt.Errorf("catalogue page has more than %d rows", model.MaxLineCataloguePageRows)
+	}
+	for _, name := range append(append([]string(nil), page.SelectorFields...), page.Unavailable...) {
+		if !validCatalogueText(name, 64) {
+			return errors.New("catalogue page names an invalid field")
+		}
+	}
+	for i := range page.Rows {
+		if err := page.Rows[i].Validate(); err != nil {
+			return fmt.Errorf("catalogue row %d: %w", i, err)
+		}
+		if len(page.Rows[i].Label) > model.MaxSubscriptionURIBytes || strings.ContainsFunc(page.Rows[i].Label, unicode.IsControl) {
+			return fmt.Errorf("catalogue row %d has an invalid label", i)
+		}
+	}
+	return nil
+}
+
+func validCatalogueText(value string, maxBytes int) bool {
+	return value != "" && value == strings.TrimSpace(value) && len(value) <= maxBytes && !strings.ContainsFunc(value, unicode.IsControl)
+}
+
+// projectFleetRow is the row as a fleet envelope stores it: every field
+// render and the predicates read, nothing else (fleetRow). Slices and
+// pointers are shared with the decoded page, which is discarded after the
+// read.
+func projectFleetRow(row catalogueRow) fleetRow {
+	out := fleetRow{
+		LineUUID: row.LineUUID, LineHashID: row.LineHashID, NodeID: row.NodeID,
+		NodeName: row.NodeName, Name: row.Name, Label: row.Label,
+		NodeTags: row.NodeTags, GroupIDs: row.GroupIDs, Geo: row.Geo, Machine: row.Machine,
+		DDNSNames: row.DDNSNames, Protocol: row.Protocol, Transport: row.Transport, Security: row.Security,
+		PublicHost: row.PublicHost, ProviderEdge: row.ProviderEdge, Addresses: row.Addresses,
+		Managed: row.Managed, Overlay: row.Overlay, OverlayStatus: row.OverlayStatus,
+		Status: row.Status, ServiceState: row.ServiceState, Chain: row.Chain, Probe: row.Probe,
+	}
+	if t := row.Template; t != nil {
+		out.Template = &fleetTemplate{Protocol: t.Protocol, Host: t.Host, Port: t.Port, Params: t.Params}
+	}
+	return out
+}
+
+// fleetLattice is a row's Lattice block: every tagged field core carries and
+// every row fact a predicate or Structured Sort reads.
+func fleetLattice(row fleetRow) *nodemodel.LatticeFields {
+	l := &nodemodel.LatticeFields{
+		LineUUID: row.LineUUID, LineHashID: row.LineHashID, NodeID: row.NodeID,
+		Geo: row.Geo, Tags: row.NodeTags, Groups: row.GroupIDs, Probe: row.Probe, Addresses: row.Addresses,
+		NodeName: row.NodeName, Machine: row.Machine, DDNSNames: row.DDNSNames,
+		Protocol: row.Protocol, Transport: row.Transport, Security: row.Security,
+		Status: row.Status, ServiceState: row.ServiceState, OverlayStatus: row.OverlayStatus,
+		Managed: row.Managed, Overlay: row.Overlay, ProviderEdge: row.ProviderEdge, PublicHost: row.PublicHost,
+	}
+	chain := row.Chain
+	l.Chain = &chain
+	if row.Template != nil {
+		l.TemplateHost = row.Template.Host
+	}
+	return l
+}
+
+// fleetSelection is how a fleet record's leading Structured Filter run
+// splits between core and the fetch.
+type fleetSelection struct {
+	// Pushed is the selector core evaluates; nil selects every line.
+	Pushed *model.LineCatalogueSelector
+	// Leading is how many leading structured steps the fetch evaluates in
+	// all, pushed or in Go; StepHash is the digest of those steps as stored.
+	Leading  int
+	StepHash string
+	// Keep evaluates the leading steps core did not; nil keeps every row.
+	Keep fleetRowKeep
+}
+
+// record is the selection as the envelope records it.
+func (s fleetSelection) record() *fleetSelectorRecord {
+	return &fleetSelectorRecord{Pushed: s.Pushed, Leading: s.Leading, StepHash: s.StepHash}
+}
+
+// fleetSelectionFor splits a chain's leading Structured Filter run.
+//
+// yagni: until the Structured Filter step type and operators.Pushdown land
+// (lane 2, S2 plan section 2.4) no chain has a leading structured run, so
+// every fleet record selects every line and its whole chain runs at render.
+// That is exact for every chain the vocabulary admits today; when the step
+// type lands this function asks Pushdown for the selector and the covered
+// count, and evaluates the remaining leading steps with Predicate.Evaluate.
+func fleetSelectionFor(steps []json.RawMessage, advertised []string) (fleetSelection, error) {
+	_ = advertised
+	leading := fleetLeadingRun(steps)
+	return fleetSelection{Leading: len(leading), StepHash: fleetStepHash(leading)}, nil
+}
+
+// fleetStructuredFilterType is the step type of the Structured Filter.
+const fleetStructuredFilterType = "Structured Filter"
+
+// fleetLeadingRun is the chain's leading run of enabled Structured Filter
+// steps, as stored. Disabled steps inside the run are skipped, because the
+// chain skips them too.
+func fleetLeadingRun(steps []json.RawMessage) []json.RawMessage {
+	var run []json.RawMessage
+	for _, raw := range steps {
+		meta, err := decodeStep(raw)
+		if err != nil {
+			break
+		}
+		if meta.Disabled {
+			continue
+		}
+		if meta.Type != fleetStructuredFilterType {
+			break
+		}
+		run = append(run, raw)
+	}
+	return run
+}
+
+// fleetStepHash is the digest of a leading structured run as stored.
+func fleetStepHash(run []json.RawMessage) string {
+	if run == nil {
+		run = []json.RawMessage{}
+	}
+	encoded, err := json.Marshal(run)
+	if err != nil {
+		// Stored steps are valid JSON; a run that is not hashes as nothing,
+		// which never equals a real run's digest.
+		return ""
+	}
+	sum := sha256.Sum256(encoded)
+	return fleetStepHashPrefix + hex.EncodeToString(sum[:])
+}
+
+// fleetEnvelopeDigest is a fleet envelope's source_version: "lfe1-" plus the
+// sha256 of the canonical encoding of catalogue_version, selector and rows,
+// or, for a collection, of every member block in order, whole, provider
+// blocks included. Core keys its revalidation and body cache on it, so it
+// moves whenever any selected row or any member's content moves.
+func fleetEnvelopeDigest(env snapshotEnvelope) (string, error) {
+	var canonical []byte
+	var err error
+	if env.Kind == kindCollection {
+		canonical, err = json.Marshal(env.Members)
+	} else {
+		canonical, err = json.Marshal(struct {
+			CatalogueVersion string               `json:"catalogue_version"`
+			Selector         *fleetSelectorRecord `json:"selector"`
+			Rows             json.RawMessage      `json:"rows"`
+		}{env.CatalogueVersion, env.Selector, env.Rows})
+	}
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(canonical)
+	return fleetEnvelopeDigestPrefix + hex.EncodeToString(sum[:]), nil
+}
+
+// encodeFleetRows is rows as an envelope's rows field: the literal [] for
+// none, never null.
+func encodeFleetRows(rows []fleetRow) (json.RawMessage, error) {
+	if rows == nil {
+		rows = []fleetRow{}
+	}
+	return json.Marshal(rows)
+}
+
+// fleetSubEnvelope is a fleet sub's envelope for one read.
+func fleetSubEnvelope(read fleetCatalogueRead, sel fleetSelection) (snapshotEnvelope, error) {
+	rows, err := encodeFleetRows(read.Rows)
+	if err != nil {
+		return snapshotEnvelope{}, err
+	}
+	env := snapshotEnvelope{
+		Version: snapshotEnvelopeVersion, Kind: kindSub, SourceKind: subscriptionSourceFleet,
+		CatalogueVersion: read.CatalogueVersion, Rows: rows, Selector: sel.record(),
+	}
+	if env.SourceVersion, err = fleetEnvelopeDigest(env); err != nil {
+		return snapshotEnvelope{}, err
+	}
+	return env, nil
+}
+
+// encodeFleetEnvelope is encodeSnapshotEnvelope for a fleet sub: rows are
+// never dropped for size, so an envelope past the core's bound is refused
+// with snapshot_too_large and a figure the operator can act on, computed
+// from the measured average row size of this fetch.
+func encodeFleetEnvelope(env snapshotEnvelope, rowCount int) (string, error) {
+	raw, err := json.Marshal(env)
+	if err != nil {
+		return "", err
+	}
+	if len(raw) <= model.MaxSubscriptionRawBytes {
+		return string(raw), nil
+	}
+	overhead := len(raw) - len(env.Rows)
+	perRow := len(env.Rows) / max(rowCount, 1)
+	fit := (model.MaxSubscriptionRawBytes - overhead) / max(perRow, 1)
+	return "", fmt.Errorf("%s: the selection holds %d lines; this core keeps at most %d MiB of snapshot, about %d lines of this fleet; narrow the selection or split the record", snapshotTooLargeCode, rowCount, model.MaxSubscriptionRawBytes>>20, max(fit, 0))
+}
+
+// fetchFleetSub is fetch for a fleet sub: read the catalogue under the
+// pushed selector, keep the rows the rest of the leading run admits, and
+// store them. A selection that matches no line is a valid fetch: the
+// envelope carries rows as [] and render builds a plan with no nodes, which
+// core answers with the decoy (empty_plan).
+//
+// nodes_in is the row count; nodes_out is the count after the whole chain
+// when it runs in Go, built over placeholder credentials that are never
+// stored.
+func (rt *runtime) fetchFleetSub(rec subscriptionRecord) (fetchResult, error) {
+	steps := processSteps(rec)
+	sel, err := fleetSelectionFor(steps, model.LineCatalogueSelectorFields())
+	if err != nil {
+		return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	read, err := rt.readFleetCatalogue(sel.Pushed, sel.Keep, model.MaxSubscriptionRecordNodes)
+	if err != nil {
+		return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	env, err := fleetSubEnvelope(read, sel)
+	if err != nil {
+		return fetchResult{}, err
+	}
+	raw, err := encodeFleetEnvelope(env, len(read.Rows))
+	if err != nil {
+		return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	out := fetchResult{Raw: raw, SourceVersion: env.SourceVersion}
+	count := len(read.Rows)
+	out.nodesIn = &count
+	if after, ok := fleetNodesOut(rec, read.Rows); ok {
+		out.nodesOut = &after
+	}
+	return out, nil
+}
