@@ -204,10 +204,63 @@ func differsFromGolden(t *testing.T, target harnessTarget, id, got string) strin
 		}
 		return ""
 	}
-	if path, golden, candidate, same := sameStructure(t, readFile(t, filepath.Join(dir, id+".canon.json")), target.form, got); !same {
-		return fmt.Sprintf("output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", path, golden, candidate, clip(got))
+	path, golden, candidate, same := sameStructure(t, readFile(t, filepath.Join(dir, id+".canon.json")), target.form, got)
+	if same {
+		return ""
 	}
-	return ""
+	// The checker's second chance: a landed entry that compares without
+	// line-breaking nodes lets the output match the line-safe golden.
+	if lineSafe := filepath.Join(dir, id+lineSafeSuffix); comparesWithoutLineBreaks(t, target.id, id) {
+		if _, err := os.Stat(lineSafe); err == nil {
+			if _, _, _, same := sameStructure(t, readFile(t, lineSafe), target.form, got); same {
+				return ""
+			}
+		}
+	}
+	return fmt.Sprintf("output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", path, golden, candidate, clip(got))
+}
+
+// lineSafeSuffix names the golden a without_line_breaking_nodes entry lets a
+// failing case match (oracle/lib/allowlist.mjs, LINE_SAFE_SUFFIX): upstream's
+// output for the case's input without the nodes that carry a line break.
+const lineSafeSuffix = ".line-safe.canon.json"
+
+// allowEntry is one entry of the vendored allowlist, as far as the produce
+// tests read it.
+type allowEntry struct {
+	ID        string           `yaml:"id"`
+	Stage     string           `yaml:"stage"`
+	Pending   string           `yaml:"pending"`
+	Targets   []string         `yaml:"targets"`
+	Cases     []string         `yaml:"cases"`
+	Normalise []map[string]any `yaml:"normalise"`
+}
+
+// comparesWithoutLineBreaks reports whether a landed produce-stage entry of
+// the vendored allowlist with a without_line_breaking_nodes step covers the
+// target and case, by the checker's rule (oracle/lib/allowlist.mjs,
+// applicable). The S1 and S2 produce goldens need no value normalisation, so
+// this is the only allowlist step the Go corpus tests apply.
+func comparesWithoutLineBreaks(t *testing.T, targetID, caseID string) bool {
+	t.Helper()
+	var doc struct {
+		Divergences []allowEntry `yaml:"divergences"`
+	}
+	if err := yaml.Unmarshal(readFile(t, filepath.Join(conformanceDir, "allowlist", "divergences.yaml")), &doc); err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range doc.Divergences {
+		if e.Pending != "" || e.Stage != "produce" || !slices.ContainsFunc(e.Normalise, func(step map[string]any) bool { return step["without_line_breaking_nodes"] == true }) {
+			continue
+		}
+		if !slices.Contains(e.Targets, targetID) {
+			continue
+		}
+		if slices.ContainsFunc(e.Cases, func(prefix string) bool { return strings.HasPrefix(caseID, prefix) }) {
+			return true
+		}
+	}
+	return false
 }
 
 func firstDifference(a, b string) int {

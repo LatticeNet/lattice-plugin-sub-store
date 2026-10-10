@@ -1,14 +1,17 @@
 # Divergence allowlist for the native Sub-Store conformance gate (design 28).
 #
-# The list is closed: at most four entries, and adding, removing or widening
+# The list is closed: at most five entries, and adding, removing or widening
 # one is a reviewed change to design 28, not a harness edit. check.mjs
-# refuses a file with more than four entries or with an entry that does not
-# follow the schema below. The four entries are the four divergences design
-# 28 names. Each is pending until the slice that implements it removes
-# `pending` and adds its normalisation; a pending entry holds its slot, is
-# validated like any other, and applies to no comparison. external,
-# underscore and ca have landed for S1; require stays pending until S3. The
-# specifications refer to them by id (specs/normaliser.md, section 4).
+# refuses a file with more than five entries or with an entry that does not
+# follow the schema below. The five entries are the four divergences design
+# 28 names and the line-safety entry its S2 decisions add. Each is pending
+# until the slice that implements it removes `pending` and adds its
+# normalisation; a pending entry holds its slot, is validated like any
+# other, and applies to no comparison. external, underscore and ca have
+# landed for S1, line-safety for S2; require stays pending until S3. The
+# specifications refer to them by id (specs/normaliser.md, section 4, and
+# the "Line safety" sections of specs/producers/surge.md and
+# quantumultx.md).
 #
 # Schema of one entry:
 #
@@ -35,6 +38,17 @@
 #           [<key>, ...]                   objects carrying any of the keys
 #                                          (matched without regard to case),
 #                                          at any depth; parse stage only
+#       - without_line_breaking_nodes:     when the comparison still fails,
+#           true                           compare the candidate with
+#                                          <case>.line-safe.canon.json, the
+#                                          golden upstream wrote for the
+#                                          case's produce input without the
+#                                          nodes in which any text, key or
+#                                          value, holds a control character,
+#                                          U+2028 or U+2029; produce stage
+#                                          only, explicit targets whose
+#                                          canonical form is lines or qx,
+#                                          explicit cases
 #
 # A strip_keys pattern may not match the empty key or any key in
 # PROTECTED_KEYS (oracle/lib/allowlist.mjs: node identity, document
@@ -42,7 +56,9 @@
 # and drop_entries_with_keys may not name a node identity key or a document
 # container (DROP_GUARD_KEYS) and applies only at parse stage, where every
 # array element is a node, so one entry cannot hide a whole node list or
-# document.
+# document. without_line_breaking_nodes changes no value: regen.mjs writes
+# the line-safe golden from the oracle, so the candidate must still match
+# upstream exactly on every other node of the case.
 #
 # A divergence counts as allowed only when the comparison fails without the
 # normalisation and passes with it; conformance.json records which ids were
@@ -50,7 +66,7 @@
 #
 # The three S1 entries are parse-stage entries (S1 implementation plan,
 # decision 18). Producers keep upstream's produce-stage behaviour in S1, so
-# no produce-stage entry is needed and the cap holds.
+# no produce-stage entry is needed there.
 #
 # external drops the elements whose type is external. Upstream's Clash
 # reader rejects that type, so such a node only comes from a Surge external
@@ -66,6 +82,15 @@
 # case an underscore key is a parser annotation both sides produce
 # (specs/normaliser.md, section 6). The corpus never points _ca at a file
 # that exists, so the key is the only difference ca has to hide.
+#
+# line-safety is the S2 produce-stage entry (design 28, S2 decisions). It
+# names the two corpus cases whose Surge or Quantumult X golden carries a
+# line break from a field: clash-socks5-name-newline (a name holding a
+# newline) and clash-ssh (an inline PEM private key, which Surge writes into
+# the line). The clash-ssh prefix also matches clash-ssh-key-path, whose
+# nodes carry no line break, so it has no line-safe golden and the entry
+# changes nothing there. A new corpus case with a line break in a field
+# these targets write fails until this entry names it.
 divergences:
   - id: external
     stage: parse
@@ -127,3 +152,22 @@ divergences:
     reason: >-
       require reaches the filesystem, the network and the host process outside
       every budget and grant a script runs under.
+  - id: line-safety
+    stage: produce
+    targets: [surge, quantumultx]
+    cases: [clash-socks5-name-newline, clash-ssh]
+    upstream: >-
+      Writes node text into Surge and Quantumult X lines as it is, so a name,
+      password, path or key that holds a line break adds lines of its own to
+      the profile, such as a [Script], [Rule] or [MITM] section.
+    chosen: >-
+      The producer rejects a node whose entry would hold a control character,
+      U+2028 or U+2029, and removes those characters from the Surge module
+      header's subscription name (specs/producers/surge.md and
+      specs/producers/quantumultx.md, "Line safety").
+    reason: >-
+      A provider feed must not be able to add sections or proxy lines to the
+      profile the operator's client imports, which is the line-format
+      counterpart of rule H3's exec-shaped nodes.
+    normalise:
+      - without_line_breaking_nodes: true
