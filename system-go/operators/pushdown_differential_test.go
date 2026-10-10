@@ -210,14 +210,25 @@ func randomChain(r *rand.Rand, rows []model.LineCatalogueRow) []string {
 func pick[T any](r *rand.Rand, pool []T) T { return pool[r.IntN(len(pool))] }
 
 // randomFilter is a Structured Filter. A pushable one is keep, all, exit
-// and built from "in" and whole lte predicates over pushable fields; any
-// other draws mode, match, geo, field and op freely.
+// and built from "in" and whole lte predicates over pushable fields, except
+// that one in six is spoiled by a single drop mode, any match or entry geo,
+// so the classifier's refusal of a step one rule away from pushable is
+// exercised here too; any other draws mode, match, geo, field and op freely.
 func randomFilter(r *rand.Rand, rows []model.LineCatalogueRow, pushable bool) string {
 	args := map[string]any{}
 	if !pushable {
 		args["mode"] = pick(r, []string{ModeKeep, ModeKeep, ModeDrop})
 		args["match"] = pick(r, []string{MatchAll, MatchAll, MatchAny})
 		args["geo"] = pick(r, []string{GeoExit, GeoExit, GeoEntry})
+	} else if r.IntN(6) == 0 {
+		switch r.IntN(3) {
+		case 0:
+			args["mode"] = ModeDrop
+		case 1:
+			args["match"] = MatchAny
+		case 2:
+			args["geo"] = GeoEntry
+		}
 	}
 	fields := PredicateFields()
 	var preds []map[string]any
