@@ -127,12 +127,9 @@ func clashMetaTransform(p *prepared, internal bool) {
 	if f["network"] == "ws" { // T13
 		wsEarlyData(p)
 	}
-	// T14: the plugin's own skip-cert-verify, else the node's.
-	if po, ok := obj(f, "plugin-opts"); ok && set(po, "tls") {
-		if scv, ok := f["skip-cert-verify"]; ok && po["skip-cert-verify"] == nil {
-			own(f, "plugin-opts")["skip-cert-verify"] = scv
-		}
-	}
+	// T14: the plugin's own skip-cert-verify when it is set, else the
+	// node's, so a plugin false gives way to a node true.
+	pluginSkipCertVerify(f)
 	// T15
 	switch typ {
 	case "trojan", "tuic", "hysteria", "hysteria2", "juicity", "anytls", "trusttunnel", "naive", "masque", "shadowquic":
@@ -202,6 +199,21 @@ func own(m map[string]any, key string) map[string]any {
 	c := maps.Clone(o)
 	m[key] = c
 	return c
+}
+
+// pluginSkipCertVerify is ClashMeta's T14 and the Stash and Shadowrocket
+// common rule: when plugin-opts.tls is set and the node has skip-cert-verify,
+// the plugin keeps its own value only when that is set and takes the node's
+// otherwise (clash-ss-v2ray-plugin-websocket-tls: plugin false, node true
+// gives true).
+func pluginSkipCertVerify(f map[string]any) {
+	po, ok := obj(f, "plugin-opts")
+	if !ok || !set(po, "tls") || set(po, "skip-cert-verify") {
+		return
+	}
+	if scv, ok := f["skip-cert-verify"]; ok {
+		own(f, "plugin-opts")["skip-cert-verify"] = scv
+	}
 }
 
 // restoreShadowTLS is T1 with po, the shadow-tls plugin options, writing
