@@ -52,10 +52,11 @@ type subscriptionConvertResult struct {
 //
 // The request is the SDK's ConvertRequest, decoded as strictly as the plugin
 // always decoded its own: exactly one of uris, raw and nodes. nodes are a
-// typed-node plan's nodes after the core bound them. A document plan and a
-// response chain are refused with a stated reason until the slices that run
-// them (document plans with fleet-bound records in S2, response chains in
-// S3).
+// typed-node plan's nodes after the core bound them, decoded as plan nodes so
+// the carried Lattice keys never reach a producer. A document plan has each
+// bound credential written in its placeholder's place, encoded for the
+// scalar it sits in. A response chain is refused with a stated reason until
+// S3 runs it in convert's isolate.
 //
 // A document with no node for the client is refused with
 // zeroNodesForTargetCode, the same rule the serve path applies.
@@ -69,11 +70,17 @@ func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionCon
 	if err != nil {
 		return subscriptionConvertResult{}, fmt.Errorf("invalid convert payload: %w", err)
 	}
-	if req.Document != nil {
-		return subscriptionConvertResult{}, fmt.Errorf("%s: a document plan is converted once fleet-bound records exist (S2); send uris, raw or nodes", convertUnsupportedCode)
-	}
 	if len(req.ResponseChain) > 0 {
 		return subscriptionConvertResult{}, fmt.Errorf("%s: convert runs a response chain once scripts run in its isolate (S3); render applies a record's response chain", convertUnsupportedCode)
+	}
+	if req.Document != nil {
+		// A document plan: each bound credential goes where its placeholder
+		// is, encoded for the scalar it sits in (subscription_convert_document.go).
+		content, err := substituteDocument(*req.Document)
+		if err != nil {
+			return subscriptionConvertResult{}, err
+		}
+		return subscriptionConvertResult{Content: content, ContentType: "text/plain; charset=utf-8"}, nil
 	}
 	target := req.Target
 	if !subscriptionConvertTargets[target] {
@@ -93,11 +100,16 @@ func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionCon
 		request.Nodes = make([]*nodemodel.Node, len(req.Nodes))
 		for i, raw := range req.Nodes {
 			request.Nodes[i] = &nodemodel.Node{}
-			// The decoder's error names a type, never a value: the node
-			// carries a credential.
-			if err := request.Nodes[i].UnmarshalJSON(raw); err != nil {
+			// A bound plan node: the carried Lattice keys move out of Fields
+			// and are dropped with line_uuid, so no producer writes a line,
+			// a geo, an address or a node id (S2 plan section 2.3). The
+			// decoder's error names a key or a type, never a value: the
+			// node carries a credential.
+			if err := request.Nodes[i].UnmarshalPlanNode(raw); err != nil {
 				return subscriptionConvertResult{}, fmt.Errorf("convert node %d: %w", i, err)
 			}
+			request.Nodes[i].Lattice = nil
+			nodemodel.StripLattice(request.Nodes[i])
 		}
 	} else {
 		raw, err := convertInput(req.URIs, req.Raw)
