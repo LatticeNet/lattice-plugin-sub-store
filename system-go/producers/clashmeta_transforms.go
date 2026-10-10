@@ -48,22 +48,13 @@ func clashMetaTransform(p *prepared, internal bool) {
 
 	switch typ {
 	case "vmess": // T3
-		if v, ok := f["aead"]; ok {
-			if truthy(v) {
-				p.put("alterId", float64(0))
-			}
-			delete(f, "aead")
-		}
+		vmessAEAD(p)
 		moveKey(p, "sni", "servername")
 		p.put("cipher", vmessSecurity(f))
 	case "tuic": // T4
 		alpnList(f)
 		copyKey(p, "tfo", "fast-open")
-		if !truthy(f["token"]) {
-			if _, ok := f["version"]; !ok {
-				p.put("version", float64(5))
-			}
-		}
+		tuicVersion(p)
 	case "hysteria": // T5
 		copyKey(p, "auth_str", "auth-str")
 		alpnList(f)
@@ -116,17 +107,8 @@ func clashMetaTransform(p *prepared, internal bool) {
 			p.put("obfs-opts", oo)
 		}
 	}
-	if stream {
-		switch f["network"] {
-		case "http": // T11
-			httpOptsLists(f)
-		case "h2": // T12
-			h2OptsHost(f)
-		}
-	}
-	if f["network"] == "ws" { // T13
-		wsEarlyData(p)
-	}
+	// T11 and T12 on vmess and vless, T13 on any ws node.
+	streamTransports(p, typ)
 	// T14: the plugin's own skip-cert-verify when it is set, else the
 	// node's, so a plugin false gives way to a node true.
 	pluginSkipCertVerify(f)
@@ -138,43 +120,14 @@ func clashMetaTransform(p *prepared, internal bool) {
 	// T16, T17: mihomo's key names.
 	renameSet(p, "tls-fingerprint", "fingerprint")
 	renameSet(p, "underlying-proxy", "dialer-proxy")
-	// T18
-	if v, ok := f["tls"]; ok {
-		if _, isBool := v.(bool); !isBool {
-			delete(f, "tls")
-		}
-	}
-	// T19: pipeline fields.
-	for _, k := range []string{"subName", "collectionName", "id", "resolved", "no-resolve", "ip-cidr", "ipv6-cidr"} {
-		delete(f, k)
-	}
+	dropNonBooleanTLS(f)  // T18
+	dropPipelineFields(f) // T19
 	// T20: null values and top-level annotations; only the http-upgrade
 	// record goes from the transport options.
 	if !internal {
-		for k, v := range f {
-			if v == nil || strings.HasPrefix(k, "_") {
-				delete(f, k)
-			}
-		}
-		key := textOf(f, "network") + "-opts"
-		if o, ok := obj(f, key); ok {
-			if _, ok := o["_v2ray-http-upgrade-ed"]; ok {
-				delete(own(f, key), "_v2ray-http-upgrade-ed")
-			}
-		}
+		dropAnnotations(f)
 	}
-	// T21
-	if f["network"] == "grpc" {
-		if g, ok := obj(f, "grpc-opts"); ok {
-			_, a := g["_grpc-type"]
-			_, b := g["_grpc-authority"]
-			if a || b {
-				g = own(f, "grpc-opts")
-				delete(g, "_grpc-type")
-				delete(g, "_grpc-authority")
-			}
-		}
-	}
+	dropGRPCAnnotations(f) // T21
 	// T22: mihomo's ip-version names.
 	if set(f, "ip-version") {
 		if v, ok := ipVersionNames[text(f["ip-version"])]; ok {
