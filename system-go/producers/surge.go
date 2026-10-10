@@ -289,6 +289,11 @@ var surgeSSCiphers = map[string]bool{
 	"chacha20-ietf": true, "none": true, "2022-blake3-aes-128-gcm": true, "2022-blake3-aes-256-gcm": true,
 }
 
+// surgeNameCleaner removes every "=" and "," from a node name. It is built
+// once: a strings.Replacer builds its byte table on construction, which per
+// node was most of the producer's allocation.
+var surgeNameCleaner = strings.NewReplacer("=", "", ",", "")
+
 // surgeEntry writes one node's entry, or returns errSurgeUnsupported for a
 // node the producer rejects (surge.md, "Unsupported rule").
 func surgeEntry(f map[string]any, include bool) (string, error) {
@@ -301,7 +306,7 @@ func surgeEntry(f map[string]any, include bool) (string, error) {
 			return "", errSurgeUnsupported
 		}
 	}
-	name := strings.NewReplacer("=", "", ",", "").Replace(textOf(f, "name"))
+	name := surgeNameCleaner.Replace(textOf(f, "name"))
 	if typ == "wireguard" {
 		if !include {
 			return "", errSurgeUnsupported
