@@ -385,6 +385,11 @@ func TestVPNCoreGraphDraftPreviewSaveAndPublishPreserveOneOrder(t *testing.T) {
 	record := selection.record("graph")
 	record.Name = "Graph"
 	record.Target = "URI"
+	// From S2 save creates no legacy record (legacy_source_retired): the
+	// graph record exists already, as a store restored from a backup holds it.
+	if err := rt.saveSubscription(record); err != nil {
+		t.Fatal(err)
+	}
 	saved := rt.handleSubscriptionCall(callPayload{Method: "save", Payload: mustJSON(map[string]any{"subscription": record})})
 	if !saved.OK {
 		t.Fatalf("save=%+v", saved)
@@ -739,6 +744,11 @@ func TestVPNCoreGraphSaveRevalidatesOptionsAndPersistsExactOrderAcrossRestart(t 
 	host.optionsResponse = canonicalGraphOptionsResponse(t)
 	record := subscriptionRecord{ID: "graph", Name: "Graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a",
 		EntryRoots: []string{graphRootB, graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}
+	// From S2 save creates no legacy record (legacy_source_retired): it edits
+	// one a backup restored.
+	if err := rt.saveSubscription(record); err != nil {
+		t.Fatal(err)
+	}
 	response := rt.handleSubscriptionCall(callPayload{Method: "save", Payload: mustJSON(map[string]any{"subscription": record})})
 	if !response.OK || len(host.calls) != 1 || host.calls[0]["method"] != "graph_options" {
 		t.Fatalf("save=%+v calls=%+v", response, host.calls)

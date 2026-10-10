@@ -36,6 +36,10 @@ type migrationReport struct {
 	Unavailable map[string]string `json:"unavailable,omitempty"`
 	Total       int               `json:"total"`
 	Truncated   bool              `json:"truncated"`
+	// Staged and Refused are import's (importOutcome): a fleet-bound record
+	// staged instead of written live, and a record a guard refused.
+	Staged  map[string]string       `json:"staged,omitempty"`
+	Refused map[string]storeRefusal `json:"refused,omitempty"`
 }
 
 // upstreamSub is the subset of an upstream Sub-Store subscription this plugin
@@ -139,7 +143,7 @@ func (rt *runtime) migrateFromSubStore(req subStoreRequest) (migrationReport, er
 	// the reference is.
 	rt.importUpstreamCollections(collections, &report, &pending)
 	rt.importUpstreamFiles(files, &report, &pending)
-	batch, err := rt.saveSubscriptionBatch(pending)
+	batch, err := rt.saveSubscriptionBatch(pending, originMigrate)
 	if err != nil {
 		return migrationReport{}, fmt.Errorf("persist migrated records: %w", err)
 	}
@@ -147,6 +151,12 @@ func (rt *runtime) migrateFromSubStore(req subStoreRequest) (migrationReport, er
 	for id, why := range batch.skipped {
 		report.Skipped[id] = why
 		report.Imported = slices.DeleteFunc(report.Imported, func(x string) bool { return x == id })
+	}
+	if len(batch.staged) > 0 {
+		report.Staged = batch.staged
+	}
+	if len(batch.refused) > 0 {
+		report.Refused = batch.refused
 	}
 	return report, nil
 }

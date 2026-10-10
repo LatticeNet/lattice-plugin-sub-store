@@ -154,6 +154,9 @@ type subscriptionRecord struct {
 	// Origin is set on an imported record and holds the source object verbatim,
 	// so a migration cannot lose a field this plugin does not yet understand.
 	Origin *migratedOrigin `json:"origin,omitempty"`
+	// MigratedFrom is set by migrate_record on the fleet record it builds
+	// from a legacy one (store_record_model.go, plan section 2.1).
+	MigratedFrom *legacyOrigin `json:"migrated_from,omitempty"`
 	// Fetch bookkeeping. On the split store it lives in the index entry
 	// (store_index.go), where list reads it in one key, and a record document
 	// carries none of it; a legacy record carries it here, and migrate_store

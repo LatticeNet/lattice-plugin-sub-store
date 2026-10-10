@@ -193,7 +193,9 @@ func TestWritesOnALegacyStoreAreRefusedWithCode(t *testing.T) {
 	for method, payload := range writes {
 		puts := host.puts
 		res := callSubscription(t, rt, method, payload)
-		if res.OK || !strings.HasPrefix(res.Error, storeMigrationRequiredCode+":") {
+		// A mutating method answers the refusal as the structured reply from
+		// S2, because the gateway strips every mutation error.
+		if !isRefusedResponse(res) || !strings.HasPrefix(refusalText(res), storeMigrationRequiredCode+":") {
 			t.Errorf("%s on a legacy store = %+v, want the %s refusal", method, res, storeMigrationRequiredCode)
 		}
 		if host.puts != puts {
@@ -261,8 +263,8 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 		{name: "export", method: "export", payload: map[string]any{}, want: 4, ok: true},
 		{name: "depends_on", method: "depends_on", payload: map[string]any{}, want: 2, ok: true},
-		{name: "save is refused", method: "save", payload: map[string]any{"subscription": map[string]any{"id": "n", "name": "n"}}, want: 2},
-		{name: "delete is refused", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 2},
+		{name: "save is refused", method: "save", payload: map[string]any{"subscription": map[string]any{"id": "n", "name": "n"}}, want: 2, ok: true},
+		{name: "delete is refused", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 	}
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {

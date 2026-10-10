@@ -90,9 +90,11 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		// fetch: record read, one compose, and the refresh bookkeeping's own
 		// index read and write; the outcome must land on the row either way.
 		graphFetchCalls = 4
-		// save: the options reload that validates the selection, then the
-		// index read, the record write and the index write.
-		graphSaveCalls    = 4
+		// save of an existing graph record (save creates no legacy record
+		// from S2): the options reload that validates the selection, then
+		// the index read, the stored record, the record write and the index
+		// write.
+		graphSaveCalls    = 5
 		graphPreviewCalls = 2
 		// render and publish: the record, the Settings read for the default
 		// target (the records name none), one composition; publish sends.
@@ -121,7 +123,7 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 	}{
 		{name: "options", method: "graph_options", body: map[string]any{}, want: graphOptionsCalls, wantOK: true},
 		{name: "fetch", method: "fetch", body: map[string]any{"subscription_id": "graph-00"}, want: graphFetchCalls, seed: true, wantOK: true},
-		{name: "save", method: "save", body: map[string]any{"subscription": map[string]any{"id": "new-graph", "name": "new-graph", "source": subscriptionSourceVPNCoreGraph, "vpn_identity": "identity-a", "entry_roots": []string{graphRootA}, "graph_options_version": "ov1:" + repeatHex("a")}}, want: graphSaveCalls, seed: true, wantOK: true},
+		{name: "save", method: "save", body: map[string]any{"subscription": map[string]any{"id": "graph-00", "name": "graph-00", "source": subscriptionSourceVPNCoreGraph, "vpn_identity": "identity-a", "entry_roots": []string{graphRootA}, "graph_options_version": "ov1:" + repeatHex("a")}}, want: graphSaveCalls, seed: true, wantOK: true},
 		{name: "direct preview", method: "preview", body: map[string]any{"subscription_id": "graph-00"}, want: graphPreviewCalls, seed: true, wantOK: true},
 		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, wantOK: true},
 		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, wantOK: true},

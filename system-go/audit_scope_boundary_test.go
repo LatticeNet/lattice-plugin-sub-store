@@ -338,8 +338,11 @@ func TestPreviewDraftIsDeclaredAdminInTheManifest(t *testing.T) {
 				continue
 			}
 			seen[method.Name] = true
-			if len(method.Scopes) != 1 || method.Scopes[0] != expected {
-				t.Errorf("%s is declared %v, want [%s]", method.Name, method.Scopes, expected)
+			// From S2 both also declare vpncore:read, because their replies
+			// can carry catalogue rows or plan nodes (plan section 10); the
+			// sub-store scope stays the one this split is about.
+			if len(method.Scopes) != 2 || method.Scopes[0] != expected || method.Scopes[1] != "vpncore:read" {
+				t.Errorf("%s is declared %v, want [%s vpncore:read]", method.Name, method.Scopes, expected)
 			}
 		}
 	}

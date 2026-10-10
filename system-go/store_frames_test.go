@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/LatticeNet/lattice-sdk/model"
 )
 
 // replyFrameBytes is the size of the response frame that carries reply,
@@ -75,7 +77,8 @@ func TestWriteBudgetsCoverTheirLargestFrames(t *testing.T) {
 	index := kvPutFrameBytes(storeIndexKey, make([]byte, maxIndexBytes))
 	record := kvPutFrameBytes(recordKey("x"), make([]byte, maxRecordDocBytes))
 	legacy := kvPutFrameBytes(subscriptionRecordsKey, make([]byte, maxSubscriptionDocBytes+maxLegacyDocSlackBytes))
-	pipelines := kvPutFrameBytes(pipelineRecordsKey, make([]byte, maxPipelineDocBytes))
+	// A staged document is the record plus its base revision and time.
+	staged := kvPutFrameBytes(stagedKey("x"), make([]byte, maxRecordDocBytes+512))
 	settings := kvPutFrameBytes(settingsKey, make([]byte, maxSettingsBytes))
 	small := hostCallFrameOverhead + 512
 	reply := 64 << 10
@@ -89,35 +92,52 @@ func TestWriteBudgetsCoverTheirLargestFrames(t *testing.T) {
 	// A destination of maxLinkBytes can grow six times as escaped JSON.
 	published := hostCallFrameOverhead + base64.StdEncoding.EncodedLen(maxPublishBytes) + 6*maxLinkBytes + 1<<10
 	scripts := scriptHTTPMaxRequestBytes + scriptHTTPMaxCalls*hostCallFrameOverhead
+	// migrate_record answers with up to MaxSubscriptionRecordNodes line uuids.
+	uuids := model.MaxSubscriptionRecordNodes * 40
+	// Every index write passes if_match and earns one retry (plan section
+	// 2.7), so every write row carries a second index frame and the retry's
+	// read.
 	need := map[string]int{
-		"engine/save_pipeline":   pipelines + 2*small + reply,
-		"engine/delete_pipeline": pipelines + 2*small + reply,
-		"subscription/save":      record + index + 4*small + withRecord,
-		"subscription/delete":    record + index + 3*small + reply,
-		"subscription/restore":   record + index + 3*small + withRecord,
-		"subscription/purge":     index + 2*small + reply,
-		"subscription/reorder":   index + small + reply,
+		"subscription/save":    max(record, staged) + 2*index + 8*small + withRecord,
+		"subscription/delete":  record + 2*index + 7*small + reply,
+		"subscription/restore": max(record, staged) + 2*index + 6*small + withRecord,
+		"subscription/purge":   2*index + 4*small + reply,
+		"subscription/reorder": 2*index + 3*small + reply,
 		// The larger of a chunk (its record frames, which stop before
 		// migrateChunkFrameBytes unless one record is larger, the index and
 		// the reads) and the verify call (the index twice and the legacy
 		// document).
 		"subscription/migrate_store": max(max(migrateChunkFrameBytes, record)+index+140*small, 2*index+legacy+8*small) + reply,
-		// A batch refuses itself past maxBatchFrameBytes before writing.
-		"subscription/import":         maxBatchFrameBytes + settings + 320*small + report,
-		"subscription/migrate":        maxBatchFrameBytes + 325*small + report,
-		"subscription/save_settings":  settings + small + maxSettingsBytes,
-		"subscription/publish":        published + scripts + 143*small + reply,
-		"subscription/apply_revision": reply,
+		// A batch refuses itself past maxBatchFrameBytes before writing; its
+		// index retry adds one index frame beyond that bound.
+		"subscription/import":        maxBatchFrameBytes + index + settings + 322*small + report,
+		"subscription/migrate":       maxBatchFrameBytes + index + 327*small + report,
+		"subscription/save_settings": settings + small + maxSettingsBytes,
+		"subscription/publish":       published + scripts + 143*small + reply,
+		// The record (or, for a delete, the archive) put, two index frames,
+		// the claim and the reads.
+		"subscription/apply_revision": record + 2*index + 9*small + reply,
+		"subscription/migrate_record": staged + 2*index + 9*small + uuids + reply,
+		"subscription/discard_staged": 2*index + 4*small + reply,
 	}
 	// Methods marked read that answer with a large reply are held the same way.
+	// depends_on's v2 store-wide reply carries a row and the edges for every
+	// entry of an index allowed to reach maxIndexBytes: about twice the
+	// entries' bytes (plan section 2.7).
 	for key, want := range map[string]int{
-		"subscription/export": maxExportReplyBytes + 320*small,
+		"subscription/export":     maxExportReplyBytes + 320*small,
+		"subscription/depends_on": 2*maxIndexBytes + reply,
 	} {
 		if got := budgets[pluginID+"/"+key].StdoutBytes; got < want {
 			t.Errorf("%s signs %d stdout bytes; its largest reply needs %d", key, got, want)
 		}
 	}
 	for _, iface := range loadManifestInterfaces(t) {
+		// A core-backed method runs in lattice-server, which sizes its own
+		// frames; only what this artifact writes is bounded here.
+		if iface.Backing != "runtime" {
+			continue
+		}
 		service := strings.TrimPrefix(iface.Service, pluginID+"/")
 		for _, method := range iface.Methods {
 			if method.Effect != "write" {

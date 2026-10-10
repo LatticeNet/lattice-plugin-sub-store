@@ -60,7 +60,7 @@ func (rt *runtime) deleteSubscription(id string) error {
 	if err := rt.kvPut(archiveKey(id), archive); err != nil {
 		return err
 	}
-	if err := rt.kvPut(storeIndexKey, indexRaw); err != nil {
+	if err := rt.putIndexRaw(idx, indexRaw); err != nil {
 		return err
 	}
 	return rt.kvDelete(recordKey(id))
@@ -114,7 +114,7 @@ func (rt *runtime) restoreSubscription(id string) (subscriptionRecord, error) {
 	if err := rt.kvPut(recordKey(id), recordRaw); err != nil {
 		return subscriptionRecord{}, err
 	}
-	if err := rt.kvPut(storeIndexKey, indexRaw); err != nil {
+	if err := rt.putIndexRaw(idx, indexRaw); err != nil {
 		return subscriptionRecord{}, err
 	}
 	if err := rt.kvDelete(archiveKey(id)); err != nil {

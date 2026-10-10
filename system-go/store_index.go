@@ -29,6 +29,10 @@ type indexDocument struct {
 	Records   []indexEntry    `json:"records"` // in manual order, Order dense from 0
 	Archived  []indexEntry    `json:"archived,omitempty"`
 	Migration *migrationState `json:"migration,omitempty"`
+	// digest is the stored index's kvDigest as this invocation read it, the
+	// if_match every write of this document sends; empty for an index that
+	// did not exist, which makes the write a create (store_kv.go).
+	digest string
 }
 
 type indexEntry struct {
@@ -61,11 +65,83 @@ type indexEntry struct {
 	NodesIn     *int   `json:"nodes_in,omitempty"`
 	NodesOut    *int   `json:"nodes_out,omitempty"`
 	ArchivedAt  string `json:"archived_at,omitempty"`
+	// StagedRevision is the revision of the record held in staged-v2-<id>,
+	// waiting for a plan; empty when nothing is staged (plan section 2.2).
+	StagedRevision string `json:"staged_revision,omitempty"`
+	StagedAt       string `json:"staged_at,omitempty"`
+	// StagedSource, StagedMembers, StagedMemberTags, StagedTags and
+	// StagedMigrated are the staged record's facts the closures and core's
+	// publish read without opening staged-v2-<id>: its source, the edges it
+	// would create, and whether migrate_record wrote it (MigratedFrom set).
+	// StagedKind is the staged record's kind, which a staged edit may change.
+	StagedKind       string   `json:"staged_kind,omitempty"`
+	StagedSource     string   `json:"staged_source,omitempty"`
+	StagedMembers    []string `json:"staged_members,omitempty"`
+	StagedMemberTags []string `json:"staged_member_tags,omitempty"`
+	StagedTags       []string `json:"staged_tags,omitempty"`
+	StagedMigrated   bool     `json:"staged_migrated,omitempty"`
+	// StagedRestoredAt is the archived_at of the archive a staged restore
+	// came from; discard_staged returns the entry to Archived with it, and
+	// the promotion deletes archive-v2-<id>.
+	StagedRestoredAt string `json:"staged_restored_at,omitempty"`
+	// SelectionVersion is the catalogue version the last fetch wrote.
+	SelectionVersion string `json:"selection_version,omitempty"`
+	// No legacy {vpn_identity, entry_roots} block: an entry is derived only
+	// when its record is written, so no write could backfill it for records
+	// not written since 0.18, and a graph record's roots (up to 2048) do not
+	// belong in an index bounded at 384 KiB. Core's readers open
+	// record-v2-<id> for a legacy-source entry instead.
 }
 
 type indexFlags struct {
 	RegexIncompatible bool `json:"regex_incompatible,omitempty"`
 	HasFallbackStep   bool `json:"has_fallback_step,omitempty"`
+	// OwnerCredentials marks a legacy vpn-core or vpn-core-graph record and
+	// every collection or file that reads one: it still serves line owner
+	// credentials (design-28.md:230). Live state only.
+	OwnerCredentials bool `json:"owner_credentials,omitempty"`
+	// FleetBound marks a record whose transitive live sources include a fleet
+	// record. Live state only: what a staged revision would make fleet-bound
+	// is a staged fact, read from the Staged* fields, never folded into this
+	// flag. Files cannot be fleet-bound in S2.
+	FleetBound bool `json:"fleet_bound,omitempty"`
+}
+
+// hasLiveRevision reports whether the entry names a live record. An entry
+// built by stagedEntryFor (a staged new record, a staged import of a new id,
+// a staged restore) has none.
+func (entry indexEntry) hasLiveRevision() bool { return entry.Revision != "" }
+
+// hasStaged reports whether a staged revision waits for a plan.
+func (entry indexEntry) hasStaged() bool { return entry.StagedRevision != "" }
+
+// stagedEntryFor is the entry of a record that has no live revision: its id,
+// kind, names and order, and its staged facts, and no live fact at all (no
+// source, tags, members, node source, flags or fetch bookkeeping), so every
+// live-state reader sees nothing in it (plan section 2.2).
+func stagedEntryFor(rec subscriptionRecord, stagedAt string) indexEntry {
+	entry := indexEntry{ID: rec.ID, Kind: recordKind(rec), Name: rec.Name, DisplayName: rec.DisplayName}
+	entry.setStaged(rec, stagedAt)
+	return entry
+}
+
+// setStaged records rec as the entry's staged revision.
+func (entry *indexEntry) setStaged(rec subscriptionRecord, stagedAt string) {
+	entry.StagedRevision = subscriptionRevision(rec)
+	entry.StagedAt = stagedAt
+	entry.StagedKind = recordKind(rec)
+	entry.StagedSource = rec.Source
+	entry.StagedMembers = rec.Members
+	entry.StagedMemberTags = rec.MemberTags
+	entry.StagedTags = rec.Tags
+	entry.StagedMigrated = rec.MigratedFrom != nil
+}
+
+// clearStaged forgets the staged revision's facts.
+func (entry *indexEntry) clearStaged() {
+	entry.StagedRevision, entry.StagedAt, entry.StagedKind, entry.StagedSource = "", "", "", ""
+	entry.StagedMembers, entry.StagedMemberTags, entry.StagedTags = nil, nil, nil
+	entry.StagedMigrated, entry.StagedRestoredAt = false, ""
 }
 
 // migrationState is migrate_store's progress, kept in the index so a chunk
@@ -165,10 +241,17 @@ func legacyEntry(rec subscriptionRecord) indexEntry {
 	return entry
 }
 
-// carryBookkeeping copies what fetch wrote onto a freshly derived entry.
+// carryBookkeeping copies what fetch wrote, and the staged revision's facts,
+// onto a freshly derived entry. The staged facts travel with it so a live
+// write or a rebuild never orphans staged-v2-<id> or stales a pending plan;
+// a promotion clears them explicitly after carrying.
 func (entry *indexEntry) carryBookkeeping(from indexEntry) {
 	entry.LastFetchAt, entry.LastFetchOK, entry.LastError = from.LastFetchAt, from.LastFetchOK, from.LastError
 	entry.Userinfo, entry.NodesIn, entry.NodesOut = from.Userinfo, from.NodesIn, from.NodesOut
+	entry.SelectionVersion = from.SelectionVersion
+	entry.StagedRevision, entry.StagedAt, entry.StagedKind, entry.StagedSource = from.StagedRevision, from.StagedAt, from.StagedKind, from.StagedSource
+	entry.StagedMembers, entry.StagedMemberTags, entry.StagedTags = from.StagedMembers, from.StagedMemberTags, from.StagedTags
+	entry.StagedMigrated, entry.StagedRestoredAt = from.StagedMigrated, from.StagedRestoredAt
 }
 
 // withBookkeeping hands a record back with its entry's bookkeeping, for the
@@ -301,6 +384,19 @@ type listView struct {
 	// back to reading the header itself.
 	UserinfoParsed bool   `json:"userinfo_parsed,omitempty"`
 	ArchivedAt     string `json:"archived_at,omitempty"`
+	// The staged revision and its facts (plan section 2.2): a record with a
+	// staged revision shows both revisions, and a staged new record shows an
+	// empty revision beside its staged one.
+	StagedRevision   string   `json:"staged_revision,omitempty"`
+	StagedAt         string   `json:"staged_at,omitempty"`
+	StagedKind       string   `json:"staged_kind,omitempty"`
+	StagedSource     string   `json:"staged_source,omitempty"`
+	StagedMembers    []string `json:"staged_members,omitempty"`
+	StagedMemberTags []string `json:"staged_member_tags,omitempty"`
+	StagedTags       []string `json:"staged_tags,omitempty"`
+	StagedMigrated   bool     `json:"staged_migrated,omitempty"`
+	StagedRestoredAt string   `json:"staged_restored_at,omitempty"`
+	SelectionVersion string   `json:"selection_version,omitempty"`
 }
 
 func viewOf(entry indexEntry) listView {
@@ -313,6 +409,10 @@ func viewOf(entry indexEntry) listView {
 		Steps: entry.StepCount, StepsOff: entry.StepsOff, Imported: entry.Imported,
 		Revision: entry.Revision, Order: entry.Order,
 		NodesIn: entry.NodesIn, NodesOut: entry.NodesOut, ArchivedAt: entry.ArchivedAt,
+		StagedRevision: entry.StagedRevision, StagedAt: entry.StagedAt, StagedKind: entry.StagedKind,
+		StagedSource: entry.StagedSource, StagedMembers: entry.StagedMembers,
+		StagedMemberTags: entry.StagedMemberTags, StagedTags: entry.StagedTags,
+		StagedMigrated: entry.StagedMigrated, StagedRestoredAt: entry.StagedRestoredAt, SelectionVersion: entry.SelectionVersion,
 	}
 	if entry.Flags != (indexFlags{}) {
 		flags := entry.Flags
