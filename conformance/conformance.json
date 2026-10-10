@@ -1,6 +1,6 @@
 {
   "upstream_commit": "a3e61061e50b40e5c5938969aab915d05d8d7069",
-  "generated_at": "2026-10-10T03:02:06Z",
+  "generated_at": "2026-10-10T03:14:17Z",
   "parse": {
     "cases": 639,
     "passed": 639
@@ -23,6 +23,22 @@
       "passed": 611
     },
     "clashmeta": {
+      "cases": 611,
+      "passed": 611
+    },
+    "stash": {
+      "cases": 611,
+      "passed": 611
+    },
+    "shadowrocket": {
+      "cases": 611,
+      "passed": 611
+    },
+    "surge": {
+      "cases": 611,
+      "passed": 611
+    },
+    "quantumultx": {
       "cases": 611,
       "passed": 611
     }
