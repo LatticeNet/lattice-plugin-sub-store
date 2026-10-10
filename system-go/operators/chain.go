@@ -28,6 +28,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 )
@@ -87,6 +88,18 @@ type Plan struct {
 type Context struct {
 	Target string // the exact caller target string
 	Raw    string // the source text, for parity with process(..., raw)
+	// Now is the clock the structured steps' renewal and probe windows
+	// read; zero reads time.Now. One invocation passes one instant, so every
+	// step of a chain sees the same now.
+	Now time.Time
+}
+
+// now is the instant the structured steps read.
+func (c *Context) now() time.Time {
+	if c == nil || c.Now.IsZero() {
+		return time.Now()
+	}
+	return c.Now
 }
 
 // Native reports whether every enabled node-stage step runs in Go. Response
@@ -239,6 +252,11 @@ func compileStep(index int, step Step) (Compiled, error) {
 	run := compile(c, step.Args)
 	out := Compiled{Step: step, Kind: KindNative, Run: run, Diag: c.diags}
 	if run == nil || c.fallback() {
+		if fleetOperators[step.Type] {
+			// The bundle does not know a Lattice-only step and would skip
+			// it, so arguments this package cannot read are refused.
+			return Compiled{}, fleetArgsError(c, step)
+		}
 		out.Kind, out.Run = KindFallback, nil
 	}
 	return out, nil

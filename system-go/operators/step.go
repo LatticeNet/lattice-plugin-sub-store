@@ -35,7 +35,8 @@ func DecodeStep(raw json.RawMessage) (Step, error) {
 // a diagnostic recorded on c, when the step has to fall back.
 type compileFunc func(c *stepCompiler, args json.RawMessage) stepFunc
 
-// nativeOperators are the fourteen non-script operators (slices.md:53).
+// nativeOperators are the fourteen non-script operators (slices.md:53) and
+// the two Lattice-only steps (fleetOperators).
 var nativeOperators = map[string]compileFunc{
 	"Quick Setting Operator":                 compileQuickSetting,
 	"Useless Filter":                         compileUselessFilter,
@@ -51,6 +52,29 @@ var nativeOperators = map[string]compileFunc{
 	"Regex Delete Operator":                  compileRegexDelete,
 	"Handle Duplicate Operator":              compileHandleDuplicate,
 	"Add Proxies From Subscription Operator": compileAddProxies,
+	StructuredFilterType:                     compileStructuredFilter,
+	StructuredSortType:                       compileStructuredSort,
+}
+
+// fleetOperators are the Lattice-only steps (S2 plan section 2.4). They run
+// in Go only: the bundle does not know them, so arguments they cannot read
+// fail Compile instead of falling back, package main keeps them out of the
+// vocabulary it checks bundle chains against (validateOperators), and a
+// chain that runs on the bundle as a whole would skip them, which
+// StructuredAfterLeadingRun reports.
+var fleetOperators = map[string]bool{
+	StructuredFilterType: true,
+	StructuredSortType:   true,
+}
+
+// FleetVocabulary is the Lattice-only step types, sorted.
+func FleetVocabulary() []string {
+	out := make([]string, 0, len(fleetOperators))
+	for name := range fleetOperators {
+		out = append(out, name)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // fallbackOperators always run on the bundle in S1: Resolve Domain needs the

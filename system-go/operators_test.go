@@ -87,8 +87,32 @@ func TestScriptingOperatorsAreMarked(t *testing.T) {
 	if byType["Flag Operator"].Scripting {
 		t.Fatal("a non-scripting operator was marked as scripting")
 	}
-	if len(byType) != len(operatorCatalog) {
-		t.Fatalf("catalog info has %d entries, catalog has %d", len(byType), len(operatorCatalog))
+	if len(byType) != len(operatorCatalog)+len(fleetOperators) {
+		t.Fatalf("catalog info has %d entries, catalog and fleet steps have %d", len(byType), len(operatorCatalog)+len(fleetOperators))
+	}
+	for _, name := range fleetOperators {
+		if info := byType[name]; !info.Fleet || info.Scripting || info.Response {
+			t.Fatalf("%s is listed as %+v, want fleet only", name, info)
+		}
+	}
+	for _, name := range operatorCatalog {
+		if byType[name].Fleet {
+			t.Fatalf("the engine operator %s is flagged fleet", name)
+		}
+	}
+}
+
+// The engine does not know the Lattice-only steps and would skip them, so
+// the guard on chains it runs refuses them, while a record's process
+// vocabulary holds them.
+func TestFleetStepsAreRecordVocabularyButNotEngineVocabulary(t *testing.T) {
+	for _, name := range fleetOperators {
+		if err := validateOperators([]json.RawMessage{json.RawMessage(`{"type":` + mustQuote(name) + `,"args":{}}`)}); err == nil {
+			t.Fatalf("validateOperators accepted %s for the engine", name)
+		}
+		if !processVocabulary()[name] {
+			t.Fatalf("processVocabulary does not hold %s", name)
+		}
 	}
 }
 

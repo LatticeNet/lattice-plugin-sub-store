@@ -39,6 +39,15 @@ var operatorCatalog = []string{
 	"Useless Filter",
 }
 
+// fleetOperators are the two Lattice-only steps (design 28; S2 plan section
+// 2.4), Structured Filter and Structured Sort. They are not in
+// operatorCatalog, which is pinned to the bundled engine's literals: the
+// engine does not know them and would skip them, so validateOperators, which
+// guards chains the engine runs, keeps refusing them. They run in Go only,
+// over the fleet block a fleet node carries, and the process vocabulary a
+// record's chain is checked against holds them (processVocabulary).
+var fleetOperators = operators.FleetVocabulary()
+
 // scriptingOperators run operator-supplied JavaScript inside the engine. They are
 // legitimate and upstream ships them, but they are the two entries whose blast
 // radius is not bounded by the operator's own arguments, so they are marked for
@@ -83,14 +92,22 @@ type operatorInfo struct {
 	// list. The two chains do not mix, and the UI needs to know which is which
 	// to avoid offering a step the engine would skip.
 	Response bool `json:"response,omitempty"`
+	// Fleet marks a Lattice-only step: it reads the fleet block of a fleet
+	// node, so the editor offers it on fleet-bound records only (a provider
+	// node has no fleet block, and every predicate over it is unknown).
+	Fleet bool `json:"fleet,omitempty"`
 }
 
 // operatorCatalogInfo is what the UI lists so an operator can be chosen rather
-// than typed from memory.
+// than typed from memory: the engine's proxy operators and the Lattice-only
+// steps, each flagged.
 func operatorCatalogInfo() []operatorInfo {
-	out := make([]operatorInfo, 0, len(operatorCatalog))
+	out := make([]operatorInfo, 0, len(operatorCatalog)+len(fleetOperators))
 	for _, name := range operatorCatalog {
 		out = append(out, operatorInfo{Type: name, Scripting: scriptingOperators[name]})
+	}
+	for _, name := range fleetOperators {
+		out = append(out, operatorInfo{Type: name, Fleet: true})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Type < out[j].Type })
 	return out
