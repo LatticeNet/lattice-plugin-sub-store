@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "DE-q4q-65",
+      "obfs": "xplus",
+      "obfs-password": "b5LnTsrJt7t8Z97A",
+      "password": "CaRJvNo3wLi7CJWZCiPC",
+      "port": 443,
+      "server": "hh-39.vosqj.example.org",
+      "sni": "api.g09qao7vc4.example.net",
+      "type": "hysteria2",
+      "udp": true
+    }
+  ]
+}

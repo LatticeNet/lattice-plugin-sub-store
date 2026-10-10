@@ -1,0 +1,18 @@
+proxies:
+  - name: GB-vzdsx-11
+    type: vmess
+    server: dh-09.j8zxvm8y.example.org
+    port: 443
+    uuid: 306a27fc-af1d-47fe-bc69-c42b06e4e615
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: static.lnmdy7bpz4.example.com
+    network: ws
+    ws-opts:
+      path: /t2og2q7t
+      headers:
+        Host: img.juflq2qmv.example.net
+        X-hvzcyy4b: "\"jq5m114e\""
+        X-w97h: "'ja7jh4f8'"

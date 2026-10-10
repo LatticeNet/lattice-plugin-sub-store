@@ -1,0 +1,74 @@
+[
+  {
+    "address": "e3p-17.pbyk.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "hrhQq1Eva9c1tZrs",
+      "tag": "AU-fq4p08-96",
+      "tls-host": "www.zh6dny627.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "qfs-27.rx02oc.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "KKzkHAhEuTVXi8Qz",
+      "tag": "KR-gbcp-42",
+      "tls-host": "cdn.b3piyy0xi.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "lg-26.jbwp6.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "Ci559TWRue38r8Hf",
+      "tag": "DE-ch7j-82",
+      "tls-host": "www.i7ktit.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "xgm-38.ef06e0xl.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "j159bHN0pWCL4RaB",
+      "tag": "KR-b3nkw-75",
+      "tls-host": "static.hui3ck.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "mr-38.n1c49sk.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "DV0R4WYjtXVHbrLZ",
+      "tag": "FR-r5w-95",
+      "tls-host": "img.tb6alpmc.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "d9-20.lf905r.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "kKi9ZFYemNrRsNWK",
+      "tag": "FR-b8ah7p-66",
+      "tls-host": "www.acs4lg.example.net",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "fm-04.a3i4jy.example.net",
+      "443",
+      "axh3vCkuX5XttJITA3Nw"
+    ],
+    "name": "CA-bux-89",
+    "params": {
+      "fast-open": "true",
+      "salamander-password": "Em9uhvQ8uMiwK95e",
+      "server-ports": "20000-30000,40000",
+      "skip-cert-verify": "false",
+      "tls-name": "img.gudkt.example.org",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

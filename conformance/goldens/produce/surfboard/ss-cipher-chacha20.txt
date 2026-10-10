@@ -1,0 +1,2 @@
+AU-myqg-14=ss,jcb-14.sz5j5zb6.example.com,24641,encrypt-method=chacha20,password="vR18ccbMVIMuZXh7",udp-relay=true
+JP-cek9e-51=ss,fl6-16.bnilt.example.com,23198,encrypt-method=rc4,password="cbwOYIAHHKweWKJS",udp-relay=true

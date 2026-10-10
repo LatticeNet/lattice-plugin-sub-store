@@ -1,0 +1,1 @@
+shadowsocks=y97-38.rn04h.example.com:30252, method=aes-128-gcm, password=iiQPgx4YdvOrzD, obfs=shadowsocks-http, obfs-host=api.bjn3w2ond.example.net, obfs-uri=/jwnph6w, tag=DE-m589t-55

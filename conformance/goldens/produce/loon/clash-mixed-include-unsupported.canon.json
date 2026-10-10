@@ -1,0 +1,43 @@
+[
+  {
+    "args": [
+      "ep-36.ladi.example.org",
+      "8080",
+      "zoushga",
+      "LLudeRwOBV80"
+    ],
+    "name": "NL-zep7-46",
+    "params": {},
+    "type": "http"
+  },
+  {
+    "args": [
+      "vl-27.jpxff.example.org",
+      "80",
+      "auto",
+      "daa4605b-ff81-4e52-b134-26d91c376a3e"
+    ],
+    "name": "HK-g5wzd-51",
+    "params": {
+      "alterId": "0",
+      "host": "cdn.bzkynldo.example.com",
+      "path": "/g76/zhpwfk7oof",
+      "transport": "http",
+      "udp": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "j3d-04.e29g.example.com",
+      "17410",
+      "aes-128-gcm",
+      "4hvmdU03O0JArG"
+    ],
+    "name": "FR-g8uxz-35",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "id": "wireguard-all-module-include",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "surge-module-header",
+  "description": "The same document with include-unsupported-proxy: Surge writes the module header and then one WireGuard template per node.",
+  "options": {
+    "include-unsupported-proxy": true
+  },
+  "record_name": "mycp548l"
+}

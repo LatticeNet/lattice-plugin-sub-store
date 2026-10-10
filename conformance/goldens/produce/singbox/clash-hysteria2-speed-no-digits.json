@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-c5l-76",
+      "type": "hysteria2",
+      "server": "rs-36.i0j0wh.example.net",
+      "server_port": 443,
+      "password": "TpTxv5boO3l0uVdiTAX5",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.zf18dl.example.net",
+        "insecure": false
+      },
+      "up_mbps": null,
+      "down_mbps": null
+    }
+  ],
+  "endpoints": []
+}

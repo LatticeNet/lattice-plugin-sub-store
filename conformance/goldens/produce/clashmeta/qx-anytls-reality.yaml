@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"TW-s0kp0-14","password":"TYa4FLCt6y2Pe1pGcRn4","port":443,"reality-opts":{"public-key":"4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI","short-id":"649db3e7"},"server":"jhw-31.d5kbjv.example.net","sni":"cdn.b0fugafa.example.org","type":"anytls","udp":true,"client-fingerprint":"chrome"}

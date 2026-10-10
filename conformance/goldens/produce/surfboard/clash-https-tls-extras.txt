@@ -1,0 +1,2 @@
+AU-qwcrw-85=https,yo-32.t7tq.example.org,443,vf6vjpt2,gGYHIQZCdJix,server-cert-fingerprint-sha256=2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac,sni="static.yaq2i7izym.example.org",skip-cert-verify=true,udp-relay=true
+SG-yge45-73=https,ek-36.e2k6k0z.example.net,443,bfas9x,rYehLxWCwT2h,sni="www.wgksq6.example.net",skip-cert-verify=true,udp-relay=true

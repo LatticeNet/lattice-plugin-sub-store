@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "i6-13.qt0i4ds.example.org",
+      "443",
+      "OAeWydKTNVzsb42M"
+    ],
+    "name": "KR-kuqnpj-40",
+    "params": {
+      "tls-name": "img.obi9ca56z.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

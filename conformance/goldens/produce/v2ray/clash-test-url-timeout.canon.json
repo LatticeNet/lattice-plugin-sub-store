@@ -1,0 +1,20 @@
+[
+  {
+    "fragment": "TW-cna4sp-21",
+    "host": "z8-36.o0oc23my.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.l0te6v7bhr.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "87KwLxH2WIUqKHKx"
+  }
+]

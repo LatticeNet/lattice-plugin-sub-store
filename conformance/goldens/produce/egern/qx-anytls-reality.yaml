@@ -1,0 +1,2 @@
+proxies:
+  - {"anytls":{"name":"TW-s0kp0-14","server":"jhw-31.d5kbjv.example.net","port":443,"password":"TYa4FLCt6y2Pe1pGcRn4","tfo":false,"udp_relay":true,"sni":"cdn.b0fugafa.example.org","reality":{"public_key":"4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI","short_id":"649db3e7"}}}

@@ -1,0 +1,32 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "GB-w2s6ns-13",
+      "password": "xM2QFztFwmcPN3",
+      "plugin": "v2ray-plugin",
+      "plugin-opts": {
+        "host": "static.wctj4onptj.example.org",
+        "mode": "tls"
+      },
+      "port": 52675,
+      "server": "yb-26.guvu6dx.example.net",
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "aes-128-gcm",
+      "name": "HK-i8vgyu-91",
+      "password": "pTGrp2fiEDXhD7",
+      "plugin": "v2ray-plugin",
+      "plugin-opts": {
+        "host": "static.hvzw68jlz.example.com",
+        "mode": " GRPC "
+      },
+      "port": 54104,
+      "server": "yjz-38.bexr4.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

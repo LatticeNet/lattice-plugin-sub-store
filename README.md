@@ -252,7 +252,8 @@ artifact:
 (cd system-go && go build -o "${TMPDIR:-/tmp}/substore-conformance" ./cmd/substore-conformance)
 npm ci --prefix conformance/oracle
 node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
-  --targets uri,v2ray,json,singbox,clashmeta --report "${TMPDIR:-/tmp}/conformance-report.json"
+  --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx \
+  --report "${TMPDIR:-/tmp}/conformance-report.json"
 ```
 
 The runner answers `parse` from `system-go/parse` with the external opt-in off,
@@ -264,7 +265,8 @@ change regenerates that file in the same commit:
 
 ```sh
 node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
-  --targets uri,v2ray,json,singbox,clashmeta --conformance conformance/conformance.json
+  --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx \
+  --conformance conformance/conformance.json
 ```
 
 It then runs the checker with `--end-to-end`, producing from the runner's own
@@ -276,29 +278,45 @@ fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
 
 ### Conformance numbers
 
-Design 28 publishes three numbers per release. Measured on the S1 native
-engine against harness commit de74ccf (upstream 2.42.3, a3e6106):
+Design 28 publishes three numbers per release. Measured on the native
+engine against harness commit 0e771cf (upstream 2.42.3, a3e6106):
 
 | Number | Result |
 |---|---|
-| Parse | 607 of 607 corpus cases (100 percent) |
-| Produce, URI | 579 of 579, byte for byte |
-| Produce, V2Ray | 579 of 579, byte for byte |
-| Produce, JSON | 579 of 579 |
-| Produce, sing-box | 579 of 579 |
-| Produce, ClashMeta | 579 of 579 |
+| Parse | 639 of 639 corpus cases (100 percent) |
+| Produce, URI | 611 of 611, byte for byte |
+| Produce, V2Ray | 611 of 611, byte for byte |
+| Produce, JSON | 611 of 611 |
+| Produce, sing-box | 611 of 611 |
+| Produce, ClashMeta | 611 of 611 |
+| Produce, Stash | 611 of 611 |
+| Produce, Shadowrocket | 611 of 611 |
+| Produce, Surge | 611 of 611 (609 byte for byte, which the checker does not require) |
+| Produce, Quantumult X | 611 of 611 (610 byte for byte, which the checker does not require) |
 | Script | not measured until S3, which fixes the named community script set |
 
 The parse number counts corpus cases as `check.mjs` does, not lines: a case is
 one subscription document, and it passes when every node the document yields
 deep-equals the golden. One case (`clash-norm-ca-not-pem`) is a whole-document
 failure in the golden and passes by failing the same way. The run relied on
-three of the four allowlist
-entries: `external`, `underscore` and `ca` (`require` applies to scripts and
-stays pending until S3). End to end, from the runner's own parse, the five
-targets match 568, 567, 558, 573 and 573 of 579; every miss is one of the 21
-cases that parse only under those entries, and the other 558 cases match for
-every target. The other nine targets are answered by the embedded bundle.
+four of the five allowlist entries: `external`, `underscore` and `ca` at
+parse, and `line-safety` for Surge and Quantumult X (`require` applies to
+scripts and stays pending until S3). `line-safety` covers, by exact id, the
+two cases whose golden carries a line break from a node field,
+`clash-socks5-name-newline` and `clash-ssh`: the native Surge and Quantumult X producers reject a node
+whose entry would hold a control character, U+2028 or U+2029, where upstream
+writes the text as it is and lets a feed add lines such as a `[Script]`
+section to the profile. Those cases match the harness's line-safe golden,
+upstream's output without the line-breaking nodes, which is why Surge and
+Quantumult X match 609 and 610 cases byte for byte. End to end, from the
+runner's own parse, the nine targets match 600, 599, 590, 605, 605, 607, 605,
+609 and 610 of 611; every miss is one of the 21 cases that parse only under
+the parse-stage entries, and the other 590 cases match for every target.
+
+The Stash, Shadowrocket, Surge and Quantumult X producers (S2) are judged here
+and in CI, but `producers.Native` still answers false for their targets, so
+the dispatcher sends them to the embedded bundle with the five Tier 2 targets
+until their harness ids join `routed` in `system-go/producers/producer.go`.
 
 `system-go/perfgen` generates the perf gate's synthetic VLESS Reality nodes.
 The pipeline benchmarks time design 28's measure, the nodes through four

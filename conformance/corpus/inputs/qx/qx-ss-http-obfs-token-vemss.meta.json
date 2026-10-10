@@ -1,0 +1,9 @@
+{
+  "id": "qx-ss-http-obfs-token-vemss",
+  "family": "qx",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "obfs-token",
+  "description": "shadowsocks with obfs=vemss-http: the parser records _qx_obfs_http vemss-http, which Quantumult X writes back and every structured target strips."
+}

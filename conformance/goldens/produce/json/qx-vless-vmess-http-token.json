@@ -1,0 +1,23 @@
+[
+  {
+    "_qx_obfs_http": "vmess-http",
+    "cipher": "none",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "cdn.e0fgqdebd.example.com"
+        ]
+      },
+      "path": [
+        "/a7zqz"
+      ]
+    },
+    "name": "SG-syh-07",
+    "network": "http",
+    "port": 80,
+    "server": "v6-31.yinf.example.com",
+    "type": "vless",
+    "udp": true,
+    "uuid": "1748603e-89ff-435c-aeb4-2384b76fe9ac"
+  }
+]

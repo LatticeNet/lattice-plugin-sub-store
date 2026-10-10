@@ -1,0 +1,30 @@
+[
+  {
+    "address": "h4-22.oafo.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5",
+      "tag": "GB-z2wqhu-65",
+      "tls-host": "api.qfc0dfetd.example.org",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "q6-01.rmt6.example.net:443",
+    "args": [],
+    "params": {
+      "aead": "false",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "bec5b668-7a33-4c0a-81b3-9093bc9ddb33",
+      "tag": "FR-hnulbn-18",
+      "tls-host": "static.hpte5et6dp.example.net",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

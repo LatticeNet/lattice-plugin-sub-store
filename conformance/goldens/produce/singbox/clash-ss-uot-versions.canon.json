@@ -1,0 +1,53 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "DEWleTgrsJ4kcF",
+      "server": "a8-40.m00wg.example.com",
+      "server_port": 43251,
+      "tag": "CA-kaxsse-35",
+      "type": "shadowsocks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 1
+      }
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "SYmxkhN9wKVTwg",
+      "server": "i1d-13.qx6y2f.example.org",
+      "server_port": 26397,
+      "tag": "KR-dbvnq3-06",
+      "type": "shadowsocks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 1
+      }
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "vJoieZSjxuSiZ3",
+      "server": "fxt-39.ye77foo.example.net",
+      "server_port": 42748,
+      "tag": "KR-hrq5ux-65",
+      "type": "shadowsocks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      }
+    },
+    {
+      "method": "aes-128-gcm",
+      "password": "H3T4hxz2n0INym",
+      "server": "ph-04.zkgqvz.example.com",
+      "server_port": 56871,
+      "tag": "GB-blw-94",
+      "type": "shadowsocks",
+      "udp_over_tcp": {
+        "enabled": true,
+        "version": 2
+      }
+    }
+  ]
+}

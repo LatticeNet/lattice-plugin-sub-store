@@ -1,0 +1,1 @@
+vmess=e8-03.xwf0d.example.com:80,method=none,password=d7ba9972-04c5-451a-ac3e-fe027bbdd7ba,obfs=vmess-http,obfs-uri=/l27n,obfs-host=api.xg1imi.example.net,aead=true,udp-relay=true,tag=KR-uxrg5q-10

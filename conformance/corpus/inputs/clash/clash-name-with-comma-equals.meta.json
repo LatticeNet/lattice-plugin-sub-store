@@ -1,0 +1,9 @@
+{
+  "id": "clash-name-with-comma-equals",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "name-punctuation",
+  "description": "trojan nodes whose names contain commas and equals signs: Surge removes every = and , from the name, Quantumult X writes the tag unchanged."
+}

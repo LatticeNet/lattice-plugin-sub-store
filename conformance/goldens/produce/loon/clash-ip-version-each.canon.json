@@ -1,0 +1,86 @@
+[
+  {
+    "args": [
+      "e3p-17.pbyk.example.net",
+      "443",
+      "hrhQq1Eva9c1tZrs"
+    ],
+    "name": "AU-fq4p08-96",
+    "params": {
+      "ip-mode": "dual",
+      "tls-name": "www.zh6dny627.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "qfs-27.rx02oc.example.net",
+      "443",
+      "KKzkHAhEuTVXi8Qz"
+    ],
+    "name": "KR-gbcp-42",
+    "params": {
+      "ip-mode": "v4-only",
+      "tls-name": "cdn.b3piyy0xi.example.org",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "lg-26.jbwp6.example.net",
+      "443",
+      "Ci559TWRue38r8Hf"
+    ],
+    "name": "DE-ch7j-82",
+    "params": {
+      "ip-mode": "v6-only",
+      "tls-name": "www.i7ktit.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "xgm-38.ef06e0xl.example.net",
+      "443",
+      "j159bHN0pWCL4RaB"
+    ],
+    "name": "KR-b3nkw-75",
+    "params": {
+      "ip-mode": "prefer-v4",
+      "tls-name": "static.hui3ck.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "mr-38.n1c49sk.example.net",
+      "443",
+      "DV0R4WYjtXVHbrLZ"
+    ],
+    "name": "FR-r5w-95",
+    "params": {
+      "ip-mode": "prefer-v6",
+      "tls-name": "img.tb6alpmc.example.org",
+      "udp": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "args": [
+      "d9-20.lf905r.example.org",
+      "443",
+      "kKi9ZFYemNrRsNWK"
+    ],
+    "name": "FR-b8ah7p-66",
+    "params": {
+      "ip-mode": "d8qht",
+      "tls-name": "www.acs4lg.example.net",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

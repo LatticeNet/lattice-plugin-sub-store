@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "auth": "TpTxv5boO3l0uVdiTAX5",
+      "down-speed": 0,
+      "name": "HK-c5l-76",
+      "port": 443,
+      "server": "rs-36.i0j0wh.example.net",
+      "sni": "cdn.zf18dl.example.net",
+      "type": "hysteria2",
+      "udp": true,
+      "up-speed": 0
+    }
+  ]
+}

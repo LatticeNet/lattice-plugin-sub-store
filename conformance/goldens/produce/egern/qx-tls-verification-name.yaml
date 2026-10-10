@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"KR-kuqnpj-40","server":"i6-13.qt0i4ds.example.org","port":443,"password":"OAeWydKTNVzsb42M","tfo":false,"udp_relay":true,"sni":"img.obi9ca56z.example.net"}}

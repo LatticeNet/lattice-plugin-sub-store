@@ -1,0 +1,21 @@
+[
+  {
+    "body": {
+      "add": "e8-03.xwf0d.example.com",
+      "aid": "0",
+      "host": "api.xg1imi.example.net",
+      "id": "d7ba9972-04c5-451a-ac3e-fe027bbdd7ba",
+      "net": "tcp",
+      "path": "/l27n",
+      "port": "80",
+      "ps": "KR-uxrg5q-10",
+      "scy": "none",
+      "tls": "",
+      "type": "http",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

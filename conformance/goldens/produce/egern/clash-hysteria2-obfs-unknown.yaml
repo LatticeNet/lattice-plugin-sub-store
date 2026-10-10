@@ -1,0 +1,2 @@
+proxies:
+  - {"hysteria2":{"name":"DE-q4q-65","server":"hh-39.vosqj.example.org","port":443,"auth":"CaRJvNo3wLi7CJWZCiPC","tfo":false,"udp_relay":true,"sni":"api.g09qao7vc4.example.net"}}

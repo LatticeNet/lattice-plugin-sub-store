@@ -1,0 +1,10 @@
+{
+  "id": "wireguard-all-module",
+  "family": "wireguard",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "surge-module-header",
+  "description": "A document of WireGuard links only, produced with record_name: Surge writes the three module header lines and, without include-unsupported-proxy, no entry.",
+  "record_name": "ufxdsmct"
+}

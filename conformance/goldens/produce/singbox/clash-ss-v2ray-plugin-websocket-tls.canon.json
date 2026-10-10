@@ -1,0 +1,15 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "method": "aes-128-gcm",
+      "password": "vdGoRW3uHdeb8E",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=cdn.br8081pci.example.com;mode=websocket;path=/uwu5;skip-cert-verify=true;tls",
+      "server": "i0-18.xw46x.example.com",
+      "server_port": 21926,
+      "tag": "AU-y2a0-45",
+      "type": "shadowsocks"
+    }
+  ]
+}

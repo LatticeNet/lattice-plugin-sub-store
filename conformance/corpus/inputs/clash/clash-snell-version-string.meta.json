@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-version-string",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "version-string",
+  "description": "snell whose version is the text \"3\": Shadowrocket needs a numeric version and drops it."
+}

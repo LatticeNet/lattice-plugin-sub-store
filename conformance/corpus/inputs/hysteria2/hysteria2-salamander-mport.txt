@@ -1,0 +1,1 @@
+hysteria2://axh3vCkuX5XttJITA3Nw@fm-04.a3i4jy.example.net:443/?obfs=salamander&obfs-password=Em9uhvQ8uMiwK95e&mport=20000-30000%2C40000&fastopen=1&alpn=h3&sni=img.gudkt.example.org#CA-bux-89

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import YAML from 'yaml';
 import { findTarget } from './targets.mjs';
 
-export const MAX_ENTRIES = 4;
+export const MAX_ENTRIES = 5;
 const STAGES = new Set(['parse', 'produce', 'script']);
 // A pending entry names the design 28 slice that lands it.
 const SLICE = /^S[1-6]$/;
@@ -27,6 +27,33 @@ export const PROTECTED_KEYS = [
 // every node or the whole document rather than the nodes that carry a
 // divergent key.
 export const DROP_GUARD_KEYS = ['type', 'name', 'server', 'port', 'proxies', 'outbounds', 'endpoints'];
+
+// LINE_BREAKING matches a character that may end a line of a line-based
+// profile: every Unicode control character (C0, DEL and C1, so CR, LF, VT,
+// FF, tab and NEL among them) and the line and paragraph separators U+2028
+// and U+2029, which Apple platform text APIs also read as line breaks.
+export const LINE_BREAKING = /[\p{Cc}\u2028\u2029]/u;
+
+// carriesLineBreak reports whether any text in v, a key or a value at any
+// depth, holds a line-breaking character.
+export function carriesLineBreak(v) {
+    if (typeof v === 'string') return LINE_BREAKING.test(v);
+    if (Array.isArray(v)) return v.some(carriesLineBreak);
+    if (v && typeof v === 'object') return Object.entries(v).some(([k, x]) => LINE_BREAKING.test(k) || carriesLineBreak(x));
+    return false;
+}
+
+// LINE_SAFE_SUFFIX names the golden a without_line_breaking_nodes step
+// compares against: goldens/produce/<target>/<case>.line-safe.canon.json,
+// the canonical form of upstream's output for the case's produce input
+// without the nodes that carry a line break. regen.mjs writes it for every
+// case and target a landed entry with that step covers, when the input has
+// such a node.
+export const LINE_SAFE_SUFFIX = '.line-safe.canon.json';
+
+// The canonical forms of the line-based targets (lib/canonical.mjs), the
+// only targets a without_line_breaking_nodes step may name.
+const LINE_FORMS = new Set(['lines', 'qx']);
 
 export function loadAllowlist(file) {
     const doc = YAML.parse(fs.readFileSync(file, 'utf8')) ?? {};
@@ -87,6 +114,17 @@ export function loadAllowlist(file) {
                 const hit = list.find((k) => DROP_GUARD_KEYS.includes(k.toLowerCase()));
                 if (hit) throw new Error(`${where}: drop_entries_with_keys names ${hit}, which every node or document carries`);
                 step.dropKeys = new Set(list.map((k) => k.toLowerCase()));
+            } else if (keys[0] === 'without_line_breaking_nodes') {
+                if (step.without_line_breaking_nodes !== true) throw new Error(`${where}: without_line_breaking_nodes takes true`);
+                if (e.stage !== 'produce') throw new Error(`${where}: without_line_breaking_nodes applies only at produce stage`);
+                if (e.targets.includes('*') || e.targets.some((t) => !LINE_FORMS.has(findTarget(t).form))) {
+                    throw new Error(`${where}: without_line_breaking_nodes names its targets, each one whose canonical form is lines or qx`);
+                }
+                if (e.cases.includes('*')) throw new Error(`${where}: without_line_breaking_nodes names the cases it covers`);
+                // The entry's cases are exact ids (applicable): a prefix
+                // would also cover a later case that shares it, and regen
+                // would write that case a line-safe golden without review.
+                step.lineSafe = true;
             } else {
                 throw new Error(`${where}: unknown normalise kind ${keys[0]}`);
             }
@@ -98,7 +136,10 @@ export function loadAllowlist(file) {
 // applicable returns the entries that apply to one comparison. No entry
 // applies to a byte-exact target: a canonical difference there is a byte
 // difference, which the checker fails regardless. A pending entry applies to
-// nothing until its slice removes the pending field.
+// nothing until its slice removes the pending field. An entry's cases are id
+// prefixes, except for an entry with a without_line_breaking_nodes step,
+// whose cases are exact ids: that step lets a case match a second golden, so
+// it covers only the cases a reviewer named.
 export function applicable(entries, stage, targetId, caseId) {
     if (stage === 'produce' && findTarget(targetId)?.bytes) return [];
     return entries.filter(
@@ -106,10 +147,18 @@ export function applicable(entries, stage, targetId, caseId) {
             e.pending === undefined &&
             e.stage === stage &&
             (stage !== 'produce' || e.targets.includes('*') || e.targets.some((t) => findTarget(t)?.id === targetId)) &&
-            (e.cases.includes('*') || e.cases.some((p) => caseId.startsWith(p))),
+            (e.cases.includes('*') || e.cases.some((p) => (comparesWithoutLineBreaks([e]) ? caseId === p : caseId.startsWith(p)))),
     );
 }
 
+// comparesWithoutLineBreaks reports whether one of the entries compares a
+// failing case against its line-safe golden (LINE_SAFE_SUFFIX).
+export function comparesWithoutLineBreaks(entries) {
+    return entries.some((e) => e.normalise.some((step) => step.lineSafe));
+}
+
+// normalise applies the entries' value steps. A without_line_breaking_nodes
+// step changes no value: it chooses which golden the checker compares with.
 export function normalise(value, entries) {
     let v = value;
     for (const e of entries) {

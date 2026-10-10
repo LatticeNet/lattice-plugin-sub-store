@@ -138,7 +138,7 @@ jobs:
 
   conformance:
     # The vendored checker (conformance/oracle/check.mjs, run as it is) judges
-    # the native parser and the five native producers through the runner.
+    # the native parser and the nine native producers through the runner.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -166,14 +166,14 @@ jobs:
       - name: test the end-to-end judge
         run: node --test tools/conformance-end-to-end.test.mjs
 
-      - name: judge parse and the five native targets
+      - name: judge parse and the nine native targets
         # From the golden nodes. Exit 1 is a failed comparison, 2 a run whose
         # numbers differ from conformance/conformance.json (a corpus, golden
         # or allowlist change regenerates it with --conformance in the same
         # commit), 3 a harness error.
         run: >-
           node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance"
-          --targets uri,v2ray,json,singbox,clashmeta
+          --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx
           --conformance "$RUNNER_TEMP/conformance.json" --expect conformance/conformance.json
           --report "$RUNNER_TEMP/conformance-report.json"
 
@@ -184,7 +184,7 @@ jobs:
         # a strict parse run (an empty allowlist) naming those cases.
         run: |
           node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance" \
-            --targets uri,v2ray,json,singbox,clashmeta --end-to-end --no-fail \
+            --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx --end-to-end --no-fail \
             --report "$RUNNER_TEMP/end-to-end-report.json"
           printf 'divergences: []\n' > "$RUNNER_TEMP/no-allowlist.yaml"
           node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance" \

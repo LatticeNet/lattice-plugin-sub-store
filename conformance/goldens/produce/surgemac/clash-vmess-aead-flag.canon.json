@@ -1,0 +1,30 @@
+[
+  {
+    "args": [
+      "h4-22.oafo.example.net",
+      "443"
+    ],
+    "name": "GB-z2wqhu-65",
+    "params": {
+      "sni": "api.qfc0dfetd.example.org",
+      "tls": "true",
+      "username": "d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [
+      "q6-01.rmt6.example.net",
+      "443"
+    ],
+    "name": "FR-hnulbn-18",
+    "params": {
+      "sni": "static.hpte5et6dp.example.net",
+      "tls": "true",
+      "username": "bec5b668-7a33-4c0a-81b3-9093bc9ddb33",
+      "vmess-aead": "false"
+    },
+    "type": "vmess"
+  }
+]

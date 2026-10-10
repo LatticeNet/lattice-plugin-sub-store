@@ -83,6 +83,10 @@ type normaliseStep struct {
 	dropField  string          // drop_entries: delete objects whose field
 	dropEquals []any           // equals one of the values
 	dropKeys   map[string]bool // drop_entries_with_keys, lower-cased
+	// without_line_breaking_nodes changes no value: at produce stage it
+	// lets a failing case match its line-safe golden, so a parse comparison
+	// never applies it (the harness refuses it at parse stage).
+	lineSafe bool
 }
 
 // loadDivergences reads the allowlist and fails on a normalisation kind
@@ -139,6 +143,11 @@ func loadDivergences(t testing.TB, root string) []divergence {
 					if len(ns.dropKeys) == 0 {
 						t.Fatalf("allowlist %s: drop_entries_with_keys needs keys", e.ID)
 					}
+				case "without_line_breaking_nodes":
+					if v != true || e.Stage != "produce" {
+						t.Fatalf("allowlist %s: without_line_breaking_nodes takes true and applies only at produce stage", e.ID)
+					}
+					ns.lineSafe = true
 				default:
 					t.Fatalf("allowlist %s: normalise kind %q is not implemented by this test", e.ID, kind)
 				}
@@ -422,17 +431,31 @@ func TestAllowlistReaderFollowsTheHarnessSchema(t *testing.T) {
 		t.Errorf("tuic- case normalised to %#v, want %#v", other, want)
 	}
 
-	dir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(dir, "allowlist"), 0o755); err != nil {
-		t.Fatal(err)
+	// line-safety is a produce-stage entry: it loads, and no parse
+	// comparison ever applies it.
+	for _, id := range []string{"clash-socks5-name-newline", "clash-ssh"} {
+		for _, e := range applicableParse(entries, id) {
+			if e.ID == "line-safety" {
+				t.Errorf("%s: the parse comparison applies line-safety", id)
+			}
+		}
 	}
-	unknown := "divergences:\n  - id: x\n    stage: parse\n    normalise:\n      - rename_keys: a\n"
-	if err := os.WriteFile(filepath.Join(dir, "allowlist", "divergences.yaml"), []byte(unknown), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	r := &fatalRecorder{TB: t}
-	loadDivergences(r, dir)
-	if !strings.Contains(r.fatal, "rename_keys") {
-		t.Errorf("an unknown normalise kind gave %q, want the test stopped", r.fatal)
+
+	for _, tc := range []struct{ yaml, want string }{
+		{"divergences:\n  - id: x\n    stage: parse\n    normalise:\n      - rename_keys: a\n", "rename_keys"},
+		{"divergences:\n  - id: x\n    stage: parse\n    normalise:\n      - without_line_breaking_nodes: true\n", "only at produce stage"},
+	} {
+		dir := t.TempDir()
+		if err := os.MkdirAll(filepath.Join(dir, "allowlist"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "allowlist", "divergences.yaml"), []byte(tc.yaml), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		r := &fatalRecorder{TB: t}
+		loadDivergences(r, dir)
+		if !strings.Contains(r.fatal, tc.want) {
+			t.Errorf("allowlist %q gave %q, want the test stopped with %q", tc.yaml, r.fatal, tc.want)
+		}
 	}
 }

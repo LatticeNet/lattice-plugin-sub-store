@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "JP-nlrzy-06",
+        "port": 443,
+        "security": "auto",
+        "server": "qu7-25.n9gs.example.net",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "cdn.j9ba3ha.example.com"
+            },
+            "path": "/opfn5a/ei1x8lrp?ed=2048",
+            "sni": "img.l2akn2kb.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "b4c3988d-7906-443f-bb1f-2e7328ad12c2"
+      }
+    }
+  ]
+}

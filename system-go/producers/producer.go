@@ -61,7 +61,8 @@ const (
 
 // Producer writes one target's document.
 type Producer interface {
-	// ID is the harness id: uri, v2ray, json, singbox, clashmeta.
+	// ID is the harness id: uri, v2ray, json, singbox, clashmeta, stash,
+	// shadowrocket, surge or quantumultx.
 	ID() string
 	// Produce writes the document for target, the exact string the caller
 	// used (any name Lookup accepts), into dst. It runs the steps before the
@@ -73,7 +74,7 @@ type Producer interface {
 	EmptyDocument(opts Options) []byte
 }
 
-// targetIDs maps every caller target string the five native specifications
+// targetIDs maps every caller target string the nine native specifications
 // name (specs/producers/<id>.md, "Target names") to its harness id. Keys are
 // exact: the per-node supported map is keyed by the same exact string, and a
 // spelling no specification lists is not a native target.
@@ -85,31 +86,47 @@ var targetIDs = map[string]string{
 	"ClashMeta": "clashmeta", "clashmeta": "clashmeta", "meta": "clashmeta",
 	"clash.meta": "clashmeta", "Clash.Meta": "clashmeta",
 	"mihomo": "clashmeta", "Mihomo": "clashmeta",
+	"Stash": "stash", "stash": "stash",
+	"Shadowrocket": "shadowrocket", "ShadowRocket": "shadowrocket", "shadowrocket": "shadowrocket",
+	"Surge": "surge", "surge": "surge",
+	"QX": "quantumultx", "qx": "quantumultx", "QuantumultX": "quantumultx",
 }
 
-// registry holds the producers that exist, by harness id. A target whose id
-// has no producer here is answered by the bundle.
+// registry holds the producers that exist, by harness id.
 var registry = map[string]Producer{
-	"uri":       uriProducer{},
-	"v2ray":     v2rayProducer{},
-	"json":      jsonProducer{},
-	"clashmeta": clashMetaProducer{},
-	"singbox":   singBoxProducer{},
+	"uri":          uriProducer{},
+	"v2ray":        v2rayProducer{},
+	"json":         jsonProducer{},
+	"clashmeta":    clashMetaProducer{},
+	"singbox":      singBoxProducer{},
+	"stash":        stashProducer{},
+	"shadowrocket": shadowrocketProducer{},
+	"surge":        surgeProducer{},
+	"quantumultx":  quantumultXProducer{},
 }
+
+// routed holds the harness ids whose targets the dispatcher serves natively
+// (Native). A registered producer that is not routed is reached through
+// Lookup, which is how the conformance runner and the tests judge it, while
+// its targets stay on the bundle; serving one natively is adding its id here.
+var routed = map[string]bool{"uri": true, "v2ray": true, "json": true, "clashmeta": true, "singbox": true}
 
 // Lookup maps a caller target string to its producer. It accepts the platform
-// names, the aliases each specification lists and the harness ids, exactly as
-// written; it returns ok=false for every other string and for a target whose
-// native producer does not exist yet, which the dispatcher sends to the bundle.
+// names and the aliases each specification lists, exactly as written; it
+// returns ok=false for every other string and for a target whose native
+// producer does not exist yet.
 func Lookup(target string) (p Producer, ok bool) {
 	p, ok = registry[targetIDs[target]]
 	return p, ok
 }
 
-// Native reports whether target has a native producer.
+// Native reports whether the dispatcher serves target natively: it has a
+// producer and its harness id is routed. Every other target goes to the
+// bundle.
 func Native(target string) bool {
-	_, ok := Lookup(target)
-	return ok
+	id := targetIDs[target]
+	_, ok := registry[id]
+	return ok && routed[id]
 }
 
 // truthy is ECMAScript truthiness over model values.

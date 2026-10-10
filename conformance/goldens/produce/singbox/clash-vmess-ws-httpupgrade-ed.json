@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-cmxq1g-03",
+      "type": "vmess",
+      "server": "y3-21.jx7s4u.example.net",
+      "server_port": 443,
+      "uuid": "5baf4bf2-f757-4999-9c4b-21940ec33b57",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "www.opgmot6ma.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/nwhgc/x3hi",
+        "host": "img.vrryn09i.example.com"
+      }
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-uot-versions",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "uot",
+  "description": "ss nodes with udp-over-tcp true and udp-over-tcp-version absent, 1, 2 and 3: Quantumult X writes sp.v1, sp.v1, sp.v2 and nothing."
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "AU-y2a0-45",
+    "host": "i0-18.xw46x.example.com",
+    "path": "/",
+    "port": "21926",
+    "query": [
+      [
+        "plugin",
+        "v2ray-plugin;obfs=websocket;mode=websocket;obfs-host=cdn.br8081pci.example.com;host=cdn.br8081pci.example.com;path=/uwu5;tls"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206dmRHb1JXM3VIZGViOEU=",
+    "userinfo_base64": "aes-128-gcm:vdGoRW3uHdeb8E"
+  }
+]

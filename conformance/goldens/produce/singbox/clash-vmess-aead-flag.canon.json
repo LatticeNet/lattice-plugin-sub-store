@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "h4-22.oafo.example.net",
+      "server_port": 443,
+      "tag": "GB-z2wqhu-65",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.qfc0dfetd.example.org"
+      },
+      "type": "vmess",
+      "uuid": "d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "q6-01.rmt6.example.net",
+      "server_port": 443,
+      "tag": "FR-hnulbn-18",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "static.hpte5et6dp.example.net"
+      },
+      "type": "vmess",
+      "uuid": "bec5b668-7a33-4c0a-81b3-9093bc9ddb33"
+    }
+  ]
+}

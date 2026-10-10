@@ -1,0 +1,1 @@
+HK-c5l-76=hysteria2,rs-36.i0j0wh.example.net,443,password="TpTxv5boO3l0uVdiTAX5",sni="cdn.zf18dl.example.net",download-bandwidth=0

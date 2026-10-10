@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-shadow-tls-v1",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "shadow-tls",
+  "quirk": "shadow-tls-version",
+  "description": "ss with plugin shadow-tls version 1: Surge rejects a ShadowTLS version below 2."
+}

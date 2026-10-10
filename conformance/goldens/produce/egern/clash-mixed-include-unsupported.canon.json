@@ -1,0 +1,49 @@
+{
+  "proxies": [
+    {
+      "http": {
+        "headers": {
+          "X-xeqg8": "ni4qhkw"
+        },
+        "name": "NL-zep7-46",
+        "password": "LLudeRwOBV80",
+        "port": 8080,
+        "server": "ep-36.ladi.example.org",
+        "tfo": false,
+        "username": "zoushga"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "HK-g5wzd-51",
+        "port": 80,
+        "security": "auto",
+        "server": "vl-27.jpxff.example.org",
+        "tfo": false,
+        "transport": {
+          "http1": {
+            "headers": {
+              "Host": "cdn.bzkynldo.example.com"
+            },
+            "method": "GET",
+            "path": "/g76/zhpwfk7oof"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "daa4605b-ff81-4e52-b134-26d91c376a3e"
+      }
+    },
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "FR-g8uxz-35",
+        "password": "4hvmdU03O0JArG",
+        "port": 17410,
+        "server": "j3d-04.e29g.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

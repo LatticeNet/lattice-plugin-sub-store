@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-aead-flag",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "aead-flag",
+  "description": "vmess with alterId 64 and aead true, and with alterId 0 and aead false: Stash and Shadowrocket set alterId 0 for the first and drop aead from both; Surge and Quantumult X write the aead value."
+}

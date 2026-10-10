@@ -1,0 +1,1 @@
+SG-syh-07=vless,v6-31.yinf.example.com,80,"1748603e-89ff-435c-aeb4-2384b76fe9ac",transport=http,path=/a7zqz,host=cdn.e0fgqdebd.example.com,udp=true

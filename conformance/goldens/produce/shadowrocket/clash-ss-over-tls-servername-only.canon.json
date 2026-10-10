@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "DE-m9h7t7-81",
+      "password": "EBuE5Qs5xAb5dR",
+      "port": 50389,
+      "server": "198.51.100.75",
+      "servername": "www.ewqai1pkrc.example.org",
+      "tls": true,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

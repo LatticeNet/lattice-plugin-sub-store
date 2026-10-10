@@ -27,7 +27,7 @@ import (
 // plugin repository root (tools/conformance-sync.sh writes it).
 const conformanceDir = "../../conformance"
 
-// harnessTargets are the five native targets by harness id, with the
+// harnessTargets are the nine native targets by harness id, with the
 // platform name the harness's check.mjs calls each producer by
 // (oracle/lib/targets.mjs), the golden file extension, the canonical form the
 // checker parses the output with, and whether the checker compares bytes. For
@@ -39,6 +39,10 @@ var harnessTargets = []harnessTarget{
 	{"json", "JSON", "json", "json", false},
 	{"singbox", "sing-box", "json", "json", false},
 	{"clashmeta", "ClashMeta", "yaml", "yaml", false},
+	{"stash", "Stash", "yaml", "yaml", false},
+	{"shadowrocket", "Shadowrocket", "yaml", "yaml", false},
+	{"surge", "Surge", "txt", "lines", false},
+	{"quantumultx", "QX", "txt", "qx", false},
 }
 
 type harnessTarget struct {
@@ -47,12 +51,33 @@ type harnessTarget struct {
 }
 
 // produceCase is one corpus case check.mjs produces from: its golden nodes,
-// the options of its meta.json, and the input file beside it.
+// the options and record name of its meta.json, and the input file beside it.
 type produceCase struct {
-	id        string
-	options   Options
-	nodes     json.RawMessage
-	inputPath string
+	id         string
+	options    Options
+	recordName *string
+	nodes      json.RawMessage
+	inputPath  string
+}
+
+// produceInput is the node list check.mjs produces a case from
+// (oracle/lib/corpus.mjs, produceInput): the nodes as given, or, when the
+// case's meta names a record_name, each node with _subName set to it, as the
+// plugin sets it from the record's name. The nodes are not changed.
+func (c produceCase) produceInput(nodes []*nodemodel.Node) []*nodemodel.Node {
+	if c.recordName == nil {
+		return nodes
+	}
+	out := make([]*nodemodel.Node, len(nodes))
+	for i, n := range nodes {
+		f := maps.Clone(n.Fields)
+		if f == nil {
+			f = map[string]any{}
+		}
+		f["_subName"] = *c.recordName
+		out[i] = &nodemodel.Node{Fields: f, Script: n.Script, Lattice: n.Lattice}
+	}
+	return out
 }
 
 // produceCases lists the corpus cases whose parse golden is a node list, the
@@ -67,15 +92,16 @@ func produceCases(t *testing.T) []produceCase {
 				return err
 			}
 			var meta struct {
-				ID      string  `json:"id"`
-				Options Options `json:"options"`
+				ID         string  `json:"id"`
+				Options    Options `json:"options"`
+				RecordName *string `json:"record_name"`
 			}
 			if err := json.Unmarshal(readFile(t, path), &meta); err != nil {
 				t.Fatalf("%s: %v", path, err)
 			}
 			nodes := readFile(t, filepath.Join(conformanceDir, "goldens", "parse", meta.ID+".json"))
 			if bytes.HasPrefix(bytes.TrimSpace(nodes), []byte("[")) {
-				cases = append(cases, produceCase{id: meta.ID, options: meta.Options, nodes: nodes, inputPath: strings.TrimSuffix(path, ".meta.json") + ".txt"})
+				cases = append(cases, produceCase{id: meta.ID, options: meta.Options, recordName: meta.RecordName, nodes: nodes, inputPath: strings.TrimSuffix(path, ".meta.json") + ".txt"})
 			}
 			return nil
 		})
@@ -124,7 +150,9 @@ func produce(t *testing.T, target string, nodes []*nodemodel.Node, opts Options)
 
 // TestProduceCorpusMatchesGoldens produces every corpus case from its golden
 // nodes with its options, as check.mjs does, and compares the output with the
-// produce golden by the checker's rule for the target.
+// produce golden by the checker's rule for the target. For the targets the
+// checker compares structurally it also logs how many outputs equal the
+// golden bytes, which conformance does not require.
 func TestProduceCorpusMatchesGoldens(t *testing.T) {
 	cases := produceCases(t)
 	for _, target := range harnessTargets {
@@ -133,24 +161,31 @@ func TestProduceCorpusMatchesGoldens(t *testing.T) {
 				t.Fatalf("%s has no native producer", target.platform)
 			}
 			dir := filepath.Join(conformanceDir, "goldens", "produce", target.id)
-			judged, passed := 0, 0
+			judged, passed, sameBytes := 0, 0, 0
 			for _, c := range cases {
 				canonFile := filepath.Join(dir, c.id+".canon.json")
 				if _, err := os.Stat(canonFile); err != nil {
 					continue
 				}
 				judged++
-				got, _ := produce(t, target.platform, decodeNodes(t, c.nodes), c.options)
+				got, _ := produce(t, target.platform, c.produceInput(decodeNodes(t, c.nodes)), c.options)
 				if diff := differsFromGolden(t, target, c.id, got); diff != "" {
 					t.Errorf("%s: %s", c.id, diff)
 					continue
 				}
 				passed++
+				if !target.bytes && got == string(readFile(t, filepath.Join(dir, c.id+"."+target.ext))) {
+					sameBytes++
+				}
 			}
 			if judged == 0 {
 				t.Fatalf("no produce goldens under %s", dir)
 			}
-			t.Logf("%s: %d/%d cases match", target.id, passed, judged)
+			if target.bytes {
+				t.Logf("%s: %d/%d cases match, byte for byte", target.id, passed, judged)
+			} else {
+				t.Logf("%s: %d/%d cases match, %d of them byte for byte", target.id, passed, judged, sameBytes)
+			}
 		})
 	}
 }
@@ -169,10 +204,65 @@ func differsFromGolden(t *testing.T, target harnessTarget, id, got string) strin
 		}
 		return ""
 	}
-	if path, golden, candidate, same := sameStructure(t, readFile(t, filepath.Join(dir, id+".canon.json")), target.form, got); !same {
-		return fmt.Sprintf("output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", path, golden, candidate, clip(got))
+	path, golden, candidate, same := sameStructure(t, readFile(t, filepath.Join(dir, id+".canon.json")), target.form, got)
+	if same {
+		return ""
 	}
-	return ""
+	// The checker's second chance: a landed entry that compares without
+	// line-breaking nodes lets the output match the line-safe golden.
+	if lineSafe := filepath.Join(dir, id+lineSafeSuffix); comparesWithoutLineBreaks(t, target.id, id) {
+		if _, err := os.Stat(lineSafe); err == nil {
+			if _, _, _, same := sameStructure(t, readFile(t, lineSafe), target.form, got); same {
+				return ""
+			}
+		}
+	}
+	return fmt.Sprintf("output differs from the golden at %s\n golden:    %s\n candidate: %s\n output:    %q", path, golden, candidate, clip(got))
+}
+
+// lineSafeSuffix names the golden a without_line_breaking_nodes entry lets a
+// failing case match (oracle/lib/allowlist.mjs, LINE_SAFE_SUFFIX): upstream's
+// output for the case's input without the nodes that carry a line break.
+const lineSafeSuffix = ".line-safe.canon.json"
+
+// allowEntry is one entry of the vendored allowlist, as far as the produce
+// tests read it.
+type allowEntry struct {
+	ID        string           `yaml:"id"`
+	Stage     string           `yaml:"stage"`
+	Pending   string           `yaml:"pending"`
+	Targets   []string         `yaml:"targets"`
+	Cases     []string         `yaml:"cases"`
+	Normalise []map[string]any `yaml:"normalise"`
+}
+
+// comparesWithoutLineBreaks reports whether a landed produce-stage entry of
+// the vendored allowlist with a without_line_breaking_nodes step covers the
+// target and case, by the checker's rule (oracle/lib/allowlist.mjs,
+// applicable): such an entry names its cases by exact id, never as a prefix,
+// so a later case whose id starts with a named one is not covered. The S1 and
+// S2 produce goldens need no value normalisation, so this is the only
+// allowlist step the Go corpus tests apply.
+func comparesWithoutLineBreaks(t *testing.T, targetID, caseID string) bool {
+	t.Helper()
+	var doc struct {
+		Divergences []allowEntry `yaml:"divergences"`
+	}
+	if err := yaml.Unmarshal(readFile(t, filepath.Join(conformanceDir, "allowlist", "divergences.yaml")), &doc); err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range doc.Divergences {
+		if e.Pending != "" || e.Stage != "produce" || !slices.ContainsFunc(e.Normalise, func(step map[string]any) bool { return step["without_line_breaking_nodes"] == true }) {
+			continue
+		}
+		if !slices.Contains(e.Targets, targetID) {
+			continue
+		}
+		if slices.Contains(e.Cases, caseID) {
+			return true
+		}
+	}
+	return false
 }
 
 func firstDifference(a, b string) int {
@@ -185,9 +275,10 @@ func firstDifference(a, b string) int {
 
 // sameStructure compares a produced document with its golden's canonical
 // form by the vendored checker's rule (oracle/lib/canonical.mjs and firstDiff
-// in oracle/check.mjs): the output is parsed back, json as JSON.parse reads it
-// and yaml as a YAML 1.2 document, and the two values are compared with object
-// key order ignored and list order kept. Output that does not parse is
+// in oracle/check.mjs): the output is parsed back, json as JSON.parse reads it,
+// yaml as a YAML 1.2 document, and lines and qx by kvLines and qxLines
+// (canonical_test.go), and the two values are compared with object key order
+// ignored and list order kept. Output that does not parse is
 // {unparsed: <text>}, which only equal text matches. When the two differ it
 // returns the first differing path and both values there.
 func sameStructure(t *testing.T, canon []byte, form, output string) (path, golden, candidate string, same bool) {
@@ -218,6 +309,10 @@ func parseCanonical(t *testing.T, form, output string) any {
 			return unparsed
 		}
 		return j
+	case "lines":
+		return kvLines(output)
+	case "qx":
+		return qxLines(output)
 	}
 	t.Fatalf("no canonical form %q", form)
 	return nil
@@ -360,6 +455,28 @@ func reasons(d []Dropped) []string {
 	return out
 }
 
+// TestLineSafetyCoversExactCaseIDs holds comparesWithoutLineBreaks to the
+// harness rule: line-safety lets Surge and Quantumult X match the line-safe
+// golden for the two cases it names and for no case whose id merely starts
+// with one of them, such as clash-ssh-key-path.
+func TestLineSafetyCoversExactCaseIDs(t *testing.T) {
+	for _, target := range []string{"surge", "quantumultx"} {
+		for _, id := range []string{"clash-socks5-name-newline", "clash-ssh"} {
+			if !comparesWithoutLineBreaks(t, target, id) {
+				t.Errorf("%s %s: line-safety does not cover a case it names", target, id)
+			}
+		}
+		for _, id := range []string{"clash-ssh-key-path", "clash-ssh-note", "clash-socks5-name-newline-2"} {
+			if comparesWithoutLineBreaks(t, target, id) {
+				t.Errorf("%s %s: line-safety covers a case whose id only starts with one it names", target, id)
+			}
+		}
+	}
+	if comparesWithoutLineBreaks(t, "clashmeta", "clash-ssh") {
+		t.Error("clashmeta clash-ssh: line-safety covers a target it does not name")
+	}
+}
+
 // TestSupportMapKeyedByExactTarget pins that the per-node supported map is
 // keyed by the exact target string the caller used: supported.URI = false
 // drops the node for URI and keeps it for uri, and so on for every name each
@@ -378,6 +495,10 @@ func TestSupportMapKeyedByExactTarget(t *testing.T) {
 		{"sing-box", []string{"sing-box"}, []string{"singbox"}},
 		{"ClashMeta", []string{"ClashMeta"}, []string{"clashmeta", "meta", "clash.meta", "Clash.Meta", "mihomo", "Mihomo"}},
 		{"mihomo", []string{"mihomo"}, []string{"ClashMeta", "Mihomo"}},
+		{"Stash", []string{"Stash"}, []string{"stash"}},
+		{"ShadowRocket", []string{"ShadowRocket"}, []string{"Shadowrocket", "shadowrocket"}},
+		{"Surge", []string{"Surge"}, []string{"surge"}},
+		{"QX", []string{"QX"}, []string{"qx", "QuantumultX"}},
 	} {
 		n := node(with(socks5("s1"), map[string]any{"supported": map[string]any{tc.key: false}}))
 		for _, target := range tc.drops {
@@ -404,8 +525,9 @@ func TestSupportMapKeyedByExactTarget(t *testing.T) {
 }
 
 // TestLookupAcceptsExactNamesOnly pins the target strings the native
-// producers answer: each specification's names and the harness ids, exactly
-// as written, and nothing for the nine bundle targets.
+// producers answer: each specification's names, exactly as written, and
+// nothing for the five targets without a producer or for any other spelling.
+// TestS2TargetsStayOnTheBundle pins the four S2 names.
 func TestLookupAcceptsExactNamesOnly(t *testing.T) {
 	for target, id := range map[string]string{
 		"URI": "uri", "uri": "uri", "V2Ray": "v2ray", "v2ray": "v2ray", "v2": "v2ray",
@@ -420,10 +542,11 @@ func TestLookupAcceptsExactNamesOnly(t *testing.T) {
 	}
 	for _, target := range []string{
 		"Uri", "V2RAY", "v2rayN", "", "Json", "SING-BOX", "Sing-Box", "sing_box", "Meta", "MIHOMO", "clashMeta", "ClashMETA",
-		"Stash", "Surge", "SurgeMac", "Loon", "Shadowrocket", "QX", "Egern", "Surfboard", "Clash", "clash",
+		"STASH", "SHADOWROCKET", "shadowRocket", "SURGE", "Qx", "quantumultx", "Quantumult X",
+		"SurgeMac", "Loon", "Egern", "Surfboard", "Clash", "clash",
 	} {
-		if Native(target) {
-			t.Errorf("Native(%q) = true; want the bundle to answer it", target)
+		if p, ok := Lookup(target); ok || Native(target) {
+			t.Errorf("Lookup(%q) = %v, %v and Native %v; want no producer and the bundle to answer it", target, p, ok, Native(target))
 		}
 	}
 }
@@ -675,7 +798,8 @@ func TestProduceReportsUnwritableNode(t *testing.T) {
 	for _, tc := range []struct {
 		target string
 		opts   Options
-	}{{"JSON", nil}, {"ClashMeta", nil}, {"ClashMeta", Options{"prettyYaml": true}}, {"sing-box", nil}} {
+	}{{"JSON", nil}, {"ClashMeta", nil}, {"ClashMeta", Options{"prettyYaml": true}}, {"sing-box", nil},
+		{"Stash", nil}, {"Stash", Options{"prettyYaml": true}}, {"Shadowrocket", nil}} {
 		want, _ := produce(t, tc.target, []*nodemodel.Node{good, good}, tc.opts)
 		out, res := produce(t, tc.target, []*nodemodel.Node{good, bad, good, badHelper}, tc.opts)
 		if out != want || res.Entries != 2 || !slices.Equal(reasons(res.Dropped), []string{"1:" + ReasonFailed, "3:" + ReasonFailed}) {
@@ -830,12 +954,16 @@ func TestProducersImportOnlyModelPackages(t *testing.T) {
 	}
 }
 
-// BenchmarkProduce4096 times each native producer over the perf gate's 4096
-// VLESS Reality nodes. S1 plan section 5.2 records it and holds it to the
-// regression rule only.
+// BenchmarkProduce4096 times each native producer that writes VLESS over the
+// perf gate's 4096 VLESS Reality nodes. S1 plan section 5.2 records it and
+// holds it to the regression rule only. Surge writes no VLESS and is timed by
+// BenchmarkProduce4096FleetMix alone.
 func BenchmarkProduce4096(b *testing.B) {
 	raw := perfgen.Nodes(4096)
 	for _, target := range harnessTargets {
+		if target.id == "surge" {
+			continue
+		}
 		b.Run(target.id, func(b *testing.B) {
 			p, ok := Lookup(target.platform)
 			if !ok {

@@ -1,0 +1,17 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-kuqnpj-40",
+      "type": "trojan",
+      "server": "i6-13.qt0i4ds.example.org",
+      "server_port": 443,
+      "password": "OAeWydKTNVzsb42M",
+      "tls": {
+        "enabled": true,
+        "server_name": "img.obi9ca56z.example.net",
+        "insecure": false
+      }
+    }
+  ],
+  "endpoints": []
+}

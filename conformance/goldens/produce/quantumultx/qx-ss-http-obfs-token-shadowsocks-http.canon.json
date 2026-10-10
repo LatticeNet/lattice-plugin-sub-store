@@ -1,0 +1,16 @@
+[
+  {
+    "address": "y97-38.rn04h.example.com:30252",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "shadowsocks-http",
+      "obfs-host": "api.bjn3w2ond.example.net",
+      "obfs-uri": "/jwnph6w",
+      "password": "iiQPgx4YdvOrzD",
+      "tag": "DE-m589t-55",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

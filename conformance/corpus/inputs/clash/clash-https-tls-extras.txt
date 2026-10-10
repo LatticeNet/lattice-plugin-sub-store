@@ -1,0 +1,28 @@
+proxies:
+  - name: AU-qwcrw-85
+    type: http
+    server: yo-32.t7tq.example.org
+    port: 443
+    username: vf6vjpt2
+    password: gGYHIQZCdJix
+    tls: true
+    sni: static.yaq2i7izym.example.org
+    skip-cert-verify: true
+    name-cert-verify: cdn.o88s8vsqrg.example.net
+    keystore-client-cert: ii50t7
+    tls-fingerprint: 2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac
+    alpn: "h2, http/1.1"
+  - name: SG-yge45-73
+    type: http
+    server: ek-36.e2k6k0z.example.net
+    port: 443
+    username: bfas9x
+    password: rYehLxWCwT2h
+    tls: true
+    sni: www.wgksq6.example.net
+    skip-cert-verify: true
+    client-cert: ct7c
+    alpn:
+      - "\"h2\""
+      - ""
+      - " http/1.1 "

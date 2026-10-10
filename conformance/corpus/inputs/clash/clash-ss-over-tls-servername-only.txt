@@ -1,0 +1,10 @@
+proxies:
+  - name: DE-m9h7t7-81
+    type: ss
+    server: 198.51.100.75
+    port: 50389
+    cipher: aes-128-gcm
+    password: EBuE5Qs5xAb5dR
+    udp: true
+    tls: true
+    servername: www.ewqai1pkrc.example.org

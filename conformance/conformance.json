@@ -1,30 +1,46 @@
 {
   "upstream_commit": "a3e61061e50b40e5c5938969aab915d05d8d7069",
-  "generated_at": "2026-10-09T08:46:50Z",
+  "generated_at": "2026-10-10T04:12:33Z",
   "parse": {
-    "cases": 607,
-    "passed": 607
+    "cases": 639,
+    "passed": 639
   },
   "produce": {
     "uri": {
-      "cases": 579,
-      "passed": 579
+      "cases": 611,
+      "passed": 611
     },
     "v2ray": {
-      "cases": 579,
-      "passed": 579
+      "cases": 611,
+      "passed": 611
     },
     "json": {
-      "cases": 579,
-      "passed": 579
+      "cases": 611,
+      "passed": 611
     },
     "singbox": {
-      "cases": 579,
-      "passed": 579
+      "cases": 611,
+      "passed": 611
     },
     "clashmeta": {
-      "cases": 579,
-      "passed": 579
+      "cases": 611,
+      "passed": 611
+    },
+    "stash": {
+      "cases": 611,
+      "passed": 611
+    },
+    "shadowrocket": {
+      "cases": 611,
+      "passed": 611
+    },
+    "surge": {
+      "cases": 611,
+      "passed": 611
+    },
+    "quantumultx": {
+      "cases": 611,
+      "passed": 611
     }
   },
   "script": {
@@ -35,6 +51,7 @@
   "divergences": [
     "ca",
     "external",
+    "line-safety",
     "underscore"
   ]
 }

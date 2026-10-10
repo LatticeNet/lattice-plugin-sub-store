@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-httpupgrade-ed",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "httpupgrade",
+  "security": "tls",
+  "quirk": "httpupgrade-early-data",
+  "description": "vmess ws with v2ray-http-upgrade true, a path carrying ?ed=2048 and both early-data keys: Shadowrocket removes ed, sets v2ray-http-upgrade-fast-open and drops the early-data keys; Stash, Surge and Quantumult X reject it."
+}

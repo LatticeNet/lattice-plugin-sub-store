@@ -1,0 +1,9 @@
+{
+  "id": "clash-https-tls-extras",
+  "family": "clash",
+  "protocol": "http",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-extras",
+  "description": "https with name-cert-verify, keystore-client-cert, a tls-fingerprint and alpn as comma-separated text, and https with client-cert and an alpn list holding a quoted item and an empty item: Surge writes server-cert-verify-name, client-cert and the cleaned alpn."
+}

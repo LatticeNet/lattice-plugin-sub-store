@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "z8-36.o0oc23my.example.com",
+      "443"
+    ],
+    "name": "TW-cna4sp-21",
+    "params": {
+      "password": "87KwLxH2WIUqKHKx",
+      "sni": "api.l0te6v7bhr.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]
