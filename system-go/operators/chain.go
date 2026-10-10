@@ -14,7 +14,13 @@
 // QuickJS's unstable sort decides). TestOperatorsMatchBundleOnSyntheticNodes
 // in package main holds the rest to the bundle.
 //
-// Nothing in this package imports package main, the SDK or the script engine.
+// Two Lattice-only steps join them in S2, Structured Filter and Structured
+// Sort, with the pushdown classifier that hands a fleet record's leading
+// structured run to the catalogue (structured.go, pushdown.go).
+//
+// Nothing in this package imports package main, the SDK's plugin runtime or
+// the script engine; the SDK's model package is the one SDK import, for the
+// catalogue selector and the row types the structured steps read.
 package operators
 
 import (
