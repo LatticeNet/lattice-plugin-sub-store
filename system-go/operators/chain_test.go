@@ -173,12 +173,16 @@ func TestRunMutatesInPlaceInOrder(t *testing.T) {
 }
 
 // The operators are imported by the conformance runner and the dispatcher
-// and must stay free of package main, the SDK and the script engine (S1 plan
-// section 1.1): the standard library, nodemodel and normalise only.
+// and must stay free of package main, the SDK's plugin runtime and the script
+// engine (S1 plan section 1.1): the standard library, nodemodel and normalise,
+// and from S2 the SDK's model package, whose catalogue selector Pushdown
+// returns and whose row types the structured steps read (S2 plan section
+// 2.4).
 func TestOperatorsImportOnlyTheStandardLibraryAndTheModel(t *testing.T) {
 	allowed := []string{
 		"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel",
 		"github.com/LatticeNet/lattice-plugin-sub-store/system-go/normalise",
+		"github.com/LatticeNet/lattice-sdk/model",
 	}
 	files, err := filepath.Glob("*.go")
 	if err != nil {

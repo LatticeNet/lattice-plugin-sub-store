@@ -79,6 +79,12 @@ func (rt *runtime) fetchSubscription(subscriptionID string) (fetchResult, error)
 			return fetchResult{}, err
 		}
 	default:
+		if rec.Source == subscriptionSourceFleet {
+			// A fleet envelope with a catalogue version is content whatever
+			// its row count: a selection that matches nothing is valid, and
+			// core answers its shares with the decoy (S2 plan section 1.2).
+			return rt.fetchFleetSub(rec)
+		}
 		if out, err = rt.fetchRecordContent(rec); err != nil {
 			return fetchResult{}, err
 		}

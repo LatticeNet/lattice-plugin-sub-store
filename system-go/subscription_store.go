@@ -44,6 +44,12 @@ const (
 	// source and still resolves url-then-content, which is what it always did.
 	subscriptionSourceRemote = "remote"
 	subscriptionSourceLocal  = "local"
+	// subscriptionSourceFleet is an identity-free structured selection over
+	// the line catalogue (design 28, S2 plan section 2.1). The selection is
+	// the record's leading run of Structured Filter steps; the record carries
+	// no identity, no URL and no content, and it renders to a selection plan
+	// that core binds per share identity.
+	subscriptionSourceFleet = "fleet"
 	// How a collection reacts when one of its members cannot be fetched.
 	// Upstream makes this a choice rather than a rule, and it genuinely is one:
 	// strict protects a client from silently losing nodes, while skipping keeps
@@ -113,7 +119,21 @@ type subscriptionRecord struct {
 	// authoritative options projection. The mutation handler revalidates it
 	// immediately before storage; compose remains authoritative at use time.
 	GraphOptionsVersion string `json:"graph_options_version,omitempty"`
-	UA                  string `json:"ua,omitempty"`
+	// Fleet holds the per-record opt-ins of a fleet record, or of a collection
+	// that gathers one (S2 plan section 2.1). The options that apply to a
+	// share are those of the record the share names, never a member's.
+	Fleet *fleetOptions `json:"fleet,omitempty"`
+	// External is the H3 opt-in (parse.Options.AllowExternal): a local
+	// record may keep exec-shaped nodes. Kept on local records only; a fleet
+	// record never emits one.
+	External bool `json:"external,omitempty"`
+	// MigratedFrom is set by migrate_record on the fleet record it stages from
+	// a legacy vpn-core or vpn-core-graph record. The write path preserves it
+	// from the stored staged or live record, as it preserves Origin, so an
+	// edit of the staged migrated record keeps it. Unlike Origin it is part
+	// of the revision: a revision names fixed content, provenance included.
+	MigratedFrom *legacyOrigin `json:"migrated_from,omitempty"`
+	UA           string        `json:"ua,omitempty"`
 	// Members and MemberTags are the collection's inputs: explicit sub ids, plus
 	// every sub carrying one of these tags. Tags exist so a collection can be
 	// "everything tagged home" and pick up a new sub without being edited.
@@ -304,6 +324,18 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 	if err := validateProcess(rec.Process); err != nil {
 		return rec, fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
+	// An unknown source used to be saved and then treated as a remote source
+	// with no URL; a source this plugin does not know is refused instead, so
+	// no fetch or render path meets one.
+	if !knownSubscriptionSource(rec.Source) {
+		return rec, fmt.Errorf("subscription %q: source %q is not one of vpn-core, vpn-core-graph, remote, local or fleet", rec.ID, rec.Source)
+	}
+	if err := validateFleetOptions(rec.Fleet); err != nil {
+		return rec, fmt.Errorf("subscription %q: %w", rec.ID, err)
+	}
+	if recordKind(rec) != kindSub || rec.Source != subscriptionSourceLocal {
+		rec.External = false
+	}
 	switch recordKind(rec) {
 	case kindFile:
 		// A file has a template and, optionally, a node source. Membership and
@@ -312,7 +344,13 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 		if strings.TrimSpace(rec.URL) == "" && strings.TrimSpace(rec.Content) == "" {
 			return rec, fmt.Errorf("file %q needs a template: a URL to fetch, or content", rec.ID)
 		}
+		// A file reads nodes through its node source; the fleet is a source
+		// of subscriptions, and a fleet-bound file does not exist before S3.
+		if rec.Source == subscriptionSourceFleet {
+			return rec, fmt.Errorf("file %q cannot take the fleet source; name a fleet subscription as its node source instead", rec.ID)
+		}
 		rec.Kind = kindFile
+		rec.Fleet, rec.MigratedFrom = nil, nil
 		rec.Members, rec.MemberTags = nil, nil
 		rec.VPNIdentity, rec.Target, rec.FailureMode, rec.GraphOptionsVersion = "", "", "", ""
 		rec.EntryRoots = nil
@@ -339,6 +377,10 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 		rec.Source, rec.URL, rec.Content, rec.VPNIdentity, rec.UA, rec.GraphOptionsVersion = "", "", "", "", "", ""
 		rec.EntryRoots = nil
 		rec.FileType, rec.NodeSource, rec.Download = "", "", false
+		// Fleet stays: whether the collection gathers a fleet record is a
+		// fact about the other records, which applyFleetWriteRules decides
+		// with the index in hand. MigratedFrom belongs to subs.
+		rec.MigratedFrom = nil
 	default:
 		// A sub with no source is allowed to exist. Requiring one here would
 		// reject legitimate intermediate states (a record arriving mid-import,
@@ -349,7 +391,17 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 		rec.Kind = ""
 		rec.Members, rec.MemberTags = nil, nil
 		rec.FileType, rec.NodeSource, rec.Download = "", "", false
-		if rec.Source == subscriptionSourceVPNCoreGraph {
+		if rec.Source != subscriptionSourceFleet {
+			rec.Fleet = nil
+		}
+		switch rec.Source {
+		case subscriptionSourceFleet:
+			// The selection is the record's leading Structured Filter run; a
+			// fleet record carries no identity, no provider and no content,
+			// so nothing on it can name an owner credential or a host.
+			rec.URL, rec.Content, rec.UA, rec.VPNIdentity, rec.GraphOptionsVersion = "", "", "", "", ""
+			rec.EntryRoots = nil
+		case subscriptionSourceVPNCoreGraph:
 			if err := validateVPNCoreGraphConfig(rec.VPNIdentity, rec.EntryRoots); err != nil {
 				return rec, fmt.Errorf("subscription %q: %w", rec.ID, err)
 			}
@@ -357,7 +409,7 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 				return rec, fmt.Errorf("subscription %q: graph options version is invalid", rec.ID)
 			}
 			rec.URL, rec.Content, rec.UA = "", "", ""
-		} else {
+		default:
 			rec.EntryRoots = nil
 			rec.GraphOptionsVersion = ""
 		}
@@ -372,4 +424,368 @@ func normalizeSubscriptionForStore(rec subscriptionRecord) (subscriptionRecord, 
 	// fingerprint describes what is actually stored rather than what arrived.
 	// A caller-supplied Revision never survives: it is zeroed and recomputed.
 	return withRevision(rec), nil
+}
+
+// fleetOptions are the per-record opt-ins design 28 names. Every field is
+// off by default and a zero value is omitted on the wire. They are kept on
+// fleet records and on collections that gather a fleet record; the options
+// that apply to a share are those of the record the share names, never a
+// member's (S2 plan section 1.2), so a collection's plan carries one policy
+// with no merge rule.
+type fleetOptions struct {
+	// DDNSDial substitutes a line's dial address with a verified DDNS name.
+	// Never sni, host or path. A NAT line (template host equals the provider
+	// edge) takes only a verified name whose Target is that edge.
+	DDNSDial bool `json:"ddns_dial,omitempty"`
+	// ProbeExclusion asks core to exclude a line whose last probe failed
+	// ConsecutiveFailures times in a row (1 to 10, default 3 when enabled).
+	ProbeExclusion *probeExclusion `json:"probe_exclusion,omitempty"`
+	// UsageExclusion asks core to exclude a line on which the share's
+	// identity used more than MaxBytesPerLine in the current period.
+	UsageExclusion *usageExclusion `json:"usage_exclusion,omitempty"`
+}
+
+type probeExclusion struct {
+	Enabled             bool `json:"enabled"`
+	ConsecutiveFailures int  `json:"consecutive_failures,omitempty"`
+}
+
+type usageExclusion struct {
+	Enabled         bool  `json:"enabled"`
+	MaxBytesPerLine int64 `json:"max_bytes_per_line"`
+}
+
+// legacyOrigin is what migrate_record kept of the legacy record it replaced.
+type legacyOrigin struct {
+	Source              string   `json:"source"` // vpn-core or vpn-core-graph
+	VPNIdentity         string   `json:"vpn_identity,omitempty"`
+	EntryRoots          []string `json:"entry_roots,omitempty"`
+	GraphOptionsVersion string   `json:"graph_options_version,omitempty"`
+	MigratedAt          string   `json:"migrated_at"`
+}
+
+const (
+	// defaultProbeConsecutiveFailures is the probe exclusion's threshold
+	// when it is enabled without one.
+	defaultProbeConsecutiveFailures = 3
+	// maxProbeConsecutiveFailures bounds the probe exclusion's threshold.
+	maxProbeConsecutiveFailures = 10
+)
+
+// knownSubscriptionSource reports whether source is one this plugin serves:
+// the two legacy vpn-core sources, the two provider sources, the fleet, or
+// none (a record written before sources were named).
+func knownSubscriptionSource(source string) bool {
+	switch source {
+	case "", subscriptionSourceVPNCore, subscriptionSourceVPNCoreGraph,
+		subscriptionSourceRemote, subscriptionSourceLocal, subscriptionSourceFleet:
+		return true
+	}
+	return false
+}
+
+// validateFleetOptions refuses a probe threshold outside 1 to 10 and a usage
+// threshold that is not positive. A disabled block keeps its values, so the
+// editor can remember them, and is still range checked.
+func validateFleetOptions(options *fleetOptions) error {
+	if options == nil {
+		return nil
+	}
+	if p := options.ProbeExclusion; p != nil && p.ConsecutiveFailures != 0 &&
+		(p.ConsecutiveFailures < 1 || p.ConsecutiveFailures > maxProbeConsecutiveFailures) {
+		return fmt.Errorf("probe exclusion needs 1 to %d consecutive failures, not %d", maxProbeConsecutiveFailures, p.ConsecutiveFailures)
+	}
+	if u := options.UsageExclusion; u != nil && (u.MaxBytesPerLine < 0 || (u.Enabled && u.MaxBytesPerLine == 0)) {
+		return fmt.Errorf("usage exclusion needs a positive byte threshold per line")
+	}
+	return nil
+}
+
+// Refusal codes of the record rules (S2 plan sections 1.2, 1.4, 2.1, 2.6).
+// A mutating method answers each as a structured refusal, never as an error,
+// because the gateway replaces every mutation error with one fixed string.
+const (
+	codeFleetToLegacyRefused       = "fleet_to_legacy_refused"
+	codeLegacySourceRetired        = "legacy_source_retired"
+	codeFleetMixedOwnerCredentials = "fleet_mixed_owner_credentials"
+	codeFleetFileUnavailable       = "fleet_file_unavailable"
+	codeFleetScriptLinkUnavailable = "fleet_script_link_unavailable"
+)
+
+// fleetRuleError is a refusal of one of the record rules. Message is fixed
+// text with record ids and codes interpolated and never a wrapped error, a
+// URL or content, so it may travel to the browser in a structured refusal
+// (refused.message); IDs, Files and Collections fill refused.ids,
+// refused.files and refused.collections.
+type fleetRuleError struct {
+	Code        string
+	IDs         []string
+	Files       []string
+	Collections []string
+	Message     string
+}
+
+func (e *fleetRuleError) Error() string { return e.Code + ": " + e.Message }
+
+// fleetRecordFacts is one other record as the write-time rules read it: its
+// kind, its source, its tags and the edges it creates. Which state each fact
+// comes from is the caller's choice and is fixed by S2 plan section 2.2: at
+// save, import, migrate and restore each other record contributes its staged
+// facts when it has a staged revision and its live facts otherwise, never
+// both; at migrate_record and apply_revision the live facts alone.
+type fleetRecordFacts struct {
+	ID         string
+	Kind       string
+	Source     string
+	Tags       []string
+	Members    []string
+	MemberTags []string
+	NodeSource string
+}
+
+// factsOf is a record's own facts, in the same shape.
+func factsOf(rec subscriptionRecord) fleetRecordFacts {
+	return fleetRecordFacts{
+		ID: rec.ID, Kind: recordKind(rec), Source: rec.Source, Tags: rec.Tags,
+		Members: rec.Members, MemberTags: rec.MemberTags, NodeSource: rec.NodeSource,
+	}
+}
+
+// fleetLiveFacts is the written record's own live state. The source
+// transition rules read live state only (S2 plan section 2.1): a legacy
+// record whose only fleet-ness is a staged migration is still the live
+// legacy record.
+type fleetLiveFacts struct {
+	// Revision is the live revision; empty when the record has none (a new
+	// id, a staged record never promoted, an archived record).
+	Revision string
+	// Source is the live revision's source.
+	Source string
+	// FleetBound is the live index entry's fleet_bound flag.
+	FleetBound bool
+}
+
+// fleetWriteOrigin names the method a write comes from. Only save refuses a
+// legacy source (legacy_source_retired): import, migrate and restore still
+// write legacy records, because a backup must restore what it holds.
+type fleetWriteOrigin string
+
+const (
+	fleetWriteSave          fleetWriteOrigin = "save"
+	fleetWriteImport        fleetWriteOrigin = "import"
+	fleetWriteMigrate       fleetWriteOrigin = "migrate"
+	fleetWriteRestore       fleetWriteOrigin = "restore"
+	fleetWriteMigrateRecord fleetWriteOrigin = "migrate_record"
+	fleetWriteApplyRevision fleetWriteOrigin = "apply_revision"
+)
+
+// applyFleetWriteRules runs every record rule that reads the other records,
+// for a record already normalised by normalizeSubscriptionForStore, and
+// returns the record to store: a collection that gathers no fleet record
+// loses its Fleet options and its revision is recomputed. The write path
+// (storeWriteRecord) calls it for every origin with the other records' facts
+// at the state S2 plan section 2.2 fixes for that origin; others must not
+// include the written record itself.
+//
+// In order, it refuses:
+//
+//   - fleet_to_legacy_refused: a legacy source on a record that is fleet-bound
+//     live or whose live source is fleet, and a members or member_tags list
+//     that gathers a legacy record on a collection that is fleet-bound live;
+//   - legacy_source_retired (save only): a legacy source unless the record's
+//     live revision already has one;
+//   - fleet_mixed_owner_credentials: a collection that would gather a legacy
+//     and a fleet record, seen from all three sides (the collection itself,
+//     a legacy record a fleet-bound collection gathers, a record saved to or
+//     switched to fleet that a collection with a legacy member gathers);
+//   - fleet_file_unavailable: a file whose node source is or would be
+//     fleet-bound, and a record whose write would make a file's node source
+//     fleet-bound;
+//   - fleet_script_link_unavailable: a link-mode Script Operator or Script
+//     Filter on a record that is or would be fleet-bound.
+//
+// The membership half of fleet_to_legacy_refused at apply_revision also
+// triggers on the fleet-boundness the promotion would give the record; the
+// caller passes FleetBound true for that case.
+func applyFleetWriteRules(rec subscriptionRecord, live fleetLiveFacts, others []fleetRecordFacts, origin fleetWriteOrigin) (subscriptionRecord, error) {
+	self := factsOf(rec)
+	universe := make([]fleetRecordFacts, 0, len(others)+1)
+	for _, other := range others {
+		if other.ID != rec.ID {
+			universe = append(universe, other)
+		}
+	}
+	universe = append(universe, self)
+	byID := make(map[string]fleetRecordFacts, len(universe))
+	for _, f := range universe {
+		byID[f.ID] = f
+	}
+
+	if self.Kind == kindSub && isVPNCoreSource(self.Source) {
+		if live.FleetBound || live.Source == subscriptionSourceFleet {
+			return rec, &fleetRuleError{Code: codeFleetToLegacyRefused, IDs: []string{rec.ID},
+				Message: fmt.Sprintf("record %q is fleet-bound and cannot take the %s source; its identity shares would receive the owner-credential export", rec.ID, self.Source)}
+		}
+		if origin == fleetWriteSave && !isVPNCoreSource(live.Source) {
+			return rec, &fleetRuleError{Code: codeLegacySourceRetired, IDs: []string{rec.ID},
+				Message: fmt.Sprintf("record %q cannot take the %s source: new owner-credential records are retired; use a fleet record", rec.ID, self.Source)}
+		}
+	}
+
+	if self.Kind == kindCollection {
+		fleet, legacy := gatheredSources(self, universe)
+		if len(fleet) > 0 && len(legacy) > 0 {
+			return rec, mixedRefusal(rec.ID, fleet, legacy)
+		}
+		if live.FleetBound && len(legacy) > 0 {
+			return rec, &fleetRuleError{Code: codeFleetToLegacyRefused, IDs: legacy, Collections: []string{rec.ID},
+				Message: fmt.Sprintf("collection %q is fleet-bound and cannot gather the legacy records %s", rec.ID, strings.Join(legacy, ", "))}
+		}
+	}
+	if self.Kind == kindSub {
+		for _, collection := range universe {
+			if collection.Kind != kindCollection || !gathers(collection, self) {
+				continue
+			}
+			fleet, legacy := gatheredSources(collection, universe)
+			if len(fleet) > 0 && len(legacy) > 0 {
+				return rec, mixedRefusal(collection.ID, fleet, legacy)
+			}
+		}
+	}
+
+	if err := fleetFileRule(self, universe, byID); err != nil {
+		return rec, err
+	}
+	bound := fleetBoundUnder(self, universe)
+	if bound {
+		if index, ok := fleetScriptLinkStep(processSteps(rec)); ok {
+			return rec, &fleetRuleError{Code: codeFleetScriptLinkUnavailable, IDs: []string{rec.ID},
+				Message: fmt.Sprintf("record %q is fleet-bound and step %d runs a script fetched by link; link pinning arrives with S3, so paste the script inline", rec.ID, index+1)}
+		}
+	}
+	if self.Kind == kindCollection && rec.Fleet != nil && !bound {
+		rec.Fleet = nil
+		rec = withRevision(rec)
+	}
+	return rec, nil
+}
+
+// mixedRefusal names a collection and the records on each side.
+func mixedRefusal(collection string, fleet, legacy []string) error {
+	ids := append(append([]string(nil), fleet...), legacy...)
+	return &fleetRuleError{Code: codeFleetMixedOwnerCredentials, IDs: ids, Collections: []string{collection},
+		Message: fmt.Sprintf("collection %q would gather the fleet records %s and the legacy records %s; core serves a collection's provider nodes to every identity, so a legacy member would hand out owner credentials", collection, strings.Join(fleet, ", "), strings.Join(legacy, ", "))}
+}
+
+// gathers reports whether a collection gathers sub, explicitly or by tag.
+func gathers(collection, sub fleetRecordFacts) bool {
+	if sub.Kind != kindSub {
+		return false
+	}
+	for _, id := range collection.Members {
+		if id == sub.ID {
+			return true
+		}
+	}
+	return tagsIntersect(collection.MemberTags, sub.Tags)
+}
+
+// tagsIntersect compares tags as collectionMembers does: trimmed, exact.
+func tagsIntersect(wanted, tags []string) bool {
+	if len(wanted) == 0 || len(tags) == 0 {
+		return false
+	}
+	set := make(map[string]bool, len(wanted))
+	for _, tag := range wanted {
+		set[strings.TrimSpace(tag)] = true
+	}
+	for _, tag := range tags {
+		if set[strings.TrimSpace(tag)] {
+			return true
+		}
+	}
+	return false
+}
+
+// gatheredSources is the ids, sorted, of the fleet and the legacy records a
+// collection gathers among universe.
+func gatheredSources(collection fleetRecordFacts, universe []fleetRecordFacts) (fleet, legacy []string) {
+	for _, candidate := range universe {
+		if !gathers(collection, candidate) {
+			continue
+		}
+		switch {
+		case candidate.Source == subscriptionSourceFleet:
+			fleet = append(fleet, candidate.ID)
+		case isVPNCoreSource(candidate.Source):
+			legacy = append(legacy, candidate.ID)
+		}
+	}
+	sort.Strings(fleet)
+	sort.Strings(legacy)
+	return fleet, legacy
+}
+
+// fleetBoundUnder reports whether a record would be fleet-bound among
+// universe: a fleet sub, or a collection that gathers one. Files are never
+// fleet-bound in S2.
+func fleetBoundUnder(rec fleetRecordFacts, universe []fleetRecordFacts) bool {
+	switch rec.Kind {
+	case kindSub:
+		return rec.Source == subscriptionSourceFleet
+	case kindCollection:
+		fleet, _ := gatheredSources(rec, universe)
+		return len(fleet) > 0
+	}
+	return false
+}
+
+// fleetFileRule refuses a file over a fleet-bound node source, from both
+// sides: the file itself, and a sub or collection whose write would make the
+// node source of a file fleet-bound.
+func fleetFileRule(self fleetRecordFacts, universe []fleetRecordFacts, byID map[string]fleetRecordFacts) error {
+	var files []string
+	for _, file := range universe {
+		if file.Kind != kindFile || strings.TrimSpace(file.NodeSource) == "" {
+			continue
+		}
+		source, ok := byID[strings.TrimSpace(file.NodeSource)]
+		if !ok || !fleetBoundUnder(source, universe) {
+			continue
+		}
+		if file.ID == self.ID || source.ID == self.ID || (source.Kind == kindCollection && gathers(source, self)) {
+			files = append(files, file.ID)
+		}
+	}
+	if len(files) == 0 {
+		return nil
+	}
+	sort.Strings(files)
+	return &fleetRuleError{Code: codeFleetFileUnavailable, IDs: []string{self.ID}, Files: files,
+		Message: fmt.Sprintf("the files %s would read fleet nodes through record %q; fleet-bound files arrive with S3", strings.Join(files, ", "), self.ID)}
+}
+
+// fleetScriptLinkStep finds the first enabled Script Operator or Script
+// Filter that fetches its program by link. A fleet-bound record refuses one
+// until S3 pins a link by digest: an approved plan previewed one version of
+// the program, and a serve-path render would run whatever the host serves
+// next.
+func fleetScriptLinkStep(steps []json.RawMessage) (int, bool) {
+	for i, raw := range steps {
+		var step struct {
+			Type     string `json:"type"`
+			Disabled bool   `json:"disabled"`
+			Args     struct {
+				Mode string `json:"mode"`
+			} `json:"args"`
+		}
+		if json.Unmarshal(raw, &step) != nil || step.Disabled {
+			continue
+		}
+		if (step.Type == "Script Operator" || step.Type == "Script Filter") && strings.EqualFold(strings.TrimSpace(step.Args.Mode), "link") {
+			return i, true
+		}
+	}
+	return 0, false
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 	"slices"
@@ -291,6 +292,83 @@ func TestNativeVocabularyMatchesProcessVocabulary(t *testing.T) {
 	sort.Strings(store)
 	if native := operators.Vocabulary(); !slices.Equal(native, store) {
 		t.Fatalf("operators.Vocabulary() = %q\nprocessVocabulary() = %q", native, store)
+	}
+}
+
+// uiSpecsPendingLane6a are the step types lane 6a adds to the UI's operator
+// schema with the structured predicate editor (S2 plan section 11). The
+// test below refuses them once they are there, so this list is deleted in
+// the change that adds them. yagni: a pending list of exactly the two
+// Lattice-only steps; it has no other use and goes away with lane 6a.
+var uiSpecsPendingLane6a = []string{operators.StructuredFilterType, operators.StructuredSortType}
+
+// uiOperatorSpecTypes reads the step types of the UI's OPERATOR_SPECS table
+// (ui/src/operatorSchema.ts), the third place the vocabulary is written.
+func uiOperatorSpecTypes(t *testing.T) []string {
+	t.Helper()
+	source, err := os.ReadFile("../ui/src/operatorSchema.ts")
+	if err != nil {
+		t.Fatalf("read the UI operator schema: %v", err)
+	}
+	text := string(source)
+	start := strings.Index(text, "const OPERATOR_SPECS")
+	if start < 0 {
+		t.Fatal("ui/src/operatorSchema.ts has no OPERATOR_SPECS table")
+	}
+	end := strings.Index(text[start:], "\n];")
+	if end < 0 {
+		t.Fatal("the OPERATOR_SPECS table does not end")
+	}
+	var out []string
+	for _, m := range regexp.MustCompile(`(?m)^\s*(?:\{\s*)?type: "([^"]+)"`).FindAllStringSubmatch(text[start:start+end], -1) {
+		out = append(out, m[1])
+	}
+	sort.Strings(out)
+	return out
+}
+
+// The vocabulary is written in three places, held equal here: the native
+// compiler's (operators.Vocabulary, step.go), package main's (the process
+// vocabulary a stored chain is checked against, and the operators reply the
+// editor lists, operators.go), and the UI's operator schema. The reply flags
+// the two Lattice-only steps fleet and nothing else.
+func TestOperatorVocabularyHeldInThreePlaces(t *testing.T) {
+	native := operators.Vocabulary()
+
+	var process []string
+	for name := range processVocabulary() {
+		process = append(process, name)
+	}
+	sort.Strings(process)
+	if !slices.Equal(native, process) {
+		t.Fatalf("operators.Vocabulary() = %q\nprocessVocabulary() = %q", native, process)
+	}
+
+	var reply []string
+	for _, info := range append(operatorCatalogInfo(), responseOperatorInfo()...) {
+		reply = append(reply, info.Type)
+		if fleet := slices.Contains(operators.FleetVocabulary(), info.Type); info.Fleet != fleet {
+			t.Errorf("the operators reply flags %s fleet=%v", info.Type, info.Fleet)
+		}
+	}
+	sort.Strings(reply)
+	if !slices.Equal(native, reply) {
+		t.Fatalf("operators.Vocabulary() = %q\noperators reply = %q", native, reply)
+	}
+
+	ui := uiOperatorSpecTypes(t)
+	for _, name := range uiSpecsPendingLane6a {
+		if slices.Contains(ui, name) {
+			t.Errorf("the UI schema now holds %s: delete it from uiSpecsPendingLane6a", name)
+		}
+	}
+	ui = append(ui, uiSpecsPendingLane6a...)
+	sort.Strings(ui)
+	if !slices.Equal(native, ui) {
+		t.Fatalf("operators.Vocabulary() = %q\nui/src/operatorSchema.ts = %q", native, ui)
+	}
+	if !slices.Equal(operators.FleetVocabulary(), []string{"Structured Filter", "Structured Sort Operator"}) {
+		t.Fatalf("FleetVocabulary() = %q", operators.FleetVocabulary())
 	}
 }
 
