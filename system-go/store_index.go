@@ -457,31 +457,42 @@ func (rt *runtime) listSubscriptionsReply() (json.RawMessage, error) {
 	return json.Marshal(reply)
 }
 
-// reorderSubscriptions rewrites the manual order: index read, index write.
-// ids must name every live record exactly once, so a reorder sent from a
-// stale list is refused rather than silently dropping or duplicating a row.
+// reorderSubscriptions rewrites the manual order: index read, index write (two
+// more on a kv_conflict). ids must name every live record exactly once, so a
+// reorder sent from a stale list is refused rather than silently dropping or
+// duplicating a row.
 func (rt *runtime) reorderSubscriptions(ids []string) error {
 	idx, err := rt.writableIndex()
 	if err != nil {
 		return err
 	}
-	if len(ids) != len(idx.Records) {
-		return fmt.Errorf("reorder names %d records, the store holds %d; list again and resend every id once", len(ids), len(idx.Records))
-	}
-	byID := make(map[string]indexEntry, len(idx.Records))
-	for _, entry := range idx.Records {
-		byID[entry.ID] = entry
-	}
-	ordered := make([]indexEntry, 0, len(ids))
-	for _, id := range ids {
-		entry, ok := byID[id]
-		if !ok {
-			return fmt.Errorf("reorder names %q, which is not a live record or is named twice", id)
+	mutate := func(target *indexDocument) error {
+		if len(ids) != len(target.Records) {
+			return fmt.Errorf("reorder names %d records, the store holds %d; list again and resend every id once", len(ids), len(target.Records))
 		}
-		delete(byID, id)
-		ordered = append(ordered, entry)
+		byID := make(map[string]indexEntry, len(target.Records))
+		for _, entry := range target.Records {
+			byID[entry.ID] = entry
+		}
+		ordered := make([]indexEntry, 0, len(ids))
+		for _, id := range ids {
+			entry, ok := byID[id]
+			if !ok {
+				return fmt.Errorf("reorder names %q, which is not a live record or is named twice", id)
+			}
+			delete(byID, id)
+			ordered = append(ordered, entry)
+		}
+		target.Records = ordered
+		target.renumber()
+		return nil
 	}
-	idx.Records = ordered
-	idx.renumber()
-	return rt.putIndex(idx, false)
+	if err := mutate(idx); err != nil {
+		return err
+	}
+	raw, err := encodeIndex(idx, false)
+	if err != nil {
+		return err
+	}
+	return rt.putIndexRetrying(idx, raw, false, mutate)
 }

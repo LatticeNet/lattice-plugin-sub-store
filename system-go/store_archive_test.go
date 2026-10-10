@@ -248,8 +248,8 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		ok      bool
 	}{
 		{name: "list", method: "list", payload: map[string]any{}, want: 2, ok: true},
-		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
-		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 3, ok: true},
+		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 3, ok: true},
+		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 4, ok: true},
 		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 6, ok: true},
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 5, ok: true},
 		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 9, ok: true},

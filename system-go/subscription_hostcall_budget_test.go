@@ -214,8 +214,8 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 		// render's script shape and the bookkeeping read and write.
 		{name: "fetch the script file", method: "fetch", body: map[string]any{"subscription_id": "worst-script"}, split: 134, legacy: 136},
 		// The row check reads what the refresh reads and records nothing:
-		// fetch's shape without the bookkeeping read and write.
-		{name: "probe the script file", method: "probe", body: map[string]any{"subscription_id": "worst-script"}, split: 132, legacy: 134},
+		// fetch's shape without the bookkeeping write.
+		{name: "probe the script file", method: "probe", body: map[string]any{"subscription_id": "worst-script"}, split: 133, legacy: 135},
 		// The combination's record, the listing, Settings, 64 records, 64 fetches.
 		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
 		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
@@ -381,12 +381,14 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// justified in the acked budget table before it can merge.
 		want int
 	}{
-		// The management reads: the index, and one record.
+		// The management reads: the index, and get the index (storeLoadRecord
+		// needs the entry to find a staged revision) and one record.
 		{name: "list", method: "list", payload: map[string]any{}, want: 1},
-		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 1},
-		// The program is in the record: one read, where the legacy store needed
-		// two (production died here with the budget at 1, 2026-08-11).
-		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 1},
+		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 2},
+		// The program is in the record: one read beside the index, where the
+		// legacy store needed two (production died here with the budget at 1,
+		// 2026-08-11).
+		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 2},
 		// Save reads the index, writes the record and writes the index; an
 		// existing record is read first for its provenance and the conditional
 		// check. No read-back: the response is built from what was written.
@@ -420,11 +422,12 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// A script file's refresh resolves its node source the same way, plus
 		// the source record.
 		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 9},
-		// The row check (probe) resolves exactly what fetch resolves and
-		// records nothing, so it is fetch's count less the bookkeeping. The
-		// console's Refresh button calls it on every kind of record.
-		{name: "probe a remote sub", method: "probe", payload: map[string]any{"subscription_id": "remote-a"}, want: 3},
-		{name: "probe a script file over a remote collection", method: "probe", payload: map[string]any{"subscription_id": "scripty"}, want: 7},
+		// The row check (probe) opens the record through storeLoadRecord (the
+		// index and the record), then resolves what fetch resolves and records
+		// nothing: fetch's count less the bookkeeping write. The console's
+		// Refresh button calls it on every kind of record.
+		{name: "probe a remote sub", method: "probe", payload: map[string]any{"subscription_id": "remote-a"}, want: 4},
+		{name: "probe a script file over a remote collection", method: "probe", payload: map[string]any{"subscription_id": "scripty"}, want: 8},
 		// Renders. A plain local sub is one read; the engine runs in-process.
 		// A record that names no target, rendered from a URL that names none,
 		// also reads Settings for the default target (decision 14); an explicit

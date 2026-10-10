@@ -447,6 +447,9 @@ type pendingWrite struct {
 	// the record; the index is where it lives now.
 	incoming indexEntry
 	rec      subscriptionRecord
+	// entry is the id's live-list entry when it has one.
+	entry    indexEntry
+	hasEntry bool
 	decided  bool
 	stage    bool
 	discard  bool
@@ -478,6 +481,19 @@ func (rt *runtime) storeWriteRecords(reqs []writeRequest, origin writeOrigin) ([
 	if err != nil {
 		return nil, err
 	}
+	return rt.storeWriteRecordsIn(idx, reqs, origin, false)
+}
+
+// storeWriteRecordsIn is storeWriteRecords over an index the caller already
+// read. opened says the caller opened every record through storeLoadRecord
+// and refused the states no write may land on, so the batch skips its own
+// check for a half-done promotion.
+func (rt *runtime) storeWriteRecordsIn(idx *indexDocument, reqs []writeRequest, origin writeOrigin, opened bool) ([]writeResult, error) {
+	results := make([]writeResult, len(reqs))
+	if len(reqs) == 0 {
+		return results, nil
+	}
+	single := len(reqs) == 1 && origin == originSave
 	now := time.Now().UTC().Format(time.RFC3339)
 	writes := make([]*pendingWrite, 0, len(reqs))
 	var overlay []recordFacts
@@ -518,6 +534,11 @@ func (rt *runtime) storeWriteRecords(reqs []writeRequest, origin writeOrigin) ([
 	}
 	for _, w := range writes {
 		if err := rt.decideWrite(idx, w, origin, single, live, union, effective); err != nil {
+			return nil, err
+		}
+	}
+	if !single && !opened {
+		if err := rt.refusePendingPromotions(writes, origin); err != nil {
 			return nil, err
 		}
 	}
@@ -613,6 +634,7 @@ func (rt *runtime) decideWrite(idx *indexDocument, w *pendingWrite, origin write
 	if pos := idx.position(rec.ID); pos >= 0 {
 		res.Replaced = true
 		loaded = loadedRecord{ID: rec.ID, Entry: idx.Records[pos], HasEntry: true, LiveRevision: idx.Records[pos].Revision}
+		w.entry, w.hasEntry = idx.Records[pos], true
 		if single {
 			var err error
 			if loaded, err = rt.storeLoadRecord(idx, rec.ID, idx.Records[pos].hasStaged()); err != nil {
@@ -868,4 +890,52 @@ func (rt *runtime) storeDiscardStaged(id, stagedRevision string) error {
 		return err
 	}
 	return rt.putIndexRetrying(idx, indexRaw, false, mutate)
+}
+
+// batchHostCallCaps is what a batch write may spend on host calls: the
+// method's signed budget less what it spends outside storeWriteRecords
+// (migrate's three upstream reads).
+var batchHostCallCaps = map[writeOrigin]int{originImport: 320, originMigrate: 322}
+
+// refusePendingPromotions protects a half-done promotion from a batch write.
+// A batch never opens the records it writes, so it cannot see the state the
+// way storeLoadRecord does; the one write that could destroy the roll-forward
+// document is a staged write over a live entry with nothing staged, so for
+// each of those it reads staged-v2-<id> once and refuses promotion_pending
+// when the key holds the entry's own revision. A live write cannot meet the
+// state: a promotion leaves the record fleet-bound or writes it live
+// unprivileged, and the batch then writes what the operator asked for. The
+// reads count against the method's budget, so a batch whose writes and reads
+// would not fit is refused whole before any of them.
+func (rt *runtime) refusePendingPromotions(writes []*pendingWrite, origin writeOrigin) error {
+	var probe []*pendingWrite
+	decided := 0
+	for _, w := range writes {
+		if !w.decided {
+			continue
+		}
+		decided++
+		if w.stage && w.hasEntry && w.entry.hasLiveRevision() && !w.entry.hasStaged() {
+			probe = append(probe, w)
+		}
+	}
+	if len(probe) == 0 {
+		return nil
+	}
+	// The index read, every record put, the index put and its retry, the
+	// settings put, and the probes.
+	if limit, capped := batchHostCallCaps[origin]; capped && decided+len(probe)+5 > limit {
+		return fmt.Errorf("%s: %d records with %d staged checks take more host calls than one call may make", batchTooLargeCode, decided, len(probe))
+	}
+	for _, w := range probe {
+		staged, err := rt.loadStaged(w.rec.ID)
+		if err != nil {
+			return err
+		}
+		if staged != nil && staged.Record.Revision == w.entry.Revision {
+			r := promotionPendingRefusal(w.rec.ID, w.entry.Revision, "")
+			w.result.Refused, w.decided = &r, false
+		}
+	}
+	return nil
 }

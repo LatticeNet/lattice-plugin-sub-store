@@ -72,10 +72,23 @@ func validStoreID(id string) error {
 	return nil
 }
 
-// legacyCache holds the legacy document for one invocation.
+// legacyCache holds the legacy document for one invocation, and the records
+// a handler already opened through storeLoadRecord (primed), so the record
+// read fetchSubscription makes costs no second host call.
 type legacyCache struct {
 	loaded bool
 	doc    *subscriptionRecordsDocument
+	primed map[string]subscriptionRecord
+}
+
+// primeRecord makes loadRecord answer rec for its id for the rest of the
+// invocation: the record a handler opened through storeLoadRecord, which is
+// the staged document during a half-done promotion.
+func (rt *runtime) primeRecord(rec subscriptionRecord) {
+	if rt.legacy.primed == nil {
+		rt.legacy.primed = map[string]subscriptionRecord{}
+	}
+	rt.legacy.primed[rec.ID] = rec
 }
 
 // legacyDocument returns the legacy document, read at most once per
@@ -252,6 +265,9 @@ func decodeRecordDoc(id string, value []byte) (subscriptionRecord, error) {
 // document (once per invocation), whose script file gets its program from
 // the legacy program key. Revision is recomputed, never trusted from storage.
 func (rt *runtime) loadRecord(id string) (subscriptionRecord, bool, error) {
+	if rec, ok := rt.legacy.primed[id]; ok {
+		return rec, true, nil
+	}
 	value, found, err := rt.kvGet(recordKey(id))
 	if err != nil {
 		return subscriptionRecord{}, false, err
@@ -392,7 +408,22 @@ type fetchOutcome struct {
 	nodesIn  *int
 	nodesOut *int
 	err      error
+	// selectionVersion is the catalogue version a fleet fetch read; the
+	// entry's selection_version takes it on success.
+	selectionVersion string
+	// index is the index the fetch handler already read, with its digest,
+	// and indexRead says it did (index may be nil on a store with none), so
+	// the bookkeeping costs no second read.
+	index     *indexDocument
+	indexRead bool
+	// rederive is the record the fetch served when it was ahead of its
+	// entry (a live write whose index put was refused): the bookkeeping put
+	// re-derives the entry from it, so the mismatch lasts one poll.
+	rederive *subscriptionRecord
 }
+
+// errDropBookkeeping drops a bookkeeping write: the entry moved under it.
+var errDropBookkeeping = errors.New("the entry moved; the fetch bookkeeping is dropped")
 
 // noteFetchOutcome records when a fetch ran and how it went. It is called from
 // the fetch method (the core invokes it for every refresh, scheduled or
@@ -401,22 +432,47 @@ type fetchOutcome struct {
 // public request. A preview fetch is also not a refresh: recording it would
 // tell the operator the served snapshot is fresher than it is.
 //
-// The index is read immediately before it is written and only this record's
-// bookkeeping changes, so a concurrent save loses nothing but the window
-// between the two calls (plan section 3.4). A store that has not migrated
-// keeps its bookkeeping in the legacy document, where migrate_store finds it.
-// A failed bookkeeping write is swallowed on purpose: the fetch's own result
-// is already being reported, and losing the note must not turn a good refresh
-// into an error.
+// The write carries if_match (plan section 2.7). Core calls fetch before it
+// takes the plugin gate, so this write can race a save or a promotion: on a
+// kv_conflict it re-reads once and re-applies only its own delta, and it
+// drops the write instead when the entry's Revision or StagedRevision moved,
+// because fetch bookkeeping is never worth reverting a promotion. A store
+// that has not migrated keeps its bookkeeping in the legacy document, where
+// migrate_store finds it. A failed bookkeeping write is swallowed on purpose:
+// the fetch's own result is already being reported, and losing the note must
+// not turn a good refresh into an error.
 func (rt *runtime) noteFetchOutcome(subscriptionID string, outcome fetchOutcome) {
-	idx, err := rt.loadIndex()
-	if err != nil {
-		return
+	idx := outcome.index
+	if !outcome.indexRead {
+		var err error
+		if idx, err = rt.loadIndex(); err != nil {
+			return
+		}
 	}
 	if idx != nil {
 		if pos := idx.position(subscriptionID); pos >= 0 {
-			applyFetchOutcome(&idx.Records[pos], outcome)
-			_ = rt.putIndex(idx, false)
+			seen := idx.Records[pos]
+			apply := func(target *indexDocument) error {
+				at := target.position(subscriptionID)
+				if at < 0 || target.Records[at].Revision != seen.Revision || target.Records[at].StagedRevision != seen.StagedRevision {
+					return errDropBookkeeping
+				}
+				if outcome.rederive != nil {
+					entry := indexEntryFor(*outcome.rederive)
+					entry.carryBookkeeping(target.Records[at])
+					target.Records[at] = entry
+				}
+				applyFetchOutcome(&target.Records[at], outcome)
+				return nil
+			}
+			if apply(idx) != nil {
+				return
+			}
+			raw, err := encodeIndex(idx, false)
+			if err != nil {
+				return
+			}
+			_ = rt.putIndexRetrying(idx, raw, false, apply)
 			return
 		}
 		if idx.verified() {
@@ -451,6 +507,9 @@ func applyFetchOutcome(entry *indexEntry, outcome fetchOutcome) {
 		return
 	}
 	entry.LastError = ""
+	if outcome.selectionVersion != "" {
+		entry.SelectionVersion = outcome.selectionVersion
+	}
 	// A failure keeps the previous userinfo: it is the provider's quota
 	// figures, and a stale figure next to a "refresh failed" badge beats
 	// none at all.

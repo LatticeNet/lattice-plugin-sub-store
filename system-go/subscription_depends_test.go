@@ -83,22 +83,3 @@ func TestDependsOnNamesTransitiveFleetReaders(t *testing.T) {
 		t.Fatal("depends_on accepted an unknown field")
 	}
 }
-
-// apply_revision is declared now with its S2 budget; in S1 there is no staged
-// revision, so it refuses with a stated code and touches nothing.
-func TestApplyRevisionRefusesWithReasonInS1(t *testing.T) {
-	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
-	seedBudgetStore(t, rt)
-	host.total = 0
-	res := callSubscription(t, rt, "apply_revision", map[string]any{
-		"subscription_id": "local-a", "revision": "r2", "expected_revision": "r1",
-		"approval_id": "appr-1", "plan_sha256": strings.Repeat("a", 64),
-	})
-	if res.OK || !strings.HasPrefix(res.Error, revisionStagingUnavailableCode+":") {
-		t.Fatalf("apply_revision = %+v, want the %s refusal", res, revisionStagingUnavailableCode)
-	}
-	if host.total != 0 {
-		t.Fatalf("the refusal made %d host calls, want none", host.total)
-	}
-}
