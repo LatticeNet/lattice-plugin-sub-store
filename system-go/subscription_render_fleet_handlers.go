@@ -329,15 +329,7 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 		if fleetRec, ok := fleetPreviewRecord(rec, operators); ok {
 			return previewReply(rt.previewFleetSub(fleetRec, target))
 		}
-		if recordKind(rec) == kindCollection {
-			bound, err := rt.fleetBoundLive(rec)
-			if err != nil {
-				return latticeplugin.ErrorResponse(err)
-			}
-			if bound {
-				return previewReply(rt.previewFleetCollection(rec, target))
-			}
-		}
+
 		// A combination has no content of its own either: its nodes are its
 		// members', merged with each member's chain and then its own already
 		// run. Previewing that merged list is what the row's eye means on a
@@ -349,9 +341,32 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 			// record's serving target is.
 			previewRec := rec
 			previewRec.Target = ""
-			merged, err := rt.renderCollection(previewRec, "URI", nil, "", legacyWithheld)
+			gathered, err := rt.collectionMembers(previewRec)
 			if err != nil {
 				return latticeplugin.ErrorResponse(err)
+			}
+			// A collection gathering a fleet record previews node-wise over
+			// placeholders, as it renders.
+			for _, member := range gathered {
+				if member.Source == subscriptionSourceFleet {
+					return previewReply(rt.previewFleetCollection(rec, gathered, target))
+				}
+			}
+			members, membersNative, err := rt.chainMembers(previewRec, gathered, false, legacyWithheld)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			plan, err := rt.chainPlan(previewRec)
+			if err != nil {
+				return latticeplugin.ErrorResponse(fmt.Errorf("collection %q: %w", rec.ID, err))
+			}
+			converted, err := rt.convertCollectionMembers(plan, "URI", nil, false, members, membersNative)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			merged := converted.Output
+			if strings.TrimSpace(merged) == "" {
+				return latticeplugin.ErrorResponse(fmt.Errorf("collection %q converted to empty content", rec.ID))
 			}
 			out, err := rt.previewSubscription(merged, nil, "URI", false)
 			if err != nil {
@@ -498,26 +513,38 @@ func (rt *runtime) previewFleetSub(rec subscriptionRecord, target string) (previ
 	return out, err
 }
 
-// previewFleetCollection previews a fleet-bound collection over its live
-// members: the membership by collectionMembers' rule over the index, every
-// member resolved live (fleet members from the catalogue, provider members
-// from their sources, a legacy member withheld), and the plan render would
-// build.
-func (rt *runtime) previewFleetCollection(rec subscriptionRecord, target string) (previewResult, error) {
+// previewFleetCollection previews a collection that gathers a fleet record
+// over its live members, gathered by collectionMembers: fleet members from
+// the catalogue under their own selections, provider members from their
+// sources through their own chains, a legacy member refused by the mixing
+// guard, and the plan render would build.
+func (rt *runtime) previewFleetCollection(rec subscriptionRecord, gathered []subscriptionRecord, target string) (previewResult, error) {
 	label := "collection " + quoteLabel(rec.ID)
-	idx, err := rt.loadIndex()
-	if err != nil {
-		return previewResult{}, err
-	}
-	members, err := stagedCollectionMembership(rec, idx, nil)
-	if err != nil {
-		return previewResult{}, err
-	}
-	parts, versions, err := rt.collectionParts(label, members, nil)
-	if err != nil {
+	if err := refuseMixedMembers(rec.ID, gathered); err != nil {
 		return previewResult{}, err
 	}
 	target = previewTarget(target)
+	parts := make([]collectionPart, 0, len(gathered))
+	var versions []string
+	for _, member := range gathered {
+		switch {
+		case member.Source == subscriptionSourceFleet:
+			_, read, err := rt.readFleetSelection(member)
+			if err != nil {
+				return previewResult{}, fmt.Errorf("%s: %w", memberLabel(member), err)
+			}
+			parts = append(parts, collectionPart{Fleet: true, Member: member, Rows: read.Rows})
+			versions = append(versions, read.CatalogueVersion)
+		case isVPNCoreSource(member.Source):
+			return previewResult{}, ownerCredentialsWithheldError(member.ID)
+		default:
+			nodes, err := rt.providerMemberNodes(member)
+			if err != nil {
+				return previewResult{}, err
+			}
+			parts = append(parts, collectionPart{Member: member, Provider: nodes})
+		}
+	}
 	plan, err := rt.buildFleetCollectionPlan(label, rec, parts, fleetCollectionVersion(versions), target)
 	if err != nil {
 		return previewResult{}, err

@@ -204,6 +204,7 @@ func TestSaveRefusesTagEditThatMixesCollection(t *testing.T) {
 // collection's fleet member block, refuses at render, because a serve-path
 // render has the script network and would run whatever the link serves next.
 func TestFleetRecordRefusesLinkModeScriptStep(t *testing.T) {
+	freshFleetPlans(t)
 	link, _ := json.Marshal(map[string]any{"type": "Script Operator", "args": map[string]string{"mode": "link", "content": "https://scripts.example/op.js"}})
 	rt, _, snapshot := fetchedFleetRecord(t, fleetTestRows(2, "trojan"), subscriptionRecord{ID: "jp"})
 	// A record staged by an older binary: seeded past the save rule.

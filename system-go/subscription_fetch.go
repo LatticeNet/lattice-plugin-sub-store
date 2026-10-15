@@ -121,13 +121,20 @@ func (rt *runtime) fetchSubscriptionAs(subscriptionID string, authority legacyAu
 		env = textEnvelope(kindSub, out.Raw, out.SourceVersion)
 		label := fmt.Sprintf("subscription %q", rec.ID)
 		if !planIsNative(plan) {
-			// The bundle renders this record whatever the target, so the
-			// bundle counts it, on the warm runtime: a refresh never pays an
-			// isolated boot (plan section 7, decision 4).
-			count, err := rt.requireNodes(label, out.Raw)
+			// The bundle renders this record whatever the target, from the
+			// text; the refresh counts it in Go, which is the S1 parser at
+			// full parse conformance, so no refresh boots a bundle (S2 plan
+			// section 1.4). The envelope keeps no nodes: render hands the
+			// text to the bundle.
+			if len(out.Raw) > parse.MaxDocumentBytes {
+				_, err := encodeSnapshotEnvelope(env)
+				return fetchResult{}, err
+			}
+			nodes, err := requireNativeNodesWith(label, out.Raw, parseOptionsFor(rec))
 			if err != nil {
 				return fetchResult{}, err
 			}
+			count := len(nodes)
 			out.nodesIn = &count
 			env.NodesOmitted = nodesOmittedFallback
 			break
@@ -210,33 +217,6 @@ func requireNativeNodesWith(label, raw string, opts parse.Options) ([]*nodemodel
 		return nil, providerNoNodesError(label)
 	}
 	return nodes, nil
-}
-
-// requireNodes refuses node text the engine finds no node in, and returns the
-// count it found.
-//
-// The refresh path used to accept any non-empty 2xx body, so a provider's
-// "429 Too Many Requests" page replaced the last good snapshot and then
-// rendered to "proxies:\n" for every Clash-family client. Failing the fetch
-// instead keeps the core on the snapshot it already has (served stale), and the
-// record's bookkeeping says why.
-//
-// It applies to every plain subscription source, not only provider URLs. Pasted
-// content with no node in it and an empty provider account are refused the same
-// way, and on a first refresh, with no snapshot to fall back on, the record
-// shows the error instead of serving an empty list. A vpn-core graph source
-// passes through here too; its composition is a non-empty list of canonical
-// VLESS Reality URIs (validateVPNCoreGraphResponse), which the engine reads as
-// one node each (TestVPNCoreGraphCanonicalRawIsOneNodePerEntry).
-func (rt *runtime) requireNodes(label, raw string) (int, error) {
-	count, err := rt.subStoreEngine().countNodes(raw)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", label, err)
-	}
-	if count == 0 {
-		return 0, providerNoNodesError(label)
-	}
-	return count, nil
 }
 
 // snapshotArtifacts is the members object of a collection or a script-sourced
@@ -378,18 +358,16 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 			resolved[i].out.nodes = nodes
 		}
 	} else if len(texts) > 0 {
-		counts, err := rt.subStoreEngine().countNodesEach(texts)
-		if err != nil {
-			return nil, false, fmt.Errorf("collection %q: %w", rec.ID, err)
-		}
-		for j, i := range at {
-			if counts[j] > 0 {
-				continue
+		// The collection renders on the bundle from the members' texts; each
+		// unchained member is still counted in Go, so no refresh boots a
+		// bundle to count (S2 plan section 1.4), and no member carries nodes.
+		for _, i := range at {
+			if _, err := requireNativeNodesWith(memberLabel(resolved[i].member), resolved[i].out.raw, parseOptionsFor(resolved[i].member)); err != nil {
+				if err := fail(resolved[i].member, err); err != nil {
+					return nil, false, err
+				}
+				resolved[i].dropped = true
 			}
-			if err := fail(resolved[i].member, providerNoNodesError(memberLabel(resolved[i].member))); err != nil {
-				return nil, false, err
-			}
-			resolved[i].dropped = true
 		}
 	}
 	out := make([]fileScriptMember, 0, len(resolved))
