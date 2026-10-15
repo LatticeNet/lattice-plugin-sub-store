@@ -12,31 +12,16 @@ import (
 // advertises.
 var allSelectorFields = model.LineCatalogueSelectorFields()
 
-// structuredPlan builds a plan for the pushdown tests: the S1 steps through
-// the compiler, the structured steps by hand with their arguments checked.
+// structuredPlan compiles a chain for the pushdown tests.
 func structuredPlan(t *testing.T, steps ...string) *Plan {
 	t.Helper()
-	plan := &Plan{Revision: "r"}
+	raw := make([]json.RawMessage, len(steps))
 	for i, s := range steps {
-		step, err := DecodeStep(json.RawMessage(s))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if step.Type == StructuredFilterType || step.Type == StructuredSortType {
-			kind := KindNative
-			if step.Disabled {
-				kind = KindDisabled
-			} else if _, err := ParseStructuredFilter(step.Args); step.Type == StructuredFilterType && err != nil {
-				t.Fatalf("step %d: %v", i+1, err)
-			}
-			plan.Steps = append(plan.Steps, Compiled{Step: step, Kind: kind})
-			continue
-		}
-		compiled, err := compileStep(i+1, step)
-		if err != nil {
-			t.Fatal(err)
-		}
-		plan.Steps = append(plan.Steps, compiled)
+		raw[i] = json.RawMessage(s)
+	}
+	plan, err := Compile("r", raw)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
 	}
 	return plan
 }

@@ -7,9 +7,13 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
@@ -113,6 +117,16 @@ type fieldSpec struct {
 	selector string
 	// min and max bound a number predicate's value.
 	min, max float64
+	// ops, when set, narrows the kind's ops for this field.
+	ops []string
+}
+
+// opsOf is the ops a field takes.
+func (s fieldSpec) opsOf() []string {
+	if s.ops != nil {
+		return s.ops
+	}
+	return kindOps[s.kind]
 }
 
 // predicateFields is every field a predicate may name. The row field each
@@ -145,7 +159,7 @@ var predicateFields = map[string]fieldSpec{
 	"chain_root":         {kind: kindBool},
 	"path_state":         {kind: kindText},
 	"chain_unresolved":   {kind: kindBool},
-	"probe_passed_hours": {kind: kindNumber, probe: true, selector: "probe_passed_within_hours", min: 0, max: model.MaxLineCatalogueProbeHours},
+	"probe_passed_hours": {kind: kindNumber, probe: true, selector: "probe_passed_within_hours", min: 0, max: model.MaxLineCatalogueProbeHours, ops: []string{OpLTE, OpGTE}},
 	"probe_vantage":      {kind: kindText, probe: true},
 	"probe_cold_p50_ms":  {kind: kindNumber, probe: true, min: 0, max: maxColdP50MS},
 	"probe_udp_ok":       {kind: kindBool, probe: true},
@@ -186,7 +200,7 @@ func LookupPredicateField(name string) (PredicateField, bool) {
 	}
 	return PredicateField{
 		Name:     name,
-		Ops:      append([]string(nil), kindOps[spec.kind]...),
+		Ops:      append([]string(nil), spec.opsOf()...),
 		Selector: spec.selector,
 		Probe:    spec.probe,
 		Geo:      spec.geo,
@@ -244,12 +258,8 @@ func (p Predicate) check() error {
 	if !ok {
 		return fmt.Errorf("%q is not a structured field", p.Field)
 	}
-	valid := false
-	for _, op := range kindOps[spec.kind] {
-		valid = valid || op == p.Op
-	}
-	if !valid {
-		return fmt.Errorf("%s takes %s, not %q", p.Field, strings.Join(kindOps[spec.kind], ", "), p.Op)
+	if !slices.Contains(spec.opsOf(), p.Op) {
+		return fmt.Errorf("%s takes %s, not %q", p.Field, strings.Join(spec.opsOf(), ", "), p.Op)
 	}
 	switch p.Op {
 	case OpIn, OpNotIn:
@@ -331,4 +341,371 @@ func AsStepArgs(err error) (*StepArgsError, bool) {
 	var target *StepArgsError
 	ok := errors.As(err, &target)
 	return target, ok
+}
+
+// Evaluate reports match (true), no match (false) or unknown (ok=false): a
+// predicate over a null probe block, a null machine or geo, or a field the
+// node has no Lattice block for (a provider node) is unknown. The geo of a
+// relay whose Chain.Unresolved is true is unknown too, for country, region,
+// city, asn, as_org and geo_provider alike: its outbound resolves to no
+// fleet line, so neither its own geo nor an exit geo says where traffic
+// leaves (the 16 relays of 2026-10-08 dialled a stale address and would
+// otherwise match their hub's country, PROGRAM.md:268-270). A keep-mode step
+// treats unknown as not matching; a drop-mode step treats it as not dropped
+// (design-28.md:114, :172). model.LineCatalogueSelectorMatches applies the
+// same rule, so pushdown and the plugin agree.
+//
+// geo is the step's geo choice. "exit" (the default) reads the chain's exit
+// geo when the line has one and the node's own geo otherwise, never falling
+// back field by field; "entry" reads the node's own geo, which an unresolved
+// relay still has. Every geo field follows the choice.
+//
+// Beyond null blocks, an empty text value is unknown to in and not_in (the
+// core's "an empty row value never matches", and a line with no country is
+// not "outside CN" either), while present and absent read it as absent. A
+// list (node tags, groups) is never unknown on a fleet node: an empty list
+// has no tag in it. A renewal or cold p50 of zero is the catalogue's
+// "unknown" and reads the same way. probe_passed_hours is unknown unless the
+// last verdict passed, since a failed probe does not say when the line last
+// passed.
+func (p Predicate) Evaluate(n *nodemodel.Node, geo string, now time.Time) (match, ok bool) {
+	if n == nil || n.Lattice == nil {
+		return false, false
+	}
+	spec, known := predicateFields[p.Field]
+	if !known {
+		return false, false
+	}
+	l := n.Lattice
+	switch spec.kind {
+	case kindText:
+		v, ok := textValue(l, p.Field, geo)
+		if !ok {
+			return false, false
+		}
+		return p.matchText(v, spec.fold)
+	case kindList:
+		var have []string
+		switch p.Field {
+		case "node_tag":
+			have = l.Tags
+		case "group":
+			have = l.Groups
+		}
+		return p.matchList(have), true
+	case kindNumber:
+		return p.matchNumber(l, now)
+	case kindBool:
+		b, ok := boolValue(l, p.Field)
+		if !ok {
+			return false, false
+		}
+		return b == (p.Op == OpTrue), true
+	}
+	return false, false
+}
+
+// effectiveGeo is the geo a geo field reads under the step's choice; ok is
+// false when it is unknown.
+func effectiveGeo(l *nodemodel.LatticeFields, choice string) (*model.NodeGeo, bool) {
+	if choice != GeoEntry && l.Chain != nil {
+		if l.Chain.Unresolved {
+			return nil, false
+		}
+		if l.Chain.ExitGeo != nil {
+			return l.Chain.ExitGeo, true
+		}
+	}
+	return l.Geo, l.Geo != nil
+}
+
+// textValue reads a text field; ok is false when its block is null.
+func textValue(l *nodemodel.LatticeFields, field, geoChoice string) (string, bool) {
+	if spec := predicateFields[field]; spec.geo {
+		g, ok := effectiveGeo(l, geoChoice)
+		if !ok {
+			return "", false
+		}
+		switch field {
+		case "country":
+			return g.Country, true
+		case "region":
+			return g.Region, true
+		case "city":
+			return g.City, true
+		case "asn":
+			if g.ASN <= 0 {
+				return "", true
+			}
+			return strconv.Itoa(g.ASN), true
+		case "as_org":
+			return g.ASOrg, true
+		case "geo_provider":
+			return g.Provider, true
+		}
+		return "", false
+	}
+	switch field {
+	case "line_uuid":
+		return l.LineUUID, true
+	case "machine_vendor":
+		if l.Machine == nil {
+			return "", false
+		}
+		return l.Machine.Vendor, true
+	case "protocol":
+		return l.Protocol, true
+	case "transport":
+		return l.Transport, true
+	case "security":
+		return l.Security, true
+	case "overlay_status":
+		return l.OverlayStatus, true
+	case "status":
+		return l.Status, true
+	case "service_state":
+		return l.ServiceState, true
+	case "chain_role", "path_state":
+		if l.Chain == nil {
+			return "", false
+		}
+		if field == "chain_role" {
+			return l.Chain.Role, true
+		}
+		return l.Chain.PathState, true
+	case "probe_vantage":
+		if l.Probe == nil {
+			return "", false
+		}
+		return l.Probe.Vantage, true
+	}
+	return "", false
+}
+
+// boolValue reads a bool field; ok is false when its block is null or, for
+// probe_udp_ok, when UDP was not tested.
+func boolValue(l *nodemodel.LatticeFields, field string) (bool, bool) {
+	switch field {
+	case "managed":
+		return l.Managed, true
+	case "overlay":
+		return l.Overlay, true
+	case "ddns_present":
+		for _, d := range l.DDNSNames {
+			if d.Verified {
+				return true, true
+			}
+		}
+		return false, true
+	case "chain_root", "chain_unresolved":
+		if l.Chain == nil {
+			return false, false
+		}
+		if field == "chain_root" {
+			return l.Chain.Root, true
+		}
+		return l.Chain.Unresolved, true
+	case "probe_udp_ok":
+		if l.Probe == nil || l.Probe.UDPOK == nil {
+			return false, false
+		}
+		return *l.Probe.UDPOK, true
+	}
+	return false, false
+}
+
+func (p Predicate) matchText(v string, fold bool) (bool, bool) {
+	switch p.Op {
+	case OpPresent:
+		return v != "", true
+	case OpAbsent:
+		return v == "", true
+	}
+	if v == "" {
+		return false, false
+	}
+	in := false
+	for _, want := range p.Values {
+		if want == v || (fold && strings.EqualFold(want, v)) {
+			in = true
+			break
+		}
+	}
+	return in == (p.Op == OpIn), true
+}
+
+func (p Predicate) matchList(have []string) bool {
+	switch p.Op {
+	case OpPresent:
+		return len(have) > 0
+	case OpAbsent:
+		return len(have) == 0
+	}
+	in := false
+	for _, want := range p.Values {
+		if slices.Contains(have, want) {
+			in = true
+			break
+		}
+	}
+	return in == (p.Op == OpIn)
+}
+
+// matchNumber evaluates the three number fields. The two clock fields read
+// the same instants the core's matcher reads: renewal_days lte N is a known
+// renewal at or before now plus N days, so a past renewal matches;
+// probe_passed_hours lte N is a pass at or after now minus N hours. gte is
+// the other side of the same instant, inclusive.
+func (p Predicate) matchNumber(l *nodemodel.LatticeFields, now time.Time) (bool, bool) {
+	if (p.Op == OpLTE || p.Op == OpGTE) && p.Value == nil {
+		return false, false // ParseStructuredFilter refuses this; a hand-built predicate is unknown, not a panic
+	}
+	switch p.Field {
+	case "renewal_days":
+		if l.Machine == nil {
+			return false, false
+		}
+		at := l.Machine.NextRenewal
+		switch p.Op {
+		case OpPresent, OpAbsent:
+			return at.IsZero() == (p.Op == OpAbsent), true
+		}
+		if at.IsZero() {
+			return false, false
+		}
+		edge := now.Add(window(*p.Value, 24*time.Hour))
+		if p.Op == OpLTE {
+			return !at.After(edge), true
+		}
+		return !at.Before(edge), true
+	case "probe_passed_hours":
+		if l.Probe == nil || l.Probe.Verdict != model.LineProbeVerdictPass {
+			return false, false
+		}
+		edge := now.Add(-window(*p.Value, time.Hour))
+		if p.Op == OpLTE {
+			return !l.Probe.At.Before(edge), true
+		}
+		return !l.Probe.At.After(edge), true
+	case "probe_cold_p50_ms":
+		if l.Probe == nil {
+			return false, false
+		}
+		ms := l.Probe.ColdP50MS
+		switch p.Op {
+		case OpPresent, OpAbsent:
+			return (ms <= 0) == (p.Op == OpAbsent), true
+		}
+		if ms <= 0 {
+			return false, false
+		}
+		if p.Op == OpLTE {
+			return float64(ms) <= *p.Value, true
+		}
+		return float64(ms) >= *p.Value, true
+	}
+	return false, false
+}
+
+// window is n units as a duration. A whole n is multiplied in integers,
+// exactly as the core's matcher multiplies its int window, so a pushed
+// window and the same window run here name the same instant.
+func window(n float64, unit time.Duration) time.Duration {
+	if n == math.Trunc(n) {
+		return time.Duration(int64(n)) * unit
+	}
+	return time.Duration(n * float64(unit))
+}
+
+// matches is a step's verdict over one node: true only when the
+// predicates combine to a known match. Under "all" one false or unknown
+// predicate decides; under "any" one known match does. An unknown verdict
+// is never true, which is the whole of "a keep step treats unknown as not
+// matching and a drop step as not dropped".
+func (a StructuredFilterArgs) matches(n *nodemodel.Node, now time.Time) bool {
+	for _, p := range a.Predicates {
+		m, ok := p.Evaluate(n, a.Geo, now)
+		hit := m && ok
+		if a.Match == MatchAny && hit {
+			return true
+		}
+		if a.Match == MatchAll && !hit {
+			return false
+		}
+	}
+	return a.Match == MatchAll
+}
+
+// order is the line list a keep step orders its kept nodes by: the values
+// of its first line_uuid "in" predicate, first occurrence winning. nil when
+// the step keeps the input order.
+func (a StructuredFilterArgs) order() map[string]int {
+	if a.Mode != ModeKeep {
+		return nil
+	}
+	for _, p := range a.Predicates {
+		if p.Field == "line_uuid" && p.Op == OpIn {
+			rank := make(map[string]int, len(p.Values))
+			for i, v := range p.Values {
+				if _, seen := rank[v]; !seen {
+					rank[v] = i
+				}
+			}
+			return rank
+		}
+	}
+	return nil
+}
+
+// compileStructuredFilter keeps (mode keep) or drops (mode drop) the nodes
+// the step's predicates match. A keep step with a line_uuid "in" predicate
+// orders its kept nodes by that list, nodes the list does not name after
+// them in input order, which is the order the core answers a selector that
+// names lines in (srv/line_catalogue.go:183-189), so a migrated graph
+// record keeps its roots in committed order whether the step was pushed or
+// not.
+func compileStructuredFilter(c *stepCompiler, raw json.RawMessage) stepFunc {
+	args, err := ParseStructuredFilter(raw)
+	if err != nil {
+		return c.structured(err)
+	}
+	rank := args.order()
+	keep := args.Mode == ModeKeep
+	return func(nodes []*nodemodel.Node, ctx *Context) []*nodemodel.Node {
+		now := ctx.now()
+		out := filterNodes(nodes, func(n *nodemodel.Node) bool { return args.matches(n, now) == keep })
+		if rank != nil {
+			pos := func(n *nodemodel.Node) int {
+				if n.Lattice != nil {
+					if i, ok := rank[n.Lattice.LineUUID]; ok {
+						return i
+					}
+				}
+				return len(rank)
+			}
+			slices.SortStableFunc(out, func(a, b *nodemodel.Node) int { return pos(a) - pos(b) })
+		}
+		return out
+	}
+}
+
+// structured records a Lattice-only step's argument refusal and returns nil,
+// so a compile function can end with `return c.structured(err)`. The step
+// then fails Compile with a StepArgsError (chain.go), never falling back.
+func (c *stepCompiler) structured(err error) stepFunc {
+	c.diags = append(c.diags, Diagnostic{Step: c.index, Code: CodeStructuredArgs, Message: err.Error()})
+	return nil
+}
+
+// fleetArgsError is the Compile error of a Lattice-only step that did not
+// compile: its argument diagnostics joined.
+func fleetArgsError(c *stepCompiler, step Step) error {
+	msgs := make([]string, 0, len(c.diags))
+	for _, d := range c.diags {
+		msgs = append(msgs, d.Message)
+	}
+	if len(msgs) == 0 {
+		msgs = append(msgs, "the step did not compile")
+	}
+	return &StepArgsError{Step: c.index, Type: step.Type, Message: strings.Join(msgs, "; ")}
 }
