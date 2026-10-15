@@ -306,47 +306,36 @@ func TestVPNCoreGraphOptionsUseOneStrictSecretFreeHostCall(t *testing.T) {
 	}
 }
 
+// assertGraphPreviewWithheld pins that a preview of a legacy graph record or
+// graph draft answers owner_credentials_withheld before any host call: from
+// S2 no operator path composes an identity's credentials, redacted or not
+// (S2 plan section 1.2); only core's refresh does.
+func assertGraphPreviewWithheld(t *testing.T, rt *runtime, host *vpnCoreGraphHost, payload any) {
+	t.Helper()
+	before := len(host.calls)
+	response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(payload)})
+	if response.OK || !strings.HasPrefix(response.Error, codeOwnerCredentialsWithheld) || len(response.Result) != 0 {
+		t.Fatalf("graph preview = %+v, want the %s refusal", response, codeOwnerCredentialsWithheld)
+	}
+	if len(host.calls) != before {
+		t.Fatalf("the withheld preview made host calls: %+v", host.calls[before:])
+	}
+	encoded, _ := json.Marshal(response)
+	for _, canary := range []string{graphCredentialA, graphCredentialB, "vless://"} {
+		if strings.Contains(string(encoded), canary) {
+			t.Fatalf("the withheld preview leaked %q", canary)
+		}
+	}
+}
+
 func TestVPNCoreGraphDraftPreviewComposesWithoutPersistence(t *testing.T) {
 	roots := []string{graphRootB, graphRootA}
 	rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponseForIdentity(t, "identity-a", roots))
 	host.optionsResponse = canonicalGraphOptionsResponse(t)
 	selection := vpnCoreGraphSelection{SchemaVersion: 1, OptionsVersion: "ov1:" + strings.Repeat("a", 64), IdentityID: "identity-a", EntryRoots: roots}
-	response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]any{"graph_selection": selection, "target": "URI"})})
-	if !response.OK {
-		t.Fatalf("draft preview failed: %+v", response)
-	}
-	if len(host.calls) != 2 || host.calls[0]["method"] != "graph_options" || host.calls[1]["method"] != "compose" {
-		t.Fatalf("host calls=%+v, want one options then one compose", host.calls)
-	}
-	request, _ := host.calls[1]["request"].(map[string]any)
-	if !reflect.DeepEqual(request["entry_roots"], []any{graphRootB, graphRootA}) {
-		t.Fatalf("compose roots=%+v", request["entry_roots"])
-	}
+	assertGraphPreviewWithheld(t, rt, host, map[string]any{"graph_selection": selection, "target": "URI"})
 	if _, err := rt.getSubscription("preview"); err == nil {
 		t.Fatal("draft preview persisted a subscription")
-	}
-	var summary previewResult
-	if err := json.Unmarshal(response.Result, &summary); err != nil {
-		t.Fatal(err)
-	}
-	var composed vpnCoreGraphComposeResponse
-	if err := json.Unmarshal(canonicalGraphResponseForIdentity(t, "identity-a", roots), &composed); err != nil {
-		t.Fatal(err)
-	}
-	if summary.SourceVersion != composed.SourceVersion || summary.Stale {
-		t.Fatalf("preview authority=%+v want version=%s fresh", summary, composed.SourceVersion)
-	}
-	var wire map[string]json.RawMessage
-	if err := json.Unmarshal(response.Result, &wire); err != nil {
-		t.Fatal(err)
-	}
-	for _, key := range []string{"source_node_count", "node_count", "source_version", "stale"} {
-		if _, ok := wire[key]; !ok {
-			t.Fatalf("preview wire omitted %q: %s", key, response.Result)
-		}
-	}
-	if _, legacy := wire["count"]; legacy {
-		t.Fatalf("preview wire exposed ambiguous count: %s", response.Result)
 	}
 }
 
@@ -361,10 +350,7 @@ func TestVPNCoreGraphDraftPreviewOverridesStoredOrderWithoutMutation(t *testing.
 		t.Fatal(err)
 	}
 	selection := vpnCoreGraphSelection{SchemaVersion: 1, OptionsVersion: stored.GraphOptionsVersion, IdentityID: stored.VPNIdentity, EntryRoots: previewRoots}
-	response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]any{"subscription_id": "graph", "graph_selection": selection})})
-	if !response.OK || len(host.calls) != 2 {
-		t.Fatalf("draft preview=%+v calls=%+v", response, host.calls)
-	}
+	assertGraphPreviewWithheld(t, rt, host, map[string]any{"subscription_id": "graph", "graph_selection": selection})
 	after, err := rt.getSubscription("graph")
 	if err != nil || !reflect.DeepEqual(after.EntryRoots, storedRoots) {
 		t.Fatalf("preview mutated stored order: %+v err=%v", after.EntryRoots, err)
@@ -378,10 +364,7 @@ func TestVPNCoreGraphDraftPreviewSaveAndPublishPreserveOneOrder(t *testing.T) {
 	host.optionsResponse = canonicalGraphOptionsResponse(t)
 	host.graphResponses = []json.RawMessage{compose, compose}
 	selection := vpnCoreGraphSelection{SchemaVersion: 1, OptionsVersion: "ov1:" + strings.Repeat("a", 64), IdentityID: "identity-a", EntryRoots: roots}
-	preview := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]any{"graph_selection": selection, "target": "URI"})})
-	if !preview.OK {
-		t.Fatalf("preview=%+v", preview)
-	}
+	assertGraphPreviewWithheld(t, rt, host, map[string]any{"graph_selection": selection, "target": "URI"})
 	record := selection.record("graph")
 	record.Name = "Graph"
 	record.Target = "URI"
@@ -424,20 +407,15 @@ func TestVPNCoreGraphDraftPreviewRejectsStaleOrCrossIdentityBeforeCompose(t *tes
 	if err := json.Unmarshal(canonicalGraphOptionsResponse(t), &options); err != nil {
 		t.Fatal(err)
 	}
-	options.Roots = append(options.Roots, vpnCoreGraphRootOption{LineUUID: rootOnlyB, Label: "B only", SourceNode: "node-b", Source: "managed", Status: "converged", PathSummary: "B only", EligibleIdentityIDs: []string{"identity-b"}, Selectable: true})
-	optionsRaw, _ := json.Marshal(options)
-
 	for name, selection := range map[string]vpnCoreGraphSelection{
 		"stale options":  {SchemaVersion: 1, OptionsVersion: "ov1:" + strings.Repeat("b", 64), IdentityID: "identity-a", EntryRoots: []string{graphRootA}},
 		"cross identity": {SchemaVersion: 1, OptionsVersion: options.OptionsVersion, IdentityID: "identity-a", EntryRoots: []string{rootOnlyB}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			rt, host := newVPNCoreGraphRuntime(t, canonicalGraphResponseForIdentity(t, "identity-a", selection.EntryRoots))
-			host.optionsResponse = optionsRaw
-			response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]any{"graph_selection": selection})})
-			if response.OK || len(host.calls) != 1 || host.calls[0]["method"] != "graph_options" {
-				t.Fatalf("selection escaped validation: response=%+v calls=%+v", response, host.calls)
-			}
+			host.optionsResponse = canonicalGraphOptionsResponse(t)
+			// Withheld before the options are even read.
+			assertGraphPreviewWithheld(t, rt, host, map[string]any{"graph_selection": selection})
 			if _, err := rt.getSubscription("preview"); err == nil {
 				t.Fatal("rejected draft preview persisted state")
 			}
@@ -525,51 +503,19 @@ func TestVPNCoreGraphOptionsRejectHostilePayloadsAndResponsesWithoutPartialOutpu
 func TestVPNCoreGraphPreviewRedactsCredentialsBeforeScriptOperators(t *testing.T) {
 	selection := vpnCoreGraphSelection{SchemaVersion: 1, OptionsVersion: "ov1:" + strings.Repeat("a", 64), IdentityID: "identity-a", EntryRoots: []string{graphRootA}}
 	composed := canonicalGraphResponseForIdentity(t, selection.IdentityID, selection.EntryRoots)
-	syntheticCredential := "00000000-0000-4000-8000-000000000001"
-	for name, test := range map[string]struct {
-		program string
-		want    string
-	}{
-		"direct":        {program: "$server.name = $server.uuid;", want: syntheticCredential},
-		"reverse":       {program: "$server.name = $server.uuid.split('').reverse().join('');", want: reverseString(syntheticCredential)},
-		"base64":        {program: "$server.name = Buffer.from($server.uuid).toString('base64');", want: base64.StdEncoding.EncodeToString([]byte(syntheticCredential))},
-		"prefix suffix": {program: "$server.name = 'prefix-' + $server.uuid + '-suffix';", want: "prefix-" + syntheticCredential + "-suffix"},
+	for name, program := range map[string]string{
+		"direct":        "$server.name = $server.uuid;",
+		"reverse":       "$server.name = $server.uuid.split('').reverse().join('');",
+		"base64":        "$server.name = Buffer.from($server.uuid).toString('base64');",
+		"prefix suffix": "$server.name = 'prefix-' + $server.uuid + '-suffix';",
 	} {
 		t.Run(name, func(t *testing.T) {
 			rt, host := newVPNCoreGraphRuntime(t, composed)
 			host.optionsResponse = canonicalGraphOptionsResponse(t)
-			operators := []json.RawMessage{mustJSON(map[string]any{"type": "Script Operator", "args": map[string]string{"mode": "script", "content": test.program}})}
-			response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]any{
-				"graph_selection": selection,
-				"operators":       operators,
-				"target":          "URI",
-			})})
-			if len(host.calls) != 2 {
-				t.Fatalf("host calls=%+v", host.calls)
-			}
-			encoded, err := json.Marshal(response)
-			if err != nil {
-				t.Fatal(err)
-			}
-			reversed := reverseString(graphCredentialA)
-			for _, canary := range []string{graphCredentialA, reversed, base64.StdEncoding.EncodeToString([]byte(graphCredentialA)), "vless://" + graphCredentialA} {
-				if strings.Contains(string(encoded), canary) {
-					t.Fatalf("credential transform %q leaked %q: %s", name, canary, encoded)
-				}
-			}
-			if !response.OK {
-				t.Fatalf("redacted preview failed: %+v", response)
-			}
-			var summary previewResult
-			if err := json.Unmarshal(response.Result, &summary); err != nil {
-				t.Fatal(err)
-			}
-			if summary.SourceNodeCount != 1 || summary.NodeCount != 1 || summary.SourceVersion == "" || summary.Stale {
-				t.Fatalf("preview authority/count drifted: %+v", summary)
-			}
-			if summary.Nodes[0].Name != test.want {
-				t.Fatalf("script %q did not execute against the synthetic credential: name=%q want=%q", name, summary.Nodes[0].Name, test.want)
-			}
+			operators := []json.RawMessage{mustJSON(map[string]any{"type": "Script Operator", "args": map[string]string{"mode": "script", "content": program}})}
+			// No composition, so no credential, real or synthetic, ever
+			// reaches a script.
+			assertGraphPreviewWithheld(t, rt, host, map[string]any{"graph_selection": selection, "operators": operators, "target": "URI"})
 		})
 	}
 }
@@ -581,31 +527,7 @@ func TestVPNCoreGraphPreviewScriptFailureCannotExposeCredentialTransforms(t *tes
 	operators := []json.RawMessage{mustJSON(map[string]any{"type": "Script Operator", "args": map[string]string{
 		"mode": "script", "content": "$server.name = Buffer.from($server.uuid).toString('base64'); throw new Error('failed-' + $server.name);",
 	}})}
-	response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]any{
-		"graph_selection": selection,
-		"operators":       operators,
-		"target":          "URI",
-	})})
-	if response.OK || len(host.calls) != 2 {
-		t.Fatalf("hostile failure did not fail safely: response=%+v calls=%+v", response, host.calls)
-	}
-	if !strings.Contains(response.Error, "error_sha256=") {
-		t.Fatalf("script failure lacked the engine execution sentinel: %+v", response)
-	}
-	encoded, err := json.Marshal(response)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, canary := range []string{
-		graphCredentialA,
-		reverseString(graphCredentialA),
-		base64.StdEncoding.EncodeToString([]byte(graphCredentialA)),
-		"vless://" + graphCredentialA,
-	} {
-		if strings.Contains(string(encoded), canary) {
-			t.Fatalf("preview error leaked credential transform %q: %s", canary, encoded)
-		}
-	}
+	assertGraphPreviewWithheld(t, rt, host, map[string]any{"graph_selection": selection, "operators": operators, "target": "URI"})
 }
 
 func TestLegacyVPNCorePreviewRejectsScriptingBeforeCredentialFetch(t *testing.T) {
@@ -628,7 +550,9 @@ func TestLegacyVPNCorePreviewRejectsScriptingBeforeCredentialFetch(t *testing.T)
 				"subscription_id": "legacy",
 				"operators":       []json.RawMessage{operator},
 			})})
-			if response.OK || len(host.calls) != 0 || response.Error != "legacy vpn-core preview does not allow scripting operators" {
+			// The record's export is withheld before its operators are even
+			// read (S2 plan section 1.2).
+			if response.OK || len(host.calls) != 0 || !strings.HasPrefix(response.Error, codeOwnerCredentialsWithheld) {
 				t.Fatalf("legacy scripting preview escaped before fetch: response=%+v calls=%+v", response, host.calls)
 			}
 			encoded, err := json.Marshal(response)
@@ -840,17 +764,7 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 		t.Fatalf("render over the refreshed snapshot failed: %v", err)
 	}
 
-	preview := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]string{"subscription_id": "graph"})})
-	if !preview.OK {
-		t.Fatalf("cold preview failed: %+v", preview)
-	}
-	var summary previewResult
-	if err := json.Unmarshal(preview.Result, &summary); err != nil {
-		t.Fatal(err)
-	}
-	if len(summary.Nodes) != 2 || summary.Nodes[0].Name != "entry-1" || summary.Nodes[1].Name != "entry-2" {
-		t.Fatalf("preview order = %+v", summary.Nodes)
-	}
+	assertGraphPreviewWithheld(t, rt, host, map[string]string{"subscription_id": "graph"})
 	if _, err := rt.publishSubscription("graph", "https://destination.invalid/graph", "PUT", "plain"); err == nil || !strings.HasPrefix(err.Error(), codeOwnerCredentialsWithheld) {
 		t.Fatalf("publish of a graph record: err %v", err)
 	}
@@ -861,8 +775,8 @@ func TestVPNCoreGraphColdPreviewAndPublishUseExactOrderedComposition(t *testing.
 	if !strings.Contains(rendered.Content, graphCredentialB) || rootBIndex >= rootAIndex {
 		t.Fatalf("rendered root order changed: %q", rendered.Content)
 	}
-	if len(host.calls) != 2 {
-		t.Fatalf("compose calls = %d, want one for the refresh and one for the preview", len(host.calls))
+	if len(host.calls) != 1 {
+		t.Fatalf("compose calls = %d, want the refresh's one", len(host.calls))
 	}
 	for _, call := range host.calls {
 		request, _ := call["request"].(map[string]any)
@@ -933,33 +847,11 @@ func TestVPNCoreGraphStoredPreviewUsesEnabledCanonicalProcess(t *testing.T) {
 		{name: "selected record", payload: map[string]any{"subscription_id": "graph", "graph_selection": selection}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(test.payload)})
-			encoded, err := json.Marshal(response)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, canary := range []string{graphCredentialA, graphCredentialB, "vless://", "PRIVATE KEY"} {
-				if strings.Contains(string(encoded), canary) {
-					t.Fatalf("stored preview leaked %q: %s", canary, encoded)
-				}
-			}
-			if !response.OK {
-				t.Fatalf("stored preview failed: %+v", response)
-			}
-			var summary previewResult
-			if err := json.Unmarshal(response.Result, &summary); err != nil {
-				t.Fatal(err)
-			}
-			if summary.SourceNodeCount != 2 || summary.NodeCount != 1 || len(summary.Nodes) != 1 || summary.Nodes[0].Name != "entry-1" {
-				t.Fatalf("stored process did not filter the authoritative composition: %+v", summary)
-			}
-			if summary.SourceVersion == "" || summary.Stale {
-				t.Fatalf("stored preview lost composition authority: %+v", summary)
-			}
+			assertGraphPreviewWithheld(t, rt, host, test.payload)
 		})
 	}
-	if len(host.calls) != 4 || host.calls[0]["method"] != "compose" || host.calls[1]["method"] != "compose" || host.calls[2]["method"] != "graph_options" || host.calls[3]["method"] != "compose" {
-		t.Fatalf("stored preview host calls=%+v", host.calls)
+	if len(host.calls) != 1 || host.calls[0]["method"] != "compose" {
+		t.Fatalf("host calls=%+v, want the refresh's one compose", host.calls)
 	}
 }
 
@@ -994,19 +886,7 @@ func TestVPNCoreGraphStoredPreviewPropagatesCanonicalProcessErrors(t *testing.T)
 					if err := rt.saveSubscriptionRecords(subscriptionRecordsDocument{Version: 1, Records: []subscriptionRecord{record}}); err != nil {
 						t.Fatal(err)
 					}
-					response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(test.payload)})
-					if response.OK || !strings.Contains(response.Error, "process step 1") || len(host.calls) != 0 {
-						t.Fatalf("stored process error was not bounded before composition: response=%+v calls=%+v", response, host.calls)
-					}
-					encoded, err := json.Marshal(response)
-					if err != nil {
-						t.Fatal(err)
-					}
-					for _, canary := range []string{graphCredentialA, "vless://", "PRIVATE KEY"} {
-						if strings.Contains(string(encoded), canary) {
-							t.Fatalf("stored process error leaked %q: %s", canary, encoded)
-						}
-					}
+					assertGraphPreviewWithheld(t, rt, host, test.payload)
 				})
 			}
 		})
@@ -1056,21 +936,8 @@ func TestVPNCoreGraphPreviewCallerOperatorsRemainAuthoritative(t *testing.T) {
 					payload[key] = value
 				}
 				payload["operators"] = operators.value
-				response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(payload)})
-				if !response.OK {
-					t.Fatalf("authoritative caller preview failed: %+v calls=%+v", response, host.calls)
-				}
-				var summary previewResult
-				if err := json.Unmarshal(response.Result, &summary); err != nil {
-					t.Fatal(err)
-				}
-				gotNames := make([]string, 0, len(summary.Nodes))
-				for _, node := range summary.Nodes {
-					gotNames = append(gotNames, node.Name)
-				}
-				if !reflect.DeepEqual(gotNames, operators.wantNames) {
-					t.Fatalf("caller operators lost authority: nodes=%v want=%v", gotNames, operators.wantNames)
-				}
+				assertGraphPreviewWithheld(t, rt, host, payload)
+				_ = operators.wantNames
 			})
 		}
 	}
@@ -1081,19 +948,11 @@ func TestVPNCoreGraphPreviewRejectsCallerRawAsAuthority(t *testing.T) {
 	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Target: "URI"}); err != nil {
 		t.Fatal(err)
 	}
-	response := rt.handleSubscriptionCall(callPayload{Method: "preview", Payload: mustJSON(map[string]string{
+	// Caller bytes never stand in for the record, and the record's own
+	// composition is withheld.
+	assertGraphPreviewWithheld(t, rt, host, map[string]string{
 		"subscription_id": "graph", "raw": "vless://99999999-9999-4999-8999-999999999999@hostile.example:443#hostile",
-	})})
-	if !response.OK || len(host.calls) != 1 {
-		t.Fatalf("authoritative preview = %+v calls=%d", response, len(host.calls))
-	}
-	var preview previewResult
-	if err := json.Unmarshal(response.Result, &preview); err != nil {
-		t.Fatal(err)
-	}
-	if len(preview.Nodes) != 1 || preview.Nodes[0].Name != "entry-1" {
-		t.Fatalf("preview used caller bytes: %+v", preview.Nodes)
-	}
+	})
 }
 
 func TestVPNCoreGraphConfigurationIsCanonicalAndHasNoFallback(t *testing.T) {

@@ -269,6 +269,10 @@ func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Resp
 	// Preview is a read-only view of an operator-owned document.  It must never
 	// turn into a provider fetch or execute a stored program/transform: those
 	// paths are host-capable and belong to render/publish, not preview.
+	// Every file with a node source is refused before anything is read, a
+	// file over a legacy record included: the export it would read is
+	// withheld outside core's refresh, and the generic refusal reads no
+	// index to say so.
 	if strings.TrimSpace(rec.NodeSource) != "" {
 		return latticeplugin.ErrorResponse(fmt.Errorf("file preview does not expose node-source content"))
 	}

@@ -874,62 +874,9 @@ func (rt *runtime) renderStagedCollection(o renderOpened, req subscriptionRender
 			blocks[block.ID] = block
 		}
 	}
-	parts := make([]collectionPart, 0, len(members))
-	var versions []string
-	for _, member := range members {
-		block, hasBlock := blocks[member.ID]
-		hasBlock = hasBlock && block.Source == member.Source
-		if !isFleetSource(member.Source) {
-			if isVPNCoreSource(member.Source) {
-				return fleetRendered{}, false, ownerCredentialsWithheldError(member.ID)
-			}
-			if hasBlock {
-				part, err := blockPart(label, block)
-				if err != nil {
-					return fleetRendered{}, false, err
-				}
-				parts = append(parts, part)
-				continue
-			}
-			memberRec, err := rt.memberRecordAt(member)
-			if err != nil {
-				return fleetRendered{}, false, err
-			}
-			nodes, err := rt.providerMemberNodes(memberRec)
-			if err != nil {
-				return fleetRendered{}, false, err
-			}
-			parts = append(parts, collectionPart{Member: memberRec, Provider: nodes})
-			continue
-		}
-		if hasBlock && block.Revision == member.Revision && block.Rows != nil {
-			part, err := blockPart(label, block)
-			if err != nil {
-				return fleetRendered{}, false, err
-			}
-			parts, versions = append(parts, part), append(versions, block.CatalogueVersion)
-			continue
-		}
-		memberRec, err := rt.memberRecordAt(member)
-		if err != nil {
-			return fleetRendered{}, false, err
-		}
-		chain := subscriptionRecord{ID: member.ID, Source: subscriptionSourceFleet, Revision: member.Revision, Process: memberRec.Process}
-		if hasBlock && block.Rows != nil && block.CatalogueVersion != "" && fleetSelectorAnswers(processSteps(memberRec), block.Selector) {
-			part, err := blockPart(label, block)
-			if err != nil {
-				return fleetRendered{}, false, err
-			}
-			part.Member = chain
-			parts, versions = append(parts, part), append(versions, block.CatalogueVersion)
-			continue
-		}
-		_, read, err := rt.readFleetSelection(memberRec)
-		if err != nil {
-			return fleetRendered{}, false, fmt.Errorf("%s: %w", memberLabel(memberRec), err)
-		}
-		parts = append(parts, collectionPart{Fleet: true, Member: chain, Rows: read.Rows})
-		versions = append(versions, read.CatalogueVersion)
+	parts, versions, err := rt.collectionParts(label, members, blocks)
+	if err != nil {
+		return fleetRendered{}, false, err
 	}
 	plan, err := fleetPlans.bypass(func() (fleetPlanOutput, error) {
 		return rt.buildFleetCollectionPlan(label, rec, parts, fleetCollectionVersion(versions), target)
@@ -940,6 +887,74 @@ func (rt *runtime) renderStagedCollection(o renderOpened, req subscriptionRender
 	return plan.rendered(o.Live, target), true, nil
 }
 
+// collectionParts resolves a collection's members to plan parts, in member
+// order, with the fleet parts' catalogue versions. A block of blocks is
+// reused only for a member whose source at the revision it renders at equals
+// the block's: a fleet block when it was built at that revision or its
+// leading run answers that revision's, a provider block by id. Every other
+// member reads its record at its revision and the catalogue, or resolves its
+// provider source, live. A legacy member is withheld.
+func (rt *runtime) collectionParts(label string, members []stagedMember, blocks map[string]envelopeMember) ([]collectionPart, []string, error) {
+	parts := make([]collectionPart, 0, len(members))
+	var versions []string
+	for _, member := range members {
+		block, hasBlock := blocks[member.ID]
+		hasBlock = hasBlock && block.Source == member.Source
+		if !isFleetSource(member.Source) {
+			if isVPNCoreSource(member.Source) {
+				return nil, nil, ownerCredentialsWithheldError(member.ID)
+			}
+			if hasBlock {
+				part, err := blockPart(label, block)
+				if err != nil {
+					return nil, nil, err
+				}
+				parts = append(parts, part)
+				continue
+			}
+			memberRec, err := rt.memberRecordAt(member)
+			if err != nil {
+				return nil, nil, err
+			}
+			nodes, err := rt.providerMemberNodes(memberRec)
+			if err != nil {
+				return nil, nil, err
+			}
+			parts = append(parts, collectionPart{Member: memberRec, Provider: nodes})
+			continue
+		}
+		if hasBlock && block.Revision == member.Revision && block.Rows != nil {
+			part, err := blockPart(label, block)
+			if err != nil {
+				return nil, nil, err
+			}
+			parts, versions = append(parts, part), append(versions, block.CatalogueVersion)
+			continue
+		}
+		memberRec, err := rt.memberRecordAt(member)
+		if err != nil {
+			return nil, nil, err
+		}
+		chain := subscriptionRecord{ID: member.ID, Source: subscriptionSourceFleet, Revision: member.Revision, Process: memberRec.Process}
+		if hasBlock && block.Rows != nil && block.CatalogueVersion != "" && fleetSelectorAnswers(processSteps(memberRec), block.Selector) {
+			part, err := blockPart(label, block)
+			if err != nil {
+				return nil, nil, err
+			}
+			part.Member = chain
+			parts, versions = append(parts, part), append(versions, block.CatalogueVersion)
+			continue
+		}
+		_, read, err := rt.readFleetSelection(memberRec)
+		if err != nil {
+			return nil, nil, fmt.Errorf("%s: %w", memberLabel(memberRec), err)
+		}
+		parts = append(parts, collectionPart{Fleet: true, Member: chain, Rows: read.Rows})
+		versions = append(versions, read.CatalogueVersion)
+	}
+	return parts, versions, nil
+}
+
 // memberRecordAt reads a staged collection render's member at the revision
 // it renders at: its staged document, or its live record.
 func (rt *runtime) memberRecordAt(member stagedMember) (subscriptionRecord, error) {
@@ -948,10 +963,15 @@ func (rt *runtime) memberRecordAt(member stagedMember) (subscriptionRecord, erro
 		if err != nil {
 			return subscriptionRecord{}, err
 		}
-		if rec.Revision != member.Revision {
-			return subscriptionRecord{}, fmt.Errorf("%s: subscription %q is at revision %s, not %s; retry", codeRevisionUnknown, member.ID, rec.Revision, member.Revision)
+		if rec.Revision == member.Revision {
+			return rec, nil
 		}
-		return rec, nil
+		// A half-done promotion: the entry names the revision staged-v2
+		// still holds.
+		if doc, err := rt.loadStaged(member.ID); err == nil && doc != nil && doc.Record.Revision == member.Revision {
+			return doc.Record, nil
+		}
+		return subscriptionRecord{}, fmt.Errorf("%s: subscription %q is at revision %s, not %s; retry", codeRevisionUnknown, member.ID, rec.Revision, member.Revision)
 	}
 	doc, err := rt.loadStaged(member.ID)
 	if err != nil {
