@@ -239,10 +239,11 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 		// fetch's shape without the bookkeeping write.
 		{name: "probe the script file", method: "probe", body: map[string]any{"subscription_id": "worst-script"}, split: 133, legacy: 135},
 		// The combination's record, the listing, Settings, 64 records, 64 fetches.
-		// From S2 a collection preview also reads the listing to know whether
-		// a member is a fleet record.
-		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 132, legacy: 133},
-		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 132, legacy: 133},
+		// From S2 a collection preview gathers its members once and tells a
+		// fleet member from the gathered records, so it reads the listing
+		// only for the tag members, as in S1.
+		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
+		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
 	}
 	worst := map[string]int{}
 	for _, scenario := range scenarios {
@@ -486,11 +487,11 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"version":2,"kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
 		}, want: 3},
-		// A combination preview renders its members: record, the listing (is
-		// a member a fleet record), one record and one fetch per remote
-		// member. The members name no user agent, so Settings are read once
-		// for the default.
-		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 7},
+		// A combination preview renders its members: record, one record and
+		// one fetch per remote member. The members name no user agent, so
+		// Settings are read once for the default. Explicit members need no
+		// listing: their records say whether one is a fleet record.
+		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 6},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 1},
 		// Export reads the index, every record and the settings: N + 2 with
 		// the six seeded records.
