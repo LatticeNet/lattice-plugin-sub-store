@@ -36,25 +36,23 @@ var fleetTestTemplates = map[string]map[string]string{
 }
 
 // fleetTestRow is line i of the test catalogue on protocol.
-func fleetTestRow(i int, protocol string) catalogueRow {
+func fleetTestRow(i int, protocol string) model.LineCatalogueRow {
 	params := map[string]string{}
 	for k, v := range fleetTestTemplates[protocol] {
 		params[k] = v
 	}
-	return catalogueRow{
-		LineCatalogueRow: model.LineCatalogueRow{
-			LineUUID: fleetTestLineUUID(i), LineHashID: fmt.Sprintf("lh-%d", i), NodeID: fmt.Sprintf("node-%d", i%50),
-			NodeName: fmt.Sprintf("tokyo-%d", i%50), Name: fmt.Sprintf("line-%d", i),
-			NodeTags: []string{"jp", fmt.Sprintf("rack-%d", i%7)}, GroupIDs: []string{"g-asia"},
-			Geo:      &model.NodeGeo{Country: "JP", Region: "Tokyo", City: "Tokyo", ASN: 2516, ASOrg: "KDDI", Provider: "maxmind"},
-			Machine:  &model.LineCatalogueMachine{Vendor: "acme", Region: "ap-northeast-1"},
-			Protocol: protocol, Transport: "tcp", Security: "tls",
-			PublicHost: fmt.Sprintf("jp%d.example", i), Addresses: []string{fmt.Sprintf("192.0.2.%d", i%250+1)},
-			Managed: true, Status: "ok", ServiceState: "running",
-			Chain:    model.LineCatalogueChain{Role: model.LineChainRoleSingle},
-			Template: &model.LineCatalogueTemplate{Protocol: protocol, Host: fmt.Sprintf("jp%d.example", i), Port: 443, Params: params, Digest: fmt.Sprintf("tpl-%d", i)},
-		},
-		Label: fmt.Sprintf("tokyo-%d line-%d", i%50, i),
+	return model.LineCatalogueRow{
+		LineUUID: fleetTestLineUUID(i), LineHashID: fmt.Sprintf("lh-%d", i), NodeID: fmt.Sprintf("node-%d", i%50),
+		NodeName: fmt.Sprintf("tokyo-%d", i%50), Name: fmt.Sprintf("line-%d", i),
+		NodeTags: []string{"jp", fmt.Sprintf("rack-%d", i%7)}, GroupIDs: []string{"g-asia"},
+		Geo:      &model.NodeGeo{Country: "JP", Region: "Tokyo", City: "Tokyo", ASN: 2516, ASOrg: "KDDI", Provider: "maxmind"},
+		Machine:  &model.LineCatalogueMachine{Vendor: "acme", Region: "ap-northeast-1"},
+		Protocol: protocol, Transport: "tcp", Security: "tls",
+		PublicHost: fmt.Sprintf("jp%d.example", i), Addresses: []string{fmt.Sprintf("192.0.2.%d", i%250+1)},
+		Managed: true, Status: "ok", ServiceState: "running",
+		Chain:    model.LineCatalogueChain{Role: model.LineChainRoleSingle},
+		Template: &model.LineCatalogueTemplate{Protocol: protocol, Host: fmt.Sprintf("jp%d.example", i), Port: 443, Params: params, Digest: fmt.Sprintf("tpl-%d", i)},
+		Label:    fmt.Sprintf("tokyo-%d line-%d", i%50, i),
 	}
 }
 
@@ -64,7 +62,7 @@ func fleetTestRow(i int, protocol string) catalogueRow {
 // geo, a probe block, usage, extra and the template digest), so a size
 // measured over it is the production figure (about 1.42 KB per full row,
 // PROGRAM.md:111).
-func fleetProductionRow(i int) catalogueRow {
+func fleetProductionRow(i int) model.LineCatalogueRow {
 	row := fleetTestRow(i, "vless")
 	at := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(i) * time.Minute)
 	udp := true
@@ -92,8 +90,8 @@ func fleetProductionRow(i int) catalogueRow {
 }
 
 // fleetTestRows is n lines on protocol, numbered from 1.
-func fleetTestRows(n int, protocol string) []catalogueRow {
-	rows := make([]catalogueRow, 0, n)
+func fleetTestRows(n int, protocol string) []model.LineCatalogueRow {
+	rows := make([]model.LineCatalogueRow, 0, n)
 	for i := 1; i <= n; i++ {
 		rows = append(rows, fleetTestRow(i, protocol))
 	}
@@ -105,15 +103,22 @@ func fleetTestRows(n int, protocol string) []catalogueRow {
 // version each call answers with (the call number counts from 1).
 type fleetCatalogueHost struct {
 	*kvHostCaller
-	rows        []catalogueRow
+	rows        []model.LineCatalogueRow
 	versionAt   func(call int) string
 	unavailable []string
 	calls       int
 	requests    []model.LineCatalogueRequest
 	other       int
+	// readSets, when set, answers the n-th read (a request with no cursor)
+	// with readSets[n], the last set repeating, so collection members
+	// select different lines without a pushed selector.
+	readSets [][]model.LineCatalogueRow
+	reads    int
+	// fail makes every catalogue call fail.
+	fail error
 }
 
-func newFleetCatalogueHost(rows []catalogueRow) *fleetCatalogueHost {
+func newFleetCatalogueHost(rows []model.LineCatalogueRow) *fleetCatalogueHost {
 	return &fleetCatalogueHost{kvHostCaller: newKVHostCaller(), rows: rows}
 }
 
@@ -136,6 +141,16 @@ func (h *fleetCatalogueHost) call(method string, params any) (json.RawMessage, e
 	}
 	h.calls++
 	h.requests = append(h.requests, p.Request)
+	if h.fail != nil {
+		return nil, h.fail
+	}
+	if p.Request.Cursor == "" {
+		h.reads++
+	}
+	rows := h.rows
+	if len(h.readSets) > 0 {
+		rows = h.readSets[min(h.reads-1, len(h.readSets)-1)]
+	}
 	version := fleetTestVersion
 	if h.versionAt != nil {
 		version = h.versionAt(h.calls)
@@ -148,22 +163,22 @@ func (h *fleetCatalogueHost) call(method string, params any) (json.RawMessage, e
 	if limit <= 0 {
 		limit = model.MaxLineCataloguePageRows
 	}
-	end := min(start+limit, len(h.rows))
-	page := cataloguePage{CatalogueVersion: version, Rows: h.rows[start:end]}
+	end := min(start+limit, len(rows))
+	page := model.LineCatalogueResponse{CatalogueVersion: version, Rows: rows[start:end]}
 	if start == 0 {
 		page.SelectorFields = model.LineCatalogueSelectorFields()
 		page.Unavailable = h.unavailable
 	}
-	if end < len(h.rows) {
+	if end < len(rows) {
 		page.Cursor = "c" + strconv.Itoa(end)
 	}
 	if page.Rows == nil {
-		page.Rows = []catalogueRow{}
+		page.Rows = []model.LineCatalogueRow{}
 	}
 	return json.Marshal(page)
 }
 
-func newFleetRuntime(t *testing.T, rows []catalogueRow) (*runtime, *fleetCatalogueHost) {
+func newFleetRuntime(t *testing.T, rows []model.LineCatalogueRow) (*runtime, *fleetCatalogueHost) {
 	t.Helper()
 	host := newFleetCatalogueHost(rows)
 	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
@@ -365,7 +380,7 @@ func TestFleetFetchHostCallsAt4096(t *testing.T) {
 // about 1.42 KB on production, and the projection has to stay under 1 KB so
 // about 4000 rows fit in the core's 4 MiB.
 func TestFleetEnvelopeRowsFitRawBound(t *testing.T) {
-	rows := make([]catalogueRow, 0, 4096)
+	rows := make([]model.LineCatalogueRow, 0, 4096)
 	for i := 1; i <= 4096; i++ {
 		rows = append(rows, fleetProductionRow(i))
 	}
@@ -442,7 +457,7 @@ func TestFleetRowProjectionCoversRenderFields(t *testing.T) {
 	sdk := reflect.TypeOf(model.LineCatalogueRow{})
 	for name, field := range tags {
 		if name == "label" {
-			continue // the S2 SDK row's field; catalogueRow carries it until the pin moves
+			continue // the S2 SDK row's field; model.LineCatalogueRow carries it until the pin moves
 		}
 		sdkField, ok := sdk.FieldByName(field.Name)
 		if !ok {

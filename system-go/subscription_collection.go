@@ -12,7 +12,12 @@ import (
 //
 // The three sources are the whole vocabulary: the fleet's own vpn-core nodes, a
 // remote provider, or content pasted by hand.
-func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
+func (rt *runtime) resolveSubContent(rec subscriptionRecord, authority legacyAuthority) (string, error) {
+	// The two legacy sources read owner or identity credentials, which only
+	// core's refresh may (S2 plan section 1.2).
+	if isVPNCoreSource(rec.Source) && authority != legacyRefresh {
+		return "", ownerCredentialsWithheldError(rec.ID)
+	}
 	switch rec.Source {
 	case subscriptionSourceVPNCore:
 		links, err := rt.fetchExport(subStoreRequest{UserID: rec.VPNIdentity})
@@ -79,8 +84,13 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord) (string, error) {
 // mode decides what happens next, and a strict refresh fails so the core keeps
 // its last good snapshot. A member whose own chain filters every node away
 // still contributes nothing, as before.
-func (rt *runtime) renderMemberNodes(member subscriptionRecord) (string, error) {
-	out, err := rt.memberNodes(member)
+func (rt *runtime) renderMemberNodes(member subscriptionRecord, authority legacyAuthority) (string, error) {
+	// Every caller is a file's node work, and a fleet record has no node
+	// text a file may carry.
+	if member.Source == subscriptionSourceFleet {
+		return "", fleetNodesForFile([]string{member.ID}, "")
+	}
+	out, err := rt.memberNodes(member, authority)
 	if err != nil {
 		return "", err
 	}
@@ -116,8 +126,8 @@ type memberOutput struct {
 // count of an unchained member to the caller. A chained member goes through
 // the dispatcher to URI: in Go when its whole chain is native, on the
 // bundle's isolated path otherwise.
-func (rt *runtime) memberNodes(member subscriptionRecord) (memberOutput, error) {
-	raw, err := rt.resolveSubContent(member)
+func (rt *runtime) memberNodes(member subscriptionRecord, authority legacyAuthority) (memberOutput, error) {
+	raw, err := rt.resolveSubContent(member, authority)
 	if err != nil {
 		return memberOutput{}, err
 	}
@@ -157,8 +167,15 @@ func (rt *runtime) memberNodes(member subscriptionRecord) (memberOutput, error) 
 	return memberOutput{raw: converted.Output, nodes: converted.nodes, native: served == servedNative}, nil
 }
 
+// collectionMemberFailureIsSkippable reports whether the collection's failure
+// mode may leave a failed member out. A graph member never may: its
+// composition is authoritative. A fleet member never may either: a
+// collection that silently dropped its fleet half would serve its provider
+// half to identity-bound shares as if nothing happened (S2 plan section
+// 1.2).
 func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) bool {
-	return collection.FailureMode == failureModeSkip && member.Source != subscriptionSourceVPNCoreGraph
+	return collection.FailureMode == failureModeSkip && member.Source != subscriptionSourceVPNCoreGraph &&
+		member.Source != subscriptionSourceFleet
 }
 
 // renderCollection merges every member's processed nodes, then runs the
@@ -168,8 +185,8 @@ func collectionMemberFailureIsSkippable(collection, member subscriptionRecord) b
 // resolved and chained at fetch time, so the render pays no network and no
 // per-member work — only the collection's own chain. An empty one renders
 // live, which is how previews and unsaved drafts work.
-func (rt *runtime) renderCollection(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string) (string, error) {
-	converted, err := rt.renderCollectionResult(rec, target, options, snapshotRaw, false)
+func (rt *runtime) renderCollection(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, authority legacyAuthority) (string, error) {
+	converted, err := rt.renderCollectionResult(rec, target, options, snapshotRaw, false, authority)
 	if err != nil {
 		return "", err
 	}
@@ -194,21 +211,27 @@ func (rt *runtime) renderCollection(rec subscriptionRecord, target string, optio
 // concatenated as the member chains left them, with no URI round trip, and
 // the collection chain runs over them. Otherwise the whole collection renders
 // on the bundle's isolated path from the members' texts.
-func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool) (subStoreConversionResult, error) {
+func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string, options map[string]bool, snapshotRaw string, explain bool, authority legacyAuthority) (subStoreConversionResult, error) {
 	plan, err := rt.chainPlan(rec)
 	if err != nil {
 		return subStoreConversionResult{}, fmt.Errorf("collection %q: %w", rec.ID, err)
 	}
-	// A snapshot that does not decode or carries nothing is not a reason to
-	// fail the serve: the live path takes over rather than deny a client its
-	// nodes.
+	// Core hands back only snapshots this plugin wrote, so a non-empty one
+	// that does not decode, or holds no usable member block, is an error and
+	// never a reason to resolve the members live (S2 plan section 1.2): the
+	// live path would read a legacy member's export for whoever called
+	// render with a broken raw. An empty one renders live, which is how
+	// previews and unsaved drafts work.
 	members, membersNative := snapshotMembers(snapshotRaw, nativeRoute(plan, target))
+	if len(members) == 0 && strings.TrimSpace(snapshotRaw) != "" {
+		return subStoreConversionResult{}, fmt.Errorf("%s: collection %q has a snapshot this plugin cannot read; the next refresh replaces it", codeSnapshotMalformed, rec.ID)
+	}
 	if len(members) == 0 {
 		gathered, err := rt.collectionMembers(rec)
 		if err != nil {
 			return subStoreConversionResult{}, err
 		}
-		if members, membersNative, err = rt.chainMembers(rec, gathered); err != nil {
+		if members, membersNative, err = rt.chainMembers(rec, gathered, false, authority); err != nil {
 			return subStoreConversionResult{}, err
 		}
 	}

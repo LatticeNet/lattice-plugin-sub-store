@@ -52,10 +52,11 @@ func TestConvertAcceptsNodes(t *testing.T) {
 	}
 }
 
-// A document plan and a response chain are refused with a stated reason
-// until the slices that run them, before any engine work, and the reason
-// never quotes the input.
-func TestConvertRefusesDocumentAndResponseChainWithReason(t *testing.T) {
+// A response chain is refused with a stated reason until S3 runs it in
+// convert's isolate, before any engine work, and the reason never quotes the
+// input. A document plan is substituted since S2
+// (TestConvertDocumentSubstitutionPerScalar).
+func TestConvertRefusesResponseChainWithReason(t *testing.T) {
 	engine := testEngineWithHeadroom()
 	rt := &runtime{host: denyHostCalls{}, engine: engine}
 	const secret = "convert-secret-sentinel"
@@ -64,10 +65,6 @@ func TestConvertRefusesDocumentAndResponseChainWithReason(t *testing.T) {
 		payload map[string]any
 		want    string
 	}{
-		{"document", map[string]any{
-			"target":   "ClashMeta",
-			"document": map[string]any{"content": "proxies:\n  - {name: a, password: " + secret + "}\n", "substitutions": map[string]string{}},
-		}, "document plan"},
 		{"response chain", map[string]any{
 			"uris":           perfgen.URIs(1),
 			"target":         "URI",

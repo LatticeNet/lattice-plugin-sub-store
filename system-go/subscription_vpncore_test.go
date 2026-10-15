@@ -131,23 +131,34 @@ func TestVPNCoreEmptyExportIsAnError(t *testing.T) {
 	}
 }
 
-// The core holds the snapshot, but on the very first request it has none. A
-// vpn-core record has no inline content to fall back to, so render must reach
-// the export itself or the subscription fails until something warms it.
-func TestVPNCoreRendersOnFirstRequestWithNoSnapshot(t *testing.T) {
-	rt, _ := newVPNCoreRuntime(t, "vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a")
+// Render used to read the export itself when core held no snapshot, which
+// handed owner credentials to any operator who called render with no raw.
+// Core refreshes before it renders, so a vpn-core record rendered with no
+// snapshot is refused with owner_credentials_withheld and reads nothing (S2
+// plan section 1.2); the refresh path still reads the export.
+func TestVPNCoreRenderWithNoSnapshotIsWithheld(t *testing.T) {
+	rt, host := newVPNCoreRuntime(t, "vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a")
 	if err := rt.saveSubscription(subscriptionRecord{
 		ID: "fleet", Name: "Fleet", Source: subscriptionSourceVPNCore, Target: "URI",
 	}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
+	before := len(host.rpcCalls)
 
-	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Format: "", UAClass: ""})
-	if err != nil {
-		t.Fatalf("render with no snapshot failed: %v", err)
+	_, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Format: "", UAClass: ""})
+	if err == nil || !strings.HasPrefix(err.Error(), codeOwnerCredentialsWithheld) {
+		t.Fatalf("render with no snapshot: err %v", err)
 	}
-	if strings.TrimSpace(out.Content) == "" {
-		t.Fatal("render produced nothing; an empty body is never servable")
+	if len(host.rpcCalls) != before {
+		t.Fatal("render with no snapshot read the export")
+	}
+	fetched, err := rt.fetchSubscription("fleet")
+	if err != nil {
+		t.Fatalf("the refresh no longer reads the export: %v", err)
+	}
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "fleet", Raw: fetched.Raw})
+	if err != nil || strings.TrimSpace(out.Content) == "" {
+		t.Fatalf("render over the refreshed snapshot: %q, %v", out.Content, err)
 	}
 }
 
@@ -168,13 +179,12 @@ type hostFailure struct{}
 
 func (*hostFailure) Error() string { return "vpn-core unreachable" }
 
-func TestPreviewDraftResolvesAnUnsavedFleetDraft(t *testing.T) {
-	// A draft that reads the fleet has no pasted content and no stored record —
-	// the preview must resolve the live export, not report "no content".
-	//
-	// This is preview_draft, not preview. Naming the source is naming a
-	// destination for the control plane to go and read, so it is declared
-	// substore:admin; read-scoped preview refuses the field outright.
+func TestPreviewDraftOfALegacySourceIsWithheld(t *testing.T) {
+	// A draft that names the legacy vpn-core export used to resolve it live
+	// for the preview. The export carries owner credentials, which only
+	// core's refresh may read since S2 (plan section 1.2), and the editor no
+	// longer offers the legacy sources for a new record, so the draft preview
+	// answers owner_credentials_withheld and makes no rpc call.
 	rt, host := newVPNCoreRuntime(t,
 		"vless://11111111-1111-1111-1111-111111111111@example.com:443?security=reality&sni=a.com&fp=chrome&pbk=x#node-a",
 		"vless://22222222-2222-2222-2222-222222222222@example.net:443?security=reality&sni=b.com&fp=chrome&pbk=y#node-b")
@@ -183,17 +193,10 @@ func TestPreviewDraftResolvesAnUnsavedFleetDraft(t *testing.T) {
 		t.Fatalf("marshal: %v", err)
 	}
 	res := rt.handleSubscriptionCall(callPayload{Method: "preview_draft", Payload: raw})
-	if !res.OK {
-		t.Fatalf("preview_draft of an unsaved fleet draft failed: %s", res.Error)
+	if res.OK || !strings.HasPrefix(res.Error, codeOwnerCredentialsWithheld) {
+		t.Fatalf("preview_draft of a legacy draft: ok=%v error=%q", res.OK, res.Error)
 	}
-	var out previewResult
-	if err := json.Unmarshal(res.Result, &out); err != nil {
-		t.Fatalf("decode preview: %v", err)
-	}
-	if out.NodeCount != 2 {
-		t.Fatalf("expected the export's 2 nodes, got %d", out.NodeCount)
-	}
-	if len(host.rpcCalls) != 1 {
-		t.Fatalf("expected exactly one export rpc, got %d", len(host.rpcCalls))
+	if len(host.rpcCalls) != 0 {
+		t.Fatalf("a withheld draft preview made %d rpc calls", len(host.rpcCalls))
 	}
 }

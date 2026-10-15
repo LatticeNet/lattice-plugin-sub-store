@@ -20,7 +20,7 @@ func TestLocalSourcePrefersPastedContentOverAStaleURL(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 	rec, _ := rt.getSubscription("m")
-	got, err := rt.resolveSubContent(rec)
+	got, err := rt.resolveSubContent(rec, legacyWithheld)
 	if err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestRemoteSourceWithoutALinkSaysSo(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 	rec, _ := rt.getSubscription("p")
-	_, err := rt.resolveSubContent(rec)
+	_, err := rt.resolveSubContent(rec, legacyWithheld)
 	if err == nil {
 		t.Fatal("a provider subscription with no link silently served stale pasted content")
 	}
@@ -76,7 +76,7 @@ func TestUnnamedSourceStillResolvesURLThenContent(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 	rec, _ := rt.getSubscription("legacy")
-	got, err := rt.resolveSubContent(rec)
+	got, err := rt.resolveSubContent(rec, legacyWithheld)
 	if err != nil {
 		t.Fatalf("resolve: %v", err)
 	}

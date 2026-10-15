@@ -178,7 +178,15 @@ func textEnvelope(kind, raw, sourceVersion string) snapshotEnvelope {
 func membersEnvelope(kind string, members []fileScriptMember) snapshotEnvelope {
 	env := snapshotEnvelope{Version: snapshotEnvelopeVersion, Kind: kind, Members: make([]envelopeMember, 0, len(members))}
 	for _, member := range members {
-		env.Members = append(env.Members, envelopeMember{SubName: member.SubName, Raw: member.Raw})
+		block := envelopeMember{SubName: member.SubName, Raw: member.Raw,
+			ID: member.block.id, Source: member.block.source, Revision: member.block.revision}
+		if fleet := member.block.fleet; fleet != nil {
+			// A fleet member's chain runs at render over its rows, so the
+			// block carries the chain; a provider member's chain already ran.
+			block.Steps = member.block.steps
+			block.CatalogueVersion, block.Selector, block.Rows = fleet.catalogueVersion, fleet.selector, fleet.rows
+		}
+		env.Members = append(env.Members, block)
 	}
 	return env
 }

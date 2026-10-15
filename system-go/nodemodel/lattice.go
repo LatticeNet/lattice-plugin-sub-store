@@ -10,9 +10,9 @@ import "github.com/LatticeNet/lattice-sdk/model"
 // snapshot envelope and the bundle round trip use, writes the tagged fields
 // under the node's "_lattice" key. MarshalPlanNode writes the tagged fields
 // other than line_uuid at the top level under core's names
-// (PlanLatticeFields), because core admits no "_lattice" key. The untagged
-// fields are row facts the Structured Filter predicates read and core never
-// sees; neither encoder writes them.
+// (model.SelectionPlanLatticeFields), because core admits no "_lattice" key.
+// The untagged fields are row facts the Structured Filter predicates read and
+// core never sees; neither encoder writes them.
 //
 // The block is shared, not copied, by Node.Clone: nothing writes to it after
 // the fleet render builds it (scripts write Script, and the fleet render
@@ -28,6 +28,11 @@ type LatticeFields struct {
 	Groups     []string                  `json:"groups,omitempty"`
 	Probe      *model.LineCatalogueProbe `json:"probe,omitempty"`
 	Addresses  []string                  `json:"addresses,omitempty"`
+	// Provenance carries a collection's provider mark through the bundle,
+	// which keeps "_lattice" and drops the Script map: a provider node goes
+	// in with the mark and no other field, and comes back recognisable. It
+	// is not a field core carries, so MarshalPlanNode never writes it.
+	Provenance string `json:"provenance,omitempty"`
 
 	// Row fields predicates and Structured Sort read and core never sees:
 	// kept here, never written by MarshalJSON or MarshalPlanNode.

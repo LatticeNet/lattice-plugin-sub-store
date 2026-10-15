@@ -11,25 +11,19 @@ import (
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
-// decodeRenderPlan reads an encoded fleet plan with the SDK's own decoder
-// for its SDK part, so a field the SDK would refuse fails the test.
-func decodeRenderPlan(t *testing.T, encoded []byte) fleetRenderPlan {
+// decodeRenderPlan reads an encoded fleet plan with the SDK's strict
+// decoder, which refuses an unknown field, a duplicate key and a plan that
+// fails Validate, so a plan core would refuse fails the test.
+func decodeRenderPlan(t *testing.T, encoded []byte) model.SelectionPlan {
 	t.Helper()
-	var plan fleetRenderPlan
-	if err := json.Unmarshal(encoded, &plan); err != nil {
-		t.Fatalf("plan does not decode: %v", err)
-	}
-	sdk, err := json.Marshal(plan.SelectionPlan)
+	plan, err := model.DecodeSelectionPlan(encoded)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := model.DecodeSelectionPlan(sdk); err != nil {
 		t.Fatalf("the SDK refuses the plan: %v", err)
 	}
 	return plan
 }
 
-func projectRows(rows []catalogueRow) []fleetRow {
+func projectRows(rows []model.LineCatalogueRow) []fleetRow {
 	out := make([]fleetRow, len(rows))
 	for i, row := range rows {
 		out[i] = projectFleetRow(row)
@@ -37,7 +31,7 @@ func projectRows(rows []catalogueRow) []fleetRow {
 	return out
 }
 
-func buildTestPlan(t *testing.T, rec subscriptionRecord, rows []fleetRow) (fleetPlanOutput, fleetRenderPlan) {
+func buildTestPlan(t *testing.T, rec subscriptionRecord, rows []fleetRow) (fleetPlanOutput, model.SelectionPlan) {
 	t.Helper()
 	rec.Source = subscriptionSourceFleet
 	normalised, err := normalizeSubscriptionForStore(rec)
@@ -73,7 +67,7 @@ func TestFleetRenderReturnsPlanWithPlaceholdersPerProtocol(t *testing.T) {
 	if plan.Kind != model.SelectionPlanKindNodes || len(plan.Nodes) != 7 || out.NodeCount != 7 {
 		t.Fatalf("kind %q, %d nodes", plan.Kind, len(plan.Nodes))
 	}
-	if got := out.Dropped[fleetDropNoBindShape]; len(got) != 1 || got[0] != fleetTestLineUUID(8) {
+	if got := out.Dropped; len(got) != 1 || got[0] != (fleetDrop{LineUUID: fleetTestLineUUID(8), Protocol: "shadowsocks", Reason: fleetDropNoBindShape}) {
 		t.Fatalf("dropped = %v", out.Dropped)
 	}
 	if plan.Selection == nil || plan.Selection.CatalogueVersion != fleetTestVersion || len(plan.Selection.LineUUIDs) != 8 {
@@ -208,7 +202,7 @@ func TestDDNSDialSubstitutesVerifiedNamesOnly(t *testing.T) {
 	rows := projectRows(fleetTestRows(3, "trojan"))
 	rows[0].DDNSNames = []model.LineCatalogueDDNSName{{Name: "jp1-stale.ddns.example"}, {Name: "jp1.ddns.example", Verified: true}}
 	rows[1].DDNSNames = []model.LineCatalogueDDNSName{{Name: "jp2.ddns.example"}}
-	servers := func(plan fleetRenderPlan) []map[string]any {
+	servers := func(plan model.SelectionPlan) []map[string]any {
 		var out []map[string]any
 		for _, node := range plan.Nodes {
 			var fields map[string]any
@@ -252,6 +246,20 @@ func TestDDNSDialKeepsNATLinesOnEdge(t *testing.T) {
 	if fields["server"] != "edge.provider.example" {
 		t.Fatalf("a NAT line dials %v", fields["server"])
 	}
+
+	// A verified CNAME whose target is the edge may stand in for it; one
+	// pointing elsewhere may not.
+	rows[0].DDNSNames = []model.LineCatalogueDDNSName{
+		{Name: "elsewhere.ddns.example", Verified: true, Target: "other-edge.example"},
+		{Name: "edge-alias.ddns.example", Verified: true, Target: "edge.provider.example"},
+	}
+	_, plan = buildTestPlan(t, subscriptionRecord{ID: "nat", Name: "nat", Fleet: &fleetOptions{DDNSDial: true}}, rows)
+	if err := json.Unmarshal(plan.Nodes[0].Node, &fields); err != nil {
+		t.Fatal(err)
+	}
+	if fields["server"] != "edge-alias.ddns.example" {
+		t.Fatalf("a NAT line with an edge-target name dials %v", fields["server"])
+	}
 }
 
 // TestFleetRenderRefusesResponseTransformerUntilS3 pins that a fleet record
@@ -290,7 +298,7 @@ func TestFleetRecordRefusesLinkModeScriptStepAtRender(t *testing.T) {
 // sits below the SDK's own plan bound by the reply overhead.
 func TestRenderRefusesPlanOverCap(t *testing.T) {
 	node := model.SelectionPlanNode{Node: json.RawMessage(`{"name":"` + strings.Repeat("x", 4000) + `","type":"vless"}`)}
-	plan := fleetRenderPlan{SelectionPlan: model.SelectionPlan{Kind: model.SelectionPlanKindNodes}}
+	plan := model.SelectionPlan{Kind: model.SelectionPlanKindNodes}
 	for len(plan.Nodes) < 1500 {
 		plan.Nodes = append(plan.Nodes, node)
 	}
@@ -301,7 +309,7 @@ func TestRenderRefusesPlanOverCap(t *testing.T) {
 	if _, err := encodeFleetPlan(plan); err != nil {
 		t.Fatalf("a small plan: %v", err)
 	}
-	if maxRenderPlanBytes >= model.MaxSelectionPlanBytes {
+	if model.MaxRenderPlanBytes >= model.MaxSelectionPlanBytes {
 		t.Fatal("the render cap does not leave room for the reply")
 	}
 }
@@ -386,5 +394,156 @@ func TestFleetPlanCacheEvictsByBytes(t *testing.T) {
 	}
 	if _, err := cache.get(newFleetPlanKey("huge", "", nil, "", "", nil), plan(500)); err != nil || cache.bytes > 100 {
 		t.Fatalf("a plan past the bound was kept: bytes %d (%v)", cache.bytes, err)
+	}
+}
+
+// renderFleetCall drives the render method as core calls it.
+func renderFleetCall(t *testing.T, rt *runtime, payload map[string]any) (renderReply, response) {
+	t.Helper()
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := rt.handleSubscriptionCall(callPayload{Method: "render", Payload: raw})
+	var out renderReply
+	if res.OK {
+		if err := json.Unmarshal(res.Result, &out); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return out, res
+}
+
+// fetchedFleetRecord saves a fleet record over the test catalogue and
+// fetches it, returning the snapshot core would hold.
+func fetchedFleetRecord(t *testing.T, rows []model.LineCatalogueRow, rec subscriptionRecord) (*runtime, subscriptionRecord, string) {
+	t.Helper()
+	rt, _ := newFleetRuntime(t, rows)
+	saved := saveFleetRecord(t, rt, rec)
+	out, err := rt.fetchSubscription(saved.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rt, saved, out.Raw
+}
+
+// TestRenderHonoursRevisionAndReportsLiveRevision pins render's S2 request
+// and reply: no revision or the live one serves the plan with the live
+// revision beside it, another revision is revision_unknown, and a provider
+// record's render reports its live revision too.
+func TestRenderHonoursRevisionAndReportsLiveRevision(t *testing.T) {
+	rt, rec, snapshot := fetchedFleetRecord(t, fleetTestRows(4, "vless"), subscriptionRecord{ID: "jp"})
+	for _, revision := range []string{"", rec.Revision} {
+		out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "jp", "raw": snapshot, "target": "sing-box", "revision": revision})
+		if !res.OK {
+			t.Fatalf("revision %q: %s", revision, res.Error)
+		}
+		if out.LiveRevision != rec.Revision || out.Content != "" || len(out.Plan) == 0 || out.Target != "sing-box" {
+			t.Fatalf("revision %q: live %q, content %q, plan %d bytes", revision, out.LiveRevision, out.Content, len(out.Plan))
+		}
+		plan := decodeRenderPlan(t, out.Plan)
+		if len(plan.Nodes) != 4 || plan.Selection == nil || len(plan.Selection.LineUUIDs) != 4 {
+			t.Fatalf("plan = %d nodes, selection %+v", len(plan.Nodes), plan.Selection)
+		}
+	}
+	_, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "jp", "raw": snapshot, "revision": "not-a-revision"})
+	if res.OK || !strings.HasPrefix(res.Error, codeRevisionUnknown) {
+		t.Fatalf("an unknown revision: ok=%v error=%q", res.OK, res.Error)
+	}
+
+	if err := rt.saveSubscription(subscriptionRecord{ID: "p", Name: "p", Source: subscriptionSourceLocal, Content: "trojan://pw@192.0.2.10:443#one"}); err != nil {
+		t.Fatal(err)
+	}
+	provider, _ := rt.getSubscription("p")
+	out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "p", "target": "URI", "format": "plain"})
+	if !res.OK || out.LiveRevision != provider.Revision || out.Content == "" || len(out.Plan) != 0 {
+		t.Fatalf("provider render: ok=%v live %q plan %d error %q", res.OK, out.LiveRevision, len(out.Plan), res.Error)
+	}
+}
+
+// TestLiveFleetRevisionRefusesLegacyEnvelope pins the serve path's envelope
+// rule: a live fleet revision handed a legacy envelope with export links in
+// raw refuses fleet_envelope_mismatch, returns no plan and never decodes the
+// links.
+func TestLiveFleetRevisionRefusesLegacyEnvelope(t *testing.T) {
+	rt, _, _ := fetchedFleetRecord(t, fleetTestRows(2, "vless"), subscriptionRecord{ID: "migrated"})
+	const link = "vless://11111111-2222-4333-8444-555555555555@owner.example:443?security=reality#owner"
+	legacy, err := encodeSnapshotEnvelope(textEnvelope(kindSub, link, ""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, raw := range map[string]string{"legacy envelope": legacy, "not json": "x", "provider text": link} {
+		out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "migrated", "raw": raw, "target": "sing-box"})
+		if res.OK || !strings.HasPrefix(res.Error, codeFleetEnvelopeMismatch) || len(out.Plan) != 0 {
+			t.Fatalf("%s: ok=%v error=%q", name, res.OK, res.Error)
+		}
+		if strings.Contains(res.Error, "owner.example") || strings.Contains(res.Error, "11111111") {
+			t.Fatalf("%s: the refusal quotes the snapshot: %q", name, res.Error)
+		}
+	}
+	_, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "migrated", "target": "sing-box"})
+	if res.OK || !strings.HasPrefix(res.Error, codeFleetSnapshotMissing) {
+		t.Fatalf("no snapshot: ok=%v error=%q", res.OK, res.Error)
+	}
+}
+
+// TestRenderServePathRefusesSelectorMismatch pins that rows selected by
+// another leading run are never served: the envelope's step hash must equal
+// the live revision's leading run.
+func TestRenderServePathRefusesSelectorMismatch(t *testing.T) {
+	rt, _, snapshot := fetchedFleetRecord(t, fleetTestRows(2, "trojan"), subscriptionRecord{ID: "jp"})
+	env, ok := decodeSnapshotEnvelope(snapshot)
+	if !ok {
+		t.Fatal("snapshot is not an envelope")
+	}
+	env.Selector.StepHash = fleetStepHash([]json.RawMessage{json.RawMessage(`{"type":"Structured Filter","args":{"predicates":[]}}`)})
+	env.Selector.Leading = 0
+	tampered, _ := json.Marshal(env)
+	_, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "jp", "raw": string(tampered), "target": "sing-box"})
+	if res.OK || !strings.HasPrefix(res.Error, codeFleetSelectorMismatch) {
+		t.Fatalf("a foreign step hash: ok=%v error=%q", res.OK, res.Error)
+	}
+	env.Selector = nil
+	tampered, _ = json.Marshal(env)
+	_, res = renderFleetCall(t, rt, map[string]any{"subscription_id": "jp", "raw": string(tampered), "target": "sing-box"})
+	if res.OK || !strings.HasPrefix(res.Error, codeFleetSelectorMismatch) {
+		t.Fatalf("no selector record: ok=%v error=%q", res.OK, res.Error)
+	}
+}
+
+// TestRenderServesTwoIdentitiesFromOneCachedPlan pins the serve path's use
+// of the plan cache: core renders once per identity miss, and two renders of
+// one snapshot and revision compute one plan on one worker.
+func TestRenderServesTwoIdentitiesFromOneCachedPlan(t *testing.T) {
+	rt, _, snapshot := fetchedFleetRecord(t, fleetTestRows(3, "hysteria2"), subscriptionRecord{ID: "cached"})
+	before := fleetPlans.computeCount()
+	var plans []string
+	for identity := 0; identity < 2; identity++ {
+		out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "cached", "raw": snapshot, "target": "ClashMeta"})
+		if !res.OK {
+			t.Fatal(res.Error)
+		}
+		plans = append(plans, string(out.Plan))
+	}
+	if got := fleetPlans.computeCount() - before; got != 1 || plans[0] != plans[1] {
+		t.Fatalf("computes = %d, plans equal %v", got, plans[0] == plans[1])
+	}
+}
+
+// TestLegacyRecordRenderWithoutRawIsWithheld pins the record half of the
+// withholding rule: a legacy record rendered with no snapshot answers
+// owner_credentials_withheld and makes no rpc call, where render used to
+// read the export.
+func TestLegacyRecordRenderWithoutRawIsWithheld(t *testing.T) {
+	rt, host := newFleetRuntime(t, nil)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "legacy", Name: "legacy", Source: subscriptionSourceVPNCore}); err != nil {
+		t.Fatal(err)
+	}
+	_, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "legacy", "target": "URI"})
+	if res.OK || !strings.HasPrefix(res.Error, codeOwnerCredentialsWithheld) {
+		t.Fatalf("a legacy record without raw: ok=%v error=%q", res.OK, res.Error)
+	}
+	if host.calls != 0 || host.other != 0 {
+		t.Fatalf("rpc calls = %d catalogue, %d other", host.calls, host.other)
 	}
 }
