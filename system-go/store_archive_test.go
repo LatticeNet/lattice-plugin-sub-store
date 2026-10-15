@@ -258,8 +258,10 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 3, ok: true},
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 7, ok: true},
+		}, want: 4, ok: true},
+		// S2: a collection's render reads the listing once to know whether it
+		// is fleet-bound (S2 plan section 1.2).
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 8, ok: true},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 		{name: "export", method: "export", payload: map[string]any{}, want: 4, ok: true},
 		{name: "depends_on", method: "depends_on", payload: map[string]any{}, want: 2, ok: true},

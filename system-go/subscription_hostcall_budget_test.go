@@ -21,6 +21,9 @@ type graphBudgetHost struct {
 	compose       json.RawMessage
 	options       json.RawMessage
 	publishedBody string
+	// rpcs counts the rpc.call round trips, which the withheld paths must
+	// never make.
+	rpcs int
 }
 
 func (host *graphBudgetHost) call(method string, params any) (json.RawMessage, error) {
@@ -30,6 +33,7 @@ func (host *graphBudgetHost) call(method string, params any) (json.RawMessage, e
 	}
 	switch method {
 	case latticeplugin.HostMethodRPCCall:
+		host.rpcs++
 		encoded, _ := json.Marshal(params)
 		var call struct {
 			Method string `json:"method"`
@@ -96,18 +100,23 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		// write.
 		graphSaveCalls    = 5
 		graphPreviewCalls = 2
-		// render and publish: the record, the Settings read for the default
-		// target (the records name none), one composition; publish sends.
-		graphRenderCalls  = 3
-		graphPublishCalls = 4
-		// A collection of 64 graph members reads its record, Settings, each
-		// member's record and each member's composition: 1 + 1 + 64 + 64.
-		graphCollectionRenderCalls = 130
-		// A script file over it adds its own record: the node source.
-		maxGraphRenderCalls = 130
+		// From S2 a legacy record's export is read only under core's refresh
+		// (S2 plan section 1.2): render and publish of a graph record, of a
+		// collection over 64 of them and of a script file over that answer
+		// owner_credentials_withheld before any composition. render and
+		// publish read the record and the Settings for the default target.
+		graphRenderCalls  = 2
+		graphPublishCalls = 2
+		// The collection reads its record, the listing (is it fleet-bound),
+		// Settings and its 64 member records, then refuses at the first
+		// member's composition: 1 + 1 + 1 + 64.
+		graphCollectionRenderCalls = 67
+		// A script file over it reads its own record and the collection's,
+		// Settings and the 64 member records.
+		maxGraphRenderCalls = 66
 		// A file preview refuses node-source work on its record alone.
 		maxGraphPreviewCalls = 1
-		maxGraphPublishCalls = 131
+		maxGraphPublishCalls = 66
 		// The refresh of that script file: its record, the source record, 64
 		// member records, 64 compositions and the bookkeeping read and write.
 		maxGraphFetchCalls = 132
@@ -120,17 +129,20 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		want   int
 		seed   bool
 		wantOK bool
+		// withheld: the path answers owner_credentials_withheld and makes
+		// no rpc.call.
+		withheld bool
 	}{
 		{name: "options", method: "graph_options", body: map[string]any{}, want: graphOptionsCalls, wantOK: true},
 		{name: "fetch", method: "fetch", body: map[string]any{"subscription_id": "graph-00"}, want: graphFetchCalls, seed: true, wantOK: true},
 		{name: "save", method: "save", body: map[string]any{"subscription": map[string]any{"id": "graph-00", "name": "graph-00", "source": subscriptionSourceVPNCoreGraph, "vpn_identity": "identity-a", "entry_roots": []string{graphRootA}, "graph_options_version": "ov1:" + repeatHex("a")}}, want: graphSaveCalls, seed: true, wantOK: true},
 		{name: "direct preview", method: "preview", body: map[string]any{"subscription_id": "graph-00"}, want: graphPreviewCalls, seed: true, wantOK: true},
-		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, wantOK: true},
-		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, wantOK: true},
-		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: graphCollectionRenderCalls, seed: true, wantOK: true},
+		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, withheld: true},
+		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, withheld: true},
+		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: graphCollectionRenderCalls, seed: true, withheld: true},
 		{name: "node-source file preview fails before composition", method: "preview", body: map[string]any{"subscription_id": "script-graphs"}, want: maxGraphPreviewCalls, seed: true},
-		{name: "script over 64 graph collection render", method: "render", body: map[string]any{"subscription_id": "script-graphs", "format": "plain"}, want: maxGraphRenderCalls, seed: true, wantOK: true},
-		{name: "script over 64 graph collection publish", method: "publish", body: map[string]any{"subscription_id": "script-graphs", "destination": "https://destination.invalid/graph", "format": "plain"}, want: maxGraphPublishCalls, seed: true, wantOK: true},
+		{name: "script over 64 graph collection render", method: "render", body: map[string]any{"subscription_id": "script-graphs", "format": "plain"}, want: maxGraphRenderCalls, seed: true, withheld: true},
+		{name: "script over 64 graph collection publish", method: "publish", body: map[string]any{"subscription_id": "script-graphs", "destination": "https://destination.invalid/graph", "format": "plain"}, want: maxGraphPublishCalls, seed: true, withheld: true},
 		{name: "script over 64 graph collection fetch", method: "fetch", body: map[string]any{"subscription_id": "script-graphs"}, want: maxGraphFetchCalls, seed: true, wantOK: true},
 	}
 
@@ -144,6 +156,9 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			response := callSubscription(t, rt, test.method, test.body)
 			if response.OK != test.wantOK || host.total != test.want {
 				t.Fatalf("response=%+v calls=%d want=%d", response, host.total, test.want)
+			}
+			if test.withheld && (!strings.HasPrefix(response.Error, ownerCredentialsWithheldCode) || host.rpcs != 0) {
+				t.Fatalf("response=%+v rpcs=%d, want owner_credentials_withheld before any rpc.call", response, host.rpcs)
 			}
 			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+test.method]
 			if host.total > budget.HostCalls {
@@ -206,9 +221,10 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 		// The file's record (and, legacy, the document and its program key),
 		// the source record, the listing, Settings, 64 records, 64 fetches.
 		{name: "render a script file over the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-script", "format": "plain"}, split: 132, legacy: 134},
-		// The record, the listing, Settings (target and agent), 64 records,
-		// 64 fetches.
-		{name: "render the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-tags", "format": "plain"}, split: 131, legacy: 132},
+		// The record, the listing for the fleet-bound check, the listing for
+		// the tag members, Settings (target and agent), 64 records, 64
+		// fetches.
+		{name: "render the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-tags", "format": "plain"}, split: 132, legacy: 133},
 		// render's script shape and the send.
 		{name: "publish the script file", method: "publish", body: map[string]any{"subscription_id": "worst-script", "destination": "https://destination.invalid/worst", "format": "plain"}, split: 133, legacy: 135},
 		// render's script shape and the bookkeeping read and write.
@@ -434,9 +450,10 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// target or a pin skips that read.
 		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 2},
 		{name: "render a plain local sub for a named target", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain", "target": "sing-box"}, want: 1},
-		// A collection render reads the record, then each member's record and
-		// one provider fetch per remote member. Explicit members need no index.
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 6},
+		// A collection render reads the record, the listing once to know
+		// whether the collection is fleet-bound (S2 plan section 1.2), then
+		// each member's record and one provider fetch per remote member.
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 7},
 		// The operator's real shape: a script file over a collection of two
 		// remote subs. The file, the source record, two member records, then
 		// one provider fetch per member.
@@ -444,7 +461,9 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// With the refresh path's snapshot in hand, the same renders pay no
 		// network at all: the record read is the whole cost. This group is the
 		// serve path's steady state. A collection that names no target adds
-		// the Settings read for the default one.
+		// the Settings read for the default one, and every collection the
+		// listing read that tells render whether it is fleet-bound (S2 plan
+		// section 1.2: the record, its index entry and the settings).
 		{name: "render a script file from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "scripty", "format": "plain",
 			"raw": `{"source_id":"coll","source_name":"coll","source_kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
@@ -452,11 +471,11 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 2},
+		}, want: 3},
 		{name: "render a collection from a version 2 envelope", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"version":2,"kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 2},
+		}, want: 3},
 		// A combination preview renders its members: record, one record and
 		// one fetch per remote member. The members name no user agent, so
 		// Settings are read once for the default.
