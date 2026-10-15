@@ -141,7 +141,10 @@ func (rt *runtime) migrateRecord(req migrateRecordRequest) (migrateRecordReply, 
 	}
 	reply := migrateRecordReply{SubscriptionID: id, LiveRevision: loaded.LiveRevision, Legacy: origin, Dependents: dependents, Warnings: []string{}}
 	if legacy.Source == subscriptionSourceVPNCoreGraph {
-		selection, warnings, err := rt.migrateGraphReport(legacy.EntryRoots, processSteps(legacy))
+		// The steps are numbered as the migrated record carries them, the
+		// pinned-roots step first, so a warning names the step the operator
+		// edits afterwards.
+		selection, warnings, err := rt.migrateGraphReport(legacy.EntryRoots, processSteps(fleet))
 		if err != nil {
 			return migrateRecordReply{}, nil, err
 		}

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
+	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -480,10 +482,6 @@ func (rt *runtime) fetchCall(payload json.RawMessage) response {
 	return latticeplugin.RawResultResponse(body, "")
 }
 
-// ownerCredentialsWithheldCode is lane 1's fetcher guard: the legacy fetchers
-// run only under fetch, and answer this code under every other method.
-const ownerCredentialsWithheldCode = "owner_credentials_withheld"
-
 // probeCall is the console's row check: fetchSubscription without the
 // bookkeeping, answering a byte count and never the body. It opens the
 // record through storeLoadRecord and serves the staged document during a
@@ -508,11 +506,14 @@ func (rt *runtime) probeCall(payload json.RawMessage) response {
 		}
 		rt.primeRecord(loaded.Live)
 	}
-	out, err := rt.fetchSubscription(req.SubscriptionID)
+	// Probe never holds the refresh's authority over a legacy export: the
+	// fetcher guard answers owner_credentials_withheld before any rpc.call.
+	out, err := rt.fetchSubscriptionAs(req.SubscriptionID, legacyWithheld)
 	result.OK = err == nil
+	_, withheld := asWithheld(err)
 	switch {
-	case err != nil && strings.HasPrefix(err.Error(), ownerCredentialsWithheldCode):
-		result.ErrorCode = ownerCredentialsWithheldCode
+	case withheld:
+		result.ErrorCode = codeOwnerCredentialsWithheld
 	case err != nil:
 		result.ErrorCode = "source_unavailable"
 	default:
@@ -713,6 +714,17 @@ func (rt *runtime) saveCall(payload json.RawMessage) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 	}
+	// A fleet record's predicates are checked against what the catalogue can
+	// answer before anything is written (S2 plan section 1.2).
+	if rec.Source == subscriptionSourceFleet {
+		refusal, err := rt.fleetPredicateRefusal(rec)
+		if err != nil {
+			return latticeplugin.ErrorResponse(err)
+		}
+		if refusal != nil {
+			return refusedResponse(*refusal)
+		}
+	}
 	// A caller must not be able to forge provenance: storeWriteRecord keeps
 	// what is stored (Origin, MigratedFrom) and gives a new record none.
 	res, err := rt.storeWriteRecord(writeRequest{Record: rec, IfRevision: req.IfRevision, Strict: true}, originSave)
@@ -736,6 +748,68 @@ func (rt *runtime) saveCall(payload json.RawMessage) response {
 		reply["discarded_staged"] = res.Discarded
 	}
 	return latticeplugin.RawResultResponse(mustJSON(reply), "")
+}
+
+// fleetPredicateRefusal checks a fleet record's Structured Filter predicates
+// against the catalogue (S2 plan section 1.2, save revalidation). Every
+// predicate field is one the plugin evaluates whether or not core advertises
+// it as a selector field, so the selector fields refuse nothing; what the
+// catalogue can refuse is a predicate over a row block this core never
+// fills, which it lists in unavailable. A predicate over the probe block
+// while probe is unavailable is unknown on every row, so a keep step would
+// keep nothing and a drop step drop nothing whatever the operator meant: it
+// is refused, naming the step and the field. One catalogue page with Limit 1
+// answers the list, read only when a predicate reads such a block, so a
+// record without one makes no host call. A field the vocabulary does not
+// know never gets here: the strict compile refuses it as
+// structured_args_invalid.
+func (rt *runtime) fleetPredicateRefusal(rec subscriptionRecord) (*storeRefusal, error) {
+	type probeUse struct {
+		step  int
+		field string
+	}
+	var probes []probeUse
+	for index, raw := range processSteps(rec) {
+		var step struct {
+			Type     string          `json:"type"`
+			Disabled bool            `json:"disabled,omitempty"`
+			Args     json.RawMessage `json:"args"`
+		}
+		if json.Unmarshal(raw, &step) != nil || step.Disabled || step.Type != operators.StructuredFilterType {
+			continue
+		}
+		args, err := operators.ParseStructuredFilter(step.Args)
+		if err != nil {
+			continue
+		}
+		for _, predicate := range args.Predicates {
+			if field, ok := operators.LookupPredicateField(predicate.Field); ok && field.Probe {
+				probes = append(probes, probeUse{step: index + 1, field: predicate.Field})
+			}
+		}
+	}
+	if len(probes) == 0 {
+		return nil, nil
+	}
+	raw, err := rt.rpcCall(fleetCatalogueService, fleetCatalogueMethod, model.LineCatalogueRequest{Limit: 1})
+	if err != nil {
+		return nil, fmt.Errorf("%s: the line catalogue could not be read to check the record's predicates", codeCatalogueUnavailable)
+	}
+	var page model.LineCatalogueResponse
+	if json.Unmarshal(raw, &page) != nil || validateCataloguePage(page) != nil {
+		return nil, fmt.Errorf("%s: the line catalogue answered a page this plugin cannot read", codeCatalogueUnavailable)
+	}
+	for _, block := range page.Unavailable {
+		if block != model.LineCatalogueUnavailableProbe {
+			continue
+		}
+		first := probes[0]
+		return &storeRefusal{
+			Code: refusedProbeUnavailable, IDs: []string{rec.ID},
+			Message: fmt.Sprintf("subscription %q: process step %d has a predicate over %s, which reads the probe block this core does not fill yet; remove it until probes run", rec.ID, first.step, first.field),
+		}, nil
+	}
+	return nil, nil
 }
 
 // deleteCall archives one record.

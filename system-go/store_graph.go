@@ -57,10 +57,10 @@ func liveFactsOf(entry indexEntry) (recordFacts, bool) {
 	}, true
 }
 
-// stagedFactsOf is an entry's staged facts; false when nothing is staged.
+// stagedRecordFacts is an entry's staged facts; false when nothing is staged.
 // Files are never staged (a fleet-bound file cannot exist in S2), so a staged
 // revision is a sub or a collection.
-func stagedFactsOf(entry indexEntry) (recordFacts, bool) {
+func stagedRecordFacts(entry indexEntry) (recordFacts, bool) {
 	if !entry.hasStaged() {
 		return recordFacts{}, false
 	}
@@ -96,7 +96,7 @@ func newStoreGraph(entries []indexEntry, state graphState) *storeGraph {
 	g := &storeGraph{facts: make([]recordFacts, 0, len(entries))}
 	for _, entry := range entries {
 		live, hasLive := liveFactsOf(entry)
-		staged, hasStaged := stagedFactsOf(entry)
+		staged, hasStaged := stagedRecordFacts(entry)
 		switch state {
 		case graphLive:
 			if hasLive {

@@ -189,9 +189,27 @@ type invokeBudgetSpec struct {
 // (scriptHTTPMaxResponseBytes), and publish's send answers with a status.
 func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 	return map[string]invokeBudgetSpec{
-		// The engine service (convert, transform_response and the five pipeline
-		// methods) left the manifest in S2 (plan section 12, decision 5): no
-		// caller existed in the UI or the server.
+		// 2026-08-18: convert and transform_response went from zero host calls to
+		// twelve when scripts gained a network. Sub-Store's scripting model
+		// assumes one: its own Resolve Domain operator speaks DoH and user
+		// scripts fetch rulesets and quota endpoints, and every one of those
+		// requests is a host call. Twelve is the gateway's per-invocation limit
+		// of eight plus room for the plumbing around it; the timeout follows for
+		// the same reason, since a fetching script spends its budget waiting on
+		// someone else's server rather than on CPU.
+		//
+		// The engine service leaves the manifest in S2 (plan section 12,
+		// decision 5) in the same change that deletes its handlers (lane 3)
+		// and the UI's bindings (lane 6a); until then it stays declared, so
+		// what the binary serves and the UI binds is what the manifest signs.
+		pluginID + "/engine/convert":            {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
+		pluginID + "/engine/transform_response": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
+		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
+		pluginID + "/engine/get_pipeline":       {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 32 << 10, HostCalls: 1},
+		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
+		// run_pipeline is convert plus the stored chain's own read.
+		pluginID + "/engine/run_pipeline": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 13},
 		// render feeds a public subscription endpoint, so its stdout budget matches
 		// the other conversion methods: a large subscription must fail loudly rather
 		// than arrive truncated at a client. host_calls covers the heaviest shape

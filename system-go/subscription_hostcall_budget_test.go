@@ -21,6 +21,9 @@ type graphBudgetHost struct {
 	compose       json.RawMessage
 	options       json.RawMessage
 	publishedBody string
+	// rpcs counts the rpc.call round trips, which the withheld paths must
+	// never make.
+	rpcs int
 }
 
 func (host *graphBudgetHost) call(method string, params any) (json.RawMessage, error) {
@@ -30,6 +33,7 @@ func (host *graphBudgetHost) call(method string, params any) (json.RawMessage, e
 	}
 	switch method {
 	case latticeplugin.HostMethodRPCCall:
+		host.rpcs++
 		encoded, _ := json.Marshal(params)
 		var call struct {
 			Method string `json:"method"`
@@ -96,18 +100,23 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		// write.
 		graphSaveCalls    = 5
 		graphPreviewCalls = 2
-		// render and publish: the record, the Settings read for the default
-		// target (the records name none), one composition; publish sends.
-		graphRenderCalls  = 3
-		graphPublishCalls = 4
-		// A collection of 64 graph members reads its record, Settings, each
-		// member's record and each member's composition: 1 + 1 + 64 + 64.
-		graphCollectionRenderCalls = 130
-		// A script file over it adds its own record: the node source.
-		maxGraphRenderCalls = 130
+		// From S2 a legacy record's export is read only under core's refresh
+		// (S2 plan section 1.2): render and publish of a graph record, of a
+		// collection over 64 of them and of a script file over that answer
+		// owner_credentials_withheld before any composition. render and
+		// publish read the record and the Settings for the default target.
+		graphRenderCalls  = 2
+		graphPublishCalls = 2
+		// The collection reads its record, the listing (is it fleet-bound),
+		// Settings and its 64 member records, then refuses at the first
+		// member's composition: 1 + 1 + 1 + 64.
+		graphCollectionRenderCalls = 67
+		// A script file over it reads its own record and the collection's,
+		// Settings and the 64 member records.
+		maxGraphRenderCalls = 66
 		// A file preview refuses node-source work on its record alone.
 		maxGraphPreviewCalls = 1
-		maxGraphPublishCalls = 131
+		maxGraphPublishCalls = 66
 		// The refresh of that script file: its record, the source record, 64
 		// member records, 64 compositions and the bookkeeping read and write.
 		maxGraphFetchCalls = 132
@@ -120,17 +129,20 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		want   int
 		seed   bool
 		wantOK bool
+		// withheld: the path answers owner_credentials_withheld and makes
+		// no rpc.call.
+		withheld bool
 	}{
 		{name: "options", method: "graph_options", body: map[string]any{}, want: graphOptionsCalls, wantOK: true},
 		{name: "fetch", method: "fetch", body: map[string]any{"subscription_id": "graph-00"}, want: graphFetchCalls, seed: true, wantOK: true},
 		{name: "save", method: "save", body: map[string]any{"subscription": map[string]any{"id": "graph-00", "name": "graph-00", "source": subscriptionSourceVPNCoreGraph, "vpn_identity": "identity-a", "entry_roots": []string{graphRootA}, "graph_options_version": "ov1:" + repeatHex("a")}}, want: graphSaveCalls, seed: true, wantOK: true},
 		{name: "direct preview", method: "preview", body: map[string]any{"subscription_id": "graph-00"}, want: graphPreviewCalls, seed: true, wantOK: true},
-		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, wantOK: true},
-		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, wantOK: true},
-		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: graphCollectionRenderCalls, seed: true, wantOK: true},
+		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, withheld: true},
+		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, withheld: true},
+		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: graphCollectionRenderCalls, seed: true, withheld: true},
 		{name: "node-source file preview fails before composition", method: "preview", body: map[string]any{"subscription_id": "script-graphs"}, want: maxGraphPreviewCalls, seed: true},
-		{name: "script over 64 graph collection render", method: "render", body: map[string]any{"subscription_id": "script-graphs", "format": "plain"}, want: maxGraphRenderCalls, seed: true, wantOK: true},
-		{name: "script over 64 graph collection publish", method: "publish", body: map[string]any{"subscription_id": "script-graphs", "destination": "https://destination.invalid/graph", "format": "plain"}, want: maxGraphPublishCalls, seed: true, wantOK: true},
+		{name: "script over 64 graph collection render", method: "render", body: map[string]any{"subscription_id": "script-graphs", "format": "plain"}, want: maxGraphRenderCalls, seed: true, withheld: true},
+		{name: "script over 64 graph collection publish", method: "publish", body: map[string]any{"subscription_id": "script-graphs", "destination": "https://destination.invalid/graph", "format": "plain"}, want: maxGraphPublishCalls, seed: true, withheld: true},
 		{name: "script over 64 graph collection fetch", method: "fetch", body: map[string]any{"subscription_id": "script-graphs"}, want: maxGraphFetchCalls, seed: true, wantOK: true},
 	}
 
@@ -144,6 +156,9 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			response := callSubscription(t, rt, test.method, test.body)
 			if response.OK != test.wantOK || host.total != test.want {
 				t.Fatalf("response=%+v calls=%d want=%d", response, host.total, test.want)
+			}
+			if test.withheld && (!strings.HasPrefix(response.Error, codeOwnerCredentialsWithheld) || host.rpcs != 0) {
+				t.Fatalf("response=%+v rpcs=%d, want owner_credentials_withheld before any rpc.call", response, host.rpcs)
 			}
 			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+test.method]
 			if host.total > budget.HostCalls {
@@ -206,9 +221,10 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 		// The file's record (and, legacy, the document and its program key),
 		// the source record, the listing, Settings, 64 records, 64 fetches.
 		{name: "render a script file over the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-script", "format": "plain"}, split: 132, legacy: 134},
-		// The record, the listing, Settings (target and agent), 64 records,
-		// 64 fetches.
-		{name: "render the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-tags", "format": "plain"}, split: 131, legacy: 132},
+		// The record, the listing for the fleet-bound check, the listing for
+		// the tag members, Settings (target and agent), 64 records, 64
+		// fetches.
+		{name: "render the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-tags", "format": "plain"}, split: 132, legacy: 133},
 		// render's script shape and the send.
 		{name: "publish the script file", method: "publish", body: map[string]any{"subscription_id": "worst-script", "destination": "https://destination.invalid/worst", "format": "plain"}, split: 133, legacy: 135},
 		// render's script shape and the bookkeeping read and write.
@@ -434,9 +450,10 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// target or a pin skips that read.
 		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 2},
 		{name: "render a plain local sub for a named target", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain", "target": "sing-box"}, want: 1},
-		// A collection render reads the record, then each member's record and
-		// one provider fetch per remote member. Explicit members need no index.
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 6},
+		// A collection render reads the record, the listing once to know
+		// whether the collection is fleet-bound (S2 plan section 1.2), then
+		// each member's record and one provider fetch per remote member.
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 7},
 		// The operator's real shape: a script file over a collection of two
 		// remote subs. The file, the source record, two member records, then
 		// one provider fetch per member.
@@ -444,7 +461,9 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// With the refresh path's snapshot in hand, the same renders pay no
 		// network at all: the record read is the whole cost. This group is the
 		// serve path's steady state. A collection that names no target adds
-		// the Settings read for the default one.
+		// the Settings read for the default one, and every collection the
+		// listing read that tells render whether it is fleet-bound (S2 plan
+		// section 1.2: the record, its index entry and the settings).
 		{name: "render a script file from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "scripty", "format": "plain",
 			"raw": `{"source_id":"coll","source_name":"coll","source_kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
@@ -452,11 +471,11 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 2},
+		}, want: 3},
 		{name: "render a collection from a version 2 envelope", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"version":2,"kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 2},
+		}, want: 3},
 		// A combination preview renders its members: record, one record and
 		// one fetch per remote member. The members name no user agent, so
 		// Settings are read once for the default.
@@ -565,4 +584,136 @@ func TestExportBackupCarriesScriptPrograms(t *testing.T) {
 	if restored.Content != `$content = "ok";` {
 		t.Fatalf("restored script = %q, program lost in the round trip", restored.Content)
 	}
+}
+
+// TestS2HostCallCountsWithRetryAndRestart pins the S2 write methods on their
+// heaviest paths, each index write meeting one kv_conflict and spending the
+// retry's re-read and second put, and fleet_preview over a 10000-line
+// catalogue whose version moves on the last page of the first pass (plan
+// sections 2.7 and 10). Every count must fit the signed budget.
+func TestS2HostCallCountsWithRetryAndRestart(t *testing.T) {
+	type scenario struct {
+		name   string
+		method string
+		setup  func(t *testing.T, rt *runtime, host *casKVHost) any
+		want   int
+	}
+	staged := func(t *testing.T, rt *runtime) (string, string) {
+		edit := fleetRecord("f")
+		edit.DisplayName = "edited"
+		return stageEdit(t, rt, edit, originSave)
+	}
+	scenarios := []scenario{
+		// The claim, the index, the record, the staged document, the index
+		// put and its retry, the record put, the staged key's deletion.
+		{name: "promote a live record", method: "apply_revision", want: 9, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			s, base := staged(t, rt)
+			return applyRequest("f", s, base)
+		}},
+		// No record read (no live revision), the archive key's deletion.
+		{name: "promote a staged restore", method: "apply_revision", want: 9, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			archiveViaApply(t, rt, "f")
+			var restored struct {
+				StagedRevision string `json:"staged_revision"`
+			}
+			decodeResult(t, callSubscription(t, rt, "restore", map[string]any{"subscription_id": "f"}), &restored)
+			return applyRequest("f", restored.StagedRevision, "")
+		}},
+		// The claim, the index, the record, the archive put, the index put
+		// and its retry, the record key's and the staged key's deletions.
+		{name: "delete through a plan", method: "apply_revision", want: 9, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			staged(t, rt)
+			live, _ := entryOf(t, rt, "f")
+			return map[string]any{"subscription_id": "f", "expected_revision": live.Revision, "approval_id": "ap", "plan_sha256": "x", "action": "delete"}
+		}},
+		// The index, the record, one catalogue page, the staged put, the
+		// index put and its retry.
+		{name: "migrate a graph record", method: "migrate_record", want: 7, setup: func(t *testing.T, rt *runtime, host *casKVHost) any {
+			if err := rt.saveSubscription(graphRecord("g", graphRootA)); err != nil {
+				t.Fatal(err)
+			}
+			migrationCatalogue(t, host, graphRootA)
+			return map[string]any{"subscription_id": "g"}
+		}},
+		// The index, the staged key's deletion, the index put and its retry.
+		{name: "discard a staged revision", method: "discard_staged", want: 5, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			s, _ := staged(t, rt)
+			return map[string]any{"subscription_id": "f", "staged_revision": s}
+		}},
+		// One catalogue page for the probe predicate, the index, the record,
+		// the staged document, the staged put, the index put and its retry.
+		{name: "save a staged fleet record with a probe predicate", method: "save", want: 8, setup: func(t *testing.T, rt *runtime, host *casKVHost) any {
+			page, _ := json.Marshal(map[string]any{"catalogue_version": fleetTestVersion, "rows": []any{}})
+			host.rpc[fleetCatalogueService+"/"+fleetCatalogueMethod] = page
+			seedFleetLive(t, rt, fleetRecord("f"))
+			staged(t, rt)
+			rec := fleetRecord("f")
+			rec.Process = []json.RawMessage{probeStructuredStep("probe_udp_ok")}
+			return map[string]any{"subscription": rec}
+		}},
+		// The index, the record, the archive put, the index put and its
+		// retry, the record key's and the staged key's deletions.
+		{name: "delete a provider record with a staged revision", method: "delete", want: 8, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			if err := rt.saveSubscription(subscriptionRecord{ID: "r", Name: "r", Source: subscriptionSourceRemote, URL: "https://provider.invalid/r"}); err != nil {
+				t.Fatal(err)
+			}
+			stageEdit(t, rt, fleetRecord("r"), originSave)
+			return map[string]any{"subscription_id": "r"}
+		}},
+		// The index, the archive, the record put, the index put and its
+		// retry, the archive key's deletion.
+		{name: "restore a provider record", method: "restore", want: 7, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			if err := rt.saveSubscription(subscriptionRecord{ID: "r", Name: "r", Source: subscriptionSourceRemote, URL: "https://provider.invalid/r"}); err != nil {
+				t.Fatal(err)
+			}
+			if res := callSubscription(t, rt, "delete", map[string]any{"subscription_id": "r"}); !res.OK {
+				t.Fatal(res.Error)
+			}
+			return map[string]any{"subscription_id": "r"}
+		}},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			rt, host := newCASRuntime(t)
+			payload := sc.setup(t, rt, host)
+			host.total, host.conflicts = 0, 0
+			host.beforePut = conflictingIndexWrites(t, rt, host, 1)
+			res := callSubscription(t, rt, sc.method, payload)
+			if !res.OK || isRefusedResponse(res) {
+				t.Fatalf("%s: %s %s", sc.method, res.Error, refusalText(res))
+			}
+			if host.conflicts != 1 {
+				t.Fatalf("%s met %d conflicts, want the one the scenario injects", sc.method, host.conflicts)
+			}
+			if host.total != sc.want {
+				t.Errorf("%s made %d host calls, pinned at %d", sc.method, host.total, sc.want)
+			}
+			if budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+sc.method].HostCalls; host.total > budget {
+				t.Errorf("%s made %d host calls, over the signed budget of %d", sc.method, host.total, budget)
+			}
+		})
+	}
+	t.Run("fleet_preview over 10000 lines with a restart", func(t *testing.T) {
+		rt, host := newProxyRuntime(t, proxyCatalogueRows(10000))
+		host.versionAt = func(call int) string {
+			if call >= fleetCatalogueMaxPagesPerPass {
+				return "lcv1-0000000000000000000000000000000000000000000000000000000000000002"
+			}
+			return fleetTestVersion
+		}
+		res := callSubscription(t, rt, "fleet_preview", map[string]any{"process": []json.RawMessage{}, "sample": 1})
+		if !res.OK {
+			t.Fatal(res.Error)
+		}
+		if want := 2 * fleetCatalogueMaxPagesPerPass; host.total != want {
+			t.Errorf("fleet_preview made %d host calls, pinned at %d", host.total, want)
+		}
+		if budget := ackedRuntimeBudgets()[pluginID+"/subscription/fleet_preview"].HostCalls; host.total > budget {
+			t.Errorf("fleet_preview made %d host calls, over the signed budget of %d", host.total, budget)
+		}
+	})
 }

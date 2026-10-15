@@ -240,7 +240,7 @@ func TestVPNCoreGraphCanonicalRawIsOneNodePerEntry(t *testing.T) {
 
 func TestVPNCoreGraphProbeNeverReturnsCredentialBearingAuthority(t *testing.T) {
 	composeResponse := canonicalGraphResponse(t, []string{graphRootA})
-	rt, _ := newVPNCoreGraphRuntime(t, composeResponse)
+	rt, host := newVPNCoreGraphRuntime(t, composeResponse)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: []string{graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}); err != nil {
 		t.Fatal(err)
 	}
@@ -252,8 +252,11 @@ func TestVPNCoreGraphProbeNeverReturnsCredentialBearingAuthority(t *testing.T) {
 	if err := json.Unmarshal(response.Result, &probe); err != nil {
 		t.Fatal(err)
 	}
-	if !probe.OK || probe.Bytes == 0 || probe.SourceVersion == "" || probe.Stale {
-		t.Fatalf("probe=%+v", probe)
+	// From S2 probe never holds the refresh's authority over a legacy
+	// export (S2 plan section 1.2): it reports the withheld state and
+	// composes nothing.
+	if probe.OK || probe.ErrorCode != codeOwnerCredentialsWithheld || probe.Bytes != 0 || probe.SourceVersion != "" || len(host.calls) != 0 {
+		t.Fatalf("probe=%+v compose calls=%d", probe, len(host.calls))
 	}
 	for _, canary := range []string{graphCredentialA, "vless://", "source_manifest", "raw", "public_key"} {
 		if strings.Contains(string(response.Result), canary) {
