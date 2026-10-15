@@ -126,3 +126,61 @@ func TestDependsOnPerRecordClosure(t *testing.T) {
 		t.Fatal("depends_on answered for a record that does not exist")
 	}
 }
+
+// TestDependsOnSeesStagedEdges pins the union state: an edge only a staged
+// revision creates (a provider record re-staged as fleet that a collection
+// gathers by tag, a new collection staged over a fleet record) is in the
+// include_staged answer, with the staged facts on its rows, and absent from
+// the live answer and from the index's live flags.
+func TestDependsOnSeesStagedEdges(t *testing.T) {
+	rt := dependsFixture(t)
+	if err := rt.saveSubscription(subscriptionRecord{ID: "eu-coll", Name: "eu-coll", Kind: kindCollection, MemberTags: []string{"eu"}}); err != nil {
+		t.Fatal(err)
+	}
+	stagedProvider := stageRecord(t, rt, subscriptionRecord{ID: "provider", Source: subscriptionSourceFleet, Tags: []string{"eu"}})
+	stageRecord(t, rt, subscriptionRecord{ID: "new-coll", Kind: kindCollection, Members: []string{"jp"}})
+
+	live := dependsCall(t, rt, map[string]any{})
+	for _, id := range []string{"eu-coll", "new-coll"} {
+		if strings.Contains(","+strings.Join(live.FleetBound, ",")+",", ","+id+",") {
+			t.Fatalf("live fleet_bound names %s: %v", id, live.FleetBound)
+		}
+	}
+	union := dependsCall(t, rt, map[string]any{"include_staged": true})
+	bound := ","+strings.Join(union.FleetBound, ",")+","
+	for _, id := range []string{"provider", "eu-coll", "new-coll", "by-id"} {
+		if !strings.Contains(bound, ","+id+",") {
+			t.Fatalf("union fleet_bound %v lacks %s", union.FleetBound, id)
+		}
+	}
+	edges := fmt.Sprint(union.Edges)
+	for _, want := range []string{"{eu-coll provider member_tag}", "{new-coll jp member}"} {
+		if !strings.Contains(edges, want) {
+			t.Fatalf("union edges %s lack %s", edges, want)
+		}
+	}
+	var provider, fresh *dependsOnRecord
+	for i := range union.Records {
+		switch union.Records[i].ID {
+		case "provider":
+			provider = &union.Records[i]
+		case "new-coll":
+			fresh = &union.Records[i]
+		}
+	}
+	if provider == nil || provider.StagedRevision != stagedProvider || provider.StagedSource != subscriptionSourceFleet || provider.Source != subscriptionSourceRemote || provider.FleetBound {
+		t.Fatalf("provider row = %+v", provider)
+	}
+	if fresh == nil || fresh.Revision != "" || fresh.StagedRevision == "" || fresh.FleetBound {
+		t.Fatalf("staged-only row = %+v", fresh)
+	}
+	// The per-record form over the union names the staged reader.
+	one := dependsCall(t, rt, map[string]any{"subscription_id": "provider", "include_staged": true})
+	if ids := recordIDs(one); ids != "eu-coll,provider" && ids != "by-id,eu-coll,provider" {
+		t.Fatalf("records for provider = %s", ids)
+	}
+	entry, _ := entryOf(t, rt, "eu-coll")
+	if entry.Flags.FleetBound {
+		t.Fatal("a staged edge set a live flag")
+	}
+}

@@ -20,6 +20,11 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord, authority legacyAut
 		return "", ownerCredentialsWithheldError(rec.ID)
 	}
 	switch rec.Source {
+	case subscriptionSourceFleet:
+		// A fleet record's nodes exist only over placeholders inside a
+		// plan; a caller that wants node text takes the node path instead
+		// (a collection's fleet block), and a file cannot read one in S2.
+		return "", fmt.Errorf("subscription %q is a fleet record: its nodes exist only inside a plan, never as node text", rec.ID)
 	case subscriptionSourceVPNCore:
 		links, err := rt.fetchExport(subStoreRequest{UserID: rec.VPNIdentity})
 		if err != nil {
