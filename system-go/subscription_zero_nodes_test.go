@@ -154,13 +154,15 @@ func TestCollectionRefreshTreatsAMemberWithNoNodesAsFailed(t *testing.T) {
 	}
 }
 
-// A combination's refresh counts every unchained member in one engine call
-// when its chain runs on the bundle. On a worker whose warm runtime is still
-// booting each call takes the isolated path, so one call per member would put
-// a large combination's refresh at risk of its time budget. A combination
-// whose chains all run in Go counts its members in Go and calls the engine
-// not at all, and its snapshot carries each member's nodes.
-func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
+// A combination's refresh counts every unchained member with the native
+// parser, even when its chain runs on the bundle: from S2 the warm runtime
+// that used to count them in one engine call is gone (S2 plan section 1.4),
+// and one isolated call per member would put a large combination's refresh
+// at risk of its time budget. Only a member whose own chain runs on the
+// bundle pays its one isolated conversion. A combination whose chains all
+// run in Go calls the engine not at all, and its snapshot carries each
+// member's nodes.
+func TestCollectionRefreshCountsItsMembersInGo(t *testing.T) {
 	rt, _ := newWarmKVRuntime(t)
 	var members []string
 	for _, id := range []string{"m1", "m2", "m3", "m4", "m5"} {
@@ -169,7 +171,8 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 	}
 	script := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
 	// A member whose own chain runs on the bundle takes the collection there
-	// too: its conversion is one isolated call, its four siblings one count.
+	// too: its conversion is one isolated call, its four siblings are counted
+	// in Go.
 	if err := rt.saveSubscription(subscriptionRecord{ID: "m-script", Name: "m-script", Content: shareFleetFixture(1), Process: []json.RawMessage{script}}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -181,8 +184,8 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 		nodes   bool
 	}{
 		{"c", members, nil, 0, true},
-		{"c-script", members, []json.RawMessage{script}, 1, false},
-		{"c-member-script", append(slices.Clone(members[:4]), "m-script"), nil, 2, false},
+		{"c-script", members, []json.RawMessage{script}, 0, false},
+		{"c-member-script", append(slices.Clone(members[:4]), "m-script"), nil, 1, false},
 	} {
 		if err := rt.saveSubscription(subscriptionRecord{ID: c.id, Kind: kindCollection, Name: c.id, Members: c.members, Process: c.process}); err != nil {
 			t.Fatalf("save: %v", err)

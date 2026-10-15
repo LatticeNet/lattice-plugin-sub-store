@@ -65,6 +65,7 @@ const (
 	codeFleetPublishUnavailable       = "fleet_publish_unavailable"
 	codePlanTooLarge                  = "plan_too_large"
 	codeCatalogueUnavailable          = "catalogue_unavailable"
+	codeFleetStructuredOnBundle       = "fleet_structured_on_bundle"
 )
 
 // fleetNow is the clock the fetch-time predicates read. Tests replace it.

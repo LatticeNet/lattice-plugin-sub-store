@@ -198,12 +198,13 @@ func TestSaveRefusesTagEditThatMixesCollection(t *testing.T) {
 	})
 }
 
-// TestFleetRecordRefusesLinkModeScriptStep pins the render and member-block
+// TestFleetRecordRefusesLinkModeScriptStepRenderAndMemberBlock pins the render and member-block
 // halves of fleet_script_link_unavailable (lane 4 pins save and import): a
 // stored chain with a link-mode script step, on a fleet record or in a
 // collection's fleet member block, refuses at render, because a serve-path
 // render has the script network and would run whatever the link serves next.
-func TestFleetRecordRefusesLinkModeScriptStep(t *testing.T) {
+func TestFleetRecordRefusesLinkModeScriptStepRenderAndMemberBlock(t *testing.T) {
+	freshFleetPlans(t)
 	link, _ := json.Marshal(map[string]any{"type": "Script Operator", "args": map[string]string{"mode": "link", "content": "https://scripts.example/op.js"}})
 	rt, _, snapshot := fetchedFleetRecord(t, fleetTestRows(2, "trojan"), subscriptionRecord{ID: "jp"})
 	// A record staged by an older binary: seeded past the save rule.

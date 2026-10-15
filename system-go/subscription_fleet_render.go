@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
@@ -329,7 +330,7 @@ func (rt *runtime) buildFleetPlan(in fleetPlanInput) (fleetPlanOutput, error) {
 	if err != nil {
 		return fleetPlanOutput{}, fmt.Errorf("%s: %w", in.Label, err)
 	}
-	nodes, err = rt.runFleetChain(plan, nodes, in.Target)
+	nodes, err = rt.runFleetChain(plan, nodes, in.Target, fleetNow())
 	if err != nil {
 		return fleetPlanOutput{}, fmt.Errorf("%s: %w", in.Label, err)
 	}
@@ -363,20 +364,47 @@ func fleetChainRefusals(label string, rec subscriptionRecord, plan *operators.Pl
 	if index, ok := fleetScriptLinkStep(processSteps(rec)); ok {
 		return fmt.Errorf("%s: %s is fleet-bound and step %d runs a script fetched by link; link pinning arrives with S3", codeFleetScriptLinkUnavailable, label, index+1)
 	}
+	if !planIsNative(plan) {
+		if index := operators.StructuredAfterLeadingRun(plan); index > 0 {
+			return fmt.Errorf("%s: %s's step %d is a Structured step after a step the Go operators cannot run, so its chain runs on the bundle, which does not know the step; move it into the leading Structured Filter run or drop the script or Resolve Domain step", codeFleetStructuredOnBundle, label, index)
+		}
+	}
 	return nil
 }
 
 // runFleetChain runs a fleet record's chain over its nodes: in Go when every
-// step is native, otherwise on the isolated bundle through
-// engine.processNodes, with the nodes as JSON (S2 plan section 1.4).
-func (rt *runtime) runFleetChain(plan *operators.Plan, nodes []*nodemodel.Node, target string) ([]*nodemodel.Node, error) {
+// step is native, with one clock instant for every structured window,
+// otherwise on the isolated bundle through engine.processNodes, with the
+// nodes as JSON (S2 plan section 1.4). The bundle does not know the two
+// Lattice-only steps and would skip them without a word: the leading
+// Structured Filter run was already applied to the rows (at fetch, or by a
+// staged render's live read), so it is left out of what the bundle
+// receives, and a Lattice-only step after it refuses
+// fleet_structured_on_bundle instead of being lost.
+func (rt *runtime) runFleetChain(plan *operators.Plan, nodes []*nodemodel.Node, target string, now time.Time) ([]*nodemodel.Node, error) {
 	if plan == nil {
 		return nodes, nil
 	}
 	if planIsNative(plan) {
-		return plan.Run(nodes, &operators.Context{Target: target}), nil
+		return plan.Run(nodes, &operators.Context{Target: target, Now: now}), nil
 	}
-	return rt.subStoreEngine().processNodes(nodes, bundleOperators(plan), target)
+	if index := operators.StructuredAfterLeadingRun(plan); index > 0 {
+		return nil, fmt.Errorf("%s: step %d is a Structured step after a step the Go operators cannot run, so the chain runs on the bundle, which does not know it; move it into the leading Structured Filter run or drop the script or Resolve Domain step", codeFleetStructuredOnBundle, index)
+	}
+	return rt.subStoreEngine().processNodes(nodes, bundleOperatorsWithoutStructured(plan), target)
+}
+
+// bundleOperatorsWithoutStructured is bundleOperators less the two
+// Lattice-only step types, which the bundle does not know.
+func bundleOperatorsWithoutStructured(plan *operators.Plan) []json.RawMessage {
+	out := make([]json.RawMessage, 0, len(plan.Steps))
+	for _, s := range plan.Steps {
+		if s.Kind == operators.KindDisabled || s.Step.Type == operators.StructuredFilterType || s.Step.Type == operators.StructuredSortType {
+			continue
+		}
+		out = append(out, s.Step.Raw)
+	}
+	return out
 }
 
 // fleetPlanNodes turns post-chain nodes into plan nodes. A node whose
@@ -440,7 +468,7 @@ func fleetNodesOut(rec subscriptionRecord, rows []fleetRow) (int, bool) {
 		return 0, false
 	}
 	if plan != nil {
-		nodes = plan.Run(nodes, &operators.Context{})
+		nodes = plan.Run(nodes, &operators.Context{Now: fleetNow()})
 	}
 	return len(nodes), true
 }
@@ -1023,6 +1051,7 @@ func (rt *runtime) buildFleetCollectionPlan(label string, rec subscriptionRecord
 	}
 	table := newFleetPlaceholders(0)
 	table.provider = mark
+	now := fleetNow()
 	selection := &model.PlanSelection{CatalogueVersion: version, LineUUIDs: []string{}}
 	selected := map[string]bool{}
 	var nodes []*nodemodel.Node
@@ -1048,7 +1077,7 @@ func (rt *runtime) buildFleetCollectionPlan(label string, rec subscriptionRecord
 		if err != nil {
 			return fleetPlanOutput{}, fmt.Errorf("%s: %w", memberLabel, err)
 		}
-		if memberNodes, err = rt.runFleetChain(memberPlan, memberNodes, target); err != nil {
+		if memberNodes, err = rt.runFleetChain(memberPlan, memberNodes, target, now); err != nil {
 			return fleetPlanOutput{}, fmt.Errorf("%s: %w", memberLabel, err)
 		}
 		nodes = append(nodes, memberNodes...)
@@ -1060,7 +1089,7 @@ func (rt *runtime) buildFleetCollectionPlan(label string, rec subscriptionRecord
 			}
 		}
 	}
-	if nodes, err = rt.runFleetChain(collectionPlan, nodes, target); err != nil {
+	if nodes, err = rt.runFleetChain(collectionPlan, nodes, target, now); err != nil {
 		return fleetPlanOutput{}, fmt.Errorf("%s: %w", label, err)
 	}
 	planNodes, err := fleetPlanNodes(nodes, table)

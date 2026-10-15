@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 )
 
 // resolveSubContent returns one sub's node text, before any of its operators run.
@@ -19,6 +20,11 @@ func (rt *runtime) resolveSubContent(rec subscriptionRecord, authority legacyAut
 		return "", ownerCredentialsWithheldError(rec.ID)
 	}
 	switch rec.Source {
+	case subscriptionSourceFleet:
+		// A fleet record's nodes exist only over placeholders inside a
+		// plan; a caller that wants node text takes the node path instead
+		// (a collection's fleet block), and a file cannot read one in S2.
+		return "", fmt.Errorf("subscription %q is a fleet record: its nodes exist only inside a plan, never as node text", rec.ID)
 	case subscriptionSourceVPNCore:
 		links, err := rt.fetchExport(subStoreRequest{UserID: rec.VPNIdentity})
 		if err != nil {
@@ -95,7 +101,7 @@ func (rt *runtime) renderMemberNodes(member subscriptionRecord, authority legacy
 		return "", err
 	}
 	if out.needsCount {
-		if _, err := rt.requireNodes(memberLabel(member), out.raw); err != nil {
+		if _, err := requireNativeNodesWith(memberLabel(member), out.raw, parseOptionsFor(member)); err != nil {
 			return "", err
 		}
 	}
@@ -245,6 +251,13 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 			return subStoreConversionResult{}, err
 		}
 	}
+	return rt.convertCollectionMembers(plan, target, options, explain, members, membersNative)
+}
+
+// convertCollectionMembers converts a collection's resolved members with its
+// own chain: in Go when every chain ran there, on the bundle from the
+// members' texts otherwise.
+func (rt *runtime) convertCollectionMembers(plan *operators.Plan, target string, options map[string]bool, explain bool, members []fileScriptMember, membersNative bool) (subStoreConversionResult, error) {
 	request := nodeConvertRequest{
 		Target:         target,
 		Plan:           plan,

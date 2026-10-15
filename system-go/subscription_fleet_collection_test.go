@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
@@ -272,6 +273,31 @@ func TestCollectionSourceVersionFollowsProviderRaw(t *testing.T) {
 	}
 }
 
+// TestFleetCollectionFetchWritesItsDerivedSelectionVersion drives a fleet
+// collection's refresh through the fetch method: the index entry's
+// selection_version is the snapshot's derived "lcv1-" version, never a
+// member's, so list and core's publish read the version the snapshot was cut
+// at (S2 plan section 2.2). A record's half is lane 4's
+// TestFetchWritesSelectionVersion.
+func TestFleetCollectionFetchWritesItsDerivedSelectionVersion(t *testing.T) {
+	rt, _ := fleetCollectionFixture(t, subscriptionRecord{})
+	res := fetchViaMethod(t, rt, "all")
+	if !res.OK {
+		t.Fatalf("fetch: %s", res.Error)
+	}
+	var fetched struct {
+		Raw string `json:"raw"`
+	}
+	decodeResult(t, res, &fetched)
+	env, ok := decodeSnapshotEnvelope(fetched.Raw)
+	if !ok || !strings.HasPrefix(env.CatalogueVersion, fleetCatalogueVersionPrefix) || env.CatalogueVersion == fleetTestVersion {
+		t.Fatalf("collection envelope version = %q", env.CatalogueVersion)
+	}
+	if entry := indexEntryOf(t, rt, "all"); entry.SelectionVersion != env.CatalogueVersion {
+		t.Fatalf("selection_version = %q, want the snapshot's %q", entry.SelectionVersion, env.CatalogueVersion)
+	}
+}
+
 // TestCollectionPlanCarriesItsOwnPolicy pins that a collection's plan
 // carries the collection's own fleet options and never a member's.
 func TestCollectionPlanCarriesItsOwnPolicy(t *testing.T) {
@@ -340,5 +366,82 @@ func TestSnapshotMembersRefusesMalformedRaw(t *testing.T) {
 	_, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "plain", "raw": "x", "target": "URI", "format": "plain"})
 	if res.OK || !strings.HasPrefix(res.Error, codeSnapshotMalformed) || host.calls != 0 {
 		t.Fatalf("render over a malformed snapshot: ok=%v error=%q pages %d", res.OK, res.Error, host.calls)
+	}
+}
+
+// TestProviderFlagNeverReadFromNode pins that a plan node's provider flag
+// comes from the member's source and nothing a node carries: provider nodes
+// whose fields claim a line or a provider value of their own are provider
+// nodes with no line, and fleet nodes are never provider nodes.
+func TestProviderFlagNeverReadFromNode(t *testing.T) {
+	rt := &runtime{engine: testEngineWithHeadroom()}
+	claims := []*nodemodel.Node{
+		{Fields: map[string]any{"name": "claims-a-line", "type": "trojan", "server": "198.51.100.7", "port": 443, "password": "pw", "line_uuid": fleetTestLineUUID(1), "provider": false}},
+		{Fields: map[string]any{"name": "claims-lattice", "type": "trojan", "server": "198.51.100.8", "port": 443, "password": "pw"},
+			Lattice: &nodemodel.LatticeFields{LineUUID: fleetTestLineUUID(2)}},
+	}
+	parts := []collectionPart{
+		{Fleet: true, Member: subscriptionRecord{ID: "f", Source: subscriptionSourceFleet, Revision: "r-f"}, Rows: projectRows(fleetTestRows(2, "vless"))},
+		{Member: subscriptionRecord{ID: "p", Source: subscriptionSourceLocal}, Provider: claims},
+	}
+	out, err := rt.buildFleetCollectionPlan(`collection "c"`, subscriptionRecord{ID: "c", Kind: kindCollection}, parts, fleetTestVersion, "sing-box")
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := decodeRenderPlan(t, out.Encoded)
+	providers, fleet := 0, 0
+	for _, node := range plan.Nodes {
+		switch {
+		case node.Provider:
+			providers++
+			if node.LineUUID != "" || len(node.Placeholders) != 0 {
+				t.Fatalf("a provider node claimed a line: %+v", node)
+			}
+		case node.LineUUID != "":
+			fleet++
+		}
+	}
+	if providers != 2 || fleet != 2 {
+		t.Fatalf("providers %d, fleet %d", providers, fleet)
+	}
+}
+
+// TestFleetMemberKeepsNodesWithoutURIRoundTrip pins that a chained fleet
+// member joins its collection as nodes, never as URI text: after the
+// member's own chain ran, its nodes still carry their line, placeholders and
+// Lattice fields, which a URI round trip would have lost (so the S1 carrier
+// rule applies to provider members only), and a fleet record yields no node
+// text on any path that asks for text.
+func TestFleetMemberKeepsNodesWithoutURIRoundTrip(t *testing.T) {
+	rt, _ := fleetCollectionFixture(t, subscriptionRecord{})
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "hk", Tags: []string{"asia"}, Process: []json.RawMessage{renameStep("tokyo", "hongkong")}})
+	fetched, err := rt.fetchSubscription("all")
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "all", "raw": fetched.Raw, "target": "sing-box"})
+	if !res.OK {
+		t.Fatal(res.Error)
+	}
+	renamed := 0
+	for _, node := range decodeRenderPlan(t, out.Plan).Nodes {
+		if node.Provider {
+			continue
+		}
+		var fields map[string]any
+		_ = json.Unmarshal(node.Node, &fields)
+		if node.LineUUID == "" || len(node.Placeholders) == 0 || fields["node_id"] == nil || fields["geo"] == nil {
+			t.Fatalf("a fleet node lost its line or Lattice fields: %s", node.Node)
+		}
+		if name, _ := fields["name"].(string); strings.HasPrefix(name, "hongkong") {
+			renamed++
+		}
+	}
+	if renamed != 3 {
+		t.Fatalf("the member's chain renamed %d nodes, want hk's 3", renamed)
+	}
+	hk, _ := rt.getSubscription("hk")
+	if _, err := rt.resolveSubContent(hk, legacyRefresh); err == nil {
+		t.Fatal("a fleet record resolved to node text")
 	}
 }

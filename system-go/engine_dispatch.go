@@ -33,7 +33,6 @@ type servedBy string
 const (
 	servedNative   servedBy = "native"
 	servedIsolated servedBy = "isolated" // the bundle on runIsolatedScript
-	servedWarm     servedBy = "warm"     // legacy engine service only
 )
 
 // nodeConvertRequest is one conversion as the render, collection, preview and

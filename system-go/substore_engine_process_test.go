@@ -164,3 +164,34 @@ func TestFleetBoundCollectionWithFallbackChainRendersNodeWise(t *testing.T) {
 		})
 	}
 }
+
+// TestFleetChainOnBundleKeepsTheLeadingRunAndRefusesLaterStructuredSteps
+// pins how a non-native fleet chain meets the bundle, which does not know
+// the two Lattice-only steps: the leading Structured Filter run, already
+// applied to the rows, is left out of what the bundle receives and its
+// selection holds; a Structured step after the leading run refuses
+// fleet_structured_on_bundle instead of being skipped without a word.
+func TestFleetChainOnBundleKeepsTheLeadingRunAndRefusesLaterStructuredSteps(t *testing.T) {
+	program := `function operator(proxies) { return proxies.map(function (p) { p.name = p.name + " [scripted]"; return p; }); }`
+	rows := mixedProtocolRows()
+	rt, host := newFleetRuntime(t, rows)
+	host.applySelector = true
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "lead", Process: []json.RawMessage{structuredKeep("protocol", "trojan"), scriptStep(t, program)}})
+	fetched, err := rt.fetchSubscription("lead")
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "lead", "raw": fetched.Raw, "target": "sing-box"})
+	if !res.OK {
+		t.Fatal(res.Error)
+	}
+	if lines := planLines(decodeRenderPlan(t, out.Plan)); len(lines) != 4 {
+		t.Fatalf("plan lines = %d, want the leading run's 4 trojan lines", len(lines))
+	}
+	sort, _ := json.Marshal(map[string]any{"type": "Structured Sort Operator", "args": map[string]any{"key": "country", "order": "asc"}})
+	rt2, _, snapshot2 := fetchedFleetRecord(t, rows, subscriptionRecord{ID: "late", Process: []json.RawMessage{scriptStep(t, program), sort}})
+	_, res = renderFleetCall(t, rt2, map[string]any{"subscription_id": "late", "raw": snapshot2, "target": "sing-box"})
+	if res.OK || !strings.HasPrefix(res.Error, codeFleetStructuredOnBundle) {
+		t.Fatalf("a Structured Sort after a script: ok=%v error=%q", res.OK, res.Error)
+	}
+}

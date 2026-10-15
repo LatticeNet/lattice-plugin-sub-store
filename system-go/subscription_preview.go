@@ -113,13 +113,11 @@ func (rt *runtime) previewSubscription(raw string, steps []json.RawMessage, targ
 			return previewResult{}, err
 		}
 	} else {
-		engine := rt.subStoreEngine()
-		run := engine.runCoreScript
-		if containsScriptingOperator(steps) {
-			// User JavaScript never touches the warm runtime.
-			run = engine.runIsolatedScript
-		}
-		out, err := run("preview", "preview.js", previewScript(raw, steps, target, !credentialsAlreadySynthetic))
+		// A chain the Go operators cannot run previews on the bundle's
+		// isolated path, seeded from the lazy bytecode: the warm runtime is
+		// gone from S2 (plan section 1.4), and a preview is an operator
+		// action that may pay one isolate.
+		out, err := rt.subStoreEngine().runIsolatedScript("preview", "preview.js", previewScript(raw, steps, target, !credentialsAlreadySynthetic))
 		if err != nil {
 			return previewResult{}, err
 		}
