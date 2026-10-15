@@ -55,6 +55,16 @@ func TestLegacyRenderWithoutRawIsWithheld(t *testing.T) {
 			t.Fatalf("collection with %s: err %v", name, err)
 		}
 	}
+	// A staged recompute reached through member_revisions resolves the
+	// collection's members live and meets the same guard at its legacy
+	// member.
+	mixed, _ := rt.getSubscription("mixed")
+	local, _ := rt.getSubscription("local")
+	res := callSubscription(t, rt, "render", map[string]any{"subscription_id": "mixed", "target": "URI", "revision": mixed.Revision,
+		"member_revisions": map[string]string{"local": local.Revision}})
+	if res.OK || !strings.HasPrefix(res.Error, codeOwnerCredentialsWithheld) {
+		t.Fatalf("staged recompute over a legacy member: ok=%v error=%q", res.OK, res.Error)
+	}
 	if len(host.rpcCalls) != 0 {
 		t.Fatalf("a withheld path made %d rpc calls", len(host.rpcCalls))
 	}
