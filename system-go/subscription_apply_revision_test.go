@@ -343,9 +343,11 @@ func TestApplyRevisionIndexConflictExhaustionLeavesStoreUnchanged(t *testing.T) 
 	}
 }
 
-// TestApplyRevisionKillAfterIndexPutRollsForward (the fetch half): a kill
-// between the index put and the record put leaves a half-done promotion the
-// next fetch completes, with two writes beyond the usual fetch.
+// TestApplyRevisionKillAfterIndexPutRollsForward: a kill between the index
+// put and the record put leaves a half-done promotion. The render half: render
+// serves the staged document, reports its revision as live_revision and writes
+// nothing. The fetch half: the next fetch completes the promotion with two
+// writes beyond the usual fetch.
 func TestApplyRevisionKillAfterIndexPutRollsForward(t *testing.T) {
 	rt, host := newCASRuntime(t)
 	seedFleetLive(t, rt, fleetRecord("f"))
@@ -359,24 +361,44 @@ func TestApplyRevisionKillAfterIndexPutRollsForward(t *testing.T) {
 	if entry, _ := entryOf(t, rt, "f"); entry.Revision != staged {
 		t.Fatalf("the index put did not land before the kill: %+v", entry)
 	}
-	puts, deletes := host.puts, len(host.deletes)
-	if res := fetchViaMethod(t, rt, "f"); !res.OK {
-		t.Fatalf("fetch over the half-done promotion: %s", res.Error)
-	}
-	// The usual fetch writes the index once; the roll-forward adds the
-	// record put and the staged key's deletion.
-	if host.puts-puts != 2 || len(host.deletes)-deletes != 1 {
-		t.Fatalf("fetch wrote %d puts and %d deletes, want 2 and 1", host.puts-puts, len(host.deletes)-deletes)
-	}
-	if rec, err := rt.getSubscription("f"); err != nil || rec.Revision != staged || rec.Source != subscriptionSourceLocal {
-		t.Fatalf("record-v2 after the roll-forward = %+v %v", rec, err)
-	}
-	if doc, _ := rt.loadStaged("f"); doc != nil {
-		t.Fatal("the staged document survived the roll-forward")
-	}
-	if entry, _ := entryOf(t, rt, "f"); entry.Revision != staged || entry.LastFetchAt == "" {
-		t.Fatalf("entry after the roll-forward = %+v", entry)
-	}
+
+	t.Run("render", func(t *testing.T) {
+		puts, deletes := host.puts, len(host.deletes)
+		out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "f", "format": "plain", "target": "URI"})
+		if !res.OK {
+			t.Fatalf("render over the half-done promotion: %s", res.Error)
+		}
+		if out.LiveRevision != staged || !strings.Contains(out.Content, "HK-01") {
+			t.Fatalf("render served live %q content %q, want the staged local record at %s", out.LiveRevision, out.Content, staged)
+		}
+		if host.puts != puts || len(host.deletes) != deletes {
+			t.Fatal("render wrote during a half-done promotion")
+		}
+		if doc, _ := rt.loadStaged("f"); doc == nil {
+			t.Fatal("render completed the promotion")
+		}
+	})
+
+	t.Run("fetch", func(t *testing.T) {
+		puts, deletes := host.puts, len(host.deletes)
+		if res := fetchViaMethod(t, rt, "f"); !res.OK {
+			t.Fatalf("fetch over the half-done promotion: %s", res.Error)
+		}
+		// The usual fetch writes the index once; the roll-forward adds the
+		// record put and the staged key's deletion.
+		if host.puts-puts != 2 || len(host.deletes)-deletes != 1 {
+			t.Fatalf("fetch wrote %d puts and %d deletes, want 2 and 1", host.puts-puts, len(host.deletes)-deletes)
+		}
+		if rec, err := rt.getSubscription("f"); err != nil || rec.Revision != staged || rec.Source != subscriptionSourceLocal {
+			t.Fatalf("record-v2 after the roll-forward = %+v %v", rec, err)
+		}
+		if doc, _ := rt.loadStaged("f"); doc != nil {
+			t.Fatal("the staged document survived the roll-forward")
+		}
+		if entry, _ := entryOf(t, rt, "f"); entry.Revision != staged || entry.LastFetchAt == "" {
+			t.Fatalf("entry after the roll-forward = %+v", entry)
+		}
+	})
 }
 
 // TestApplyRevisionRaceWithRollingForwardFetch: a refresh that completes the

@@ -666,3 +666,37 @@ func TestNoteFetchOutcomeDropsWriteWhenRevisionMoved(t *testing.T) {
 		}
 	})
 }
+
+// TestFetchWritesSelectionVersion: a fleet fetch's catalogue version lands on
+// the index entry's selection_version through fetch's bookkeeping, and list
+// shows it; a failed fetch keeps the last one.
+func TestFetchWritesSelectionVersion(t *testing.T) {
+	rt, host := newFleetRuntime(t, fleetTestRows(3, "vless"))
+	seedFleetLive(t, rt, fleetRecord("jp"))
+	if res := fetchViaMethod(t, rt, "jp"); !res.OK {
+		t.Fatalf("fetch: %s", res.Error)
+	}
+	if entry := indexEntryOf(t, rt, "jp"); entry.SelectionVersion != fleetTestVersion {
+		t.Fatalf("selection_version = %q, want %q", entry.SelectionVersion, fleetTestVersion)
+	}
+	var listed struct {
+		Subscriptions []listView `json:"subscriptions"`
+	}
+	decodeResult(t, callSubscription(t, rt, "list", map[string]any{}), &listed)
+	if len(listed.Subscriptions) != 1 || listed.Subscriptions[0].SelectionVersion != fleetTestVersion {
+		t.Fatalf("list = %+v", listed.Subscriptions)
+	}
+	host.fail = errFetchDown
+	if res := fetchViaMethod(t, rt, "jp"); res.OK {
+		t.Fatal("a fetch over a failing catalogue succeeded")
+	}
+	if entry := indexEntryOf(t, rt, "jp"); entry.SelectionVersion != fleetTestVersion {
+		t.Fatalf("a failed fetch moved selection_version to %q", entry.SelectionVersion)
+	}
+}
+
+var errFetchDown = errorString("catalogue down")
+
+type errorString string
+
+func (e errorString) Error() string { return string(e) }
