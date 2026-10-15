@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -116,6 +117,13 @@ type fleetCatalogueHost struct {
 	reads    int
 	// fail makes every catalogue call fail.
 	fail error
+	// httpBody answers every http.do call with status 200; httpCalls
+	// counts them.
+	httpBody  string
+	httpCalls int
+	// applySelector filters the rows by the request's selector with the
+	// SDK matcher, as core does, before paging.
+	applySelector bool
 }
 
 func newFleetCatalogueHost(rows []model.LineCatalogueRow) *fleetCatalogueHost {
@@ -123,6 +131,10 @@ func newFleetCatalogueHost(rows []model.LineCatalogueRow) *fleetCatalogueHost {
 }
 
 func (h *fleetCatalogueHost) call(method string, params any) (json.RawMessage, error) {
+	if method == latticeplugin.HostMethodHTTPDo {
+		h.httpCalls++
+		return json.Marshal(map[string]any{"status_code": 200, "body_base64": base64.StdEncoding.EncodeToString([]byte(h.httpBody))})
+	}
 	if method != latticeplugin.HostMethodRPCCall {
 		return h.kvHostCaller.call(method, params)
 	}
@@ -150,6 +162,15 @@ func (h *fleetCatalogueHost) call(method string, params any) (json.RawMessage, e
 	rows := h.rows
 	if len(h.readSets) > 0 {
 		rows = h.readSets[min(h.reads-1, len(h.readSets)-1)]
+	}
+	if h.applySelector && p.Request.Selector != nil {
+		var matched []model.LineCatalogueRow
+		for i := range rows {
+			if model.LineCatalogueSelectorMatches(&rows[i], p.Request.Selector, fleetNow()) {
+				matched = append(matched, rows[i])
+			}
+		}
+		rows = matched
 	}
 	version := fleetTestVersion
 	if h.versionAt != nil {
@@ -547,5 +568,170 @@ func TestFleetRecordNormalisation(t *testing.T) {
 	after, err := normalizeSubscriptionForStore(plain)
 	if err != nil || after.Revision != before {
 		t.Fatalf("revision moved for a record without S2 fields: %q to %q (%v)", before, after.Revision, err)
+	}
+}
+
+// TestFleetFetchSourceVersionFollowsRows pins the snapshot's revalidation
+// key: a non-pushed leading step that reads the clock (drop renewal_days
+// lte 3) changes the rows the fetch keeps as time passes, and the reply's
+// source_version moves with them while the catalogue version, which core
+// computes over the pushed selection only, stands still.
+func TestFleetFetchSourceVersionFollowsRows(t *testing.T) {
+	renewal := time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC)
+	rows := fleetTestRows(3, "vless")
+	rows[1].Machine = &model.LineCatalogueMachine{Vendor: "acme", NextRenewal: renewal}
+	rt, _ := newFleetRuntime(t, rows)
+	step, _ := json.Marshal(map[string]any{"type": "Structured Filter", "args": map[string]any{"mode": "drop",
+		"predicates": []map[string]any{{"field": "renewal_days", "op": "lte", "value": 3}}}})
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "renewing", Process: []json.RawMessage{step}})
+	saved := fleetNow
+	t.Cleanup(func() { fleetNow = saved })
+
+	fleetNow = func() time.Time { return renewal.Add(-10 * 24 * time.Hour) }
+	early, err := rt.fetchSubscription("renewing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fleetNow = func() time.Time { return renewal.Add(-2 * 24 * time.Hour) }
+	late, err := rt.fetchSubscription("renewing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	earlyEnv, earlyRows := decodeFleetEnvelopeRows(t, early.Raw)
+	lateEnv, lateRows := decodeFleetEnvelopeRows(t, late.Raw)
+	if len(earlyRows) != 3 || len(lateRows) != 2 || lateRows[1].LineUUID != fleetTestLineUUID(3) {
+		t.Fatalf("rows early %d, late %d", len(earlyRows), len(lateRows))
+	}
+	if earlyEnv.CatalogueVersion != lateEnv.CatalogueVersion {
+		t.Fatal("the catalogue version moved; the fixture does not isolate the clock")
+	}
+	if early.SourceVersion == late.SourceVersion || !strings.HasPrefix(late.SourceVersion, fleetEnvelopeDigestPrefix) {
+		t.Fatalf("source_version early %q late %q", early.SourceVersion, late.SourceVersion)
+	}
+	if earlyEnv.Selector.Leading != 1 || earlyEnv.Selector.Pushed != nil {
+		t.Fatalf("selector record = %+v, want the drop step evaluated in Go", earlyEnv.Selector)
+	}
+	if early.selectionVersion != earlyEnv.CatalogueVersion {
+		t.Fatalf("selection version %q", early.selectionVersion)
+	}
+}
+
+// TestFleetFetch10000Selects2000 pins the slice's bound: a 10000-line
+// catalogue that core narrows to 2000 lines through the pushed selector
+// fetches inside the raw bound, in two pages.
+func TestFleetFetch10000Selects2000(t *testing.T) {
+	rows := make([]model.LineCatalogueRow, 0, 10000)
+	for i := 1; i <= 10000; i++ {
+		row := fleetProductionRow(i)
+		if i%5 == 0 {
+			row.NodeTags = append(row.NodeTags, "selected")
+		}
+		rows = append(rows, row)
+	}
+	rt, host := newFleetRuntime(t, rows)
+	host.applySelector = true
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "narrow", Process: []json.RawMessage{structuredKeep("node_tag", "selected")}})
+	out, err := rt.fetchSubscription("narrow")
+	if err != nil {
+		t.Fatal(err)
+	}
+	env, kept := decodeFleetEnvelopeRows(t, out.Raw)
+	if len(kept) != 2000 || len(out.Raw) > model.MaxSubscriptionRawBytes {
+		t.Fatalf("rows %d, envelope %d bytes", len(kept), len(out.Raw))
+	}
+	if host.calls != 2 || env.Selector.Pushed == nil || len(env.Selector.Pushed.NodeTags) != 1 {
+		t.Fatalf("pages %d, pushed %+v", host.calls, env.Selector.Pushed)
+	}
+	t.Logf("2000 production-shaped rows: %d bytes enveloped of %d", len(out.Raw), model.MaxSubscriptionRawBytes)
+}
+
+// TestFleetCollectionAtRawBound pins a collection's ceiling: its fleet
+// members' projected rows plus one union row per line share the core's raw
+// bound. Two members that fit together fetch; one row more is refused with
+// snapshot_too_large naming the collection and the member holding the most.
+func TestFleetCollectionAtRawBound(t *testing.T) {
+	member := func(offset, n int) []model.LineCatalogueRow {
+		rows := make([]model.LineCatalogueRow, 0, n)
+		for i := 1; i <= n; i++ {
+			rows = append(rows, fleetProductionRow(offset+i))
+		}
+		return rows
+	}
+	rt, host := newFleetRuntime(t, nil)
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "east"})
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "west"})
+	if err := rt.saveSubscription(subscriptionRecord{ID: "both", Name: "both", Kind: kindCollection, Members: []string{"east", "west"}}); err != nil {
+		t.Fatal(err)
+	}
+	fetch := func(a, b int) (fetchResult, error) {
+		host.readSets, host.reads = [][]model.LineCatalogueRow{member(0, a), member(30000, b)}, 0
+		return rt.fetchSubscription("both")
+	}
+	// The largest even split that fits, by bisection over whole fetches.
+	lo, hi := 1, 2000
+	for lo < hi {
+		mid := (lo + hi + 1) / 2
+		if _, err := fetch(mid, mid); err == nil {
+			lo = mid
+		} else {
+			hi = mid - 1
+		}
+	}
+	fit, err := fetch(lo, lo)
+	if err != nil {
+		t.Fatalf("%d rows per member: %v", lo, err)
+	}
+	t.Logf("two members fit at %d rows each: %d bytes of %d", lo, len(fit.Raw), model.MaxSubscriptionRawBytes)
+	_, err = fetch(lo+1, lo)
+	if err == nil {
+		_, err = fetch(lo+1, lo+1)
+	}
+	if err == nil || !strings.HasPrefix(err.Error(), snapshotTooLargeCode) || !strings.Contains(err.Error(), `collection "both"`) || !strings.Contains(err.Error(), `member "east"`) {
+		t.Fatalf("one row past the bound: %v", err)
+	}
+}
+
+// fleetCallCounter counts every host call by method.
+type fleetCallCounter struct {
+	inner  hostCaller
+	byKind map[string]int
+	total  int
+}
+
+func (c *fleetCallCounter) call(method string, params any) (json.RawMessage, error) {
+	c.total++
+	c.byKind[method]++
+	return c.inner.call(method, params)
+}
+
+// TestFleetCollectionFetchHostCalls pins the host calls of a collection
+// fetch over two fleet members selecting 4096 lines between them and a
+// local provider: the collection record, the three member records, and
+// three catalogue pages per member; nothing else.
+func TestFleetCollectionFetchHostCalls(t *testing.T) {
+	rt, host := newFleetRuntime(t, nil)
+	half := func(offset int) []model.LineCatalogueRow {
+		rows := make([]model.LineCatalogueRow, 0, 2048)
+		for i := 1; i <= 2048; i++ {
+			rows = append(rows, fleetTestRow(offset+i, "vless"))
+		}
+		return rows
+	}
+	host.readSets = [][]model.LineCatalogueRow{half(0), half(10000)}
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "east"})
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "west"})
+	if err := rt.saveSubscription(subscriptionRecord{ID: "local", Name: "local", Source: subscriptionSourceLocal, Content: "trojan://pw@198.51.100.7:443#provider"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := rt.saveSubscription(subscriptionRecord{ID: "both", Name: "both", Kind: kindCollection, Members: []string{"east", "west", "local"}}); err != nil {
+		t.Fatal(err)
+	}
+	counter := &fleetCallCounter{inner: host, byKind: map[string]int{}}
+	rt.host = counter
+	if _, err := rt.fetchSubscription("both"); err != nil {
+		t.Fatal(err)
+	}
+	if counter.byKind[latticeplugin.HostMethodKVGet] != 4 || counter.byKind[latticeplugin.HostMethodRPCCall] != 6 || counter.total != 10 {
+		t.Fatalf("host calls = %v (total %d), want 4 record reads and 6 pages", counter.byKind, counter.total)
 	}
 }

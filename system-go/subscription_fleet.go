@@ -84,17 +84,20 @@ type fleetCatalogueRead struct {
 	Restarted bool
 }
 
-// fleetRowKeep decides, for one validated row of a read, whether the fetch
-// keeps it. It evaluates the part of the leading structured run core did not;
-// nil keeps every row.
-type fleetRowKeep func(row fleetRow, now time.Time) (bool, error)
+// fleetRowKeep evaluates the part of the leading structured run core did not
+// over one complete pass's rows, and answers the rows the fetch keeps in the
+// order the steps leave them (a keep step with a line_uuid list orders by
+// it). nil keeps every row in catalogue order.
+type fleetRowKeep func(rows []fleetRow, now time.Time) []fleetRow
 
 // readFleetCatalogue reads every page of the catalogue under sel with
 // fleetCataloguePageRows per page, validating every row once with the SDK's
-// Validate, keeping the rows keep admits and projecting them. A page whose
-// catalogue_version differs from the first page's restarts the read without
-// a cursor, once. maxRows bounds the kept rows (zero: unbounded); past it
-// the read stops and the error says how many it found.
+// Validate and projecting it, then keeps the rows keep admits over the whole
+// pass. A page whose catalogue_version differs from the first page's restarts
+// the read without a cursor, once. maxRows bounds the kept rows (zero:
+// unbounded); past it the read fails and the error says how many it found.
+// A pass reads at most fleetCatalogueMaxPagesPerPass pages, so the rows held
+// before keep runs are bounded too.
 func (rt *runtime) readFleetCatalogue(sel *model.LineCatalogueSelector, keep fleetRowKeep, maxRows int) (fleetCatalogueRead, error) {
 	if sel != nil {
 		if err := sel.Validate(); err != nil {
@@ -132,18 +135,8 @@ func (rt *runtime) readFleetCatalogue(sel *model.LineCatalogueSelector, keep fle
 				}
 				seen[row.LineUUID] = true
 				read.Scanned++
-				projected := projectFleetRow(*row)
-				if keep != nil {
-					ok, err := keep(projected, now)
-					if err != nil {
-						return fleetCatalogueRead{}, err
-					}
-					if !ok {
-						continue
-					}
-				}
-				read.Rows = append(read.Rows, projected)
-				if maxRows > 0 && len(read.Rows) > maxRows {
+				read.Rows = append(read.Rows, projectFleetRow(*row))
+				if keep == nil && maxRows > 0 && len(read.Rows) > maxRows {
 					return fleetCatalogueRead{}, fleetSelectionTooLarge(len(read.Rows), maxRows)
 				}
 			}
@@ -153,6 +146,12 @@ func (rt *runtime) readFleetCatalogue(sel *model.LineCatalogueSelector, keep fle
 			cursor = got.Cursor
 		}
 		if !moved {
+			if keep != nil {
+				read.Rows = keep(read.Rows, now)
+			}
+			if maxRows > 0 && len(read.Rows) > maxRows {
+				return fleetCatalogueRead{}, fleetSelectionTooLarge(len(read.Rows), maxRows)
+			}
 			if read.Rows == nil {
 				read.Rows = []fleetRow{}
 			}
@@ -270,26 +269,53 @@ func (s fleetSelection) record() *fleetSelectorRecord {
 
 // fleetSelectionFor splits a record's leading Structured Filter run between
 // core and the fetch: operators.Pushdown names the selector core evaluates
-// and how many leading steps it covers, and the steps the fetch evaluated
-// are hashed as stored so render can tell whether a revision's run still
-// answers the snapshot's rows. Fields not in advertised are never pushed.
-//
-// yagni: until Predicate.Evaluate lands (lane 2, S2 plan section 2.4) the
-// fetch evaluates only the pushed steps, so Leading is the covered count and
-// the leading steps core cannot evaluate run at render with the rest of the
-// chain, over a wider row set. When Evaluate lands, Leading becomes
-// operators.LeadingRun and Keep evaluates the steps between.
+// and how many leading steps it covers, operators.LeadingRun how long the run
+// is, and the steps between are evaluated in Go over each pass's rows
+// (keepByLeadingSteps). The whole run is hashed as stored, so render can tell
+// whether a revision's run still answers the snapshot's rows. Fields not in
+// advertised are never pushed.
 func fleetSelectionFor(rec subscriptionRecord, advertised []string) (fleetSelection, error) {
 	plan, err := (&runtime{}).chainPlan(rec)
 	if err != nil {
 		return fleetSelection{}, err
 	}
 	pushed, covered := operators.Pushdown(plan, advertised)
+	leading := max(operators.LeadingRun(plan), covered)
 	steps := processSteps(rec)
-	if covered > len(steps) {
-		return fleetSelection{}, fmt.Errorf("the pushed run covers %d of %d steps", covered, len(steps))
+	if leading > len(steps) {
+		return fleetSelection{}, fmt.Errorf("the leading run covers %d of %d steps", leading, len(steps))
 	}
-	return fleetSelection{Pushed: pushed, Leading: covered, StepHash: fleetStepHash(steps[:covered])}, nil
+	sel := fleetSelection{Pushed: pushed, Leading: leading, StepHash: fleetStepHash(steps[:leading])}
+	if leading > covered {
+		sel.Keep = keepByLeadingSteps(plan.Steps[covered:leading])
+	}
+	return sel, nil
+}
+
+// keepByLeadingSteps evaluates leading Structured Filter steps core did not
+// over a pass's rows, with lane 2's predicate evaluation: each row stands as
+// a node carrying only its Lattice block, which is all a structured
+// predicate reads, and the rows come back in the order the steps leave
+// their nodes. The steps read the fetch's clock, so a step over
+// renewal_days or probe_passed_hours keeps a different set as time passes
+// while the catalogue version stands still; the envelope digest, not the
+// catalogue version, is therefore the snapshot's source_version.
+func keepByLeadingSteps(steps []operators.Compiled) fleetRowKeep {
+	run := &operators.Plan{Steps: steps}
+	return func(rows []fleetRow, now time.Time) []fleetRow {
+		nodes := make([]*nodemodel.Node, len(rows))
+		at := make(map[*nodemodel.Node]int, len(rows))
+		for i := range rows {
+			n := &nodemodel.Node{Lattice: fleetLattice(rows[i])}
+			nodes[i], at[n] = n, i
+		}
+		kept := run.Run(nodes, &operators.Context{Now: now})
+		out := make([]fleetRow, 0, len(kept))
+		for _, n := range kept {
+			out = append(out, rows[at[n]])
+		}
+		return out
+	}
 }
 
 // fleetStepHash is the digest of a leading structured run as stored.
@@ -396,7 +422,7 @@ func (rt *runtime) fetchFleetSub(rec subscriptionRecord) (fetchResult, error) {
 	if err != nil {
 		return fetchResult{}, fmt.Errorf("subscription %q: %w", rec.ID, err)
 	}
-	out := fetchResult{Raw: raw, SourceVersion: env.SourceVersion}
+	out := fetchResult{Raw: raw, SourceVersion: env.SourceVersion, selectionVersion: read.CatalogueVersion}
 	count := len(read.Rows)
 	out.nodesIn = &count
 	if after, ok := fleetNodesOut(rec, read.Rows); ok {
@@ -466,36 +492,25 @@ func factsOfEntry(entry indexEntry) fleetRecordFacts {
 	}
 }
 
-// fleetBoundLive reports whether a record is fleet-bound over the live
-// store: a fleet sub, a collection that gathers one, or a file whose node
-// source is either. A sub costs no host call and a collection reads the
-// listing once. A file is never fleet-bound in S2 (the write path refuses
+// fleetBoundLive reports whether a record is fleet-bound live: a fleet sub,
+// or a collection whose index entry carries the fleet_bound flag lane 4
+// computes at every index write. A sub costs no host call and a collection
+// one, the index. A file is never fleet-bound in S2 (the write path refuses
 // one), and its live node work refuses a fleet source on its own
-// (fleetNodesForFile), so a file costs no host call here either.
-//
-// yagni: lane 4's index carries the live fleet_bound flag (S2 plan section
-// 2.2), computed at every index write; when it lands this reads the
-// record's entry instead of recomputing the closure here.
+// (fleetNodesForFile), so a file costs no host call either.
 func (rt *runtime) fleetBoundLive(rec subscriptionRecord) (bool, error) {
-	self := factsOf(rec)
-	switch self.Kind {
+	switch recordKind(rec) {
 	case kindSub:
-		return self.Source == subscriptionSourceFleet, nil
+		return rec.Source == subscriptionSourceFleet, nil
 	case kindFile:
 		return false, nil
 	}
-	listing, err := rt.storeListing()
-	if err != nil {
+	idx, err := rt.loadIndex()
+	if err != nil || idx == nil {
 		return false, err
 	}
-	universe := make([]fleetRecordFacts, 0, len(listing.Records)+1)
-	for _, entry := range listing.Records {
-		if entry.ID != rec.ID {
-			universe = append(universe, factsOfEntry(entry))
-		}
-	}
-	universe = append(universe, self)
-	return fleetBoundUnder(self, universe), nil
+	pos := idx.position(rec.ID)
+	return pos >= 0 && idx.Records[pos].Flags.FleetBound, nil
 }
 
 // refuseMixedMembers refuses a collection whose members are a legacy and a

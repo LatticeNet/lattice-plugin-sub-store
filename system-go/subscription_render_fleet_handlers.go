@@ -480,53 +480,82 @@ type renderReply struct {
 	LiveRevision string          `json:"live_revision,omitempty"`
 }
 
-// render is the render method: a fleet sub renders to a plan
-// (renderFleetSub), every other record to its document as before. A named
-// revision other than the live one is revision_unknown until the staged
-// store lands (lane 4); the live one renders as if none were named.
+// render is the render method. It opens the record through openForRender
+// (the index and the record, every call), then renders the revision named:
+// a fleet sub to a plan (renderFleetSub); a collection whose live entry is
+// fleet-bound to a plan from its snapshot's blocks on the serve path
+// (renderFleetCollection), and any collection by a staged revision or with
+// member revisions over the recomputed staged membership
+// (renderStagedCollection); every other record to its document as before.
 func (rt *runtime) render(req subscriptionRenderRequest, opts fleetRenderOptions) (renderReply, error) {
-	rec, err := rt.getSubscription(req.SubscriptionID)
+	o, err := rt.openForRender(req.SubscriptionID, opts)
 	if err != nil {
 		return renderReply{}, err
 	}
-	fleetSub := recordKind(rec) == kindSub && rec.Source == subscriptionSourceFleet
-	fleetCollection, owner := false, false
-	if recordKind(rec) == kindCollection {
-		// A fleet-bound collection never takes a path that reads member
-		// text as provider content: its plan is built node-wise from its
-		// blocks, and a legacy-shaped snapshot is refused.
-		if fleetCollection, owner, err = rt.collectionFleetState(rec); err != nil {
-			return renderReply{}, err
-		}
-	}
-	if fleetSub || fleetCollection {
-		target, err := rt.renderTarget(rec, req)
-		if err != nil {
-			return renderReply{}, err
-		}
-		var out fleetRendered
-		if fleetSub {
-			out, err = rt.renderFleetSub(rec, req, opts, target)
-		} else {
-			out, err = rt.renderFleetCollection(rec, req, opts, target, owner)
-		}
-		if err != nil {
-			return renderReply{}, err
-		}
+	rec := o.Rec
+	kind := recordKind(rec)
+	planned := func(out fleetRendered, target string) renderReply {
 		result := renderResult{ContentType: targetContentType(target), Target: target, NodeCount: explainedNodeCount(req.Explain, out.NodeCount)}
 		if req.Explain {
 			result.DroppedNodeCount, result.DroppedProtocols = fleetDroppedSummary(out.Dropped)
 		}
-		return renderReply{renderResult: result, Plan: out.Plan, LiveRevision: out.LiveRevision}, nil
+		return renderReply{renderResult: result, Plan: out.Plan, LiveRevision: o.Live}
 	}
-	if opts.staged(rec.Revision) {
-		return renderReply{}, fmt.Errorf("%s: subscription %q has no revision %q; its live revision is %q", codeRevisionUnknown, rec.ID, opts.Revision, rec.Revision)
+	switch {
+	case kind == kindSub && rec.Source == subscriptionSourceFleet:
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, err := rt.renderFleetSub(o, req, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		return planned(out, target), nil
+	case kind == kindCollection && o.Staged:
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, ok, err := rt.renderStagedCollection(o, req, opts, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		if ok {
+			return planned(out, target), nil
+		}
+		// The staged state gathers no fleet record: the revision renders
+		// as the document it would serve, resolved live (provider members
+		// only; a legacy member is withheld).
+		req.Raw = ""
+	case kind == kindCollection && o.Entry.Flags.FleetBound:
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, err := rt.renderFleetCollection(o, req, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		return planned(out, target), nil
+	case o.Staged:
+		// A staged provider revision (a fleet record re-staged as remote or
+		// local): the live snapshot is not its content, so it renders over
+		// its own source, resolved live.
+		req.Raw = ""
+		if kind == kindSub && rec.Source == subscriptionSourceRemote {
+			fetched, err := rt.fetchRecordContent(rec)
+			if err != nil {
+				return renderReply{}, err
+			}
+			req.Raw = fetched.Raw
+		}
 	}
 	result, err := rt.renderRecord(rec, req)
 	if err != nil {
 		return renderReply{}, err
 	}
-	return renderReply{renderResult: result, LiveRevision: rec.Revision}, nil
+	return renderReply{renderResult: result, LiveRevision: o.Live}, nil
 }
 
 // fleetDroppedSummary counts the rows that had no node and names their

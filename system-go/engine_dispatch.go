@@ -415,6 +415,21 @@ func (c *fleetPlanCache) get(key fleetPlanKey, compute func() (fleetPlanOutput, 
 	return plan, nil
 }
 
+// bypass computes a plan for a render the cache must not serve or keep (a
+// staged render: its plan depends on staged documents and live catalogue
+// reads the key does not name). It counts the computation, so a test can
+// see that a staged render never reused a cached plan.
+func (c *fleetPlanCache) bypass(compute func() (fleetPlanOutput, error)) (fleetPlanOutput, error) {
+	plan, err := compute()
+	if err != nil {
+		return fleetPlanOutput{}, err
+	}
+	c.mu.Lock()
+	c.computes++
+	c.mu.Unlock()
+	return plan, nil
+}
+
 // computeCount reports how many plans the cache computed, for tests.
 func (c *fleetPlanCache) computeCount() int {
 	c.mu.Lock()

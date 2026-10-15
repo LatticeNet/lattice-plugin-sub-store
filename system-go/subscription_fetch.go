@@ -33,6 +33,10 @@ type fetchResult struct {
 	// nodesOut is the count after the record's chain, when the chain is
 	// native and could run at refresh.
 	nodesOut *int
+	// selectionVersion is the catalogue version a fleet fetch read (a
+	// collection's derived version for one with fleet members); fetch's
+	// bookkeeping writes it to the index entry's selection_version.
+	selectionVersion string
 }
 
 func isVPNCoreSource(source string) bool {
@@ -90,7 +94,7 @@ func (rt *runtime) fetchSubscriptionAs(subscriptionID string, authority legacyAu
 			// The envelope digest moves with every member's content, provider
 			// blocks included, so core's body cache never outlives a member
 			// change (S2 plan section 2.2).
-			out.SourceVersion = env.SourceVersion
+			out.SourceVersion, out.selectionVersion = env.SourceVersion, env.CatalogueVersion
 			if out.Raw, err = encodeSnapshotEnvelope(env); err != nil {
 				return fetchResult{}, fleetCollectionTooLarge(rec.ID, members, err)
 			}
