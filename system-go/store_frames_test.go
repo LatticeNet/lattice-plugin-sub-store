@@ -80,6 +80,7 @@ func TestWriteBudgetsCoverTheirLargestFrames(t *testing.T) {
 	// A staged document is the record plus its base revision and time.
 	staged := kvPutFrameBytes(stagedKey("x"), make([]byte, maxRecordDocBytes+512))
 	settings := kvPutFrameBytes(settingsKey, make([]byte, maxSettingsBytes))
+	pipelines := kvPutFrameBytes(pipelineRecordsKey, make([]byte, maxPipelineDocBytes))
 	small := hostCallFrameOverhead + 512
 	reply := 64 << 10
 	// import and migrate answer with a report naming each record and why it
@@ -119,6 +120,10 @@ func TestWriteBudgetsCoverTheirLargestFrames(t *testing.T) {
 		"subscription/apply_revision": record + 2*index + 9*small + reply,
 		"subscription/migrate_record": staged + 2*index + 9*small + uuids + reply,
 		"subscription/discard_staged": 2*index + 4*small + reply,
+		// The engine service stays declared until lane 3 deletes its
+		// handlers (plan section 12, decision 5).
+		"engine/save_pipeline":   pipelines + 2*small + reply,
+		"engine/delete_pipeline": pipelines + 2*small + reply,
 	}
 	// Methods marked read that answer with a large reply are held the same way.
 	// depends_on's v2 store-wide reply carries a row and the edges for every
