@@ -147,7 +147,7 @@ func TestDependsOnSeesStagedEdges(t *testing.T) {
 		}
 	}
 	union := dependsCall(t, rt, map[string]any{"include_staged": true})
-	bound := ","+strings.Join(union.FleetBound, ",")+","
+	bound := "," + strings.Join(union.FleetBound, ",") + ","
 	for _, id := range []string{"provider", "eu-coll", "new-coll", "by-id"} {
 		if !strings.Contains(bound, ","+id+",") {
 			t.Fatalf("union fleet_bound %v lacks %s", union.FleetBound, id)
