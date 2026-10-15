@@ -130,14 +130,17 @@ type manifestInterface struct {
 
 func TestManifestKeepsCredentialBearingSubscriptionMethodsOnAdminScope(t *testing.T) {
 	want := map[string][]string{
-		"fetch":  {"substore:admin"},
-		"render": {"substore:admin"},
+		"fetch": {"substore:admin"},
+		// render is callable through the gateway (a file's output tab, the
+		// target sheet) and its plan nodes carry server, sni and Reality options,
+		// so it declares vpncore:read beside its own scope (plan section 10).
+		"render": {"substore:admin", "vpncore:read"},
 		// convert returns only what the caller sent, reshaped, but what the
 		// core sends is one identity's credentials; it is declared at the
 		// render path's scope, which is the core's own.
 		"convert": {"substore:admin"},
 		"probe":   {"substore:read"},
-		"preview": {"substore:read"},
+		"preview": {"substore:read", "vpncore:read"},
 	}
 	for _, iface := range loadManifestInterfaces(t) {
 		if iface.Service != pluginID+"/subscription" {
@@ -186,22 +189,9 @@ type invokeBudgetSpec struct {
 // (scriptHTTPMaxResponseBytes), and publish's send answers with a status.
 func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 	return map[string]invokeBudgetSpec{
-		// 2026-08-18: convert and transform_response went from zero host calls to
-		// twelve when scripts gained a network. Sub-Store's scripting model
-		// assumes one: its own Resolve Domain operator speaks DoH and user
-		// scripts fetch rulesets and quota endpoints, and every one of those
-		// requests is a host call. Twelve is the gateway's per-invocation limit
-		// of eight plus room for the plumbing around it; the timeout follows for
-		// the same reason, since a fetching script spends its budget waiting on
-		// someone else's server rather than on CPU.
-		pluginID + "/engine/convert":            {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
-		pluginID + "/engine/transform_response": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 12},
-		pluginID + "/engine/save_pipeline":      {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
-		pluginID + "/engine/get_pipeline":       {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 32 << 10, HostCalls: 1},
-		pluginID + "/engine/list_pipelines":     {TimeoutMS: 1_000, StdoutBytes: 128 << 10, StderrBytes: 16 << 10, HostCalls: 1},
-		pluginID + "/engine/delete_pipeline":    {TimeoutMS: 2_000, StdoutBytes: 2 << 20, StderrBytes: 16 << 10, HostCalls: 2},
-		// run_pipeline is convert plus the stored chain's own read.
-		pluginID + "/engine/run_pipeline": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 13},
+		// The engine service (convert, transform_response and the five pipeline
+		// methods) left the manifest in S2 (plan section 12, decision 5): no
+		// caller existed in the UI or the server.
 		// render feeds a public subscription endpoint, so its stdout budget matches
 		// the other conversion methods: a large subscription must fail loudly rather
 		// than arrive truncated at a client. host_calls covers the heaviest shape
@@ -264,22 +254,29 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// (bookkeeping, node counts, flags), and at 300 records it needs the
 		// 512 KiB (TestIndexAt300RecordsFitsListBudget).
 		pluginID + "/subscription/list": {TimeoutMS: 2_000, StdoutBytes: 512 << 10, StderrBytes: 16 << 10, HostCalls: 2},
-		// get returns one whole record. A script file carries its program inline
-		// now, so the ceiling is 1 MiB. host_calls is 3 for a script file on a
-		// store that has not migrated: its key's miss, the legacy document and
-		// the legacy program key. 2026-08-11: duplicating a script file in the
-		// UI 502'd here with the budget at 1; get is duplicate's first step.
-		pluginID + "/subscription/get": {TimeoutMS: 2_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 3},
-		// save reads the index, writes the record and writes the index; an
-		// existing record is read first for its provenance and the conditional
-		// check, and a graph record reloads the options that validate its
-		// selection (5 at worst, one spare). stdout is unchanged from the single
-		// document store: 4 MiB is what the response frame of a large record
-		// needs. (2026-08-11: the first production import died at 512 KiB.)
-		// delete archives: the index, the record, the archive write, the record
-		// key's deletion and the index write.
-		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 6},
-		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 5},
+		// get returns one whole record, and its staged revision beside it. A
+		// script file carries its program inline now, so the ceiling is 1 MiB.
+		// host_calls is 4 for a script file on a store that has not migrated:
+		// the index miss storeLoadRecord reads, its key's miss, the legacy
+		// document and the legacy program key; a staged record reads the
+		// index, the record and staged-v2. 2026-08-11: duplicating a script
+		// file in the UI 502'd here with the budget at 1; get is duplicate's
+		// first step.
+		pluginID + "/subscription/get": {TimeoutMS: 2_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 4},
+		// save goes through storeWriteRecord: the index, the stored record and
+		// its staged document when one exists or the record disagrees with its
+		// entry, the record or staged write and the index write, plus two on
+		// the if_match retry; a graph record reloads the options that validate
+		// its selection, and a fleet record reads one catalogue page to
+		// validate its predicate fields (9 at worst). stdout is unchanged from
+		// the single document store: 4 MiB is what the response frame of a
+		// large record needs. (2026-08-11: the first production import died at
+		// 512 KiB.)
+		// delete archives: the index, the record, the archive write, the index
+		// write (two more on the retry), the record key's deletion and the
+		// staged key's.
+		pluginID + "/subscription/save":   {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 9},
+		pluginID + "/subscription/delete": {TimeoutMS: 5_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 8},
 		// migrate is import's shape plus three fetches from the standalone
 		// Sub-Store it imports from, so it gets the longest timeout.
 		pluginID + "/subscription/migrate": {TimeoutMS: 30_000, StdoutBytes: 8 << 20, StderrBytes: 64 << 10, HostCalls: 325},
@@ -303,18 +300,47 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		pluginID + "/subscription/save_settings": {TimeoutMS: 1_000, StdoutBytes: 16 << 10, StderrBytes: 16 << 10, HostCalls: 2},
 		// depends_on reads the index, and the legacy document on a store that
 		// has not migrated, so core's fleet re-render gets an answer either way.
-		pluginID + "/subscription/depends_on": {TimeoutMS: 2_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 2},
-		// apply_revision answers its stated refusal before any host call: no
-		// revision is staged before S2. Zero makes the runner refuse KV and
-		// network access outright; S2 signs the count its staging needs.
-		pluginID + "/subscription/apply_revision": {TimeoutMS: 5_000, StdoutBytes: 64 << 10, StderrBytes: 16 << 10, HostCalls: 0},
-		// restore: the index, the archive, the record write, the archive's
-		// deletion and the index write; it answers with the record. purge: the
-		// index, the archive's deletion and the index write. reorder: the index
-		// and its write.
-		pluginID + "/subscription/restore": {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 16 << 10, HostCalls: 5},
-		pluginID + "/subscription/purge":   {TimeoutMS: 5_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 3},
-		pluginID + "/subscription/reorder": {TimeoutMS: 5_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 2},
+		// Its v2 store-wide reply carries a row and the edges for every entry of
+		// an index allowed to reach maxIndexBytes, so stdout_bytes is derived
+		// from that bound (TestWriteBudgetsCoverTheirLargestFrames), not the S1
+		// figure of 256 KiB.
+		pluginID + "/subscription/depends_on": {TimeoutMS: 2_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 2},
+		// apply_revision (plan section 2.7): the claim over rpc.call, the
+		// index, the staged read, the index put (two more on the if_match
+		// retry), the record put, the staged key's deletion and, for a
+		// promoted restore, the archive key's (9, one spare). A delete action:
+		// the index, the record, the archive put, the index put and its retry,
+		// the record key's and the staged key's deletions. stdout carries the
+		// record or archive put at maxRecordDocBytes as base64 and two index
+		// frames at maxIndexBytes (3,844,779 bytes plus the small frames),
+		// signed at 4 MiB. The timeout covers the share-write lock core holds
+		// across the call.
+		pluginID + "/subscription/apply_revision": {TimeoutMS: 10_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 10},
+		// restore: the index, the archive, the record or staged write, the
+		// index write (two more on the retry) and, for a live restore, the
+		// archive's deletion; it answers with the record. purge: the index, the
+		// index write and its retry, and the archive's deletion. reorder: the
+		// index, its write and the retry. Two index frames at maxIndexBytes
+		// alone fill 1 MiB, so purge and reorder sign 1.25 MiB.
+		pluginID + "/subscription/restore": {TimeoutMS: 5_000, StdoutBytes: 6 << 20, StderrBytes: 16 << 10, HostCalls: 7},
+		pluginID + "/subscription/purge":   {TimeoutMS: 5_000, StdoutBytes: 1280 << 10, StderrBytes: 16 << 10, HostCalls: 5},
+		pluginID + "/subscription/reorder": {TimeoutMS: 5_000, StdoutBytes: 1280 << 10, StderrBytes: 16 << 10, HostCalls: 4},
+		// fleet_preview reads the catalogue pages under the pushed selector:
+		// 10 pages at 10000 lines, doubled once for a restart on a version
+		// move, and two spare. Its reply is counts, a sample and at most 256
+		// looked-up rows, inside 1 MiB.
+		pluginID + "/subscription/fleet_preview": {TimeoutMS: 20_000, StdoutBytes: 1 << 20, StderrBytes: 16 << 10, HostCalls: 22},
+		// identities relays vpn-core's identity list in one rpc.call.
+		pluginID + "/subscription/identities": {TimeoutMS: 5_000, StdoutBytes: 256 << 10, StderrBytes: 16 << 10, HostCalls: 1},
+		// migrate_record: the index, the record, one catalogue page under the
+		// pinned roots and one restart page (graph records), the staged put,
+		// the index put and its retry (7, three spare). stdout carries the
+		// staged put, two index frames and a reply of up to
+		// MaxSubscriptionRecordNodes line uuids.
+		pluginID + "/subscription/migrate_record": {TimeoutMS: 30_000, StdoutBytes: 4 << 20, StderrBytes: 16 << 10, HostCalls: 10},
+		// discard_staged: the index, the staged key's deletion, the index put
+		// and its retry. Two index frames alone fill 1 MiB.
+		pluginID + "/subscription/discard_staged": {TimeoutMS: 5_000, StdoutBytes: 1280 << 10, StderrBytes: 16 << 10, HostCalls: 5},
 		// migrate_store: a chunk of 64 script files reads the document, the
 		// index miss and 64 programs and writes 64 records and the index; the
 		// verify runs in a later call that writes no record (store_migrate.go).

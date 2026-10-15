@@ -17,7 +17,8 @@ func steps(raw ...string) []json.RawMessage {
 const lookaheadFilter = `{"type":"Regex Filter","args":{"regex":["^(?!.*(HK|TW)).*$"],"keep":true}}`
 
 // A save that brings in a pattern RE2 refuses is refused before anything is
-// written, with the regex_incompatible code leading the message (the editor
+// written, as the structured {saved: false, refused} reply from S2 (the gateway
+// strips every mutation error), with the regex_incompatible code (the editor
 // reads it there), the step and pattern named, and the rewrite offered for
 // the keep-mode negative-lookahead idiom. The rewritten chain saves.
 func TestSaveRefusesLookaheadWithRewrite(t *testing.T) {
@@ -26,12 +27,12 @@ func TestSaveRefusesLookaheadWithRewrite(t *testing.T) {
 		"id": "s1", "name": "provider", "content": "vless://example",
 		"process": steps(`{"type":"Sort Operator","args":"asc"}`, lookaheadFilter),
 	}})
-	if res.OK {
+	if !isRefusedResponse(res) {
 		t.Fatalf("a lookahead pattern was saved: %s", res.Result)
 	}
 	for _, part := range []string{`process step 2`, `"^(?!.*(HK|TW)).*$"`, `rewrite offered: a drop-mode Regex Filter on "HK|TW"`} {
-		if !strings.HasPrefix(res.Error, "regex_incompatible: ") || !strings.Contains(res.Error, part) {
-			t.Fatalf("refusal %q lacks %q", res.Error, part)
+		if !strings.HasPrefix(refusalText(res), "regex_incompatible: ") || !strings.Contains(refusalText(res), part) {
+			t.Fatalf("refusal %q lacks %q", refusalText(res), part)
 		}
 	}
 	if len(host.values) != 0 {
@@ -43,8 +44,8 @@ func TestSaveRefusesLookaheadWithRewrite(t *testing.T) {
 		"id": "s1", "name": "provider", "content": "vless://example",
 		"process": steps(`{"type":"Regex Delete Operator","args":["(?<=HK)\\d+"]}`),
 	}})
-	if res.OK || !strings.HasPrefix(res.Error, "regex_incompatible: ") || strings.Contains(res.Error, "rewrite offered") || !strings.Contains(res.Error, `(?<=HK)\\d+`) {
-		t.Fatalf("lookbehind save = ok %v, %q", res.OK, res.Error)
+	if !isRefusedResponse(res) || !strings.HasPrefix(refusalText(res), "regex_incompatible: ") || strings.Contains(refusalText(res), "rewrite offered") || !strings.Contains(refusalText(res), `(?<=HK)\\d+`) {
+		t.Fatalf("lookbehind save = ok %v, %q", res.OK, refusalText(res))
 	}
 
 	// The rewrite keeps the same nodes and saves.
@@ -66,8 +67,8 @@ func TestSaveRefusesLookaheadWithRewrite(t *testing.T) {
 	edit := before
 	edit.Process = append(append([]json.RawMessage{}, before.Process...), json.RawMessage(lookaheadFilter))
 	res = callSubscription(t, rt, "save", map[string]any{"subscription": edit, "if_revision": before.Revision})
-	if res.OK || !strings.HasPrefix(res.Error, "regex_incompatible: ") || !strings.Contains(res.Error, "process step 3") {
-		t.Fatalf("adding a lookahead step = ok %v, %q", res.OK, res.Error)
+	if !isRefusedResponse(res) || !strings.HasPrefix(refusalText(res), "regex_incompatible: ") || !strings.Contains(refusalText(res), "process step 3") {
+		t.Fatalf("adding a lookahead step = ok %v, %q", res.OK, refusalText(res))
 	}
 	if after := getRecord(t, rt, "s1"); after.Revision != before.Revision {
 		t.Fatal("a refused edit changed the stored record")
@@ -119,13 +120,13 @@ func TestSaveOfUnrelatedFieldKeepsFlaggedRecord(t *testing.T) {
 	rec = getRecord(t, rt, "flagged")
 	changed := rec
 	changed.Process = steps(`{"type":"Regex Filter","args":{"regex":["^(?!.*(JP)).*$"],"keep":true}}`)
-	if res := save(changed, rec.Revision); res.OK || !strings.HasPrefix(res.Error, "regex_incompatible: ") || !strings.Contains(res.Error, `drop-mode Regex Filter on "JP"`) {
-		t.Fatalf("changing the pattern = ok %v, %q", res.OK, res.Error)
+	if res := save(changed, rec.Revision); !isRefusedResponse(res) || !strings.HasPrefix(refusalText(res), "regex_incompatible: ") || !strings.Contains(refusalText(res), `drop-mode Regex Filter on "JP"`) {
+		t.Fatalf("changing the pattern = ok %v, %q", res.OK, refusalText(res))
 	}
 	doubled := rec
 	doubled.Process = append(append([]json.RawMessage{}, rec.Process...), json.RawMessage(lookaheadFilter))
-	if res := save(doubled, rec.Revision); res.OK || !strings.HasPrefix(res.Error, "regex_incompatible: ") {
-		t.Fatalf("adding a second lookahead step = ok %v, %q", res.OK, res.Error)
+	if res := save(doubled, rec.Revision); !isRefusedResponse(res) || !strings.HasPrefix(refusalText(res), "regex_incompatible: ") {
+		t.Fatalf("adding a second lookahead step = ok %v, %q", res.OK, refusalText(res))
 	}
 	if after := getRecord(t, rt, "flagged"); after.Revision != rec.Revision {
 		t.Fatal("a refused edit changed the stored record")

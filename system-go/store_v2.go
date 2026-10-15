@@ -72,10 +72,23 @@ func validStoreID(id string) error {
 	return nil
 }
 
-// legacyCache holds the legacy document for one invocation.
+// legacyCache holds the legacy document for one invocation, and the records
+// a handler already opened through storeLoadRecord (primed), so the record
+// read fetchSubscription makes costs no second host call.
 type legacyCache struct {
 	loaded bool
 	doc    *subscriptionRecordsDocument
+	primed map[string]subscriptionRecord
+}
+
+// primeRecord makes loadRecord answer rec for its id for the rest of the
+// invocation: the record a handler opened through storeLoadRecord, which is
+// the staged document during a half-done promotion.
+func (rt *runtime) primeRecord(rec subscriptionRecord) {
+	if rt.legacy.primed == nil {
+		rt.legacy.primed = map[string]subscriptionRecord{}
+	}
+	rt.legacy.primed[rec.ID] = rec
 }
 
 // legacyDocument returns the legacy document, read at most once per
@@ -108,9 +121,10 @@ func (rt *runtime) putLegacyDocument(doc subscriptionRecordsDocument) error {
 	return nil
 }
 
-// loadIndex reads the index; nil when the store has none yet.
+// loadIndex reads the index; nil when the store has none yet. The document
+// keeps the digest it was read at, which its write sends as if_match.
 func (rt *runtime) loadIndex() (*indexDocument, error) {
-	value, found, err := rt.kvGet(storeIndexKey)
+	value, digest, found, err := rt.kvGetWithDigest(storeIndexKey)
 	if err != nil || !found {
 		return nil, err
 	}
@@ -121,6 +135,7 @@ func (rt *runtime) loadIndex() (*indexDocument, error) {
 	if idx.Version != storeVersionSplit {
 		return nil, fmt.Errorf("unsupported subscription index version %d", idx.Version)
 	}
+	idx.digest = digest
 	return &idx, nil
 }
 
@@ -130,6 +145,7 @@ func (rt *runtime) loadIndex() (*indexDocument, error) {
 func encodeIndex(idx *indexDocument, bounded bool) ([]byte, error) {
 	idx.Version = storeVersionSplit
 	idx.renumber()
+	idx.recomputeFlags()
 	raw, err := json.Marshal(idx)
 	if err != nil {
 		return nil, err
@@ -140,12 +156,60 @@ func encodeIndex(idx *indexDocument, bounded bool) ([]byte, error) {
 	return raw, nil
 }
 
+// putIndex writes idx with if_match, once. A write that wants the one retry
+// a kv_conflict earns goes through putIndexRetrying instead.
 func (rt *runtime) putIndex(idx *indexDocument, bounded bool) error {
 	raw, err := encodeIndex(idx, bounded)
 	if err != nil {
 		return err
 	}
-	return rt.kvPut(storeIndexKey, raw)
+	return rt.putIndexRaw(idx, raw)
+}
+
+// putIndexRaw writes raw, the encoding of idx, with idx's digest as if_match,
+// and records the digest of what it wrote so a later write in the same
+// invocation compares against it.
+func (rt *runtime) putIndexRaw(idx *indexDocument, raw []byte) error {
+	if err := rt.kvPutIfMatch(storeIndexKey, raw, idx.digest); err != nil {
+		return err
+	}
+	idx.digest = kvDigest(raw)
+	return nil
+}
+
+// putIndexRetrying writes raw, the encoding of idx after the write applied its
+// delta. On kv_conflict (another invocation wrote the index since this one
+// read it: noteFetchOutcome runs outside the plugin gate, plan section 2.7)
+// it re-reads the index once, applies mutate, the write's whole delta, to the
+// fresh copy and writes that; a second conflict answers errKVConflict, which
+// a write method reports as the structured kv_conflict refusal. mutate must
+// apply to any index, not only the one first read. idx holds what was
+// written on success. Two host calls on the retry, none without it beyond
+// the one put.
+func (rt *runtime) putIndexRetrying(idx *indexDocument, raw []byte, bounded bool, mutate func(*indexDocument) error) error {
+	err := rt.putIndexRaw(idx, raw)
+	if err == nil || !isKVConflict(err) || mutate == nil {
+		return err
+	}
+	fresh, err := rt.writableIndex()
+	if err != nil {
+		return err
+	}
+	if err := mutate(fresh); err != nil {
+		return err
+	}
+	raw, err = encodeIndex(fresh, bounded)
+	if err != nil {
+		return err
+	}
+	if err := rt.putIndexRaw(fresh, raw); err != nil {
+		if isKVConflict(err) {
+			return fmt.Errorf("%w: the index moved twice while this write ran; nothing further was written, retry", errKVConflict)
+		}
+		return err
+	}
+	*idx = *fresh
+	return nil
 }
 
 // writableIndex returns the index a write applies its delta to, or the
@@ -186,14 +250,6 @@ func encodeRecord(rec subscriptionRecord) ([]byte, error) {
 	return raw, nil
 }
 
-func (rt *runtime) putRecord(rec subscriptionRecord) error {
-	raw, err := encodeRecord(rec)
-	if err != nil {
-		return err
-	}
-	return rt.kvPut(recordKey(rec.ID), raw)
-}
-
 func decodeRecordDoc(id string, value []byte) (subscriptionRecord, error) {
 	if len(value) > maxRecordDocBytes {
 		return subscriptionRecord{}, fmt.Errorf("subscription %q exceeds %d bytes stored", id, maxRecordDocBytes)
@@ -209,6 +265,9 @@ func decodeRecordDoc(id string, value []byte) (subscriptionRecord, error) {
 // document (once per invocation), whose script file gets its program from
 // the legacy program key. Revision is recomputed, never trusted from storage.
 func (rt *runtime) loadRecord(id string) (subscriptionRecord, bool, error) {
+	if rec, ok := rt.legacy.primed[id]; ok {
+		return rec, true, nil
+	}
 	value, found, err := rt.kvGet(recordKey(id))
 	if err != nil {
 		return subscriptionRecord{}, false, err
@@ -261,201 +320,52 @@ type saveConflict struct {
 	revision string
 }
 
-// storeSave is one save: the index read, the stored record when one exists
-// (its Origin is preserved and the conditional write compares against it),
-// the record write and the index write. Three host calls for a new record,
-// four for an existing one.
-//
-// strict is the editor's save: a chain that brings in a pattern RE2 refuses
-// is refused (savedChainCheck). Import, migrate and backup restore write
-// records as they were and pass false; the index flags what they carry.
-//
-// The conditional write. A blind full-record overwrite is a lost-update
-// defect: two operators editing one record, or one operator editing a record
-// a refresh or a restore has already moved, and the loser's work disappeared
-// with nothing on screen to say it had happened. ifRevision is optional:
-// import, migrate and backup restore write records they never read.
-func (rt *runtime) storeSave(rec subscriptionRecord, ifRevision string, strict bool) (subscriptionRecord, *saveConflict, error) {
-	if strings.TrimSpace(rec.ID) == "" {
-		return subscriptionRecord{}, nil, fmt.Errorf("subscription id is required")
-	}
-	if err := validStoreID(rec.ID); err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	idx, err := rt.writableIndex()
-	if err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	// An archived record keeps its id until it is purged, so restore can
-	// bring it back under the same name its shares and members use.
-	if idx.archivedPosition(rec.ID) >= 0 {
-		return subscriptionRecord{}, &saveConflict{reason: "archived"}, nil
-	}
-	pos := idx.position(rec.ID)
-	var stored subscriptionRecord
-	found := false
-	if pos >= 0 {
-		stored, found, err = rt.loadRecord(rec.ID)
-		if err != nil {
-			return subscriptionRecord{}, nil, err
-		}
-	}
-	// Origin records where a record came from during migration. An edit
-	// cannot change it, so it is preserved from the stored record; the save
-	// method clears it on a new record before it gets here, and only the
-	// migration and import paths create a record with one.
-	if found {
-		rec.Origin = stored.Origin
-	}
-	if ifRevision != "" {
-		if !found {
-			// Editing something that no longer exists. Saving would silently
-			// recreate a deleted record, so it is refused and named.
-			return subscriptionRecord{}, &saveConflict{reason: "deleted"}, nil
-		}
-		if current := subscriptionRevision(stored); current != ifRevision {
-			// The stored record is handed back so the caller can say what
-			// changed; it is the one holding the copy that was read.
-			return subscriptionRecord{}, &saveConflict{reason: "stale", current: withBookkeeping(stored, idx.Records[pos]), revision: current}, nil
-		}
-	}
-	nrec, err := normalizeSubscriptionForStore(rec)
-	if err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	if strict {
-		var before []json.RawMessage
-		if found {
-			before = processSteps(stored)
-		}
-		// Unwrapped: the refusal's message leads with its code, which is
-		// how the editor recognises it.
-		if err := savedChainCheck(before, nrec.Process); err != nil {
-			return subscriptionRecord{}, nil, err
-		}
-	}
-	entry := indexEntryFor(nrec)
-	if pos >= 0 {
-		entry.carryBookkeeping(idx.Records[pos])
-		idx.Records[pos] = entry
-	} else {
-		if len(idx.Records) >= maxSubscriptionRecords {
-			return subscriptionRecord{}, nil, fmt.Errorf("too many subscriptions: %d, limit %d", len(idx.Records)+1, maxSubscriptionRecords)
-		}
-		idx.Records = append(idx.Records, entry)
-	}
-	// Both documents are encoded before either is written, so a save the
-	// index cannot take leaves no orphan record behind it.
-	indexRaw, err := encodeIndex(idx, true)
-	if err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	recordRaw, err := encodeRecord(nrec)
-	if err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	if err := rt.kvPut(recordKey(nrec.ID), recordRaw); err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	if err := rt.kvPut(storeIndexKey, indexRaw); err != nil {
-		return subscriptionRecord{}, nil, err
-	}
-	return withBookkeeping(nrec, entry), nil, nil
-}
-
-// saveSubscription is an unconditional save.
-func (rt *runtime) saveSubscription(rec subscriptionRecord) error {
-	_, conflict, err := rt.storeSave(rec, "", false)
-	if err != nil {
-		return err
-	}
-	if conflict != nil {
-		return fmt.Errorf("subscription %q: %s", rec.ID, conflict.reason)
-	}
-	return nil
-}
-
-// batchOutcome is what a batch save stored and why it skipped the rest.
+// batchOutcome is what a batch write stored, staged, refused and skipped.
 type batchOutcome struct {
 	skipped  map[string]string
 	replaced map[string]bool
+	staged   map[string]string
+	refused  map[string]storeRefusal
 }
 
 // saveSubscriptionBatch persists many definitions with one index read, one
-// record write each and one index write.
+// record or staged write each and one index write, through storeWriteRecords.
 //
 // The plugin-call budget charges every host round trip, so the index is
 // loaded once, every record is normalized and merged in memory, and the
 // whole batch is refused before its first write when the store could not
-// take it. A record that fails validation is skipped and does not fail the
-// batch; a store-level failure does.
-func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord) (batchOutcome, error) {
-	out := batchOutcome{skipped: map[string]string{}, replaced: map[string]bool{}}
-	if len(recs) == 0 {
-		return out, nil
+// take it. A record that fails validation is skipped, and one a guard
+// refuses is reported, and neither fails the batch; a store-level failure
+// does.
+func (rt *runtime) saveSubscriptionBatch(recs []subscriptionRecord, origin writeOrigin) (batchOutcome, error) {
+	out := batchOutcome{skipped: map[string]string{}, replaced: map[string]bool{}, staged: map[string]string{}, refused: map[string]storeRefusal{}}
+	reqs := make([]writeRequest, len(recs))
+	for i, rec := range recs {
+		reqs[i] = writeRequest{Record: rec}
 	}
-	idx, err := rt.writableIndex()
+	results, err := rt.storeWriteRecords(reqs, origin)
 	if err != nil {
 		return out, err
 	}
-	var pending []subscriptionRecord
-	for _, rec := range recs {
-		nrec, err := normalizeSubscriptionForStore(rec)
-		if err != nil {
-			out.skipped[rec.ID] = err.Error()
-			continue
-		}
-		if idx.archivedPosition(nrec.ID) >= 0 {
-			out.skipped[nrec.ID] = "archived: restore or purge the archived record with this id first"
-			continue
-		}
-		entry := indexEntryFor(nrec)
-		// A backup or a migration carries bookkeeping on the record; the
-		// index is where it lives now.
-		incoming := legacyEntry(rec)
-		if pos := idx.position(nrec.ID); pos >= 0 {
-			out.replaced[nrec.ID] = true
-			entry.carryBookkeeping(idx.Records[pos])
-			if incoming.LastFetchAt != "" {
-				entry.LastFetchAt, entry.LastFetchOK, entry.LastError, entry.Userinfo = incoming.LastFetchAt, incoming.LastFetchOK, incoming.LastError, incoming.Userinfo
+	for _, res := range results {
+		switch {
+		case res.Skipped != "":
+			out.skipped[res.ID] = res.Skipped
+		case res.Refused != nil:
+			out.refused[res.ID] = *res.Refused
+			out.skipped[res.ID] = res.Refused.Code + ": " + res.Refused.Message
+		case res.Conflict != nil:
+			out.skipped[res.ID] = res.Conflict.reason
+		default:
+			if res.Replaced {
+				out.replaced[res.ID] = true
 			}
-			idx.Records[pos] = entry
-		} else {
-			entry.LastFetchAt, entry.LastFetchOK, entry.LastError, entry.Userinfo = incoming.LastFetchAt, incoming.LastFetchOK, incoming.LastError, incoming.Userinfo
-			idx.Records = append(idx.Records, entry)
-		}
-		pending = append(pending, nrec)
-	}
-	// Refuse before spending any record write: paying N host calls first
-	// would blow the import budget on a batch that cannot land and leave N
-	// orphan records behind the exact failure this path exists to prevent.
-	if len(idx.Records) > maxSubscriptionRecords {
-		return out, fmt.Errorf("too many subscriptions: %d, limit %d", len(idx.Records), maxSubscriptionRecords)
-	}
-	indexRaw, err := encodeIndex(idx, true)
-	if err != nil {
-		return out, err
-	}
-	encoded := make([][]byte, len(pending))
-	frames := kvPutFrameBytes(storeIndexKey, indexRaw)
-	for i, rec := range pending {
-		if encoded[i], err = encodeRecord(rec); err != nil {
-			return out, err
-		}
-		frames += kvPutFrameBytes(recordKey(rec.ID), encoded[i])
-	}
-	// Core kills a call whose frames pass its signed stdout_bytes, so a batch
-	// that cannot fit is refused whole here rather than cut off after some of
-	// its records have landed.
-	if frames > maxBatchFrameBytes {
-		return out, fmt.Errorf("%s: these records take %d bytes to write and one call may write %d", batchTooLargeCode, frames, maxBatchFrameBytes)
-	}
-	for i, rec := range pending {
-		if err := rt.kvPut(recordKey(rec.ID), encoded[i]); err != nil {
-			return out, err
+			if res.Staged {
+				out.staged[res.ID] = res.StagedRevision
+			}
 		}
 	}
-	return out, rt.kvPut(storeIndexKey, indexRaw)
+	return out, nil
 }
 
 // maxBatchFrameBytes bounds the record and index frames one batch writes.
@@ -478,7 +388,22 @@ type fetchOutcome struct {
 	nodesIn  *int
 	nodesOut *int
 	err      error
+	// selectionVersion is the catalogue version a fleet fetch read; the
+	// entry's selection_version takes it on success.
+	selectionVersion string
+	// index is the index the fetch handler already read, with its digest,
+	// and indexRead says it did (index may be nil on a store with none), so
+	// the bookkeeping costs no second read.
+	index     *indexDocument
+	indexRead bool
+	// rederive is the record the fetch served when it was ahead of its
+	// entry (a live write whose index put was refused): the bookkeeping put
+	// re-derives the entry from it, so the mismatch lasts one poll.
+	rederive *subscriptionRecord
 }
+
+// errDropBookkeeping drops a bookkeeping write: the entry moved under it.
+var errDropBookkeeping = errors.New("the entry moved; the fetch bookkeeping is dropped")
 
 // noteFetchOutcome records when a fetch ran and how it went. It is called from
 // the fetch method (the core invokes it for every refresh, scheduled or
@@ -487,22 +412,47 @@ type fetchOutcome struct {
 // public request. A preview fetch is also not a refresh: recording it would
 // tell the operator the served snapshot is fresher than it is.
 //
-// The index is read immediately before it is written and only this record's
-// bookkeeping changes, so a concurrent save loses nothing but the window
-// between the two calls (plan section 3.4). A store that has not migrated
-// keeps its bookkeeping in the legacy document, where migrate_store finds it.
-// A failed bookkeeping write is swallowed on purpose: the fetch's own result
-// is already being reported, and losing the note must not turn a good refresh
-// into an error.
+// The write carries if_match (plan section 2.7). Core calls fetch before it
+// takes the plugin gate, so this write can race a save or a promotion: on a
+// kv_conflict it re-reads once and re-applies only its own delta, and it
+// drops the write instead when the entry's Revision or StagedRevision moved,
+// because fetch bookkeeping is never worth reverting a promotion. A store
+// that has not migrated keeps its bookkeeping in the legacy document, where
+// migrate_store finds it. A failed bookkeeping write is swallowed on purpose:
+// the fetch's own result is already being reported, and losing the note must
+// not turn a good refresh into an error.
 func (rt *runtime) noteFetchOutcome(subscriptionID string, outcome fetchOutcome) {
-	idx, err := rt.loadIndex()
-	if err != nil {
-		return
+	idx := outcome.index
+	if !outcome.indexRead {
+		var err error
+		if idx, err = rt.loadIndex(); err != nil {
+			return
+		}
 	}
 	if idx != nil {
 		if pos := idx.position(subscriptionID); pos >= 0 {
-			applyFetchOutcome(&idx.Records[pos], outcome)
-			_ = rt.putIndex(idx, false)
+			seen := idx.Records[pos]
+			apply := func(target *indexDocument) error {
+				at := target.position(subscriptionID)
+				if at < 0 || target.Records[at].Revision != seen.Revision || target.Records[at].StagedRevision != seen.StagedRevision {
+					return errDropBookkeeping
+				}
+				if outcome.rederive != nil {
+					entry := indexEntryFor(*outcome.rederive)
+					entry.carryBookkeeping(target.Records[at])
+					target.Records[at] = entry
+				}
+				applyFetchOutcome(&target.Records[at], outcome)
+				return nil
+			}
+			if apply(idx) != nil {
+				return
+			}
+			raw, err := encodeIndex(idx, false)
+			if err != nil {
+				return
+			}
+			_ = rt.putIndexRetrying(idx, raw, false, apply)
 			return
 		}
 		if idx.verified() {
@@ -537,6 +487,9 @@ func applyFetchOutcome(entry *indexEntry, outcome fetchOutcome) {
 		return
 	}
 	entry.LastError = ""
+	if outcome.selectionVersion != "" {
+		entry.SelectionVersion = outcome.selectionVersion
+	}
 	// A failure keeps the previous userinfo: it is the provider's quota
 	// figures, and a stale figure next to a "refresh failed" badge beats
 	// none at all.

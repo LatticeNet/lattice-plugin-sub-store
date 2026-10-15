@@ -385,6 +385,14 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 		return rt.convertCall(call.Payload)
 	case "render":
 		return rt.renderCall(call.Payload)
+	case "fleet_preview":
+		return rt.fleetPreviewCall(call.Payload)
+	case "identities":
+		return rt.identitiesCall(call.Payload)
+	case "migrate_record":
+		return rt.migrateRecordCall(call.Payload)
+	case "discard_staged":
+		return rt.discardStagedCall(call.Payload)
 	default:
 		return latticeplugin.ErrorResponse(fmt.Errorf("unsupported method %q", call.Method))
 	}
@@ -392,6 +400,15 @@ func (rt *runtime) handleSubscriptionCall(call callPayload) response {
 
 // fetchCall is the refresh path: core calls it on a schedule and when a share
 // needs a snapshot. Its reply's raw is what core stores as the snapshot.
+//
+// It opens the record through storeLoadRecord first (plan section 2.7): a
+// half-done promotion (an approved apply_revision killed after its index put)
+// is completed here, and only here, keyed on the invocation's method; a
+// record ahead of its entry is served and its entry re-derived in the
+// bookkeeping put; an inconsistent entry is refused. The record it opened is
+// primed, and the index it read is reused for the bookkeeping, so the
+// refresh costs no more host calls than before (two writes more when it
+// completes a promotion).
 func (rt *runtime) fetchCall(payload json.RawMessage) response {
 	var req struct {
 		SubscriptionID string `json:"subscription_id"`
@@ -402,11 +419,38 @@ func (rt *runtime) fetchCall(payload json.RawMessage) response {
 		}
 	}
 	fetchedAt := time.Now().UTC()
+	outcome := fetchOutcome{at: fetchedAt}
+	if idx, err := rt.loadIndex(); err == nil {
+		outcome.index, outcome.indexRead = idx, true
+		if idx != nil && idx.position(req.SubscriptionID) >= 0 {
+			loaded, err := rt.storeLoadRecord(idx, req.SubscriptionID, false)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			switch loaded.State {
+			case recordPromotionPending:
+				if err := rt.storeCompletePromotion(loaded); err != nil {
+					return latticeplugin.ErrorResponse(err)
+				}
+			case recordInconsistent:
+				return latticeplugin.ErrorResponse(refusalErr(storeInconsistentRefusal(loaded.ID, loaded.Entry.Revision)))
+			case recordStagedOnly:
+				return latticeplugin.ErrorResponse(fmt.Errorf("%s: subscription %q has no live revision; its staged revision %s waits for a plan", revisionUnknownCode, loaded.ID, orNone(loaded.Entry.StagedRevision)))
+			case recordAhead:
+				rec := loaded.Live
+				outcome.rederive = &rec
+			}
+			if loaded.HasLive {
+				rt.primeRecord(loaded.Live)
+			}
+		}
+	}
 	out, err := rt.fetchSubscription(req.SubscriptionID)
 	// Bookkeeping whether the fetch worked or not: this method is the
 	// refresh path — the core calls it on a schedule and the UI on a click —
 	// so it is the one place that knows when the served snapshot last moved.
-	rt.noteFetchOutcome(req.SubscriptionID, fetchOutcome{at: fetchedAt, userinfo: out.Userinfo, nodesIn: out.nodesIn, nodesOut: out.nodesOut, err: err})
+	outcome.userinfo, outcome.nodesIn, outcome.nodesOut, outcome.err = out.Userinfo, out.nodesIn, out.nodesOut, err
+	rt.noteFetchOutcome(req.SubscriptionID, outcome)
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
@@ -436,8 +480,18 @@ func (rt *runtime) fetchCall(payload json.RawMessage) response {
 	return latticeplugin.RawResultResponse(body, "")
 }
 
+// ownerCredentialsWithheldCode is lane 1's fetcher guard: the legacy fetchers
+// run only under fetch, and answer this code under every other method.
+const ownerCredentialsWithheldCode = "owner_credentials_withheld"
+
 // probeCall is the console's row check: fetchSubscription without the
-// bookkeeping, answering a byte count and never the body.
+// bookkeeping, answering a byte count and never the body. It opens the
+// record through storeLoadRecord and serves the staged document during a
+// half-done promotion, and it never completes one: a read method signed at
+// 138 host calls has no room for the two writes and no business making them.
+// A legacy record meets the fetcher guard, which it reports as
+// owner_credentials_withheld rather than folding into source_unavailable, so
+// the Records table shows the withheld state and not a provider outage.
 func (rt *runtime) probeCall(payload json.RawMessage) response {
 	var req struct {
 		SubscriptionID string `json:"subscription_id"`
@@ -445,11 +499,23 @@ func (rt *runtime) probeCall(payload json.RawMessage) response {
 	if err := decodeStrictVPNCoreGraphJSON(payload, &req); err != nil || strings.TrimSpace(req.SubscriptionID) == "" {
 		return latticeplugin.ErrorResponse(errors.New("invalid probe payload"))
 	}
+	result := subscriptionProbeResult{SubscriptionID: req.SubscriptionID}
+	if idx, err := rt.loadIndex(); err == nil && idx != nil && idx.position(req.SubscriptionID) >= 0 {
+		loaded, err := rt.storeLoadRecord(idx, req.SubscriptionID, false)
+		if err != nil || loaded.State == recordInconsistent || !loaded.HasLive {
+			result.ErrorCode = "source_unavailable"
+			return latticeplugin.RawResultResponse(mustJSON(result), "")
+		}
+		rt.primeRecord(loaded.Live)
+	}
 	out, err := rt.fetchSubscription(req.SubscriptionID)
-	result := subscriptionProbeResult{SubscriptionID: req.SubscriptionID, Stale: false, OK: err == nil}
-	if err != nil {
+	result.OK = err == nil
+	switch {
+	case err != nil && strings.HasPrefix(err.Error(), ownerCredentialsWithheldCode):
+		result.ErrorCode = ownerCredentialsWithheldCode
+	case err != nil:
 		result.ErrorCode = "source_unavailable"
-	} else {
+	default:
 		result.Bytes = len(out.Raw)
 		result.SourceVersion = out.SourceVersion
 	}
@@ -490,7 +556,7 @@ func (rt *runtime) importCall(payload json.RawMessage) response {
 	}
 	out, err := rt.importBackup([]byte(req.Backup))
 	if err != nil {
-		return latticeplugin.ErrorResponse(err)
+		return mutationResponse(err)
 	}
 	body, err := json.Marshal(out)
 	if err != nil {
@@ -536,7 +602,7 @@ func (rt *runtime) migrateCall(payload json.RawMessage) response {
 	}
 	report, err := rt.migrateFromSubStore(req)
 	if err != nil {
-		return latticeplugin.ErrorResponse(err)
+		return mutationResponse(err)
 	}
 	body, err := json.Marshal(report)
 	if err != nil {
@@ -556,11 +622,16 @@ func (rt *runtime) listCall() response {
 	return latticeplugin.RawResultResponse(body, "")
 }
 
-// getCall answers one whole record.
+// getCall answers one whole record: the live record, and its staged revision
+// beside it when one waits for a plan (plan section 2.7). A record with no
+// live revision answers its staged record as the subscription. `list`
+// deliberately omits content and operators so a management view cannot
+// double as a dump of every provider payload; editing one record still needs
+// them, so `get` returns the whole thing for exactly one id.
+//
+// Reply: {"subscription": <record>, "live_revision": "...", "staged":
+// {"revision", "base_revision", "staged_at", "subscription"}}.
 func (rt *runtime) getCall(payload json.RawMessage) response {
-	// `list` deliberately omits content and operators so a management view
-	// cannot double as a dump of every provider payload. Editing one record
-	// still needs them, so `get` returns the whole thing for exactly one id.
 	var req struct {
 		SubscriptionID string `json:"subscription_id"`
 	}
@@ -572,15 +643,35 @@ func (rt *runtime) getCall(payload json.RawMessage) response {
 	if strings.TrimSpace(req.SubscriptionID) == "" {
 		return latticeplugin.ErrorResponse(fmt.Errorf("subscription_id is required"))
 	}
-	rec, err := rt.getSubscription(req.SubscriptionID)
+	idx, err := rt.loadIndex()
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
-	body, err := json.Marshal(map[string]any{"subscription": rec})
+	loaded, err := rt.storeLoadRecord(idx, req.SubscriptionID, true)
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
-	return latticeplugin.RawResultResponse(body, "")
+	reply := map[string]any{}
+	staged := loaded.pendingStaged()
+	switch {
+	case loaded.HasLive:
+		reply["subscription"] = withBookkeeping(loaded.Live, loaded.Entry)
+		reply["live_revision"] = loaded.LiveRevision
+	case staged != nil:
+		reply["subscription"] = staged.Record
+	default:
+		if loaded.State == recordInconsistent {
+			return latticeplugin.ErrorResponse(refusalErr(storeInconsistentRefusal(loaded.ID, loaded.Entry.Revision)))
+		}
+		return latticeplugin.ErrorResponse(fmt.Errorf("subscription %q was not found", req.SubscriptionID))
+	}
+	if staged != nil {
+		reply["staged"] = map[string]any{
+			"revision": staged.Record.Revision, "base_revision": staged.BaseRevision,
+			"staged_at": staged.StagedAt, "subscription": staged.Record,
+		}
+	}
+	return latticeplugin.RawResultResponse(mustJSON(reply), "")
 }
 
 // saveCall creates or edits one record.
@@ -622,21 +713,29 @@ func (rt *runtime) saveCall(payload json.RawMessage) response {
 			return latticeplugin.ErrorResponse(err)
 		}
 	}
-	// A caller must not be able to forge provenance: a new record gets
-	// none, and an existing one keeps what is stored.
-	rec.Origin = nil
-	saved, conflict, err := rt.storeSave(rec, req.IfRevision, true)
+	// A caller must not be able to forge provenance: storeWriteRecord keeps
+	// what is stored (Origin, MigratedFrom) and gives a new record none.
+	res, err := rt.storeWriteRecord(writeRequest{Record: rec, IfRevision: req.IfRevision, Strict: true}, originSave)
 	if err != nil {
-		return latticeplugin.ErrorResponse(err)
+		return mutationResponse(err)
 	}
-	if conflict != nil {
-		return conflictResponse(rec.ID, conflict.reason, conflict.current, conflict.revision)
+	if res.Conflict != nil {
+		return conflictResponse(rec.ID, res.Conflict.reason, res.Conflict.current, res.Conflict.revision)
 	}
-	body, err := json.Marshal(map[string]any{"subscription": saved, "saved": true})
-	if err != nil {
-		return latticeplugin.ErrorResponse(err)
+	if res.Refused != nil {
+		return refusedResponse(*res.Refused)
 	}
-	return latticeplugin.RawResultResponse(body, "")
+	reply := map[string]any{"subscription": res.Record, "saved": true, "staged": res.Staged}
+	if res.Staged {
+		// A fleet-bound record waits in staged-v2-<id> for a plan, or for
+		// plans.publish when no live share can see the change.
+		reply["staged_revision"] = res.StagedRevision
+		reply["base_revision"] = res.BaseRevision
+	}
+	if res.Discarded != "" {
+		reply["discarded_staged"] = res.Discarded
+	}
+	return latticeplugin.RawResultResponse(mustJSON(reply), "")
 }
 
 // deleteCall archives one record.
@@ -653,7 +752,7 @@ func (rt *runtime) deleteCall(payload json.RawMessage) response {
 		return latticeplugin.ErrorResponse(fmt.Errorf("subscription_id is required"))
 	}
 	if err := rt.deleteSubscription(req.SubscriptionID); err != nil {
-		return latticeplugin.ErrorResponse(err)
+		return mutationResponse(err)
 	}
 	// Delete archives (store_archive.go): restore brings the record back
 	// under the same id until purge. Deleting the definition does not
@@ -683,12 +782,17 @@ func (rt *runtime) restoreOrPurgeCall(method string, payload json.RawMessage) re
 	if method == "restore" {
 		restored, err := rt.restoreSubscription(req.SubscriptionID)
 		if err != nil {
-			return latticeplugin.ErrorResponse(err)
+			return mutationResponse(err)
 		}
-		reply["restored"], reply["subscription"] = true, restored
+		reply["restored"], reply["subscription"], reply["staged"] = true, restored.Record, restored.Staged
+		if restored.Staged {
+			// A fleet-bound record restores into staged-v2-<id> and waits for
+			// plans.publish or a plan, as any fleet-bound write does.
+			reply["staged_revision"] = restored.StagedRevision
+		}
 	} else {
 		if err := rt.purgeSubscription(req.SubscriptionID); err != nil {
-			return latticeplugin.ErrorResponse(err)
+			return mutationResponse(err)
 		}
 		reply["purged"] = true
 	}
@@ -706,7 +810,7 @@ func (rt *runtime) reorderCall(payload json.RawMessage) response {
 		}
 	}
 	if err := rt.reorderSubscriptions(req.IDs); err != nil {
-		return latticeplugin.ErrorResponse(err)
+		return mutationResponse(err)
 	}
 	return latticeplugin.RawResultResponse(mustJSON(map[string]any{"reordered": true, "count": len(req.IDs)}), "")
 }
@@ -795,4 +899,25 @@ func conflictResponse(id, reason string, current subscriptionRecord, revision st
 		return latticeplugin.ErrorResponse(err)
 	}
 	return latticeplugin.RawResultResponse(body, "")
+}
+
+// discardStagedCall serves discard_staged: it drops a staged revision, the
+// only way one leaves the store other than a promotion (plan section 2.7).
+// Request {subscription_id, staged_revision}; reply {subscription_id,
+// discarded}. A refusal is the structured reply.
+func (rt *runtime) discardStagedCall(payload json.RawMessage) response {
+	var req struct {
+		SubscriptionID string `json:"subscription_id"`
+		StagedRevision string `json:"staged_revision"`
+	}
+	if err := decodeStrictVPNCoreGraphJSON(payload, &req); err != nil {
+		return latticeplugin.ErrorResponse(errors.New("invalid discard_staged payload"))
+	}
+	if strings.TrimSpace(req.SubscriptionID) == "" {
+		return latticeplugin.ErrorResponse(errors.New("subscription_id is required"))
+	}
+	if err := rt.storeDiscardStaged(req.SubscriptionID, req.StagedRevision); err != nil {
+		return mutationResponse(err)
+	}
+	return latticeplugin.RawResultResponse(mustJSON(map[string]any{"subscription_id": req.SubscriptionID, "discarded": req.StagedRevision}), "")
 }
