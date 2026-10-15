@@ -92,11 +92,14 @@ func TestSettingsDefaultsApplyWhereNothingElseNamesThem(t *testing.T) {
 		want    string
 		calls   int
 	}{
-		{"the default beats the UA class", map[string]any{"subscription_id": "free", "format": "plain", "ua_class": "surge"}, "sing-box", 2},
-		{"the default beats ua_target", map[string]any{"subscription_id": "free", "format": "plain", "ua_class": "clash", "ua_target": "ClashMeta"}, "sing-box", 2},
-		{"an explicit target beats the default, without reading it", map[string]any{"subscription_id": "free", "format": "plain", "target": "V2Ray"}, "V2Ray", 1},
-		{"a format that names a client beats the default", map[string]any{"subscription_id": "free", "format": "clash-meta"}, "ClashMeta", 1},
-		{"the record's pin beats the default, without reading it", map[string]any{"subscription_id": "pinned", "format": "plain", "ua_class": "surge"}, "ClashMeta", 1},
+		// Render opens its record through the store reader from S2: the
+		// index and the record, then Settings when nothing else names the
+		// target.
+		{"the default beats the UA class", map[string]any{"subscription_id": "free", "format": "plain", "ua_class": "surge"}, "sing-box", 3},
+		{"the default beats ua_target", map[string]any{"subscription_id": "free", "format": "plain", "ua_class": "clash", "ua_target": "ClashMeta"}, "sing-box", 3},
+		{"an explicit target beats the default, without reading it", map[string]any{"subscription_id": "free", "format": "plain", "target": "V2Ray"}, "V2Ray", 2},
+		{"a format that names a client beats the default", map[string]any{"subscription_id": "free", "format": "clash-meta"}, "ClashMeta", 2},
+		{"the record's pin beats the default, without reading it", map[string]any{"subscription_id": "pinned", "format": "plain", "ua_class": "surge"}, "ClashMeta", 2},
 	} {
 		if target, calls := render(c.payload); target != c.want || calls != c.calls {
 			t.Fatalf("%s: target %q in %d host calls, want %q in %d", c.name, target, calls, c.want, c.calls)
