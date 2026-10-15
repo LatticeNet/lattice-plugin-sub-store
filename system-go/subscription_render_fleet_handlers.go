@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
 	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
@@ -128,11 +129,12 @@ func (rt *runtime) renderRecord(rec subscriptionRecord, req subscriptionRenderRe
 		return renderResult{}, fmt.Errorf("subscription %q: %w", subscriptionID, err)
 	}
 	request := nodeConvertRequest{
-		Parts:   []string{source},
-		Target:  target,
-		Plan:    plan,
-		Options: req.Options,
-		Explain: req.Explain,
+		Parts:         []string{source},
+		Target:        target,
+		Plan:          plan,
+		Options:       req.Options,
+		Explain:       req.Explain,
+		AllowExternal: parseOptionsFor(rec).AllowExternal,
 	}
 	// A snapshot envelope carries the nodes fetch parsed from the same text;
 	// a native render reads them instead of parsing again.
@@ -260,6 +262,16 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 		if strings.TrimSpace(req.Raw) != "" {
 			return latticeplugin.ErrorResponse(errors.New("graph preview does not accept caller raw content"))
 		}
+		// A graph composition carries an identity's credentials, which only
+		// core's refresh may read (S2 plan section 1.2): no operator path
+		// composes one, redacted or not.
+		label := strings.TrimSpace(req.SubscriptionID)
+		if label == "" {
+			label = "the graph draft"
+		}
+		return latticeplugin.ErrorResponse(ownerCredentialsWithheldError(label))
+	}
+	if graphSelection != nil {
 		if strings.TrimSpace(req.SubscriptionID) != "" {
 			rec, err := rt.getSubscription(req.SubscriptionID)
 			if err != nil {
@@ -307,6 +319,24 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 		// call them the result, which is worse than showing nothing.
 		if recordKind(rec) == kindFile {
 			return previewFileResponse(rt, rec)
+		}
+		// A legacy record's nodes are its export, which only core's refresh
+		// may read; the preview tab shows the withheld state until the
+		// record is migrated.
+		if isVPNCoreSource(rec.Source) && recordKind(rec) == kindSub {
+			return latticeplugin.ErrorResponse(ownerCredentialsWithheldError(rec.ID))
+		}
+		if fleetRec, ok := fleetPreviewRecord(rec, operators); ok {
+			return previewReply(rt.previewFleetSub(fleetRec, target))
+		}
+		if recordKind(rec) == kindCollection {
+			bound, err := rt.fleetBoundLive(rec)
+			if err != nil {
+				return latticeplugin.ErrorResponse(err)
+			}
+			if bound {
+				return previewReply(rt.previewFleetCollection(rec, target))
+			}
 		}
 		// A combination has no content of its own either: its nodes are its
 		// members', merged with each member's chain and then its own already
@@ -383,6 +413,10 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 			}
 			previewSourceVersion = composed.SourceVersion
 		}
+	} else if req.Source == subscriptionSourceFleet {
+		// An unsaved fleet draft previews from the catalogue live: its
+		// selection is its leading Structured Filter run.
+		return previewReply(rt.previewFleetSub(subscriptionRecord{ID: "draft", Source: subscriptionSourceFleet, Process: operators}, target))
 	} else if strings.TrimSpace(raw) == "" && req.Source != "" && req.Source != subscriptionSourceLocal {
 		// An unsaved draft carries its source but no content. Resolve the
 		// source live — the same guarded path a saved record's refresh
@@ -410,6 +444,155 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 		return latticeplugin.ErrorResponse(err)
 	}
 	return latticeplugin.RawResultResponse(body, "")
+}
+
+// fleetPreviewRecord is the fleet sub a preview of rec previews, with the
+// caller's operators standing in for its stored chain when given; false
+// when rec is not a fleet sub.
+func fleetPreviewRecord(rec subscriptionRecord, operators []json.RawMessage) (subscriptionRecord, bool) {
+	if recordKind(rec) != kindSub || rec.Source != subscriptionSourceFleet {
+		return subscriptionRecord{}, false
+	}
+	if operators != nil {
+		rec.Process, rec.Operators, rec.Revision = operators, nil, ""
+		rec = withRevision(rec)
+	}
+	return rec, true
+}
+
+// previewReply answers a preview result or its error.
+func previewReply(out previewResult, err error) response {
+	if err != nil {
+		return latticeplugin.ErrorResponse(err)
+	}
+	body, err := json.Marshal(out)
+	if err != nil {
+		return latticeplugin.ErrorResponse(err)
+	}
+	return latticeplugin.RawResultResponse(body, "")
+}
+
+// previewFleetSub previews a fleet sub (saved, or an unsaved draft) from the
+// catalogue live, under its own selection: the operator action pays the
+// pages. It builds the plan render would and answers its nodes as
+// summaries, which carry no credential field, the rows the chain removed,
+// and the target's document over the plan's placeholders, marked
+// placeholder_credentials.
+func (rt *runtime) previewFleetSub(rec subscriptionRecord, target string) (previewResult, error) {
+	label := "subscription " + quoteLabel(rec.ID)
+	_, read, err := rt.readFleetSelection(rec)
+	if err != nil {
+		return previewResult{}, fmt.Errorf("%s: %w", label, err)
+	}
+	target = previewTarget(target)
+	plan, err := rt.buildFleetPlan(fleetPlanInput{Label: label, Record: rec, CatalogueVersion: read.CatalogueVersion, Rows: read.Rows, Target: target})
+	if err != nil {
+		return previewResult{}, err
+	}
+	source, _, err := fleetRowNodes(read.Rows, rec.Fleet, newFleetPlaceholders(len(read.Rows)))
+	if err != nil {
+		return previewResult{}, err
+	}
+	out, err := rt.fleetPreviewResult(plan, source, target)
+	out.SourceVersion = read.CatalogueVersion
+	return out, err
+}
+
+// previewFleetCollection previews a fleet-bound collection over its live
+// members: the membership by collectionMembers' rule over the index, every
+// member resolved live (fleet members from the catalogue, provider members
+// from their sources, a legacy member withheld), and the plan render would
+// build.
+func (rt *runtime) previewFleetCollection(rec subscriptionRecord, target string) (previewResult, error) {
+	label := "collection " + quoteLabel(rec.ID)
+	idx, err := rt.loadIndex()
+	if err != nil {
+		return previewResult{}, err
+	}
+	members, err := stagedCollectionMembership(rec, idx, nil)
+	if err != nil {
+		return previewResult{}, err
+	}
+	parts, versions, err := rt.collectionParts(label, members, nil)
+	if err != nil {
+		return previewResult{}, err
+	}
+	target = previewTarget(target)
+	plan, err := rt.buildFleetCollectionPlan(label, rec, parts, fleetCollectionVersion(versions), target)
+	if err != nil {
+		return previewResult{}, err
+	}
+	var source []*nodemodel.Node
+	table := newFleetPlaceholders(0)
+	for _, part := range parts {
+		if !part.Fleet {
+			source = append(source, part.Provider...)
+			continue
+		}
+		nodes, _, err := fleetRowNodes(part.Rows, rec.Fleet, table)
+		if err != nil {
+			return previewResult{}, err
+		}
+		source = append(source, nodes...)
+	}
+	return rt.fleetPreviewResult(plan, source, target)
+}
+
+// previewTarget is the client a fleet preview renders its document for.
+func previewTarget(target string) string {
+	if strings.TrimSpace(target) == "" {
+		return "URI"
+	}
+	return target
+}
+
+// fleetPreviewResult turns a fleet plan into a preview: the plan's nodes as
+// summaries paired with the pre-chain nodes, and the target's document over
+// the plan's placeholders, bounded as a file preview's document is.
+func (rt *runtime) fleetPreviewResult(plan fleetPlanOutput, source []*nodemodel.Node, target string) (previewResult, error) {
+	decoded, err := model.DecodeSelectionPlan(plan.Encoded)
+	if err != nil {
+		return previewResult{}, err
+	}
+	nodes := make([]*nodemodel.Node, 0, len(decoded.Nodes))
+	for i, planNode := range decoded.Nodes {
+		n := &nodemodel.Node{}
+		if err := n.UnmarshalPlanNode(planNode.Node); err != nil {
+			return previewResult{}, fmt.Errorf("plan node %d: %w", i, err)
+		}
+		n.Lattice = nil
+		nodemodel.StripLattice(n)
+		nodes = append(nodes, n)
+	}
+	sourceSummaries := make([]nodeSummary, len(source))
+	for i, n := range source {
+		sourceSummaries[i] = summarizeNode(n)
+	}
+	kept := make([]nodeSummary, len(nodes))
+	for i, n := range nodes {
+		kept[i] = summarizeNode(n)
+	}
+	out := previewResult{SourceNodeCount: len(source), NodeCount: len(kept), Nodes: kept, PlaceholderCredentials: true}
+	out.Dropped = pairPreview(sourceSummaries, kept)
+	out.DroppedCount = len(out.Dropped)
+	if len(out.Nodes) > maxPreviewNodes {
+		out.Nodes, out.Truncated = out.Nodes[:maxPreviewNodes], true
+	}
+	if len(out.Dropped) > maxPreviewNodes {
+		out.Dropped, out.DroppedTruncated = out.Dropped[:maxPreviewNodes], true
+	}
+	if len(nodes) > 0 {
+		converted, _, err := rt.convertNodes(nodeConvertRequest{Target: target, Nodes: nodes, Explain: true})
+		if err != nil {
+			return previewResult{}, err
+		}
+		document := converted.Output
+		if len(document) > maxPreviewDocumentBytes {
+			document, out.Truncated = document[:maxPreviewDocumentBytes], true
+		}
+		out.Document = document
+	}
+	return out, nil
 }
 
 // renderCall serves render: the body the core serves for a share.
@@ -480,53 +663,82 @@ type renderReply struct {
 	LiveRevision string          `json:"live_revision,omitempty"`
 }
 
-// render is the render method: a fleet sub renders to a plan
-// (renderFleetSub), every other record to its document as before. A named
-// revision other than the live one is revision_unknown until the staged
-// store lands (lane 4); the live one renders as if none were named.
+// render is the render method. It opens the record through openForRender
+// (the index and the record, every call), then renders the revision named:
+// a fleet sub to a plan (renderFleetSub); a collection whose live entry is
+// fleet-bound to a plan from its snapshot's blocks on the serve path
+// (renderFleetCollection), and any collection by a staged revision or with
+// member revisions over the recomputed staged membership
+// (renderStagedCollection); every other record to its document as before.
 func (rt *runtime) render(req subscriptionRenderRequest, opts fleetRenderOptions) (renderReply, error) {
-	rec, err := rt.getSubscription(req.SubscriptionID)
+	o, err := rt.openForRender(req.SubscriptionID, opts)
 	if err != nil {
 		return renderReply{}, err
 	}
-	fleetSub := recordKind(rec) == kindSub && rec.Source == subscriptionSourceFleet
-	fleetCollection, owner := false, false
-	if recordKind(rec) == kindCollection {
-		// A fleet-bound collection never takes a path that reads member
-		// text as provider content: its plan is built node-wise from its
-		// blocks, and a legacy-shaped snapshot is refused.
-		if fleetCollection, owner, err = rt.collectionFleetState(rec); err != nil {
-			return renderReply{}, err
-		}
-	}
-	if fleetSub || fleetCollection {
-		target, err := rt.renderTarget(rec, req)
-		if err != nil {
-			return renderReply{}, err
-		}
-		var out fleetRendered
-		if fleetSub {
-			out, err = rt.renderFleetSub(rec, req, opts, target)
-		} else {
-			out, err = rt.renderFleetCollection(rec, req, opts, target, owner)
-		}
-		if err != nil {
-			return renderReply{}, err
-		}
+	rec := o.Rec
+	kind := recordKind(rec)
+	planned := func(out fleetRendered, target string) renderReply {
 		result := renderResult{ContentType: targetContentType(target), Target: target, NodeCount: explainedNodeCount(req.Explain, out.NodeCount)}
 		if req.Explain {
 			result.DroppedNodeCount, result.DroppedProtocols = fleetDroppedSummary(out.Dropped)
 		}
-		return renderReply{renderResult: result, Plan: out.Plan, LiveRevision: out.LiveRevision}, nil
+		return renderReply{renderResult: result, Plan: out.Plan, LiveRevision: o.Live}
 	}
-	if opts.staged(rec.Revision) {
-		return renderReply{}, fmt.Errorf("%s: subscription %q has no revision %q; its live revision is %q", codeRevisionUnknown, rec.ID, opts.Revision, rec.Revision)
+	switch {
+	case kind == kindSub && rec.Source == subscriptionSourceFleet:
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, err := rt.renderFleetSub(o, req, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		return planned(out, target), nil
+	case kind == kindCollection && o.Staged:
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, ok, err := rt.renderStagedCollection(o, req, opts, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		if ok {
+			return planned(out, target), nil
+		}
+		// The staged state gathers no fleet record: the revision renders
+		// as the document it would serve, resolved live (provider members
+		// only; a legacy member is withheld).
+		req.Raw = ""
+	case kind == kindCollection && o.Entry.Flags.FleetBound:
+		target, err := rt.renderTarget(rec, req)
+		if err != nil {
+			return renderReply{}, err
+		}
+		out, err := rt.renderFleetCollection(o, req, target)
+		if err != nil {
+			return renderReply{}, err
+		}
+		return planned(out, target), nil
+	case o.Staged:
+		// A staged provider revision (a fleet record re-staged as remote or
+		// local): the live snapshot is not its content, so it renders over
+		// its own source, resolved live.
+		req.Raw = ""
+		if kind == kindSub && rec.Source == subscriptionSourceRemote {
+			fetched, err := rt.fetchRecordContent(rec)
+			if err != nil {
+				return renderReply{}, err
+			}
+			req.Raw = fetched.Raw
+		}
 	}
 	result, err := rt.renderRecord(rec, req)
 	if err != nil {
 		return renderReply{}, err
 	}
-	return renderReply{renderResult: result, LiveRevision: rec.Revision}, nil
+	return renderReply{renderResult: result, LiveRevision: o.Live}, nil
 }
 
 // fleetDroppedSummary counts the rows that had no node and names their

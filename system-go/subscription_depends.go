@@ -128,10 +128,9 @@ func dependsOnAnswer(entries []indexEntry, req dependsOnRequest) (dependsOnReply
 		if !selected[entry.ID] {
 			continue
 		}
-		staged := stagedFactsOf(entry)
 		reply.Records = append(reply.Records, dependsOnRecord{
 			ID: entry.ID, Revision: entry.Revision, Kind: entry.Kind, Source: entry.Source,
-			StagedRevision: staged.revision, StagedSource: staged.source, StagedMigrated: staged.migrated,
+			StagedRevision: entry.StagedRevision, StagedSource: entry.StagedSource, StagedMigrated: entry.StagedMigrated,
 			FleetBound: live.FleetBound[entry.ID], OwnerCredentials: live.OwnerCredentials[entry.ID],
 		})
 		if union.FleetBound[entry.ID] {
@@ -177,29 +176,6 @@ func readersOf(id string, edges []dependsEdge) map[string]bool {
 	return out
 }
 
-// stagedFacts are an entry's staged facts: what a staged revision would make
-// the record, read without opening its staged document.
-type stagedFacts struct {
-	revision   string
-	source     string
-	members    []string
-	memberTags []string
-	tags       []string
-	migrated   bool
-}
-
-// stagedFactsOf reads an entry's staged facts.
-//
-// yagni: the index fields that hold them (StagedRevision, StagedSource,
-// StagedMembers, StagedMemberTags, StagedTags, StagedMigrated) are lane 4's
-// and have not landed, so no entry has a staged revision yet and the union
-// equals live state. When they land this returns them and every caller,
-// depends_on included, sees staged edges with no other change.
-func stagedFactsOf(entry indexEntry) stagedFacts {
-	_ = entry
-	return stagedFacts{}
-}
-
 // fleetClosure is the two closures over a set of index entries and the
 // edges they were computed over.
 type fleetClosure struct {
@@ -209,30 +185,22 @@ type fleetClosure struct {
 }
 
 // fleetDependents computes both closures over the entries, live or over the
-// union of live and staged state. A collection cannot contain a collection
-// and a file cannot source a file, so subs, then collections, then files
-// are the whole closure. The index's own flags call it with includeStaged
-// false at every index write; depends_on with include_staged true.
+// union of live and staged state, on lane 4's record graph (store_graph.go):
+// fleet_bound seeds from the fleet subs and closes over collections,
+// owner_credentials seeds from the legacy subs and closes over collections
+// and files. The edges are every reader edge of the same graph. An entry
+// with no live revision contributes only its staged facts, and only to the
+// union.
 func fleetDependents(entries []indexEntry, includeStaged bool) fleetClosure {
-	type facts struct {
-		entry      indexEntry
-		sources    []string
-		tags       []string
-		members    []string
-		memberTags []string
+	state := graphLive
+	if includeStaged {
+		state = graphUnion
 	}
-	all := make([]facts, 0, len(entries))
-	for _, entry := range entries {
-		f := facts{entry: entry, sources: []string{entry.Source}, tags: entry.Tags, members: entry.Members, memberTags: entry.MemberTags}
-		if staged := stagedFactsOf(entry); includeStaged && staged.revision != "" {
-			f.sources = append(f.sources, staged.source)
-			f.tags = append(append([]string(nil), f.tags...), staged.tags...)
-			f.members = append(append([]string(nil), f.members...), staged.members...)
-			f.memberTags = append(append([]string(nil), f.memberTags...), staged.memberTags...)
-		}
-		all = append(all, f)
+	g := newStoreGraph(entries, state)
+	out := fleetClosure{
+		FleetBound:       g.closure(seedFleet, false),
+		OwnerCredentials: g.closure(seedLegacy, true),
 	}
-	out := fleetClosure{FleetBound: map[string]bool{}, OwnerCredentials: map[string]bool{}}
 	seenEdge := map[dependsEdge]bool{}
 	addEdge := func(edge dependsEdge) {
 		if !seenEdge[edge] {
@@ -240,57 +208,22 @@ func fleetDependents(entries []indexEntry, includeStaged bool) fleetClosure {
 			out.Edges = append(out.Edges, edge)
 		}
 	}
-	for _, f := range all {
-		if f.entry.Kind != kindSub {
-			continue
-		}
-		for _, source := range f.sources {
-			switch {
-			case source == subscriptionSourceFleet:
-				out.FleetBound[f.entry.ID] = true
-			case isVPNCoreSource(source):
-				out.OwnerCredentials[f.entry.ID] = true
-			}
-		}
-	}
-	for _, c := range all {
-		if c.entry.Kind != kindCollection {
-			continue
-		}
-		explicit := make(map[string]bool, len(c.members))
-		for _, id := range c.members {
+	for _, c := range g.collections() {
+		explicit := make(map[string]bool, len(c.Members))
+		for _, id := range c.Members {
 			explicit[id] = true
 		}
-		for _, s := range all {
-			if s.entry.Kind != kindSub {
-				continue
-			}
-			via := ""
-			switch {
-			case explicit[s.entry.ID]:
+		for _, id := range g.gathered(c) {
+			via := dependsViaMemberTag
+			if explicit[id] {
 				via = dependsViaMember
-			case tagsIntersect(c.memberTags, s.tags):
-				via = dependsViaMemberTag
-			default:
-				continue
 			}
-			addEdge(dependsEdge{From: c.entry.ID, To: s.entry.ID, Via: via})
-			if out.FleetBound[s.entry.ID] {
-				out.FleetBound[c.entry.ID] = true
-			}
-			if out.OwnerCredentials[s.entry.ID] {
-				out.OwnerCredentials[c.entry.ID] = true
-			}
+			addEdge(dependsEdge{From: c.ID, To: id, Via: via})
 		}
 	}
-	for _, f := range all {
-		source := strings.TrimSpace(f.entry.NodeSource)
-		if f.entry.Kind != kindFile || source == "" {
-			continue
-		}
-		addEdge(dependsEdge{From: f.entry.ID, To: source, Via: dependsViaNodeSource})
-		if out.OwnerCredentials[source] {
-			out.OwnerCredentials[f.entry.ID] = true
+	for _, f := range g.files() {
+		if f.NodeSource != "" {
+			addEdge(dependsEdge{From: f.ID, To: f.NodeSource, Via: dependsViaNodeSource})
 		}
 	}
 	sort.Slice(out.Edges, func(i, j int) bool {

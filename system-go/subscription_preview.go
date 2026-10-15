@@ -56,8 +56,14 @@ type previewResult struct {
 	Stale            bool          `json:"stale"`
 	// Document is set instead of Nodes when the record is a file. A file is a
 	// document, so the question its preview answers is "what will a client
-	// receive", not "which nodes survived the filter".
+	// receive", not "which nodes survived the filter". A fleet-bound
+	// record's preview carries both: the nodes, and the target's document
+	// over placeholder credentials.
 	Document string `json:"document,omitempty"`
+	// PlaceholderCredentials marks a fleet-bound preview: every credential
+	// field in Document is a plan placeholder (LATTICE-SYN-...), because
+	// core binds an identity's credentials only for a share.
+	PlaceholderCredentials bool `json:"placeholder_credentials,omitempty"`
 }
 
 // maxPreviewDocumentBytes bounds what a file preview returns. The reply travels

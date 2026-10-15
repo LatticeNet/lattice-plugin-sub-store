@@ -145,10 +145,11 @@ func (rt *runtime) memberNodes(member subscriptionRecord, authority legacyAuthor
 	// URI carries a chained member: the chain's output has to be node text the
 	// collection can parse again.
 	converted, served, err := rt.convertNodes(nodeConvertRequest{
-		Parts:        []string{raw},
-		Target:       "URI",
-		Plan:         plan,
-		CarrierCheck: true,
+		Parts:         []string{raw},
+		Target:        "URI",
+		Plan:          plan,
+		CarrierCheck:  true,
+		AllowExternal: parseOptionsFor(member).AllowExternal,
 	})
 	if err != nil {
 		return memberOutput{}, fmt.Errorf("%s: %w", memberLabel(member), err)
@@ -222,9 +223,18 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 	// live path would read a legacy member's export for whoever called
 	// render with a broken raw. An empty one renders live, which is how
 	// previews and unsaved drafts work.
-	members, membersNative := snapshotMembers(snapshotRaw, nativeRoute(plan, target))
-	if len(members) == 0 && strings.TrimSpace(snapshotRaw) != "" {
+	members, membersNative, err := snapshotMembers(snapshotRaw, nativeRoute(plan, target))
+	if err != nil {
 		return subStoreConversionResult{}, fmt.Errorf("%s: collection %q has a snapshot this plugin cannot read; the next refresh replaces it", codeSnapshotMalformed, rec.ID)
+	}
+	// A fleet block has no text a document can carry: its nodes exist only
+	// over placeholders, inside a plan. A collection rendered as a document
+	// is not fleet-bound live, so a snapshot holding fleet blocks predates
+	// the change that unbound it.
+	for _, member := range members {
+		if member.block.fleet != nil {
+			return subStoreConversionResult{}, fmt.Errorf("%s: collection %q is not fleet-bound and its snapshot holds the fleet block of %q; the next refresh replaces it", codeFleetEnvelopeMismatch, rec.ID, member.block.id)
+		}
 	}
 	if len(members) == 0 {
 		gathered, err := rt.collectionMembers(rec)
@@ -250,41 +260,66 @@ func (rt *runtime) renderCollectionResult(rec subscriptionRecord, target string,
 	return converted, err
 }
 
+// errSnapshotMalformed is snapshotMembers' refusal of a snapshot it cannot
+// read; its caller names the record.
+var errSnapshotMalformed = fmt.Errorf("%s: the snapshot is not one this plugin can read; the next refresh replaces it", codeSnapshotMalformed)
+
 // snapshotMembers reads a collection snapshot's members: a version 2
 // envelope, or the members object a version 1 snapshot is (and snapshotText
-// gives back). Empty members are skipped.
+// gives back). Every block's member facts are read (id, source, revision,
+// steps), provider blocks included. A fleet block is kept with its selection
+// (catalogue version, selector, rows) and no text; a provider block with no
+// text is skipped. A non-empty snapshot it cannot read, or one that holds no
+// usable block, is snapshot_malformed: core hands the plugin only snapshots
+// the plugin wrote, so such a snapshot is never a reason to resolve the
+// members live (S2 plan section 1.2).
 //
-// membersNative reports that every member's chain ran in Go when the snapshot
-// was taken, which only a version 2 envelope can say: its members carry their
-// nodes, or it says some or all were omitted for size. Anything else (a
-// version 1 snapshot, an envelope whose members ran on the bundle, one
-// written before member nodes existed) renders whole on the bundle, as the
-// members' texts came from it.
+// membersNative reports that every provider member's chain ran in Go when
+// the snapshot was taken, which only a version 2 envelope can say: its
+// members carry their nodes, or it says some or all were omitted for size.
+// Anything else (a version 1 snapshot, an envelope whose members ran on the
+// bundle, one written before member nodes existed) renders whole on the
+// bundle, as the members' texts came from it.
 //
-// Nodes are read only when the render will read them, and then every member
-// gets its nodes: decoded where the envelope carries them, parsed from the
-// member's text where the size bound left them out. Nodes that do not decode
-// leave every member to its text, as before.
-func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool) {
+// Nodes are read only when the render will read them, and then every
+// provider member gets its nodes: decoded where the envelope carries them,
+// parsed from the member's text where the size bound left them out. Nodes
+// that do not decode leave every member to its text, as before.
+func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool, error) {
 	if strings.TrimSpace(snapshotRaw) == "" {
-		return nil, false
+		return nil, false, nil
 	}
+	malformed := errSnapshotMalformed
 	if env, ok := decodeSnapshotEnvelope(snapshotRaw); ok && len(env.Members) > 0 {
-		withNodes := 0
+		withNodes, providers := 0, 0
 		members := make([]fileScriptMember, 0, len(env.Members))
 		for _, member := range env.Members {
+			block := memberBlock{id: member.ID, source: member.Source, revision: member.Revision, steps: member.Steps}
+			if member.Source == subscriptionSourceFleet {
+				block.fleet = &fleetMemberBlock{catalogueVersion: member.CatalogueVersion, selector: member.Selector, rows: member.Rows}
+				members = append(members, fileScriptMember{SubName: member.SubName, block: block})
+				continue
+			}
 			if strings.TrimSpace(member.Raw) == "" {
 				continue
 			}
+			providers++
 			if len(member.Nodes) > 0 {
 				withNodes++
 			}
-			members = append(members, fileScriptMember{SubName: member.SubName, Raw: strings.TrimSpace(member.Raw)})
+			members = append(members, fileScriptMember{SubName: member.SubName, Raw: strings.TrimSpace(member.Raw), block: block})
 		}
-		membersNative := len(members) > 0 && (withNodes == len(members) || env.NodesOmitted == nodesOmittedSize)
+		if len(members) == 0 {
+			return nil, false, malformed
+		}
+		membersNative := providers > 0 && (withNodes == providers || env.NodesOmitted == nodesOmittedSize)
 		if membersNative && decode {
 			at := 0
 			for _, member := range env.Members {
+				if member.Source == subscriptionSourceFleet {
+					at++
+					continue
+				}
 				if strings.TrimSpace(member.Raw) == "" {
 					continue
 				}
@@ -313,11 +348,11 @@ func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool)
 				at++
 			}
 		}
-		return members, membersNative
+		return members, membersNative, nil
 	}
 	var snap snapshotArtifacts
 	if err := json.Unmarshal([]byte(snapshotRaw), &snap); err != nil {
-		return nil, false
+		return nil, false, malformed
 	}
 	members := make([]fileScriptMember, 0, len(snap.Members))
 	for _, member := range snap.Members {
@@ -325,5 +360,8 @@ func snapshotMembers(snapshotRaw string, decode bool) ([]fileScriptMember, bool)
 			members = append(members, fileScriptMember{SubName: member.SubName, Raw: trimmed})
 		}
 	}
-	return members, false
+	if len(members) == 0 {
+		return nil, false, malformed
+	}
+	return members, false, nil
 }

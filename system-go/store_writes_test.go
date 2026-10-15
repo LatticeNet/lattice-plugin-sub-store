@@ -150,11 +150,13 @@ func TestSaveRefusesProbePredicateWhileUnavailable(t *testing.T) {
 	}
 }
 
-// TestFleetRecordRefusesLinkModeScriptStep (the save and import halves): a
-// link-mode Script Operator or Script Filter on a fleet-bound record is
-// refused at storeWriteRecord for every origin, naming the step and never the
-// link; an inline script is unaffected.
-func TestFleetRecordRefusesLinkModeScriptStep(t *testing.T) {
+// TestFleetRecordRefusesLinkModeScriptStepOnWrite is the save and import
+// halves of the plan's TestFleetRecordRefusesLinkModeScriptStep, whose render
+// and member-block halves lane 1 pins under that name: a link-mode Script
+// Operator or Script Filter on a fleet-bound record is refused at
+// storeWriteRecord for every origin, naming the step and never the link; an
+// inline script is unaffected.
+func TestFleetRecordRefusesLinkModeScriptStepOnWrite(t *testing.T) {
 	link := json.RawMessage(`{"type":"Script Operator","args":{"mode":"link","content":"https://scripts.invalid/x.js"}}`)
 	inline := json.RawMessage(`{"type":"Script Filter","args":{"mode":"script","content":"function filter(p){return p.map(()=>true)}"}}`)
 	t.Run("save", func(t *testing.T) {

@@ -292,3 +292,53 @@ func TestCollectionPlanCarriesItsOwnPolicy(t *testing.T) {
 		t.Fatalf("policy = %+v", plan.Policy)
 	}
 }
+
+// TestSnapshotMembersKeepsFleetBlocks pins the snapshot reader: a fleet
+// block is kept with its selection though it carries no text, and every
+// block's member facts (id, source, revision, steps) are read, provider
+// blocks included.
+func TestSnapshotMembersKeepsFleetBlocks(t *testing.T) {
+	rt, _ := fleetCollectionFixture(t, subscriptionRecord{})
+	fetched, err := rt.fetchSubscription("all")
+	if err != nil {
+		t.Fatal(err)
+	}
+	members, _, err := snapshotMembers(fetched.Raw, true)
+	if err != nil || len(members) != 3 {
+		t.Fatalf("members = %d, err %v", len(members), err)
+	}
+	hk, _ := rt.getSubscription("hk")
+	if b := members[0].block; b.id != "hk" || b.source != subscriptionSourceFleet || b.revision != hk.Revision || b.fleet == nil ||
+		b.fleet.catalogueVersion != fleetTestVersion || b.fleet.selector == nil || len(b.fleet.rows) == 0 || members[0].Raw != "" {
+		t.Fatalf("fleet block = %+v", b)
+	}
+	local, _ := rt.getSubscription("local")
+	if b := members[2].block; b.id != "local" || b.source != subscriptionSourceLocal || b.revision != local.Revision || b.fleet != nil || members[2].Raw == "" || len(members[2].nodes) != 2 {
+		t.Fatalf("provider block = %+v (raw %q, %d nodes)", b, members[2].Raw, len(members[2].nodes))
+	}
+}
+
+// TestSnapshotMembersRefusesMalformedRaw pins that a non-empty snapshot the
+// plugin cannot read is snapshot_malformed, never an empty member list a
+// caller would answer by resolving the members live; an empty snapshot is
+// no members and no error (previews and drafts render live).
+func TestSnapshotMembersRefusesMalformedRaw(t *testing.T) {
+	for name, raw := range map[string]string{
+		"not json":            "x",
+		"a sub envelope":      `{"version":2,"kind":"sub","raw":"trojan://p@198.51.100.1:443#a"}`,
+		"members all empty":   `{"version":2,"kind":"collection","members":[{"sub_name":"a","raw":""}]}`,
+		"a v1 with no member": `{"members":[]}`,
+	} {
+		if members, _, err := snapshotMembers(raw, true); err == nil || !strings.HasPrefix(err.Error(), codeSnapshotMalformed) || members != nil {
+			t.Fatalf("%s: members %d, err %v", name, len(members), err)
+		}
+	}
+	if members, _, err := snapshotMembers("  ", true); err != nil || members != nil {
+		t.Fatalf("an empty snapshot: members %d, err %v", len(members), err)
+	}
+	rt, host := fleetCollectionFixture(t, subscriptionRecord{ID: "plain", Name: "plain", Members: []string{"local"}})
+	_, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "plain", "raw": "x", "target": "URI", "format": "plain"})
+	if res.OK || !strings.HasPrefix(res.Error, codeSnapshotMalformed) || host.calls != 0 {
+		t.Fatalf("render over a malformed snapshot: ok=%v error=%q pages %d", res.OK, res.Error, host.calls)
+	}
+}

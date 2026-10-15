@@ -576,6 +576,12 @@ const (
 	fleetWriteMigrate       fleetWriteOrigin = "migrate"
 	fleetWriteRestore       fleetWriteOrigin = "restore"
 	fleetWriteMigrateRecord fleetWriteOrigin = "migrate_record"
+	// fleetWriteApplyRevision names a promotion for messages only.
+	// apply_revision does not run applyFleetWriteRules (lane 4's
+	// promotionRefusal decides the promotion with the gathered records
+	// resolved live, and the mixing guard must not run there: a multi-record
+	// migration is mixed by design between its first and last promotion), so
+	// no rule here may key a refusal on this origin.
 	fleetWriteApplyRevision fleetWriteOrigin = "apply_revision"
 )
 
@@ -604,9 +610,12 @@ const (
 //   - fleet_script_link_unavailable: a link-mode Script Operator or Script
 //     Filter on a record that is or would be fleet-bound.
 //
-// The membership half of fleet_to_legacy_refused at apply_revision also
-// triggers on the fleet-boundness the promotion would give the record; the
-// caller passes FleetBound true for that case.
+// It runs at save, import, migrate, restore and migrate_record (where the
+// caller leaves out the collections gathering the record). It does not run
+// at apply_revision: the promotion's own refusal (lane 4's promotionRefusal)
+// resolves the gathered records by their live state and skips the mixing
+// guard, which a multi-record migration would otherwise trip between its
+// promotions.
 func applyFleetWriteRules(rec subscriptionRecord, live fleetLiveFacts, others []fleetRecordFacts, origin fleetWriteOrigin) (subscriptionRecord, error) {
 	self := factsOf(rec)
 	universe := make([]fleetRecordFacts, 0, len(others)+1)
