@@ -585,3 +585,135 @@ func TestExportBackupCarriesScriptPrograms(t *testing.T) {
 		t.Fatalf("restored script = %q, program lost in the round trip", restored.Content)
 	}
 }
+
+// TestS2HostCallCountsWithRetryAndRestart pins the S2 write methods on their
+// heaviest paths, each index write meeting one kv_conflict and spending the
+// retry's re-read and second put, and fleet_preview over a 10000-line
+// catalogue whose version moves on the last page of the first pass (plan
+// sections 2.7 and 10). Every count must fit the signed budget.
+func TestS2HostCallCountsWithRetryAndRestart(t *testing.T) {
+	type scenario struct {
+		name   string
+		method string
+		setup  func(t *testing.T, rt *runtime, host *casKVHost) any
+		want   int
+	}
+	staged := func(t *testing.T, rt *runtime) (string, string) {
+		edit := fleetRecord("f")
+		edit.DisplayName = "edited"
+		return stageEdit(t, rt, edit, originSave)
+	}
+	scenarios := []scenario{
+		// The claim, the index, the record, the staged document, the index
+		// put and its retry, the record put, the staged key's deletion.
+		{name: "promote a live record", method: "apply_revision", want: 9, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			s, base := staged(t, rt)
+			return applyRequest("f", s, base)
+		}},
+		// No record read (no live revision), the archive key's deletion.
+		{name: "promote a staged restore", method: "apply_revision", want: 9, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			archiveViaApply(t, rt, "f")
+			var restored struct {
+				StagedRevision string `json:"staged_revision"`
+			}
+			decodeResult(t, callSubscription(t, rt, "restore", map[string]any{"subscription_id": "f"}), &restored)
+			return applyRequest("f", restored.StagedRevision, "")
+		}},
+		// The claim, the index, the record, the archive put, the index put
+		// and its retry, the record key's and the staged key's deletions.
+		{name: "delete through a plan", method: "apply_revision", want: 9, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			staged(t, rt)
+			live, _ := entryOf(t, rt, "f")
+			return map[string]any{"subscription_id": "f", "expected_revision": live.Revision, "approval_id": "ap", "plan_sha256": "x", "action": "delete"}
+		}},
+		// The index, the record, one catalogue page, the staged put, the
+		// index put and its retry.
+		{name: "migrate a graph record", method: "migrate_record", want: 7, setup: func(t *testing.T, rt *runtime, host *casKVHost) any {
+			if err := rt.saveSubscription(graphRecord("g", graphRootA)); err != nil {
+				t.Fatal(err)
+			}
+			migrationCatalogue(t, host, graphRootA)
+			return map[string]any{"subscription_id": "g"}
+		}},
+		// The index, the staged key's deletion, the index put and its retry.
+		{name: "discard a staged revision", method: "discard_staged", want: 5, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			seedFleetLive(t, rt, fleetRecord("f"))
+			s, _ := staged(t, rt)
+			return map[string]any{"subscription_id": "f", "staged_revision": s}
+		}},
+		// One catalogue page for the probe predicate, the index, the record,
+		// the staged document, the staged put, the index put and its retry.
+		{name: "save a staged fleet record with a probe predicate", method: "save", want: 8, setup: func(t *testing.T, rt *runtime, host *casKVHost) any {
+			page, _ := json.Marshal(map[string]any{"catalogue_version": fleetTestVersion, "rows": []any{}})
+			host.rpc[fleetCatalogueService+"/"+fleetCatalogueMethod] = page
+			seedFleetLive(t, rt, fleetRecord("f"))
+			staged(t, rt)
+			rec := fleetRecord("f")
+			rec.Process = []json.RawMessage{probeStructuredStep("probe_udp_ok")}
+			return map[string]any{"subscription": rec}
+		}},
+		// The index, the record, the archive put, the index put and its
+		// retry, the record key's and the staged key's deletions.
+		{name: "delete a provider record with a staged revision", method: "delete", want: 8, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			if err := rt.saveSubscription(subscriptionRecord{ID: "r", Name: "r", Source: subscriptionSourceRemote, URL: "https://provider.invalid/r"}); err != nil {
+				t.Fatal(err)
+			}
+			stageEdit(t, rt, fleetRecord("r"), originSave)
+			return map[string]any{"subscription_id": "r"}
+		}},
+		// The index, the archive, the record put, the index put and its
+		// retry, the archive key's deletion.
+		{name: "restore a provider record", method: "restore", want: 7, setup: func(t *testing.T, rt *runtime, _ *casKVHost) any {
+			if err := rt.saveSubscription(subscriptionRecord{ID: "r", Name: "r", Source: subscriptionSourceRemote, URL: "https://provider.invalid/r"}); err != nil {
+				t.Fatal(err)
+			}
+			if res := callSubscription(t, rt, "delete", map[string]any{"subscription_id": "r"}); !res.OK {
+				t.Fatal(res.Error)
+			}
+			return map[string]any{"subscription_id": "r"}
+		}},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			rt, host := newCASRuntime(t)
+			payload := sc.setup(t, rt, host)
+			host.total, host.conflicts = 0, 0
+			host.beforePut = conflictingIndexWrites(t, rt, host, 1)
+			res := callSubscription(t, rt, sc.method, payload)
+			if !res.OK || isRefusedResponse(res) {
+				t.Fatalf("%s: %s %s", sc.method, res.Error, refusalText(res))
+			}
+			if host.conflicts != 1 {
+				t.Fatalf("%s met %d conflicts, want the one the scenario injects", sc.method, host.conflicts)
+			}
+			if host.total != sc.want {
+				t.Errorf("%s made %d host calls, pinned at %d", sc.method, host.total, sc.want)
+			}
+			if budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+sc.method].HostCalls; host.total > budget {
+				t.Errorf("%s made %d host calls, over the signed budget of %d", sc.method, host.total, budget)
+			}
+		})
+	}
+	t.Run("fleet_preview over 10000 lines with a restart", func(t *testing.T) {
+		rt, host := newProxyRuntime(t, proxyCatalogueRows(10000))
+		host.versionAt = func(call int) string {
+			if call >= fleetCatalogueMaxPagesPerPass {
+				return "lcv1-0000000000000000000000000000000000000000000000000000000000000002"
+			}
+			return fleetTestVersion
+		}
+		res := callSubscription(t, rt, "fleet_preview", map[string]any{"process": []json.RawMessage{}, "sample": 1})
+		if !res.OK {
+			t.Fatal(res.Error)
+		}
+		if want := 2 * fleetCatalogueMaxPagesPerPass; host.total != want {
+			t.Errorf("fleet_preview made %d host calls, pinned at %d", host.total, want)
+		}
+		if budget := ackedRuntimeBudgets()[pluginID+"/subscription/fleet_preview"].HostCalls; host.total > budget {
+			t.Errorf("fleet_preview made %d host calls, over the signed budget of %d", host.total, budget)
+		}
+	})
+}
