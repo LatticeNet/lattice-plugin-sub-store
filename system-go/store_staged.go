@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -87,6 +88,8 @@ const (
 	refusedKVConflict           = kvConflictCode
 	refusedRegexIncompatible    = "regex_incompatible"
 	refusedMigrationRequired    = storeMigrationRequiredCode
+	refusedStructuredArgs       = operators.CodeStructuredArgs
+	refusedProbeUnavailable     = "fleet_probe_unavailable"
 )
 
 // storeRefusal is a structured refusal. Message is fixed text per code with
@@ -675,6 +678,17 @@ func (rt *runtime) decideWrite(idx *indexDocument, w *pendingWrite, origin write
 			before = processSteps(loaded.Live)
 		}
 		if err := savedChainCheck(before, nrec.Process); err != nil {
+			if args, ok := operators.AsStepArgs(err); ok {
+				// A Structured Filter or Structured Sort whose arguments the
+				// compiler cannot read: an unknown field, an op the field does
+				// not take, a value out of range. The message names the step
+				// and never quotes the arguments, which are operator input.
+				res.Refused = &storeRefusal{
+					Code: refusedStructuredArgs, IDs: []string{nrec.ID},
+					Message: fmt.Sprintf("subscription %q: process step %d (%s) has arguments the step does not accept; open the step to correct them", nrec.ID, args.Step, args.Type),
+				}
+				return nil
+			}
 			if strings.HasPrefix(err.Error(), refusedRegexIncompatible) {
 				// The diagnosis is this plugin's own compiler naming the
 				// operator's step and pattern and the rewrite it offers, never a

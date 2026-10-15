@@ -55,6 +55,9 @@ type casKVHost struct {
 	conflicts int
 	ifMatched int
 	beforePut func(key string)
+	// failPut, when it reports true for a key, refuses that kv.put before it
+	// lands: how a test models the invocation dying at that write.
+	failPut func(key string) bool
 	// rpc answers rpc.call by "service/method"; claim_apply answers
 	// {"granted": true} unless denyClaim is set.
 	rpc       map[string]json.RawMessage
@@ -88,6 +91,9 @@ func (h *casKVHost) call(method string, params any) (json.RawMessage, error) {
 		_ = json.Unmarshal(encoded, &p)
 		if h.beforePut != nil {
 			h.beforePut(p.Key)
+		}
+		if h.failPut != nil && h.failPut(p.Key) {
+			return nil, fmt.Errorf("killed before writing %s", p.Key)
 		}
 		if p.IfMatch != nil {
 			h.ifMatched++

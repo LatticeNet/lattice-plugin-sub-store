@@ -157,7 +157,7 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 			if response.OK != test.wantOK || host.total != test.want {
 				t.Fatalf("response=%+v calls=%d want=%d", response, host.total, test.want)
 			}
-			if test.withheld && (!strings.HasPrefix(response.Error, ownerCredentialsWithheldCode) || host.rpcs != 0) {
+			if test.withheld && (!strings.HasPrefix(response.Error, codeOwnerCredentialsWithheld) || host.rpcs != 0) {
 				t.Fatalf("response=%+v rpcs=%d, want owner_credentials_withheld before any rpc.call", response, host.rpcs)
 			}
 			budget := ackedRuntimeBudgets()[pluginID+"/subscription/"+test.method]
