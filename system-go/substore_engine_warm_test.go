@@ -231,20 +231,20 @@ globalThis.SubStoreProxyUtils.processResponse = function(response){ return { sta
 		t.Fatalf("script preview path counts warm=%d isolated=%d, want 0/1", warm, isolated)
 	}
 	// A scriptless chain the native code does not run (a lookahead RE2
-	// refuses) still answers warm; a chain that runs natively reaches neither
-	// runtime.
+	// refuses) previews isolated too: from S2 nothing answers warm (S2 plan
+	// section 1.4). A chain that runs natively reaches neither runtime.
 	lookahead := json.RawMessage(`{"type":"Regex Filter","args":{"regex":["^(?!.*HK).*$"],"keep":true}}`)
 	if _, err := rt.previewSubscription("ss://y", []json.RawMessage{lookahead}, "URI", false); err != nil {
 		t.Fatalf("scriptless preview: %v", err)
 	}
-	if warm, _ := previewEngine.pathCounts(); warm != 1 {
-		t.Fatalf("scriptless preview did not answer warm (warm=%d)", warm)
+	if warm, isolated := previewEngine.pathCounts(); warm != 0 || isolated != 2 {
+		t.Fatalf("scriptless preview path counts warm=%d isolated=%d, want 0/2", warm, isolated)
 	}
 	if _, err := rt.previewSubscription(warmTestURI, nil, "URI", false); err != nil {
 		t.Fatalf("native preview: %v", err)
 	}
-	if warm, isolated := previewEngine.pathCounts(); warm != 1 || isolated != 1 {
-		t.Fatalf("native preview reached the bundle: warm=%d isolated=%d, want 1/1", warm, isolated)
+	if warm, isolated := previewEngine.pathCounts(); warm != 0 || isolated != 2 {
+		t.Fatalf("native preview reached the bundle: warm=%d isolated=%d, want 0/2", warm, isolated)
 	}
 }
 
