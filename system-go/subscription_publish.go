@@ -52,7 +52,21 @@ func (rt *runtime) publishSubscription(subscriptionID, destination, method, form
 		return publishResult{}, fmt.Errorf("publish method must be PUT, POST or PATCH")
 	}
 
-	rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: subscriptionID, Format: format, UAClass: "other"})
+	rec, err := rt.getSubscription(subscriptionID)
+	if err != nil {
+		return publishResult{}, err
+	}
+	// A fleet-bound record renders to a plan that core binds per share
+	// identity; it has no document of its own to ship anywhere (S2 plan
+	// section 4).
+	bound, err := rt.fleetBoundLive(rec)
+	if err != nil {
+		return publishResult{}, err
+	}
+	if bound {
+		return publishResult{}, fmt.Errorf("%s: subscription %q is fleet-bound: it renders to a selection plan that core binds per share identity, so it has no document to publish; share it instead", codeFleetPublishUnavailable, subscriptionID)
+	}
+	rendered, err := rt.renderRecord(rec, subscriptionRenderRequest{SubscriptionID: subscriptionID, Format: format, UAClass: "other"})
 	if err != nil {
 		return publishResult{}, err
 	}

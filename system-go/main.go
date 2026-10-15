@@ -669,48 +669,6 @@ func sortPipelineRecords(records []pipelineRecord) {
 	})
 }
 
-func (rt *runtime) kvPut(key string, value []byte) error {
-	_, err := rt.callHost(latticeplugin.HostMethodKVPut, map[string]any{
-		"key":          key,
-		"value_base64": base64.StdEncoding.EncodeToString(value),
-	})
-	return err
-}
-
-// kvDelete removes one key. It speaks the SDK's kv.delete exactly as
-// HostClient.KVDelete does, through the runtime's host seam so a test host
-// counts it like every other call. Deleting a missing key is not an error.
-func (rt *runtime) kvDelete(key string) error {
-	_, err := rt.callHost(latticeplugin.HostMethodKVDelete, map[string]any{"key": key})
-	return err
-}
-
-func (rt *runtime) kvGet(key string) ([]byte, bool, error) {
-	raw, err := rt.callHost(latticeplugin.HostMethodKVGet, map[string]any{"key": key})
-	if err != nil {
-		return nil, false, err
-	}
-	var out struct {
-		OK          bool   `json:"ok"`
-		Value       string `json:"value,omitempty"`
-		ValueBase64 string `json:"value_base64,omitempty"`
-	}
-	if err := json.Unmarshal(raw, &out); err != nil {
-		return nil, false, err
-	}
-	if !out.OK {
-		return nil, false, nil
-	}
-	if out.ValueBase64 != "" {
-		decoded, err := base64.StdEncoding.DecodeString(out.ValueBase64)
-		if err != nil {
-			return nil, false, err
-		}
-		return decoded, true, nil
-	}
-	return []byte(out.Value), true, nil
-}
-
 // endpointHint renders scheme://host of a validated endpoint — never the path,
 // which carries the Sub-Store API token.
 func endpointHint(endpoint string) string {

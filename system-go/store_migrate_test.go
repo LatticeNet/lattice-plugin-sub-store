@@ -414,7 +414,7 @@ func TestMigrateStoreVerifyCatchesALostEntryAndRecovers(t *testing.T) {
 	if strings.Contains(string(host.values[subscriptionRecordsKey]), "migrated_to") {
 		t.Fatal("a failed verify marked the legacy document")
 	}
-	if res := callSubscription(t, rt, "save", map[string]any{"subscription": map[string]any{"id": "x", "name": "x"}}); res.OK {
+	if res := callSubscription(t, rt, "save", map[string]any{"subscription": map[string]any{"id": "x", "name": "x"}}); !isRefusedResponse(res) {
 		t.Fatal("a failed verify opened the store for writes")
 	}
 	puts := host.puts

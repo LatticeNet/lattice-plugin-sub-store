@@ -60,6 +60,11 @@ type migrateStoreRequest struct {
 	Chunk   int    `json:"chunk"`
 	Rebuild bool   `json:"rebuild"`
 	After   string `json:"after"`
+	// DeleteLegacy deletes the legacy single document once the split store
+	// has verified and its legacy programs are gone (plan section 2.7). Only
+	// the operator runs it, after a124 and 0.18 are both live, because the
+	// document is also the store's only rollback base.
+	DeleteLegacy bool `json:"delete_legacy"`
 }
 
 type migrateStoreReply struct {
@@ -77,6 +82,8 @@ type migrateStoreReply struct {
 	// pass as after for the next chunk (empty when the rebuild is done).
 	Rebuilt int    `json:"rebuilt,omitempty"`
 	Next    string `json:"next,omitempty"`
+	// DeletedLegacy answers delete_legacy.
+	DeletedLegacy bool `json:"deleted_legacy,omitempty"`
 }
 
 func (rt *runtime) migrateStore(payload json.RawMessage) (migrateStoreReply, error) {
@@ -93,8 +100,14 @@ func (rt *runtime) migrateStore(payload json.RawMessage) (migrateStoreReply, err
 	if chunk < 1 || chunk > maxMigrateChunk {
 		return migrateStoreReply{}, fmt.Errorf("migrate_store chunk must be between 1 and %d", maxMigrateChunk)
 	}
+	if req.Rebuild && req.DeleteLegacy {
+		return migrateStoreReply{}, fmt.Errorf("migrate_store takes rebuild or delete_legacy, not both")
+	}
 	if req.Rebuild {
 		return rt.rebuildIndex(req.After, chunk)
+	}
+	if req.DeleteLegacy {
+		return rt.deleteLegacyDocument()
 	}
 	idx, err := rt.loadIndex()
 	if err != nil {
@@ -272,16 +285,36 @@ func (rt *runtime) deleteLegacyPrograms(idx *indexDocument, chunk int) (migrateS
 	return reply, nil
 }
 
+// maxRebuildChunk bounds one rebuild call: the index, up to three reads per
+// entry (record-v2, staged-v2, archive-v2), the fresh index read, the write
+// and the if_match retry fit migrate_store's 140 host calls.
+const maxRebuildChunk = 45
+
 // rebuildIndex re-derives up to chunk live entries, in id order after the
-// id after, from their records. A record that is gone but archived moves
-// to Archived; one that is gone entirely loses its entry. The index is read
-// again before it is written and only the rebuilt entries change, since the
-// record reads in between take time a concurrent write may use.
+// id after, from their documents. The index is read again before it is
+// written and only the rebuilt entries change, since the reads in between
+// take time a concurrent write may use; the write carries if_match.
+//
+// S2 reads staged-v2-<id> wherever the record document alone would mislead
+// (plan section 2.2):
+//
+//   - record-v2 at the entry's revision: the entry is derived from it, and
+//     carryBookkeeping keeps the fetch fields and every staged fact;
+//   - record-v2 at another revision: when staged-v2 carries the entry's
+//     revision this is a half-done promotion killed after its index put, and
+//     the entry is derived from the staged document (fetch completes it);
+//     otherwise record-v2 is authoritative, as in S1;
+//   - no record-v2: an entry with no live revision whose staged document has
+//     an empty base revision (a staged new record or a staged restore) is
+//     kept as it is; an entry whose staged document carries its revision is a
+//     never-live half-done promotion, derived from that document; only an id
+//     with nothing staged moves to Archived (when an archive exists) or loses
+//     its entry.
 //
 // yagni: a save whose new entry a concurrent write dropped leaves a record no
 // entry names, and nothing here can find it (the host lists no keys); saving
-// the record again recovers it. Compare-and-swap on kv.put is the S2 ask that
-// removes the case, if this repair is ever needed in practice.
+// the record again recovers it. The S2 compare-and-swap on every index write
+// makes the case one that only a pre-S2 store can still hold.
 func (rt *runtime) rebuildIndex(after string, chunk int) (migrateStoreReply, error) {
 	idx, err := rt.loadIndex()
 	if err != nil {
@@ -290,9 +323,12 @@ func (rt *runtime) rebuildIndex(after string, chunk int) (migrateStoreReply, err
 	if idx == nil || !idx.verified() {
 		return migrateStoreReply{}, errStoreMigrationRequired
 	}
+	chunk = min(chunk, maxRebuildChunk)
+	old := make(map[string]indexEntry, len(idx.Records))
 	ids := make([]string, 0, len(idx.Records))
 	for _, entry := range idx.Records {
 		ids = append(ids, entry.ID)
+		old[entry.ID] = entry
 	}
 	sort.Strings(ids)
 	start := sort.SearchStrings(ids, after)
@@ -302,11 +338,34 @@ func (rt *runtime) rebuildIndex(after string, chunk int) (migrateStoreReply, err
 	end := min(start+chunk, len(ids))
 	type rebuilt struct {
 		id       string
-		entry    *indexEntry // nil: drop
+		entry    *indexEntry // set: replace with this entry
+		keep     bool        // the entry stays as it is
 		archived string      // set: move to Archived with this time
 	}
 	var work []rebuilt
+	derive := func(id string, rec subscriptionRecord) rebuilt {
+		entry := indexEntryFor(withRevision(rec))
+		return rebuilt{id: id, entry: &entry}
+	}
 	for _, id := range ids[start:end] {
+		entry := old[id]
+		if !entry.hasLiveRevision() {
+			// A staged new record or a staged restore: its staged document
+			// is all there is, and a record key under its id is an orphan.
+			staged, err := rt.loadStaged(id)
+			if err != nil {
+				return migrateStoreReply{}, err
+			}
+			switch {
+			case staged != nil:
+				work = append(work, rebuilt{id: id, keep: true})
+			case entry.StagedRestoredAt != "":
+				work = append(work, rebuilt{id: id, archived: entry.StagedRestoredAt})
+			default:
+				work = append(work, rebuilt{id: id})
+			}
+			continue
+		}
 		value, found, err := rt.kvGet(recordKey(id))
 		if err != nil {
 			return migrateStoreReply{}, err
@@ -316,8 +375,27 @@ func (rt *runtime) rebuildIndex(after string, chunk int) (migrateStoreReply, err
 			if err != nil {
 				return migrateStoreReply{}, err
 			}
-			entry := indexEntryFor(withRevision(rec))
-			work = append(work, rebuilt{id: id, entry: &entry})
+			rec = withRevision(rec)
+			if rec.Revision != entry.Revision {
+				staged, err := rt.loadStaged(id)
+				if err != nil {
+					return migrateStoreReply{}, err
+				}
+				if staged != nil && staged.Record.Revision == entry.Revision {
+					work = append(work, derive(id, staged.Record))
+					continue
+				}
+			}
+			work = append(work, derive(id, rec))
+			continue
+		}
+		staged, err := rt.loadStaged(id)
+		if err != nil {
+			return migrateStoreReply{}, err
+		}
+		switch {
+		case staged != nil && staged.Record.Revision == entry.Revision:
+			work = append(work, derive(id, staged.Record))
 			continue
 		}
 		archive, found, err := rt.kvGet(archiveKey(id))
@@ -339,6 +417,34 @@ func (rt *runtime) rebuildIndex(after string, chunk int) (migrateStoreReply, err
 	if end < len(ids) {
 		next = ids[end-1]
 	}
+	apply := func(target *indexDocument) error {
+		for _, item := range work {
+			pos := target.position(item.id)
+			if pos < 0 || item.keep {
+				continue
+			}
+			switch {
+			case item.entry != nil:
+				entry := *item.entry
+				entry.carryBookkeeping(target.Records[pos])
+				if entry.StagedRevision == entry.Revision {
+					// The derived entry is the promoted revision: nothing of
+					// it is staged any more.
+					entry.clearStaged()
+				}
+				target.Records[pos] = entry
+			case item.archived != "":
+				entry := target.Records[pos]
+				entry.ArchivedAt = item.archived
+				entry.clearStaged()
+				target.Records = append(target.Records[:pos], target.Records[pos+1:]...)
+				target.Archived = append(target.Archived, entry)
+			default:
+				target.Records = append(target.Records[:pos], target.Records[pos+1:]...)
+			}
+		}
+		return nil
+	}
 	fresh, err := rt.loadIndex()
 	if err != nil {
 		return migrateStoreReply{}, err
@@ -346,27 +452,56 @@ func (rt *runtime) rebuildIndex(after string, chunk int) (migrateStoreReply, err
 	if fresh == nil {
 		return migrateStoreReply{}, fmt.Errorf("rebuild: the index disappeared")
 	}
-	for _, item := range work {
-		pos := fresh.position(item.id)
-		if pos < 0 {
-			continue
-		}
-		switch {
-		case item.entry != nil:
-			entry := *item.entry
-			entry.carryBookkeeping(fresh.Records[pos])
-			fresh.Records[pos] = entry
-		case item.archived != "":
-			entry := fresh.Records[pos]
-			entry.ArchivedAt = item.archived
-			fresh.Records = append(fresh.Records[:pos], fresh.Records[pos+1:]...)
-			fresh.Archived = append(fresh.Archived, entry)
-		default:
-			fresh.Records = append(fresh.Records[:pos], fresh.Records[pos+1:]...)
-		}
+	if err := apply(fresh); err != nil {
+		return migrateStoreReply{}, err
 	}
-	if err := rt.putIndex(fresh, false); err != nil {
+	raw, err := encodeIndex(fresh, false)
+	if err != nil {
+		return migrateStoreReply{}, err
+	}
+	if err := rt.putIndexRetrying(fresh, raw, false, apply); err != nil {
 		return migrateStoreReply{}, err
 	}
 	return migrateStoreReply{Rebuilt: len(work), Next: next, Done: next == "", Verified: true, StoreVersion: storeVersionSplit}, nil
+}
+
+// deleteLegacyDocument deletes subscriptions-v1 (migrate_store
+// {"delete_legacy": true}): the index, the document's deletion, the index
+// write that records it (two more on a kv_conflict). It refuses until the
+// split store has verified and every legacy program key is gone, so it never
+// deletes the only copy of a record or a program. Core's readers stopped
+// reading the document at a124 (plan section 2.6).
+func (rt *runtime) deleteLegacyDocument() (migrateStoreReply, error) {
+	idx, err := rt.loadIndex()
+	if err != nil {
+		return migrateStoreReply{}, err
+	}
+	if idx == nil || !idx.verified() {
+		return migrateStoreReply{}, errStoreMigrationRequired
+	}
+	if idx.Migration != nil && len(idx.Migration.LegacyPrograms) > 0 {
+		return migrateStoreReply{}, fmt.Errorf("migrate_store still has %d legacy program keys to delete; run migrate_store until it reports done, then delete the legacy document", len(idx.Migration.LegacyPrograms))
+	}
+	if err := rt.kvDelete(subscriptionRecordsKey); err != nil {
+		return migrateStoreReply{}, err
+	}
+	rt.legacy = legacyCache{loaded: true}
+	reply := migrateStoreReply{Done: true, Verified: true, StoreVersion: storeVersionSplit, DeletedLegacy: true}
+	if idx.Migration == nil || idx.Migration.Legacy == "" {
+		return reply, nil
+	}
+	mutate := func(target *indexDocument) error {
+		if target.Migration != nil {
+			target.Migration.Legacy = ""
+		}
+		return nil
+	}
+	if err := mutate(idx); err != nil {
+		return migrateStoreReply{}, err
+	}
+	raw, err := encodeIndex(idx, false)
+	if err != nil {
+		return migrateStoreReply{}, err
+	}
+	return reply, rt.putIndexRetrying(idx, raw, false, mutate)
 }

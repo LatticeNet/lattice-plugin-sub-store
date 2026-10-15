@@ -49,6 +49,24 @@
           "compose",
           "graph_options"
         ]
+      },
+      {
+        "service": "latticenet.vpn-core/lines",
+        "methods": [
+          "catalogue"
+        ]
+      },
+      {
+        "service": "latticenet.vpn-core/identities",
+        "methods": [
+          "list"
+        ]
+      },
+      {
+        "service": "latticenet.sub-store/plans",
+        "methods": [
+          "claim_apply"
+        ]
       }
     ]
   },
@@ -206,13 +224,14 @@
           "name": "render",
           "effect": "read",
           "scopes": [
-            "substore:admin"
+            "substore:admin",
+            "vpncore:read"
           ],
           "budget": {
             "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 142,
+            "host_calls": 143,
             "http_response_bytes": 8388608
           }
         },
@@ -246,7 +265,8 @@
           "name": "graph_options",
           "effect": "read",
           "scopes": [
-            "substore:read"
+            "substore:read",
+            "vpncore:read"
           ],
           "budget": {
             "timeout_ms": 5000,
@@ -259,7 +279,8 @@
           "name": "preview",
           "effect": "read",
           "scopes": [
-            "substore:read"
+            "substore:read",
+            "vpncore:read"
           ],
           "budget": {
             "timeout_ms": 30000,
@@ -273,7 +294,8 @@
           "name": "preview_draft",
           "effect": "read",
           "scopes": [
-            "substore:admin"
+            "substore:admin",
+            "vpncore:read"
           ],
           "budget": {
             "timeout_ms": 30000,
@@ -306,7 +328,7 @@
             "timeout_ms": 2000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 16384,
-            "host_calls": 3
+            "host_calls": 4
           }
         },
         {
@@ -319,7 +341,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 6
+            "host_calls": 9
           }
         },
         {
@@ -332,7 +354,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 4194304,
             "stderr_bytes": 16384,
-            "host_calls": 5
+            "host_calls": 8
           }
         },
         {
@@ -428,7 +450,7 @@
           ],
           "budget": {
             "timeout_ms": 2000,
-            "stdout_bytes": 262144,
+            "stdout_bytes": 1048576,
             "stderr_bytes": 16384,
             "host_calls": 2
           }
@@ -440,10 +462,10 @@
             "substore:admin"
           ],
           "budget": {
-            "timeout_ms": 5000,
-            "stdout_bytes": 65536,
+            "timeout_ms": 10000,
+            "stdout_bytes": 4194304,
             "stderr_bytes": 16384,
-            "host_calls": 0
+            "host_calls": 10
           }
         },
         {
@@ -456,7 +478,7 @@
             "timeout_ms": 5000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 16384,
-            "host_calls": 5
+            "host_calls": 7
           }
         },
         {
@@ -467,9 +489,9 @@
           ],
           "budget": {
             "timeout_ms": 5000,
-            "stdout_bytes": 1048576,
+            "stdout_bytes": 1310720,
             "stderr_bytes": 16384,
-            "host_calls": 3
+            "host_calls": 5
           }
         },
         {
@@ -480,9 +502,9 @@
           ],
           "budget": {
             "timeout_ms": 5000,
-            "stdout_bytes": 1048576,
+            "stdout_bytes": 1310720,
             "stderr_bytes": 16384,
-            "host_calls": 2
+            "host_calls": 4
           }
         },
         {
@@ -496,6 +518,60 @@
             "stdout_bytes": 8388608,
             "stderr_bytes": 65536,
             "host_calls": 140
+          }
+        },
+        {
+          "name": "fleet_preview",
+          "effect": "read",
+          "scopes": [
+            "substore:read",
+            "vpncore:read"
+          ],
+          "budget": {
+            "timeout_ms": 20000,
+            "stdout_bytes": 1048576,
+            "stderr_bytes": 16384,
+            "host_calls": 22
+          }
+        },
+        {
+          "name": "identities",
+          "effect": "read",
+          "scopes": [
+            "substore:read",
+            "vpncore:read"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 262144,
+            "stderr_bytes": 16384,
+            "host_calls": 1
+          }
+        },
+        {
+          "name": "migrate_record",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 30000,
+            "stdout_bytes": 4194304,
+            "stderr_bytes": 16384,
+            "host_calls": 10
+          }
+        },
+        {
+          "name": "discard_staged",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ],
+          "budget": {
+            "timeout_ms": 5000,
+            "stdout_bytes": 1310720,
+            "stderr_bytes": 16384,
+            "host_calls": 5
           }
         }
       ],
@@ -514,12 +590,60 @@
         }
       ],
       "backing": "core"
+    },
+    {
+      "service": "latticenet.sub-store/bind",
+      "methods": [
+        {
+          "name": "preview",
+          "effect": "read",
+          "scopes": [
+            "vpncore:read",
+            "substore:read"
+          ]
+        },
+        {
+          "name": "bind_selection",
+          "effect": "plan",
+          "scopes": [
+            "vpncore:admin"
+          ]
+        }
+      ],
+      "backing": "core"
+    },
+    {
+      "service": "latticenet.sub-store/plans",
+      "methods": [
+        {
+          "name": "propose",
+          "effect": "write",
+          "scopes": [
+            "proxy:admin"
+          ]
+        },
+        {
+          "name": "status",
+          "effect": "read",
+          "scopes": [
+            "substore:read"
+          ]
+        },
+        {
+          "name": "publish",
+          "effect": "write",
+          "scopes": [
+            "substore:admin"
+          ]
+        }
+      ],
+      "backing": "core"
     }
   ],
   "dependencies": [
     {
       "id": "latticenet.vpn-core",
-      "version": "\u003e=0.8.0-alpha.10"
+      "version": "\u003e=0.11.0-alpha.5"
     }
   ]
 }

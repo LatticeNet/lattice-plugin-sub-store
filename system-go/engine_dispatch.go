@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -55,6 +57,9 @@ type nodeConvertRequest struct {
 	Options        map[string]bool
 	Explain        bool
 	CarrierCheck   bool
+	// AllowExternal is the H3 opt-in for the native parse of Parts: true
+	// only for a local record whose operator set external (parseOptionsFor).
+	AllowExternal bool
 }
 
 // nativeRoute reports whether a plan and a target run in Go. The whole chain
@@ -124,9 +129,15 @@ func bundleOperators(plan *operators.Plan) []json.RawMessage {
 // bundle's conversion script does with RawParts. The external opt-in (H3) has
 // no record field before S2, so it is off.
 func parseParts(parts []string) ([]*nodemodel.Node, error) {
+	return parsePartsWith(parts, parse.Options{})
+}
+
+// parsePartsWith is parseParts with the parse switches named; a record's
+// own text parses with parseOptionsFor(rec).
+func parsePartsWith(parts []string, opts parse.Options) ([]*nodemodel.Node, error) {
 	var nodes []*nodemodel.Node
 	for _, part := range parts {
-		parsed, _, err := parse.Document(part, parse.Options{})
+		parsed, _, err := parse.Document(part, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -135,13 +146,21 @@ func parseParts(parts []string) ([]*nodemodel.Node, error) {
 	return nodes, nil
 }
 
+// parseOptionsFor is the parse switches a record's own text takes: the H3
+// external opt-in only on a local record whose operator set it (S2 plan
+// section 2.1, decision 14). Every other source, a fleet record's template
+// URIs included, parses with exec-shaped nodes dropped.
+func parseOptionsFor(rec subscriptionRecord) parse.Options {
+	return parse.Options{AllowExternal: recordKind(rec) == kindSub && rec.Source == subscriptionSourceLocal && rec.External}
+}
+
 // convertNative is rule 1 of plan section 1.2: parse (or take the nodes),
 // run the chain, produce. The warm runtime is not touched.
 func convertNative(req nodeConvertRequest) (subStoreConversionResult, error) {
 	producer, _ := producers.Lookup(req.Target)
 	nodes := req.Nodes
 	if len(nodes) == 0 {
-		parsed, err := parseParts(req.Parts)
+		parsed, err := parsePartsWith(req.Parts, parse.Options{AllowExternal: req.AllowExternal})
 		if err != nil {
 			return subStoreConversionResult{}, err
 		}
@@ -317,4 +336,120 @@ func decodeNodes(raws []json.RawMessage) ([]*nodemodel.Node, bool) {
 		}
 	}
 	return out, true
+}
+
+// fleetPlanCacheBytes bounds the encoded fleet plans one worker keeps.
+const fleetPlanCacheBytes = 32 << 20
+
+// fleetPlanKey names one serve-path plan computation (S2 plan section 2.3).
+// SourceVersion is the envelope's source_version: for a fleet envelope the
+// digest over catalogue_version, selector and rows, so a clock-dependent
+// leading step that moves the rows under an unmoved catalogue version still
+// misses. Members is a collection's ordered member (id, revision) list read
+// from its envelope blocks, because a member's chain runs at render.
+type fleetPlanKey struct {
+	SourceVersion string
+	Revision      string
+	Members       string
+	Target        string
+	Format        string
+	Options       string
+}
+
+// newFleetPlanKey builds a key; members are "id@revision" pairs in member
+// order and options are folded in sorted order.
+func newFleetPlanKey(sourceVersion, revision string, members []string, target, format string, options map[string]bool) fleetPlanKey {
+	keys := make([]string, 0, len(options))
+	for name, on := range options {
+		keys = append(keys, name+"="+strconv.FormatBool(on))
+	}
+	sort.Strings(keys)
+	return fleetPlanKey{
+		SourceVersion: sourceVersion, Revision: revision, Members: strings.Join(members, "\n"),
+		Target: target, Format: format, Options: strings.Join(keys, "&"),
+	}
+}
+
+// fleetPlanCache is an LRU of encoded fleet plans, bounded by their bytes.
+// Only a serve-path render reads or writes it: one with no revision or the
+// live revision, no member_revisions and no catalogue read inside render. A
+// staged render bypasses it on both sides, because its plan depends on
+// inputs the key does not carry. It is per worker process, as nativePlans
+// is, and the placeholders inside a cached plan are fresh per computation:
+// they never leave core, and core binds every identity from the same plan.
+type fleetPlanCache struct {
+	mu      sync.Mutex
+	limit   int
+	bytes   int
+	entries map[fleetPlanKey]*list.Element
+	order   *list.List // front is most recent
+	// computes counts the plans computed through get, for tests.
+	computes int
+}
+
+type fleetPlanCacheEntry struct {
+	key  fleetPlanKey
+	plan fleetPlanOutput
+}
+
+func newFleetPlanCache(limit int) *fleetPlanCache {
+	return &fleetPlanCache{limit: limit, entries: map[fleetPlanKey]*list.Element{}, order: list.New()}
+}
+
+// fleetPlans is the worker's fleet plan cache.
+var fleetPlans = newFleetPlanCache(fleetPlanCacheBytes)
+
+// get returns the plan for key, computing it on a miss. A plan larger than
+// the whole bound is returned and not kept.
+func (c *fleetPlanCache) get(key fleetPlanKey, compute func() (fleetPlanOutput, error)) (fleetPlanOutput, error) {
+	c.mu.Lock()
+	if element, ok := c.entries[key]; ok {
+		c.order.MoveToFront(element)
+		plan := element.Value.(*fleetPlanCacheEntry).plan
+		c.mu.Unlock()
+		return plan, nil
+	}
+	c.mu.Unlock()
+	plan, err := compute()
+	if err != nil {
+		return fleetPlanOutput{}, err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.computes++
+	if _, ok := c.entries[key]; ok || len(plan.Encoded) > c.limit {
+		return plan, nil
+	}
+	c.entries[key] = c.order.PushFront(&fleetPlanCacheEntry{key: key, plan: plan})
+	c.bytes += len(plan.Encoded)
+	for c.bytes > c.limit {
+		oldest := c.order.Back()
+		entry := oldest.Value.(*fleetPlanCacheEntry)
+		c.order.Remove(oldest)
+		delete(c.entries, entry.key)
+		c.bytes -= len(entry.plan.Encoded)
+	}
+	return plan, nil
+}
+
+// bypass computes a plan for a render the cache must not serve or keep (a
+// staged render: its plan depends on staged documents and live catalogue
+// reads the key does not name). It counts the computation, so a test can
+// see that a staged render never reused a cached plan.
+func (c *fleetPlanCache) bypass(compute func() (fleetPlanOutput, error)) (fleetPlanOutput, error) {
+	plan, err := compute()
+	if err != nil {
+		return fleetPlanOutput{}, err
+	}
+	c.mu.Lock()
+	c.computes++
+	c.mu.Unlock()
+	return plan, nil
+}
+
+// computeCount reports how many plans the cache computed, for tests.
+func (c *fleetPlanCache) computeCount() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.computes
 }

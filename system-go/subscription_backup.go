@@ -22,6 +22,11 @@ type importOutcome struct {
 	Imported []string          `json:"imported"`
 	Skipped  map[string]string `json:"skipped"`
 	Replaced []string          `json:"replaced"`
+	// Staged names, by id, the staged revision of every fleet-bound record
+	// the import staged instead of writing live (plan section 3); Refused is
+	// every record a guard refused, with its structured refusal.
+	Staged  map[string]string       `json:"staged,omitempty"`
+	Refused map[string]storeRefusal `json:"refused,omitempty"`
 }
 
 // maxExportReplyBytes bounds export's reply. Core counts the reply frame
@@ -153,7 +158,7 @@ func (rt *runtime) importBackup(data []byte) (importOutcome, error) {
 	// budget charges per host round trip, and per-record saves priced a
 	// twenty-record import out of its own host_calls allowance. Normalisation
 	// happens once inside the batch; per-record failures come back as skips.
-	batch, err := rt.saveSubscriptionBatch(doc.Records)
+	batch, err := rt.saveSubscriptionBatch(doc.Records, originImport)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), batchTooLargeCode) {
 			return importOutcome{}, fmt.Errorf("%w; split the backup into smaller ones", err)
@@ -167,10 +172,22 @@ func (rt *runtime) importBackup(data []byte) (importOutcome, error) {
 		}
 		if why, bad := batch.skipped[rec.ID]; bad {
 			out.Skipped[rec.ID] = why
+			if refusal, refused := batch.refused[rec.ID]; refused {
+				if out.Refused == nil {
+					out.Refused = map[string]storeRefusal{}
+				}
+				out.Refused[rec.ID] = refusal
+			}
 			continue
 		}
 		if batch.replaced[rec.ID] {
 			out.Replaced = append(out.Replaced, rec.ID)
+		}
+		if revision, staged := batch.staged[rec.ID]; staged {
+			if out.Staged == nil {
+				out.Staged = map[string]string{}
+			}
+			out.Staged[rec.ID] = revision
 		}
 		out.Imported = append(out.Imported, rec.ID)
 	}
