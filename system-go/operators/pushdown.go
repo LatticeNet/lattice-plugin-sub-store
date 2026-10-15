@@ -180,3 +180,23 @@ func wholeValue(v *float64) (int, bool) {
 	}
 	return int(*v), true
 }
+
+// StructuredAfterLeadingRun is the 1-based index of the first enabled
+// Lattice-only step after the plan's leading structured run, 0 when there is
+// none. A plan that is not Native (a script or Resolve Domain step in it)
+// runs on the bundle as a whole, and the bundle skips a step type it does
+// not know without a word. The leading run is evaluated over the rows before
+// the chain runs, so only a step this reports would be lost there; a fleet
+// render that hands a non-native chain to the bundle refuses such a plan
+// rather than serve it without the step.
+func StructuredAfterLeadingRun(p *Plan) int {
+	if p == nil {
+		return 0
+	}
+	for i := LeadingRun(p); i < len(p.Steps); i++ {
+		if s := p.Steps[i]; s.Kind == KindNative && fleetOperators[s.Step.Type] {
+			return i + 1
+		}
+	}
+	return 0
+}
