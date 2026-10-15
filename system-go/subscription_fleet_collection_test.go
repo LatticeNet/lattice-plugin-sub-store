@@ -273,6 +273,31 @@ func TestCollectionSourceVersionFollowsProviderRaw(t *testing.T) {
 	}
 }
 
+// TestFleetCollectionFetchWritesItsDerivedSelectionVersion drives a fleet
+// collection's refresh through the fetch method: the index entry's
+// selection_version is the snapshot's derived "lcv1-" version, never a
+// member's, so list and core's publish read the version the snapshot was cut
+// at (S2 plan section 2.2). A record's half is lane 4's
+// TestFetchWritesSelectionVersion.
+func TestFleetCollectionFetchWritesItsDerivedSelectionVersion(t *testing.T) {
+	rt, _ := fleetCollectionFixture(t, subscriptionRecord{})
+	res := fetchViaMethod(t, rt, "all")
+	if !res.OK {
+		t.Fatalf("fetch: %s", res.Error)
+	}
+	var fetched struct {
+		Raw string `json:"raw"`
+	}
+	decodeResult(t, res, &fetched)
+	env, ok := decodeSnapshotEnvelope(fetched.Raw)
+	if !ok || !strings.HasPrefix(env.CatalogueVersion, fleetCatalogueVersionPrefix) || env.CatalogueVersion == fleetTestVersion {
+		t.Fatalf("collection envelope version = %q", env.CatalogueVersion)
+	}
+	if entry := indexEntryOf(t, rt, "all"); entry.SelectionVersion != env.CatalogueVersion {
+		t.Fatalf("selection_version = %q, want the snapshot's %q", entry.SelectionVersion, env.CatalogueVersion)
+	}
+}
+
 // TestCollectionPlanCarriesItsOwnPolicy pins that a collection's plan
 // carries the collection's own fleet options and never a member's.
 func TestCollectionPlanCarriesItsOwnPolicy(t *testing.T) {
