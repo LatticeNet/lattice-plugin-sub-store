@@ -231,7 +231,7 @@
             "timeout_ms": 30000,
             "stdout_bytes": 6291456,
             "stderr_bytes": 65536,
-            "host_calls": 142,
+            "host_calls": 143,
             "http_response_bytes": 8388608
           }
         },

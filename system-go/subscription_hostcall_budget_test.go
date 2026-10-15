@@ -98,22 +98,26 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		// from S2): the options reload that validates the selection, then
 		// the index read, the stored record, the record write and the index
 		// write.
-		graphSaveCalls    = 5
-		graphPreviewCalls = 2
+		graphSaveCalls = 5
 		// From S2 a legacy record's export is read only under core's refresh
-		// (S2 plan section 1.2): render and publish of a graph record, of a
-		// collection over 64 of them and of a script file over that answer
-		// owner_credentials_withheld before any composition. render and
-		// publish read the record and the Settings for the default target.
-		graphRenderCalls  = 2
+		// (S2 plan section 1.2): preview, render and publish of a graph
+		// record, of a collection over 64 of them and of a script file over
+		// that answer owner_credentials_withheld before any composition.
+		// preview refuses on the record alone. render opens the record
+		// through the store reader (the index and the record) and reads the
+		// Settings for the default target; publish reads the record and the
+		// Settings.
+		graphPreviewCalls = 1
+		graphRenderCalls  = 3
 		graphPublishCalls = 2
 		// The collection reads its record, the listing (is it fleet-bound),
 		// Settings and its 64 member records, then refuses at the first
 		// member's composition: 1 + 1 + 1 + 64.
 		graphCollectionRenderCalls = 67
-		// A script file over it reads its own record and the collection's,
-		// Settings and the 64 member records.
-		maxGraphRenderCalls = 66
+		// A script file over it reads the index and its own record (the
+		// store reader), the collection's record, Settings and the 64 member
+		// records.
+		maxGraphRenderCalls = 67
 		// A file preview refuses node-source work on its record alone.
 		maxGraphPreviewCalls = 1
 		maxGraphPublishCalls = 66
@@ -136,7 +140,7 @@ func TestGraphHostCallBudgetsMatchProductionReachablePaths(t *testing.T) {
 		{name: "options", method: "graph_options", body: map[string]any{}, want: graphOptionsCalls, wantOK: true},
 		{name: "fetch", method: "fetch", body: map[string]any{"subscription_id": "graph-00"}, want: graphFetchCalls, seed: true, wantOK: true},
 		{name: "save", method: "save", body: map[string]any{"subscription": map[string]any{"id": "graph-00", "name": "graph-00", "source": subscriptionSourceVPNCoreGraph, "vpn_identity": "identity-a", "entry_roots": []string{graphRootA}, "graph_options_version": "ov1:" + repeatHex("a")}}, want: graphSaveCalls, seed: true, wantOK: true},
-		{name: "direct preview", method: "preview", body: map[string]any{"subscription_id": "graph-00"}, want: graphPreviewCalls, seed: true, wantOK: true},
+		{name: "direct preview", method: "preview", body: map[string]any{"subscription_id": "graph-00"}, want: graphPreviewCalls, seed: true, withheld: true},
 		{name: "direct render", method: "render", body: map[string]any{"subscription_id": "graph-00", "format": "plain"}, want: graphRenderCalls, seed: true, withheld: true},
 		{name: "direct publish", method: "publish", body: map[string]any{"subscription_id": "graph-00", "destination": "https://destination.invalid/graph", "format": "plain"}, want: graphPublishCalls, seed: true, withheld: true},
 		{name: "64 graph collection render", method: "render", body: map[string]any{"subscription_id": "all-graphs", "format": "plain"}, want: graphCollectionRenderCalls, seed: true, withheld: true},
@@ -220,7 +224,9 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 	}{
 		// The file's record (and, legacy, the document and its program key),
 		// the source record, the listing, Settings, 64 records, 64 fetches.
-		{name: "render a script file over the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-script", "format": "plain"}, split: 132, legacy: 134},
+		// From S2 render opens the file through the store reader, which adds
+		// the index read.
+		{name: "render a script file over the tag collection", method: "render", body: map[string]any{"subscription_id": "worst-script", "format": "plain"}, split: 133, legacy: 135},
 		// The record, the listing for the fleet-bound check, the listing for
 		// the tag members, Settings (target and agent), 64 records, 64
 		// fetches.
@@ -233,8 +239,10 @@ func TestWorstHostCallPathsSetTheSignedBudgets(t *testing.T) {
 		// fetch's shape without the bookkeeping write.
 		{name: "probe the script file", method: "probe", body: map[string]any{"subscription_id": "worst-script"}, split: 133, legacy: 135},
 		// The combination's record, the listing, Settings, 64 records, 64 fetches.
-		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
-		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 131, legacy: 132},
+		// From S2 a collection preview also reads the listing to know whether
+		// a member is a fleet record.
+		{name: "preview the tag collection", method: "preview", body: map[string]any{"subscription_id": "worst-tags"}, split: 132, legacy: 133},
+		{name: "preview_draft the tag collection", method: "preview_draft", body: map[string]any{"subscription_id": "worst-tags"}, split: 132, legacy: 133},
 	}
 	worst := map[string]int{}
 	for _, scenario := range scenarios {
@@ -444,20 +452,22 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		// Refresh button calls it on every kind of record.
 		{name: "probe a remote sub", method: "probe", payload: map[string]any{"subscription_id": "remote-a"}, want: 4},
 		{name: "probe a script file over a remote collection", method: "probe", payload: map[string]any{"subscription_id": "scripty"}, want: 8},
-		// Renders. A plain local sub is one read; the engine runs in-process.
-		// A record that names no target, rendered from a URL that names none,
-		// also reads Settings for the default target (decision 14); an explicit
-		// target or a pin skips that read.
-		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 2},
-		{name: "render a plain local sub for a named target", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain", "target": "sing-box"}, want: 1},
+		// Renders. A plain local sub is two reads, the index and the record,
+		// because every render opens its record through the store reader (S2
+		// plan section 2.7); the engine runs in-process. A record that names
+		// no target, rendered from a URL that names none, also reads Settings
+		// for the default target (decision 14); an explicit target or a pin
+		// skips that read.
+		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 3},
+		{name: "render a plain local sub for a named target", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain", "target": "sing-box"}, want: 2},
 		// A collection render reads the record, the listing once to know
 		// whether the collection is fleet-bound (S2 plan section 1.2), then
 		// each member's record and one provider fetch per remote member.
 		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 7},
 		// The operator's real shape: a script file over a collection of two
-		// remote subs. The file, the source record, two member records, then
-		// one provider fetch per member.
-		{name: "render a script file over a remote collection", method: "render", payload: map[string]any{"subscription_id": "scripty", "format": "plain"}, want: 7},
+		// remote subs. The index and the file, the source record, two member
+		// records, then one provider fetch per member.
+		{name: "render a script file over a remote collection", method: "render", payload: map[string]any{"subscription_id": "scripty", "format": "plain"}, want: 8},
 		// With the refresh path's snapshot in hand, the same renders pay no
 		// network at all: the record read is the whole cost. This group is the
 		// serve path's steady state. A collection that names no target adds
@@ -467,7 +477,7 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 		{name: "render a script file from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "scripty", "format": "plain",
 			"raw": `{"source_id":"coll","source_name":"coll","source_kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 1},
+		}, want: 2},
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
@@ -476,10 +486,11 @@ func TestHostCallCountsStayWithinAckedBudgets(t *testing.T) {
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"version":2,"kind":"collection","members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
 		}, want: 3},
-		// A combination preview renders its members: record, one record and
-		// one fetch per remote member. The members name no user agent, so
-		// Settings are read once for the default.
-		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 6},
+		// A combination preview renders its members: record, the listing (is
+		// a member a fleet record), one record and one fetch per remote
+		// member. The members name no user agent, so Settings are read once
+		// for the default.
+		{name: "preview a combination of remote subs", method: "preview", payload: map[string]any{"subscription_id": "coll"}, want: 7},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 1},
 		// Export reads the index, every record and the settings: N + 2 with
 		// the six seeded records.

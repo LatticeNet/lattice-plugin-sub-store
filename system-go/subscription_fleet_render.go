@@ -794,7 +794,7 @@ func stagedCollectionMembership(rec subscriptionRecord, idx *indexDocument, memb
 			}
 			return candidate{member: stagedMember{ID: entry.ID, Revision: entry.Revision, Source: entry.Source}, kind: entry.Kind, tags: entry.Tags}, true, nil
 		case entry.hasStaged() && revision == entry.StagedRevision:
-			staged, _ := stagedRecordFacts(entry)
+			staged, _ := stagedFactsOf(entry)
 			return candidate{member: stagedMember{ID: entry.ID, Revision: revision, Source: entry.StagedSource, Staged: true}, kind: staged.Kind, tags: entry.StagedTags}, true, nil
 		}
 		return candidate{}, false, fmt.Errorf("%s: collection %q's member %q has no revision %q", codeRevisionUnknown, rec.ID, entry.ID, revision)

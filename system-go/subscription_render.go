@@ -452,6 +452,10 @@ func (rt *runtime) fetchCall(payload json.RawMessage) response {
 	// refresh path — the core calls it on a schedule and the UI on a click —
 	// so it is the one place that knows when the served snapshot last moved.
 	outcome.userinfo, outcome.nodesIn, outcome.nodesOut, outcome.err = out.Userinfo, out.nodesIn, out.nodesOut, err
+	// A fleet fetch's catalogue version lands on the entry's
+	// selection_version, which list and core's publish read (S2 plan
+	// section 2.2).
+	outcome.selectionVersion = out.selectionVersion
 	rt.noteFetchOutcome(req.SubscriptionID, outcome)
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
