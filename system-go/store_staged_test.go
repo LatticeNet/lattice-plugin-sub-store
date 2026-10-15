@@ -385,7 +385,7 @@ func TestNewFleetRecordStages(t *testing.T) {
 func TestStagedOnlyEntryCarriesNoLiveFacts(t *testing.T) {
 	rt, _ := newCASRuntime(t)
 	for _, rec := range []subscriptionRecord{
-		{ID: "p", Name: "p", Source: subscriptionSourceRemote, URL: "https://provider.invalid/p", Tags: []string{"hk"}},
+		{ID: "p", Name: "p", Source: subscriptionSourceLocal, Content: localNode, Tags: []string{"hk"}},
 		{ID: "hk-coll", Name: "hk-coll", Kind: kindCollection, MemberTags: []string{"hk"}},
 	} {
 		if err := rt.saveSubscription(rec); err != nil {
@@ -407,14 +407,27 @@ func TestStagedOnlyEntryCarriesNoLiveFacts(t *testing.T) {
 	if after.Flags != before.Flags || after.Flags.FleetBound {
 		t.Fatalf("a staged record changed a live collection's flags: %+v -> %+v", before.Flags, after.Flags)
 	}
-	// The live collection still writes live: staging is decided from the
-	// live flag and the written record's own reach, and the collection's own
-	// reach over the union does include the staged fleet record, so a
-	// collection edit stages from here on.
+	// Staging is decided from the live flag and the written record's own
+	// reach over the union, and the collection's reach does include the
+	// staged fleet record, so its next edit stages although its live flag
+	// is clear.
 	edit := subscriptionRecord{ID: "hk-coll", Name: "hk-coll", DisplayName: "renamed", Kind: kindCollection, MemberTags: []string{"hk"}}
 	reply, res := saveViaMethod(t, rt, edit, before.Revision)
 	if !res.OK || !reply.Staged {
 		t.Fatalf("a collection that would gather a staged fleet record = %+v %s", reply, res.Error)
+	}
+	// A file over the collection, written before S2 (every S2 write path
+	// refuses it while the fleet record is staged), keeps rendering: the
+	// render-time file guard reads the node source's live flag only.
+	if err := rt.saveSubscription(subscriptionRecord{ID: "cfg", Name: "cfg", Kind: kindFile, NodeSource: "hk-coll", Content: configTemplate}); err != nil {
+		t.Fatal(err)
+	}
+	if cfg, _ := entryOf(t, rt, "cfg"); cfg.Flags.FleetBound {
+		t.Fatalf("a staged record flagged a file over a live collection: %+v", cfg.Flags)
+	}
+	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "cfg"})
+	if err != nil || !strings.Contains(out.Content, "HK-01") {
+		t.Fatalf("the file over the collection stopped rendering: %v\n%s", err, out.Content)
 	}
 }
 
