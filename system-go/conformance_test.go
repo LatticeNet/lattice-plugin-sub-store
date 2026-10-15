@@ -219,12 +219,15 @@ func ackedRuntimeBudgets() map[string]invokeBudgetSpec {
 		// the file's program key, the source record, the listing the tags need,
 		// Settings for the default agent, 64 member records and 64 provider
 		// fetches (134; 132 on a split store), plus the 8 calls scripts may spend.
+		// S2 adds the index read of the store reader every render opens its
+		// record through (S2 plan section 2.7): 135 and 133, so 143 signed;
+		// the gate test is the authority over section 10's 142.
 		// 2026-08-11: the old allowance of 2 priced a real script-file render out,
 		// and the public share for one would have 502'd on its first request.
 		// The timeout is the host maximum because the runner spawns the plugin
 		// per invocation and a cold QuickJS/wazero boot cost about 13.5s on the
 		// production box (measured 2026-08-11).
-		pluginID + "/subscription/render": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 142, HTTPResponseBytes: 8 << 20},
+		pluginID + "/subscription/render": {TimeoutMS: 30_000, StdoutBytes: 6 << 20, StderrBytes: 64 << 10, HostCalls: 143, HTTPResponseBytes: 8 << 20},
 		// 2026-10-02: convert is the stateless converter for per-identity
 		// links. Zero host calls is the point: the runner then refuses any KV
 		// or network access, so the method cannot read or keep state even by

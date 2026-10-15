@@ -254,7 +254,8 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 5, ok: true},
 		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 9, ok: true},
 		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 11, ok: true},
-		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 3, ok: true},
+		// The store reader reads the index before the record (S2).
+		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 4, ok: true},
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
