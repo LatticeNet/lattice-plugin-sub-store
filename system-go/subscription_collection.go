@@ -145,10 +145,11 @@ func (rt *runtime) memberNodes(member subscriptionRecord, authority legacyAuthor
 	// URI carries a chained member: the chain's output has to be node text the
 	// collection can parse again.
 	converted, served, err := rt.convertNodes(nodeConvertRequest{
-		Parts:        []string{raw},
-		Target:       "URI",
-		Plan:         plan,
-		CarrierCheck: true,
+		Parts:         []string{raw},
+		Target:        "URI",
+		Plan:          plan,
+		CarrierCheck:  true,
+		AllowExternal: parseOptionsFor(member).AllowExternal,
 	})
 	if err != nil {
 		return memberOutput{}, fmt.Errorf("%s: %w", memberLabel(member), err)

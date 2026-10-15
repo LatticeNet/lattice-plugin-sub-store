@@ -57,6 +57,9 @@ type nodeConvertRequest struct {
 	Options        map[string]bool
 	Explain        bool
 	CarrierCheck   bool
+	// AllowExternal is the H3 opt-in for the native parse of Parts: true
+	// only for a local record whose operator set external (parseOptionsFor).
+	AllowExternal bool
 }
 
 // nativeRoute reports whether a plan and a target run in Go. The whole chain
@@ -126,9 +129,15 @@ func bundleOperators(plan *operators.Plan) []json.RawMessage {
 // bundle's conversion script does with RawParts. The external opt-in (H3) has
 // no record field before S2, so it is off.
 func parseParts(parts []string) ([]*nodemodel.Node, error) {
+	return parsePartsWith(parts, parse.Options{})
+}
+
+// parsePartsWith is parseParts with the parse switches named; a record's
+// own text parses with parseOptionsFor(rec).
+func parsePartsWith(parts []string, opts parse.Options) ([]*nodemodel.Node, error) {
 	var nodes []*nodemodel.Node
 	for _, part := range parts {
-		parsed, _, err := parse.Document(part, parse.Options{})
+		parsed, _, err := parse.Document(part, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -137,13 +146,21 @@ func parseParts(parts []string) ([]*nodemodel.Node, error) {
 	return nodes, nil
 }
 
+// parseOptionsFor is the parse switches a record's own text takes: the H3
+// external opt-in only on a local record whose operator set it (S2 plan
+// section 2.1, decision 14). Every other source, a fleet record's template
+// URIs included, parses with exec-shaped nodes dropped.
+func parseOptionsFor(rec subscriptionRecord) parse.Options {
+	return parse.Options{AllowExternal: recordKind(rec) == kindSub && rec.Source == subscriptionSourceLocal && rec.External}
+}
+
 // convertNative is rule 1 of plan section 1.2: parse (or take the nodes),
 // run the chain, produce. The warm runtime is not touched.
 func convertNative(req nodeConvertRequest) (subStoreConversionResult, error) {
 	producer, _ := producers.Lookup(req.Target)
 	nodes := req.Nodes
 	if len(nodes) == 0 {
-		parsed, err := parseParts(req.Parts)
+		parsed, err := parsePartsWith(req.Parts, parse.Options{AllowExternal: req.AllowExternal})
 		if err != nil {
 			return subStoreConversionResult{}, err
 		}

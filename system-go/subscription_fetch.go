@@ -139,7 +139,7 @@ func (rt *runtime) fetchSubscriptionAs(subscriptionID string, authority legacyAu
 			_, err := encodeSnapshotEnvelope(env)
 			return fetchResult{}, err
 		}
-		nodes, err := requireNativeNodes(label, out.Raw)
+		nodes, err := requireNativeNodesWith(label, out.Raw, parseOptionsFor(rec))
 		if err != nil {
 			return fetchResult{}, err
 		}
@@ -197,7 +197,12 @@ func withMemberNodes(env *snapshotEnvelope, members []fileScriptMember, membersN
 // requireNativeNodes parses node text in Go and refuses it when it holds no
 // node, as requireNodes does with the bundle.
 func requireNativeNodes(label, raw string) ([]*nodemodel.Node, error) {
-	nodes, err := parseParts([]string{raw})
+	return requireNativeNodesWith(label, raw, parse.Options{})
+}
+
+// requireNativeNodesWith is requireNativeNodes with the parse switches named.
+func requireNativeNodesWith(label, raw string, opts parse.Options) ([]*nodemodel.Node, error) {
+	nodes, err := parsePartsWith([]string{raw}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", label, err)
 	}
@@ -362,7 +367,7 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 	}
 	if len(texts) > 0 && membersNative {
 		for _, i := range at {
-			nodes, err := requireNativeNodes(memberLabel(resolved[i].member), resolved[i].out.raw)
+			nodes, err := requireNativeNodesWith(memberLabel(resolved[i].member), resolved[i].out.raw, parseOptionsFor(resolved[i].member))
 			if err != nil {
 				if err := fail(resolved[i].member, err); err != nil {
 					return nil, false, err

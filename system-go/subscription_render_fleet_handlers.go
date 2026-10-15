@@ -129,11 +129,12 @@ func (rt *runtime) renderRecord(rec subscriptionRecord, req subscriptionRenderRe
 		return renderResult{}, fmt.Errorf("subscription %q: %w", subscriptionID, err)
 	}
 	request := nodeConvertRequest{
-		Parts:   []string{source},
-		Target:  target,
-		Plan:    plan,
-		Options: req.Options,
-		Explain: req.Explain,
+		Parts:         []string{source},
+		Target:        target,
+		Plan:          plan,
+		Options:       req.Options,
+		Explain:       req.Explain,
+		AllowExternal: parseOptionsFor(rec).AllowExternal,
 	}
 	// A snapshot envelope carries the nodes fetch parsed from the same text;
 	// a native render reads them instead of parsing again.
