@@ -2,6 +2,8 @@ package producers
 
 import (
 	"encoding/base64"
+	"os"
+	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -230,4 +232,37 @@ func TestURINeverWritesALineBreakFromAField(t *testing.T) {
 		}
 	}
 	t.Logf("%d mutated nodes produced for URI and V2Ray", mutated)
+}
+
+// TestURILineSafeCasesMatchTheLineSafeGolden holds the corpus to the rule
+// the checker only permits: for every case with a line-safe bytes golden on
+// URI or V2Ray, the native output must equal those bytes, never the strict
+// golden that carries upstream's split link. Without it a producer that
+// writes the injection would still pass the corpus, because the strict
+// golden is upstream's own output.
+func TestURILineSafeCasesMatchTheLineSafeGolden(t *testing.T) {
+	judged := 0
+	for _, target := range harnessTargets {
+		if !target.bytes {
+			continue
+		}
+		dir := filepath.Join(conformanceDir, "goldens", "produce", target.id)
+		for _, c := range produceCases(t) {
+			want, err := os.ReadFile(filepath.Join(dir, c.id+lineSafeBytesInfix+target.ext))
+			if err != nil {
+				continue
+			}
+			if !comparesWithoutLineBreaks(t, target.id, c.id) {
+				t.Errorf("%s %s: a line-safe golden exists for a case line-safety does not name", target.id, c.id)
+			}
+			judged++
+			got, _ := produce(t, target.platform, c.produceInput(decodeNodes(t, c.nodes)), c.options)
+			if got != string(want) {
+				t.Errorf("%s %s: output %q, want the line-safe golden %q", target.id, c.id, clip(got), clip(string(want)))
+			}
+		}
+	}
+	if judged != 20 {
+		t.Errorf("%d line-safe bytes goldens judged, want 20 (ten cases on URI and on V2Ray)", judged)
+	}
 }
