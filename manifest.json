@@ -455,7 +455,8 @@
           "name": "migrate_record",
           "effect": "write",
           "scopes": [
-            "substore:admin"
+            "substore:admin",
+            "vpncore:read"
           ],
           "budget": {
             "timeout_ms": 30000,
