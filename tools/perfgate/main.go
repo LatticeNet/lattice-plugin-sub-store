@@ -1,7 +1,13 @@
-// Command perfgate judges a benchmark run against the S1 perf targets and a
-// committed baseline (S1 plan section 5.2):
+// Command perfgate judges a benchmark run against the perf targets and a
+// committed baseline (S1 plan section 5.2, S2 plan section 5):
 //
 //	go run ./tools/perfgate -baseline system-go/testdata/bench/ubuntu-24.04.txt -current bench.txt
+//
+// The target table is the plugin's own unless -target names one: each
+// -target Name=duration (repeatable) bounds that benchmark's median, and
+// the flags together replace the built-in table, which is how another
+// repository's perf job (lattice-server's bind and propose benchmarks)
+// judges its own benchmarks with this tool.
 //
 // Both files are `go test -bench ... -count N` output. For every benchmark
 // perfgate takes the median ns/op over the runs, then fails when a benchmark
@@ -32,12 +38,39 @@ import (
 	"time"
 )
 
-// targets are the bounds on the median of the pipeline benchmarks. The
-// producer benchmarks have no bound of their own; the regression rule covers
-// them.
-var targets = map[string]time.Duration{
+// defaultTargets are the bounds on the median of the plugin's gated
+// benchmarks: the S1 pipeline (S1 plan section 5.2) and the S2 fleet plan,
+// catalogue validation and fleet_preview figures (S2 plan section 5). The
+// producer, parse and isolated-engine benchmarks have no bound of their
+// own; the regression rule covers them once the baseline holds them.
+var defaultTargets = map[string]time.Duration{
 	"BenchmarkPipelineReality1000SingBox": 20 * time.Millisecond,
 	"BenchmarkPipelineReality4096SingBox": 100 * time.Millisecond,
+	"BenchmarkFleetPlan1000":              30 * time.Millisecond,
+	"BenchmarkFleetPlan4096":              120 * time.Millisecond,
+	"BenchmarkValidateCatalogueRows4096":  20 * time.Millisecond,
+	"BenchmarkFleetPreview10000":          500 * time.Millisecond,
+}
+
+// targetFlags collects -target Name=duration flags.
+type targetFlags map[string]time.Duration
+
+func (f targetFlags) String() string { return fmt.Sprint(map[string]time.Duration(f)) }
+
+func (f targetFlags) Set(v string) error {
+	name, bound, ok := strings.Cut(v, "=")
+	if !ok || !strings.HasPrefix(name, "Benchmark") {
+		return fmt.Errorf("want Name=duration with a Benchmark name, got %q", v)
+	}
+	d, err := time.ParseDuration(bound)
+	if err != nil || d <= 0 {
+		return fmt.Errorf("bad duration in %q", v)
+	}
+	if _, dup := f[name]; dup {
+		return fmt.Errorf("%s is bounded twice", name)
+	}
+	f[name] = d
+	return nil
 }
 
 // regressionFactor is the 1.5 times rule: a median must stay under this
@@ -58,12 +91,18 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 	baselinePath := fs.String("baseline", "", "committed go test -bench output (optional)")
 	currentPath := fs.String("current", "", "go test -bench output of this run")
+	custom := targetFlags{}
+	fs.Var(custom, "target", "Name=duration bound on a benchmark's median (repeatable; replaces the built-in table)")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
 	if *currentPath == "" || fs.NArg() != 0 {
-		fmt.Fprintln(stderr, "usage: perfgate [-baseline <bench.txt>] -current <bench.txt>")
+		fmt.Fprintln(stderr, "usage: perfgate [-baseline <bench.txt>] [-target Name=duration ...] -current <bench.txt>")
 		return 2
+	}
+	targets := map[string]time.Duration(defaultTargets)
+	if len(custom) > 0 {
+		targets = custom
 	}
 	current, err := readBench(*currentPath)
 	if err != nil {
@@ -77,7 +116,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 	}
-	rows := judge(current, baseline)
+	rows := judge(current, baseline, targets)
 	writeTable(stdout, rows)
 	failed := 0
 	for _, r := range rows {
@@ -159,7 +198,7 @@ type row struct {
 	fail     bool
 }
 
-func judge(current, baseline map[string][]float64) []row {
+func judge(current, baseline map[string][]float64, targets map[string]time.Duration) []row {
 	names := map[string]bool{}
 	for n := range current {
 		names[n] = true

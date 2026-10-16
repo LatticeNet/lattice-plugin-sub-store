@@ -78,6 +78,30 @@ jobs:
         working-directory: ui
         run: npm test
 
+      - name: read the server commit core-types.ts was generated from
+        id: coretypes
+        run: |
+          commit="$(sed -n 's|^// Source: lattice-server \([0-9a-f]\{40\}\)$|\1|p' ui/src/core-types.ts)"
+          test -n "$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+      - name: check out lattice-server at that commit
+        uses: actions/checkout@v6
+        with:
+          repository: LatticeNet/lattice-server
+          ref: ${{ steps.coretypes.outputs.commit }}
+          path: lattice-server-for-tsgen
+
+      - name: regenerate core-types.ts and compare
+        # contract.test.ts runs the server's tools/tsgen at the commit the
+        # file names and requires the committed bytes (S2 plan section 2.8).
+        # The server is its own module, outside the temporary workspace.
+        working-directory: ui
+        env:
+          GOWORK: "off"
+          LATTICE_SERVER_DIR: ${{ github.workspace }}/lattice-server-for-tsgen
+        run: npm test -- contract
+
       - name: typecheck UI
         working-directory: ui
         run: npm run typecheck
@@ -205,9 +229,10 @@ jobs:
           retention-days: 30
 
   perf:
-    # Wall-clock gates (S1 plan section 5.2) on a fixed runner image, judged
-    # by tools/perfgate against the baseline committed from this job's own
-    # output.
+    # Wall-clock gates (S1 plan section 5.2, S2 plan section 5) on a fixed
+    # runner image, judged by tools/perfgate against its target table and
+    # the baseline committed from this job's own output. No wall-clock
+    # figure is asserted in the verify job.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -219,9 +244,16 @@ jobs:
             system-go/go.mod
             tools/perfgate/go.mod
 
-      - name: run the pipeline, parse and producer benchmarks ten times
+      - name: run the pipeline, parse, producer, fleet and isolated-engine benchmarks ten times
+        # The fleet plan at 1000 and 4096 rows, catalogue validation at 4096
+        # rows and fleet_preview over 10000 lines have targets in perfgate;
+        # the isolated first and seeded calls and the config-file merge on
+        # the isolated path are held to the regression rule once the
+        # baseline holds them. pipefail keeps a failing benchmark from
+        # passing through tee.
         working-directory: system-go
-        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096' -count 10 -benchmem ./... | tee "$RUNNER_TEMP/bench.txt"
+        shell: bash
+        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096|FleetPlan|ValidateCatalogueRows4096|FleetPreview10000|IsolatedFirstCall|IsolatedSeededCall|MergeConfigIsolated' -count 10 -benchmem -timeout 60m ./... | tee "$RUNNER_TEMP/bench.txt"
 
       - name: judge the medians
         working-directory: tools/perfgate
@@ -253,7 +285,7 @@ jobs:
 
       - name: allocation and heap gates
         working-directory: system-go
-        run: go test -count=1 -run '^(TestPipelineAllocsPerNodeBound|TestHeapInuseAfter4096Render)$' -v .
+        run: go test -count=1 -run '^(TestPipelineAllocsPerNodeBound|TestFleetPlanAllocsBound|TestHeapInuseAfter4096Render)$' -v .
 
       - name: build the worker as the release does
         working-directory: system-go
@@ -261,9 +293,12 @@ jobs:
           CGO_ENABLED: "0"
         run: go build -trimpath -buildvcs=false -o "$RUNNER_TEMP/plugin" .
 
-      - name: record the worker's resident set
-        # Recorded, not enforced, until S2.
+      - name: hold the worker's resident set to the S2 bounds
+        # Enforced from S2 (S2 plan section 5): VmRSS under 32 MiB idle and
+        # under 96 MiB after each scriptless 4096-node render; the output is
+        # kept as the record.
         working-directory: system-go
+        shell: bash
         env:
           LATTICE_WORKER_BINARY: ${{ runner.temp }}/plugin
         run: go test -count=1 -run '^TestWorkerVmRSS$' -v . | tee "$RUNNER_TEMP/memory.txt"

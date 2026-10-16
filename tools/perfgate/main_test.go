@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // benchOutput writes go test -bench lines for name with the given ns/op
@@ -24,6 +25,58 @@ const (
 	pipe4096 = "BenchmarkPipelineReality4096SingBox"
 	prodSB   = "BenchmarkProduce4096/singbox"
 )
+
+// pipeTargets is the S1 half of the default table, which the judge tests
+// exercise on their own.
+var pipeTargets = map[string]time.Duration{pipe1000: 20 * time.Millisecond, pipe4096: 100 * time.Millisecond}
+
+// pipeFlags bounds the two pipeline benchmarks through -target.
+var pipeFlags = []string{"-target", pipe1000 + "=20ms", "-target", pipe4096 + "=100ms"}
+
+// TestDefaultTargetsHoldTheS2Bounds pins the plugin's table: the S1
+// pipeline bounds and the S2 fleet figures of the plan's section 5.
+func TestDefaultTargetsHoldTheS2Bounds(t *testing.T) {
+	want := map[string]time.Duration{
+		pipe1000: 20 * time.Millisecond, pipe4096: 100 * time.Millisecond,
+		"BenchmarkFleetPlan1000": 30 * time.Millisecond, "BenchmarkFleetPlan4096": 120 * time.Millisecond,
+		"BenchmarkValidateCatalogueRows4096": 20 * time.Millisecond, "BenchmarkFleetPreview10000": 500 * time.Millisecond,
+	}
+	if len(defaultTargets) != len(want) {
+		t.Fatalf("default targets = %v, want %v", defaultTargets, want)
+	}
+	for name, d := range want {
+		if defaultTargets[name] != d {
+			t.Errorf("%s: bound %v, want %v", name, defaultTargets[name], d)
+		}
+	}
+}
+
+func TestTargetFlagsReplaceTheTable(t *testing.T) {
+	dir := t.TempDir()
+	cur := filepath.Join(dir, "server.txt")
+	if err := os.WriteFile(cur, []byte(benchOutput("BenchmarkSubstoreBindPlan1000", 31e6, 32e6, 33e6)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"-target", "BenchmarkSubstoreBindPlan1000=50ms", "-current", cur}, &stdout, &stderr); code != 0 || strings.Contains(stdout.String(), pipe1000) {
+		t.Fatalf("a -target run judged the built-in table or failed: %d\n%s\n%s", code, stdout.String(), stderr.String())
+	}
+	stdout.Reset()
+	if code := run([]string{"-target", "BenchmarkSubstoreBindPlan1000=30ms", "-current", cur}, &stdout, &stderr); code != 1 || !strings.Contains(stdout.String(), "not under 30ms") {
+		t.Fatalf("a median over its -target bound passed: %d\n%s", code, stdout.String())
+	}
+	if code := run([]string{"-current", cur}, &stdout, &stderr); code != 1 {
+		t.Fatalf("without -target the plugin's gated benchmarks must be present: %d", code)
+	}
+	for _, bad := range []string{"BenchmarkX", "BenchmarkX=fast", "X=1ms", "BenchmarkX=-1ms"} {
+		if code := run([]string{"-target", bad, "-current", cur}, &stdout, &stderr); code != 2 {
+			t.Errorf("-target %q was accepted", bad)
+		}
+	}
+	if code := run([]string{"-target", "BenchmarkX=1ms", "-target", "BenchmarkX=2ms", "-current", cur}, &stdout, &stderr); code != 2 {
+		t.Error("a benchmark bounded twice was accepted")
+	}
+}
 
 func TestMedianTakesTheMiddle(t *testing.T) {
 	for _, c := range []struct {
@@ -73,24 +126,24 @@ func TestJudgeAppliesTheTargetTable(t *testing.T) {
 		cur, _ := parseBench(strings.NewReader(benchOutput(pipe1000, p1000, p1000, p1000) + benchOutput(pipe4096, p4096)))
 		return cur
 	}
-	if v := verdicts(judge(samples(19.9e6, 99.9e6), nil)); v[pipe1000] != "ok" || v[pipe4096] != "ok" {
+	if v := verdicts(judge(samples(19.9e6, 99.9e6), nil, pipeTargets)); v[pipe1000] != "ok" || v[pipe4096] != "ok" {
 		t.Fatalf("medians under both bounds: %v", v)
 	}
 	// The bound is "under": a median equal to it fails.
-	if v := verdicts(judge(samples(20e6, 99e6), nil)); !strings.Contains(v[pipe1000], "not under 20ms") || v[pipe4096] != "ok" {
+	if v := verdicts(judge(samples(20e6, 99e6), nil, pipeTargets)); !strings.Contains(v[pipe1000], "not under 20ms") || v[pipe4096] != "ok" {
 		t.Fatalf("1000-node median at 20ms: %v", v)
 	}
-	if v := verdicts(judge(samples(5e6, 100.1e6), nil)); !strings.Contains(v[pipe4096], "not under 100ms") {
+	if v := verdicts(judge(samples(5e6, 100.1e6), nil, pipeTargets)); !strings.Contains(v[pipe4096], "not under 100ms") {
 		t.Fatalf("4096-node median over 100ms: %v", v)
 	}
 	// A gated benchmark that did not run fails rather than passing by absence.
 	only, _ := parseBench(strings.NewReader(benchOutput(pipe1000, 1e6)))
-	if v := verdicts(judge(only, nil)); !strings.Contains(v[pipe4096], "missing from the current run") {
+	if v := verdicts(judge(only, nil, pipeTargets)); !strings.Contains(v[pipe4096], "missing from the current run") {
 		t.Fatalf("4096-node benchmark absent: %v", v)
 	}
 	// The median decides, not one slow run.
 	cur, _ := parseBench(strings.NewReader(benchOutput(pipe1000, 1e6, 1e6, 500e6) + benchOutput(pipe4096, 1e6)))
-	if v := verdicts(judge(cur, nil)); v[pipe1000] != "ok" {
+	if v := verdicts(judge(cur, nil, pipeTargets)); v[pipe1000] != "ok" {
 		t.Fatalf("one outlier among three runs: %v", v)
 	}
 }
@@ -98,7 +151,7 @@ func TestJudgeAppliesTheTargetTable(t *testing.T) {
 func TestJudgeAppliesTheRegressionRule(t *testing.T) {
 	base, _ := parseBench(strings.NewReader(benchOutput(pipe1000, 10e6) + benchOutput(pipe4096, 40e6) + benchOutput(prodSB, 2e6) + benchOutput("BenchmarkProduce4096/uri", 1e6)))
 	cur, _ := parseBench(strings.NewReader(benchOutput(pipe1000, 14.9e6) + benchOutput(pipe4096, 60e6) + benchOutput(prodSB, 3.1e6) + benchOutput("BenchmarkProduce4096/json", 1e6)))
-	v := verdicts(judge(cur, base))
+	v := verdicts(judge(cur, base, pipeTargets))
 	want := map[string]string{
 		pipe1000:                    "ok",                           // 1.49x
 		pipe4096:                    "not under 1.5x baseline",      // exactly 1.5x
@@ -145,6 +198,7 @@ func TestRunExitsWithTheTable(t *testing.T) {
 		{[]string{"-baseline", base}, 2, "", "usage"},
 	} {
 		var stdout, stderr bytes.Buffer
+		c.args = append(append([]string(nil), pipeFlags...), c.args...)
 		code := run(c.args, &stdout, &stderr)
 		if code != c.code || !strings.Contains(stdout.String(), c.stdout) || !strings.Contains(stderr.String(), c.stderr) {
 			t.Errorf("run(%q) = %d\nstdout:\n%s\nstderr:\n%s\nwant %d, stdout with %q, stderr with %q", c.args, code, stdout.String(), stderr.String(), c.code, c.stdout, c.stderr)
