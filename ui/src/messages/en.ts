@@ -1249,7 +1249,7 @@ export const en = {
     sampleTitle: "Lines in the selection",
     sampleShown: (shown: number, total: number) => `${num(shown)} of ${plural(total, { one: "{n} line", other: "{n} lines" })} shown`,
     sampleColumns: { line: "Line", protocol: "Protocol", where: "Exit", state: "Service" },
-    sampleAll: (n: number) => `Show all ${plural(n, { one: "{n} line", other: "{n} lines" })}`,
+    sampleAll: (n: number) => `Show the ${plural(n, { one: "{n} sampled line", other: "{n} sampled lines" })}`,
     sampleFewer: "Show fewer",
     showLine: (label: string) => `Show the details of ${label}`,
     unknownGeo: "unknown",
@@ -1261,6 +1261,11 @@ export const en = {
     error: { title: "The line catalogue could not be read" },
     retry: "Retry",
     reread: "Read again",
+    unfinished: (step: number, condition: number) =>
+      `Counts are from the last complete selection. Finish step ${num(step)}, condition ${num(condition)} to read the catalogue again.`,
+    stepRemoved: (n: number) => `Step ${num(n)} removed.`,
+    undo: "Undo",
+    openOperations: "Open in Operations",
     denied: {
       title: "Reading the line catalogue needs vpncore:read",
       body: "This session lacks that scope, so the selection's counts, its lines and identity previews are not shown. The steps can still be read and edited.",
@@ -1270,9 +1275,9 @@ export const en = {
       `Shares are served from a snapshot taken at catalogue ${served}; the catalogue is now at ${now}. The record refetches within its refresh interval.`,
     probeFlagged: "No probe data on this server yet. A probe condition is refused at save until probes run.",
     tooLarge: {
-      title: "This selection is too large to store",
-      body: (size: string, fit: number) =>
-        `It takes ${size} once stored, and core keeps 4 MiB for one record: about ${plural(fit, { one: "{n} line", other: "{n} lines" })} of this fleet. Narrow the selection or split the record.`,
+      title: "Core will refuse to store this selection",
+      body: (size: string, bound: string, fit: number) =>
+        `Saving works, but every refresh of this record fails with snapshot_too_large until it is narrowed: it takes ${size} once stored, and core keeps ${bound} for one record, about ${plural(fit, { one: "{n} line", other: "{n} lines" })} of this fleet. Narrow the selection or split the record.`,
     },
     transformer: {
       title: "Fleet records cannot rewrite their document yet",
@@ -1314,6 +1319,7 @@ export const en = {
       expires: (date: string) => `expires ${date}`,
       status: { active: "active", expired: "expired", over_quota: "over quota", disabled: "disabled" },
       saveFirst: "Save the record to preview what an identity's share receives.",
+      unsaved: "This preview shows the saved record. Unsaved edits are not reflected here; save to preview them as a staged revision.",
       choose: "Choose an identity to preview its share.",
       revision: "Revision",
       revisionLive: "Live",
@@ -1326,6 +1332,8 @@ export const en = {
       included: (n: number) => plural(n, { one: "{n} entry included", other: "{n} entries included" }),
       excluded: (n: number) => plural(n, { one: "{n} excluded", other: "{n} excluded" }),
       noneIncluded: "No entry would be served to this identity.",
+      inactiveSummary: (n: number) => `No entry is served while the identity is not active; ${plural(n, { one: "{n} entry", other: "{n} entries" })} would be included once it is.`,
+      showMore: (n: number) => `Show ${num(n)} more`,
       columns: { name: "Entry", protocol: "Protocol", endpoint: "Server" },
       provider: "provider",
       clone: (n: number) => `clone ${num(n)}`,
@@ -1491,7 +1499,6 @@ export const en = {
     moveDown: (n: number) => `Move condition ${num(n)} down`,
     valuePlaceholder: "Type a value, then Enter",
     removeValue: (value: string) => `Remove ${value}`,
-    probeOption: (label: string) => `${label} (no probe data yet)`,
     problems: {
       unknownField: "Choose a field.",
       badOp: "This field does not take that operator.",
@@ -1502,6 +1509,7 @@ export const en = {
       asn: "An AS number is a whole number without leading zeros.",
       closedValue: "Choose one of the listed values.",
       needsValue: "Enter a number.",
+      probeUnavailable: "No probe data on this server yet.",
       outOfRange: (min: number, max: number) => `Enter a number from ${num(min)} to ${num(max)}.`,
     },
   },

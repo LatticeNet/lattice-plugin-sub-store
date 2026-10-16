@@ -123,9 +123,9 @@ function fieldLabel(field: string): string {
   return (t.structured.fields as Record<string, string>)[field] ?? field;
 }
 
+/** A probe field is disabled while probe data is unavailable; the row's problem line says why. */
 function fieldOptionLabel(field: string): string {
-  const label = fieldLabel(field);
-  return props.probeUnavailable && PREDICATE_FIELDS[field]?.probe ? t.structured.probeOption(label) : label;
+  return fieldLabel(field);
 }
 
 function opLabel(field: string, op: PredicateOp): string {
@@ -142,7 +142,7 @@ function unitOf(field: string): string {
 function problemOf(p: Predicate): string {
   const found = predicateProblem(p);
   if (found) return problemText(found, p.field);
-  if (props.probeUnavailable && PREDICATE_FIELDS[p.field]?.probe) return t.fleetEditor.probeFlagged;
+  if (props.probeUnavailable && PREDICATE_FIELDS[p.field]?.probe) return t.structured.problems.probeUnavailable;
   return "";
 }
 
@@ -164,10 +164,13 @@ function addValue(index: number, raw: string): void {
   replace(index, { ...p, values });
 }
 
-function removeValue(index: number, value: string): void {
+function removeValue(index: number, value: string, refocus = false): void {
   const p = parsed.value.predicates[index];
   if (!p) return;
   replace(index, { ...p, values: (p.values ?? []).filter((v) => v !== value) });
+  // The chip's button is gone with the chip: the condition's value box is
+  // where the operator's hands go next.
+  if (refocus) void nextTick(() => root.value?.querySelector<HTMLElement>(`[data-sp-row="${index}"] .sp-value-input`)?.focus());
 }
 
 function toggleValue(index: number, value: string): void {
@@ -380,7 +383,7 @@ const segments = computed(() => ({
               :disabled="readOnly"
               :aria-label="t.structured.removeValue(value)"
               :title="t.structured.removeValue(value)"
-              @click="removeValue(index, value)"
+              @click="removeValue(index, value, true)"
             >
               <X :size="12" aria-hidden="true" />
             </button>
@@ -609,8 +612,9 @@ const segments = computed(() => ({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
+  margin: -2px 0;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -620,9 +624,10 @@ const segments = computed(() => ({
 .sp-chip-drop:hover:not(:disabled) { background: var(--card); }
 .sp-chip-drop:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); }
 
+/* Wide enough for its own hint; past the chips it takes a line of its own. */
 .sp-value-input {
-  flex: 1 1 10ch;
-  min-width: 10ch;
+  flex: 1 1 18ch;
+  min-width: min(18ch, 100%);
   min-height: 24px;
   padding: 0 var(--space-1);
   border: 0;

@@ -37,7 +37,16 @@ const fleet = props.fleet;
 const reply = computed(() => fleet.bindPreview.value);
 const status = computed(() => reply.value?.identity_status || fleet.chosenIdentity.value?.status || "");
 const inactive = computed(() => identityInactive(status.value));
-const groups = computed(() => groupExclusions(reply.value?.excluded ?? []));
+const groups = computed(() =>
+  groupExclusions(reply.value?.excluded ?? []).map((group) => {
+    // One fix for every line of a group is said once, at the group's head.
+    const fixes = new Set(group.entries.map((entry) => entry.fix ?? ""));
+    const shared = group.entries.length > 1 && fixes.size === 1 ? [...fixes][0]! : "";
+    return { ...group, shared };
+  }),
+);
+const GROUP_FIRST = 5;
+const openGroups = ref<Record<string, boolean>>({});
 const staged = computed(() => fleet.listItem.value?.staged_revision ?? "");
 
 const PAGE = 100;
@@ -45,6 +54,7 @@ const shownCount = ref(PAGE);
 const entries = computed<BindEntry[]>(() => (reply.value?.entries ?? []).slice(0, shownCount.value));
 watch(reply, () => {
   shownCount.value = PAGE;
+  openGroups.value = {};
 });
 
 function inactiveText(value: string): string {
@@ -157,19 +167,26 @@ function openUsers(): void {
     </PcNotice>
 
     <template v-else-if="reply">
-      <PcNotice v-if="inactive" tone="warning" data-testid="bind-inactive">{{ inactiveText(status) }}</PcNotice>
+      <PcNotice v-if="inactive" tone="danger" data-testid="bind-inactive">{{ inactiveText(status) }}</PcNotice>
       <PcNotice v-if="reply.refused" tone="danger" :title="t.fleetEditor.bind.refused.title" data-testid="bind-refused">
         {{ refusedText(reply.refused) }}
         <code class="bp-code">{{ reply.refused }}</code>
       </PcNotice>
 
       <p class="bp-summary mono" data-testid="bind-summary">
-        <span>{{ t.fleetEditor.bind.included(reply.entries.length) }}</span>
+        <span v-if="inactive">{{ t.fleetEditor.bind.inactiveSummary(reply.entries.length) }}</span>
+        <span v-else>{{ t.fleetEditor.bind.included(reply.entries.length) }}</span>
         <span>{{ t.fleetEditor.bind.excluded(reply.excluded.length) }}</span>
         <span v-if="reply.source_version">{{ shortVersion(reply.source_version) }}</span>
       </p>
 
-      <div v-if="reply.entries.length" ref="list" class="bp-table" role="table" :aria-label="t.fleetEditor.bind.included(reply.entries.length)">
+      <div
+        v-if="reply.entries.length"
+        ref="list"
+        :class="['bp-table', { 'is-dimmed': inactive }]"
+        role="table"
+        :aria-label="t.fleetEditor.bind.included(reply.entries.length)"
+      >
         <div class="bp-row bp-row-head" role="row">
           <span role="columnheader">{{ t.fleetEditor.bind.columns.name }}</span>
           <span role="columnheader">{{ t.fleetEditor.bind.columns.protocol }}</span>
@@ -197,7 +214,7 @@ function openUsers(): void {
             <span v-if="exitOf(entry.line_uuid)" class="bp-exit">{{ exitOf(entry.line_uuid) }}</span>
           </span>
           <span role="cell" class="bp-proto mono">{{ entry.protocol }}</span>
-          <span role="cell" class="bp-endpoint mono">{{ entry.server }}<template v-if="entry.port">:{{ entry.port }}</template></span>
+          <span role="cell" class="bp-endpoint mono"><span class="bp-host">{{ entry.server }}</span><span v-if="entry.port" class="bp-port">:{{ entry.port }}</span></span>
         </div>
       </div>
       <p v-else class="bp-none" data-testid="bind-none">{{ t.fleetEditor.bind.noneIncluded }}</p>
@@ -216,8 +233,23 @@ function openUsers(): void {
           <span class="bp-group-count">{{ formatCount(group.entries.length) }}</span>
           <code class="bp-code">{{ group.reason }}</code>
         </h4>
+        <p v-if="group.shared" class="bp-fix bp-shared" data-testid="bind-shared-fix"><strong>{{ t.fleetEditor.bind.fix }}</strong> {{ group.shared }}</p>
+        <button
+          v-if="group.reason === REASON_NOT_BOUND && origin"
+          type="button"
+          class="button button-secondary button-compact bp-group-action"
+          data-testid="bind-open-users"
+          @click="openUsers()"
+        >
+          <ExternalLink :size="14" aria-hidden="true" /> {{ t.fleetEditor.bind.openUsers }}
+        </button>
         <ul class="bp-excluded">
-          <li v-for="entry in group.entries" :key="entry.index" class="bp-ex" data-testid="bind-excluded">
+          <li
+            v-for="entry in openGroups[group.reason] ? group.entries : group.entries.slice(0, GROUP_FIRST)"
+            :key="entry.index"
+            class="bp-ex"
+            data-testid="bind-excluded"
+          >
             <span class="bp-ex-name">
               <button
                 v-if="entry.line_uuid"
@@ -228,18 +260,18 @@ function openUsers(): void {
               >{{ entryName(entry) }}</button>
               <span v-else>{{ entryName(entry) }}</span>
             </span>
-            <span v-if="entry.fix" class="bp-fix"><strong>{{ t.fleetEditor.bind.fix }}</strong> {{ entry.fix }}</span>
+            <span v-if="entry.fix && !group.shared" class="bp-fix"><strong>{{ t.fleetEditor.bind.fix }}</strong> {{ entry.fix }}</span>
             <span v-if="entry.detail" class="bp-detail">{{ entry.detail }}</span>
           </li>
         </ul>
         <button
-          v-if="group.reason === REASON_NOT_BOUND && origin"
+          v-if="group.entries.length > GROUP_FIRST"
           type="button"
-          class="button button-secondary button-compact"
-          data-testid="bind-open-users"
-          @click="openUsers()"
+          class="button button-secondary button-compact bp-more"
+          :aria-expanded="!!openGroups[group.reason]"
+          @click="openGroups = { ...openGroups, [group.reason]: !openGroups[group.reason] }"
         >
-          <ExternalLink :size="14" aria-hidden="true" /> {{ t.fleetEditor.bind.openUsers }}
+          {{ openGroups[group.reason] ? t.fleetEditor.sampleFewer : t.fleetEditor.bind.showMore(group.entries.length - GROUP_FIRST) }}
         </button>
       </section>
     </template>
@@ -343,14 +375,37 @@ function openUsers(): void {
 
 .bp-exit { font-family: var(--font-mono); }
 
-.bp-proto,
-.bp-endpoint {
+.bp-proto {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--lt-text-xs);
 }
+
+/* The host gives way before the port: a cut host still says where, and the
+   port is the part an operator matches against a client. */
+.bp-endpoint {
+  display: flex;
+  min-width: 0;
+  font-size: var(--lt-text-xs);
+  white-space: nowrap;
+}
+
+.bp-host {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bp-port { flex: none; }
+
+/* Dimmed by ink, not opacity: the rows stay readable at full contrast. */
+.bp-table.is-dimmed .bp-row:not(.bp-row-head),
+.bp-table.is-dimmed .bp-open { color: var(--muted-foreground); }
+
+.bp-shared { margin: 0; }
+.bp-group-action { align-self: flex-start; }
 
 .bp-none {
   margin: 0;

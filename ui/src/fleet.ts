@@ -597,13 +597,40 @@ export function linesThatFit(reply: Pick<FleetPreviewReply, "count" | "estimated
   return Math.max(0, Math.floor(MAX_SNAPSHOT_BYTES / perRow));
 }
 
-/** The short form of an lcv1- version or a revision hash, as the proof lines print it. */
-export function shortVersion(version: string | undefined, length = 8): string {
+/**
+ * The short form of an lcv1- version or a revision hash, as the proof lines
+ * print it. `ellipsis: false` cuts it the way a short commit hash is cut, for
+ * a sentence where an ellipsis would run into the punctuation after it.
+ */
+export function shortVersion(version: string | undefined, length = 8, ellipsis = true): string {
   if (!version) return "";
   const dash = version.indexOf("-");
   const head = dash > 0 && dash < 6 ? version.slice(0, dash + 1) : "";
   const body = version.slice(head.length);
-  return body.length > length ? `${head}${body.slice(0, length)}…` : version;
+  if (body.length <= length) return version;
+  return `${head}${body.slice(0, length)}${ellipsis ? "…" : ""}`;
+}
+
+/**
+ * The first condition of the leading run that is not finished yet (no value,
+ * a value out of range), as 1-based step and condition numbers; null when
+ * every condition can be evaluated. A selection with one is not read: its
+ * counts would describe a condition nobody has finished typing.
+ */
+export function unfinishedCondition(process: readonly unknown[]): { step: number; condition: number } | null {
+  const run = leadingRun(process);
+  for (let position = 0; position < run.filters.length; position++) {
+    const args = readFilterArgs((process[run.filters[position]!] as { args?: unknown } | undefined)?.args);
+    if (args.predicates.length === 0) return { step: position + 1, condition: 1 };
+    const at = args.predicates.findIndex((p) => predicateProblem(p) !== "");
+    if (at !== -1) return { step: position + 1, condition: at + 1 };
+  }
+  return null;
+}
+
+/** A read method's message without the code it leads with, which the notice shows apart. */
+export function withoutLeadingCode(message: string): string {
+  return message.replace(/^\s*[a-z][a-z0-9_]*:\s*/, "");
 }
 
 /**

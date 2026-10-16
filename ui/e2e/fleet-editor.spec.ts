@@ -134,6 +134,8 @@ for (const viewport of VIEWPORTS) {
         await openRecord(page, ASIA, { theme });
         await previewIdentity(page, "dave-contractor");
         await expect(page.getByTestId("bind-inactive")).toHaveText(m.fleetEditor.bind.inactive.expired);
+        // The summary does not claim entries an expired identity is not served.
+        await expect(page.getByTestId("bind-summary")).toContainText(m.fleetEditor.bind.inactiveSummary(20));
         await expect(page.getByTestId("identity-row").filter({ hasText: "dave-contractor" }).getByTestId("identity-status")).toHaveText(
           m.fleetEditor.identity.status.expired,
         );
@@ -144,8 +146,14 @@ for (const viewport of VIEWPORTS) {
         await openRecord(page, ASIA, { theme });
         await previewIdentity(page, "carol 张");
         await expect(page.getByTestId("bind-refused")).toContainText(m.fleetEditor.bind.refused.no_includable_line);
-        await expect(page.getByTestId("bind-exclusion-group").filter({ hasText: m.fleetEditor.bind.reasons.not_bound })).toHaveCount(1);
-        await expect(page.getByTestId("bind-open-users")).toBeVisible();
+        const notBound = page.getByTestId("bind-exclusion-group").filter({ hasText: m.fleetEditor.bind.reasons.not_bound });
+        await expect(notBound).toHaveCount(1);
+        // One fix for every line is said once, with its action beside it, and the lines collapse.
+        await expect(notBound.getByTestId("bind-shared-fix")).toHaveCount(1);
+        await expect(notBound.getByTestId("bind-open-users")).toBeVisible();
+        await expect(notBound.getByTestId("bind-excluded")).toHaveCount(5);
+        await notBound.getByRole("button", { name: m.fleetEditor.bind.showMore(16) }).click();
+        await expect(notBound.getByTestId("bind-excluded")).toHaveCount(21);
         expect(await seriousViolations(page)).toEqual([]);
       });
     });
@@ -178,7 +186,7 @@ for (const viewport of VIEWPORTS) {
 
     test("stale: the served snapshot predates the catalogue", async ({ page }) => {
       await openRecord(page, ASIA, { query: "&fleet=stale" });
-      await expect(page.getByTestId("fleet-stale")).toContainText(m.fleetEditor.stale("lcv1-9f1e2d3c…", "lcv1-0a63b2c4…"));
+      await expect(page.getByTestId("fleet-stale")).toContainText(m.fleetEditor.stale("lcv1-9f1e2d3c", "lcv1-0a63b2c4"));
       expect(await seriousViolations(page)).toEqual([]);
     });
 
@@ -207,7 +215,7 @@ for (const viewport of VIEWPORTS) {
     test("flagged: a probe condition while this server has no probe data", async ({ page }) => {
       await openRecord(page, PROBE);
       await expect(page.getByTestId("fleet-probe-flagged")).toHaveText(m.fleetEditor.probeFlagged);
-      await expect(page.getByTestId("predicate-problem")).toHaveText(m.fleetEditor.probeFlagged);
+      await expect(page.getByTestId("predicate-problem")).toHaveText(m.structured.problems.probeUnavailable);
       // Save says why, before the round trip refuses it (fleet_probe_unavailable).
       await expect(page.locator(".field-error-jump")).toHaveText(m.fleetEditor.validation.probe(1));
       expect(await seriousViolations(page)).toEqual([]);
@@ -219,6 +227,9 @@ for (const viewport of VIEWPORTS) {
       await expect(notice).toContainText(m.fleetEditor.tooLarge.title);
       await expect(notice).toContainText("snapshot_too_large");
       await expect(notice).toContainText(/2[,\s]?\d{3}/);
+      // The proof line, the counts and the notice describe one fleet.
+      await expect(page.getByTestId("fleet-proof")).toContainText(m.fleetEditor.proof.lines(9800));
+      await expect(page.getByTestId("fleet-step-count").nth(1)).toHaveText(m.fleetEditor.removed(6400, 6200));
       expect(await seriousViolations(page)).toEqual([]);
     });
 
@@ -282,6 +293,11 @@ test.describe("1440 sources, chain and rules", () => {
 
   test("a legacy record keeps its card, marked, and its output is withheld", async ({ page }) => {
     await openRecord(page, LEGACY);
+    await page.locator(".editor-side").getByRole("button", { name: m.editor.preview }).click();
+    await expect(page.getByTestId("preview-withheld")).toBeVisible();
+    // The withheld preview is the pane's notice, never also a raw page error.
+    await expect(page.locator(".alert")).toHaveCount(0);
+    await expect(page.locator(".editor-actions .field-error")).toHaveCount(0);
     await expect(page.getByTestId("source-vpn-core")).toHaveAttribute("aria-checked", "true");
     await expect(page.getByTestId("source-vpn-core").getByTestId("source-owner-credentials")).toHaveText(m.fleetEditor.ownerCredentials);
     await expect(page.getByTestId("legacy-pointer")).toHaveText(m.fleetEditor.legacyPointer);
@@ -350,6 +366,52 @@ test.describe("1440 sources, chain and rules", () => {
     await step.getByRole("radio", { name: m.structured.mode.keep }).focus();
     await page.keyboard.press("ArrowRight");
     await expect(step.getByRole("radio", { name: m.structured.mode.drop })).toBeChecked();
+  });
+});
+
+test.describe("1440 review fixes", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("an unfinished condition holds the counts of the last complete selection", async ({ page }) => {
+    await openRecord(page, ASIA);
+    const step = page.getByTestId("fleet-step").first();
+    await step.getByRole("button", { name: m.structured.addCondition }).click();
+    await expect(page.getByTestId("fleet-unfinished")).toHaveText(m.fleetEditor.unfinished(1, 3));
+    await page.waitForTimeout(700);
+    await expect(step.getByTestId("fleet-step-marker")).toHaveText(m.fleetEditor.pushed);
+    await expect(step.getByTestId("fleet-step-count")).toHaveText(m.fleetEditor.removed(117, 23));
+    await expect(page.getByTestId("fleet-empty")).toHaveCount(0);
+  });
+
+  test("a removed step keeps focus off every delete button and comes back with Undo", async ({ page }) => {
+    await openRecord(page, ASIA);
+    await page.getByTestId("fleet-step").first().getByRole("button", { name: m.fleetEditor.removeStep(1) }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("fleet-step")).toHaveCount(1);
+    await expect(page.locator("[data-fs-step-name]").first()).toBeFocused();
+    await page.getByTestId("fleet-step-removed").getByRole("button", { name: m.fleetEditor.undo }).click();
+    await expect(page.getByTestId("fleet-step")).toHaveCount(2);
+    await expect(page.getByTestId("fleet-step").first().getByTestId("predicate")).toHaveCount(2);
+  });
+
+  test("a removed value chip hands focus to its condition's value box", async ({ page }) => {
+    await openRecord(page, ASIA);
+    const row = page.getByTestId("fleet-step").first().getByTestId("predicate").first();
+    await row.getByRole("button", { name: m.structured.removeValue("SG") }).click();
+    await expect(row.locator(".sp-value-input")).toBeFocused();
+  });
+
+  test("an edited record's identity preview says it shows the saved record", async ({ page }) => {
+    await openRecord(page, ASIA);
+    await page.getByTestId("fleet-step").first().getByTestId("predicate").first().getByRole("button", { name: m.structured.removeValue("JP") }).click();
+    await page.getByTestId("fleet-jump-identity").click();
+    await expect(page.locator("#identity-preview-title")).toBeFocused();
+    await expect(page.getByTestId("identity-unsaved")).toHaveText(m.fleetEditor.identity.unsaved);
+  });
+
+  test("a combination names its fleet member as Fleet", async ({ page }) => {
+    await openRecord(page, COMBINATION);
+    await expect(page.locator(".picker").getByText(m.fleetEditor.kind, { exact: true }).first()).toBeVisible();
   });
 });
 

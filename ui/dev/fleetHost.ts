@@ -248,9 +248,28 @@ function previewProcess(process: unknown[], sample: number) {
     steps.push({ index, in: before, out: rows.length, pushed: false });
   }
   const state = fleetState();
-  if (state === "empty" && process.length) rows = [];
-  const count = state === "large" && process.length ? 6200 : rows.length;
-  const bytes = state === "large" && process.length ? 8_912_896 : Math.round(rows.length * 1420) + 512;
+  const selecting = process.length > 0;
+  if (state === "empty" && selecting) {
+    rows = [];
+    for (const step of steps) {
+      step.out = 0;
+      if (step.in !== undefined) step.in = 0;
+    }
+  }
+  // A fleet of 9800 lines whose selection keeps 6200, every figure scaled
+  // together, so the proof line, the counts and the notice agree.
+  const large = state === "large";
+  if (large && selecting) {
+    for (const step of steps) {
+      if (step.pushed) step.out = 6400;
+      else {
+        step.in = 6400;
+        step.out = 6200;
+      }
+    }
+  }
+  const count = large ? (selecting ? 6200 : 9800) : rows.length;
+  const bytes = large ? (selecting ? 8_912_896 : 14_090_240) : Math.round(rows.length * 1420) + 512;
   return {
     catalogue_version: CATALOGUE_VERSION,
     selector_fields: SELECTOR_FIELDS,

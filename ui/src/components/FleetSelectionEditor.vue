@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { LoaderCircle, Plus, RotateCw, Trash2 } from "@lucide/vue";
 import { PcNotice, PcSkeleton } from "@latticenet/plugin-bridge/chassis";
 
@@ -17,6 +17,7 @@ import {
   responseTransformerSteps,
   rowLabel,
   shortVersion,
+  withoutLeadingCode,
   type CatalogueRow,
   type FleetPreviewStep,
 } from "../fleet";
@@ -51,6 +52,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "update:process", value: unknown[]): void;
   (e: "open-line", lineUUID: string): void;
+  (e: "open-operations"): void;
+  (e: "jump-identity"): void;
 }>();
 
 const fleet = props.fleet;
@@ -105,7 +108,7 @@ const proof = computed<string[]>(() => {
 const tooLarge = computed(() => {
   const r = reply.value;
   if (!r || r.estimated_envelope_bytes <= MAX_SNAPSHOT_BYTES) return null;
-  return { size: formatBytes(r.estimated_envelope_bytes), fit: linesThatFit(r) };
+  return { size: formatBytes(r.estimated_envelope_bytes), bound: formatBytes(MAX_SNAPSHOT_BYTES), fit: linesThatFit(r) };
 });
 
 /** A selection step names a probe field, which save refuses while probe data is unavailable. */
@@ -145,9 +148,38 @@ function addStep(): void {
   emit("update:process", next);
 }
 
-function removeStep(index: number): void {
+/** The step last removed, kept until the next edit so a mistaken delete is one click back. */
+const removed = ref<{ index: number; position: number; step: unknown } | null>(null);
+const root = ref<HTMLElement | null>(null);
+
+function removeStep(index: number, position: number): void {
+  removed.value = { index, position, step: props.process[index] };
   emit("update:process", props.process.filter((_, i) => i !== index));
+  // Never onto another delete button: the next step's heading, or the add
+  // button when no step is left.
+  void nextTick(() => {
+    const names = root.value?.querySelectorAll<HTMLElement>("[data-fs-step-name]") ?? [];
+    const next = names[Math.min(position, names.length - 1)];
+    (next ?? root.value?.querySelector<HTMLElement>("[data-testid=fleet-add-step]"))?.focus();
+  });
 }
+
+function undoRemove(): void {
+  const last = removed.value;
+  if (!last) return;
+  const next = [...props.process];
+  next.splice(last.index, 0, last.step);
+  removed.value = null;
+  emit("update:process", next);
+  void nextTick(() => root.value?.querySelectorAll<HTMLElement>("[data-fs-step-name]")[last.position]?.focus());
+}
+
+watch(
+  () => props.process,
+  (next, previous) => {
+    if (removed.value && previous && next.length >= previous.length) removed.value = null;
+  },
+);
 
 // ── the sample ───────────────────────────────────────────────────────────────
 
@@ -172,13 +204,14 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
 </script>
 
 <template>
-  <section class="fs" data-testid="fleet-selection" :aria-busy="loading ? 'true' : 'false'" aria-labelledby="fleet-selection-title">
+  <section ref="root" class="fs" data-testid="fleet-selection" :aria-busy="loading ? 'true' : 'false'" aria-labelledby="fleet-selection-title">
     <header class="fs-head">
       <div class="fs-heading">
         <h3 id="fleet-selection-title" class="fs-title">{{ t.fleetEditor.selectionTitle }}</h3>
         <p class="fs-lead">{{ t.fleetEditor.selectionDescription }}</p>
       </div>
       <button
+        v-if="!failed"
         type="button"
         class="button button-secondary button-compact"
         :disabled="loading || denied"
@@ -194,6 +227,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
     <!-- The facts the selection rests on, in mono where they are identifiers. -->
     <p v-if="proof.length" class="fs-proof" data-testid="fleet-proof" aria-live="polite">
       <span v-for="(segment, index) in proof" :key="index" class="fs-proof-part">{{ segment }}</span>
+      <button type="button" class="fs-jump" data-testid="fleet-jump-identity" @click="emit('jump-identity')">{{ t.fleetEditor.identity.title }}</button>
     </p>
     <PcSkeleton v-else-if="loading" variant="rows" :count="1" :label="t.fleetEditor.loading" />
 
@@ -202,7 +236,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
       {{ t.fleetEditor.denied.body }}
     </PcNotice>
     <PcNotice v-else-if="failed" tone="danger" :title="t.fleetEditor.error.title" data-testid="fleet-error">
-      <span class="fs-error-text">{{ failed.message }}</span>
+      <span class="fs-error-text">{{ withoutLeadingCode(failed.message) }}</span>
       <code v-if="failed.code && !errorIsCatalogue" class="fs-code">{{ failed.code }}</code>
       <template #actions>
         <button type="button" class="button button-secondary button-compact" @click="fleet.retry()">{{ t.fleetEditor.retry }}</button>
@@ -210,16 +244,21 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
     </PcNotice>
     <p v-if="readOnly" class="permission-note" data-testid="fleet-read-only">{{ t.fleetEditor.readOnly }}</p>
     <PcNotice v-if="fleet.stale.value" tone="info" data-testid="fleet-stale">
-      {{ t.fleetEditor.stale(shortVersion(fleet.stale.value.served), shortVersion(fleet.stale.value.now)) }}
+      {{ t.fleetEditor.stale(shortVersion(fleet.stale.value.served, 8, false), shortVersion(fleet.stale.value.now, 8, false)) }}
     </PcNotice>
     <PcNotice v-if="tooLarge" tone="danger" :title="t.fleetEditor.tooLarge.title" data-testid="fleet-too-large">
-      {{ t.fleetEditor.tooLarge.body(tooLarge.size, tooLarge.fit) }}
-      <code class="fs-code">{{ ERROR_CODES.snapshotTooLarge }}</code>
+      {{ t.fleetEditor.tooLarge.body(tooLarge.size, tooLarge.bound, tooLarge.fit) }}
     </PcNotice>
     <PcNotice v-if="transformerSteps.length" tone="danger" :title="t.fleetEditor.transformer.title" data-testid="fleet-transformer">
       {{ t.fleetEditor.transformer.body(formatList(transformerSteps)) }}
       <code class="fs-code">{{ ERROR_CODES.fleetResponseChainUnavailable }}</code>
+      <template #actions>
+        <button type="button" class="button button-secondary button-compact" @click="emit('open-operations')">{{ t.fleetEditor.openOperations }}</button>
+      </template>
     </PcNotice>
+    <p v-if="fleet.unfinished.value" class="fs-unfinished" role="status" data-testid="fleet-unfinished">
+      {{ t.fleetEditor.unfinished(fleet.unfinished.value.step, fleet.unfinished.value.condition) }}
+    </p>
     <PcNotice v-if="fleet.probeMissing.value && usesProbe" tone="warning" data-testid="fleet-probe-flagged">
       {{ t.fleetEditor.probeFlagged }}
     </PcNotice>
@@ -231,7 +270,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
     <ol v-if="run.filters.length" class="fs-steps">
       <li v-for="(index, position) in run.filters" :key="index" class="fs-step" data-testid="fleet-step">
         <div class="fs-step-bar">
-          <span class="fs-step-name">{{ t.fleetEditor.step(position + 1) }}</span>
+          <span class="fs-step-name" tabindex="-1" data-fs-step-name>{{ t.fleetEditor.step(position + 1) }}</span>
           <span
             v-if="reply"
             :class="['fs-marker', stepReport(index).pushed ? 'is-pushed' : 'is-local']"
@@ -245,7 +284,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
             class="fs-icon is-danger"
             :aria-label="t.fleetEditor.removeStep(position + 1)"
             :title="t.fleetEditor.removeStep(position + 1)"
-            @click="removeStep(index)"
+            @click="removeStep(index, position)"
           >
             <Trash2 :size="14" aria-hidden="true" />
           </button>
@@ -261,6 +300,10 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
       </li>
     </ol>
     <p v-else class="fs-none" data-testid="fleet-no-steps">{{ t.fleetEditor.noSteps }}</p>
+    <p v-if="removed" class="fs-removed" role="status" data-testid="fleet-step-removed">
+      {{ t.fleetEditor.stepRemoved(removed.position + 1) }}
+      <button type="button" class="button button-secondary button-compact" @click="undoRemove()">{{ t.fleetEditor.undo }}</button>
+    </p>
 
     <button v-if="!readOnly" type="button" class="fs-add" data-testid="fleet-add-step" @click="addStep()">
       <Plus :size="14" aria-hidden="true" /> {{ t.fleetEditor.addStep }}
@@ -268,7 +311,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
     <p v-if="laterSteps" class="fs-later">{{ t.fleetEditor.laterSteps(laterSteps) }}</p>
 
     <!-- What the selection holds. -->
-    <div v-if="reply && reply.count === 0" class="fs-empty" data-testid="fleet-empty" role="status">
+    <div v-if="reply && reply.count === 0 && !fleet.unfinished.value" class="fs-empty" data-testid="fleet-empty" role="status">
       <strong>{{ t.fleetEditor.empty.title }}</strong>
       <span>{{ t.fleetEditor.empty.body }}</span>
     </div>
@@ -358,9 +401,35 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
   color: var(--muted-foreground);
 }
 
-.fs-proof-part + .fs-proof-part::before {
-  content: "\00b7";
-  margin-right: var(--space-2);
+/* The separator ends a segment rather than starting the next, so a wrapped
+   line never opens with a dot. */
+.fs-proof-part:not(:last-of-type)::after {
+  content: "\00a0\00b7";
+}
+
+.fs-jump {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lt-accent-ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.fs-jump:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
+
+.fs-unfinished,
+.fs-removed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--lt-text-sm);
+  line-height: var(--lt-leading);
+  color: var(--muted-foreground);
 }
 
 .fs-code {
@@ -381,6 +450,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
 }
 
 .fs-step {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -396,7 +466,17 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1) var(--space-2);
+  padding-right: 32px;
 }
+
+/* Pinned to the step's corner, so it never wraps onto a line of its own. */
+.fs-step-bar .fs-icon {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+.fs-step-name:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
 
 .fs-step-name {
   font-size: var(--lt-text-sm);
@@ -585,7 +665,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
 
 @media (max-width: 480px) {
   .fs-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) 6.5rem;
     grid-template-areas: "label state" "proto where";
     row-gap: 0;
     padding: var(--space-1) var(--space-2);
@@ -593,7 +673,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
 
   .fs-row-head { display: none; }
   .fs-row-open { grid-area: label; }
-  .fs-row-state { grid-area: state; }
+  .fs-row-state { grid-area: state; text-align: right; }
   .fs-row-proto { grid-area: proto; }
   .fs-row-where { grid-area: where; text-align: right; }
   .fs-count { margin-left: 0; }

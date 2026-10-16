@@ -112,11 +112,29 @@ const legacyChosen = computed(() => !isCollection.value && isLegacySource(draft.
 /** The line the drawer shows, opened from the sample or from a bind entry. */
 const openLine = ref<string | null>(null);
 
+/** From the selection's proof line to the identity preview, which sits below the form. */
+function jumpToIdentity(): void {
+  const heading = document.getElementById("identity-preview-title");
+  heading?.scrollIntoView({ block: "start" });
+  heading?.focus();
+}
+
 /** The preview pane's error, as a code the editor knows. */
 const previewCode = computed(() => errorCodeOf(new Error(props.subs.previewError.value || "")));
 const withheld = computed(
   () => previewCode.value === ERROR_CODES.ownerCredentialsWithheld || (legacyChosen.value && storedSource.value === draft.value.source && !!editingId.value),
 );
+
+/**
+ * The page's error, unless it is the withheld preview the pane already
+ * states in its own notice: the same refusal twice, once raw, reads as a
+ * failure when it is a rule.
+ */
+const actionError = computed(() => {
+  const message = props.subs.actionError.value;
+  if (withheld.value && message && message === props.subs.previewError.value) return "";
+  return message;
+});
 
 /** The fleet preview's document: the record's client format over placeholder credentials. */
 const placeholderDoc = computed(() => {
@@ -215,8 +233,8 @@ function onUsageInput(): void {
       </div>
     </div>
 
-    <div v-if="subs.actionError.value" class="alert" role="alert">
-      <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
+    <div v-if="actionError" class="alert" role="alert">
+      <CircleAlert :size="16" aria-hidden="true" /> {{ actionError }}
     </div>
 
     <!--
@@ -379,6 +397,8 @@ function onUsageInput(): void {
           :preview-nodes="subs.preview.value?.placeholder_credentials ? subs.preview.value.source_node_count ?? null : null"
           @update:process="draft.process = $event"
           @open-line="openLine = $event"
+          @open-operations="editorTab = 'operations'"
+          @jump-identity="jumpToIdentity()"
         />
       </div>
 
@@ -501,19 +521,21 @@ function onUsageInput(): void {
       <PcPanelBody>
         <p v-if="isCollection" class="field-optional rules-proof" data-testid="rules-collection-proof">{{ t.fleetEditor.rules.collectionProof }}</p>
         <div class="rules">
-          <label class="field checkbox-field rules-row">
-            <input
-              type="checkbox"
-              :disabled="!subs.canMutate.value"
-              :checked="!!fleet.rules.value.ddns_dial"
-              data-testid="rule-ddns"
-              @change="setRule({ ddns_dial: ($event.target as HTMLInputElement).checked || undefined })"
-            />
-            <span class="rules-text">
-              <span class="field-label">{{ t.fleetEditor.rules.ddns }}</span>
-              <span class="field-optional">{{ t.fleetEditor.rules.ddnsProof }}</span>
-            </span>
-          </label>
+          <div class="rules-row">
+            <label class="field checkbox-field">
+              <input
+                type="checkbox"
+                :disabled="!subs.canMutate.value"
+                :checked="!!fleet.rules.value.ddns_dial"
+                data-testid="rule-ddns"
+                @change="setRule({ ddns_dial: ($event.target as HTMLInputElement).checked || undefined })"
+              />
+              <span class="rules-text">
+                <span class="field-label">{{ t.fleetEditor.rules.ddns }}</span>
+                <span class="field-optional">{{ t.fleetEditor.rules.ddnsProof }}</span>
+              </span>
+            </label>
+          </div>
 
           <div class="rules-row">
             <label class="field checkbox-field">
@@ -649,7 +671,7 @@ function onUsageInput(): void {
         <!-- The failure belongs next to the button that produced it: this
              form is long, and a banner at the top is off-screen from the
              click that triggered it. -->
-        <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
+        <span v-if="actionError" class="field-error" role="alert">{{ actionError }}</span>
         <!-- Clickable, because the field it names is usually on another tab. -->
         <button
           v-else-if="draftError"
@@ -738,8 +760,9 @@ function onUsageInput(): void {
       <!-- One identity's share: who receives which lines, and why the rest
            are left out. -->
       <section v-if="fleet.fleetBound.value && !withheld" class="side-section" data-testid="identity-preview">
-        <h3 class="side-heading">{{ t.fleetEditor.identity.title }}</h3>
+        <h3 id="identity-preview-title" class="side-heading" tabindex="-1">{{ t.fleetEditor.identity.title }}</h3>
         <p class="side-proof">{{ t.fleetEditor.identity.description }}</p>
+        <p v-if="fleet.bindable.value && editorDirty" class="side-unsaved" role="status" data-testid="identity-unsaved">{{ t.fleetEditor.identity.unsaved }}</p>
         <p v-if="!fleet.bindable.value" class="editor-side-note" data-testid="identity-save-first">{{ t.fleetEditor.identity.saveFirst }}</p>
         <template v-else>
           <IdentityPicker :fleet="fleet" />
@@ -857,6 +880,18 @@ function onUsageInput(): void {
   margin: 0;
   font-size: var(--text-body);
   font-weight: 650;
+}
+
+.side-heading:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
+
+.side-unsaved {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-left: 2px solid var(--warning);
+  background: var(--lt-warn-soft);
+  color: var(--warning-text);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
 }
 
 .side-proof {

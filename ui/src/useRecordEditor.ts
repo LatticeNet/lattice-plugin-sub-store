@@ -29,6 +29,7 @@ import {
   probeUnavailable,
   problemText,
   readFilterArgs,
+  unfinishedCondition,
   type BindPreviewReply,
   type FleetOptions,
   type FleetPreviewReply,
@@ -258,8 +259,18 @@ export function useFleetEditor(options: {
     },
     { immediate: true },
   );
+  /** The first condition of the selection still being typed, which holds the read back. */
+  const unfinished = computed(() => (isFleetSub.value ? unfinishedCondition(draft.value.process) : null));
+
   watch(runKey, () => {
-    if (editing.value && isFleetSub.value) scheduleSelection();
+    if (!editing.value || !isFleetSub.value) return;
+    if (unfinished.value) {
+      // The counts on screen stay those of the last complete selection, and
+      // the editor says which condition holds the read back.
+      if (selectionTimer) clearTimeout(selectionTimer);
+      return;
+    }
+    scheduleSelection();
   });
 
   /** Whether the catalogue says probe data does not exist on this server yet. */
@@ -436,6 +447,7 @@ export function useFleetEditor(options: {
     selection,
     selectionState,
     selectionError,
+    unfinished,
     rows,
     runSteps,
     probeMissing,
