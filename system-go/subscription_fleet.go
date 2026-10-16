@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -184,18 +185,23 @@ func (rt *runtime) fetchCataloguePage(sel *model.LineCatalogueSelector, cursor s
 	if err != nil {
 		return model.LineCatalogueResponse{}, fmt.Errorf("%s: the line catalogue could not be read", codeCatalogueUnavailable)
 	}
-	var page model.LineCatalogueResponse
-	if err := json.Unmarshal(raw, &page); err != nil {
+	page, err := model.ReadLineCataloguePage(raw)
+	if err != nil {
 		return model.LineCatalogueResponse{}, fmt.Errorf("%s: the line catalogue page does not decode", codeCatalogueUnavailable)
 	}
 	if err := validateCataloguePage(page); err != nil {
 		return model.LineCatalogueResponse{}, fmt.Errorf("%s: %w", codeCatalogueUnavailable, err)
 	}
-	return page, nil
+	return page.LineCatalogueResponse, nil
 }
 
-// validateCataloguePage is the page-level check of fetchCataloguePage.
-func validateCataloguePage(page model.LineCatalogueResponse) error {
+// validateCataloguePage is the page-level check of fetchCataloguePage. The
+// page is read row by row from the bytes core sent (model.ReadLineCataloguePage,
+// which decodes what json.Unmarshal decodes), so its row and page bounds are
+// checked against the sizes those bytes have instead of encoding every row a
+// second time: the streaming check plan section 5 asks for once validation
+// at 4096 rows passes 20 ms.
+func validateCataloguePage(page model.ReceivedLineCataloguePage) error {
 	if err := page.Validate(); err != nil {
 		return err
 	}
@@ -340,31 +346,113 @@ func fleetStepHash(run []json.RawMessage) string {
 // blocks included. Core keys its revalidation and body cache on it, so it
 // moves whenever any selected row or any member's content moves.
 func fleetEnvelopeDigest(env snapshotEnvelope) (string, error) {
-	var canonical []byte
-	var err error
+	h := sha256.New()
 	if env.Kind == kindCollection {
-		canonical, err = json.Marshal(env.Members)
+		canonical, err := json.Marshal(env.Members)
+		if err != nil {
+			return "", err
+		}
+		h.Write(canonical)
 	} else {
-		canonical, err = json.Marshal(struct {
+		type digestInput struct {
 			CatalogueVersion string               `json:"catalogue_version"`
 			Selector         *fleetSelectorRecord `json:"selector"`
 			Rows             json.RawMessage      `json:"rows"`
-		}{env.CatalogueVersion, env.Selector, env.Rows})
+		}
+		// The digest is over json.Marshal of this input; the rows are
+		// hashed where the slot stands rather than copied into it.
+		parts, err := splitAtRowsSlot(digestInput{env.CatalogueVersion, env.Selector, rowsSlot}, env.Rows)
+		if err != nil {
+			return "", err
+		}
+		if parts == nil {
+			canonical, err := json.Marshal(digestInput{env.CatalogueVersion, env.Selector, env.Rows})
+			if err != nil {
+				return "", err
+			}
+			h.Write(canonical)
+		} else {
+			h.Write(parts[0])
+			h.Write(env.Rows)
+			h.Write(parts[1])
+		}
 	}
+	return fleetEnvelopeDigestPrefix + hex.EncodeToString(h.Sum(nil)), nil
+}
+
+// rowsSlot stands in for an envelope's rows while the rest of it is
+// marshalled; marshalSplicingRows puts the rows in its place.
+var rowsSlot = json.RawMessage(`"\u0000rows"`)
+
+// splitAtRowsSlot marshals v, which carries rowsSlot as its rows member,
+// and answers the bytes before and after the slot, so that before, rows,
+// after is json.Marshal of the same value with its real rows: rows is what
+// encodeFleetRows returned, already in the form json.Marshal writes. What it
+// saves is the pass json.Marshal spends compacting most of a megabyte of
+// rows again, twice per fetch (the digest and the envelope). parts is nil
+// when the rows are not canonical or the slot is not found exactly once, and
+// the caller marshals the real value.
+func splitAtRowsSlot(v any, rows json.RawMessage) (parts [][]byte, err error) {
+	if !canonicalRawJSON(rows) {
+		return nil, nil
+	}
+	head, err := json.Marshal(v)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	sum := sha256.Sum256(canonical)
-	return fleetEnvelopeDigestPrefix + hex.EncodeToString(sum[:]), nil
+	slot := []byte(`"rows":` + string(rowsSlot))
+	at := bytes.Index(head, slot)
+	if at < 0 || bytes.Count(head, slot) != 1 {
+		return nil, nil
+	}
+	return [][]byte{head[:at+len(`"rows":`)], head[at+len(slot):]}, nil
+}
+
+// marshalSplicingRows is json.Marshal of v with rows in place of its slot
+// (splitAtRowsSlot), or plain when the slot cannot be used.
+func marshalSplicingRows(v any, rows json.RawMessage, plain func() ([]byte, error)) ([]byte, error) {
+	parts, err := splitAtRowsSlot(v, rows)
+	if err != nil {
+		return nil, err
+	}
+	if parts == nil {
+		return plain()
+	}
+	out := make([]byte, 0, len(parts[0])+len(rows)+len(parts[1]))
+	out = append(out, parts[0]...)
+	out = append(out, rows...)
+	return append(out, parts[1]...), nil
 }
 
 // encodeFleetRows is rows as an envelope's rows field: the literal [] for
 // none, never null.
+//
+// Each row is encoded on its own, in parallel, and the encodings joined: the
+// bytes json.Marshal writes for the slice, since it writes an element exactly
+// as it writes the value alone, without growing one buffer by doubling to
+// most of a megabyte.
 func encodeFleetRows(rows []fleetRow) (json.RawMessage, error) {
-	if rows == nil {
-		rows = []fleetRow{}
+	encoded := make([][]byte, len(rows))
+	errs := make([]error, len(rows))
+	parallelRange(len(rows), func(i int) {
+		encoded[i], errs[i] = json.Marshal(rows[i])
+	})
+	size := 2 + max(len(rows)-1, 0)
+	for i, err := range errs {
+		if err != nil {
+			return nil, err
+		}
+		size += len(encoded[i])
 	}
-	return json.Marshal(rows)
+	out := make([]byte, 0, size)
+	out = append(out, '[')
+	for i, row := range encoded {
+		if i > 0 {
+			out = append(out, ',')
+		}
+		out = append(out, row...)
+	}
+	return append(out, ']'), nil
 }
 
 // fleetSubEnvelope is a fleet sub's envelope for one read.
@@ -388,7 +476,9 @@ func fleetSubEnvelope(read fleetCatalogueRead, sel fleetSelection) (snapshotEnve
 // with snapshot_too_large and a figure the operator can act on, computed
 // from the measured average row size of this fetch.
 func encodeFleetEnvelope(env snapshotEnvelope, rowCount int) (string, error) {
-	raw, err := json.Marshal(env)
+	slotted := env
+	slotted.Rows = rowsSlot
+	raw, err := marshalSplicingRows(slotted, env.Rows, func() ([]byte, error) { return json.Marshal(env) })
 	if err != nil {
 		return "", err
 	}

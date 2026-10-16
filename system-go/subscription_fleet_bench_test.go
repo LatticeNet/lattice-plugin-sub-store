@@ -37,10 +37,12 @@ func BenchmarkFleetPlan1000(b *testing.B) { benchmarkFleetPlan(b, 1000) }
 func BenchmarkFleetPlan4096(b *testing.B) { benchmarkFleetPlan(b, 4096) }
 
 // BenchmarkValidateCatalogueRows4096 measures what a fetch spends validating
-// the catalogue pages of a 4096-line selection: the SDK's page Validate,
-// which validates every row once, over five pages of production-shaped rows.
+// the catalogue pages of a 4096-line selection: validateCataloguePage over
+// five pages of production-shaped rows as fetchCataloguePage reads them
+// (model.ReadLineCataloguePage, outside the timer), every row's fields
+// checked and every bound read from the bytes received.
 func BenchmarkValidateCatalogueRows4096(b *testing.B) {
-	pages := make([]model.LineCatalogueResponse, 0, 5)
+	pages := make([]model.ReceivedLineCataloguePage, 0, 5)
 	for start := 1; start <= 4096; start += model.MaxLineCataloguePageRows {
 		page := model.LineCatalogueResponse{CatalogueVersion: fleetTestVersion}
 		for i := start; i < start+model.MaxLineCataloguePageRows && i <= 4096; i++ {
@@ -49,7 +51,15 @@ func BenchmarkValidateCatalogueRows4096(b *testing.B) {
 		if start+model.MaxLineCataloguePageRows <= 4096 {
 			page.Cursor = "c"
 		}
-		pages = append(pages, page)
+		raw, err := json.Marshal(page)
+		if err != nil {
+			b.Fatal(err)
+		}
+		received, err := model.ReadLineCataloguePage(raw)
+		if err != nil || received.RowBytes == nil {
+			b.Fatalf("read the page: %v, row sizes %v", err, received.RowBytes != nil)
+		}
+		pages = append(pages, received)
 	}
 	b.ReportAllocs()
 	b.ResetTimer()

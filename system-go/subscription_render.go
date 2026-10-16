@@ -801,8 +801,8 @@ func (rt *runtime) fleetPredicateRefusal(rec subscriptionRecord) (*storeRefusal,
 	if err != nil {
 		return nil, fmt.Errorf("%s: the line catalogue could not be read to check the record's predicates", codeCatalogueUnavailable)
 	}
-	var page model.LineCatalogueResponse
-	if json.Unmarshal(raw, &page) != nil || validateCataloguePage(page) != nil {
+	page, err := model.ReadLineCataloguePage(raw)
+	if err != nil || validateCataloguePage(page) != nil {
 		return nil, fmt.Errorf("%s: the line catalogue answered a page this plugin cannot read", codeCatalogueUnavailable)
 	}
 	for _, block := range page.Unavailable {
