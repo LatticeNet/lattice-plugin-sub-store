@@ -44,12 +44,15 @@ func (n *Node) MarshalPlanNode() ([]byte, error) {
 	if n == nil {
 		return nil, errors.New("nodemodel: a plan node must not be nil")
 	}
-	// The keys Fields keeps and the block's keys are disjoint (Fields drops
-	// every stripped key, which covers every Lattice key), so the object is
-	// written straight from both, sorted, as appendValue writes a map, but
-	// without building a merged map for every node. The block is written
-	// from its encoding by appendSorted, the same bytes as decoding it and
-	// writing the result; a block appendSorted declines takes that path.
+	// The keys Fields keeps and the block's Lattice keys are disjoint
+	// (Fields drops every stripped key, which covers every Lattice key), so
+	// the object is written straight from both, sorted, as appendValue
+	// writes a map, but without building a merged map for every node. The
+	// block also encodes keys that are not Lattice keys (provenance), which
+	// a plan node never takes from it: a Fields key of the same name keeps
+	// its own value, as it always did. The block is written from its
+	// encoding by appendSorted, the same bytes as decoding it and writing
+	// the result; a block appendSorted declines takes that path.
 	if n.Lattice != nil {
 		encoded, err := json.Marshal(n.Lattice)
 		if err != nil {
@@ -102,7 +105,7 @@ func (n *Node) appendPlanNode(members []blockMember) ([]byte, bool) {
 		dst = append(AppendJSONString(dst, k), ':')
 		written := false
 		for _, m := range members {
-			if m.key == k {
+			if m.key == k && planLatticeKey(k) {
 				var ok bool
 				if dst, ok = appendSorted(dst, m.value); !ok {
 					return nil, false
@@ -135,7 +138,7 @@ func (n *Node) appendPlanNodeFromMap(block map[string]any) ([]byte, error) {
 		}
 		dst = append(AppendJSONString(dst, k), ':')
 		v, inBlock := block[k]
-		if !inBlock {
+		if !inBlock || !planLatticeKey(k) {
 			v = n.Fields[k]
 		}
 		var err error
