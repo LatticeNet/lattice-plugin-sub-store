@@ -97,16 +97,19 @@ export type RefusalCode = keyof typeof t.fleetEditor.refusal.codes;
  * shows when `records` holds it, then the staged revision it names. A code
  * without a sentence here shows the plugin's message, which is fixed text
  * with ids, revisions and codes, run through the same link redaction as any
- * other error.
+ * other error. `lead` frames the line for a write other than a save ("Not
+ * deleted: ..."); it defaults to the save's "Not saved: ...".
  */
 export function refusalMessage(
   refused: MutationRefusal,
   self = "",
   records: readonly { id: string; name?: string; display_name?: string }[] = [],
+  lead?: (reason: string) => string,
 ): string {
   const words = t.fleetEditor.refusal;
+  const frame = lead ?? words.notSaved;
   const sentence = (words.codes as Record<string, string | undefined>)[refused.code];
-  if (!sentence) return words.notSaved(safeErrorMessage(new Error(refused.message), refused.code));
+  if (!sentence) return frame(safeErrorMessage(new Error(refused.message), refused.code));
   const besides = (list: string[] | undefined, skip: ReadonlySet<string>) =>
     [...new Set((list ?? []).filter((id) => id && id !== self && !skip.has(id)))];
   const files = besides(refused.files, new Set());
@@ -122,7 +125,7 @@ export function refusalMessage(
   if (collections.length) parts.push(words.collections(named(collections)));
   if (files.length) parts.push(words.files(named(files)));
   if (refused.staged_revision) parts.push(words.revision(refused.staged_revision));
-  return words.notSaved(parts.join(" "));
+  return frame(parts.join(" "));
 }
 
 // ── the two Lattice-only steps (s2-plan section 2.4) ────────────────────────

@@ -34,8 +34,11 @@ useOverlayRegistration(toRef(props, "open"), () => escape());
 
 /** Which actions the palette offers. Editing and deleting are what an operator
  *  comes here for; the panel-bound ones stay on the row, beside the record
- *  they act on. */
-const OFFERED: readonly ActionId[] = ["edit", "output", "refresh", "duplicate", "delete"];
+ *  they act on. The design 28 S2 verbs (publish a staged revision, migrate a
+ *  legacy record, give its shares identities, drop a staged revision) are
+ *  offered where they apply: the registry shows each only on a record in
+ *  the state it is for, and the Records screen runs it. */
+const OFFERED: readonly ActionId[] = ["edit", "output", "refresh", "publish-staged", "migrate", "share-identities", "duplicate", "discard-staged", "delete"];
 
 const query = ref("");
 const cursor = ref(0);

@@ -11,12 +11,15 @@ import { computed, nextTick, onBeforeUnmount, ref, toRef, watch } from "vue";
 import { Check, Copy, Link, LoaderCircle, RefreshCw, X } from "@lucide/vue";
 
 import DocumentView from "./DocumentView.vue";
+import WithheldNotice from "./WithheldNotice.vue";
 import LtButton from "./lt/LtButton.vue";
 import LtManualCopy from "./lt/LtManualCopy.vue";
 import {
   BINDINGS,
   CONVERT_TARGETS,
+  ERROR_CODES,
   KIND_COLLECTION,
+  errorCodeOf,
   buildShareLink,
   callMethod,
   type SubStoreShareRow,
@@ -74,6 +77,13 @@ const rendered = ref<{
 
 const nodesStatus = ref<ResultStatus>("idle");
 const nodesError = ref("");
+
+/**
+ * A legacy record's output is withheld under S2 (owner_credentials_withheld):
+ * its export is read by core's refresh alone. That is a rule with a way out,
+ * the migration, so it is not drawn as a failure with a retry.
+ */
+const withheld = (message: string) => errorCodeOf(new Error(message)) === ERROR_CODES.ownerCredentialsWithheld;
 const preview = ref<{ target: string; response: SubscriptionPreviewResponse } | null>(null);
 
 const copied = ref<CopiedAction>("");
@@ -824,6 +834,7 @@ onBeforeUnmount(stopAllRequests);
               <strong>{{ t.sheet.generating(isFile ? t.sheet.generatingDocument : chosenTarget.label) }}</strong>
               <span>{{ t.sheet.notMistaken }}</span>
             </div>
+            <WithheldNotice v-else-if="documentStatus === 'error' && withheld(documentError)" :record-id="recordId" @migrate="emit('close')" />
             <div v-else-if="documentStatus === 'error'" class="output-state is-error" role="alert">
               <strong>{{ documentError }}</strong>
               <LtButton @click="retryCurrent()">
@@ -861,6 +872,7 @@ onBeforeUnmount(stopAllRequests);
               <LoaderCircle :size="18" class="spin" aria-hidden="true" />
               <strong>{{ t.sheet.previewing }}</strong>
             </div>
+            <WithheldNotice v-else-if="nodesStatus === 'error' && withheld(nodesError)" :record-id="recordId" @migrate="emit('close')" />
             <div v-else-if="nodesStatus === 'error'" class="output-state is-error" role="alert">
               <strong>{{ nodesError }}</strong>
               <LtButton @click="retryCurrent()">

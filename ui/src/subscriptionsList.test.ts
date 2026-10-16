@@ -27,7 +27,7 @@ describe("the records layer is one table with one affordance per row", () => {
     expect(screen).toContain('@click="openRow(row, $event)"');
     expect(screen).toContain('class="row-open"');
     expect(screen.match(/<RecordMenu/g)).toHaveLength(1);
-    expect(screen).toContain("return rowMenuFor(row, actionCaps.value);");
+    expect(screen).toMatch(/return rowMenuFor\(row, actionCaps\.value[,)]/);
     for (const retired of ['class="rec-open"', 'class="rec-expand"', "<PcRowToggle", "<RecordChainDetail", 'class="rec-well"']) {
       expect(screen, retired).not.toContain(retired);
     }

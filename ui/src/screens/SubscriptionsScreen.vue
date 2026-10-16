@@ -21,6 +21,8 @@ import {
 
 import LtConfirmDialog from "../components/lt/LtConfirmDialog.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
+import MigrationFlow, { type FlowMode } from "../components/MigrationFlow.vue";
+import StagedBadge from "../components/StagedBadge.vue";
 import RecordMenu, { type RecordMove } from "../components/RecordMenu.vue";
 import SubscriptionPanel from "../components/SubscriptionPanel.vue";
 import TargetSheet from "../components/TargetSheet.vue";
@@ -66,7 +68,7 @@ import {
   attentionWeight,
   countsNeedPreview,
   expiryOf,
-  isFlagged,
+  flagOf,
   kindCounts,
   kindFacetOf,
   kindOf,
@@ -78,8 +80,21 @@ import {
   stepsOf,
   type KindFacet,
 } from "../recordTable";
-import { knownFileType, useSubscriptions } from "../useSubscriptions";
+import { knownFileType, useSubscriptions, type PlanOutcome } from "../useSubscriptions";
+import type { PlanStatus as PlanStatusRow } from "../fleet";
 import { useSubscriptionOps } from "../useSubscriptionOps";
+import {
+  currentPlan,
+  darkenedShares,
+  decoyShares,
+  isFleetBound,
+  mixedBlock,
+  recordName,
+  servesOwnerCredentials,
+  shortRevision,
+  stagedFacts,
+  type PlanShareRow,
+} from "../planFlow";
 
 /**
  * Records: every source, combination and file in one table (design 28, S1).
@@ -421,7 +436,7 @@ function onRowMenuKeydown(event: KeyboardEvent): void {
 
 const actionCaps = computed<ActionCapabilities>(() => actionCapabilities(host));
 function menuActionsFor(row: SubscriptionListItem) {
-  return rowMenuFor(row, actionCaps.value);
+  return rowMenuFor(row, actionCaps.value, { shares: shares.value as PlanShareRow[] | undefined });
 }
 const batchActions = computed(() => batchActionsFor(selectedVisible.value, actionCaps.value));
 
@@ -435,6 +450,16 @@ function openRow(row: SubscriptionListItem, event: MouseEvent): void {
   if (isSelectCell(target) || target?.closest("input, [data-row-menu], .rec-menu, .row-publish, .rec-grip")) return;
   chrome.openRecord(row.id);
 }
+
+// Declared before the intent watcher below: a palette, a side panel or the
+// Fleet view hands an action over before this screen first mounts, and the
+// watcher runs it during setup.
+/** The plan flow sheet: one stepper for migrate, publish, delete and share identities. */
+const flow = ref<{ mode: FlowMode; id: string; outcome: PlanOutcome | null; plan?: PlanStatusRow | null } | null>(null);
+const flowTrigger = ref<HTMLElement | null>(null);
+/** Discard asks first: it names both revisions and the plan it will stale. */
+const discarding = ref<SubscriptionListItem | null>(null);
+const discardBusy = ref(false);
 
 /**
  * Requests from the palette and the header, which can see every record but
@@ -478,7 +503,141 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   }
   if (id === "publish") return openDrawer("publish", row.id, event);
   if (id === "duplicate") return void subs.duplicate(row.id);
-  if (id === "delete") return requestDelete([row.id]);
+  // A fleet-bound record's delete changes what its identity holders
+  // receive, so it goes through a plan (s2-plan section 2.6).
+  if (id === "delete") return isFleetBound(row) ? openFlow("delete", row, event) : requestDelete([row.id]);
+  if (id === "publish-staged") return void publishStaged(row, event);
+  if (id === "discard-staged") return requestDiscard(row);
+  if (id === "migrate") {
+    // From the withheld notice in the record's editor: the editor gives way
+    // first, or asks about its unsaved edits and the operator comes back.
+    if (editor.editing.value) {
+      editor.exit.leaveEditor();
+      if (editor.editing.value) return;
+    }
+    return openFlow("migrate", row, event);
+  }
+  if (id === "share-identities") return openFlow("assign", row, event);
+}
+
+// ── plans, migration and staged revisions (design 28 S2) ──────────────────
+
+function openFlow(mode: FlowMode, row: SubscriptionListItem, event?: Event, outcome: PlanOutcome | null = null): void {
+  closeRowMenu();
+  flowTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  flow.value = { mode, id: row.id, outcome };
+}
+function closeFlow(): void {
+  flow.value = null;
+  void subs.load();
+}
+function flowDone(text: string): void {
+  subs.actionError.value = "";
+  subs.notice.value = text;
+}
+
+/**
+ * Publish a staged revision in one click when no live share in its closure
+ * names an identity; the sheet opens only when core files a plan or refuses
+ * for a reason the flow fixes (shares_without_identity,
+ * migration_requires_plan), so a migrated record with no shares publishes
+ * from the menu alone.
+ */
+async function publishStaged(row: SubscriptionListItem, event?: Event): Promise<void> {
+  const trigger = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  // A plan already waits on this revision, or failed or went stale over it:
+  // the sheet opens on that plan rather than filing a second one.
+  await subs.loadPlans([row.id]);
+  const existing = currentPlan(subs.plansByRecord.value[row.id] ?? [], row);
+  if (existing) {
+    closeRowMenu();
+    flowTrigger.value = trigger;
+    flow.value = { mode: "publish", id: row.id, outcome: null, plan: existing };
+    return;
+  }
+  markPending(row.id, true);
+  subs.actionError.value = "";
+  subs.notice.value = "";
+  try {
+    const outcome = await subs.publishStaged(row);
+    if (outcome.kind === "published") {
+      subs.notice.value = t.plans.publishedNotice(recordName(row), shortRevision(outcome.reply.revision));
+      return;
+    }
+    if (outcome.kind === "error") {
+      subs.actionError.value = outcome.message;
+      return;
+    }
+    flowTrigger.value = trigger;
+    flow.value = { mode: "publish", id: row.id, outcome };
+  } finally {
+    markPending(row.id, false);
+  }
+}
+
+function requestDiscard(row: SubscriptionListItem): void {
+  closeRowMenu();
+  discarding.value = row;
+  void subs.loadPlans([row.id]);
+}
+const discardDialog = computed(() => {
+  const row = discarding.value;
+  if (!row) return { title: "", names: [] as string[], consequences: [] as string[] };
+  const facts = stagedFacts(row);
+  const plan = currentPlan(subs.plansByRecord.value[row.id] ?? [], row);
+  const consequences = [
+    facts.neverLive ? t.plans.discard.neverLive(shortRevision(facts.revision)) : t.plans.discard.keepsLive(shortRevision(facts.revision), shortRevision(facts.live)),
+  ];
+  if (plan && plan.status === "pending") consequences.push(t.plans.discard.stalesPlan(plan.approval_id));
+  return { title: t.plans.discard.title, names: [recordName(row)], consequences };
+});
+async function runDiscard(): Promise<void> {
+  const row = discarding.value;
+  if (!row) return;
+  discardBusy.value = true;
+  try {
+    await subs.discardStaged(row.id, row.staged_revision ?? "");
+  } finally {
+    discardBusy.value = false;
+    discarding.value = null;
+  }
+}
+
+/** Plans of the staged rows on this page, for their badges. */
+watch(
+  () => (subs.canReadPlans.value ? table.value.rows.filter((row) => row.staged_revision).map((row) => row.id) : []),
+  (ids) => {
+    if (ids.length) void subs.loadPlans(ids);
+  },
+  { immediate: true },
+);
+
+/** A plain delete the store refused as fleet-bound: offer the plan path for it. */
+const planDeleteRow = computed(() => (subs.deleteNeedsPlan.value ? subs.items.value.find((item) => item.id === subs.deleteNeedsPlan.value) : undefined));
+
+/**
+ * "Remove from <collection>": the delete of a record a combination names
+ * explicitly waits until the combination no longer does. The combination's
+ * editor opens with the member already removed; saving it stages or
+ * publishes like any other edit.
+ */
+async function removeMember(collectionId: string, memberId: string): Promise<void> {
+  flow.value = null;
+  await editor.startEdit(collectionId);
+  const draft = editor.draft.value;
+  if (draft.id === collectionId) draft.members = draft.members.filter((member) => member !== memberId);
+}
+
+/** The shares that answer the decoy, and the identities that buy nothing, per row. */
+function decoyCount(row: SubscriptionListItem): number {
+  return decoyShares(row, shares.value as PlanShareRow[] | undefined).length;
+}
+function darkenedCount(row: SubscriptionListItem): number {
+  return darkenedShares(row, shares.value as PlanShareRow[] | undefined).length;
+}
+function mixedMembers(row: SubscriptionListItem): string {
+  const members = mixedBlock(row, subs.items.value);
+  return members ? members.map((member) => recordName(member)).join(", ") : "";
 }
 
 /** The preview and copy sheet: the one-click path to a client configuration. */
@@ -1066,7 +1225,12 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       <p class="pc-sr-only" role="status" aria-live="polite" data-testid="records-live">{{ liveMessage }}</p>
       <p id="records-grip-help" class="pc-sr-only">{{ t.records.gripHelp }}</p>
 
-      <PcNotice v-if="subs.actionError.value" tone="danger">{{ subs.actionError.value }}</PcNotice>
+      <PcNotice v-if="subs.actionError.value" tone="danger" data-testid="records-error-notice">
+        {{ subs.actionError.value }}
+        <template v-if="planDeleteRow" #actions>
+          <PcButton compact data-testid="records-delete-plan" @click="openFlow('delete', planDeleteRow)">{{ t.plans.deleteThroughPlan }}</PcButton>
+        </template>
+      </PcNotice>
       <PcNotice v-else-if="subs.notice.value" tone="success">
         {{ subs.notice.value }}
         <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
@@ -1395,9 +1559,10 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                       >
                         <strong>{{ row.display_name || row.name }}</strong>
                       </button>
-                      <span v-if="isFlagged(row)" class="rec-flag" :title="t.records.flaggedTitle" data-testid="record-flagged">
-                        <PcStateDot tone="warning" :label="t.records.flagged" />
-                        <span class="pc-sr-only">{{ t.records.flaggedTitle }}</span>
+                      <!-- Owner credentials are said by the kind cell's badge; the dot here is the regex rewrite. -->
+                      <span v-if="flagOf(row) && !servesOwnerCredentials(row)" class="rec-flag" :title="flagOf(row)!.title" data-testid="record-flagged">
+                        <PcStateDot tone="warning" :label="flagOf(row)!.label" />
+                        <span class="pc-sr-only">{{ flagOf(row)!.title }}</span>
                       </span>
                       <span v-if="row.tags?.length" class="pc-name-after"><PcTagList :tags="row.tags" :max="1" /></span>
                     </div>
@@ -1418,6 +1583,10 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                         data-testid="record-missing"
                       />
                     </span>
+                    <span v-if="servesOwnerCredentials(row)" class="rec-owner" :title="t.plans.ownerTitle" data-testid="record-owner-credentials">
+                      {{ t.fleetEditor.ownerCredentials }}
+                    </span>
+                    <small v-if="mixedMembers(row)" class="rec-blocked" data-testid="record-mixed-blocked">{{ t.plans.mixedBlocked(mixedMembers(row)) }}</small>
                     <small v-if="cell(row).kind.detail || (cell(row).kind.missing && !compact)" class="rec-kind-sub">
                       <PcStateDot
                         v-if="cell(row).kind.missing && !compact"
@@ -1448,6 +1617,9 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                       <span v-else-if="cell(row).published.unknown" class="layer-muted">{{ t.records.publishedUnknown }}</span>
                       <span v-else-if="shares !== undefined" class="layer-muted">{{ t.publish.none }}</span>
                     </span>
+                    <StagedBadge v-if="row.staged_revision" :item="row" :plans="subs.plansByRecord.value[row.id]" />
+                    <small v-if="decoyCount(row)" class="rec-decoy" :title="t.plans.decoyTitle" data-testid="record-decoy">{{ t.plans.decoyCell(decoyCount(row)) }}</small>
+                    <small v-if="darkenedCount(row)" class="rec-decoy" :title="t.plans.darkenedTitle" data-testid="record-darkened">{{ t.plans.darkenedCell(darkenedCount(row)) }}</small>
                   </td>
                   <template v-if="!stacked">
                     <td class="pc-numeric pc-mono" data-stack="detail" :data-label="t.records.colNodesIn" :title="cell(row).counts.title" data-testid="record-nodes-in">
@@ -1576,6 +1748,17 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       />
 
       <LtConfirmDialog
+        :open="!!discarding"
+        :title="discardDialog.title"
+        :verb="t.plans.discard.verb"
+        :names="discardDialog.names"
+        :consequences="discardDialog.consequences"
+        :busy="discardBusy"
+        @confirm="runDiscard()"
+        @cancel="discarding = null"
+      />
+
+      <LtConfirmDialog
         :open="deleting.length > 0"
         :title="deleteDialog.title"
         :verb="t.common.delete"
@@ -1589,5 +1772,53 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
         @cancel="deleting = []"
       />
     </section>
+
+    <!-- Outside the list, so a migration started from a record's editor
+         opens over the screen the editor gave way to. -->
+    <MigrationFlow
+      :open="!!flow"
+      :mode="flow?.mode ?? 'migrate'"
+      :record-id="flow?.id ?? ''"
+      :subs="subs"
+      :shares="shares as PlanShareRow[] | undefined"
+      :outcome="flow?.outcome ?? null"
+      :plan="flow?.plan ?? null"
+      :return-focus-to="flowTrigger"
+      @close="closeFlow()"
+      @done="flowDone"
+      @remove-member="removeMember"
+    />
   </template>
 </template>
+
+<style scoped>
+/* design 28 S2: the owner-credentials badge, a mixed combination's block,
+   and the shares that answer the decoy, each a short line in its cell. */
+.rec-owner {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--lt-warn-soft);
+  border: 1px solid var(--lt-warn-border);
+  color: var(--warning-text);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading-tight);
+  white-space: nowrap;
+}
+.rec-blocked {
+  display: block;
+  white-space: normal;
+  color: var(--lt-danger-ink);
+  overflow-wrap: anywhere;
+}
+.rec-decoy {
+  display: block;
+  white-space: normal;
+  margin-top: 2px;
+  color: var(--warning-text);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading-tight);
+  overflow-wrap: anywhere;
+}
+</style>

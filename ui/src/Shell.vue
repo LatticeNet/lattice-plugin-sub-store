@@ -20,10 +20,11 @@ import RecordSidePanel from "./components/RecordSidePanel.vue";
 import { recordIntent } from "./recordIntent";
 import { actionCapabilities, type ActionCapabilities, type ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
-import { STORE_VERSION_LEGACY, type SubscriptionListItem } from "./client";
+import { BINDINGS, STORE_VERSION_LEGACY, type SubscriptionListItem } from "./client";
 import { createBlocks, headerCreate, type CatalogueView } from "./createGate";
 import StandaloneNotice from "./components/StandaloneNotice.vue";
 import OverviewScreen from "./screens/OverviewScreen.vue";
+import FleetScreen from "./screens/FleetScreen.vue";
 import RecordPage from "./screens/RecordPage.vue";
 import SubscriptionsScreen from "./screens/SubscriptionsScreen.vue";
 import SettingsScreen from "./screens/SettingsScreen.vue";
@@ -74,9 +75,20 @@ interface Layer {
   props?: Record<string, unknown>;
 }
 
+/**
+ * The Fleet view (design 28 S2) is a layer once the plugin is 0.18: any of
+ * its methods in the handshake says so, the plans service included, so a
+ * session without vpncore:read still reaches the layer and reads why it
+ * shows no previews.
+ */
+const fleetLayer = computed(() =>
+  [BINDINGS.subIdentities, BINDINGS.subFleetPreview, BINDINGS.bindPreview, BINDINGS.plansStatus, BINDINGS.subMigrateRecord].some((binding) => host.available(binding)),
+);
+
 const tabs = computed<Layer[]>(() => [
   { id: "overview", label: t.layers.overview, screen: OverviewScreen },
   { id: "records", label: t.layers.records, screen: SubscriptionsScreen },
+  ...(fleetLayer.value ? [{ id: "fleet" as const, label: t.fleet.layer, screen: FleetScreen }] : []),
   // The record list from the client's side: every link the console serves.
   { id: "shares", label: t.layers.shares, screen: SharesScreen },
   { id: "settings", label: t.layers.settings, screen: SettingsScreen },
@@ -273,6 +285,7 @@ const records = computed(() => (ready.value ? catalogue.items.value : []));
 const tabCounts = computed<Record<TabId, number | null>>(() => ({
   overview: null,
   records: ready.value ? records.value.length : null,
+  fleet: null,
   shares: shareStore.shares.value ? shareStore.shares.value.length : null,
   settings: null,
 }));

@@ -113,6 +113,8 @@ const FACET_DEFAULTS: Partial<Record<FacetKey, string>> = { sort: "manual", dens
 const VIEW_FACETS: Record<ViewId, readonly FacetKey[]> = {
   overview: [],
   records: ["q", "sort", "kind", "density", "published", "origin", "type"],
+  // The Fleet view (design 28 S2) keeps its chosen record in the page, not the address.
+  fleet: [],
   shares: ["q", "link"],
   settings: [],
 };

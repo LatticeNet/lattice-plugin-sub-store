@@ -1,5 +1,6 @@
 import { BINDINGS, KIND_COLLECTION, KIND_FILE, KIND_SUB, type MethodBinding, type SubStoreShareRow, type SubscriptionListItem } from "./client";
 import { t } from "./i18n";
+import { darkenedShares, decoyShares, isFleetBound, isLegacyRecord, servesOwnerCredentials, type PlanShareRow } from "./planFlow";
 import { shareStateOf } from "./shareState";
 
 /**
@@ -28,7 +29,13 @@ export type ActionId =
   | "share"
   | "publish"
   | "duplicate"
-  | "delete";
+  | "delete"
+  // design 28 S2 (s2-plan section 11): a staged revision published or
+  // dropped, a legacy record migrated, a share's identity set or cleared.
+  | "publish-staged"
+  | "discard-staged"
+  | "migrate"
+  | "share-identities";
 
 /** What the signed bundle and this session's token allow. */
 export interface ActionCapabilities {
@@ -40,6 +47,14 @@ export interface ActionCapabilities {
   preview: boolean;
   render: boolean;
   publish: boolean;
+  /** plans.propose: a plan is proxy:admin and the operator's own call (design 28 S2). */
+  propose: boolean;
+  /** plans.publish: a staged revision promoted without a plan, substore:admin. */
+  publishPlan: boolean;
+  /** migrate_record: the fleet equivalent of a legacy record, staged. */
+  migrateRecord: boolean;
+  /** discard_staged: a staged revision dropped. */
+  discardStaged: boolean;
 }
 
 /**
@@ -59,7 +74,20 @@ export function actionCapabilities(host: {
     preview: host.available(BINDINGS.subPreview),
     render: host.available(BINDINGS.subRender),
     publish: host.available(BINDINGS.subPublish),
+    propose: host.available(BINDINGS.plansPropose),
+    publishPlan: host.available(BINDINGS.plansPublish),
+    migrateRecord: host.available(BINDINGS.subMigrateRecord),
+    discardStaged: host.available(BINDINGS.subDiscardStaged),
   };
+}
+
+/**
+ * What a surface knows beside the record itself. The share list decides
+ * whether "Share identities…" has anything to do; a surface without it
+ * offers the action on fleet-bound records only.
+ */
+export interface ActionContext {
+  shares?: readonly PlanShareRow[];
 }
 
 export interface ActionDeclaration {
@@ -80,6 +108,12 @@ export interface ActionDeclaration {
   /** May run over a selection rather than one record. */
   batch?: boolean;
   /**
+   * Whether the record is in the state the action is for: a staged
+   * revision to publish, a legacy source to migrate. Without it the action
+   * applies to every record of its kinds.
+   */
+  applies?: (record: SubscriptionListItem, context: ActionContext) => boolean;
+  /**
    * Why this cannot run now, or "" when it can. A sentence, not a boolean: the
    * reason is the whole value of a disabled control, and it was previously
    * buried in a `title` that no touch device and no screen reader ever showed.
@@ -97,6 +131,14 @@ function kindOf(record: SubscriptionListItem): RecordKind {
 
 const ALL_KINDS = [KIND_SUB, KIND_COLLECTION, KIND_FILE] as const;
 const NODE_KINDS = [KIND_SUB, KIND_COLLECTION] as const;
+
+/** A plan needs both halves: propose for the privileged path, publish for the ordinary one. */
+function planBlock(caps: ActionCapabilities): string {
+  if (!caps.ready) return needsHost();
+  if (!caps.propose) return t.plans.actions.noPropose;
+  if (!caps.mutate) return needsMutate();
+  return "";
+}
 
 export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
@@ -120,7 +162,13 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
     // on write access. Writing this down is what caught the two apart: the
     // draft of this registry had guessed `mutate`, and the screens had always
     // used `fetch`.
-    blocked: (caps) => (!caps.ready ? needsHost() : caps.fetch ? "" : t.actions.noFetch),
+    // Under S2 a record that serves owner credentials is fetched by core's
+    // refresh alone: the plugin's legacy fetchers answer
+    // owner_credentials_withheld to every other caller (s2-plan section
+    // 1.2), so "Fetch now" says so instead of failing as an outage. The
+    // migrate_record binding is how this session knows the plugin is 0.18.
+    blocked: (caps, record) =>
+      !caps.ready ? needsHost() : !caps.fetch ? t.actions.noFetch : caps.migrateRecord && servesOwnerCredentials(record) ? t.plans.withheldFetch : "",
   },
   {
     id: "output",
@@ -165,12 +213,56 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
     blocked: (caps) => (!caps.ready ? needsHost() : !caps.publish ? t.actions.noPublish : caps.mutate ? "" : needsMutate()),
   },
   {
+    // A fleet-bound record's edit waits in staged-v2. This promotes it: a
+    // plan when a live share of its closure names an identity, else at once.
+    id: "publish-staged",
+    label: () => t.plans.actions.publishStaged,
+    title: () => t.plans.actions.publishStagedTitle,
+    icon: "send",
+    kinds: NODE_KINDS,
+    applies: (record) => !!record.staged_revision,
+    blocked: (caps) => planBlock(caps) || (caps.publishPlan ? "" : t.plans.actions.noPublishPlan),
+  },
+  {
+    id: "migrate",
+    label: () => t.plans.actions.migrate,
+    title: () => t.plans.actions.migrateTitle,
+    icon: "migrate",
+    kinds: [KIND_SUB],
+    applies: (record) => isLegacyRecord(record),
+    blocked: (caps) => planBlock(caps) || (caps.migrateRecord ? "" : t.plans.actions.noMigrate),
+  },
+  {
+    // Gives identities to the shares a fleet-bound record serves the decoy
+    // to, or clears an identity a non-fleet record's share cannot use.
+    id: "share-identities",
+    label: () => t.plans.actions.shareIdentities,
+    title: () => t.plans.actions.shareIdentitiesTitle,
+    icon: "identity",
+    kinds: NODE_KINDS,
+    applies: (record, context) =>
+      context.shares ? decoyShares(record, context.shares).length > 0 || darkenedShares(record, context.shares).length > 0 : isFleetBound(record),
+    blocked: (caps) => planBlock(caps),
+  },
+  {
     id: "duplicate",
     label: () => t.actions.duplicate,
     title: () => t.actions.duplicateTitle,
     icon: "copy",
     kinds: ALL_KINDS,
     blocked: (caps) => (!caps.ready ? needsHost() : caps.mutate ? "" : needsMutate()),
+  },
+  {
+    // The staged revision goes; the live one keeps serving. Rendered with
+    // the destructive actions, since a plan over it goes stale.
+    id: "discard-staged",
+    label: () => t.plans.actions.discardStaged,
+    title: () => t.plans.actions.discardStagedTitle,
+    icon: "undo",
+    kinds: NODE_KINDS,
+    danger: true,
+    applies: (record) => !!record.staged_revision,
+    blocked: (caps) => (!caps.ready ? needsHost() : !caps.discardStaged ? t.plans.actions.noDiscard : caps.mutate ? "" : needsMutate()),
   },
   {
     id: "delete",
@@ -201,10 +293,11 @@ export function actionsFor(
   record: SubscriptionListItem,
   caps: ActionCapabilities,
   only?: readonly ActionId[],
+  context: ActionContext = {},
 ): ResolvedAction[] {
   const kind = kindOf(record);
   return RECORD_ACTIONS.filter(
-    (action) => action.kinds.includes(kind) && (!only || only.includes(action.id)),
+    (action) => action.kinds.includes(kind) && (!action.applies || action.applies(record, context)) && (!only || only.includes(action.id)),
   ).map((action) => {
     const reason = action.blocked(caps, record);
     return {
@@ -255,7 +348,22 @@ export function batchActionsFor(
  * copied or deleted without going back to its table. The kind filters it: a
  * file has nothing to refresh.
  */
-export const ROW_MENU_ACTIONS: readonly ActionId[] = ["output", "refresh", "duplicate", "delete"];
+export const ROW_MENU_ACTIONS: readonly ActionId[] = [
+  "output",
+  "refresh",
+  "publish-staged",
+  "migrate",
+  "share-identities",
+  "duplicate",
+  "discard-staged",
+  "delete",
+];
+
+/**
+ * The design 28 S2 verbs: each opens the plan flow, which only the Records
+ * screen holds, so a side panel or a record page hands them over.
+ */
+export const PLAN_FLOW_ACTIONS: readonly ActionId[] = ["publish-staged", "migrate", "share-identities", "discard-staged"];
 /**
  * A file's menu leads with Publish…, the verb a file exists for: the
  * Published column states whether it is published, and the menu is where
@@ -263,10 +371,10 @@ export const ROW_MENU_ACTIONS: readonly ActionId[] = ["output", "refresh", "dupl
  */
 export const FILE_ROW_MENU_ACTIONS: readonly ActionId[] = ["share", ...ROW_MENU_ACTIONS];
 
-export function rowMenuFor(record: SubscriptionListItem, caps: ActionCapabilities): ResolvedAction[] {
-  if (kindOf(record) !== KIND_FILE) return actionsFor(record, caps, ROW_MENU_ACTIONS);
+export function rowMenuFor(record: SubscriptionListItem, caps: ActionCapabilities, context: ActionContext = {}): ResolvedAction[] {
+  if (kindOf(record) !== KIND_FILE) return actionsFor(record, caps, ROW_MENU_ACTIONS, context);
   // The registry's order, with Publish… moved to the front.
-  const actions = actionsFor(record, caps, FILE_ROW_MENU_ACTIONS);
+  const actions = actionsFor(record, caps, FILE_ROW_MENU_ACTIONS, context);
   return [...actions.filter((action) => action.id === "share"), ...actions.filter((action) => action.id !== "share")];
 }
 
