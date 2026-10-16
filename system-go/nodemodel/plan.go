@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 
 	"github.com/LatticeNet/lattice-sdk/model"
 )
@@ -43,25 +44,106 @@ func (n *Node) MarshalPlanNode() ([]byte, error) {
 	if n == nil {
 		return nil, errors.New("nodemodel: a plan node must not be nil")
 	}
-	fields := make(map[string]any, len(n.Fields)+len(model.SelectionPlanLatticeFields))
-	for k, v := range n.Fields {
-		if k == latticeKey || planStrippedKey(k) {
-			continue
-		}
-		fields[k] = v
-	}
+	// The keys Fields keeps and the block's keys are disjoint (Fields drops
+	// every stripped key, which covers every Lattice key), so the object is
+	// written straight from both, sorted, as appendValue writes a map, but
+	// without building a merged map for every node. The block is written
+	// from its encoding by appendSorted, the same bytes as decoding it and
+	// writing the result; a block appendSorted declines takes that path.
 	if n.Lattice != nil {
-		block, err := latticeValue(n.Lattice)
+		encoded, err := json.Marshal(n.Lattice)
 		if err != nil {
 			return nil, err
 		}
-		for k, v := range block {
-			if planLatticeKey(k) {
-				fields[k] = v
+		if members, ok := blockMembers(encoded); ok {
+			if out, ok := n.appendPlanNode(members); ok {
+				return out, nil
+			}
+		}
+		var block map[string]any
+		if err := json.Unmarshal(encoded, &block); err != nil {
+			return nil, err
+		}
+		return n.appendPlanNodeFromMap(block)
+	}
+	return n.appendPlanNodeFromMap(nil)
+}
+
+// planNodeKeys is the sorted key set of a plan node: the keys Fields keeps
+// and the block's Lattice keys.
+func (n *Node) planNodeKeys(blockKeys []string) []string {
+	keys := make([]string, 0, len(n.Fields)+len(blockKeys))
+	for k := range n.Fields {
+		if k != latticeKey && !planStrippedKey(k) {
+			keys = append(keys, k)
+		}
+	}
+	for _, k := range blockKeys {
+		if planLatticeKey(k) {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func (n *Node) appendPlanNode(members []blockMember) ([]byte, bool) {
+	blockKeys := make([]string, 0, len(members))
+	for _, m := range members {
+		blockKeys = append(blockKeys, m.key)
+	}
+	keys := n.planNodeKeys(blockKeys)
+	dst := make([]byte, 0, 256+64*len(keys))
+	dst = append(dst, '{')
+	for i, k := range keys {
+		if i > 0 {
+			dst = append(dst, ',')
+		}
+		dst = append(AppendJSONString(dst, k), ':')
+		written := false
+		for _, m := range members {
+			if m.key == k {
+				var ok bool
+				if dst, ok = appendSorted(dst, m.value); !ok {
+					return nil, false
+				}
+				written = true
+				break
+			}
+		}
+		if !written {
+			var err error
+			if dst, err = appendValue(dst, n.Fields[k], 1); err != nil {
+				return nil, false
 			}
 		}
 	}
-	return appendValue(nil, fields, 0)
+	return append(dst, '}'), true
+}
+
+func (n *Node) appendPlanNodeFromMap(block map[string]any) ([]byte, error) {
+	blockKeys := make([]string, 0, len(block))
+	for k := range block {
+		blockKeys = append(blockKeys, k)
+	}
+	keys := n.planNodeKeys(blockKeys)
+	dst := make([]byte, 0, 256+64*len(keys))
+	dst = append(dst, '{')
+	for i, k := range keys {
+		if i > 0 {
+			dst = append(dst, ',')
+		}
+		dst = append(AppendJSONString(dst, k), ':')
+		v, inBlock := block[k]
+		if !inBlock {
+			v = n.Fields[k]
+		}
+		var err error
+		if dst, err = appendValue(dst, v, 1); err != nil {
+			return nil, err
+		}
+	}
+	return append(dst, '}'), nil
 }
 
 // UnmarshalPlanNode reads a bound node core sends to convert: every key in
