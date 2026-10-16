@@ -1873,8 +1873,13 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
 <style scoped>
 /* design 28 S2: the owner-credentials badge, a mixed combination's block,
    and the shares that answer the decoy, each a short line in its cell. */
+/* It wraps inside the cell rather than run past it: "учётные данные
+   владельца" in a Linux face is wider than the kind column at 1440, and the
+   cell clips (CI caught 7px cut off on every legacy row). */
 .rec-owner {
   display: inline-block;
+  box-sizing: border-box;
+  max-width: 100%;
   margin-top: 2px;
   padding: 0 var(--space-1);
   border-radius: var(--radius-sm);
@@ -1883,7 +1888,8 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
   color: var(--warning-text);
   font-size: var(--lt-text-xs);
   line-height: var(--lt-leading-tight);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .rec-blocked {
   display: block;
