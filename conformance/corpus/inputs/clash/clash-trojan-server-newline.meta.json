@@ -1,0 +1,9 @@
+{
+  "id": "clash-trojan-server-newline",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "line-safety",
+  "description": "trojan whose server holds a newline, written raw in every link and line, then trojan: URI, V2Ray, Surge and Quantumult X reject the first node (line-safety)."
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "address": "ymw-37.pzafc5.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "ad377a8c-f905-40ab-9309-188a8b431e5c",
+      "tag": "AU-ixoxzh-57",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.sb9upwf.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

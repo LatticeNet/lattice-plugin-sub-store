@@ -1,0 +1,3 @@
+ip44l
+fjxnyq=trojan,w0o-17.proqtg.example.com,443,password=82UJw0X2f3lFWo9p,tls=true,sni="api.hr0xb.example.com",udp-relay=true
+SG-wjya-30=trojan,ixo-39.jtlc9.example.org,443,password=13XxyJkXegClXcI2,tls=true,sni="api.tin62kd.example.org",udp-relay=true

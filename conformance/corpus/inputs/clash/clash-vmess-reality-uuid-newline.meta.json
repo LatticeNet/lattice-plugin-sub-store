@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-reality-uuid-newline",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "line-safety",
+  "description": "vmess Reality, the query form, whose uuid holds a newline written raw as the userinfo, then vmess TLS: URI, V2Ray and Quantumult X reject the first node (line-safety)."
+}

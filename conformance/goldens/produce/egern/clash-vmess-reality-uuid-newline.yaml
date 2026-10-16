@@ -1,0 +1,3 @@
+proxies:
+  - {"vmess":{"name":"HK-lpxr7h-34","server":"nz6-03.ybjih.example.com","port":443,"user_id":"d2dae002-0c46-4e13-98cc-5a3c433117d6\noe6x1","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"img.cjrkej2t.example.org"}}}}
+  - {"vmess":{"name":"FR-mfpjn-55","server":"gl-29.fj14g.example.com","port":443,"user_id":"ada78eae-3c15-45f9-9645-f244405d2ef6","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"tls":{"sni":"api.m3uknmblfk.example.com","skip_tls_verify":false}}}}

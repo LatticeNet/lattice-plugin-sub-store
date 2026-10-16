@@ -1,0 +1,31 @@
+proxies:
+  - name: CA-dh9n-58
+    type: vmess
+    server: nu-28.z0ft.example.com
+    port: 443
+    uuid: "05528a2a-c88e-4a32-a5d9-e2174fc51112\nevoeyy"
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: cdn.lpulwjn8.example.net
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+  - name: AU-ixoxzh-57
+    type: vmess
+    server: ymw-37.pzafc5.example.com
+    port: 443
+    uuid: ad377a8c-f905-40ab-9309-188a8b431e5c
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: img.sb9upwf.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1

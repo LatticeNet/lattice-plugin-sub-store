@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria-auth-str-newline",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "udp",
+  "security": "tls",
+  "quirk": "line-safety",
+  "description": "hysteria whose auth-str holds a newline, written raw as auth, then hysteria: URI and V2Ray reject the first node, and Surge and Quantumult X have no hysteria form (line-safety)."
+}

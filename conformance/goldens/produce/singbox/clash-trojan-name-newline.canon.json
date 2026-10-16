@@ -1,0 +1,29 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "82UJw0X2f3lFWo9p",
+      "server": "w0o-17.proqtg.example.com",
+      "server_port": 443,
+      "tag": "ip44l\nfjxnyq",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.hr0xb.example.com"
+      },
+      "type": "trojan"
+    },
+    {
+      "password": "13XxyJkXegClXcI2",
+      "server": "ixo-39.jtlc9.example.org",
+      "server_port": 443,
+      "tag": "SG-wjya-30",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.tin62kd.example.org"
+      },
+      "type": "trojan"
+    }
+  ]
+}

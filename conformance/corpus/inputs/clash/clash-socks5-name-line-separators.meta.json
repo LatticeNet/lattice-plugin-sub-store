@@ -1,0 +1,9 @@
+{
+  "id": "clash-socks5-name-line-separators",
+  "family": "clash",
+  "protocol": "socks5",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "line-safety",
+  "description": "socks5 nodes whose raw names hold a carriage return, a tab, U+2028 and U+2029, then a socks5 node with a plain name: URI, V2Ray, Surge and Quantumult X reject the first four (line-safety)."
+}

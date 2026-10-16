@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "JP-e7v-93",
+        "password": "UDG9ALCvfGeGG3e5",
+        "port": 443,
+        "server": "v8-21.n91npglc.example.com\nb6-16.idsu.example.net",
+        "sni": "static.mgdrp82.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    },
+    {
+      "trojan": {
+        "name": "US-akqgj-94",
+        "password": "7AyRlORj1RLGZiCB",
+        "port": 443,
+        "server": "akg-24.xvw1u.example.com",
+        "sni": "www.s7onk.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

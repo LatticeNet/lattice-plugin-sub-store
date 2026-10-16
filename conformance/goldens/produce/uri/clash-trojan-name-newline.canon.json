@@ -1,0 +1,38 @@
+[
+  {
+    "fragment": "ip44l\nfjxnyq",
+    "host": "w0o-17.proqtg.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.hr0xb.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "82UJw0X2f3lFWo9p"
+  },
+  {
+    "fragment": "SG-wjya-30",
+    "host": "ixo-39.jtlc9.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "api.tin62kd.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "13XxyJkXegClXcI2"
+  }
+]

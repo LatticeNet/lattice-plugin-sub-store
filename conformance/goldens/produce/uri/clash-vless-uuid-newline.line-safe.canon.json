@@ -1,0 +1,36 @@
+[
+  {
+    "fragment": "US-vpb-70",
+    "host": "nd-06.hx8izax.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.koyq8upb.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "fddbb0c3-7ffe-4d9c-b2a0-80b65e0fcd73"
+  }
+]

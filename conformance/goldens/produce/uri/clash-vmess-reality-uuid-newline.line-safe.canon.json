@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "gl-29.fj14g.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "ada78eae-3c15-45f9-9645-f244405d2ef6",
+      "net": "tcp",
+      "port": "443",
+      "ps": "FR-mfpjn-55",
+      "scy": "auto",
+      "sni": "api.m3uknmblfk.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

@@ -10,8 +10,8 @@
 # other, and applies to no comparison. external, underscore and ca have
 # landed for S1, line-safety for S2; require stays pending until S3. The
 # specifications refer to them by id (specs/normaliser.md, section 4, and
-# the "Line safety" sections of specs/producers/surge.md and
-# quantumultx.md).
+# the "Line safety" sections of specs/producers/surge.md, quantumultx.md,
+# uri.md and v2ray.md).
 #
 # Schema of one entry:
 #
@@ -19,8 +19,9 @@
 #     stage: parse | produce | script
 #     pending: S1 to S6     (optional; the slice that lands the entry)
 #     targets: [<target id>, ...] or ["*"]   (produce only; ids from
-#              oracle/lib/targets.mjs; never uri or v2ray, which are
-#              compared byte for byte, and "*" skips them)
+#              oracle/lib/targets.mjs; uri and v2ray, which are compared
+#              byte for byte, only by name and only in an entry whose every
+#              step is without_line_breaking_nodes; "*" skips them)
 #     cases: [<non-empty case id prefix>, ...] or ["*"]   (exact case
 #            ids, never "*", for an entry with a
 #            without_line_breaking_nodes step)
@@ -45,13 +46,18 @@
 #                                          <case>.line-safe.canon.json, the
 #                                          golden upstream wrote for the
 #                                          case's produce input without the
-#                                          nodes in which any text, key or
-#                                          value, holds a control character,
-#                                          U+2028 or U+2029; produce stage
-#                                          only, explicit targets whose
-#                                          canonical form is lines or qx,
-#                                          explicit cases matched by exact
-#                                          id
+#                                          nodes that break a line: on a
+#                                          lines or qx target every node in
+#                                          which any text, key or value,
+#                                          holds a control character, U+2028
+#                                          or U+2029; on uri and v2ray only
+#                                          such a node whose own link holds
+#                                          one, and the bytes must then equal
+#                                          <case>.line-safe.txt; produce
+#                                          stage only, explicit targets whose
+#                                          canonical form is lines, qx, uri
+#                                          or v2ray, explicit cases matched
+#                                          by exact id
 #
 # A strip_keys pattern may not match the empty key or any key in
 # PROTECTED_KEYS (oracle/lib/allowlist.mjs: node identity, document
@@ -61,7 +67,8 @@
 # array element is a node, so one entry cannot hide a whole node list or
 # document. without_line_breaking_nodes changes no value: regen.mjs writes
 # the line-safe golden from the oracle, so the candidate must still match
-# upstream exactly on every other node of the case.
+# upstream exactly on every other node of the case, byte for byte on uri and
+# v2ray.
 #
 # A divergence counts as allowed only when the comparison fails without the
 # normalisation and passes with it; conformance.json records which ids were
@@ -87,14 +94,24 @@
 # that exists, so the key is the only difference ca has to hide.
 #
 # line-safety is the S2 produce-stage entry (design 28, S2 decisions). It
-# names the two corpus cases whose Surge or Quantumult X golden carries a
-# line break from a field: clash-socks5-name-newline (a name holding a
-# newline) and clash-ssh (an inline PEM private key, which Surge writes into
-# the line). Because of its without_line_breaking_nodes step the entry
-# matches those ids exactly, not as prefixes, so it does not cover
-# clash-ssh-key-path or any later case whose id starts with a named one. A
-# new corpus case with a line break in a field these targets write fails
-# until this entry names its exact id.
+# first named the two corpus cases whose Surge or Quantumult X golden
+# carries a line break from a field: clash-socks5-name-newline (a name
+# holding a newline) and clash-ssh (an inline PEM private key, which Surge
+# writes into the line). The KI-27 lane extended it to uri and v2ray, whose
+# links upstream writes with the same raw fields, and named the line-safety
+# cases of specs/producers/uri.md, each of which carries a line break in a
+# field at least one of the four targets writes raw. Targets and cases are a
+# cross product, so on a target a case's line break does not reach, the
+# line-safe golden is upstream's own output: on uri and v2ray regen.mjs
+# leaves out only a node whose own link holds a line break, so clash-ssh
+# (no URI form) and clash-trojan-name-newline (the fragment encodes the
+# newline) get no uri or v2ray line-safe golden at all; on surge and
+# quantumultx a node of a type the target has no form for changes nothing.
+# Because of its without_line_breaking_nodes step the entry matches its ids
+# exactly, not as prefixes, so it does not cover clash-ssh-key-path or any
+# later case whose id starts with a named one. A new corpus case with a line
+# break in a field these targets write fails until this entry names its
+# exact id.
 divergences:
   - id: external
     stage: parse
@@ -158,20 +175,37 @@ divergences:
       every budget and grant a script runs under.
   - id: line-safety
     stage: produce
-    targets: [surge, quantumultx]
-    cases: [clash-socks5-name-newline, clash-ssh]
+    targets: [surge, quantumultx, uri, v2ray]
+    cases:
+      - clash-socks5-name-newline
+      - clash-ssh
+      - clash-anytls-password-newline
+      - clash-hysteria-auth-str-newline
+      - clash-hysteria-key-newline
+      - clash-socks5-name-line-separators
+      - clash-trojan-name-newline
+      - clash-trojan-password-newline
+      - clash-trojan-server-newline
+      - clash-v2ray-line-safety-mixed
+      - clash-vless-uuid-newline
+      - clash-vmess-reality-uuid-newline
+      - clash-vmess-uuid-newline
     upstream: >-
-      Writes node text into Surge and Quantumult X lines as it is, so a name,
-      password, path or key that holds a line break adds lines of its own to
-      the profile, such as a [Script], [Rule] or [MITM] section.
+      Writes node text into Surge and Quantumult X lines and into URI and
+      V2Ray share links as it is, so a name, password, server, uuid, path,
+      key or field name that holds a line break adds lines of its own: a
+      [Script], [Rule] or [MITM] section in a profile, or a share link the
+      provider wrote into the served list.
     chosen: >-
-      The producer rejects a node whose entry would hold a control character,
-      U+2028 or U+2029, and removes those characters from the Surge module
-      header's subscription name (specs/producers/surge.md and
-      specs/producers/quantumultx.md, "Line safety").
+      The producer rejects a node whose entry or link would hold a control
+      character, U+2028 or U+2029, and the Surge module header drops those
+      characters from the subscription name (specs/producers/surge.md,
+      quantumultx.md, uri.md and v2ray.md, "Line safety"). A rejected node
+      leaves no line, not even an empty one in the V2Ray text.
     reason: >-
       A provider feed must not be able to add sections or proxy lines to the
       profile the operator's client imports, which is the line-format
-      counterpart of rule H3's exec-shaped nodes.
+      counterpart of rule H3's exec-shaped nodes; an injected share link was
+      never a node, so it would skip the normaliser and every operator.
     normalise:
       - without_line_breaking_nodes: true

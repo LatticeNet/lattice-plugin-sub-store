@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria-key-newline",
+  "family": "clash",
+  "protocol": "hysteria",
+  "transport": "udp",
+  "security": "tls",
+  "quirk": "line-safety",
+  "description": "hysteria with a field whose key holds a newline, which the generic walk writes raw as a parameter name, then hysteria: URI and V2Ray reject the first node, and Surge and Quantumult X have no hysteria form (line-safety)."
+}

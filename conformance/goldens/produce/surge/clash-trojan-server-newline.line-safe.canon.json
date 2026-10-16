@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "akg-24.xvw1u.example.com",
+      "443"
+    ],
+    "name": "US-akqgj-94",
+    "params": {
+      "password": "7AyRlORj1RLGZiCB",
+      "sni": "www.s7onk.example.com",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

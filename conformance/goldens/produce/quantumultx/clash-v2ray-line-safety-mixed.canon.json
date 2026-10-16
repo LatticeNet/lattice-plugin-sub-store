@@ -1,0 +1,46 @@
+[
+  {
+    "address": "a6-19.fjayj.example.com:1080",
+    "args": [],
+    "params": {
+      "password": "maTt8BeNRFu2",
+      "tag": "CA-xcr-27",
+      "udp-relay": "true",
+      "username": "rvsgnh"
+    },
+    "type": "socks5"
+  },
+  {
+    "address": "vy-16.vwf90iqg.example.net:8080",
+    "args": [],
+    "params": {
+      "password": "iHFQpGKJWOaT",
+      "tag": "DE-vx7x6-27",
+      "udp-relay": "true",
+      "username": "du3t"
+    },
+    "type": "http"
+  },
+  {
+    "address": "v2c-16.bilzn1.example.org:443",
+    "args": [],
+    "params": {
+      "password": "AALLVj5k"
+    },
+    "type": "trojan"
+  },
+  {
+    "raw": "sjZVxk4t,over-tls=true,tls-host=img.lswhnvv5c.example.org,udp-relay=true,tag=NL-gtu-03"
+  },
+  {
+    "address": "ovn-21.g5qw.example.net:1080",
+    "args": [],
+    "params": {
+      "password": "mN46sTPpQOJQ",
+      "tag": "KR-p73c-26",
+      "udp-relay": "true",
+      "username": "s0nuh3uv"
+    },
+    "type": "socks5"
+  }
+]

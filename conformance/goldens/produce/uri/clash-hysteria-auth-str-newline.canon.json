@@ -1,0 +1,41 @@
+[
+  {
+    "fragment": null,
+    "host": "o61-17.l7ae9.example.org",
+    "path": "",
+    "port": "46960",
+    "query": [
+      [
+        "auth",
+        "y09xFPR6"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  },
+  {
+    "raw": "cBFFO59d&protocol=udp&peer=www.m9fxoh65zz.example.net&udp=true#TW-dec7l-96"
+  },
+  {
+    "fragment": "TW-jnnhh-65",
+    "host": "p0z-30.x42x.example.net",
+    "path": "",
+    "port": "35854",
+    "query": [
+      [
+        "peer",
+        "static.ko4t14.example.com"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

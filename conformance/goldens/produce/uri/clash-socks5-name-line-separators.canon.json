@@ -1,0 +1,52 @@
+[
+  {
+    "fragment": "u71m3\rckuc4",
+    "host": "srs-31.kb0x.example.net",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "a3IyNDU1YTozMlU3RExBU0VYck8=",
+    "userinfo_base64": "kr2455a:32U7DLASEXrO"
+  },
+  {
+    "fragment": "afjg\tpn4v",
+    "host": "ohp-17.kbab9gas.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "bG80bzpFVVlFSjJENVY5cXA=",
+    "userinfo_base64": "lo4o:EUYEJ2D5V9qp"
+  },
+  {
+    "fragment": "kixdbc dovbu1m",
+    "host": "ihd-09.tffw.example.net",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "ZWFqOXpuOmRXaG5GSEUxVHF0Zw==",
+    "userinfo_base64": "eaj9zn:dWhnFHE1Tqtg"
+  },
+  {
+    "fragment": "uebuo9b gflcs",
+    "host": "iz-24.beyj6.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "YXIxMWE6WTNVd1hSNzRNaWJx",
+    "userinfo_base64": "ar11a:Y3UwXR74Mibq"
+  },
+  {
+    "fragment": "GB-gev-68",
+    "host": "zw4-15.hvrtapj.example.org",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "dnBqeHN4MDp0WkF4dVgySTBiNTM=",
+    "userinfo_base64": "vpjxsx0:tZAxuX2I0b53"
+  }
+]

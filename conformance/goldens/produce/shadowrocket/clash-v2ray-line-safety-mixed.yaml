@@ -1,0 +1,5 @@
+proxies:
+  - {"name":"CA-xcr-27","password":"maTt8BeNRFu2","port":1080,"server":"a6-19.fjayj.example.com","type":"socks5","udp":true,"username":"rvsgnh"}
+  - {"name":"DE-vx7x6-27","password":"iHFQpGKJWOaT","port":8080,"server":"vy-16.vwf90iqg.example.net","type":"http","udp":true,"username":"du3t"}
+  - {"name":"NL-gtu-03","network":"tcp","password":"AALLVj5k\nsjZVxk4t","port":443,"server":"v2c-16.bilzn1.example.org","sni":"img.lswhnvv5c.example.org","type":"trojan","udp":true}
+  - {"name":"KR-p73c-26","password":"mN46sTPpQOJQ","port":1080,"server":"ovn-21.g5qw.example.net","type":"socks5","udp":true,"username":"s0nuh3uv"}

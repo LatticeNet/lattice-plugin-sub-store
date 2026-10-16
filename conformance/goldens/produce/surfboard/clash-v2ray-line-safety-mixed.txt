@@ -1,0 +1,5 @@
+CA-xcr-27=socks5,a6-19.fjayj.example.com,1080,rvsgnh,maTt8BeNRFu2,udp-relay=true
+DE-vx7x6-27=http,vy-16.vwf90iqg.example.net,8080,du3t,iHFQpGKJWOaT,udp-relay=true
+NL-gtu-03=trojan,v2c-16.bilzn1.example.org,443,password=AALLVj5k
+sjZVxk4t,tls=true,sni="img.lswhnvv5c.example.org",udp-relay=true
+KR-p73c-26=socks5,ovn-21.g5qw.example.net,1080,s0nuh3uv,mN46sTPpQOJQ,udp-relay=true

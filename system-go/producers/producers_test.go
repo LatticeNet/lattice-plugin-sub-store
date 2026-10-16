@@ -31,8 +31,9 @@ const conformanceDir = "../../conformance"
 // platform name the harness's check.mjs calls each producer by
 // (oracle/lib/targets.mjs), the golden file extension, the canonical form the
 // checker parses the output with, and whether the checker compares bytes. For
-// URI and V2Ray it does, and the allowlist never applies to them, so equal
-// bytes is the checker's whole verdict.
+// URI and V2Ray it does, and no value normalisation applies to them, so equal
+// bytes is the checker's whole verdict: with the strict golden's bytes, or,
+// for a case the line-safety entry names, with the line-safe golden's.
 var harnessTargets = []harnessTarget{
 	{"uri", "URI", "txt", "uri", true},
 	{"v2ray", "V2Ray", "txt", "v2ray", true},
@@ -199,10 +200,20 @@ func differsFromGolden(t *testing.T, target harnessTarget, id, got string) strin
 	dir := filepath.Join(conformanceDir, "goldens", "produce", target.id)
 	if target.bytes {
 		golden := string(readFile(t, filepath.Join(dir, id+"."+target.ext)))
-		if got != golden {
-			return fmt.Sprintf("output differs from the golden at byte %d\n golden:    %q\n candidate: %q", firstDifference(golden, got), clip(golden), clip(got))
+		if got == golden {
+			return ""
 		}
-		return ""
+		// The checker's second chance on a byte-exact target: a landed entry
+		// that compares without line-breaking nodes lets the output equal the
+		// line-safe golden's bytes (oracle/lib/allowlist.mjs,
+		// lineSafeBytesFile), upstream's output without the nodes whose own
+		// link breaks a line.
+		if comparesWithoutLineBreaks(t, target.id, id) {
+			if lineSafe, err := os.ReadFile(filepath.Join(dir, id+lineSafeBytesInfix+target.ext)); err == nil && got == string(lineSafe) {
+				return ""
+			}
+		}
+		return fmt.Sprintf("output differs from the golden at byte %d\n golden:    %q\n candidate: %q", firstDifference(golden, got), clip(golden), clip(got))
 	}
 	path, golden, candidate, same := sameStructure(t, readFile(t, filepath.Join(dir, id+".canon.json")), target.form, got)
 	if same {
@@ -222,8 +233,13 @@ func differsFromGolden(t *testing.T, target harnessTarget, id, got string) strin
 
 // lineSafeSuffix names the golden a without_line_breaking_nodes entry lets a
 // failing case match (oracle/lib/allowlist.mjs, LINE_SAFE_SUFFIX): upstream's
-// output for the case's input without the nodes that carry a line break.
+// output for the case's input without the nodes that break a line.
 const lineSafeSuffix = ".line-safe.canon.json"
+
+// lineSafeBytesInfix sits between the case id and the extension of a
+// byte-exact target's line-safe bytes golden, <case>.line-safe.<ext>
+// (oracle/lib/allowlist.mjs, lineSafeBytesFile).
+const lineSafeBytesInfix = ".line-safe."
 
 // allowEntry is one entry of the vendored allowlist, as far as the produce
 // tests read it.
@@ -456,11 +472,11 @@ func reasons(d []Dropped) []string {
 }
 
 // TestLineSafetyCoversExactCaseIDs holds comparesWithoutLineBreaks to the
-// harness rule: line-safety lets Surge and Quantumult X match the line-safe
-// golden for the two cases it names and for no case whose id merely starts
-// with one of them, such as clash-ssh-key-path.
+// harness rule: line-safety lets Surge, Quantumult X, URI and V2Ray match the
+// line-safe golden for the cases it names and for no case whose id merely
+// starts with one of them, such as clash-ssh-key-path.
 func TestLineSafetyCoversExactCaseIDs(t *testing.T) {
-	for _, target := range []string{"surge", "quantumultx"} {
+	for _, target := range []string{"surge", "quantumultx", "uri", "v2ray"} {
 		for _, id := range []string{"clash-socks5-name-newline", "clash-ssh"} {
 			if !comparesWithoutLineBreaks(t, target, id) {
 				t.Errorf("%s %s: line-safety does not cover a case it names", target, id)

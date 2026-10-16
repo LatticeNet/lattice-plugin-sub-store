@@ -1,0 +1,1 @@
+FR-mfpjn-55=vmess,gl-29.fj14g.example.com,443,username=ada78eae-3c15-45f9-9645-f244405d2ef6,vmess-aead=true,tls=true,sni="api.m3uknmblfk.example.com",alpn="h2,http/1.1",skip-cert-verify=false

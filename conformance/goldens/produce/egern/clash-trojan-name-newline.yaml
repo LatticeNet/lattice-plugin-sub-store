@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"ip44l\nfjxnyq","server":"w0o-17.proqtg.example.com","port":443,"password":"82UJw0X2f3lFWo9p","tfo":false,"udp_relay":true,"sni":"api.hr0xb.example.com"}}
+  - {"trojan":{"name":"SG-wjya-30","server":"ixo-39.jtlc9.example.org","port":443,"password":"13XxyJkXegClXcI2","tfo":false,"udp_relay":true,"sni":"api.tin62kd.example.org"}}

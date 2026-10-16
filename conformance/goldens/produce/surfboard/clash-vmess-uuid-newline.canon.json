@@ -1,0 +1,40 @@
+[
+  {
+    "args": [
+      "nu-28.z0ft.example.com",
+      "443"
+    ],
+    "name": "CA-dh9n-58",
+    "params": {
+      "username": "05528a2a-c88e-4a32-a5d9-e2174fc51112"
+    },
+    "type": "vmess"
+  },
+  {
+    "args": [],
+    "name": "evoeyy,vmess-aead",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "cdn.lpulwjn8.example.net",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "true"
+  },
+  {
+    "args": [
+      "ymw-37.pzafc5.example.com",
+      "443"
+    ],
+    "name": "AU-ixoxzh-57",
+    "params": {
+      "skip-cert-verify": "false",
+      "sni": "img.sb9upwf.example.com",
+      "tls": "true",
+      "udp-relay": "true",
+      "username": "ad377a8c-f905-40ab-9309-188a8b431e5c",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

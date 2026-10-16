@@ -1,0 +1,34 @@
+[
+  {
+    "fragment": null,
+    "host": "d2dae002-0c46-4e13-98cc-5a3c433117d6",
+    "path": "",
+    "port": null,
+    "query": [],
+    "scheme": "vmess",
+    "userinfo": null
+  },
+  {
+    "raw": "oe6x1@nz6-03.ybjih.example.com:443?security=reality&type=tcp&packetEncoding=none&sni=img.cjrkej2t.example.org&fp=chrome&sid=f6fc6a40&pbk=8ip_OeJs5rXnNe7b8ZGnBEMbi7B8EvMhzMev0EIpnqQ&encryption=auto#HK-lpxr7h-34"
+  },
+  {
+    "body": {
+      "add": "gl-29.fj14g.example.com",
+      "aid": "0",
+      "alpn": "h2,http/1.1",
+      "fp": "chrome",
+      "id": "ada78eae-3c15-45f9-9645-f244405d2ef6",
+      "net": "tcp",
+      "port": "443",
+      "ps": "FR-mfpjn-55",
+      "scy": "auto",
+      "sni": "api.m3uknmblfk.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

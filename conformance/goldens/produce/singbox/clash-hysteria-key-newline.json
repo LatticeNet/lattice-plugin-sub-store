@@ -1,0 +1,33 @@
+{
+  "outbounds": [
+    {
+      "tag": "JP-wxup-90",
+      "type": "hysteria",
+      "server": "sr-25.afzmy4.example.net",
+      "server_port": 44885,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "img.fx8nqbfz1i.example.org",
+        "insecure": false
+      },
+      "up_mbps": null,
+      "down_mbps": null
+    },
+    {
+      "tag": "HK-gzb1-82",
+      "type": "hysteria",
+      "server": "vv-08.z7h7pu43.example.org",
+      "server_port": 10990,
+      "disable_mtu_discovery": false,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.nvziv0e.example.org",
+        "insecure": false
+      },
+      "up_mbps": null,
+      "down_mbps": null
+    }
+  ],
+  "endpoints": []
+}

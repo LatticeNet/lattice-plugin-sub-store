@@ -1,0 +1,33 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "disable_mtu_discovery": false,
+      "down_mbps": null,
+      "server": "sr-25.afzmy4.example.net",
+      "server_port": 44885,
+      "tag": "JP-wxup-90",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.fx8nqbfz1i.example.org"
+      },
+      "type": "hysteria",
+      "up_mbps": null
+    },
+    {
+      "disable_mtu_discovery": false,
+      "down_mbps": null,
+      "server": "vv-08.z7h7pu43.example.org",
+      "server_port": 10990,
+      "tag": "HK-gzb1-82",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.nvziv0e.example.org"
+      },
+      "type": "hysteria",
+      "up_mbps": null
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "proxies": [
+    {
+      "socks5": {
+        "name": "u71m3\rckuc4",
+        "password": "32U7DLASEXrO",
+        "port": 1080,
+        "server": "srs-31.kb0x.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "kr2455a"
+      }
+    },
+    {
+      "socks5": {
+        "name": "afjg\tpn4v",
+        "password": "EUYEJ2D5V9qp",
+        "port": 1080,
+        "server": "ohp-17.kbab9gas.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "lo4o"
+      }
+    },
+    {
+      "socks5": {
+        "name": "kixdbc dovbu1m",
+        "password": "dWhnFHE1Tqtg",
+        "port": 1080,
+        "server": "ihd-09.tffw.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "eaj9zn"
+      }
+    },
+    {
+      "socks5": {
+        "name": "uebuo9b gflcs",
+        "password": "Y3UwXR74Mibq",
+        "port": 1080,
+        "server": "iz-24.beyj6.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "ar11a"
+      }
+    },
+    {
+      "socks5": {
+        "name": "GB-gev-68",
+        "password": "tZAxuX2I0b53",
+        "port": 1080,
+        "server": "zw4-15.hvrtapj.example.org",
+        "tfo": false,
+        "udp_relay": true,
+        "username": "vpjxsx0"
+      }
+    }
+  ]
+}
