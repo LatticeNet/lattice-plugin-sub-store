@@ -1,0 +1,67 @@
+[
+  {
+    "args": [
+      "srs-31.kb0x.example.net",
+      "1080"
+    ],
+    "name": "u71m3\rckuc4",
+    "params": {
+      "password": "32U7DLASEXrO",
+      "udp-relay": "true",
+      "username": "kr2455a"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "ohp-17.kbab9gas.example.org",
+      "1080"
+    ],
+    "name": "afjg\tpn4v",
+    "params": {
+      "password": "EUYEJ2D5V9qp",
+      "udp-relay": "true",
+      "username": "lo4o"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "ihd-09.tffw.example.net",
+      "1080"
+    ],
+    "name": "kixdbc dovbu1m",
+    "params": {
+      "password": "dWhnFHE1Tqtg",
+      "udp-relay": "true",
+      "username": "eaj9zn"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "iz-24.beyj6.example.org",
+      "1080"
+    ],
+    "name": "uebuo9b gflcs",
+    "params": {
+      "password": "Y3UwXR74Mibq",
+      "udp-relay": "true",
+      "username": "ar11a"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "zw4-15.hvrtapj.example.org",
+      "1080"
+    ],
+    "name": "GB-gev-68",
+    "params": {
+      "password": "tZAxuX2I0b53",
+      "udp-relay": "true",
+      "username": "vpjxsx0"
+    },
+    "type": "socks5"
+  }
+]

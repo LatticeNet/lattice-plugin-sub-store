@@ -46,14 +46,58 @@ export function carriesLineBreak(v) {
 // LINE_SAFE_SUFFIX names the golden a without_line_breaking_nodes step
 // compares against: goldens/produce/<target>/<case>.line-safe.canon.json,
 // the canonical form of upstream's output for the case's produce input
-// without the nodes that carry a line break. regen.mjs writes it for every
-// case and target a landed entry with that step covers, when the input has
-// such a node.
+// without the nodes that break a line (breaksLineFor). regen.mjs writes it
+// for every case and target a landed entry with that step covers, when the
+// input has such a node. A byte-exact target also gets the bytes beside it
+// (lineSafeBytesFile), which the checker compares as it compares the strict
+// golden's bytes.
 export const LINE_SAFE_SUFFIX = '.line-safe.canon.json';
 
-// The canonical forms of the line-based targets (lib/canonical.mjs), the
-// only targets a without_line_breaking_nodes step may name.
-const LINE_FORMS = new Set(['lines', 'qx']);
+// lineSafeBytesFile is the file name of a byte-exact target's line-safe
+// bytes golden: <case>.line-safe.<ext>, beside <case>.line-safe.canon.json.
+export function lineSafeBytesFile(target, caseId) {
+    return `${caseId}.line-safe.${target.ext}`;
+}
+
+// The canonical forms a without_line_breaking_nodes step may name: the
+// line-based targets (lib/canonical.mjs), and URI and V2Ray, whose document
+// is one share link per line. URI and V2Ray are compared byte for byte, so
+// only an entry whose every step is without_line_breaking_nodes, which
+// changes no value, may name them (lineSafeOnly).
+const LINE_FORMS = new Set(['lines', 'qx', 'uri', 'v2ray']);
+
+// lineSafeOnly reports whether every normalise step of an entry is
+// without_line_breaking_nodes. Such an entry changes no value, so the only
+// thing it can do on a byte-exact target is let a case match the line-safe
+// golden's bytes instead of the strict golden's. The loader refuses a step
+// with more than one kind, so the one key is enough.
+function lineSafeOnly(e) {
+    return Array.isArray(e.normalise) && e.normalise.length > 0 && e.normalise.every((step) => step && step.without_line_breaking_nodes === true);
+}
+
+// linkBreaksLine reports whether a byte-exact target's output for one node
+// holds a line-breaking character. A URI document is one link per node and a
+// V2Ray document the same links Base64-encoded, so a node breaks a line there
+// exactly when its own link holds one; a node without a URI form, or one
+// whose line break the producer encodes (a vmess JSON body, a component-encoded
+// name), does not.
+export function linkBreaksLine(target, output) {
+    if (typeof output !== 'string') return false;
+    const text = target.form === 'v2ray' ? Buffer.from(output, 'base64').toString('utf8') : output;
+    return LINE_BREAKING.test(text);
+}
+
+// breaksLineFor reports whether a node of a produce input is left out of the
+// line-safe input for a target. On a line-based target that is every node in
+// which any text carries a line break (carriesLineBreak). On a byte-exact
+// target it is the narrower set the producer itself must reject: a node that
+// carries a line break and whose own link, `output` (the target's output for
+// that node alone), holds one (linkBreaksLine). Callers produce the node
+// alone only when it carries a line break and the target is byte-exact.
+export function breaksLineFor(target, node, output) {
+    if (!carriesLineBreak(node)) return false;
+    return !target.bytes || linkBreaksLine(target, output);
+}
 
 export function loadAllowlist(file) {
     const doc = YAML.parse(fs.readFileSync(file, 'utf8')) ?? {};
@@ -81,7 +125,7 @@ export function loadAllowlist(file) {
             if (t === '*') continue;
             const target = findTarget(t);
             if (!target) throw new Error(`${where}: unknown target ${t}`);
-            if (target.bytes) throw new Error(`${where}: ${target.id} is compared byte for byte, so no entry can apply to it`);
+            if (target.bytes && !lineSafeOnly(e)) throw new Error(`${where}: ${target.id} is compared byte for byte, so only an entry whose every step is without_line_breaking_nodes can apply to it`);
         }
         for (const p of e.cases) {
             if (typeof p !== 'string' || p === '') throw new Error(`${where}: a case selector is "*" or a non-empty id prefix`);
@@ -118,7 +162,7 @@ export function loadAllowlist(file) {
                 if (step.without_line_breaking_nodes !== true) throw new Error(`${where}: without_line_breaking_nodes takes true`);
                 if (e.stage !== 'produce') throw new Error(`${where}: without_line_breaking_nodes applies only at produce stage`);
                 if (e.targets.includes('*') || e.targets.some((t) => !LINE_FORMS.has(findTarget(t).form))) {
-                    throw new Error(`${where}: without_line_breaking_nodes names its targets, each one whose canonical form is lines or qx`);
+                    throw new Error(`${where}: without_line_breaking_nodes names its targets, each one whose canonical form is lines, qx, uri or v2ray`);
                 }
                 if (e.cases.includes('*')) throw new Error(`${where}: without_line_breaking_nodes names the cases it covers`);
                 // The entry's cases are exact ids (applicable): a prefix
@@ -133,20 +177,25 @@ export function loadAllowlist(file) {
     return entries;
 }
 
-// applicable returns the entries that apply to one comparison. No entry
-// applies to a byte-exact target: a canonical difference there is a byte
-// difference, which the checker fails regardless. A pending entry applies to
-// nothing until its slice removes the pending field. An entry's cases are id
-// prefixes, except for an entry with a without_line_breaking_nodes step,
-// whose cases are exact ids: that step lets a case match a second golden, so
-// it covers only the cases a reviewer named.
+// applicable returns the entries that apply to one comparison. On a
+// byte-exact target only an entry that names it explicitly and whose every
+// step is without_line_breaking_nodes applies: a value normalisation there
+// would hide a byte difference, which the checker fails regardless, while
+// that step changes no value and only lets the case match the line-safe
+// golden's bytes. A "*" target never covers a byte-exact target. A pending
+// entry applies to nothing until its slice removes the pending field. An
+// entry's cases are id prefixes, except for an entry with a
+// without_line_breaking_nodes step, whose cases are exact ids: that step
+// lets a case match a second golden, so it covers only the cases a reviewer
+// named.
 export function applicable(entries, stage, targetId, caseId) {
-    if (stage === 'produce' && findTarget(targetId)?.bytes) return [];
+    const bytes = stage === 'produce' && findTarget(targetId)?.bytes;
     return entries.filter(
         (e) =>
             e.pending === undefined &&
             e.stage === stage &&
-            (stage !== 'produce' || e.targets.includes('*') || e.targets.some((t) => findTarget(t)?.id === targetId)) &&
+            (!bytes || lineSafeOnly(e)) &&
+            (stage !== 'produce' || (!bytes && e.targets.includes('*')) || e.targets.some((t) => findTarget(t)?.id === targetId)) &&
             (e.cases.includes('*') || e.cases.some((p) => (comparesWithoutLineBreaks([e]) ? caseId === p : caseId.startsWith(p)))),
     );
 }

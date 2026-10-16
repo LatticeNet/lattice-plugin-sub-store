@@ -1,0 +1,15 @@
+[
+  {
+    "args": [
+      "ixo-39.jtlc9.example.org",
+      "443"
+    ],
+    "name": "SG-wjya-30",
+    "params": {
+      "password": "13XxyJkXegClXcI2",
+      "sni": "api.tin62kd.example.org",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

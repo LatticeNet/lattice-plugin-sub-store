@@ -1,0 +1,30 @@
+[
+  {
+    "address": "nu-28.z0ft.example.com:443",
+    "args": [],
+    "params": {
+      "method": "chacha20-poly1305",
+      "password": "05528a2a-c88e-4a32-a5d9-e2174fc51112"
+    },
+    "type": "vmess"
+  },
+  {
+    "raw": "evoeyy,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=cdn.lpulwjn8.example.net,aead=true,udp-relay=true,tag=CA-dh9n-58"
+  },
+  {
+    "address": "ymw-37.pzafc5.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "ad377a8c-f905-40ab-9309-188a8b431e5c",
+      "tag": "AU-ixoxzh-57",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "img.sb9upwf.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

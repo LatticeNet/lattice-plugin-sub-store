@@ -1,0 +1,31 @@
+proxies:
+  - name: "u71m3\rckuc4"
+    type: socks5
+    server: srs-31.kb0x.example.net
+    port: 1080
+    username: kr2455a
+    password: 32U7DLASEXrO
+  - name: "afjg\tpn4v"
+    type: socks5
+    server: ohp-17.kbab9gas.example.org
+    port: 1080
+    username: lo4o
+    password: EUYEJ2D5V9qp
+  - name: "kixdbc\u2028dovbu1m"
+    type: socks5
+    server: ihd-09.tffw.example.net
+    port: 1080
+    username: eaj9zn
+    password: dWhnFHE1Tqtg
+  - name: "uebuo9b\u2029gflcs"
+    type: socks5
+    server: iz-24.beyj6.example.org
+    port: 1080
+    username: ar11a
+    password: Y3UwXR74Mibq
+  - name: GB-gev-68
+    type: socks5
+    server: zw4-15.hvrtapj.example.org
+    port: 1080
+    username: vpjxsx0
+    password: tZAxuX2I0b53

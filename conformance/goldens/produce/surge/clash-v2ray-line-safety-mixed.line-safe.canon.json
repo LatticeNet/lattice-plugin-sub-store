@@ -1,0 +1,40 @@
+[
+  {
+    "args": [
+      "a6-19.fjayj.example.com",
+      "1080"
+    ],
+    "name": "CA-xcr-27",
+    "params": {
+      "password": "maTt8BeNRFu2",
+      "udp-relay": "true",
+      "username": "rvsgnh"
+    },
+    "type": "socks5"
+  },
+  {
+    "args": [
+      "vy-16.vwf90iqg.example.net",
+      "8080"
+    ],
+    "name": "DE-vx7x6-27",
+    "params": {
+      "password": "iHFQpGKJWOaT",
+      "username": "du3t"
+    },
+    "type": "http"
+  },
+  {
+    "args": [
+      "ovn-21.g5qw.example.net",
+      "1080"
+    ],
+    "name": "KR-p73c-26",
+    "params": {
+      "password": "mN46sTPpQOJQ",
+      "udp-relay": "true",
+      "username": "s0nuh3uv"
+    },
+    "type": "socks5"
+  }
+]

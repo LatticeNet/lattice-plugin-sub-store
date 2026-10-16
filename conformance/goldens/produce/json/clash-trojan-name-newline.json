@@ -1,0 +1,24 @@
+[
+  {
+    "name": "ip44l\nfjxnyq",
+    "network": "tcp",
+    "password": "82UJw0X2f3lFWo9p",
+    "port": 443,
+    "server": "w0o-17.proqtg.example.com",
+    "sni": "api.hr0xb.example.com",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  },
+  {
+    "name": "SG-wjya-30",
+    "network": "tcp",
+    "password": "13XxyJkXegClXcI2",
+    "port": 443,
+    "server": "ixo-39.jtlc9.example.org",
+    "sni": "api.tin62kd.example.org",
+    "tls": true,
+    "type": "trojan",
+    "udp": true
+  }
+]

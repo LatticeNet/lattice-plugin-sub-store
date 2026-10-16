@@ -1,0 +1,9 @@
+{
+  "id": "clash-trojan-name-newline",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "line-safety",
+  "description": "trojan whose name holds a newline, then trojan: the URI fragment encodes it as %0A, so URI and V2Ray keep both nodes, while Surge and Quantumult X write the name raw and reject the first node (line-safety)."
+}

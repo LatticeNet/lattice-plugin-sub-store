@@ -1,0 +1,7 @@
+{
+  "id": "clash-v2ray-line-safety-mixed",
+  "family": "clash",
+  "protocol": "mixed",
+  "quirk": "line-safety",
+  "description": "socks5, http without headers, trojan whose password holds a newline, socks5: the V2Ray text keeps the empty line of the http node, which has no URI form, and leaves no line for the rejected trojan node (line-safety)."
+}

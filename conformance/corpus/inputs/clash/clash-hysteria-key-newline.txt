@@ -1,0 +1,16 @@
+proxies:
+  - name: JP-wxup-90
+    type: hysteria
+    server: sr-25.afzmy4.example.net
+    port: 44885
+    protocol: udp
+    sni: img.fx8nqbfz1i.example.org
+    skip-cert-verify: false
+    "zqfhg9\nvtjr": 1
+  - name: HK-gzb1-82
+    type: hysteria
+    server: vv-08.z7h7pu43.example.org
+    port: 10990
+    protocol: udp
+    sni: cdn.nvziv0e.example.org
+    skip-cert-verify: false

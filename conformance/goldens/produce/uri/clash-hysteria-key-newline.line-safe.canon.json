@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "HK-gzb1-82",
+    "host": "vv-08.z7h7pu43.example.org",
+    "path": "",
+    "port": "10990",
+    "query": [
+      [
+        "peer",
+        "cdn.nvziv0e.example.org"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

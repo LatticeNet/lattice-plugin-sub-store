@@ -1,0 +1,15 @@
+proxies:
+  - name: "ip44l\nfjxnyq"
+    type: trojan
+    server: w0o-17.proqtg.example.com
+    port: 443
+    password: 82UJw0X2f3lFWo9p
+    sni: api.hr0xb.example.com
+    udp: true
+  - name: SG-wjya-30
+    type: trojan
+    server: ixo-39.jtlc9.example.org
+    port: 443
+    password: 13XxyJkXegClXcI2
+    sni: api.tin62kd.example.org
+    udp: true

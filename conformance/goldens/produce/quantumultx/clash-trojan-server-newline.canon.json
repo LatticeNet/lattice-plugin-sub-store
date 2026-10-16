@@ -1,0 +1,23 @@
+[
+  {
+    "address": "v8-21.n91npglc.example.com",
+    "args": [],
+    "params": {},
+    "type": "trojan"
+  },
+  {
+    "raw": "b6-16.idsu.example.net:443,password=UDG9ALCvfGeGG3e5,over-tls=true,tls-host=static.mgdrp82.example.com,udp-relay=true,tag=JP-e7v-93"
+  },
+  {
+    "address": "akg-24.xvw1u.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "7AyRlORj1RLGZiCB",
+      "tag": "US-akqgj-94",
+      "tls-host": "www.s7onk.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

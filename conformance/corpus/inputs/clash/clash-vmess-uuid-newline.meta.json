@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-uuid-newline",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "line-safety",
+  "description": "vmess TLS whose uuid holds a newline, then vmess TLS: the JSON form escapes it inside the Base64 body, so URI and V2Ray keep both nodes, while Surge and Quantumult X write the uuid raw and reject the first node (line-safety)."
+}

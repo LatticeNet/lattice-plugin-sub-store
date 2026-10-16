@@ -1,0 +1,29 @@
+[
+  {
+    "address": "nd-06.hx8izax.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "over-tls",
+      "password": "fddbb0c3-7ffe-4d9c-b2a0-80b65e0fcd73",
+      "tag": "US-vpb-70",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.koyq8upb.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  },
+  {
+    "address": "mdo-20.bknkc.example.net:443",
+    "args": [],
+    "params": {
+      "method": "none",
+      "password": "4ad3b3d8-0629-4a2a-a669-e464fe4e5f29"
+    },
+    "type": "vless"
+  },
+  {
+    "raw": "j5195,obfs=over-tls,tls-alpn=02683208687474702f312e31,tls-verification=true,tls-host=static.hvqm8a0.example.org,udp-relay=true,tag=SG-rmd-87"
+  }
+]

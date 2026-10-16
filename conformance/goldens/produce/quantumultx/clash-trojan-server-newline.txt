@@ -1,0 +1,3 @@
+trojan=v8-21.n91npglc.example.com
+b6-16.idsu.example.net:443,password=UDG9ALCvfGeGG3e5,over-tls=true,tls-host=static.mgdrp82.example.com,udp-relay=true,tag=JP-e7v-93
+trojan=akg-24.xvw1u.example.com:443,password=7AyRlORj1RLGZiCB,over-tls=true,tls-host=www.s7onk.example.com,udp-relay=true,tag=US-akqgj-94

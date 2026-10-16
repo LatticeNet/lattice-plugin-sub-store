@@ -1,0 +1,5 @@
+proxies:
+  - {"socks5":{"name":"CA-xcr-27","server":"a6-19.fjayj.example.com","port":1080,"username":"rvsgnh","password":"maTt8BeNRFu2","tfo":false,"udp_relay":true}}
+  - {"http":{"name":"DE-vx7x6-27","server":"vy-16.vwf90iqg.example.net","port":8080,"username":"du3t","password":"iHFQpGKJWOaT","tfo":false}}
+  - {"trojan":{"name":"NL-gtu-03","server":"v2c-16.bilzn1.example.org","port":443,"password":"AALLVj5k\nsjZVxk4t","tfo":false,"udp_relay":true,"sni":"img.lswhnvv5c.example.org"}}
+  - {"socks5":{"name":"KR-p73c-26","server":"ovn-21.g5qw.example.net","port":1080,"username":"s0nuh3uv","password":"mN46sTPpQOJQ","tfo":false,"udp_relay":true}}

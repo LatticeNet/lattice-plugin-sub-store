@@ -1,0 +1,50 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "32U7DLASEXrO",
+      "server": "srs-31.kb0x.example.net",
+      "server_port": 1080,
+      "tag": "u71m3\rckuc4",
+      "type": "socks",
+      "username": "kr2455a",
+      "version": "5"
+    },
+    {
+      "password": "EUYEJ2D5V9qp",
+      "server": "ohp-17.kbab9gas.example.org",
+      "server_port": 1080,
+      "tag": "afjg\tpn4v",
+      "type": "socks",
+      "username": "lo4o",
+      "version": "5"
+    },
+    {
+      "password": "dWhnFHE1Tqtg",
+      "server": "ihd-09.tffw.example.net",
+      "server_port": 1080,
+      "tag": "kixdbc dovbu1m",
+      "type": "socks",
+      "username": "eaj9zn",
+      "version": "5"
+    },
+    {
+      "password": "Y3UwXR74Mibq",
+      "server": "iz-24.beyj6.example.org",
+      "server_port": 1080,
+      "tag": "uebuo9b gflcs",
+      "type": "socks",
+      "username": "ar11a",
+      "version": "5"
+    },
+    {
+      "password": "tZAxuX2I0b53",
+      "server": "zw4-15.hvrtapj.example.org",
+      "server_port": 1080,
+      "tag": "GB-gev-68",
+      "type": "socks",
+      "username": "vpjxsx0",
+      "version": "5"
+    }
+  ]
+}

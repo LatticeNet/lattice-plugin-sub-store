@@ -1,0 +1,29 @@
+[
+  {
+    "address": "w0o-17.proqtg.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "82UJw0X2f3lFWo9p",
+      "tag": "ip44l",
+      "tls-host": "api.hr0xb.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "raw": "fjxnyq"
+  },
+  {
+    "address": "ixo-39.jtlc9.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "13XxyJkXegClXcI2",
+      "tag": "SG-wjya-30",
+      "tls-host": "api.tin62kd.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "address": "nz6-03.ybjih.example.com:443",
+    "args": [],
+    "params": {
+      "method": "chacha20-poly1305",
+      "password": "d2dae002-0c46-4e13-98cc-5a3c433117d6"
+    },
+    "type": "vmess"
+  },
+  {
+    "raw": "oe6x1,obfs=over-tls,tls-host=img.cjrkej2t.example.org,aead=true,udp-relay=true,tag=HK-lpxr7h-34,reality-base64-pubkey=8ip_OeJs5rXnNe7b8ZGnBEMbi7B8EvMhzMev0EIpnqQ,reality-hex-shortid=f6fc6a40"
+  },
+  {
+    "address": "gl-29.fj14g.example.com:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "over-tls",
+      "password": "ada78eae-3c15-45f9-9645-f244405d2ef6",
+      "tag": "FR-mfpjn-55",
+      "tls-alpn": "02683208687474702f312e31",
+      "tls-host": "api.m3uknmblfk.example.com",
+      "tls-verification": "true",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

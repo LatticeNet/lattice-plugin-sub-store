@@ -1,0 +1,47 @@
+[
+  {
+    "args": [
+      "nz6-03.ybjih.example.com",
+      "443",
+      "auto",
+      "\"d2dae002-0c46-4e13-98cc-5a3c433117d6"
+    ],
+    "name": "HK-lpxr7h-34",
+    "params": {},
+    "type": "vmess"
+  },
+  {
+    "args": [],
+    "name": "oe6x1\",transport",
+    "params": {
+      "alterId": "0",
+      "over-tls": "true",
+      "public-key": "8ip_OeJs5rXnNe7b8ZGnBEMbi7B8EvMhzMev0EIpnqQ",
+      "short-id": "f6fc6a40",
+      "sni": "img.cjrkej2t.example.org",
+      "tls-profile": "chrome",
+      "udp": "true"
+    },
+    "type": "tcp"
+  },
+  {
+    "args": [
+      "gl-29.fj14g.example.com",
+      "443",
+      "auto",
+      "ada78eae-3c15-45f9-9645-f244405d2ef6"
+    ],
+    "name": "FR-mfpjn-55",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "alterId": "0",
+      "over-tls": "true",
+      "skip-cert-verify": "false",
+      "tls-name": "api.m3uknmblfk.example.com",
+      "tls-profile": "chrome",
+      "transport": "tcp",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

@@ -290,20 +290,20 @@ fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
 ### Conformance numbers
 
 Design 28 publishes three numbers per release. Measured on the native
-engine against harness commit 0e771cf (upstream 2.42.3, a3e6106):
+engine against harness commit b57fcf4 (upstream 2.42.3, a3e6106):
 
 | Number | Result |
 |---|---|
-| Parse | 639 of 639 corpus cases (100 percent) |
-| Produce, URI | 611 of 611, byte for byte |
-| Produce, V2Ray | 611 of 611, byte for byte |
-| Produce, JSON | 611 of 611 |
-| Produce, sing-box | 611 of 611 |
-| Produce, ClashMeta | 611 of 611 |
-| Produce, Stash | 611 of 611 |
-| Produce, Shadowrocket | 611 of 611 |
-| Produce, Surge | 611 of 611 (609 byte for byte, which the checker does not require) |
-| Produce, Quantumult X | 611 of 611 (610 byte for byte, which the checker does not require) |
+| Parse | 650 of 650 corpus cases (100 percent) |
+| Produce, URI | 622 of 622, byte for byte (10 against the line-safe golden) |
+| Produce, V2Ray | 622 of 622, byte for byte (10 against the line-safe golden) |
+| Produce, JSON | 622 of 622 |
+| Produce, sing-box | 622 of 622 |
+| Produce, ClashMeta | 622 of 622 |
+| Produce, Stash | 622 of 622 |
+| Produce, Shadowrocket | 622 of 622 |
+| Produce, Surge | 622 of 622 (613 byte for byte, which the checker does not require) |
+| Produce, Quantumult X | 622 of 622 (612 byte for byte, which the checker does not require) |
 | Script | not measured until S3, which fixes the named community script set |
 
 The parse number counts corpus cases as `check.mjs` does, not lines: a case is
@@ -311,18 +311,25 @@ one subscription document, and it passes when every node the document yields
 deep-equals the golden. One case (`clash-norm-ca-not-pem`) is a whole-document
 failure in the golden and passes by failing the same way. The run relied on
 four of the five allowlist entries: `external`, `underscore` and `ca` at
-parse, and `line-safety` for Surge and Quantumult X (`require` applies to
-scripts and stays pending until S3). `line-safety` covers, by exact id, the
-two cases whose golden carries a line break from a node field,
-`clash-socks5-name-newline` and `clash-ssh`: the native Surge and Quantumult X producers reject a node
-whose entry would hold a control character, U+2028 or U+2029, where upstream
-writes the text as it is and lets a feed add lines such as a `[Script]`
-section to the profile. Those cases match the harness's line-safe golden,
-upstream's output without the line-breaking nodes, which is why Surge and
-Quantumult X match 609 and 610 cases byte for byte. End to end, from the
-runner's own parse, the nine targets match 600, 599, 590, 605, 605, 607, 605,
-609 and 610 of 611; every miss is one of the 21 cases that parse only under
-the parse-stage entries, and the other 590 cases match for every target.
+parse, and `line-safety` for Surge, Quantumult X, URI and V2Ray (`require`
+applies to scripts and stays pending until S3). `line-safety` names, by exact
+id, the thirteen cases whose input carries a line break in a node field:
+the native Surge and Quantumult X producers reject a node whose entry would
+hold a control character, U+2028 or U+2029, and the native URI and V2Ray
+producers a node whose link would (KI-27), where upstream writes the text as
+it is and lets a feed add a `[Script]` section to a profile or a share link
+of its own to a served list. Those cases match the harness's line-safe
+golden, upstream's output without the line-breaking nodes; for URI and V2Ray
+that golden leaves out only the nodes whose own link breaks a line and is
+compared byte for byte, and three named cases whose line breaks no link
+writes raw have none, so URI and V2Ray write them exactly as upstream does.
+Surge and Quantumult X match 613 and 612 cases byte for byte for the same
+reason. End to end, from the runner's own parse, the nine targets match 611,
+610, 601, 616, 616, 618, 616, 620 and 621 of 622; every miss is one of the 21
+cases that parse only under the parse-stage entries, and the other 601 cases
+match for every target. Without `line-safety` the same runner scores URI and
+V2Ray 612, Surge 613 and Quantumult X 612, failing exactly the named cases
+whose line breaks each target writes raw.
 
 The Stash, Shadowrocket, Surge and Quantumult X producers (S2) are judged here
 and in CI, but `producers.Native` still answers false for their targets, so

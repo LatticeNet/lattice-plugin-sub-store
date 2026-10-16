@@ -1,0 +1,3 @@
+hysteria://sr-25.afzmy4.example.net:44885?protocol=udp&peer=img.fx8nqbfz1i.example.org&udp=true&zqfhg9
+vtjr=1#JP-wxup-90
+hysteria://vv-08.z7h7pu43.example.org:10990?protocol=udp&peer=cdn.nvziv0e.example.org&udp=true#HK-gzb1-82

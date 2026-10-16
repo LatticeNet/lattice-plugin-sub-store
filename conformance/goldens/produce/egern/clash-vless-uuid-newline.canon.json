@@ -1,0 +1,36 @@
+{
+  "proxies": [
+    {
+      "vless": {
+        "name": "US-vpb-70",
+        "port": 443,
+        "server": "nd-06.hx8izax.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "api.koyq8upb.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "fddbb0c3-7ffe-4d9c-b2a0-80b65e0fcd73"
+      }
+    },
+    {
+      "vless": {
+        "name": "SG-rmd-87",
+        "port": 443,
+        "server": "mdo-20.bknkc.example.net",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "static.hvqm8a0.example.org"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "4ad3b3d8-0629-4a2a-a669-e464fe4e5f29\nj5195"
+      }
+    }
+  ]
+}
