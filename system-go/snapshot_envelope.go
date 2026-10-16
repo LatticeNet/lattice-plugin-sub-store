@@ -264,8 +264,23 @@ func decodeSnapshotEnvelope(raw string) (snapshotEnvelope, bool) {
 	if !strings.HasPrefix(trimmed, "{") {
 		return snapshotEnvelope{}, false
 	}
+	// A fleet envelope is most of a megabyte at 1000 rows, and render reads
+	// it on every call: decodeExactMembers reads a plain one once, and
+	// json.Unmarshal decodes anything else from zero.
+	data := []byte(trimmed)
 	var env snapshotEnvelope
-	if json.Unmarshal([]byte(trimmed), &env) != nil || env.Version != snapshotEnvelopeVersion {
+	if !decodeExactMembers(data, map[string]any{
+		"version": &env.Version, "kind": &env.Kind, "raw": &env.Raw, "raw_sha256": &env.RawSHA256, "nodes": &env.Nodes,
+		"nodes_omitted": &env.NodesOmitted, "source_id": &env.SourceID, "source_name": &env.SourceName, "source_kind": &env.SourceKind,
+		"members": &env.Members, "source_version": &env.SourceVersion, "catalogue_version": &env.CatalogueVersion, "rows": &env.Rows,
+		"selector": &env.Selector,
+	}) {
+		env = snapshotEnvelope{}
+		if json.Unmarshal(data, &env) != nil {
+			return snapshotEnvelope{}, false
+		}
+	}
+	if env.Version != snapshotEnvelopeVersion {
 		return snapshotEnvelope{}, false
 	}
 	switch env.Kind {
