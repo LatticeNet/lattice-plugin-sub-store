@@ -19,6 +19,12 @@ import (
 // a fleet member and a provider member, on three targets. The live render
 // is the render method itself, asked with member_revisions and no
 // snapshot, which is the staged path core takes when it previews a plan.
+//
+// "targeted" names its nodes after the target its script operator is handed,
+// so its plan differs per target: the second target's serve-path render
+// reads the same source version the first one cached under, and only the
+// target in the plan cache's key keeps it from being served the first
+// target's plan.
 func TestSnapshotRenderParityFleet(t *testing.T) {
 	freshFleetPlans(t)
 	rt, host := newFleetRuntime(t, sweepRows())
@@ -30,14 +36,17 @@ func TestSnapshotRenderParityFleet(t *testing.T) {
 			Process: []json.RawMessage{structuredKeep("protocol", "vless", "trojan", "hysteria2", "tuic", "vmess", "socks", "anytls"), rename, sortDesc}},
 		subscriptionRecord{ID: "scripted", Source: subscriptionSourceFleet,
 			Process: []json.RawMessage{scriptStep(t, `function operator(proxies) { return proxies.map(function (p) { p.name = "[s] " + p.name; return p; }); }`)}},
+		subscriptionRecord{ID: "targeted", Source: subscriptionSourceFleet,
+			Process: []json.RawMessage{scriptStep(t, `function operator(proxies, targetPlatform) { return proxies.map(function (p) { p.name = "[" + targetPlatform + "] " + p.name; return p; }); }`)}},
 		subscriptionRecord{ID: "provider", Source: subscriptionSourceLocal, Content: "trojan://provider-pw@198.51.100.7:443#provider\nvless://0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d@198.51.100.8:443?security=tls&sni=p.example#provider-vless"},
 		subscriptionRecord{ID: "coll", Kind: kindCollection, Members: []string{"sub", "provider"}, Process: []json.RawMessage{sortDesc}},
 	)
-	for _, id := range []string{"sub", "scripted", "coll"} {
+	for _, id := range []string{"sub", "scripted", "targeted", "coll"} {
 		snap, err := rt.fetchSubscription(id)
 		if err != nil {
 			t.Fatalf("fetch %s: %v", id, err)
 		}
+		plans := map[string]string{}
 		for _, target := range []string{"sing-box", "ClashMeta", "URI"} {
 			fromSnapshot, res := renderFleetCall(t, rt, map[string]any{"subscription_id": id, "raw": snap.Raw, "target": target})
 			if !res.OK {
@@ -62,6 +71,13 @@ func TestSnapshotRenderParityFleet(t *testing.T) {
 			if bytes.Equal(fromSnapshot.Plan, live.Plan) {
 				t.Fatalf("%s %s: the two renders share placeholders, so one plan was reused", id, target)
 			}
+			plans[target] = string(a)
+			if id == "targeted" && !bytes.Contains(a, []byte("["+target+"]")) {
+				t.Fatalf("targeted %s: the plan's names do not carry the target: %.300s", target, a)
+			}
+		}
+		if id == "targeted" && (plans["sing-box"] == plans["ClashMeta"] || plans["ClashMeta"] == plans["URI"]) {
+			t.Fatal("targeted: two targets rendered the same plan")
 		}
 	}
 }
