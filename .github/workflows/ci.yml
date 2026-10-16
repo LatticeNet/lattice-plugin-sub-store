@@ -247,13 +247,14 @@ jobs:
       - name: run the pipeline, parse, producer, fleet and isolated-engine benchmarks ten times
         # The fleet plan at 1000 and 4096 rows, catalogue validation at 4096
         # rows and fleet_preview over 10000 lines have targets in perfgate;
-        # the isolated first and seeded calls and the config-file merge on
-        # the isolated path are held to the regression rule once the
-        # baseline holds them. pipefail keeps a failing benchmark from
-        # passing through tee.
+        # the isolated first and seeded calls, the config-file merge on the
+        # isolated path, and the fetch and convert handlers at 1000 lines
+        # (the plugin's share of lattice-server's 400 ms cache-miss gate)
+        # are held to the regression rule once the baseline holds them.
+        # pipefail keeps a failing benchmark from passing through tee.
         working-directory: system-go
         shell: bash
-        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096|FleetPlan|ValidateCatalogueRows4096|FleetPreview10000|IsolatedFirstCall|IsolatedSeededCall|MergeConfigIsolated' -count 10 -benchmem -timeout 60m ./... | tee "$RUNNER_TEMP/bench.txt"
+        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096|FleetPlan|ValidateCatalogueRows4096|FleetPreview10000|FleetFetch1000|FleetConvert1000|IsolatedFirstCall|IsolatedSeededCall|MergeConfigIsolated' -count 10 -benchmem -timeout 60m ./... | tee "$RUNNER_TEMP/bench.txt"
 
       - name: judge the medians
         working-directory: tools/perfgate
