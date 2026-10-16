@@ -52,19 +52,30 @@ func renameURI(link, name string) string {
 	return link[:strings.LastIndexByte(link, '#')+1] + strings.ReplaceAll(name, " ", "%20")
 }
 
-// bundleNodes runs one conversion on the embedded bundle and returns the
-// JSON producer's node list.
-func bundleNodes(t *testing.T, engine *subStoreEngine, raw string, chain []json.RawMessage) []any {
+// bundleNodesMany runs a conversion per chain on the embedded bundle, every
+// one on one isolated runtime (runScriptsOnOneRuntime), and returns each
+// chain's JSON producer node list.
+func bundleNodesMany(t *testing.T, engine *subStoreEngine, raw string, chains [][]json.RawMessage) [][]any {
 	t.Helper()
-	out, err := engine.convertIsolated(subStoreConversionRequest{Raw: raw, Target: "JSON", Operators: chain})
-	if err != nil {
-		t.Fatalf("bundle convert: %v", err)
+	scripts := make([]string, len(chains))
+	for i, c := range chains {
+		script, err := subStoreConversionScript(subStoreConversionRequest{Raw: raw, Target: "JSON", Operators: c})
+		if err != nil {
+			t.Fatal(err)
+		}
+		scripts[i] = script
 	}
-	var nodes []any
-	if err := json.Unmarshal([]byte(out.Output), &nodes); err != nil {
-		t.Fatalf("bundle output: %v", err)
+	out := make([][]any, len(chains))
+	for i, answer := range runScriptsOnOneRuntime(t, engine, "bundle convert", scripts) {
+		var result subStoreCoreConversionResult
+		if err := json.Unmarshal([]byte(answer), &result); err != nil {
+			t.Fatalf("bundle convert %d: %v", i, err)
+		}
+		if err := json.Unmarshal([]byte(result.Output), &out[i]); err != nil {
+			t.Fatalf("bundle output %d: %v", i, err)
+		}
 	}
-	return nodes
+	return out
 }
 
 // nativeNodes runs a chain natively over nodes decoded from base, the
@@ -133,10 +144,6 @@ func chain(steps ...string) []json.RawMessage {
 func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 	engine := testEngineWithHeadroom()
 	raw := parityDocument(64)
-	base := bundleNodes(t, engine, raw, nil)
-	if len(base) != 68 {
-		t.Fatalf("the bundle parsed %d nodes, want 68", len(base))
-	}
 
 	// One case per operator, several where its arguments choose a different
 	// path, and the perf gate's chain. Each holds both engines to the same
@@ -169,8 +176,21 @@ func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 		{"add proxies from subscription", chain(`{"type":"Add Proxies From Subscription Operator","args":{"sourceType":"subscription","sourceName":"other","position":"replace"}}`)},
 		{"perf gate chain", chain(`{"type":"Regex Filter","args":{"regex":["(?i)^(hk|jp|sg|us|tw)"],"keep":true}}`, `{"type":"Regex Rename Operator","args":[{"expr":"^(\\w+) (\\w+) (\\d+)$","now":"$1 $3"}]}`, `{"type":"Sort Operator","args":"asc"}`, `{"type":"Flag Operator","args":{"mode":"add"}}`)},
 	}
+	random := chain(`{"type":"Sort Operator","args":"random"}`)
+	regexSort := chain(`{"type":"Regex Sort Operator","args":{"expressions":["^HK","^JP","^(SG|US)"],"order":"desc"}}`)
+	exists := chain(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EXISTS","attr":"flow"}}}`)
+	// Every bundle answer comes from one runtime, asked up front.
+	asked := [][]json.RawMessage{nil, random, regexSort, exists}
 	for _, c := range exact {
-		want := bundleNodes(t, engine, raw, c.chain)
+		asked = append(asked, c.chain)
+	}
+	answers := bundleNodesMany(t, engine, raw, asked)
+	base := answers[0]
+	if len(base) != 68 {
+		t.Fatalf("the bundle parsed %d nodes, want 68", len(base))
+	}
+	for i, c := range exact {
+		want := answers[len(asked)-len(exact)+i]
 		got := nativeNodes(t, base, c.chain)
 		if !sameNodes(got, want) {
 			t.Errorf("%s: native and bundle differ\nnative %q\nbundle %q", c.name, nodeNames(got), nodeNames(want))
@@ -183,8 +203,7 @@ func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 	// it is.
 
 	// Sort random: the order is random in both; the nodes are the same.
-	random := chain(`{"type":"Sort Operator","args":"random"}`)
-	if got, want := nativeNodes(t, base, random), bundleNodes(t, engine, raw, random); !slices.Equal(asMultiset(got), asMultiset(want)) {
+	if got, want := nativeNodes(t, base, random), answers[1]; !slices.Equal(asMultiset(got), asMultiset(want)) {
 		t.Errorf("sort random: native and bundle hold different nodes")
 	}
 
@@ -192,8 +211,7 @@ func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 	// expression matches, never "equal", so QuickJS's unstable sort leaves
 	// such a group in an order of its own; native keeps the group in input
 	// order. The groups, their order and the unmatched tail agree.
-	regexSort := chain(`{"type":"Regex Sort Operator","args":{"expressions":["^HK","^JP","^(SG|US)"],"order":"desc"}}`)
-	got, want := nativeNodes(t, base, regexSort), bundleNodes(t, engine, raw, regexSort)
+	got, want := nativeNodes(t, base, regexSort), answers[2]
 	group := func(name string) int {
 		for i, p := range []string{"^HK", "^JP", "^(SG|US)"} {
 			if regexp.MustCompile(p).MatchString(name) {
@@ -215,8 +233,7 @@ func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 	// Conditional Filter EXISTS: upstream's test is true for every node
 	// (upstream.md 5.6) and the bundle keeps them all; native keeps the
 	// nodes carrying the field (design-28.md:168).
-	exists := chain(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EXISTS","attr":"flow"}}}`)
-	if bundleKept := bundleNodes(t, engine, raw, exists); len(bundleKept) != len(base) {
+	if bundleKept := answers[3]; len(bundleKept) != len(base) {
 		t.Errorf("the bundle's EXISTS kept %d of %d nodes; the known defect keeps all, so the allowance is stale", len(bundleKept), len(base))
 	}
 	var withFlow []any
@@ -263,11 +280,12 @@ func TestFlagOperatorMatchesBundleOnKeywordVocabulary(t *testing.T) {
 	}
 	flag := chain(`{"type":"Flag Operator","args":{"mode":"add","tw":"tw"}}`)
 	raw := string(doc)
-	base := bundleNodes(t, engine, raw, nil)
+	answers := bundleNodesMany(t, engine, raw, [][]json.RawMessage{nil, flag})
+	base := answers[0]
 	if len(base) != len(names) {
 		t.Fatalf("the bundle parsed %d of %d names", len(base), len(names))
 	}
-	got, want := nodeNames(nativeNodes(t, base, flag)), nodeNames(bundleNodes(t, engine, raw, flag))
+	got, want := nodeNames(nativeNodes(t, base, flag)), nodeNames(answers[1])
 	mismatches := 0
 	for i := range want {
 		if got[i] != want[i] {
@@ -388,11 +406,7 @@ func TestRegexTranslationMatchesBundle(t *testing.T) {
 		lines = append(lines, fmt.Sprintf("trojan://pw@192.0.2.%d:443?sni=t.example.com#%s", i+1, urlFragment(name)))
 	}
 	raw := strings.Join(lines, "\n")
-	base := bundleNodes(t, engine, raw, nil)
-	if len(base) != len(spaces)+len(others) {
-		t.Fatalf("bundle parsed %d of %d names", len(base), len(spaces)+len(others))
-	}
-	for _, c := range []string{
+	cases := []string{
 		`{"type":"Regex Filter","args":{"regex":["^HK\\snode"],"keep":true}}`,
 		`{"type":"Regex Filter","args":{"regex":["^HK\\Snode"],"keep":true}}`,
 		`{"type":"Regex Filter","args":{"regex":["^HK.node"],"keep":true}}`,
@@ -403,9 +417,21 @@ func TestRegexTranslationMatchesBundle(t *testing.T) {
 		`{"type":"Regex Rename Operator","args":[{"expr":"\\s+","now":"_"}]}`,
 		`{"type":"Regex Rename Operator","args":[{"expr":"^HK(.)node","now":"[$1]"}]}`,
 		`{"type":"Regex Delete Operator","args":["\\s[a-z]$"]}`,
-	} {
-		chain := steps(c)
-		want := bundleNodes(t, engine, raw, chain)
+	}
+	sortChain := steps(`{"type":"Regex Sort Operator","args":{"expressions":["\\s[a-z]$"],"order":"asc"}}`)
+	// Every bundle answer comes from one runtime, asked up front.
+	asked := [][]json.RawMessage{nil, sortChain}
+	for _, c := range cases {
+		asked = append(asked, steps(c))
+	}
+	answers := bundleNodesMany(t, engine, raw, asked)
+	base := answers[0]
+	if len(base) != len(spaces)+len(others) {
+		t.Fatalf("bundle parsed %d of %d names", len(base), len(spaces)+len(others))
+	}
+	for i, c := range cases {
+		chain := asked[2+i]
+		want := answers[2+i]
 		got := nativeNodes(t, base, chain)
 		if !sameNodes(got, want) {
 			t.Errorf("%s:\n native %q\n bundle %q", c, nodeNames(got), nodeNames(want))
@@ -415,8 +441,7 @@ func TestRegexTranslationMatchesBundle(t *testing.T) {
 	// the matched group QuickJS's unstable sort decides the bundle's order
 	// (PR #77), so the group is compared as a set and the unmatched tail in
 	// order.
-	chain := steps(`{"type":"Regex Sort Operator","args":{"expressions":["\\s[a-z]$"],"order":"asc"}}`)
-	want, got := nodeNames(bundleNodes(t, engine, raw, chain)), nodeNames(nativeNodes(t, base, chain))
+	want, got := nodeNames(answers[1]), nodeNames(nativeNodes(t, base, sortChain))
 	if len(want) != len(got) {
 		t.Fatalf("regex sort: native %d nodes, bundle %d", len(got), len(want))
 	}

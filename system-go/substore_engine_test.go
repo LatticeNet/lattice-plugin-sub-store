@@ -98,6 +98,35 @@ func (engine *subStoreEngine) isolatedCount() int {
 	return int(engine.isolatedServes.Load())
 }
 
+// runScriptsOnOneRuntime evaluates call scripts in turn on one isolated
+// runtime and returns each one's stringified JSON answer. Each script is a
+// complete call script, as subStoreConversionScript and previewScript build
+// them. The parity tests ask the bundle dozens of questions about scriptless
+// chains; S1 answered them back to back on the warm runtime, and this keeps
+// that shape for the tests, at one core load, now that every production call
+// gets a runtime of its own (S2 plan section 1.4). No production path
+// batches.
+func runScriptsOnOneRuntime(t testing.TB, engine *subStoreEngine, stage string, scripts []string) []string {
+	t.Helper()
+	var b strings.Builder
+	b.WriteString("(async function () {\n  const answers = [];\n")
+	for _, script := range scripts {
+		b.WriteString("  answers.push(await (")
+		b.WriteString(script)
+		b.WriteString("));\n")
+	}
+	b.WriteString("  return JSON.stringify(answers);\n})()")
+	raw, err := engine.runIsolatedScript(stage, "lattice-test-batch.js", b.String())
+	if err != nil {
+		t.Fatalf("%s: %v", stage, err)
+	}
+	var answers []string
+	if err := json.Unmarshal([]byte(raw), &answers); err != nil || len(answers) != len(scripts) {
+		t.Fatalf("%s: %d answers for %d scripts (%v)", stage, len(answers), len(scripts), err)
+	}
+	return answers
+}
+
 // Every call gets a runtime of its own, scriptless or not: from S2 there is
 // no persistent runtime for a call to inherit state from or leave state in
 // (S2 plan section 1.4). The stateful core counts its parses in a global, so

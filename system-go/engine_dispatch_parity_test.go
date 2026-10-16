@@ -305,7 +305,7 @@ func TestNativePreviewMatchesBundlePreview(t *testing.T) {
 	// Without the plain Shadowsocks link, whose udp flag the two parsers
 	// read differently (TestNativeAndBundleRendersAgreeUnderCheckerRule).
 	document := strings.Replace(parityDocument(48), paritySSLink+"\n", "", 1)
-	for _, chain := range [][]json.RawMessage{
+	chains := [][]json.RawMessage{
 		nil,
 		steps(`{"type":"Regex Rename Operator","args":[{"expr":"^(\\w+) (\\w+) (\\d+)$","now":"$1 $3"}]}`),
 		steps(`{"type":"Regex Filter","args":{"regex":["(?i)^(hk|jp)"],"keep":true}}`, `{"type":"Flag Operator","args":{"mode":"add"}}`),
@@ -314,18 +314,23 @@ func TestNativePreviewMatchesBundlePreview(t *testing.T) {
 		steps(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EQUALS","attr":"uuid","value":"0b3cd6a9-4a5d-4a37-8c47-62f1a2d93c35"}}}`),
 		steps(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EQUALS","attr":"type","value":"trojan"}}}`),
 		steps(`{"type":"Handle Duplicate Operator","args":{"action":"rename","field":["type"],"position":"front","link":"_"}}`),
-	} {
+	}
+	// Every bundle preview comes from one runtime, asked up front.
+	var scripts []string
+	for _, chain := range chains {
 		for _, reduce := range []bool{true, false} {
+			scripts = append(scripts, previewScript(document, chain, "URI", reduce))
+		}
+	}
+	answers := runScriptsOnOneRuntime(t, rt.engine, "preview", scripts)
+	for i, chain := range chains {
+		for j, reduce := range []bool{true, false} {
 			native, err := rt.previewSubscription(document, chain, "URI", !reduce)
 			if err != nil {
 				t.Fatalf("native preview: %v", err)
 			}
-			out, err := rt.engine.runIsolatedScript("preview", "preview.js", previewScript(document, chain, "URI", reduce))
-			if err != nil {
-				t.Fatalf("bundle preview: %v", err)
-			}
 			var bundle previewNodes
-			if err := json.Unmarshal([]byte(out), &bundle); err != nil {
+			if err := json.Unmarshal([]byte(answers[2*i+j]), &bundle); err != nil {
 				t.Fatal(err)
 			}
 			if native.SourceNodeCount != bundle.SourceNodeCount || !reflect.DeepEqual(native.Nodes, bundle.Nodes) || !reflect.DeepEqual(native.Dropped, bundle.Dropped) && len(native.Dropped)+len(bundle.Dropped) > 0 {
