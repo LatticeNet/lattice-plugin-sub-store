@@ -152,12 +152,9 @@ func (engine *subStoreEngine) mergeConfig(req subStoreConfigMergeRequest) (subSt
 	if err != nil {
 		return subStoreConfigMergeResult{}, err
 	}
-	run := engine.runCoreScript
-	if containsScriptingOperator(req.Operators) {
-		// User JavaScript never touches the warm runtime.
-		run = engine.runIsolatedScript
-	}
-	out, err := run("config merge", "config-merge.js", script)
+	// The isolated path until S3 makes files native (S2 plan section 1.4):
+	// the share's body cache absorbs one isolate per cache miss.
+	out, err := engine.runIsolatedScript("config merge", "config-merge.js", script)
 	if err != nil {
 		return subStoreConfigMergeResult{}, err
 	}

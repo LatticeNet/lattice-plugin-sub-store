@@ -23,8 +23,7 @@ import (
 // producer and every enabled step of the chain compiles native, and
 // otherwise runs the whole chain on the bundle's isolated path: never half
 // native and half bundle (slices.md:54, decision.md:67). It sits above
-// subStoreEngine, so engine.convert keeps its signature and its warm routing
-// for the legacy engine service and for the engine's own tests.
+// subStoreEngine, whose every call is isolated since S2 (plan section 1.4).
 
 // servedBy says which engine answered a conversion. Tests assert on it; the
 // serve path ignores it.
@@ -154,7 +153,7 @@ func parseOptionsFor(rec subscriptionRecord) parse.Options {
 }
 
 // convertNative is rule 1 of plan section 1.2: parse (or take the nodes),
-// run the chain, produce. The warm runtime is not touched.
+// run the chain, produce. The bundle is not touched.
 func convertNative(req nodeConvertRequest) (subStoreConversionResult, error) {
 	producer, _ := producers.Lookup(req.Target)
 	nodes := req.Nodes
@@ -252,8 +251,8 @@ func newPlanCache() *planCache {
 	return &planCache{plans: map[string]*operators.Plan{}}
 }
 
-// nativePlans is the worker's plan cache. It lives as long as the process,
-// like the warm runtime, and holds nothing secret: steps and patterns only.
+// nativePlans is the worker's plan cache. It lives as long as the process
+// and holds nothing secret: steps and patterns only.
 var nativePlans = newPlanCache()
 
 // plan returns the compiled chain for revision, compiling it on a miss. An

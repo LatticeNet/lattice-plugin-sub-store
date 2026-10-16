@@ -161,6 +161,11 @@ const paritySSLink = "ss://YWVzLTEyOC1nY206cGFzcw==@192.0.2.11:8388#SG ss 9002"
 // bundle, so URI gains ?udp=1, JSON and ClashMeta say udp: true, and sing-box
 // drops its network "tcp". When a bundle re-pin closes it, the second half of
 // the test says so and the node joins the compared record.
+//
+// The comparison covers the five S1 targets, which the checker has forms
+// for. The four S2 targets are held to the 2.42.3 produce goldens by
+// TestProduceCorpusMatchesGoldens instead: the 2.36.22 bundle is not their
+// oracle.
 func TestNativeAndBundleRendersAgreeUnderCheckerRule(t *testing.T) {
 	rt := dispatchRuntime(t)
 	document, chain := parityRecord(64)
@@ -177,7 +182,7 @@ func TestNativeAndBundleRendersAgreeUnderCheckerRule(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, target := range nativeTargets {
+		for _, target := range s1NativeTargets {
 			native, served, err := rt.convertNodes(nodeConvertRequest{Parts: []string{document}, Target: target, Plan: plan})
 			if err != nil || served != servedNative {
 				t.Fatalf("%s: native render served %s err %v", target, served, err)
@@ -226,7 +231,7 @@ func TestSnapshotRenderParityNative(t *testing.T) {
 	savedRecord(t, rt, subscriptionRecord{ID: "native", Source: subscriptionSourceLocal, Content: document, Process: chain})
 	savedRecord(t, rt, subscriptionRecord{ID: "plain", Source: subscriptionSourceLocal, Content: shareFleetFixture(4)})
 	savedRecord(t, rt, subscriptionRecord{ID: "coll", Kind: kindCollection, Members: []string{"native", "plain"}, Process: steps(`{"type":"Sort Operator","args":"desc"}`)})
-	warm, isolated := rt.engine.pathCounts()
+	isolated := rt.engine.isolatedCount()
 	for _, id := range []string{"native", "coll"} {
 		snap, err := rt.fetchSubscription(id)
 		if err != nil {
@@ -267,8 +272,8 @@ func TestSnapshotRenderParityNative(t *testing.T) {
 			}
 		}
 	}
-	if w, i := rt.engine.pathCounts(); w != warm || i != isolated {
-		t.Fatalf("native fetches and renders reached the bundle: warm %d->%d isolated %d->%d", warm, w, isolated, i)
+	if i := rt.engine.isolatedCount(); i != isolated {
+		t.Fatalf("native fetches and renders reached the bundle: isolated %d->%d", isolated, i)
 	}
 }
 
@@ -305,7 +310,7 @@ func TestNativePreviewMatchesBundlePreview(t *testing.T) {
 	// Without the plain Shadowsocks link, whose udp flag the two parsers
 	// read differently (TestNativeAndBundleRendersAgreeUnderCheckerRule).
 	document := strings.Replace(parityDocument(48), paritySSLink+"\n", "", 1)
-	for _, chain := range [][]json.RawMessage{
+	chains := [][]json.RawMessage{
 		nil,
 		steps(`{"type":"Regex Rename Operator","args":[{"expr":"^(\\w+) (\\w+) (\\d+)$","now":"$1 $3"}]}`),
 		steps(`{"type":"Regex Filter","args":{"regex":["(?i)^(hk|jp)"],"keep":true}}`, `{"type":"Flag Operator","args":{"mode":"add"}}`),
@@ -314,18 +319,23 @@ func TestNativePreviewMatchesBundlePreview(t *testing.T) {
 		steps(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EQUALS","attr":"uuid","value":"0b3cd6a9-4a5d-4a37-8c47-62f1a2d93c35"}}}`),
 		steps(`{"type":"Conditional Filter","args":{"rule":{"proposition":"EQUALS","attr":"type","value":"trojan"}}}`),
 		steps(`{"type":"Handle Duplicate Operator","args":{"action":"rename","field":["type"],"position":"front","link":"_"}}`),
-	} {
+	}
+	// Every bundle preview comes from one runtime, asked up front.
+	var scripts []string
+	for _, chain := range chains {
 		for _, reduce := range []bool{true, false} {
+			scripts = append(scripts, previewScript(document, chain, "URI", reduce))
+		}
+	}
+	answers := runScriptsOnOneRuntime(t, rt.engine, "preview", scripts)
+	for i, chain := range chains {
+		for j, reduce := range []bool{true, false} {
 			native, err := rt.previewSubscription(document, chain, "URI", !reduce)
 			if err != nil {
 				t.Fatalf("native preview: %v", err)
 			}
-			out, err := rt.engine.runCoreScript("preview", "preview.js", previewScript(document, chain, "URI", reduce))
-			if err != nil {
-				t.Fatalf("bundle preview: %v", err)
-			}
 			var bundle previewNodes
-			if err := json.Unmarshal([]byte(out), &bundle); err != nil {
+			if err := json.Unmarshal([]byte(answers[2*i+j]), &bundle); err != nil {
 				t.Fatal(err)
 			}
 			if native.SourceNodeCount != bundle.SourceNodeCount || !reflect.DeepEqual(native.Nodes, bundle.Nodes) || !reflect.DeepEqual(native.Dropped, bundle.Dropped) && len(native.Dropped)+len(bundle.Dropped) > 0 {

@@ -149,7 +149,7 @@ func canonicalGraphResponseWithALPN(t *testing.T, identityID string, roots []str
 func newVPNCoreGraphRuntime(t *testing.T, response json.RawMessage) (*runtime, *vpnCoreGraphHost) {
 	t.Helper()
 	host := &vpnCoreGraphHost{kvHostCaller: newKVHostCaller(), response: response}
-	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
+	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
 }
 
 func TestVPNCoreGraphComposesOrderedRootsWithOneHostCall(t *testing.T) {
@@ -202,15 +202,16 @@ func TestVPNCoreGraphComposesOrderedRootsWithOneHostCall(t *testing.T) {
 	}
 }
 
-// Refresh refuses a source the engine finds no node in, and a graph
+// Refresh refuses a source the native parser finds no node in, and a graph
 // subscription takes that path too, so a graph's first refresh would fail if
-// the embedded parser ever stopped reading what vpn-core composes. The
+// the parser ever stopped reading what vpn-core composes. The
 // composition cannot be anything else: validateVPNCoreGraphResponse accepts
 // only a non-empty list of entries, each byte-equal to the canonical VLESS
 // Reality URI its manifest endpoint dictates, and Raw must be exactly those
 // entries joined. This pins the other half: each canonical entry, with and
-// without ALPN, is exactly one node to the engine, and the refresh stores the
-// composition unchanged.
+// without ALPN, is exactly one node to the parser the refresh counts with
+// (requireNativeNodes, since S2), and the refresh stores the composition
+// unchanged.
 func TestVPNCoreGraphCanonicalRawIsOneNodePerEntry(t *testing.T) {
 	roots := []string{graphRootA, graphRootB}
 	for _, alpn := range [][]string{{}, {"h2", "http/1.1"}} {
@@ -224,9 +225,9 @@ func TestVPNCoreGraphCanonicalRawIsOneNodePerEntry(t *testing.T) {
 			t.Fatalf("alpn %v: fixture is not a canonical composition: %v", alpn, err)
 		}
 		rt, _ := newVPNCoreGraphRuntime(t, composed)
-		count, err := rt.subStoreEngine().countNodes(response.Raw)
-		if err != nil || count != len(roots) {
-			t.Fatalf("alpn %v: engine counted %d nodes (err %v) in %d canonical entries", alpn, count, err, len(roots))
+		nodes, err := requireNativeNodes("graph", response.Raw)
+		if err != nil || len(nodes) != len(roots) {
+			t.Fatalf("alpn %v: the parser counted %d nodes (err %v) in %d canonical entries", alpn, len(nodes), err, len(roots))
 		}
 		if err := rt.saveSubscription(subscriptionRecord{ID: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity", EntryRoots: roots, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64)}); err != nil {
 			t.Fatal(err)

@@ -139,7 +139,7 @@ func TestResolveRenderTargetPriority(t *testing.T) {
 // document with nothing in it. A record's pin and an explicit target still
 // outrank it.
 func TestRenderHonoursUATarget(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	link := perfgen.URIs(1)[0]
 	for _, rec := range []map[string]any{
 		{"id": "free", "name": "free", "content": link},

@@ -109,7 +109,13 @@ var registry = map[string]Producer{
 // (Native). A registered producer that is not routed is reached through
 // Lookup, which is how the conformance runner and the tests judge it, while
 // its targets stay on the bundle; serving one natively is adding its id here.
-var routed = map[string]bool{"uri": true, "v2ray": true, "json": true, "clashmeta": true, "singbox": true}
+// S2 routes the four producers that complete Tier 1 (slices.md, S2: row 49
+// to nine native targets), which leaves the five Tier 2 targets on the
+// bundle.
+var routed = map[string]bool{
+	"uri": true, "v2ray": true, "json": true, "clashmeta": true, "singbox": true,
+	"stash": true, "shadowrocket": true, "surge": true, "quantumultx": true,
+}
 
 // Lookup maps a caller target string to its producer. It accepts the platform
 // names and the aliases each specification lists, exactly as written; it

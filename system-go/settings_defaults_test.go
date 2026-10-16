@@ -38,7 +38,7 @@ func (h *agentHost) call(method string, params any) (json.RawMessage, error) {
 // none. Settings are read only when a default can apply.
 func TestSettingsDefaultsApplyWhereNothingElseNamesThem(t *testing.T) {
 	host := &agentHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	for _, rec := range []subscriptionRecord{
 		{ID: "free", Name: "free", Source: subscriptionSourceLocal, Content: shareFleetFixture(1)},
 		{ID: "pinned", Name: "pinned", Source: subscriptionSourceLocal, Content: shareFleetFixture(1), Target: "ClashMeta"},

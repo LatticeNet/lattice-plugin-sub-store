@@ -527,7 +527,7 @@ func TestSupportMapKeyedByExactTarget(t *testing.T) {
 // TestLookupAcceptsExactNamesOnly pins the target strings the native
 // producers answer: each specification's names, exactly as written, and
 // nothing for the five targets without a producer or for any other spelling.
-// TestS2TargetsStayOnTheBundle pins the four S2 names.
+// TestS2TargetsRenderNatively pins the four S2 names.
 func TestLookupAcceptsExactNamesOnly(t *testing.T) {
 	for target, id := range map[string]string{
 		"URI": "uri", "uri": "uri", "V2Ray": "v2ray", "v2ray": "v2ray", "v2": "v2ray",

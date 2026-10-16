@@ -60,7 +60,7 @@ func migrateStoreCall(t *testing.T, rt *runtime, payload map[string]any) migrate
 // from its own key and an index that says what the legacy document said.
 func TestMigrateStoreOf300RecordsInChunks(t *testing.T) {
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	records := legacyFixture(300)
 	legacy := seedLegacyStore(t, host.kvHostCaller, records)
 	budget := ackedRuntimeBudgets()[pluginID+"/subscription/migrate_store"].HostCalls
@@ -174,7 +174,7 @@ func TestMigrateStoreOf300RecordsInChunks(t *testing.T) {
 // a finished store writes nothing.
 func TestMigrateStoreIsIdempotentAndResumesFromCursor(t *testing.T) {
 	host := &failingIndexHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host.kvHostCaller, legacyFixture(100))
 
 	first := migrateStoreCall(t, rt, map[string]any{"chunk": 30})
@@ -249,7 +249,7 @@ func (h *failingIndexHost) call(method string, params any) (json.RawMessage, err
 // nothing because nothing runs it.
 func TestMigrateStoreFlagsLookaheadRecords(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	step := func(raw string) []json.RawMessage { return []json.RawMessage{json.RawMessage(raw)} }
 	seedLegacyStore(t, host, []subscriptionRecord{
 		{ID: "lookahead", Name: "lookahead", Content: "x", Process: step(`{"type":"Regex Filter","args":{"regex":["^(?!.*(HK|TW)).*$"],"keep":true}}`)},
@@ -296,7 +296,7 @@ func TestMigrateStoreFlagsLookaheadRecords(t *testing.T) {
 // purged afterwards must not come back out of it.
 func TestAPurgedRecordDoesNotComeBackFromTheMigratedLegacyDocument(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host, []subscriptionRecord{{ID: "gone", Name: "gone", Content: "x"}, {ID: "kept", Name: "kept", Content: "y"}})
 	if reply := migrateStoreUntilDone(t, rt); !reply.Verified {
 		t.Fatalf("migration = %+v", reply)
@@ -322,7 +322,7 @@ func TestAPurgedRecordDoesNotComeBackFromTheMigratedLegacyDocument(t *testing.T)
 // one with neither a record nor an archive is dropped. Bookkeeping survives.
 func TestRebuildRepairsAStaleIndex(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	for _, id := range []string{"a", "b", "c"} {
 		if err := rt.saveSubscription(subscriptionRecord{ID: id, Name: "name " + id, Content: "x"}); err != nil {
 			t.Fatal(err)
@@ -400,7 +400,7 @@ func (h *lossyIndexHost) call(method string, params any) (json.RawMessage, error
 // and the next call writes the lost record again and verifies.
 func TestMigrateStoreVerifyCatchesALostEntryAndRecovers(t *testing.T) {
 	host := &lossyIndexHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host.kvHostCaller, legacyFixture(10))
 	host.lose = true
 	// The chunk writes the ten records and an index that loses an entry; the

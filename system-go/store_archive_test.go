@@ -30,7 +30,7 @@ func (h *keyRecordingHost) call(method string, params any) (json.RawMessage, err
 // holds, with each row's refresh bookkeeping riding in it.
 func TestListReadsOneKey(t *testing.T) {
 	host := &keyRecordingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	for _, rec := range []subscriptionRecord{
 		{ID: "a", Name: "a", Content: "x", Remark: strings.Repeat("r", 400)},
 		{ID: "b", Name: "b", Kind: kindFile, FileType: fileTypeScript, Content: `$content = "x";`},
@@ -75,7 +75,7 @@ func TestListReadsOneKey(t *testing.T) {
 // resolves again.
 func TestDeleteArchivesAndRestoreBringsBackSameID(t *testing.T) {
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "home", Name: "home", Source: subscriptionSourceLocal, Content: scriptNodeHome, Tags: []string{"t"}}); err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestDeleteArchivesAndRestoreBringsBackSameID(t *testing.T) {
 // and refuses a live record.
 func TestPurgeDeletesWithKVDelete(t *testing.T) {
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "old", Name: "old", Content: "x"}); err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func TestPurgeDeletesWithKVDelete(t *testing.T) {
 // touches nothing, while reads and refresh bookkeeping keep working.
 func TestWritesOnALegacyStoreAreRefusedWithCode(t *testing.T) {
 	host := &httpKVHost{kvHostCaller: newKVHostCaller(), status: 200, body: []byte(scriptNodeHome)}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host.kvHostCaller, []subscriptionRecord{
 		{ID: "local", Name: "local", Source: subscriptionSourceLocal, Content: scriptNodeHome},
 		{ID: "remote", Name: "remote", Source: subscriptionSourceRemote, URL: "https://provider.invalid/sub"},
@@ -272,7 +272,7 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
 			host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-			rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+			rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 			seedLegacyStore(t, host.kvHostCaller, budgetStoreRecords())
 			res := callSubscription(t, rt, scenario.method, scenario.payload)
 			if res.OK != scenario.ok {

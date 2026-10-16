@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import manifest from "../../manifest.json";
-import { BINDINGS, CONVERT_TARGETS, SERVICES, buildShareLink, type MethodBinding } from "./client";
+import { BINDINGS, CONVERT_TARGETS, buildShareLink, type MethodBinding } from "./client";
 
 /**
  * DoD gate: every UI data path must resolve to a manifest-declared method.
@@ -46,9 +46,10 @@ describe("UI ↔ manifest method contract", () => {
     expect([...declared].some((entry) => entry.startsWith("latticenet.sub-store/import/"))).toBe(false);
   });
 
-  it("declares the embedded engine service in the manifest", () => {
-    const engineMethods = [...declared].filter((entry) => entry.startsWith(`${SERVICES.engine}/`));
-    expect(engineMethods.length).toBeGreaterThanOrEqual(7);
+  it("no longer declares the embedded engine service", () => {
+    // It ran on the warm runtime S2 removed, and no screen called it (S2 plan
+    // section 12, decision 5).
+    expect([...declared].some((entry) => entry.startsWith("latticenet.sub-store/engine/"))).toBe(false);
   });
 
   it("every active binding is declared in the signed manifest", () => {

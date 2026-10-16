@@ -45,7 +45,7 @@ func heavyLegacyRecords(n int) []subscriptionRecord {
 // signed list stdout budget.
 func TestIndexAt300RecordsFitsListBudget(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host, heavyLegacyRecords(300))
 	for reply := (migrateStoreReply{}); !reply.Verified; {
 		reply = migrateStoreCall(t, rt, map[string]any{})
@@ -71,7 +71,7 @@ func TestIndexAt300RecordsFitsListBudget(t *testing.T) {
 // writes anything, so it leaves no orphan record behind.
 func TestSaveRefusesAnIndexPastItsBound(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	idx := indexDocument{Version: storeVersionSplit}
 	for i := 0; len(mustJSON(idx)) < maxIndexBytes-512; i++ {
 		idx.Records = append(idx.Records, indexEntry{ID: fmt.Sprintf("bulk-%03d", i), Kind: kindSub, Name: "bulk", LastError: strings.Repeat("e", 2048)})
@@ -92,7 +92,7 @@ func TestSaveRefusesAnIndexPastItsBound(t *testing.T) {
 // is refused by name.
 func TestStoreKeysEscapeIDsTheServerWouldRefuse(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	ids := []string{"a/b", "a%2Fb", `back\slash`, "tab\there", "plain-id"}
 	keys := map[string]string{}
 	for _, id := range ids {

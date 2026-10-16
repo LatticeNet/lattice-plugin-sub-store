@@ -17,17 +17,12 @@ import (
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
-// dispatchRuntime is a store-backed runtime on an engine of its own, booted
-// warm, so a test reads that engine's path counters without another test's
-// calls in them, and a call that should not reach the warm runtime has one
-// ready to reach.
+// dispatchRuntime is a store-backed runtime on an engine of its own, so a
+// test reads that engine's isolated-call counter without another test's
+// calls in it. Nothing is booted: the engine has no runtime to boot.
 func dispatchRuntime(t *testing.T) *runtime {
 	t.Helper()
-	engine := testEngineWithHeadroom()
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
-	return &runtime{host: newKVHostCaller(), engine: engine}
+	return &runtime{host: newKVHostCaller(), engine: testEngineWithHeadroom()}
 }
 
 // savedRecord stores rec and reads it back with its revision.
@@ -59,8 +54,8 @@ const (
 	stepResponse     = `{"type":"Response Transformer","args":{"content":"function transform(r){ return r; }"}}`
 )
 
-// fallbackTargets are the targets convert allows that have no Go producer in
-// S1: the bundle answers them.
+// fallbackTargets are the targets convert allows that the dispatcher does not
+// route to a Go producer: the bundle answers them.
 func fallbackTargets() []string {
 	var out []string
 	for target := range subscriptionConvertTargets {
@@ -72,7 +67,13 @@ func fallbackTargets() []string {
 	return out
 }
 
-var nativeTargets = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta"}
+// nativeTargets are the nine targets the dispatcher answers in Go; the first
+// five, s1NativeTargets, are the ones S1 routed, which the checker can
+// compare with the bundle's documents.
+var (
+	nativeTargets   = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta", "Stash", "Shadowrocket", "Surge", "QX"}
+	s1NativeTargets = nativeTargets[:5]
+)
 
 func TestNativeRouteRequiresNativeTargetAndChain(t *testing.T) {
 	disabledScript := strings.Replace(stepScript, `"type":"Script Operator"`, `"type":"Script Operator","disabled":true`, 1)
@@ -86,7 +87,7 @@ func TestNativeRouteRequiresNativeTargetAndChain(t *testing.T) {
 		{"no chain, fallback target", nil, "Loon", false},
 		{"native chain, native target", steps(stepRegexFilter, stepRename), "ClashMeta", true},
 		{"native chain, a native target's alias", steps(stepRegexFilter), "clash.meta", true},
-		{"native chain, fallback target", steps(stepRegexFilter), "Surge", false},
+		{"native chain, fallback target", steps(stepRegexFilter), "Loon", false},
 		{"native chain, legacy Clash", steps(stepRegexFilter), "Clash", false},
 		{"a Resolve Domain step", steps(stepRegexFilter, stepResolve), "sing-box", false},
 		{"a Script Operator", steps(stepScript), "URI", false},
@@ -114,33 +115,33 @@ func TestNativeRouteRequiresNativeTargetAndChain(t *testing.T) {
 		if got := nativeRoute(plan, c.target); got != c.want {
 			t.Fatalf("%s: nativeRoute = %v, want %v", c.name, got, c.want)
 		}
-		warm, isolated := rt.engine.pathCounts()
+		isolated := rt.engine.isolatedCount()
 		_, served, err := rt.convertNodes(nodeConvertRequest{Parts: []string{document}, Target: c.target, Plan: plan})
 		if err != nil {
 			t.Fatalf("%s: convert: %v", c.name, err)
 		}
-		warmAfter, isolatedAfter := rt.engine.pathCounts()
+		isolatedAfter := rt.engine.isolatedCount()
 		want, wantIsolated := servedIsolated, isolated+1
 		if c.want {
 			want, wantIsolated = servedNative, isolated
 		}
-		if served != want || warmAfter != warm || isolatedAfter != wantIsolated {
-			t.Fatalf("%s: served %s with warm %d->%d and isolated %d->%d, want %s on %d isolated calls and no warm one",
-				c.name, served, warm, warmAfter, isolated, isolatedAfter, want, wantIsolated)
+		if served != want || isolatedAfter != wantIsolated {
+			t.Fatalf("%s: served %s with isolated %d->%d, want %s on %d isolated calls",
+				c.name, served, isolated, isolatedAfter, want, wantIsolated)
 		}
 	}
 	// A collection member whose chain ran on the bundle sends the whole
 	// collection there, however native its own chain and target are.
-	warm, isolated := rt.engine.pathCounts()
+	isolated := rt.engine.isolatedCount()
 	_, served, err := rt.convertNodes(nodeConvertRequest{Parts: []string{document}, Target: "sing-box", MemberFallback: true})
-	if warmAfter, isolatedAfter := rt.engine.pathCounts(); err != nil || served != servedIsolated || warmAfter != warm || isolatedAfter != isolated+1 {
-		t.Fatalf("member fallback: served %s err %v, warm %d->%d isolated %d->%d", served, err, warm, warmAfter, isolated, isolatedAfter)
+	if isolatedAfter := rt.engine.isolatedCount(); err != nil || served != servedIsolated || isolatedAfter != isolated+1 {
+		t.Fatalf("member fallback: served %s err %v, isolated %d->%d", served, err, isolated, isolatedAfter)
 	}
 }
 
 // The acceptance of slices.md:61: every target without a Go producer is
-// answered by the bundle on its isolated path, even though the warm runtime
-// is up, and the five native targets touch neither runtime.
+// answered by the bundle on its isolated path, and the native targets never
+// reach the bundle.
 func TestFallbackTargetsRenderOnIsolatedPath(t *testing.T) {
 	rt := dispatchRuntime(t)
 	rec := savedRecord(t, rt, subscriptionRecord{ID: "fleet", Content: shareFleetFixture(3)})
@@ -149,22 +150,22 @@ func TestFallbackTargetsRenderOnIsolatedPath(t *testing.T) {
 		t.Fatal(err)
 	}
 	targets := fallbackTargets()
-	if want := []string{"Clash", "Egern", "Loon", "QX", "Shadowrocket", "Stash", "Surfboard", "Surge", "SurgeMac"}; !slices.Equal(targets, want) {
-		t.Fatalf("fallback targets = %v, want the nine of %v", targets, want)
+	if want := []string{"Clash", "Egern", "Loon", "Surfboard", "SurgeMac"}; !slices.Equal(targets, want) {
+		t.Fatalf("fallback targets = %v, want the five Tier 2 targets %v", targets, want)
 	}
 	for _, target := range append(targets, nativeTargets...) {
 		native := producers.Native(target)
-		warm, isolated := rt.engine.pathCounts()
+		isolated := rt.engine.isolatedCount()
 		out, served, err := rt.convertNodes(nodeConvertRequest{Parts: []string{rec.Content}, Target: target, Plan: plan})
 		if err != nil || strings.TrimSpace(out.Output) == "" {
 			t.Fatalf("%s: convert err=%v output=%q", target, err, head(out.Output, 80))
 		}
-		warmAfter, isolatedAfter := rt.engine.pathCounts()
+		isolatedAfter := rt.engine.isolatedCount()
 		switch {
-		case native && (served != servedNative || isolatedAfter != isolated || warmAfter != warm):
-			t.Fatalf("%s: served %s, warm %d->%d isolated %d->%d; a native target touches neither runtime", target, served, warm, warmAfter, isolated, isolatedAfter)
-		case !native && (served != servedIsolated || isolatedAfter != isolated+1 || warmAfter != warm):
-			t.Fatalf("%s: served %s, warm %d->%d isolated %d->%d; want one isolated call and no warm one", target, served, warm, warmAfter, isolated, isolatedAfter)
+		case native && (served != servedNative || isolatedAfter != isolated):
+			t.Fatalf("%s: served %s, isolated %d->%d; a native target never reaches the bundle", target, served, isolated, isolatedAfter)
+		case !native && (served != servedIsolated || isolatedAfter != isolated+1):
+			t.Fatalf("%s: served %s, isolated %d->%d; want one isolated call", target, served, isolated, isolatedAfter)
 		}
 		rendered, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: rec.ID, Target: target, Format: "plain"})
 		if err != nil || rendered.Target != target {
@@ -174,15 +175,14 @@ func TestFallbackTargetsRenderOnIsolatedPath(t *testing.T) {
 		if native {
 			wantIsolated = isolatedAfter
 		}
-		if w, i := rt.engine.pathCounts(); w != warm || i != wantIsolated {
-			t.Fatalf("%s: render moved warm %d->%d isolated %d->%d, want isolated %d", target, warmAfter, w, isolatedAfter, i, wantIsolated)
+		if i := rt.engine.isolatedCount(); i != wantIsolated {
+			t.Fatalf("%s: render moved isolated %d->%d, want isolated %d", target, isolatedAfter, i, wantIsolated)
 		}
 	}
 }
 
 // A chain with a Resolve Domain step renders whole on the isolated path: the
-// native Regex Rename before it runs there too, in order, and the warm
-// runtime, which could run both, is not used.
+// native Regex Rename before it runs there too, in order.
 func TestResolveDomainChainRendersWholeOnIsolatedPath(t *testing.T) {
 	host := &scriptHTTPHost{
 		body:   dnsAnswer("keep.example.com", [4]byte{1, 2, 3, 4}),
@@ -192,7 +192,7 @@ func TestResolveDomainChainRendersWholeOnIsolatedPath(t *testing.T) {
 	defer rt.engine.attachScriptHTTP(newScriptHTTPGateway(host))()
 	rename := `{"type":"Regex Rename Operator","args":[{"expr":"^Keep$","now":"Renamed"}]}`
 	savedRecord(t, rt, subscriptionRecord{ID: "resolve", Content: scriptHTTPNode, Process: steps(rename, stepResolve)})
-	warm, isolated := rt.engine.pathCounts()
+	isolated := rt.engine.isolatedCount()
 	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "resolve", Target: "sing-box", Format: "plain"})
 	if err != nil {
 		t.Fatalf("render: %v", err)
@@ -200,8 +200,8 @@ func TestResolveDomainChainRendersWholeOnIsolatedPath(t *testing.T) {
 	if !strings.Contains(out.Content, `"1.2.3.4"`) || !strings.Contains(out.Content, `"Renamed"`) {
 		t.Fatalf("the chain did not run whole: %s", head(out.Content, 300))
 	}
-	if w, i := rt.engine.pathCounts(); w != warm || i != isolated+1 {
-		t.Fatalf("warm %d->%d isolated %d->%d, want one isolated call", warm, w, isolated, i)
+	if i := rt.engine.isolatedCount(); i != isolated+1 {
+		t.Fatalf("isolated %d->%d, want one isolated call", isolated, i)
 	}
 	if len(host.seen()) == 0 {
 		t.Fatal("Resolve Domain never asked the resolver")
@@ -214,7 +214,7 @@ func TestScriptStepChainRendersWholeOnIsolatedPath(t *testing.T) {
 	rt := dispatchRuntime(t)
 	filter := `{"type":"Regex Filter","args":{"regex":["^node-00[0-2]$"],"keep":true}}`
 	savedRecord(t, rt, subscriptionRecord{ID: "scripted", Content: shareFleetFixture(6), Process: steps(filter, stepScript)})
-	warm, isolated := rt.engine.pathCounts()
+	isolated := rt.engine.isolatedCount()
 	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "scripted", Target: "ClashMeta", Format: "plain", Explain: true})
 	if err != nil {
 		t.Fatalf("render: %v", err)
@@ -222,15 +222,15 @@ func TestScriptStepChainRendersWholeOnIsolatedPath(t *testing.T) {
 	if out.NodeCount != 3 || strings.Count(out.Content, "-tagged") != 3 || strings.Contains(out.Content, "node-003") || strings.Contains(out.Content, "ss-1") {
 		t.Fatalf("the filter and the script did not both run: nodes=%d %s", out.NodeCount, head(out.Content, 300))
 	}
-	if w, i := rt.engine.pathCounts(); w != warm || i != isolated+1 {
-		t.Fatalf("warm %d->%d isolated %d->%d, want one isolated call", warm, w, isolated, i)
+	if i := rt.engine.isolatedCount(); i != isolated+1 {
+		t.Fatalf("isolated %d->%d, want one isolated call", isolated, i)
 	}
 }
 
 // A record's chain is compiled once per revision and reused by every render
 // of it; an edit is a new revision and compiles again.
 func TestPlanCacheCompilesEachRevisionOnce(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	compiles := func() int {
 		nativePlans.mu.Lock()
 		defer nativePlans.mu.Unlock()
@@ -282,7 +282,7 @@ func TestPlanCacheCompilesEachRevisionOnce(t *testing.T) {
 // the record table's "nodes out" column has a value without a render; a chain
 // on the bundle leaves it empty rather than stale.
 func TestFetchRecordsNodesOutForANativeChain(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	filter := `{"type":"Regex Filter","args":{"regex":["^node-"],"keep":true}}`
 	// shareFleetFixture(4): four VLESS nodes named node-, two Hysteria2 and
 	// two ss.
@@ -436,13 +436,13 @@ func TestCollectionSnapshotWithoutMemberNodesRendersOnTheBundle(t *testing.T) {
 		{"an envelope without member nodes", string(withoutNodes), 1},
 		{"a version 1 snapshot", v1, 1},
 	} {
-		warm, isolated := rt.engine.pathCounts()
+		isolated := rt.engine.isolatedCount()
 		out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "c", Target: "sing-box", Format: "plain", Raw: c.raw})
 		if err != nil || out.Content == "" {
 			t.Fatalf("%s: render err %v", c.name, err)
 		}
-		if w, i := rt.engine.pathCounts(); w != warm || i != isolated+c.isolated {
-			t.Fatalf("%s: warm %d->%d isolated %d->%d, want %d isolated calls", c.name, warm, w, isolated, i, c.isolated)
+		if i := rt.engine.isolatedCount(); i != isolated+c.isolated {
+			t.Fatalf("%s: isolated %d->%d, want %d isolated calls", c.name, isolated, i, c.isolated)
 		}
 	}
 }
@@ -493,13 +493,12 @@ func renderBig(t *testing.T, rt *runtime, target string, snapshot snapshotEnvelo
 		}
 		raw = string(encoded)
 	}
-	warm, isolated := rt.engine.pathCounts()
+	isolated := rt.engine.isolatedCount()
 	out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "big", Target: target, Format: "plain", Raw: raw})
 	if err != nil || out.Content == "" {
 		t.Fatalf("%s: render err %v", target, err)
 	}
-	w, i := rt.engine.pathCounts()
-	return out.Content, w != warm || i != isolated
+	return out.Content, rt.engine.isolatedCount() != isolated
 }
 
 // A native collection past the raw bound keeps the nodes its member chains
@@ -571,7 +570,7 @@ func TestOversizeProviderBodyIsRefusedAsTooLarge(t *testing.T) {
 	if len(body) <= parse.MaxDocumentBytes {
 		t.Fatalf("body is %d bytes, not past the bound", len(body))
 	}
-	rt := &runtime{host: &bodyHost{kvHostCaller: newKVHostCaller(), body: body}, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: &bodyHost{kvHostCaller: newKVHostCaller(), body: body}, engine: testEngineWithHeadroom()}
 	savedRecord(t, rt, subscriptionRecord{ID: "big", Source: subscriptionSourceRemote, URL: "https://provider.example/big", UA: "x"})
 	if _, err := rt.fetchSubscription("big"); err == nil || !strings.HasPrefix(err.Error(), snapshotTooLargeCode+":") {
 		t.Fatalf("fetch of a %d-byte body = %v, want the %s refusal", len(body), err, snapshotTooLargeCode)

@@ -202,7 +202,7 @@ func withMemberNodes(env *snapshotEnvelope, members []fileScriptMember, membersN
 }
 
 // requireNativeNodes parses node text in Go and refuses it when it holds no
-// node, as requireNodes does with the bundle.
+// node: a provider's error page is a failed source, not an empty one.
 func requireNativeNodes(label, raw string) ([]*nodemodel.Node, error) {
 	return requireNativeNodesWith(label, raw, parse.Options{})
 }
@@ -247,8 +247,7 @@ func (rt *runtime) fetchCollectionSnapshot(rec subscriptionRecord, authority leg
 // membersNative reports that the collection's own chain and every member's
 // chain run in Go. Each member then carries its nodes, and the members that
 // arrived unchained are counted by parsing them in Go; otherwise they are
-// counted on the bundle's warm runtime in one call, as before, and no member
-// carries nodes. A chained member runs on whichever engine its own chain
+// still counted in Go, and no member carries nodes. A chained member runs on whichever engine its own chain
 // allows: the snapshot is taken before any target is known, and its member
 // texts have to be what a live render of the same collection computes.
 func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRecord, allowFleet bool, authority legacyAuthority) ([]fileScriptMember, bool, error) {
@@ -334,10 +333,9 @@ func (rt *runtime) chainMembers(rec subscriptionRecord, members []subscriptionRe
 		resolved = append(resolved, resolvedMember{member: member, out: out})
 	}
 	// A member whose source parses to no nodes (a provider's error page) is a
-	// failed member, not an empty one. When the collection runs in Go each
-	// unchained member is parsed in Go, which is also where its nodes come
-	// from; otherwise every unchained member is counted in one engine call
-	// rather than one call per member.
+	// failed member, not an empty one. Each unchained member is parsed in
+	// Go; when the collection runs in Go that is also where its nodes come
+	// from.
 	var texts []string
 	var at []int
 	for i, entry := range resolved {

@@ -45,46 +45,39 @@ var embeddedSubStoreCoreJS string
 
 // The embedded core's bytecode is identical for every engine in the process,
 // so it is compiled once and shared; a failed compile leaves the slot empty
-// so a later boot can retry, rather than disabling seeding for the process's
+// so a later call can retry, rather than disabling seeding for the process's
 // lifetime. Engines carrying a custom core (tests) compile their own.
 var (
 	embeddedCoreBytecodeMu sync.Mutex
 	embeddedCoreBytecode   []byte
 )
 
-// warmBootRetryCooldown spaces background boot attempts after a failure so a
-// deterministic boot fault costs one attempt per window, not one per call.
-const warmBootRetryCooldown = 30 * time.Second
-
-// subStoreEngine owns the embedded Sub-Store core and two ways to run it.
+// subStoreEngine owns the embedded Sub-Store core and the one way to run it:
+// a fresh QuickJS runtime per call, discarded with the call
+// (runIsolatedScript). From S2 every node chain the Go operators can run, and
+// every target with a Go producer, never reaches it (engine_dispatch.go); what
+// remains is the whole-chain fallback (script steps, Resolve Domain, the Tier
+// 2 targets), response transformers, script files and config merges, each an
+// isolate per call.
 //
-// The warm path keeps one QuickJS runtime alive with the core already
-// evaluated, so a call pays only its own script: the ~13.5 s the production
-// box spent re-booting the engine per invocation (wasm compile + 1.27 MB core
-// eval) happens at most once per worker process. Only chains free of user
-// JavaScript run there — every generated call script is an IIFE, so repeated
-// evaluation cannot collide in the shared global scope, and nothing user-
-// written can poison state a later record would inherit.
+// Nothing boots at process start. The first call compiles the core to
+// bytecode once on a throwaway runtime (ensureCoreBytecode) and every later
+// runtime is seeded from that bytecode, which the original measurement put at
+// about 4x faster than re-parsing the 1.27 MB source. The persistent warm
+// runtime S1 kept for scriptless chains is gone (S2 plan section 1.4): it held
+// about 44 MiB per idle worker for chains the native dispatcher now answers in
+// Go.
 //
-// The isolated path builds a fresh runtime per call, seeded from core
-// bytecode compiled once at warm-up (measured ~4x faster than re-parsing the
-// source). Anything that executes user JavaScript — script operators and
-// filters, response transformers, script files — runs there and the runtime
-// is discarded with the call.
-//
-// Both paths are bounded in process by the same mechanism, the one that
-// measurably interrupts QuickJS-on-wazero: every runtime is context-bound
-// (CloseOnContextDone), and cancelling the context closes the module
-// mid-call. MaxExecutionTime does nothing in the pinned qjs build (no
-// interrupt handler is installed), and an asynchronous Close does not stop a
-// hot loop. The isolated path cancels on a per-call deadline; the warm path
-// arms a per-call watchdog that cancels the warm runtime's context and
-// retires it (runWarm). A catastrophic regex over provider node names, or a
-// provider document too large to parse in time, therefore costs one call its
-// budget and the warm runtime a reboot, not the worker
-// (TestWarmEngineBoundsCatastrophicRegexOnScriptlessPath,
-// TestWarmEngineBoundsHugeYAMLOnScriptlessPath). The library panic a closed
-// module raises is recovered and redacted.
+// Every runtime is bounded in process by the one mechanism that measurably
+// interrupts QuickJS-on-wazero: it is context-bound (CloseOnContextDone), and
+// cancelling the context closes the module mid-call. MaxExecutionTime does
+// nothing in the pinned qjs build (no interrupt handler is installed), and an
+// asynchronous Close does not stop a hot loop. The isolated path cancels on a
+// per-call deadline, so a catastrophic regex over provider node names, or a
+// provider document too large to parse in time, costs one call its budget and
+// not the worker (TestEngineBoundsCatastrophicRegexPerCall,
+// TestEngineBoundsHugeYAMLPerCall). The library panic a closed module raises
+// is recovered and redacted.
 //
 // Every runtime is also sealed before anything is evaluated in it
 // (newSubStoreQuickJSRuntime): no filesystem, no native-module globals.
@@ -92,28 +85,21 @@ type subStoreEngine struct {
 	coreJS string
 	limits subStoreEngineLimits
 
-	// mu serializes warm-runtime use and guards the warm state. A v2 worker
-	// handles one invocation at a time, so contention is the boot goroutine
-	// only; the isolated path never takes this lock.
-	mu         sync.Mutex
-	warm       *qjs.Runtime
-	warmCtx    *qjs.Context
-	warmCancel context.CancelFunc
-	warming    bool
-	// lastBootFail memoizes a failed boot so calls do not retrigger one every
-	// time inside the cooldown.
-	lastBootFail time.Time
+	// mu guards coreBytecode. A v2 worker handles one invocation at a time,
+	// so it is uncontended.
+	mu           sync.Mutex
 	coreBytecode []byte
-	// Path counters, for tests and diagnostics: how many calls each path
-	// actually served. warmServes is guarded by mu (the warm path holds it
-	// anyway); isolatedServes is atomic so the isolated path stays lock-free.
-	warmServes     int
-	isolatedServes atomic.Int64
+	// Counters, for tests and diagnostics: the calls the isolated path
+	// served, the compiles of the core to bytecode, and the runtimes loaded
+	// from the core's source because no bytecode was at hand.
+	isolatedServes  atomic.Int64
+	coreCompiles    atomic.Int64
+	coreSourceLoads atomic.Int64
 
 	// scriptHTTP is the network arm for the invocation currently in flight,
 	// or nil when none is. A v2 worker handles one invocation at a time, so
-	// this is a single slot rather than a map; it is a pointer swap so the
-	// isolated path (which never takes mu) can read it without locking.
+	// this is a single slot rather than a map; it is a pointer swap so a
+	// script's host function can read it without locking.
 	scriptHTTP atomic.Pointer[scriptHTTPGateway]
 }
 
@@ -266,35 +252,9 @@ func newEmbeddedSubStoreEngine() *subStoreEngine {
 	return newSubStoreEngine(embeddedSubStoreCoreJS)
 }
 
-func (engine *subStoreEngine) convert(req subStoreConversionRequest) (subStoreConversionResult, error) {
-	run := engine.runCoreScript
-	if containsScriptingOperator(req.Operators) {
-		// User JavaScript never touches the warm runtime.
-		run = engine.runIsolatedScript
-	}
-	return engine.convertOn(req, run)
-}
-
-// convertIsolated is convert on the isolated path whatever the chain holds:
-// the whole-chain fallback of the native dispatcher (engine_dispatch.go). It
-// builds the same script convert builds.
-func (engine *subStoreEngine) convertIsolated(req subStoreConversionRequest) (subStoreConversionResult, error) {
-	return engine.convertOn(req, engine.runIsolatedScript)
-}
-
-// produceNodes hands pre-parsed node-model objects to the bundle's producer
-// on the isolated path, with no chain. It exists for convert with nodes,
-// which answers every allowed target while only five have a Go producer. It
-// runs the conversion script with its parse step replaced, so the zero-node
-// rule is the one every other conversion applies.
-func (engine *subStoreEngine) produceNodes(nodes []json.RawMessage, target string, options map[string]bool) (subStoreConversionResult, error) {
-	if nodes == nil {
-		nodes = []json.RawMessage{}
-	}
-	return engine.convertIsolated(subStoreConversionRequest{Nodes: nodes, Target: target, Options: options})
-}
-
-func (engine *subStoreEngine) convertOn(req subStoreConversionRequest, run func(stage, file, script string) (string, error)) (result subStoreConversionResult, err error) {
+// convertIsolated runs one conversion on the bundle's isolated path: the
+// whole-chain fallback of the native dispatcher (engine_dispatch.go).
+func (engine *subStoreEngine) convertIsolated(req subStoreConversionRequest) (result subStoreConversionResult, err error) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			err = redactSubStoreEnginePanic(recovered)
@@ -312,7 +272,7 @@ func (engine *subStoreEngine) convertOn(req subStoreConversionRequest, run func(
 	if err != nil {
 		return subStoreConversionResult{}, err
 	}
-	rawResult, err := run("convert", "lattice-substore-convert.js", script)
+	rawResult, err := engine.runIsolatedScript("convert", "lattice-substore-convert.js", script)
 	if err != nil {
 		return subStoreConversionResult{}, err
 	}
@@ -335,67 +295,16 @@ func (engine *subStoreEngine) convertOn(req subStoreConversionRequest, run func(
 	}, nil
 }
 
-// countNodes parses node text and reports how many nodes the engine found,
-// without producing any client document. The refresh path uses it to tell a
-// subscription from a provider's error page before the body replaces the last
-// good snapshot.
-func (engine *subStoreEngine) countNodes(raw string) (int, error) {
-	counts, err := engine.countNodesEach([]string{raw})
-	if err != nil {
-		return 0, err
+// produceNodes hands pre-parsed node-model objects to the bundle's producer
+// on the isolated path, with no chain. It exists for convert with nodes,
+// which answers every allowed target while the five Tier 2 targets have no
+// Go producer. It runs the conversion script with its parse step replaced,
+// so the zero-node rule is the one every other conversion applies.
+func (engine *subStoreEngine) produceNodes(nodes []json.RawMessage, target string, options map[string]bool) (subStoreConversionResult, error) {
+	if nodes == nil {
+		nodes = []json.RawMessage{}
 	}
-	return counts[0], nil
-}
-
-// countNodesEach parses each text on its own and reports each one's node
-// count, in a single engine call. A combination's refresh counts all of its
-// members at once: while a fresh worker's warm runtime is still booting every
-// call takes the isolated path, and one call per member would put a large
-// combination's refresh at risk of its time budget. Parsing runs no user
-// JavaScript, so once warm it answers from the warm runtime.
-func (engine *subStoreEngine) countNodesEach(raws []string) (counts []int, err error) {
-	defer func() {
-		if recovered := recover(); recovered != nil {
-			err = redactSubStoreEnginePanic(recovered)
-		}
-	}()
-	if strings.TrimSpace(engine.coreJS) == "" {
-		return nil, fmt.Errorf("Sub-Store core bundle is empty")
-	}
-	if len(raws) == 0 {
-		return []int{}, nil
-	}
-	encoded, err := json.Marshal(raws)
-	if err != nil {
-		return nil, fmt.Errorf("encode raw subscriptions: %w", err)
-	}
-	script := fmt.Sprintf(`(function() {
-  const raws = %s;
-  const root = globalThis.SubStoreProxyUtils;
-  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
-  if (!core || typeof core.parse !== "function") {
-    throw new Error("Sub-Store core must expose parse(raw)");
-  }
-  const counts = raws.map(function (raw) {
-    const proxies = core.parse(raw);
-    return Array.isArray(proxies) ? proxies.length : 0;
-  });
-  return JSON.stringify({ counts: counts });
-})()`, encoded)
-	rawResult, err := engine.runCoreScript("count", "lattice-substore-count.js", script)
-	if err != nil {
-		return nil, err
-	}
-	var out struct {
-		Counts []int `json:"counts"`
-	}
-	if err := json.Unmarshal([]byte(rawResult), &out); err != nil {
-		return nil, fmt.Errorf("decode Sub-Store node counts: %w", err)
-	}
-	if len(out.Counts) != len(raws) {
-		return nil, fmt.Errorf("Sub-Store counted %d sources, want %d", len(out.Counts), len(raws))
-	}
-	return out.Counts, nil
+	return engine.convertIsolated(subStoreConversionRequest{Nodes: nodes, Target: target, Options: options})
 }
 
 func (engine *subStoreEngine) transformResponse(req subStoreResponseTransformRequest) (result subStoreResponseTransformResult, err error) {
@@ -409,8 +318,6 @@ func (engine *subStoreEngine) transformResponse(req subStoreResponseTransformReq
 	if err != nil {
 		return subStoreResponseTransformResult{}, err
 	}
-	// A response transformer is user JavaScript by definition; it never
-	// touches the warm runtime.
 	rawResult, err := engine.runIsolatedScript("process response", "lattice-substore-process-response.js", script)
 	if err != nil {
 		return subStoreResponseTransformResult{}, err
@@ -431,135 +338,6 @@ func (engine *subStoreEngine) transformResponse(req subStoreResponseTransformReq
 	}, nil
 }
 
-// prewarm boots the warm runtime synchronously. Production launches it from
-// a background goroutine at process start (the boot recovers its own library
-// panics); tests call it directly and rely on the warm runtime being ready on
-// return.
-func (engine *subStoreEngine) prewarm() error {
-	return engine.bootWarm()
-}
-
-// startWarmBootLocked spawns at most one background boot, spaced by a
-// cooldown after failures. Calls never wait for a boot: while one is pending
-// they take the isolated path, which the compiled bytecode keeps cheap.
-func (engine *subStoreEngine) startWarmBootLocked() {
-	if engine.warming || engine.warm != nil {
-		return
-	}
-	if !engine.lastBootFail.IsZero() && time.Since(engine.lastBootFail) < warmBootRetryCooldown {
-		return
-	}
-	engine.warming = true
-	go func() { _ = engine.bootWarm() }()
-}
-
-// bootWarm builds a warm runtime outside the engine lock and installs it
-// under the lock. The runtime is context-bound (CloseOnContextDone) so the
-// per-call watchdog can interrupt a wedged eval by cancellation — the one
-// interruption mechanism that measurably works on QuickJS-on-wazero. The qjs
-// library panics on internal faults by design, so the whole boot recovers.
-func (engine *subStoreEngine) bootWarm() (err error) {
-	engine.mu.Lock()
-	engine.warming = true
-	engine.mu.Unlock()
-	defer func() {
-		if recovered := recover(); recovered != nil {
-			err = redactSubStoreEnginePanic(recovered)
-		}
-		engine.mu.Lock()
-		engine.warming = false
-		if err != nil {
-			engine.lastBootFail = time.Now()
-		}
-		engine.mu.Unlock()
-	}()
-	if strings.TrimSpace(engine.coreJS) == "" {
-		return fmt.Errorf("Sub-Store core bundle is empty")
-	}
-	limits := engine.limits.withDefaults()
-	ctx, cancel := context.WithCancel(context.Background())
-	rt, newErr := newSubStoreQuickJSRuntime(ctx, limits)
-	if newErr != nil {
-		cancel()
-		return fmt.Errorf("create warm Sub-Store JS runtime: %w", newErr)
-	}
-	qctx := rt.Context()
-	if shimErr := evalQuickJSStep(qctx, "lattice-console-shim.js", subStoreConsoleShim); shimErr != nil {
-		cancel()
-		closeQuickJSRuntime(rt)
-		return fmt.Errorf("install Sub-Store console shim: %w", shimErr)
-	}
-	// Before the core, always: the core decides which client it is running
-	// inside while it loads. The warm path needs this too — Resolve Domain
-	// speaks DoH and carries no user JavaScript, so it runs here.
-	engine.installScriptHTTPBinding(qctx)
-	if shimErr := evalQuickJSStep(qctx, "lattice-script-env.js", subStoreScriptEnvShim); shimErr != nil {
-		cancel()
-		closeQuickJSRuntime(rt)
-		return fmt.Errorf("install Sub-Store script environment: %w", shimErr)
-	}
-	// Compile first, evaluate the bytecode: one parse serves both the warm
-	// boot and every later isolated seed.
-	bytecode := engine.ensureCoreBytecode(qctx)
-	if len(bytecode) > 0 {
-		value, coreErr := qctx.Eval("substore-core.js", qjs.Bytecode(bytecode))
-		if value != nil {
-			value.Free()
-		}
-		if coreErr != nil {
-			cancel()
-			closeQuickJSRuntime(rt)
-			return fmt.Errorf("load Sub-Store core: %w", coreErr)
-		}
-	} else if coreErr := evalQuickJSStep(qctx, "substore-core.js", engine.coreJS); coreErr != nil {
-		cancel()
-		closeQuickJSRuntime(rt)
-		return fmt.Errorf("load Sub-Store core: %w", coreErr)
-	}
-	engine.mu.Lock()
-	if engine.warm != nil {
-		// A concurrent boot won; keep the installed one.
-		engine.mu.Unlock()
-		cancel()
-		go closeQuickJSRuntime(rt)
-		return nil
-	}
-	engine.warm, engine.warmCtx, engine.warmCancel = rt, qctx, cancel
-	engine.lastBootFail = time.Time{}
-	engine.mu.Unlock()
-	return nil
-}
-
-// ensureCoreBytecode returns the core's bytecode, compiling it on the given
-// context when no cached copy exists. The embedded core's copy is shared
-// process-wide; a failed compile leaves the cache empty for a later retry.
-func (engine *subStoreEngine) ensureCoreBytecode(qctx *qjs.Context) []byte {
-	engine.mu.Lock()
-	cached := engine.coreBytecode
-	engine.mu.Unlock()
-	if len(cached) > 0 {
-		return cached
-	}
-	if engine.coreJS == embeddedSubStoreCoreJS {
-		embeddedCoreBytecodeMu.Lock()
-		if len(embeddedCoreBytecode) == 0 {
-			if bytecode, err := qctx.Compile("substore-core.js", qjs.Code(engine.coreJS)); err == nil {
-				embeddedCoreBytecode = bytecode
-			}
-		}
-		cached = embeddedCoreBytecode
-		embeddedCoreBytecodeMu.Unlock()
-	} else if bytecode, err := qctx.Compile("substore-core.js", qjs.Code(engine.coreJS)); err == nil {
-		cached = bytecode
-	}
-	if len(cached) > 0 {
-		engine.mu.Lock()
-		engine.coreBytecode = cached
-		engine.mu.Unlock()
-	}
-	return cached
-}
-
 // subStoreGuestRoot is the host path every runtime mounts as the guest's "/".
 //
 // The pinned qjs always mounts one directory, read-write, at the guest root
@@ -567,8 +345,7 @@ func (engine *subStoreEngine) ensureCoreBytecode(qctx *qjs.Context) []byte {
 // to mount nothing or to mount read-only. In a worker that default is the
 // generation directory holding the plugin's own artifact, and quickjs-libc's
 // std and os modules gave any script open, read, write and readdir on it; it
-// was also a store that outlived the call, which the warm runtime's state
-// audit could not see.
+// was also a store that outlived the call.
 //
 // This path does not exist and nothing can create it. wazero opens a mounted
 // root lazily and, while that open fails with ENOENT, answers every guest
@@ -603,7 +380,7 @@ const subStoreSandboxSealShim = `
 `
 
 // newSubStoreQuickJSRuntime creates every QuickJS runtime the engine uses,
-// warm or isolated, and seals it before the caller evaluates anything in it:
+// for a call or for the core's compile, and seals it before the caller evaluates anything in it:
 // the guest root is subStoreGuestRoot and the native-module globals are gone,
 // so neither the core's top level nor any call or user script ever sees them.
 // The runtime is bound to ctx; cancelling it closes the module mid-call.
@@ -655,87 +432,18 @@ func closeQuickJSRuntime(rt *qjs.Runtime) {
 	rt.Close()
 }
 
-func (engine *subStoreEngine) markWarmDeadLocked() {
-	if engine.warm == nil {
-		return
-	}
-	warm, cancel := engine.warm, engine.warmCancel
-	engine.warm, engine.warmCtx, engine.warmCancel = nil, nil, nil
-	if cancel != nil {
-		cancel()
-	}
-	// Close on a separate goroutine: after a mid-eval failure the module may
-	// be wedged, and a dead runtime must never block the invocation that
-	// discovered it.
-	go closeQuickJSRuntime(warm)
-}
-
-// runCoreScript runs a call that contains no user JavaScript. It answers from
-// the warm runtime when one is ready and otherwise takes the isolated path
-// immediately — a call never waits for a boot.
-func (engine *subStoreEngine) runCoreScript(stage, file, script string) (string, error) {
-	out, err, served := engine.runWarm(stage, file, script)
-	if served {
-		return out, err
-	}
-	return engine.runIsolatedScript(stage, file, script)
-}
-
-// runWarm executes on the persistent runtime when it is ready. served=false
-// means no warm runtime exists yet (a background boot was requested) and the
-// caller should take the isolated path. A per-call watchdog cancels the
-// runtime's context at limits.Timeout, restoring the in-process deadline the
-// per-call runtimes used to provide: the cancellation closes the module, the
-// in-flight eval panics, the recover below answers the call and retires the
-// runtime, and the next call re-warms in the background. Any eval failure is
-// the call's answer — retrying user input against a fresh engine would just
-// fail slower.
-func (engine *subStoreEngine) runWarm(stage, file, script string) (out string, err error, served bool) {
-	engine.mu.Lock()
-	defer engine.mu.Unlock()
-	if engine.warm == nil {
-		engine.startWarmBootLocked()
-		return "", nil, false
-	}
-	limits := engine.limits.withDefaults()
-	watchdog := time.AfterFunc(limits.Timeout, engine.warmCancel)
-	defer func() {
-		fired := !watchdog.Stop()
-		if recovered := recover(); recovered != nil {
-			engine.markWarmDeadLocked()
-			out, err, served = "", redactSubStoreEnginePanic(recovered), true
-			return
-		}
-		if fired {
-			// The deadline fired even though this call completed: the
-			// runtime's context is canceled for good, so retire it before it
-			// fails a later call.
-			engine.markWarmDeadLocked()
-		}
-	}()
-	engine.warmServes++
-	value, evalErr := engine.warmCtx.Eval(file, qjs.Code(script))
-	if evalErr != nil {
-		return "", redactSubStoreJSError(stage, evalErr), true
-	}
-	out, err = finishQuickJSValue(stage, value)
-	if err != nil {
-		// A malformed completion is the script's fault, not the runtime's;
-		// the warm engine stays up.
-		return "", err, true
-	}
-	return out, nil, true
-}
-
-// runIsolatedScript executes on a fresh runtime that dies with the call. This
-// is the only place user JavaScript ever runs. Its deadline is the call's
-// context: cancelling the context-bound runtime closes the module mid-call.
+// runIsolatedScript executes on a fresh runtime that dies with the call. It
+// is the only place any JavaScript runs. Its deadline is the call's context:
+// cancelling the context-bound runtime closes the module mid-call. The
+// core's one-time compile happens before that deadline starts, on a runtime
+// of its own, so the first call of a worker is not judged on it.
 func (engine *subStoreEngine) runIsolatedScript(stage, file, script string) (string, error) {
 	if strings.TrimSpace(engine.coreJS) == "" {
 		return "", fmt.Errorf("Sub-Store core bundle is empty")
 	}
 
 	engine.isolatedServes.Add(1)
+	bytecode := engine.ensureCoreBytecode()
 
 	limits := engine.limits.withDefaults()
 	ctx, cancel := context.WithTimeout(context.Background(), limits.Timeout)
@@ -755,7 +463,7 @@ func (engine *subStoreEngine) runIsolatedScript(stage, file, script string) (str
 	if err := evalQuickJSStep(qctx, "lattice-script-env.js", subStoreScriptEnvShim); err != nil {
 		return "", fmt.Errorf("install Sub-Store script environment: %w", err)
 	}
-	if err := engine.loadCoreInto(qctx); err != nil {
+	if err := engine.loadCoreInto(qctx, bytecode); err != nil {
 		return "", err
 	}
 	value, err := qctx.Eval(file, qjs.Code(script))
@@ -765,12 +473,60 @@ func (engine *subStoreEngine) runIsolatedScript(stage, file, script string) (str
 	return finishQuickJSValue(stage, value)
 }
 
-// loadCoreInto seeds a fresh context with the core, from bytecode when the
-// warm-up produced it and from source otherwise.
-func (engine *subStoreEngine) loadCoreInto(qctx *qjs.Context) error {
+// ensureCoreBytecode returns the core's bytecode, compiling it on the first
+// call that needs it and caching it under mu; nothing compiles at process
+// start, so an idle worker holds no runtime at all. The embedded core's copy
+// is shared process-wide. A failed compile caches nothing, so the call loads
+// the source and a later call tries the compile again.
+func (engine *subStoreEngine) ensureCoreBytecode() []byte {
 	engine.mu.Lock()
-	bytecode := engine.coreBytecode
-	engine.mu.Unlock()
+	defer engine.mu.Unlock()
+	if len(engine.coreBytecode) > 0 {
+		return engine.coreBytecode
+	}
+	if engine.coreJS == embeddedSubStoreCoreJS {
+		embeddedCoreBytecodeMu.Lock()
+		if len(embeddedCoreBytecode) == 0 {
+			embeddedCoreBytecode = engine.compileCore()
+		}
+		engine.coreBytecode = embeddedCoreBytecode
+		embeddedCoreBytecodeMu.Unlock()
+	} else {
+		engine.coreBytecode = engine.compileCore()
+	}
+	return engine.coreBytecode
+}
+
+// compileCore compiles the core to bytecode on a throwaway runtime, sealed
+// like every other and bounded by the engine's timeout, and closes it: the
+// bytecode is a copy, independent of the runtime that produced it. Compiling
+// evaluates nothing, so no shim is installed. It answers nil on any failure,
+// a library panic included.
+func (engine *subStoreEngine) compileCore() (bytecode []byte) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			bytecode = nil
+		}
+	}()
+	engine.coreCompiles.Add(1)
+	limits := engine.limits.withDefaults()
+	ctx, cancel := context.WithTimeout(context.Background(), limits.Timeout)
+	defer cancel()
+	rt, err := newSubStoreQuickJSRuntime(ctx, limits)
+	if err != nil {
+		return nil
+	}
+	defer closeQuickJSRuntime(rt)
+	compiled, err := rt.Context().Compile("substore-core.js", qjs.Code(engine.coreJS))
+	if err != nil {
+		return nil
+	}
+	return compiled
+}
+
+// loadCoreInto seeds a fresh context with the core, from bytecode when the
+// compile produced it and from source otherwise.
+func (engine *subStoreEngine) loadCoreInto(qctx *qjs.Context, bytecode []byte) error {
 	if len(bytecode) > 0 {
 		value, err := qctx.Eval("substore-core.js", qjs.Bytecode(bytecode))
 		if value != nil {
@@ -782,6 +538,7 @@ func (engine *subStoreEngine) loadCoreInto(qctx *qjs.Context) error {
 		// Bytecode from a healthy compile should never fail to load; if it
 		// does, the source is still the truth.
 	}
+	engine.coreSourceLoads.Add(1)
 	if err := evalQuickJSStep(qctx, "substore-core.js", engine.coreJS); err != nil {
 		return fmt.Errorf("load Sub-Store core: %w", err)
 	}

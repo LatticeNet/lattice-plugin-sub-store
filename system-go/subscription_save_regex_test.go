@@ -81,7 +81,7 @@ func TestSaveRefusesLookaheadWithRewrite(t *testing.T) {
 // refuses, or adds a second, is refused; disabling the step clears the flag.
 func TestSaveOfUnrelatedFieldKeepsFlaggedRecord(t *testing.T) {
 	host := newKVHostCaller()
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host, []subscriptionRecord{
 		{ID: "flagged", Name: "provider", Content: "vless://example", Process: steps(`{"type":"Sort Operator","args":"asc"}`, lookaheadFilter)},
 	})
