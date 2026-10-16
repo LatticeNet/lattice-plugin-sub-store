@@ -441,7 +441,7 @@ export const zhCN: Messages = {
     fileKind: { plain: "文件，纯文本", script: "文件，脚本", config: "文件，配置" },
     closePanel: "关闭侧边面板",
     editTitle: "修改这条记录",
-    editBlocked: "当前会话无法在这里修改记录。",
+    editBlocked: "当前会话只能查看记录，不能修改。修改记录需要 substore:admin。",
     openPage: "打开详情页",
   },
   page: {

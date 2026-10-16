@@ -224,9 +224,22 @@ for (const viewport of VIEWPORTS) {
       // methods leave the handshake while it is open.
       await openList(page, { query: "&state=readonly" });
       await page.locator(".row-open", { hasText: ASIA }).first().click();
-      const edit = page.locator(".pc-side-panel").getByRole("button", { name: m.actions.edit });
+      const panel = page.locator(".pc-side-panel");
+      const edit = panel.getByRole("button", { name: m.actions.edit });
       await expect(edit).toBeDisabled();
-      await expect(edit).toHaveAttribute("title", m.record.editBlocked);
+      // The reason is text on the panel, not only a title: a disabled button
+      // takes no focus and a touch screen has no hover.
+      const reason = panel.getByTestId("edit-blocked");
+      await expect(reason).toBeVisible();
+      await expect(reason).toHaveText(m.record.editBlocked);
+      await expect(edit).toHaveAttribute("aria-describedby", (await reason.getAttribute("id"))!);
+      // The record page says the same beside its own Edit.
+      await panel.getByRole("button", { name: m.record.openPage }).click();
+      await expect(page.locator(".record-head").getByTestId("edit-blocked")).toHaveText(m.record.editBlocked);
+      await expect(page.locator(".record-head").getByRole("button", { name: m.actions.edit })).toBeDisabled();
+      // The page fades in; axe reads a half-faded colour as low contrast.
+      await page.locator(".record-page").evaluate((el) => Promise.allSettled(el.getAnimations({ subtree: true }).map((animation) => animation.finished)));
+      expect(await docWidth(page)).toBeLessThanOrEqual(viewport.width);
       expect(await seriousViolations(page)).toEqual([]);
     });
 

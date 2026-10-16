@@ -471,7 +471,7 @@ export const en = {
     fileKind: { plain: "File, plain text", script: "File, script", config: "File, configuration" },
     closePanel: "Close the side panel",
     editTitle: "Change this record",
-    editBlocked: "This session cannot change records here.",
+    editBlocked: "This session can read records but not change them. Changing a record needs substore:admin.",
     openPage: "Open page",
   },
   page: {

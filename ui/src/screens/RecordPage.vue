@@ -255,7 +255,7 @@ const outputSheet = ref(false);
           <PcStateDot v-if="isFlagged(item)" tone="warning" :label="t.records.flagged" :title="t.records.flaggedTitle" data-testid="record-flagged" />
           <div class="record-actions">
             <PcButton v-if="subs.canRender.value" @click="outputSheet = true">{{ t.page.clientOutput }}</PcButton>
-            <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? t.record.editTitle : t.record.editBlocked" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
+            <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? t.record.editTitle : t.record.editBlocked" :aria-describedby="subs.canMutate.value ? undefined : 'record-page-edit-blocked'" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
             <!-- The table row's menu, so a record opened from a link can be
                  refreshed, copied or deleted without going back first. -->
             <RecordActions
@@ -279,6 +279,8 @@ const outputSheet = ref(false);
         </p>
         <!-- The flag's reason in words, for a pointer with no hover; Edit is the way out. -->
         <p v-if="isFlagged(item)" class="peek-why">{{ t.records.flaggedTitle }}</p>
+        <!-- Why Edit is disabled, in words, for the same reason. -->
+        <p v-if="!subs.canMutate.value" id="record-page-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 

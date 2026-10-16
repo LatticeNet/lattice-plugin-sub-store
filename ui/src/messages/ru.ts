@@ -476,7 +476,7 @@ export const ru: Messages = {
     fileKind: { plain: "Файл, текст", script: "Файл, скрипт", config: "Файл, конфигурация" },
     closePanel: "Закрыть боковую панель",
     editTitle: "Изменить эту запись",
-    editBlocked: "Эта сессия не может изменять записи здесь.",
+    editBlocked: "Эта сессия может читать записи, но не изменять их. Для изменения записи нужно право substore:admin.",
     openPage: "Открыть страницу",
   },
   page: {
