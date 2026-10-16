@@ -581,7 +581,8 @@ func TestPlanCacheMissesOnMemberRevision(t *testing.T) {
 // TestCollectionSnapshotFetchedBeforeApplyIsDiscarded pins the plugin's half
 // of the apply rule: a collection snapshot names every member at the
 // revision it was read at, so after a member's promotion the next fetch
-// writes another source_version (core's body-cache key) and the old
+// writes another source_version inside raw (core keys its body cache on the
+// hash of raw, which moves with it) and the old
 // snapshot's plan is never reused for it, while core's generation bump
 // discards a refresh that was in flight.
 func TestCollectionSnapshotFetchedBeforeApplyIsDiscarded(t *testing.T) {

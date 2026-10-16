@@ -264,9 +264,12 @@ func TestHeapInuseAfter4096Render(t *testing.T) {
 
 // fleetPlanAllocsPerNodeBound bounds the allocations of one serve-path plan
 // computation over 1000 rows with a native rename (BenchmarkFleetPlan1000's
-// op), per row: the first measurement on go1.26.9, 598.1 on darwin/arm64,
-// rounded up by a quarter. Raise it only with the reason in the commit.
-const fleetPlanAllocsPerNodeBound = 748
+// op), per row. The first bound was 748 (598.1 measured, plus a quarter);
+// after the lane 7 review's allocation work the op measures 119.1 per row
+// on go1.26.9 (darwin/arm64), and the bound sits about six percent over it,
+// so a regression of a few allocations per row fails the memory job. Raise
+// it only with the reason in the commit.
+const fleetPlanAllocsPerNodeBound = 127
 
 // TestFleetPlanAllocsBound is the deterministic half of the fleet plan gate
 // (S2 plan section 5): the allocation count of BenchmarkFleetPlan1000's op,
