@@ -85,6 +85,9 @@ function clearAll(): void {
 }
 
 function describe(item: SubscriptionListItem): string {
+  // A fleet record (design 28 S2) reads as the Records table names it; the
+  // legacy export keeps "fleet nodes".
+  if (item.source === "fleet") return t.fleetEditor.kind;
   if (item.source === "vpn-core") return t.members.fleet;
   if (item.source === "local") return t.members.pasted;
   return item.has_url ? t.members.provider : t.members.pasted;

@@ -182,6 +182,9 @@ function publish(): void {
       <p v-if="health.tone === 'error'" class="peek-why">{{ health.title }}</p>
       <!-- The flag's reason in words, with the way out: Edit, below. -->
       <p v-if="isFlagged(record)" class="peek-why">{{ t.records.flaggedTitle }}</p>
+      <!-- Why Edit is disabled, in words: a disabled button takes no focus and
+           a touch screen has no hover, so its title alone reaches nobody. -->
+      <p v-if="!canEdit" id="record-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
 
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">
@@ -283,7 +286,7 @@ function publish(): void {
         @status="(text, tone) => (status = { text, tone })"
         @deleted="(kind, text, broken) => emit('deleted', kind, text, broken)"
       />
-      <PcButton :disabled="!canEdit" :title="canEdit ? t.record.editTitle : t.record.editBlocked" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
+      <PcButton :disabled="!canEdit" :title="canEdit ? t.record.editTitle : t.record.editBlocked" :aria-describedby="canEdit ? undefined : 'record-edit-blocked'" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
       <PcButton variant="primary" @click="emit('page', id)">{{ t.record.openPage }}</PcButton>
     </template>
   </PcSidePanel>

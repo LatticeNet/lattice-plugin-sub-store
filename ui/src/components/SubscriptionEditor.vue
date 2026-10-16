@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { CircleAlert, ChevronLeft, Eye, ListOrdered, LoaderCircle, TriangleAlert } from "@lucide/vue";
-import { PcCount, PcPanel, PcPanelBody, PcPanelHeader } from "@latticenet/plugin-bridge/chassis";
+import { computed, ref, watch } from "vue";
+import { CircleAlert, ChevronLeft, Eye, ListOrdered, LoaderCircle, ShieldAlert, TriangleAlert } from "@lucide/vue";
+import { PcCount, PcNotice, PcPanel, PcPanelBody, PcPanelHeader } from "@latticenet/plugin-bridge/chassis";
 
+import BindPreviewList from "./BindPreviewList.vue";
 import CodeEditor from "./CodeEditor.vue";
+import DocumentView from "./DocumentView.vue";
+import FleetSelectionEditor from "./FleetSelectionEditor.vue";
+import IdentityPicker from "./IdentityPicker.vue";
+import LineDetailDrawer from "./LineDetailDrawer.vue";
 import EditorSectionTabs from "./EditorSectionTabs.vue";
 import CommonSettingsBlock from "./CommonSettings.vue";
 import GraphSubscriptionEditor from "./GraphSubscriptionEditor.vue";
@@ -15,17 +21,22 @@ import LtButton from "./lt/LtButton.vue";
 import LtConfirmDialog from "./lt/LtConfirmDialog.vue";
 import {
   CONVERT_TARGETS,
+  ERROR_CODES,
   FAILURE_SKIP,
   FAILURE_STRICT,
   KIND_COLLECTION,
+  SOURCE_FLEET,
   SOURCE_LOCAL,
   SOURCE_REMOTE,
   SOURCE_VPN_CORE,
   SOURCE_VPN_CORE_GRAPH,
+  errorCodeOf,
 } from "../client";
+import { DEFAULT_PROBE_FAILURES, MAX_PROBE_FAILURES, MIN_PROBE_FAILURES, type FleetOptions } from "../fleet";
 import { t } from "../i18n";
+import { editorLanguageForRender } from "../previewLanguage";
 import type { UseSubscriptions } from "../useSubscriptions";
-import type { RecordEditor } from "../useRecordEditor";
+import { isLegacySource, type RecordEditor } from "../useRecordEditor";
 
 /**
  * One record, open for editing: the breadcrumb, the stale-save compare panel,
@@ -85,10 +96,112 @@ const {
   EDITOR_TABS,
   errorTab,
   chainCount,
+  storedSource,
+  fleet,
 } = props.editor;
 
 function setEditorTab(id: string): void {
   if (id === "display" || id === "content" || id === "operations") editorTab.value = id;
+}
+
+// ── the fleet source (design 28 S2, s2-plan section 11) ──────────────────────
+
+const isFleet = computed(() => !isCollection.value && draft.value.source === SOURCE_FLEET);
+const legacyChosen = computed(() => !isCollection.value && isLegacySource(draft.value.source));
+
+/** The line the drawer shows, opened from the sample or from a bind entry. */
+const openLine = ref<string | null>(null);
+
+/** From the selection's proof line to the identity preview, which sits below the form. */
+function jumpToIdentity(): void {
+  const heading = document.getElementById("identity-preview-title");
+  heading?.scrollIntoView({ block: "start" });
+  heading?.focus();
+}
+
+/** The preview pane's error, as a code the editor knows. */
+const previewCode = computed(() => errorCodeOf(new Error(props.subs.previewError.value || "")));
+const withheld = computed(
+  () => previewCode.value === ERROR_CODES.ownerCredentialsWithheld || (legacyChosen.value && storedSource.value === draft.value.source && !!editingId.value),
+);
+
+/**
+ * The page's error, unless it is the withheld preview the pane already
+ * states in its own notice: the same refusal twice, once raw, reads as a
+ * failure when it is a rule.
+ */
+const actionError = computed(() => {
+  const message = props.subs.actionError.value;
+  if (withheld.value && message && message === props.subs.previewError.value) return "";
+  return message;
+});
+
+/** The fleet preview's document: the record's client format over placeholder credentials. */
+const placeholderDoc = computed(() => {
+  const preview = props.subs.preview.value;
+  if (!preview?.placeholder_credentials) return null;
+  const target = CONVERT_TARGETS.find((entry) => entry.id === (draft.value.target || "URI")) ?? CONVERT_TARGETS[0]!;
+  return {
+    text: preview.document ?? "",
+    label: target.label,
+    language: editorLanguageForRender({ contentType: "", produces: target.produces }),
+  };
+});
+
+// ── binding rules ─────────────────────────────────────────────────────────────
+
+/** The usage cap's units: MB, GB and TB of the locale's byte scale, binary. */
+const USAGE_UNITS = [2, 3, 4] as const;
+const usageAmount = ref("");
+const usageUnit = ref<number>(3);
+
+function syncUsage(options: FleetOptions | undefined): void {
+  const bytes = options?.usage_exclusion?.max_bytes_per_line ?? 0;
+  if (!bytes) return;
+  for (const unit of [...USAGE_UNITS].reverse()) {
+    const size = 1024 ** unit;
+    if (bytes % size === 0) {
+      usageUnit.value = unit;
+      usageAmount.value = String(bytes / size);
+      return;
+    }
+  }
+  const megabyte = 1024 ** 2;
+  usageUnit.value = 2;
+  usageAmount.value = String(bytes / megabyte);
+}
+watch(() => draft.value.fleet, syncUsage, { immediate: true });
+
+function setRule(patch: Partial<FleetOptions>): void {
+  fleet.setRules({ ...fleet.rules.value, ...patch });
+}
+
+function setProbe(enabled: boolean): void {
+  setRule({ probe_exclusion: enabled ? { enabled: true, consecutive_failures: fleet.rules.value.probe_exclusion?.consecutive_failures ?? DEFAULT_PROBE_FAILURES } : undefined });
+}
+
+function setProbeFailures(raw: string): void {
+  const n = Number(raw);
+  setRule({ probe_exclusion: { enabled: true, consecutive_failures: raw.trim() === "" ? DEFAULT_PROBE_FAILURES : n } });
+}
+
+function usageBytes(): number {
+  const amount = Number(usageAmount.value);
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  return Math.round(amount * 1024 ** usageUnit.value);
+}
+
+function setUsage(enabled: boolean): void {
+  if (!enabled) {
+    setRule({ usage_exclusion: undefined });
+    return;
+  }
+  if (!usageAmount.value) usageAmount.value = "50";
+  setRule({ usage_exclusion: { enabled: true, max_bytes_per_line: usageBytes() } });
+}
+
+function onUsageInput(): void {
+  if (fleet.rules.value.usage_exclusion?.enabled) setRule({ usage_exclusion: { enabled: true, max_bytes_per_line: usageBytes() } });
 }
 </script>
 
@@ -120,8 +233,8 @@ function setEditorTab(id: string): void {
       </div>
     </div>
 
-    <div v-if="subs.actionError.value" class="alert" role="alert">
-      <CircleAlert :size="16" aria-hidden="true" /> {{ subs.actionError.value }}
+    <div v-if="actionError" class="alert" role="alert">
+      <CircleAlert :size="16" aria-hidden="true" /> {{ actionError }}
     </div>
 
     <!--
@@ -257,14 +370,36 @@ function setEditorTab(id: string): void {
             type="button"
             role="radio"
             :aria-checked="draft.source === option.id"
-            :class="['source', { 'is-active': draft.source === option.id }]"
+            :aria-disabled="option.disabledReason ? 'true' : undefined"
+            :class="['source', { 'is-active': draft.source === option.id, 'is-disabled': !!option.disabledReason }]"
+            :data-testid="`source-${option.id}`"
             @click="selectSource(option.id)"
           >
             <component :is="option.icon" :size="17" aria-hidden="true" />
-            <span class="source-title">{{ option.title }}</span>
-            <span class="source-detail">{{ option.detail }}</span>
+            <span class="source-title">
+              {{ option.title }}
+              <span v-if="option.legacy" class="source-badge" data-testid="source-owner-credentials">
+                <ShieldAlert :size="12" aria-hidden="true" /> {{ t.fleetEditor.ownerCredentials }}
+              </span>
+            </span>
+            <span class="source-detail">{{ option.disabledReason || option.detail }}</span>
           </button>
         </div>
+        <span v-if="isFleet" class="field-optional" data-testid="fleet-identity-proof">{{ t.fleetEditor.identityPerShare }}</span>
+        <span v-else-if="legacyChosen" class="field-optional source-pointer" data-testid="legacy-pointer">{{ t.fleetEditor.legacyPointer }}</span>
+      </div>
+
+      <div v-if="isFleet" class="field field-wide">
+        <FleetSelectionEditor
+          :fleet="fleet"
+          :process="draft.process"
+          :read-only="!subs.canMutate.value"
+          :preview-nodes="subs.preview.value?.placeholder_credentials ? subs.preview.value.source_node_count ?? null : null"
+          @update:process="draft.process = $event"
+          @open-line="openLine = $event"
+          @open-operations="editorTab = 'operations'"
+          @jump-identity="jumpToIdentity()"
+        />
       </div>
 
       <label v-if="!isCollection && draft.source === SOURCE_VPN_CORE" class="field field-wide">
@@ -372,6 +507,108 @@ function setEditorTab(id: string): void {
       </PcPanelBody>
     </PcPanel>
 
+    <!-- Binding rules: on a fleet record, and on a combination that gathers
+         one, whose shares follow the combination's own rules. -->
+    <PcPanel
+      v-if="fleet.fleetBound.value"
+      v-show="editorTab === 'content'"
+      class="editor-group"
+      role="group"
+      :label="t.fleetEditor.rules.title"
+      data-testid="binding-rules"
+    >
+      <PcPanelHeader :title="t.fleetEditor.rules.title" :description="t.fleetEditor.rules.description" />
+      <PcPanelBody>
+        <p v-if="isCollection" class="field-optional rules-proof" data-testid="rules-collection-proof">{{ t.fleetEditor.rules.collectionProof }}</p>
+        <div class="rules">
+          <div class="rules-row">
+            <label class="field checkbox-field">
+              <input
+                type="checkbox"
+                :disabled="!subs.canMutate.value"
+                :checked="!!fleet.rules.value.ddns_dial"
+                data-testid="rule-ddns"
+                @change="setRule({ ddns_dial: ($event.target as HTMLInputElement).checked || undefined })"
+              />
+              <span class="rules-text">
+                <span class="field-label">{{ t.fleetEditor.rules.ddns }}</span>
+                <span class="field-optional">{{ t.fleetEditor.rules.ddnsProof }}</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="rules-row">
+            <label class="field checkbox-field">
+              <input
+                type="checkbox"
+                :disabled="!subs.canMutate.value"
+                :checked="!!fleet.rules.value.probe_exclusion?.enabled"
+                data-testid="rule-probe"
+                @change="setProbe(($event.target as HTMLInputElement).checked)"
+              />
+              <span class="rules-text">
+                <span class="field-label">{{ t.fleetEditor.rules.probe }}</span>
+                <span v-if="fleet.probeMissing.value" class="field-optional">{{ t.fleetEditor.rules.probeUnavailable }}</span>
+              </span>
+            </label>
+            <label v-if="fleet.rules.value.probe_exclusion?.enabled" class="field rules-sub">
+              <span class="field-label">{{ t.fleetEditor.rules.probeFailures }}</span>
+              <input
+                type="number"
+                class="rules-number"
+                :min="MIN_PROBE_FAILURES"
+                :max="MAX_PROBE_FAILURES"
+                step="1"
+                :disabled="!subs.canMutate.value"
+                :value="fleet.rules.value.probe_exclusion?.consecutive_failures ?? DEFAULT_PROBE_FAILURES"
+                data-testid="rule-probe-failures"
+                @input="setProbeFailures(($event.target as HTMLInputElement).value)"
+              />
+              <span class="field-optional">{{ t.fleetEditor.rules.probeHint }}</span>
+            </label>
+          </div>
+
+          <div class="rules-row">
+            <label class="field checkbox-field">
+              <input
+                type="checkbox"
+                :disabled="!subs.canMutate.value"
+                :checked="!!fleet.rules.value.usage_exclusion?.enabled"
+                data-testid="rule-usage"
+                @change="setUsage(($event.target as HTMLInputElement).checked)"
+              />
+              <span class="rules-text">
+                <span class="field-label">{{ t.fleetEditor.rules.usage }}</span>
+                <span class="field-optional">{{ t.fleetEditor.rules.usageHint }}</span>
+              </span>
+            </label>
+            <div v-if="fleet.rules.value.usage_exclusion?.enabled" class="rules-sub rules-usage">
+              <label class="field">
+                <span class="field-label">{{ t.fleetEditor.rules.usageAmount }}</span>
+                <input
+                  v-model="usageAmount"
+                  type="number"
+                  class="rules-number"
+                  min="1"
+                  step="1"
+                  inputmode="decimal"
+                  :disabled="!subs.canMutate.value"
+                  data-testid="rule-usage-amount"
+                  @input="onUsageInput()"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">{{ t.fleetEditor.rules.usageUnit }}</span>
+                <select v-model.number="usageUnit" class="select select-compact" :disabled="!subs.canMutate.value" @change="onUsageInput()">
+                  <option v-for="unit in USAGE_UNITS" :key="unit" :value="unit">{{ t.units.bytes[unit] }}</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+      </PcPanelBody>
+    </PcPanel>
+
     <PcPanel v-show="editorTab === 'content'" class="editor-group" role="group" :label="t.editor.output">
       <PcPanelHeader :title="t.editor.output" :description="t.editor.outputDescription" />
       <PcPanelBody>
@@ -406,6 +643,9 @@ function setEditorTab(id: string): void {
           :catalog="subs.operators.value"
           :catalog-state="subs.operatorsState.value"
           :managed-types="MANAGED_TYPES"
+          :fleet-bound="fleet.fleetBound.value"
+          :sample-rows="fleet.catalogue.value?.sample ?? fleet.selection.value?.sample ?? []"
+          :probe-unavailable="fleet.probeMissing.value"
           :can-preview-step="canPreviewNow"
           :previewing-step="subs.previewing.value ? subs.previewStep.value : null"
           @update:steps="draft.process = $event"
@@ -431,7 +671,7 @@ function setEditorTab(id: string): void {
         <!-- The failure belongs next to the button that produced it: this
              form is long, and a banner at the top is off-screen from the
              click that triggered it. -->
-        <span v-if="subs.actionError.value" class="field-error" role="alert">{{ subs.actionError.value }}</span>
+        <span v-if="actionError" class="field-error" role="alert">{{ actionError }}</span>
         <!-- Clickable, because the field it names is usually on another tab. -->
         <button
           v-else-if="draftError"
@@ -487,21 +727,56 @@ function setEditorTab(id: string): void {
       <p v-if="subs.preview.value && subs.previewNote.value" class="editor-side-note is-note" role="status">
         {{ subs.previewNote.value }}
       </p>
+      <!-- A legacy record's output is its owner-credential export, which only
+           core's refresh may read (s2-plan section 1.2). -->
+      <PcNotice v-if="withheld" tone="info" :title="t.fleetEditor.withheld.title" data-testid="preview-withheld">
+        {{ t.fleetEditor.withheld.body }}
+        <code class="side-code">{{ ERROR_CODES.ownerCredentialsWithheld }}</code>
+      </PcNotice>
       <SubscriptionPreviewSummary
-        v-if="subs.preview.value"
+        v-else-if="subs.preview.value"
         :preview="subs.preview.value"
         :step-label="subs.previewStep.value === null ? '' : previewStepLabel"
         :deltas="explanation?.deltas ?? []"
         :dropped-by="explanation?.droppedBy"
       />
-      <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert">
+      <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert" data-testid="preview-error">
         {{ subs.previewError.value }}
       </p>
       <p v-else-if="draftError" class="editor-side-note">{{ draftError }}</p>
       <p v-else class="editor-side-note">{{ t.editor.nothingRun }}</p>
+
+      <!-- The client document over placeholder credentials: what a holder's
+           client gets in shape, never in secrets. -->
+      <section v-if="placeholderDoc && !withheld" class="side-section" data-testid="placeholder-document">
+        <h3 id="placeholder-doc-title" class="side-heading">{{ t.fleetEditor.document.title(placeholderDoc.label) }}</h3>
+        <p class="side-proof">{{ t.fleetEditor.document.proof }}</p>
+        <div v-if="placeholderDoc.text" class="side-doc" tabindex="0" role="region" aria-labelledby="placeholder-doc-title">
+          <DocumentView :text="placeholderDoc.text" :language="placeholderDoc.language" aria-labelledby="placeholder-doc-title" />
+        </div>
+        <p v-else class="editor-side-note">{{ t.fleetEditor.document.empty }}</p>
+      </section>
+
+      <!-- One identity's share: who receives which lines, and why the rest
+           are left out. -->
+      <section v-if="fleet.fleetBound.value && !withheld" class="side-section" data-testid="identity-preview">
+        <h3 id="identity-preview-title" class="side-heading" tabindex="-1">{{ t.fleetEditor.identity.title }}</h3>
+        <p class="side-proof">{{ t.fleetEditor.identity.description }}</p>
+        <p v-if="fleet.bindable.value && editorDirty" class="side-unsaved" role="status" data-testid="identity-unsaved">{{ t.fleetEditor.identity.unsaved }}</p>
+        <p v-if="!fleet.bindable.value" class="editor-side-note" data-testid="identity-save-first">{{ t.fleetEditor.identity.saveFirst }}</p>
+        <template v-else>
+          <IdentityPicker :fleet="fleet" />
+          <p v-if="!fleet.identityId.value && fleet.identitiesState.value === 'ready' && fleet.identities.value.length" class="editor-side-note">
+            {{ t.fleetEditor.identity.choose }}
+          </p>
+          <BindPreviewList v-if="fleet.identityId.value" :fleet="fleet" @open-line="openLine = $event" />
+        </template>
+      </section>
       </PcPanelBody>
     </PcPanel>
     </div>
+
+    <LineDetailDrawer :fleet="fleet" :line-uuid="openLine" @close="openLine = null" />
 
     <!-- Leaving with unsaved changes. It lives inside the editor because that
          is the only screen it can be asked from: parked next to the list's
@@ -517,3 +792,127 @@ function setEditorTab(id: string): void {
     />
   </section>
 </template>
+
+<style scoped>
+/* A card the record may not choose stays readable: its reason replaces its
+   detail, and it does not take the hover a choosable card takes. */
+.source.is-disabled { cursor: not-allowed; opacity: 0.72; }
+.source.is-disabled:hover { background: var(--muted); }
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--space-1);
+  padding: 0 var(--space-1);
+  border: 1px solid var(--lt-warn-border);
+  border-radius: 999px;
+  background: var(--lt-warn-soft);
+  color: var(--warning-text);
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
+.source-pointer { color: var(--warning-text); }
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rules-proof { margin: 0 0 var(--space-3); }
+
+.rules-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rules-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rules-sub {
+  margin-left: calc(16px + var(--space-2));
+  max-width: var(--lt-measure-field);
+}
+
+.rules-usage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.rules .rules-number {
+  width: 10ch;
+  max-width: 10ch;
+  min-height: var(--lt-control-h-sm);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-sm);
+  outline: none;
+}
+
+.rules .rules-number:focus-visible { border-color: var(--primary); box-shadow: var(--lt-focus-ring-tight); }
+
+.side-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.side-heading {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 650;
+}
+
+.side-heading:focus-visible { outline: none; box-shadow: var(--lt-focus-ring-tight); border-radius: var(--radius-sm); }
+
+.side-unsaved {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-left: 2px solid var(--warning);
+  background: var(--lt-warn-soft);
+  color: var(--warning-text);
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+}
+
+.side-proof {
+  margin: 0;
+  font-size: var(--lt-text-xs);
+  line-height: var(--lt-leading);
+  color: var(--muted-foreground);
+}
+
+.side-doc:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
+
+.side-doc {
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.side-code {
+  margin-left: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--lt-text-xs);
+}
+</style>

@@ -2,8 +2,9 @@
 import { computed, ref } from "vue";
 import { ArrowDown, ArrowUp, ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
 
+import type { CatalogueRow } from "../fleet";
 import { t } from "../i18n";
-import { defaultArgs, fromWireArgs, schemaFor, toWireArgs } from "../operatorSchema";
+import { defaultArgs, fromWireArgs, isFleetStep, schemaFor, toWireArgs } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
 
 /**
@@ -31,7 +32,18 @@ export interface ChainStep {
 const props = defineProps<{
   steps: ChainStep[];
   /** Operator types the backend accepts, from the catalogue call. */
-  catalog: readonly { type: string; scripting?: boolean; response?: boolean }[];
+  catalog: readonly { type: string; scripting?: boolean; response?: boolean; fleet?: boolean }[];
+  /**
+   * The record is fleet-bound (design 28 S2): a fleet sub, or a combination
+   * that gathers one. Only then does the palette offer the Lattice-only steps,
+   * whose predicates read a fleet line's block and are unknown on any other
+   * node; and a script step offers no link mode.
+   */
+  fleetBound?: boolean;
+  /** Catalogue rows for a Structured Filter's typeahead. */
+  sampleRows?: readonly CatalogueRow[];
+  /** The catalogue lists probe as unavailable. */
+  probeUnavailable?: boolean;
   /**
    * Types edited by the common-settings block above. They stay in the chain,
    * they are ordinary operators, but listing them here too would give one
@@ -92,10 +104,12 @@ const addable = computed(() =>
   props.catalog
     .filter((entry) => !managed.value.has(entry.type))
     .filter((entry) => Boolean(entry.response) === wantsResponse.value)
+    .filter((entry) => props.fleetBound || !(entry.fleet || isFleetStep(entry.type)))
     .map((entry) => ({
       type: entry.type,
       label: schemaFor(entry.type)?.label ?? entry.type,
       scripting: Boolean(entry.scripting),
+      fleet: Boolean(entry.fleet || isFleetStep(entry.type)),
     })),
 );
 
@@ -221,6 +235,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               :class="['step-caret', { 'is-open': expanded === entry.index }]"
             />
             <span class="step-label">{{ label(entry.step, position + 1) }}</span>
+            <span v-if="isFleetStep(entry.step.type)" class="step-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
             <span v-if="entry.step.disabled" class="badge" data-tone="warning">{{ t.chain.off }}</span>
           </button>
 
@@ -302,6 +317,10 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
           <OperatorArgs
             :type="entry.step.type"
             :args="fromWireArgs(entry.step.type, entry.step.args)"
+            :fleet-bound="fleetBound"
+            :sample-rows="sampleRows"
+            :probe-unavailable="probeUnavailable"
+            :id-prefix="`chain-step-${entry.index}`"
             @update:args="setArgs(entry.index, $event)"
           />
         </div>
@@ -327,6 +346,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
         >
           {{ entry.label }}
           <span v-if="entry.scripting" class="add-tag">JS</span>
+          <span v-if="entry.fleet" class="add-tag add-tag-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
         </button>
       </div>
       <p v-if="!addable.length" class="add-waiting">
@@ -592,6 +612,28 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   color: var(--lt-accent-ink);
   font-size: 9px;
   font-weight: 700;
+}
+
+/* "Lattice only": the step reads a fleet line's block, so it is offered on
+   fleet-bound records alone. Neutral ink, not the accent: it is a fact about
+   the step, not a call to act. */
+.add-tag-fleet {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.step-fleet {
+  flex: none;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-xs);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .add-waiting {

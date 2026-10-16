@@ -313,13 +313,6 @@ func TestNativeVocabularyMatchesProcessVocabulary(t *testing.T) {
 	}
 }
 
-// uiSpecsPendingLane6a are the step types lane 6a adds to the UI's operator
-// schema with the structured predicate editor (S2 plan section 11). The
-// test below refuses them once they are there, so this list is deleted in
-// the change that adds them. yagni: a pending list of exactly the two
-// Lattice-only steps; it has no other use and goes away with lane 6a.
-var uiSpecsPendingLane6a = []string{operators.StructuredFilterType, operators.StructuredSortType}
-
 // uiOperatorSpecTypes reads the step types of the UI's OPERATOR_SPECS table
 // (ui/src/operatorSchema.ts), the third place the vocabulary is written.
 func uiOperatorSpecTypes(t *testing.T) []string {
@@ -375,13 +368,6 @@ func TestOperatorVocabularyHeldInThreePlaces(t *testing.T) {
 	}
 
 	ui := uiOperatorSpecTypes(t)
-	for _, name := range uiSpecsPendingLane6a {
-		if slices.Contains(ui, name) {
-			t.Errorf("the UI schema now holds %s: delete it from uiSpecsPendingLane6a", name)
-		}
-	}
-	ui = append(ui, uiSpecsPendingLane6a...)
-	sort.Strings(ui)
 	if !slices.Equal(native, ui) {
 		t.Fatalf("operators.Vocabulary() = %q\nui/src/operatorSchema.ts = %q", native, ui)
 	}

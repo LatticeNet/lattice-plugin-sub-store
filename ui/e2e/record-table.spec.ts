@@ -674,8 +674,10 @@ test.describe("a chain the native engine cannot run", () => {
   const PATTERN = "^(?!.*(过期|剩余|官网)).*$";
   const step1 = m.regexOffer.step(1, m.operators["Regex Filter"].label);
 
-  test("refuses the save, names the step, and the offered rewrite makes it save", async ({ page }) => {
-    await open(page, "&fixture=states&manifest=s1", "record-row");
+  // The 0.17 plugin refuses with an error; the 0.18 plugin with a structured
+  // {saved: false, refused} reply (s2-plan section 2.6). Both offer the rewrite.
+  for (const manifest of ["s1", "s2"] as const) test(`${manifest}: refuses the save, names the step, and the offered rewrite makes it save`, async ({ page }) => {
+    await open(page, `&fixture=states&manifest=${manifest}`, "record-row");
     // Edit lives on the record's panel; the row menu holds the verbs that do not open it.
     await rowNamed(page, "lookahead-provider").getByTestId("record-name").click();
     await page.locator(".pc-side-panel").getByRole("button", { name: m.actions.edit }).click();

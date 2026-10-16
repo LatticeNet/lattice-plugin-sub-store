@@ -12,6 +12,7 @@
  * heard of, and the honest response is a usable text box rather than a form
  * that silently drops the arguments it does not understand.
  */
+import { STRUCTURED_SORT_KEYS } from "./fleet";
 import { t } from "./i18n";
 
 export type FieldKind =
@@ -23,7 +24,13 @@ export type FieldKind =
   | "tristate"
   | "select"
   | "multiselect"
-  | "pairs";
+  | "pairs"
+  /**
+   * A Structured Filter's whole argument object (mode, match, geo and the
+   * predicate list), drawn by StructuredPredicateField. Its value is the args
+   * object itself, not one key of it.
+   */
+  | "predicates";
 
 export interface OperatorField {
   /** Key inside the operator's `args` object. */
@@ -65,6 +72,11 @@ export interface OperatorSchema {
    */
   wire?: "object" | "bare";
   fields: readonly OperatorField[];
+  /**
+   * A Lattice-only step (design 28 S2): it reads the fleet block of a fleet
+   * line, so the chain offers it on fleet-bound records only.
+   */
+  fleet?: boolean;
 }
 
 /**
@@ -86,6 +98,9 @@ interface OperatorSpec {
   group: OperatorSchema["group"];
   wire?: OperatorSchema["wire"];
   fields: readonly FieldSpec[];
+  fleet?: boolean;
+  /** Starting arguments when they are not one default per field. */
+  initial?: () => Record<string, unknown>;
 }
 
 const REGION_CODES = ["HK", "TW", "JP", "KR", "SG", "US", "UK", "DE", "FR", "CN"] as const;
@@ -247,6 +262,27 @@ const OPERATOR_SPECS: readonly OperatorSpec[] = [
       { key: "content", kind: "script" },
     ],
   },
+  {
+    // Lattice-only (operators/structured.go). The plugin refuses arguments it
+    // cannot read at save (structured_args_invalid) instead of falling back,
+    // because the bundle would skip the step and report success.
+    // The literal, not the constant: system-go's operators_parity_test reads
+    // this table's `type: "..."` lines to hold the vocabulary in three places.
+    type: "Structured Filter",
+    group: "filter",
+    fleet: true,
+    fields: [{ key: "predicates", kind: "predicates" }],
+    initial: () => ({ mode: "keep", match: "all", predicates: [{ field: "country", op: "in", values: [] }] }),
+  },
+  {
+    type: "Structured Sort Operator",
+    group: "rewrite",
+    fleet: true,
+    fields: [
+      { key: "key", kind: "select", default: STRUCTURED_SORT_KEYS[0], options: STRUCTURED_SORT_KEYS.map((value) => ({ value })) },
+      { key: "order", kind: "select", default: "asc", options: [{ value: "asc" }, { value: "desc" }] },
+    ],
+  },
 ];
 
 /** Placeholders that are syntax rather than words, and so the same in every locale. */
@@ -317,6 +353,7 @@ function localized(spec: OperatorSpec): OperatorSchema {
     type: spec.type,
     group: spec.group,
     ...(spec.wire ? { wire: spec.wire } : {}),
+    ...(spec.fleet ? { fleet: true } : {}),
     fields,
     get label() {
       return textOf(spec.type).label;
@@ -335,8 +372,17 @@ export function schemaFor(type: string): OperatorSchema | undefined {
   return BY_TYPE.get(type);
 }
 
+const INITIAL = new Map(OPERATOR_SPECS.filter((spec) => spec.initial).map((spec) => [spec.type, spec.initial!]));
+
+/** Whether a step type is Lattice-only, offered on fleet-bound records alone. */
+export function isFleetStep(type: string): boolean {
+  return schemaFor(type)?.fleet === true;
+}
+
 /** Starting arguments for a newly added step, from the schema's defaults. */
 export function defaultArgs(type: string): Record<string, unknown> {
+  const initial = INITIAL.get(type);
+  if (initial) return initial();
   const schema = schemaFor(type);
   if (!schema) return {};
   const args: Record<string, unknown> = {};

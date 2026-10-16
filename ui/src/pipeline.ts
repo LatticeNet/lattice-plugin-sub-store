@@ -15,6 +15,7 @@ import {
   KIND_COLLECTION,
   KIND_FILE,
   KIND_SUB,
+  SOURCE_FLEET,
   SOURCE_LOCAL,
   SOURCE_REMOTE,
   SOURCE_VPN_CORE,
@@ -137,8 +138,13 @@ export const USAGE_WARN_RATIO = 0.8;
 
 // ── what a record is ─────────────────────────────────────────────────────────
 
-/** Where a source's nodes come from, in the operator's words. */
+/**
+ * Where a source's nodes come from, in the operator's words. A fleet record
+ * (design 28 S2) reads "Fleet"; the legacy export keeps "This fleet", which
+ * the Records table marks with its owner-credentials badge.
+ */
 export function sourceKindLabel(item: SubscriptionListItem): string {
+  if (item.source === SOURCE_FLEET) return t.fleetEditor.kind;
   if (item.source === SOURCE_VPN_CORE) return t.kinds.fleet;
   if (item.source === SOURCE_VPN_CORE_GRAPH) return t.kinds.relay;
   if (item.source === SOURCE_REMOTE) return t.kinds.provider;
