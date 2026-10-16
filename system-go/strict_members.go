@@ -30,6 +30,12 @@ func decodeExactMembers(raw []byte, targets map[string]any) bool {
 		switch t := target.(type) {
 		case *json.RawMessage:
 			*t = append(json.RawMessage(nil), f.Value...)
+		case *string:
+			// A snapshot rides in render's request as a string of most of
+			// a megabyte; strictjson.String reads it in one pass.
+			if !strictjson.StringInto(f.Value, t) {
+				return false
+			}
 		default:
 			if json.Unmarshal(f.Value, target) != nil {
 				return false

@@ -56,3 +56,22 @@ func FuzzAppendSelectionPlanIsJSONMarshal(f *testing.F) {
 			Selection: &model.PlanSelection{CatalogueVersion: version, LineUUIDs: []string{key, value}}})
 	})
 }
+
+// marshalRenderReply splices the plan; the bytes must be json.Marshal's.
+func TestMarshalRenderReplyIsJSONMarshal(t *testing.T) {
+	plans := []json.RawMessage{nil, json.RawMessage(`{"kind":"nodes","nodes":[{"node":{"name":"a"}}]}`), json.RawMessage(`{"a": 1}`),
+		json.RawMessage(`{"a":"<"}`), json.RawMessage(`{"plan":"\u0000plan"}`)}
+	for _, plan := range plans {
+		for _, out := range []renderReply{
+			{renderResult: renderResult{ContentType: "application/json", Target: "sing-box", NodeCount: 3}, Plan: plan, LiveRevision: "r1"},
+			{Plan: plan},
+			{renderResult: renderResult{Content: "x & <y>"}, Plan: plan},
+		} {
+			want, wantErr := json.Marshal(out)
+			got, gotErr := marshalRenderReply(out)
+			if (gotErr == nil) != (wantErr == nil) || !bytes.Equal(got, want) {
+				t.Fatalf("render reply\n%s (%v)\njson.Marshal\n%s (%v)", got, gotErr, want, wantErr)
+			}
+		}
+	}
+}

@@ -685,11 +685,41 @@ func (rt *runtime) renderCall(payload json.RawMessage) response {
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
-	body, err := json.Marshal(out)
+	body, err := marshalRenderReply(out)
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
 	return latticeplugin.RawResultResponse(body, "")
+}
+
+// renderPlanSlot stands in for a render reply's plan while the rest of it is
+// marshalled.
+var renderPlanSlot = json.RawMessage(`"\u0000plan"`)
+
+// marshalRenderReply is json.Marshal of a render reply. A fleet plan is most
+// of a megabyte that encodeFleetPlan already wrote in canonical form, so it
+// is spliced into json.Marshal's encoding of the rest in place of a slot
+// instead of compacted again; the bytes are json.Marshal's. A plan that is
+// not canonical, or a slot not found exactly once, takes json.Marshal.
+func marshalRenderReply(out renderReply) ([]byte, error) {
+	if len(out.Plan) == 0 || !canonicalRawJSON(out.Plan) {
+		return json.Marshal(out)
+	}
+	slotted := out
+	slotted.Plan = renderPlanSlot
+	head, err := json.Marshal(slotted)
+	if err != nil {
+		return nil, err
+	}
+	slot := []byte(`"plan":` + string(renderPlanSlot))
+	at := bytes.Index(head, slot)
+	if at < 0 || bytes.Count(head, slot) != 1 {
+		return json.Marshal(out)
+	}
+	body := make([]byte, 0, len(head)+len(out.Plan))
+	body = append(body, head[:at+len(`"plan":`)]...)
+	body = append(body, out.Plan...)
+	return append(body, head[at+len(slot):]...), nil
 }
 
 // renderReply is render's reply: the S1 result, the live revision of the
