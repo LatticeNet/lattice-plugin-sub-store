@@ -226,3 +226,288 @@ BenchmarkProduce4096/clashmeta-4   	      38	  30569867 ns/op	19480699 B/op	   4
 BenchmarkProduce4096/clashmeta-4   	      39	  29735629 ns/op	19479445 B/op	   46676 allocs/op
 PASS
 ok  	github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers	59.023s
+goos: linux
+goarch: amd64
+pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go
+cpu: AMD EPYC 7763 64-Core Processor                
+BenchmarkFleetPlan1000-4                	      60	  19237356 ns/op	12333992 B/op	  119161 allocs/op
+BenchmarkFleetPlan1000-4                	      56	  19060659 ns/op	12332732 B/op	  119150 allocs/op
+BenchmarkFleetPlan1000-4                	      58	  19105725 ns/op	12333103 B/op	  119153 allocs/op
+BenchmarkFleetPlan1000-4                	      58	  19639476 ns/op	12332713 B/op	  119152 allocs/op
+BenchmarkFleetPlan1000-4                	      54	  19760776 ns/op	12332434 B/op	  119148 allocs/op
+BenchmarkFleetPlan1000-4                	      56	  19624679 ns/op	12333256 B/op	  119155 allocs/op
+BenchmarkFleetPlan1000-4                	      60	  19673573 ns/op	12333086 B/op	  119154 allocs/op
+BenchmarkFleetPlan1000-4                	      56	  19552404 ns/op	12332649 B/op	  119150 allocs/op
+BenchmarkFleetPlan1000-4                	      57	  19681921 ns/op	12332948 B/op	  119153 allocs/op
+BenchmarkFleetPlan1000-4                	      56	  19719765 ns/op	12333069 B/op	  119154 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76069795 ns/op	50413300 B/op	  487635 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76008893 ns/op	50413427 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76482574 ns/op	50413534 B/op	  487637 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76717508 ns/op	50413780 B/op	  487638 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76717712 ns/op	50414230 B/op	  487643 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76218268 ns/op	50414054 B/op	  487642 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76767540 ns/op	50413509 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76388918 ns/op	50413085 B/op	  487633 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  76303678 ns/op	50413493 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      14	  75888436 ns/op	50413172 B/op	  487634 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      90	  12902290 ns/op	 1139637 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      87	  13201689 ns/op	 1139556 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      86	  13129490 ns/op	 1139552 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      81	  12844303 ns/op	 1139561 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      92	  12632562 ns/op	 1139562 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      88	  12811323 ns/op	 1139552 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      90	  13003004 ns/op	 1139546 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      85	  12744641 ns/op	 1139574 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      85	  12819571 ns/op	 1139563 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      93	  12837381 ns/op	 1139565 B/op	   28695 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66656561 ns/op	19426505 B/op	  191334 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  65896184 ns/op	19423365 B/op	  191302 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66838916 ns/op	19424108 B/op	  191306 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66384111 ns/op	19424298 B/op	  191305 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66009504 ns/op	19423834 B/op	  191304 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  65721068 ns/op	19423645 B/op	  191303 allocs/op
+BenchmarkFleetFetch1000-4               	      16	  65958997 ns/op	19422887 B/op	  191302 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66579553 ns/op	19422976 B/op	  191301 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66770242 ns/op	19423714 B/op	  191305 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  65784823 ns/op	19423662 B/op	  191304 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  50270194 ns/op	  23.42 MB/s	26233936 B/op	  359221 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  49445332 ns/op	  23.81 MB/s	25517619 B/op	  359204 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  49431667 ns/op	  23.81 MB/s	25592424 B/op	  359207 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  50504551 ns/op	  23.31 MB/s	26411939 B/op	  359218 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  50394936 ns/op	  23.36 MB/s	26412930 B/op	  359222 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  50509677 ns/op	  23.31 MB/s	26249587 B/op	  359223 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  50193449 ns/op	  23.45 MB/s	25876238 B/op	  359213 allocs/op
+BenchmarkFleetConvert1000-4             	      21	  50011597 ns/op	  23.54 MB/s	26226174 B/op	  359221 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  49616620 ns/op	  23.73 MB/s	26411639 B/op	  359217 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  49761777 ns/op	  23.66 MB/s	26248214 B/op	  359216 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 290315710 ns/op	129333422 B/op	  847785 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 293396236 ns/op	126154664 B/op	  847746 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 294764416 ns/op	125650196 B/op	  847695 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 292882506 ns/op	123564646 B/op	  847720 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 291333967 ns/op	127792264 B/op	  847770 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 297180210 ns/op	126718694 B/op	  847777 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 305149074 ns/op	127729634 B/op	  847771 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 297305762 ns/op	126194270 B/op	  847769 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 302914354 ns/op	128784290 B/op	  847802 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 293013861 ns/op	124053520 B/op	  847705 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	4083093501 ns/op	284706928 B/op	  105455 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3470235432 ns/op	220079280 B/op	    3598 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3485828346 ns/op	220087688 B/op	    3593 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3491601124 ns/op	220080072 B/op	    3596 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3480830128 ns/op	220078376 B/op	    3593 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3493695947 ns/op	220078408 B/op	    3594 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3483041902 ns/op	220081096 B/op	    3595 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3468719061 ns/op	220078888 B/op	    3594 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3538805311 ns/op	220078120 B/op	    3590 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3439632715 ns/op	220078376 B/op	    3593 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1334030603 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1328680027 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1336093641 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1328064813 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1334190029 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1339441830 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1324185607 ns/op	69355568 B/op	    1994 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1334136090 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1347188695 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1342383114 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2049779391 ns/op	70013736 B/op	    2007 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2039579771 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2014303181 ns/op	70011640 B/op	    1988 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2043217204 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2049729128 ns/op	70012648 B/op	    1997 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2058260263 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2056811013 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2042357282 ns/op	70012200 B/op	    1993 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2042513515 ns/op	70011816 B/op	    1990 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2030718567 ns/op	70012200 B/op	    1993 allocs/op
+PASS
+goos: linux
+goarch: amd64
+pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go
+cpu: AMD EPYC 7763 64-Core Processor                
+BenchmarkFleetPlan1000-4                	      60	  18038014 ns/op	12333599 B/op	  119156 allocs/op
+BenchmarkFleetPlan1000-4                	      57	  18034994 ns/op	12332439 B/op	  119148 allocs/op
+BenchmarkFleetPlan1000-4                	      62	  18016154 ns/op	12332364 B/op	  119148 allocs/op
+BenchmarkFleetPlan1000-4                	      62	  18103195 ns/op	12332479 B/op	  119148 allocs/op
+BenchmarkFleetPlan1000-4                	      56	  18113380 ns/op	12332727 B/op	  119151 allocs/op
+BenchmarkFleetPlan1000-4                	      61	  17980768 ns/op	12332768 B/op	  119150 allocs/op
+BenchmarkFleetPlan1000-4                	      61	  18042280 ns/op	12332376 B/op	  119148 allocs/op
+BenchmarkFleetPlan1000-4                	      60	  17953938 ns/op	12332345 B/op	  119148 allocs/op
+BenchmarkFleetPlan1000-4                	      63	  18023849 ns/op	12332700 B/op	  119151 allocs/op
+BenchmarkFleetPlan1000-4                	      58	  17990801 ns/op	12332199 B/op	  119147 allocs/op
+BenchmarkFleetPlan4096-4                	      16	  70950725 ns/op	50413438 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71539261 ns/op	50413385 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71323101 ns/op	50413253 B/op	  487635 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71353106 ns/op	50413384 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71191302 ns/op	50413358 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71295320 ns/op	50413775 B/op	  487639 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  70734428 ns/op	50413382 B/op	  487636 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71099513 ns/op	50413382 B/op	  487635 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  71029711 ns/op	50413322 B/op	  487635 allocs/op
+BenchmarkFleetPlan4096-4                	      15	  70859089 ns/op	50413685 B/op	  487638 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      96	  11904856 ns/op	 1139629 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      92	  11910676 ns/op	 1139560 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      94	  11950904 ns/op	 1139555 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      94	  11896831 ns/op	 1139561 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      91	  11979384 ns/op	 1139561 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      94	  11971342 ns/op	 1139559 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      93	  12081420 ns/op	 1139560 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      94	  11930425 ns/op	 1139553 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      92	  12119033 ns/op	 1139558 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	      97	  12027326 ns/op	 1139562 B/op	   28695 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  65081224 ns/op	19426001 B/op	  191332 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  64430971 ns/op	19424779 B/op	  191308 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  64241146 ns/op	19424252 B/op	  191307 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  63870878 ns/op	19415605 B/op	  191283 allocs/op
+BenchmarkFleetFetch1000-4               	      19	  65320850 ns/op	19422601 B/op	  191300 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  66184897 ns/op	19424817 B/op	  191308 allocs/op
+BenchmarkFleetFetch1000-4               	      16	  64193558 ns/op	19422835 B/op	  191300 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  65096640 ns/op	19423272 B/op	  191303 allocs/op
+BenchmarkFleetFetch1000-4               	      18	  65849147 ns/op	19421792 B/op	  191299 allocs/op
+BenchmarkFleetFetch1000-4               	      16	  65113811 ns/op	19423613 B/op	  191304 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  48687981 ns/op	  24.18 MB/s	26411076 B/op	  359214 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  48545113 ns/op	  24.25 MB/s	26053246 B/op	  359207 allocs/op
+BenchmarkFleetConvert1000-4             	      21	  48781936 ns/op	  24.13 MB/s	26224122 B/op	  359212 allocs/op
+BenchmarkFleetConvert1000-4             	      22	  48687498 ns/op	  24.18 MB/s	26232872 B/op	  359212 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  48552683 ns/op	  24.24 MB/s	26412396 B/op	  359218 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  48266798 ns/op	  24.39 MB/s	26085173 B/op	  359217 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  47942005 ns/op	  24.55 MB/s	25919497 B/op	  359206 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  47827674 ns/op	  24.61 MB/s	26083646 B/op	  359211 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  47739186 ns/op	  24.66 MB/s	25919401 B/op	  359207 allocs/op
+BenchmarkFleetConvert1000-4             	      24	  48296458 ns/op	  24.37 MB/s	26412178 B/op	  359217 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 289333867 ns/op	128813480 B/op	  847793 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 287743489 ns/op	125176200 B/op	  847760 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 287803792 ns/op	125145184 B/op	  847762 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 292284721 ns/op	129894898 B/op	  847812 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 286046414 ns/op	129897324 B/op	  847819 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 297996572 ns/op	128280920 B/op	  847761 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 289125193 ns/op	126188424 B/op	  847756 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 291389984 ns/op	128279380 B/op	  847754 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 293555140 ns/op	126704498 B/op	  847731 allocs/op
+BenchmarkFleetPreview10000-4            	       4	 291546657 ns/op	128286506 B/op	  847780 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	4055958101 ns/op	284706480 B/op	  105451 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3454460012 ns/op	220079248 B/op	    3597 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3501155151 ns/op	220087880 B/op	    3595 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3468802946 ns/op	220081032 B/op	    3598 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3475244429 ns/op	220078376 B/op	    3593 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3482926502 ns/op	220078376 B/op	    3593 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3493772388 ns/op	220081096 B/op	    3595 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3452528758 ns/op	220078632 B/op	    3591 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3464122740 ns/op	220078408 B/op	    3594 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3494595645 ns/op	220078408 B/op	    3594 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1291417968 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1323214723 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1329683257 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1313574255 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1317007350 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1334857791 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1320452006 ns/op	69366128 B/op	    2016 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1323669927 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1333192839 ns/op	69350224 B/op	    1993 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1332521099 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1988098375 ns/op	70013848 B/op	    2008 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2027181709 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2036251504 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2026369267 ns/op	70011352 B/op	    1986 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2024767438 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2026108071 ns/op	70011528 B/op	    1987 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2036346923 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2039903263 ns/op	70012424 B/op	    1995 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2028613084 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	2024092756 ns/op	70011304 B/op	    1985 allocs/op
+PASS
+goos: linux
+goarch: amd64
+pkg: github.com/LatticeNet/lattice-plugin-sub-store/system-go
+cpu: AMD EPYC 9V45 96-Core Processor                
+BenchmarkFleetPlan1000-4                	     100	  10764448 ns/op	12333484 B/op	  119156 allocs/op
+BenchmarkFleetPlan1000-4                	      98	  10942671 ns/op	12333274 B/op	  119156 allocs/op
+BenchmarkFleetPlan1000-4                	     100	  10854821 ns/op	12332852 B/op	  119152 allocs/op
+BenchmarkFleetPlan1000-4                	     100	  10760121 ns/op	12333404 B/op	  119156 allocs/op
+BenchmarkFleetPlan1000-4                	     100	  10638999 ns/op	12333149 B/op	  119155 allocs/op
+BenchmarkFleetPlan1000-4                	      98	  11655063 ns/op	12333174 B/op	  119155 allocs/op
+BenchmarkFleetPlan1000-4                	      90	  11435421 ns/op	12332895 B/op	  119154 allocs/op
+BenchmarkFleetPlan1000-4                	     100	  11500128 ns/op	12332964 B/op	  119153 allocs/op
+BenchmarkFleetPlan1000-4                	     100	  11252178 ns/op	12333134 B/op	  119154 allocs/op
+BenchmarkFleetPlan1000-4                	     100	  10762527 ns/op	12333412 B/op	  119156 allocs/op
+BenchmarkFleetPlan4096-4                	      24	  46432465 ns/op	50414084 B/op	  487641 allocs/op
+BenchmarkFleetPlan4096-4                	      25	  46700084 ns/op	50413828 B/op	  487639 allocs/op
+BenchmarkFleetPlan4096-4                	      24	  49412667 ns/op	50413529 B/op	  487637 allocs/op
+BenchmarkFleetPlan4096-4                	      24	  48274712 ns/op	50414076 B/op	  487641 allocs/op
+BenchmarkFleetPlan4096-4                	      22	  48863364 ns/op	50413616 B/op	  487638 allocs/op
+BenchmarkFleetPlan4096-4                	      22	  49312174 ns/op	50414201 B/op	  487642 allocs/op
+BenchmarkFleetPlan4096-4                	      24	  48482260 ns/op	50413621 B/op	  487637 allocs/op
+BenchmarkFleetPlan4096-4                	      22	  47317382 ns/op	50413701 B/op	  487638 allocs/op
+BenchmarkFleetPlan4096-4                	      25	  48633328 ns/op	50413881 B/op	  487640 allocs/op
+BenchmarkFleetPlan4096-4                	      24	  46282797 ns/op	50413808 B/op	  487639 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     168	   7276851 ns/op	 1139595 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     163	   7101486 ns/op	 1139551 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     163	   7250095 ns/op	 1139549 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     168	   7202257 ns/op	 1139552 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     163	   7274440 ns/op	 1139546 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     164	   7239246 ns/op	 1139555 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     160	   7422722 ns/op	 1139557 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     162	   7326310 ns/op	 1139558 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     162	   7323724 ns/op	 1139560 B/op	   28695 allocs/op
+BenchmarkValidateCatalogueRows4096-4    	     154	   7514972 ns/op	 1139558 B/op	   28695 allocs/op
+BenchmarkFleetFetch1000-4               	      32	  37619673 ns/op	19424989 B/op	  191320 allocs/op
+BenchmarkFleetFetch1000-4               	      33	  37428766 ns/op	19424033 B/op	  191305 allocs/op
+BenchmarkFleetFetch1000-4               	      33	  37421951 ns/op	19423682 B/op	  191305 allocs/op
+BenchmarkFleetFetch1000-4               	      32	  37259409 ns/op	19423842 B/op	  191305 allocs/op
+BenchmarkFleetFetch1000-4               	      32	  36784835 ns/op	19422233 B/op	  191299 allocs/op
+BenchmarkFleetFetch1000-4               	      34	  37477053 ns/op	19422164 B/op	  191299 allocs/op
+BenchmarkFleetFetch1000-4               	      32	  37466512 ns/op	19422254 B/op	  191299 allocs/op
+BenchmarkFleetFetch1000-4               	      31	  37010935 ns/op	19422665 B/op	  191300 allocs/op
+BenchmarkFleetFetch1000-4               	      33	  36151391 ns/op	19423624 B/op	  191303 allocs/op
+BenchmarkFleetFetch1000-4               	      33	  36854150 ns/op	19421985 B/op	  191298 allocs/op
+BenchmarkFleetConvert1000-4             	      38	  27184050 ns/op	  43.30 MB/s	26102817 B/op	  359221 allocs/op
+BenchmarkFleetConvert1000-4             	      38	  27741465 ns/op	  42.43 MB/s	26206380 B/op	  359222 allocs/op
+BenchmarkFleetConvert1000-4             	      42	  27552533 ns/op	  42.72 MB/s	26225252 B/op	  359216 allocs/op
+BenchmarkFleetConvert1000-4             	      45	  26927498 ns/op	  43.72 MB/s	26149540 B/op	  359213 allocs/op
+BenchmarkFleetConvert1000-4             	      36	  27931616 ns/op	  42.14 MB/s	26412428 B/op	  359220 allocs/op
+BenchmarkFleetConvert1000-4             	      43	  27767039 ns/op	  42.39 MB/s	26412187 B/op	  359218 allocs/op
+BenchmarkFleetConvert1000-4             	      44	  26613391 ns/op	  44.23 MB/s	26234276 B/op	  359220 allocs/op
+BenchmarkFleetConvert1000-4             	      44	  26522007 ns/op	  44.38 MB/s	26322809 B/op	  359217 allocs/op
+BenchmarkFleetConvert1000-4             	      43	  27940395 ns/op	  42.13 MB/s	26047238 B/op	  359218 allocs/op
+BenchmarkFleetConvert1000-4             	      39	  28653769 ns/op	  41.08 MB/s	26010464 B/op	  359220 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 172737230 ns/op	127715773 B/op	  847792 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 165120499 ns/op	127064700 B/op	  847726 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 177456609 ns/op	125268858 B/op	  847711 allocs/op
+BenchmarkFleetPreview10000-4            	       6	 167508438 ns/op	128654208 B/op	  847808 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 164699211 ns/op	128551108 B/op	  847771 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 164393013 ns/op	126449445 B/op	  847731 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 168156481 ns/op	127968620 B/op	  847758 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 166241186 ns/op	126170718 B/op	  847737 allocs/op
+BenchmarkFleetPreview10000-4            	       6	 170001926 ns/op	124427628 B/op	  847721 allocs/op
+BenchmarkFleetPreview10000-4            	       7	 166199545 ns/op	124692982 B/op	  847731 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3392284690 ns/op	284708224 B/op	  105466 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2905365358 ns/op	220079024 B/op	    3595 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2756479209 ns/op	220087880 B/op	    3595 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2951903676 ns/op	220080776 B/op	    3603 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2916538238 ns/op	220079160 B/op	    3600 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	3173495183 ns/op	220079272 B/op	    3601 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2869114995 ns/op	220081512 B/op	    3598 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2734272672 ns/op	220081528 B/op	    3611 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2964264379 ns/op	220078824 B/op	    3597 allocs/op
+BenchmarkIsolatedFirstCall-4            	       1	2824883126 ns/op	220078120 B/op	    3590 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1112763394 ns/op	69350384 B/op	    1994 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1068764927 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1067686024 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1095652904 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1120609401 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1055022030 ns/op	69350608 B/op	    1996 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1052515056 ns/op	69355568 B/op	    1994 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1063866082 ns/op	69350384 B/op	    1994 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1076070878 ns/op	69350608 B/op	    1996 allocs/op
+BenchmarkIsolatedSeededCall-4           	       1	1067988016 ns/op	69350160 B/op	    1992 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1564901634 ns/op	70013896 B/op	    2008 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1564071965 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1595805855 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1574931572 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1585919548 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1544742673 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1562369955 ns/op	70012264 B/op	    1987 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1579313147 ns/op	70011304 B/op	    1985 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1549322088 ns/op	70011416 B/op	    1986 allocs/op
+BenchmarkMergeConfigIsolated-4          	       1	1558288655 ns/op	70011528 B/op	    1987 allocs/op
+PASS

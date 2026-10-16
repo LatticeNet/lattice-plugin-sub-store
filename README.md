@@ -347,8 +347,13 @@ section 5.2, S2 plan section 5) and `system-go/testdata/bench/ubuntu-24.04.txt`.
 baseline is the job's output from two runs that landed on different CPUs (an
 Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
 is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
-run happens to get. Move it the same way, from at least two CPUs, with the
-reason in the commit. The `memory` job runs the
+run happens to get. The S2 benchmarks' lines (fleet plan, catalogue
+validation, fleet_preview, the fetch and convert handlers and the
+isolated engine) come from three runs, two on the EPYC 7763 and one on an
+AMD EPYC 9V45: the 9V45 is up to 1.8 times faster on them, so a median
+of one run each would sit 1.3 times under the 7763 and trip on its noise,
+and two runs of the slowest CPU put the median at its figure. Move it the
+same way, from at least two CPUs, with the reason in the commit. The `memory` job runs the
 allocation and heap gates without the race detector and holds the built
 worker's resident set (`TestWorkerVmRSS`) to the S2 bounds.
 
