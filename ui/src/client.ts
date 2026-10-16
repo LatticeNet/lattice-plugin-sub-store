@@ -7,10 +7,12 @@
  *    `engine` surface (convert / transform_response / pipeline CRUD /
  *    run_pipeline, hephaestus's PR6, per-method budgets included).
  *  - "pending": proposed but not yet declared methods. Empty right now: the
- *    0.17 manifest declares the S1 store-split methods, which were the last
- *    entries. The tier mechanism stays: a future slice's methods enter here
- *    first, each with a comment naming the slice that declares it, and
- *    contract.test.ts trips when one becomes declared.
+ *    0.18 manifest declares design 28 S2's methods (the fleet proxies, the
+ *    migration and discard methods, and the core-backed bind and plans
+ *    services), which were the last entries. The tier mechanism stays: a
+ *    future slice's methods enter here first, each with a comment naming the
+ *    slice that declares it, and contract.test.ts trips when one becomes
+ *    declared.
  *
  * Wire shapes mirror system-go's structs exactly (verified against the merged
  * engine implementation 2026-07-27). When the backend changes a shape, this
@@ -18,6 +20,7 @@
  */
 import type { BridgeClient } from "@latticenet/plugin-bridge";
 
+import type { FleetOptions } from "./fleet";
 import { t } from "./i18n";
 
 export const SERVICES = {
@@ -26,6 +29,10 @@ export const SERVICES = {
   /** Core-backed (manifest `backing: "core"`): share tokens never enter the
    * sandbox store, so the link a client subscribes to can only come from core. */
   shares: "latticenet.sub-store/shares",
+  /** Core-backed: validate-and-bind of one record revision for one identity (design 28 S0, S2). */
+  bind: "latticenet.sub-store/bind",
+  /** Core-backed: the revision plans a privileged edit waits on (design 28 S2, section 2.6). */
+  plans: "latticenet.sub-store/plans",
 } as const;
 
 export type BindingStatus = "active" | "pending";
@@ -100,6 +107,27 @@ export const BINDINGS = {
   subMigrateStore: binding(SERVICES.subscription, "migrate_store", "active"),
   /** `{}`: the records whose sources reach vpn-core, for core's fleet re-render. */
   subDependsOn: binding(SERVICES.subscription, "depends_on", "active"),
+  // ── S2 fleet sources (design 28, s2-plan sections 2.6 to 2.8) ────────────
+  // Declared by the 0.18 manifest. Every control they drive is still gated
+  // on availability: an older bundle, a token without vpncore:read, or a
+  // read-only session leaves them out of the handshake.
+  /** `{process, sample}` or `{line_uuids}` (at most 256): catalogue counts, a sample, or rows for the detail drawer. */
+  subFleetPreview: binding(SERVICES.subscription, "fleet_preview", "active"),
+  /** `{}`: vpn-core's identity list, relayed verbatim. */
+  subIdentities: binding(SERVICES.subscription, "identities", "active"),
+  /** `{subscription_id, if_revision}`: stage the fleet equivalent of a legacy record. */
+  subMigrateRecord: binding(SERVICES.subscription, "migrate_record", "active"),
+  /** `{subscription_id, revision}`: drop a staged revision that waits for a plan. */
+  subDiscardStaged: binding(SERVICES.subscription, "discard_staged", "active"),
+  /** `{subscription_id, identity_id, revision?}`: what one identity's share would receive. */
+  bindPreview: binding(SERVICES.bind, "preview", "active"),
+  /** `{identity_id, line_uuids}`: file one batch of binding approvals (decision 8). */
+  bindSelection: binding(SERVICES.bind, "bind_selection", "active"),
+  plansPropose: binding(SERVICES.plans, "propose", "active"),
+  plansStatus: binding(SERVICES.plans, "status", "active"),
+  plansPublish: binding(SERVICES.plans, "publish", "active"),
+  // No sharesCreate: a share is minted on the dashboard's share page, the
+  // only path that reveals its link once (s2-plan section 11).
 } as const satisfies Record<string, MethodBinding>;
 
 /**
@@ -260,6 +288,25 @@ export interface SubscriptionRecord {
   revision?: string;
   /** Set on a script file: the fingerprint of its separately stored program. */
   script_digest?: string;
+  /**
+   * The per-record binding rules of a fleet record, or of a combination that
+   * gathers one (s2-plan section 2.1). The rules a share follows are those of
+   * the record the share names, never a member's.
+   */
+  fleet?: FleetOptions;
+  /** Pasted nodes only: keep exec-shaped nodes (the H3 opt-in). */
+  external?: boolean;
+  /** Set by migrate_record on the fleet record it staged from a legacy one. */
+  migrated_from?: LegacyOrigin;
+}
+
+/** What migrate_record kept of the legacy record a fleet record replaced. */
+export interface LegacyOrigin {
+  source: string;
+  vpn_identity?: string;
+  entry_roots?: string[];
+  graph_options_version?: string;
+  migrated_at: string;
 }
 
 /**
@@ -321,6 +368,22 @@ export interface SubscriptionListItem {
   nodes_out?: number;
   flags?: RecordFlags;
   archived_at?: string;
+  /**
+   * The staged revision and its facts (s2-plan section 2.2). A fleet-bound
+   * record's edit waits in staged-v2 for a plan, or for plans.publish when no
+   * live share can see it; a staged new record has an empty `revision`.
+   */
+  staged_revision?: string;
+  staged_at?: string;
+  staged_kind?: string;
+  staged_source?: string;
+  staged_members?: string[];
+  staged_member_tags?: string[];
+  staged_tags?: string[];
+  staged_migrated?: boolean;
+  staged_restored_at?: string;
+  /** The catalogue version (lcv1-...) the record's last fetch wrote. */
+  selection_version?: string;
 }
 
 export interface RecordFlags {
@@ -328,6 +391,13 @@ export interface RecordFlags {
   regex_incompatible?: boolean;
   /** A Resolve Domain or script step: the whole chain runs on the fallback path. */
   has_fallback_step?: boolean;
+  /**
+   * A legacy vpn-core or vpn-core-graph record, or a combination or file that
+   * reads one: it still serves line owner credentials. Live state only.
+   */
+  owner_credentials?: boolean;
+  /** The record's live sources include a fleet record. Live state only. */
+  fleet_bound?: boolean;
 }
 
 export const KIND_SUB = "sub";
@@ -409,13 +479,99 @@ export const ERROR_STORE_MIGRATION_REQUIRED = "store_migration_required";
 export const ERROR_REGEX_INCOMPATIBLE = "regex_incompatible";
 
 /**
- * The stable code a refusal carries, from the bridge's `code` when the host
- * passed one through, else from the message's leading token. "" when it
- * carries none.
+ * The refusals of design 28 S2 (s2-plan section 2.6), by the channel each
+ * travels on. A mutating method's refusal arrives as a successful
+ * `{saved: false, refused}` reply, because the gateway replaces every error
+ * a mutating method returns with one fixed string; a read method's refusal
+ * stays an error whose message leads with its code; core's own services pass
+ * their codes through as errors too.
  */
-const KNOWN_ERROR_CODES: ReadonlySet<string> = new Set([ERROR_STORE_MIGRATION_REQUIRED, ERROR_REGEX_INCOMPATIBLE]);
+export const ERROR_CODES = {
+  // structured refusals of mutating methods (save, delete, import, migrate,
+  // restore, migrate_record, discard_staged)
+  fleetToLegacyRefused: "fleet_to_legacy_refused",
+  legacySourceRetired: "legacy_source_retired",
+  fleetMixedOwnerCredentials: "fleet_mixed_owner_credentials",
+  fleetFileUnavailable: "fleet_file_unavailable",
+  fleetScriptLinkUnavailable: "fleet_script_link_unavailable",
+  fleetDeleteRequiresPlan: "fleet_delete_requires_plan",
+  promotionPending: "promotion_pending",
+  stagedRevisionMismatch: "staged_revision_mismatch",
+  storeInconsistent: "store_inconsistent",
+  kvConflict: "kv_conflict",
+  structuredArgsInvalid: "structured_args_invalid",
+  fleetProbeUnavailable: "fleet_probe_unavailable",
+  regexIncompatible: ERROR_REGEX_INCOMPATIBLE,
+  storeMigrationRequired: ERROR_STORE_MIGRATION_REQUIRED,
+  // errors of read methods (render, preview, preview_draft, fleet_preview,
+  // probe, publish, fetch)
+  fleetEnvelopeMismatch: "fleet_envelope_mismatch",
+  fleetSelectorMismatch: "fleet_selector_mismatch",
+  fleetSnapshotMissing: "fleet_snapshot_missing",
+  snapshotMalformed: "snapshot_malformed",
+  snapshotPredatesS2: "snapshot_predates_s2",
+  revisionUnknown: "revision_unknown",
+  ownerCredentialsWithheld: "owner_credentials_withheld",
+  fleetResponseChainUnavailable: "fleet_response_chain_unavailable",
+  fleetPublishUnavailable: "fleet_publish_unavailable",
+  fleetStructuredOnBundle: "fleet_structured_on_bundle",
+  catalogueUnavailable: "catalogue_unavailable",
+  planTooLarge: "plan_too_large",
+  lineUUIDsTooMany: "line_uuids_too_many",
+  snapshotTooLarge: "snapshot_too_large",
+  expectedRevisionMismatch: "expected_revision_mismatch",
+  // core's plans, shares and bind services
+  planRequired: "plan_required",
+  migrationRequiresPlan: "migration_requires_plan",
+  sharesWithoutIdentity: "shares_without_identity",
+  migrationIncomplete: "migration_incomplete",
+  fleetDeleteHasExplicitDependents: "fleet_delete_has_explicit_dependents",
+  identityRequiresFleetRecord: "identity_requires_fleet_record",
+  identityChangeRefused: "identity_change_refused",
+} as const;
 
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+/** Every stable code errorCodeOf answers; anything else reads as "". */
+export const KNOWN_ERROR_CODES: ReadonlySet<string> = new Set<string>(Object.values(ERROR_CODES));
+
+/**
+ * A mutating method's refusal (s2-plan section 2.6): a successful reply,
+ * never an error. `saved` is false so a caller that does not read `refused`
+ * still never claims the write landed. `message` is fixed text with ids,
+ * revisions and codes, never a wrapped error, a URL or raw content.
+ */
+export interface MutationRefusal {
+  code: string;
+  ids?: string[];
+  files?: string[];
+  collections?: string[];
+  staged_revision?: string;
+  message: string;
+}
+
+export interface MutationRefused {
+  saved: false;
+  refused: MutationRefusal;
+}
+
+/** Whether a mutating method's successful reply is in fact a refusal. */
+export function isRefused(reply: unknown): reply is MutationRefused {
+  if (!reply || typeof reply !== "object") return false;
+  const value = reply as { saved?: unknown; refused?: unknown };
+  if (value.saved !== false || !value.refused || typeof value.refused !== "object") return false;
+  const refused = value.refused as { code?: unknown; message?: unknown };
+  return typeof refused.code === "string" && refused.code !== "" && typeof refused.message === "string";
+}
+
+/**
+ * The stable code a refusal carries: a structured refusal's `refused.code`
+ * first, then the bridge's `code` when the host passed one through, else the
+ * message's leading token. "" when it carries none this UI knows, so an
+ * unknown code never drives a state written for another.
+ */
 export function errorCodeOf(cause: unknown): string {
+  if (isRefused(cause)) return KNOWN_ERROR_CODES.has(cause.refused.code) ? cause.refused.code : "";
   const code = (cause as { code?: unknown } | null)?.code;
   if (typeof code === "string" && KNOWN_ERROR_CODES.has(code)) return code;
   const message = cause instanceof Error ? cause.message : "";
@@ -449,6 +605,15 @@ export interface SubscriptionSaveResponse {
   saved: boolean;
   /** Present only when `saved` is false because the write was refused as stale. */
   conflict?: SubscriptionSaveConflict;
+  /**
+   * A fleet-bound record's edit waits in staged-v2 for a plan, or for
+   * plans.publish when no live share can see it (s2-plan section 2.7).
+   */
+  staged?: boolean;
+  staged_revision?: string;
+  base_revision?: string;
+  /** A staged revision this save replaced, which any plan over it can no longer apply. */
+  discarded_staged?: string;
 }
 
 export interface SubscriptionDeleteResponse {
@@ -520,9 +685,16 @@ export interface SubscriptionPreviewResponse {
   /**
    * Set instead of `nodes` when the record is a file. A file is a document, so
    * its preview answers "what will a client receive" rather than "which nodes
-   * survived the filter".
+   * survived the filter". A fleet-bound preview carries both: the nodes, and
+   * the target's document over placeholder credentials.
    */
   document?: string;
+  /**
+   * A fleet-bound preview: every credential field in `document` is a plan
+   * placeholder (LATTICE-SYN-...), because core binds an identity's own
+   * credentials only for a share.
+   */
+  placeholder_credentials?: boolean;
 }
 
 export interface GraphIdentityOption {
@@ -563,6 +735,11 @@ export interface OperatorInfo {
    * mix: the engine skips proxy operators for responses and these for nodes.
    */
   response?: boolean;
+  /**
+   * A Lattice-only step: it reads the fleet block of a fleet node, so the
+   * editor offers it on fleet-bound records only.
+   */
+  fleet?: boolean;
 }
 
 export interface OperatorCatalogResponse {
@@ -601,6 +778,12 @@ export const SOURCE_VPN_CORE_GRAPH = "vpn-core-graph";
 export const SOURCE_REMOTE = "remote";
 /** Nodes pasted by hand. The engine accepts every format it recognises. */
 export const SOURCE_LOCAL = "local";
+/**
+ * An identity-free structured selection over the line catalogue (design 28,
+ * S2). The selection is the record's leading run of Structured Filter
+ * steps; the record names no identity and holds no content.
+ */
+export const SOURCE_FLEET = "fleet";
 
 /** How a combination reacts when a member cannot be fetched. */
 export const FAILURE_STRICT = "strict";
