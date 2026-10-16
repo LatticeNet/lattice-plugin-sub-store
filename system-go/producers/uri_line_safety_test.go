@@ -19,7 +19,7 @@ import (
 // the start of a share link, which is what a feed would append.
 var linkBreaks = map[string]string{
 	"LF": "\nss://YWVzLTEyOC1nY206cA@192.0.2.9:1#x", "CR": "\rx", "CRLF": "\r\nx", "NEL": "\u0085x",
-	"LS": " x", "PS": " x", "VT": "\vx", "FF": "\fx", "tab": "\tx", "NUL": "\x00x", "DEL": "\x7fx",
+	"LS": "\u2028x", "PS": "\u2029x", "VT": "\vx", "FF": "\fx", "tab": "\tx", "NUL": "\x00x", "DEL": "\x7fx",
 }
 
 // URI-form nodes of every scheme, each written in full by the URI producer.
@@ -205,7 +205,7 @@ func stringLeaves(m map[string]any, prefix string, out *[]string) {
 // alone, must leave a URI document and a V2Ray text without a line-breaking
 // character: one link, or nothing.
 func TestURINeverWritesALineBreakFromAField(t *testing.T) {
-	breaks := []string{"\n", "\r", " ", "\u0085"}
+	breaks := []string{"\n", "\r", "\u2028", "\u0085"}
 	mutated := 0
 	for _, c := range produceCases(t) {
 		nodes := decodeNodes(t, c.nodes)
