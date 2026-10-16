@@ -182,13 +182,12 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
         type="button"
         class="button button-secondary button-compact"
         :disabled="loading || denied"
-        :title="t.fleetEditor.retry"
         data-testid="fleet-refresh"
         @click="fleet.retry()"
       >
         <LoaderCircle v-if="loading" :size="14" class="spin" aria-hidden="true" />
         <RotateCw v-else :size="14" aria-hidden="true" />
-        {{ t.fleetEditor.retry }}
+        {{ t.fleetEditor.reread }}
       </button>
     </header>
 

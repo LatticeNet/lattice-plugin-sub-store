@@ -207,7 +207,8 @@ describe("the line row cache", () => {
     const ids = Array.from({ length: 600 }, (_, i) => `line-${i}`);
     await cache.ensure(ids);
     expect(lookup).toHaveBeenCalledTimes(3);
-    for (const call of lookup.mock.calls) expect(call[0].length).toBeLessThanOrEqual(LINE_LOOKUP_BATCH);
+    for (const call of lookup.mock.calls) expect(call[0].length).toBeLessThanOrEqual(256);
+    expect(LINE_LOOKUP_BATCH).toBe(256);
     await cache.ensure(ids.slice(0, 10));
     expect(lookup).toHaveBeenCalledTimes(3);
     expect(cache.get("line-599")?.line_uuid).toBe("line-599");

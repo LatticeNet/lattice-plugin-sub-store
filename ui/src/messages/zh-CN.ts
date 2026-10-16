@@ -1186,6 +1186,7 @@ export const zhCN: Messages = {
     },
     error: { title: "无法读取线路目录" },
     retry: "重试",
+    reread: "重新读取",
     denied: {
       title: "读取线路目录需要 vpncore:read",
       body: "当前会话没有这个权限，所以不显示选取的计数、线路和身份预览。步骤仍可查看和编辑。",

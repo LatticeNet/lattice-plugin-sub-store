@@ -1260,6 +1260,7 @@ export const en = {
     },
     error: { title: "The line catalogue could not be read" },
     retry: "Retry",
+    reread: "Read again",
     denied: {
       title: "Reading the line catalogue needs vpncore:read",
       body: "This session lacks that scope, so the selection's counts, its lines and identity previews are not shown. The steps can still be read and edited.",

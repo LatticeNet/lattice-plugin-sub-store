@@ -718,8 +718,17 @@ const segments = computed(() => ({
 .sp-add:hover { border-color: var(--primary); color: var(--lt-accent-ink); }
 .sp-add:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
+/* At phone width the field takes its own line, so a long field name reads
+   whole ("Состояние службы", "Has a verified DDNS name"), and the operator
+   shares the next line with the row's buttons. */
 @media (max-width: 480px) {
-  .sp-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .sp-row-actions { grid-column: 1 / -1; }
+  .sp-controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "field field" "op actions";
+  }
+
+  .sp-field { grid-area: field; }
+  .sp-op { grid-area: op; }
+  .sp-row-actions { grid-area: actions; }
 }
 </style>
