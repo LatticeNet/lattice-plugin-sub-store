@@ -3,7 +3,7 @@ module github.com/LatticeNet/lattice-plugin-sub-store/system-go
 go 1.26
 
 require (
-	github.com/LatticeNet/lattice-sdk v0.2.24-0.20261016194451-ed4d20579d4f
+	github.com/LatticeNet/lattice-sdk v0.2.24-0.20261016200014-fa444cc3e67f
 	github.com/fastschema/qjs v0.0.6
 	gopkg.in/yaml.v3 v3.0.1
 )
