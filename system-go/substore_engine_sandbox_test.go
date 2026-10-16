@@ -417,7 +417,7 @@ func TestEngineBoundsCatastrophicRegexPerCall(t *testing.T) {
 	if err == nil {
 		t.Fatal("a catastrophic regex completed; the test input no longer backtracks")
 	}
-	if elapsed > engine.limits.Timeout+3*time.Second {
+	if elapsed > engine.limits.Timeout+boundedCallSlack(engine) {
 		t.Fatalf("the call ran %s against a %s budget", elapsed, engine.limits.Timeout)
 	}
 	if after, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || after.NodeCount != 1 {
@@ -425,19 +425,31 @@ func TestEngineBoundsCatastrophicRegexPerCall(t *testing.T) {
 	}
 }
 
-// boundedCallEngine is an engine with a per-call budget short enough for a
-// test to wait out and long enough to load the core, which an ordinary call
-// proves before the test spends the budget on a call that must outlast it;
-// without that proof a failed call could be the core load and not the input.
-// The one-time compile happens before any call's deadline starts.
+// boundedCallEngine is an engine whose per-call budget is short enough for a
+// test to wait out and long enough to load the core: three times what an
+// ordinary call takes on this machine, and at least 4 s, so the budget
+// follows the race detector and a loaded runner rather than a constant. Only
+// the input under test can then outlast it, never the core load. The one-time
+// compile is paid first, outside the measurement, as it is outside every
+// call's deadline.
 func boundedCallEngine(t *testing.T) *subStoreEngine {
 	t.Helper()
 	engine := newTestEmbeddedSubStoreEngine()
-	engine.limits.Timeout = 6 * time.Second
-	if out, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || out.NodeCount != 1 {
-		t.Fatalf("an ordinary call does not fit the %s budget: nodes=%d err=%v", engine.limits.Timeout, out.NodeCount, err)
+	if len(engine.ensureCoreBytecode()) == 0 {
+		t.Fatal("the core did not compile")
 	}
+	start := time.Now()
+	if out, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || out.NodeCount != 1 {
+		t.Fatalf("an ordinary call failed: nodes=%d err=%v", out.NodeCount, err)
+	}
+	engine.limits.Timeout = max(4*time.Second, 3*time.Since(start))
 	return engine
+}
+
+// boundedCallSlack is how far past its budget a bounded call may end: the
+// closed module's panic, its recovery and the runtime's close.
+func boundedCallSlack(engine *subStoreEngine) time.Duration {
+	return max(3*time.Second, engine.limits.Timeout/3)
 }
 
 // largeFlowYAML is an ordinary Clash document, n proxies in flow style. The
@@ -463,7 +475,7 @@ func TestEngineBoundsHugeYAMLPerCall(t *testing.T) {
 	if err == nil {
 		t.Fatal("5000 flow-style nodes parsed inside the budget; the test input no longer outlasts it")
 	}
-	if elapsed > engine.limits.Timeout+3*time.Second {
+	if elapsed > engine.limits.Timeout+boundedCallSlack(engine) {
 		t.Fatalf("the call ran %s against a %s budget", elapsed, engine.limits.Timeout)
 	}
 	if after, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || after.NodeCount != 1 {
