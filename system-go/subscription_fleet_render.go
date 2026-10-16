@@ -467,9 +467,11 @@ func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.
 // added.
 //
 // The plan is encoded by appendSelectionPlan, byte for byte what json.Marshal
-// writes, and validated against that encoding (ValidateEncoded: one pass for
-// the whole plan in place of one per node). A plan that does not encode is
-// judged by Validate, which refuses it with the words it always used.
+// writes, and validated without a scan per node: when every node is
+// canonical (which the plugin's own writer guarantees) by
+// ValidateWellFormedNodes, otherwise against the encoding (ValidateEncoded,
+// one pass for the whole plan). A plan that does not encode is judged by
+// Validate, which refuses it with the words it always used.
 func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
 	hint := 64
 	for _, node := range plan.Nodes {
@@ -478,14 +480,30 @@ func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
 	if plan.Selection != nil {
 		hint += 40 * len(plan.Selection.LineUUIDs)
 	}
-	raw, err := appendSelectionPlan(make([]byte, 0, hint), plan)
+	// Each node is checked canonical in parallel; a canonical node is well
+	// formed and free of duplicate keys, so a plan of canonical nodes is
+	// validated without scanning its encoding again.
+	canonical := make([]bool, len(plan.Nodes))
+	parallelRange(len(plan.Nodes), func(i int) {
+		canonical[i] = canonicalRawJSON(plan.Nodes[i].Node)
+	})
+	raw, err := appendSelectionPlanChecked(make([]byte, 0, hint), plan, canonical)
 	if err != nil {
 		if verr := plan.Validate(); verr != nil {
 			err = verr
 		}
 		return nil, err
 	}
-	if err := plan.ValidateEncoded(raw); err != nil {
+	allCanonical := true
+	for _, ok := range canonical {
+		allCanonical = allCanonical && ok
+	}
+	if allCanonical {
+		err = plan.ValidateWellFormedNodes()
+	} else {
+		err = plan.ValidateEncoded(raw)
+	}
+	if err != nil {
 		return nil, err
 	}
 	if len(raw) > model.MaxRenderPlanBytes {

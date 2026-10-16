@@ -20,6 +20,17 @@ import (
 // set only for a node that is not valid JSON, which json.Marshal refuses
 // too.
 func appendSelectionPlan(dst []byte, plan model.SelectionPlan) ([]byte, error) {
+	canonical := make([]bool, len(plan.Nodes))
+	for i, node := range plan.Nodes {
+		canonical[i] = canonicalRawJSON(node.Node)
+	}
+	return appendSelectionPlanChecked(dst, plan, canonical)
+}
+
+// appendSelectionPlanChecked is appendSelectionPlan with each node's
+// canonicalRawJSON already answered, so a caller can answer them in
+// parallel.
+func appendSelectionPlanChecked(dst []byte, plan model.SelectionPlan, canonical []bool) ([]byte, error) {
 	dst = append(dst, `{"kind":`...)
 	dst = appendCanonicalString(dst, plan.Kind)
 	dst = append(dst, `,"nodes":`...)
@@ -32,7 +43,7 @@ func appendSelectionPlan(dst []byte, plan model.SelectionPlan) ([]byte, error) {
 				dst = append(dst, ',')
 			}
 			var err error
-			if dst, err = appendSelectionPlanNode(dst, node); err != nil {
+			if dst, err = appendSelectionPlanNode(dst, node, canonical[i]); err != nil {
 				return nil, err
 			}
 		}
@@ -76,7 +87,7 @@ func appendSelectionPlan(dst []byte, plan model.SelectionPlan) ([]byte, error) {
 	return append(dst, '}'), nil
 }
 
-func appendSelectionPlanNode(dst []byte, node model.SelectionPlanNode) ([]byte, error) {
+func appendSelectionPlanNode(dst []byte, node model.SelectionPlanNode, canonical bool) ([]byte, error) {
 	dst = append(dst, '{')
 	comma := false
 	if node.LineUUID != "" {
@@ -119,7 +130,7 @@ func appendSelectionPlanNode(dst []byte, node model.SelectionPlanNode) ([]byte, 
 		// A nil json.RawMessage marshals as null; an empty one is refused
 		// below, as json.Marshal refuses it.
 		dst = append(dst, "null"...)
-	case canonicalRawJSON(node.Node):
+	case canonical:
 		dst = append(dst, node.Node...)
 	default:
 		var compacted bytes.Buffer
