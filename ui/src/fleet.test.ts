@@ -43,6 +43,8 @@ describe("a mutating method's refusal", () => {
   it("is recognised from the successful reply, never from an error", () => {
     expect(isRefused(refused)).toBe(true);
     expect(isRefused({ saved: true, subscription: {} })).toBe(false);
+    // A write that landed is never read as refused, whatever else rides along.
+    expect(isRefused({ saved: true, refused: { code: "kv_conflict", message: "m" } })).toBe(false);
     expect(isRefused({ saved: false, conflict: { id: "x", reason: "stale" } })).toBe(false);
     expect(isRefused({ saved: false, refused: { code: "", message: "" } })).toBe(false);
     expect(isRefused(null)).toBe(false);

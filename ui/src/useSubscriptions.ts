@@ -8,6 +8,7 @@ import {
   errorCodeOf,
   ERROR_REGEX_INCOMPATIBLE,
   ERROR_STORE_MIGRATION_REQUIRED,
+  isRefused,
   MIGRATE_STORE_CHUNK,
   MIGRATE_STORE_MAX_CALLS,
   migrationProgress,
@@ -18,6 +19,7 @@ import {
   SOURCE_VPN_CORE_GRAPH,
   SOURCE_REMOTE,
   SOURCE_LOCAL,
+  SOURCE_FLEET,
   FAILURE_STRICT,
   KIND_SUB,
   KIND_COLLECTION,
@@ -48,6 +50,7 @@ import { regexDiagnostics, type RegexDiagnostic } from "./regexRewrite";
 import { conflictChanges, conflictSummary, type FieldChange } from "./recordConflict";
 import { deletedNotice } from "./recordActions";
 import { filePreviewSupport } from "./filePreview";
+import { normalizeFleetOptions, refusalMessage, type FleetOptions } from "./fleet";
 import type { HostContext } from "./host";
 import { formatBytes, t } from "./i18n";
 import { safeErrorMessage } from "./subStoreModel";
@@ -542,6 +545,27 @@ export function useSubscriptions(host: HostContext) {
   }
 
   /**
+   * Why a save was refused, in the operator's words, from either channel: the
+   * structured `{saved: false, refused}` reply a mutating method answers with
+   * since S2 (s2-plan section 2.6), or an error from a build before it. A
+   * pattern the native engine cannot run also sets `saveRefusal`, so the
+   * editor offers the rewrite whichever channel said so.
+   */
+  function refusedSave(cause: unknown, draft: SubscriptionDraft, id: string): string {
+    if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
+      const diagnostics = regexDiagnostics(draft.process);
+      const steps = [...new Set(diagnostics.map((entry) => entry.step))];
+      const reason = isRefused(cause)
+        ? safeErrorMessage(new Error(cause.refused.message), t.subs.regexFallback)
+        : safeErrorMessage(cause, t.subs.regexFallback);
+      const message = steps.length ? t.subs.regexRefused(steps) : t.subs.regexRefusedReason(reason);
+      saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics, message };
+      return message;
+    }
+    return migrationRefusal(cause) || (isRefused(cause) ? refusalMessage(cause.refused, id, items.value) : safeErrorMessage(cause, t.subs.saveFailed));
+  }
+
+  /**
    * A reload that fails behind a successful write must not replace the list.
    *
    * `load()` runs again after save, delete and refresh. When that trailing read
@@ -621,8 +645,11 @@ export function useSubscriptions(host: HostContext) {
    * check, which is the operator's explicit "mine wins" after they have been
    * shown what they would be replacing. It is never the default and never
    * automatic.
+   *
+   * `fleet` is the record's binding rules (s2-plan section 2.1), which the
+   * record editor carries on its draft.
    */
-  async function save(draft: SubscriptionDraft, force = false): Promise<boolean> {
+  async function save(draft: SubscriptionDraft & { fleet?: FleetOptions }, force = false): Promise<boolean> {
     if (!host.bridge || !canMutate.value || saving.value) return false;
     saveConflict.value = null;
     saveRefusal.value = null;
@@ -703,6 +730,11 @@ export function useSubscriptions(host: HostContext) {
             ? parseArguments(draft.argumentsText)
             : undefined,
         process: draft.process.length ? draft.process : undefined,
+        // The binding rules belong to a fleet record and to a combination;
+        // the plugin keeps a combination's only while it gathers a fleet
+        // record. The store writes the record as sent, so leaving them out
+        // here would drop the rules on every save.
+        fleet: collection || (!file && draft.source === SOURCE_FLEET) ? normalizeFleetOptions(draft.fleet) : undefined,
       };
       // The conditional write. `if_revision` is the fingerprint the record
       // carried when it was read, so the backend can refuse a save whose target
@@ -729,6 +761,10 @@ export function useSubscriptions(host: HostContext) {
         };
         return false;
       }
+      if (isRefused(response)) {
+        actionError.value = refusedSave(response, draft, record.id);
+        return false;
+      }
       if (!response.saved) {
         actionError.value = t.subs.saveUnconfirmed;
         return false;
@@ -742,17 +778,7 @@ export function useSubscriptions(host: HostContext) {
       await load();
       return true;
     } catch (cause) {
-      if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
-        const diagnostics = regexDiagnostics(draft.process);
-        const steps = [...new Set(diagnostics.map((entry) => entry.step))];
-        const message = steps.length
-          ? t.subs.regexRefused(steps)
-          : t.subs.regexRefusedReason(safeErrorMessage(cause, t.subs.regexFallback));
-        saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics, message };
-        actionError.value = message;
-        return false;
-      }
-      actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, t.subs.saveFailed);
+      actionError.value = refusedSave(cause, draft, draft.id.trim());
       return false;
     } finally {
       saving.value = false;
@@ -1106,6 +1132,12 @@ export function useSubscriptions(host: HostContext) {
       const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {
         subscription: copy,
       }).promise;
+      if (isRefused(response)) {
+        // A copy of a record that serves owner credentials is a new record
+        // of a retired source (legacy_source_retired), among others.
+        actionError.value = migrationRefusal(response) || refusalMessage(response.refused, copy.id, items.value);
+        return null;
+      }
       if (!response.saved) {
         actionError.value = t.subs.copyUnconfirmed;
         return null;

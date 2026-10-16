@@ -1384,6 +1384,31 @@ export const en = {
       title: "Output withheld",
       body: "This record serves line owner credentials, so its output is shown only to its share holders. Migrate it to fleet to preview it here.",
     },
+    /**
+     * A write the store refused, read from its structured reply (s2-plan
+     * section 2.6). `codes` holds one sentence per refusal code; the lists
+     * name the other records the refusal is about.
+     */
+    refusal: {
+      notSaved: (reason: string) => `Not saved: ${reason}`,
+      records: (ids: string) => `Records: ${ids}.`,
+      collections: (ids: string) => `Combinations: ${ids}.`,
+      files: (ids: string) => `Files: ${ids}.`,
+      revision: (revision: string) => `Staged revision ${revision}.`,
+      codes: {
+        fleet_to_legacy_refused: "a fleet-bound record cannot take a source that serves owner credentials, or gather a record that does.",
+        legacy_source_retired: "new records cannot use a source that serves owner credentials. Choose Fleet lines instead.",
+        fleet_mixed_owner_credentials: "a combination cannot gather fleet records together with records that serve owner credentials. Migrate those records to fleet first.",
+        fleet_file_unavailable: "this change would make a file read fleet lines. Fleet-bound files arrive in a later release.",
+        fleet_script_link_unavailable: "a fleet-bound record cannot run a script fetched by link. Paste the script inline.",
+        promotion_pending: "this record is being promoted to a new revision. The next refresh completes it; save again after that.",
+        staged_revision_mismatch: "the staged revision changed since the list was read. Reload the list and try again.",
+        store_inconsistent: "the store's index and its records disagree about this record. Repair the store (migrate_store with rebuild), then save again.",
+        kv_conflict: "the record index changed twice while this save ran. Nothing was written; save again.",
+        structured_args_invalid: "a Structured step has arguments it does not accept. Open the step to correct them.",
+        fleet_probe_unavailable: "a probe condition cannot be saved while this server has no probe data.",
+      },
+    },
     line: {
       title: "Line",
       loading: "Reading the line",

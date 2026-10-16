@@ -18,8 +18,10 @@
  * carries placeholders, and bind.preview's entries carry no credential
  * field.
  */
+import type { MutationRefusal } from "./client";
 import type { BindExclusion, BindPreviewReply, PlanStatusRow } from "./core-types";
 import { t } from "./i18n";
+import { safeErrorMessage } from "./subStoreModel";
 
 export type { BindEntry, BindExclusion, BindPreviewReply } from "./core-types";
 
@@ -81,6 +83,46 @@ export function fleetOptionsProblem(options: FleetOptions | undefined): FleetOpt
   const usage = options?.usage_exclusion;
   if (usage?.enabled && !(Number.isInteger(usage.max_bytes_per_line) && usage.max_bytes_per_line > 0)) return "usagePositive";
   return "";
+}
+
+// ── a refused write, in the operator's words (s2-plan section 2.6) ──────────
+
+/** The refusal codes a write can answer with that have their own sentence. */
+export type RefusalCode = keyof typeof t.fleetEditor.refusal.codes;
+
+/**
+ * A mutating method's structured refusal as one line beside Save: the code's
+ * sentence, then the records, files and collections it names other than
+ * `self` (the record being written), each by the name the Records table
+ * shows when `records` holds it, then the staged revision it names. A code
+ * without a sentence here shows the plugin's message, which is fixed text
+ * with ids, revisions and codes, run through the same link redaction as any
+ * other error.
+ */
+export function refusalMessage(
+  refused: MutationRefusal,
+  self = "",
+  records: readonly { id: string; name?: string; display_name?: string }[] = [],
+): string {
+  const words = t.fleetEditor.refusal;
+  const sentence = (words.codes as Record<string, string | undefined>)[refused.code];
+  if (!sentence) return words.notSaved(safeErrorMessage(new Error(refused.message), refused.code));
+  const besides = (list: string[] | undefined, skip: ReadonlySet<string>) =>
+    [...new Set((list ?? []).filter((id) => id && id !== self && !skip.has(id)))];
+  const files = besides(refused.files, new Set());
+  const collections = besides(refused.collections, new Set());
+  const others = besides(refused.ids, new Set([...files, ...collections]));
+  const named = (ids: string[]) =>
+    ids.map((id) => {
+      const found = records.find((entry) => entry.id === id);
+      return found?.display_name || found?.name || id;
+    }).join(", ");
+  const parts = [sentence];
+  if (others.length) parts.push(words.records(named(others)));
+  if (collections.length) parts.push(words.collections(named(collections)));
+  if (files.length) parts.push(words.files(named(files)));
+  if (refused.staged_revision) parts.push(words.revision(refused.staged_revision));
+  return words.notSaved(parts.join(" "));
 }
 
 // ── the two Lattice-only steps (s2-plan section 2.4) ────────────────────────

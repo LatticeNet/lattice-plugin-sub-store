@@ -29,6 +29,8 @@ import { TABLES, m, type Locale } from "./messages";
  *   transformer refused  fleet_response_chain_unavailable
  *   shadowsocks dropped  lines core cannot bind, named
  *   long names           CJK and long Latin labels, no horizontal scroll
+ *   refused save         a structured {saved: false, refused} reply, said
+ *                        beside Save with the records it names
  */
 
 const CLOCK = "2026-10-09T08:00:00Z";
@@ -75,6 +77,20 @@ async function seriousViolations(page: Page): Promise<string[]> {
 }
 
 const docWidth = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth);
+
+/** The line beside Save when a combination would gather the legacy export (fleet_mixed_owner_credentials). */
+function mixedRefusal(t: (typeof TABLES)[Locale]): string {
+  const words = t.fleetEditor.refusal;
+  return words.notSaved(`${words.codes.fleet_mixed_owner_credentials} ${words.records(`${ASIA}, ${LEGACY}`)}`);
+}
+
+/** Ticks the legacy export into the open combination and saves; the 0.18 harness refuses it. */
+async function saveMixedCombination(page: Page, t: (typeof TABLES)[Locale]): Promise<void> {
+  // Ticking moves the row into the chosen list, so the box is clicked, not checked.
+  await page.locator(".picker-rest .row", { hasText: LEGACY }).locator("input[type=checkbox]").click();
+  await expect(page.locator(".picker-chosen", { hasText: LEGACY })).toBeVisible();
+  await page.getByRole("button", { name: t.editor.save, exact: true }).click();
+}
 
 async function previewIdentity(page: Page, name: string): Promise<void> {
   await page.getByTestId("identity-row").filter({ hasText: name }).locator("input[type=radio]").check();
@@ -154,6 +170,17 @@ for (const viewport of VIEWPORTS) {
         await expect(notBound.getByTestId("bind-excluded")).toHaveCount(5);
         await notBound.getByRole("button", { name: m.fleetEditor.bind.showMore(16) }).click();
         await expect(notBound.getByTestId("bind-excluded")).toHaveCount(21);
+        expect(await seriousViolations(page)).toEqual([]);
+      });
+
+      test("refused save: the store's structured refusal is said beside Save", async ({ page }) => {
+        await openRecord(page, COMBINATION, { theme });
+        await saveMixedCombination(page, m);
+        await expect(page.locator(".editor-actions .field-error")).toHaveText(mixedRefusal(m));
+        // The editor stays open on the refused draft, and nothing reads "unconfirmed".
+        await expect(page.locator("#editor-title")).toBeVisible();
+        await expect(page.getByText(m.subs.saveUnconfirmed)).toHaveCount(0);
+        expect(await docWidth(page)).toBeLessThanOrEqual(viewport.width);
         expect(await seriousViolations(page)).toEqual([]);
       });
     });
@@ -415,6 +442,62 @@ test.describe("1440 review fixes", () => {
   });
 });
 
+test.describe("1440 saving keeps the binding rules", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  /** openRecord's path without reloading the page, so the harness keeps what was saved. */
+  async function reopen(page: Page, name: string): Promise<void> {
+    await page.locator(".row-open", { hasText: name }).first().click();
+    await page.locator(".pc-side-panel").getByRole("button", { name: m.actions.edit }).click();
+    await page.locator("#editor-title").waitFor();
+    await page.getByRole("tab", { name: new RegExp(`^${m.editor.tabs.content}`) }).click();
+  }
+
+  async function saveAndClose(page: Page): Promise<void> {
+    await page.getByRole("button", { name: m.editor.save, exact: true }).click();
+    await expect(page.locator("#editor-title")).toHaveCount(0);
+  }
+
+  test("an edit to something else keeps the stored rules", async ({ page }) => {
+    await openRecord(page, ASIA);
+    await page.getByRole("tab", { name: new RegExp(`^${m.editor.tabs.display}`) }).click();
+    await page.getByPlaceholder(m.editor.displayNamePlaceholder, { exact: true }).fill(`${ASIA}, Tokyo first`);
+    await saveAndClose(page);
+    await reopen(page, `${ASIA}, Tokyo first`);
+    await expect(page.getByTestId("rule-probe")).toBeChecked();
+    await expect(page.getByTestId("rule-usage")).toBeChecked();
+    await expect(page.getByTestId("rule-usage-amount")).toHaveValue("50");
+  });
+
+  test("a changed rule is saved, beside the ones left alone", async ({ page }) => {
+    await openRecord(page, ASIA);
+    await page.getByTestId("rule-ddns").check();
+    await saveAndClose(page);
+    await reopen(page, ASIA);
+    await expect(page.getByTestId("rule-ddns")).toBeChecked();
+    await expect(page.getByTestId("rule-probe")).toBeChecked();
+    await expect(page.getByTestId("rule-usage-amount")).toHaveValue("50");
+  });
+
+  test("a combination keeps its own rules through a save", async ({ page }) => {
+    await openRecord(page, COMBINATION);
+    await page.getByTestId("rule-usage").check();
+    await saveAndClose(page);
+    await reopen(page, COMBINATION);
+    await expect(page.getByTestId("rule-ddns")).toBeChecked();
+    await expect(page.getByTestId("rule-usage")).toBeChecked();
+  });
+
+  test("a copy the store refuses says why", async ({ page }) => {
+    await openList(page);
+    await page.locator('[data-row-menu="self-export"] button').first().click();
+    await page.getByRole("menu").getByRole("menuitem", { name: m.actions.duplicate }).click();
+    const words = m.fleetEditor.refusal;
+    await expect(page.getByText(words.notSaved(words.codes.legacy_source_retired)).first()).toBeVisible();
+    await expect(page.getByText(m.subs.copyUnconfirmed)).toHaveCount(0);
+  });
+});
+
 for (const locale of ["zh-CN", "ru"] as const) {
   test.describe(`${locale}`, () => {
     for (const viewport of VIEWPORTS) {
@@ -429,6 +512,16 @@ for (const locale of ["zh-CN", "ru"] as const) {
         await expect(page.getByTestId("binding-rules")).toContainText(t.fleetEditor.rules.title);
         await previewIdentity(page, "dave-contractor");
         await expect(page.getByTestId("bind-inactive")).toHaveText(t.fleetEditor.bind.inactive.expired);
+        expect(await docWidth(page)).toBeLessThanOrEqual(viewport.width);
+        expect(await seriousViolations(page)).toEqual([]);
+      });
+
+      test(`${viewport.width}: a refused save is said in ${locale}`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        const t = TABLES[locale];
+        await openRecord(page, COMBINATION, { locale });
+        await saveMixedCombination(page, t);
+        await expect(page.locator(".editor-actions .field-error")).toHaveText(mixedRefusal(t));
         expect(await docWidth(page)).toBeLessThanOrEqual(viewport.width);
         expect(await seriousViolations(page)).toEqual([]);
       });

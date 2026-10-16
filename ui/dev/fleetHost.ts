@@ -344,6 +344,38 @@ function fleetPreviewResult(rows: CatalogueRow[], target: string, provider: { na
   };
 }
 
+const LEGACY_SOURCES = new Set(["vpn-core", "vpn-core-graph"]);
+
+/**
+ * The record rules the 0.18 plugin refuses a save with that the editor does
+ * not pre-empt, with the plugin's fixed messages (system-go
+ * subscription_store.go applyFleetWriteRules). Explicit members only; a
+ * combination's member tags are not played here.
+ */
+function writeRefusal(rec: FleetRecord, records: FleetRecord[]): Record<string, unknown> | null {
+  const stored = records.find((entry) => entry.id === rec.id);
+  if (rec.kind !== "collection" && rec.kind !== "file" && LEGACY_SOURCES.has(rec.source ?? "")) {
+    if (stored?.source === "fleet") {
+      return { code: "fleet_to_legacy_refused", ids: [rec.id], message: `record "${rec.id}" is fleet-bound and cannot take the ${rec.source} source; its identity shares would receive the owner-credential export` };
+    }
+    if (!LEGACY_SOURCES.has(stored?.source ?? "")) {
+      return { code: "legacy_source_retired", ids: [rec.id], message: `record "${rec.id}" cannot take the ${rec.source} source: new owner-credential records are retired; use a fleet record` };
+    }
+  }
+  if (rec.kind === "collection") {
+    const members = (rec.members ?? []).map((id) => records.find((entry) => entry.id === id)).filter((entry): entry is FleetRecord => Boolean(entry));
+    const fleet = members.filter((member) => member.source === "fleet").map((member) => member.id);
+    const legacy = members.filter((member) => LEGACY_SOURCES.has(member.source ?? "")).map((member) => member.id);
+    if (fleet.length && legacy.length) {
+      return {
+        code: "fleet_mixed_owner_credentials", ids: [...fleet, ...legacy], collections: [rec.id],
+        message: `collection "${rec.id}" would gather the fleet records ${fleet.join(", ")} and the legacy records ${legacy.join(", ")}; core serves a collection's provider nodes to every identity, so a legacy member would hand out owner credentials`,
+      };
+    }
+  }
+  return null;
+}
+
 /** Plugs the fleet answers into the harness's handler table. */
 export function installFleet(handlers: Record<string, (payload: any) => unknown>, records: FleetRecord[]): void {
   const hold = <T>(): Promise<T> => new Promise<T>(() => {});
@@ -427,6 +459,26 @@ export function installFleet(handlers: Record<string, (payload: any) => unknown>
       ...(refused ? { refused } : {}),
       fleet_nodes: fleetNodes,
     };
+  };
+
+  // 0.18 answers a refused write as a successful {saved: false, refused}
+  // reply (s2-plan section 2.6), because the gateway replaces a mutating
+  // method's error text with one fixed string; the strict compile's
+  // regex_incompatible and an unmigrated store travel the same way.
+  const save = handlers["subscription/save"]!;
+  handlers["subscription/save"] = (payload: { subscription: FleetRecord }) => {
+    if (!s2Manifest()) return save(payload);
+    const refused = writeRefusal(payload.subscription, records);
+    if (refused) return { saved: false, refused };
+    try {
+      return save(payload);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : "";
+      const code = /^(regex_incompatible|store_migration_required): /.exec(message)?.[1];
+      if (!code) throw cause;
+      const ids = code === "regex_incompatible" ? { ids: [payload.subscription.id] } : {};
+      return { saved: false, refused: { code, ...ids, message: message.slice(code.length + 2) } };
+    }
   };
 
   const list = handlers["subscription/list"]!;
