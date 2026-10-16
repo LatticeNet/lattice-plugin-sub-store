@@ -393,14 +393,6 @@ func sweepBoundNodes(t *testing.T, encoded json.RawMessage) []json.RawMessage {
 	return nodes
 }
 
-// panicMarshaler panics while a node is encoded, with the identity's
-// credentials in the panic value.
-type panicMarshaler struct{}
-
-func (panicMarshaler) MarshalJSON() ([]byte, error) {
-	panic("encoding " + sweepIdentityUUID + ":" + sweepIdentityPassword + " for " + sweepIdentityUser)
-}
-
 func TestCredentialAbsenceSweep(t *testing.T) {
 	freshFleetPlans(t)
 	host := &sweepHost{fleetCatalogueHost: newFleetCatalogueHost(sweepRows())}
@@ -592,14 +584,20 @@ func TestCredentialAbsenceSweep(t *testing.T) {
 		t.Errorf("%d calls reached the legacy export or compose", host.legacyCalls)
 	}
 
-	// A panic inside the engine while it holds the credentials.
-	node := &nodemodel.Node{Fields: map[string]any{"type": "vless", "name": "n", "server": "198.51.100.1", "port": 443, "uuid": sweepIdentityUUID, "x": panicMarshaler{}}}
-	_, err = testEngineWithHeadroom().processNodes([]*nodemodel.Node{node}, []json.RawMessage{rename}, "sing-box")
-	if err == nil {
-		t.Fatal("the forced panic did not surface as an error")
+	// A panic inside the engine while it holds the credentials: a nil node
+	// after a credentialed one panics in processNodes, under the engine's
+	// recover, which must surface only the redacted form. The redactor is
+	// also handed a panic value that carries the credential set, which is
+	// what a panic raised over a node's fields would carry.
+	node := &nodemodel.Node{Fields: map[string]any{"type": "vless", "name": "n", "server": "198.51.100.1", "port": 443, "uuid": sweepIdentityUUID, "password": sweepIdentityPassword}}
+	_, err = testEngineWithHeadroom().processNodes([]*nodemodel.Node{node, nil}, []json.RawMessage{rename}, "sing-box")
+	if err == nil || !strings.Contains(err.Error(), "panic_sha256=") {
+		t.Fatalf("the forced panic surfaced as %v, not the redacted engine panic", err)
 	}
-	if found := allCredentials.find([]byte(err.Error())); len(found) != 0 {
-		t.Errorf("the engine's panic error carries %v: %s", found, err)
+	for _, perr := range []error{err, redactSubStoreEnginePanic("encoding " + sweepIdentityUUID + ":" + sweepIdentityPassword + " for " + sweepIdentityUser + " " + sweepOwnerUUID)} {
+		if found := allCredentials.find([]byte(perr.Error())); len(found) != 0 || !strings.Contains(perr.Error(), "panic_sha256=") {
+			t.Errorf("the engine's panic error carries %v: %s", found, perr)
+		}
 	}
 	t.Logf("swept %d frames from %d invocations and %d KV values", len(f.frames), n, len(host.values))
 }
