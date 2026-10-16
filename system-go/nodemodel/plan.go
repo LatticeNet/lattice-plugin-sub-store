@@ -157,8 +157,8 @@ func (n *Node) appendPlanNodeFromMap(block map[string]any) ([]byte, error) {
 // error. Errors name the key and never quote a value: a bound node carries
 // the identity's credential.
 func (n *Node) UnmarshalPlanNode(data []byte) error {
-	var fields map[string]any
-	if err := json.Unmarshal(data, &fields); err != nil {
+	fields, err := unmarshalObject(data)
+	if err != nil {
 		return err
 	}
 	if fields == nil {
