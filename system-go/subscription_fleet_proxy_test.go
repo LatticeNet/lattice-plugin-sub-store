@@ -70,10 +70,13 @@ func (h *selectingCatalogueHost) call(method string, params any) (json.RawMessag
 	}
 	h.calls++
 	h.requests = append(h.requests, request)
-	var selected []model.LineCatalogueRow
+	// selected holds indexes into h.rows, so a page call copies only the
+	// rows it answers: copying every selected row on each of a 10000-row
+	// preview's page calls allocated more than the plugin under test.
+	selected := make([]int, 0, len(h.rows))
 	for i := range h.rows {
 		if request.Selector == nil || model.LineCatalogueSelectorMatches(&h.rows[i], request.Selector, proxyTestNow) {
-			selected = append(selected, h.rows[i])
+			selected = append(selected, i)
 		}
 	}
 	if request.Selector != nil && len(request.Selector.LineUUIDs) > 0 {
@@ -83,10 +86,10 @@ func (h *selectingCatalogueHost) call(method string, params any) (json.RawMessag
 		for i, id := range request.Selector.LineUUIDs {
 			order[id] = i
 		}
-		ordered := make([]model.LineCatalogueRow, len(request.Selector.LineUUIDs))
+		ordered := make([]int, len(request.Selector.LineUUIDs))
 		found := make([]bool, len(ordered))
 		for _, row := range selected {
-			if at, ok := order[row.LineUUID]; ok {
+			if at, ok := order[h.rows[row].LineUUID]; ok {
 				ordered[at], found[at] = row, true
 			}
 		}
@@ -110,7 +113,10 @@ func (h *selectingCatalogueHost) call(method string, params any) (json.RawMessag
 		limit = model.MaxLineCataloguePageRows
 	}
 	end := min(start+limit, len(selected))
-	page := model.LineCatalogueResponse{CatalogueVersion: version, Rows: append([]model.LineCatalogueRow{}, selected[start:end]...)}
+	page := model.LineCatalogueResponse{CatalogueVersion: version, Rows: make([]model.LineCatalogueRow, 0, max(end-start, 0))}
+	for _, row := range selected[min(start, end):end] {
+		page.Rows = append(page.Rows, h.rows[row])
+	}
 	if start == 0 {
 		page.SelectorFields = h.advertised
 		if page.SelectorFields == nil {
