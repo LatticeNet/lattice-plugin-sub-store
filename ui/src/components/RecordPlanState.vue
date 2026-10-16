@@ -8,7 +8,7 @@ import { useHost } from "../host";
 import { t } from "../i18n";
 import { useLensChrome } from "../lensChrome";
 import { hostOriginFromHash, postNavigate } from "../navigate";
-import { currentPlan, decoyShares, mixedBlock, recordName, type PlanShareRow } from "../planFlow";
+import { currentPlan, decoyShares, mixedBlock, pendingDelete, recordName, type PlanShareRow } from "../planFlow";
 import type { ActionId } from "../recordActions";
 import { recordIntent } from "../recordIntent";
 import { useSubscriptions } from "../useSubscriptions";
@@ -51,7 +51,8 @@ const plans = computed(() => subs.plansByRecord.value[props.id]);
 const plan = computed(() => {
   const item = record.value;
   if (!item || !plans.value) return undefined;
-  const found = currentPlan(plans.value, item);
+  // A delete waiting on the record is said first: it drops a staged revision and its promote plan with the record.
+  const found = pendingDelete(plans.value, item) ?? currentPlan(plans.value, item);
   // A plan over another record whose closure holds this one is that record's to say.
   return found && (found.subscription_id === item.id || item.staged_revision) ? found : undefined;
 });
@@ -84,7 +85,7 @@ function openApprovals(approvalId: string): void {
         :can-propose="subs.canPropose.value"
         :can-open-approvals="!!shareOrigin"
         @refresh="subs.loadPlans([id], true)"
-        @propose-again="handOver('publish-staged', id)"
+        @propose-again="handOver(plan.action === 'delete' ? 'delete' : 'publish-staged', id)"
         @propose-rest="handOver('publish-staged', id)"
         @open-approvals="openApprovals"
       />

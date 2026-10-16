@@ -20,6 +20,9 @@
  *   bind      core serves bind_selection (operator decision 8 taken)
  *   sibling   the first migrate_record of home-graph, the sibling staged
  *             with relay-graph, fails; a retry stages it
+ *   applied   a plan proposed in this sitting reads as approved and
+ *             applied the next time its status is read (Check again)
+ *   rejected  the same plan reads as rejected by the approver, not stale
  *
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
@@ -29,11 +32,11 @@ import type { PlanShare } from "./planFixtures";
 import { CATALOGUE_VERSION, catalogueRows } from "./fleetFixtures";
 import { s2Manifest } from "./fleetHost";
 
-export type PlansHarnessState = "ok" | "denied" | "large" | "failed" | "promoted" | "partial" | "stale" | "closure" | "bind" | "sibling";
+export type PlansHarnessState = "ok" | "denied" | "large" | "failed" | "promoted" | "partial" | "stale" | "closure" | "bind" | "sibling" | "applied" | "rejected";
 
 export function plansState(): PlansHarnessState {
   const asked = new URLSearchParams(window.location.search).get("plans");
-  const known: PlansHarnessState[] = ["ok", "denied", "large", "failed", "promoted", "partial", "stale", "closure", "bind", "sibling"];
+  const known: PlansHarnessState[] = ["ok", "denied", "large", "failed", "promoted", "partial", "stale", "closure", "bind", "sibling", "applied", "rejected"];
   return (known as string[]).includes(asked ?? "") ? (asked as PlansHarnessState) : "ok";
 }
 
@@ -54,6 +57,7 @@ const LEGACY = new Set(["vpn-core", "vpn-core-graph"]);
 const STALE_STAGED = "the staged revision this plan publishes was replaced or discarded since it was proposed; propose the new one";
 const STALE_CLOSURE = "the records this plan covers changed since it was proposed: a collection started or stopped reading one of them; propose it again";
 const FAILED = "apply_revision failed; the record may have been promoted: list shows its live revision. Propose again if it was not";
+const REJECTED = "rejected by the approver: the identity should not receive these lines";
 
 interface Staged {
   revision: string;
@@ -416,10 +420,42 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     if (approval_id) {
       const row = plans.find((plan) => plan.approval_id === approval_id);
       if (!row) throw new Error("not_found: plan not found");
+      // ?plans=applied and ?plans=rejected: the approver has decided a plan proposed in this sitting.
+      if (row.status === "pending" && texts.has(row.approval_id) && (state === "applied" || state === "rejected")) decide(row);
       return { plans: [strip(row)] };
     }
     return { plans: plans.filter((plan) => plan.subscription_id === subscription_id || plan.closure.includes(subscription_id ?? "")).map(strip) };
   };
+
+  /** The approver's decision, as core records it: applied writes what the plan says; rejected changes nothing. */
+  function decide(row: PlanRow): void {
+    row.updated_at = now();
+    if (state === "rejected") {
+      row.status = "rejected";
+      row.reason = REJECTED;
+      return;
+    }
+    row.status = "applied";
+    const plan = JSON.parse(texts.get(row.approval_id) ?? "{}") as { apply_order?: string[]; assignments?: { share_id: string; identity_id: string }[]; archivals?: { share_id: string }[] };
+    if (row.mode === "promote") {
+      for (const id of plan.apply_order ?? [row.subscription_id]) {
+        const entry = staged.get(id);
+        if (!entry) continue;
+        live.set(id, entry.revision);
+        const record = byId(id);
+        if (record && entry.source) record.source = entry.source;
+        staged.delete(id);
+      }
+    }
+    for (const entry of plan.assignments ?? []) {
+      const share = shares.find((candidate) => candidate.share_id === entry.share_id);
+      if (share) (share as { identity_id?: string }).identity_id = entry.identity_id;
+    }
+    for (const entry of plan.archivals ?? []) {
+      const share = shares.find((candidate) => candidate.share_id === entry.share_id);
+      if (share) (share as { archived_at?: string }).archived_at = now();
+    }
+  }
 
   handlers["plans/publish"] = ({ subscription_id, revision, expected_revision, action }: { subscription_id: string; revision: string; expected_revision: string; action?: string }) => {
     const record = byId(subscription_id);

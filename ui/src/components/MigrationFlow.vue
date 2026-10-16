@@ -31,6 +31,7 @@ import {
   legacyMembers,
   linesToBind,
   liveSharesOn,
+  mixedBlock,
   parsePlan,
   partialApply,
   recordName,
@@ -423,6 +424,20 @@ const ownShares = computed(() => liveSharesOn([props.recordId], props.shares));
 const explicit = computed(() => explicitDependents(props.recordId, items.value));
 const byTag = computed(() => tagDependents(props.recordId, items.value));
 const serverExplicit = ref<string[]>([]);
+/**
+ * What a delete drops beyond the record and its shares: its staged revision,
+ * never published, and the pending plan over that revision, which goes stale
+ * once the record is gone. Discard names both; the delete, which does more,
+ * names them too.
+ */
+const deleteDrops = computed(() => {
+  const item = record.value;
+  if (props.mode !== "delete" || !item?.staged_revision) return [];
+  const lines = [t.migration.deleteDropsStaged(shortRevision(item.staged_revision))];
+  const over = currentPlan(subs.plansByRecord.value[item.id] ?? [], item);
+  if (over && over.action !== "delete" && planState(over) === "pending") lines.push(t.migration.deleteStalesPlan(over.approval_id));
+  return lines;
+});
 const blockingCollections = computed(() => {
   const ids = new Set([...explicit.value.map((item) => item.id), ...serverExplicit.value]);
   return [...ids];
@@ -599,12 +614,42 @@ const abandonPlan = computed(() => {
   const row = planRow.value ?? (record.value ? currentPlan(subs.plansByRecord.value[primary.value] ?? [], record.value) : undefined);
   return row && planState(row) === "pending" ? row : null;
 });
+/**
+ * The combinations an abandon leaves refusing to serve: each reads a member
+ * already promoted to the fleet (a multi-record plan that stopped part way)
+ * beside one this abandon keeps legacy. Abandon keeps the live revisions, so
+ * what the list says now is what holds after it.
+ */
+const blockedAfterAbandon = computed(() => {
+  const dropped = new Set(flowStaged.value);
+  const out: string[] = [];
+  for (const id of flowStaged.value) {
+    for (const reader of closureOf(id, items.value).slice(1)) {
+      const collection = byId.value.get(reader);
+      if (!collection || out.includes(reader)) continue;
+      if (mixedBlock(collection, items.value)?.some((member) => dropped.has(member.id))) out.push(reader);
+    }
+  }
+  return out;
+});
 const abandonLines = computed(() => {
   const lines = flowStaged.value.map((id) => t.migration.abandonDrops(name(id), shortRevision(stagedRevisionOf(id))));
+  for (const id of blockedAfterAbandon.value) {
+    lines.push(t.migration.abandonBlocked(name(id), liveSharesOn([id], props.shares).map(shareLabel).join(", ")));
+  }
   if (abandonPlan.value) lines.push(t.plans.discard.stalesPlan(abandonPlan.value.approval_id));
   if (step.value !== "status" && Object.values(decisions).some((entry) => !!entry.identity || entry.archive || entry.clear === true)) lines.push(t.migration.abandonDecisions);
   return lines;
 });
+/** The way to finish instead, when the abandon leaves a combination blocked. */
+const abandonFinish = computed(() => {
+  if (!blockedAfterAbandon.value.length) return "";
+  return partialOf.value ? t.migration.abandonFinishRest : t.migration.abandonFinishPropose;
+});
+/** The line under "Abandon migration…": what keeps serving, and what does not. */
+const abandonNote = computed(() =>
+  blockedAfterAbandon.value.length ? t.migration.abandonNoteBlocked(blockedAfterAbandon.value.map(name).join(", ")) : t.migration.abandonNote,
+);
 const abandonBox = ref<HTMLElement | null>(null);
 function askAbandon(edit = ""): void {
   abandonAsk.value = { edit };
@@ -894,7 +939,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
           </div>
 
           <!-- A sibling that failed to stage: the plan promotes them together, so nothing moves on until it stages. -->
-          <PcNotice v-if="missingSiblings.length && !staging" tone="danger" :title="t.migration.siblingsTitle" data-testid="migration-sibling-failed">
+          <PcNotice v-if="missingSiblings.length && !staging" tone="danger" :title="t.migration.siblingsTitle" class="flow-notice-stack" data-testid="migration-sibling-failed">
             <ul class="flow-list">
               <li v-for="id in missingSiblings" :key="id">{{ t.migration.siblingFailed(name(id), siblingErrors[id] || t.migration.notStagedYet) }}</li>
             </ul>
@@ -917,7 +962,8 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
             </ul>
           </PcNotice>
           <PcNotice v-if="stageRefusal" tone="danger" :title="t.migration.refusedTitle" data-testid="migration-refused" :data-code="stageRefusal.code">
-            <p>{{ stageRefusal.message }}</p>
+            <!-- Core's sentence names the files by id; the list below names each once, linked where the list has it. -->
+            <p :title="refusedFiles.length ? stageRefusal.message : undefined">{{ refusedFiles.length ? t.migration.filesBlock(refusedFiles.length) : stageRefusal.message }}</p>
             <ul v-if="refusedFiles.length" class="flow-list">
               <li v-for="file in refusedFiles" :key="file" data-testid="migration-refused-file">
                 <button v-if="fileKnown(file)" type="button" class="flow-link" :title="t.migration.openFile(name(file))" @click="emit('open-record', file)">{{ name(file) }}</button>
@@ -930,14 +976,21 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
           <!-- What migrate_record warned about, per record, with the way out: abandon, fix the step, migrate again. -->
           <PcNotice v-if="warningGroups.length" tone="warning" :title="t.migration.warningsTitle" data-testid="migration-warnings">
             <div v-for="group in warningGroups" :key="group.id" class="flow-warning-group">
-              <p v-if="warningGroups.length > 1 || group.id !== recordId" class="flow-warning-group__name">{{ name(group.id) }}</p>
+              <p class="flow-warning-group__name">{{ name(group.id) }}</p>
               <ul class="flow-list">
                 <li v-for="warning in group.warnings" :key="warning" data-testid="migration-warning">{{ warning }}</li>
               </ul>
               <p class="flow-note">{{ t.migration.warningsFix }}</p>
-              <PcButton v-if="flowStaged.length" compact data-testid="migration-fix-steps" :disabled="staging || abandoning" @click="askAbandon(group.id)">
+              <PcButton
+                v-if="flowStaged.length"
+                compact
+                :aria-label="t.migration.abandonAndEditFor(name(group.id))"
+                data-testid="migration-fix-steps"
+                :disabled="staging || abandoning"
+                @click="askAbandon(group.id)"
+              >
                 <template #icon><Pencil :size="13" aria-hidden="true" /></template>
-                {{ t.migration.abandonAndEdit(name(group.id)) }}
+                {{ t.migration.abandonAndEditShort }}
               </PcButton>
             </div>
           </PcNotice>
@@ -982,6 +1035,12 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
               </li>
             </ul>
             <p v-else class="flow-note">{{ shares === undefined ? t.migration.sharesUnread : t.migration.noShares }}</p>
+          </div>
+          <div v-if="deleteDrops.length" class="flow-block" data-testid="delete-drops">
+            <h4>{{ t.migration.deleteDropsTitle }}</h4>
+            <ul class="flow-list">
+              <li v-for="line in deleteDrops" :key="line" data-testid="delete-drop">{{ line }}</li>
+            </ul>
           </div>
           <div v-if="byTag.length" class="flow-block">
             <h4>{{ t.migration.loseMember }}</h4>
@@ -1118,9 +1177,16 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
             <li v-for="index in nameWarnings" :key="index" data-testid="migration-warning">{{ t.migration.nameStep(index) }}</li>
           </ul>
           <p class="flow-note">{{ t.migration.warningsFix }}</p>
-          <PcButton v-if="flowStaged.length" compact data-testid="migration-fix-steps" :disabled="abandoning" @click="askAbandon(recordId)">
+          <PcButton
+            v-if="flowStaged.length"
+            compact
+            :aria-label="t.migration.abandonAndEditFor(name(recordId))"
+            data-testid="migration-fix-steps"
+            :disabled="abandoning"
+            @click="askAbandon(recordId)"
+          >
             <template #icon><Pencil :size="13" aria-hidden="true" /></template>
-            {{ t.migration.abandonAndEdit(name(recordId)) }}
+            {{ t.migration.abandonAndEditShort }}
           </PcButton>
         </PcNotice>
 
@@ -1190,6 +1256,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
         <ul class="flow-list">
           <li v-for="line in abandonLines" :key="line" data-testid="abandon-line">{{ line }}</li>
         </ul>
+        <p v-if="abandonFinish" class="flow-note" data-testid="abandon-finish">{{ abandonFinish }}</p>
         <p v-if="abandonAsk.edit" class="flow-note">{{ t.migration.abandonThenEdit(name(abandonAsk.edit)) }}</p>
         <p v-if="abandonError" class="flow-error" role="alert">{{ abandonError }}</p>
         <div class="flow-actions">
@@ -1226,7 +1293,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
           <template #icon><Undo2 :size="13" aria-hidden="true" /></template>
           {{ t.migration.abandonAsk }}
         </PcButton>
-        <span class="flow-note">{{ t.migration.abandonNote }}</span>
+        <span class="flow-note" data-testid="flow-abandon-note">{{ abandonNote }}</span>
       </div>
     </div>
   </PcSidePanel>
@@ -1528,6 +1595,17 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
   outline: none;
   box-shadow: var(--lt-focus-ring);
   border-radius: var(--radius-sm);
+}
+/* Below 480px a notice's action takes a line of its own under the body,
+   rather than a right-hand column that squeezes the reason to two words a line. */
+@media (max-width: 479px) {
+  .flow-notice-stack {
+    flex-wrap: wrap;
+  }
+  .flow-notice-stack :deep(.pc-notice-actions) {
+    flex-basis: 100%;
+    margin-left: calc(17px + var(--space-2));
+  }
 }
 .flow-abandon {
   display: flex;

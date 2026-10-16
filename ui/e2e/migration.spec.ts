@@ -1,7 +1,23 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { LOCALES, m, type Locale } from "./messages";
-import { THEMES, VIEWPORTS, flow, menuItem, openMenu, openPlans, row, runAction, settled, shot, words, type Theme } from "./plans";
+import {
+  THEMES,
+  VIEWPORTS,
+  clippedInCells,
+  flow,
+  focusInSheet,
+  menuItem,
+  openMenu,
+  openPlans,
+  row,
+  runAction,
+  runActionByKeyboard,
+  settled,
+  shot,
+  words,
+  type Theme,
+} from "./plans";
 
 /**
  * The migration flow, the plan flow's other modes and the staged state
@@ -44,6 +60,13 @@ import { THEMES, VIEWPORTS, flow, menuItem, openMenu, openPlans, row, runAction,
  * table; "Remove from" opening the members with a notice; the discard
  * dialog's heading; a plan reopened later; and the Overview's attention
  * items leading to a panel that shows the plan.
+ *
+ * And the second design review's: focus lands in a sheet opened from the
+ * row menu; the Published cell keeps its sentences inside the cell; the
+ * "Abandon and edit steps" button fits a 375 sheet (settled() checks every
+ * open sheet's width); a delete over a staged record names what it drops
+ * and wins over the promote in the table; abandoning a partly applied plan
+ * names the combination it leaves blocked; and applied and rejected plans.
  */
 
 const RELAY = "香港中继 Relay path for alice";
@@ -84,6 +107,8 @@ for (const viewport of VIEWPORTS) {
         await runAction(page, "relay-graph", "migrate");
         await expect(flow(page).getByTestId("flow-step").first()).toHaveAttribute("aria-current", "step");
         await expect(flow(page).getByTestId("migration-together-row")).toContainText(HOME);
+        // Nothing is staged yet: the sibling will be, not is.
+        await expect(flow(page).getByTestId("migration-together-row")).toContainText(m.migration.stagedWithIt);
         await shot(page, "migration-1-changes", meta());
         await flow(page).getByTestId("migration-stage").click();
         await expect(flow(page).getByTestId("migration-staged")).toBeVisible();
@@ -169,6 +194,9 @@ for (const viewport of VIEWPORTS) {
         await flow(page).getByTestId("migration-stage").click();
         await expect(flow(page).getByTestId("migration-refused")).toHaveAttribute("data-code", "fleet_file_unavailable");
         await expect(flow(page).getByTestId("migration-refused-file")).toHaveText("late-config");
+        // Each refused file is named once, in the list; the sentence above it says why.
+        await expect(flow(page).getByTestId("migration-refused")).toContainText(m.migration.filesBlock(1));
+        expect((await flow(page).getByTestId("migration-refused").innerText()).split("late-config").length - 1).toBe(1);
         await expect(flow(page).getByTestId("flow-next")).toBeDisabled();
         // Refused for a file: staging again would be refused again.
         await expect(flow(page).getByTestId("migration-stage")).toBeDisabled();
@@ -418,6 +446,12 @@ for (const viewport of VIEWPORTS) {
         await expect(failed).toContainText(HOME);
         await expect(failed.getByTestId("migration-retry")).toBeEnabled();
         await expect(flow(page).getByTestId("flow-next")).toBeDisabled();
+        if (viewport.width < 480) {
+          // Below 480px the retry sits under the reason rather than squeezing it into a narrow column.
+          const body = await failed.locator(".pc-notice-body").boundingBox();
+          const retry = await failed.getByTestId("migration-retry").boundingBox();
+          expect(retry!.y).toBeGreaterThanOrEqual(body!.y + body!.height - 1);
+        }
         await settled(page, viewport.width);
         await shot(page, "migration-sibling-failed", meta());
         await failed.getByTestId("migration-retry").click();
@@ -450,6 +484,12 @@ for (const viewport of VIEWPORTS) {
         const warnings = flow(page).getByTestId("migration-warnings");
         await expect(warnings.getByTestId("migration-warning").first()).toContainText("Regex Filter");
         await expect(warnings).toContainText(m.migration.warningsFix);
+        // A short label that fits a 375 sheet; the record is named in the notice and in the button's name.
+        await expect(warnings.getByTestId("migration-fix-steps").first()).toHaveText(m.migration.abandonAndEditShort);
+        await expect(warnings.getByTestId("migration-fix-steps").first()).toHaveAttribute("aria-label", m.migration.abandonAndEditFor(RELAY));
+        await expect(warnings).toContainText(RELAY);
+        await settled(page, viewport.width);
+        await shot(page, "migration-fix-steps", meta());
         await warnings.getByTestId("migration-fix-steps").first().click();
         await expect(flow(page).getByTestId("abandon-confirm")).toContainText(m.migration.abandonThenEdit(RELAY));
         await flow(page).getByTestId("abandon-run").click();
@@ -489,6 +529,134 @@ for (const viewport of VIEWPORTS) {
         await mixed.getByRole("button", { name: m.migration.migrateMember(OSAKA) }).click();
         await expect(flow(page)).toHaveAttribute("data-mode", "migrate");
       });
+
+      test("a delete over a staged record names what it drops, and the table says delete over promote", async ({ page }) => {
+        await openPlans(page, { theme });
+        await runAction(page, "asia-fleet", "delete");
+        const drops = flow(page).getByTestId("delete-drops");
+        // What Discard names, the delete names too: the staged revision and the plan over it.
+        await expect(drops.getByTestId("delete-drop")).toHaveCount(2);
+        const droppedLine = m.migration.deleteDropsStaged("@@").replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace("@@", "[0-9a-f]+…");
+        await expect(drops.getByTestId("delete-drop").first()).toHaveText(new RegExp(`^${droppedLine}$`));
+        await expect(drops.getByTestId("delete-drop").last()).toHaveText(m.migration.deleteStalesPlan("apr_0001asiafl"));
+        await settled(page, viewport.width);
+        await shot(page, "delete-staged-drops", meta());
+        await flow(page).getByTestId("delete-remove-member").click();
+        await page.getByRole("button", { name: m.editor.save, exact: true }).click();
+        await expect(page.locator("#editor-title")).toHaveCount(0);
+        await runAction(page, "asia-fleet", "delete");
+        await expect(flow(page).getByTestId("delete-blocked")).toHaveCount(0);
+        await next(page);
+        await propose(page);
+        await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state.pending);
+        // The plan archives the record's shares; an archived share is not listed as answering the decoy.
+        await expect(flow(page).getByTestId("plan-unbound").locator("li", { hasText: m.plans.view.archived })).toHaveCount(0);
+        await flow(page).getByTestId("flow-close").click();
+        // A record about to be archived does not read as one about to be promoted.
+        const badge = row(page, "asia-fleet").getByTestId("plan-badge");
+        await expect(badge).toHaveAttribute("data-action", "delete");
+        await expect(badge).toContainText(m.plans.staged.deleteState.pending);
+        await expect(row(page, "asia-fleet").getByTestId("staged-badge")).toHaveCount(0);
+        await settled(page, viewport.width);
+        await shot(page, "delete-staged-row", meta());
+      });
+
+      test("abandoning a partly applied plan names the combination it leaves blocked", async ({ page }) => {
+        await openPlans(page, { theme, query: "&plans=partial" });
+        await runAction(page, "legacy-left", "publish-staged");
+        await expect(flow(page).getByTestId("plan-partial")).toBeVisible();
+        // The line under the button no longer says everything keeps serving.
+        await expect(flow(page).getByTestId("flow-abandon-note")).toHaveText(m.migration.abandonNoteBlocked("Japan combination"));
+        await flow(page).getByTestId("flow-abandon").click();
+        const ask = flow(page).getByTestId("abandon-confirm");
+        await expect(ask.getByTestId("abandon-line").first()).toContainText(OSAKA);
+        await expect(ask.getByTestId("abandon-line").nth(1)).toHaveText(m.migration.abandonBlocked("Japan combination", "Japan family link"));
+        await expect(ask.getByTestId("abandon-finish")).toHaveText(m.migration.abandonFinishRest);
+        await settled(page, viewport.width);
+        await shot(page, "migration-abandon-partial", meta());
+      });
+
+      test("a plan the approver applied, and one the approver rejected", async ({ page }) => {
+        for (const decided of ["applied", "rejected"] as const) {
+          await openPlans(page, { theme, query: `&plans=${decided}` });
+          await runAction(page, "asia-fleet", "share-identities");
+          await decision(page, "sh-asia-open").getByTestId("share-identity").selectOption("vu_alice");
+          await next(page);
+          await propose(page);
+          await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state[decided]);
+          if (decided === "applied") {
+            await expect(flow(page).getByTestId("plan-status")).toContainText(m.plans.view.appliedNote);
+            await expect(flow(page).getByTestId("plan-open-approvals")).toHaveCount(0);
+          } else {
+            await expect(flow(page).getByTestId("plan-status")).toContainText(m.plans.view.rejectedNote);
+            await expect(flow(page).getByTestId("plan-reason")).toContainText("rejected by the approver");
+            await expect(flow(page).getByTestId("plan-propose-again")).toBeVisible();
+          }
+          await settled(page, viewport.width);
+          await shot(page, `plan-${decided}`, meta());
+        }
+      });
+    });
+  }
+}
+
+/*
+ * Focus after a row menu item opens a sheet: in it, at both widths, chosen
+ * by keyboard. The menu put focus back on its trigger after the sheet had
+ * taken it, so the next Tab went to a row of the table, under the scrim at
+ * 375 (the second lane 6b design review).
+ */
+for (const viewport of VIEWPORTS) {
+  test.describe(`${viewport.width} focus`, () => {
+    test.use({ viewport });
+
+    const cases = [
+      { record: "relay-graph", action: "migrate", mode: "migrate" },
+      { record: "fleet-probe-fast", action: "delete", mode: "delete" },
+      { record: "asia-fleet", action: "share-identities", mode: "assign" },
+      { record: "asia-fleet", action: "publish-staged", mode: "publish" },
+    ];
+    for (const entry of cases) {
+      test(`${entry.action} from the row menu puts focus in the sheet, and Escape gives it back to the menu`, async ({ page }) => {
+        await openPlans(page);
+        await runActionByKeyboard(page, entry.record, entry.action);
+        await expect(flow(page)).toHaveAttribute("data-mode", entry.mode);
+        await expect.poll(() => focusInSheet(page)).toBe(true);
+        // Still there once everything the menu scheduled has run.
+        await page.waitForTimeout(300);
+        expect(await focusInSheet(page)).toBe(true);
+        await page.keyboard.press("Tab");
+        expect(await focusInSheet(page)).toBe(true);
+        await page.keyboard.press("Escape");
+        await expect(flow(page)).toHaveCount(0);
+        await expect(page.locator(`.rec-menu-wrap[data-row-menu="${entry.record}"] button`).first()).toBeFocused();
+      });
+    }
+
+    test("discard from the row menu puts focus in its dialog", async ({ page }) => {
+      await openPlans(page);
+      await runActionByKeyboard(page, "asia-fleet", "discard-staged");
+      const dialog = page.locator(".lt-dialog");
+      await expect(dialog).toBeVisible();
+      await page.waitForTimeout(300);
+      expect(await page.evaluate(() => !!document.activeElement?.closest(".lt-dialog, [role=alertdialog], [role=dialog]"))).toBe(true);
+    });
+  });
+}
+
+/*
+ * The Published cell keeps its sentences inside the cell: the chassis floors
+ * a sub-line at 126px, wider than the column at 1440, and the cell clips.
+ */
+for (const locale of LOCALES) {
+  for (const theme of THEMES) {
+    test(`${locale} ${theme}: the Published cell's sentences stay inside the cell at 1440`, async ({ page }) => {
+      await page.setViewportSize(VIEWPORTS[0]);
+      await openPlans(page, { locale, theme });
+      await expect(row(page, "asia-fleet").getByTestId("record-decoy")).toBeVisible();
+      expect(await clippedInCells(page, "td.rec-published")).toEqual([]);
+      expect(await clippedInCells(page, "td.rec-kind-cell")).toEqual([]);
+      await shot(page, "records-published-cell", { width: 1440, theme, locale });
     });
   }
 }

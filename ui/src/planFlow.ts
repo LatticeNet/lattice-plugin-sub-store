@@ -476,14 +476,33 @@ export function currentPlan(plans: readonly PlanStatus[], item: SubscriptionList
 }
 
 /**
- * A plan over a record that has no staged revision: a delete, or a change
- * to its shares' identities, still waiting or failed. Nothing else on the
- * record's row says it is about to change, so the table shows it where it
- * would show a staged revision. Only a plan whose primary is the record: a
- * combination in another record's closure is said by that record.
+ * A delete plan the record's row must say before anything else: the newest
+ * plan whose primary is the record is a delete, still pending, gone stale or
+ * failed. It wins over a staged revision and its promote plan, since the
+ * delete drops the staged revision with the record: a record about to be
+ * archived must not read as one about to be promoted (the second lane 6b
+ * design review). A delete the approver rejected is over, and says nothing.
  */
-export function unstagedPlan(plans: readonly PlanStatus[] | undefined, item: SubscriptionListItem): PlanStatus | undefined {
-  if (!plans || item.staged_revision) return undefined;
+export function pendingDelete(plans: readonly PlanStatus[] | undefined, item: SubscriptionListItem): PlanStatus | undefined {
+  const newest = plans?.find((plan) => plan.subscription_id === item.id);
+  if (!newest || newest.action !== "delete") return undefined;
+  const state = planState(newest);
+  return state === "pending" || state === "stale" || state === "failed" ? newest : undefined;
+}
+
+/**
+ * The plan the row shows in place of a staged revision: a delete plan
+ * (pendingDelete), whether or not anything is staged; else, for a record
+ * with nothing staged, a change to its shares' identities still waiting or
+ * failed. Nothing else on the record's row says it is about to change, so
+ * the table shows it where it would show a staged revision. Only a plan
+ * whose primary is the record: a combination in another record's closure is
+ * said by that record.
+ */
+export function rowPlan(plans: readonly PlanStatus[] | undefined, item: SubscriptionListItem): PlanStatus | undefined {
+  if (!plans) return undefined;
+  const deleting = pendingDelete(plans, item);
+  if (deleting || item.staged_revision) return deleting;
   const plan = currentPlan(plans, item);
   return plan && plan.subscription_id === item.id ? plan : undefined;
 }

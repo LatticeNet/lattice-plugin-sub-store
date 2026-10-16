@@ -401,15 +401,40 @@ function cssEscape(value: string): string {
  * A popover that only closes when another one opens is a popover the operator
  * has to fight. Outside click and Escape both dismiss it, and focus goes back
  * to the control that opened it.
+ *
+ * Only when nothing else has taken focus by then. An item that opens a sheet
+ * or a dialog closes the menu in the same tick, and the overlay focuses
+ * itself as it opens; putting focus back on the trigger after that left it
+ * behind the sheet, under the scrim at 375, with the next Tab on a row of the
+ * table (the second lane 6b design review). The item that held focus goes
+ * with the menu, so a focus still on <body> is a focus nothing claimed.
  */
 function closeRowMenu(): void {
   const id = openMenuId.value;
   openMenuId.value = "";
   if (id) {
     void nextTick(() => {
-      document.querySelector<HTMLElement>(`[data-row-menu="${cssEscape(id)}"] button`)?.focus();
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && active !== document.body && !active.closest(".rec-menu")) return;
+      menuTrigger(id)?.focus();
     });
   }
+}
+
+/** A row's menu button, which stays in the row while the menu itself is teleported. */
+function menuTrigger(id: string): HTMLElement | null {
+  return document.querySelector<HTMLElement>(`.rec-menu-wrap[data-row-menu="${cssEscape(id)}"] button`);
+}
+
+/**
+ * Where focus goes back when an overlay a row action opened closes. The menu
+ * item that was pressed is gone by then, so an overlay opened from the menu
+ * returns to the menu's button in the row; any other control returns to
+ * itself.
+ */
+function overlayTrigger(event: Event | undefined, rowId: string): HTMLElement | null {
+  const target = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  return target?.closest(".rec-menu") ? menuTrigger(rowId) : target;
 }
 
 async function toggleRowMenu(id: string): Promise<void> {
@@ -524,7 +549,7 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
 
 function openFlow(mode: FlowMode, row: SubscriptionListItem, event?: Event, outcome: PlanOutcome | null = null): void {
   closeRowMenu();
-  flowTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  flowTrigger.value = overlayTrigger(event, row.id);
   flow.value = { mode, id: row.id, outcome };
 }
 function closeFlow(): void {
@@ -544,7 +569,7 @@ function flowDone(text: string): void {
  * from the menu alone.
  */
 async function publishStaged(row: SubscriptionListItem, event?: Event): Promise<void> {
-  const trigger = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  const trigger = overlayTrigger(event, row.id);
   // A plan already waits on this revision, or failed or went stale over it:
   // the sheet opens on that plan rather than filing a second one.
   await subs.loadPlans([row.id]);
@@ -690,7 +715,7 @@ const targetSheet = ref<SubscriptionListItem | null>(null);
 const targetSheetTrigger = ref<HTMLElement | null>(null);
 function openTargetSheet(row: SubscriptionListItem, event?: Event): void {
   openMenuId.value = "";
-  targetSheetTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  targetSheetTrigger.value = overlayTrigger(event, row.id);
   targetSheet.value = row;
 }
 function closeTargetSheet(): void {
@@ -709,7 +734,7 @@ const drawerTitle = computed(() => {
   return publishStateFor(shares.value, drawerItem.value.id).tone === "warn" ? t.records.drawerRenew(name) : t.records.drawerPublish(name);
 });
 function openDrawer(mode: "preview" | "publish" | "share", id: string, event?: Event): void {
-  drawerTrigger.value = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
+  drawerTrigger.value = overlayTrigger(event, id);
   drawer.value = { mode, id };
   if (mode === "preview" && subs.rowPreview.value?.id !== id) void subs.toggleRowPreview(id);
 }
@@ -1880,6 +1905,14 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
 small.rec-decoy,
 small.rec-blocked {
   font-family: inherit;
+}
+/* The chassis floors a cell's sub-line at 126px (.pc-table td small), wider
+   than the Published column at 1440, and the cell clips: the decoy sentence
+   lost its last 18px in every locale ("1 публикация отда"). The line takes
+   the cell's width and wraps inside it instead. */
+.records-table .pc-table:not([data-stacked="true"]) td small.rec-decoy,
+.records-table .pc-table:not([data-stacked="true"]) td small.rec-blocked {
+  min-width: 100%;
 }
 /* Stacked on a phone, the cell is one flex row: the staged badge and the
    decoy line take lines of their own instead of running into the slug. */

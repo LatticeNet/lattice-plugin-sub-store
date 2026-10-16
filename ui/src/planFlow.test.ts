@@ -19,11 +19,13 @@ import {
   mayHavePromoted,
   mixedBlock,
   partialApply,
+  pendingDelete,
   planRevisionLines,
   planShareViews,
   planTooLarge,
   promotedAfterFailure,
   remainingRecords,
+  rowPlan,
   shareFields,
   shortRevision,
   stagedFacts,
@@ -31,7 +33,6 @@ import {
   tagDependents,
   undecidedShares,
   unmatchedNameSteps,
-  unstagedPlan,
   unstagedSiblings,
   withFleetDeltas,
   type PlanShareRow,
@@ -304,10 +305,27 @@ describe("what the review of lane 6b asked to hold", () => {
 
   it("names a delete or a share plan over a record with nothing staged, and only the record's own", () => {
     const row = item({ id: "r", revision: "a" });
-    expect(unstagedPlan([plan({ action: "delete", to_revision: "" })], row)?.action).toBe("delete");
-    expect(unstagedPlan([plan({ subscription_id: "other" })], row)).toBeUndefined();
-    expect(unstagedPlan([plan({ status: "rejected", stale: true })], row)).toBeUndefined();
-    expect(unstagedPlan([plan()], item({ id: "r", revision: "a", staged_revision: "b" }))).toBeUndefined();
-    expect(unstagedPlan(undefined, row)).toBeUndefined();
+    expect(rowPlan([plan({ action: "delete", to_revision: "" })], row)?.action).toBe("delete");
+    expect(rowPlan([plan({ subscription_id: "other" })], row)).toBeUndefined();
+    expect(rowPlan([plan({ status: "rejected", stale: true })], row)).toBeUndefined();
+    expect(rowPlan([plan()], item({ id: "r", revision: "a", staged_revision: "b" }))).toBeUndefined();
+    expect(rowPlan(undefined, row)).toBeUndefined();
+  });
+
+  it("lets a delete plan win over a staged revision and its promote plan", () => {
+    const staged = item({ id: "r", revision: "a", staged_revision: "b" });
+    const promote = plan({ approval_id: "apr_promote" });
+    const remove = plan({ approval_id: "apr_delete", action: "delete", to_revision: "" });
+    // Newest first, as plans.status lists them: the delete was proposed after the promote.
+    expect(rowPlan([remove, promote], staged)?.approval_id).toBe("apr_delete");
+    expect(pendingDelete([remove, promote], staged)?.approval_id).toBe("apr_delete");
+    // Stale and failed deletes still say so; a rejected one is over.
+    expect(rowPlan([{ ...remove, status: "rejected", stale: true }, promote], staged)?.approval_id).toBe("apr_delete");
+    expect(rowPlan([{ ...remove, status: "approved", reason: "apply_revision failed; nothing changed" }, promote], staged)?.approval_id).toBe("apr_delete");
+    expect(rowPlan([{ ...remove, status: "rejected" }, promote], staged)).toBeUndefined();
+    // A promote proposed after the delete is the record's plan again.
+    expect(rowPlan([promote, remove], staged)).toBeUndefined();
+    // Another record's delete says nothing here.
+    expect(pendingDelete([{ ...remove, subscription_id: "other" }], staged)).toBeUndefined();
   });
 });

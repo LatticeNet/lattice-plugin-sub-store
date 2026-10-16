@@ -4,7 +4,7 @@ import { computed } from "vue";
 import type { SubscriptionListItem } from "../client";
 import { planState, type PlanStatus } from "../fleet";
 import { t } from "../i18n";
-import { shortRevision, stagedFacts, stagedPlanState, unstagedPlan } from "../planFlow";
+import { rowPlan, shortRevision, stagedFacts, stagedPlanState } from "../planFlow";
 
 /**
  * A record's staged revision, where the Published column states what its
@@ -19,8 +19,9 @@ import { shortRevision, stagedFacts, stagedPlanState, unstagedPlan } from "../pl
  * A record with nothing staged can still be about to change: a delete
  * plan, or a plan over its shares' identities, waiting or failed. The badge
  * says that too ("delete pending"), so a record about to be archived does
- * not look like any other. `hideState` drops the state line where a plan
- * chip beside the badge already says it.
+ * not look like any other. A delete plan wins over a staged revision and
+ * its promote plan, since the delete drops both (rowPlan). `hideState`
+ * drops the state line where a plan chip beside the badge already says it.
  */
 const props = defineProps<{
   item: SubscriptionListItem;
@@ -31,7 +32,7 @@ const props = defineProps<{
 }>();
 
 const facts = computed(() => stagedFacts(props.item));
-const own = computed(() => unstagedPlan(props.plans, props.item));
+const own = computed(() => rowPlan(props.plans, props.item));
 const state = computed(() => (own.value ? planState(own.value) : stagedPlanState(props.plans, props.item)));
 const short = computed(() => shortRevision(facts.value.revision, 8));
 const isDelete = computed(() => own.value?.action === "delete");

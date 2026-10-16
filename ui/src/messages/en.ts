@@ -2013,6 +2013,7 @@ export const en = {
     recordsDescription: "Fleet records and the combinations that gather them.",
     notLive: "not live yet",
     detailLabel: (name: string) => `Identities for ${name}`,
+    showDetail: (name: string) => `Show the identities for ${name}`,
     detailDescription: "What a share naming each identity would receive. Open a row, or preview all.",
     previewAll: "Preview all",
     previewAllTitle: "Ask core what each identity's share would receive, one identity after another.",
@@ -2078,6 +2079,11 @@ export const en = {
     abandon: "Abandon migration",
     abandonAsk: "Abandon migration…",
     abandonNote: "Drops what this migration staged; the legacy records keep serving.",
+    abandonNoteBlocked: (combinations: string) => `Drops what this migration staged. The legacy records keep their revisions, and these stay blocked until the rest migrate: ${combinations}.`,
+    abandonBlocked: (combination: string, shares: string) =>
+      `${combination} stays blocked: it reads a member already promoted to the fleet beside one that stays legacy, so it refuses to serve${shares ? ` its shares (${shares})` : ""}.`,
+    abandonFinishRest: "To unblock it instead, keep the migration and use Propose the rest.",
+    abandonFinishPropose: "To unblock it instead, keep the migration and propose it.",
     abandonTitle: "Abandon this migration?",
     abandonDrops: (name: string, revision: string) => `Drops staged revision ${revision} of ${name}; it keeps serving its legacy revision.`,
     abandonDecisions: "The identities and archivals chosen here are not kept.",
@@ -2101,7 +2107,7 @@ export const en = {
     togetherTitle: "Migrated together",
     togetherNote: "These legacy records feed the same combinations. A combination cannot serve a fleet member beside a legacy one, so they move in the same plan.",
     stagedAs: (revision: string) => `staged ${revision}`,
-    stagedWithIt: "staged with this record",
+    stagedWithIt: "will be staged with this record",
     filesTitle: "Files read this record",
     filesBlock: (n: number) =>
       plural(n, {
@@ -2115,7 +2121,8 @@ export const en = {
     nameStep: (step: number) =>
       `Step ${num(step)} (Regex filter) may keep none of the lines a share would receive under the fleet names. Checked in this browser; the plugin's engine decides.`,
     warningsFix: "To fix a step, abandon the migration, edit the record's steps, then migrate again: the staged revision is built from the record as it is now.",
-    abandonAndEdit: (name: string) => `Abandon, then edit the steps of ${name}`,
+    abandonAndEditShort: "Abandon and edit steps",
+    abandonAndEditFor: (name: string) => `Abandon and edit steps: ${name}`,
     resumed: (revision: string) => `Staged earlier as ${revision}. Give every share an identity, then propose.`,
     stage: "Stage the fleet record",
     stageTitle: "Writes the fleet equivalent as a staged revision. Nothing serves it until the plan is approved.",
@@ -2138,6 +2145,9 @@ export const en = {
     noShares: "No live share serves this record.",
     sharesUnread: "The share list could not be read, so the shares this changes are not listed.",
     loseMember: "These combinations lose it as a member and keep their other members",
+    deleteDropsTitle: "Dropped with it",
+    deleteDropsStaged: (staged: string) => `Staged revision ${staged} is dropped with the record and is never published.`,
+    deleteStalesPlan: (approval: string) => `Once the record is deleted, the pending plan ${approval} goes stale and can no longer be approved.`,
     explicitTitle: "Combinations name this record",
     explicitMembers: "A combination that names this record would fail its next fetch once the record is gone. Remove the record from each first, then delete it.",
     removeFrom: (name: string) => `Remove from ${name}`,
@@ -2247,6 +2257,7 @@ export const en = {
         pending: "delete pending",
         approved: "delete approved",
         failed: "delete failed",
+        stale: "delete stale",
       },
       proofDelete: (approval: string, live: string) =>
         `Plan ${approval} deletes this record and archives its shares once approved; revision ${live} keeps serving until then.`,

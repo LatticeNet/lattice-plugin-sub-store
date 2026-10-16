@@ -33,6 +33,10 @@ import { THEMES, VIEWPORTS, openPlans, settled, shot, words, type Theme } from "
  *   inactive       an expired identity says the decoy collapsed, and
  *                  offers no share
  *   narrow         at 375 a chosen record brings its detail into view
+ *   arrows         an arrow key walks the records and keeps focus there;
+ *                  Enter, Space or "Show the identities" bring the detail
+ *   preview all    a revision switch after Preview all asks again for
+ *                  every row, open or not
  */
 
 const ASIA = "亚洲线路 Asia lines";
@@ -205,6 +209,51 @@ for (const viewport of VIEWPORTS) {
         await expect(identity(page, "vu_alice").getByTestId("fleet-identity-result")).toHaveText(/\d/);
         await settled(page, viewport.width);
         await shot(page, "fleet-chosen", meta());
+      });
+
+      test("arrow keys walk the records and keep focus there; Enter and the skip button bring the detail", async ({ page }) => {
+        await openPlans(page, { view: "fleet", theme });
+        const radios = page.locator('input[name="fleet-record"]');
+        await radios.first().focus();
+        const before = await page.evaluate(() => window.scrollY);
+        await page.keyboard.press("ArrowDown");
+        await page.keyboard.press("ArrowDown");
+        // Two records further down, focus still in the group, and the page where it was.
+        await expect(radios.nth(2)).toBeFocused();
+        await expect(radios.nth(2)).toBeChecked();
+        expect(await page.evaluate(() => window.scrollY)).toBe(before);
+        const detail = page.getByTestId("fleet-detail");
+        if (viewport.width < 960) {
+          await page.keyboard.press("Enter");
+          await expect(detail).toBeFocused();
+          await expect(detail).toBeInViewport({ ratio: 0.2 });
+          // Back in the list, one Tab past it reaches the button that does the same.
+          await radios.nth(2).focus();
+          await page.keyboard.press("Tab");
+          const skip = page.getByTestId("fleet-skip");
+          await expect(skip).toBeFocused();
+          await expect(skip).toBeVisible();
+          await expect(skip).toHaveText(m.fleet.showDetail(await radios.nth(2).getAttribute("aria-label") ?? ""));
+          await settled(page, viewport.width);
+          await shot(page, "fleet-skip", meta());
+          await page.keyboard.press("Enter");
+          await expect(detail).toBeFocused();
+        } else {
+          await expect(page.getByTestId("fleet-skip")).toBeHidden();
+        }
+      });
+
+      test("after Preview all, a revision switch asks again for every row, open or not", async ({ page }) => {
+        await openPlans(page, { view: "fleet", theme });
+        await choose(page, "asia-fleet");
+        await page.getByTestId("fleet-preview-all").click();
+        const bob = identity(page, "vu_bob").getByTestId("fleet-identity-result");
+        await expect(bob).toHaveText(m.fleet.counts(4, 17));
+        await page.getByTestId("fleet-revision-staged").check();
+        // A collapsed row keeps a count, for the staged revision now.
+        await expect(bob).toHaveText(/\d/);
+        await expect(identity(page, "vu_bob").getByTestId("fleet-reason-chip").first()).toBeVisible();
+        await settled(page, viewport.width);
       });
 
       test("a failed apply that the list shows promoted", async ({ page }) => {

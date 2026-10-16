@@ -73,13 +73,66 @@ export async function seriousViolations(page: Page, exclude: readonly string[] =
 export const docWidth = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth);
 
 /**
- * The frame holds its width, and axe finds nothing serious. `exclude` names
- * a finding that predates this lane and lives in another surface, so this
- * suite stays about its own states; each use says which and why.
+ * Open sheets whose body scrolls sideways, by title. The document's width
+ * cannot see this: a nowrap button wider than a 375 sheet scrolled the sheet
+ * body and cut the labels of its left column (the second lane 6b design
+ * review), while the page itself held its width.
+ */
+export const sheetOverflow = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>(".pc-side-panel .pc-modal-body")]
+      .filter((body) => body.scrollWidth > body.clientWidth + 1)
+      .map((body) => `${body.closest(".pc-side-panel")?.querySelector("h2")?.textContent ?? "sheet"}: ${body.scrollWidth} > ${body.clientWidth}`),
+  );
+
+/**
+ * The frame holds its width, an open sheet holds its own, and axe finds
+ * nothing serious. `exclude` names a finding that predates this lane and
+ * lives in another surface, so this suite stays about its own states; each
+ * use says which and why.
  */
 export async function settled(page: Page, width: number, exclude: readonly string[] = []): Promise<void> {
   expect(await docWidth(page)).toBeLessThanOrEqual(width);
+  expect(await sheetOverflow(page)).toEqual([]);
   expect(await seriousViolations(page, exclude)).toEqual([]);
+}
+
+/**
+ * Children of a cell that reach past its edges, which a cell with
+ * `overflow: hidden` cuts off. Records table cells clip, so a sub-line
+ * wider than its column lost its last word in every locale.
+ */
+export const clippedInCells = (page: Page, selector: string) =>
+  page.evaluate((cells) => {
+    const out: string[] = [];
+    for (const cell of document.querySelectorAll<HTMLElement>(cells)) {
+      const box = cell.getBoundingClientRect();
+      for (const child of cell.querySelectorAll<HTMLElement>("*")) {
+        const rect = child.getBoundingClientRect();
+        if (!rect.width || !rect.height) continue;
+        if (rect.right > box.right + 0.5 || rect.left < box.left - 0.5) {
+          out.push(`${cell.closest("tr")?.getAttribute("data-record-row") ?? "?"} .${child.className}: ${Math.round(rect.right - box.right)}px`);
+        }
+      }
+    }
+    return out;
+  }, selector);
+
+/** Whether focus is inside the open sheet. */
+export const focusInSheet = (page: Page) => page.evaluate(() => !!document.activeElement?.closest(".pc-side-panel"));
+
+/** Runs a row menu item from the keyboard: the trigger, Enter, the arrows down to the item, Enter. */
+export async function runActionByKeyboard(page: Page, recordId: string, action: string): Promise<void> {
+  await page.locator(`.rec-menu-wrap[data-row-menu="${recordId}"] button`).first().focus();
+  await page.keyboard.press("Enter");
+  const menu = page.locator(`.rec-menu[data-row-menu="${recordId}"]`);
+  await expect(menu).toBeVisible();
+  for (let step = 0; step < 16; step += 1) {
+    if ((await page.evaluate(() => document.activeElement?.getAttribute("data-action"))) === action) break;
+    await page.keyboard.press("ArrowDown");
+  }
+  expect(await page.evaluate(() => document.activeElement?.getAttribute("data-action"))).toBe(action);
+  await page.keyboard.press("Enter");
 }
 
 /**

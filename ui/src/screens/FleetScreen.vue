@@ -38,6 +38,7 @@ import {
   isFleetBound,
   linesToBind,
   liveSharesOn,
+  pendingDelete,
   recordName,
   shortRevision,
   type PlanShareRow,
@@ -124,21 +125,54 @@ const hasLive = computed(() => !!chosen.value?.revision);
 const hasStaged = computed(() => !!chosen.value?.staged_revision);
 const revision = computed<Revision>(() => (!hasLive.value && hasStaged.value ? "staged" : hasStaged.value ? revisionChoice.value : "live"));
 const previewedRevision = computed(() => (revision.value === "staged" ? chosen.value?.staged_revision ?? "" : chosen.value?.revision ?? ""));
-/** The detail panel: on a narrow frame it sits under the list, so a choice there brings it into view. */
+/**
+ * The detail panel: on a narrow frame it sits under the list, so choosing a
+ * record there brings it into view and gives it focus. Only a choice the
+ * operator made on purpose does: a click or tap, or Enter or Space on a
+ * record. An arrow key walks the radio group and keeps focus in it, or the
+ * first ArrowDown left the list and every later one scrolled the page (the
+ * second lane 6b design review, at 375 and at 400% zoom alike).
+ */
 const detailPanel = ref<{ $el?: HTMLElement } | null>(null);
 const NARROW = "(max-width: 959px)";
-watch(chosenId, (id, previous) => {
-  revisionChoice.value = "live";
-  expanded.value = new Set();
-  // A plan over the record, staged or not: a failed apply is said here with the live revision beside it.
-  if (id) void subs.loadPlans([id]);
-  if (!previous || !id || typeof window === "undefined" || !window.matchMedia?.(NARROW).matches) return;
+/** The last choice came from an arrow key; reset by any other key or a pointer. */
+let arrowed = false;
+function narrow(): boolean {
+  return typeof window !== "undefined" && !!window.matchMedia?.(NARROW).matches;
+}
+function revealDetail(): void {
+  if (!narrow()) return;
   void nextTick(() => {
     const element = detailPanel.value?.$el;
     if (!element) return;
     element.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     element.focus({ preventScroll: true });
   });
+}
+const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+function onRecordPointer(): void {
+  arrowed = false;
+}
+function onRecordKeydown(event: KeyboardEvent): void {
+  arrowed = ARROWS.has(event.key);
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const input = event.target as HTMLInputElement | null;
+  if (input?.name !== "fleet-record") return;
+  // Space on the chosen record changes nothing, so no change event says it was meant; both keys show it.
+  event.preventDefault();
+  chosenId.value = input.value;
+  revealDetail();
+}
+watch(chosenId, (id, previous) => {
+  revisionChoice.value = "live";
+  expanded.value = new Set();
+  previewedAll.value = false;
+  // A plan over the record, staged or not: a failed apply is said here with the live revision beside it.
+  if (id) void subs.loadPlans([id]);
+  const byArrow = arrowed;
+  arrowed = false;
+  if (!previous || !id || byArrow) return;
+  revealDetail();
 });
 
 // ── identities and their previews ──────────────────────────────────────────
@@ -181,9 +215,13 @@ async function preview(identityId: string, force = false): Promise<void> {
 }
 
 const expanded = ref<Set<string>>(new Set());
-// The other revision: every open row asks again, so the rows compare live and staged one for one.
+/** Preview all was used for this record: a revision switch asks again for every row, not only the open ones. */
+const previewedAll = ref(false);
+// The other revision: every open row asks again, so the rows compare live and staged one for one;
+// after Preview all, every row does, or the collapsed rows' counts would vanish without a word.
 watch(previewedRevision, () => {
-  for (const id of expanded.value) void preview(id);
+  if (previewedAll.value) void previewAll();
+  else for (const id of expanded.value) void preview(id);
 });
 function toggle(identityId: string): void {
   const next = new Set(expanded.value);
@@ -197,9 +235,15 @@ function toggle(identityId: string): void {
 
 /** One identity after another, two at a time: each is a render and a bind in core. */
 const previewingAll = ref(false);
+/** The revision changed while Preview all ran: the rows it had done are for the other one, so it runs again. */
+let previewAgain = false;
 async function previewAll(): Promise<void> {
-  if (previewingAll.value) return;
+  if (previewingAll.value) {
+    previewAgain = true;
+    return;
+  }
   previewingAll.value = true;
+  previewedAll.value = true;
   try {
     const queue = identities.value.map((identity) => identity.id);
     const worker = async () => {
@@ -208,6 +252,10 @@ async function previewAll(): Promise<void> {
     await Promise.all([worker(), worker()]);
   } finally {
     previewingAll.value = false;
+  }
+  if (previewAgain) {
+    previewAgain = false;
+    await previewAll();
   }
 }
 
@@ -292,7 +340,7 @@ function openUsers(): void {
 }
 
 /** The Records screen holds the plan flow: hand a record's plan verb over to it. */
-function handOver(action: "share-identities" | "publish-staged"): void {
+function handOver(action: "share-identities" | "publish-staged" | "delete"): void {
   const record = chosen.value;
   if (!record) return;
   chrome.openLens("records");
@@ -318,7 +366,13 @@ const bindBlocked = computed(() => (subs.canBindSelection.value ? "" : t.plans.b
 
 const recordShares = computed(() => (chosen.value ? liveSharesOn([chosen.value.id], shares.value) : []));
 const decoys = computed(() => (chosen.value ? decoyShares(chosen.value, shares.value) : []));
-const plan = computed(() => (chosen.value ? currentPlan(subs.plansByRecord.value[chosen.value.id] ?? [], chosen.value) : undefined));
+/** A delete waiting on the record first: it drops a staged revision and its promote plan with the record. */
+const plan = computed(() => {
+  const record = chosen.value;
+  if (!record) return undefined;
+  const plans = subs.plansByRecord.value[record.id] ?? [];
+  return pendingDelete(plans, record) ?? currentPlan(plans, record);
+});
 const tooLarge = computed(() => {
   const error = chosen.value?.last_error ?? "";
   return /snapshot_too_large/.test(error) ? safeErrorMessage(new Error(error), "") : "";
@@ -411,7 +465,7 @@ watch(
         <!-- The fleet-bound records. A radio group: it picks what the right side shows. -->
         <PcPanel class="fleet-records" :label="t.fleet.recordsTitle">
           <PcPanelHeader :title="t.fleet.recordsTitle" :description="t.fleet.recordsDescription" />
-          <div class="fleet-record-list" role="radiogroup" :aria-label="t.fleet.recordsTitle">
+          <div class="fleet-record-list" role="radiogroup" :aria-label="t.fleet.recordsTitle" @keydown="onRecordKeydown" @pointerdown="onRecordPointer">
             <label
               v-for="item in records"
               :key="item.id"
@@ -430,6 +484,8 @@ watch(
               <StagedBadge v-if="item.staged_revision" :item="item" :plans="subs.plansByRecord.value[item.id]" />
             </label>
           </div>
+          <!-- On a narrow frame the detail sits under the list: one key takes a keyboard user there. -->
+          <button v-if="chosen" type="button" class="fleet-skip" data-testid="fleet-skip" @click="revealDetail()">{{ t.fleet.showDetail(recordName(chosen)) }}</button>
         </PcPanel>
 
         <!-- The chosen record: identities as rows. -->
@@ -488,7 +544,7 @@ watch(
             </div>
             <div v-if="chosen.staged_revision || plan" class="fleet-staged" data-testid="fleet-staged">
               <StagedBadge v-if="chosen.staged_revision" :item="chosen" :plans="subs.plansByRecord.value[chosen.id]" proof :hide-state="!!plan" />
-              <PlanStatus v-if="plan" :plan="plan" detail :records="pipe.items.value" :identities="identities" :can-propose="subs.canPropose.value" :can-open-approvals="!!shareOrigin" @refresh="subs.loadPlans([chosen.id], true)" @propose-again="handOver('publish-staged')" @propose-rest="handOver('publish-staged')" @open-approvals="openApprovals" />
+              <PlanStatus v-if="plan" :plan="plan" detail :records="pipe.items.value" :identities="identities" :can-propose="subs.canPropose.value" :can-open-approvals="!!shareOrigin" @refresh="subs.loadPlans([chosen.id], true)" @propose-again="handOver(plan.action === 'delete' ? 'delete' : 'publish-staged')" @propose-rest="handOver('publish-staged')" @open-approvals="openApprovals" />
               <PcButton
                 v-if="chosen.staged_revision && (!plan || plan.status !== 'pending')"
                 compact
@@ -534,7 +590,12 @@ watch(
                 </button>
                 <span class="fleet-identity__status"><PcStateDot :tone="identityTone(identity)" :label="statusText(identity.status)" /></span>
                 <span class="fleet-identity__bound">{{ t.fleetEditor.identity.boundLines(identity.bound_lines) }}</span>
-                <span class="fleet-identity__result" data-testid="fleet-identity-result" :data-decoy="decoyAnswer(identity) ? 'true' : undefined">
+                <span
+                  class="fleet-identity__result"
+                  data-testid="fleet-identity-result"
+                  :data-decoy="decoyAnswer(identity) ? 'true' : undefined"
+                  :data-error="!decoyAnswer(identity) && previewOf(identity.id)?.status === 'error' ? 'true' : undefined"
+                >
                   <template v-if="decoyAnswer(identity)">{{ decoyAnswer(identity) }}</template>
                   <template v-else-if="previewOf(identity.id)?.status === 'loading' || (expanded.has(identity.id) && !previewOf(identity.id))">{{ t.fleetEditor.bind.loading }}</template>
                   <template v-else-if="previewOf(identity.id)?.status === 'error'"><span class="fleet-error">{{ t.fleetEditor.bind.error }}</span></template>
@@ -625,6 +686,39 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+/* Out of sight until a keyboard reaches it, and only where the detail is under the list. */
+.fleet-skip {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.fleet-skip:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  margin: var(--space-2) var(--space-3) 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--lt-accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--lt-accent-ink);
+  font: inherit;
+  font-size: var(--lt-text-sm);
+  text-align: left;
+  outline: none;
+  box-shadow: var(--lt-focus-ring);
+}
+@media (min-width: 960px) {
+  .fleet-skip {
+    display: none;
+  }
 }
 .fleet-record {
   display: flex;
@@ -770,6 +864,10 @@ watch(
 }
 .fleet-identity__result[data-decoy] {
   color: var(--warning-text);
+  font-family: inherit;
+}
+/* A sentence, not a figure: the body face, as the decoy line has. */
+.fleet-identity__result[data-error] {
   font-family: inherit;
 }
 @media (min-width: 720px) {

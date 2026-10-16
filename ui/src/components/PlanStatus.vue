@@ -117,7 +117,8 @@ const revisionLines = computed(() => {
 function startsOpen(share: { added: unknown[]; unchanged: number; excluded: unknown[] }): boolean {
   return (share.added.length === 0 && share.unchanged === 0) || share.excluded.length > 0;
 }
-const unbound = computed(() => (parsed.value ? planUnboundShares(parsed.value) : []));
+// An archived share answers nothing, decoy or not; the archivals list above names it.
+const unbound = computed(() => (parsed.value ? planUnboundShares(parsed.value).filter((share) => !share.archive) : []));
 const multiRecord = computed(() => new Set(shares.value.map((share) => share.record)).size > 1 || (parsed.value?.records?.length ?? 0) > 1);
 
 /** The excluded lines of one share, grouped by reason, each group with the fix the reason calls for. */
@@ -295,7 +296,7 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
         <div v-if="unbound.length" class="plan-view__unbound" data-testid="plan-unbound">
           <p>{{ t.plans.view.unbound(unbound.length) }}</p>
           <ul>
-            <li v-for="share in unbound" :key="share.share_id">{{ shareLabel(share) }}<template v-if="share.archive"> · {{ t.plans.view.archived }}</template></li>
+            <li v-for="share in unbound" :key="share.share_id">{{ shareLabel(share) }}</li>
           </ul>
         </div>
       </section>
