@@ -222,6 +222,7 @@ for (const viewport of VIEWPORTS) {
         await expect(radios.nth(2)).toBeFocused();
         await expect(radios.nth(2)).toBeChecked();
         expect(await page.evaluate(() => window.scrollY)).toBe(before);
+        await shot(page, "fleet-arrows", meta());
         const detail = page.getByTestId("fleet-detail");
         if (viewport.width < 960) {
           await page.keyboard.press("Enter");

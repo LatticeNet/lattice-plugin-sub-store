@@ -628,6 +628,7 @@ for (const viewport of VIEWPORTS) {
         expect(await focusInSheet(page)).toBe(true);
         await page.keyboard.press("Tab");
         expect(await focusInSheet(page)).toBe(true);
+        await shot(page, `focus-${entry.action}`, { width: viewport.width, theme: "light" });
         await page.keyboard.press("Escape");
         await expect(flow(page)).toHaveCount(0);
         await expect(page.locator(`.rec-menu-wrap[data-row-menu="${entry.record}"] button`).first()).toBeFocused();
