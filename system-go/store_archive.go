@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -26,10 +27,10 @@ type archivedRecord struct {
 // deleteSubscription archives a live record: the index, the record, the
 // archive write, the index write (two more on a kv_conflict), then the record
 // key's deletion and, when a staged revision existed, the staged key's
-// (storeArchive). A fleet-bound record is refused with
-// fleet_delete_requires_plan: deleting it changes what identity holders
-// receive, so it goes through plans.propose {action: "delete"}, whose apply
-// deletes it through apply_revision.
+// (storeArchive). A fleet-bound record, and a record a fleet-bound collection
+// gathers, is refused with fleet_delete_requires_plan: deleting it changes
+// what identity holders receive, so it goes through plans.propose {action:
+// "delete"}, whose apply deletes it through apply_revision.
 func (rt *runtime) deleteSubscription(id string) error {
 	idx, err := rt.writableIndex()
 	if err != nil {
@@ -51,6 +52,17 @@ func (rt *runtime) deleteSubscription(id string) error {
 			Code: refusedDeleteRequiresPlan, IDs: []string{id},
 			Message: fmt.Sprintf("subscription %q is fleet-bound; delete it through plans.propose with action delete", id),
 		})
+	}
+	// A record a fleet-bound collection gathers is not fleet-bound itself,
+	// but deleting it changes what the collection's identity holders
+	// receive, so it takes the same plan (S2-SR-1).
+	if live, ok := liveFactsOf(entry); ok {
+		if collections := fleetGatherers(newStoreGraph(idx.Records, graphUnion).with(live), id); len(collections) > 0 {
+			return refusalErr(storeRefusal{
+				Code: refusedDeleteRequiresPlan, IDs: []string{id}, Collections: collections,
+				Message: fmt.Sprintf("subscription %q is gathered by the fleet-bound collections %s; delete it through plans.propose with action delete", id, strings.Join(collections, ", ")),
+			})
+		}
 	}
 	loaded, err := rt.storeLoadRecord(idx, id, false)
 	if err != nil {
