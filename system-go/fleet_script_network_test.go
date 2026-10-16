@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
@@ -191,12 +192,15 @@ func TestProviderRenderKeepsTheScriptNetwork(t *testing.T) {
 
 // TestFleetScriptSeesNoLineIdentity: the nodes a script receives on a
 // fleet-bound record carry no Lattice block, no placeholder and no line
-// identifier or address from the row, and the plan still binds every node
-// to its line, because the block and the placeholders are put back outside
-// the script.
+// identifier or address from the row, on every protocol core binds, and the
+// plan still binds every node to its line, because the block and the
+// placeholders are put back outside the script.
 func TestFleetScriptSeesNoLineIdentity(t *testing.T) {
 	freshFleetPlans(t)
-	rows := fleetTestRows(3, "vless")
+	var rows []model.LineCatalogueRow
+	for i, protocol := range []string{"vless", "trojan", "anytls", "hysteria2", "tuic", "vmess", "socks"} {
+		rows = append(rows, fleetTestRow(i+1, protocol))
+	}
 	var identifiers []string
 	for _, row := range rows {
 		identifiers = append(identifiers, row.LineUUID, row.LineHashID, row.NodeID, row.Addresses[0])
@@ -241,8 +245,13 @@ func TestFleetScriptSeesNoLineIdentity(t *testing.T) {
 		t.Fatalf("the plan binds %d of %d nodes to a line: %v", len(lines), len(rows), lines)
 	}
 	for i, node := range plan.Nodes {
-		if len(node.Placeholders) == 0 || !strings.Contains(string(node.Node), node.Placeholders["uuid"]) {
-			t.Fatalf("node %d lost its placeholder: %+v", i, node)
+		if len(node.Placeholders) == 0 {
+			t.Fatalf("node %d carries no placeholder: %+v", i, node)
+		}
+		for field, placeholder := range node.Placeholders {
+			if !strings.Contains(string(node.Node), placeholder) {
+				t.Fatalf("node %d lost its %s placeholder: %s", i, field, node.Node)
+			}
 		}
 		if strings.Contains(string(node.Node), fleetMaskTokenPrefix) {
 			t.Fatalf("node %d kept a mask token: %s", i, node.Node)
