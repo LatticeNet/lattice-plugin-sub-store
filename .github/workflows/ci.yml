@@ -92,6 +92,17 @@ jobs:
           ref: ${{ steps.coretypes.outputs.commit }}
           path: lattice-server-for-tsgen
 
+      - name: download the server's modules
+        # tsgen reads the SDK's sources from the module cache (go list -m
+        # -f {{.Dir}}), which prints nothing for a module the cache lacks.
+        # The cache this job restores is keyed by the plugin's go.sum, so
+        # once the plugin pins another SDK commit than the server at that
+        # commit, the server's must be downloaded first.
+        working-directory: lattice-server-for-tsgen
+        env:
+          GOWORK: "off"
+        run: go mod download github.com/LatticeNet/lattice-sdk
+
       - name: regenerate core-types.ts and compare
         # contract.test.ts runs the server's tools/tsgen at the commit the
         # file names and requires the committed bytes (S2 plan section 2.8).
