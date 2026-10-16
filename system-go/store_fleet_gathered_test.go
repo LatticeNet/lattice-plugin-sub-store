@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"maps"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -229,5 +231,52 @@ func TestFleetGatheredLeavesOtherProviderWritesLive(t *testing.T) {
 	joined := subscriptionRecord{ID: "eu1", Name: "eu1", Source: subscriptionSourceRemote, URL: "https://provider.invalid/eu1", Tags: []string{"eu"}}
 	if reply, res := saveViaMethod(t, rt, joined, ""); !res.OK || !reply.Saved || reply.Staged {
 		t.Fatalf("a tag join of a provider-only collection staged: %+v %s %s", reply, res.Error, refusalText(res))
+	}
+}
+
+// TestFleetGatheredStagedMemberPreviewsItsStagedContent: core previews a
+// fleet-bound collection with a staged provider member named at its staged
+// revision, and the preview carries that staged content, not the snapshot's
+// block of the live revision, so the plan shows the change the approver
+// approves. A member at its live revision still reuses its block.
+func TestFleetGatheredStagedMemberPreviewsItsStagedContent(t *testing.T) {
+	freshFleetPlans(t)
+	rt, _ := newFleetRuntime(t, mixedProtocolRows())
+	saveFleetRecord(t, rt, subscriptionRecord{ID: "f", Process: []json.RawMessage{structuredKeep("protocol", "trojan")}})
+	one := "trojan://pw1@198.51.100.7:443#provider-one"
+	if err := rt.saveSubscription(subscriptionRecord{ID: "p", Name: "p", Source: subscriptionSourceLocal, Content: one}); err != nil {
+		t.Fatal(err)
+	}
+	if err := rt.saveSubscription(subscriptionRecord{ID: "c", Name: "c", Kind: kindCollection, Members: []string{"f", "p"}}); err != nil {
+		t.Fatal(err)
+	}
+	fetched, err := rt.fetchSubscription("c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, _ := entryOf(t, rt, "c")
+	f, _ := entryOf(t, rt, "f")
+	staged := stageRecord(t, rt, subscriptionRecord{ID: "p", Source: subscriptionSourceLocal, Content: one + "\ntrojan://pw2@198.51.100.8:443#provider-two"})
+	render := func(memberRevisions map[string]string) []string {
+		t.Helper()
+		payload := map[string]any{"subscription_id": "c", "raw": fetched.Raw, "target": "sing-box"}
+		if memberRevisions != nil {
+			payload["revision"], payload["member_revisions"] = c.Revision, memberRevisions
+		}
+		out, res := renderFleetCall(t, rt, payload)
+		if !res.OK {
+			t.Fatalf("render %v: %s", memberRevisions, res.Error)
+		}
+		return providerNodes(decodeRenderPlan(t, out.Plan))
+	}
+	from := render(nil)
+	if len(from) != 1 {
+		t.Fatalf("the live collection serves %d provider nodes, want 1", len(from))
+	}
+	if to := render(map[string]string{"p": staged}); len(to) != 2 || !strings.Contains(strings.Join(to, "\n"), "198.51.100.8") {
+		t.Fatalf("the preview at p's staged revision shows %v, not its staged content", to)
+	}
+	if same := render(map[string]string{"f": f.Revision}); strings.Join(same, "\n") != strings.Join(from, "\n") {
+		t.Fatalf("a member at its live revision did not reuse its block: %v, want %v", same, from)
 	}
 }
