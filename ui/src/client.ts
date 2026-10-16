@@ -436,6 +436,7 @@ export const ERROR_CODES = {
   fleetResponseChainUnavailable: "fleet_response_chain_unavailable",
   fleetPublishUnavailable: "fleet_publish_unavailable",
   fleetStructuredOnBundle: "fleet_structured_on_bundle",
+  fleetScriptNetworkUnavailable: "fleet_script_network_unavailable",
   catalogueUnavailable: "catalogue_unavailable",
   planTooLarge: "plan_too_large",
   lineUUIDsTooMany: "line_uuids_too_many",

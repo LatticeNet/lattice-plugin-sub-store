@@ -115,6 +115,20 @@ func (engine *subStoreEngine) attachScriptHTTP(gateway *scriptHTTPGateway) func(
 	return func() { engine.scriptHTTP.Store(nil) }
 }
 
+// withholdScriptHTTP replaces the invocation's script network with a
+// refusal that sends nothing and counts every request, until the returned
+// restore puts back what was attached before (S2-SR-2). A refusal already in
+// place is kept, so a nested caller counts on the same one and its restore
+// does nothing.
+func (engine *subStoreEngine) withholdScriptHTTP() (*scriptHTTPGateway, func()) {
+	if current := engine.scriptHTTP.Load(); current != nil && current.withheld {
+		return current, func() {}
+	}
+	refusal := &scriptHTTPGateway{withheld: true}
+	previous := engine.scriptHTTP.Swap(refusal)
+	return refusal, func() { engine.scriptHTTP.CompareAndSwap(refusal, previous) }
+}
+
 // installScriptHTTPBinding exposes the single host function the environment
 // shim calls. It is the only I/O primitive any JavaScript in this process can
 // reach, and it holds no client of its own: it borrows the invocation's.

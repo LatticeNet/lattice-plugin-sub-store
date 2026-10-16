@@ -22,7 +22,7 @@ func TestFleetScriptStepRunsOnBundleProcess(t *testing.T) {
 	program := `function operator(proxies) {
   return proxies.map(function (p, i) {
     p.name = p.name + " [scripted]";
-    if (p._lattice) { p._lattice.node_id = "forged"; p._lattice.line_uuid = "00000000-0000-4000-8000-000000000000"; }
+    p._lattice = { node_id: "forged", line_uuid: "00000000-0000-4000-8000-000000000000" };
     if (i === 0) { p.server = "foreign.example"; }
     return p;
   });
@@ -62,11 +62,13 @@ func TestFleetScriptStepRunsOnBundleProcess(t *testing.T) {
 // collection chain that runs on the bundle: a node the script invents is
 // neither a line nor a provider node (core excludes it with no_line), a
 // renamed provider node stays a provider node, and a provider node handed a
-// fleet node's placeholder is read as that line, which core then checks
-// against the line's server and rejects.
+// fleet node's credential is read as that line, which core then checks
+// against the line's server and rejects. The script sees no line identity
+// (S2-SR-2): a fleet node is the one without a provider mark, and its
+// credential is an opaque token that stands for the line's placeholder.
 func TestInventedNodeInProviderCollectionIsNoLine(t *testing.T) {
 	program := `function operator(proxies) {
-  const fleet = proxies.find(function (p) { return p._lattice && p._lattice.line_uuid; });
+  const fleet = proxies.find(function (p) { return !(p._lattice && p._lattice.provenance); });
   const providers = proxies.filter(function (p) { return p._lattice && p._lattice.provenance; });
   providers[0].name = providers[0].name + "-renamed";
   providers[1].password = fleet.password;

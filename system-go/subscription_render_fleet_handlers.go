@@ -327,7 +327,9 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 			return latticeplugin.ErrorResponse(ownerCredentialsWithheldError(rec.ID))
 		}
 		if fleetRec, ok := fleetPreviewRecord(rec, operators); ok {
-			return previewReply(rt.previewFleetSub(fleetRec, target))
+			return previewReply(withFleetScriptNetworkWithheld(rt, recordNoun(rec), func() (previewResult, error) {
+				return rt.previewFleetSub(fleetRec, target)
+			}))
 		}
 
 		// A combination has no content of its own either: its nodes are its
@@ -349,7 +351,9 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 			// placeholders, as it renders.
 			for _, member := range gathered {
 				if member.Source == subscriptionSourceFleet {
-					return previewReply(rt.previewFleetCollection(rec, gathered, target))
+					return previewReply(withFleetScriptNetworkWithheld(rt, recordNoun(rec), func() (previewResult, error) {
+						return rt.previewFleetCollection(rec, gathered, target)
+					}))
 				}
 			}
 			members, membersNative, err := rt.chainMembers(previewRec, gathered, false, legacyWithheld)
@@ -431,7 +435,9 @@ func (rt *runtime) previewCall(method string, payload json.RawMessage) response 
 	} else if req.Source == subscriptionSourceFleet {
 		// An unsaved fleet draft previews from the catalogue live: its
 		// selection is its leading Structured Filter run.
-		return previewReply(rt.previewFleetSub(subscriptionRecord{ID: "draft", Source: subscriptionSourceFleet, Process: operators}, target))
+		return previewReply(withFleetScriptNetworkWithheld(rt, "the fleet draft", func() (previewResult, error) {
+			return rt.previewFleetSub(subscriptionRecord{ID: "draft", Source: subscriptionSourceFleet, Process: operators}, target)
+		}))
 	} else if strings.TrimSpace(raw) == "" && req.Source != "" && req.Source != subscriptionSourceLocal {
 		// An unsaved draft carries its source but no content. Resolve the
 		// source live — the same guarded path a saved record's refresh
@@ -697,11 +703,23 @@ type renderReply struct {
 // (renderFleetCollection), and any collection by a staged revision or with
 // member revisions over the recomputed staged membership
 // (renderStagedCollection); every other record to its document as before.
+// A render that reaches fleet nodes in any state runs with the script
+// network withheld (S2-SR-2, fleet_script_network.go).
 func (rt *runtime) render(req subscriptionRenderRequest, opts fleetRenderOptions) (renderReply, error) {
 	o, err := rt.openForRender(req.SubscriptionID, opts)
 	if err != nil {
 		return renderReply{}, err
 	}
+	if renderTouchesFleet(o) {
+		return withFleetScriptNetworkWithheld(rt, recordNoun(o.Rec), func() (renderReply, error) {
+			return rt.renderRevision(o, req, opts)
+		})
+	}
+	return rt.renderRevision(o, req, opts)
+}
+
+// renderRevision renders the revision openForRender opened.
+func (rt *runtime) renderRevision(o renderOpened, req subscriptionRenderRequest, opts fleetRenderOptions) (renderReply, error) {
 	rec := o.Rec
 	kind := recordKind(rec)
 	planned := func(out fleetRendered, target string) renderReply {

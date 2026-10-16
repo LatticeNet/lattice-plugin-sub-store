@@ -35,7 +35,8 @@ import (
 var scriptNetworkMethods = map[string]bool{
 	// Serving a subscription is the one path whose whole job is to produce the
 	// document a client receives, so its chain runs for real: remote rulesets,
-	// Resolve Domain, produceArtifact downloads.
+	// Resolve Domain, produceArtifact downloads. A render that reaches fleet
+	// nodes withholds the grant again (fleet_script_network.go, S2-SR-2).
 	pluginID + "/subscription.render": true,
 	// publish renders the same document and ships it to an operator target.
 	pluginID + "/subscription.publish": true,
