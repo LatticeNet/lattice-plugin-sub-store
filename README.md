@@ -343,17 +343,18 @@ benchmark of its own. The `perf` job runs the pipeline, parse and producer
 benchmarks, and since S2 the fleet plan, catalogue validation, fleet_preview
 and isolated-engine benchmarks, ten times on ubuntu-24.04, and
 `tools/perfgate` judges the medians against its target table (S1 plan
-section 5.2, S2 plan section 5) and `system-go/testdata/bench/ubuntu-24.04.txt`. That
-baseline is the job's output from two runs that landed on different CPUs (an
-Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
-is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
-run happens to get. The S2 benchmarks' lines (fleet plan, catalogue
-validation, fleet_preview, the fetch and convert handlers and the
-isolated engine) come from three runs, two on the EPYC 7763 and one on an
-AMD EPYC 9V45: the 9V45 is up to 1.8 times faster on them, so a median
-of one run each would sit 1.3 times under the 7763 and trip on its noise,
-and two runs of the slowest CPU put the median at its figure. Move it the
-same way, from at least two CPUs, with the reason in the commit. The `memory` job runs the
+section 5.2, S2 plan section 5) and `system-go/testdata/bench/ubuntu-24.04.txt`.
+The label hands out CPUs up to 1.8 times apart (an Intel Xeon 8573C, an AMD
+EPYC 7763 and an AMD EPYC 9V45 so far), so the baseline keeps each run under
+the `cpu:` header it was taken on, and the 1.5 times ns/op rule compares a
+run with the baseline's runs on the same CPU. A baseline pooled over CPUs let
+a 2.2 times slowdown pass on the fast one. When the baseline holds no run of
+the current CPU for a benchmark, the slowest CPU's median stands in, the
+verdict says so and perfgate warns; that comparison is looser, so add the
+CPU's run to the baseline when one appears. B/op and allocs/op do not depend
+on the CPU and are held to 1.2 times their median over every CPU. Move the
+baseline by appending a whole perf run's output, with the reason in the
+commit. The `memory` job runs the
 allocation and heap gates without the race detector and holds the built
 worker's resident set (`TestWorkerVmRSS`) to the S2 bounds.
 
