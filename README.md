@@ -279,7 +279,7 @@ fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
 ### Conformance numbers
 
 Design 28 publishes three numbers per release. Measured on the native
-engine against harness commit 6a4153a (upstream 2.42.3, a3e6106):
+engine against harness commit b57fcf4 (upstream 2.42.3, a3e6106):
 
 | Number | Result |
 |---|---|
