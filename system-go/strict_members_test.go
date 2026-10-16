@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -11,11 +12,7 @@ import (
 func sameAsUnmarshalForRequestAndEnvelope(t *testing.T, raw []byte) {
 	t.Helper()
 	var req renderCallRequest
-	if decodeExactMembers(raw, map[string]any{
-		"subscription_id": &req.SubscriptionID, "format": &req.Format, "ua_class": &req.UAClass, "ua_target": &req.UATarget,
-		"target": &req.Target, "options": &req.Options, "raw": &req.Raw, "query": &req.Query, "explain": &req.Explain,
-		"revision": &req.Revision, "member_revisions": &req.MemberRevisions,
-	}) {
+	if decodeExactMembers(raw, req.members()) {
 		var want renderCallRequest
 		if err := json.Unmarshal(raw, &want); err != nil || !reflect.DeepEqual(req, want) {
 			t.Fatalf("render request %q: fast %+v, json.Unmarshal %+v (%v)", raw, req, want, err)
@@ -42,6 +39,27 @@ var strictMembersCorpus = []string{
 func TestDecodeExactMembersIsJSONUnmarshal(t *testing.T) {
 	for _, raw := range strictMembersCorpus {
 		sameAsUnmarshalForRequestAndEnvelope(t, []byte(raw))
+	}
+	var req renderCallRequest
+	if !decodeExactMembers([]byte(strictMembersCorpus[0]), req.members()) {
+		t.Fatal("a plain render request does not take the one-pass decode")
+	}
+}
+
+// renderCall decodes a plain request through renderCallRequest.members; each
+// of the struct's JSON names must map to its own field there.
+func TestRenderCallRequestMembersNameEveryField(t *testing.T) {
+	var req renderCallRequest
+	members := req.members()
+	v := reflect.ValueOf(&req).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		name, _, _ := strings.Cut(v.Type().Field(i).Tag.Get("json"), ",")
+		if got, ok := members[name]; !ok || got != v.Field(i).Addr().Interface() {
+			t.Errorf("members() maps %q to %v, not to field %s", name, got, v.Type().Field(i).Name)
+		}
+	}
+	if len(members) != v.NumField() {
+		t.Errorf("members() names %d members; renderCallRequest has %d fields", len(members), v.NumField())
 	}
 }
 

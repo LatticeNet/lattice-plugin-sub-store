@@ -655,14 +655,22 @@ type renderCallRequest struct {
 	MemberRevisions map[string]string `json:"member_revisions"`
 }
 
+// members maps each of the request's JSON names to its field, for
+// decodeExactMembers; TestRenderCallRequestMembersNameEveryField holds it to
+// the struct's tags, so a misspelt name cannot send every request down the
+// slow path unnoticed.
+func (r *renderCallRequest) members() map[string]any {
+	return map[string]any{
+		"subscription_id": &r.SubscriptionID, "format": &r.Format, "ua_class": &r.UAClass, "ua_target": &r.UATarget,
+		"target": &r.Target, "options": &r.Options, "raw": &r.Raw, "query": &r.Query, "explain": &r.Explain,
+		"revision": &r.Revision, "member_revisions": &r.MemberRevisions,
+	}
+}
+
 // renderCall serves render: the body the core serves for a share.
 func (rt *runtime) renderCall(payload json.RawMessage) response {
 	var req renderCallRequest
-	if len(payload) > 0 && !decodeExactMembers(payload, map[string]any{
-		"subscription_id": &req.SubscriptionID, "format": &req.Format, "ua_class": &req.UAClass, "ua_target": &req.UATarget,
-		"target": &req.Target, "options": &req.Options, "raw": &req.Raw, "query": &req.Query, "explain": &req.Explain,
-		"revision": &req.Revision, "member_revisions": &req.MemberRevisions,
-	}) {
+	if len(payload) > 0 && !decodeExactMembers(payload, req.members()) {
 		// The request carries the snapshot (most of a megabyte for 1000
 		// lines); decodeExactMembers reads a plain one once. Anything else is
 		// decoded here, from zero.
