@@ -161,6 +161,11 @@ const paritySSLink = "ss://YWVzLTEyOC1nY206cGFzcw==@192.0.2.11:8388#SG ss 9002"
 // bundle, so URI gains ?udp=1, JSON and ClashMeta say udp: true, and sing-box
 // drops its network "tcp". When a bundle re-pin closes it, the second half of
 // the test says so and the node joins the compared record.
+//
+// The comparison covers the five S1 targets, which the checker has forms
+// for. The four S2 targets are held to the 2.42.3 produce goldens by
+// TestProduceCorpusMatchesGoldens instead: the 2.36.22 bundle is not their
+// oracle.
 func TestNativeAndBundleRendersAgreeUnderCheckerRule(t *testing.T) {
 	rt := dispatchRuntime(t)
 	document, chain := parityRecord(64)
@@ -177,7 +182,7 @@ func TestNativeAndBundleRendersAgreeUnderCheckerRule(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, target := range nativeTargets {
+		for _, target := range s1NativeTargets {
 			native, served, err := rt.convertNodes(nodeConvertRequest{Parts: []string{document}, Target: target, Plan: plan})
 			if err != nil || served != servedNative {
 				t.Fatalf("%s: native render served %s err %v", target, served, err)

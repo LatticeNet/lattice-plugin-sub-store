@@ -297,9 +297,9 @@ func (engine *subStoreEngine) convertIsolated(req subStoreConversionRequest) (re
 
 // produceNodes hands pre-parsed node-model objects to the bundle's producer
 // on the isolated path, with no chain. It exists for convert with nodes,
-// which answers every allowed target while only five have a Go producer. It
-// runs the conversion script with its parse step replaced, so the zero-node
-// rule is the one every other conversion applies.
+// which answers every allowed target while the five Tier 2 targets have no
+// Go producer. It runs the conversion script with its parse step replaced,
+// so the zero-node rule is the one every other conversion applies.
 func (engine *subStoreEngine) produceNodes(nodes []json.RawMessage, target string, options map[string]bool) (subStoreConversionResult, error) {
 	if nodes == nil {
 		nodes = []json.RawMessage{}

@@ -54,8 +54,8 @@ const (
 	stepResponse     = `{"type":"Response Transformer","args":{"content":"function transform(r){ return r; }"}}`
 )
 
-// fallbackTargets are the targets convert allows that have no Go producer in
-// S1: the bundle answers them.
+// fallbackTargets are the targets convert allows that the dispatcher does not
+// route to a Go producer: the bundle answers them.
 func fallbackTargets() []string {
 	var out []string
 	for target := range subscriptionConvertTargets {
@@ -67,7 +67,13 @@ func fallbackTargets() []string {
 	return out
 }
 
-var nativeTargets = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta"}
+// nativeTargets are the nine targets the dispatcher answers in Go; the first
+// five, s1NativeTargets, are the ones S1 routed, which the checker can
+// compare with the bundle's documents.
+var (
+	nativeTargets   = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta", "Stash", "Shadowrocket", "Surge", "QX"}
+	s1NativeTargets = nativeTargets[:5]
+)
 
 func TestNativeRouteRequiresNativeTargetAndChain(t *testing.T) {
 	disabledScript := strings.Replace(stepScript, `"type":"Script Operator"`, `"type":"Script Operator","disabled":true`, 1)
@@ -81,7 +87,7 @@ func TestNativeRouteRequiresNativeTargetAndChain(t *testing.T) {
 		{"no chain, fallback target", nil, "Loon", false},
 		{"native chain, native target", steps(stepRegexFilter, stepRename), "ClashMeta", true},
 		{"native chain, a native target's alias", steps(stepRegexFilter), "clash.meta", true},
-		{"native chain, fallback target", steps(stepRegexFilter), "Surge", false},
+		{"native chain, fallback target", steps(stepRegexFilter), "Loon", false},
 		{"native chain, legacy Clash", steps(stepRegexFilter), "Clash", false},
 		{"a Resolve Domain step", steps(stepRegexFilter, stepResolve), "sing-box", false},
 		{"a Script Operator", steps(stepScript), "URI", false},
@@ -144,8 +150,8 @@ func TestFallbackTargetsRenderOnIsolatedPath(t *testing.T) {
 		t.Fatal(err)
 	}
 	targets := fallbackTargets()
-	if want := []string{"Clash", "Egern", "Loon", "QX", "Shadowrocket", "Stash", "Surfboard", "Surge", "SurgeMac"}; !slices.Equal(targets, want) {
-		t.Fatalf("fallback targets = %v, want the nine of %v", targets, want)
+	if want := []string{"Clash", "Egern", "Loon", "Surfboard", "SurgeMac"}; !slices.Equal(targets, want) {
+		t.Fatalf("fallback targets = %v, want the five Tier 2 targets %v", targets, want)
 	}
 	for _, target := range append(targets, nativeTargets...) {
 		native := producers.Native(target)

@@ -11,7 +11,7 @@ import (
 // convert accepts the SDK ConvertRequest's nodes: a typed-node plan's nodes
 // after the core bound them. For a native target they are produced in Go,
 // byte for byte what the same nodes sent as URIs produce, and no runtime is
-// touched; for the nine other targets the bundle produces them on its
+// touched; for the five Tier 2 targets the bundle produces them on its
 // isolated path (engine.produceNodes).
 func TestConvertAcceptsNodes(t *testing.T) {
 	engine := testEngineWithHeadroom()
@@ -19,8 +19,16 @@ func TestConvertAcceptsNodes(t *testing.T) {
 	// perfgen.Nodes(n) is exactly what parsing perfgen.URIs(n) gives.
 	nodes, uris := perfgen.Nodes(3), perfgen.URIs(3)
 	for _, target := range nativeTargets {
-		fromNodes := decodeConvert(t, callConvert(t, rt, map[string]any{"nodes": nodes, "target": target, "format": "plain"}))
-		fromURIs := decodeConvert(t, callConvert(t, rt, map[string]any{"uris": uris, "target": target, "format": "plain"}))
+		nodesRes := callConvert(t, rt, map[string]any{"nodes": nodes, "target": target, "format": "plain"})
+		urisRes := callConvert(t, rt, map[string]any{"uris": uris, "target": target, "format": "plain"})
+		if target == "Surge" {
+			// Surge carries no VLESS, so both inputs are refused, alike.
+			if nodesRes.OK || urisRes.OK || nodesRes.Error != urisRes.Error || !strings.HasPrefix(nodesRes.Error, "zero_nodes_for_target") {
+				t.Fatalf("Surge: nodes ok=%v error=%q, URIs ok=%v error=%q; want the same zero-node refusal", nodesRes.OK, nodesRes.Error, urisRes.OK, urisRes.Error)
+			}
+			continue
+		}
+		fromNodes, fromURIs := decodeConvert(t, nodesRes), decodeConvert(t, urisRes)
 		if fromNodes.Content != fromURIs.Content || fromNodes.NodeCount != 3 || fromNodes.Target != target {
 			t.Fatalf("%s: nodes converted to %d nodes and\n%s\nURIs to\n%s", target, fromNodes.NodeCount, head(fromNodes.Content, 300), head(fromURIs.Content, 300))
 		}
@@ -29,9 +37,9 @@ func TestConvertAcceptsNodes(t *testing.T) {
 		t.Fatalf("native converts reached the bundle: isolated=%d", isolated)
 	}
 
-	stash := decodeConvert(t, callConvert(t, rt, map[string]any{"nodes": nodes, "target": "Stash"}))
-	if stash.NodeCount != 3 || !strings.Contains(stash.Content, "reality-opts") {
-		t.Fatalf("Stash from nodes: %d nodes\n%s", stash.NodeCount, head(stash.Content, 300))
+	egern := decodeConvert(t, callConvert(t, rt, map[string]any{"nodes": nodes, "target": "Egern"}))
+	if egern.NodeCount != 3 || !strings.Contains(egern.Content, "reality") {
+		t.Fatalf("Egern from nodes: %d nodes\n%s", egern.NodeCount, head(egern.Content, 300))
 	}
 	if isolated := engine.isolatedCount(); isolated != 1 {
 		t.Fatalf("a fallback target's nodes: isolated=%d, want one isolated call", isolated)

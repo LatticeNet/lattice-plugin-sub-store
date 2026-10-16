@@ -104,11 +104,10 @@ func TestQXRejectsOverlongALPN(t *testing.T) {
 	}
 }
 
-// TestS2TargetsStayOnTheBundle pins that registering the four S2 producers
-// does not move their targets: Lookup finds each, so the conformance runner
-// and these tests judge them, and Native stays false until routing adds the
-// harness id (producer.go, routed).
-func TestS2TargetsStayOnTheBundle(t *testing.T) {
+// TestS2TargetsRenderNatively pins that the four S2 producers complete Tier
+// 1: Lookup finds each under every name its specification lists, and the
+// dispatcher serves each natively (producer.go, routed).
+func TestS2TargetsRenderNatively(t *testing.T) {
 	for target, id := range map[string]string{
 		"Stash": "stash", "stash": "stash", "Shadowrocket": "shadowrocket", "ShadowRocket": "shadowrocket",
 		"shadowrocket": "shadowrocket", "Surge": "surge", "surge": "surge", "QX": "quantumultx", "qx": "quantumultx",
@@ -118,8 +117,8 @@ func TestS2TargetsStayOnTheBundle(t *testing.T) {
 		if !ok || p.ID() != id {
 			t.Errorf("Lookup(%q) = %v, %v; want the %s producer", target, p, ok, id)
 		}
-		if Native(target) {
-			t.Errorf("Native(%q) = true; the S2 producers stay on the bundle until routing switches them on", target)
+		if !Native(target) {
+			t.Errorf("Native(%q) = false; the S2 producers are routed", target)
 		}
 	}
 }

@@ -157,9 +157,12 @@ regex or an oversized document costs one call its budget, not the worker.
 
 Node-list conversions go through a native dispatcher first
 (`system-go/engine_dispatch.go`). A render, a collection, a preview or a
-`convert` answers in Go when its target is URI, V2Ray, JSON, sing-box or
-ClashMeta and every enabled step of its chain compiles natively; otherwise the
-whole chain runs on the bundle's isolated runtime, never half in each. Resolve
+`convert` answers in Go when its target is one of the nine Tier 1 targets
+(URI, V2Ray, JSON, sing-box, ClashMeta, Stash, Shadowrocket, Surge and
+Quantumult X) and every enabled step of its chain compiles natively; otherwise
+the whole chain runs on the bundle's isolated runtime, never half in each. The
+five Tier 2 targets (Clash, Loon, Egern, Surfboard and SurgeMac) always do,
+until S3 and S4 give them producers. Resolve
 Domain, the two script steps, a pattern RE2 refuses and arguments only the
 bundle reads keep a chain on the bundle. Operator patterns compile with their
 ECMAScript meaning of `\s`, `\S` and the dot (`system-go/operators/regex.go`).

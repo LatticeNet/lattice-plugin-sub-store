@@ -46,9 +46,9 @@ type subscriptionConvertResult struct {
 // store or network access outright. The request has no operator chain (an
 // operators field is an unknown field and is refused), so no user JavaScript
 // runs. And the conversion goes through the dispatcher with no chain: the
-// five native targets are answered in Go, which keeps nothing between calls,
-// and the nine others on the bundle's isolated path, a runtime that dies with
-// the call (engine_dispatch.go).
+// nine native targets are answered in Go, which keeps nothing between calls,
+// and the five Tier 2 targets on the bundle's isolated path, a runtime that
+// dies with the call (engine_dispatch.go).
 //
 // The request is the SDK's ConvertRequest, decoded as strictly as the plugin
 // always decoded its own: exactly one of uris, raw and nodes. nodes are a
