@@ -18,6 +18,7 @@ import (
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-sdk/model"
+	"github.com/LatticeNet/lattice-sdk/strictjson"
 )
 
 // Fleet render (S2 plan sections 1.2 and 2.3). Each selected row becomes a
@@ -469,9 +470,10 @@ func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.
 // The plan is encoded by appendSelectionPlan, byte for byte what json.Marshal
 // writes, and validated without a scan per node: when every node is
 // canonical (which the plugin's own writer guarantees) by
-// ValidateWellFormedNodes, otherwise against the encoding (ValidateEncoded,
-// one pass for the whole plan). A plan that does not encode is judged by
-// Validate, which refuses it with the words it always used.
+// ValidateTrustingWellFormedNodes, otherwise against the encoding
+// (ValidateTrustingEncoding, one pass for the whole plan). A plan that does
+// not encode is judged by Validate, which refuses it with the words it
+// always used.
 func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
 	hint := 64
 	for _, node := range plan.Nodes {
@@ -485,7 +487,7 @@ func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
 	// validated without scanning its encoding again.
 	canonical := make([]bool, len(plan.Nodes))
 	parallelRange(len(plan.Nodes), func(i int) {
-		canonical[i] = canonicalRawJSON(plan.Nodes[i].Node)
+		canonical[i] = strictjson.CanonicalRaw(plan.Nodes[i].Node)
 	})
 	raw, err := appendSelectionPlanChecked(make([]byte, 0, hint), plan, canonical)
 	if err != nil {
@@ -499,9 +501,9 @@ func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
 		allCanonical = allCanonical && ok
 	}
 	if allCanonical {
-		err = plan.ValidateWellFormedNodes()
+		err = plan.ValidateTrustingWellFormedNodes()
 	} else {
-		err = plan.ValidateEncoded(raw)
+		err = plan.ValidateTrustingEncoding(raw)
 	}
 	if err != nil {
 		return nil, err

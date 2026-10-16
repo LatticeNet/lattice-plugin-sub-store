@@ -15,6 +15,7 @@ import (
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	"github.com/LatticeNet/lattice-sdk/model"
 	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
+	"github.com/LatticeNet/lattice-sdk/strictjson"
 )
 
 // The fleet source (design 28, S2 plan section 1.2). A fleet record selects
@@ -361,7 +362,7 @@ func fleetEnvelopeDigest(env snapshotEnvelope) (string, error) {
 		}
 		// The digest is over json.Marshal of this input; the rows are
 		// hashed where the slot stands rather than copied into it.
-		parts, err := splitAtRowsSlot(digestInput{env.CatalogueVersion, env.Selector, rowsSlot}, env.Rows)
+		parts, err := splitAtSlot(digestInput{env.CatalogueVersion, env.Selector, rowsSlot}, "rows", rowsSlot, env.Rows)
 		if err != nil {
 			return "", err
 		}
@@ -381,46 +382,52 @@ func fleetEnvelopeDigest(env snapshotEnvelope) (string, error) {
 }
 
 // rowsSlot stands in for an envelope's rows while the rest of it is
-// marshalled; marshalSplicingRows puts the rows in its place.
+// marshalled; marshalSplicing puts the rows in its place.
 var rowsSlot = json.RawMessage(`"\u0000rows"`)
 
-// splitAtRowsSlot marshals v, which carries rowsSlot as its rows member,
-// and answers the bytes before and after the slot, so that before, rows,
-// after is json.Marshal of the same value with its real rows: rows is what
-// encodeFleetRows returned, already in the form json.Marshal writes. What it
-// saves is the pass json.Marshal spends compacting most of a megabyte of
-// rows again, twice per fetch (the digest and the envelope). parts is nil
-// when the rows are not canonical or the slot is not found exactly once, and
-// the caller marshals the real value.
-func splitAtRowsSlot(v any, rows json.RawMessage) (parts [][]byte, err error) {
-	if !canonicalRawJSON(rows) {
+// splitAtSlot marshals v, which carries slot as the value of its member
+// named member, and answers the bytes before and after that value, so that
+// before, raw, after is json.Marshal of the same value with raw as the
+// member: raw must already be in the form json.Marshal writes
+// (strictjson.CanonicalRaw), as encodeFleetRows and encodeFleetPlan write
+// it. What it saves is the pass json.Marshal spends compacting most of a
+// megabyte again (twice per fetch for the rows, once per render for the
+// plan). parts is nil when raw is not canonical, or when the member and its
+// slot are not found exactly once in the encoding, and the caller marshals
+// the real value. The slot's text can recur only inside another raw member
+// of v, which encoding/json copies as it is; counting it refuses that case
+// whichever member comes first. It is the one splice the envelope, its
+// digest and the render reply share.
+func splitAtSlot(v any, member string, slot, raw json.RawMessage) (parts [][]byte, err error) {
+	if !strictjson.CanonicalRaw(raw) {
 		return nil, nil
 	}
 	head, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
-	slot := []byte(`"rows":` + string(rowsSlot))
-	at := bytes.Index(head, slot)
-	if at < 0 || bytes.Count(head, slot) != 1 {
+	key := `"` + member + `":`
+	needle := []byte(key + string(slot))
+	at := bytes.Index(head, needle)
+	if at < 0 || bytes.Count(head, needle) != 1 {
 		return nil, nil
 	}
-	return [][]byte{head[:at+len(`"rows":`)], head[at+len(slot):]}, nil
+	return [][]byte{head[:at+len(key)], head[at+len(needle):]}, nil
 }
 
-// marshalSplicingRows is json.Marshal of v with rows in place of its slot
-// (splitAtRowsSlot), or plain when the slot cannot be used.
-func marshalSplicingRows(v any, rows json.RawMessage, plain func() ([]byte, error)) ([]byte, error) {
-	parts, err := splitAtRowsSlot(v, rows)
+// marshalSplicing is json.Marshal of v with raw in place of its member's
+// slot (splitAtSlot), or plain when the slot cannot be used.
+func marshalSplicing(v any, member string, slot, raw json.RawMessage, plain func() ([]byte, error)) ([]byte, error) {
+	parts, err := splitAtSlot(v, member, slot, raw)
 	if err != nil {
 		return nil, err
 	}
 	if parts == nil {
 		return plain()
 	}
-	out := make([]byte, 0, len(parts[0])+len(rows)+len(parts[1]))
+	out := make([]byte, 0, len(parts[0])+len(raw)+len(parts[1]))
 	out = append(out, parts[0]...)
-	out = append(out, rows...)
+	out = append(out, raw...)
 	return append(out, parts[1]...), nil
 }
 
@@ -478,7 +485,7 @@ func fleetSubEnvelope(read fleetCatalogueRead, sel fleetSelection) (snapshotEnve
 func encodeFleetEnvelope(env snapshotEnvelope, rowCount int) (string, error) {
 	slotted := env
 	slotted.Rows = rowsSlot
-	raw, err := marshalSplicingRows(slotted, env.Rows, func() ([]byte, error) { return json.Marshal(env) })
+	raw, err := marshalSplicing(slotted, "rows", rowsSlot, env.Rows, func() ([]byte, error) { return json.Marshal(env) })
 	if err != nil {
 		return "", err
 	}

@@ -56,8 +56,8 @@ func BenchmarkValidateCatalogueRows4096(b *testing.B) {
 			b.Fatal(err)
 		}
 		received, err := model.ReadLineCataloguePage(raw)
-		if err != nil || received.RowBytes == nil {
-			b.Fatalf("read the page: %v, row sizes %v", err, received.RowBytes != nil)
+		if err != nil || !received.Sized() {
+			b.Fatalf("read the page: %v, row sizes %v", err, received.Sized())
 		}
 		pages = append(pages, received)
 	}

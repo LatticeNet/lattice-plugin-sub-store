@@ -22,13 +22,13 @@ import (
 func appendSelectionPlan(dst []byte, plan model.SelectionPlan) ([]byte, error) {
 	canonical := make([]bool, len(plan.Nodes))
 	for i, node := range plan.Nodes {
-		canonical[i] = canonicalRawJSON(node.Node)
+		canonical[i] = strictjson.CanonicalRaw(node.Node)
 	}
 	return appendSelectionPlanChecked(dst, plan, canonical)
 }
 
 // appendSelectionPlanChecked is appendSelectionPlan with each node's
-// canonicalRawJSON already answered, so a caller can answer them in
+// strictjson.CanonicalRaw already answered, so a caller can answer them in
 // parallel.
 func appendSelectionPlanChecked(dst []byte, plan model.SelectionPlan, canonical []bool) ([]byte, error) {
 	dst = append(dst, `{"kind":`...)
@@ -142,15 +142,6 @@ func appendSelectionPlanNode(dst []byte, node model.SelectionPlanNode, canonical
 		dst = append(dst, escaped.Bytes()...)
 	}
 	return append(dst, '}'), nil
-}
-
-// canonicalRawJSON reports whether raw is already what encoding/json writes
-// for a json.RawMessage holding it: compact, and free of the bytes it
-// escapes ('<', '>', '&', U+2028, U+2029), none of which can occur outside a
-// string.
-func canonicalRawJSON(raw []byte) bool {
-	return strictjson.Compact(raw) && !bytes.ContainsAny(raw, "<>&") &&
-		!bytes.Contains(raw, []byte(" ")) && !bytes.Contains(raw, []byte(" "))
 }
 
 // appendCanonicalString appends s as json.Marshal writes a string. A string
