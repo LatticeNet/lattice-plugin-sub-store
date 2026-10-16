@@ -211,7 +211,8 @@ func (engine *subStoreEngine) runFileScript(req fileScriptRequest) (fileScriptRe
 	if err != nil {
 		return fileScriptResult{}, err
 	}
-	// A script file is user JavaScript; it never touches the warm runtime.
+	// A script file is user JavaScript, run on an isolated runtime like
+	// every bundle call.
 	out, err := engine.runIsolatedScript("file script", "file-script.js", source)
 	if err != nil {
 		return fileScriptResult{}, err

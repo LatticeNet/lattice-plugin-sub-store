@@ -17,8 +17,8 @@ import (
 // cover reaching the network.
 //
 // It is deliberately small, and it is not the set of methods that CAN run
-// JavaScript. Preview, convert, transform_response and run_pipeline all still
-// run an operator chain; they simply run it with no network. Their scripts get
+// JavaScript. Preview and preview_draft still run an operator chain; they
+// simply run it with no network. Their scripts get
 // the same refusal a script already gets when it outlives its invocation
 // ("the network is not available for this call"), which the shim converts into
 // an ordinary callback error rather than a crash.

@@ -24,7 +24,7 @@ func dependsOnIDs(reply dependsReply) string {
 // that reads no fleet node, and an archived one, are left out.
 func TestDependsOnNamesTransitiveFleetReaders(t *testing.T) {
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	graph := subscriptionRecord{ID: "graph", Name: "graph", Source: subscriptionSourceVPNCoreGraph, VPNIdentity: "identity-a", EntryRoots: []string{graphRootA}, GraphOptionsVersion: "ov1:" + strings.Repeat("a", 64), Tags: []string{"fleet"}}
 	for _, rec := range []subscriptionRecord{
 		{ID: "fleet", Name: "fleet", Source: subscriptionSourceVPNCore},

@@ -226,7 +226,7 @@ func TestSnapshotRenderParityNative(t *testing.T) {
 	savedRecord(t, rt, subscriptionRecord{ID: "native", Source: subscriptionSourceLocal, Content: document, Process: chain})
 	savedRecord(t, rt, subscriptionRecord{ID: "plain", Source: subscriptionSourceLocal, Content: shareFleetFixture(4)})
 	savedRecord(t, rt, subscriptionRecord{ID: "coll", Kind: kindCollection, Members: []string{"native", "plain"}, Process: steps(`{"type":"Sort Operator","args":"desc"}`)})
-	warm, isolated := rt.engine.pathCounts()
+	isolated := rt.engine.isolatedCount()
 	for _, id := range []string{"native", "coll"} {
 		snap, err := rt.fetchSubscription(id)
 		if err != nil {
@@ -267,8 +267,8 @@ func TestSnapshotRenderParityNative(t *testing.T) {
 			}
 		}
 	}
-	if w, i := rt.engine.pathCounts(); w != warm || i != isolated {
-		t.Fatalf("native fetches and renders reached the bundle: warm %d->%d isolated %d->%d", warm, w, isolated, i)
+	if i := rt.engine.isolatedCount(); i != isolated {
+		t.Fatalf("native fetches and renders reached the bundle: isolated %d->%d", isolated, i)
 	}
 }
 
@@ -320,7 +320,7 @@ func TestNativePreviewMatchesBundlePreview(t *testing.T) {
 			if err != nil {
 				t.Fatalf("native preview: %v", err)
 			}
-			out, err := rt.engine.runCoreScript("preview", "preview.js", previewScript(document, chain, "URI", reduce))
+			out, err := rt.engine.runIsolatedScript("preview", "preview.js", previewScript(document, chain, "URI", reduce))
 			if err != nil {
 				t.Fatalf("bundle preview: %v", err)
 			}

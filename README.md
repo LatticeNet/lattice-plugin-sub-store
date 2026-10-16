@@ -8,8 +8,9 @@ bundle, so nothing depends on a standalone Sub-Store instance.
 
 The repository owns the complete plugin experience:
 
-- `system-go/` implements the `latticenet.sub-store/subscription` and
-  `latticenet.sub-store/engine` services over the stdio JSON runtime;
+- `system-go/` implements the `latticenet.sub-store/subscription` service
+  over the stdio JSON runtime, beside the core-backed `shares`, `bind` and
+  `plans` services the manifest declares;
 - `ui/` is the sandboxed Extensions tab delivered from the signed bundle;
 - `tools/pluginpack/` creates deterministic `tar+gzip` artifacts;
 - `tools/substore-core/` pins and rebuilds the embedded conversion engine;
@@ -141,8 +142,8 @@ Sub-Store `ProxyUtils` bundle. The pin is recorded in
 is AGPL-3.0 upstream code shipped inside this MIT plugin; see
 `THIRD_PARTY_NOTICES.md`.
 
-Every QuickJS runtime the engine creates, the warm one and each per-call
-isolated one, is sealed before the core loads. The qjs wasm build publishes
+Every QuickJS runtime the engine creates, one per call, is sealed before the
+core loads. The qjs wasm build publishes
 its `qjs:std`, `qjs:os` and `qjs:bjson` modules as `globalThis.std`, `os` and
 `bjson` and mounts a host directory read-write as the guest's `/`; the engine
 deletes those three globals and mounts a path that does not exist and cannot
@@ -150,11 +151,9 @@ be created, so no script, the core included, can read, list or write a file,
 and the WASI environment is empty. The modules stay registered, so a dynamic
 `import("qjs:os")` still resolves, but it reaches nothing.
 `system-go/substore_engine_sandbox_test.go` asserts this from a call script, a
-user script operator and the core's own top level, on both runtimes. Both
-runtimes also carry an in-process deadline: the isolated runtime's context
-expires with the call, and a watchdog cancels the warm runtime's context and
-retires it, so a catastrophic regex or an oversized document on the scriptless
-path costs one call its budget, not the worker.
+user script operator and the core's own top level. Every runtime also carries
+an in-process deadline: its context expires with the call, so a catastrophic
+regex or an oversized document costs one call its budget, not the worker.
 
 Node-list conversions go through a native dispatcher first
 (`system-go/engine_dispatch.go`). A render, a collection, a preview or a
@@ -164,9 +163,18 @@ whole chain runs on the bundle's isolated runtime, never half in each. Resolve
 Domain, the two script steps, a pattern RE2 refuses and arguments only the
 bundle reads keep a chain on the bundle. Operator patterns compile with their
 ECMAScript meaning of `\s`, `\S` and the dot (`system-go/operators/regex.go`).
-The warm runtime still serves the node count of a refresh whose chain runs on
-the bundle, previews of scriptless chains that do, and the legacy engine
-service.
+There is no warm runtime from S2 on. Nothing boots when a worker starts, so an
+idle worker holds no QuickJS runtime (the memory job holds it under 32 MiB).
+The first call that reaches the bundle compiles the core to bytecode once, on
+a throwaway runtime, and every bundle call is a fresh runtime seeded from that
+bytecode. A refresh counts nodes with the native parser; a preview of a chain
+the Go operators cannot run, a config-file merge (until S3 makes files native)
+and a whole-chain fallback each pay one isolate, which the share's body cache
+absorbs on the serve path. The engine service the warm runtime used to serve
+left the manifest with it. One residual is recorded here: the native parser
+decides at refresh whether a source holds nodes, so a node it reads and the
+2.36.22 bundle does not passes a refresh and then renders zero nodes on a
+target the bundle produces.
 
 Rebuild the pinned bundle with:
 

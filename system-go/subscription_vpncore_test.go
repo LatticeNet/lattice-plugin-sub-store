@@ -42,7 +42,7 @@ func (h *vpnCoreHost) call(method string, params any) (json.RawMessage, error) {
 func newVPNCoreRuntime(t *testing.T, links ...string) (*runtime, *vpnCoreHost) {
 	t.Helper()
 	host := newVPNCoreHost(links...)
-	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
+	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
 }
 
 func TestVPNCoreSubscriptionFetchesTheExport(t *testing.T) {

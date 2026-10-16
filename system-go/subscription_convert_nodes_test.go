@@ -15,9 +15,6 @@ import (
 // isolated path (engine.produceNodes).
 func TestConvertAcceptsNodes(t *testing.T) {
 	engine := testEngineWithHeadroom()
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
 	rt := &runtime{host: denyHostCalls{}, engine: engine}
 	// perfgen.Nodes(n) is exactly what parsing perfgen.URIs(n) gives.
 	nodes, uris := perfgen.Nodes(3), perfgen.URIs(3)
@@ -28,16 +25,16 @@ func TestConvertAcceptsNodes(t *testing.T) {
 			t.Fatalf("%s: nodes converted to %d nodes and\n%s\nURIs to\n%s", target, fromNodes.NodeCount, head(fromNodes.Content, 300), head(fromURIs.Content, 300))
 		}
 	}
-	if warm, isolated := engine.pathCounts(); warm != 0 || isolated != 0 {
-		t.Fatalf("native converts reached the bundle: warm=%d isolated=%d", warm, isolated)
+	if isolated := engine.isolatedCount(); isolated != 0 {
+		t.Fatalf("native converts reached the bundle: isolated=%d", isolated)
 	}
 
 	stash := decodeConvert(t, callConvert(t, rt, map[string]any{"nodes": nodes, "target": "Stash"}))
 	if stash.NodeCount != 3 || !strings.Contains(stash.Content, "reality-opts") {
 		t.Fatalf("Stash from nodes: %d nodes\n%s", stash.NodeCount, head(stash.Content, 300))
 	}
-	if warm, isolated := engine.pathCounts(); warm != 0 || isolated != 1 {
-		t.Fatalf("a fallback target's nodes: warm=%d isolated=%d, want one isolated call", warm, isolated)
+	if isolated := engine.isolatedCount(); isolated != 1 {
+		t.Fatalf("a fallback target's nodes: isolated=%d, want one isolated call", isolated)
 	}
 
 	// The SDK's bounds hold: every node is a JSON object, and nodes do not
@@ -83,8 +80,8 @@ func TestConvertRefusesResponseChainWithReason(t *testing.T) {
 			t.Fatalf("%s: the refusal quotes the input: %q", c.name, res.Error)
 		}
 	}
-	if warm, isolated := engine.pathCounts(); warm != 0 || isolated != 0 {
-		t.Fatalf("a refused convert reached the bundle: warm=%d isolated=%d", warm, isolated)
+	if isolated := engine.isolatedCount(); isolated != 0 {
+		t.Fatalf("a refused convert reached the bundle: isolated=%d", isolated)
 	}
 	// The request is still the SDK's, decoded strictly: an unknown field is
 	// refused before the reasons above are reached.

@@ -47,7 +47,7 @@ func countURINodes(body string) int {
 // and served the rest as complete: a+b served 4 of 7, a+c 4 of 6, b+c failed,
 // a+b+c 4 of 9. Each member is now parsed on its own.
 func TestCollectionMixedEncodingsKeepEveryMember(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	mixedMembers(t, rt)
 	cases := []struct {
 		members []string
@@ -93,7 +93,7 @@ func TestCollectionMixedEncodingsKeepEveryMember(t *testing.T) {
 // body as it arrived. It must render every member too, without waiting for the
 // next refresh.
 func TestCollectionRendersAPreUpgradeSnapshotWithMixedMembers(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	mixedMembers(t, rt)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "abc", Kind: kindCollection, Name: "abc", Members: []string{"a", "b", "c"}}); err != nil {
 		t.Fatalf("save: %v", err)
@@ -123,7 +123,7 @@ func TestCollectionRendersAPreUpgradeSnapshotWithMixedMembers(t *testing.T) {
 // producer has no form for HTTP, Snell or SSH nodes, so converting every member
 // to URI would drop nodes a same-format combination serves today.
 func TestCollectionKeepsMembersWhoseNodesHaveNoURIForm(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	seedSub(t, rt, "surge-a", nil, "snell-a = snell, 192.0.2.20, 443, psk=one, version=4\n")
 	seedSub(t, rt, "surge-b", nil, "http-b = http, 192.0.2.21, 8080, user, pass\n")
 	if err := rt.saveSubscription(subscriptionRecord{ID: "c", Kind: kindCollection, Name: "c", Members: []string{"surge-a", "surge-b"}}); err != nil {
@@ -146,7 +146,7 @@ func TestCollectionKeepsMembersWhoseNodesHaveNoURIForm(t *testing.T) {
 // carries in full is unaffected, and a node the core rejects for every client
 // does not count as lost.
 func TestChainedMemberThatURICannotCarryFailsPerFailureMode(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	chain := []json.RawMessage{step(t, map[string]any{"type": "Useless Filter"})}
 	saveChained := func(id, content string) {
 		t.Helper()

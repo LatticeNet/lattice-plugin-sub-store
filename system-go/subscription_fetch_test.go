@@ -81,7 +81,7 @@ func (h *httpKVHost) call(method string, params any) (json.RawMessage, error) {
 func newFetchRuntime(t *testing.T) (*runtime, *httpKVHost) {
 	t.Helper()
 	host := &httpKVHost{kvHostCaller: newKVHostCaller(), status: 200}
-	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
+	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
 }
 
 func TestFetchReturnsBodyAndTrafficHeader(t *testing.T) {

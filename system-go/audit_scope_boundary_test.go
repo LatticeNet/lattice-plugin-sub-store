@@ -188,8 +188,11 @@ func TestPreviewRefusesEveryDraftSourceField(t *testing.T) {
 // operator chain.
 //
 // The script HTTP gateway is now attached per METHOD (script_network_policy.go)
-// rather than per invocation, so convert runs its chain with no network at all.
-func TestConvertDoesNotGiveAReadScopedCallerTheNetwork(t *testing.T) {
+// rather than per invocation, so a read-scoped method runs its chain with no
+// network at all. The finding was made on the engine service's convert, which
+// S2 removed; preview is the read-scoped method that still runs a caller's
+// chain.
+func TestChainDoesNotGiveAReadScopedCallerTheNetwork(t *testing.T) {
 	host := &scriptHTTPHost{body: []byte("ok")}
 
 	exfil := auditScriptOperator(t, `async function operator(proxies) {
@@ -201,7 +204,7 @@ func TestConvertDoesNotGiveAReadScopedCallerTheNetwork(t *testing.T) {
 		return proxies;
 	}`)
 
-	resp := auditCall(t, host, "engine", "convert", map[string]any{
+	resp := auditCall(t, host, "subscription", "preview", map[string]any{
 		"raw":       auditNode,
 		"target":    "URI",
 		"operators": []json.RawMessage{exfil},
@@ -251,19 +254,10 @@ func TestReadScopedMethodsGetNoNetwork(t *testing.T) {
 		name, service, method string
 		payload               map[string]any
 	}{
-		{"convert/script", "engine", "convert",
-			map[string]any{"raw": auditNode, "target": "URI", "operators": []json.RawMessage{script}}},
-		{"convert/resolve-domain", "engine", "convert",
-			map[string]any{"raw": auditNode, "target": "URI", "operators": []json.RawMessage{resolve}}},
 		{"preview/script", "subscription", "preview",
 			map[string]any{"raw": auditNode, "target": "URI", "operators": []json.RawMessage{script}}},
 		{"preview/resolve-domain", "subscription", "preview",
 			map[string]any{"raw": auditNode, "target": "URI", "operators": []json.RawMessage{resolve}}},
-		{"transform_response", "engine", "transform_response",
-			map[string]any{
-				"response":  map[string]any{"status": 200, "headers": map[string]any{}, "body": "x"},
-				"operators": []json.RawMessage{script},
-			}},
 	}
 
 	for _, tc := range cases {
@@ -410,7 +404,7 @@ func TestDescribeVersionMatchesTheManifest(t *testing.T) {
 // exists to remove, just moved one layer down.
 func TestCallTargetAgreesWithDispatchAndFailsClosed(t *testing.T) {
 	inline, err := json.Marshal(map[string]any{
-		"service": pluginID + "/engine", "method": "convert", "payload": map[string]any{},
+		"service": pluginID + "/subscription", "method": "preview", "payload": map[string]any{},
 	})
 	if err != nil {
 		t.Fatalf("encode: %v", err)
@@ -421,8 +415,8 @@ func TestCallTargetAgreesWithDispatchAndFailsClosed(t *testing.T) {
 		want string
 		ok   bool
 	}{
-		{"top-level fields", request{Action: latticeplugin.ActionCall, Service: pluginID + "/engine", Method: "convert"}, pluginID + "/engine.convert", true},
-		{"payload-embedded", request{Action: latticeplugin.ActionCall, Payload: inline}, pluginID + "/engine.convert", true},
+		{"top-level fields", request{Action: latticeplugin.ActionCall, Service: pluginID + "/subscription", Method: "preview"}, pluginID + "/subscription.preview", true},
+		{"payload-embedded", request{Action: latticeplugin.ActionCall, Payload: inline}, pluginID + "/subscription.preview", true},
 		{"describe", request{Action: latticeplugin.ActionDescribe}, "", false},
 		{"health", request{Action: latticeplugin.ActionHealth}, "", false},
 		{"plan", request{Action: latticeplugin.ActionPlan}, "", false},

@@ -38,7 +38,7 @@ func decodeConvert(t *testing.T, res response) subscriptionConvertResult {
 // client's document out. It touches no store, so it runs with a host that
 // refuses every call.
 func TestConvertTurnsURIsIntoTheClientDocumentWithoutTheHost(t *testing.T) {
-	rt := &runtime{host: denyHostCalls{}, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: denyHostCalls{}, engine: testEngineWithHeadroom()}
 	uris := strings.Split(strings.TrimSpace(shareFleetFixture(2)), "\n")
 
 	meta := decodeConvert(t, callConvert(t, rt, map[string]any{"uris": uris, "target": "ClashMeta"}))
@@ -71,7 +71,7 @@ func TestConvertTurnsURIsIntoTheClientDocumentWithoutTheHost(t *testing.T) {
 }
 
 func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
-	rt := &runtime{host: denyHostCalls{}, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: denyHostCalls{}, engine: testEngineWithHeadroom()}
 	uris := strings.Split(strings.TrimSpace(shareFleetFixtureNoSS(1)), "\n")
 	cases := []struct {
 		name    string
@@ -110,139 +110,14 @@ func TestConvertRefusesWhatItCannotHonestlyServe(t *testing.T) {
 	}
 }
 
-// The isolation guarantee of the warm runtime. The convert method no longer
-// runs there (it answers in Go or on the isolated path, engine_dispatch.go),
-// but the legacy engine service's convert and every refresh's node count
-// still do, and the runtime persists across calls and records, so it has to
-// be shown on engine.convert that nothing one call converts survives into
-// another call's document. Twelve
-// converts with distinct credentials, cycling through targets so the same
-// producer runs back to back with different input, all on one warm runtime:
-// each document carries its own credentials and none of the others'. A fixed
-// reference input converts to the same bytes before and after those calls.
-// Then the runtime itself is searched: no reachable global holds any of them,
-// and the runtime's only cross-call store (the script environment's in-memory
-// $persistentStore) was never written. That store is the only one because the
-// runtime has no filesystem to keep anything in: until the guest root was
-// sealed, the std and os modules could write files a later call could read,
-// which this globalThis walk cannot see. The sandbox tests
-// (substore_engine_sandbox_test.go) hold that line.
-func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.T) {
-	engine := testEngineWithHeadroom()
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
-	if _, err, served := engine.runWarm("probe", "lattice-test-store-spy.js", `(function () {
-  globalThis.__latticeStoreWrites = 0;
-  const write = globalThis.$persistentStore.write;
-  globalThis.$persistentStore.write = function (data, key) {
-    globalThis.__latticeStoreWrites += 1;
-    return write(data, key);
-  };
-  return JSON.stringify({ ok: true });
-})()`); err != nil || !served {
-		t.Fatalf("install store spy: served=%v err=%v", served, err)
-	}
-	warmConvert := func(uris []string, target string) string {
-		t.Helper()
-		out, err := engine.convert(subStoreConversionRequest{Raw: strings.Join(uris, "\n"), Target: target})
-		if err != nil {
-			t.Fatalf("convert for %s: %v", target, err)
-		}
-		return out.Output
-	}
-
-	const n = 12
-	targets := []string{"ClashMeta", "sing-box", "URI", "ClashMeta", "Stash", "V2Ray", "Loon", "sing-box", "QX", "Egern", "Shadowrocket", "JSON"}
-	secrets := make([][]string, n)
-	for i := 0; i < n; i++ {
-		uuid := fmt.Sprintf("%08d-aaaa-4bbb-8ccc-%012d", 7000+i, i)
-		pass := fmt.Sprintf("hy2k%02dz", i)
-		secrets[i] = []string{uuid, pass}
-	}
-	// Each call also carries a line no parser accepts, holding a third
-	// credential. The core reports such a line through $.error, and the
-	// console capture its OpenAPI constructor installs at bundle load hands
-	// that text to appendLogEntry: this is the path that would keep a
-	// credential in a log buffer if the log limit were ever above zero.
-	for i := 0; i < n; i++ {
-		secrets[i] = append(secrets[i], fmt.Sprintf("lost%02dq", i))
-	}
-	var all []string
-	for _, s := range secrets {
-		all = append(all, s...)
-	}
-	callURIs := func(i int, s []string) []string {
-		return []string{
-			fmt.Sprintf("vless://%s@203.0.113.%d:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdefg&sid=0a&type=tcp#id-%02d", s[0], i+1, i),
-			fmt.Sprintf("hysteria2://%s@198.51.100.%d:8443?sni=h2.example.com#id-%02d-hy2", s[1], i+1, i),
-			"notaproxy://" + s[2],
-		}
-	}
-
-	// A fixed reference input, converted for every target before the calls
-	// and again after them, must come back byte for byte. Any state the core
-	// carried from one call into the next that changes a document (a name
-	// de-duplication counter, a cached node, a remembered option) shows up
-	// here, wherever in the bundle it lives, including closure scope the
-	// globalThis walk below cannot reach.
-	reference := []string{"0000ffff-1111-4222-8333-444455556666", "hy2refz", "lostrefq"}
-	all = append(all, reference...)
-	before := map[string]string{}
-	for _, target := range targets {
-		if _, done := before[target]; done {
-			continue
-		}
-		before[target] = warmConvert(callURIs(99, reference), target)
-	}
-
-	for i := 0; i < n; i++ {
-		uris := callURIs(i, secrets[i])
-		document := warmConvert(uris, targets[i])
-		if targets[i] == "V2Ray" {
-			decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(document))
-			if err != nil {
-				t.Fatalf("call %d V2Ray: %v", i, err)
-			}
-			document = string(decoded)
-		}
-		carried := 0
-		for _, own := range secrets[i] {
-			if strings.Contains(document, own) {
-				carried++
-			}
-		}
-		if carried == 0 {
-			t.Fatalf("call %d (%s) carries none of its own credentials: %q", i, targets[i], head(document, 160))
-		}
-		if strings.Contains(document, secrets[i][2]) {
-			t.Fatalf("call %d (%s) served the unparseable line", i, targets[i])
-		}
-		for j, other := range append(secrets[:len(secrets):len(secrets)], reference) {
-			if j == i {
-				continue
-			}
-			for _, secret := range other {
-				if strings.Contains(document, secret) {
-					t.Fatalf("call %d (%s) carries input %d's credential %q", i, targets[i], j, secret)
-				}
-			}
-		}
-	}
-	for target, want := range before {
-		got := warmConvert(callURIs(99, reference), target)
-		if got != want {
-			t.Fatalf("%s: the reference document changed after %d other calls on the same runtime:\nbefore %q\nafter  %q", target, n, head(want, 200), head(got, 200))
-		}
-	}
-	warm, isolated := engine.pathCounts()
-	if isolated != 0 || warm < n {
-		t.Fatalf("converts must all land on the warm runtime: warm=%d isolated=%d", warm, isolated)
-	}
-
-	needles, _ := json.Marshal(all)
-	probe := `(function () {
-  const needles = ` + string(needles) + `;
+// leakProbeScript walks every object reachable from globalThis for the
+// needles and reports which it found, how many objects it visited and how
+// many entries the script environment's in-memory $persistentStore holds
+// under the probe's key.
+func leakProbeScript(needles []string) string {
+	encoded, _ := json.Marshal(needles)
+	return `(function () {
+  const needles = ` + string(encoded) + `;
   const seen = new Set();
   const found = [];
   const stack = [globalThis];
@@ -269,49 +144,108 @@ func TestConvertCallsOnOneWarmRuntimeNeverCarryEachOthersCredentials(t *testing.
       }
     }
   }
-  return JSON.stringify({ found, visited, writes: globalThis.__latticeStoreWrites });
+  const stored = globalThis.$persistentStore.read("lattice-test-key");
+  return JSON.stringify({ found, visited, stored: stored ? String(stored) : "" });
 })()`
-	type probeReport struct {
-		Found   []string `json:"found"`
-		Visited int      `json:"visited"`
-		Writes  int      `json:"writes"`
-	}
-	runProbe := func() probeReport {
-		t.Helper()
-		raw, err, served := engine.runWarm("probe", "lattice-test-leak-probe.js", probe)
-		if err != nil || !served {
-			t.Fatalf("leak probe: served=%v err=%v", served, err)
-		}
-		var report probeReport
-		if err := json.Unmarshal([]byte(raw), &report); err != nil {
-			t.Fatalf("decode probe: %v", err)
-		}
-		return report
-	}
-	report := runProbe()
-	if len(report.Found) != 0 {
-		t.Fatalf("credentials reachable from the warm runtime's globals after the calls: %v", report.Found)
-	}
-	if report.Writes != 0 {
-		t.Fatalf("convert wrote %d entries into the runtime's cross-call store", report.Writes)
-	}
-	if report.Visited < 100 {
-		t.Fatalf("the probe walked only %d objects; it did not reach the core", report.Visited)
-	}
-	t.Logf("leak probe walked %d objects reachable from globalThis; store writes %d", report.Visited, report.Writes)
+}
 
-	// Control: the probe is not vacuous. A credential parked two levels deep
-	// under the core's own global, and one store write, must both be seen.
-	if _, err, served := engine.runWarm("probe", "lattice-test-plant.js", `(function () {
-  globalThis.SubStoreProxyUtils.__latticePlanted = { nested: { value: "x-`+secrets[3][0]+`-x" } };
-  globalThis.$persistentStore.write("planted", "lattice-test-key");
-  return JSON.stringify({ ok: true });
-})()`); err != nil || !served {
-		t.Fatalf("plant control: served=%v err=%v", served, err)
+type leakProbeReport struct {
+	Found   []string `json:"found"`
+	Visited int      `json:"visited"`
+	Stored  string   `json:"stored"`
+}
+
+func runLeakProbe(t *testing.T, engine *subStoreEngine, script string) leakProbeReport {
+	t.Helper()
+	raw, err := engine.runIsolatedScript("probe", "lattice-test-leak-probe.js", script)
+	if err != nil {
+		t.Fatalf("leak probe: %v", err)
 	}
-	control := runProbe()
-	if len(control.Found) != 1 || control.Found[0] != secrets[3][0] || control.Writes != 1 {
-		t.Fatalf("the probe missed a planted credential or store write: %+v", control)
+	var report leakProbeReport
+	if err := json.Unmarshal([]byte(raw), &report); err != nil {
+		t.Fatalf("decode probe: %v", err)
+	}
+	return report
+}
+
+// What one bundle call converts never survives into another call. The warm
+// runtime S1 shared between scriptless calls is gone (S2 plan section 1.4),
+// so the guarantee is now structural: every call builds a runtime, seeds it
+// from the core's bytecode and discards it, and the bytecode is the only
+// thing calls share. The test converts six inputs with distinct credentials
+// across six producers, each document carrying its own and none of the
+// others', and then shows the structure holds: a credential a call
+// parks under the core's global and in the script environment's
+// $persistentStore is visible to that call's own probe and to no later
+// call's. That store is the only cross-call store a runtime ever had,
+// because the runtime has no filesystem (the sandbox tests in
+// substore_engine_sandbox_test.go hold that line).
+func TestBundleCallsNeverCarryEachOthersCredentials(t *testing.T) {
+	engine := testEngineWithHeadroom()
+	targets := []string{"ClashMeta", "sing-box", "V2Ray", "Loon", "QX", "JSON"}
+	n := len(targets)
+	secrets := make([][]string, n)
+	for i := 0; i < n; i++ {
+		secrets[i] = []string{fmt.Sprintf("%08d-aaaa-4bbb-8ccc-%012d", 7000+i, i), fmt.Sprintf("hy2k%02dz", i)}
+	}
+	var all []string
+	for _, s := range secrets {
+		all = append(all, s...)
+	}
+	for i := 0; i < n; i++ {
+		uris := []string{
+			fmt.Sprintf("vless://%s@203.0.113.%d:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdefg&sid=0a&type=tcp#id-%02d", secrets[i][0], i+1, i),
+			fmt.Sprintf("hysteria2://%s@198.51.100.%d:8443?sni=h2.example.com#id-%02d-hy2", secrets[i][1], i+1, i),
+		}
+		out, err := engine.convertIsolated(subStoreConversionRequest{Raw: strings.Join(uris, "\n"), Target: targets[i]})
+		if err != nil {
+			t.Fatalf("call %d (%s): %v", i, targets[i], err)
+		}
+		document := out.Output
+		if targets[i] == "V2Ray" {
+			decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(document))
+			if err != nil {
+				t.Fatalf("call %d V2Ray: %v", i, err)
+			}
+			document = string(decoded)
+		}
+		carried := 0
+		for _, own := range secrets[i] {
+			if strings.Contains(document, own) {
+				carried++
+			}
+		}
+		if carried == 0 {
+			t.Fatalf("call %d (%s) carries none of its own credentials: %q", i, targets[i], head(document, 160))
+		}
+		for j, other := range secrets {
+			if j == i {
+				continue
+			}
+			for _, secret := range other {
+				if strings.Contains(document, secret) {
+					t.Fatalf("call %d (%s) carries input %d's credential %q", i, targets[i], j, secret)
+				}
+			}
+		}
+	}
+
+	// A later call finds none of the inputs' credentials.
+	if report := runLeakProbe(t, engine, leakProbeScript(all)); len(report.Found) != 0 || report.Stored != "" || report.Visited < 100 {
+		t.Fatalf("a later call's runtime: %+v; want nothing found, nothing stored, and the core walked", report)
+	}
+	// A call that parks a credential sees it in its own runtime, which shows
+	// the probe is not vacuous, and the next call does not.
+	planted := secrets[3][0]
+	plant := `globalThis.SubStoreProxyUtils.__latticePlanted = { nested: { value: "x-` + planted + `-x" } };
+globalThis.$persistentStore.write("planted", "lattice-test-key");
+`
+	own := runLeakProbe(t, engine, plant+leakProbeScript([]string{planted}))
+	if len(own.Found) != 1 || own.Found[0] != planted || own.Stored != "planted" {
+		t.Fatalf("the probe missed what its own call planted: %+v", own)
+	}
+	if next := runLeakProbe(t, engine, leakProbeScript([]string{planted})); len(next.Found) != 0 || next.Stored != "" {
+		t.Fatalf("the next call inherited the planted credential or store entry: %+v", next)
 	}
 }
 

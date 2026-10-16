@@ -243,25 +243,7 @@ var sandboxCallScript = `(async function () {
 })()`
 
 // A call script is what the engine itself evaluates on top of the loaded
-// core. On the warm runtime that is every scriptless conversion; this probe
-// stands in for one.
-func TestSandboxCallScriptOnWarmRuntimeReachesNoHostSurface(t *testing.T) {
-	hostDir := sandboxProbeHost(t)
-	engine := newTestEmbeddedSubStoreEngine()
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
-	showSubStoreEngineErrors(t)
-	raw, err, served := engine.runWarm("probe", "lattice-sandbox-probe.js", sandboxCallScript)
-	if !served {
-		t.Fatal("the probe did not run on the warm runtime")
-	}
-	if err != nil {
-		t.Fatalf("warm probe: %v", err)
-	}
-	assertSandboxSealed(t, "warm call script", hostDir, decodeSandboxProbe(t, "warm call script", raw))
-}
-
+// core, on every bundle call; this probe stands in for one.
 func TestSandboxCallScriptOnIsolatedRuntimeReachesNoHostSurface(t *testing.T) {
 	hostDir := sandboxProbeHost(t)
 	engine := newTestEmbeddedSubStoreEngine()
@@ -291,16 +273,16 @@ async function operator(proxies) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := engine.convert(subStoreConversionRequest{
-		Raw:       warmTestURI,
+	result, err := engine.convertIsolated(subStoreConversionRequest{
+		Raw:       sandboxTestURI,
 		Target:    "JSON",
 		Operators: []json.RawMessage{operator},
 	})
 	if err != nil {
 		t.Fatalf("script operator convert: %v", err)
 	}
-	if warm, isolated := engine.pathCounts(); warm != 0 || isolated != 1 {
-		t.Fatalf("path counts warm=%d isolated=%d, want 0/1", warm, isolated)
+	if isolated := engine.isolatedCount(); isolated != 1 {
+		t.Fatalf("isolated calls = %d, want 1", isolated)
 	}
 	var proxies []struct {
 		Name string `json:"name"`
@@ -330,7 +312,7 @@ func TestSandboxScriptOperatorCallingLoadFileLeavesNodesAndEngineAlive(t *testin
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "JSON", Operators: []json.RawMessage{operator}})
+	result, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "JSON", Operators: []json.RawMessage{operator}})
 	if err != nil {
 		t.Fatalf("script operator convert: %v", err)
 	}
@@ -343,7 +325,7 @@ func TestSandboxScriptOperatorCallingLoadFileLeavesNodesAndEngineAlive(t *testin
 	if strings.HasPrefix(proxies[0].Name, "read:") {
 		t.Fatalf("the operator ran past std.loadFile and renamed the node to %q", proxies[0].Name)
 	}
-	after, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "JSON"})
+	after, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "JSON"})
 	if err != nil || after.NodeCount != 1 {
 		t.Fatalf("scriptless convert after the failed operator: %+v, %v", after, err)
 	}
@@ -368,9 +350,9 @@ var sandboxBundleCore = `
 })();
 `
 
-func runSandboxBundleProbe(t *testing.T, where, hostDir string, engine *subStoreEngine, operator string, wantWarm, wantIsolated int) {
+func runSandboxBundleProbe(t *testing.T, where, hostDir string, engine *subStoreEngine, operator string) {
 	t.Helper()
-	result, err := engine.convert(subStoreConversionRequest{
+	result, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw:       "x",
 		Target:    "JSON",
 		Operators: []json.RawMessage{json.RawMessage(operator)},
@@ -378,8 +360,8 @@ func runSandboxBundleProbe(t *testing.T, where, hostDir string, engine *subStore
 	if err != nil {
 		t.Fatalf("%s: convert: %v", where, err)
 	}
-	if warm, isolated := engine.pathCounts(); warm != wantWarm || isolated != wantIsolated {
-		t.Fatalf("%s: path counts warm=%d isolated=%d, want %d/%d", where, warm, isolated, wantWarm, wantIsolated)
+	if isolated := engine.isolatedCount(); isolated != 1 {
+		t.Fatalf("%s: isolated calls = %d, want 1", where, isolated)
 	}
 	var out struct {
 		AtLoad map[string]string `json:"atLoad"`
@@ -396,15 +378,14 @@ func runSandboxBundleProbe(t *testing.T, where, hostDir string, engine *subStore
 	assertSandboxSealed(t, where, hostDir, decodeSandboxProbe(t, where, string(out.Probe)))
 }
 
-func TestSandboxBundleContextOnWarmRuntimeReachesNoHostSurface(t *testing.T) {
+// The bundle's own closure is probed under a scriptless chain and under a
+// script operator; both run on an isolated runtime of their own.
+func TestSandboxBundleContextOnScriptlessChainReachesNoHostSurface(t *testing.T) {
 	hostDir := sandboxProbeHost(t)
 	engine := newSubStoreEngine(sandboxBundleCore)
 	engine.limits.Timeout = 30 * time.Second
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
 	showSubStoreEngineErrors(t)
-	runSandboxBundleProbe(t, "warm bundle", hostDir, engine, `{"type":"Sort Operator","args":{}}`, 1, 0)
+	runSandboxBundleProbe(t, "scriptless bundle", hostDir, engine, `{"type":"Sort Operator","args":{}}`)
 }
 
 func TestSandboxBundleContextOnIsolatedRuntimeReachesNoHostSurface(t *testing.T) {
@@ -412,50 +393,57 @@ func TestSandboxBundleContextOnIsolatedRuntimeReachesNoHostSurface(t *testing.T)
 	engine := newSubStoreEngine(sandboxBundleCore)
 	engine.limits.Timeout = 30 * time.Second
 	showSubStoreEngineErrors(t)
-	runSandboxBundleProbe(t, "isolated bundle", hostDir, engine, `{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`, 0, 1)
+	runSandboxBundleProbe(t, "isolated bundle", hostDir, engine, `{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
 }
+
+// sandboxTestURI is one VLESS Reality node every target can carry.
+const sandboxTestURI = "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01"
 
 // redosNodeURI names its node so that ^(a+)+$ backtracks catastrophically:
 // forty a's and a trailing character the pattern cannot match.
 var redosNodeURI = "ss://YWVzLTEyOC1nY206cGFzcw==@a.example:8388#" + strings.Repeat("a", 40) + "!"
 
-// A provider controls node names and an operator's regex runs over them on
-// the scriptless path, which is the warm runtime. A catastrophic pattern must
-// cost one call its budget, not the worker: the call fails near the deadline
-// and the engine answers the next call.
-func TestWarmEngineBoundsCatastrophicRegexOnScriptlessPath(t *testing.T) {
-	engine := newTestEmbeddedSubStoreEngine()
-	engine.limits.Timeout = 2 * time.Second
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
+// A provider controls node names and an operator's regex runs over them. A
+// catastrophic pattern must cost one call its budget, not the worker: the
+// call fails near its deadline and the engine answers the next call. The
+// Regex Filter here runs on the bundle because the chain is sent there
+// whole; the native operators use RE2, which cannot backtrack.
+func TestEngineBoundsCatastrophicRegexPerCall(t *testing.T) {
+	engine := boundedCallEngine(t)
 	filter := json.RawMessage(`{"type":"Regex Filter","args":{"regex":["^(a+)+$"],"keep":true}}`)
 	start := time.Now()
-	_, err := engine.convert(subStoreConversionRequest{Raw: redosNodeURI, Target: "URI", Operators: []json.RawMessage{filter}})
+	_, err := engine.convertIsolated(subStoreConversionRequest{Raw: redosNodeURI, Target: "URI", Operators: []json.RawMessage{filter}})
 	elapsed := time.Since(start)
 	if err == nil {
 		t.Fatal("a catastrophic regex completed; the test input no longer backtracks")
 	}
-	if warm, isolated := engine.pathCounts(); warm != 1 || isolated != 0 {
-		t.Fatalf("path counts warm=%d isolated=%d, want the regex call on the warm runtime", warm, isolated)
-	}
 	if elapsed > engine.limits.Timeout+3*time.Second {
-		t.Fatalf("the warm call ran %s against a %s budget", elapsed, engine.limits.Timeout)
+		t.Fatalf("the call ran %s against a %s budget", elapsed, engine.limits.Timeout)
 	}
-	// The warm runtime is retired, so the next call boots an isolated one and
-	// loads the full core; under -race on a CI runner that alone outlasts the
-	// 2 s test budget, which belongs to the call under test.
-	engine.limits.Timeout = 30 * time.Second
-	after, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "URI"})
-	if err != nil || after.NodeCount != 1 {
+	if after, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || after.NodeCount != 1 {
 		t.Fatalf("engine did not answer after the bounded call: nodes=%d err=%v", after.NodeCount, err)
 	}
+}
+
+// boundedCallEngine is an engine with a per-call budget short enough for a
+// test to wait out and long enough to load the core, which an ordinary call
+// proves before the test spends the budget on a call that must outlast it;
+// without that proof a failed call could be the core load and not the input.
+// The one-time compile happens before any call's deadline starts.
+func boundedCallEngine(t *testing.T) *subStoreEngine {
+	t.Helper()
+	engine := newTestEmbeddedSubStoreEngine()
+	engine.limits.Timeout = 6 * time.Second
+	if out, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || out.NodeCount != 1 {
+		t.Fatalf("an ordinary call does not fit the %s budget: nodes=%d err=%v", engine.limits.Timeout, out.NodeCount, err)
+	}
+	return engine
 }
 
 // largeFlowYAML is an ordinary Clash document, n proxies in flow style. The
 // pinned core parses it at roughly 8 ms a node on this engine (250 nodes in
 // about 2 s, 2000 in about 17 s, measured 2026-10-08), so a few thousand
-// nodes from a provider outlast any budget the scriptless path has.
+// nodes from a provider outlast any budget a bundle call has.
 func largeFlowYAML(n int) string {
 	var b strings.Builder
 	b.WriteString("proxies:\n")
@@ -467,30 +455,18 @@ func largeFlowYAML(n int) string {
 
 // The same bound holds for a document too large to parse in time: the call
 // ends near the deadline, and the engine keeps serving.
-func TestWarmEngineBoundsHugeYAMLOnScriptlessPath(t *testing.T) {
-	engine := newTestEmbeddedSubStoreEngine()
-	engine.limits.Timeout = 2 * time.Second
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
+func TestEngineBoundsHugeYAMLPerCall(t *testing.T) {
+	engine := boundedCallEngine(t)
 	start := time.Now()
-	_, err := engine.countNodes(largeFlowYAML(5000))
+	_, err := engine.convertIsolated(subStoreConversionRequest{Raw: largeFlowYAML(5000), Target: "URI"})
 	elapsed := time.Since(start)
 	if err == nil {
 		t.Fatal("5000 flow-style nodes parsed inside the budget; the test input no longer outlasts it")
 	}
-	if warm, isolated := engine.pathCounts(); warm != 1 || isolated != 0 {
-		t.Fatalf("path counts warm=%d isolated=%d, want the call on the warm runtime", warm, isolated)
-	}
 	if elapsed > engine.limits.Timeout+3*time.Second {
-		t.Fatalf("the warm call ran %s against a %s budget", elapsed, engine.limits.Timeout)
+		t.Fatalf("the call ran %s against a %s budget", elapsed, engine.limits.Timeout)
 	}
-	// The warm runtime is retired, so the next call boots an isolated one and
-	// loads the full core; under -race on a CI runner that alone outlasts the
-	// 2 s test budget, which belongs to the call under test.
-	engine.limits.Timeout = 30 * time.Second
-	after, err := engine.convert(subStoreConversionRequest{Raw: warmTestURI, Target: "URI"})
-	if err != nil || after.NodeCount != 1 {
+	if after, err := engine.convertIsolated(subStoreConversionRequest{Raw: sandboxTestURI, Target: "URI"}); err != nil || after.NodeCount != 1 {
 		t.Fatalf("engine did not answer after the bounded call: nodes=%d err=%v", after.NodeCount, err)
 	}
 }

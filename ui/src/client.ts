@@ -3,9 +3,9 @@
  *
  * Two tiers:
  *  - "active":  methods declared by the manifest on the integration line.
- *    Today that is the shipped `import` adapter surface plus the embedded
- *    `engine` surface (convert / transform_response / pipeline CRUD /
- *    run_pipeline, hephaestus's PR6, per-method budgets included).
+ *    The embedded `engine` surface (convert / transform_response / pipeline
+ *    CRUD / run_pipeline) left the manifest in S2 with the warm runtime it
+ *    ran on (S2 plan section 12, decision 5); no screen ever called it.
  *  - "pending": proposed but not yet declared methods. Empty right now: the
  *    0.17 manifest declares the S1 store-split methods, which were the last
  *    entries. The tier mechanism stays: a future slice's methods enter here
@@ -21,7 +21,6 @@ import type { BridgeClient } from "@latticenet/plugin-bridge";
 import { t } from "./i18n";
 
 export const SERVICES = {
-  engine: "latticenet.sub-store/engine",
   subscription: "latticenet.sub-store/subscription",
   /** Core-backed (manifest `backing: "core"`): share tokens never enter the
    * sandbox store, so the link a client subscribes to can only come from core. */
@@ -41,14 +40,6 @@ function binding(service: string, method: string, status: BindingStatus): Method
 }
 
 export const BINDINGS = {
-  // ── embedded engine (manifest-declared since the PR6 merge) ──────────────
-  engineConvert: binding(SERVICES.engine, "convert", "active"),
-  engineTransformResponse: binding(SERVICES.engine, "transform_response", "active"),
-  engineSavePipeline: binding(SERVICES.engine, "save_pipeline", "active"),
-  engineGetPipeline: binding(SERVICES.engine, "get_pipeline", "active"),
-  engineListPipelines: binding(SERVICES.engine, "list_pipelines", "active"),
-  engineDeletePipeline: binding(SERVICES.engine, "delete_pipeline", "active"),
-  engineRunPipeline: binding(SERVICES.engine, "run_pipeline", "active"),
   // ── subscription platform (design-16) ────────────────────────────────────
   // The backend for these shipped and was signed before any of them had a
   // caller, so the whole feature was unreachable from the UI. `get`, `save`
@@ -120,76 +111,6 @@ export const CONVERT_OUTPUT_WARN_BYTES = Math.floor(CONVERT_OUTPUT_BUDGET_BYTES 
 export const RAW_INPUT_LIMIT_BYTES = 1024 * 1024;
 export const MAX_PIPELINE_OPERATORS = 64;
 export const MAX_PIPELINE_RECORDS = 256;
-
-// ── engine shapes (manifest: latticenet.sub-store/engine) ───────────────────
-
-/** convert request: raw subscription content + target format + optional
- *  operator chain. The engine never fetches. The UI supplies the content. */
-export interface ConversionRequest {
-  raw: string;
-  target: string;
-  operators?: unknown[];
-}
-
-export interface ConversionResult {
-  target: string;
-  source_node_count: number;
-  node_count: number;
-  output: string;
-  output_bytes: number;
-}
-
-/** transform_response: reshape an HTTP response object through the core. */
-export interface ResponseTransformRequest {
-  response: unknown;
-  target?: string;
-  operators?: unknown[];
-}
-
-export interface ResponseTransformResult {
-  target?: string;
-  status: number;
-  headers: Record<string, unknown>;
-  body: string;
-  body_bytes: number;
-}
-
-export interface PipelineRecord {
-  id: string;
-  name: string;
-  target: string;
-  operators?: unknown[];
-}
-
-export interface PipelineListItem {
-  id: string;
-  name: string;
-  target: string;
-  operator_count: number;
-}
-
-export interface PipelineListResponse {
-  records: PipelineListItem[];
-  count: number;
-}
-
-export interface PipelineSaveResponse {
-  id: string;
-  created: boolean;
-  count: number;
-}
-
-export interface PipelineGetResponse {
-  found: boolean;
-  record?: PipelineRecord;
-  id?: string;
-}
-
-export interface PipelineDeleteResponse {
-  id: string;
-  deleted: boolean;
-  count: number;
-}
 
 // ── subscription shapes (manifest: latticenet.sub-store/subscription) ───────
 

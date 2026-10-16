@@ -946,13 +946,6 @@ export function createFakeHost(): HostContext {
           ],
         },
         {
-          service: "latticenet.sub-store/engine",
-          methods: [
-            "convert", "transform_response", "save_pipeline", "get_pipeline",
-            "list_pipelines", "delete_pipeline", "run_pipeline",
-          ],
-        },
-        {
           service: "latticenet.sub-store/shares",
           methods: ["list"],
         },

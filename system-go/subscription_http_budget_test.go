@@ -101,7 +101,7 @@ func TestProviderFetchingMethodsAreSignedForAProviderBody(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
 			host := &httpBudgetHost{kvHostCaller: newKVHostCaller(), provider: provider}
-			rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+			rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 			for _, rec := range records {
 				if err := rt.saveSubscription(rec); err != nil {
 					t.Fatalf("seed %s: %v", rec.ID, err)

@@ -57,7 +57,7 @@ func startFramedRuntime(t *testing.T, kv *kvHostCaller) *framedRuntime {
 	f := &framedRuntime{t: t, in: inWriter, host: hostWriter, out: outReader, done: make(chan error, 1), kv: kv}
 	f.scanner = bufio.NewScanner(outReader)
 	f.scanner.Buffer(make([]byte, 64<<10), 64<<20)
-	base := &runtime{engine: sharedWarmTestEngine(t)}
+	base := &runtime{engine: testEngineWithHeadroom()}
 	go func() { f.done <- rt.ServeV2(context.Background(), invocationHandler(base), 7) }()
 	t.Cleanup(func() {
 		_ = inWriter.Close()
@@ -272,7 +272,7 @@ func TestHostFrameCapCoversTheCoreRequestBounds(t *testing.T) {
 // model.MaxSubscriptionRequestBytes. Both used to stop at the 4 MiB response
 // bound and refuse requests core sends.
 func TestPayloadBoundsFollowTheCoreRequestBounds(t *testing.T) {
-	rt := &runtime{host: denyHostCalls{}, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: denyHostCalls{}, engine: testEngineWithHeadroom()}
 	padded := func(size int) json.RawMessage {
 		head := `{"target":"URI"`
 		return json.RawMessage(head + strings.Repeat(" ", size-len(head)-1) + "}")

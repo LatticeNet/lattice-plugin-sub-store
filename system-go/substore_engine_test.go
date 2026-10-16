@@ -44,7 +44,7 @@ globalThis.SubStoreProxyUtils = {
 };
 `)
 
-	result, err := engine.convert(subStoreConversionRequest{
+	result, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw:    "ss://one\n\nvless://two",
 		Target: "sing-box",
 	})
@@ -78,45 +78,49 @@ globalThis.SubStoreProxyUtils = {
 	}
 }
 
-// The engine's isolation contract is per-path, not per-call. Scriptless
-// conversions deliberately share the warm runtime — that reuse is what
-// removed the ~13.5 s per-invocation boot — so core-held state persists
-// across them. Anything carrying user JavaScript still gets a fresh runtime
-// every time, so nothing user-written can read or poison state a later call
-// would inherit.
-func TestSubStoreEngineIsolatesUserScriptRunsNotWarmOnes(t *testing.T) {
-	engine := newSubStoreEngine(statefulTestCore)
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
-	first, err := engine.convert(subStoreConversionRequest{Raw: "ss://one", Target: "Clash"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	second, err := engine.convert(subStoreConversionRequest{Raw: "ss://two", Target: "Clash"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if first.Output != "1" || second.Output != "2" {
-		t.Fatalf("warm conversions did not share the runtime: first=%q second=%q", first.Output, second.Output)
-	}
+// statefulTestCore counts parse calls in a global, so a test can tell
+// whether two calls shared a runtime.
+const statefulTestCore = `
+globalThis.SubStoreProxyUtils = {
+  parse() {
+    globalThis.__calls = (globalThis.__calls || 0) + 1;
+    return [{ name: "node" }];
+  },
+  process(proxies) { return proxies; },
+  produce() {
+    return String(globalThis.__calls);
+  }
+};
+`
 
-	// A scripting chain must see a fresh runtime with none of that state.
+// isolatedCount is how many calls the engine's isolated path has served.
+func (engine *subStoreEngine) isolatedCount() int {
+	return int(engine.isolatedServes.Load())
+}
+
+// Every call gets a runtime of its own, scriptless or not: from S2 there is
+// no persistent runtime for a call to inherit state from or leave state in
+// (S2 plan section 1.4). The stateful core counts its parses in a global, so
+// a runtime two calls shared would answer 2 on the second.
+func TestSubStoreEngineGivesEveryCallAFreshRuntime(t *testing.T) {
+	engine := newSubStoreEngine(statefulTestCore)
 	scriptOp := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
-	isolated, err := engine.convert(subStoreConversionRequest{Raw: "ss://three", Target: "Clash", Operators: []json.RawMessage{scriptOp}})
-	if err != nil {
-		t.Fatal(err)
+	for i, req := range []subStoreConversionRequest{
+		{Raw: "ss://one", Target: "Clash"},
+		{Raw: "ss://two", Target: "Clash"},
+		{Raw: "ss://three", Target: "Clash", Operators: []json.RawMessage{scriptOp}},
+		{Raw: "ss://four", Target: "Clash"},
+	} {
+		out, err := engine.convertIsolated(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if out.Output != "1" {
+			t.Fatalf("call %d saw %q parses in its runtime, want a fresh count of 1", i+1, out.Output)
+		}
 	}
-	if isolated.Output != "1" {
-		t.Fatalf("user-script run inherited warm state: output=%q, want fresh count 1", isolated.Output)
-	}
-	// And it must not have poisoned the warm runtime either.
-	third, err := engine.convert(subStoreConversionRequest{Raw: "ss://four", Target: "Clash"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if third.Output != "3" {
-		t.Fatalf("warm runtime state disturbed by isolated run: output=%q, want 3", third.Output)
+	if got := engine.isolatedCount(); got != 4 {
+		t.Fatalf("isolated calls = %d, want 4", got)
 	}
 }
 
@@ -133,7 +137,7 @@ globalThis.SubStoreProxyUtils = {
 };
 `)
 
-	_, err := engine.convert(subStoreConversionRequest{Raw: secretRaw, Target: "Clash"})
+	_, err := engine.convertIsolated(subStoreConversionRequest{Raw: secretRaw, Target: "Clash"})
 	if err == nil {
 		t.Fatal("expected conversion error")
 	}
@@ -148,7 +152,7 @@ globalThis.SubStoreProxyUtils = {
 }
 
 func TestSubStoreEngineRejectsInvalidCoreContract(t *testing.T) {
-	_, err := newSubStoreEngine(`globalThis.SubStoreProxyUtils = {};`).convert(subStoreConversionRequest{
+	_, err := newSubStoreEngine(`globalThis.SubStoreProxyUtils = {};`).convertIsolated(subStoreConversionRequest{
 		Raw:    "ss://one",
 		Target: "Clash",
 	})
@@ -156,7 +160,7 @@ func TestSubStoreEngineRejectsInvalidCoreContract(t *testing.T) {
 		t.Fatalf("invalid core contract error: %v", err)
 	}
 
-	_, err = newSubStoreEngine("").convert(subStoreConversionRequest{
+	_, err = newSubStoreEngine("").convertIsolated(subStoreConversionRequest{
 		Raw:    "ss://one",
 		Target: "Clash",
 	})
@@ -226,7 +230,7 @@ func TestEmbeddedSubStoreCoreExposesWidenedProxyUtils(t *testing.T) {
 }
 
 func TestEmbeddedSubStoreCoreConvertsRepresentativeSubscription(t *testing.T) {
-	result, err := newTestEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+	result, err := newTestEmbeddedSubStoreEngine().convertIsolated(subStoreConversionRequest{
 		Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
 		Target: "Clash",
 	})
@@ -255,7 +259,7 @@ func TestEmbeddedSubStoreCoreAppliesScriptPipeline(t *testing.T) {
 			}
 		}`),
 	}
-	result, err := newTestEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+	result, err := newTestEmbeddedSubStoreEngine().convertIsolated(subStoreConversionRequest{
 		Raw: strings.Join([]string{
 			"ss://YWVzLTEyOC1nY206c2VjcmV0@keep.example.com:8388#Keep",
 			"ss://YWVzLTEyOC1nY206c2VjcmV0@drop.example.com:8388#Drop",
@@ -289,7 +293,7 @@ func TestEmbeddedSubStoreCoreAppliesNodeShortcutPipeline(t *testing.T) {
 			}
 		}`),
 	}
-	result, err := newTestEmbeddedSubStoreEngine().convert(subStoreConversionRequest{
+	result, err := newTestEmbeddedSubStoreEngine().convertIsolated(subStoreConversionRequest{
 		Raw: strings.Join([]string{
 			"ss://YWVzLTEyOC1nY206c2VjcmV0@keep.example.com:8388#Keep",
 			"ss://YWVzLTEyOC1nY206c2VjcmV0@drop.example.com:8388#Drop",
@@ -357,76 +361,6 @@ func TestEmbeddedSubStoreCoreAppliesResponseTransformerPipeline(t *testing.T) {
 	}
 }
 
-func TestSubStoreEngineConvertCallDoesNotUseHost(t *testing.T) {
-	host := &fakeHostCaller{}
-	engine := newTestEmbeddedSubStoreEngine()
-	rt := &runtime{host: host, engine: engine}
-	payload, err := json.Marshal(callPayload{
-		Service: pluginID + "/engine",
-		Method:  "convert",
-		Payload: mustJSON(subStoreConversionRequest{
-			Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
-			Target: "Clash",
-		}),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := rt.handle(request{Action: "call", Payload: payload})
-	if !resp.OK {
-		t.Fatalf("engine convert call failed: %+v", resp)
-	}
-	if len(host.calls) != 0 {
-		t.Fatalf("engine conversion reached host: %+v", host.calls)
-	}
-	var result subStoreConversionResult
-	if err := json.Unmarshal(resp.Result, &result); err != nil {
-		t.Fatal(err)
-	}
-	if result.NodeCount != 1 || result.OutputBytes == 0 || !strings.Contains(result.Output, "Node") {
-		t.Fatalf("engine conversion result: %+v", result)
-	}
-}
-
-func TestSubStoreEngineResponseTransformCallDoesNotUseHost(t *testing.T) {
-	host := &fakeHostCaller{}
-	engine := newTestEmbeddedSubStoreEngine()
-	rt := &runtime{host: host, engine: engine}
-	payload, err := json.Marshal(callPayload{
-		Service: pluginID + "/engine",
-		Method:  "transform_response",
-		Payload: mustJSON(subStoreResponseTransformRequest{
-			Response: json.RawMessage(`{"body":"seed"}`),
-			Operators: []json.RawMessage{json.RawMessage(`{
-				"type": "Response Transformer",
-				"args": {
-					"mode": "script",
-					"content": "function transformFunction(res) { res.body += '-done'; return res; }"
-				}
-			}`)},
-		}),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := rt.handle(request{Action: "call", Payload: payload})
-	if !resp.OK {
-		t.Fatalf("engine response transform call failed: %+v", resp)
-	}
-	if len(host.calls) != 0 {
-		t.Fatalf("engine response transform reached host: %+v", host.calls)
-	}
-	var result subStoreResponseTransformResult
-	if err := json.Unmarshal(resp.Result, &result); err != nil {
-		t.Fatal(err)
-	}
-	if result.Status != 200 || result.Body != "seed-done" || result.BodyBytes != len([]byte("seed-done")) {
-		t.Fatalf("engine response transform result: %+v", result)
-	}
-}
-
 func newTestEmbeddedSubStoreEngine() *subStoreEngine {
 	engine := newEmbeddedSubStoreEngine()
 	engine.limits.Timeout = 30 * time.Second
@@ -442,7 +376,7 @@ func TestSubStoreEngineConvertsPinnedCoreWhenProvided(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := newSubStoreEngine(string(core)).convert(subStoreConversionRequest{
+	result, err := newSubStoreEngine(string(core)).convertIsolated(subStoreConversionRequest{
 		Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
 		Target: "Clash",
 	})
@@ -457,27 +391,46 @@ func TestSubStoreEngineConvertsPinnedCoreWhenProvided(t *testing.T) {
 // Every target the UI curates must stay producible by the pinned core: a pin
 // bump that drops or renames a producer must break the build here rather than
 // surface as a runtime conversion error. The list mirrors CONVERT_TARGETS in
-// ui/src/client.ts.
+// ui/src/client.ts. All of them are asked in one isolated call: each call is
+// a fresh runtime, and fourteen would pay fourteen core loads for one
+// question.
 func TestEmbeddedSubStoreCoreProducesEveryCuratedTarget(t *testing.T) {
-	engine := newTestEmbeddedSubStoreEngine()
-	if err := engine.prewarm(); err != nil {
-		t.Fatalf("prewarm: %v", err)
-	}
 	targets := []string{
 		"Clash", "ClashMeta", "sing-box", "Surge", "Loon", "Stash", "QX",
 		"Shadowrocket", "Egern", "Surfboard", "SurgeMac", "URI", "V2Ray", "JSON",
 	}
+	encoded, err := json.Marshal(targets)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := newTestEmbeddedSubStoreEngine().runIsolatedScript("targets", "lattice-test-targets.js", `(function () {
+  const root = globalThis.SubStoreProxyUtils;
+  const core = root && root.ProxyUtils ? root.ProxyUtils : root;
+  const proxies = core.parse("ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node");
+  const out = {};
+  for (const target of `+string(encoded)+`) {
+    try {
+      const document = core.produce(proxies, target, "external", {});
+      out[target] = typeof document === "string" ? document.length : -1;
+    } catch (err) {
+      out[target] = -2;
+    }
+  }
+  return JSON.stringify(out);
+})()`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var sizes map[string]int
+	if err := json.Unmarshal([]byte(raw), &sizes); err != nil {
+		t.Fatal(err)
+	}
 	for _, target := range targets {
-		result, err := engine.convert(subStoreConversionRequest{
-			Raw:    "ss://YWVzLTEyOC1nY206c2VjcmV0@example.com:8388#Node",
-			Target: target,
-		})
-		if err != nil {
-			t.Errorf("target %s: %v", target, err)
-			continue
-		}
-		if result.OutputBytes == 0 {
-			t.Errorf("target %s produced no output", target)
+		switch size := sizes[target]; {
+		case size == -2:
+			t.Errorf("target %s: produce threw", target)
+		case size <= 0:
+			t.Errorf("target %s produced no output (%d)", target, size)
 		}
 	}
 }
@@ -496,7 +449,7 @@ globalThis.SubStoreProxyUtils = {
   },
 };`)
 
-	withOpts, err := engine.convert(subStoreConversionRequest{
+	withOpts, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw:    "x",
 		Target: "Stash",
 		Options: map[string]bool{
@@ -510,7 +463,7 @@ globalThis.SubStoreProxyUtils = {
 		t.Fatalf("produce did not receive the option flags: %s", withOpts.Output)
 	}
 
-	without, err := engine.convert(subStoreConversionRequest{Raw: "x", Target: "Stash"})
+	without, err := engine.convertIsolated(subStoreConversionRequest{Raw: "x", Target: "Stash"})
 	if err != nil {
 		t.Fatalf("convert without options: %v", err)
 	}

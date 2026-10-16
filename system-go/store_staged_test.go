@@ -131,7 +131,7 @@ func (h *casKVHost) call(method string, params any) (json.RawMessage, error) {
 func newCASRuntime(t *testing.T) (*runtime, *casKVHost) {
 	t.Helper()
 	host := newCASHost()
-	return &runtime{host: host, engine: sharedWarmTestEngine(t)}, host
+	return &runtime{host: host, engine: testEngineWithHeadroom()}, host
 }
 
 // fleetRecord is a fleet sub with a leading Structured Filter step.

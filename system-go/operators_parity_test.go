@@ -56,7 +56,7 @@ func renameURI(link, name string) string {
 // JSON producer's node list.
 func bundleNodes(t *testing.T, engine *subStoreEngine, raw string, chain []json.RawMessage) []any {
 	t.Helper()
-	out, err := engine.convert(subStoreConversionRequest{Raw: raw, Target: "JSON", Operators: chain})
+	out, err := engine.convertIsolated(subStoreConversionRequest{Raw: raw, Target: "JSON", Operators: chain})
 	if err != nil {
 		t.Fatalf("bundle convert: %v", err)
 	}
@@ -131,7 +131,7 @@ func chain(steps ...string) []json.RawMessage {
 }
 
 func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
-	engine := sharedWarmTestEngine(t)
+	engine := testEngineWithHeadroom()
 	raw := parityDocument(64)
 	base := bundleNodes(t, engine, raw, nil)
 	if len(base) != 68 {
@@ -235,7 +235,7 @@ func TestOperatorsMatchBundleOnSyntheticNodes(t *testing.T) {
 // already in the name, and for pairs of keywords, where the order of the
 // tables decides.
 func TestFlagOperatorMatchesBundleOnKeywordVocabulary(t *testing.T) {
-	engine := sharedWarmTestEngine(t)
+	engine := testEngineWithHeadroom()
 	keywords := operators.FlagKeywords()
 	var names []string
 	for i, k := range keywords {
@@ -377,7 +377,7 @@ func TestOperatorVocabularyHeldInThreePlaces(t *testing.T) {
 // that carry a full-width space, a no-break space and the other characters
 // ECMAScript counts as white space or as a line terminator.
 func TestRegexTranslationMatchesBundle(t *testing.T) {
-	engine := sharedWarmTestEngine(t)
+	engine := testEngineWithHeadroom()
 	// ECMAScript white space and line terminators first, then three
 	// characters it does not count, which RE2's \s does not count either.
 	spaces := []rune{' ', 0xa0, 0x3000, 0xfeff, '\v', '\f', '\t', 0x1680, 0x2005, 0x202f, 0x205f, 0x2028, 0x2029, '\r'}

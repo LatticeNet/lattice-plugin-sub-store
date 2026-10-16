@@ -78,7 +78,7 @@ func TestScriptHTTPReachesTheHostAndReturnsToTheScript(t *testing.T) {
 	engine := newTestEmbeddedSubStoreEngine()
 	defer engine.attachScriptHTTP(newScriptHTTPGateway(host))()
 
-	result, err := engine.convert(subStoreConversionRequest{
+	result, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw:       scriptHTTPNode,
 		Target:    "Clash",
 		Operators: scriptFetchOperator(`resp.body.split(",")[2]`),
@@ -103,7 +103,7 @@ func TestScriptHTTPIsUnavailableWithoutAnInvocation(t *testing.T) {
 	// No attach. A script that somehow runs outside an invocation must be
 	// refused in a sentence it can catch, never handed a stale host lease.
 	engine := newTestEmbeddedSubStoreEngine()
-	result, err := engine.convert(subStoreConversionRequest{
+	result, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw:       scriptHTTPNode,
 		Target:    "Clash",
 		Operators: catchingFetchOperator(),
@@ -302,7 +302,7 @@ func TestResolveDomainOperatorNowResolves(t *testing.T) {
 		"type": "Resolve Domain Operator",
 		"args": map[string]any{"provider": "Google", "type": "IPv4", "cache": false},
 	})
-	result, err := engine.convert(subStoreConversionRequest{
+	result, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw:       scriptHTTPNode,
 		Target:    "Clash",
 		Operators: []json.RawMessage{operator},
