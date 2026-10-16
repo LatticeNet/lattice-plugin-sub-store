@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onActivated, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onActivated, onMounted, ref, watch } from "vue";
 import { ChevronDown, ChevronRight, ExternalLink, Link2, Network, Send, SquareArrowOutUpRight, UserCheck } from "@lucide/vue";
 import {
   PcButton,
@@ -62,7 +62,10 @@ import { useSubscriptions } from "../useSubscriptions";
  * (only the console mints a share and reveals its link once, and core admits
  * an identity on a fleet-bound record alone), or file one batch of binding
  * approvals for the lines the identity still lacks. The proof line names
- * the revision previewed and the catalogue version.
+ * the revision previewed and the catalogue version. Switching between the
+ * live and the staged revision asks again for every open row, so the two
+ * can be compared row by row. An identity vpn-core does not hold active
+ * says, collapsed, that its share answers the decoy, whatever its lines.
  */
 const host = useHost();
 const subs = useSubscriptions(host);
@@ -121,11 +124,21 @@ const hasLive = computed(() => !!chosen.value?.revision);
 const hasStaged = computed(() => !!chosen.value?.staged_revision);
 const revision = computed<Revision>(() => (!hasLive.value && hasStaged.value ? "staged" : hasStaged.value ? revisionChoice.value : "live"));
 const previewedRevision = computed(() => (revision.value === "staged" ? chosen.value?.staged_revision ?? "" : chosen.value?.revision ?? ""));
-watch(chosenId, (id) => {
+/** The detail panel: on a narrow frame it sits under the list, so a choice there brings it into view. */
+const detailPanel = ref<{ $el?: HTMLElement } | null>(null);
+const NARROW = "(max-width: 959px)";
+watch(chosenId, (id, previous) => {
   revisionChoice.value = "live";
   expanded.value = new Set();
   // A plan over the record, staged or not: a failed apply is said here with the live revision beside it.
   if (id) void subs.loadPlans([id]);
+  if (!previous || !id || typeof window === "undefined" || !window.matchMedia?.(NARROW).matches) return;
+  void nextTick(() => {
+    const element = detailPanel.value?.$el;
+    if (!element) return;
+    element.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    element.focus({ preventScroll: true });
+  });
 });
 
 // ── identities and their previews ──────────────────────────────────────────
@@ -168,6 +181,10 @@ async function preview(identityId: string, force = false): Promise<void> {
 }
 
 const expanded = ref<Set<string>>(new Set());
+// The other revision: every open row asks again, so the rows compare live and staged one for one.
+watch(previewedRevision, () => {
+  for (const id of expanded.value) void preview(id);
+});
 function toggle(identityId: string): void {
   const next = new Set(expanded.value);
   if (next.has(identityId)) next.delete(identityId);
@@ -209,6 +226,10 @@ function groupsOf(reply: BindPreviewReply) {
     const fixes = new Set(group.entries.map((entry) => entry.fix ?? ""));
     return { reason: group.reason, label: reasonLabel(group.reason), fix: fixes.size === 1 ? [...fixes][0]! : "", entries: group.entries };
   });
+}
+/** An identity vpn-core does not hold active answers the decoy, so its row says that before any count. */
+function decoyAnswer(identity: Identity): string {
+  return identityInactive(identity.status) ? t.fleet.answersDecoy(statusText(identity.status)) : "";
 }
 function identityTone(identity: Identity): StateTone {
   if (identity.status === IDENTITY_ACTIVE) return "healthy";
@@ -256,6 +277,7 @@ async function bindSelection(identity: Identity): Promise<void> {
           tone: "success",
         }
       : { identity: identity.id, text: result.message, tone: result.unavailable ? "info" : "danger", users: result.unavailable };
+    if (!result.ok && result.unavailable) bindUnavailable.value = true;
   } finally {
     bindingBusy.value = "";
   }
@@ -284,6 +306,12 @@ const createBlocked = computed(() => {
   if (!shareOrigin.value) return t.fleet.noConsole;
   return "";
 });
+/** Why a share for this identity would serve nothing: the record's reason, else the identity's own. */
+function createBlockedFor(identity: Identity): string {
+  return createBlocked.value || (identityInactive(identity.status) ? t.fleet.createInactive(statusText(identity.status)) : "");
+}
+/** bind_selection answered unknown method (decision 8 not taken): asking again would answer the same. */
+const bindUnavailable = ref(false);
 const bindBlocked = computed(() => (subs.canBindSelection.value ? "" : t.plans.bind.needsAdmin));
 
 // ── the chosen record's shares and plan ────────────────────────────────────
@@ -405,7 +433,7 @@ watch(
         </PcPanel>
 
         <!-- The chosen record: identities as rows. -->
-        <PcPanel v-if="chosen" class="fleet-detail" :label="t.fleet.detailLabel(recordName(chosen))">
+        <PcPanel v-if="chosen" ref="detailPanel" class="fleet-detail" tabindex="-1" :label="t.fleet.detailLabel(recordName(chosen))" data-testid="fleet-detail">
           <PcPanelHeader :title="recordName(chosen)" :description="t.fleet.detailDescription">
             <PcButton
               compact
@@ -459,7 +487,7 @@ watch(
               </PcButton>
             </div>
             <div v-if="chosen.staged_revision || plan" class="fleet-staged" data-testid="fleet-staged">
-              <StagedBadge v-if="chosen.staged_revision" :item="chosen" :plans="subs.plansByRecord.value[chosen.id]" proof />
+              <StagedBadge v-if="chosen.staged_revision" :item="chosen" :plans="subs.plansByRecord.value[chosen.id]" proof :hide-state="!!plan" />
               <PlanStatus v-if="plan" :plan="plan" detail :records="pipe.items.value" :identities="identities" :can-propose="subs.canPropose.value" :can-open-approvals="!!shareOrigin" @refresh="subs.loadPlans([chosen.id], true)" @propose-again="handOver('publish-staged')" @propose-rest="handOver('publish-staged')" @open-approvals="openApprovals" />
               <PcButton
                 v-if="chosen.staged_revision && (!plan || plan.status !== 'pending')"
@@ -506,8 +534,9 @@ watch(
                 </button>
                 <span class="fleet-identity__status"><PcStateDot :tone="identityTone(identity)" :label="statusText(identity.status)" /></span>
                 <span class="fleet-identity__bound">{{ t.fleetEditor.identity.boundLines(identity.bound_lines) }}</span>
-                <span class="fleet-identity__result" data-testid="fleet-identity-result">
-                  <template v-if="previewOf(identity.id)?.status === 'loading'">{{ t.fleetEditor.bind.loading }}</template>
+                <span class="fleet-identity__result" data-testid="fleet-identity-result" :data-decoy="decoyAnswer(identity) ? 'true' : undefined">
+                  <template v-if="decoyAnswer(identity)">{{ decoyAnswer(identity) }}</template>
+                  <template v-else-if="previewOf(identity.id)?.status === 'loading' || (expanded.has(identity.id) && !previewOf(identity.id))">{{ t.fleetEditor.bind.loading }}</template>
                   <template v-else-if="previewOf(identity.id)?.status === 'error'"><span class="fleet-error">{{ t.fleetEditor.bind.error }}</span></template>
                   <template v-else-if="previewOf(identity.id)?.reply">
                     {{ t.fleet.counts(counts(previewOf(identity.id)!.reply!).included, counts(previewOf(identity.id)!.reply!).excluded) }}
@@ -540,8 +569,8 @@ watch(
                 <div class="fleet-identity__actions">
                   <PcButton
                     compact
-                    :disabled="!!createBlocked"
-                    :title="createBlocked || t.fleet.createShareTitle"
+                    :disabled="!!createBlockedFor(identity)"
+                    :title="createBlockedFor(identity) || t.fleet.createShareTitle"
                     data-testid="fleet-create-share"
                     @click="createShare(identity)"
                   >
@@ -552,8 +581,8 @@ watch(
                     v-if="previewOf(identity.id)?.reply && linesToBind(previewOf(identity.id)!.reply!).length"
                     compact
                     :busy="bindingBusy === identity.id"
-                    :disabled="!!bindBlocked"
-                    :title="bindBlocked || t.plans.bind.title"
+                    :disabled="!!bindBlocked || bindUnavailable"
+                    :title="bindBlocked || (bindUnavailable ? t.plans.bind.unavailable : t.plans.bind.title)"
                     data-testid="fleet-bind-selection"
                     @click="bindSelection(identity)"
                   >
@@ -561,7 +590,7 @@ watch(
                     {{ t.plans.bind.action }}
                   </PcButton>
                 </div>
-                <p v-if="createBlocked && createBlocked !== t.fleet.noConsole" class="fleet-note">{{ createBlocked }}</p>
+                <p v-if="createBlockedFor(identity) && createBlockedFor(identity) !== t.fleet.noConsole" class="fleet-note" data-testid="fleet-create-blocked">{{ createBlockedFor(identity) }}</p>
                 <p class="fleet-note">{{ t.fleet.narrowingNote }}</p>
                 <div v-if="actionNote && actionNote.identity === identity.id" class="fleet-action-note" :data-tone="actionNote.tone" role="status" data-testid="fleet-action-note">
                   <span>{{ actionNote.text }}</span>
@@ -723,6 +752,25 @@ watch(
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-1) var(--space-3);
   align-items: center;
+}
+/* Narrow: the name and its status on the first line, the bound lines and
+   the counts under the name, so a long count never squeezes the name. */
+@media (max-width: 719px) {
+  .fleet-identity__bound,
+  .fleet-identity__result {
+    grid-column: 1 / -1;
+    padding-left: calc(14px + var(--space-1));
+  }
+}
+.fleet-detail:focus {
+  outline: none;
+}
+.fleet-detail:focus-visible {
+  box-shadow: var(--lt-focus-ring);
+}
+.fleet-identity__result[data-decoy] {
+  color: var(--warning-text);
+  font-family: inherit;
 }
 @media (min-width: 720px) {
   .fleet-identity__row {

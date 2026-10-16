@@ -82,11 +82,18 @@ export async function settled(page: Page, width: number, exclude: readonly strin
   expect(await seriousViolations(page, exclude)).toEqual([]);
 }
 
-/** A full-page screenshot into SHOTS_DIR, when it is set. */
+/**
+ * A screenshot into SHOTS_DIR, when it is set: the full page, or with a
+ * sheet or dialog open the viewport, which is what the operator sees. A
+ * full-page capture stretches the frame to the table's height and draws an
+ * open sheet over only its top, which read at 375 as a flow appended under
+ * the table (the lane 6b code review).
+ */
 export async function shot(page: Page, name: string, meta: { width: number; theme: Theme; locale?: Locale }): Promise<void> {
   const dir = process.env.SHOTS_DIR;
   if (!dir) return;
   mkdirSync(dir, { recursive: true });
   await page.waitForTimeout(250);
-  await page.screenshot({ path: join(dir, `${name}-${meta.width}-${meta.theme}-${meta.locale ?? "en"}.png`), fullPage: true });
+  const overlay = await page.locator('.pc-side-panel, .lt-dialog, [data-testid="plan-flow"]').first().isVisible().catch(() => false);
+  await page.screenshot({ path: join(dir, `${name}-${meta.width}-${meta.theme}-${meta.locale ?? "en"}.png`), fullPage: !overlay });
 }

@@ -27,6 +27,12 @@ const props = withDefaults(
      * number of records it would damage. Listed, not counted.
      */
     consequences?: string[];
+    /**
+     * A heading for `consequences` when they are not records this breaks:
+     * a staged revision's discard says what happens, in sentences, so they
+     * are set in the body face rather than as identifiers.
+     */
+    consequencesTitle?: string;
     /** What changes outside Lattice: live shares, by path. */
     served?: string[];
     /** Typed to arm the confirm instead of the count; "" when the count rule applies. */
@@ -39,7 +45,7 @@ const props = withDefaults(
      */
     focusRecord?: string;
   }>(),
-  { consequences: () => [], served: () => [], confirmText: "", focusRecord: "" },
+  { consequences: () => [], consequencesTitle: "", served: () => [], confirmText: "", focusRecord: "" },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
@@ -123,10 +129,10 @@ const armed = computed(() => {
       </ul>
       <template v-if="consequences.length">
         <p class="lt-dialog-subtitle">
-          {{ consequences.length === 1 ? t.confirm.alsoBreaksOne : t.confirm.alsoBreaks(consequences.length) }}
+          {{ consequencesTitle || (consequences.length === 1 ? t.confirm.alsoBreaksOne : t.confirm.alsoBreaks(consequences.length)) }}
         </p>
         <ul class="lt-dialog-names is-consequence">
-          <li v-for="note in consequences" :key="note" class="mono">{{ note }}</li>
+          <li v-for="note in consequences" :key="note" :class="{ mono: !consequencesTitle }">{{ note }}</li>
         </ul>
       </template>
       <template v-if="served.length">

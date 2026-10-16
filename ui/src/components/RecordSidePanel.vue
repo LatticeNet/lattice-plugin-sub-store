@@ -20,6 +20,8 @@ import { copyText } from "../hostClipboard";
 import { refreshStateFor, shareLinkOf, stateTone } from "../shareState";
 import LtManualCopy from "./lt/LtManualCopy.vue";
 import RecordActions from "./RecordActions.vue";
+import RecordPlanState from "./RecordPlanState.vue";
+import type { PlanShareRow } from "../planFlow";
 import UsageBar from "./UsageBar.vue";
 
 /**
@@ -185,6 +187,8 @@ function publish(): void {
       <!-- Why Edit is disabled, in words: a disabled button takes no focus and
            a touch screen has no hover, so its title alone reaches nobody. -->
       <p v-if="!canEdit" id="record-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
+      <!-- design 28 S2: the staged revision and its plan, decoy shares, a mixed combination, each with its way out. -->
+      <RecordPlanState :id="id" :items="pipe.items.value" :shares="pipe.shares.value as PlanShareRow[] | undefined" />
 
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">

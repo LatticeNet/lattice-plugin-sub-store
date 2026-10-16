@@ -29,6 +29,10 @@ import { THEMES, VIEWPORTS, openPlans, settled, shot, words, type Theme } from "
  *   dropped        lines with no client shape core can bind
  *   long names     CJK and long Latin names, no horizontal scroll
  *   promoted       a failed apply that the list shows promoted
+ *   live/staged    the toggle asks again for every open row
+ *   inactive       an expired identity says the decoy collapsed, and
+ *                  offers no share
+ *   narrow         at 375 a chosen record brings its detail into view
  */
 
 const ASIA = "亚洲线路 Asia lines";
@@ -64,6 +68,8 @@ for (const viewport of VIEWPORTS) {
         await expect(body.locator('[data-testid="fleet-exclusion-group"][data-reason="credential_not_applied"]')).toContainText(m.fleetEditor.bind.reasons.credential_not_applied);
         await body.getByTestId("fleet-bind-selection").click();
         await expect(body.getByTestId("fleet-action-note")).toContainText(m.plans.bind.unavailable);
+        // Asking again would answer the same: the action stops offering itself.
+        await expect(body.getByTestId("fleet-bind-selection")).toBeDisabled();
         await expect(body).toContainText(m.fleet.narrowingNote);
         await settled(page, viewport.width);
         await shot(page, "fleet-previews", meta());
@@ -132,12 +138,36 @@ for (const viewport of VIEWPORTS) {
         await shot(page, "fleet-denied", meta());
       });
 
-      test("an expired identity says its share answers the decoy", async ({ page }) => {
+      test("an expired identity says its share answers the decoy, collapsed, and offers no share", async ({ page }) => {
         await openPlans(page, { view: "fleet", theme });
         await choose(page, "asia-fleet");
+        await page.getByTestId("fleet-preview-all").click();
+        // Collapsed, the row says the decoy rather than a count the identity would never receive.
+        await expect(identity(page, "vu_dave").getByTestId("fleet-identity-result")).toHaveText(m.fleet.answersDecoy(m.fleetEditor.identity.status.expired));
         await identity(page, "vu_dave").getByTestId("fleet-identity-toggle").click();
         await expect(identity(page, "vu_dave").getByTestId("fleet-identity-inactive")).toHaveText(m.fleetEditor.bind.inactive.expired);
+        await expect(identity(page, "vu_dave").getByTestId("fleet-create-share")).toBeDisabled();
+        await expect(identity(page, "vu_dave").getByTestId("fleet-create-blocked")).toHaveText(m.fleet.createInactive(m.fleetEditor.identity.status.expired));
         await settled(page, viewport.width);
+        await shot(page, "fleet-inactive", meta());
+      });
+
+      test("live and staged: switching asks again for every open row", async ({ page }) => {
+        await openPlans(page, { view: "fleet", theme });
+        await choose(page, "asia-fleet");
+        await identity(page, "vu_alice").getByTestId("fleet-identity-toggle").click();
+        const result = identity(page, "vu_alice").getByTestId("fleet-identity-result");
+        await expect(result).toHaveText(/\d/);
+        const live = await result.textContent();
+        await page.getByTestId("fleet-revision-staged").check();
+        // The open row shows the staged figures without being closed and opened again.
+        await expect(result).toHaveText(/\d/);
+        await expect(result).not.toHaveText(live ?? "");
+        await expect(identity(page, "vu_alice").getByTestId("fleet-reason-chip").first()).toBeVisible();
+        await settled(page, viewport.width);
+        await shot(page, "fleet-staged-row", meta());
+        await page.getByTestId("fleet-revision-live").check();
+        await expect(result).toHaveText(live ?? "");
       });
 
       test("too large, transformer refused and dropped lines", async ({ page }) => {
@@ -160,6 +190,21 @@ for (const viewport of VIEWPORTS) {
         await expect(identity(page, "vu_oncall")).toContainText("运维值班手机-shenzhen-office-oncall-rotation-device-07");
         await identity(page, "vu_oncall").getByTestId("fleet-identity-toggle").click();
         await settled(page, viewport.width);
+      });
+
+      test("choosing a record brings its detail into view", async ({ page }) => {
+        await openPlans(page, { view: "fleet", theme });
+        await choose(page, "fleet-probe-fast");
+        const detail = page.getByTestId("fleet-detail");
+        await expect(detail).toContainText("Lines that passed a probe today");
+        if (viewport.width < 960) {
+          await expect(detail).toBeFocused();
+          await expect(detail).toBeInViewport({ ratio: 0.2 });
+        }
+        await identity(page, "vu_alice").getByTestId("fleet-identity-toggle").click();
+        await expect(identity(page, "vu_alice").getByTestId("fleet-identity-result")).toHaveText(/\d/);
+        await settled(page, viewport.width);
+        await shot(page, "fleet-chosen", meta());
       });
 
       test("a failed apply that the list shows promoted", async ({ page }) => {

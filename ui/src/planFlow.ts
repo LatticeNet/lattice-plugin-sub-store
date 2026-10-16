@@ -278,21 +278,43 @@ export function linesToBind(preview: Pick<BindPreviewReply, "excluded"> | null |
 
 const NAME_STEPS = new Set(["Regex Filter"]);
 
+/** The longest pattern and label the name check reads; longer ones are not judged here. */
+export const NAME_CHECK_LIMIT = { pattern: 256, label: 128, labels: 4096 } as const;
+
+/**
+ * A pattern the browser's backtracking engine could take exponential time
+ * on: a quantified group that holds a quantifier, such as `(a+)+` or
+ * `(\w*)*`. The plugin's engine is linear and runs it fine; this tab skips
+ * judging it rather than stall.
+ */
+function nestedQuantifier(pattern: string): boolean {
+  return /\((?:[^()\\]|\\.)*[+*}](?:[^()\\]|\\.)*\)\s*(?:[+*]|\{\d+,?\d*\})/.test(pattern);
+}
+
 /**
  * The carried-over name filters that keep no line under the fleet labels. An
  * export record's migrate_record reads no catalogue page, so the check runs
  * here over bind.preview's labels (s2-plan section 6). Only a keep-mode
  * Regex Filter is judged: its patterns are what name a line, and a rename or
  * a sort cannot drop one. 1-based step positions.
+ *
+ * The answer is advisory: the browser's RegExp is not the plugin's engine,
+ * so a pattern either accepts differently can be judged wrong either way.
+ * A pattern past NAME_CHECK_LIMIT.pattern, or one with a nested quantifier,
+ * is skipped, and labels are cut to NAME_CHECK_LIMIT.label, so a hostile
+ * pattern cannot stall the tab.
  */
 export function unmatchedNameSteps(process: readonly unknown[], labels: readonly string[]): number[] {
   if (!labels.length) return [];
+  const read = labels.slice(0, NAME_CHECK_LIMIT.labels).map((label) => label.slice(0, NAME_CHECK_LIMIT.label));
   const out: number[] = [];
   process.forEach((raw, index) => {
     const step = raw as { type?: string; disabled?: boolean; args?: { regex?: unknown; value?: unknown; keep?: unknown } } | null;
     if (!step || step.disabled || !NAME_STEPS.has(step.type ?? "")) return;
     const patterns = [step.args?.regex, step.args?.value].flat().filter((value): value is string => typeof value === "string" && value !== "");
     if (!patterns.length || step.args?.keep === false) return;
+    // A step with any pattern this tab will not judge is left to the plugin.
+    if (patterns.some((pattern) => pattern.length > NAME_CHECK_LIMIT.pattern || nestedQuantifier(pattern))) return;
     const compiled = patterns.flatMap((pattern) => {
       try {
         return [new RegExp(pattern)];
@@ -300,10 +322,34 @@ export function unmatchedNameSteps(process: readonly unknown[], labels: readonly
         return [];
       }
     });
-    if (!compiled.length) return;
-    if (!labels.some((label) => compiled.some((pattern) => pattern.test(label)))) out.push(index + 1);
+    if (compiled.length !== patterns.length) return;
+    if (!read.some((label) => compiled.some((pattern) => pattern.test(label)))) out.push(index + 1);
   });
   return out;
+}
+
+/**
+ * The co-migrated siblings that have no staged revision yet: one whose
+ * migrate_record failed after the record itself staged. The plan promotes
+ * every member together, so nothing moves on while any is missing.
+ */
+export function unstagedSiblings(siblings: readonly string[], stagedRevisionOf: (id: string) => string): string[] {
+  return siblings.filter((id) => !stagedRevisionOf(id));
+}
+
+/**
+ * The collections core names in its fleet_delete_has_explicit_dependents
+ * refusal: "collections A, B list record X as a member, ..."
+ * (lattice-server substore_svc_plans.go). Core carries no structured field
+ * for them, so the sentence is read here, and planFlow.test.ts pins it: a
+ * rewording fails that test rather than losing the names.
+ */
+export function explicitCollectionsFrom(message: string): string[] {
+  const named = /collections (.+?) list record /.exec(message)?.[1] ?? "";
+  return named
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
 }
 
 /** One share's decision in a migration or an assignment: an identity, a clearing, or an archival. */
@@ -429,6 +475,19 @@ export function currentPlan(plans: readonly PlanStatus[], item: SubscriptionList
   });
 }
 
+/**
+ * A plan over a record that has no staged revision: a delete, or a change
+ * to its shares' identities, still waiting or failed. Nothing else on the
+ * record's row says it is about to change, so the table shows it where it
+ * would show a staged revision. Only a plan whose primary is the record: a
+ * combination in another record's closure is said by that record.
+ */
+export function unstagedPlan(plans: readonly PlanStatus[] | undefined, item: SubscriptionListItem): PlanStatus | undefined {
+  if (!plans || item.staged_revision) return undefined;
+  const plan = currentPlan(plans, item);
+  return plan && plan.subscription_id === item.id ? plan : undefined;
+}
+
 /** What the staged badge says about a record's plan: none proposed, or the plan's state. */
 export function stagedPlanState(plans: readonly PlanStatus[] | undefined, item: SubscriptionListItem): PlanState | "none" | "unknown" {
   if (!plans) return "unknown";
@@ -511,6 +570,18 @@ export function planUnboundShares(plan: Plan): { record: string; share_id: strin
       archive: share.archive === true,
     })),
   );
+}
+
+/**
+ * The records a plan promotes or deletes, each with the revisions it moves
+ * between, in the plan's section order: every section core marks as the
+ * record itself, promoted or deleted, never a dependent collection or a
+ * staged-only one. A plan text without sections names its primary alone.
+ */
+export function planRevisionLines(plan: Plan): { id: string; from: string; to: string }[] {
+  const sections = (plan.records ?? []).filter((section) => section.role !== "dependent" && section.role !== "staged_only");
+  if (!sections.length) return [{ id: plan.subscription_id, from: plan.from_revision, to: plan.to_revision ?? "" }];
+  return sections.map((section) => ({ id: section.subscription_id, from: section.from_revision ?? "", to: section.to_revision ?? "" }));
 }
 
 /** The plan's records, in the order core applies them, or the primary alone. */

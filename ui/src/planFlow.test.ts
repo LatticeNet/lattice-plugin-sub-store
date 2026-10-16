@@ -9,6 +9,7 @@ import {
   darkenedShares,
   decoyShares,
   defaultIdentity,
+  explicitCollectionsFrom,
   explicitDependents,
   fileDependents,
   fleetStepDeltas,
@@ -18,6 +19,7 @@ import {
   mayHavePromoted,
   mixedBlock,
   partialApply,
+  planRevisionLines,
   planShareViews,
   planTooLarge,
   promotedAfterFailure,
@@ -29,6 +31,8 @@ import {
   tagDependents,
   undecidedShares,
   unmatchedNameSteps,
+  unstagedPlan,
+  unstagedSiblings,
   withFleetDeltas,
   type PlanShareRow,
 } from "./planFlow";
@@ -246,5 +250,64 @@ describe("a fleet record's Steps counts", () => {
       { index: 3, label: "p4", before: 21, after: 20 },
     ];
     expect(withFleetDeltas(preview, fleet, 2).map((delta) => `${delta.index}:${delta.before}→${delta.after}`)).toEqual(["1:117→23", "2:23→21", "3:21→20"]);
+  });
+});
+
+describe("what the review of lane 6b asked to hold", () => {
+  it("leaves a pattern the browser could stall on to the plugin, and cuts long labels", () => {
+    const step = (regex: string) => [{ type: "Regex Filter", args: { regex: [regex], keep: true } }];
+    // A nested quantifier is exponential in a backtracking engine: not judged here. (The label
+    // is kept short so that, were it judged, the test would fail rather than hang.)
+    expect(unmatchedNameSteps(step("(a+)+$"), ["a".repeat(16) + "!"])).toEqual([]);
+    expect(unmatchedNameSteps(step("(\\w*)*x"), ["no match here"])).toEqual([]);
+    // Past the length limit: not judged either.
+    expect(unmatchedNameSteps(step("z".repeat(300)), ["hk-01"])).toEqual([]);
+    // An ordinary pattern still is, and a label is read only to its first 128 characters.
+    expect(unmatchedNameSteps(step("(HK|JP)+"), ["sg-01"])).toEqual([1]);
+    expect(unmatchedNameSteps(step("TAIL$"), ["x".repeat(200) + "TAIL"])).toEqual([1]);
+    // One pattern of a step that does not compile leaves the whole step to the plugin.
+    expect(unmatchedNameSteps([{ type: "Regex Filter", args: { regex: ["HK", "("], keep: true } }], ["sg-01"])).toEqual([]);
+  });
+
+  it("finds the co-migrated siblings that have no staged revision", () => {
+    const staged: Record<string, string> = { a: "r1", c: "r3" };
+    expect(unstagedSiblings(["a", "b", "c"], (id) => staged[id] ?? "")).toEqual(["b"]);
+    expect(unstagedSiblings([], () => "")).toEqual([]);
+  });
+
+  it("reads the collections out of core's explicit-dependents sentence, as core writes it", () => {
+    // lattice-server internal/server/substore_svc_plans.go, the delete case of the plan checks.
+    const core =
+      "fleet_delete_has_explicit_dependents: collections asia-combination, family-pair list record asia-fleet as a member, and a member that does not resolve fails the collection's fetch; remove it from them first, then propose the delete";
+    expect(explicitCollectionsFrom(core)).toEqual(["asia-combination", "family-pair"]);
+    expect(explicitCollectionsFrom("something else entirely")).toEqual([]);
+  });
+
+  it("lists every record a plan promotes, never its dependents", () => {
+    const text = {
+      subscription_id: "a",
+      from_revision: "a1",
+      to_revision: "a2",
+      records: [
+        { subscription_id: "a", role: "self", from_revision: "a1", to_revision: "a2" },
+        { subscription_id: "b", role: "promote", from_revision: "b1", to_revision: "b2" },
+        { subscription_id: "c", role: "dependent", from_revision: "c1" },
+        { subscription_id: "d", role: "staged_only", from_revision: "" },
+      ],
+    } as unknown as Plan;
+    expect(planRevisionLines(text)).toEqual([
+      { id: "a", from: "a1", to: "a2" },
+      { id: "b", from: "b1", to: "b2" },
+    ]);
+    expect(planRevisionLines({ subscription_id: "a", from_revision: "a1", to_revision: "" } as unknown as Plan)).toEqual([{ id: "a", from: "a1", to: "" }]);
+  });
+
+  it("names a delete or a share plan over a record with nothing staged, and only the record's own", () => {
+    const row = item({ id: "r", revision: "a" });
+    expect(unstagedPlan([plan({ action: "delete", to_revision: "" })], row)?.action).toBe("delete");
+    expect(unstagedPlan([plan({ subscription_id: "other" })], row)).toBeUndefined();
+    expect(unstagedPlan([plan({ status: "rejected", stale: true })], row)).toBeUndefined();
+    expect(unstagedPlan([plan()], item({ id: "r", revision: "a", staged_revision: "b" }))).toBeUndefined();
+    expect(unstagedPlan(undefined, row)).toBeUndefined();
   });
 });

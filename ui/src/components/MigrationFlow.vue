@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from "vue";
-import { ArrowLeft, ArrowRight, Check, ExternalLink, Link2 } from "@lucide/vue";
+import { ArrowLeft, ArrowRight, Check, ExternalLink, Link2, Pencil, RotateCcw, Undo2 } from "@lucide/vue";
 import { PcButton, PcNotice, PcSidePanel } from "@latticenet/plugin-bridge/chassis";
 
 import PlanStatus from "./PlanStatus.vue";
@@ -9,6 +9,7 @@ import {
   IDENTITY_ACTIVE,
   VPN_CORE_USERS_ROUTE,
   identityInactive,
+  planState,
   shortVersion,
   type BindPreviewReply,
   type Identity,
@@ -18,9 +19,11 @@ import { formatBytes, formatCount, t } from "../i18n";
 import { hostOriginFromHash, postNavigate } from "../navigate";
 import {
   closureOf,
+  currentPlan,
   darkenedShares,
   decoyShares,
   defaultIdentity,
+  explicitCollectionsFrom,
   explicitDependents,
   fileDependents,
   holdsNoLine,
@@ -38,6 +41,7 @@ import {
   tagDependents,
   undecidedShares,
   unmatchedNameSteps,
+  unstagedSiblings,
   type MigrateRecordReply,
   type PlanShareRow,
   type ShareDecision,
@@ -62,8 +66,11 @@ import type { PlanOutcome, ProposeRequest, UseSubscriptions } from "../useSubscr
  * which one can go first. It then asks for an identity, or an archival, for
  * every live share of every record in the plan and of the combinations that
  * read them, warns when an identity holds none of the lines, and proposes
- * one plan over all of it. Every step offers "Abandon migration", which
- * drops what the flow staged and leaves the legacy records as they were.
+ * one plan over all of it. A sibling that fails to stage blocks the flow
+ * until a retry stages it, since the plan must promote them together. Every
+ * step, the status included, offers "Abandon migration", which asks first,
+ * naming what it drops and the plan it stales, then drops what the flow
+ * staged and leaves the legacy records as they were.
  *
  * Nothing here shows a credential or a share link: shares are named by
  * their display name or slug, and identities by name.
@@ -90,6 +97,10 @@ const emit = defineEmits<{
   "remove-member": [collectionId: string, memberId: string];
   /** What the flow did, for the table's notice. */
   done: [text: string];
+  /** Open a record named in the flow (a file that blocks the migration) in its side panel. */
+  "open-record": [id: string];
+  /** The migration was abandoned so the record's steps can be fixed: open its editor on them. */
+  "edit-steps": [id: string];
 }>();
 
 const subs = props.subs;
@@ -122,6 +133,8 @@ const prepared = ref<MigrateRecordReply | null>(null);
 const together = ref<Record<string, MigrateRecordReply>>({});
 const stageRefusal = ref<{ code: string; message: string; files: string[]; collections: string[] } | null>(null);
 const stageError = ref("");
+/** Siblings whose migrate_record failed, with the reason, until a retry stages them. */
+const siblingErrors = ref<Record<string, string>>({});
 const staging = ref(false);
 /** The legacy record's chain, read before staging, for the name check an export record's migration runs here. */
 const legacyProcess = ref<unknown[]>([]);
@@ -173,17 +186,35 @@ async function stage(): Promise<void> {
     stagedByFlow.value = { ...stagedByFlow.value, [item.id]: outcome.reply.staged_revision };
     // The other legacy members of the combinations that read it go in the
     // same sitting: the plan must promote them together.
-    for (const id of outcome.reply.dependents.co_migrate) {
-      const sibling = byId.value.get(id);
-      if (!sibling || stagedByFlow.value[id]) continue;
-      const next = await subs.migrateRecord(id, sibling.revision);
-      if (next.kind === "staged") {
-        together.value = { ...together.value, [id]: next.reply };
-        stagedByFlow.value = { ...stagedByFlow.value, [id]: next.reply.staged_revision };
-      } else {
-        stageError.value = t.migration.siblingFailed(name(id), next.message);
-      }
+    await stageSiblings(outcome.reply.dependents.co_migrate.filter((id) => id !== item.id));
+  } finally {
+    staging.value = false;
+  }
+}
+
+/** Stage each sibling not yet staged; a failure is kept per sibling, and blocks the flow until a retry. */
+async function stageSiblings(ids: readonly string[]): Promise<void> {
+  for (const id of ids) {
+    if (stagedByFlow.value[id]) continue;
+    const sibling = byId.value.get(id);
+    const next = sibling ? await subs.migrateRecord(id, sibling.revision) : ({ kind: "error", message: t.migration.changedSinceRead } as const);
+    if (next.kind === "staged") {
+      together.value = { ...together.value, [id]: next.reply };
+      stagedByFlow.value = { ...stagedByFlow.value, [id]: next.reply.staged_revision };
+      const rest = { ...siblingErrors.value };
+      delete rest[id];
+      siblingErrors.value = rest;
+    } else {
+      siblingErrors.value = { ...siblingErrors.value, [id]: next.message };
     }
+  }
+}
+
+async function retrySiblings(): Promise<void> {
+  if (staging.value) return;
+  staging.value = true;
+  try {
+    await stageSiblings(missingSiblings.value);
   } finally {
     staging.value = false;
   }
@@ -194,11 +225,21 @@ const coMigrate = computed(() => {
   // A migration staged in an earlier sitting: the siblings the list shows staged by migration too.
   return predictedTogether.value.filter((id) => byId.value.get(id)?.staged_migrated);
 });
+/** Siblings the plan must promote that have no staged revision: a failed migrate_record. */
+const missingSiblings = computed(() =>
+  props.mode === "migrate" && staged.value ? unstagedSiblings(coMigrate.value.filter((id) => id !== props.recordId), stagedRevisionOf) : [],
+);
 const coveredCollections = computed(() => prepared.value?.dependents.collections ?? predictedCollections.value);
-const warnings = computed(() => [
-  ...(prepared.value?.warnings ?? []),
-  ...Object.entries(together.value).flatMap(([id, reply]) => reply.warnings.map((warning) => `${name(id)}: ${warning}`)),
-]);
+/** What migrate_record warned about one record, and for the record itself the name check run here. */
+function warningsFor(id: string): string[] {
+  const own = id === props.recordId ? prepared.value?.warnings ?? [] : together.value[id]?.warnings ?? [];
+  const names = id === props.recordId ? nameWarnings.value.map((index) => t.migration.nameStep(index)) : [];
+  return [...own, ...names];
+}
+/** Step 1's warnings, per record of the migration that has any. */
+const warningGroups = computed(() =>
+  [props.recordId, ...Object.keys(together.value)].map((id) => ({ id, warnings: id === props.recordId ? prepared.value?.warnings ?? [] : together.value[id]?.warnings ?? [] })).filter((group) => group.warnings.length),
+);
 
 // ── who the plan covers ────────────────────────────────────────────────────
 
@@ -477,8 +518,7 @@ function land(result: PlanOutcome): void {
       return;
     }
     if (code === ERROR_CODES.fleetDeleteHasExplicitDependents) {
-      const named = /collections (.+?) list record/.exec(result.message)?.[1] ?? "";
-      serverExplicit.value = named.split(",").map((id) => id.trim()).filter(Boolean);
+      serverExplicit.value = explicitCollectionsFrom(result.message);
       banner.value = { tone: "danger", code, text: t.migration.explicitMembers };
       step.value = "changes";
       return;
@@ -540,8 +580,37 @@ function openUsers(): void {
 
 const abandoning = ref(false);
 const abandonError = ref("");
-/** What "Abandon migration" drops: every record of the migration that has a staged revision. */
-const flowStaged = computed(() => (props.mode === "migrate" ? promoted.value.filter((id) => !!stagedRevisionOf(id)) : []));
+/**
+ * What "Abandon migration" drops: every record of the migration that has a
+ * staged revision. A migration staged earlier and reopened from Publish is
+ * still one: its record and the siblings staged with it.
+ */
+const flowStaged = computed(() => {
+  if (props.mode === "migrate") return promoted.value.filter((id) => !!stagedRevisionOf(id));
+  if (props.mode === "publish" && record.value?.staged_migrated) {
+    return [props.recordId, ...coMigrate.value.filter((id) => id !== props.recordId)].filter((id) => !!stagedRevisionOf(id));
+  }
+  return [];
+});
+/** Abandon asks first; `edit` names the record whose steps open once it is done. */
+const abandonAsk = ref<{ edit: string } | null>(null);
+/** The pending plan abandoning would stale: the one this sitting filed or reopened, else the record's own. */
+const abandonPlan = computed(() => {
+  const row = planRow.value ?? (record.value ? currentPlan(subs.plansByRecord.value[primary.value] ?? [], record.value) : undefined);
+  return row && planState(row) === "pending" ? row : null;
+});
+const abandonLines = computed(() => {
+  const lines = flowStaged.value.map((id) => t.migration.abandonDrops(name(id), shortRevision(stagedRevisionOf(id))));
+  if (abandonPlan.value) lines.push(t.plans.discard.stalesPlan(abandonPlan.value.approval_id));
+  if (step.value !== "status" && Object.values(decisions).some((entry) => !!entry.identity || entry.archive || entry.clear === true)) lines.push(t.migration.abandonDecisions);
+  return lines;
+});
+const abandonBox = ref<HTMLElement | null>(null);
+function askAbandon(edit = ""): void {
+  abandonAsk.value = { edit };
+  abandonError.value = "";
+  void nextTick(() => abandonBox.value?.querySelector<HTMLElement>("[data-abandon-heading]")?.focus());
+}
 async function abandon(): Promise<void> {
   if (abandoning.value) return;
   abandoning.value = true;
@@ -557,8 +626,11 @@ async function abandon(): Promise<void> {
         return;
       }
     }
+    const edit = abandonAsk.value?.edit ?? "";
+    abandonAsk.value = null;
     emit("done", t.migration.abandoned(dropped.join(", ") || name(props.recordId)));
-    emit("close");
+    if (edit) emit("edit-steps", edit);
+    else emit("close");
   } finally {
     abandoning.value = false;
   }
@@ -567,8 +639,14 @@ async function abandon(): Promise<void> {
 // ── navigation ─────────────────────────────────────────────────────────────
 
 const body = ref<HTMLElement | null>(null);
+/** The steps this sitting showed: a step jumped over (a plan reopened at its status) is not marked done. */
+const visited = ref<Set<StepId>>(new Set());
+watch(step, (id) => {
+  if (!visited.value.has(id)) visited.value = new Set([...visited.value, id]);
+}, { immediate: true });
 function go(next: StepId): void {
   step.value = next;
+  abandonAsk.value = null;
   if (next === "identities") seedDecisions();
   void nextTick(() => body.value?.querySelector<HTMLElement>("[data-step-heading]")?.focus());
 }
@@ -579,10 +657,12 @@ function back(): void {
 const nextBlocked = computed(() => {
   // The siblings stage after the record itself; nothing moves on until they have.
   if (staging.value) return t.migration.staging;
-  if (step.value === "changes" && props.mode === "migrate") {
-    if (!staged.value) return t.migration.stageFirst;
-    if (refusedFiles.value.length) return t.migration.filesBlockShort;
+  if (step.value === "changes" && props.mode === "migrate" && !staged.value) {
+    // Files first: a record they read cannot be staged, so "stage it first" would send the operator round.
+    if (predictedFiles.value.length || refusedFiles.value.length) return t.migration.filesBlockShort;
+    return t.migration.stageFirst;
   }
+  if (missingSiblings.value.length && step.value !== "status") return t.migration.siblingsMissing(missingSiblings.value.map(name).join(", "));
   if (step.value === "changes" && props.mode === "delete" && blockingCollections.value.length) return t.migration.explicitMembers;
   if (step.value === "identities" && !identitiesReady.value) return props.mode === "assign" ? t.migration.chooseChange : t.migration.undecided(undecided.value.length);
   return "";
@@ -592,6 +672,14 @@ function next(): void {
   if (nextBlocked.value || at < 0 || at >= steps.value.length - 1) return;
   go(steps.value[at + 1]!);
 }
+/** The footer repeats why Next is off only when the step's body does not already say it. */
+const footerWhy = computed(() => {
+  if (!nextBlocked.value || step.value === "propose" || step.value === "status") return "";
+  if (step.value === "identities" && undecided.value.length && identitiesReady.value === false && props.mode !== "assign") return "";
+  if (step.value === "changes" && props.mode === "delete" && blockingCollections.value.length) return "";
+  if (missingSiblings.value.length) return "";
+  return nextBlocked.value;
+});
 
 // ── opening ────────────────────────────────────────────────────────────────
 
@@ -601,6 +689,8 @@ function reset(): void {
   together.value = {};
   stageRefusal.value = null;
   stageError.value = "";
+  siblingErrors.value = {};
+  abandonAsk.value = null;
   legacyProcess.value = [];
   rest.value = null;
   previews.value = {};
@@ -639,6 +729,8 @@ watch(
       planRow.value = props.plan;
       step.value = "status";
     }
+    // Only the step the flow opened on counts as shown: a plan reopened at its status skipped the rest.
+    visited.value = new Set([step.value]);
   },
   { immediate: true },
 );
@@ -650,6 +742,7 @@ watch(identities, () => {
 const proposeDenied = computed(() => {
   if (!subs.canPropose.value) return t.plans.cannotPropose;
   if ((props.mode === "publish" || props.mode === "delete") && !subs.canPublishPlan.value) return t.plans.cannotPublish;
+  if (missingSiblings.value.length) return t.migration.siblingsMissing(missingSiblings.value.map(name).join(", "));
   return "";
 });
 const stageDenied = computed(() => (subs.canMigrateRecord.value ? "" : t.migration.cannotMigrate));
@@ -666,6 +759,7 @@ const proposeSummary = computed(() => {
     records: [request.subscription_id, ...(request.records ?? []).map((entry) => entry.subscription_id)].map((id) => ({
       id,
       name: name(id),
+      warnings: props.mode === "migrate" ? warningsFor(id) : [],
       from: id === request.subscription_id ? request.from_revision : request.records?.find((entry) => entry.subscription_id === id)?.from_revision ?? "",
       to: id === request.subscription_id ? request.to_revision ?? "" : request.records?.find((entry) => entry.subscription_id === id)?.to_revision ?? "",
     })),
@@ -691,6 +785,35 @@ function multipleRecords(): boolean {
   return new Set(consideredShares.value.map((share) => share.subscription_id)).size > 1;
 }
 const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.reason) : null));
+
+/** The records the status names with their revisions when no plan text is in hand: what this flow knows the plan promotes. */
+const statusRecords = computed(() => {
+  if (props.mode === "delete" || props.mode === "assign") return [];
+  const ids = props.mode === "migrate" ? promoted.value : flowStaged.value.length ? flowStaged.value : [props.recordId];
+  return ids.map((id) => ({ id, from: byId.value.get(id)?.revision ?? "", to: stagedRevisionOf(id) }));
+});
+
+/** A file named in the flow opens in its side panel when the list has it; else it is only named. */
+function fileKnown(id: string): boolean {
+  return byId.value.has(id);
+}
+/** A file refusal (predicted from the list or named by core) leaves nothing to stage. */
+const filesBlock = computed(() => predictedFiles.value.length > 0 || refusedFiles.value.length > 0);
+
+/** The chosen identity's facts, under the select, where a long name cuts them off in the option. */
+function identityFacts(share: PlanShareRow): string {
+  const chosen = decisions[share.share_id]?.identity;
+  const found = chosen ? identities.value.find((identity) => identity.id === chosen) : undefined;
+  if (!found) return "";
+  return [t.fleetEditor.identity.status[found.status as keyof typeof t.fleetEditor.identity.status] ?? found.status, t.fleetEditor.identity.boundLines(found.bound_lines)].join(" · ");
+}
+
+/** Keep, clear or archive an identity-bound share: one choice of three. */
+function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): void {
+  const entry = decision(share);
+  entry.clear = choice === "clear";
+  entry.archive = choice === "archive";
+}
 </script>
 
 <template>
@@ -709,12 +832,13 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
           v-for="(id, index) in steps"
           :key="id"
           class="flow-step"
-          :class="{ 'is-current': id === step, 'is-done': index < stepIndex }"
+          :class="{ 'is-current': id === step, 'is-done': index < stepIndex && visited.has(id) }"
           :aria-current="id === step ? 'step' : undefined"
           data-testid="flow-step"
+          :data-done="index < stepIndex && visited.has(id) ? 'true' : undefined"
         >
           <span class="flow-step__mark" aria-hidden="true">
-            <Check v-if="index < stepIndex" :size="12" />
+            <Check v-if="index < stepIndex && visited.has(id)" :size="12" />
             <template v-else>{{ formatCount(index + 1) }}</template>
           </span>
           <span class="flow-step__label">{{ stepLabel(id) }}</span>
@@ -760,43 +884,71 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
             <h4>{{ t.migration.togetherTitle }}</h4>
             <p class="flow-note">{{ t.migration.togetherNote }}</p>
             <ul class="flow-list">
-              <li v-for="id in prepared ? coMigrate : predictedTogether" :key="id" data-testid="migration-together-row">
+              <li v-for="id in prepared ? coMigrate : predictedTogether" :key="id" data-testid="migration-together-row" :data-record="id">
                 <span>{{ name(id) }}</span>
                 <span v-if="stagedRevisionOf(id)" class="flow-mono">{{ t.migration.stagedAs(shortRevision(stagedRevisionOf(id))) }}</span>
+                <span v-else-if="siblingErrors[id]" class="flow-error-inline">{{ t.migration.notStagedYet }}</span>
                 <span v-else class="flow-note">{{ t.migration.stagedWithIt }}</span>
               </li>
             </ul>
           </div>
 
+          <!-- A sibling that failed to stage: the plan promotes them together, so nothing moves on until it stages. -->
+          <PcNotice v-if="missingSiblings.length && !staging" tone="danger" :title="t.migration.siblingsTitle" data-testid="migration-sibling-failed">
+            <ul class="flow-list">
+              <li v-for="id in missingSiblings" :key="id">{{ t.migration.siblingFailed(name(id), siblingErrors[id] || t.migration.notStagedYet) }}</li>
+            </ul>
+            <p>{{ t.migration.siblingsMissing(missingSiblings.map(name).join(", ")) }}</p>
+            <template #actions>
+              <PcButton compact variant="primary" :busy="staging" data-testid="migration-retry" @click="retrySiblings()">
+                <template #icon><RotateCcw :size="13" aria-hidden="true" /></template>
+                {{ t.migration.retrySiblings }}
+              </PcButton>
+            </template>
+          </PcNotice>
+
           <!-- Files cannot read fleet lines before S3: predicted from the list, and named by the refusal. -->
           <PcNotice v-if="predictedFiles.length && !staged" tone="warning" :title="t.migration.filesTitle" data-testid="migration-blocked-files">
             <p>{{ t.migration.filesBlock(predictedFiles.length) }}</p>
             <ul class="flow-list">
-              <li v-for="file in predictedFiles" :key="file.id" data-testid="migration-blocked-file">{{ name(file.id) }}</li>
+              <li v-for="file in predictedFiles" :key="file.id" data-testid="migration-blocked-file">
+                <button type="button" class="flow-link" data-testid="migration-file-link" :title="t.migration.openFile(name(file.id))" @click="emit('open-record', file.id)">{{ name(file.id) }}</button>
+              </li>
             </ul>
           </PcNotice>
           <PcNotice v-if="stageRefusal" tone="danger" :title="t.migration.refusedTitle" data-testid="migration-refused" :data-code="stageRefusal.code">
             <p>{{ stageRefusal.message }}</p>
             <ul v-if="refusedFiles.length" class="flow-list">
-              <li v-for="file in refusedFiles" :key="file" data-testid="migration-refused-file">{{ name(file) }}</li>
+              <li v-for="file in refusedFiles" :key="file" data-testid="migration-refused-file">
+                <button v-if="fileKnown(file)" type="button" class="flow-link" :title="t.migration.openFile(name(file))" @click="emit('open-record', file)">{{ name(file) }}</button>
+                <template v-else>{{ name(file) }}</template>
+              </li>
             </ul>
           </PcNotice>
           <PcNotice v-if="stageError" tone="danger">{{ stageError }}</PcNotice>
 
-          <div v-if="warnings.length" class="flow-block" data-testid="migration-warnings">
-            <h4>{{ t.migration.warningsTitle }}</h4>
-            <ul class="flow-list">
-              <li v-for="warning in warnings" :key="warning" data-testid="migration-warning">{{ warning }}</li>
-            </ul>
-          </div>
+          <!-- What migrate_record warned about, per record, with the way out: abandon, fix the step, migrate again. -->
+          <PcNotice v-if="warningGroups.length" tone="warning" :title="t.migration.warningsTitle" data-testid="migration-warnings">
+            <div v-for="group in warningGroups" :key="group.id" class="flow-warning-group">
+              <p v-if="warningGroups.length > 1 || group.id !== recordId" class="flow-warning-group__name">{{ name(group.id) }}</p>
+              <ul class="flow-list">
+                <li v-for="warning in group.warnings" :key="warning" data-testid="migration-warning">{{ warning }}</li>
+              </ul>
+              <p class="flow-note">{{ t.migration.warningsFix }}</p>
+              <PcButton v-if="flowStaged.length" compact data-testid="migration-fix-steps" :disabled="staging || abandoning" @click="askAbandon(group.id)">
+                <template #icon><Pencil :size="13" aria-hidden="true" /></template>
+                {{ t.migration.abandonAndEdit(name(group.id)) }}
+              </PcButton>
+            </div>
+          </PcNotice>
 
           <p v-if="resumed" class="flow-note" data-testid="migration-resumed">{{ t.migration.resumed(shortRevision(stagedRevisionOf(recordId))) }}</p>
           <div v-if="!staged" class="flow-actions">
             <PcButton
               variant="primary"
               :busy="staging"
-              :disabled="!!stageDenied || predictedFiles.length > 0"
-              :title="stageDenied || (predictedFiles.length ? t.migration.filesBlockShort : t.migration.stageTitle)"
+              :disabled="!!stageDenied || filesBlock"
+              :title="stageDenied || (filesBlock ? t.migration.filesBlockShort : t.migration.stageTitle)"
               data-testid="migration-stage"
               @click="stage()"
             >
@@ -878,16 +1030,27 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
             <!-- An identity-bound share on a record that is not fleet-bound: the identity buys nothing. -->
             <template v-if="share.identity_id">
               <p class="flow-note" data-testid="share-darkened">{{ t.migration.darkened(identityName(share.identity_id)) }}</p>
-              <div class="flow-share__controls">
+              <fieldset class="flow-share__controls flow-choice">
+                <legend class="pc-sr-only">{{ t.migration.choiceFor(shareLabel(share)) }}</legend>
                 <label class="flow-check">
-                  <input v-model="decisions[share.share_id]!.clear" type="checkbox" :disabled="decisions[share.share_id]!.archive" data-testid="share-clear" />
+                  <input
+                    type="radio"
+                    :name="`share-choice-${share.share_id}`"
+                    :checked="!decisions[share.share_id]!.clear && !decisions[share.share_id]!.archive"
+                    data-testid="share-keep"
+                    @change="setChoice(share, 'keep')"
+                  />
+                  {{ t.migration.keepIdentity }}
+                </label>
+                <label class="flow-check">
+                  <input type="radio" :name="`share-choice-${share.share_id}`" :checked="decisions[share.share_id]!.clear === true" data-testid="share-clear" @change="setChoice(share, 'clear')" />
                   {{ t.migration.clearIdentity }}
                 </label>
                 <label class="flow-check">
-                  <input v-model="decisions[share.share_id]!.archive" type="checkbox" data-testid="share-archive" />
+                  <input type="radio" :name="`share-choice-${share.share_id}`" :checked="decisions[share.share_id]!.archive" data-testid="share-archive" @change="setChoice(share, 'archive')" />
                   {{ t.migration.archive }}
                 </label>
-              </div>
+              </fieldset>
             </template>
 
             <template v-else>
@@ -905,6 +1068,7 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
                     <option value="">{{ t.migration.chooseIdentity }}</option>
                     <option v-for="identity in sortedIdentities" :key="identity.id" :value="identity.id">{{ identityOption(identity) }}</option>
                   </select>
+                  <span v-if="identityFacts(share)" class="flow-note flow-select__facts" data-testid="identity-facts">{{ identityFacts(share) }}</span>
                 </label>
                 <label class="flow-check">
                   <input v-model="decisions[share.share_id]!.archive" type="checkbox" data-testid="share-archive" />
@@ -919,7 +1083,13 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
               <div v-if="emptyFor(share)" class="flow-warn" data-testid="identity-no-lines">
                 <p>{{ t.migration.noLines }}</p>
                 <div class="flow-actions">
-                  <PcButton compact :busy="bindingOf(share)?.busy" :disabled="!previewOf(share)?.reply" data-testid="bind-selection" @click="bindSelection(share)">
+                  <PcButton
+                    compact
+                    :busy="bindingOf(share)?.busy"
+                    :disabled="!previewOf(share)?.reply || bindingOf(share)?.unavailable === true"
+                    data-testid="bind-selection"
+                    @click="bindSelection(share)"
+                  >
                     <template #icon><Link2 :size="13" aria-hidden="true" /></template>
                     {{ t.plans.bind.action }}
                   </PcButton>
@@ -943,12 +1113,16 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
           </ul>
         </div>
 
-        <div v-if="nameWarnings.length" class="flow-block" data-testid="migration-name-warnings">
-          <h4>{{ t.migration.warningsTitle }}</h4>
+        <PcNotice v-if="nameWarnings.length" tone="warning" :title="t.migration.warningsTitle" data-testid="migration-name-warnings">
           <ul class="flow-list">
             <li v-for="index in nameWarnings" :key="index" data-testid="migration-warning">{{ t.migration.nameStep(index) }}</li>
           </ul>
-        </div>
+          <p class="flow-note">{{ t.migration.warningsFix }}</p>
+          <PcButton v-if="flowStaged.length" compact data-testid="migration-fix-steps" :disabled="abandoning" @click="askAbandon(recordId)">
+            <template #icon><Pencil :size="13" aria-hidden="true" /></template>
+            {{ t.migration.abandonAndEdit(name(recordId)) }}
+          </PcButton>
+        </PcNotice>
 
         <p v-if="undecided.length" class="flow-warn" data-testid="shares-undecided" role="status">{{ t.migration.undecided(undecided.length) }}</p>
       </section>
@@ -958,9 +1132,12 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
         <h3 id="flow-propose-heading" class="flow-heading" tabindex="-1" data-step-heading>{{ stepLabel("propose") }}</h3>
         <p class="flow-prose">{{ t.migration.proposeIntro[mode] }}</p>
         <ul class="flow-list" data-testid="propose-records">
-          <li v-for="entry in proposeSummary.records" :key="entry.id" data-testid="propose-record">
+          <li v-for="entry in proposeSummary.records" :key="entry.id" data-testid="propose-record" class="flow-propose-record">
             <span>{{ entry.name }}</span>
             <span class="flow-mono">{{ mode === 'delete' ? t.migration.deletes(shortRevision(entry.from)) : mode === 'assign' ? t.migration.stays(shortRevision(entry.from)) : t.migration.fromTo(shortRevision(entry.from) || t.plans.view.noLive, shortRevision(entry.to)) }}</span>
+            <ul v-if="entry.warnings.length" class="flow-propose-warnings">
+              <li v-for="warning in entry.warnings" :key="warning" class="flow-warn" data-testid="propose-warning">{{ warning }}</li>
+            </ul>
           </li>
         </ul>
         <ul v-if="proposeSummary.assigned.length || proposeSummary.cleared.length || proposeSummary.archived.length" class="flow-list" data-testid="propose-changes">
@@ -968,7 +1145,7 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
         </ul>
         <div class="flow-actions">
           <PcButton
-            variant="primary"
+            :variant="mode === 'delete' ? 'danger' : 'primary'"
             :busy="proposing"
             :disabled="!!proposeDenied"
             :title="proposeDenied || undefined"
@@ -978,6 +1155,7 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
             {{ t.migration.proposeVerb[mode] }}
           </PcButton>
         </div>
+        <p v-if="mode === 'delete' && !proposeDenied" class="flow-note" data-testid="propose-proof">{{ t.migration.deleteProof }}</p>
         <p v-if="proposeDenied" class="flow-note" data-testid="propose-denied">{{ proposeDenied }}</p>
       </section>
 
@@ -990,6 +1168,7 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
           <PlanStatus
             :plan="planRow"
             :plan-text="planText"
+            :record-revisions="statusRecords"
             detail
             :records="items"
             :identities="identities"
@@ -1005,25 +1184,29 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
         <p v-else class="flow-note">{{ t.migration.noPlan }}</p>
       </section>
 
-      <p v-if="abandonError" class="flow-error" role="alert">{{ abandonError }}</p>
+      <!-- Abandon asks first, here, beside where it was asked for: what it drops, and the plan it stales. -->
+      <div v-if="abandonAsk" ref="abandonBox" class="flow-abandon-ask" role="group" aria-labelledby="flow-abandon-heading" data-testid="abandon-confirm">
+        <h4 id="flow-abandon-heading" class="flow-abandon-ask__title" tabindex="-1" data-abandon-heading>{{ t.migration.abandonTitle }}</h4>
+        <ul class="flow-list">
+          <li v-for="line in abandonLines" :key="line" data-testid="abandon-line">{{ line }}</li>
+        </ul>
+        <p v-if="abandonAsk.edit" class="flow-note">{{ t.migration.abandonThenEdit(name(abandonAsk.edit)) }}</p>
+        <p v-if="abandonError" class="flow-error" role="alert">{{ abandonError }}</p>
+        <div class="flow-actions">
+          <PcButton compact variant="danger" :busy="abandoning" data-testid="abandon-run" @click="abandon()">
+            {{ abandonAsk.edit ? t.migration.abandonAndEditVerb : t.migration.abandon }}
+          </PcButton>
+          <PcButton compact :disabled="abandoning" data-testid="abandon-cancel" @click="abandonAsk = null">{{ t.migration.abandonKeep }}</PcButton>
+        </div>
+      </div>
+
       <footer class="flow-footer">
         <PcButton v-if="stepIndex > 0 && step !== 'status'" compact data-testid="flow-back" @click="back()">
           <template #icon><ArrowLeft :size="13" aria-hidden="true" /></template>
           {{ t.migration.back }}
         </PcButton>
-        <PcButton
-          v-if="flowStaged.length && step !== 'status'"
-          compact
-          variant="danger"
-          :busy="abandoning"
-          :disabled="staging"
-          data-testid="flow-abandon"
-          @click="abandon()"
-        >
-          {{ t.migration.abandon }}
-        </PcButton>
         <span class="flow-footer__gap" />
-        <p v-if="nextBlocked && step !== 'propose' && step !== 'status'" class="flow-note flow-footer__why">{{ nextBlocked }}</p>
+        <p v-if="footerWhy" class="flow-note flow-footer__why" data-testid="flow-why">{{ footerWhy }}</p>
         <PcButton
           v-if="step !== 'propose' && step !== 'status'"
           compact
@@ -1037,6 +1220,14 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
         </PcButton>
         <PcButton v-if="step === 'status'" compact data-testid="flow-close" @click="emit('close')">{{ t.migration.close }}</PcButton>
       </footer>
+      <!-- Away from Back and Next, in a quieter slot of its own. -->
+      <div v-if="flowStaged.length && !abandonAsk" class="flow-abandon">
+        <PcButton compact :disabled="staging || abandoning" data-testid="flow-abandon" @click="askAbandon()">
+          <template #icon><Undo2 :size="13" aria-hidden="true" /></template>
+          {{ t.migration.abandonAsk }}
+        </PcButton>
+        <span class="flow-note">{{ t.migration.abandonNote }}</span>
+      </div>
     </div>
   </PcSidePanel>
 </template>
@@ -1259,5 +1450,90 @@ const partialOf = computed(() => (planRow.value ? partialApply(planRow.value.rea
 .flow-footer__why {
   flex: 1 1 200px;
   text-align: right;
+}
+.flow-step:not(.is-current):not(.is-done) .flow-step__mark {
+  border-style: dashed;
+}
+.flow-error-inline {
+  font-size: var(--lt-text-xs);
+  color: var(--lt-danger-ink);
+}
+.flow-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lt-accent-ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.flow-link:focus-visible {
+  outline: none;
+  box-shadow: var(--lt-focus-ring);
+  border-radius: var(--radius-sm);
+}
+.flow-warning-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.flow-warning-group + .flow-warning-group {
+  margin-top: var(--space-3);
+}
+.flow-warning-group__name {
+  margin: 0;
+  font-weight: 600;
+}
+.flow-choice {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.flow-select__facts {
+  display: block;
+  margin-top: var(--space-1);
+}
+.flow-propose-record {
+  flex-direction: row;
+}
+.flow-propose-warnings {
+  flex: 1 1 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.flow-abandon-ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--lt-danger-border, var(--border));
+  border-left: 2px solid var(--destructive);
+  border-radius: var(--radius-md);
+  background: var(--card);
+}
+.flow-abandon-ask__title {
+  margin: 0;
+  font-size: var(--lt-text-sm);
+  font-weight: 600;
+}
+.flow-abandon-ask__title:focus-visible {
+  outline: none;
+  box-shadow: var(--lt-focus-ring);
+  border-radius: var(--radius-sm);
+}
+.flow-abandon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding-top: var(--space-2);
 }
 </style>

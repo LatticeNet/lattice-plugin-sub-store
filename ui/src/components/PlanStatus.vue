@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ExternalLink, RefreshCw } from "@lucide/vue";
+import { ChevronRight, ExternalLink, RefreshCw } from "@lucide/vue";
 import { PcButton, PcStateDot, type StateTone } from "@latticenet/plugin-bridge/chassis";
 
 import type { SubscriptionListItem } from "../client";
@@ -11,6 +11,7 @@ import {
   mayHavePromoted,
   parsePlan,
   partialApply,
+  planRevisionLines,
   planShareViews,
   planUnboundShares,
   promotedAfterFailure,
@@ -34,7 +35,12 @@ import {
  *
  * With the plan's text, the view lists what the approver is shown: per
  * share, the lines its identity gains and loses and the lines left out with
- * the reason and the fix, then the assignments, clearings and archivals.
+ * the reason and the fix, then the assignments, clearings and archivals. A
+ * share that receives nothing, or has lines left out, starts open. Without
+ * the text (plans.status carries none, so a plan reopened later has only
+ * its row) the view says the content is in Approvals. Every record the plan
+ * promotes is named with its revisions: from the text's sections, else from
+ * `recordRevisions`, what the surface knows the plan covers.
  * No credential and no share link is in any of it.
  */
 const props = defineProps<{
@@ -50,6 +56,8 @@ const props = defineProps<{
   canPropose?: boolean;
   /** The console's origin is known, so Approvals can be opened there. */
   canOpenApprovals?: boolean;
+  /** The records the plan promotes, when the surface knows them and has no plan text. */
+  recordRevisions?: readonly { id: string; from: string; to: string }[];
 }>();
 
 const emit = defineEmits<{
@@ -95,6 +103,20 @@ function identityName(id: string): string {
 }
 
 const shares = computed(() => (parsed.value ? planShareViews(parsed.value) : []));
+
+/** One line per record the plan moves: the text's sections, else what the surface knows, else the row's own. */
+const revisionLines = computed(() => {
+  if (!props.plan) return [];
+  if (parsed.value) return planRevisionLines(parsed.value);
+  const known = (props.recordRevisions ?? []).filter((entry) => entry.to);
+  if (known.length > 1 && known.some((entry) => entry.id === props.plan!.subscription_id)) return known;
+  return [{ id: props.plan.subscription_id, from: props.plan.from_revision, to: props.plan.to_revision }];
+});
+
+/** A share whose identity receives nothing, or that has lines left out: what the approver must see first. */
+function startsOpen(share: { added: unknown[]; unchanged: number; excluded: unknown[] }): boolean {
+  return (share.added.length === 0 && share.unchanged === 0) || share.excluded.length > 0;
+}
 const unbound = computed(() => (parsed.value ? planUnboundShares(parsed.value) : []));
 const multiRecord = computed(() => new Set(shares.value.map((share) => share.record)).size > 1 || (parsed.value?.records?.length ?? 0) > 1);
 
@@ -133,9 +155,11 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
     </div>
 
     <template v-if="detail">
-      <p class="plan-status__revisions" data-testid="plan-revisions">
-        {{ plan.action === "delete" ? t.plans.view.deleteOf(nameOf(plan.subscription_id), shortRevision(plan.from_revision)) : t.plans.view.revisions(nameOf(plan.subscription_id), shortRevision(plan.from_revision) || t.plans.view.noLive, shortRevision(plan.to_revision)) }}
-      </p>
+      <ul class="plan-status__revisions" data-testid="plan-revisions">
+        <li v-for="line in revisionLines" :key="line.id" data-testid="plan-revision">
+          {{ plan.action === "delete" ? t.plans.view.deleteOf(nameOf(line.id), shortRevision(line.from)) : t.plans.view.revisions(nameOf(line.id), shortRevision(line.from) || t.plans.view.noLive, shortRevision(line.to)) }}
+        </li>
+      </ul>
 
       <p v-if="state === 'pending'" class="plan-status__note">{{ t.plans.view.pendingNote }}</p>
       <p v-else-if="state === 'approved'" class="plan-status__note">{{ t.plans.view.approvedNote }}</p>
@@ -201,6 +225,7 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
           {{ t.plans.view.checkAgain }}
         </PcButton>
       </div>
+      <p v-if="!parsed && (state === 'pending' || state === 'approved')" class="plan-status__note" data-testid="plan-content-elsewhere">{{ t.plans.view.contentInApprovals }}</p>
 
       <!-- What the approver is shown. -->
       <section v-if="parsed" class="plan-view" :aria-label="t.plans.view.title" data-testid="plan-view">
@@ -224,8 +249,9 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
 
         <ul class="plan-view__shares">
           <li v-for="share in shares" :key="`${share.record}-${share.share_id}`" class="plan-share" data-testid="plan-share" :data-share="share.share_id">
-            <details>
+            <details :open="startsOpen(share)">
               <summary class="plan-share__head">
+                <ChevronRight class="plan-share__chevron" :size="14" aria-hidden="true" />
                 <span class="plan-share__name">{{ shareLabel(share) }}</span>
                 <span v-if="multiRecord" class="plan-share__record">{{ nameOf(share.record) }}</span>
                 <span class="plan-share__identity">{{ identityName(share.identity_id) }}</span>
@@ -302,6 +328,8 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
 }
 .plan-status__revisions {
   margin: 0;
+  padding: 0;
+  list-style: none;
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
@@ -374,11 +402,29 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
 .plan-share__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
+  list-style: none;
   gap: var(--space-1) var(--space-3);
   padding: var(--space-2) var(--space-3);
   cursor: pointer;
   font-size: var(--lt-text-sm);
+}
+.plan-share__head::-webkit-details-marker {
+  display: none;
+}
+/* The disclosure the flex summary hides, drawn as the Fleet view draws its rows'. */
+.plan-share__chevron {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 120ms ease-out;
+}
+details[open] > .plan-share__head .plan-share__chevron {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan-share__chevron {
+    transition: none;
+  }
 }
 .plan-share__head:focus-visible {
   outline: none;

@@ -591,6 +591,8 @@ const discardDialog = computed(() => {
   if (plan && plan.status === "pending") consequences.push(t.plans.discard.stalesPlan(plan.approval_id));
   return { title: t.plans.discard.title, names: [recordName(row)], consequences };
 });
+/** The discard's notes are what happens, not records it breaks. */
+const discardHeading = computed(() => t.plans.discard.whatHappens);
 async function runDiscard(): Promise<void> {
   const row = discarding.value;
   if (!row) return;
@@ -603,11 +605,21 @@ async function runDiscard(): Promise<void> {
   }
 }
 
-/** Plans of the staged rows on this page, for their badges. */
+/**
+ * Plans of the rows on this page that can have one, for their badges: a
+ * staged row, a fleet-bound row (a delete or a share plan with nothing
+ * staged) and a row whose shares hold an identity it cannot use (a clear).
+ */
 watch(
-  () => (subs.canReadPlans.value ? table.value.rows.filter((row) => row.staged_revision).map((row) => row.id) : []),
+  () =>
+    subs.canReadPlans.value
+      ? table.value.rows
+          .filter((row) => row.staged_revision || isFleetBound(row) || darkenedCount(row) > 0)
+          .map((row) => row.id)
+          .join(",")
+      : "",
   (ids) => {
-    if (ids.length) void subs.loadPlans(ids);
+    if (ids) void subs.loadPlans(ids.split(","));
   },
   { immediate: true },
 );
@@ -625,7 +637,40 @@ async function removeMember(collectionId: string, memberId: string): Promise<voi
   flow.value = null;
   await editor.startEdit(collectionId);
   const draft = editor.draft.value;
-  if (draft.id === collectionId) draft.members = draft.members.filter((member) => member !== memberId);
+  if (draft.id !== collectionId) return;
+  draft.members = draft.members.filter((member) => member !== memberId);
+  // The change is on the members, which the Content tab holds; the notice
+  // says why the editor opened and how to get back to the delete.
+  editor.editorTab.value = "content";
+  memberRemoval.value = { collection: collectionId, member: memberId };
+}
+/** "Remove from <combination>" opened this editor: the member it took out, until the editor closes. */
+const memberRemoval = ref<{ collection: string; member: string } | null>(null);
+watch(
+  () => (editor.editing.value ? editor.editingId.value : ""),
+  (id) => {
+    if (memberRemoval.value && id !== memberRemoval.value.collection) memberRemoval.value = null;
+  },
+);
+
+/** The removed member's name while its combination's editor is open. */
+const removedMemberName = computed(() => {
+  const removal = memberRemoval.value;
+  if (!removal || !editor.editing.value || editor.editingId.value !== removal.collection) return "";
+  return recordName(subs.items.value.find((item) => item.id === removal.member), removal.member);
+});
+
+/** A record the flow names (a file blocking a migration) opens in its side panel; the flow gives way. */
+function flowOpenRecord(id: string): void {
+  flow.value = null;
+  chrome.openRecord(id);
+}
+
+/** The migration was abandoned to fix a step: the record's editor, on its steps. */
+async function flowEditSteps(id: string): Promise<void> {
+  flow.value = null;
+  await editor.startEdit(id);
+  if (editor.editing.value && editor.editingId.value === id) editor.editorTab.value = "operations";
 }
 
 /** The shares that answer the decoy, and the identities that buy nothing, per row. */
@@ -1214,7 +1259,13 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
 
   <template v-else>
     <!-- ── editors ──────────────────────────────────────────────────────── -->
-    <SubscriptionEditor v-if="editor.editing.value" :editor="editor" :subs="subs" />
+    <SubscriptionEditor v-if="editor.editing.value" :editor="editor" :subs="subs">
+      <template v-if="removedMemberName" #notice>
+        <PcNotice tone="info" :title="t.plans.memberRemoved.title(removedMemberName)" data-testid="member-removed-notice">
+          {{ t.plans.memberRemoved.body(removedMemberName) }}
+        </PcNotice>
+      </template>
+    </SubscriptionEditor>
     <FileEditor v-else-if="fileEditor.editing.value" :editor="fileEditor" :subs="subs" />
 
     <!-- ── list ─────────────────────────────────────────────────────────── -->
@@ -1617,7 +1668,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                       <span v-else-if="cell(row).published.unknown" class="layer-muted">{{ t.records.publishedUnknown }}</span>
                       <span v-else-if="shares !== undefined" class="layer-muted">{{ t.publish.none }}</span>
                     </span>
-                    <StagedBadge v-if="row.staged_revision" :item="row" :plans="subs.plansByRecord.value[row.id]" />
+                    <StagedBadge :item="row" :plans="subs.plansByRecord.value[row.id]" />
                     <small v-if="decoyCount(row)" class="rec-decoy" :title="t.plans.decoyTitle" data-testid="record-decoy">{{ t.plans.decoyCell(decoyCount(row)) }}</small>
                     <small v-if="darkenedCount(row)" class="rec-decoy" :title="t.plans.darkenedTitle" data-testid="record-darkened">{{ t.plans.darkenedCell(darkenedCount(row)) }}</small>
                   </td>
@@ -1753,6 +1804,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
         :verb="t.plans.discard.verb"
         :names="discardDialog.names"
         :consequences="discardDialog.consequences"
+        :consequences-title="discardHeading"
         :busy="discardBusy"
         @confirm="runDiscard()"
         @cancel="discarding = null"
@@ -1787,6 +1839,8 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       @close="closeFlow()"
       @done="flowDone"
       @remove-member="removeMember"
+      @open-record="flowOpenRecord"
+      @edit-steps="flowEditSteps"
     />
   </template>
 </template>
@@ -1820,5 +1874,21 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
   font-size: var(--lt-text-xs);
   line-height: var(--lt-leading-tight);
   overflow-wrap: anywhere;
+}
+/* These are sentences, not identifiers: the body face, where a cell's
+   <small> is otherwise mono (.pc-table td small). */
+small.rec-decoy,
+small.rec-blocked {
+  font-family: inherit;
+}
+/* Stacked on a phone, the cell is one flex row: the staged badge and the
+   decoy line take lines of their own instead of running into the slug. */
+.records-table .pc-table[data-stacked="true"] td.rec-published {
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+.records-table .pc-table[data-stacked="true"] td.rec-published > .staged-badge,
+.records-table .pc-table[data-stacked="true"] td.rec-published > .rec-decoy {
+  flex-basis: 100%;
 }
 </style>

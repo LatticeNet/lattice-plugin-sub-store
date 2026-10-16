@@ -234,6 +234,9 @@ function onUsageInput(): void {
       </div>
     </div>
 
+    <!-- Why the editor opened, when another surface opened it for a reason (lane 6b: "Remove from <combination>"). -->
+    <slot name="notice" />
+
     <div v-if="actionError" class="alert" role="alert">
       <CircleAlert :size="16" aria-hidden="true" /> {{ actionError }}
     </div>

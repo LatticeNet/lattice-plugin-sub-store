@@ -251,6 +251,10 @@ describe("the harness console", () => {
     expect(addressForState("?locale=ru-RU&view=files", { view: "shares" })).toBe("?locale=ru-RU&view=shares");
     expect(pageStateFromAddress("?locale=zh-CN&view=records")).toEqual({ view: "records" });
     expect(addressForState("?view=files", {})).toBe("");
+    // The S2 harness states ride every write too, or a state such as
+    // plans=denied would revert to the default after the first navigation.
+    expect(addressForState("?manifest=s2&fleet=error&plans=denied&view=records", { view: "fleet" })).toBe("?manifest=s2&fleet=error&plans=denied&view=fleet");
+    expect(pageStateFromAddress("?plans=failed&view=records")).toEqual({ view: "records" });
   });
 
   it("keeps the console's reserved keys and never takes one from the page", () => {

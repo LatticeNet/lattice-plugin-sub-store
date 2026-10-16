@@ -18,6 +18,8 @@
  *   stale     asia-fleet's plan went stale: its staged revision was replaced
  *   closure   asia-fleet's plan went stale: a combination started reading it
  *   bind      core serves bind_selection (operator decision 8 taken)
+ *   sibling   the first migrate_record of home-graph, the sibling staged
+ *             with relay-graph, fails; a retry stages it
  *
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
@@ -27,11 +29,11 @@ import type { PlanShare } from "./planFixtures";
 import { CATALOGUE_VERSION, catalogueRows } from "./fleetFixtures";
 import { s2Manifest } from "./fleetHost";
 
-export type PlansHarnessState = "ok" | "denied" | "large" | "failed" | "promoted" | "partial" | "stale" | "closure" | "bind";
+export type PlansHarnessState = "ok" | "denied" | "large" | "failed" | "promoted" | "partial" | "stale" | "closure" | "bind" | "sibling";
 
 export function plansState(): PlansHarnessState {
   const asked = new URLSearchParams(window.location.search).get("plans");
-  const known: PlansHarnessState[] = ["ok", "denied", "large", "failed", "promoted", "partial", "stale", "closure", "bind"];
+  const known: PlansHarnessState[] = ["ok", "denied", "large", "failed", "promoted", "partial", "stale", "closure", "bind", "sibling"];
   return (known as string[]).includes(asked ?? "") ? (asked as PlansHarnessState) : "ok";
 }
 
@@ -453,7 +455,12 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
 
   // ── migrate_record and discard_staged ────────────────────────────────────
 
+  let siblingFailed = false;
   handlers["subscription/migrate_record"] = ({ subscription_id, if_revision }: { subscription_id: string; if_revision?: string }) => {
+    if (state === "sibling" && subscription_id === "home-graph" && !siblingFailed) {
+      siblingFailed = true;
+      throw new Error("internal: the staged store could not be written; try again");
+    }
     const record = byId(subscription_id);
     if (!record) throw new Error(`subscription "${subscription_id}" has no live record to migrate`);
     if (!LEGACY.has(record.source ?? "")) throw new Error(`subscription "${subscription_id}" is not a legacy vpn-core or vpn-core-graph record`);

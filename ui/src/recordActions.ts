@@ -99,7 +99,7 @@ export interface ActionDeclaration {
    * nothing blocks it. Only the blocked items used to carry a title, so
    * "Share…" beside "Publish…" had no way of saying which was which.
    */
-  title: (kind: RecordKind) => string;
+  title: (kind: RecordKind, record?: SubscriptionListItem) => string;
   /** Icon name; each screen maps it to its own imported component. */
   icon: string;
   kinds: readonly RecordKind[];
@@ -267,7 +267,9 @@ export const RECORD_ACTIONS: readonly ActionDeclaration[] = [
   {
     id: "delete",
     label: () => t.actions.delete,
-    title: () => t.actions.deleteTitle,
+    // A fleet-bound record's delete goes through plans.propose, which
+    // archives its shares; the plain title's "keeps existing" is not true of it.
+    title: (_kind, record) => (record && isFleetBound(record) ? t.plans.actions.deleteFleetTitle : t.actions.deleteTitle),
     icon: "trash",
     kinds: ALL_KINDS,
     danger: true,
@@ -303,7 +305,7 @@ export function actionsFor(
     return {
       id: action.id,
       label: action.label(kind),
-      title: action.title(kind),
+      title: action.title(kind, record),
       icon: action.icon,
       danger: action.danger === true,
       reason,

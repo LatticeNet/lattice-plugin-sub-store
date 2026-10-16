@@ -36,6 +36,14 @@ import { THEMES, VIEWPORTS, flow, menuItem, openMenu, openPlans, row, runAction,
  *   partial               a multi-record plan stopped part way; propose the rest
  *   mixed combination     blocked until its legacy member migrates
  *   withheld output       a legacy record's output and Fetch now
+ *
+ * And what the lane 6b reviews asked for: a sibling that fails to stage
+ * blocks the flow until a retry; abandon asks first, also at the status;
+ * a carried-over step's warning and its way out; the files-blocked footer;
+ * the delete's own wording and danger styling; a pending delete plan in the
+ * table; "Remove from" opening the members with a notice; the discard
+ * dialog's heading; a plan reopened later; and the Overview's attention
+ * items leading to a panel that shows the plan.
  */
 
 const RELAY = "香港中继 Relay path for alice";
@@ -103,12 +111,19 @@ for (const viewport of VIEWPORTS) {
 
         await next(page);
         await expect(flow(page).getByTestId("propose-record")).toHaveCount(2);
+        // The carried-over step's warning is said again beside the record it is about.
+        await expect(flow(page).getByTestId("propose-record").first().getByTestId("propose-warning")).toContainText("Regex Filter");
         await propose(page);
         await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state.pending);
         await expect(flow(page).getByTestId("plan-view")).toBeVisible();
+        // Both records the plan promotes, each with its revisions.
+        await expect(flow(page).getByTestId("plan-revision")).toHaveCount(2);
+        await expect(flow(page).getByTestId("plan-revision").last()).toContainText(HOME);
         await expect(flow(page).getByTestId("plan-assignment")).toHaveCount(3);
+        // A share whose identity receives nothing starts open, with its left-out lines and their fix.
         const family = flow(page).locator('[data-testid="plan-share"][data-share="sh-pair-family"]');
-        await family.locator("summary").click();
+        await expect(family.locator("details")).toHaveAttribute("open", "");
+        await expect(family.getByTestId("plan-share-counts")).toContainText(m.plans.view.shareCounts(0, 0, 0, 1).split(" · ")[2]!);
         await expect(family.locator('[data-testid="plan-excluded"][data-reason="not_bound"]')).toContainText(m.fleetEditor.bind.reasons.not_bound);
         await expect(family.locator('[data-testid="plan-excluded"][data-reason="not_bound"]')).toContainText(m.plans.view.fixes.not_bound);
         await expect(flow(page).getByTestId("plan-open-approvals")).toBeVisible();
@@ -138,8 +153,14 @@ for (const viewport of VIEWPORTS) {
         await expect(flow(page).getByTestId("migration-blocked-files")).toContainText(m.migration.filesBlock(1));
         await expect(flow(page).getByTestId("migration-blocked-file")).toHaveText(ROUTER_FILE);
         await expect(flow(page).getByTestId("migration-stage")).toBeDisabled();
+        // The footer names the files, not "stage it first", which the files forbid.
+        await expect(flow(page).getByTestId("flow-why")).toHaveText(m.migration.filesBlockShort);
         await settled(page, viewport.width);
         await shot(page, "migration-blocked-files", meta());
+        // Each file opens in its own panel.
+        await flow(page).getByTestId("migration-file-link").click();
+        await expect(flow(page)).toHaveCount(0);
+        await expect(page.locator(".pc-side-panel h2")).toHaveText(ROUTER_FILE);
       });
 
       test("migration refused for files named in refused.files", async ({ page }) => {
@@ -149,14 +170,30 @@ for (const viewport of VIEWPORTS) {
         await expect(flow(page).getByTestId("migration-refused")).toHaveAttribute("data-code", "fleet_file_unavailable");
         await expect(flow(page).getByTestId("migration-refused-file")).toHaveText("late-config");
         await expect(flow(page).getByTestId("flow-next")).toBeDisabled();
+        // Refused for a file: staging again would be refused again.
+        await expect(flow(page).getByTestId("migration-stage")).toBeDisabled();
+        await expect(flow(page).getByTestId("flow-why")).toHaveText(m.migration.filesBlockShort);
         await settled(page, viewport.width);
         await shot(page, "migration-refused-files", meta());
       });
 
-      test("abandon migration drops what the flow staged", async ({ page }) => {
+      test("abandon migration asks first, naming what it drops, then drops what the flow staged", async ({ page }) => {
         await openPlans(page, { theme });
         await stage(page, "relay-graph");
         await flow(page).getByTestId("flow-abandon").click();
+        const ask = flow(page).getByTestId("abandon-confirm");
+        await expect(ask.getByTestId("abandon-line")).toHaveCount(2);
+        await expect(ask.getByTestId("abandon-line").first()).toContainText(RELAY);
+        await expect(ask.getByTestId("abandon-line").last()).toContainText(HOME);
+        await expect(ask.locator("[data-abandon-heading]")).toBeFocused();
+        await settled(page, viewport.width);
+        await shot(page, "migration-abandon-confirm", meta());
+        // Keeping it leaves everything staged.
+        await ask.getByTestId("abandon-cancel").click();
+        await expect(ask).toHaveCount(0);
+        await expect(flow(page).getByTestId("migration-staged")).toBeVisible();
+        await flow(page).getByTestId("flow-abandon").click();
+        await flow(page).getByTestId("abandon-run").click();
         await expect(flow(page)).toHaveCount(0);
         await expect(page.getByText(m.migration.abandoned(`${RELAY}, ${HOME}`))).toBeVisible();
         await expect(row(page, "relay-graph").getByTestId("staged-badge")).toHaveCount(0);
@@ -164,15 +201,30 @@ for (const viewport of VIEWPORTS) {
 
       test("a fleet-bound record's delete goes through a plan that archives its own shares", async ({ page }) => {
         await openPlans(page, { theme });
-        await runAction(page, "fleet-probe-fast", "delete");
+        await openMenu(page, "fleet-probe-fast");
+        // The menu says what a fleet-bound delete does: its shares are archived through a plan.
+        await expect(menuItem(page, "fleet-probe-fast", "delete")).toHaveAttribute("title", m.plans.actions.deleteFleetTitle);
+        await menuItem(page, "fleet-probe-fast", "delete").click();
         await expect(flow(page)).toHaveAttribute("data-mode", "delete");
         await expect(flow(page).getByTestId("delete-archived-share")).toContainText("/probe-erin");
         await next(page);
+        // A destructive verb, styled as one, whose label holds whether or not core needs a plan.
+        await expect(flow(page).getByTestId("flow-propose")).toHaveText(m.migration.proposeVerb.delete);
+        await expect(flow(page).getByTestId("flow-propose")).toHaveAttribute("data-variant", "danger");
+        await expect(flow(page).getByTestId("propose-proof")).toHaveText(m.migration.deleteProof);
+        await shot(page, "delete-propose", meta());
         await propose(page);
         await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state.pending);
         await expect(flow(page).getByTestId("plan-archival")).toHaveCount(1);
         await settled(page, viewport.width);
         await shot(page, "delete-through-plan", meta());
+        // Back in the table, the record about to be archived says so.
+        await flow(page).getByTestId("flow-close").click();
+        const badge = row(page, "fleet-probe-fast").getByTestId("plan-badge");
+        await expect(badge).toHaveAttribute("data-action", "delete");
+        await expect(badge).toContainText(m.plans.staged.deleteState.pending);
+        await settled(page, viewport.width);
+        await shot(page, "delete-pending-row", meta());
       });
 
       test("a delete blocked by a combination that names the record, and the way out", async ({ page }) => {
@@ -186,6 +238,11 @@ for (const viewport of VIEWPORTS) {
         // The combination's editor, with the record already out of its members: the edit is unsaved.
         await expect(page.locator("#editor-title")).toContainText(m.editor.dirty);
         await expect(page.locator(".picker-chosen", { hasText: "亚洲线路 Asia lines" })).toHaveCount(0);
+        // It opens where the change is, and says why it opened and how to get back to the delete.
+        await expect(page.locator('.ed-tab[aria-selected="true"]')).toHaveText(new RegExp(m.editor.tabs.content));
+        await expect(page.getByTestId("member-removed-notice")).toContainText(m.plans.memberRemoved.title("亚洲线路 Asia lines"));
+        await settled(page, viewport.width);
+        await shot(page, "delete-remove-member-editor", meta());
       });
 
       test("a plain delete refused as fleet-bound is read from the structured reply", async ({ page }) => {
@@ -208,6 +265,8 @@ for (const viewport of VIEWPORTS) {
         await runAction(page, "asia-fleet", "discard-staged");
         const dialog = page.locator(".lt-dialog");
         await expect(dialog).toContainText(m.plans.discard.title);
+        // What happens, not "this also breaks 2 records": the notes are not records.
+        await expect(dialog.locator(".lt-dialog-subtitle")).toHaveText(m.plans.discard.whatHappens);
         await expect(dialog.locator(".is-consequence li")).toHaveCount(2);
         await expect(dialog.locator(".is-consequence li").last()).toContainText("apr_");
         await settled(page, viewport.width);
@@ -224,7 +283,12 @@ for (const viewport of VIEWPORTS) {
         await expect(flow(page)).toHaveAttribute("data-step", "status");
         await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state.pending);
         await expect(flow(page).getByTestId("plan-open-approvals")).toBeVisible();
+        // Reopened later, the plan text is not in hand: the view says where it is, and the
+        // steps this sitting never showed are not marked done.
+        await expect(flow(page).getByTestId("plan-content-elsewhere")).toHaveText(m.plans.view.contentInApprovals);
+        await expect(flow(page).locator('[data-testid="flow-step"][data-done="true"]')).toHaveCount(0);
         await settled(page, viewport.width);
+        await shot(page, "plan-reopened", meta());
       });
 
       test("a share without an identity on a fleet record: the decoy, fixed by an assignment-only plan", async ({ page }) => {
@@ -339,11 +403,90 @@ for (const viewport of VIEWPORTS) {
         await menuItem(page, "self-export", "output").click();
         const notice = page.getByTestId("withheld-notice").first();
         await expect(notice).toContainText(m.fleetEditor.withheld.title);
-        // The client sheet's target chips fail colour contrast on every record, this lane's or not
-        // (.target-chip-produces, TargetSheet); reported in the PR, not this state's.
-        await settled(page, viewport.width, [".target-chip-produces"]);
+        await settled(page, viewport.width);
         await shot(page, "withheld-output", meta());
         await notice.getByTestId("withheld-migrate").click();
+        await expect(flow(page)).toHaveAttribute("data-mode", "migrate");
+      });
+
+      test("a sibling that fails to stage blocks the flow until a retry stages it", async ({ page }) => {
+        await openPlans(page, { theme, query: "&plans=sibling" });
+        await runAction(page, "relay-graph", "migrate");
+        await flow(page).getByTestId("migration-stage").click();
+        await expect(flow(page).getByTestId("migration-staged")).toBeVisible();
+        const failed = flow(page).getByTestId("migration-sibling-failed");
+        await expect(failed).toContainText(HOME);
+        await expect(failed.getByTestId("migration-retry")).toBeEnabled();
+        await expect(flow(page).getByTestId("flow-next")).toBeDisabled();
+        await settled(page, viewport.width);
+        await shot(page, "migration-sibling-failed", meta());
+        await failed.getByTestId("migration-retry").click();
+        await expect(failed).toHaveCount(0);
+        await expect(flow(page).locator('[data-testid="migration-together-row"][data-record="home-graph"]')).toContainText(new RegExp(m.migration.stagedAs("[0-9a-f]+")));
+        await expect(flow(page).getByTestId("flow-next")).toBeEnabled();
+      });
+
+      test("abandon is offered at the status too, and names the plan it stales", async ({ page }) => {
+        await openPlans(page, { theme });
+        await stage(page, "relay-graph");
+        await next(page);
+        await decision(page, "sh-pair-family").getByTestId("share-archive").check();
+        await next(page);
+        await propose(page);
+        await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state.pending);
+        await flow(page).getByTestId("flow-abandon").click();
+        const ask = flow(page).getByTestId("abandon-confirm");
+        await expect(ask.getByTestId("abandon-line").last()).toContainText("apr_");
+        await settled(page, viewport.width);
+        await shot(page, "migration-abandon-status", meta());
+        await ask.getByTestId("abandon-run").click();
+        await expect(flow(page)).toHaveCount(0);
+        await expect(row(page, "relay-graph").getByTestId("staged-badge")).toHaveCount(0);
+      });
+
+      test("a carried-over step's warning: abandon, then the record's steps open in its editor", async ({ page }) => {
+        await openPlans(page, { theme });
+        await stage(page, "relay-graph");
+        const warnings = flow(page).getByTestId("migration-warnings");
+        await expect(warnings.getByTestId("migration-warning").first()).toContainText("Regex Filter");
+        await expect(warnings).toContainText(m.migration.warningsFix);
+        await warnings.getByTestId("migration-fix-steps").first().click();
+        await expect(flow(page).getByTestId("abandon-confirm")).toContainText(m.migration.abandonThenEdit(RELAY));
+        await flow(page).getByTestId("abandon-run").click();
+        await expect(flow(page)).toHaveCount(0);
+        await expect(page.locator("#editor-title")).toBeVisible();
+        await expect(page.locator('.ed-tab[aria-selected="true"]')).toHaveText(new RegExp(m.editor.tabs.operations));
+        await settled(page, viewport.width);
+      });
+
+      test("an Overview attention item opens a panel and page that show the failed plan", async ({ page }) => {
+        await openPlans(page, { view: "overview", theme, query: "&plans=failed" });
+        const item = page.locator('[data-attention^="plan:"]');
+        await expect(item).toContainText(m.plans.attention.failed("亚洲线路 Asia lines"));
+        await item.getByRole("button", { name: m.attention.open }).click();
+        const panel = page.locator(".pc-side-panel");
+        const state = panel.getByTestId("record-plan-state");
+        await expect(state.getByTestId("plan-chip")).toContainText(m.plans.state.failed);
+        await expect(state.getByTestId("plan-live-revision")).toContainText(m.plans.view.notPromoted);
+        await expect(state.getByTestId("staged-proof")).toBeVisible();
+        await expect(state.getByTestId("record-plan-decoy")).toContainText(m.fleet.decoy(1));
+        await settled(page, viewport.width);
+        await shot(page, "overview-failed-panel", meta());
+        await panel.getByRole("button", { name: m.record.openPage }).click();
+        await expect(page.getByTestId("record-plan-state").getByTestId("plan-chip")).toContainText(m.plans.state.failed);
+        // The page fades in; axe reads a half-faded colour as low contrast.
+        await page.locator(".record-page").evaluate((el) => Promise.allSettled(el.getAnimations({ subtree: true }).map((animation) => animation.finished)));
+        await settled(page, viewport.width);
+        await shot(page, "overview-failed-page", meta());
+      });
+
+      test("a combination core refuses says so in its panel, with the member's migration", async ({ page }) => {
+        await openPlans(page, { view: "overview", theme });
+        const item = page.locator('[data-attention="mixed:mixed-combo"]');
+        await item.getByRole("button", { name: m.attention.open }).click();
+        const mixed = page.locator(".pc-side-panel").getByTestId("record-plan-mixed");
+        await expect(mixed).toContainText(OSAKA);
+        await mixed.getByRole("button", { name: m.migration.migrateMember(OSAKA) }).click();
         await expect(flow(page)).toHaveAttribute("data-mode", "migrate");
       });
     });

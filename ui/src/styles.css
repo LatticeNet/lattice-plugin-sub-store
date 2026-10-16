@@ -1351,7 +1351,9 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 }
 
 .target-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.target-chip-produces { flex: none; font-family: var(--font-mono); font-size: var(--lt-text-xs); opacity: 0.75; }
+/* No opacity: the chip's muted ink already sets it apart, and 0.75 of it
+   fell below 4.5:1 on the card in both themes (axe color-contrast). */
+.target-chip-produces { flex: none; font-family: var(--font-mono); font-size: var(--lt-text-xs); }
 .target-chip-check { flex: none; }
 
 .sheet-toggle {

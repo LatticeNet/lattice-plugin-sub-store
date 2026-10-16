@@ -42,7 +42,8 @@ import {
 import { editorLanguageForContentType } from "../previewLanguage";
 import { flagOf } from "../recordTable";
 import WithheldNotice from "../components/WithheldNotice.vue";
-import { fleetStepDeltas, withFleetDeltas, type FleetStepDelta } from "../planFlow";
+import RecordPlanState from "../components/RecordPlanState.vue";
+import { fleetStepDeltas, withFleetDeltas, type FleetStepDelta, type PlanShareRow } from "../planFlow";
 import { stepLabelOf } from "../chainExplain";
 import type { ChainStep } from "../components/ProcessChain.vue";
 import type { FleetPreviewReply } from "../fleet";
@@ -320,6 +321,8 @@ const outputWithheld = computed(() => errorCodeOf(new Error(rendered.value.error
         <p v-if="flagOf(item)" class="peek-why">{{ flagOf(item)!.title }}</p>
         <!-- Why Edit is disabled, in words, for the same reason. -->
         <p v-if="!subs.canMutate.value" id="record-page-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
+        <!-- design 28 S2: the staged revision, its plan, decoy shares, a mixed combination. -->
+        <RecordPlanState :id="id" :items="pipe.items.value" :shares="pipe.shares.value as PlanShareRow[] | undefined" />
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 
