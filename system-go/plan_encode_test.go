@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/LatticeNet/lattice-sdk/model"
@@ -55,6 +57,38 @@ func FuzzAppendSelectionPlanIsJSONMarshal(f *testing.F) {
 			Nodes:     []model.SelectionPlanNode{{LineUUID: key, Placeholders: map[string]string{key: value, "z": version}, Node: node}, {Provider: true, Node: node}},
 			Selection: &model.PlanSelection{CatalogueVersion: version, LineUUIDs: []string{key, value}}})
 	})
+}
+
+// appendSelectionPlan writes SelectionPlan, SelectionPlanNode and
+// PlanSelection member by member, and the equality tests populate only the
+// fields it knows, so a field added to any of them in the SDK would be
+// dropped from the wire with every test green. This names every field the
+// encoder writes, with its type and JSON tag, and fails on any other: a new
+// field needs a member in appendSelectionPlanChecked or
+// appendSelectionPlanNode and a line here. ResponseChain and Policy are
+// written by json.Marshal, so their own fields need nothing.
+func TestPlanEncoderWritesEveryPlanField(t *testing.T) {
+	for _, c := range []struct {
+		value any
+		want  []string
+	}{
+		{model.SelectionPlan{}, []string{"Kind string kind", "Nodes []model.SelectionPlanNode nodes", "Document string document,omitempty",
+			"ResponseChain []model.ResponseTransformerStep response_chain,omitempty", "Selection *model.PlanSelection selection,omitempty",
+			"Policy *model.BindPolicy policy,omitempty"}},
+		{model.SelectionPlanNode{}, []string{"LineUUID string line_uuid,omitempty", "Placeholders map[string]string placeholders,omitempty",
+			"Provider bool provider,omitempty", "Node json.RawMessage node"}},
+		{model.PlanSelection{}, []string{"CatalogueVersion string catalogue_version", "LineUUIDs []string line_uuids"}},
+	} {
+		typ := reflect.TypeOf(c.value)
+		var got []string
+		for i := 0; i < typ.NumField(); i++ {
+			f := typ.Field(i)
+			got = append(got, f.Name+" "+f.Type.String()+" "+f.Tag.Get("json"))
+		}
+		if !slices.Equal(got, c.want) {
+			t.Errorf("%s has fields %q; appendSelectionPlan writes %q", typ, got, c.want)
+		}
+	}
 }
 
 // marshalRenderReply splices the plan; the bytes must be json.Marshal's.
