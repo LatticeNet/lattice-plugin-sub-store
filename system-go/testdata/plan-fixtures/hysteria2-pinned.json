@@ -1,0 +1,112 @@
+{
+  "name": "hysteria2-pinned",
+  "protocol": "hysteria2",
+  "share_url": "hysteria2://owner-share-secret@198.51.100.20:8443?sni=hy2.example.com&pinSHA256=7a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809#owner",
+  "row": {
+    "line_uuid": "00000007-0000-4000-8000-000000000007",
+    "line_hash_id": "lh-7",
+    "node_id": "node-7",
+    "node_name": "fixture-07",
+    "name": "hysteria2-pinned",
+    "label": "fixture-07 hysteria2-pinned",
+    "node_tags": [
+      "jp",
+      "rack-0"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "hysteria2",
+    "transport": "udp",
+    "security": "tls",
+    "public_host": "198.51.100.20",
+    "public_port": 8443,
+    "addresses": [
+      "192.0.2.7"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "hysteria2",
+      "host": "198.51.100.20",
+      "port": 8443,
+      "params": {
+        "pinSHA256": "7a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "sni": "hy2.example.com"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000007"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000007-0000-4000-8000-000000000007",
+        "placeholders": {
+          "password": "LATTICE-SYN-00000007-0000-4000-8000-000000000007-password-8362b66fd191efd0299726229442a3ba"
+        },
+        "node": {
+          "addresses": [
+            "192.0.2.7"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-7",
+          "name": "fixture-07 hysteria2-pinned",
+          "node_id": "node-7",
+          "password": "LATTICE-SYN-00000007-0000-4000-8000-000000000007-password-8362b66fd191efd0299726229442a3ba",
+          "port": 8443,
+          "server": "198.51.100.20",
+          "skip-cert-verify": false,
+          "sni": "hy2.example.com",
+          "tags": [
+            "jp",
+            "rack-0"
+          ],
+          "tfo": false,
+          "tls": true,
+          "tls-fingerprint": "7a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "type": "hysteria2",
+          "udp": true
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000007-0000-4000-8000-000000000007"
+      ]
+    }
+  }
+}

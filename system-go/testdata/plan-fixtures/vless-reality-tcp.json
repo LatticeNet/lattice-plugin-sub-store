@@ -1,0 +1,124 @@
+{
+  "name": "vless-reality-tcp",
+  "protocol": "vless",
+  "share_url": "vless://0f0e0d0c-0b0a-4908-8706-050403020100@203.0.113.10:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=Zk9hGv2m3Tq8sXcRw1yPbN4uL7eA6dK0jI5oF9hQ2tY&sid=0a1b&type=tcp#owner",
+  "row": {
+    "line_uuid": "00000001-0000-4000-8000-000000000001",
+    "line_hash_id": "lh-1",
+    "node_id": "node-1",
+    "node_name": "fixture-01",
+    "name": "vless-reality-tcp",
+    "label": "fixture-01 vless-reality-tcp",
+    "node_tags": [
+      "jp",
+      "rack-1"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "vless",
+    "transport": "tcp",
+    "security": "reality",
+    "public_host": "203.0.113.10",
+    "public_port": 443,
+    "addresses": [
+      "192.0.2.1"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "vless",
+      "host": "203.0.113.10",
+      "port": 443,
+      "params": {
+        "encryption": "none",
+        "fp": "chrome",
+        "pbk": "Zk9hGv2m3Tq8sXcRw1yPbN4uL7eA6dK0jI5oF9hQ2tY",
+        "security": "reality",
+        "sid": "0a1b",
+        "sni": "www.example.com",
+        "type": "tcp"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000001"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000001-0000-4000-8000-000000000001",
+        "placeholders": {
+          "uuid": "LATTICE-SYN-00000001-0000-4000-8000-000000000001-uuid-c2c5da5416deb62ffb886e5ba762da6d"
+        },
+        "node": {
+          "_h2": false,
+          "addresses": [
+            "192.0.2.1"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "client-fingerprint": "chrome",
+          "encryption": "none",
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-1",
+          "name": "fixture-01 vless-reality-tcp",
+          "network": "tcp",
+          "node_id": "node-1",
+          "packet-encoding": "xudp",
+          "port": 443,
+          "reality-opts": {
+            "public-key": "Zk9hGv2m3Tq8sXcRw1yPbN4uL7eA6dK0jI5oF9hQ2tY",
+            "short-id": "0a1b"
+          },
+          "server": "203.0.113.10",
+          "skip-cert-verify": false,
+          "sni": "www.example.com",
+          "tags": [
+            "jp",
+            "rack-1"
+          ],
+          "tls": true,
+          "type": "vless",
+          "udp": true,
+          "uuid": "LATTICE-SYN-00000001-0000-4000-8000-000000000001-uuid-c2c5da5416deb62ffb886e5ba762da6d"
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000001-0000-4000-8000-000000000001"
+      ]
+    }
+  }
+}

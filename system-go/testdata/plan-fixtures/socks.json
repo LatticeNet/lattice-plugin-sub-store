@@ -1,0 +1,105 @@
+{
+  "name": "socks",
+  "protocol": "socks",
+  "share_url": "socks://b3duZXI6b3duZXItc2hhcmUtc2VjcmV0@198.51.100.30:1080#owner",
+  "row": {
+    "line_uuid": "0000000b-0000-4000-8000-00000000000b",
+    "line_hash_id": "lh-11",
+    "node_id": "node-11",
+    "node_name": "fixture-11",
+    "name": "socks",
+    "label": "fixture-11 socks",
+    "node_tags": [
+      "jp",
+      "rack-4"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "socks",
+    "transport": "tcp",
+    "security": "none",
+    "public_host": "198.51.100.30",
+    "public_port": 1080,
+    "addresses": [
+      "192.0.2.11"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "socks",
+      "host": "198.51.100.30",
+      "port": 1080,
+      "digest": "sha256:000000000000000000000000000000000000000000000000000000000000000b"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "0000000b-0000-4000-8000-00000000000b",
+        "placeholders": {
+          "password": "LATTICE-SYN-0000000b-0000-4000-8000-00000000000b-password-b9c99cf78915a4748cb29cecf0126395",
+          "username": "LATTICE-SYN-0000000b-0000-4000-8000-00000000000b-username-7d7e7c92996f2ecf867730d5646d673e"
+        },
+        "node": {
+          "addresses": [
+            "192.0.2.11"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-11",
+          "name": "fixture-11 socks",
+          "node_id": "node-11",
+          "password": "LATTICE-SYN-0000000b-0000-4000-8000-00000000000b-password-b9c99cf78915a4748cb29cecf0126395",
+          "port": 1080,
+          "server": "198.51.100.30",
+          "tags": [
+            "jp",
+            "rack-4"
+          ],
+          "type": "socks5",
+          "udp": true,
+          "username": "LATTICE-SYN-0000000b-0000-4000-8000-00000000000b-username-7d7e7c92996f2ecf867730d5646d673e"
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "0000000b-0000-4000-8000-00000000000b"
+      ]
+    }
+  }
+}

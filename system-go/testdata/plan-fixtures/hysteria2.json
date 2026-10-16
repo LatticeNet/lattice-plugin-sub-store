@@ -1,0 +1,110 @@
+{
+  "name": "hysteria2",
+  "protocol": "hysteria2",
+  "share_url": "hysteria2://owner-share-secret@hy.example.com:8443?sni=hy.example.com#owner",
+  "row": {
+    "line_uuid": "00000006-0000-4000-8000-000000000006",
+    "line_hash_id": "lh-6",
+    "node_id": "node-6",
+    "node_name": "fixture-06",
+    "name": "hysteria2",
+    "label": "fixture-06 hysteria2",
+    "node_tags": [
+      "jp",
+      "rack-6"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "hysteria2",
+    "transport": "udp",
+    "security": "tls",
+    "public_host": "hy.example.com",
+    "public_port": 8443,
+    "addresses": [
+      "192.0.2.6"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "hysteria2",
+      "host": "hy.example.com",
+      "port": 8443,
+      "params": {
+        "sni": "hy.example.com"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000006"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000006-0000-4000-8000-000000000006",
+        "placeholders": {
+          "password": "LATTICE-SYN-00000006-0000-4000-8000-000000000006-password-f2697da85b3fb431553b1b49c9cfc5a0"
+        },
+        "node": {
+          "addresses": [
+            "192.0.2.6"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-6",
+          "name": "fixture-06 hysteria2",
+          "node_id": "node-6",
+          "password": "LATTICE-SYN-00000006-0000-4000-8000-000000000006-password-f2697da85b3fb431553b1b49c9cfc5a0",
+          "port": 8443,
+          "server": "hy.example.com",
+          "skip-cert-verify": false,
+          "sni": "hy.example.com",
+          "tags": [
+            "jp",
+            "rack-6"
+          ],
+          "tfo": false,
+          "tls": true,
+          "type": "hysteria2",
+          "udp": true
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000006-0000-4000-8000-000000000006"
+      ]
+    }
+  }
+}
