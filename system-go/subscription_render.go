@@ -472,11 +472,13 @@ func (rt *runtime) fetchCall(payload json.RawMessage) response {
 	}
 	// Graph authority travels with the fetch: the core stores the exact
 	// composed source version and manifest alongside the snapshot, so a
-	// share can say which composition it serves.
-	if out.SourceVersion != "" {
+	// share can say which composition it serves. Core's snapshot (schema 2
+	// of the SDK's SubscriptionSnapshot) admits a source version only paired
+	// with the manifest it hashes, so a version with no manifest, a fleet
+	// envelope's lfe1- digest, stays inside raw: core then keys on the hash
+	// of raw, which moves exactly when the envelope does.
+	if out.SourceVersion != "" && len(out.SourceManifest) > 0 {
 		reply["source_version"] = out.SourceVersion
-	}
-	if len(out.SourceManifest) > 0 {
 		reply["source_manifest"] = json.RawMessage(out.SourceManifest)
 	}
 	body, err := json.Marshal(reply)

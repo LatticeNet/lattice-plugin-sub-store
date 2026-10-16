@@ -3,7 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
+
+	"github.com/LatticeNet/lattice-sdk/model"
 )
 
 // TestSnapshotRenderParityFleet is the snapshot-render parity gate for fleet
@@ -59,6 +62,51 @@ func TestSnapshotRenderParityFleet(t *testing.T) {
 			if bytes.Equal(fromSnapshot.Plan, live.Plan) {
 				t.Fatalf("%s %s: the two renders share placeholders, so one plan was reused", id, target)
 			}
+		}
+	}
+}
+
+// TestFleetFetchReplyIsACoreSnapshot holds the fetch reply to the snapshot
+// core stores from it: the reply's raw, userinfo, source_version and
+// source_manifest, in a schema 2 SubscriptionSnapshot, must pass the SDK's
+// strict decode, for a fleet sub, a fleet collection and a provider record.
+// A fleet envelope's digest sent as source_version without a manifest
+// failed that decode ("requires paired provenance fields") on every share
+// of a fleet record, which only the end-to-end test over the real plugin
+// showed; the digest stays inside raw, where the plugin's plan cache reads
+// it.
+func TestFleetFetchReplyIsACoreSnapshot(t *testing.T) {
+	rt, _ := newFleetRuntime(t, fleetTestRows(4, "vless"))
+	seedRecords(t, rt,
+		subscriptionRecord{ID: "sub", Source: subscriptionSourceFleet},
+		subscriptionRecord{ID: "provider", Source: subscriptionSourceLocal, Content: "trojan://provider-pw@198.51.100.7:443#provider"},
+		subscriptionRecord{ID: "coll", Kind: kindCollection, Members: []string{"sub", "provider"}},
+	)
+	for _, id := range []string{"sub", "coll", "provider"} {
+		res := callSubscription(t, rt, "fetch", map[string]any{"subscription_id": id})
+		if !res.OK {
+			t.Fatalf("fetch %s: %s", id, res.Error)
+		}
+		var reply struct {
+			Raw            string          `json:"raw"`
+			Userinfo       string          `json:"userinfo"`
+			SourceVersion  string          `json:"source_version"`
+			SourceManifest json.RawMessage `json:"source_manifest"`
+		}
+		if err := json.Unmarshal(res.Result, &reply); err != nil {
+			t.Fatal(err)
+		}
+		stored := map[string]any{"schema_version": model.SubscriptionSnapshotSchemaVersion, "plugin_id": pluginID, "subscription_id": id,
+			"raw": reply.Raw, "userinfo": reply.Userinfo, "fetched_at": "2026-10-16T00:00:00Z", "last_attempt_at": "2026-10-16T00:00:00Z", "stale": false}
+		if reply.SourceVersion != "" || len(reply.SourceManifest) > 0 {
+			stored["source_version"], stored["source_manifest"] = reply.SourceVersion, reply.SourceManifest
+		}
+		var snapshot model.SubscriptionSnapshot
+		if err := json.Unmarshal(mustJSON(stored), &snapshot); err != nil {
+			t.Fatalf("%s: core cannot store the fetch reply as a snapshot: %v", id, err)
+		}
+		if env, ok := decodeSnapshotEnvelope(reply.Raw); id != "provider" && (!ok || !strings.HasPrefix(env.SourceVersion, "lfe1-")) {
+			t.Fatalf("%s: the envelope inside raw lost its digest: %+v", id, env.SourceVersion)
 		}
 	}
 }
