@@ -501,7 +501,7 @@ function onUsageInput(): void {
       <PcPanelBody>
         <p v-if="isCollection" class="field-optional rules-proof" data-testid="rules-collection-proof">{{ t.fleetEditor.rules.collectionProof }}</p>
         <div class="rules">
-          <label class="checkbox-field rules-row">
+          <label class="field checkbox-field rules-row">
             <input
               type="checkbox"
               :disabled="!subs.canMutate.value"
@@ -516,7 +516,7 @@ function onUsageInput(): void {
           </label>
 
           <div class="rules-row">
-            <label class="checkbox-field">
+            <label class="field checkbox-field">
               <input
                 type="checkbox"
                 :disabled="!subs.canMutate.value"
@@ -547,7 +547,7 @@ function onUsageInput(): void {
           </div>
 
           <div class="rules-row">
-            <label class="checkbox-field">
+            <label class="field checkbox-field">
               <input
                 type="checkbox"
                 :disabled="!subs.canMutate.value"
@@ -729,7 +729,7 @@ function onUsageInput(): void {
       <section v-if="placeholderDoc && !withheld" class="side-section" data-testid="placeholder-document">
         <h3 id="placeholder-doc-title" class="side-heading">{{ t.fleetEditor.document.title(placeholderDoc.label) }}</h3>
         <p class="side-proof">{{ t.fleetEditor.document.proof }}</p>
-        <div v-if="placeholderDoc.text" class="side-doc">
+        <div v-if="placeholderDoc.text" class="side-doc" tabindex="0" role="region" aria-labelledby="placeholder-doc-title">
           <DocumentView :text="placeholderDoc.text" :language="placeholderDoc.language" aria-labelledby="placeholder-doc-title" />
         </div>
         <p v-else class="editor-side-note">{{ t.fleetEditor.document.empty }}</p>
@@ -827,8 +827,9 @@ function onUsageInput(): void {
   gap: var(--space-2);
 }
 
-.rules-number {
+.rules .rules-number {
   width: 10ch;
+  max-width: 10ch;
   min-height: var(--lt-control-h-sm);
   padding: 0 var(--space-2);
   border: 1px solid var(--border);
@@ -840,7 +841,7 @@ function onUsageInput(): void {
   outline: none;
 }
 
-.rules-number:focus-visible { border-color: var(--primary); box-shadow: var(--lt-focus-ring-tight); }
+.rules .rules-number:focus-visible { border-color: var(--primary); box-shadow: var(--lt-focus-ring-tight); }
 
 .side-section {
   display: flex;
@@ -864,6 +865,8 @@ function onUsageInput(): void {
   line-height: var(--lt-leading);
   color: var(--muted-foreground);
 }
+
+.side-doc:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
 .side-doc {
   max-height: 22rem;

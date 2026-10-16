@@ -12,6 +12,8 @@ import {
   hasBindShape,
   leadingRun,
   linesThatFit,
+  readFilterArgs,
+  readsProbe,
   responseTransformerSteps,
   rowLabel,
   shortVersion,
@@ -105,6 +107,9 @@ const tooLarge = computed(() => {
   if (!r || r.estimated_envelope_bytes <= MAX_SNAPSHOT_BYTES) return null;
   return { size: formatBytes(r.estimated_envelope_bytes), fit: linesThatFit(r) };
 });
+
+/** A selection step names a probe field, which save refuses while probe data is unavailable. */
+const usesProbe = computed(() => run.value.filters.some((index) => readsProbe(readFilterArgs((props.process[index] as { args?: unknown }).args))));
 
 const transformerSteps = computed(() => responseTransformerSteps(props.process).map((index) => t.fleetEditor.step(index + 1)));
 
@@ -216,7 +221,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
       {{ t.fleetEditor.transformer.body(formatList(transformerSteps)) }}
       <code class="fs-code">{{ ERROR_CODES.fleetResponseChainUnavailable }}</code>
     </PcNotice>
-    <PcNotice v-if="fleet.probeMissing.value" tone="warning" data-testid="fleet-probe-flagged">
+    <PcNotice v-if="fleet.probeMissing.value && usesProbe" tone="warning" data-testid="fleet-probe-flagged">
       {{ t.fleetEditor.probeFlagged }}
     </PcNotice>
     <PcNotice v-if="dropped" tone="warning" data-testid="fleet-dropped">
@@ -303,7 +308,7 @@ const errorIsCatalogue = computed(() => failed.value?.code === ERROR_CODES.catal
         :aria-expanded="showAll"
         @click="showAll = !showAll"
       >
-        {{ showAll ? t.fleetEditor.sampleShown(SAMPLE_FIRST, reply?.count ?? sample.length) : t.fleetEditor.sampleShown(sample.length, reply?.count ?? sample.length) }}
+        {{ showAll ? t.fleetEditor.sampleFewer : t.fleetEditor.sampleAll(sample.length) }}
       </button>
     </div>
     <p v-if="reply && reply.count > 0" class="pc-sr-only" role="status">{{ formatCount(reply.count) }}</p>

@@ -1249,6 +1249,8 @@ export const en = {
     sampleTitle: "Lines in the selection",
     sampleShown: (shown: number, total: number) => `${num(shown)} of ${plural(total, { one: "{n} line", other: "{n} lines" })} shown`,
     sampleColumns: { line: "Line", protocol: "Protocol", where: "Exit", state: "Service" },
+    sampleAll: (n: number) => `Show all ${plural(n, { one: "{n} line", other: "{n} lines" })}`,
+    sampleFewer: "Show fewer",
     showLine: (label: string) => `Show the details of ${label}`,
     unknownGeo: "unknown",
     loading: "Reading the line catalogue",

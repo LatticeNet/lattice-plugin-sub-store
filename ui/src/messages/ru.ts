@@ -1238,6 +1238,8 @@ export const ru: Messages = {
     sampleTitle: "Линии в выборке",
     sampleShown: (shown, total) => `показано ${num(shown)} из ${lines(total)}`,
     sampleColumns: { line: "Линия", protocol: "Протокол", where: "Выход", state: "Служба" },
+    sampleAll: (v) => `Показать все: ${lines(v)}`,
+    sampleFewer: "Показать меньше",
     showLine: (label) => `Показать подробности: ${label}`,
     unknownGeo: "неизвестно",
     loading: "Чтение каталога линий",

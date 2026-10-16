@@ -1175,6 +1175,8 @@ export const zhCN: Messages = {
     sampleTitle: "选取中的线路",
     sampleShown: (shown, total) => `显示 ${num(shown)} 条，共 ${n(total, "条线路")}`,
     sampleColumns: { line: "线路", protocol: "协议", where: "出口", state: "服务" },
+    sampleAll: (v) => `显示全部 ${n(v, "条线路")}`,
+    sampleFewer: "收起",
     showLine: (label) => `查看 ${label} 的详情`,
     unknownGeo: "未知",
     loading: "正在读取线路目录",

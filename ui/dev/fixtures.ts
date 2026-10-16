@@ -16,6 +16,8 @@
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
 
+import { fleetFixture } from "./fleetFixtures";
+
 export interface StoredRecord {
   id: string;
   kind?: string;
@@ -64,8 +66,8 @@ export interface Fixture {
   counts: Record<string, [number, number]>;
 }
 
-export type FixtureName = "production" | "failing" | "large" | "states" | "canned";
-export const FIXTURE_NAMES: readonly FixtureName[] = ["production", "failing", "large", "states", "canned"];
+export type FixtureName = "production" | "failing" | "large" | "states" | "canned" | "fleet";
+export const FIXTURE_NAMES: readonly FixtureName[] = ["production", "failing", "large", "states", "canned", "fleet"];
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -441,6 +443,8 @@ function statesFixture(): Fixture {
 }
 
 export function fixture(name: FixtureName, canned: () => Fixture): Fixture {
+  // Design 28 S2's fleet records over production (dev/fleetFixtures.ts).
+  if (name === "fleet") return fleetFixture({ records: productionRecords(), shares: productionShares(), counts: { ...PRODUCTION_COUNTS } });
   if (name === "failing") return failingFixture();
   if (name === "large") return largeFixture();
   if (name === "states") return statesFixture();
