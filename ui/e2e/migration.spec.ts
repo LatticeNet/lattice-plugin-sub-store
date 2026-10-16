@@ -549,8 +549,9 @@ for (const viewport of VIEWPORTS) {
         await next(page);
         await propose(page);
         await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state.pending);
-        // The plan archives the record's shares; an archived share is not listed as answering the decoy.
-        await expect(flow(page).getByTestId("plan-unbound").locator("li", { hasText: m.plans.view.archived })).toHaveCount(0);
+        // The plan archives every share of the record; an archived share answers nothing, so none is listed as answering the decoy.
+        await expect(flow(page).getByTestId("plan-archival")).toHaveCount(2);
+        await expect(flow(page).getByTestId("plan-unbound")).toHaveCount(0);
         await flow(page).getByTestId("flow-close").click();
         // A record about to be archived does not read as one about to be promoted.
         const badge = row(page, "asia-fleet").getByTestId("plan-badge");
