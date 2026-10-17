@@ -158,6 +158,11 @@ for (const viewport of VIEWPORTS) {
         const notice = page.getByTestId("records-error-notice");
         await expect(notice).toContainText(m.plans.refusal.notDeleted(m.plans.stagedSave.gatheredDelete(PLUS, 1)));
         await textHoldsWidth(notice);
+        // The batch's remainder notice lists the record; at 375 its list scrolled sideways by a few pixels (axe on CI's fonts).
+        const remainder = page.getByTestId("records-delete-remainder");
+        await expect(remainder).toBeVisible();
+        await textHoldsWidth(remainder);
+        expect(await remainder.locator(".partial-strip__names").evaluate((list) => list.scrollWidth - list.clientWidth)).toBeLessThanOrEqual(0);
         await closeUp(notice, "provider-delete-refused", meta());
         await settled(page, viewport.width);
         await shot(page, "provider-delete-refused", meta());

@@ -1367,11 +1367,14 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       <!-- A batch delete that stopped part way: what that means for the rest. -->
       <PcNotice
         v-if="deleteRemainder"
+        class="records-notice"
         tone="warning"
         :title="t.records.remainderTitle(deleteRemainder.done.length, deleteRemainder.pending.length)"
+        data-testid="records-delete-remainder"
       >
         {{ t.records.remainderBefore }} <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>{{ t.records.remainderAfter }}
-        <ul class="partial-strip__names">
+        <!-- Focusable, since a long list scrolls inside its own box and a keyboard has to reach it. -->
+        <ul class="partial-strip__names" tabindex="0" :aria-label="t.records.remainderTitle(deleteRemainder.done.length, deleteRemainder.pending.length)">
           <li v-for="name in namesFor([deleteRemainder.failed, ...deleteRemainder.pending])" :key="name" class="pc-mono">
             {{ name }}
           </li>

@@ -2030,7 +2030,10 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   display: grid;
   gap: var(--space-1);
   max-height: 140px;
-  overflow: auto;
+  /* Long names wrap rather than scroll sideways in a narrow notice; only a long list scrolls, downwards. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
   margin: var(--space-2) 0 0;
   padding: var(--space-2);
   border: 1px solid var(--border);
@@ -2038,6 +2041,11 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   background: var(--card);
   list-style: none;
   font-size: var(--lt-text-xs);
+}
+
+.partial-strip__names:focus-visible {
+  outline: none;
+  box-shadow: var(--lt-focus-ring);
 }
 
 /* A save refused because the record moved underneath it.
