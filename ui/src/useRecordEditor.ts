@@ -513,6 +513,14 @@ export interface RecordEditorOptions {
   clearListState: () => void;
   /** Re-read a saved record's node count. */
   onSaved: (id: string | null) => void;
+  /**
+   * The editor gave way to the screen: a save went through (`saved`), or
+   * the operator left it (Cancel, the breadcrumb, Escape, keeping the other
+   * version of a stale save). Not called when the editor reopens on the
+   * current version, which closes and opens it in one step. `id` is the
+   * record it held, null for a record never saved.
+   */
+  onClosed?: (closed: { id: string | null; saved: boolean }) => void;
 }
 
 /**
@@ -865,7 +873,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     // open, so the eighth one cannot be left out of this line the way the Files
     // editor was left out of its own.
     overlayOpen: () => overlayDepth() > 0,
-    leave: () => cancelEdit(),
+    leave: () => close(false),
   });
   const { discarding, markPristine } = exit;
   const editorDirty = exit.dirty;
@@ -888,6 +896,13 @@ export function useRecordEditor(options: RecordEditorOptions) {
     // a successful save reports "Saved ..." and then leaves through here, so
     // clearing the notice too left the save with nothing to show for itself.
     subs.clearErrors();
+  }
+
+  /** cancelEdit, then tell the screen where the editor went. */
+  function close(saved: boolean): void {
+    const id = editingId.value;
+    cancelEdit();
+    options.onClosed?.({ id, saved });
   }
 
   function parseTags(text: string): string[] {
@@ -920,7 +935,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     const ok = await subs.save(draft.value, force);
     if (ok) {
       if (editingId.value) recount(editingId.value);
-      cancelEdit();
+      close(true);
     }
   }
 
@@ -935,7 +950,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
   /** Keep their version. The editor closes and the list reloads. */
   function discardMyEdit(): void {
     subs.saveConflict.value = null;
-    cancelEdit();
+    close(false);
     void subs.load();
   }
 
@@ -1041,7 +1056,8 @@ export function useRecordEditor(options: RecordEditorOptions) {
     // opening and closing
     startCreate,
     startEdit,
-    cancelEdit,
+    // The discard confirm's way out: a leave like Cancel, so the screen hears it.
+    cancelEdit: () => close(false),
     editingStaged,
     stepToOpen,
     openStep,
