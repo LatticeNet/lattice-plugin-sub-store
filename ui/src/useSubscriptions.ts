@@ -64,8 +64,11 @@ import {
 import type { HostContext } from "./host";
 import { formatBytes, t } from "./i18n";
 import {
+  fleetGatherers,
+  isFleetBound,
   parsePlan,
   planTooLarge,
+  recordName,
   shortRevision,
   stagedFacts,
   type MigrateRecordReply,
@@ -726,6 +729,54 @@ export function useSubscriptions(host: HostContext) {
   }
 
   /** Full record including content and operators, `list` omits both. */
+  /**
+   * The record as the editor opens it: the staged revision when one waits,
+   * since a save is a new staged revision built on it and the plugin accepts
+   * either revision as the one read (conditionalConflict in store_staged.go);
+   * the live one otherwise, and for a legacy record whose staged revision is
+   * its migration, whose live content is what the editor edits. Without
+   * this, editing a staged record showed the live steps, and saving dropped
+   * the staged edit in favour of one built on the live revision.
+   */
+  async function getForEdit(id: string): Promise<{ record: SubscriptionRecord; staged: boolean; liveRevision: string } | null> {
+    if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
+    actionError.value = "";
+    busyId.value = id;
+    try {
+      const response = await callMethod<SubscriptionGetResponse>(host.bridge, BINDINGS.subGet, { subscription_id: id }).promise;
+      const migration = items.value.find((item) => item.id === id)?.staged_migrated === true;
+      const staged = !migration && response.staged?.subscription ? response.staged.subscription : null;
+      const record = staged ? { ...staged, revision: staged.revision || response.staged!.revision } : response.subscription ?? null;
+      lastRead.value = record;
+      if (!record) return null;
+      return { record, staged: !!staged, liveRevision: response.live_revision ?? "" };
+    } catch (cause) {
+      actionError.value = safeErrorMessage(cause, t.subs.readFailed);
+      return null;
+    } finally {
+      busyId.value = null;
+      await host.resize();
+    }
+  }
+
+  /**
+   * A record's live and staged process steps, for the plan flow's step
+   * summary before core answers. Read-only: it touches neither the record
+   * the editor last read nor the page's messages.
+   */
+  async function readRevisions(id: string): Promise<{ live: SubscriptionRecord | null; staged: SubscriptionRecord | null } | null> {
+    if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
+    try {
+      const response = await callMethod<SubscriptionGetResponse>(host.bridge, BINDINGS.subGet, { subscription_id: id }).promise;
+      const staged = response.staged?.subscription ?? null;
+      // A record that was never live answers its staged record as `subscription` too.
+      const live = response.live_revision || !staged ? response.subscription ?? null : null;
+      return { live, staged };
+    } catch {
+      return null;
+    }
+  }
+
   async function get(id: string): Promise<SubscriptionRecord | null> {
     if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
     actionError.value = "";
@@ -877,12 +928,18 @@ export function useSubscriptions(host: HostContext) {
         return false;
       }
       notice.value = t.subs.saved(record.name);
+      const stagedRevision = response.staged ? response.staged_revision ?? "" : "";
       // The saved record comes back with its new revision. Keeping it as the
       // "last read" copy means a second save from the still-open editor is
       // checked against what was just written rather than against the copy
       // that is now one edit old, which would conflict with itself.
       if (response.subscription) lastRead.value = response.subscription;
       await load();
+      if (response.staged) {
+        stagedNotice = stagedSaveNotice(record, stagedRevision);
+        notice.value = stagedNotice;
+        stagedSave.value = { id: record.id, revision: stagedRevision };
+      }
       return true;
     } catch (cause) {
       actionError.value = refusedSave(cause, draft, id);
@@ -908,7 +965,29 @@ export function useSubscriptions(host: HostContext) {
   let brokenNotice = "";
   watch(notice, (text) => {
     if (text !== brokenNotice) brokenShares.value = [];
+    if (text !== stagedNotice) stagedSave.value = null;
   });
+
+  /**
+   * The record the last save staged rather than wrote live, while its notice
+   * is the one on screen; the Records screen offers Publish beside it.
+   */
+  const stagedSave = ref<{ id: string; revision: string } | null>(null);
+  let stagedNotice = "";
+
+  /**
+   * What a staged save says: the revision, that it is not live, and why it
+   * staged: the record is fleet-bound, or fleet-bound combinations gather it
+   * (S2-SR-1), which its own flags do not show.
+   */
+  function stagedSaveNotice(record: SubscriptionRecord, revision: string): string {
+    const name = record.display_name || record.name || record.id;
+    const item = items.value.find((entry) => entry.id === record.id);
+    const words = t.plans.stagedSave;
+    const gatherers = item && !isFleetBound(item) ? fleetGatherers(item, items.value) : [];
+    const why = item && isFleetBound(item) ? words.fleet(name) : gatherers.length ? words.gathered(gatherers.map((entry) => recordName(entry)).join(", "), gatherers.length) : "";
+    return [words.saved(name, shortRevision(revision)), why].filter(Boolean).join(" ");
+  }
 
   /**
    * `ownShares` are the live shares that publish this record itself
@@ -932,6 +1011,13 @@ export function useSubscriptions(host: HostContext) {
       // plan, and the screen that can propose one hears it here.
       if (isRefused(response)) {
         if (response.refused.code === ERROR_CODES.fleetDeleteRequiresPlan) deleteNeedsPlan.value = id;
+        // A record a fleet-bound combination gathers (S2-SR-1): the refusal names the combinations, and so does the sentence.
+        const gatherers = response.refused.code === ERROR_CODES.fleetDeleteRequiresPlan ? (response.refused.collections ?? []).filter((entry) => entry && entry !== id) : [];
+        if (gatherers.length) {
+          const names = gatherers.map((entry) => recordName(items.value.find((item) => item.id === entry), entry)).join(", ");
+          actionError.value = t.plans.refusal.notDeleted(t.plans.stagedSave.gatheredDelete(names, gatherers.length));
+          return false;
+        }
         actionError.value = migrationRefusal(response) || refusalMessage(response.refused, id, items.value, t.plans.refusal.notDeleted);
         return false;
       }
@@ -1673,6 +1759,8 @@ export function useSubscriptions(host: HostContext) {
     loadOperators,
     loadGraphOptions,
     get,
+    getForEdit,
+    readRevisions,
     save,
     remove,
     duplicate,
@@ -1686,6 +1774,7 @@ export function useSubscriptions(host: HostContext) {
     clearErrors,
     // design 28 S2: plans, migration, staged revisions
     deleteNeedsPlan,
+    stagedSave,
     plansByRecord: planStore.byRecord,
     planErrors: planStore.errors,
     identities: planStore.identities,

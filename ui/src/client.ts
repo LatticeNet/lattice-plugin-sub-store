@@ -503,6 +503,14 @@ export function errorCodeOf(cause: unknown): string {
 
 export interface SubscriptionGetResponse {
   subscription: SubscriptionRecord;
+  /** The live revision, when the record has one. */
+  live_revision?: string;
+  /**
+   * The staged revision waiting for a plan or a publish, when there is one
+   * (s2-plan section 2.2). `subscription` is then the live record, or this
+   * staged one for a record that was never live.
+   */
+  staged?: { revision: string; base_revision?: string; staged_at?: string; subscription: SubscriptionRecord };
 }
 
 /**

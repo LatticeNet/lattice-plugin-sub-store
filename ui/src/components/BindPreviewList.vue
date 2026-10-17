@@ -15,7 +15,9 @@ import {
 } from "../fleet";
 import { formatCount, t } from "../i18n";
 import { hostOriginFromHash, postNavigate } from "../navigate";
+import { refusedStepIn, scriptNetworkRefusal } from "../scriptNetwork";
 import type { FleetEditor } from "../useRecordEditor";
+import ScriptNetworkNotice from "./ScriptNetworkNotice.vue";
 
 /**
  * What one identity's share of this record would receive (s2-plan section
@@ -30,9 +32,31 @@ import type { FleetEditor } from "../useRecordEditor";
  * in batches of at most 256 as entries scroll into view, and cached per
  * catalogue version for the line drawer. No credential is in any of it.
  */
-const props = defineProps<{ fleet: FleetEditor }>();
-const emit = defineEmits<{ (e: "open-line", lineUUID: string): void }>();
+const props = defineProps<{
+  fleet: FleetEditor;
+  /** The draft's steps, to find the step a script network refusal is about when core names none. */
+  steps?: readonly unknown[];
+  /** The record being edited, so a refusal about another record says so. */
+  recordId?: string;
+}>();
+const emit = defineEmits<{ (e: "open-line", lineUUID: string): void; (e: "open-step", position: number | null): void }>();
 const fleet = props.fleet;
+
+/**
+ * Core's fleet_script_network_unavailable, from a failed read or from a
+ * reply that carries it (S2-SR-2): the step it names, with a way to it,
+ * when the refusal is about this record.
+ */
+const bindRefusal = computed(() => {
+  if (fleet.bindState.value === "error") return scriptNetworkRefusal(new Error(fleet.bindError.value?.message ?? ""));
+  return fleet.bindPreview.value ? scriptNetworkRefusal(fleet.bindPreview.value) : null;
+});
+const refusalHere = computed(() => !bindRefusal.value?.record || bindRefusal.value.record === props.recordId);
+const bindRefusedStep = computed(() => {
+  const refusal = bindRefusal.value;
+  if (!refusal) return null;
+  return refusalHere.value ? refusedStepIn(refusal, props.steps ?? []) : refusal.step;
+});
 
 const reply = computed(() => fleet.bindPreview.value);
 const status = computed(() => reply.value?.identity_status || fleet.chosenIdentity.value?.status || "");
@@ -158,6 +182,14 @@ function openUsers(): void {
     >
       {{ t.fleetEditor.denied.body }}
     </PcNotice>
+    <ScriptNetworkNotice
+      v-else-if="bindRefusal"
+      :refusal="bindRefusal"
+      :record-name="refusalHere ? t.plans.scriptNetwork.thisRecord : bindRefusal.record"
+      :step="bindRefusedStep"
+      :can-open="refusalHere"
+      @open-step="emit('open-step', $event)"
+    />
     <PcNotice v-else-if="fleet.bindState.value === 'error'" tone="danger" data-testid="bind-error">
       {{ t.fleetEditor.bind.error }}
       <span v-if="fleet.bindError.value" class="bp-error">{{ fleet.bindError.value.message }}</span>

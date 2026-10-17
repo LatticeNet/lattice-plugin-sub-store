@@ -705,11 +705,28 @@ export function useRecordEditor(options: RecordEditorOptions) {
     markPristine();
   }
 
+  /**
+   * The staged revision the editor opened on, with the live revision that
+   * keeps serving, or null when it opened on the live record.
+   */
+  const editingStaged = ref<{ revision: string; live: string } | null>(null);
+
+  /**
+   * The step the chain should open, scroll to and focus: a 0-based index
+   * into the stored steps, with a ticket so asking for the same step twice
+   * opens it twice. Set by openStep, from a refusal that names a step.
+   */
+  const stepToOpen = ref<{ index: number; ticket: number } | null>(null);
+  let stepTicket = 0;
+
   async function startEdit(id: string): Promise<void> {
     clearTransientListState();
     subs.clearMessages();
-    const record = await subs.get(id);
-    if (!record) return;
+    const opened = await subs.getForEdit(id);
+    if (!opened) return;
+    const record = opened.record;
+    editingStaged.value = opened.staged ? { revision: record.revision ?? "", live: opened.liveRevision } : null;
+    stepToOpen.value = null;
     fleet.reset();
     storedSource.value = record.source ?? "";
     draft.value = draftFromRecord(record);
@@ -822,6 +839,8 @@ export function useRecordEditor(options: RecordEditorOptions) {
     exit.reset();
     editing.value = false;
     editingId.value = null;
+    editingStaged.value = null;
+    stepToOpen.value = null;
     storedSource.value = "";
     fleet.reset();
     draft.value = emptyDraft();
@@ -912,6 +931,13 @@ export function useRecordEditor(options: RecordEditorOptions) {
    */
   type EditorTab = "display" | "content" | "operations";
   const editorTab = ref<EditorTab>("display");
+
+  function openStep(position: number): void {
+    if (!Number.isInteger(position) || position < 1) return;
+    editorTab.value = "operations";
+    stepTicket += 1;
+    stepToOpen.value = { index: position - 1, ticket: stepTicket };
+  }
   /* Getters, so a tab is named in the locale active when it is drawn. */
   const EDITOR_TABS: { id: EditorTab; readonly label: string }[] = [
     { id: "display", get label() { return t.editor.tabs.display; } },
@@ -979,6 +1005,9 @@ export function useRecordEditor(options: RecordEditorOptions) {
     startCreate,
     startEdit,
     cancelEdit,
+    editingStaged,
+    stepToOpen,
+    openStep,
     selectSource,
     reloadGraphOptions,
     addGraphRoot,

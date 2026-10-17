@@ -145,6 +145,25 @@ export function closureOf(id: string, items: readonly SubscriptionListItem[]): s
   return out;
 }
 
+/**
+ * The fleet-bound collections that gather the record directly, by id or by
+ * a tag, live or staged (the plugin's fleetGatherers, S2-SR-1). A write to
+ * such a record changes what those collections' identity holders receive,
+ * so the plugin stages it and refuses its plain delete
+ * (fleet_delete_requires_plan), although the record's own flags say it is
+ * not fleet-bound. The list's fleet_bound flag is live state, so a
+ * collection that becomes fleet-bound only through a staged revision is not
+ * named here; the plugin's reply still says staged, and the surfaces read it.
+ */
+export function fleetGatherers(item: SubscriptionListItem, items: readonly SubscriptionListItem[]): SubscriptionListItem[] {
+  return items.filter((candidate) => candidate.id !== item.id && isFleetBound(candidate) && gathers(candidate, item));
+}
+
+/** Whether a record's delete goes through a plan: it is fleet-bound, or a fleet-bound collection gathers it. */
+export function deleteNeedsPlan(item: SubscriptionListItem, items: readonly SubscriptionListItem[]): boolean {
+  return isFleetBound(item) || fleetGatherers(item, items).length > 0;
+}
+
 /** Collections that name `id` in their members, live or staged: a delete plan refuses while any does. */
 export function explicitDependents(id: string, items: readonly SubscriptionListItem[]): SubscriptionListItem[] {
   return items.filter((item) => item.id !== id && isCollection(item) && membersOf(item).includes(id));
@@ -601,6 +620,202 @@ export function planRevisionLines(plan: Plan): { id: string; from: string; to: s
   const sections = (plan.records ?? []).filter((section) => section.role !== "dependent" && section.role !== "staged_only");
   if (!sections.length) return [{ id: plan.subscription_id, from: plan.from_revision, to: plan.to_revision ?? "" }];
   return sections.map((section) => ({ id: section.subscription_id, from: section.from_revision ?? "", to: section.to_revision ?? "" }));
+}
+
+// ── a plan's process chains (S2-SR-2) ──────────────────────────────────────
+
+/**
+ * One line of a section's chain changes, read back into its parts so each
+ * locale can say it. Core writes them in English (lattice-server
+ * substore_svc_plans_chain.go): "step 2 added: Script Operator", "step 3
+ * changed: Script Operator (was step 2, now enabled)", "the steps changed: N
+ * before, M after, too many to list one by one", "and N more step changes".
+ * A line in any other shape is kept as core wrote it.
+ */
+export type ChainChange =
+  | { kind: "step"; verb: "added" | "removed" | "changed"; position: number; type: string; notes: ChainNote[] }
+  | { kind: "many"; before: number; after: number }
+  | { kind: "more"; count: number }
+  | { kind: "text"; text: string };
+
+export type ChainNote = { kind: "disabled" } | { kind: "now-enabled" } | { kind: "now-disabled" } | { kind: "moved"; from: number };
+
+function chainNote(text: string): ChainNote | null {
+  if (text === "disabled") return { kind: "disabled" };
+  if (text === "now enabled") return { kind: "now-enabled" };
+  if (text === "now disabled") return { kind: "now-disabled" };
+  const moved = /^was step (\d+)$/.exec(text);
+  return moved ? { kind: "moved", from: Number(moved[1]) } : null;
+}
+
+export function parseChainChange(line: string): ChainChange {
+  const text = line.trim();
+  // A step type is ASCII letters, digits and single spaces (core cleans it), so it never holds a parenthesis.
+  const step = /^step (\d+) (added|removed|changed): ([^()]+?)(?: \(([^()]*)\))?$/.exec(text);
+  if (step) {
+    const notes = (step[4] ?? "").split(",").map((note) => note.trim()).filter(Boolean).map(chainNote);
+    if (notes.every((note): note is ChainNote => note !== null)) {
+      return { kind: "step", verb: step[2] as "added" | "removed" | "changed", position: Number(step[1]), type: step[3]!, notes };
+    }
+  }
+  const many = /^the steps changed: (\d+) before, (\d+) after, too many to list one by one$/.exec(text);
+  if (many) return { kind: "many", before: Number(many[1]), after: Number(many[2]) };
+  const more = /^and (\d+) more step changes$/.exec(text);
+  if (more) return { kind: "more", count: Number(more[1]) };
+  return { kind: "text", text };
+}
+
+/** A section's chain changes, as the plan view lists them. */
+export interface PlanChainSection {
+  record: string;
+  role: string;
+  changes: ChainChange[];
+}
+
+/**
+ * The sections whose process chain changes, in the plan's section order,
+ * each with its parsed lines. A plan text without sections reads its
+ * top-level chain as the primary's.
+ */
+export function planChainSections(plan: Plan): PlanChainSection[] {
+  const sections = plan.records?.length
+    ? plan.records.map((section) => ({ record: section.subscription_id, role: section.role, lines: section.chain?.changes ?? [] }))
+    : [{ record: plan.subscription_id, role: plan.role ?? "self", lines: plan.chain?.changes ?? [] }];
+  return sections.filter((section) => section.lines.length > 0).map((section) => ({ record: section.record, role: section.role, changes: section.lines.map(parseChainChange) }));
+}
+
+/**
+ * Whether the plan changes process steps and no identity's lines: every
+ * diff a share shows is empty, and the approver has only the step lines to
+ * go by (S2-SR-2: a pass-through Script Operator moves no line).
+ */
+export function chainOnlyPlan(plan: Plan): boolean {
+  if (!planChainSections(plan).length) return false;
+  const totals = plan.totals;
+  return !totals || (totals.added === 0 && totals.removed === 0 && totals.changed === 0);
+}
+
+/** A record's process steps as core reads them: `process`, or the operators of a record written before it. */
+export function storedSteps(record: { process?: unknown; operators?: unknown } | null | undefined): unknown[] {
+  if (!record) return [];
+  if (Array.isArray(record.process) && record.process.length) return record.process;
+  return Array.isArray(record.operators) ? record.operators : [];
+}
+
+interface ChainStepFacts {
+  digest: string;
+  type: string;
+  disabled: boolean;
+}
+
+/** A step type as core prints it: ASCII letters and digits, single spaces, at most 48 bytes. */
+function cleanStepType(value: string): string {
+  const out = value
+    .replace(/[^A-Za-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 48)
+    .trim();
+  return out || "step with no type";
+}
+
+function stepFacts(step: unknown): ChainStepFacts {
+  const digest = JSON.stringify(step) ?? "null";
+  const value = step as { type?: unknown; disabled?: unknown } | null;
+  const readable =
+    !!value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    (value.type === undefined || typeof value.type === "string") &&
+    (value.disabled === undefined || typeof value.disabled === "boolean");
+  if (!readable) return { digest, type: "unreadable step", disabled: false };
+  return { digest, type: cleanStepType((value.type as string | undefined) ?? ""), disabled: value.disabled === true };
+}
+
+/** Walks two sequences along a longest common subsequence under `equal`. */
+function walkCommon(n: number, m: number, equal: (i: number, j: number) => boolean, match: (i: number, j: number) => void, onlyA: (i: number) => void, onlyB: (j: number) => void): void {
+  const lcs = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i -= 1) {
+    for (let j = m - 1; j >= 0; j -= 1) lcs[i]![j] = equal(i, j) ? lcs[i + 1]![j + 1]! + 1 : Math.max(lcs[i + 1]![j]!, lcs[i]![j + 1]!);
+  }
+  let i = 0;
+  let j = 0;
+  while (i < n && j < m) {
+    if (equal(i, j)) {
+      match(i, j);
+      i += 1;
+      j += 1;
+    } else if (lcs[i + 1]![j]! >= lcs[i]![j + 1]!) {
+      onlyA(i);
+      i += 1;
+    } else {
+      onlyB(j);
+      j += 1;
+    }
+  }
+  for (; i < n; i += 1) onlyA(i);
+  for (; j < m; j += 1) onlyB(j);
+}
+
+const CHAIN_DIFF_STEPS = 256;
+const CHAIN_LINES = 128;
+
+/**
+ * The steps added, removed and changed from one chain to another, by the
+ * rule core lists them in a plan (subStorePlanChainChanges): steps matched
+ * by content along the longest common subsequence are unchanged; between two
+ * matches the rest are matched by type, a pair being a step changed in
+ * place, and what is left was removed or added. The propose step reads the
+ * live and staged documents to say this before core answers; the plan core
+ * files carries its own lines, which the plan view shows.
+ */
+export function chainChanges(before: readonly unknown[], after: readonly unknown[]): ChainChange[] {
+  const a = before.map(stepFacts);
+  const b = after.map(stepFacts);
+  if (a.length > CHAIN_DIFF_STEPS || b.length > CHAIN_DIFF_STEPS) {
+    const same = a.length === b.length && a.every((step, index) => step.digest === b[index]!.digest);
+    return same ? [] : [{ kind: "many", before: a.length, after: b.length }];
+  }
+  const out: ChainChange[] = [];
+  const describe = (verb: "added" | "removed" | "changed", position: number, step: ChainStepFacts, notes: ChainNote[] = []) => {
+    out.push({ kind: "step", verb, position, type: step.type, notes: step.disabled && !notes.length ? [{ kind: "disabled" }] : notes });
+  };
+  const changed = (i: number, j: number) => {
+    const from = a[i]!;
+    const to = b[j]!;
+    const notes: ChainNote[] = [];
+    if (i !== j) notes.push({ kind: "moved", from: i + 1 });
+    if (from.disabled && !to.disabled) notes.push({ kind: "now-enabled" });
+    else if (!from.disabled && to.disabled) notes.push({ kind: "now-disabled" });
+    else if (to.disabled) notes.push({ kind: "disabled" });
+    describe("changed", j + 1, to, notes);
+  };
+  const run = (fromI: number, fromJ: number, toI: number, toJ: number) =>
+    walkCommon(
+      toI - fromI,
+      toJ - fromJ,
+      (i, j) => a[fromI + i]!.type === b[fromJ + j]!.type,
+      (i, j) => changed(fromI + i, fromJ + j),
+      (i) => describe("removed", fromI + i + 1, a[fromI + i]!),
+      (j) => describe("added", fromJ + j + 1, b[fromJ + j]!),
+    );
+  let startI = 0;
+  let startJ = 0;
+  walkCommon(
+    a.length,
+    b.length,
+    (i, j) => a[i]!.digest === b[j]!.digest,
+    (i, j) => {
+      run(startI, startJ, i, j);
+      startI = i + 1;
+      startJ = j + 1;
+    },
+    () => {},
+    () => {},
+  );
+  run(startI, startJ, a.length, b.length);
+  if (out.length > CHAIN_LINES) return [...out.slice(0, CHAIN_LINES - 1), { kind: "more", count: out.length - (CHAIN_LINES - 1) }];
+  return out;
 }
 
 /** The plan's records, in the order core applies them, or the primary alone. */

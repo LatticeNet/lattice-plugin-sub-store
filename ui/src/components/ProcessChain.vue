@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { ArrowDown, ArrowUp, ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
 
 import type { CatalogueRow } from "../fleet";
@@ -78,6 +78,14 @@ const props = defineProps<{
    * the bundle exposed no operators at all.
    */
   catalogState?: "idle" | "loading" | "ready" | "error";
+  /**
+   * A step to open, scroll to and focus, by its index in `steps`, with a
+   * ticket so the same step can be asked for twice (a refusal's "Open
+   * step").
+   */
+  openStep?: { index: number; ticket: number } | null;
+  /** The step a fleet render's script refusal names (S2-SR-2): marked on its bar. */
+  flaggedStep?: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -87,6 +95,21 @@ const emit = defineEmits<{
 
 const expanded = ref<number | null>(null);
 const dragIndex = ref<number | null>(null);
+const root = ref<HTMLElement | null>(null);
+
+watch(
+  () => props.openStep?.ticket,
+  async () => {
+    const index = props.openStep?.index;
+    if (index === undefined || index < 0 || index >= props.steps.length) return;
+    expanded.value = index;
+    await nextTick();
+    const title = root.value?.querySelector<HTMLElement>(`[data-step-index="${index}"] .step-title`);
+    title?.scrollIntoView({ block: "center" });
+    title?.focus({ preventScroll: true });
+  },
+  { immediate: true },
+);
 
 const managed = computed(() => new Set(props.managedTypes ?? []));
 
@@ -203,7 +226,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 </script>
 
 <template>
-  <section class="chain">
+  <section ref="root" class="chain">
     <div class="chain-head">
       <h3>{{ heading ?? t.chain.heading }}</h3>
       <span v-if="visible.length" class="chain-count">{{ t.chain.activeCount(activeCount, visible.length) }}</span>
@@ -213,7 +236,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
       <li
         v-for="(entry, position) in visible"
         :key="entry.index"
-        :class="['chain-step', { 'is-off': entry.step.disabled }]"
+        :class="['chain-step', { 'is-off': entry.step.disabled, 'is-flagged': flaggedStep === entry.index }]"
+        :data-step-index="entry.index"
         draggable="true"
         @dragstart="dragIndex = entry.index"
         @dragover.prevent
@@ -237,6 +261,13 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
             <span class="step-label">{{ label(entry.step, position + 1) }}</span>
             <span v-if="isFleetStep(entry.step.type)" class="step-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
             <span v-if="entry.step.disabled" class="badge" data-tone="warning">{{ t.chain.off }}</span>
+            <span
+              v-if="flaggedStep === entry.index"
+              class="badge step-flag"
+              data-tone="danger"
+              data-testid="step-network-flag"
+              :title="t.plans.scriptNetwork.flagTitle"
+            >{{ t.plans.scriptNetwork.flag }}</span>
           </button>
 
           <div class="step-actions">
@@ -625,6 +656,13 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   white-space: nowrap;
 }
 
+.chain-step.is-flagged {
+  border-color: var(--destructive);
+}
+.step-flag {
+  flex: none;
+  white-space: nowrap;
+}
 .step-fleet {
   flex: none;
   padding: 0 var(--space-1);

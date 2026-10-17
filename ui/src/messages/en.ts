@@ -2367,6 +2367,71 @@ export const en = {
     recordState: {
       label: "Staged revision and plans",
     },
+    /** A plan section's process chain (S2-SR-2), as core lists it and as the propose step reads it. */
+    chain: {
+      title: "Process steps",
+      intro: "Every step a record of this plan adds, removes or changes, by position and type, as core lists it. A step can change what a share serves without moving a line.",
+      onlyChain:
+        "No identity gains, loses or changes a line. Only the process steps change, and line counts cannot show what a step does, so read the steps before approving.",
+      added: (position: number, type: string) => `Step ${num(position)} added: ${type}`,
+      removed: (position: number, type: string) => `Step ${num(position)} removed: ${type}`,
+      changed: (position: number, type: string) => `Step ${num(position)} changed: ${type}`,
+      notes: {
+        disabled: "disabled",
+        nowEnabled: "now enabled",
+        nowDisabled: "now disabled",
+        moved: (from: number) => `was step ${num(from)}`,
+      },
+      many: (before: number, after: number) => `The steps changed: ${num(before)} before, ${num(after)} after, too many to list one by one.`,
+      more: (n: number) => plural(n, { one: "and {n} more step change", other: "and {n} more step changes" }),
+      noType: "a step with no type",
+      unreadable: "a step core could not read",
+      proposeUnchanged: "Steps unchanged.",
+      proposeNote: "Core lists these step changes in the plan, so the approver sees them even when no line moves.",
+      proposeReading: "Reading the steps…",
+      proposeUnread: "The steps could not be read here. Core lists them in the plan.",
+    },
+    /** fleet_script_network_unavailable: a script step on a fleet render asked for the network (S2-SR-2). */
+    scriptNetwork: {
+      title: "A step asked for the network",
+      step: (position: number, type: string, record: string) => `Step ${num(position)}${type ? ` (${type})` : ""} of ${record} asked for the network.`,
+      anyStep: (record: string) => `A Script or Resolve Domain step of ${record} asked for the network.`,
+      rule: "Scripts on fleet renders run without network until isolation lands, so the render was refused. Remove the network call from the step, or remove the step.",
+      openStep: (position: number) => `Open step ${num(position)}`,
+      openStepOf: (position: number, record: string) => `Open step ${num(position)} of ${record}`,
+      openSteps: (record: string) => `Open the steps of ${record}`,
+      flag: "asked for the network",
+      flagTitle: "On a fleet render this step asked for the network. Scripts on fleet renders run without network until isolation lands.",
+      thisRecord: "this record",
+    },
+    /** A provider record a fleet-bound combination gathers (S2-SR-1), and any staged save. */
+    stagedSave: {
+      saved: (name: string, revision: string) => `Saved ${name}. Staged revision ${revision} is not live yet.`,
+      editing: (staged: string, live: string) => `Editing staged revision ${staged}, which is not live: live revision ${live} keeps serving until it is published, and saving replaces the staged revision.`,
+      editingNew: (staged: string) => `Editing staged revision ${staged}, which is not live: nothing of this record serves until it is published.`,
+      fleet: (name: string) => `${name} is fleet-bound, so its edits wait for Publish or a plan.`,
+      gathered: (combinations: string, n: number) =>
+        plural(n, {
+          one: `The fleet-bound combination ${combinations} gathers it, so an edit changes what that combination's identity holders receive and waits for Publish or a plan.`,
+          other: `The fleet-bound combinations ${combinations} gather it, so an edit changes what their identity holders receive and waits for Publish or a plan.`,
+        }),
+      gatheredBy: (combinations: string, n: number) =>
+        plural(n, {
+          one: `Staged because the fleet-bound combination ${combinations} gathers this record: its edits change what that combination's identity holders receive.`,
+          other: `Staged because the fleet-bound combinations ${combinations} gather this record: its edits change what their identity holders receive.`,
+        }),
+      gatheredDelete: (combinations: string, n: number) =>
+        plural(n, {
+          one: `Deleting it changes what the fleet-bound combination ${combinations} serves its identity holders, so it goes through a plan.`,
+          other: `Deleting it changes what the fleet-bound combinations ${combinations} serve their identity holders, so it goes through a plan.`,
+        }),
+      deleteDescriptionGathered: "A fleet-bound combination gathers this record, so its delete is a plan, which archives the record's own shares.",
+      deleteIntroGathered: (combinations: string, n: number) =>
+        plural(n, {
+          one: `This record is not fleet-bound, but the fleet-bound combination ${combinations} gathers it, so deleting it changes what that combination's identity holders receive and core decides it as a plan. The record is archived first, as every delete is, and its own shares are archived with it.`,
+          other: `This record is not fleet-bound, but the fleet-bound combinations ${combinations} gather it, so deleting it changes what their identity holders receive and core decides it as a plan. The record is archived first, as every delete is, and its own shares are archived with it.`,
+        }),
+    },
     statusFailed: "The plans could not be read.",
     cannotPropose: "This session cannot propose plans: it needs proxy:admin.",
     cannotPublish: "This session cannot publish: it needs substore:admin.",

@@ -4,6 +4,8 @@ import { ArrowLeft, ArrowRight, Check, ExternalLink, Link2, Pencil, RotateCcw, U
 import { PcButton, PcNotice, PcSidePanel } from "@latticenet/plugin-bridge/chassis";
 
 import PlanStatus from "./PlanStatus.vue";
+import ScriptNetworkNotice from "./ScriptNetworkNotice.vue";
+import { chainChangeText } from "../chainText";
 import { ERROR_CODES, SOURCE_VPN_CORE_GRAPH } from "../client";
 import {
   IDENTITY_ACTIVE,
@@ -18,6 +20,7 @@ import {
 import { formatBytes, formatCount, t } from "../i18n";
 import { hostOriginFromHash, postNavigate } from "../navigate";
 import {
+  chainChanges,
   closureOf,
   currentPlan,
   darkenedShares,
@@ -26,6 +29,7 @@ import {
   explicitCollectionsFrom,
   explicitDependents,
   fileDependents,
+  fleetGatherers,
   holdsNoLine,
   isFleetBound,
   legacyMembers,
@@ -39,14 +43,17 @@ import {
   shareFields,
   shareLabel,
   shortRevision,
+  storedSteps,
   tagDependents,
   undecidedShares,
   unmatchedNameSteps,
   unstagedSiblings,
+  type ChainChange,
   type MigrateRecordReply,
   type PlanShareRow,
   type ShareDecision,
 } from "../planFlow";
+import { refusedStepIn, scriptNetworkRefusal, type ScriptNetworkRefusal } from "../scriptNetwork";
 import type { PlanOutcome, ProposeRequest, UseSubscriptions } from "../useSubscriptions";
 
 /**
@@ -100,8 +107,8 @@ const emit = defineEmits<{
   done: [text: string];
   /** Open a record named in the flow (a file that blocks the migration) in its side panel. */
   "open-record": [id: string];
-  /** The migration was abandoned so the record's steps can be fixed: open its editor on them. */
-  "edit-steps": [id: string];
+  /** The record's steps should be fixed (an abandoned migration, a refused step): open its editor on them, at `position` when one is named. */
+  "edit-steps": [id: string, position?: number];
 }>();
 
 const subs = props.subs;
@@ -109,6 +116,13 @@ const items = computed(() => subs.items.value);
 const byId = computed(() => new Map(items.value.map((item) => [item.id, item])));
 const record = computed(() => byId.value.get(props.recordId));
 const name = (id: string) => recordName(byId.value.get(id), id);
+/**
+ * The fleet-bound combinations that gather this record when it is not
+ * fleet-bound itself (S2-SR-1): why its edit staged and why its delete is a
+ * plan, which its own flags do not say.
+ */
+const gatheredBy = computed(() => (record.value && !isFleetBound(record.value) ? fleetGatherers(record.value, items.value) : []));
+const gatheredNames = computed(() => gatheredBy.value.map((item) => recordName(item)).join(", "));
 
 const STEPS: Record<FlowMode, StepId[]> = {
   migrate: ["changes", "identities", "propose", "status"],
@@ -451,6 +465,10 @@ const planRow = ref<PlanRow | null>(null);
 const planText = ref("");
 const published = ref("");
 const banner = ref<{ tone: "danger" | "warning"; code: string; text: string } | null>(null);
+/** Core refused the plan because a fleet render's script asked for the network (S2-SR-2). */
+const networkRefusal = ref<ScriptNetworkRefusal | null>(null);
+/** The steps each promoted record changes, read for the propose step (readStepSummary below). */
+const stepSummary = ref<Record<string, { status: "loading" | "ready" | "error"; changes: ChainChange[]; steps: unknown[] }>>({});
 
 function buildRequest(): ProposeRequest {
   const id = primary.value;
@@ -483,6 +501,7 @@ async function propose(): Promise<void> {
   if (proposing.value) return;
   proposing.value = true;
   banner.value = null;
+  networkRefusal.value = null;
   try {
     const request = buildRequest();
     land(await subs.proposeOrPublish(request, publishPath(request)));
@@ -518,6 +537,14 @@ function land(result: PlanOutcome): void {
     published.value = props.mode === "delete" ? t.migration.deleted(name(primary.value)) : t.migration.published(name(primary.value), shortRevision(result.reply.revision));
     step.value = "status";
     emit("done", published.value);
+    return;
+  }
+  // A script step that asked for the network: said beside the record and step it names, with a way to the step.
+  const network =
+    (result.kind === "refused" && result.code === ERROR_CODES.fleetScriptNetworkUnavailable) || result.kind === "error" ? scriptNetworkRefusal(result.message) : null;
+  if (network) {
+    networkRefusal.value = network;
+    step.value = "propose";
     return;
   }
   if (result.kind === "too-large") {
@@ -564,6 +591,7 @@ function proposeAgain(): void {
   planRow.value = null;
   planText.value = "";
   banner.value = null;
+  networkRefusal.value = null;
   step.value = steps.value.includes("identities") ? "identities" : steps.value[0]!;
 }
 
@@ -607,8 +635,8 @@ const flowStaged = computed(() => {
   }
   return [];
 });
-/** Abandon asks first; `edit` names the record whose steps open once it is done. */
-const abandonAsk = ref<{ edit: string } | null>(null);
+/** Abandon asks first; `edit` names the record whose steps open once it is done, at `position` when a step is named. */
+const abandonAsk = ref<{ edit: string; position?: number } | null>(null);
 /** The pending plan abandoning would stale: the one this sitting filed or reopened, else the record's own. */
 const abandonPlan = computed(() => {
   const row = planRow.value ?? (record.value ? currentPlan(subs.plansByRecord.value[primary.value] ?? [], record.value) : undefined);
@@ -651,8 +679,8 @@ const abandonNote = computed(() =>
   blockedAfterAbandon.value.length ? t.migration.abandonNoteBlocked(blockedAfterAbandon.value.map(name).join(", ")) : t.migration.abandonNote,
 );
 const abandonBox = ref<HTMLElement | null>(null);
-function askAbandon(edit = ""): void {
-  abandonAsk.value = { edit };
+function askAbandon(edit = "", position?: number): void {
+  abandonAsk.value = { edit, ...(position ? { position } : {}) };
   abandonError.value = "";
   void nextTick(() => abandonBox.value?.querySelector<HTMLElement>("[data-abandon-heading]")?.focus());
 }
@@ -672,9 +700,10 @@ async function abandon(): Promise<void> {
       }
     }
     const edit = abandonAsk.value?.edit ?? "";
+    const position = abandonAsk.value?.position;
     abandonAsk.value = null;
     emit("done", t.migration.abandoned(dropped.join(", ") || name(props.recordId)));
-    if (edit) emit("edit-steps", edit);
+    if (edit) emit("edit-steps", edit, position);
     else emit("close");
   } finally {
     abandoning.value = false;
@@ -746,6 +775,8 @@ function reset(): void {
   planText.value = "";
   published.value = "";
   banner.value = null;
+  networkRefusal.value = null;
+  stepSummary.value = {};
   abandonError.value = "";
   for (const key of Object.keys(decisions)) delete decisions[key];
 }
@@ -814,9 +845,73 @@ const proposeSummary = computed(() => {
   };
 });
 
+// ── the steps each promoted record changes, before core answers (S2-SR-2) ──
+
+/**
+ * Per record the plan promotes, the steps its staged revision adds, removes
+ * or changes against the live one, read from both documents and listed by
+ * core's rule (planFlow.ts chainChanges). Core lists the same lines in the
+ * plan it files; this says them where the operator decides to propose.
+ */
+async function readStepSummary(ids: readonly string[]): Promise<void> {
+  for (const id of ids) {
+    if (stepSummary.value[id]) continue;
+    stepSummary.value = { ...stepSummary.value, [id]: { status: "loading", changes: [], steps: [] } };
+    const read = await subs.readRevisions(id);
+    const next = read?.staged
+      ? { status: "ready" as const, changes: chainChanges(storedSteps(read.live), storedSteps(read.staged)), steps: storedSteps(read.staged) }
+      : { status: "error" as const, changes: [], steps: [] };
+    stepSummary.value = { ...stepSummary.value, [id]: next };
+  }
+}
+watch(
+  () => (props.open && step.value === "propose" && (props.mode === "publish" || props.mode === "migrate") ? proposeSummary.value.records.map((entry) => entry.id).join(",") : ""),
+  (ids) => {
+    if (ids) void readStepSummary(ids.split(","));
+  },
+);
+const anyStepChange = computed(() => Object.values(stepSummary.value).some((entry) => entry.status === "ready" && entry.changes.length > 0));
+
+/** The record a script network refusal is about: the one it names, else the plan's primary. */
+const refusalRecord = computed(() => (networkRefusal.value ? networkRefusal.value.record || primary.value : ""));
+/** The step it is about, from the refusal or from the staged steps read for the summary. */
+const refusalStep = computed(() => {
+  const refusal = networkRefusal.value;
+  if (!refusal) return null;
+  return refusedStepIn(refusal, stepSummary.value[refusalRecord.value]?.steps ?? []);
+});
+/** The record the refusal names is one the summary lists, so the notice sits under it. */
+const refusalListed = computed(() => proposeSummary.value.records.some((entry) => entry.id === refusalRecord.value));
+function flaggedLine(recordId: string, change: ChainChange): boolean {
+  return recordId === refusalRecord.value && change.kind === "step" && change.verb !== "removed" && change.position === refusalStep.value?.position;
+}
+/**
+ * Open the step a refusal names. A migration's staged revision is built from
+ * the legacy record as it is now, so the step is fixed there: abandon, then
+ * the editor. Any other plan's record opens in the editor on its staged
+ * revision, at the step.
+ */
+function openRefusedStep(position: number | null): void {
+  const id = refusalRecord.value;
+  if (!id) return;
+  if (props.mode === "migrate" && flowStaged.value.includes(id)) {
+    askAbandon(id, position ?? undefined);
+    return;
+  }
+  emit("edit-steps", id, position ?? undefined);
+}
+
+/**
+ * An identity as the select lists it: its name, and its state when it is
+ * not active, since an inactive identity's share answers the decoy. The
+ * chosen one's state and bound lines are said once, on the line under the
+ * select (the second lane 6b design review: the facts read twice).
+ */
 function identityOption(identity: Identity): string {
-  const facts = [t.fleetEditor.identity.status[identity.status as keyof typeof t.fleetEditor.identity.status] ?? identity.status, t.fleetEditor.identity.boundLines(identity.bound_lines)];
-  return `${identity.name || identity.id} · ${facts.join(" · ")}`;
+  const name = identity.name || identity.id;
+  if (!identityInactive(identity.status)) return name;
+  const status = t.fleetEditor.identity.status[identity.status as keyof typeof t.fleetEditor.identity.status] ?? identity.status;
+  return `${name} (${status})`;
 }
 const sortedIdentities = computed(() =>
   [...identities.value].sort((a, b) => Number(b.status === IDENTITY_ACTIVE) - Number(a.status === IDENTITY_ACTIVE) || (a.name || a.id).localeCompare(b.name || b.id)),
@@ -865,7 +960,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
   <PcSidePanel
     :open="open"
     :title="title"
-    :description="t.migration.descriptions[mode]"
+    :description="mode === 'delete' && gatheredBy.length ? t.plans.stagedSave.deleteDescriptionGathered : t.migration.descriptions[mode]"
     size="output"
     :close-label="t.migration.close"
     :return-focus-to="returnFocusTo ?? null"
@@ -1016,6 +1111,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
             {{ record?.revision ? t.migration.publishOver(shortRevision(stagedRevisionOf(recordId)), shortRevision(record.revision)) : t.migration.publishFirst(shortRevision(stagedRevisionOf(recordId))) }}
           </p>
           <p class="flow-note">{{ t.migration.publishNote }}</p>
+          <p v-if="gatheredBy.length" class="flow-note" data-testid="flow-gathered-by">{{ t.plans.stagedSave.gatheredBy(gatheredNames, gatheredBy.length) }}</p>
           <div v-if="closure.length > 1" class="flow-block">
             <h4>{{ t.migration.facts.collections }}</h4>
             <ul class="flow-list">
@@ -1025,7 +1121,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
         </template>
 
         <template v-else-if="mode === 'delete'">
-          <p class="flow-prose">{{ t.migration.deleteIntro }}</p>
+          <p class="flow-prose" data-testid="delete-intro">{{ gatheredBy.length ? t.plans.stagedSave.deleteIntroGathered(gatheredNames, gatheredBy.length) : t.migration.deleteIntro }}</p>
           <div class="flow-block" data-testid="delete-shares">
             <h4>{{ t.migration.deleteSharesTitle(ownShares.length) }}</h4>
             <ul v-if="ownShares.length" class="flow-list">
@@ -1204,8 +1300,47 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
             <ul v-if="entry.warnings.length" class="flow-propose-warnings">
               <li v-for="warning in entry.warnings" :key="warning" class="flow-warn" data-testid="propose-warning">{{ warning }}</li>
             </ul>
+            <!-- The steps this record's staged revision changes, which core lists in the plan too. -->
+            <div v-if="stepSummary[entry.id]" class="flow-propose-steps" data-testid="propose-steps" :data-record="entry.id" :data-status="stepSummary[entry.id]!.status">
+              <p v-if="stepSummary[entry.id]!.status === 'loading'" class="flow-note">{{ t.plans.chain.proposeReading }}</p>
+              <p v-else-if="stepSummary[entry.id]!.status === 'error'" class="flow-note">{{ t.plans.chain.proposeUnread }}</p>
+              <p v-else-if="!stepSummary[entry.id]!.changes.length" class="flow-note" data-testid="propose-steps-unchanged">{{ t.plans.chain.proposeUnchanged }}</p>
+              <ul v-else class="flow-propose-chain">
+                <li
+                  v-for="(change, index) in stepSummary[entry.id]!.changes"
+                  :key="index"
+                  data-testid="propose-step-line"
+                  :data-verb="change.kind === 'step' ? change.verb : change.kind"
+                  :data-position="change.kind === 'step' ? change.position : undefined"
+                >
+                  <span>{{ chainChangeText(change) }}</span>
+                  <span v-if="flaggedLine(entry.id, change)" class="badge" data-tone="danger" data-testid="propose-step-flag" :title="t.plans.scriptNetwork.flagTitle">{{ t.plans.scriptNetwork.flag }}</span>
+                </li>
+              </ul>
+            </div>
+            <ScriptNetworkNotice
+              v-if="networkRefusal && refusalRecord === entry.id"
+              class="flow-propose-refusal"
+              :refusal="networkRefusal"
+              :record-name="name(entry.id)"
+              :step="refusalStep"
+              :can-open="true"
+              :other-record="proposeSummary.records.length > 1"
+              @open-step="openRefusedStep"
+            />
           </li>
         </ul>
+        <p v-if="anyStepChange" class="flow-note" data-testid="propose-steps-note">{{ t.plans.chain.proposeNote }}</p>
+        <!-- A refusal about a record the summary does not list (a combination the plan covers). -->
+        <ScriptNetworkNotice
+          v-if="networkRefusal && !refusalListed"
+          :refusal="networkRefusal"
+          :record-name="name(refusalRecord)"
+          :step="refusalStep"
+          :can-open="byId.has(refusalRecord)"
+          other-record
+          @open-step="openRefusedStep"
+        />
         <ul v-if="proposeSummary.assigned.length || proposeSummary.cleared.length || proposeSummary.archived.length" class="flow-list" data-testid="propose-changes">
           <li v-for="line in [...proposeSummary.assigned, ...proposeSummary.cleared, ...proposeSummary.archived]" :key="line">{{ line }}</li>
         </ul>
@@ -1566,6 +1701,28 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
 }
 .flow-propose-record {
   flex-direction: row;
+}
+.flow-propose-steps {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.flow-propose-chain {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--lt-text-sm);
+}
+.flow-propose-chain li {
+  overflow-wrap: anywhere;
+}
+.flow-propose-chain .badge {
+  margin-left: var(--space-2);
+  white-space: nowrap;
+}
+.flow-propose-refusal {
+  flex: 1 1 100%;
 }
 .flow-propose-warnings {
   flex: 1 1 100%;

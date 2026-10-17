@@ -87,6 +87,8 @@ import {
   currentPlan,
   darkenedShares,
   decoyShares,
+  deleteNeedsPlan,
+  fleetGatherers,
   isFleetBound,
   mixedBlock,
   recordName,
@@ -529,8 +531,9 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   if (id === "publish") return openDrawer("publish", row.id, event);
   if (id === "duplicate") return void subs.duplicate(row.id);
   // A fleet-bound record's delete changes what its identity holders
-  // receive, so it goes through a plan (s2-plan section 2.6).
-  if (id === "delete") return isFleetBound(row) ? openFlow("delete", row, event) : requestDelete([row.id]);
+  // receive, so it goes through a plan (s2-plan section 2.6), and so does
+  // the delete of a record a fleet-bound combination gathers (S2-SR-1).
+  if (id === "delete") return deleteNeedsPlan(row, subs.items.value) ? openFlow("delete", row, event) : requestDelete([row.id]);
   if (id === "publish-staged") return void publishStaged(row, event);
   if (id === "discard-staged") return requestDiscard(row);
   if (id === "migrate") {
@@ -691,11 +694,26 @@ function flowOpenRecord(id: string): void {
   chrome.openRecord(id);
 }
 
-/** The migration was abandoned to fix a step: the record's editor, on its steps. */
-async function flowEditSteps(id: string): Promise<void> {
+/** A step to fix (an abandoned migration, a step core refused): the record's editor on its steps, at the step when one is named. */
+async function flowEditSteps(id: string, position?: number): Promise<void> {
   flow.value = null;
   await editor.startEdit(id);
-  if (editor.editing.value && editor.editingId.value === id) editor.editorTab.value = "operations";
+  if (!editor.editing.value || editor.editingId.value !== id) return;
+  if (position) editor.openStep(position);
+  else editor.editorTab.value = "operations";
+}
+
+/** The row a staged save left waiting, while its notice shows: Publish sits beside it. */
+const stagedSaveRow = computed(() => {
+  const saved = subs.stagedSave.value;
+  const row = saved ? subs.items.value.find((item) => item.id === saved.id) : undefined;
+  return row && row.staged_revision ? row : undefined;
+});
+
+/** The fleet-bound combinations that gather a row that is not fleet-bound itself (S2-SR-1), by name. */
+function gatheredByNames(row: SubscriptionListItem): string[] {
+  if (!row.staged_revision || isFleetBound(row)) return [];
+  return fleetGatherers(row, subs.items.value).map((item) => recordName(item));
 }
 
 /** The shares that answer the decoy, and the identities that buy nothing, per row. */
@@ -1301,16 +1319,27 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       <p class="pc-sr-only" role="status" aria-live="polite" data-testid="records-live">{{ liveMessage }}</p>
       <p id="records-grip-help" class="pc-sr-only">{{ t.records.gripHelp }}</p>
 
-      <PcNotice v-if="subs.actionError.value" tone="danger" data-testid="records-error-notice">
+      <PcNotice v-if="subs.actionError.value" class="records-notice" tone="danger" data-testid="records-error-notice">
         {{ subs.actionError.value }}
         <template v-if="planDeleteRow" #actions>
           <PcButton compact data-testid="records-delete-plan" @click="openFlow('delete', planDeleteRow)">{{ t.plans.deleteThroughPlan }}</PcButton>
         </template>
       </PcNotice>
-      <PcNotice v-else-if="subs.notice.value" tone="success">
+      <PcNotice v-else-if="subs.notice.value" class="records-notice" :tone="stagedSaveRow ? 'info' : 'success'" :data-testid="stagedSaveRow ? 'records-staged-notice' : undefined">
         {{ subs.notice.value }}
         <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
           <PcButton compact @click="openPublishing()">{{ t.records.openInPublishing }}</PcButton>
+        </template>
+        <template v-else-if="stagedSaveRow" #actions>
+          <PcButton
+            compact
+            :disabled="!subs.canPropose.value || !subs.canPublishPlan.value"
+            :title="!subs.canPropose.value ? t.plans.cannotPropose : !subs.canPublishPlan.value ? t.plans.cannotPublish : t.plans.actions.publishStagedTitle"
+            data-testid="records-publish-staged"
+            @click="publishStaged(stagedSaveRow, $event)"
+          >
+            {{ t.plans.actions.publishStaged }}
+          </PcButton>
         </template>
       </PcNotice>
       <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
@@ -1693,7 +1722,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                       <span v-else-if="cell(row).published.unknown" class="layer-muted">{{ t.records.publishedUnknown }}</span>
                       <span v-else-if="shares !== undefined" class="layer-muted">{{ t.publish.none }}</span>
                     </span>
-                    <StagedBadge :item="row" :plans="subs.plansByRecord.value[row.id]" />
+                    <StagedBadge :item="row" :plans="subs.plansByRecord.value[row.id]" :gathered-by="gatheredByNames(row)" />
                     <small v-if="decoyCount(row)" class="rec-decoy" :title="t.plans.decoyTitle" data-testid="record-decoy">{{ t.plans.decoyCell(decoyCount(row)) }}</small>
                     <small v-if="darkenedCount(row)" class="rec-decoy" :title="t.plans.darkenedTitle" data-testid="record-darkened">{{ t.plans.darkenedCell(darkenedCount(row)) }}</small>
                   </td>
@@ -1929,5 +1958,16 @@ small.rec-blocked {
 .records-table .pc-table[data-stacked="true"] td.rec-published > .staged-badge,
 .records-table .pc-table[data-stacked="true"] td.rec-published > .rec-decoy {
   flex-basis: 100%;
+}
+/* Below 480px a notice's action takes a line of its own under the sentence,
+   rather than a right-hand column that squeezes it to two words a line. */
+@media (max-width: 479px) {
+  .records-notice {
+    flex-wrap: wrap;
+  }
+  .records-notice :deep(.pc-notice-actions) {
+    flex-basis: 100%;
+    margin-left: calc(17px + var(--space-2));
+  }
 }
 </style>
