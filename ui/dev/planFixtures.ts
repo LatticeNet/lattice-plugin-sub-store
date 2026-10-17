@@ -19,7 +19,20 @@
  *   legacy-left        a legacy graph record still staged, both in
  *   mixed-combo        a combination core refuses until legacy-left migrates
  *   openjobs-host      a provider record whose share names vu_bob: the
- *                      identity buys nothing
+ *                      identity buys nothing; Asia combination with a
+ *                      provider names it, so since S2-SR-1 its edits stage
+ *                      and its delete goes through a plan
+ *   paid-extra         a provider record fleet-plus-paid gathers by its tag
+ *   fleet-plus-paid    a fleet-bound combination over every fleet line and
+ *                      the paid-extra tag, with an identity share: a
+ *                      paid-extra edit or delete is a plan
+ *   tokyo-scripted     fleet, an identity share, and a staged revision whose
+ *                      only change is a pass-through Script Operator: a plan
+ *                      that moves no line, only a step
+ *   osaka-lookup       fleet, an identity share, a Script Operator that asks
+ *                      for the network, and a staged revision that renames
+ *                      it: every fleet render of it is refused
+ *                      (fleet_script_network_unavailable)
  *
  * Every name, id and figure is invented; no share link or credential is in
  * any of it beyond the harness's own placeholder tokens.
@@ -54,6 +67,30 @@ function share(subscription_id: string, share_id: string, slug: string, extra: P
     url: `https://lattice.example/sub/${slug}/${token}`,
     ...extra,
   };
+}
+
+const TOKYO_FILTER = { type: "Structured Filter", args: { mode: "keep", match: "all", predicates: [{ field: "region", op: "in", values: ["Tokyo"] }] } };
+const OSAKA_FILTER = { type: "Structured Filter", args: { mode: "keep", match: "all", predicates: [{ field: "region", op: "in", values: ["Osaka"] }] } };
+/** A script that reads every node and asks the network about them: what S2-SR-2 withholds on a fleet render. */
+const LOOKUP_SCRIPT = {
+  type: "Script Operator",
+  args: { mode: "script", content: "async function operator(proxies) {\n  await $substore.http.get({ url: 'https://geo.example/lookup' });\n  return proxies;\n}" },
+};
+
+/**
+ * The staged revisions the plans fixture starts with beside asia-fleet's
+ * and legacy-left's (dev/planHost.ts seeds them): tokyo-scripted gains a
+ * pass-through script, osaka-lookup renames its lookup script.
+ */
+export function planStagedRecords(): { id: string; process: unknown[]; minutesAgo: number }[] {
+  return [
+    {
+      id: "tokyo-scripted",
+      minutesAgo: 25,
+      process: [TOKYO_FILTER, { type: "Script Operator", args: { mode: "script", content: "function operator(proxies) {\n  return proxies;\n}" } }],
+    },
+    { id: "osaka-lookup", minutesAgo: 15, process: [OSAKA_FILTER, { ...LOOKUP_SCRIPT, customName: "Geo lookup" }] },
+  ];
 }
 
 export function planRecords(): StoredRecord[] {
@@ -158,6 +195,47 @@ export function planRecords(): StoredRecord[] {
         "snapshot_too_large: the selection holds 6200 lines; this core keeps at most 4 MiB of snapshot, about 2953 lines of this fleet; narrow the selection or split the record",
     },
     {
+      id: "paid-extra",
+      name: "paid-extra",
+      display_name: "Paid provider extra",
+      tags: ["fleet-extra"],
+      source: "remote",
+      url: "https://sub.example-provider.com/api/v1/client/subscribe?token=00aa11bb22cc33dd44ee55ff66778899",
+      process: [{ type: "Regex Filter", args: { regex: ["HK|JP"], keep: true } }],
+      last_fetch_at: ago(HOUR),
+      last_fetch_ok: true,
+    },
+    {
+      id: "fleet-plus-paid",
+      kind: "collection",
+      name: "fleet-plus-paid",
+      display_name: "Fleet lines with a paid extra",
+      members: ["all-fleet-lines"],
+      member_tags: ["fleet-extra"],
+      failure_mode: "skip",
+      process: [],
+    },
+    {
+      id: "tokyo-scripted",
+      name: "tokyo-scripted",
+      display_name: "Tokyo lines, pass-through script",
+      tags: ["fleet"],
+      source: "fleet",
+      process: [TOKYO_FILTER],
+      last_fetch_at: ago(HOUR),
+      last_fetch_ok: true,
+    },
+    {
+      id: "osaka-lookup",
+      name: "osaka-lookup",
+      display_name: "Osaka lines with a lookup script",
+      tags: ["fleet"],
+      source: "fleet",
+      process: [OSAKA_FILTER, LOOKUP_SCRIPT],
+      last_fetch_at: ago(HOUR),
+      last_fetch_ok: true,
+    },
+    {
       id: "mixed-combo",
       kind: "collection",
       name: "mixed-combo",
@@ -184,6 +262,9 @@ export function planShares(): PlanShare[] {
     share("legacy-left", "sh-osaka", "osaka"),
     share("mixed-combo", "sh-japan", "japan-family", { display_name: "Japan family link" }),
     share("files-legacy", "sh-router", "router"),
+    share("fleet-plus-paid", "sh-plus-family", "plus-family", { identity_id: "vu_alice", display_name: "Family link with the paid extra" }),
+    share("tokyo-scripted", "sh-tokyo-script", "tokyo-script", { identity_id: "vu_alice", display_name: "Alice's Tokyo link" }),
+    share("osaka-lookup", "sh-osaka-lookup", "osaka-lookup", { identity_id: "vu_erin", display_name: "Erin's Osaka link" }),
   ];
 }
 

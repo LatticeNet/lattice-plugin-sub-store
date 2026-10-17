@@ -24,13 +24,64 @@
  *             applied the next time its status is read (Check again)
  *   rejected  the same plan reads as rejected by the approver, not stale
  *
+ * In every state, under `?fixture=plans` (lane 6c):
+ *   provider members (S2-SR-1): a save of a record that is not fleet-bound
+ *     but a fleet-bound combination gathers (openjobs-host, paid-extra)
+ *     answers staged=true and waits in the staged store; its plain delete
+ *     answers fleet_delete_requires_plan naming the combinations; and a
+ *     delete plan's closure holds the combinations that read it. A
+ *     fleet-bound record's own save still writes live here, so the drives
+ *     written before staging keep working; the plugin stages those too.
+ *   chain changes (S2-SR-2): every section of a plan carries chain
+ *     {before, after, changes}, from the live and staged steps, in core's
+ *     words; tokyo-scripted's staged revision adds a pass-through script
+ *     and moves no line.
+ *   the script network refusal (S2-SR-2): a fleet render whose chain holds
+ *     a step that asks for the network (osaka-lookup) is refused, in each
+ *     shape it can arrive in: the plugin's sentence on preview and
+ *     preview_draft, core's sentence on bind.preview, and core's typed
+ *     refusal as JSON after the code on plans.propose.
+ *   get answers a waiting staged revision beside the live record, so the
+ *     editor opens on it, as the plugin answers it.
+ *
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
 import type { MethodBinding } from "../src/client";
+import { chainChanges, type ChainChange } from "../src/planFlow";
+import { SCRIPT_NETWORK_CODE } from "../src/scriptNetwork";
 import type { FleetRecord } from "./fleetFixtures";
-import type { PlanShare } from "./planFixtures";
+import { planStagedRecords, type PlanShare } from "./planFixtures";
 import { CATALOGUE_VERSION, catalogueRows } from "./fleetFixtures";
 import { s2Manifest } from "./fleetHost";
+
+/** Whether the harness serves the plans fixture (`?fixture=plans`). */
+function plansFixture(): boolean {
+  return new URLSearchParams(window.location.search).get("fixture") === "plans";
+}
+
+/** A chain change in core's words (lattice-server substore_svc_plans_chain.go). */
+function coreChainLine(change: ChainChange): string {
+  if (change.kind === "many") return `the steps changed: ${change.before} before, ${change.after} after, too many to list one by one`;
+  if (change.kind === "more") return `and ${change.count} more step changes`;
+  if (change.kind === "text") return change.text;
+  const notes = change.notes.map((note) => (note.kind === "moved" ? `was step ${note.from}` : note.kind === "now-enabled" ? "now enabled" : note.kind === "now-disabled" ? "now disabled" : "disabled"));
+  return `step ${change.position} ${change.verb}: ${change.type}${notes.length ? ` (${notes.join(", ")})` : ""}`;
+}
+
+/**
+ * The first enabled step of a chain that asks for the network on a fleet
+ * render: a Resolve Domain step, or a script whose body calls the network.
+ * 1-based, or 0 when none does.
+ */
+function networkAskingStep(process: readonly unknown[]): { position: number; type: string } | null {
+  for (const [index, raw] of process.entries()) {
+    const step = raw as { type?: string; disabled?: boolean; args?: { content?: unknown } } | null;
+    if (!step || step.disabled) continue;
+    if (step.type === "Resolve Domain Operator") return { position: index + 1, type: step.type };
+    if ((step.type === "Script Operator" || step.type === "Script Filter") && /\$substore\.http|\bfetch\(/.test(String(step.args?.content ?? ""))) return { position: index + 1, type: step.type };
+  }
+  return null;
+}
 
 export type PlansHarnessState = "ok" | "denied" | "large" | "failed" | "promoted" | "partial" | "stale" | "closure" | "bind" | "sibling" | "applied" | "rejected";
 
@@ -65,6 +116,8 @@ interface Staged {
   source: string;
   migrated: boolean;
   process?: unknown[];
+  /** The whole staged record, which get answers beside the live one; absent for a seeded revision that has only its steps. */
+  record?: FleetRecord;
 }
 
 interface PlanRow {
@@ -128,6 +181,18 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
   }
   if (byId("legacy-left")) {
     staged.set("legacy-left", { revision: LEFT_STAGED, at: new Date(Date.now() - 3_600_000).toISOString(), source: "fleet", migrated: true });
+  }
+  for (const seed of planStagedRecords()) {
+    const record = byId(seed.id);
+    if (!record) continue;
+    staged.set(seed.id, {
+      revision: hex(`staged:${seed.id}:1`),
+      at: new Date(Date.now() - seed.minutesAgo * 60_000).toISOString(),
+      source: record.source ?? "",
+      migrated: false,
+      process: seed.process,
+      record: { ...record, process: seed.process },
+    });
   }
 
   function addPlan(row: Omit<PlanRow, "approval_id" | "plan_sha256" | "created_at" | "updated_at">, text?: string): PlanRow {
@@ -208,6 +273,20 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     return records.some((member) => gathers(record, member) && fleetReach(member.id, seen));
   }
   const liveShares = (ids: string[]) => shares.filter((entry) => ids.includes(entry.subscription_id) && !(entry as { archived_at?: string }).archived_at);
+  /** The fleet-bound collections that gather a record directly (the plugin's fleetGatherers). */
+  function gatherersOf(record: FleetRecord): string[] {
+    return records.filter((candidate) => candidate.kind === "collection" && gathers(candidate, record) && fleetReach(candidate.id)).map((candidate) => candidate.id).sort();
+  }
+  /** A record's steps on a side of a plan: its staged revision's, or its live ones. */
+  const stepsAt = (id: string, side: "live" | "staged") => (side === "staged" ? staged.get(id)?.process ?? byId(id)?.process : byId(id)?.process) ?? [];
+  /** A section's chain as core writes it: each side's digest, and the step changes between them. */
+  function chainOf(id: string, before: "live" | "staged" | "", after: "live" | "staged" | "") {
+    const a = before ? stepsAt(id, before) : [];
+    const b = after ? stepsAt(id, after) : [];
+    const digest = (steps: unknown[]) => hex(`chain:${JSON.stringify(steps)}`) + hex(`chain2:${JSON.stringify(steps)}`);
+    const changes = before && after ? chainChanges(a, b).map(coreChainLine) : !before && after ? chainChanges([], b).map(coreChainLine) : [];
+    return { ...(before ? { before: digest(a) } : {}), ...(after ? { after: digest(b) } : {}), ...(changes.length ? { changes } : {}) };
+  }
 
   // ── the list ─────────────────────────────────────────────────────────────
 
@@ -248,6 +327,16 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
   /** bind.preview over a record, with its staged chain in place when `useStaged`. */
   function bindFor(id: string, identity: string, useStaged: boolean): { entries: any[]; excluded: any[] } {
     const record = byId(id);
+    // A provider record carries no fleet line: only its own nodes, which no identity diff counts as lines.
+    if (record && record.kind !== "collection" && record.source !== "fleet" && !(useStaged && staged.get(id)?.source === "fleet")) {
+      return {
+        entries: [
+          { index: 0, provider: true, name: "Provider HK 01", protocol: "trojan", server: "hk1.provider.example", port: 443, digest: "p-hk01" },
+          { index: 1, provider: true, name: "Provider JP 02", protocol: "vmess", server: "jp2.provider.example", port: 8443, digest: "p-jp02" },
+        ],
+        excluded: [],
+      };
+    }
     const entry = staged.get(id);
     const before = record?.process;
     const swap = record && useStaged && entry?.process;
@@ -263,7 +352,8 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
 
   function buildPlan(primary: string, promoted: string[], changes: Record<string, string>, archive: string[], mode: string, action: string) {
     const sections: any[] = [];
-    const ids = mode === "delete" ? [primary] : [...new Set(promoted.flatMap((id) => closureOf(id)))];
+    // A delete's closure holds the collections that read the record, whose holders lose its nodes (S2-SR-1).
+    const ids = [...new Set((mode === "delete" ? [primary] : promoted).flatMap((id) => closureOf(id)))];
     const totals = { shares: 0, unbound_shares: 0, identities: 0, added: 0, removed: 0, changed: 0, excluded: 0 };
     const assignments: any[] = [];
     const clearings: any[] = [];
@@ -289,19 +379,34 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
           // A combination over a promoted member receives that member's staged lines.
           const collection = byId(id);
           const members = !promoted.includes(id) && collection ? promoted.filter((member) => byId(member) && gathers(collection, byId(member)!)) : [];
-          const bound =
-            mode === "delete"
-              ? { entries: [], excluded: [] }
-              : members.length
-                ? members.map((member) => bindFor(member, identity, true)).reduce((all, one) => ({ entries: [...all.entries, ...one.entries], excluded: [...all.excluded, ...one.excluded] }))
-                : bindFor(id, identity, promoted.includes(id));
+          const bindAt = (useStaged: boolean) =>
+            members.length
+              ? members.map((member) => bindFor(member, identity, useStaged)).reduce((all, one) => ({ entries: [...all.entries, ...one.entries], excluded: [...all.excluded, ...one.excluded] }))
+              : bindFor(id, identity, useStaged && promoted.includes(id));
+          const bound = mode === "delete" ? { entries: [], excluded: [] } : bindAt(true);
+          // A share that already served this identity is diffed against what it serves now; one given the identity by this plan gains every line.
+          const before = mode === "promote" && entry.identity_id && !assigned && (members.length || promoted.includes(id)) ? bindAt(false) : null;
+          const lineOf = (e: any) => e.line_uuid as string;
+          const beforeLines = new Set((before?.entries ?? []).filter((e: any) => !e.provider).map(lineOf));
+          const afterLines = new Set(bound.entries.filter((e: any) => !e.provider).map(lineOf));
+          // A collection reading a deleted provider record loses that record's nodes; the record's own holders lose everything.
+          const deleteLoss =
+            id === primary
+              ? [{ line_uuid: "", names: ["every line"], digest: "" }]
+              : [
+                  { line_uuid: "", names: ["Provider HK 01"], digest: "p-hk01" },
+                  { line_uuid: "", names: ["Provider JP 02"], digest: "p-jp02" },
+                ];
           identities.set(identity, {
             identity_id: identity,
-            added: bound.entries.filter((e) => !e.provider).map((e) => ({ line_uuid: e.line_uuid, names: [e.label || e.name], digest: e.digest })),
-            removed: mode === "delete" ? [{ line_uuid: "", names: ["every line"], digest: "" }] : [],
+            added: bound.entries.filter((e) => !e.provider && !beforeLines.has(lineOf(e))).map((e) => ({ line_uuid: e.line_uuid, names: [e.label || e.name], digest: e.digest })),
+            removed:
+              mode === "delete"
+                ? deleteLoss
+                : (before?.entries ?? []).filter((e: any) => !e.provider && !afterLines.has(lineOf(e))).map((e: any) => ({ line_uuid: e.line_uuid, names: [e.label || e.name], digest: e.digest })),
             changed: [],
             excluded: bound.excluded.map((e) => ({ line_uuid: e.line_uuid, name: e.name, reason: e.reason })),
-            unchanged: 0,
+            unchanged: [...afterLines].filter((line) => beforeLines.has(line)).length,
           });
         }
         const lines = identities.get(identity)!;
@@ -328,18 +433,22 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
         totals.removed += identity.removed.length;
         totals.excluded += identity.excluded.length;
       }
+      const role = mode === "delete" ? (id === primary ? "delete" : "dependent") : mode === "promote" && promoted.includes(id) ? "promote" : id === primary ? "self" : "dependent";
+      // Every harness record has a live revision, so a promotion's chain always has its before side.
+      const chain = role === "promote" ? chainOf(id, "live", "staged") : role === "delete" ? chainOf(id, "live", "") : chainOf(id, "live", "live");
       sections.push({
         subscription_id: id,
-        role: id === primary ? "self" : promoted.includes(id) ? "promoted" : "dependent",
+        role,
         from_revision: liveRevision(id),
         ...(promoted.includes(id) && staged.get(id) ? { to_revision: staged.get(id)!.revision } : {}),
+        chain,
         totals: { ...totals },
         shares: sectionShares,
         unbound_shares: unbound,
         identities: [...identities.values()],
       });
     }
-    const first = sections[0] ?? { shares: [], unbound_shares: [], identities: [] };
+    const first = sections[0] ?? { shares: [], unbound_shares: [], identities: [], chain: undefined };
     return {
       kind: "sub-store.plan",
       plugin_id: "latticenet.sub-store",
@@ -350,6 +459,7 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
       mode,
       totals,
       primary_totals: first.totals ?? totals,
+      ...(first.chain ? { chain: first.chain } : {}),
       shares: first.shares,
       unbound_shares: first.unbound_shares,
       coverage: "An unbound share on a fleet-bound record answers the decoy.",
@@ -403,7 +513,20 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
         );
       }
     }
-    const closure = mode === "delete" || mode === "clear" ? [primary] : [...new Set(promoted.flatMap((id) => closureOf(id)))];
+    // Core renders what each record of the plan would serve; a fleet render whose script asks for the network is refused (S2-SR-2).
+    for (const id of mode === "promote" ? promoted : mode === "delete" ? [] : [primary]) {
+      const asking = fleetReach(id) || staged.get(id)?.source === "fleet" ? networkAskingStep(stepsAt(id, mode === "promote" ? "staged" : "live")) : null;
+      if (asking) {
+        const typed = {
+          code: SCRIPT_NETWORK_CODE,
+          record: id,
+          step: asking,
+          message: `the plan's render of record ${id} was refused: step ${asking.position} (${asking.type}) asked for the network, and scripts on fleet renders run without one until isolation lands`,
+        };
+        throw new Error(`${SCRIPT_NETWORK_CODE}: ${JSON.stringify(typed)}`);
+      }
+    }
+    const closure = mode === "clear" ? [primary] : [...new Set((mode === "delete" ? [primary] : promoted).flatMap((id) => closureOf(id)))];
     const required = Object.keys(changes).length > 0 || archive.length > 0 || liveShares(closure).some((entry) => !!entry.identity_id);
     if (!required) return { required: false, reason: "no live share in this record's fleet closure is fleet-bound; publish it" };
     const plan = buildPlan(primary, promoted, changes, archive, mode === "clear" ? "assign" : mode, action);
@@ -530,7 +653,7 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     const pin = { type: "Structured Filter", args: { mode: "keep", match: "all", predicates: [{ field: "line_uuid", op: "in", values: roots }] } };
     const process = graph && roots.length ? [pin, ...(record.process ?? [])] : [...(record.process ?? [])];
     const revision = hex(`staged:${subscription_id}:${Date.now()}`);
-    staged.set(subscription_id, { revision, at: now(), source: "fleet", migrated: true, process });
+    staged.set(subscription_id, { revision, at: now(), source: "fleet", migrated: true, process, record: { ...record, source: "fleet", process } });
     const warnings: string[] = [];
     if (graph) {
       const rows = catalogueRows().filter((row) => roots.includes(row.line_uuid));
@@ -586,7 +709,60 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
         { ids: [payload.subscription_id] },
       );
     }
+    const record = byId(payload.subscription_id);
+    const gatherers = record ? gatherersOf(record) : [];
+    if (gatherers.length) {
+      return refused(
+        "fleet_delete_requires_plan",
+        `subscription "${payload.subscription_id}" is gathered by the fleet-bound collections ${gatherers.join(", ")}; delete it through plans.propose with action delete`,
+        { ids: [payload.subscription_id], collections: gatherers },
+      );
+    }
     return remove(payload);
+  };
+
+  // ── a provider member's save stages; get answers the staged revision ─────
+
+  const save = handlers["subscription/save"]!;
+  handlers["subscription/save"] = (payload: { subscription: FleetRecord; if_revision?: string }) => {
+    const next = payload.subscription;
+    const current = byId(next.id);
+    if (!s2Manifest() || !plansFixture() || !current || next.kind === "collection" || next.kind === "file" || next.source === "fleet" || fleetReach(next.id)) {
+      return save(payload);
+    }
+    // Gathered at its live facts or at the ones this save writes (a tag that joins a member tag).
+    const gatherers = [...new Set([...gatherersOf(current), ...gatherersOf({ ...current, ...next })])];
+    if (!gatherers.length) return save(payload);
+    const before = staged.get(next.id);
+    const revision = hex(`staged:${next.id}:${Date.now()}`);
+    staged.set(next.id, { revision, at: now(), source: next.source ?? current.source ?? "", migrated: false, process: next.process ?? [], record: { ...current, ...next } });
+    for (const plan of plans) {
+      if (before && plan.subscription_id === next.id && plan.to_revision === before.revision && plan.status === "pending") {
+        plan.status = "rejected";
+        plan.reason = STALE_STAGED;
+        plan.stale = true;
+      }
+    }
+    return {
+      saved: true,
+      staged: true,
+      staged_revision: revision,
+      base_revision: liveRevision(next.id),
+      subscription: { ...current, ...next, revision },
+      ...(before ? { discarded_staged: before.revision } : {}),
+    };
+  };
+
+  const get = handlers["subscription/get"]!;
+  handlers["subscription/get"] = (payload: { subscription_id: string }) => {
+    const reply = get(payload) as { subscription: FleetRecord };
+    const entry = s2Manifest() ? staged.get(payload.subscription_id) : undefined;
+    if (!entry?.record) return reply;
+    return {
+      ...reply,
+      live_revision: liveRevision(payload.subscription_id),
+      staged: { revision: entry.revision, base_revision: liveRevision(payload.subscription_id), staged_at: entry.at, subscription: { ...entry.record, revision: entry.revision } },
+    };
   };
 
   const withheld = (id: string) =>
@@ -604,10 +780,30 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     }
     return probe(payload);
   };
+  /** The plugin's refusal of a fleet render whose script asked for the network (system-go/fleet_script_network.go). */
+  function previewNetwork(payload: { subscription_id?: string; operators?: unknown[]; source?: string }): Error | null {
+    const record = payload.subscription_id ? byId(payload.subscription_id) : undefined;
+    const fleet = payload.source === "fleet" || (!!record && (record.source === "fleet" || fleetReach(record.id)));
+    if (!fleet) return null;
+    const chain = Array.isArray(payload.operators) ? payload.operators : record?.process ?? [];
+    if (!networkAskingStep(chain)) return null;
+    const label = record ? `${record.kind === "collection" ? "collection" : "subscription"} "${record.id}"` : "the fleet draft";
+    return new Error(
+      `${SCRIPT_NETWORK_CODE}: ${label} is fleet-bound, and a Script or Resolve Domain step asked for the network 1 time(s); a fleet-bound chain runs without a network until S3, so remove the network call or the step`,
+    );
+  }
   const previewHandler = handlers["subscription/preview"]!;
-  handlers["subscription/preview"] = (payload: { subscription_id?: string }) => {
+  handlers["subscription/preview"] = (payload: { subscription_id?: string; operators?: unknown[]; source?: string }) => {
     if (s2Manifest() && payload.subscription_id && legacyReach(payload.subscription_id)) throw withheld(payload.subscription_id);
+    const refusal = s2Manifest() ? previewNetwork(payload) : null;
+    if (refusal) throw refusal;
     return previewHandler(payload);
+  };
+  const previewDraftHandler = handlers["subscription/preview_draft"]!;
+  handlers["subscription/preview_draft"] = (payload: { subscription_id?: string; operators?: unknown[]; source?: string }) => {
+    const refusal = s2Manifest() ? previewNetwork(payload) : null;
+    if (refusal) throw refusal;
+    return previewDraftHandler(payload);
   };
 
   // ── bind.preview: a staged revision's chain, a document rewrite refused ───
@@ -621,6 +817,12 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     const rewrite = chain.findIndex((step) => (step as { type?: string; disabled?: boolean }).type === "Response Transformer" && !(step as { disabled?: boolean }).disabled);
     if (rewrite !== -1) {
       throw new Error(`fleet_response_chain_unavailable: subscription "${payload.subscription_id}": process step ${rewrite + 1} (Response Transformer) does not run on fleet records yet`);
+    }
+    const asking = networkAskingStep(chain);
+    if (asking) {
+      throw new Error(
+        `${SCRIPT_NETWORK_CODE}: record ${payload.subscription_id}: step ${asking.position} (${asking.type}) asked for the network; scripts on fleet renders run without one until isolation lands`,
+      );
     }
     if (record && chain !== record.process) {
       const before = record.process;
