@@ -8,7 +8,7 @@ import { useHost } from "../host";
 import { t } from "../i18n";
 import { useLensChrome } from "../lensChrome";
 import { hostOriginFromHash, postNavigate } from "../navigate";
-import { currentPlan, decoyShares, mixedBlock, pendingDelete, recordName, type PlanShareRow } from "../planFlow";
+import { currentPlan, decoyShares, fleetGatherers, isFleetBound, mixedBlock, pendingDelete, recordName, type PlanShareRow } from "../planFlow";
 import type { ActionId } from "../recordActions";
 import { recordIntent } from "../recordIntent";
 import { useSubscriptions } from "../useSubscriptions";
@@ -57,6 +57,8 @@ const plan = computed(() => {
   return found && (found.subscription_id === item.id || item.staged_revision) ? found : undefined;
 });
 const decoys = computed(() => (record.value ? decoyShares(record.value, props.shares) : []));
+/** A staged record that is not fleet-bound itself: the fleet-bound combinations whose gathering staged it (S2-SR-1). */
+const gatheredBy = computed(() => (record.value?.staged_revision && !isFleetBound(record.value) ? fleetGatherers(record.value, props.items) : []));
 const mixed = computed(() => (record.value ? mixedBlock(record.value, props.items) ?? [] : []));
 const shown = computed(() => !!record.value && (!!record.value.staged_revision || !!plan.value || decoys.value.length > 0 || mixed.value.length > 0));
 
@@ -76,6 +78,9 @@ function openApprovals(approvalId: string): void {
   <section v-if="shown && record" class="record-plan" :aria-label="t.plans.recordState.label" data-testid="record-plan-state">
     <div v-if="record.staged_revision || plan" class="record-plan__staged">
       <StagedBadge :item="record" :plans="plans" proof :hide-state="!!plan" />
+      <p v-if="gatheredBy.length" class="record-plan__why" data-testid="record-plan-gathered">
+        {{ t.plans.stagedSave.gatheredBy(gatheredBy.map((item) => recordName(item)).join(", "), gatheredBy.length) }}
+      </p>
       <PlanStatus
         v-if="plan"
         :plan="plan"
@@ -136,6 +141,11 @@ function openApprovals(approvalId: string): void {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   min-width: 0;
+}
+.record-plan__why {
+  margin: 0;
+  font-size: var(--lt-text-sm);
+  max-width: var(--lt-measure-prose);
 }
 .record-plan__row {
   display: flex;

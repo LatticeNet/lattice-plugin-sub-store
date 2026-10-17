@@ -3,6 +3,7 @@ import { ref, type Ref } from "vue";
 import type { HostContext } from "./host";
 import type { ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
+import type { ScriptNetworkRefusal } from "./scriptNetwork";
 
 /**
  * One pending request from the palette to whichever screen can carry it out.
@@ -23,13 +24,43 @@ import type { PaletteCommandId } from "./commandPalette";
 export interface RecordIntent {
   recordId: string;
   action: ActionId;
+  /**
+   * With "edit": a fleet_script_network_unavailable refusal another screen
+   * met (the Fleet view's identity preview), so the editor opens at the
+   * step it names and says it there.
+   */
+  refusal?: ScriptNetworkRefusal;
+  /**
+   * With "edit": the Fleet view place the editor was opened from. When the
+   * editor closes, by Cancel or by a save, the operator goes back there
+   * rather than to the Records list (the wave 5 design review).
+   */
+  returnTo?: FleetPlace;
+}
+
+/** A place in the Fleet view: the record chosen there, the identity row, the revision previewed. */
+export interface FleetPlace {
+  record: string;
+  identity: string;
+  revision: "live" | "staged";
+}
+
+/**
+ * Back to the Fleet view from the editor a FleetPlace opened. `edited` is
+ * the record the editor held, which for a member's step is not the record
+ * chosen in the Fleet view. `saved` says whether the editor closed on a
+ * save, `staged` whether that save waits as a staged revision, and `notice`
+ * is what the save said, for the Fleet view to say beside the identity.
+ */
+export interface FleetReturnIntent {
+  fleet: FleetPlace & { edited: string; saved: boolean; staged: boolean; notice: string };
 }
 
 export interface CommandIntent {
   command: PaletteCommandId;
 }
 
-export type PendingIntent = RecordIntent | CommandIntent | null;
+export type PendingIntent = RecordIntent | CommandIntent | FleetReturnIntent | null;
 
 const pending = new WeakMap<object, Ref<PendingIntent>>();
 
@@ -49,6 +80,10 @@ export function isCommandIntent(intent: PendingIntent): intent is CommandIntent 
   return intent !== null && "command" in intent;
 }
 
+export function isFleetReturnIntent(intent: PendingIntent): intent is FleetReturnIntent {
+  return intent !== null && "fleet" in intent;
+}
+
 /**
  * Take the intent if it is for this screen, leaving it in place otherwise.
  *
@@ -58,7 +93,7 @@ export function isCommandIntent(intent: PendingIntent): intent is CommandIntent 
  */
 export function claimIntent(
   slot: Ref<PendingIntent>,
-  owns: (intent: RecordIntent | CommandIntent) => boolean,
+  owns: (intent: Exclude<PendingIntent, null>) => boolean,
 ): PendingIntent {
   const intent = slot.value;
   if (intent === null || !owns(intent)) return null;

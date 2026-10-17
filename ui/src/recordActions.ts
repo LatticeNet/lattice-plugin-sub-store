@@ -1,6 +1,6 @@
 import { BINDINGS, KIND_COLLECTION, KIND_FILE, KIND_SUB, type MethodBinding, type SubStoreShareRow, type SubscriptionListItem } from "./client";
 import { t } from "./i18n";
-import { darkenedShares, decoyShares, isFleetBound, isLegacyRecord, servesOwnerCredentials, type PlanShareRow } from "./planFlow";
+import { darkenedShares, decoyShares, gathersByTag, isFleetBound, isLegacyRecord, servesOwnerCredentials, type PlanShareRow } from "./planFlow";
 import { shareStateOf } from "./shareState";
 
 /**
@@ -400,8 +400,9 @@ export interface DeletePrompt {
  * The live shares a delete reaches, each as one line. A share on a deleted
  * record, or on a file that loses its node source, stops serving. A share on
  * a file that draws from a combination losing a member keeps serving, with
- * fewer nodes. Downstream is followed to the end: a combination that loses a
- * member feeds its change to the files that draw from it.
+ * fewer nodes, and so does a share on a combination that gathers a deleted
+ * record by tag. Downstream is followed to the end: a combination that
+ * loses a member feeds its change to the files that draw from it.
  */
 function servedBy(doomed: ReadonlySet<string>, items: readonly SubscriptionListItem[], shares: readonly SubStoreShareRow[], now: number): string[] {
   const byId = new Map(items.map((item) => [item.id, item]));
@@ -419,7 +420,15 @@ function servedBy(doomed: ReadonlySet<string>, items: readonly SubscriptionListI
       if (item.kind === KIND_FILE && source && broken.has(source)) {
         broken.add(item.id);
         grew = true;
-      } else if (!changed.has(item.id) && ((source && changed.has(source)) || (item.members ?? []).some((member) => broken.has(member) || changed.has(member)))) {
+      } else if (
+        !changed.has(item.id) &&
+        ((source && changed.has(source)) ||
+          (item.members ?? []).some((member) => broken.has(member) || changed.has(member)) ||
+          [...broken, ...changed].some((id) => {
+            const gathered = byId.get(id);
+            return !!gathered && gathersByTag(item, gathered);
+          }))
+      ) {
         changed.add(item.id);
         grew = true;
       }
@@ -445,8 +454,12 @@ function servedBy(doomed: ReadonlySet<string>, items: readonly SubscriptionListI
  * The records that break are found rather than described: a combination
  * names its parts in `members`, and a file draws its nodes from
  * `node_source`, so the warning lists the actual names, and a record with no
- * dependents carries no warning about dependents. Files have none (nothing
- * may draw from a file), so a set of files gets the shorter sentence.
+ * dependents carries no warning about dependents. A combination that
+ * gathers a record by tag does not break, it serves fewer nodes, so it is
+ * said in the sentence rather than listed with what breaks; before, a
+ * record gathered by tag read "Nothing else in this store points at it"
+ * (the lane 6c design review). Files have none (nothing may draw from a
+ * file), so a set of files gets the shorter sentence.
  *
  * With the share list read, the live shares the delete changes are named by
  * path, and a one-record delete that changes one asks for the record's name
@@ -479,16 +492,24 @@ export function deletePrompt(
     return { title: t.deletion.filesTitle(count, sharesNote), names, consequences: [], served, confirmText };
   }
   const consequences: string[] = [];
+  const gatherers: string[] = [];
+  const doomedItems = ids.map((id) => byId.get(id)).filter((item): item is SubscriptionListItem => !!item);
   for (const item of items) {
     if (doomed.has(item.id)) continue;
     if ((item.members ?? []).some((member) => doomed.has(member))) {
       consequences.push(t.deletion.consequenceMember(label(item)));
     } else if (item.node_source && doomed.has(item.node_source)) {
       consequences.push(t.deletion.consequenceSource(label(item)));
+    } else if (doomedItems.some((gone) => gathersByTag(item, gone))) {
+      gatherers.push(label(item));
     }
   }
-  if (!consequences.length) return { title: t.deletion.noDependents(count, sharesNote), names, consequences, served, confirmText };
-  return { title: t.deletion.withDependents(count, consequences.length, sharesNote), names, consequences, served, confirmText };
+  const note = gatherers.length ? `${t.deletion.gatheredByTag(gatherers.join(", "), gatherers.length, count)} ${sharesNote}` : sharesNote;
+  if (!consequences.length) {
+    const title = gatherers.length ? t.deletion.notNamed(count, note) : t.deletion.noDependents(count, note);
+    return { title, names, consequences, served, confirmText };
+  }
+  return { title: t.deletion.withDependents(count, consequences.length, note), names, consequences, served, confirmText };
 }
 
 /**

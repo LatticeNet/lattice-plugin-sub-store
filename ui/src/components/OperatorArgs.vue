@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useId } from "vue";
 import { X } from "@lucide/vue";
 
 import type { CatalogueRow } from "../fleet";
@@ -41,6 +41,14 @@ const emit = defineEmits<{
 }>();
 
 const schema = computed(() => schemaFor(props.type));
+
+/**
+ * Each field's visible label names its control (aria-labelledby). The label
+ * was a bare span, so a script step's source select and its code editor had
+ * no accessible name, which axe reports as serious once a step is open.
+ */
+const autoId = useId();
+const labelId = (key: string) => `${props.idPrefix ?? autoId}-${key}-label`;
 
 function set(key: string, value: unknown): void {
   const next = { ...props.args };
@@ -220,13 +228,14 @@ function setRaw(text: string): void {
       </p>
 
       <div v-for="field in schema.fields" :key="field.key" class="op-field">
-        <span class="op-label">{{ field.label }}</span>
+        <span :id="labelId(field.key)" class="op-label">{{ field.label }}</span>
 
         <input
           v-if="field.kind === 'text'"
           type="text"
           autocomplete="off"
           spellcheck="false"
+          :aria-labelledby="labelId(field.key)"
           :placeholder="field.placeholder"
           :value="textValue(field)"
           @input="set(field.key, ($event.target as HTMLInputElement).value)"
@@ -235,6 +244,7 @@ function setRaw(text: string): void {
         <input
           v-else-if="field.kind === 'number'"
           type="number"
+          :aria-labelledby="labelId(field.key)"
           :value="textValue(field)"
           @input="set(field.key, parseNumericArg(($event.target as HTMLInputElement).value))"
         />
@@ -244,6 +254,7 @@ function setRaw(text: string): void {
           class="code-area"
           rows="3"
           spellcheck="false"
+          :aria-labelledby="labelId(field.key)"
           :placeholder="field.placeholder"
           :value="textValue(field)"
           @input="setLines(field, ($event.target as HTMLTextAreaElement).value)"
@@ -254,12 +265,14 @@ function setRaw(text: string): void {
           :model-value="textValue(field)"
           language="javascript"
           :rows="8"
+          :aria-labelledby="labelId(field.key)"
           @update:model-value="(value: string) => set(field.key, value)"
         />
 
         <select
           v-else-if="field.kind === 'select'"
           class="select"
+          :aria-labelledby="labelId(field.key)"
           :value="textValue(field) || field.default"
           @change="set(field.key, ($event.target as HTMLSelectElement).value)"
         >

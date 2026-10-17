@@ -61,6 +61,13 @@ onBeforeUnmount(() => window.removeEventListener("message", onMessage));
 </template>
 
 <style>
+/* The bar sticks over the top of the page, and production has nothing
+   there: a scroll into view (a records notice brought into view, a row
+   given focus) lands below it, where production shows it, rather than
+   under it. */
+html {
+  scroll-padding-top: 40px;
+}
 .dev-bar {
   position: sticky;
   top: 0;

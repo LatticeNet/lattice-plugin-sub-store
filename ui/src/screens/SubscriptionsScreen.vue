@@ -34,7 +34,7 @@ import PagerFooter from "../components/PagerFooter.vue";
 import UsageBar from "../components/UsageBar.vue";
 import { closeTopOverlay, overlayDepth } from "../overlayStack";
 import { actionCapabilities, batchActionsFor, deletePrompt, ownLiveShares, rowMenuFor, type ActionCapabilities, type ActionId } from "../recordActions";
-import { claimIntent, isCommandIntent, isRecordIntent, recordIntent } from "../recordIntent";
+import { claimIntent, isCommandIntent, isRecordIntent, recordIntent, type FleetPlace } from "../recordIntent";
 import { anchorAfterDelete, focusRowAfterDelete } from "../rowFocus";
 import { isSelectCell } from "../selectCell";
 import { useRecordEditor } from "../useRecordEditor";
@@ -81,14 +81,18 @@ import {
   type KindFacet,
 } from "../recordTable";
 import { knownFileType, useSubscriptions, type PlanOutcome } from "../useSubscriptions";
-import type { PlanStatus as PlanStatusRow } from "../fleet";
+import { planState, type PlanStatus as PlanStatusRow } from "../fleet";
+import type { ScriptNetworkRefusal } from "../scriptNetwork";
 import { useSubscriptionOps } from "../useSubscriptionOps";
 import {
   currentPlan,
   darkenedShares,
   decoyShares,
+  deleteNeedsPlan,
+  fleetGatherers,
   isFleetBound,
   mixedBlock,
+  promotesOtherRevision,
   recordName,
   servesOwnerCredentials,
   shortRevision,
@@ -124,6 +128,7 @@ const editor = useRecordEditor({
   subs,
   clearListState: () => clearTransientListState(),
   onSaved: (id: string | null) => { if (id) recount(id); },
+  onClosed: (closed) => afterEditorClosed(closed),
 });
 const fileEditor = useFileEditor({
   host,
@@ -131,6 +136,7 @@ const fileEditor = useFileEditor({
   clearListState: () => clearTransientListState(),
   // The registered depth, not a hand-written list of overlays.
   overlayOpen: () => overlayDepth() > 0 || !!openMenuId.value,
+  onClosed: (closed) => afterEditorClosed(closed),
 });
 const editing = computed(() => editor.editing.value || fileEditor.editing.value);
 
@@ -429,12 +435,14 @@ function menuTrigger(id: string): HTMLElement | null {
 /**
  * Where focus goes back when an overlay a row action opened closes. The menu
  * item that was pressed is gone by then, so an overlay opened from the menu
- * returns to the menu's button in the row; any other control returns to
- * itself.
+ * returns to the menu's button in the row. So does one opened from a records
+ * notice's action ("Publish staged revision" beside a staged save): opening
+ * the flow clears the notice and its button with it, and focus fell to the
+ * body (the lane 6c design review). Any other control returns to itself.
  */
 function overlayTrigger(event: Event | undefined, rowId: string): HTMLElement | null {
   const target = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
-  return target?.closest(".rec-menu") ? menuTrigger(rowId) : target;
+  return target?.closest(".rec-menu, .records-notice") ? menuTrigger(rowId) ?? target : target;
 }
 
 async function toggleRowMenu(id: string): Promise<void> {
@@ -486,6 +494,9 @@ const flowTrigger = ref<HTMLElement | null>(null);
 const discarding = ref<SubscriptionListItem | null>(null);
 const discardBusy = ref(false);
 
+/** The Fleet view place an edit was started from, until its editor closes. */
+const editReturn = ref<FleetPlace | null>(null);
+
 /**
  * Requests from the palette and the header, which can see every record but
  * cannot open this screen's drawers or editors.
@@ -496,6 +507,7 @@ watch(
   (value) => {
     if (isCommandIntent(value)) {
       claimIntent(intent, () => true);
+      editReturn.value = null;
       if (value.command === "new-file") fileEditor.startCreate();
       else editor.startCreate(value.command === "new-collection" ? KIND_COLLECTION : KIND_SUB);
       return;
@@ -504,6 +516,10 @@ watch(
     const row = subs.items.value.find((item) => item.id === value.recordId);
     if (!row) return;
     claimIntent(intent, () => true);
+    // An edit the Fleet view started goes back there when its editor closes; any other request forgets that.
+    editReturn.value = value.action === "edit" && value.returnTo ? value.returnTo : null;
+    // A refused step another screen met opens at the step, with the refusal.
+    if (value.action === "edit" && value.refusal) return void flowEditSteps(row.id, value.refusal.step?.position, value.refusal);
     runRowAction(value.action, row, new MouseEvent("click"));
   },
   { immediate: true },
@@ -529,13 +545,16 @@ function runRowAction(id: ActionId, row: SubscriptionListItem, event: MouseEvent
   if (id === "publish") return openDrawer("publish", row.id, event);
   if (id === "duplicate") return void subs.duplicate(row.id);
   // A fleet-bound record's delete changes what its identity holders
-  // receive, so it goes through a plan (s2-plan section 2.6).
-  if (id === "delete") return isFleetBound(row) ? openFlow("delete", row, event) : requestDelete([row.id]);
+  // receive, so it goes through a plan (s2-plan section 2.6), and so does
+  // the delete of a record a fleet-bound combination gathers (S2-SR-1).
+  if (id === "delete") return deleteNeedsPlan(row, subs.items.value) ? openFlow("delete", row, event) : requestDelete([row.id]);
   if (id === "publish-staged") return void publishStaged(row, event);
   if (id === "discard-staged") return requestDiscard(row);
   if (id === "migrate") {
     // From the withheld notice in the record's editor: the editor gives way
     // first, or asks about its unsaved edits and the operator comes back.
+    // The migration opens here, so the editor's way back to the Fleet view goes.
+    editReturn.value = null;
     if (editor.editing.value) {
       editor.exit.leaveEditor();
       if (editor.editing.value) return;
@@ -571,10 +590,12 @@ function flowDone(text: string): void {
 async function publishStaged(row: SubscriptionListItem, event?: Event): Promise<void> {
   const trigger = overlayTrigger(event, row.id);
   // A plan already waits on this revision, or failed or went stale over it:
-  // the sheet opens on that plan rather than filing a second one.
+  // the sheet opens on that plan rather than filing a second one. A plan
+  // over a revision a later save replaced is not about this one, so Publish
+  // files a new plan for the revision staged now.
   await subs.loadPlans([row.id]);
   const existing = currentPlan(subs.plansByRecord.value[row.id] ?? [], row);
-  if (existing) {
+  if (existing && !promotesOtherRevision(existing, row)) {
     closeRowMenu();
     flowTrigger.value = trigger;
     flow.value = { mode: "publish", id: row.id, outcome: null, plan: existing };
@@ -591,6 +612,7 @@ async function publishStaged(row: SubscriptionListItem, event?: Event): Promise<
     }
     if (outcome.kind === "error") {
       subs.actionError.value = outcome.message;
+      void revealOutcome();
       return;
     }
     flowTrigger.value = trigger;
@@ -613,7 +635,7 @@ const discardDialog = computed(() => {
   const consequences = [
     facts.neverLive ? t.plans.discard.neverLive(shortRevision(facts.revision)) : t.plans.discard.keepsLive(shortRevision(facts.revision), shortRevision(facts.live)),
   ];
-  if (plan && plan.status === "pending") consequences.push(t.plans.discard.stalesPlan(plan.approval_id));
+  if (plan && planState(plan) === "pending") consequences.push(t.plans.discard.stalesPlan(plan.approval_id));
   return { title: t.plans.discard.title, names: [recordName(row)], consequences };
 });
 /** The discard's notes are what happens, not records it breaks. */
@@ -691,11 +713,31 @@ function flowOpenRecord(id: string): void {
   chrome.openRecord(id);
 }
 
-/** The migration was abandoned to fix a step: the record's editor, on its steps. */
-async function flowEditSteps(id: string): Promise<void> {
+/**
+ * A step to fix (an abandoned migration, a step core refused): the record's
+ * editor on its steps, at the step when one is named, carrying the refusal
+ * so the editor says it beside the step and flags it.
+ */
+async function flowEditSteps(id: string, position?: number, refusal?: ScriptNetworkRefusal): Promise<void> {
   flow.value = null;
   await editor.startEdit(id);
-  if (editor.editing.value && editor.editingId.value === id) editor.editorTab.value = "operations";
+  if (!editor.editing.value || editor.editingId.value !== id) return;
+  editor.carryRefusal(refusal);
+  if (position) editor.openStep(position);
+  else editor.editorTab.value = "operations";
+}
+
+/** The row a staged save left waiting, while its notice shows: Publish sits beside it. */
+const stagedSaveRow = computed(() => {
+  const saved = subs.stagedSave.value;
+  const row = saved ? subs.items.value.find((item) => item.id === saved.id) : undefined;
+  return row && row.staged_revision ? row : undefined;
+});
+
+/** The fleet-bound combinations that gather a row that is not fleet-bound itself (S2-SR-1), by name. */
+function gatheredByNames(row: SubscriptionListItem): string[] {
+  if (!row.staged_revision || isFleetBound(row)) return [];
+  return fleetGatherers(row, subs.items.value).map((item) => recordName(item));
 }
 
 /** The shares that answer the decoy, and the identities that buy nothing, per row. */
@@ -814,9 +856,40 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-function requestDelete(ids: string[]): void {
+/**
+ * Ask to delete `ids`. A record whose delete is a plan (fleet-bound, or
+ * gathered by a fleet-bound combination) never reaches the plain dialog,
+ * which would offer a Delete the store refuses and say nothing points at
+ * a record a combination gathers (the lane 6c design review): one such
+ * record opens the plan flow, as its row menu does; in a batch with others
+ * it is left out and named, and offered as a plan once the batch is done;
+ * a batch of only such records says they go one at a time.
+ */
+function requestDelete(ids: string[], event?: Event): void {
   closeRowMenu();
-  deleting.value = ids;
+  const planned = ids
+    .map((id) => subs.items.value.find((item) => item.id === id))
+    .filter((item): item is SubscriptionListItem => !!item && deleteNeedsPlan(item, subs.items.value));
+  if (planned.length && planned.length === ids.length) {
+    if (planned.length === 1) return openFlow("delete", planned[0]!, event);
+    subs.notice.value = "";
+    subs.deleteNeedsPlan.value = planned[0]!.id;
+    subs.actionError.value = t.deletion.allThroughPlans(planned.map((item) => recordName(item)).join(", "), recordName(planned[0]));
+    void revealOutcome();
+    return;
+  }
+  const left = new Set(planned.map((item) => item.id));
+  deletingLeftOut.value = planned.map((item) => item.id);
+  deleting.value = ids.filter((id) => !left.has(id));
+}
+/** Records a batch delete leaves out because their delete is a plan; offered once the batch is done. */
+const deletingLeftOut = ref<string[]>([]);
+const deleteLeftOutNote = computed(() =>
+  deleting.value.length && deletingLeftOut.value.length ? t.deletion.leftForPlan(namesFor(deletingLeftOut.value).join(", "), deletingLeftOut.value.length) : "",
+);
+function cancelDelete(): void {
+  deleting.value = [];
+  deletingLeftOut.value = [];
 }
 /** The dialog's words, from the one builder every surface uses: what breaks is listed by name. */
 const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value, shares.value));
@@ -834,6 +907,8 @@ async function runDelete(): Promise<void> {
   deleteBusy.value = true;
   deleteRemainder.value = null;
   const queue = [...deleting.value];
+  const leftOut = deletingLeftOut.value;
+  deletingLeftOut.value = [];
   const done: string[] = [];
   // Read before the rows go: the row that will sit where they were.
   const anchor = anchorAfterDelete(sorted.value.map((row) => row.id), queue);
@@ -857,11 +932,83 @@ async function runDelete(): Promise<void> {
     deleting.value = [];
     // Kept when there is a remainder to retry, so the untouched records need not be found again.
     if (!deleteRemainder.value) selectedIds.value = new Set();
-    if (done.length) {
+    // What the batch left for a plan, with the way to it, once the rest is done.
+    if (leftOut.length && !deleteRemainder.value) {
+      subs.deleteNeedsPlan.value = leftOut[0]!;
+      const deleted = subs.notice.value;
+      subs.actionError.value = [deleted, t.deletion.leftForPlanAfter(namesFor(leftOut).join(", "), leftOut.length, namesFor([leftOut[0]!])[0]!)].filter(Boolean).join(" ");
+    }
+    // A refusal, a failure or a record left for a plan: the delete did not
+    // do all it was asked, and the notice says how to finish, so it is
+    // brought into view with focus on its way forward. A delete that went
+    // through puts focus on the row that took the deleted rows' place, as
+    // before, even when its notice offers Open in Publishing for a share it
+    // left serving nothing.
+    if (subs.actionError.value) void revealOutcome();
+    else if (done.length) {
       await nextTick();
       focusRowAfterDelete(listRoot.value, anchor);
     }
   }
+}
+
+/**
+ * A records action's outcome, on screen with focus on what comes next.
+ *
+ * The notices sit above the table, and the action that raised one often
+ * ended far below it: a save from an editor scrolled down to its chain, a
+ * delete from the batch bar under row 30. The list came back with the
+ * notice and its only button out of view, and a mouse user saw a normal
+ * list with no sign that the save had not gone live (the wave 5 design
+ * review). Focus goes to the notice's follow-up when it has one (Publish
+ * staged revision, Delete through a plan, Open in Publishing), else to the
+ * notice, which is then read out.
+ */
+async function revealOutcome(): Promise<void> {
+  await nextTick();
+  if (editing.value) return;
+  const notice = document.querySelector<HTMLElement>(".lens.records .records-notice");
+  if (!notice) return;
+  notice.scrollIntoView({ block: "nearest" });
+  const action = notice.querySelector<HTMLElement>(".pc-notice-actions button:not(:disabled)");
+  (action ?? notice).focus({ preventScroll: true });
+}
+
+/** The edited record's row, in view and focused, when the editor closes on nothing new to say. */
+async function returnToRow(id: string): Promise<void> {
+  await nextTick();
+  if (editing.value) return;
+  const active = document.activeElement;
+  if (active && active !== document.body) return;
+  const row = document.querySelector<HTMLElement>(`[data-record-open="${cssEscape(id)}"]`);
+  if (!row) return;
+  row.scrollIntoView({ block: "center" });
+  row.focus({ preventScroll: true });
+}
+
+/**
+ * Where the operator lands when an editor closes.
+ *
+ * Opened from the Fleet view ("Open step" beside a refused identity), the
+ * editor goes back there: the Fleet view keeps the record, the identity and
+ * the button the operator left from, and after a save it previews that
+ * identity again. Before, Cancel and Save both ended on this list, scrolled
+ * to wherever the editor had been, with the identity's preview three clicks
+ * away (the wave 5 design review). Opened here, a save's notice is the
+ * outcome and is brought into view; a leave without a save goes back to the
+ * record's row.
+ */
+function afterEditorClosed(closed: { id: string | null; saved: boolean }): void {
+  const back = editReturn.value;
+  editReturn.value = null;
+  if (back) {
+    const staged = closed.saved && !!closed.id && subs.stagedSave.value?.id === closed.id;
+    chrome.openLens("fleet");
+    intent.value = { fleet: { ...back, edited: closed.id ?? "", saved: closed.saved, staged, notice: closed.saved ? subs.notice.value : "" } };
+    return;
+  }
+  if (closed.saved) void revealOutcome();
+  else if (closed.id) void returnToRow(closed.id);
 }
 
 function retryDeleteRemainder(): void {
@@ -1301,16 +1448,27 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       <p class="pc-sr-only" role="status" aria-live="polite" data-testid="records-live">{{ liveMessage }}</p>
       <p id="records-grip-help" class="pc-sr-only">{{ t.records.gripHelp }}</p>
 
-      <PcNotice v-if="subs.actionError.value" tone="danger" data-testid="records-error-notice">
+      <PcNotice v-if="subs.actionError.value" class="records-notice" tone="danger" tabindex="-1" data-testid="records-error-notice">
         {{ subs.actionError.value }}
         <template v-if="planDeleteRow" #actions>
           <PcButton compact data-testid="records-delete-plan" @click="openFlow('delete', planDeleteRow)">{{ t.plans.deleteThroughPlan }}</PcButton>
         </template>
       </PcNotice>
-      <PcNotice v-else-if="subs.notice.value" tone="success">
+      <PcNotice v-else-if="subs.notice.value" class="records-notice" :tone="stagedSaveRow ? 'info' : 'success'" tabindex="-1" :data-testid="stagedSaveRow ? 'records-staged-notice' : undefined">
         {{ subs.notice.value }}
         <template v-if="subs.brokenShares.value.length && shareOrigin" #actions>
           <PcButton compact @click="openPublishing()">{{ t.records.openInPublishing }}</PcButton>
+        </template>
+        <template v-else-if="stagedSaveRow" #actions>
+          <PcButton
+            compact
+            :disabled="!subs.canPropose.value || !subs.canPublishPlan.value"
+            :title="!subs.canPropose.value ? t.plans.cannotPropose : !subs.canPublishPlan.value ? t.plans.cannotPublish : t.plans.actions.publishStagedTitle"
+            data-testid="records-publish-staged"
+            @click="publishStaged(stagedSaveRow, $event)"
+          >
+            {{ t.plans.actions.publishStaged }}
+          </PcButton>
         </template>
       </PcNotice>
       <PcNotice v-if="migrateSummary" tone="success">{{ migrateSummary }}</PcNotice>
@@ -1338,11 +1496,14 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
       <!-- A batch delete that stopped part way: what that means for the rest. -->
       <PcNotice
         v-if="deleteRemainder"
+        class="records-notice"
         tone="warning"
         :title="t.records.remainderTitle(deleteRemainder.done.length, deleteRemainder.pending.length)"
+        data-testid="records-delete-remainder"
       >
         {{ t.records.remainderBefore }} <strong>{{ namesFor([deleteRemainder.failed])[0] }}</strong>{{ t.records.remainderAfter }}
-        <ul class="partial-strip__names">
+        <!-- Focusable, since a long list scrolls inside its own box and a keyboard has to reach it. -->
+        <ul class="partial-strip__names" tabindex="0" :aria-label="t.records.remainderTitle(deleteRemainder.done.length, deleteRemainder.pending.length)">
           <li v-for="name in namesFor([deleteRemainder.failed, ...deleteRemainder.pending])" :key="name" class="pc-mono">
             {{ name }}
           </li>
@@ -1693,7 +1854,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
                       <span v-else-if="cell(row).published.unknown" class="layer-muted">{{ t.records.publishedUnknown }}</span>
                       <span v-else-if="shares !== undefined" class="layer-muted">{{ t.publish.none }}</span>
                     </span>
-                    <StagedBadge :item="row" :plans="subs.plansByRecord.value[row.id]" />
+                    <StagedBadge :item="row" :plans="subs.plansByRecord.value[row.id]" :gathered-by="gatheredByNames(row)" />
                     <small v-if="decoyCount(row)" class="rec-decoy" :title="t.plans.decoyTitle" data-testid="record-decoy">{{ t.plans.decoyCell(decoyCount(row)) }}</small>
                     <small v-if="darkenedCount(row)" class="rec-decoy" :title="t.plans.darkenedTitle" data-testid="record-darkened">{{ t.plans.darkenedCell(darkenedCount(row)) }}</small>
                   </td>
@@ -1799,7 +1960,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
           compact
           :disabled="action.disabled"
           :title="action.reason || undefined"
-          @click="requestDelete(selectedVisible.map((row) => row.id))"
+          @click="requestDelete(selectedVisible.map((row) => row.id), $event)"
         >
           <template #icon><Trash2 :size="13" aria-hidden="true" /></template>
           {{ t.records.batchVerb(action.label, selectedCount) }}
@@ -1843,10 +2004,11 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
         :consequences="deleteDialog.consequences"
         :served="deleteDialog.served"
         :confirm-text="deleteDialog.confirmText"
+        :note="deleteLeftOutNote"
         :focus-record="deleting[0] ?? ''"
         :busy="deleteBusy"
         @confirm="runDelete()"
-        @cancel="deleting = []"
+        @cancel="cancelDelete()"
       />
     </section>
 
@@ -1929,5 +2091,25 @@ small.rec-blocked {
 .records-table .pc-table[data-stacked="true"] td.rec-published > .staged-badge,
 .records-table .pc-table[data-stacked="true"] td.rec-published > .rec-decoy {
   flex-basis: 100%;
+}
+/* An action's outcome is brought into view with focus on it (revealOutcome):
+   a little room above it, and a ring when the keyboard put it there. */
+.records-notice {
+  scroll-margin-top: var(--space-3);
+}
+.records-notice:focus-visible {
+  outline: none;
+  box-shadow: var(--lt-focus-ring);
+}
+/* Below 480px a notice's action takes a line of its own under the sentence,
+   rather than a right-hand column that squeezes it to two words a line. */
+@media (max-width: 479px) {
+  .records-notice {
+    flex-wrap: wrap;
+  }
+  .records-notice :deep(.pc-notice-actions) {
+    flex-basis: 100%;
+    margin-left: calc(17px + var(--space-2));
+  }
 }
 </style>

@@ -37,6 +37,7 @@ import {
   type IdentitiesReply,
   type Identity,
 } from "./fleet";
+import { NETWORK_STEP_TYPES, type ScriptNetworkRefusal } from "./scriptNetwork";
 import { safeErrorMessage } from "./subStoreModel";
 import {
   applyCommonSettings,
@@ -512,6 +513,14 @@ export interface RecordEditorOptions {
   clearListState: () => void;
   /** Re-read a saved record's node count. */
   onSaved: (id: string | null) => void;
+  /**
+   * The editor gave way to the screen: a save went through (`saved`), or
+   * the operator left it (Cancel, the breadcrumb, Escape, keeping the other
+   * version of a stale save). Not called when the editor reopens on the
+   * current version, which closes and opens it in one step. `id` is the
+   * record it held, null for a record never saved.
+   */
+  onClosed?: (closed: { id: string | null; saved: boolean }) => void;
 }
 
 /**
@@ -705,11 +714,63 @@ export function useRecordEditor(options: RecordEditorOptions) {
     markPristine();
   }
 
+  /**
+   * The staged revision the editor opened on, with the live revision that
+   * keeps serving, or null when it opened on the live record.
+   */
+  const editingStaged = ref<{ revision: string; live: string } | null>(null);
+
+  /**
+   * The step the chain should open, scroll to and focus: a 0-based index
+   * into the stored steps, with a ticket so asking for the same step twice
+   * opens it twice. Set by openStep, from a refusal that names a step.
+   */
+  const stepToOpen = ref<{ index: number; ticket: number } | null>(null);
+  let stepTicket = 0;
+
+  /**
+   * A refusal another surface opened this editor to fix (the plan flow's
+   * "Open step" on fleet_script_network_unavailable), with the step it
+   * named as it stood then. The editor says it and flags the step until the
+   * operator changes that step, or the editor closes, a save included: once
+   * the step differs, the refusal is about a chain that is gone. Before
+   * this, the plan's "Open step" landed on a bare chain, and nothing on
+   * screen tied the bar to the refusal (the lane 6c design review).
+   */
+  const carried = ref<{ refusal: ScriptNetworkRefusal; step: string } | null>(null);
+  function carryRefusal(refusal: ScriptNetworkRefusal | null | undefined): void {
+    if (!refusal) {
+      carried.value = null;
+      return;
+    }
+    const position = refusal.step?.position ?? 0;
+    const stored = position ? (draft.value.process[position - 1] as { type?: unknown } | undefined) : undefined;
+    // A position that no longer holds a step that can ask (a migration
+    // abandoned, so the legacy chain is numbered differently) names no step.
+    const holds = !!stored && typeof stored.type === "string" && NETWORK_STEP_TYPES.has(stored.type);
+    carried.value = {
+      refusal: holds ? refusal : { ...refusal, step: null },
+      step: holds ? JSON.stringify(stored) : "",
+    };
+  }
+  /** The carried refusal while the step it named is unchanged. */
+  const carriedRefusal = computed(() => {
+    const entry = carried.value;
+    if (!entry || !editing.value) return null;
+    const position = entry.refusal.step?.position ?? 0;
+    if (position && JSON.stringify(draft.value.process[position - 1]) !== entry.step) return null;
+    return entry.refusal;
+  });
+
   async function startEdit(id: string): Promise<void> {
     clearTransientListState();
     subs.clearMessages();
-    const record = await subs.get(id);
-    if (!record) return;
+    const opened = await subs.getForEdit(id);
+    if (!opened) return;
+    const record = opened.record;
+    editingStaged.value = opened.staged ? { revision: record.revision ?? "", live: opened.liveRevision } : null;
+    stepToOpen.value = null;
+    carried.value = null;
     fleet.reset();
     storedSource.value = record.source ?? "";
     draft.value = draftFromRecord(record);
@@ -812,7 +873,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     // open, so the eighth one cannot be left out of this line the way the Files
     // editor was left out of its own.
     overlayOpen: () => overlayDepth() > 0,
-    leave: () => cancelEdit(),
+    leave: () => close(false),
   });
   const { discarding, markPristine } = exit;
   const editorDirty = exit.dirty;
@@ -822,6 +883,9 @@ export function useRecordEditor(options: RecordEditorOptions) {
     exit.reset();
     editing.value = false;
     editingId.value = null;
+    editingStaged.value = null;
+    stepToOpen.value = null;
+    carried.value = null;
     storedSource.value = "";
     fleet.reset();
     draft.value = emptyDraft();
@@ -832,6 +896,13 @@ export function useRecordEditor(options: RecordEditorOptions) {
     // a successful save reports "Saved ..." and then leaves through here, so
     // clearing the notice too left the save with nothing to show for itself.
     subs.clearErrors();
+  }
+
+  /** cancelEdit, then tell the screen where the editor went. */
+  function close(saved: boolean): void {
+    const id = editingId.value;
+    cancelEdit();
+    options.onClosed?.({ id, saved });
   }
 
   function parseTags(text: string): string[] {
@@ -864,7 +935,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     const ok = await subs.save(draft.value, force);
     if (ok) {
       if (editingId.value) recount(editingId.value);
-      cancelEdit();
+      close(true);
     }
   }
 
@@ -879,7 +950,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
   /** Keep their version. The editor closes and the list reloads. */
   function discardMyEdit(): void {
     subs.saveConflict.value = null;
-    cancelEdit();
+    close(false);
     void subs.load();
   }
 
@@ -912,6 +983,13 @@ export function useRecordEditor(options: RecordEditorOptions) {
    */
   type EditorTab = "display" | "content" | "operations";
   const editorTab = ref<EditorTab>("display");
+
+  function openStep(position: number): void {
+    if (!Number.isInteger(position) || position < 1) return;
+    editorTab.value = "operations";
+    stepTicket += 1;
+    stepToOpen.value = { index: position - 1, ticket: stepTicket };
+  }
   /* Getters, so a tab is named in the locale active when it is drawn. */
   const EDITOR_TABS: { id: EditorTab; readonly label: string }[] = [
     { id: "display", get label() { return t.editor.tabs.display; } },
@@ -978,7 +1056,13 @@ export function useRecordEditor(options: RecordEditorOptions) {
     // opening and closing
     startCreate,
     startEdit,
-    cancelEdit,
+    // The discard confirm's way out: a leave like Cancel, so the screen hears it.
+    cancelEdit: () => close(false),
+    editingStaged,
+    stepToOpen,
+    openStep,
+    carryRefusal,
+    carriedRefusal,
     selectSource,
     reloadGraphOptions,
     addGraphRoot,

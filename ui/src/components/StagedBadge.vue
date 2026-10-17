@@ -22,6 +22,8 @@ import { rowPlan, shortRevision, stagedFacts, stagedPlanState } from "../planFlo
  * not look like any other. A delete plan wins over a staged revision and
  * its promote plan, since the delete drops both (rowPlan). `hideState`
  * drops the state line where a plan chip beside the badge already says it.
+ * `gatheredBy` names the fleet-bound combinations that staged a record
+ * which is not fleet-bound itself (S2-SR-1); the proof says so.
  */
 const props = defineProps<{
   item: SubscriptionListItem;
@@ -29,6 +31,7 @@ const props = defineProps<{
   plans?: PlanStatus[];
   proof?: boolean;
   hideState?: boolean;
+  gatheredBy?: readonly string[];
 }>();
 
 const facts = computed(() => stagedFacts(props.item));
@@ -72,7 +75,8 @@ const proofText = computed(() => {
   if (facts.value.restored) return words.proofRestored(staged);
   if (facts.value.neverLive) return words.proofNew(staged);
   if (facts.value.migrated) return words.proofMigrated(staged, facts.value.live);
-  return words.proof(staged, facts.value.live);
+  const gathered = props.gatheredBy?.length ? ` ${t.plans.stagedSave.gatheredBy(props.gatheredBy.join(", "), props.gatheredBy.length)}` : "";
+  return `${words.proof(staged, facts.value.live)}${gathered}`;
 });
 </script>
 

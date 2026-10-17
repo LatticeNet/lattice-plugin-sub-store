@@ -56,11 +56,15 @@ export const S2_INTERFACES = [
   { service: "latticenet.sub-store/plans", methods: ["propose", "status", "publish"] },
 ];
 
-/** What a token without vpncore:read does not see (`?fleet=denied`). */
+/**
+ * What a token without vpncore:read does not see (`?fleet=denied`): the
+ * catalogue, the identities, core's bind preview, and since S2-SR-4
+ * migrate_record, which reads the catalogue to pin a graph record's roots.
+ */
 export function fleetWithheld(target: MethodBinding): boolean {
   if (fleetState() !== "denied") return false;
   if (target.service === "latticenet.sub-store/bind" && target.method === "preview") return true;
-  return target.service === "latticenet.sub-store/subscription" && (target.method === "fleet_preview" || target.method === "identities");
+  return target.service === "latticenet.sub-store/subscription" && ["fleet_preview", "identities", "migrate_record"].includes(target.method);
 }
 
 // ── evaluating a selection, the way the plugin's evaluator reads a row ────────

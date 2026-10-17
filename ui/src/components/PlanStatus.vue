@@ -4,13 +4,16 @@ import { ChevronRight, ExternalLink, RefreshCw } from "@lucide/vue";
 import { PcButton, PcStateDot, type StateTone } from "@latticenet/plugin-bridge/chassis";
 
 import type { SubscriptionListItem } from "../client";
+import { chainChangeText } from "../chainText";
 import type { BindLine, Plan } from "../core-types";
 import { planState, type Identity, type PlanStatus } from "../fleet";
 import { formatCount, formatDateTime, t } from "../i18n";
 import {
+  chainOnlyPlan,
   mayHavePromoted,
   parsePlan,
   partialApply,
+  planChainSections,
   planRevisionLines,
   planShareViews,
   planUnboundShares,
@@ -36,7 +39,11 @@ import {
  * With the plan's text, the view lists what the approver is shown: per
  * share, the lines its identity gains and loses and the lines left out with
  * the reason and the fix, then the assignments, clearings and archivals. A
- * share that receives nothing, or has lines left out, starts open. Without
+ * share that receives nothing, or has lines left out, starts open. Before
+ * the shares, each record's process steps that the plan adds, removes or
+ * changes, as core lists them (S2-SR-2): a step can change what a share
+ * serves without moving a line, so a plan whose only change is its steps
+ * says that in so many words. Without
  * the text (plans.status carries none, so a plan reopened later has only
  * its row) the view says the content is in Approvals. Every record the plan
  * promotes is named with its revisions: from the text's sections, else from
@@ -68,6 +75,8 @@ const emit = defineEmits<{
 }>();
 
 const state = computed(() => (props.plan ? planState(props.plan) : null));
+/** Approved and applied, rejected, or stale: the chain-only warning's "before approving" no longer applies. */
+const decided = computed(() => state.value === "applied" || state.value === "rejected" || state.value === "stale");
 const tone = computed<StateTone>(() => {
   switch (state.value) {
     case "applied":
@@ -103,6 +112,8 @@ function identityName(id: string): string {
 }
 
 const shares = computed(() => (parsed.value ? planShareViews(parsed.value) : []));
+const chainSections = computed(() => (parsed.value ? planChainSections(parsed.value) : []));
+const chainOnly = computed(() => (parsed.value ? chainOnlyPlan(parsed.value) : false));
 
 /** One line per record the plan moves: the text's sections, else what the surface knows, else the row's own. */
 const revisionLines = computed(() => {
@@ -235,6 +246,35 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
           {{ t.plans.view.totals(parsed.totals.shares, parsed.totals.identities, parsed.totals.added, parsed.totals.removed, parsed.totals.excluded) }}
         </p>
         <p v-if="parsed.coverage" class="plan-view__coverage">{{ parsed.coverage }}</p>
+
+        <!-- The steps each record runs, which no line count shows. -->
+        <div v-if="chainSections.length" class="plan-view__chain" data-testid="plan-chain" :data-only="chainOnly ? 'true' : undefined">
+          <h5 class="plan-view__subtitle">{{ t.plans.chain.title }}</h5>
+          <p
+            v-if="chainOnly"
+            class="plan-view__chain-only"
+            :class="{ 'is-decided': decided }"
+            data-testid="plan-chain-only"
+            :data-decided="decided ? 'true' : undefined"
+          >
+            {{ decided ? t.plans.chain.onlyChainDecided : t.plans.chain.onlyChain }}
+          </p>
+          <p v-else class="plan-view__chain-intro">{{ t.plans.chain.intro }}</p>
+          <div v-for="section in chainSections" :key="section.record" class="plan-chain" data-testid="plan-chain-section" :data-record="section.record">
+            <p v-if="chainSections.length > 1 || multiRecord" class="plan-chain__record">{{ nameOf(section.record) }}</p>
+            <ul class="plan-chain__lines">
+              <li
+                v-for="(change, index) in section.changes"
+                :key="index"
+                data-testid="plan-chain-line"
+                :data-verb="change.kind === 'step' ? change.verb : change.kind"
+                :data-position="change.kind === 'step' ? change.position : undefined"
+              >
+                {{ chainChangeText(change) }}
+              </li>
+            </ul>
+          </div>
+        </div>
 
         <ul v-if="parsed.assignments?.length || parsed.clearings?.length || parsed.archivals?.length" class="plan-view__changes" data-testid="plan-changes">
           <li v-for="entry in parsed.assignments ?? []" :key="`a-${entry.share_id}`" data-testid="plan-assignment">
@@ -381,6 +421,50 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
   font-size: var(--lt-text-xs);
   color: var(--muted-foreground);
   max-width: var(--lt-measure-prose);
+}
+.plan-view__chain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.plan-view__subtitle {
+  margin: 0;
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.plan-view__chain-intro {
+  margin: 0;
+  font-size: var(--lt-text-xs);
+  color: var(--muted-foreground);
+  max-width: var(--lt-measure-prose);
+}
+/* The one thing an approver must read when no line moves: drawn as the partial-apply notice is. */
+.plan-view__chain-only {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--warning);
+  background: var(--lt-warn-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--lt-text-sm);
+  max-width: var(--lt-measure-prose);
+}
+/* A decided plan's note is a fact about what it did, not a warning to act on. */
+.plan-view__chain-only.is-decided {
+  border-left-color: var(--border);
+  background: var(--muted);
+}
+.plan-chain__record {
+  margin: var(--space-1) 0 0;
+  font-size: var(--lt-text-xs);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.plan-chain__lines {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--lt-text-sm);
+  overflow-wrap: anywhere;
 }
 .plan-view__changes,
 .plan-view__shares,

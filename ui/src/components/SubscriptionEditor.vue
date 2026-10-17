@@ -16,6 +16,7 @@ import MaskedUrlInput from "./MaskedUrlInput.vue";
 import MemberPicker from "./MemberPicker.vue";
 import ProcessChain, { type ChainStep } from "./ProcessChain.vue";
 import RegexRewriteOffer from "./RegexRewriteOffer.vue";
+import ScriptNetworkNotice from "./ScriptNetworkNotice.vue";
 import SubscriptionPreviewSummary from "./SubscriptionPreviewSummary.vue";
 import WithheldNotice from "./WithheldNotice.vue";
 import LtButton from "./lt/LtButton.vue";
@@ -35,7 +36,10 @@ import {
 } from "../client";
 import { DEFAULT_PROBE_FAILURES, MAX_PROBE_FAILURES, MIN_PROBE_FAILURES, type FleetOptions } from "../fleet";
 import { t } from "../i18n";
+import { currentPlan, recordName, shortRevision } from "../planFlow";
+import { planState } from "../fleet";
 import { editorLanguageForRender } from "../previewLanguage";
+import { refusedStepIn, scriptNetworkRefusal, type ResolvedStep } from "../scriptNetwork";
 import type { UseSubscriptions } from "../useSubscriptions";
 import { isLegacySource, type RecordEditor } from "../useRecordEditor";
 
@@ -99,6 +103,11 @@ const {
   chainCount,
   storedSource,
   fleet,
+  editingStaged,
+  stepToOpen,
+  openStep,
+  startEdit,
+  carriedRefusal,
 } = props.editor;
 
 function setEditorTab(id: string): void {
@@ -127,15 +136,80 @@ const withheld = computed(
 );
 
 /**
- * The page's error, unless it is the withheld preview the pane already
- * states in its own notice: the same refusal twice, once raw, reads as a
- * failure when it is a rule.
+ * A fleet render's script asked for the network (S2-SR-2): the preview pane
+ * says which step and offers it, and the chain marks it. The refusal names
+ * the record it is about; one that names another record (a member's chain
+ * read through this combination) is offered as that record's steps.
+ */
+const networkRefusal = computed(() => (previewCode.value === ERROR_CODES.fleetScriptNetworkUnavailable ? scriptNetworkRefusal(props.subs.previewError.value) : null));
+const refusalElsewhere = computed(() => {
+  const named = networkRefusal.value?.record ?? "";
+  return !!named && named !== (editingId.value ?? "") && named !== draft.value.id;
+});
+const refusedStep = computed<ResolvedStep | null>(() => {
+  const refusal = networkRefusal.value;
+  if (!refusal) return null;
+  if (refusalElsewhere.value) return refusal.step ? { ...refusal.step, certain: false } : null;
+  return refusedStepIn(refusal, draft.value.process, !isCollection.value);
+});
+/**
+ * The refusal the plan flow opened this editor for ("Open step"), until
+ * the step it named changes or the editor closes; the editor's own preview
+ * refusal, when there is one, says it instead.
+ */
+const carried = computed(() => (networkRefusal.value ? null : carriedRefusal.value));
+const carriedStep = computed<ResolvedStep | null>(() => (carried.value ? refusedStepIn(carried.value, draft.value.process, !isCollection.value) : null));
+/** The step the chain marks: the preview's refusal's, else the carried one's. */
+const flagged = computed<ResolvedStep | null>(() => (refusedStep.value && !refusalElsewhere.value ? refusedStep.value : carriedStep.value));
+const refusalRecordName = computed(() => {
+  if (!refusalElsewhere.value) return t.plans.scriptNetwork.thisRecord;
+  const id = networkRefusal.value!.record;
+  return recordName(props.subs.items.value.find((item) => item.id === id), id);
+});
+/** Another record's steps open in place of this draft only when nothing here is unsaved. */
+const canOpenRefusedStep = computed(() => !refusalElsewhere.value || (!editorDirty.value && props.subs.items.value.some((item) => item.id === networkRefusal.value?.record)));
+async function openRefusedStep(position: number | null): Promise<void> {
+  if (refusalElsewhere.value) {
+    const id = networkRefusal.value?.record ?? "";
+    if (!id || editorDirty.value) return;
+    await startEdit(id);
+    if (editingId.value !== id) return;
+  }
+  if (position) openStep(position);
+  else editorTab.value = "operations";
+}
+
+/**
+ * The page's error, unless it is a refusal the preview pane already states
+ * in its own notice (the withheld preview, the script network): the same
+ * refusal twice, once raw, reads as a failure when it is a rule.
  */
 const actionError = computed(() => {
   const message = props.subs.actionError.value;
-  if (withheld.value && message && message === props.subs.previewError.value) return "";
+  if ((withheld.value || networkRefusal.value) && message && message === props.subs.previewError.value) return "";
   return message;
 });
+
+/**
+ * The pending plan over the staged revision this editor opened on: a save
+ * replaces that revision, so the plan goes stale, and the notice says so
+ * before the save, as Discard and Delete do (the lane 6c design review).
+ */
+const stagedPlan = computed(() => {
+  const staged = editingStaged.value;
+  const id = editingId.value ?? "";
+  if (!staged || !id) return null;
+  const item = props.subs.items.value.find((entry) => entry.id === id);
+  const plan = item ? currentPlan(props.subs.plansByRecord.value[id] ?? [], item) : undefined;
+  return plan && plan.subscription_id === id && plan.to_revision === staged.revision && planState(plan) === "pending" ? plan : null;
+});
+watch(
+  () => (editingStaged.value && props.subs.canReadPlans.value ? editingId.value ?? "" : ""),
+  (id) => {
+    if (id) void props.subs.loadPlans([id]);
+  },
+  { immediate: true },
+);
 
 /** The fleet preview's document: the record's client format over placeholder credentials. */
 const placeholderDoc = computed(() => {
@@ -236,6 +310,27 @@ function onUsageInput(): void {
 
     <!-- Why the editor opened, when another surface opened it for a reason (lane 6b: "Remove from <combination>"). -->
     <slot name="notice" />
+
+    <!-- The staged revision is what this editor opened, and what a save builds on. -->
+    <PcNotice v-if="editingStaged" tone="info" data-testid="editor-staged">
+      <p class="editor-staged__line">
+        {{ editingStaged.live ? t.plans.stagedSave.editing(shortRevision(editingStaged.revision), shortRevision(editingStaged.live)) : t.plans.stagedSave.editingNew(shortRevision(editingStaged.revision)) }}
+      </p>
+      <p v-if="stagedPlan" class="editor-staged__line" data-testid="editor-staged-plan">
+        {{ t.plans.stagedSave.stalesPlan(stagedPlan.approval_id, shortRevision(stagedPlan.to_revision)) }}
+      </p>
+    </PcNotice>
+
+    <!-- The plan flow's "Open step" on a refused render: the refusal comes with it, beside the step it names. -->
+    <div v-if="carried" class="editor-carried-refusal" data-testid="editor-carried-refusal">
+      <ScriptNetworkNotice
+        :refusal="carried"
+        :record-name="t.plans.scriptNetwork.thisRecord"
+        :step="carriedStep"
+        :can-open="true"
+        @open-step="(position) => (position ? openStep(position) : (editorTab = 'operations'))"
+      />
+    </div>
 
     <div v-if="actionError" class="alert" role="alert">
       <CircleAlert :size="16" aria-hidden="true" /> {{ actionError }}
@@ -652,6 +747,9 @@ function onUsageInput(): void {
           :probe-unavailable="fleet.probeMissing.value"
           :can-preview-step="canPreviewNow"
           :previewing-step="subs.previewing.value ? subs.previewStep.value : null"
+          :open-step="stepToOpen"
+          :flagged-step="flagged ? flagged.position - 1 : null"
+          :flagged-certain="flagged?.certain ?? false"
           @update:steps="draft.process = $event"
           @preview-step="previewUpToStep"
         />
@@ -742,6 +840,15 @@ function onUsageInput(): void {
         :deltas="explanation?.deltas ?? []"
         :dropped-by="explanation?.droppedBy"
       />
+      <ScriptNetworkNotice
+        v-else-if="networkRefusal"
+        :refusal="networkRefusal"
+        :record-name="refusalRecordName"
+        :step="refusedStep"
+        :can-open="canOpenRefusedStep"
+        :other-record="refusalElsewhere"
+        @open-step="openRefusedStep"
+      />
       <p v-else-if="subs.previewError.value" class="editor-side-note is-error" role="alert" data-testid="preview-error">
         {{ subs.previewError.value }}
       </p>
@@ -771,7 +878,15 @@ function onUsageInput(): void {
           <p v-if="!fleet.identityId.value && fleet.identitiesState.value === 'ready' && fleet.identities.value.length" class="editor-side-note">
             {{ t.fleetEditor.identity.choose }}
           </p>
-          <BindPreviewList v-if="fleet.identityId.value" :fleet="fleet" @open-line="openLine = $event" />
+          <BindPreviewList
+            v-if="fleet.identityId.value"
+            :fleet="fleet"
+            :steps="draft.process"
+            :record-id="editingId ?? ''"
+            :own-chain-only="!isCollection"
+            @open-line="openLine = $event"
+            @open-step="(position) => (position ? openStep(position) : (editorTab = 'operations'))"
+          />
         </template>
       </section>
       </PcPanelBody>
@@ -796,6 +911,18 @@ function onUsageInput(): void {
 </template>
 
 <style scoped>
+.editor-staged__line {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.editor-staged__line + .editor-staged__line {
+  margin-top: var(--space-1);
+}
+/* Apart from the staged notice above it and the tabs below, so the two
+   notices do not read as one box. */
+.editor-carried-refusal {
+  margin: var(--space-2) 0 var(--space-3);
+}
 /* A card the record may not choose stays readable: its reason replaces its
    detail, and it does not take the hover a choosable card takes. */
 .source.is-disabled { cursor: not-allowed; opacity: 0.72; }

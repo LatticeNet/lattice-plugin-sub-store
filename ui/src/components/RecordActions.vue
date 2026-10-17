@@ -6,7 +6,7 @@ import { useHost } from "../host";
 import { t } from "../i18n";
 import { PLAN_FLOW_ACTIONS, actionCapabilities, deletePrompt, ownLiveShares, rowMenuFor, type ActionId } from "../recordActions";
 import { useLensChrome } from "../lensChrome";
-import { isFleetBound } from "../planFlow";
+import { deleteNeedsPlan } from "../planFlow";
 import { recordIntent } from "../recordIntent";
 import { useOverlayRegistration } from "../useOverlayRegistration";
 import type { Pipeline } from "../usePipeline";
@@ -120,7 +120,8 @@ async function run(id: ActionId): Promise<void> {
   const item = record.value;
   if (!item) return;
   close(id !== "output");
-  if (PLAN_FLOW_ACTIONS.includes(id) || (id === "delete" && isFleetBound(item))) {
+  // A delete goes through a plan for a fleet-bound record and for one a fleet-bound combination gathers (S2-SR-1).
+  if (PLAN_FLOW_ACTIONS.includes(id) || (id === "delete" && deleteNeedsPlan(item, props.pipe.items.value))) {
     handOver(id, item.id);
     return;
   }
