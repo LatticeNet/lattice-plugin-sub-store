@@ -52,6 +52,15 @@ import { THEMES, VIEWPORTS, flow, focusInSheet, menuItem, openMenu, openPlans, r
  *                        batch it is left out, named, and offered after
  *   fleet refusal        the Fleet view's identity preview says the refused
  *                        step and opens it in the editor
+ *
+ * And the fixes the wave 5 design review asked for:
+ *   outcome in view      a staged save from a scrolled editor, a batch
+ *                        delete that leaves a record for a plan, and a plain
+ *                        delete the store refused each bring their notice
+ *                        into view, with focus on what comes next
+ *   fleet return         Cancel and Save from the Fleet view's Open step
+ *                        come back to the Fleet view at the identity, and a
+ *                        save previews it again
  */
 
 const PAID = "Paid provider extra";
@@ -87,6 +96,24 @@ async function closeUp(locator: Locator, name: string, meta: { width: number; th
   mkdirSync(dir, { recursive: true });
   await locator.screenshot({ path: join(dir, `zz-${name}-${meta.width}-${meta.theme}-${meta.locale ?? "en"}.png`) });
 }
+
+/**
+ * The viewport, which is what the operator sees, into SHOTS_DIR as vp-…: a
+ * full-page shot shows a notice whether or not it is in view.
+ */
+async function viewShot(page: Page, name: string, meta: { width: number; theme: Theme; locale?: Locale }): Promise<void> {
+  const dir = process.env.SHOTS_DIR;
+  if (!dir) return;
+  mkdirSync(dir, { recursive: true });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: join(dir, `vp-${name}-${meta.width}-${meta.theme}-${meta.locale ?? "en"}.png`) });
+}
+
+/** A layer switch fades the layer in; axe reads colours mid-fade as low contrast, so wait it out. */
+const layerSettled = (page: Page) => page.locator(".lens-panel").evaluate((panel) => Promise.all(panel.getAnimations().map((animation) => animation.finished)).then(() => undefined));
+
+/** Down to the bottom of the frame, where an operator who edited a chain or ticked rows far down is. */
+const toBottom = (page: Page) => page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 
 /** The notice's sentence keeps the notice's width: an action beside it at 375 squeezed it to a word a line. */
 async function textHoldsWidth(notice: Locator): Promise<void> {
@@ -451,6 +478,91 @@ for (const viewport of VIEWPORTS) {
         await expect(step.getByTestId("step-network-flag")).toBeVisible();
         await settled(page, viewport.width);
         await shot(page, "fleet-network-open-step", meta());
+      });
+
+      test("outcome in view: a records action's notice comes into view with focus on what comes next", async ({ page }) => {
+        // A staged save from the bottom of the editor: the notice and its Publish, not the list at the editor's offset.
+        await openPlans(page, { theme });
+        await editRecord(page, PAID);
+        await operationsTab(page);
+        await page.locator(".chain-step").first().locator(".step-toggle input").uncheck();
+        await toBottom(page);
+        expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+        await page.getByRole("button", { name: m.editor.save, exact: true }).click();
+        await expect(page.locator("#editor-title")).toHaveCount(0);
+        const staged = page.getByTestId("records-staged-notice");
+        await expect(staged).toContainText(m.plans.stagedSave.gathered(PLUS, 1));
+        await expect(staged).toBeInViewport({ ratio: 1 });
+        await expect(staged.getByTestId("records-publish-staged")).toBeFocused();
+        await viewShot(page, "outcome-staged-save", meta());
+
+        // A batch delete started under the rows that leaves a record for a plan: Delete through a plan, in view and focused.
+        await openPlans(page, { theme });
+        await row(page, "paid-extra").locator("input[type=checkbox]").first().check();
+        await row(page, "late-legacy").locator("input[type=checkbox]").first().check();
+        await toBottom(page);
+        await page.locator(".pc-batch-bar").getByRole("button", { name: new RegExp(m.actions.delete) }).click();
+        await page.locator(".lt-dialog").getByRole("button", { name: m.common.delete, exact: true }).click();
+        const leftOver = page.getByTestId("records-error-notice");
+        await expect(leftOver).toContainText(m.deletion.leftForPlanAfter(PAID, 1, PAID));
+        await expect(leftOver).toBeInViewport({ ratio: 1 });
+        await expect(leftOver.getByTestId("records-delete-plan")).toBeFocused();
+        await viewShot(page, "outcome-batch-delete", meta());
+
+        // A plain delete the store refused: the refusal and Delete through a plan, in view and focused.
+        await openPlans(page, { theme, query: "&flags=stale" });
+        await row(page, "paid-extra").locator("input[type=checkbox]").first().check();
+        await toBottom(page);
+        await page.locator(".pc-batch-bar").getByRole("button", { name: new RegExp(m.actions.delete) }).click();
+        const dialog = page.locator(".lt-dialog");
+        await dialog.locator(".lt-dialog-input").fill(PAID);
+        await dialog.getByRole("button", { name: m.common.delete, exact: true }).click();
+        const refused = page.getByTestId("records-error-notice");
+        await expect(refused).toContainText(m.plans.refusal.notDeleted(m.plans.stagedSave.gatheredDelete(PLUS, 1)));
+        await expect(refused).toBeInViewport({ ratio: 1 });
+        await expect(refused.getByTestId("records-delete-plan")).toBeFocused();
+        await viewShot(page, "outcome-plain-refused", meta());
+        await settled(page, viewport.width);
+      });
+
+      test("fleet return: Cancel and Save from Open step come back to the Fleet view at the identity, and a save previews it again", async ({ page }) => {
+        await openPlans(page, { view: "fleet", theme });
+        const osaka = page.locator('[data-testid="fleet-record"][data-record="osaka-lookup"]');
+        await osaka.click();
+        const alice = page.locator('[data-testid="fleet-identity"][data-identity="vu_alice"]');
+        await alice.getByTestId("fleet-identity-toggle").click();
+        const openStep = alice.getByTestId("script-network-refusal").getByTestId("script-network-open-step");
+        await openStep.click();
+        await page.locator("#editor-title").waitFor();
+        await page.getByRole("button", { name: m.common.cancel, exact: true }).click();
+
+        // The Fleet view again: the same record, the identity still open with its refusal, focus on the button it left from.
+        await expect(page.getByTestId("fleet-view")).toBeVisible();
+        await expect(page.locator("#editor-title")).toHaveCount(0);
+        await expect(osaka).toHaveClass(/is-selected/);
+        await expect(alice.getByTestId("fleet-identity-toggle")).toHaveAttribute("aria-expanded", "true");
+        await expect(openStep).toBeFocused();
+        await expect(openStep).toBeInViewport({ ratio: 1 });
+        await layerSettled(page);
+        await settled(page, viewport.width);
+        await viewShot(page, "fleet-return-cancel", meta());
+
+        // Fix the step and save: back again, and the identity previewed again on the revision the save made.
+        await openStep.click();
+        await page.locator("#editor-title").waitFor();
+        await page.locator('.chain-step[data-step-index="1"]').locator(".step-toggle input").uncheck();
+        await page.getByRole("button", { name: m.editor.save, exact: true }).click();
+        await expect(page.getByTestId("fleet-view")).toBeVisible();
+        await expect(osaka).toHaveClass(/is-selected/);
+        await expect(alice.getByTestId("script-network-refusal")).toHaveCount(0);
+        await expect(alice.getByTestId("fleet-identity-result")).toHaveText(/\d/);
+        await expect(alice.getByTestId("fleet-identity-result")).not.toHaveAttribute("data-error", "true");
+        await expect(alice.getByTestId("fleet-action-note")).toHaveText(m.subs.saved("osaka-lookup"));
+        await expect(alice.getByTestId("fleet-identity-toggle")).toBeFocused();
+        await expect(alice.getByTestId("fleet-identity-toggle")).toBeInViewport({ ratio: 1 });
+        await layerSettled(page);
+        await settled(page, viewport.width);
+        await viewShot(page, "fleet-return-save", meta());
       });
 
       test("applied and rejected: a decided plan that changes a step keeps its step lines", async ({ page }) => {
