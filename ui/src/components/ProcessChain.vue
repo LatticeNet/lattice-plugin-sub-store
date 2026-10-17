@@ -266,12 +266,14 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
             :title="label(entry.step, entry.index + 1)"
             @click="expanded = expanded === entry.index ? null : entry.index"
           >
-            <ChevronRight
-              :size="14"
-              aria-hidden="true"
-              :class="['step-caret', { 'is-open': expanded === entry.index }]"
-            />
-            <span class="step-label">{{ label(entry.step, entry.index + 1) }}</span>
+            <span class="step-title-name">
+              <ChevronRight
+                :size="14"
+                aria-hidden="true"
+                :class="['step-caret', { 'is-open': expanded === entry.index }]"
+              />
+              <span class="step-label">{{ label(entry.step, entry.index + 1) }}</span>
+            </span>
             <span v-if="isFleetStep(entry.step.type)" class="step-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
             <span v-if="entry.step.disabled" class="badge" data-tone="warning">{{ t.chain.off }}</span>
             <span
@@ -485,6 +487,17 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   text-align: left;
 }
 
+/* The name keeps its caret and the room it needs; the badges after it wrap
+   to a second line when they do not fit, rather than cut the name ("2. Geo
+   loo…" beside the network flag at 375). */
+.step-title { flex-wrap: wrap; row-gap: 2px; }
+.step-title-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
 .step-title:hover { background: var(--muted); }
 .step-title:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 

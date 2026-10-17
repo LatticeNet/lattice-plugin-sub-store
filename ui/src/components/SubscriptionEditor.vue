@@ -918,6 +918,11 @@ function onUsageInput(): void {
 .editor-staged__line + .editor-staged__line {
   margin-top: var(--space-1);
 }
+/* Apart from the staged notice above it and the tabs below, so the two
+   notices do not read as one box. */
+.editor-carried-refusal {
+  margin: var(--space-2) 0 var(--space-3);
+}
 /* A card the record may not choose stays readable: its reason replaces its
    detail, and it does not take the hover a choosable card takes. */
 .source.is-disabled { cursor: not-allowed; opacity: 0.72; }

@@ -96,5 +96,13 @@ const openLabel = computed(() => {
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-1);
+  min-width: 0;
+}
+/* "Open step 2 of <a long record name>" wraps inside the notice rather than
+   run past it: the chassis button does not wrap, and a 375 Fleet row cut it. */
+.sn-actions :deep(.pc-button) {
+  max-width: 100%;
+  white-space: normal;
+  text-align: start;
 }
 </style>

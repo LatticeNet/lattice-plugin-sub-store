@@ -639,7 +639,7 @@ watch(
                   :record-name="refusalRecordName(previewOf(identity.id)!.refusal!)"
                   :step="previewOf(identity.id)!.refusal!.step"
                   :can-open="subs.items.value.some((item) => item.id === (previewOf(identity.id)!.refusal!.record || chosen?.id))"
-                  other-record
+                  :other-record="!!previewOf(identity.id)!.refusal!.record && previewOf(identity.id)!.refusal!.record !== chosen?.id"
                   @open-step="openRefusedStep(previewOf(identity.id)!.refusal!)"
                 />
                 <p v-else-if="previewOf(identity.id)?.status === 'error'" class="fleet-error" role="alert" data-testid="fleet-preview-error">{{ previewOf(identity.id)!.error }}</p>

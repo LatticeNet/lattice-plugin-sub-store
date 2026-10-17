@@ -94,6 +94,13 @@ async function textHoldsWidth(notice: Locator): Promise<void> {
   expect(text!.width).toBeGreaterThan(box!.width * 0.6);
 }
 
+/** Elements inside a notice that reach past its right edge: a nowrap button cut at 375 in the Fleet view. */
+const pastEdge = (notice: Locator) =>
+  notice.evaluate((root) => {
+    const box = root.getBoundingClientRect();
+    return [...root.querySelectorAll<HTMLElement>("*")].filter((el) => el.getBoundingClientRect().right > box.right + 0.5).length;
+  });
+
 const chainLine = (t: (typeof TABLES)[Locale], verb: "added" | "removed" | "changed", position: number, type: string, note = "") =>
   `${t.plans.chain[verb](position, type)}${note ? ` (${note})` : ""}`;
 
@@ -284,6 +291,16 @@ for (const viewport of VIEWPORTS) {
         await expect(carried.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.step(2, "Script Operator", m.plans.scriptNetwork.thisRecord));
         await expect(step.getByTestId("step-network-flag")).toHaveText(m.plans.scriptNetwork.flag);
         await expect(step.locator(".step-label")).toHaveText(m.chain.stepLabel(2, "Geo lookup"));
+        // The flag wraps under the name rather than cut it at 375.
+        expect(await step.locator(".step-label").evaluate((label) => label.scrollWidth - label.clientWidth)).toBeLessThanOrEqual(0);
+        expect(await pastEdge(carried)).toBe(0);
+        // Apart from the staged notice above it, so the two do not read as one box.
+        const apart = await page.evaluate(() => {
+          const staged = document.querySelector('[data-testid="editor-staged"]')!.getBoundingClientRect();
+          const carriedBox = document.querySelector('[data-testid="editor-carried-refusal"]')!.getBoundingClientRect();
+          return carriedBox.top - staged.bottom;
+        });
+        expect(apart).toBeGreaterThanOrEqual(4);
         await settled(page, viewport.width);
         await shot(page, "propose-network-open-step", meta());
         // Once the step changes, the refusal is about a chain that is gone.
@@ -306,6 +323,7 @@ for (const viewport of VIEWPORTS) {
         await expect(refusal.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.stepCandidate(2, "Script Filter", PAID));
         await expect(entry.getByTestId("propose-step-flag")).toHaveText(m.plans.scriptNetwork.flagCandidate);
         await expect(flow(page).getByTestId("script-network-refusal")).toHaveCount(1);
+        expect(await pastEdge(refusal)).toBe(0);
         await settled(page, viewport.width);
         await shot(page, "member-network-refusal", meta());
         await closeUp(refusal, "member-network-refusal", meta());
@@ -418,6 +436,9 @@ for (const viewport of VIEWPORTS) {
         await expect(refusal.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.stepCandidate(2, "Script Operator", OSAKA));
         await expect(alice.getByTestId("fleet-identity-result")).toHaveText(m.plans.scriptNetwork.title);
         await expect(alice.getByTestId("fleet-preview-error")).toHaveCount(0);
+        // The record is the one chosen, so the button names only the step, and nothing in the notice runs past it.
+        await expect(refusal.getByTestId("script-network-open-step")).toHaveText(m.plans.scriptNetwork.openStep(2));
+        expect(await pastEdge(refusal)).toBe(0);
         await settled(page, viewport.width);
         await shot(page, "fleet-network-refusal", meta());
         await closeUp(refusal, "fleet-network-refusal", meta());
