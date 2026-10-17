@@ -2,6 +2,7 @@
 import {
   ArrowDown,
   ArrowDownToLine,
+  ArrowRightLeft,
   ArrowUp,
   ArrowUpToLine,
   CopyPlus,
@@ -9,9 +10,12 @@ import {
   Eye,
   Link,
   RefreshCw,
+  Send,
   SquareArrowOutUpRight,
   Trash2,
+  Undo2,
   Upload,
+  UserCheck,
 } from "@lucide/vue";
 import { PcIconButton } from "@latticenet/plugin-bridge/chassis";
 import { onBeforeUnmount, ref, watch } from "vue";
@@ -66,7 +70,11 @@ const emit = defineEmits<{
 /** Declarations name an icon; the mapping to a component lives here so the
  *  registry stays free of imports and can be tested without Vue. */
 /* Publish… opens the console's share form, so its icon points out of the frame. */
-const ICONS = { eye: Eye, share: SquareArrowOutUpRight, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw } as const;
+const ICONS = {
+  eye: Eye, share: SquareArrowOutUpRight, link: Link, upload: Upload, copy: CopyPlus, trash: Trash2, refresh: RefreshCw,
+  // design 28 S2's plan verbs
+  send: Send, undo: Undo2, migrate: ArrowRightLeft, identity: UserCheck,
+} as const;
 const MOVE_ICONS = { up: ArrowUp, down: ArrowDown, top: ArrowUpToLine, bottom: ArrowDownToLine } as const;
 
 function iconFor(name: string) {
@@ -172,6 +180,7 @@ onBeforeUnmount(unlisten);
         role="menuitem"
         :disabled="action.disabled"
         :title="action.reason || action.title"
+        :data-action="action.id"
         @click="emit('run', action.id, $event)"
       >
         <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />
@@ -203,6 +212,7 @@ onBeforeUnmount(unlisten);
           class="is-danger"
           :disabled="action.disabled"
           :title="action.reason || action.title"
+          :data-action="action.id"
           @click="emit('run', action.id, $event)"
         >
           <component :is="iconFor(action.icon)" :size="14" aria-hidden="true" />

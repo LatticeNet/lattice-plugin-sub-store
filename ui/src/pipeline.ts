@@ -35,8 +35,8 @@ export const STAGES: readonly Stage[] = ["source", "combination", "file", "share
  * Records lists every kind (design 28, S1); the three per-kind layers it
  * replaced still land through pageState's legacy views.
  */
-export type ViewId = "overview" | "records" | "shares" | "settings";
-export const VIEW_IDS: readonly ViewId[] = ["overview", "records", "shares", "settings"];
+export type ViewId = "overview" | "records" | "fleet" | "shares" | "settings";
+export const VIEW_IDS: readonly ViewId[] = ["overview", "records", "fleet", "shares", "settings"];
 
 export function stageOfKind(kind: string | undefined): Exclude<Stage, "share"> {
   if (kind === KIND_COLLECTION) return "combination";

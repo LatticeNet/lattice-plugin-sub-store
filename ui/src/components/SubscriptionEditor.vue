@@ -17,6 +17,7 @@ import MemberPicker from "./MemberPicker.vue";
 import ProcessChain, { type ChainStep } from "./ProcessChain.vue";
 import RegexRewriteOffer from "./RegexRewriteOffer.vue";
 import SubscriptionPreviewSummary from "./SubscriptionPreviewSummary.vue";
+import WithheldNotice from "./WithheldNotice.vue";
 import LtButton from "./lt/LtButton.vue";
 import LtConfirmDialog from "./lt/LtConfirmDialog.vue";
 import {
@@ -232,6 +233,9 @@ function onUsageInput(): void {
         <p v-else>{{ t.editor.leadSource }}</p>
       </div>
     </div>
+
+    <!-- Why the editor opened, when another surface opened it for a reason (lane 6b: "Remove from <combination>"). -->
+    <slot name="notice" />
 
     <div v-if="actionError" class="alert" role="alert">
       <CircleAlert :size="16" aria-hidden="true" /> {{ actionError }}
@@ -729,10 +733,8 @@ function onUsageInput(): void {
       </p>
       <!-- A legacy record's output is its owner-credential export, which only
            core's refresh may read (s2-plan section 1.2). -->
-      <PcNotice v-if="withheld" tone="info" :title="t.fleetEditor.withheld.title" data-testid="preview-withheld">
-        {{ t.fleetEditor.withheld.body }}
-        <code class="side-code">{{ ERROR_CODES.ownerCredentialsWithheld }}</code>
-      </PcNotice>
+      <!-- With the migration as the way out (lane 6b's MigrationFlow). -->
+      <WithheldNotice v-if="withheld" :record-id="editingId ?? ''" data-testid="preview-withheld" />
       <SubscriptionPreviewSummary
         v-else-if="subs.preview.value"
         :preview="subs.preview.value"
@@ -910,9 +912,4 @@ function onUsageInput(): void {
   border-radius: var(--radius-md);
 }
 
-.side-code {
-  margin-left: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: var(--lt-text-xs);
-}
 </style>

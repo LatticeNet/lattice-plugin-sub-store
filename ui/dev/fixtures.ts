@@ -17,6 +17,7 @@
  */
 
 import { fleetFixture } from "./fleetFixtures";
+import { planFixture } from "./planFixtures";
 
 export interface StoredRecord {
   id: string;
@@ -66,8 +67,8 @@ export interface Fixture {
   counts: Record<string, [number, number]>;
 }
 
-export type FixtureName = "production" | "failing" | "large" | "states" | "canned" | "fleet";
-export const FIXTURE_NAMES: readonly FixtureName[] = ["production", "failing", "large", "states", "canned", "fleet"];
+export type FixtureName = "production" | "failing" | "large" | "states" | "canned" | "fleet" | "plans";
+export const FIXTURE_NAMES: readonly FixtureName[] = ["production", "failing", "large", "states", "canned", "fleet", "plans"];
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -445,6 +446,8 @@ function statesFixture(): Fixture {
 export function fixture(name: FixtureName, canned: () => Fixture): Fixture {
   // Design 28 S2's fleet records over production (dev/fleetFixtures.ts).
   if (name === "fleet") return fleetFixture({ records: productionRecords(), shares: productionShares(), counts: { ...PRODUCTION_COUNTS } });
+  // Lane 6b's plan, migration and staged states over the fleet (dev/planFixtures.ts).
+  if (name === "plans") return planFixture(fleetFixture({ records: productionRecords(), shares: productionShares(), counts: { ...PRODUCTION_COUNTS } }));
   if (name === "failing") return failingFixture();
   if (name === "large") return largeFixture();
   if (name === "states") return statesFixture();

@@ -17,7 +17,7 @@ import {
   useOverlayEscape,
 } from "@latticenet/plugin-bridge/chassis";
 
-import { BINDINGS, callMethod, KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionRenderResponse } from "../client";
+import { BINDINGS, ERROR_CODES, SOURCE_FLEET, callMethod, errorCodeOf, KIND_COLLECTION, KIND_FILE, KIND_SUB, type SubscriptionRenderResponse } from "../client";
 import DocumentView from "../components/DocumentView.vue";
 import LtManualCopy from "../components/lt/LtManualCopy.vue";
 import RecordChainDetail from "../components/RecordChainDetail.vue";
@@ -40,7 +40,13 @@ import {
   usedBySentence,
 } from "../pipeline";
 import { editorLanguageForContentType } from "../previewLanguage";
-import { isFlagged } from "../recordTable";
+import { flagOf } from "../recordTable";
+import WithheldNotice from "../components/WithheldNotice.vue";
+import RecordPlanState from "../components/RecordPlanState.vue";
+import { fleetStepDeltas, withFleetDeltas, type FleetStepDelta, type PlanShareRow } from "../planFlow";
+import { stepLabelOf } from "../chainExplain";
+import type { ChainStep } from "../components/ProcessChain.vue";
+import type { FleetPreviewReply } from "../fleet";
 import { formatRelativeTime } from "../rowStatus";
 import { refreshStateFor, shareLinkOf, shareStateOf, stateTone } from "../shareState";
 import { safeErrorMessage } from "../subStoreModel";
@@ -223,6 +229,40 @@ async function copyLink(link: string): Promise<void> {
 }
 
 const outputSheet = ref(false);
+
+// ── a fleet record's Steps counts (design 28 S2) ────────────────────────────
+
+/**
+ * A cut preview of a fleet record starts from the lines its selection kept,
+ * so the first step read "23 → 23". The selection steps' counts come from
+ * fleet_preview instead: the whole catalogue before the steps core
+ * evaluates, and each local step's own in and out.
+ */
+const fleetDeltas = ref<{ deltas: FleetStepDelta[]; covered: number }>({ deltas: [], covered: 0 });
+watch(
+  () => chain.record.value,
+  async (record) => {
+    fleetDeltas.value = { deltas: [], covered: 0 };
+    if (!record || record.source !== SOURCE_FLEET || !host.bridge || !host.available(BINDINGS.subFleetPreview)) return;
+    const process = (Array.isArray(record.process) ? record.process : []) as ChainStep[];
+    try {
+      const [all, selected] = await Promise.all([
+        callMethod<FleetPreviewReply>(host.bridge, BINDINGS.subFleetPreview, { process: [], sample: 0 }).promise,
+        callMethod<FleetPreviewReply>(host.bridge, BINDINGS.subFleetPreview, { process, sample: 0 }).promise,
+      ]);
+      if (chain.record.value !== record) return;
+      fleetDeltas.value = {
+        deltas: fleetStepDeltas(selected.steps, all.count, (index) => (process[index] ? stepLabelOf(process[index]!, index) : "")),
+        covered: selected.covered,
+      };
+    } catch {
+      // The preview's counts stay; the catalogue's absence is said by the editor.
+    }
+  },
+);
+const stepDeltas = computed(() => withFleetDeltas(chain.explanation.value?.deltas || [], fleetDeltas.value.deltas, fleetDeltas.value.covered));
+const nodesWithheld = computed(() => errorCodeOf(new Error(chain.error.value || "")) === ERROR_CODES.ownerCredentialsWithheld);
+const outputWithheld = computed(() => errorCodeOf(new Error(rendered.value.error || "")) === ERROR_CODES.ownerCredentialsWithheld);
 </script>
 
 <template>
@@ -252,7 +292,7 @@ const outputSheet = ref(false);
           <PcKindChip :label="kindLabel" />
           <PcKindChip v-if="item.imported" :label="t.records.migratedTag" :title="t.record.importedTitle" />
           <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
-          <PcStateDot v-if="isFlagged(item)" tone="warning" :label="t.records.flagged" :title="t.records.flaggedTitle" data-testid="record-flagged" />
+          <PcStateDot v-if="flagOf(item)" tone="warning" :label="flagOf(item)!.label" :title="flagOf(item)!.title" data-testid="record-flagged" />
           <div class="record-actions">
             <PcButton v-if="subs.canRender.value" @click="outputSheet = true">{{ t.page.clientOutput }}</PcButton>
             <PcButton :disabled="!subs.canMutate.value" :title="subs.canMutate.value ? t.record.editTitle : t.record.editBlocked" :aria-describedby="subs.canMutate.value ? undefined : 'record-page-edit-blocked'" @click="emit('edit', id)">{{ t.actions.edit }}</PcButton>
@@ -278,9 +318,11 @@ const outputSheet = ref(false);
           <span v-if="!upstream.length && !lineageLine" class="peek-note">{{ t.page.nothingFeeds }}</span>
         </p>
         <!-- The flag's reason in words, for a pointer with no hover; Edit is the way out. -->
-        <p v-if="isFlagged(item)" class="peek-why">{{ t.records.flaggedTitle }}</p>
+        <p v-if="flagOf(item)" class="peek-why">{{ flagOf(item)!.title }}</p>
         <!-- Why Edit is disabled, in words, for the same reason. -->
         <p v-if="!subs.canMutate.value" id="record-page-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
+        <!-- design 28 S2: the staged revision, its plan, decoy shares, a mixed combination. -->
+        <RecordPlanState :id="id" :items="pipe.items.value" :shares="pipe.shares.value as PlanShareRow[] | undefined" />
         <PcProofLine :segments="proof" :refreshing="chain.loading.value" />
       </header>
 
@@ -305,6 +347,7 @@ const outputSheet = ref(false);
           <PcPanelBody>
             <p v-if="!pipe.canPreview.value" class="rec-chain-note">{{ t.page.cannotPreview }}</p>
             <PcSkeleton v-else-if="chain.loading.value || (!chain.explanation.value && !chain.error.value)" :count="3" :label="t.page.runningPreview" />
+            <WithheldNotice v-else-if="nodesWithheld && !chain.explanation.value?.final" :record-id="id" />
             <PcNotice v-else-if="chain.error.value && !chain.explanation.value?.final" tone="danger" :title="t.page.previewFailed">
               {{ chain.error.value }}
               <template #actions><PcButton compact @click="load()">{{ t.common.tryAgain }}</PcButton></template>
@@ -328,7 +371,7 @@ const outputSheet = ref(false);
               :loading="chain.loading.value"
               :error="chain.error.value"
               :steps="chain.steps.value"
-              :deltas="chain.explanation.value?.deltas || []"
+              :deltas="stepDeltas"
               :dropped="chain.explanation.value?.final?.dropped || []"
               :dropped-by="chain.explanation.value?.droppedBy"
               :dropped-count="chain.explanation.value?.final?.dropped_count || 0"
@@ -435,6 +478,7 @@ const outputSheet = ref(false);
           <PcPanelBody>
             <p v-if="!canRender" class="rec-chain-note">{{ t.page.renderNeedsAdmin }}</p>
             <PcSkeleton v-else-if="rendered.busy || (!rendered.output && !rendered.error)" :count="4" :label="t.page.rendering" />
+            <WithheldNotice v-else-if="outputWithheld" :record-id="id" />
             <PcNotice v-else-if="rendered.error" tone="danger" :title="t.page.renderFailed">
               {{ rendered.error }}
               <template #actions><PcButton compact @click="renderOutput()">{{ t.common.tryAgain }}</PcButton></template>

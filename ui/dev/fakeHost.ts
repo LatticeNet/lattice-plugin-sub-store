@@ -8,6 +8,8 @@ import { regexDiagnostics } from "../src/regexRewrite";
 import { parseUserinfo } from "../src/rowStatus";
 import { fixture, fixtureName, type Fixture, type ShareRow, type StoredRecord } from "./fixtures";
 import { S2_INTERFACES, S2_SUBSCRIPTION_METHODS, fleetWithheld, installFleet, s2Manifest } from "./fleetHost";
+import { installPlans, plansWithheld } from "./planHost";
+import type { PlanShare } from "./planFixtures";
 
 /**
  * A stand-in for the dashboard host, for looking at the UI in a browser.
@@ -871,6 +873,8 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
 // Design 28 S2: the fleet proxies, bind.preview and the fleet records'
 // previews (dev/fleetHost.ts). Inert without `?manifest=s2`.
 installFleet(HANDLERS, records);
+// Lane 6b: plans, migration, staged state (dev/planHost.ts). Inert without `?manifest=s2`.
+if (s2Manifest()) installPlans(HANDLERS, records, active.shares as PlanShare[]);
 
 /** Slight latency so loading states are visible rather than theoretical. */
 function delay<T>(value: T): Promise<T> {
@@ -1023,6 +1027,7 @@ export function createFakeHost(): HostContext {
     available: (target: MethodBinding) =>
       !WITHHELD[target.method] &&
       !fleetWithheld(target) &&
+      !plansWithheld(target) &&
       !(SHARES_WITHHELD && target.service === BINDINGS.sharesList.service) &&
       init.value?.interfaces.some(
         (contract: any) =>

@@ -14,12 +14,14 @@ import {
   reachingShares,
   sourceKindLabel,
 } from "../pipeline";
-import { isFlagged } from "../recordTable";
+import { flagOf } from "../recordTable";
 import type { Pipeline } from "../usePipeline";
 import { copyText } from "../hostClipboard";
 import { refreshStateFor, shareLinkOf, stateTone } from "../shareState";
 import LtManualCopy from "./lt/LtManualCopy.vue";
 import RecordActions from "./RecordActions.vue";
+import RecordPlanState from "./RecordPlanState.vue";
+import type { PlanShareRow } from "../planFlow";
 import UsageBar from "./UsageBar.vue";
 
 /**
@@ -176,15 +178,17 @@ function publish(): void {
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
         <PcKindChip v-if="record.imported" :label="t.records.migratedTag" :title="t.record.importedTitle" />
-        <PcStateDot v-if="isFlagged(record)" tone="warning" :label="t.records.flagged" :title="t.records.flaggedTitle" data-testid="record-flagged" />
+        <PcStateDot v-if="flagOf(record)" tone="warning" :label="flagOf(record)!.label" :title="flagOf(record)!.title" data-testid="record-flagged" />
       </div>
       <!-- The reason behind a broken state; a warning's facts are in the list below. -->
       <p v-if="health.tone === 'error'" class="peek-why">{{ health.title }}</p>
       <!-- The flag's reason in words, with the way out: Edit, below. -->
-      <p v-if="isFlagged(record)" class="peek-why">{{ t.records.flaggedTitle }}</p>
+      <p v-if="flagOf(record)" class="peek-why">{{ flagOf(record)!.title }}</p>
       <!-- Why Edit is disabled, in words: a disabled button takes no focus and
            a touch screen has no hover, so its title alone reaches nobody. -->
       <p v-if="!canEdit" id="record-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
+      <!-- design 28 S2: the staged revision and its plan, decoy shares, a mixed combination, each with its way out. -->
+      <RecordPlanState :id="id" :items="pipe.items.value" :shares="pipe.shares.value as PlanShareRow[] | undefined" />
 
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">
