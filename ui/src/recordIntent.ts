@@ -3,6 +3,7 @@ import { ref, type Ref } from "vue";
 import type { HostContext } from "./host";
 import type { ActionId } from "./recordActions";
 import type { PaletteCommandId } from "./commandPalette";
+import type { ScriptNetworkRefusal } from "./scriptNetwork";
 
 /**
  * One pending request from the palette to whichever screen can carry it out.
@@ -23,6 +24,12 @@ import type { PaletteCommandId } from "./commandPalette";
 export interface RecordIntent {
   recordId: string;
   action: ActionId;
+  /**
+   * With "edit": a fleet_script_network_unavailable refusal another screen
+   * met (the Fleet view's identity preview), so the editor opens at the
+   * step it names and says it there.
+   */
+  refusal?: ScriptNetworkRefusal;
 }
 
 export interface CommandIntent {

@@ -6,7 +6,7 @@ import { PcButton, PcNotice, PcSidePanel } from "@latticenet/plugin-bridge/chass
 import PlanStatus from "./PlanStatus.vue";
 import ScriptNetworkNotice from "./ScriptNetworkNotice.vue";
 import { chainChangeText } from "../chainText";
-import { ERROR_CODES, SOURCE_VPN_CORE_GRAPH } from "../client";
+import { ERROR_CODES, KIND_COLLECTION, KIND_FILE, SOURCE_VPN_CORE_GRAPH } from "../client";
 import {
   IDENTITY_ACTIVE,
   VPN_CORE_USERS_ROUTE,
@@ -107,8 +107,12 @@ const emit = defineEmits<{
   done: [text: string];
   /** Open a record named in the flow (a file that blocks the migration) in its side panel. */
   "open-record": [id: string];
-  /** The record's steps should be fixed (an abandoned migration, a refused step): open its editor on them, at `position` when one is named. */
-  "edit-steps": [id: string, position?: number];
+  /**
+   * The record's steps should be fixed (an abandoned migration, a refused
+   * step): open its editor on them, at `position` when one is named, with
+   * the refusal that asked for it, so the editor says it beside the step.
+   */
+  "edit-steps": [id: string, position?: number, refusal?: ScriptNetworkRefusal];
 }>();
 
 const subs = props.subs;
@@ -467,6 +471,8 @@ const published = ref("");
 const banner = ref<{ tone: "danger" | "warning"; code: string; text: string } | null>(null);
 /** Core refused the plan because a fleet render's script asked for the network (S2-SR-2). */
 const networkRefusal = ref<ScriptNetworkRefusal | null>(null);
+/** The revisions the refusal answered (refusalKey below). */
+const refusedAt = ref("");
 /** The steps each promoted record changes, read for the propose step (readStepSummary below). */
 const stepSummary = ref<Record<string, { status: "loading" | "ready" | "error"; changes: ChainChange[]; steps: unknown[] }>>({});
 
@@ -545,6 +551,7 @@ function land(result: PlanOutcome): void {
   if (network) {
     networkRefusal.value = network;
     step.value = "propose";
+    refusedAt.value = refusalKey();
     return;
   }
   if (result.kind === "too-large") {
@@ -636,7 +643,7 @@ const flowStaged = computed(() => {
   return [];
 });
 /** Abandon asks first; `edit` names the record whose steps open once it is done, at `position` when a step is named. */
-const abandonAsk = ref<{ edit: string; position?: number } | null>(null);
+const abandonAsk = ref<{ edit: string; position?: number; refusal?: ScriptNetworkRefusal } | null>(null);
 /** The pending plan abandoning would stale: the one this sitting filed or reopened, else the record's own. */
 const abandonPlan = computed(() => {
   const row = planRow.value ?? (record.value ? currentPlan(subs.plansByRecord.value[primary.value] ?? [], record.value) : undefined);
@@ -679,8 +686,8 @@ const abandonNote = computed(() =>
   blockedAfterAbandon.value.length ? t.migration.abandonNoteBlocked(blockedAfterAbandon.value.map(name).join(", ")) : t.migration.abandonNote,
 );
 const abandonBox = ref<HTMLElement | null>(null);
-function askAbandon(edit = "", position?: number): void {
-  abandonAsk.value = { edit, ...(position ? { position } : {}) };
+function askAbandon(edit = "", position?: number, refusal?: ScriptNetworkRefusal): void {
+  abandonAsk.value = { edit, ...(position ? { position } : {}), ...(refusal ? { refusal } : {}) };
   abandonError.value = "";
   void nextTick(() => abandonBox.value?.querySelector<HTMLElement>("[data-abandon-heading]")?.focus());
 }
@@ -701,9 +708,10 @@ async function abandon(): Promise<void> {
     }
     const edit = abandonAsk.value?.edit ?? "";
     const position = abandonAsk.value?.position;
+    const refusal = abandonAsk.value?.refusal;
     abandonAsk.value = null;
     emit("done", t.migration.abandoned(dropped.join(", ") || name(props.recordId)));
-    if (edit) emit("edit-steps", edit, position);
+    if (edit) emit("edit-steps", edit, position, refusal);
     else emit("close");
   } finally {
     abandoning.value = false;
@@ -776,6 +784,7 @@ function reset(): void {
   published.value = "";
   banner.value = null;
   networkRefusal.value = null;
+  refusedAt.value = "";
   stepSummary.value = {};
   abandonError.value = "";
   for (const key of Object.keys(decisions)) delete decisions[key];
@@ -874,12 +883,30 @@ const anyStepChange = computed(() => Object.values(stepSummary.value).some((entr
 
 /** The record a script network refusal is about: the one it names, else the plan's primary. */
 const refusalRecord = computed(() => (networkRefusal.value ? networkRefusal.value.record || primary.value : ""));
-/** The step it is about, from the refusal or from the staged steps read for the summary. */
+/**
+ * The step it is about, from the refusal or from the staged steps read for
+ * the summary; proven only for a subscription, which renders its own chain
+ * alone.
+ */
 const refusalStep = computed(() => {
   const refusal = networkRefusal.value;
   if (!refusal) return null;
-  return refusedStepIn(refusal, stepSummary.value[refusalRecord.value]?.steps ?? []);
+  const item = byId.value.get(refusalRecord.value);
+  const ownChainOnly = !!item && ![item.kind, item.staged_kind].some((kind) => kind === KIND_COLLECTION || kind === KIND_FILE);
+  return refusedStepIn(refusal, stepSummary.value[refusalRecord.value]?.steps ?? [], ownChainOnly);
 });
+/**
+ * What the refusal answered: every record the plan promotes and the one it
+ * names, at their live and staged revisions. Core answers the same until
+ * one of them changes, so while they stand, proposing again cannot get past
+ * it, and the way forward is the step (the lane 6c design review: Publish
+ * stayed the primary button under a refusal it could not pass).
+ */
+function refusalKey(): string {
+  const ids = [...new Set([...proposeSummary.value.records.map((entry) => entry.id), refusalRecord.value])];
+  return ids.map((id) => `${id}@${byId.value.get(id)?.revision ?? ""}/${stagedRevisionOf(id)}`).join(",");
+}
+const refusalStands = computed(() => !!networkRefusal.value && refusedAt.value === refusalKey());
 /** The record the refusal names is one the summary lists, so the notice sits under it. */
 const refusalListed = computed(() => proposeSummary.value.records.some((entry) => entry.id === refusalRecord.value));
 function flaggedLine(recordId: string, change: ChainChange): boolean {
@@ -894,11 +921,12 @@ function flaggedLine(recordId: string, change: ChainChange): boolean {
 function openRefusedStep(position: number | null): void {
   const id = refusalRecord.value;
   if (!id) return;
+  const refusal = networkRefusal.value ?? undefined;
   if (props.mode === "migrate" && flowStaged.value.includes(id)) {
-    askAbandon(id, position ?? undefined);
+    askAbandon(id, position ?? undefined, refusal);
     return;
   }
-  emit("edit-steps", id, position ?? undefined);
+  emit("edit-steps", id, position ?? undefined, refusal);
 }
 
 /**
@@ -1314,7 +1342,14 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
                   :data-position="change.kind === 'step' ? change.position : undefined"
                 >
                   <span>{{ chainChangeText(change) }}</span>
-                  <span v-if="flaggedLine(entry.id, change)" class="badge" data-tone="danger" data-testid="propose-step-flag" :title="t.plans.scriptNetwork.flagTitle">{{ t.plans.scriptNetwork.flag }}</span>
+                  <span
+                    v-if="flaggedLine(entry.id, change)"
+                    class="badge"
+                    data-tone="danger"
+                    data-testid="propose-step-flag"
+                    :data-certain="refusalStep?.certain ? 'true' : 'false'"
+                    :title="refusalStep?.certain ? t.plans.scriptNetwork.flagTitle : t.plans.scriptNetwork.flagCandidateTitle"
+                  >{{ refusalStep?.certain ? t.plans.scriptNetwork.flag : t.plans.scriptNetwork.flagCandidate }}</span>
                 </li>
               </ul>
             </div>
@@ -1325,6 +1360,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
               :record-name="name(entry.id)"
               :step="refusalStep"
               :can-open="true"
+              :primary="refusalStands"
               :other-record="proposeSummary.records.length > 1"
               @open-step="openRefusedStep"
             />
@@ -1338,6 +1374,7 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
           :record-name="name(refusalRecord)"
           :step="refusalStep"
           :can-open="byId.has(refusalRecord)"
+          :primary="refusalStands && byId.has(refusalRecord)"
           other-record
           @open-step="openRefusedStep"
         />
@@ -1346,16 +1383,17 @@ function setChoice(share: PlanShareRow, choice: "keep" | "clear" | "archive"): v
         </ul>
         <div class="flow-actions">
           <PcButton
-            :variant="mode === 'delete' ? 'danger' : 'primary'"
+            :variant="refusalStands ? 'secondary' : mode === 'delete' ? 'danger' : 'primary'"
             :busy="proposing"
-            :disabled="!!proposeDenied"
-            :title="proposeDenied || undefined"
+            :disabled="!!proposeDenied || refusalStands"
+            :title="proposeDenied || (refusalStands ? t.plans.scriptNetwork.proposeBlocked : undefined)"
             data-testid="flow-propose"
             @click="propose()"
           >
             {{ t.migration.proposeVerb[mode] }}
           </PcButton>
         </div>
+        <p v-if="refusalStands && !proposeDenied" class="flow-note" data-testid="propose-refusal-blocked">{{ t.plans.scriptNetwork.proposeBlocked }}</p>
         <p v-if="mode === 'delete' && !proposeDenied" class="flow-note" data-testid="propose-proof">{{ t.migration.deleteProof }}</p>
         <p v-if="proposeDenied" class="flow-note" data-testid="propose-denied">{{ proposeDenied }}</p>
       </section>

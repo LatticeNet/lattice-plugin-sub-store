@@ -37,6 +37,7 @@ import {
   type IdentitiesReply,
   type Identity,
 } from "./fleet";
+import { NETWORK_STEP_TYPES, type ScriptNetworkRefusal } from "./scriptNetwork";
 import { safeErrorMessage } from "./subStoreModel";
 import {
   applyCommonSettings,
@@ -719,6 +720,40 @@ export function useRecordEditor(options: RecordEditorOptions) {
   const stepToOpen = ref<{ index: number; ticket: number } | null>(null);
   let stepTicket = 0;
 
+  /**
+   * A refusal another surface opened this editor to fix (the plan flow's
+   * "Open step" on fleet_script_network_unavailable), with the step it
+   * named as it stood then. The editor says it and flags the step until the
+   * operator changes that step, or the editor closes, a save included: once
+   * the step differs, the refusal is about a chain that is gone. Before
+   * this, the plan's "Open step" landed on a bare chain, and nothing on
+   * screen tied the bar to the refusal (the lane 6c design review).
+   */
+  const carried = ref<{ refusal: ScriptNetworkRefusal; step: string } | null>(null);
+  function carryRefusal(refusal: ScriptNetworkRefusal | null | undefined): void {
+    if (!refusal) {
+      carried.value = null;
+      return;
+    }
+    const position = refusal.step?.position ?? 0;
+    const stored = position ? (draft.value.process[position - 1] as { type?: unknown } | undefined) : undefined;
+    // A position that no longer holds a step that can ask (a migration
+    // abandoned, so the legacy chain is numbered differently) names no step.
+    const holds = !!stored && typeof stored.type === "string" && NETWORK_STEP_TYPES.has(stored.type);
+    carried.value = {
+      refusal: holds ? refusal : { ...refusal, step: null },
+      step: holds ? JSON.stringify(stored) : "",
+    };
+  }
+  /** The carried refusal while the step it named is unchanged. */
+  const carriedRefusal = computed(() => {
+    const entry = carried.value;
+    if (!entry || !editing.value) return null;
+    const position = entry.refusal.step?.position ?? 0;
+    if (position && JSON.stringify(draft.value.process[position - 1]) !== entry.step) return null;
+    return entry.refusal;
+  });
+
   async function startEdit(id: string): Promise<void> {
     clearTransientListState();
     subs.clearMessages();
@@ -727,6 +762,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     const record = opened.record;
     editingStaged.value = opened.staged ? { revision: record.revision ?? "", live: opened.liveRevision } : null;
     stepToOpen.value = null;
+    carried.value = null;
     fleet.reset();
     storedSource.value = record.source ?? "";
     draft.value = draftFromRecord(record);
@@ -841,6 +877,7 @@ export function useRecordEditor(options: RecordEditorOptions) {
     editingId.value = null;
     editingStaged.value = null;
     stepToOpen.value = null;
+    carried.value = null;
     storedSource.value = "";
     fleet.reset();
     draft.value = emptyDraft();
@@ -1008,6 +1045,8 @@ export function useRecordEditor(options: RecordEditorOptions) {
     editingStaged,
     stepToOpen,
     openStep,
+    carryRefusal,
+    carriedRefusal,
     selectSource,
     reloadGraphOptions,
     addGraphRoot,

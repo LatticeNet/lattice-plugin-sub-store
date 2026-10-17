@@ -75,6 +75,8 @@ const emit = defineEmits<{
 }>();
 
 const state = computed(() => (props.plan ? planState(props.plan) : null));
+/** Approved and applied, rejected, or stale: the chain-only warning's "before approving" no longer applies. */
+const decided = computed(() => state.value === "applied" || state.value === "rejected" || state.value === "stale");
 const tone = computed<StateTone>(() => {
   switch (state.value) {
     case "applied":
@@ -248,7 +250,15 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
         <!-- The steps each record runs, which no line count shows. -->
         <div v-if="chainSections.length" class="plan-view__chain" data-testid="plan-chain" :data-only="chainOnly ? 'true' : undefined">
           <h5 class="plan-view__subtitle">{{ t.plans.chain.title }}</h5>
-          <p v-if="chainOnly" class="plan-view__chain-only" data-testid="plan-chain-only">{{ t.plans.chain.onlyChain }}</p>
+          <p
+            v-if="chainOnly"
+            class="plan-view__chain-only"
+            :class="{ 'is-decided': decided }"
+            data-testid="plan-chain-only"
+            :data-decided="decided ? 'true' : undefined"
+          >
+            {{ decided ? t.plans.chain.onlyChainDecided : t.plans.chain.onlyChain }}
+          </p>
           <p v-else class="plan-view__chain-intro">{{ t.plans.chain.intro }}</p>
           <div v-for="section in chainSections" :key="section.record" class="plan-chain" data-testid="plan-chain-section" :data-record="section.record">
             <p v-if="chainSections.length > 1 || multiRecord" class="plan-chain__record">{{ nameOf(section.record) }}</p>
@@ -438,6 +448,11 @@ function lineName(line: { name?: string; names?: string[]; line_uuid?: string })
   border-radius: var(--radius-sm);
   font-size: var(--lt-text-sm);
   max-width: var(--lt-measure-prose);
+}
+/* A decided plan's note is a fact about what it did, not a warning to act on. */
+.plan-view__chain-only.is-decided {
+  border-left-color: var(--border);
+  background: var(--muted);
 }
 .plan-chain__record {
   margin: var(--space-1) 0 0;

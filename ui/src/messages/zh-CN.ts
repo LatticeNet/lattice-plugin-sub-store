@@ -14,6 +14,10 @@ const count = pluralIn<ChineseForms>("zh-CN");
 const num = numberIn("zh-CN");
 /** A count written the Chinese way, with its measure word: "1,204 个节点". */
 const n = (value: number, unit: string) => count(value, { other: `{n} ${unit}` });
+/** A name before Chinese text: a space after Latin text or digits, none after Chinese ("这条记录的", "osaka-lookup 的"). */
+const before = (name: string) => (/\p{Script=Han}$/u.test(name) ? name : `${name} `);
+/** A name between Chinese text: spaced only on a side where it is Latin text or digits. */
+const around = (name: string) => `${/^\p{Script=Han}/u.test(name) ? "" : " "}${before(name)}`;
 
 export const zhCN: Messages = {
   time: {
@@ -379,6 +383,16 @@ export const zhCN: Messages = {
     sharesChange: (served) => `有 ${num(served)} 个生效中的分享会对获取它的客户端发生变化，列在下面。`,
     sharesNone: () => "没有生效中的分享提供它们，或从它们取节点的任何东西。",
     filesTitle: (files, note) => `${files === 1 ? "删除这个文件？" : `删除这 ${num(files)} 个文件？`}${note}`,
+    gatheredByTag: (names, _n, records) => `组合 ${names} 按标签收录了${records === 1 ? "它" : "它们"}，删除后会提供更少的节点。`,
+    notNamed: (records, note) =>
+      `${records === 1 ? "删除这条记录？" : `删除这 ${num(records)} 条记录？`}存储中没有其他记录按名称指向${records === 1 ? "它" : "它们"}。${note}`,
+    leftForPlan: (names, records) =>
+      records === 1
+        ? `${names} 不在这次批量删除中：它绑定机群，或被绑定机群的组合收录，所以要通过计划删除，批量完成后会给出入口。`
+        : `${names} 不在这次批量删除中：它们各自绑定机群，或被绑定机群的组合收录，所以要逐条通过计划删除，批量完成后会给出入口。`,
+    leftForPlanAfter: (names, records, first) =>
+      records === 1 ? `${names} 没有被删除：它要通过计划删除。` : `${names} 没有被删除：每条都要逐条通过计划删除，从 ${first} 开始。`,
+    allThroughPlans: (names, first) => `没有删除：${names} 都要逐条通过计划删除，因为每条都绑定机群，或被绑定机群的组合收录。“通过计划删除”从 ${first} 开始。`,
     consequenceMember: (name) => `${name}（组合，会失去一个成员）`,
     consequenceSource: (name) => `${name}（文件，会失去节点来源）`,
     noDependents: (records, note) =>
@@ -2242,6 +2256,7 @@ export const zhCN: Messages = {
       title: "处理步骤",
       intro: "按核心列出的内容，这个计划中每条记录新增、删除或修改的每个步骤，按位置和类型列出。一个步骤可能在不改动任何线路的情况下改变分享提供的内容。",
       onlyChain: "没有任何身份获得、失去或改变线路。只有处理步骤变了，而线路数量看不出一个步骤做了什么，所以批准前请先读这些步骤。",
+      onlyChainDecided: "这个计划中没有任何身份获得、失去或改变线路，只有处理步骤变了。",
       added: (position, type) => `新增第 ${num(position)} 步：${type}`,
       removed: (position, type) => `删除第 ${num(position)} 步：${type}`,
       changed: (position, type) => `修改第 ${num(position)} 步：${type}`,
@@ -2262,19 +2277,25 @@ export const zhCN: Messages = {
     },
     scriptNetwork: {
       title: "有步骤请求了网络",
-      step: (position, type, record) => `${record} 的第 ${num(position)} 步${type ? `（${type}）` : ""}请求了网络。`,
-      anyStep: (record) => `${record} 的某个脚本或域名解析步骤请求了网络。`,
+      step: (position, type, record) => `${before(record)}的第 ${num(position)} 步${type ? `（${type}）` : ""}请求了网络。`,
+      stepCandidate: (position, type, record) =>
+        `${before(record)}的第 ${num(position)} 步${type ? `（${type}）` : ""}是这次渲染中第一个可能请求网络的步骤。渲染结果没有说明是哪一步请求了网络，所以也请检查后面的脚本或域名解析步骤。`,
+      anyStep: (record) => `${before(record)}的某个脚本或域名解析步骤请求了网络。`,
       rule: "在隔离机制上线之前，机群渲染中的脚本不能使用网络，所以这次渲染被拒绝。请从该步骤中去掉网络调用，或删除该步骤。",
       openStep: (position) => `打开第 ${num(position)} 步`,
-      openStepOf: (position, record) => `打开 ${record} 的第 ${num(position)} 步`,
-      openSteps: (record) => `打开 ${record} 的步骤`,
+      openStepOf: (position, record) => `打开${around(record)}的第 ${num(position)} 步`,
+      openSteps: (record) => `打开${around(record)}的步骤`,
       flag: "请求了网络",
       flagTitle: "在机群渲染中，这个步骤请求了网络。隔离机制上线之前，机群渲染中的脚本不能使用网络。",
+      flagCandidate: "可能请求网络",
+      flagCandidateTitle: "在机群渲染中有步骤请求了网络，这是该渲染中第一个可能请求网络的步骤。隔离机制上线之前，机群渲染中的脚本不能使用网络。",
+      proposeBlocked: "请先修改该步骤：在这些记录的暂存修订改变之前，核心会给出同样的回答。",
       thisRecord: "这条记录",
     },
     stagedSave: {
       saved: (name, revision) => `已保存 ${name}。暂存修订 ${revision} 还没有生效。`,
       editing: (staged, live) => `正在编辑暂存修订 ${staged}，它还没有生效：在它发布之前，生效修订 ${live} 继续提供服务，保存会替换这个暂存修订。`,
+      stalesPlan: (approval, staged) => `保存后，待批计划 ${approval} 会过时，因为它发布的是暂存修订 ${staged}，而这次保存会替换它。`,
       editingNew: (staged) => `正在编辑暂存修订 ${staged}，它还没有生效：在它发布之前，这条记录不提供任何内容。`,
       fleet: (name) => `${name} 绑定机群，所以它的修改要等发布或计划。`,
       gathered: (combinations) => `绑定机群的组合 ${combinations} 收录了它，所以修改会改变这些组合的身份持有者收到的内容，要等发布或计划。`,

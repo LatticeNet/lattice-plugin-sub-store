@@ -81,7 +81,8 @@ import {
   type KindFacet,
 } from "../recordTable";
 import { knownFileType, useSubscriptions, type PlanOutcome } from "../useSubscriptions";
-import type { PlanStatus as PlanStatusRow } from "../fleet";
+import { planState, type PlanStatus as PlanStatusRow } from "../fleet";
+import type { ScriptNetworkRefusal } from "../scriptNetwork";
 import { useSubscriptionOps } from "../useSubscriptionOps";
 import {
   currentPlan,
@@ -91,6 +92,7 @@ import {
   fleetGatherers,
   isFleetBound,
   mixedBlock,
+  promotesOtherRevision,
   recordName,
   servesOwnerCredentials,
   shortRevision,
@@ -431,12 +433,14 @@ function menuTrigger(id: string): HTMLElement | null {
 /**
  * Where focus goes back when an overlay a row action opened closes. The menu
  * item that was pressed is gone by then, so an overlay opened from the menu
- * returns to the menu's button in the row; any other control returns to
- * itself.
+ * returns to the menu's button in the row. So does one opened from a records
+ * notice's action ("Publish staged revision" beside a staged save): opening
+ * the flow clears the notice and its button with it, and focus fell to the
+ * body (the lane 6c design review). Any other control returns to itself.
  */
 function overlayTrigger(event: Event | undefined, rowId: string): HTMLElement | null {
   const target = (event?.currentTarget as HTMLElement | null | undefined) ?? null;
-  return target?.closest(".rec-menu") ? menuTrigger(rowId) : target;
+  return target?.closest(".rec-menu, .records-notice") ? menuTrigger(rowId) ?? target : target;
 }
 
 async function toggleRowMenu(id: string): Promise<void> {
@@ -506,6 +510,8 @@ watch(
     const row = subs.items.value.find((item) => item.id === value.recordId);
     if (!row) return;
     claimIntent(intent, () => true);
+    // A refused step another screen met opens at the step, with the refusal.
+    if (value.action === "edit" && value.refusal) return void flowEditSteps(row.id, value.refusal.step?.position, value.refusal);
     runRowAction(value.action, row, new MouseEvent("click"));
   },
   { immediate: true },
@@ -574,10 +580,12 @@ function flowDone(text: string): void {
 async function publishStaged(row: SubscriptionListItem, event?: Event): Promise<void> {
   const trigger = overlayTrigger(event, row.id);
   // A plan already waits on this revision, or failed or went stale over it:
-  // the sheet opens on that plan rather than filing a second one.
+  // the sheet opens on that plan rather than filing a second one. A plan
+  // over a revision a later save replaced is not about this one, so Publish
+  // files a new plan for the revision staged now.
   await subs.loadPlans([row.id]);
   const existing = currentPlan(subs.plansByRecord.value[row.id] ?? [], row);
-  if (existing) {
+  if (existing && !promotesOtherRevision(existing, row)) {
     closeRowMenu();
     flowTrigger.value = trigger;
     flow.value = { mode: "publish", id: row.id, outcome: null, plan: existing };
@@ -616,7 +624,7 @@ const discardDialog = computed(() => {
   const consequences = [
     facts.neverLive ? t.plans.discard.neverLive(shortRevision(facts.revision)) : t.plans.discard.keepsLive(shortRevision(facts.revision), shortRevision(facts.live)),
   ];
-  if (plan && plan.status === "pending") consequences.push(t.plans.discard.stalesPlan(plan.approval_id));
+  if (plan && planState(plan) === "pending") consequences.push(t.plans.discard.stalesPlan(plan.approval_id));
   return { title: t.plans.discard.title, names: [recordName(row)], consequences };
 });
 /** The discard's notes are what happens, not records it breaks. */
@@ -694,11 +702,16 @@ function flowOpenRecord(id: string): void {
   chrome.openRecord(id);
 }
 
-/** A step to fix (an abandoned migration, a step core refused): the record's editor on its steps, at the step when one is named. */
-async function flowEditSteps(id: string, position?: number): Promise<void> {
+/**
+ * A step to fix (an abandoned migration, a step core refused): the record's
+ * editor on its steps, at the step when one is named, carrying the refusal
+ * so the editor says it beside the step and flags it.
+ */
+async function flowEditSteps(id: string, position?: number, refusal?: ScriptNetworkRefusal): Promise<void> {
   flow.value = null;
   await editor.startEdit(id);
   if (!editor.editing.value || editor.editingId.value !== id) return;
+  editor.carryRefusal(refusal);
   if (position) editor.openStep(position);
   else editor.editorTab.value = "operations";
 }
@@ -832,9 +845,39 @@ async function refreshRow(id: string): Promise<void> {
   }
 }
 
-function requestDelete(ids: string[]): void {
+/**
+ * Ask to delete `ids`. A record whose delete is a plan (fleet-bound, or
+ * gathered by a fleet-bound combination) never reaches the plain dialog,
+ * which would offer a Delete the store refuses and say nothing points at
+ * a record a combination gathers (the lane 6c design review): one such
+ * record opens the plan flow, as its row menu does; in a batch with others
+ * it is left out and named, and offered as a plan once the batch is done;
+ * a batch of only such records says they go one at a time.
+ */
+function requestDelete(ids: string[], event?: Event): void {
   closeRowMenu();
-  deleting.value = ids;
+  const planned = ids
+    .map((id) => subs.items.value.find((item) => item.id === id))
+    .filter((item): item is SubscriptionListItem => !!item && deleteNeedsPlan(item, subs.items.value));
+  if (planned.length && planned.length === ids.length) {
+    if (planned.length === 1) return openFlow("delete", planned[0]!, event);
+    subs.notice.value = "";
+    subs.deleteNeedsPlan.value = planned[0]!.id;
+    subs.actionError.value = t.deletion.allThroughPlans(planned.map((item) => recordName(item)).join(", "), recordName(planned[0]));
+    return;
+  }
+  const left = new Set(planned.map((item) => item.id));
+  deletingLeftOut.value = planned.map((item) => item.id);
+  deleting.value = ids.filter((id) => !left.has(id));
+}
+/** Records a batch delete leaves out because their delete is a plan; offered once the batch is done. */
+const deletingLeftOut = ref<string[]>([]);
+const deleteLeftOutNote = computed(() =>
+  deleting.value.length && deletingLeftOut.value.length ? t.deletion.leftForPlan(namesFor(deletingLeftOut.value).join(", "), deletingLeftOut.value.length) : "",
+);
+function cancelDelete(): void {
+  deleting.value = [];
+  deletingLeftOut.value = [];
 }
 /** The dialog's words, from the one builder every surface uses: what breaks is listed by name. */
 const deleteDialog = computed(() => deletePrompt(deleting.value, subs.items.value, shares.value));
@@ -852,6 +895,8 @@ async function runDelete(): Promise<void> {
   deleteBusy.value = true;
   deleteRemainder.value = null;
   const queue = [...deleting.value];
+  const leftOut = deletingLeftOut.value;
+  deletingLeftOut.value = [];
   const done: string[] = [];
   // Read before the rows go: the row that will sit where they were.
   const anchor = anchorAfterDelete(sorted.value.map((row) => row.id), queue);
@@ -878,6 +923,12 @@ async function runDelete(): Promise<void> {
     if (done.length) {
       await nextTick();
       focusRowAfterDelete(listRoot.value, anchor);
+    }
+    // What the batch left for a plan, with the way to it, once the rest is done.
+    if (leftOut.length && !deleteRemainder.value) {
+      subs.deleteNeedsPlan.value = leftOut[0]!;
+      const deleted = subs.notice.value;
+      subs.actionError.value = [deleted, t.deletion.leftForPlanAfter(namesFor(leftOut).join(", "), leftOut.length, namesFor([leftOut[0]!])[0]!)].filter(Boolean).join(" ");
     }
   }
 }
@@ -1831,7 +1882,7 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
           compact
           :disabled="action.disabled"
           :title="action.reason || undefined"
-          @click="requestDelete(selectedVisible.map((row) => row.id))"
+          @click="requestDelete(selectedVisible.map((row) => row.id), $event)"
         >
           <template #icon><Trash2 :size="13" aria-hidden="true" /></template>
           {{ t.records.batchVerb(action.label, selectedCount) }}
@@ -1875,10 +1926,11 @@ const nounKey = computed<KindFacet | "all">(() => kindFacet.value || "all");
         :consequences="deleteDialog.consequences"
         :served="deleteDialog.served"
         :confirm-text="deleteDialog.confirmText"
+        :note="deleteLeftOutNote"
         :focus-record="deleting[0] ?? ''"
         :busy="deleteBusy"
         @confirm="runDelete()"
-        @cancel="deleting = []"
+        @cancel="cancelDelete()"
       />
     </section>
 

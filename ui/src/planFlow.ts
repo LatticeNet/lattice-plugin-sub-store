@@ -124,6 +124,17 @@ function isCollection(item: SubscriptionListItem): boolean {
 export function gathers(collection: SubscriptionListItem, member: SubscriptionListItem): boolean {
   if (!isCollection(collection) || collection.id === member.id) return false;
   if (membersOf(collection).includes(member.id)) return true;
+  return gathersByTag(collection, member);
+}
+
+/**
+ * Whether `collection` gathers `member` by one of its tags, live or staged.
+ * Unlike a member named by id, which fails the combination's fetch once it
+ * is gone, a record gathered by tag only drops out: the combination keeps
+ * serving, with fewer nodes.
+ */
+export function gathersByTag(collection: SubscriptionListItem, member: SubscriptionListItem): boolean {
+  if (!isCollection(collection) || collection.id === member.id) return false;
   const tags = new Set(tagsOf(member));
   return memberTagsOf(collection).some((tag) => tags.has(tag));
 }
@@ -476,17 +487,42 @@ export function partialApply(reason: string | undefined): { failed: string; appl
 }
 
 /**
+ * Whether a plan whose primary is the record promotes a revision other than
+ * the one staged now: a save after the plan was filed replaced the staged
+ * revision, so the plan promotes a revision that no longer exists. Only a
+ * promote names the record's next revision in to_revision; a delete, and a
+ * plan that keeps the live revision (share identities only), do not.
+ */
+export function promotesOtherRevision(plan: Pick<PlanStatus, "subscription_id" | "action" | "from_revision" | "to_revision">, item: SubscriptionListItem): boolean {
+  const staged = item.staged_revision ?? "";
+  return !!staged && plan.subscription_id === item.id && plan.action !== "delete" && !!plan.to_revision && plan.to_revision !== plan.from_revision && plan.to_revision !== staged;
+}
+
+/**
  * The plan a record waits on, from what plans.status lists for it (core
  * lists the plans whose closure holds the record, newest first): the newest
  * plan over the record's staged revision, else the newest one still pending
  * or whose apply failed, which a multi-record plan over a sibling can be.
  * Undefined when nothing was proposed for it.
+ *
+ * The record's own newest plan, when it promotes a revision a later save
+ * replaced, is the one a reader needs to see, and it reads stale: core
+ * refuses it as stale, and a list read before the save still says pending,
+ * which made the row, the side panel and Publish read it as the plan the
+ * new revision waits on (the lane 6c design review). A pending one is
+ * reported as a copy marked stale; the plan row core lists is untouched.
  */
 export function currentPlan(plans: readonly PlanStatus[], item: SubscriptionListItem): PlanStatus | undefined {
   const staged = item.staged_revision ?? "";
   if (staged) {
     const over = plans.find((plan) => plan.subscription_id === item.id && plan.to_revision === staged);
     if (over) return over;
+    const own = plans.find((plan) => plan.subscription_id === item.id);
+    if (own && promotesOtherRevision(own, item)) {
+      const state = planState(own);
+      if (state === "stale") return own;
+      if (state === "pending") return { ...own, stale: true };
+    }
   }
   return plans.find((plan) => {
     const state = planState(plan);

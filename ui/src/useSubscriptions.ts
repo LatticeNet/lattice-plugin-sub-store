@@ -939,6 +939,10 @@ export function useSubscriptions(host: HostContext) {
         stagedNotice = stagedSaveNotice(record, stagedRevision);
         notice.value = stagedNotice;
         stagedSave.value = { id: record.id, revision: stagedRevision };
+        // A plan over the revision this save replaced is stale now; the
+        // plans read before the save still say pending (the lane 6c design
+        // review), so read them again.
+        void loadPlans([record.id], true);
       }
       return true;
     } catch (cause) {

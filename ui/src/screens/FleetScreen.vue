@@ -15,6 +15,7 @@ import {
 } from "@latticenet/plugin-bridge/chassis";
 
 import PlanStatus from "../components/PlanStatus.vue";
+import ScriptNetworkNotice from "../components/ScriptNetworkNotice.vue";
 import StagedBadge from "../components/StagedBadge.vue";
 import { BINDINGS, ERROR_CODES, KIND_COLLECTION, SOURCE_FLEET, callMethod, errorCodeOf, type SubscriptionListItem } from "../client";
 import {
@@ -44,6 +45,7 @@ import {
   type PlanShareRow,
 } from "../planFlow";
 import { recordIntent } from "../recordIntent";
+import { scriptNetworkRefusal, type ScriptNetworkRefusal } from "../scriptNetwork";
 import { safeErrorMessage } from "../subStoreModel";
 import { sourceKindLabel } from "../pipeline";
 import { usePipeline } from "../usePipeline";
@@ -187,6 +189,8 @@ interface Preview {
   status: "loading" | "ready" | "error";
   reply?: BindPreviewReply;
   error?: string;
+  /** Core's fleet_script_network_unavailable, said beside the identity with the step it names (the lane 6c code review). */
+  refusal?: ScriptNetworkRefusal;
 }
 const previews = ref<Record<string, Preview>>({});
 const keyOf = (identityId: string) => `${chosen.value?.id ?? ""}\u0000${previewedRevision.value}\u0000${identityId}`;
@@ -210,7 +214,8 @@ async function preview(identityId: string, force = false): Promise<void> {
     const reply = await subs.bindPreview(record.id, identityId, revision.value === "staged" ? record.staged_revision : undefined);
     previews.value = { ...previews.value, [key]: { status: "ready", reply } };
   } catch (cause) {
-    previews.value = { ...previews.value, [key]: { status: "error", error: previewError(cause) } };
+    const refusal = scriptNetworkRefusal(cause);
+    previews.value = { ...previews.value, [key]: { status: "error", error: previewError(cause), ...(refusal ? { refusal } : {}) } };
   }
 }
 
@@ -337,6 +342,19 @@ function openApprovals(approvalId: string): void {
 
 function openUsers(): void {
   if (shareOrigin.value) postNavigate(window, VPN_CORE_USERS_ROUTE, shareOrigin.value);
+}
+
+/** A refused step opens in the Records screen's editor, at the step, with the refusal. */
+function openRefusedStep(refusal: ScriptNetworkRefusal): void {
+  const id = refusal.record || chosen.value?.id || "";
+  if (!id) return;
+  chrome.openLens("records");
+  intent.value = { recordId: id, action: "edit", refusal };
+}
+/** The record a refusal names, by name; the chosen record when it names none. */
+function refusalRecordName(refusal: ScriptNetworkRefusal): string {
+  const id = refusal.record || chosen.value?.id || "";
+  return recordName(subs.items.value.find((item) => item.id === id), id);
 }
 
 /** The Records screen holds the plan flow: hand a record's plan verb over to it. */
@@ -598,7 +616,9 @@ watch(
                 >
                   <template v-if="decoyAnswer(identity)">{{ decoyAnswer(identity) }}</template>
                   <template v-else-if="previewOf(identity.id)?.status === 'loading' || (expanded.has(identity.id) && !previewOf(identity.id))">{{ t.fleetEditor.bind.loading }}</template>
-                  <template v-else-if="previewOf(identity.id)?.status === 'error'"><span class="fleet-error">{{ t.fleetEditor.bind.error }}</span></template>
+                  <template v-else-if="previewOf(identity.id)?.status === 'error'">
+                    <span class="fleet-error">{{ previewOf(identity.id)!.refusal ? t.plans.scriptNetwork.title : t.fleetEditor.bind.error }}</span>
+                  </template>
                   <template v-else-if="previewOf(identity.id)?.reply">
                     {{ t.fleet.counts(counts(previewOf(identity.id)!.reply!).included, counts(previewOf(identity.id)!.reply!).excluded) }}
                   </template>
@@ -613,7 +633,16 @@ watch(
 
               <div v-if="expanded.has(identity.id)" class="fleet-identity__body" data-testid="fleet-identity-body">
                 <p v-if="identityInactive(identity.status)" class="fleet-warn" data-testid="fleet-identity-inactive">{{ inactiveText(identity.status) }}</p>
-                <p v-if="previewOf(identity.id)?.status === 'error'" class="fleet-error" role="alert" data-testid="fleet-preview-error">{{ previewOf(identity.id)!.error }}</p>
+                <ScriptNetworkNotice
+                  v-if="previewOf(identity.id)?.refusal"
+                  :refusal="previewOf(identity.id)!.refusal!"
+                  :record-name="refusalRecordName(previewOf(identity.id)!.refusal!)"
+                  :step="previewOf(identity.id)!.refusal!.step"
+                  :can-open="subs.items.value.some((item) => item.id === (previewOf(identity.id)!.refusal!.record || chosen?.id))"
+                  other-record
+                  @open-step="openRefusedStep(previewOf(identity.id)!.refusal!)"
+                />
+                <p v-else-if="previewOf(identity.id)?.status === 'error'" class="fleet-error" role="alert" data-testid="fleet-preview-error">{{ previewOf(identity.id)!.error }}</p>
                 <template v-else-if="previewOf(identity.id)?.reply">
                   <p v-if="previewOf(identity.id)!.reply!.refused" class="fleet-warn" data-testid="fleet-preview-refused">
                     {{ t.fleetEditor.bind.refused.title }}: {{ refusedText(previewOf(identity.id)!.reply!.refused!) }}

@@ -38,6 +38,8 @@ const props = defineProps<{
   steps?: readonly unknown[];
   /** The record being edited, so a refusal about another record says so. */
   recordId?: string;
+  /** The record renders its own chain alone (a subscription), so a refused step can be proven (scriptNetwork.ts refusedStepIn). */
+  ownChainOnly?: boolean;
 }>();
 const emit = defineEmits<{ (e: "open-line", lineUUID: string): void; (e: "open-step", position: number | null): void }>();
 const fleet = props.fleet;
@@ -55,7 +57,7 @@ const refusalHere = computed(() => !bindRefusal.value?.record || bindRefusal.val
 const bindRefusedStep = computed(() => {
   const refusal = bindRefusal.value;
   if (!refusal) return null;
-  return refusalHere.value ? refusedStepIn(refusal, props.steps ?? []) : refusal.step;
+  return refusalHere.value ? refusedStepIn(refusal, props.steps ?? [], props.ownChainOnly) : refusal.step;
 });
 
 const reply = computed(() => fleet.bindPreview.value);

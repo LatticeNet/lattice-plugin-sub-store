@@ -86,6 +86,12 @@ const props = defineProps<{
   openStep?: { index: number; ticket: number } | null;
   /** The step a fleet render's script refusal names (S2-SR-2): marked on its bar. */
   flaggedStep?: number | null;
+  /**
+   * The flagged step is proven to be the one that asked; otherwise it is
+   * the first step that can ask, which is all core can say, and the flag
+   * says that instead.
+   */
+  flaggedCertain?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -136,10 +142,17 @@ const addable = computed(() =>
     })),
 );
 
+/**
+ * A step's bar: its position among the stored steps and its name. The
+ * position counts every stored step, disabled and managed ones included,
+ * as core's plan lines and refusals number them ("Step 2 added", "step 2
+ * (Script Operator)"), so a bar can be matched to the line that names it.
+ * A custom name keeps the number: without it a renamed step could not be
+ * told apart from the line about it (the lane 6c design review).
+ */
 function label(step: ChainStep, position: number): string {
   const name = step.customName?.trim();
-  if (name) return name;
-  return t.chain.stepLabel(position, schemaFor(step.type)?.label ?? step.type);
+  return t.chain.stepLabel(position, name || (schemaFor(step.type)?.label ?? step.type));
 }
 
 function commit(next: ChainStep[]): void {
@@ -250,7 +263,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
             type="button"
             class="step-title"
             :aria-expanded="expanded === entry.index"
-            :title="label(entry.step, position + 1)"
+            :title="label(entry.step, entry.index + 1)"
             @click="expanded = expanded === entry.index ? null : entry.index"
           >
             <ChevronRight
@@ -258,7 +271,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               aria-hidden="true"
               :class="['step-caret', { 'is-open': expanded === entry.index }]"
             />
-            <span class="step-label">{{ label(entry.step, position + 1) }}</span>
+            <span class="step-label">{{ label(entry.step, entry.index + 1) }}</span>
             <span v-if="isFleetStep(entry.step.type)" class="step-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
             <span v-if="entry.step.disabled" class="badge" data-tone="warning">{{ t.chain.off }}</span>
             <span
@@ -266,8 +279,9 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="badge step-flag"
               data-tone="danger"
               data-testid="step-network-flag"
-              :title="t.plans.scriptNetwork.flagTitle"
-            >{{ t.plans.scriptNetwork.flag }}</span>
+              :data-certain="flaggedCertain ? 'true' : 'false'"
+              :title="flaggedCertain ? t.plans.scriptNetwork.flagTitle : t.plans.scriptNetwork.flagCandidateTitle"
+            >{{ flaggedCertain ? t.plans.scriptNetwork.flag : t.plans.scriptNetwork.flagCandidate }}</span>
           </button>
 
           <div class="step-actions">
@@ -275,7 +289,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               <input
                 type="checkbox"
                 :checked="!entry.step.disabled"
-                :aria-label="t.chain.enable(label(entry.step, position + 1))"
+                :aria-label="t.chain.enable(label(entry.step, entry.index + 1))"
                 @change="toggleDisabled(entry.index)"
               />
               <span>{{ t.chain.enabled }}</span>
@@ -285,7 +299,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="position === 0"
               :title="t.chain.moveUp"
-              :aria-label="t.chain.moveUpLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.moveUpLabel(label(entry.step, entry.index + 1))"
               @click="moveVisible(entry.index, -1)"
             >
               <ArrowUp :size="14" aria-hidden="true" />
@@ -295,7 +309,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="position === visible.length - 1"
               :title="t.chain.moveDown"
-              :aria-label="t.chain.moveDownLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.moveDownLabel(label(entry.step, entry.index + 1))"
               @click="moveVisible(entry.index, 1)"
             >
               <ArrowDown :size="14" aria-hidden="true" />
@@ -306,8 +320,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="entry.step.disabled || previewingStep !== null"
               :title="t.chain.previewStep"
-              :aria-label="t.chain.previewStepLabel(position + 1)"
-              @click="emit('preview-step', entry.index, label(entry.step, position + 1))"
+              :aria-label="t.chain.previewStepLabel(entry.index + 1)"
+              @click="emit('preview-step', entry.index, label(entry.step, entry.index + 1))"
             >
               <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" aria-hidden="true" />
               <Eye v-else :size="14" aria-hidden="true" />
@@ -316,7 +330,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon"
               :title="t.chain.duplicate"
-              :aria-label="t.chain.duplicateLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.duplicateLabel(label(entry.step, entry.index + 1))"
               @click="duplicate(entry.index)"
             >
               <Copy :size="14" aria-hidden="true" />
@@ -325,7 +339,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon is-danger"
               :title="t.chain.remove"
-              :aria-label="t.chain.removeLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.removeLabel(label(entry.step, entry.index + 1))"
               @click="remove(entry.index)"
             >
               <Trash2 :size="14" aria-hidden="true" />
