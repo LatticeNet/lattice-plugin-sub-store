@@ -1,0 +1,2 @@
+p51lwo,q5xv2=vneuu=trojan,lr-19.afx2.example.org,443,"8QsCNMzX7CR5z2hj",tls-name=cdn.yg3td9n.example.org,udp=true
+bxn3ri==ms29x1,,=trojan,j6-01.btegk1da.example.net,443,"bKNxX9UNTsJT4Ln3",tls-name=api.wvhu20wr5.example.org,udp=true

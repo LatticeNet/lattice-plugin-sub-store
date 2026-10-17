@@ -1,0 +1,16 @@
+[
+  {
+    "address": "vg6-01.myky5zq.example.net:53931",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "vemss-http",
+      "obfs-host": "www.ysbqjyq.example.com",
+      "obfs-uri": "/llvm5b0o",
+      "password": "JFj2WdWpQ2SEYt",
+      "tag": "US-w7au2y-48",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

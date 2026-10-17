@@ -1,0 +1,29 @@
+{
+  "proxies": [
+    {
+      "https": {
+        "fingerprint_sha256": "2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac",
+        "name": "AU-qwcrw-85",
+        "password": "gGYHIQZCdJix",
+        "port": 443,
+        "server": "yo-32.t7tq.example.org",
+        "skip_tls_verify": true,
+        "sni": "static.yaq2i7izym.example.org",
+        "tfo": false,
+        "username": "vf6vjpt2"
+      }
+    },
+    {
+      "https": {
+        "name": "SG-yge45-73",
+        "password": "rYehLxWCwT2h",
+        "port": 443,
+        "server": "ek-36.e2k6k0z.example.net",
+        "skip_tls_verify": true,
+        "sni": "www.wgksq6.example.net",
+        "tfo": false,
+        "username": "bfas9x"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "address": "i0-18.xw46x.example.com:21926",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "wss",
+      "obfs-host": "cdn.br8081pci.example.com",
+      "obfs-uri": "/uwu5",
+      "password": "vdGoRW3uHdeb8E",
+      "tag": "AU-y2a0-45",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

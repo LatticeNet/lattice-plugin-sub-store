@@ -1,0 +1,2 @@
+proxies:
+  - {"shadowsocks":{"name":"DE-m589t-55","method":"aes-128-gcm","server":"y97-38.rn04h.example.com","port":30252,"password":"iiQPgx4YdvOrzD","tfo":false,"udp_relay":true,"obfs":"http","obfs_host":"api.bjn3w2ond.example.net","obfs_uri":"/jwnph6w"}}

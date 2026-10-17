@@ -1,0 +1,9 @@
+{
+  "id": "clash-vmess-ws-ed-in-path",
+  "family": "clash",
+  "protocol": "vmess",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "early-data-path",
+  "description": "vmess ws whose path carries ?ed=2048 and no early-data keys: Stash and Shadowrocket remove ed and set the early-data header and length, Quantumult X writes the path as stored."
+}

@@ -1,0 +1,2 @@
+proxies:
+  - {"name":"CA-bux-89","obfs":"salamander","obfs-password":"Em9uhvQ8uMiwK95e","password":"axh3vCkuX5XttJITA3Nw","port":443,"ports":"20000-30000,40000","server":"fm-04.a3i4jy.example.net","skip-cert-verify":false,"sni":"img.gudkt.example.org","tfo":true,"type":"hysteria2","udp":true}

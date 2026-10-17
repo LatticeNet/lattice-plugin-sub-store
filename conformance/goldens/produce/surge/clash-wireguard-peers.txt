@@ -1,0 +1,20 @@
+#!name=undefined
+#!desc=
+#!category=
+# > WireGuard Proxy TW-rpi3w-80
+# TW-rpi3w-80=wireguard,section-name=TW-rpi3w-80
+# > WireGuard Section TW-rpi3w-80
+[WireGuard TW-rpi3w-80]
+private-key = J8bsv9cDEmzg76YzQqclUGNVpVZi5DfTMEYjwC9kI9k=
+self-ip = 10.9.9.9/24
+self-ip-v6 = fd00::2/64
+mtu = 1280
+peer = (public-key = pGtP1CWDI4dGUtsqVOaG9aM1Trw2rUDANzRf/6j0zoc=, allowed-ips = "0.0.0.0/0,::/0", endpoint = x0-27.p95u.example.org:46216, keepalive = 25, client-id = 1/2/3, preshared-key = G+xCCX5hknJc5zATEzQww8ryuhwNDNiL960DaoOE7cg=)
+# > WireGuard Proxy GB-edolm-94
+# GB-edolm-94=wireguard,section-name=GB-edolm-94
+# > WireGuard Section GB-edolm-94
+[WireGuard GB-edolm-94]
+private-key = h3KVgXdAiDw4XJXVg2/8m40dRmlk4Jnz5wRRVI4Y0no=
+self-ip = 10.0.0.3
+self-ip-v6 = fd00::3
+peer = (public-key = I7z38GVa/xAWrbEcODkvOL1EhiDXcuj8/ydwwspPolA=, endpoint = rh-29.l9q4.example.net:51820, keepalive = 15, preshared-key = rIotDO2nUKqzmJoFwqYPwRWnpIvSg6xbpuEhlbZ6FtE=)

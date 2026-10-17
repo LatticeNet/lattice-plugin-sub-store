@@ -1,0 +1,4 @@
+CA-kaxsse-35=shadowsocks,a8-40.m00wg.example.com,43251,aes-128-gcm,"DEWleTgrsJ4kcF",udp=true
+KR-dbvnq3-06=shadowsocks,i1d-13.qx6y2f.example.org,26397,aes-128-gcm,"SYmxkhN9wKVTwg",udp=true
+KR-hrq5ux-65=shadowsocks,fxt-39.ye77foo.example.net,42748,aes-128-gcm,"vJoieZSjxuSiZ3",udp-over-tcp=true,udp=true
+GB-blw-94=shadowsocks,ph-04.zkgqvz.example.com,56871,aes-128-gcm,"H3T4hxz2n0INym",udp=true

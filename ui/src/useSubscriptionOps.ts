@@ -3,13 +3,33 @@ import { computed, ref } from "vue";
 import {
   BINDINGS,
   callMethod,
+  isRefused,
   type BackupExportResponse,
   type MigrationReport,
+  type MutationRefusal,
   type SubscriptionSettings,
 } from "./client";
+import { refusalMessage } from "./fleet";
 import type { HostContext } from "./host";
 import { t } from "./i18n";
 import { safeErrorMessage } from "./subStoreModel";
+
+/**
+ * What an import or a migration did beside writing records (design 28 S2,
+ * s2-plan section 2.7): the fleet-bound records it staged instead of writing
+ * live, which wait for Publish, and the records a guard refused, each with
+ * its structured refusal. Said after the count, so a restore that brought
+ * back a fleet record never reads as if that record were serving.
+ */
+function writeOutcome(result: { staged?: Record<string, string>; refused?: Record<string, MutationRefusal> }): string {
+  const parts: string[] = [];
+  const staged = Object.keys(result.staged ?? {});
+  if (staged.length) parts.push(t.plans.importStaged(staged.length));
+  for (const [id, refusal] of Object.entries(result.refused ?? {})) {
+    parts.push(refusalMessage(refusal, id, [], (reason) => t.plans.refusal.notImportedRecord(id, reason)));
+  }
+  return parts.join(" ");
+}
 
 export type OpsState = "idle" | "loading" | "ready" | "error";
 
@@ -101,8 +121,15 @@ export function useSubscriptionOps(host: HostContext) {
       const result = await callMethod<Record<string, unknown>>(host.bridge, BINDINGS.subImport, {
         backup,
       }).promise;
+      // A refusal of the whole import is a successful reply, never an error
+      // (s2-plan section 2.6): the gateway replaces a mutating method's error.
+      if (isRefused(result)) {
+        actionError.value = refusalMessage(result.refused, "", [], t.plans.refusal.notImported);
+        return false;
+      }
       const restored = Array.isArray(result.imported) ? result.imported.length : undefined;
-      notice.value = restored === undefined ? t.ops.restored : t.ops.restoredCount(restored);
+      const counted = restored === undefined ? t.ops.restored : t.ops.restoredCount(restored);
+      notice.value = [counted, writeOutcome(result as Parameters<typeof writeOutcome>[0])].filter(Boolean).join(" ");
       return true;
     } catch (cause) {
       // The export refuses an unknown or missing format rather than guessing,
@@ -126,11 +153,16 @@ export function useSubscriptionOps(host: HostContext) {
     notice.value = "";
     report.value = null;
     try {
-      report.value = await callMethod<MigrationReport>(host.bridge, BINDINGS.subMigrate, {
+      const reply = await callMethod<MigrationReport | Record<string, unknown>>(host.bridge, BINDINGS.subMigrate, {
         base_url: baseUrl.trim(),
       }).promise;
+      if (isRefused(reply)) {
+        actionError.value = refusalMessage(reply.refused, "", [], t.plans.refusal.notImported);
+        return false;
+      }
+      report.value = reply as MigrationReport;
       const count = report.value?.imported?.length ?? 0;
-      notice.value = t.ops.imported(count);
+      notice.value = [t.ops.imported(count), writeOutcome(reply as Parameters<typeof writeOutcome>[0])].filter(Boolean).join(" ");
       return true;
     } catch (cause) {
       actionError.value = safeErrorMessage(cause, t.ops.migrateFailed);

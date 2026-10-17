@@ -1,0 +1,121 @@
+{
+  "name": "vless-tls-grpc",
+  "protocol": "vless",
+  "share_url": "vless://0f0e0d0c-0b0a-4908-8706-050403020100@grpc.example.com:443?encryption=none&security=tls&sni=grpc.example.com&type=grpc&serviceName=lattice#owner",
+  "row": {
+    "line_uuid": "00000003-0000-4000-8000-000000000003",
+    "line_hash_id": "lh-3",
+    "node_id": "node-3",
+    "node_name": "fixture-03",
+    "name": "vless-tls-grpc",
+    "label": "fixture-03 vless-tls-grpc",
+    "node_tags": [
+      "jp",
+      "rack-3"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "vless",
+    "transport": "grpc",
+    "security": "tls",
+    "public_host": "grpc.example.com",
+    "public_port": 443,
+    "addresses": [
+      "192.0.2.3"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "vless",
+      "host": "grpc.example.com",
+      "port": 443,
+      "params": {
+        "encryption": "none",
+        "security": "tls",
+        "serviceName": "lattice",
+        "sni": "grpc.example.com",
+        "type": "grpc"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000003"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000003-0000-4000-8000-000000000003",
+        "placeholders": {
+          "uuid": "LATTICE-SYN-00000003-0000-4000-8000-000000000003-uuid-8c583ec6280d1e6959b78a6adf9a95af"
+        },
+        "node": {
+          "_h2": false,
+          "addresses": [
+            "192.0.2.3"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "encryption": "none",
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "grpc-opts": {
+            "_grpc-type": "gun",
+            "grpc-service-name": "lattice"
+          },
+          "line_hash_id": "lh-3",
+          "name": "fixture-03 vless-tls-grpc",
+          "network": "grpc",
+          "node_id": "node-3",
+          "packet-encoding": "xudp",
+          "port": 443,
+          "server": "grpc.example.com",
+          "skip-cert-verify": false,
+          "sni": "grpc.example.com",
+          "tags": [
+            "jp",
+            "rack-3"
+          ],
+          "tls": true,
+          "type": "vless",
+          "udp": true,
+          "uuid": "LATTICE-SYN-00000003-0000-4000-8000-000000000003-uuid-8c583ec6280d1e6959b78a6adf9a95af"
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000003-0000-4000-8000-000000000003"
+      ]
+    }
+  }
+}

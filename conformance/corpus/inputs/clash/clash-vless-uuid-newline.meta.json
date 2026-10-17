@@ -1,0 +1,9 @@
+{
+  "id": "clash-vless-uuid-newline",
+  "family": "clash",
+  "protocol": "vless",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "line-safety",
+  "description": "vless TLS, then vless TLS whose uuid holds a newline, written raw by the link: URI, V2Ray and Quantumult X reject the second node, and Surge has no VLESS form (line-safety)."
+}

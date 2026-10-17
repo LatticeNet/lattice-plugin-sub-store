@@ -1,0 +1,18 @@
+[
+  {
+    "address": "dh-09.j8zxvm8y.example.org:443",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "wss",
+      "obfs-host": "img.juflq2qmv.example.net",
+      "obfs-uri": "/t2og2q7t",
+      "password": "306a27fc-af1d-47fe-bc69-c42b06e4e615",
+      "tag": "GB-vzdsx-11",
+      "tls-host": "static.lnmdy7bpz4.example.com",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  }
+]

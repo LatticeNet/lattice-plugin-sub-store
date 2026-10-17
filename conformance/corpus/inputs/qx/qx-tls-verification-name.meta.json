@@ -1,0 +1,9 @@
+{
+  "id": "qx-tls-verification-name",
+  "family": "qx",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "tls-verification-name",
+  "description": "trojan with tls-verification set to a host name: the parser stores name-cert-verify, which Quantumult X writes back as the tls-verification value."
+}

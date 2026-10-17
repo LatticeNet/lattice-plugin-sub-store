@@ -1,0 +1,2 @@
+proxies:
+  - {"vmess":{"name":"KR-uxrg5q-10","server":"e8-03.xwf0d.example.com","port":80,"user_id":"d7ba9972-04c5-451a-ac3e-fe027bbdd7ba","security":"none","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"path":"/l27n","headers":{"Host":"api.xg1imi.example.net"}}}}}

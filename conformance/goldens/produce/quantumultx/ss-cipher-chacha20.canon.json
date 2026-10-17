@@ -1,0 +1,13 @@
+[
+  {
+    "address": "jcb-14.sz5j5zb6.example.com:24641",
+    "args": [],
+    "params": {
+      "method": "chacha20",
+      "password": "vR18ccbMVIMuZXh7",
+      "tag": "AU-myqg-14",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

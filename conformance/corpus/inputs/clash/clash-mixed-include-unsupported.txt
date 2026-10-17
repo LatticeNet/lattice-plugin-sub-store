@@ -1,0 +1,66 @@
+proxies:
+  - name: TW-d2ruo-18
+    type: h2-connect
+    server: phf-04.oy8whdqj.example.org
+    port: 443
+    username: pxwvdad
+    password: ZFzQAdrvmEZ999
+    sni: www.l2jhh3m4g.example.com
+    udp: true
+  - name: KR-h58to-07
+    type: naive
+    server: gko-29.bahiba.example.net
+    port: 443
+    username: xfjwd
+    password: fOgCwuPDij58mK
+    sni: api.x4a7fa3yme.example.com
+  - name: KR-ud20n-88
+    type: vmess
+    server: gq-23.w4ft.example.net
+    port: 443
+    uuid: c3b05c53-672f-4a7e-a1a5-509621dd246e
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    servername: cdn.txtpfciw9p.example.net
+    network: ws
+    ws-opts:
+      path: /apec/sadz?ed=2048
+      headers:
+        Host: www.bmo8elw9v.example.com
+      v2ray-http-upgrade: true
+      early-data-header-name: Sec-WebSocket-Protocol
+      max-early-data: 2048
+  - name: NL-zep7-46
+    type: http
+    server: ep-36.ladi.example.org
+    port: 8080
+    username: zoushga
+    password: LLudeRwOBV80
+    headers:
+      X-xeqg8: ni4qhkw
+  - name: HK-g5wzd-51
+    type: vmess
+    server: vl-27.jpxff.example.org
+    port: 80
+    uuid: daa4605b-ff81-4e52-b134-26d91c376a3e
+    alterId: 0
+    cipher: auto
+    udp: true
+    network: http
+    http-opts:
+      method: GET
+      path:
+        - /g76/zhpwfk7oof
+      headers:
+        Host:
+          - cdn.bzkynldo.example.com
+  - name: FR-g8uxz-35
+    type: ss
+    server: j3d-04.e29g.example.com
+    port: 17410
+    cipher: aes-128-gcm
+    password: 4hvmdU03O0JArG
+    udp: true
+    tls: true

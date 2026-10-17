@@ -1,0 +1,15 @@
+[
+  {
+    "address": "198.51.100.75:50389",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "over-tls",
+      "obfs-host": "www.ewqai1pkrc.example.org",
+      "password": "EBuE5Qs5xAb5dR",
+      "tag": "DE-m9h7t7-81",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

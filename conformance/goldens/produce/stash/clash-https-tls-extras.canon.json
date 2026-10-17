@@ -1,0 +1,38 @@
+{
+  "proxies": [
+    {
+      "alpn": "h2, http/1.1",
+      "keystore-client-cert": "ii50t7",
+      "name": "AU-qwcrw-85",
+      "name-cert-verify": "cdn.o88s8vsqrg.example.net",
+      "password": "gGYHIQZCdJix",
+      "port": 443,
+      "server": "yo-32.t7tq.example.org",
+      "server-cert-fingerprint": "2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac",
+      "skip-cert-verify": true,
+      "sni": "static.yaq2i7izym.example.org",
+      "tls": true,
+      "type": "http",
+      "udp": true,
+      "username": "vf6vjpt2"
+    },
+    {
+      "alpn": [
+        "\"h2\"",
+        "",
+        " http/1.1 "
+      ],
+      "client-cert": "ct7c",
+      "name": "SG-yge45-73",
+      "password": "rYehLxWCwT2h",
+      "port": 443,
+      "server": "ek-36.e2k6k0z.example.net",
+      "skip-cert-verify": true,
+      "sni": "www.wgksq6.example.net",
+      "tls": true,
+      "type": "http",
+      "udp": true,
+      "username": "bfas9x"
+    }
+  ]
+}

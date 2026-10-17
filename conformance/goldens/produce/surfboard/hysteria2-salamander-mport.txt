@@ -1,0 +1,1 @@
+CA-bux-89=hysteria2,fm-04.a3i4jy.example.net,443,password="axh3vCkuX5XttJITA3Nw",port-hopping="20000-30000;40000",salamander-password="Em9uhvQ8uMiwK95e",sni="img.gudkt.example.org",skip-cert-verify=false,udp-relay=true

@@ -47,7 +47,7 @@ describe("the records layer is one table of every kind", () => {
   it("opens the side panel from the row, with the menu the only other control", () => {
     expect(screen).toContain('@click="openRow(row, $event)"');
     expect(screen.match(/<RecordMenu/g)).toHaveLength(1);
-    expect(screen).toContain("return rowMenuFor(row, actionCaps.value);");
+    expect(screen).toMatch(/return rowMenuFor\(row, actionCaps\.value[,)]/);
     expect(screen).not.toContain('class="rec-open"');
   });
 

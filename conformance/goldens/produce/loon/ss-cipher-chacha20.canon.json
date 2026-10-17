@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "jcb-14.sz5j5zb6.example.com",
+      "24641",
+      "chacha20",
+      "vR18ccbMVIMuZXh7"
+    ],
+    "name": "AU-myqg-14",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "args": [
+      "fl6-16.bnilt.example.com",
+      "23198",
+      "rc4",
+      "cbwOYIAHHKweWKJS"
+    ],
+    "name": "JP-cek9e-51",
+    "params": {
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

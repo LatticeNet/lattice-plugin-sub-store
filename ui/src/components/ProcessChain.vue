@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { ArrowDown, ArrowUp, ChevronRight, Copy, Eye, GripVertical, LoaderCircle, Trash2 } from "@lucide/vue";
 
+import type { CatalogueRow } from "../fleet";
 import { t } from "../i18n";
-import { defaultArgs, fromWireArgs, schemaFor, toWireArgs } from "../operatorSchema";
+import { defaultArgs, fromWireArgs, isFleetStep, schemaFor, toWireArgs } from "../operatorSchema";
 import OperatorArgs from "./OperatorArgs.vue";
 
 /**
@@ -31,7 +32,18 @@ export interface ChainStep {
 const props = defineProps<{
   steps: ChainStep[];
   /** Operator types the backend accepts, from the catalogue call. */
-  catalog: readonly { type: string; scripting?: boolean; response?: boolean }[];
+  catalog: readonly { type: string; scripting?: boolean; response?: boolean; fleet?: boolean }[];
+  /**
+   * The record is fleet-bound (design 28 S2): a fleet sub, or a combination
+   * that gathers one. Only then does the palette offer the Lattice-only steps,
+   * whose predicates read a fleet line's block and are unknown on any other
+   * node; and a script step offers no link mode.
+   */
+  fleetBound?: boolean;
+  /** Catalogue rows for a Structured Filter's typeahead. */
+  sampleRows?: readonly CatalogueRow[];
+  /** The catalogue lists probe as unavailable. */
+  probeUnavailable?: boolean;
   /**
    * Types edited by the common-settings block above. They stay in the chain,
    * they are ordinary operators, but listing them here too would give one
@@ -66,6 +78,20 @@ const props = defineProps<{
    * the bundle exposed no operators at all.
    */
   catalogState?: "idle" | "loading" | "ready" | "error";
+  /**
+   * A step to open, scroll to and focus, by its index in `steps`, with a
+   * ticket so the same step can be asked for twice (a refusal's "Open
+   * step").
+   */
+  openStep?: { index: number; ticket: number } | null;
+  /** The step a fleet render's script refusal names (S2-SR-2): marked on its bar. */
+  flaggedStep?: number | null;
+  /**
+   * The flagged step is proven to be the one that asked; otherwise it is
+   * the first step that can ask, which is all core can say, and the flag
+   * says that instead.
+   */
+  flaggedCertain?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -75,6 +101,21 @@ const emit = defineEmits<{
 
 const expanded = ref<number | null>(null);
 const dragIndex = ref<number | null>(null);
+const root = ref<HTMLElement | null>(null);
+
+watch(
+  () => props.openStep?.ticket,
+  async () => {
+    const index = props.openStep?.index;
+    if (index === undefined || index < 0 || index >= props.steps.length) return;
+    expanded.value = index;
+    await nextTick();
+    const title = root.value?.querySelector<HTMLElement>(`[data-step-index="${index}"] .step-title`);
+    title?.scrollIntoView({ block: "center" });
+    title?.focus({ preventScroll: true });
+  },
+  { immediate: true },
+);
 
 const managed = computed(() => new Set(props.managedTypes ?? []));
 
@@ -92,17 +133,26 @@ const addable = computed(() =>
   props.catalog
     .filter((entry) => !managed.value.has(entry.type))
     .filter((entry) => Boolean(entry.response) === wantsResponse.value)
+    .filter((entry) => props.fleetBound || !(entry.fleet || isFleetStep(entry.type)))
     .map((entry) => ({
       type: entry.type,
       label: schemaFor(entry.type)?.label ?? entry.type,
       scripting: Boolean(entry.scripting),
+      fleet: Boolean(entry.fleet || isFleetStep(entry.type)),
     })),
 );
 
+/**
+ * A step's bar: its position among the stored steps and its name. The
+ * position counts every stored step, disabled and managed ones included,
+ * as core's plan lines and refusals number them ("Step 2 added", "step 2
+ * (Script Operator)"), so a bar can be matched to the line that names it.
+ * A custom name keeps the number: without it a renamed step could not be
+ * told apart from the line about it (the lane 6c design review).
+ */
 function label(step: ChainStep, position: number): string {
   const name = step.customName?.trim();
-  if (name) return name;
-  return t.chain.stepLabel(position, schemaFor(step.type)?.label ?? step.type);
+  return t.chain.stepLabel(position, name || (schemaFor(step.type)?.label ?? step.type));
 }
 
 function commit(next: ChainStep[]): void {
@@ -189,7 +239,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
 </script>
 
 <template>
-  <section class="chain">
+  <section ref="root" class="chain">
     <div class="chain-head">
       <h3>{{ heading ?? t.chain.heading }}</h3>
       <span v-if="visible.length" class="chain-count">{{ t.chain.activeCount(activeCount, visible.length) }}</span>
@@ -199,7 +249,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
       <li
         v-for="(entry, position) in visible"
         :key="entry.index"
-        :class="['chain-step', { 'is-off': entry.step.disabled }]"
+        :class="['chain-step', { 'is-off': entry.step.disabled, 'is-flagged': flaggedStep === entry.index }]"
+        :data-step-index="entry.index"
         draggable="true"
         @dragstart="dragIndex = entry.index"
         @dragover.prevent
@@ -212,16 +263,27 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
             type="button"
             class="step-title"
             :aria-expanded="expanded === entry.index"
-            :title="label(entry.step, position + 1)"
+            :title="label(entry.step, entry.index + 1)"
             @click="expanded = expanded === entry.index ? null : entry.index"
           >
-            <ChevronRight
-              :size="14"
-              aria-hidden="true"
-              :class="['step-caret', { 'is-open': expanded === entry.index }]"
-            />
-            <span class="step-label">{{ label(entry.step, position + 1) }}</span>
+            <span class="step-title-name">
+              <ChevronRight
+                :size="14"
+                aria-hidden="true"
+                :class="['step-caret', { 'is-open': expanded === entry.index }]"
+              />
+              <span class="step-label">{{ label(entry.step, entry.index + 1) }}</span>
+            </span>
+            <span v-if="isFleetStep(entry.step.type)" class="step-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
             <span v-if="entry.step.disabled" class="badge" data-tone="warning">{{ t.chain.off }}</span>
+            <span
+              v-if="flaggedStep === entry.index"
+              class="badge step-flag"
+              data-tone="danger"
+              data-testid="step-network-flag"
+              :data-certain="flaggedCertain ? 'true' : 'false'"
+              :title="flaggedCertain ? t.plans.scriptNetwork.flagTitle : t.plans.scriptNetwork.flagCandidateTitle"
+            >{{ flaggedCertain ? t.plans.scriptNetwork.flag : t.plans.scriptNetwork.flagCandidate }}</span>
           </button>
 
           <div class="step-actions">
@@ -229,7 +291,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               <input
                 type="checkbox"
                 :checked="!entry.step.disabled"
-                :aria-label="t.chain.enable(label(entry.step, position + 1))"
+                :aria-label="t.chain.enable(label(entry.step, entry.index + 1))"
                 @change="toggleDisabled(entry.index)"
               />
               <span>{{ t.chain.enabled }}</span>
@@ -239,7 +301,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="position === 0"
               :title="t.chain.moveUp"
-              :aria-label="t.chain.moveUpLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.moveUpLabel(label(entry.step, entry.index + 1))"
               @click="moveVisible(entry.index, -1)"
             >
               <ArrowUp :size="14" aria-hidden="true" />
@@ -249,7 +311,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="position === visible.length - 1"
               :title="t.chain.moveDown"
-              :aria-label="t.chain.moveDownLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.moveDownLabel(label(entry.step, entry.index + 1))"
               @click="moveVisible(entry.index, 1)"
             >
               <ArrowDown :size="14" aria-hidden="true" />
@@ -260,8 +322,8 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               class="step-icon"
               :disabled="entry.step.disabled || previewingStep !== null"
               :title="t.chain.previewStep"
-              :aria-label="t.chain.previewStepLabel(position + 1)"
-              @click="emit('preview-step', entry.index, label(entry.step, position + 1))"
+              :aria-label="t.chain.previewStepLabel(entry.index + 1)"
+              @click="emit('preview-step', entry.index, label(entry.step, entry.index + 1))"
             >
               <LoaderCircle v-if="previewingStep === entry.index" :size="14" class="spin" aria-hidden="true" />
               <Eye v-else :size="14" aria-hidden="true" />
@@ -270,7 +332,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon"
               :title="t.chain.duplicate"
-              :aria-label="t.chain.duplicateLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.duplicateLabel(label(entry.step, entry.index + 1))"
               @click="duplicate(entry.index)"
             >
               <Copy :size="14" aria-hidden="true" />
@@ -279,7 +341,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
               type="button"
               class="step-icon is-danger"
               :title="t.chain.remove"
-              :aria-label="t.chain.removeLabel(label(entry.step, position + 1))"
+              :aria-label="t.chain.removeLabel(label(entry.step, entry.index + 1))"
               @click="remove(entry.index)"
             >
               <Trash2 :size="14" aria-hidden="true" />
@@ -302,6 +364,10 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
           <OperatorArgs
             :type="entry.step.type"
             :args="fromWireArgs(entry.step.type, entry.step.args)"
+            :fleet-bound="fleetBound"
+            :sample-rows="sampleRows"
+            :probe-unavailable="probeUnavailable"
+            :id-prefix="`chain-step-${entry.index}`"
             @update:args="setArgs(entry.index, $event)"
           />
         </div>
@@ -327,6 +393,7 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
         >
           {{ entry.label }}
           <span v-if="entry.scripting" class="add-tag">JS</span>
+          <span v-if="entry.fleet" class="add-tag add-tag-fleet" :title="t.fleetEditor.latticeOnlyTitle">{{ t.fleetEditor.latticeOnly }}</span>
         </button>
       </div>
       <p v-if="!addable.length" class="add-waiting">
@@ -420,6 +487,17 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   text-align: left;
 }
 
+/* The name keeps its caret and the room it needs; the badges after it wrap
+   to a second line when they do not fit, rather than cut the name ("2. Geo
+   loo…" beside the network flag at 375). */
+.step-title { flex-wrap: wrap; row-gap: 2px; }
+.step-title-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
 .step-title:hover { background: var(--muted); }
 .step-title:focus-visible { outline: none; box-shadow: var(--lt-focus-ring); }
 
@@ -592,6 +670,35 @@ const activeCount = computed(() => visible.value.filter((entry) => !entry.step.d
   color: var(--lt-accent-ink);
   font-size: 9px;
   font-weight: 700;
+}
+
+/* "Lattice only": the step reads a fleet line's block, so it is offered on
+   fleet-bound records alone. Neutral ink, not the accent: it is a fact about
+   the step, not a call to act. */
+.add-tag-fleet {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chain-step.is-flagged {
+  border-color: var(--destructive);
+}
+.step-flag {
+  flex: none;
+  white-space: nowrap;
+}
+.step-fleet {
+  flex: none;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: var(--lt-text-xs);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .add-waiting {

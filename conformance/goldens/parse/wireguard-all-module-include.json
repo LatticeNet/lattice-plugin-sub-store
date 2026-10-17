@@ -1,0 +1,30 @@
+[
+  {
+    "ip": "10.204.0.247",
+    "ip-cidr": 32,
+    "ipv6": "fd00:601a::f2af",
+    "ipv6-cidr": 128,
+    "mtu": 1280,
+    "name": "NL-t84k-98",
+    "port": 51820,
+    "private-key": "BndgAhONBpV0/0JGYubMy94uadXTdX1py9r53hNc5Uk=",
+    "public-key": "rr/iy2vq7YrGpRP5YMqEkbk7CtdLCWb9KBcYPk/zJzQ=",
+    "server": "ui-12.whcl76.example.com",
+    "type": "wireguard",
+    "udp": true
+  },
+  {
+    "ip": "10.68.44.23",
+    "ip-cidr": 32,
+    "ipv6": "fd00:9028::4f98",
+    "ipv6-cidr": 128,
+    "mtu": 1280,
+    "name": "CA-duts-74",
+    "port": 51820,
+    "private-key": "4YFpLczP7Ka4Y2e9+me6/7KPMBolBWIHeD0u5BekjmY=",
+    "public-key": "pKIbmZgm+KpRMVidYCZtfYJxj+MINrEmHwlCBt3m45k=",
+    "server": "tu-26.e22z.example.net",
+    "type": "wireguard",
+    "udp": true
+  }
+]

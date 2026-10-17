@@ -1,0 +1,5 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"CA-kaxsse-35","password":"DEWleTgrsJ4kcF","port":43251,"server":"a8-40.m00wg.example.com","type":"ss","udp":true,"udp-over-tcp":true}
+  - {"cipher":"aes-128-gcm","name":"KR-dbvnq3-06","password":"SYmxkhN9wKVTwg","port":26397,"server":"i1d-13.qx6y2f.example.org","type":"ss","udp":true,"udp-over-tcp":true,"udp-over-tcp-version":1}
+  - {"cipher":"aes-128-gcm","name":"KR-hrq5ux-65","password":"vJoieZSjxuSiZ3","port":42748,"server":"fxt-39.ye77foo.example.net","type":"ss","udp":true,"udp-over-tcp":true,"udp-over-tcp-version":2}
+  - {"cipher":"aes-128-gcm","name":"GB-blw-94","password":"H3T4hxz2n0INym","port":56871,"server":"ph-04.zkgqvz.example.com","type":"ss","udp":true,"udp-over-tcp":true,"udp-over-tcp-version":3}

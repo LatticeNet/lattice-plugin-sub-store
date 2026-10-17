@@ -1,0 +1,2 @@
+proxies:
+  - {"cipher":"aes-128-gcm","name":"AU-p0v73g-12","password":"dOnGS137BrNvQs","port":34870,"server":"198.51.100.130","tls":true,"type":"ss","udp":true}

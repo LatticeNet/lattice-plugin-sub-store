@@ -1,0 +1,16 @@
+[
+  {
+    "address": "jhw-31.d5kbjv.example.net:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "TYa4FLCt6y2Pe1pGcRn4",
+      "reality-base64-pubkey": "4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI",
+      "reality-hex-shortid": "649db3e7",
+      "tag": "TW-s0kp0-14",
+      "tls-host": "cdn.b0fugafa.example.org",
+      "udp-relay": "true"
+    },
+    "type": "anytls"
+  }
+]

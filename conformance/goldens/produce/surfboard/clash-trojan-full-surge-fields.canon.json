@@ -1,0 +1,19 @@
+[
+  {
+    "args": [
+      "h6-24.etbin6vt.example.net",
+      "443"
+    ],
+    "name": "DE-z9c-43",
+    "params": {
+      "block-quic": "on",
+      "password": "CpuBPWHlwbta01at",
+      "server-cert-fingerprint-sha256": "a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761",
+      "skip-cert-verify": "true",
+      "sni": "cdn.ze02y.example.com",
+      "tls": "true",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

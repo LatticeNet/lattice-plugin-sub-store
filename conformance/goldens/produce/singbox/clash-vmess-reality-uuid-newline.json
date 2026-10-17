@@ -1,0 +1,50 @@
+{
+  "outbounds": [
+    {
+      "tag": "HK-lpxr7h-34",
+      "type": "vmess",
+      "server": "nz6-03.ybjih.example.com",
+      "server_port": 443,
+      "uuid": "d2dae002-0c46-4e13-98cc-5a3c433117d6\noe6x1",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "img.cjrkej2t.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "8ip_OeJs5rXnNe7b8ZGnBEMbi7B8EvMhzMev0EIpnqQ",
+          "short_id": "f6fc6a40"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "tag": "FR-mfpjn-55",
+      "type": "vmess",
+      "server": "gl-29.fj14g.example.com",
+      "server_port": 443,
+      "uuid": "ada78eae-3c15-45f9-9645-f244405d2ef6",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.m3uknmblfk.example.com",
+        "insecure": false,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

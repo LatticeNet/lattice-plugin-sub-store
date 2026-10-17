@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "AU-myqg-14",
+    "host": "jcb-14.sz5j5zb6.example.com",
+    "path": "",
+    "port": "24641",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "Y2hhY2hhMjA6dlIxOGNjYk1WSU11WlhoNw==",
+    "userinfo_base64": "chacha20:vR18ccbMVIMuZXh7"
+  },
+  {
+    "fragment": "JP-cek9e-51",
+    "host": "fl6-16.bnilt.example.com",
+    "path": "",
+    "port": "23198",
+    "query": [
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "cmM0OmNid09ZSUFISEt3ZVdLSlM=",
+    "userinfo_base64": "rc4:cbwOYIAHHKweWKJS"
+  }
+]

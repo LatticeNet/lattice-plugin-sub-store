@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "DE-m589t-55",
+    "host": "y97-38.rn04h.example.com",
+    "path": "/",
+    "port": "30252",
+    "query": [
+      [
+        "plugin",
+        "simple-obfs;obfs=http;obfs-host=api.bjn3w2ond.example.net"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206aWlRUGd4NFlkdk9yekQ=",
+    "userinfo_base64": "aes-128-gcm:iiQPgx4YdvOrzD"
+  }
+]

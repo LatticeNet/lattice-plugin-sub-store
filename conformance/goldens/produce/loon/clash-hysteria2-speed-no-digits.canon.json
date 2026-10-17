@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "rs-36.i0j0wh.example.net",
+      "443",
+      "TpTxv5boO3l0uVdiTAX5"
+    ],
+    "name": "HK-c5l-76",
+    "params": {
+      "download-bandwidth": "0",
+      "tls-name": "cdn.zf18dl.example.net",
+      "udp": "true"
+    },
+    "type": "Hysteria2"
+  }
+]

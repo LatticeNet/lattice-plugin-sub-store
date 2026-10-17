@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": null,
+    "host": "v8-21.n91npglc.example.com",
+    "path": "",
+    "port": null,
+    "query": [],
+    "scheme": "trojan",
+    "userinfo": "UDG9ALCvfGeGG3e5"
+  },
+  {
+    "raw": "b6-16.idsu.example.net:443?sni=static.mgdrp82.example.com&type=tcp#JP-e7v-93"
+  },
+  {
+    "fragment": "US-akqgj-94",
+    "host": "akg-24.xvw1u.example.com",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "www.s7onk.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "7AyRlORj1RLGZiCB"
+  }
+]

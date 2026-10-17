@@ -1,0 +1,41 @@
+[
+  {
+    "address": "ep-36.ladi.example.org:8080",
+    "args": [],
+    "params": {
+      "password": "LLudeRwOBV80",
+      "tag": "NL-zep7-46",
+      "udp-relay": "true",
+      "username": "zoushga"
+    },
+    "type": "http"
+  },
+  {
+    "address": "vl-27.jpxff.example.org:80",
+    "args": [],
+    "params": {
+      "aead": "true",
+      "method": "chacha20-poly1305",
+      "obfs": "http",
+      "obfs-host": "cdn.bzkynldo.example.com",
+      "obfs-uri": "/g76/zhpwfk7oof",
+      "password": "daa4605b-ff81-4e52-b134-26d91c376a3e",
+      "tag": "HK-g5wzd-51",
+      "udp-relay": "true"
+    },
+    "type": "vmess"
+  },
+  {
+    "address": "j3d-04.e29g.example.com:17410",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "over-tls",
+      "obfs-host": "j3d-04.e29g.example.com",
+      "password": "4hvmdU03O0JArG",
+      "tag": "FR-g8uxz-35",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

@@ -27,10 +27,18 @@ const props = withDefaults(
      * number of records it would damage. Listed, not counted.
      */
     consequences?: string[];
+    /**
+     * A heading for `consequences` when they are not records this breaks:
+     * a staged revision's discard says what happens, in sentences, so they
+     * are set in the body face rather than as identifiers.
+     */
+    consequencesTitle?: string;
     /** What changes outside Lattice: live shares, by path. */
     served?: string[];
     /** Typed to arm the confirm instead of the count; "" when the count rule applies. */
     confirmText?: string;
+    /** A sentence under the names: what the verb leaves out, and why. */
+    note?: string;
     busy?: boolean;
     /**
      * The record whose row takes focus back when nothing had focus as the
@@ -39,7 +47,7 @@ const props = withDefaults(
      */
     focusRecord?: string;
   }>(),
-  { consequences: () => [], served: () => [], confirmText: "", focusRecord: "" },
+  { consequences: () => [], consequencesTitle: "", served: () => [], confirmText: "", note: "", focusRecord: "" },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
@@ -121,12 +129,13 @@ const armed = computed(() => {
       <ul class="lt-dialog-names">
         <li v-for="name in names" :key="name" class="mono">{{ name }}</li>
       </ul>
+      <p v-if="note" class="lt-dialog-note" data-testid="confirm-note">{{ note }}</p>
       <template v-if="consequences.length">
         <p class="lt-dialog-subtitle">
-          {{ consequences.length === 1 ? t.confirm.alsoBreaksOne : t.confirm.alsoBreaks(consequences.length) }}
+          {{ consequencesTitle || (consequences.length === 1 ? t.confirm.alsoBreaksOne : t.confirm.alsoBreaks(consequences.length)) }}
         </p>
         <ul class="lt-dialog-names is-consequence">
-          <li v-for="note in consequences" :key="note" class="mono">{{ note }}</li>
+          <li v-for="note in consequences" :key="note" :class="{ mono: !consequencesTitle }">{{ note }}</li>
         </ul>
       </template>
       <template v-if="served.length">
@@ -197,6 +206,12 @@ const armed = computed(() => {
    about to be deleted. */
 .lt-dialog-names.is-consequence {
   background: var(--lt-warn-soft);
+}
+.lt-dialog-note {
+  margin: 0 0 var(--space-3);
+  font-size: var(--lt-text-sm);
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
 }
 .lt-dialog-subtitle {
   margin: 0 0 var(--space-1);

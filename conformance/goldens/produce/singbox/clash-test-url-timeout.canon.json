@@ -1,0 +1,17 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "password": "87KwLxH2WIUqKHKx",
+      "server": "z8-36.o0oc23my.example.com",
+      "server_port": 443,
+      "tag": "TW-cna4sp-21",
+      "tls": {
+        "enabled": true,
+        "insecure": false,
+        "server_name": "api.l0te6v7bhr.example.com"
+      },
+      "type": "trojan"
+    }
+  ]
+}

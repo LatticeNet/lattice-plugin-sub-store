@@ -1,0 +1,3 @@
+proxies:
+  - {"trojan":{"name":"JP-e7v-93","server":"v8-21.n91npglc.example.com\nb6-16.idsu.example.net","port":443,"password":"UDG9ALCvfGeGG3e5","tfo":false,"udp_relay":true,"sni":"static.mgdrp82.example.com"}}
+  - {"trojan":{"name":"US-akqgj-94","server":"akg-24.xvw1u.example.com","port":443,"password":"7AyRlORj1RLGZiCB","tfo":false,"udp_relay":true,"sni":"www.s7onk.example.com"}}

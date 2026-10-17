@@ -1,0 +1,2 @@
+GB-z2wqhu-65=vmess,h4-22.oafo.example.net,443,auto,"d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5",transport=tcp,over-tls=true,tls-name=api.qfc0dfetd.example.org,alterId=0,udp=true
+FR-hnulbn-18=vmess,q6-01.rmt6.example.net,443,auto,"bec5b668-7a33-4c0a-81b3-9093bc9ddb33",transport=tcp,over-tls=true,tls-name=static.hpte5et6dp.example.net,alterId=1,udp=true

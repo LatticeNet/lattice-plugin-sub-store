@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "gl-29.fj14g.example.com",
+      "443"
+    ],
+    "name": "FR-mfpjn-55",
+    "params": {
+      "alpn": "h2,http/1.1",
+      "skip-cert-verify": "false",
+      "sni": "api.m3uknmblfk.example.com",
+      "tls": "true",
+      "username": "ada78eae-3c15-45f9-9645-f244405d2ef6",
+      "vmess-aead": "true"
+    },
+    "type": "vmess"
+  }
+]

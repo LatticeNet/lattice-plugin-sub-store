@@ -1,0 +1,112 @@
+{
+  "name": "anytls",
+  "protocol": "anytls",
+  "share_url": "anytls://owner-share-secret@at.example.com:443?security=tls&sni=at.example.com#owner",
+  "row": {
+    "line_uuid": "0000000c-0000-4000-8000-00000000000c",
+    "line_hash_id": "lh-12",
+    "node_id": "node-12",
+    "node_name": "fixture-12",
+    "name": "anytls",
+    "label": "fixture-12 anytls",
+    "node_tags": [
+      "jp",
+      "rack-5"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "anytls",
+    "transport": "tcp",
+    "security": "tls",
+    "public_host": "at.example.com",
+    "public_port": 443,
+    "addresses": [
+      "192.0.2.12"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "anytls",
+      "host": "at.example.com",
+      "port": 443,
+      "params": {
+        "security": "tls",
+        "sni": "at.example.com"
+      },
+      "digest": "sha256:000000000000000000000000000000000000000000000000000000000000000c"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "0000000c-0000-4000-8000-00000000000c",
+        "placeholders": {
+          "password": "LATTICE-SYN-0000000c-0000-4000-8000-00000000000c-password-12ad78586d5232ae7a107112ae5b0a07"
+        },
+        "node": {
+          "_h2": false,
+          "addresses": [
+            "192.0.2.12"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-12",
+          "name": "fixture-12 anytls",
+          "node_id": "node-12",
+          "packet-encoding": "xudp",
+          "password": "LATTICE-SYN-0000000c-0000-4000-8000-00000000000c-password-12ad78586d5232ae7a107112ae5b0a07",
+          "port": 443,
+          "server": "at.example.com",
+          "skip-cert-verify": false,
+          "sni": "at.example.com",
+          "tags": [
+            "jp",
+            "rack-5"
+          ],
+          "tls": true,
+          "type": "anytls",
+          "udp": true
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "0000000c-0000-4000-8000-00000000000c"
+      ]
+    }
+  }
+}

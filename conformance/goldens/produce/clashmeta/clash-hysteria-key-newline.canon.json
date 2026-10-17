@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "name": "JP-wxup-90",
+      "port": 44885,
+      "protocol": "udp",
+      "server": "sr-25.afzmy4.example.net",
+      "skip-cert-verify": false,
+      "sni": "img.fx8nqbfz1i.example.org",
+      "type": "hysteria",
+      "udp": true,
+      "zqfhg9\nvtjr": 1
+    },
+    {
+      "name": "HK-gzb1-82",
+      "port": 10990,
+      "protocol": "udp",
+      "server": "vv-08.z7h7pu43.example.org",
+      "skip-cert-verify": false,
+      "sni": "cdn.nvziv0e.example.org",
+      "type": "hysteria",
+      "udp": true
+    }
+  ]
+}

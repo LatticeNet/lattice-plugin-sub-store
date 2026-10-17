@@ -17,8 +17,11 @@ func TestCollectionStrictModeFailsWhenAMemberFails(t *testing.T) {
 	seedSub(t, rt, "good", nil, realNodeA)
 	// A vpn-core member with an export that returns nothing: the host in this
 	// runtime answers with an empty list.
+	// A provider with no link fails to resolve. A legacy vpn-core member
+	// used to stand in here; since S2 render never reads one, and a
+	// withheld member is never skipped.
 	if err := rt.saveSubscription(subscriptionRecord{
-		ID: "bad", Name: "Bad", Source: subscriptionSourceVPNCore,
+		ID: "bad", Name: "Bad", Source: subscriptionSourceRemote,
 	}); err != nil {
 		t.Fatalf("seed bad: %v", err)
 	}
@@ -92,8 +95,11 @@ func TestScriptArtifactCollectionNeverSkipsFailedGraphMembers(t *testing.T) {
 func TestCollectionSkipModeServesTheRest(t *testing.T) {
 	rt, _ := newVPNCoreRuntime(t)
 	seedSub(t, rt, "good", nil, realNodeA)
+	// A provider with no link fails to resolve. A legacy vpn-core member
+	// stood in here before S2; render no longer reads one, and a withheld
+	// member is never skipped.
 	if err := rt.saveSubscription(subscriptionRecord{
-		ID: "bad", Name: "Bad", Source: subscriptionSourceVPNCore,
+		ID: "bad", Name: "Bad", Source: subscriptionSourceRemote,
 	}); err != nil {
 		t.Fatalf("seed bad: %v", err)
 	}
@@ -119,7 +125,7 @@ func TestCollectionSkipModeStillRefusesWhenEveryMemberFails(t *testing.T) {
 	rt, _ := newVPNCoreRuntime(t)
 	for _, id := range []string{"bad1", "bad2"} {
 		if err := rt.saveSubscription(subscriptionRecord{
-			ID: id, Name: id, Source: subscriptionSourceVPNCore,
+			ID: id, Name: id, Source: subscriptionSourceRemote,
 		}); err != nil {
 			t.Fatalf("seed %s: %v", id, err)
 		}

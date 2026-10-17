@@ -1,0 +1,12 @@
+{
+  "id": "clash-wireguard-peers",
+  "family": "clash",
+  "protocol": "wireguard",
+  "transport": "udp",
+  "security": "none",
+  "quirk": "wireguard-peers",
+  "description": "With include-unsupported-proxy, two WireGuard nodes. The first has ip 10.0.0.2/24, ipv6 fd00::9/64, persistent-keepalive and one peer with its own server and port, ip 10.9.9.9/24, ipv6 fd00::2/64, pre-shared-key, allowed-ips and reserved: Surge's template writes the peer's addresses verbatim with their prefix. The second has no peers, ip 10.0.0.3/24, ipv6 fd00::3/64, keepalive and pre-shared-key: Surge writes the bare, normalised addresses. Stash and Shadowrocket mirror the keepalive and pre-shared-key aliases and pass the peers through.",
+  "options": {
+    "include-unsupported-proxy": true
+  }
+}

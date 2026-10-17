@@ -1,0 +1,3 @@
+proxies:
+  - {"auth-str":"y09xFPR6\ncBFFO59d","name":"TW-dec7l-96","port":46960,"protocol":"udp","server":"o61-17.l7ae9.example.org","skip-cert-verify":false,"sni":"www.m9fxoh65zz.example.net","type":"hysteria","udp":true}
+  - {"name":"TW-jnnhh-65","port":35854,"protocol":"udp","server":"p0z-30.x42x.example.net","skip-cert-verify":false,"sni":"static.ko4t14.example.com","type":"hysteria","udp":true}

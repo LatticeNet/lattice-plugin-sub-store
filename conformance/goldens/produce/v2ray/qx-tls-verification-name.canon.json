@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "KR-kuqnpj-40",
+    "host": "i6-13.qt0i4ds.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "sni",
+        "img.obi9ca56z.example.net"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "vcn",
+        "static.ujs3qvbp.example.net"
+      ]
+    ],
+    "scheme": "trojan",
+    "userinfo": "OAeWydKTNVzsb42M"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "qx-anytls-reality",
+  "family": "qx",
+  "protocol": "anytls",
+  "transport": "tcp",
+  "security": "reality",
+  "quirk": "reality",
+  "description": "anytls with reality-base64-pubkey and reality-hex-shortid: Quantumult X writes the two Reality parameters after the tag."
+}

@@ -80,8 +80,8 @@ func TestProduceEndToEndFromOwnParse(t *testing.T) {
 			if _, err := os.Stat(filepath.Join(conformanceDir, "goldens", "produce", target.id, c.id+".canon.json")); err != nil {
 				continue
 			}
-			got, _ := produce(t, target.platform, fromWire, c.options)
-			if inProcess, _ := produce(t, target.platform, parsed, c.options); jsonSafe && inProcess != got {
+			got, _ := produce(t, target.platform, c.produceInput(fromWire), c.options)
+			if inProcess, _ := produce(t, target.platform, c.produceInput(parsed), c.options); jsonSafe && inProcess != got {
 				t.Errorf("%s/%s: the parser's nodes and their JSON form produce different output at byte %d\n parser:    %q\n JSON form: %q", target.id, c.id, firstDifference(inProcess, got), clip(inProcess), clip(got))
 			}
 			if !exact {

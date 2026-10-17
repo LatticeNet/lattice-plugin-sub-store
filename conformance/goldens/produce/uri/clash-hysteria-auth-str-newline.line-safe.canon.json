@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "TW-jnnhh-65",
+    "host": "p0z-30.x42x.example.net",
+    "path": "",
+    "port": "35854",
+    "query": [
+      [
+        "peer",
+        "static.ko4t14.example.com"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

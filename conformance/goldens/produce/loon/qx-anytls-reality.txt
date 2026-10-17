@@ -1,0 +1,1 @@
+TW-s0kp0-14=anytls,jhw-31.d5kbjv.example.net,443,"TYa4FLCt6y2Pe1pGcRn4",sni=cdn.b0fugafa.example.org,public-key="4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI",short-id=649db3e7,udp=true

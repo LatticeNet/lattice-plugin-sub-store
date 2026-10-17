@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "vg6-01.myky5zq.example.net",
+      "53931",
+      "aes-128-gcm",
+      "JFj2WdWpQ2SEYt"
+    ],
+    "name": "US-w7au2y-48",
+    "params": {
+      "obfs-host": "www.ysbqjyq.example.com",
+      "obfs-name": "http",
+      "obfs-uri": "/llvm5b0o",
+      "udp": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

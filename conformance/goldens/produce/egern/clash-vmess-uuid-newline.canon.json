@@ -1,0 +1,40 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "CA-dh9n-58",
+        "port": 443,
+        "security": "auto",
+        "server": "nu-28.z0ft.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "cdn.lpulwjn8.example.net"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "05528a2a-c88e-4a32-a5d9-e2174fc51112\nevoeyy"
+      }
+    },
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "AU-ixoxzh-57",
+        "port": 443,
+        "security": "auto",
+        "server": "ymw-37.pzafc5.example.com",
+        "tfo": false,
+        "transport": {
+          "tls": {
+            "skip_tls_verify": false,
+            "sni": "img.sb9upwf.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "ad377a8c-f905-40ab-9309-188a8b431e5c"
+      }
+    }
+  ]
+}

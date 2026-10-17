@@ -1,0 +1,32 @@
+[
+  {
+    "fragment": "CA-bux-89",
+    "host": "fm-04.a3i4jy.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "fastopen",
+        "1"
+      ],
+      [
+        "mport",
+        "20000-30000,40000"
+      ],
+      [
+        "obfs",
+        "salamander"
+      ],
+      [
+        "obfs-password",
+        "Em9uhvQ8uMiwK95e"
+      ],
+      [
+        "sni",
+        "img.gudkt.example.org"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "axh3vCkuX5XttJITA3Nw"
+  }
+]

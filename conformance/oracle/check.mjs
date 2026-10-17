@@ -12,11 +12,16 @@
 // the corpus input; parse conformance is a deep comparison of its nodes with
 // goldens/parse/<case>.json, key order ignored. For every case and target
 // that has a golden, the candidate produces from the golden nodes with the
-// case's options; produce conformance compares the canonical structural form
+// case's options (and _subName from its record_name, lib/corpus.mjs); produce conformance compares the canonical structural form
 // of its output with the golden's, and for URI and V2Ray also compares the
 // bytes. Allowlist normalisations (allowlist/divergences.yaml) apply before
-// a comparison is failed; they never apply to URI and V2Ray, whose bytes must
-// match.
+// a comparison is failed; no value normalisation applies to URI and V2Ray,
+// whose bytes must match. A without_line_breaking_nodes entry also lets a
+// failing case match the golden upstream wrote without the input's nodes
+// that break a line (goldens/produce/<target>/<case>.line-safe.canon.json);
+// on URI and V2Ray the bytes must then equal that golden's bytes
+// (<case>.line-safe.<ext>), so the candidate still matches upstream byte for
+// byte on every other node.
 //
 // --end-to-end produces from the candidate's own parse output instead of the
 // golden nodes, in whatever key order the candidate returned them, and
@@ -42,10 +47,10 @@
 // --no-fail), 2 when --expect does not match, 3 on a harness error.
 import fs from 'node:fs';
 import path from 'node:path';
-import { applicable, loadAllowlist, normalise } from './lib/allowlist.mjs';
+import { LINE_SAFE_SUFFIX, applicable, comparesWithoutLineBreaks, lineSafeBytesFile, loadAllowlist, normalise } from './lib/allowlist.mjs';
 import { canonical, sortKeys, stableJSON } from './lib/canonical.mjs';
 import { Runner } from './lib/client.mjs';
-import { filterCases, listCases } from './lib/corpus.mjs';
+import { filterCases, listCases, produceInput } from './lib/corpus.mjs';
 import { ALLOWLIST_FILE, GOLDENS_DIR, ORACLE_DIR, ROOT, readPin } from './lib/paths.mjs';
 import { TARGETS, findTarget } from './lib/targets.mjs';
 
@@ -105,19 +110,30 @@ function clip(v) {
 }
 
 // compare runs the strict comparison and, when it fails, retries with the
-// applicable allowlist normalisations. It returns {pass, diff, allowed}.
-function compare(golden, cand, entries, used) {
+// applicable allowlist normalisations: against the golden, and then, when an
+// entry compares without line-breaking nodes and the case has that golden
+// (alternate), against it. It returns {pass, diff, allowed, lineSafe}:
+// allowed names the entries the pass needed, lineSafe is true when the
+// candidate matched the alternate, and a failure reports where the candidate
+// differs from the golden itself. The caller records allowed once the whole
+// comparison, bytes included, has passed.
+function compare(golden, cand, entries, alternate = null) {
     const g = sortKeys(golden);
     const c = sortKeys(cand);
     let d = firstDiff(g, c);
-    if (!d) return { pass: true };
+    if (!d) return { pass: true, allowed: [] };
     if (entries.length) {
-        const nd = firstDiff(sortKeys(normalise(g, entries)), sortKeys(normalise(c, entries)));
+        const nc = sortKeys(normalise(c, entries));
+        const nd = firstDiff(sortKeys(normalise(g, entries)), nc);
         if (!nd) {
-            for (const e of entries) used.add(e.id);
-            return { pass: true, allowed: entries.map((e) => e.id) };
+            // Only entries with a value step can have made this pass.
+            const allowed = entries.filter((e) => e.normalise.some((step) => !step.lineSafe)).map((e) => e.id);
+            return { pass: true, allowed };
         }
         d = nd;
+        if (alternate !== null && !firstDiff(sortKeys(normalise(alternate, entries)), nc)) {
+            return { pass: true, allowed: entries.map((e) => e.id), lineSafe: true };
+        }
     }
     return { pass: false, diff: { path: d.path, golden: clip(d.golden), candidate: clip(d.candidate) } };
 }
@@ -154,9 +170,11 @@ try {
         let r;
         if (goldenNodes && goldenNodes.error === true) r = { pass: !parsed.ok, diff: { path: '$', golden: 'error', candidate: 'ok' } };
         else if (!parsed.ok) r = { pass: false, diff: { path: '$', golden: 'nodes', candidate: `error: ${clip(parsed.error)}` } };
-        else r = compare(goldenNodes, parsed.nodes, applicable(allow, 'parse', null, c.id), used);
-        if (r.pass) result.parse.passed++;
-        else result.parse.failures.push({ case: c.id, ...r.diff });
+        else r = compare(goldenNodes, parsed.nodes, applicable(allow, 'parse', null, c.id));
+        if (r.pass) {
+            result.parse.passed++;
+            for (const id of r.allowed ?? []) used.add(id);
+        } else result.parse.failures.push({ case: c.id, ...r.diff });
 
         if (!Array.isArray(goldenNodes)) continue;
         const produceNodes = endToEnd ? (r.pass ? parsed.nodes : null) : goldenNodes;
@@ -170,16 +188,22 @@ try {
                 bucket.failures.push({ case: c.id, path: '$', golden: 'output', candidate: 'no end-to-end input: the parse did not match' });
                 continue;
             }
-            const res = await runner.request({ op: 'produce', target: t.id, nodes: produceNodes, options: c.options });
+            const res = await runner.request({ op: 'produce', target: t.id, nodes: produceInput(c, produceNodes), options: c.options });
             let pr;
             if (goldenCanon && goldenCanon.error === true && Object.keys(goldenCanon).length === 1) {
                 pr = res.ok ? { pass: false, diff: { path: '$', golden: 'error', candidate: 'output' } } : { pass: true };
             } else if (!res.ok) {
                 pr = { pass: false, diff: { path: '$', golden: 'output', candidate: `error: ${clip(res.error)}` } };
             } else {
-                pr = compare(goldenCanon, canonical(t.form, res.output), applicable(allow, 'produce', t.id, c.id), used);
+                const entries = applicable(allow, 'produce', t.id, c.id);
+                const lineSafeFile = path.join(goldensDir, 'produce', t.id, `${c.id}${LINE_SAFE_SUFFIX}`);
+                const alternate = comparesWithoutLineBreaks(entries) && fs.existsSync(lineSafeFile) ? readJSON(lineSafeFile) : null;
+                pr = compare(goldenCanon, canonical(t.form, res.output), entries, alternate);
                 if (pr.pass && t.bytes) {
-                    const goldenBytes = fs.readFileSync(path.join(goldensDir, 'produce', t.id, `${c.id}.${t.ext}`), 'utf8');
+                    // A candidate that matched the line-safe canonical form
+                    // must also equal the line-safe golden's bytes.
+                    const bytesFile = pr.lineSafe ? lineSafeBytesFile(t, c.id) : `${c.id}.${t.ext}`;
+                    const goldenBytes = fs.readFileSync(path.join(goldensDir, 'produce', t.id, bytesFile), 'utf8');
                     if (goldenBytes !== res.output) {
                         let i = 0;
                         while (i < goldenBytes.length && goldenBytes[i] === res.output[i]) i++;
@@ -187,8 +211,10 @@ try {
                     }
                 }
             }
-            if (pr.pass) bucket.passed++;
-            else bucket.failures.push({ case: c.id, ...pr.diff });
+            if (pr.pass) {
+                bucket.passed++;
+                for (const id of pr.allowed ?? []) used.add(id);
+            } else bucket.failures.push({ case: c.id, ...pr.diff });
         }
     }
 } catch (e) {

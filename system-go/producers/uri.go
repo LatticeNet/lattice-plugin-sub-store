@@ -14,7 +14,9 @@ import (
 
 // The URI producer (specs/producers/uri.md): one share link per node, joined
 // by "\n" with no trailing newline. Its goldens are byte-exact, so every rule
-// below reproduces upstream's bytes, the lossy and malformed ones included.
+// below reproduces upstream's bytes, the lossy and malformed ones included,
+// except that a node whose link would hold a line-breaking character is
+// rejected (uri.md, "Line safety"), where upstream writes the link as it is.
 
 type uriProducer struct{}
 
@@ -48,9 +50,18 @@ func (uriProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, target st
 // line where a failing node leaves nothing (v2ray.md, "Output shape").
 var errNoForm = errors.New("no URI form")
 
+// errLineBreaking marks a node whose link would hold a line-breaking
+// character (uri.md, "Line safety"). Both documents leave it out without a
+// trace: it is not errNoForm, so the V2Ray text gives it no empty line.
+var errLineBreaking = errors.New("link would break a line")
+
+// droppedBy reports a node uriLine refused. A node without a URI form and a
+// node whose link would break a line are unsupported, as the Surge and
+// Quantumult X producers report their line-safety rejections; any other
+// error is a failed node.
 func droppedBy(p prepared, err error) Dropped {
 	reason := ReasonFailed
-	if errors.Is(err, errNoForm) {
+	if errors.Is(err, errNoForm) || errors.Is(err, errLineBreaking) {
 		reason = ReasonUnsupported
 	}
 	return Dropped{Index: p.index, Type: typeOf(p.node.Fields), Reason: reason}
@@ -61,9 +72,28 @@ func sortDropped(d []Dropped) {
 }
 
 // uriLine writes one node's link. It returns errNoForm for a type without a
-// URI form and for a TUIC v4 node, and another error when producing the node
-// fails.
+// URI form and for a TUIC v4 node, errLineBreaking for a link that would hold
+// a line-breaking character, and another error when producing the node fails.
 func uriLine(p prepared) (string, error) {
+	line, err := uriLink(p)
+	if err != nil {
+		return "", err
+	}
+	// Upstream writes many fields raw (a socks5 name, a trojan password or
+	// server, a vless uuid, hysteria's auth, every field name of the generic
+	// walks), so a control character, U+2028 or U+2029 in any of them would
+	// split the link and let a feed append a link of its own. One check over
+	// the finished link covers every field it writes, so no writer can be
+	// missed (uri.md, "Line safety"; lineSafe is the Surge and Quantumult X
+	// check).
+	if !lineSafe(line) {
+		return "", errLineBreaking
+	}
+	return line, nil
+}
+
+// uriLink writes one node's link as upstream does, raw fields included.
+func uriLink(p prepared) (string, error) {
 	f := p.node.Fields
 	uriPrepare(f)
 	switch f["type"] {

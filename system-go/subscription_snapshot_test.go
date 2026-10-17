@@ -73,11 +73,11 @@ func TestCollectionRenderFromSnapshotMatchesLive(t *testing.T) {
 		t.Fatalf("fetch did not write a version 2 envelope: %.120s", snap.Raw)
 	}
 	// The envelope as fetch stored it, which is what the core hands render.
-	fromSnapshot, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, snap.Raw)
+	fromSnapshot, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, snap.Raw, legacyWithheld)
 	if err != nil {
 		t.Fatalf("render from snapshot: %v", err)
 	}
-	live, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "")
+	live, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "", legacyWithheld)
 	if err != nil {
 		t.Fatalf("render live: %v", err)
 	}
@@ -115,9 +115,12 @@ func TestScriptFileRenderFromSnapshotMatchesLive(t *testing.T) {
 	}
 }
 
-// A snapshot from an older plugin, or one that was never written, must not
-// fail the serve: the live path takes over.
-func TestRenderFallsBackWhenSnapshotUndecodable(t *testing.T) {
+// A snapshot this plugin cannot read is an error, never a reason to resolve
+// the members live (S2 plan section 1.2): core hands back only snapshots the
+// plugin wrote, and the live path would read a legacy member's export for
+// whoever called render with a broken raw. A snapshot that was never written
+// (an empty raw) still renders live, as previews do.
+func TestRenderRefusesUndecodableSnapshot(t *testing.T) {
 	rt, _ := newCountingRuntime(t)
 	seedBudgetStore(t, rt)
 
@@ -125,11 +128,15 @@ func TestRenderFallsBackWhenSnapshotUndecodable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "this is not the envelope")
+	_, err = rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "this is not the envelope", legacyWithheld)
+	if err == nil || !strings.HasPrefix(err.Error(), codeSnapshotMalformed) {
+		t.Fatalf("an undecodable snapshot: err %v", err)
+	}
+	out, err := rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "", legacyWithheld)
 	if err != nil {
-		t.Fatalf("undecodable snapshot failed the render: %v", err)
+		t.Fatalf("an empty snapshot no longer renders live: %v", err)
 	}
 	if !strings.Contains(out, "vless://") && !strings.Contains(out, "HK-01") {
-		t.Fatalf("fallback render produced no nodes: %q", out[:min(120, len(out))])
+		t.Fatalf("live render produced no nodes: %q", out[:min(120, len(out))])
 	}
 }

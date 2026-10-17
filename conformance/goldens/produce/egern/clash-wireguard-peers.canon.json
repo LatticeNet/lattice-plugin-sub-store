@@ -1,0 +1,34 @@
+{
+  "proxies": [
+    {
+      "wireguard": {
+        "local_ipv4": "10.9.9.9/24",
+        "local_ipv6": "fd00::2/64",
+        "mtu": 1280,
+        "name": "TW-rpi3w-80",
+        "peer_public_key": "pGtP1CWDI4dGUtsqVOaG9aM1Trw2rUDANzRf/6j0zoc=",
+        "port": 46216,
+        "preshared_key": "G+xCCX5hknJc5zATEzQww8ryuhwNDNiL960DaoOE7cg=",
+        "private_key": "J8bsv9cDEmzg76YzQqclUGNVpVZi5DfTMEYjwC9kI9k=",
+        "reserved": [
+          1,
+          2,
+          3
+        ],
+        "server": "x0-27.p95u.example.org"
+      }
+    },
+    {
+      "wireguard": {
+        "keepalive": 15,
+        "local_ipv4": "10.0.0.3/24",
+        "local_ipv6": "fd00::3/64",
+        "name": "GB-edolm-94",
+        "peer_public_key": "I7z38GVa/xAWrbEcODkvOL1EhiDXcuj8/ydwwspPolA=",
+        "port": 51820,
+        "private_key": "h3KVgXdAiDw4XJXVg2/8m40dRmlk4Jnz5wRRVI4Y0no=",
+        "server": "rh-29.l9q4.example.net"
+      }
+    }
+  ]
+}

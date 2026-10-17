@@ -1,0 +1,14 @@
+[
+  {
+    "address": "198.51.100.130:34870",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "obfs": "over-tls",
+      "password": "dOnGS137BrNvQs",
+      "tag": "AU-p0v73g-12",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

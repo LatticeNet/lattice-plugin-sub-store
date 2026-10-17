@@ -7,6 +7,7 @@ import {
   attentionWeight,
   countsNeedPreview,
   expiryOf,
+  flagOf,
   isFlagged,
   kindCounts,
   kindFacetOf,
@@ -187,5 +188,15 @@ describe("needs attention", () => {
     expect([quiet, flagged, expired, failed].map((item) => attentionWeight(item, NOW))).toEqual([3, 1, 0, 0]);
     expect(isFlagged(flagged)).toBe(true);
     expect(isFlagged(row({ flags: { has_fallback_step: true } }))).toBe(false);
+  });
+
+  it("flags a record that serves line owner credentials, and says that before a regex rewrite", () => {
+    const owner = row({ flags: { owner_credentials: true } });
+    expect(isFlagged(owner)).toBe(true);
+    expect(flagOf(owner)).toEqual({ label: t.fleetEditor.ownerCredentials, title: t.plans.ownerTitle });
+    const both = row({ flags: { owner_credentials: true, regex_incompatible: true } });
+    expect(flagOf(both)?.label).toBe(t.fleetEditor.ownerCredentials);
+    expect(flagOf(row({ flags: { regex_incompatible: true } }))).toEqual({ label: t.records.flagged, title: t.records.flaggedTitle });
+    expect(flagOf(row({}))).toBeNull();
   });
 });

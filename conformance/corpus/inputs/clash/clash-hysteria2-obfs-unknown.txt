@@ -1,0 +1,9 @@
+proxies:
+  - name: DE-q4q-65
+    type: hysteria2
+    server: hh-39.vosqj.example.org
+    port: 443
+    password: CaRJvNo3wLi7CJWZCiPC
+    sni: api.g09qao7vc4.example.net
+    obfs: xplus
+    obfs-password: b5LnTsrJt7t8Z97A

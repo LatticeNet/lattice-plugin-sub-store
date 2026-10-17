@@ -1,0 +1,21 @@
+[
+  {
+    "fragment": "FR-h8s2yv-49",
+    "host": "x7-31.xbezg1w.example.net",
+    "path": "/",
+    "port": "26155",
+    "query": [
+      [
+        "plugin",
+        "shadow-tls;host=api.pfq8b.example.net;password=gCCUjYsuxncEvIZP;version=1"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206ZnBlWmg1b0V2U1hxMTg=",
+    "userinfo_base64": "aes-128-gcm:fpeZh5oEvSXq18"
+  }
+]

@@ -15,6 +15,8 @@ export interface FileEditorOptions {
   clearListState: () => void;
   /** An overlay or a menu the Escape key belongs to first. */
   overlayOpen: () => boolean;
+  /** The editor gave way to the screen, after a save or not; as useRecordEditor's. */
+  onClosed?: (closed: { id: string | null; saved: boolean }) => void;
 }
 
 /**
@@ -57,7 +59,7 @@ export function useFileEditor(options: FileEditorOptions) {
     editing,
     fingerprint: () => JSON.stringify([draft.value, tagText.value, queryParamText.value]),
     overlayOpen: options.overlayOpen,
-    leave: () => cancelEdit(),
+    leave: () => close(false),
   });
   const { markPristine } = exit;
 
@@ -114,6 +116,12 @@ export function useFileEditor(options: FileEditorOptions) {
     subs.clearErrors();
   }
 
+  function close(saved: boolean): void {
+    const id = editingId.value;
+    cancelEdit();
+    options.onClosed?.({ id, saved });
+  }
+
   function splitList(text: string): string[] {
     return text
       .split(/[,\n]/)
@@ -125,7 +133,7 @@ export function useFileEditor(options: FileEditorOptions) {
     draft.value.tags = splitList(tagText.value);
     draft.value.queryParams = splitList(queryParamText.value);
     const ok = await subs.save(draft.value);
-    if (ok) cancelEdit();
+    if (ok) close(true);
   }
 
   return {
@@ -142,7 +150,8 @@ export function useFileEditor(options: FileEditorOptions) {
     exit,
     startCreate,
     startEdit,
-    cancelEdit,
+    // The discard confirm's way out: a leave like Cancel, so the screen hears it.
+    cancelEdit: () => close(false),
     submit,
   };
 }

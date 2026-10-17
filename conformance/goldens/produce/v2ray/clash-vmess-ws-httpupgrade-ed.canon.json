@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "y3-21.jx7s4u.example.net",
+      "aid": "0",
+      "host": "img.vrryn09i.example.com",
+      "id": "5baf4bf2-f757-4999-9c4b-21940ec33b57",
+      "net": "httpupgrade",
+      "path": "/nwhgc/x3hi?ed=2048",
+      "port": "443",
+      "ps": "KR-cmxq1g-03",
+      "scy": "auto",
+      "sni": "www.opgmot6ma.example.net",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

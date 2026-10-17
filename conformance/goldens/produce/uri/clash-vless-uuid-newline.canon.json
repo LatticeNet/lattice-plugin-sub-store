@@ -1,0 +1,48 @@
+[
+  {
+    "fragment": "US-vpb-70",
+    "host": "nd-06.hx8izax.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "alpn",
+        "h2,http/1.1"
+      ],
+      [
+        "fp",
+        "chrome"
+      ],
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "security",
+        "tls"
+      ],
+      [
+        "sni",
+        "api.koyq8upb.example.com"
+      ],
+      [
+        "type",
+        "tcp"
+      ]
+    ],
+    "scheme": "vless",
+    "userinfo": "fddbb0c3-7ffe-4d9c-b2a0-80b65e0fcd73"
+  },
+  {
+    "fragment": null,
+    "host": "4ad3b3d8-0629-4a2a-a669-e464fe4e5f29",
+    "path": "",
+    "port": null,
+    "query": [],
+    "scheme": "vless",
+    "userinfo": null
+  },
+  {
+    "raw": "j5195@mdo-20.bknkc.example.net:443?security=tls&type=tcp&packetEncoding=none&alpn=h2%2Chttp%2F1.1&sni=static.hvqm8a0.example.org&fp=chrome#SG-rmd-87"
+  }
+]

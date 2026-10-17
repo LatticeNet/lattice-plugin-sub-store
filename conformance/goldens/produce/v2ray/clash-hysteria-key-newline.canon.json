@@ -1,0 +1,53 @@
+[
+  {
+    "fragment": null,
+    "host": "sr-25.afzmy4.example.net",
+    "path": "",
+    "port": "44885",
+    "query": [
+      [
+        "peer",
+        "img.fx8nqbfz1i.example.org"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ],
+      [
+        "zqfhg9",
+        null
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  },
+  {
+    "raw": "vtjr=1#JP-wxup-90"
+  },
+  {
+    "fragment": "HK-gzb1-82",
+    "host": "vv-08.z7h7pu43.example.org",
+    "path": "",
+    "port": "10990",
+    "query": [
+      [
+        "peer",
+        "cdn.nvziv0e.example.org"
+      ],
+      [
+        "protocol",
+        "udp"
+      ],
+      [
+        "udp",
+        "true"
+      ]
+    ],
+    "scheme": "hysteria",
+    "userinfo": null
+  }
+]

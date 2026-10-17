@@ -1,0 +1,20 @@
+[
+  {
+    "cipher": "aes-128-gcm",
+    "name": "AU-y2a0-45",
+    "password": "vdGoRW3uHdeb8E",
+    "plugin": "v2ray-plugin",
+    "plugin-opts": {
+      "host": "cdn.br8081pci.example.com",
+      "mode": "websocket",
+      "path": "/uwu5",
+      "skip-cert-verify": false,
+      "tls": true
+    },
+    "port": 21926,
+    "server": "i0-18.xw46x.example.com",
+    "skip-cert-verify": true,
+    "type": "ss",
+    "udp": true
+  }
+]

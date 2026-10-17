@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "GB-w2s6ns-13",
+      "type": "shadowsocks",
+      "server": "yb-26.guvu6dx.example.net",
+      "server_port": 52675,
+      "method": "aes-128-gcm",
+      "password": "xM2QFztFwmcPN3",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=static.wctj4onptj.example.org;mode=tls"
+    },
+    {
+      "tag": "HK-i8vgyu-91",
+      "type": "shadowsocks",
+      "server": "yjz-38.bexr4.example.net",
+      "server_port": 54104,
+      "method": "aes-128-gcm",
+      "password": "pTGrp2fiEDXhD7",
+      "plugin": "v2ray-plugin",
+      "plugin_opts": "host=static.hvzw68jlz.example.com;mode= GRPC "
+    }
+  ],
+  "endpoints": []
+}

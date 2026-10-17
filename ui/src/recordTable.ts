@@ -70,8 +70,20 @@ export function kindCounts(items: readonly Pick<SubscriptionListItem, "kind">[])
   return out;
 }
 
+/**
+ * A record the table marks for attention: a pattern the native engine cannot
+ * run, or (design 28 S2) a record that still serves line owner credentials,
+ * the index's live flag, which covers a combination or file reading one.
+ */
 export function isFlagged(item: Pick<SubscriptionListItem, "flags">): boolean {
-  return item.flags?.regex_incompatible === true;
+  return item.flags?.regex_incompatible === true || item.flags?.owner_credentials === true;
+}
+
+/** The flag's word and its reason, owner credentials first: a migration outranks a rewrite. Null when unflagged. */
+export function flagOf(item: Pick<SubscriptionListItem, "flags">): { label: string; title: string } | null {
+  if (item.flags?.owner_credentials === true) return { label: t.fleetEditor.ownerCredentials, title: t.plans.ownerTitle };
+  if (item.flags?.regex_incompatible === true) return { label: t.records.flagged, title: t.records.flaggedTitle };
+  return null;
 }
 
 // ── nodes in, nodes out ───────────────────────────────────────────────────────

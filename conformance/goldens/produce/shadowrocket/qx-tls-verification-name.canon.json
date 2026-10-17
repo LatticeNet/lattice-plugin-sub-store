@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "name": "KR-kuqnpj-40",
+      "name-cert-verify": "static.ujs3qvbp.example.net",
+      "network": "tcp",
+      "password": "OAeWydKTNVzsb42M",
+      "port": 443,
+      "server": "i6-13.qt0i4ds.example.org",
+      "sni": "img.obi9ca56z.example.net",
+      "type": "trojan",
+      "udp": true
+    }
+  ]
+}

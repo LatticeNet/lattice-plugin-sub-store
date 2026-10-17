@@ -10,7 +10,9 @@ import (
 
 // The V2Ray producer (specs/producers/v2ray.md): the classic v2rayN
 // subscription, the URI producer's per-node links joined by "\n" and
-// Base64-encoded as a whole.
+// Base64-encoded as a whole. A node whose link would break a line is
+// rejected by uriLine (uri.md and v2ray.md, "Line safety") and leaves no line
+// at all, unlike a node without a URI form, which leaves an empty one.
 
 type v2rayProducer struct{}
 
@@ -32,7 +34,8 @@ func (v2rayProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, target 
 		if err != nil {
 			res.Dropped = append(res.Dropped, droppedBy(p, err))
 			// A node without a URI form contributes an empty line; a
-			// failing node contributes nothing.
+			// failing node, and a node whose link would break a line,
+			// contribute nothing.
 			if !errors.Is(err, errNoForm) {
 				continue
 			}

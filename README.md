@@ -8,8 +8,9 @@ bundle, so nothing depends on a standalone Sub-Store instance.
 
 The repository owns the complete plugin experience:
 
-- `system-go/` implements the `latticenet.sub-store/subscription` and
-  `latticenet.sub-store/engine` services over the stdio JSON runtime;
+- `system-go/` implements the `latticenet.sub-store/subscription` service
+  over the stdio JSON runtime, beside the core-backed `shares`, `bind` and
+  `plans` services the manifest declares;
 - `ui/` is the sandboxed Extensions tab delivered from the signed bundle;
 - `tools/pluginpack/` creates deterministic `tar+gzip` artifacts;
 - `tools/substore-core/` pins and rebuilds the embedded conversion engine;
@@ -141,8 +142,8 @@ Sub-Store `ProxyUtils` bundle. The pin is recorded in
 is AGPL-3.0 upstream code shipped inside this MIT plugin; see
 `THIRD_PARTY_NOTICES.md`.
 
-Every QuickJS runtime the engine creates, the warm one and each per-call
-isolated one, is sealed before the core loads. The qjs wasm build publishes
+Every QuickJS runtime the engine creates, one per call, is sealed before the
+core loads. The qjs wasm build publishes
 its `qjs:std`, `qjs:os` and `qjs:bjson` modules as `globalThis.std`, `os` and
 `bjson` and mounts a host directory read-write as the guest's `/`; the engine
 deletes those three globals and mounts a path that does not exist and cannot
@@ -150,23 +151,33 @@ be created, so no script, the core included, can read, list or write a file,
 and the WASI environment is empty. The modules stay registered, so a dynamic
 `import("qjs:os")` still resolves, but it reaches nothing.
 `system-go/substore_engine_sandbox_test.go` asserts this from a call script, a
-user script operator and the core's own top level, on both runtimes. Both
-runtimes also carry an in-process deadline: the isolated runtime's context
-expires with the call, and a watchdog cancels the warm runtime's context and
-retires it, so a catastrophic regex or an oversized document on the scriptless
-path costs one call its budget, not the worker.
+user script operator and the core's own top level. Every runtime also carries
+an in-process deadline: its context expires with the call, so a catastrophic
+regex or an oversized document costs one call its budget, not the worker.
 
 Node-list conversions go through a native dispatcher first
 (`system-go/engine_dispatch.go`). A render, a collection, a preview or a
-`convert` answers in Go when its target is URI, V2Ray, JSON, sing-box or
-ClashMeta and every enabled step of its chain compiles natively; otherwise the
-whole chain runs on the bundle's isolated runtime, never half in each. Resolve
+`convert` answers in Go when its target is one of the nine Tier 1 targets
+(URI, V2Ray, JSON, sing-box, ClashMeta, Stash, Shadowrocket, Surge and
+Quantumult X) and every enabled step of its chain compiles natively; otherwise
+the whole chain runs on the bundle's isolated runtime, never half in each. The
+five Tier 2 targets (Clash, Loon, Egern, Surfboard and SurgeMac) always do,
+until S3 and S4 give them producers. Resolve
 Domain, the two script steps, a pattern RE2 refuses and arguments only the
 bundle reads keep a chain on the bundle. Operator patterns compile with their
 ECMAScript meaning of `\s`, `\S` and the dot (`system-go/operators/regex.go`).
-The warm runtime still serves the node count of a refresh whose chain runs on
-the bundle, previews of scriptless chains that do, and the legacy engine
-service.
+There is no warm runtime from S2 on. Nothing boots when a worker starts, so an
+idle worker holds no QuickJS runtime (the memory job holds it under 32 MiB).
+The first call that reaches the bundle compiles the core to bytecode once, on
+a throwaway runtime, and every bundle call is a fresh runtime seeded from that
+bytecode. A refresh counts nodes with the native parser; a preview of a chain
+the Go operators cannot run, a config-file merge (until S3 makes files native)
+and a whole-chain fallback each pay one isolate, which the share's body cache
+absorbs on the serve path. The engine service the warm runtime used to serve
+left the manifest with it. One residual is recorded here: the native parser
+decides at refresh whether a source holds nodes, so a node it reads and the
+2.36.22 bundle does not passes a refresh and then renders zero nodes on a
+target the bundle produces.
 
 Rebuild the pinned bundle with:
 
@@ -252,7 +263,8 @@ artifact:
 (cd system-go && go build -o "${TMPDIR:-/tmp}/substore-conformance" ./cmd/substore-conformance)
 npm ci --prefix conformance/oracle
 node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
-  --targets uri,v2ray,json,singbox,clashmeta --report "${TMPDIR:-/tmp}/conformance-report.json"
+  --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx \
+  --report "${TMPDIR:-/tmp}/conformance-report.json"
 ```
 
 The runner answers `parse` from `system-go/parse` with the external opt-in off,
@@ -264,7 +276,8 @@ change regenerates that file in the same commit:
 
 ```sh
 node conformance/oracle/check.mjs --candidate "${TMPDIR:-/tmp}/substore-conformance" \
-  --targets uri,v2ray,json,singbox,clashmeta --conformance conformance/conformance.json
+  --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx \
+  --conformance conformance/conformance.json
 ```
 
 It then runs the checker with `--end-to-end`, producing from the runner's own
@@ -276,43 +289,74 @@ fails to parse. `TestProduceEndToEndFromOwnParse` holds the same rule in Go.
 
 ### Conformance numbers
 
-Design 28 publishes three numbers per release. Measured on the S1 native
-engine against harness commit de74ccf (upstream 2.42.3, a3e6106):
+Design 28 publishes three numbers per release. Measured on the native
+engine against harness commit b57fcf4 (upstream 2.42.3, a3e6106):
 
 | Number | Result |
 |---|---|
-| Parse | 607 of 607 corpus cases (100 percent) |
-| Produce, URI | 579 of 579, byte for byte |
-| Produce, V2Ray | 579 of 579, byte for byte |
-| Produce, JSON | 579 of 579 |
-| Produce, sing-box | 579 of 579 |
-| Produce, ClashMeta | 579 of 579 |
+| Parse | 650 of 650 corpus cases (100 percent) |
+| Produce, URI | 622 of 622, byte for byte (10 against the line-safe golden) |
+| Produce, V2Ray | 622 of 622, byte for byte (10 against the line-safe golden) |
+| Produce, JSON | 622 of 622 |
+| Produce, sing-box | 622 of 622 |
+| Produce, ClashMeta | 622 of 622 |
+| Produce, Stash | 622 of 622 |
+| Produce, Shadowrocket | 622 of 622 |
+| Produce, Surge | 622 of 622 (613 byte for byte, which the checker does not require) |
+| Produce, Quantumult X | 622 of 622 (612 byte for byte, which the checker does not require) |
 | Script | not measured until S3, which fixes the named community script set |
 
 The parse number counts corpus cases as `check.mjs` does, not lines: a case is
 one subscription document, and it passes when every node the document yields
 deep-equals the golden. One case (`clash-norm-ca-not-pem`) is a whole-document
 failure in the golden and passes by failing the same way. The run relied on
-three of the four allowlist
-entries: `external`, `underscore` and `ca` (`require` applies to scripts and
-stays pending until S3). End to end, from the runner's own parse, the five
-targets match 568, 567, 558, 573 and 573 of 579; every miss is one of the 21
-cases that parse only under those entries, and the other 558 cases match for
-every target. The other nine targets are answered by the embedded bundle.
+four of the five allowlist entries: `external`, `underscore` and `ca` at
+parse, and `line-safety` for Surge, Quantumult X, URI and V2Ray (`require`
+applies to scripts and stays pending until S3). `line-safety` names, by exact
+id, the thirteen cases whose input carries a line break in a node field:
+the native Surge and Quantumult X producers reject a node whose entry would
+hold a control character, U+2028 or U+2029, and the native URI and V2Ray
+producers a node whose link would (KI-27), where upstream writes the text as
+it is and lets a feed add a `[Script]` section to a profile or a share link
+of its own to a served list. Those cases match the harness's line-safe
+golden, upstream's output without the line-breaking nodes; for URI and V2Ray
+that golden leaves out only the nodes whose own link breaks a line and is
+compared byte for byte, and three named cases whose line breaks no link
+writes raw have none, so URI and V2Ray write them exactly as upstream does.
+Surge and Quantumult X match 613 and 612 cases byte for byte for the same
+reason. End to end, from the runner's own parse, the nine targets match 611,
+610, 601, 616, 616, 618, 616, 620 and 621 of 622; every miss is one of the 21
+cases that parse only under the parse-stage entries, and the other 601 cases
+match for every target. Without `line-safety` the same runner scores URI and
+V2Ray 612, Surge 613 and Quantumult X 612, failing exactly the named cases
+whose line breaks each target writes raw.
+
+The Stash, Shadowrocket, Surge and Quantumult X producers (S2) are judged here
+and in CI, but `producers.Native` still answers false for their targets, so
+the dispatcher sends them to the embedded bundle with the five Tier 2 targets
+until their harness ids join `routed` in `system-go/producers/producer.go`.
 
 `system-go/perfgen` generates the perf gate's synthetic VLESS Reality nodes.
 The pipeline benchmarks time design 28's measure, the nodes through four
 non-script operators to sing-box; the parse of the same nodes' links is a
 benchmark of its own. The `perf` job runs the pipeline, parse and producer
-benchmarks ten times on ubuntu-24.04 and `tools/perfgate` judges the medians
-against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`. That
-baseline is the job's output from two runs that landed on different CPUs (an
-Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
-is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
-run happens to get. Move it the same way, from at least two CPUs, with the
-reason in the commit. The `memory` job runs the
-allocation and heap gates without the race detector and records the built
-worker's resident set (`TestWorkerVmRSS`), which S2 starts enforcing.
+benchmarks, and since S2 the fleet plan, catalogue validation, fleet_preview
+and isolated-engine benchmarks, ten times on ubuntu-24.04, and
+`tools/perfgate` judges the medians against its target table (S1 plan
+section 5.2, S2 plan section 5) and `system-go/testdata/bench/ubuntu-24.04.txt`.
+The label hands out CPUs up to 1.8 times apart (an Intel Xeon 8573C and AMD
+EPYC 7763, 9V45 and 9V74 so far), so the baseline keeps each run under
+the `cpu:` header it was taken on, and the 1.5 times ns/op rule compares a
+run with the baseline's runs on the same CPU. A baseline pooled over CPUs let
+a 2.2 times slowdown pass on the fast one. When the baseline holds no run of
+the current CPU for a benchmark, the slowest CPU's median stands in, the
+verdict says so and perfgate warns; that comparison is looser, so add the
+CPU's run to the baseline when one appears. B/op and allocs/op do not depend
+on the CPU and are held to 1.2 times their median over every CPU. Move the
+baseline by appending a whole perf run's output, with the reason in the
+commit. The `memory` job runs the
+allocation and heap gates without the race detector and holds the built
+worker's resident set (`TestWorkerVmRSS`) to the S2 bounds.
 
 ## Looking at the UI
 

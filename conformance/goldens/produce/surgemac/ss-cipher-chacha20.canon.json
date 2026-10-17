@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "jcb-14.sz5j5zb6.example.com",
+      "24641"
+    ],
+    "name": "AU-myqg-14",
+    "params": {
+      "encrypt-method": "chacha20",
+      "password": "vR18ccbMVIMuZXh7",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "fl6-16.bnilt.example.com",
+      "23198"
+    ],
+    "name": "JP-cek9e-51",
+    "params": {
+      "encrypt-method": "rc4",
+      "password": "cbwOYIAHHKweWKJS",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

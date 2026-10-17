@@ -26,7 +26,7 @@ func loadYAML(t *testing.T, rt *runtime, doc string, into any) {
   const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   return JSON.stringify(core.yaml.safeLoad(%s));
 })()`, encoded)
-	out, err := rt.subStoreEngine().runCoreScript("yaml load", "yaml-load.js", script)
+	out, err := rt.subStoreEngine().runIsolatedScript("yaml load", "yaml-load.js", script)
 	if err != nil {
 		t.Fatalf("the output is not readable YAML: %v\n%s", err, doc)
 	}

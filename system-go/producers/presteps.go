@@ -24,6 +24,12 @@ type stepRules struct {
 	rootHeaderTypes map[string]bool
 	// disableSNI says whether the disable-sni step runs.
 	disableSNI bool
+	// sniOff makes the disable-sni step write the text off on every type
+	// instead of the server literal or 127.0.0.1 on every type but tuic.
+	sniOff bool
+	// keepSSTLS keeps Shadowsocks over TLS, which only the targets that can
+	// carry it do.
+	keepSSTLS bool
 	// keepPortsSlash keeps "/" in ports instead of turning it into ",".
 	keepPortsSlash bool
 }
@@ -31,18 +37,25 @@ type stepRules struct {
 var (
 	allHeaderTypes   = map[string]bool{"http": true, "h2-connect": true, "trusttunnel": true}
 	tunnelHeaderType = map[string]bool{"h2-connect": true, "trusttunnel": true}
+	httpHeaderType   = map[string]bool{"http": true}
 )
 
-// stepRulesByID holds each native target's rules by harness id: uri.md and
-// v2ray.md drop every header type, json.md keeps them all, clashmeta.md and
-// singbox.md keep http's; singbox.md skips disable-sni; clashmeta.md keeps
-// "/" in ports.
+// stepRulesByID holds each native target's rules by harness id: uri.md,
+// v2ray.md, stash.md and shadowrocket.md drop every header type, json.md and
+// surge.md keep them all, clashmeta.md and singbox.md keep http's and
+// quantumultx.md drops only http's; singbox.md skips disable-sni, and
+// shadowrocket.md and surge.md write sni off; clashmeta.md keeps "/" in
+// ports; shadowrocket.md and quantumultx.md keep Shadowsocks over TLS.
 var stepRulesByID = map[string]stepRules{
-	"uri":       {rootHeaderTypes: allHeaderTypes, disableSNI: true},
-	"v2ray":     {rootHeaderTypes: allHeaderTypes, disableSNI: true},
-	"json":      {disableSNI: true},
-	"clashmeta": {rootHeaderTypes: tunnelHeaderType, disableSNI: true, keepPortsSlash: true},
-	"singbox":   {rootHeaderTypes: tunnelHeaderType},
+	"uri":          {rootHeaderTypes: allHeaderTypes, disableSNI: true},
+	"v2ray":        {rootHeaderTypes: allHeaderTypes, disableSNI: true},
+	"json":         {disableSNI: true},
+	"clashmeta":    {rootHeaderTypes: tunnelHeaderType, disableSNI: true, keepPortsSlash: true},
+	"singbox":      {rootHeaderTypes: tunnelHeaderType},
+	"stash":        {rootHeaderTypes: allHeaderTypes, disableSNI: true},
+	"shadowrocket": {rootHeaderTypes: allHeaderTypes, disableSNI: true, sniOff: true, keepSSTLS: true},
+	"surge":        {disableSNI: true, sniOff: true},
+	"quantumultx":  {rootHeaderTypes: httpHeaderType, disableSNI: true, keepSSTLS: true},
 }
 
 // prepared is one node after the steps before the producer.
@@ -116,7 +129,11 @@ func prepare(nodes []*nodemodel.Node, target, id string, opts Options) ([]prepar
 			p.put("name", textOf(f, "type")+" "+textOf(f, "server")+":"+textOf(f, "port"))
 		}
 
-		if rules.disableSNI && set(f, "disable-sni") && f["type"] != "tuic" {
+		switch {
+		case !rules.disableSNI || !set(f, "disable-sni"):
+		case rules.sniOff:
+			p.put("sni", "off")
+		case f["type"] != "tuic":
 			server, _ := f["server"].(string)
 			if normalise.IsIPv4Literal(server) || normalise.IsIPv6Literal(server) {
 				p.put("sni", server)
@@ -168,8 +185,7 @@ func admission(f map[string]any, target string, rules stepRules, include bool) s
 				return ReasonRootHeaders
 			}
 		}
-		if typ == "ss" && set(f, "tls") && !set(f, "plugin") &&
-			(!set(f, "network") || strings.ToLower(trimES(text(f["network"]))) == "tcp") {
+		if !rules.keepSSTLS && ssOverTLS(f) {
 			return ReasonSSTLS
 		}
 	}
@@ -184,6 +200,13 @@ func admission(f map[string]any, target string, rules stepRules, include bool) s
 		}
 	}
 	return ""
+}
+
+// ssOverTLS reports Shadowsocks over TLS: an ss node with tls set, no plugin,
+// and no network or tcp.
+func ssOverTLS(f map[string]any) bool {
+	return f["type"] == "ss" && set(f, "tls") && !set(f, "plugin") &&
+		(!set(f, "network") || strings.ToLower(trimES(text(f["network"]))) == "tcp")
 }
 
 // brokenReality reports a VLESS Reality block without a non-blank public key.

@@ -1,0 +1,54 @@
+[
+  {
+    "fragment": "NL-tq0d-03",
+    "host": "uu7-19.d0sbqss.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.227.226.223/32,fd00:31aa::b0ca/128"
+      ],
+      [
+        "mtu",
+        "1280"
+      ],
+      [
+        "publickey",
+        "ePWRNDtUrotH+HcUePgptCpN/Ihze9MmvEDKhTgW1tI="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "Y+Wt0GRfNlWNHFe5v80vIijfjRBuCr5XxeGz/e/VPNg="
+  },
+  {
+    "fragment": "AU-felen7-06",
+    "host": "gf-19.ngic4zb.example.com",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.110.116.207/32,fd00:ebb3::3964/128"
+      ],
+      [
+        "mtu",
+        "1280"
+      ],
+      [
+        "publickey",
+        "N48LagV6tKhzAhdAJICW/WpnxYyJHwml1frxasJaKOc="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "uh0ihGhlBbelqjhQGc4/OniZl0yqwWFhsj7nt0TFr54="
+  }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "fragment": "CA-kaxsse-35",
+    "host": "a8-40.m00wg.example.com",
+    "path": "",
+    "port": "43251",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206REVXbGVUZ3JzSjRrY0Y=",
+    "userinfo_base64": "aes-128-gcm:DEWleTgrsJ4kcF"
+  },
+  {
+    "fragment": "KR-dbvnq3-06",
+    "host": "i1d-13.qx6y2f.example.org",
+    "path": "",
+    "port": "26397",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206U1lteGtoTjl3S1ZUd2c=",
+    "userinfo_base64": "aes-128-gcm:SYmxkhN9wKVTwg"
+  },
+  {
+    "fragment": "KR-hrq5ux-65",
+    "host": "fxt-39.ye77foo.example.net",
+    "path": "",
+    "port": "42748",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206dkpvaWVaU2p4dVNpWjM=",
+    "userinfo_base64": "aes-128-gcm:vJoieZSjxuSiZ3"
+  },
+  {
+    "fragment": "GB-blw-94",
+    "host": "ph-04.zkgqvz.example.com",
+    "path": "",
+    "port": "56871",
+    "query": [
+      [
+        "udp",
+        "1"
+      ],
+      [
+        "uot",
+        "1"
+      ]
+    ],
+    "scheme": "ss",
+    "userinfo": "YWVzLTEyOC1nY206SDNUNGh4ejJuMElOeW0=",
+    "userinfo_base64": "aes-128-gcm:H3T4hxz2n0INym"
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "args": [
+      "v8-21.n91npglc.example.com"
+    ],
+    "name": "JP-e7v-93",
+    "params": {},
+    "type": "trojan"
+  },
+  {
+    "args": [],
+    "name": "b6-16.idsu.example.net,443,\"UDG9ALCvfGeGG3e5\",tls-name",
+    "params": {
+      "udp": "true"
+    },
+    "type": "static.mgdrp82.example.com"
+  },
+  {
+    "args": [
+      "akg-24.xvw1u.example.com",
+      "443",
+      "7AyRlORj1RLGZiCB"
+    ],
+    "name": "US-akqgj-94",
+    "params": {
+      "tls-name": "www.s7onk.example.com",
+      "udp": "true"
+    },
+    "type": "trojan"
+  }
+]

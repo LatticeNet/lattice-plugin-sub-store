@@ -1,0 +1,25 @@
+{
+  "proxies": [
+    {
+      "vmess": {
+        "legacy": false,
+        "name": "GB-vzdsx-11",
+        "port": 443,
+        "security": "auto",
+        "server": "dh-09.j8zxvm8y.example.org",
+        "tfo": false,
+        "transport": {
+          "wss": {
+            "headers": {
+              "Host": "img.juflq2qmv.example.net"
+            },
+            "path": "/t2og2q7t",
+            "sni": "static.lnmdy7bpz4.example.com"
+          }
+        },
+        "udp_relay": true,
+        "user_id": "306a27fc-af1d-47fe-bc69-c42b06e4e615"
+      }
+    }
+  ]
+}

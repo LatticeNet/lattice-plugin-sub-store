@@ -16,7 +16,7 @@ const providerErrorPage = "<html><body>429 Too Many Requests</body></html>"
 // Every target must refuse it, with a stable code the core can map to its
 // audit reason.
 func TestRenderRefusesZeroNodeDocuments(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	seedSub(t, rt, "garbage", nil, providerErrorPage)
 	for _, target := range []string{"URI", "ClashMeta", "Clash", "Stash", "sing-box", "Surge", "JSON"} {
 		out, err := rt.renderSubscription(subscriptionRenderRequest{SubscriptionID: "garbage", Format: "base64", Target: target})
@@ -32,7 +32,7 @@ func TestRenderRefusesZeroNodeDocuments(t *testing.T) {
 // Legacy Clash carries neither VLESS nor Hysteria2, so this fleet renders for
 // it as "proxies:\n". That document must be refused rather than served.
 func TestRenderRefusesALegacyClashDocumentWithNoNodes(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	vlessAndHy2Only := "vless://0cd403ef-ce9b-4c7c-b3e8-472397e616f7@a.example:34099?security=reality&type=tcp&sni=x.example&fp=chrome&flow=xtls-rprx-vision&pbk=n6g3w4_4iiLhntHLX3DFRwuOWmu28PhaLcLj9D3jIw8#one\n" +
 		"hysteria2://d9362106-8c97-46e2-ac27-7f9a8e785d95@b.example:13434?insecure=1&sni=b.example#two\n"
 	seedSub(t, rt, "fleet", nil, vlessAndHy2Only)
@@ -55,7 +55,7 @@ func TestRenderRefusesALegacyClashDocumentWithNoNodes(t *testing.T) {
 // A combination whose members together carry nothing for this client is
 // refused on the same rule.
 func TestRenderRefusesAZeroNodeCollection(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	seedSub(t, rt, "a", nil, providerErrorPage)
 	seedSub(t, rt, "b", nil, "hysteria2://d9362106-8c97-46e2-ac27-7f9a8e785d95@b.example:13434?insecure=1&sni=b.example#two\n")
 	if err := rt.saveSubscription(subscriptionRecord{ID: "c", Kind: kindCollection, Name: "c", Members: []string{"b"}}); err != nil {
@@ -127,7 +127,7 @@ func TestProbeReportsAProviderBodyWithNoNodesAsUnavailable(t *testing.T) {
 // member, so strict mode refuses the refresh instead of storing a snapshot
 // that silently lost it.
 func TestCollectionRefreshTreatsAMemberWithNoNodesAsFailed(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	seedSub(t, rt, "good", nil, shareFleetFixture(1))
 	seedSub(t, rt, "bad", nil, providerErrorPage)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "c", Kind: kindCollection, Name: "c", Members: []string{"good", "bad"}}); err != nil {
@@ -154,14 +154,16 @@ func TestCollectionRefreshTreatsAMemberWithNoNodesAsFailed(t *testing.T) {
 	}
 }
 
-// A combination's refresh counts every unchained member in one engine call
-// when its chain runs on the bundle. On a worker whose warm runtime is still
-// booting each call takes the isolated path, so one call per member would put
-// a large combination's refresh at risk of its time budget. A combination
-// whose chains all run in Go counts its members in Go and calls the engine
-// not at all, and its snapshot carries each member's nodes.
-func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+// A combination's refresh counts every unchained member with the native
+// parser, even when its chain runs on the bundle: from S2 the warm runtime
+// that used to count them in one engine call is gone (S2 plan section 1.4),
+// and one isolated call per member would put a large combination's refresh
+// at risk of its time budget. Only a member whose own chain runs on the
+// bundle pays its one isolated conversion. A combination whose chains all
+// run in Go calls the engine not at all, and its snapshot carries each
+// member's nodes.
+func TestCollectionRefreshCountsItsMembersInGo(t *testing.T) {
+	rt, _ := newKVRuntime(t)
 	var members []string
 	for _, id := range []string{"m1", "m2", "m3", "m4", "m5"} {
 		seedSub(t, rt, id, nil, shareFleetFixture(1))
@@ -169,7 +171,8 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 	}
 	script := json.RawMessage(`{"type":"Script Operator","args":{"content":"function operator(p){ return p; }"}}`)
 	// A member whose own chain runs on the bundle takes the collection there
-	// too: its conversion is one isolated call, its four siblings one count.
+	// too: its conversion is one isolated call, its four siblings are counted
+	// in Go.
 	if err := rt.saveSubscription(subscriptionRecord{ID: "m-script", Name: "m-script", Content: shareFleetFixture(1), Process: []json.RawMessage{script}}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -181,19 +184,18 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 		nodes   bool
 	}{
 		{"c", members, nil, 0, true},
-		{"c-script", members, []json.RawMessage{script}, 1, false},
-		{"c-member-script", append(slices.Clone(members[:4]), "m-script"), nil, 2, false},
+		{"c-script", members, []json.RawMessage{script}, 0, false},
+		{"c-member-script", append(slices.Clone(members[:4]), "m-script"), nil, 1, false},
 	} {
 		if err := rt.saveSubscription(subscriptionRecord{ID: c.id, Kind: kindCollection, Name: c.id, Members: c.members, Process: c.process}); err != nil {
 			t.Fatalf("save: %v", err)
 		}
-		warmBefore, isolatedBefore := rt.engine.pathCounts()
+		before := rt.engine.isolatedCount()
 		snap, err := rt.fetchSubscription(c.id)
 		if err != nil {
 			t.Fatalf("refresh %s: %v", c.id, err)
 		}
-		warmAfter, isolatedAfter := rt.engine.pathCounts()
-		if calls := (warmAfter - warmBefore) + (isolatedAfter - isolatedBefore); calls != c.calls {
+		if calls := rt.engine.isolatedCount() - before; calls != c.calls {
 			t.Fatalf("refreshing %s's five members took %d engine calls, want %d", c.id, calls, c.calls)
 		}
 		env, ok := decodeSnapshotEnvelope(snap.Raw)
@@ -218,7 +220,7 @@ func TestCollectionRefreshCountsItsMembersInOneEngineCall(t *testing.T) {
 // produce option the core can send. A pin whose producer grew past it would
 // let a zero-node document through, so this fails first.
 func TestEmptyDocumentsFitTheZeroNodeBound(t *testing.T) {
-	engine := sharedWarmTestEngine(t)
+	engine := testEngineWithHeadroom()
 	targets := make([]string, 0, len(subscriptionConvertTargets))
 	for target := range subscriptionConvertTargets {
 		targets = append(targets, target)
@@ -227,7 +229,7 @@ func TestEmptyDocumentsFitTheZeroNodeBound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, err, served := engine.runWarm("probe", "lattice-test-empty-documents.js", `(function () {
+	raw, err := engine.runIsolatedScript("probe", "lattice-test-empty-documents.js", `(function () {
   const root = globalThis.SubStoreProxyUtils;
   const core = root && root.ProxyUtils ? root.ProxyUtils : root;
   const out = {};
@@ -240,8 +242,8 @@ func TestEmptyDocumentsFitTheZeroNodeBound(t *testing.T) {
   }
   return JSON.stringify(out);
 })()`)
-	if err != nil || !served {
-		t.Fatalf("empty documents: served=%v err=%v", served, err)
+	if err != nil {
+		t.Fatalf("empty documents: %v", err)
 	}
 	var sizes map[string]int
 	if err := json.Unmarshal([]byte(raw), &sizes); err != nil {

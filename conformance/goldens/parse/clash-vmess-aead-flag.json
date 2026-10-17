@@ -1,0 +1,30 @@
+[
+  {
+    "aead": true,
+    "alterId": 64,
+    "cipher": "auto",
+    "name": "GB-z2wqhu-65",
+    "network": "tcp",
+    "port": 443,
+    "server": "h4-22.oafo.example.net",
+    "sni": "api.qfc0dfetd.example.org",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "d0e7cd4f-8d8a-4e2c-9a64-95d024ecf8f5"
+  },
+  {
+    "aead": false,
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "FR-hnulbn-18",
+    "network": "tcp",
+    "port": 443,
+    "server": "q6-01.rmt6.example.net",
+    "sni": "static.hpte5et6dp.example.net",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "bec5b668-7a33-4c0a-81b3-9093bc9ddb33"
+  }
+]

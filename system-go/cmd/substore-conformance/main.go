@@ -60,15 +60,20 @@ type reply struct {
 	Version        string             `json:"version,omitempty"`
 }
 
-// platforms maps the harness target ids S1 builds natively to the platform
-// names the producers are keyed by, as the harness's oracle/lib/targets.mjs
-// does. Every other target is answered as having no native producer.
+// platforms maps the harness target ids with a native producer to the
+// platform names the producers are keyed by, as the harness's
+// oracle/lib/targets.mjs does: the five S1 targets and the four S2 adds.
+// Every other target is answered as having no native producer.
 var platforms = map[string]string{
-	"uri":       "URI",
-	"v2ray":     "V2Ray",
-	"json":      "JSON",
-	"singbox":   "sing-box",
-	"clashmeta": "ClashMeta",
+	"uri":          "URI",
+	"v2ray":        "V2Ray",
+	"json":         "JSON",
+	"singbox":      "sing-box",
+	"clashmeta":    "ClashMeta",
+	"stash":        "Stash",
+	"shadowrocket": "Shadowrocket",
+	"surge":        "Surge",
+	"quantumultx":  "QX",
 }
 
 func main() {

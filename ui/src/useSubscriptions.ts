@@ -6,8 +6,10 @@ import {
   BINDINGS,
   callMethod,
   errorCodeOf,
+  ERROR_CODES,
   ERROR_REGEX_INCOMPATIBLE,
   ERROR_STORE_MIGRATION_REQUIRED,
+  isRefused,
   MIGRATE_STORE_CHUNK,
   MIGRATE_STORE_MAX_CALLS,
   migrationProgress,
@@ -18,6 +20,7 @@ import {
   SOURCE_VPN_CORE_GRAPH,
   SOURCE_REMOTE,
   SOURCE_LOCAL,
+  SOURCE_FLEET,
   FAILURE_STRICT,
   KIND_SUB,
   KIND_COLLECTION,
@@ -42,14 +45,37 @@ import {
   type SubscriptionReorderResponse,
   type SubscriptionSaveResponse,
   type SubscriptionSaveConflict,
+  type MutationRefused,
 } from "./client";
 import { inStoreOrder, withOrder } from "./recordOrder";
 import { regexDiagnostics, type RegexDiagnostic } from "./regexRewrite";
 import { conflictChanges, conflictSummary, type FieldChange } from "./recordConflict";
 import { deletedNotice } from "./recordActions";
 import { filePreviewSupport } from "./filePreview";
+import {
+  normalizeFleetOptions,
+  refusalMessage,
+  type BindPreviewReply,
+  type FleetOptions,
+  type IdentitiesReply,
+  type Identity,
+  type PlanStatus,
+} from "./fleet";
 import type { HostContext } from "./host";
 import { formatBytes, t } from "./i18n";
+import {
+  fleetGatherers,
+  isFleetBound,
+  parsePlan,
+  planTooLarge,
+  recordName,
+  shortRevision,
+  stagedFacts,
+  type MigrateRecordReply,
+  type ProposeReply,
+  type PublishReply,
+} from "./planFlow";
+import type { Plan } from "./core-types";
 import { safeErrorMessage } from "./subStoreModel";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
@@ -453,6 +479,91 @@ export function recordCatalogue(host: HostContext) {
   return { state, items, loadError, storeVersion, reload: () => readCatalogue(host, catalogue) };
 }
 
+// ── plans and identities, one copy per host ─────────────────────────────────
+
+/**
+ * The plans core lists per record, and vpn-core's identities, read once and
+ * shared by the Records table, the Fleet view and the migration flow, so the
+ * staged badge, the Fleet view's proof line and the flow's status step say
+ * the same thing about the same plan.
+ */
+interface PlanStore {
+  /** plans.status by record id, newest first; absent until read, [] when none. */
+  byRecord: Ref<Record<string, PlanStatus[]>>;
+  /** Records whose plans could not be read, with the reason. */
+  errors: Ref<Record<string, string>>;
+  inFlight: Map<string, Promise<void>>;
+  identities: Ref<Identity[] | undefined>;
+  identitiesError: Ref<string>;
+  identitiesInFlight: Promise<void> | null;
+}
+
+const planStores = new WeakMap<object, PlanStore>();
+
+function planStoreFor(host: HostContext): PlanStore {
+  const existing = planStores.get(host);
+  if (existing) return existing;
+  const fresh: PlanStore = {
+    byRecord: ref({}),
+    errors: ref({}),
+    inFlight: new Map(),
+    identities: ref(undefined),
+    identitiesError: ref(""),
+    identitiesInFlight: null,
+  };
+  planStores.set(host, fresh);
+  return fresh;
+}
+
+/**
+ * What a plan request came to, for the surface that asked: the record went
+ * live without a plan, core filed a plan, or core refused and why. A refusal
+ * keeps its stable code, so the migration flow can open the step that fixes
+ * it (shares_without_identity, migration_requires_plan) instead of printing
+ * the sentence.
+ */
+export type PlanOutcome =
+  | { kind: "published"; reply: PublishReply }
+  | { kind: "plan"; reply: ProposeReply; plan: Plan | null }
+  | { kind: "refused"; code: string; message: string }
+  | { kind: "too-large"; bytes: number; limit: number; message: string }
+  | { kind: "error"; message: string };
+
+/** What migrate_record came to: the staged fleet record, a structured refusal, or a failure. */
+export type MigrateOutcome =
+  | { kind: "staged"; reply: MigrateRecordReply }
+  | { kind: "refused"; code: string; message: string; files: string[]; collections: string[] }
+  | { kind: "conflict"; message: string }
+  | { kind: "error"; message: string };
+
+/** bind_selection's reply (s2-plan section 2.6, operator decision 8). */
+export interface BindSelectionReply {
+  batch: string;
+  filed: { line_uuid: string; approval_id: string; op: string }[];
+  skipped: { line_uuid: string; reason: string }[];
+  errors: { line_uuid: string; error: string }[];
+}
+
+/**
+ * The propose request (lattice-server subStorePlansProposeRequest). A
+ * delete takes no to_revision; equal revisions promote nothing and only
+ * change shares.
+ */
+export interface ProposeRequest {
+  subscription_id: string;
+  from_revision: string;
+  to_revision?: string;
+  action?: "promote" | "delete";
+  records?: { subscription_id: string; from_revision: string; to_revision: string }[];
+  share_identities?: Record<string, string>;
+  archive_shares?: string[];
+}
+
+/** Core answers an unserved method of a core-backed service with this, as bind_selection is until decision 8 is taken. */
+function unknownMethod(cause: unknown): boolean {
+  return /unknown method/i.test(cause instanceof Error ? cause.message : "");
+}
+
 export function useSubscriptions(host: HostContext) {
   const catalogue = catalogueFor(host);
   const { state, items, loadError, staleError, storeVersion } = catalogue;
@@ -542,6 +653,27 @@ export function useSubscriptions(host: HostContext) {
   }
 
   /**
+   * Why a save was refused, in the operator's words, from either channel: the
+   * structured `{saved: false, refused}` reply a mutating method answers with
+   * since S2 (s2-plan section 2.6), or an error from a build before it. A
+   * pattern the native engine cannot run also sets `saveRefusal`, so the
+   * editor offers the rewrite whichever channel said so.
+   */
+  function refusedSave(cause: unknown, draft: SubscriptionDraft, id: string): string {
+    if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
+      const diagnostics = regexDiagnostics(draft.process);
+      const steps = [...new Set(diagnostics.map((entry) => entry.step))];
+      const reason = isRefused(cause)
+        ? safeErrorMessage(new Error(cause.refused.message), t.subs.regexFallback)
+        : safeErrorMessage(cause, t.subs.regexFallback);
+      const message = steps.length ? t.subs.regexRefused(steps) : t.subs.regexRefusedReason(reason);
+      saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics, message };
+      return message;
+    }
+    return migrationRefusal(cause) || (isRefused(cause) ? refusalMessage(cause.refused, id, items.value) : safeErrorMessage(cause, t.subs.saveFailed));
+  }
+
+  /**
    * A reload that fails behind a successful write must not replace the list.
    *
    * `load()` runs again after save, delete and refresh. When that trailing read
@@ -597,6 +729,54 @@ export function useSubscriptions(host: HostContext) {
   }
 
   /** Full record including content and operators, `list` omits both. */
+  /**
+   * The record as the editor opens it: the staged revision when one waits,
+   * since a save is a new staged revision built on it and the plugin accepts
+   * either revision as the one read (conditionalConflict in store_staged.go);
+   * the live one otherwise, and for a legacy record whose staged revision is
+   * its migration, whose live content is what the editor edits. Without
+   * this, editing a staged record showed the live steps, and saving dropped
+   * the staged edit in favour of one built on the live revision.
+   */
+  async function getForEdit(id: string): Promise<{ record: SubscriptionRecord; staged: boolean; liveRevision: string } | null> {
+    if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
+    actionError.value = "";
+    busyId.value = id;
+    try {
+      const response = await callMethod<SubscriptionGetResponse>(host.bridge, BINDINGS.subGet, { subscription_id: id }).promise;
+      const migration = items.value.find((item) => item.id === id)?.staged_migrated === true;
+      const staged = !migration && response.staged?.subscription ? response.staged.subscription : null;
+      const record = staged ? { ...staged, revision: staged.revision || response.staged!.revision } : response.subscription ?? null;
+      lastRead.value = record;
+      if (!record) return null;
+      return { record, staged: !!staged, liveRevision: response.live_revision ?? "" };
+    } catch (cause) {
+      actionError.value = safeErrorMessage(cause, t.subs.readFailed);
+      return null;
+    } finally {
+      busyId.value = null;
+      await host.resize();
+    }
+  }
+
+  /**
+   * A record's live and staged process steps, for the plan flow's step
+   * summary before core answers. Read-only: it touches neither the record
+   * the editor last read nor the page's messages.
+   */
+  async function readRevisions(id: string): Promise<{ live: SubscriptionRecord | null; staged: SubscriptionRecord | null } | null> {
+    if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
+    try {
+      const response = await callMethod<SubscriptionGetResponse>(host.bridge, BINDINGS.subGet, { subscription_id: id }).promise;
+      const staged = response.staged?.subscription ?? null;
+      // A record that was never live answers its staged record as `subscription` too.
+      const live = response.live_revision || !staged ? response.subscription ?? null : null;
+      return { live, staged };
+    } catch {
+      return null;
+    }
+  }
+
   async function get(id: string): Promise<SubscriptionRecord | null> {
     if (!host.bridge || !host.available(BINDINGS.subGet)) return null;
     actionError.value = "";
@@ -621,8 +801,11 @@ export function useSubscriptions(host: HostContext) {
    * check, which is the operator's explicit "mine wins" after they have been
    * shown what they would be replacing. It is never the default and never
    * automatic.
+   *
+   * `fleet` is the record's binding rules (s2-plan section 2.1), which the
+   * record editor carries on its draft.
    */
-  async function save(draft: SubscriptionDraft, force = false): Promise<boolean> {
+  async function save(draft: SubscriptionDraft & { fleet?: FleetOptions }, force = false): Promise<boolean> {
     if (!host.bridge || !canMutate.value || saving.value) return false;
     saveConflict.value = null;
     saveRefusal.value = null;
@@ -643,17 +826,19 @@ export function useSubscriptions(host: HostContext) {
     saving.value = true;
     actionError.value = "";
     notice.value = "";
+    // On create the id is derived here rather than typed; on edit it is
+    // carried through untouched, because a share already points at it.
+    // Derived before the call, so a refusal that arrives as an error names
+    // this record as itself rather than as another record it is about.
+    const id =
+      draft.id.trim() ||
+      uniqueId(draft.name, items.value.map((item) => item.id));
     try {
       // `origin` is deliberately not sent: it records that a record came from a
       // migration, and the backend preserves or clears it rather than trusting
       // a caller. Sending it would be ignored anyway; omitting it says so.
       const collection = draft.kind === KIND_COLLECTION;
       const file = draft.kind === KIND_FILE;
-      // On create the id is derived here rather than typed; on edit it is
-      // carried through untouched, because a share already points at it.
-      const id =
-        draft.id.trim() ||
-        uniqueId(draft.name, items.value.map((item) => item.id));
       const record: SubscriptionRecord = {
         id,
         kind: collection ? KIND_COLLECTION : file ? KIND_FILE : undefined,
@@ -703,6 +888,11 @@ export function useSubscriptions(host: HostContext) {
             ? parseArguments(draft.argumentsText)
             : undefined,
         process: draft.process.length ? draft.process : undefined,
+        // The binding rules belong to a fleet record and to a combination;
+        // the plugin keeps a combination's only while it gathers a fleet
+        // record. The store writes the record as sent, so leaving them out
+        // here would drop the rules on every save.
+        fleet: collection || (!file && draft.source === SOURCE_FLEET) ? normalizeFleetOptions(draft.fleet) : undefined,
       };
       // The conditional write. `if_revision` is the fingerprint the record
       // carried when it was read, so the backend can refuse a save whose target
@@ -729,30 +919,34 @@ export function useSubscriptions(host: HostContext) {
         };
         return false;
       }
+      if (isRefused(response)) {
+        actionError.value = refusedSave(response, draft, record.id);
+        return false;
+      }
       if (!response.saved) {
         actionError.value = t.subs.saveUnconfirmed;
         return false;
       }
       notice.value = t.subs.saved(record.name);
+      const stagedRevision = response.staged ? response.staged_revision ?? "" : "";
       // The saved record comes back with its new revision. Keeping it as the
       // "last read" copy means a second save from the still-open editor is
       // checked against what was just written rather than against the copy
       // that is now one edit old, which would conflict with itself.
       if (response.subscription) lastRead.value = response.subscription;
       await load();
+      if (response.staged) {
+        stagedNotice = stagedSaveNotice(record, stagedRevision);
+        notice.value = stagedNotice;
+        stagedSave.value = { id: record.id, revision: stagedRevision };
+        // A plan over the revision this save replaced is stale now; the
+        // plans read before the save still say pending (the lane 6c design
+        // review), so read them again.
+        void loadPlans([record.id], true);
+      }
       return true;
     } catch (cause) {
-      if (errorCodeOf(cause) === ERROR_REGEX_INCOMPATIBLE) {
-        const diagnostics = regexDiagnostics(draft.process);
-        const steps = [...new Set(diagnostics.map((entry) => entry.step))];
-        const message = steps.length
-          ? t.subs.regexRefused(steps)
-          : t.subs.regexRefusedReason(safeErrorMessage(cause, t.subs.regexFallback));
-        saveRefusal.value = { code: ERROR_REGEX_INCOMPATIBLE, diagnostics, message };
-        actionError.value = message;
-        return false;
-      }
-      actionError.value = migrationRefusal(cause) || safeErrorMessage(cause, t.subs.saveFailed);
+      actionError.value = refusedSave(cause, draft, id);
       return false;
     } finally {
       saving.value = false;
@@ -766,10 +960,38 @@ export function useSubscriptions(host: HostContext) {
    * notice clears them.
    */
   const brokenShares = ref<string[]>([]);
+  /**
+   * The record whose plain delete was just refused as fleet-bound
+   * (fleet_delete_requires_plan), until another delete starts; the Records
+   * screen offers the delete through a plan for it.
+   */
+  const deleteNeedsPlan = ref("");
   let brokenNotice = "";
   watch(notice, (text) => {
     if (text !== brokenNotice) brokenShares.value = [];
+    if (text !== stagedNotice) stagedSave.value = null;
   });
+
+  /**
+   * The record the last save staged rather than wrote live, while its notice
+   * is the one on screen; the Records screen offers Publish beside it.
+   */
+  const stagedSave = ref<{ id: string; revision: string } | null>(null);
+  let stagedNotice = "";
+
+  /**
+   * What a staged save says: the revision, that it is not live, and why it
+   * staged: the record is fleet-bound, or fleet-bound combinations gather it
+   * (S2-SR-1), which its own flags do not show.
+   */
+  function stagedSaveNotice(record: SubscriptionRecord, revision: string): string {
+    const name = record.display_name || record.name || record.id;
+    const item = items.value.find((entry) => entry.id === record.id);
+    const words = t.plans.stagedSave;
+    const gatherers = item && !isFleetBound(item) ? fleetGatherers(item, items.value) : [];
+    const why = item && isFleetBound(item) ? words.fleet(name) : gatherers.length ? words.gathered(gatherers.map((entry) => recordName(entry)).join(", "), gatherers.length) : "";
+    return [words.saved(name, shortRevision(revision)), why].filter(Boolean).join(" ");
+  }
 
   /**
    * `ownShares` are the live shares that publish this record itself
@@ -780,11 +1002,29 @@ export function useSubscriptions(host: HostContext) {
     if (!host.bridge || !canMutate.value) return false;
     actionError.value = "";
     notice.value = "";
+    deleteNeedsPlan.value = "";
     busyId.value = id;
     try {
-      const response = await callMethod<SubscriptionDeleteResponse>(host.bridge, BINDINGS.subDelete, {
+      const response = await callMethod<SubscriptionDeleteResponse | MutationRefused>(host.bridge, BINDINGS.subDelete, {
         subscription_id: id,
       }).promise;
+      // A refusal is a successful reply, never an error, because the gateway
+      // replaces a mutating method's error with one fixed string (s2-plan
+      // section 2.6). A fleet-bound record refuses a plain delete: deleting
+      // it changes what its identity holders receive, so it goes through a
+      // plan, and the screen that can propose one hears it here.
+      if (isRefused(response)) {
+        if (response.refused.code === ERROR_CODES.fleetDeleteRequiresPlan) deleteNeedsPlan.value = id;
+        // A record a fleet-bound combination gathers (S2-SR-1): the refusal names the combinations, and so does the sentence.
+        const gatherers = response.refused.code === ERROR_CODES.fleetDeleteRequiresPlan ? (response.refused.collections ?? []).filter((entry) => entry && entry !== id) : [];
+        if (gatherers.length) {
+          const names = gatherers.map((entry) => recordName(items.value.find((item) => item.id === entry), entry)).join(", ");
+          actionError.value = t.plans.refusal.notDeleted(t.plans.stagedSave.gatheredDelete(names, gatherers.length));
+          return false;
+        }
+        actionError.value = migrationRefusal(response) || refusalMessage(response.refused, id, items.value, t.plans.refusal.notDeleted);
+        return false;
+      }
       if (!response.deleted) {
         actionError.value = t.subs.deleteUnconfirmed;
         return false;
@@ -817,6 +1057,13 @@ export function useSubscriptions(host: HostContext) {
         subscription_id: id,
       }).promise;
       if (!response.ok) {
+        // A legacy record's probe meets the plugin's fetcher guard: its
+        // export is read by core's refresh alone. That is a rule, not a
+        // provider outage, and is said as one (s2-plan section 1.2).
+        if (response.error_code === ERROR_CODES.ownerCredentialsWithheld) {
+          actionError.value = t.plans.withheldProbe;
+          return false;
+        }
         // A failed fetch is not a failed subscription: the server keeps the
         // last good snapshot and clients stay working. Say both things.
         actionError.value = t.subs.refreshNoop;
@@ -1106,6 +1353,12 @@ export function useSubscriptions(host: HostContext) {
       const response = await callMethod<SubscriptionSaveResponse>(host.bridge, BINDINGS.subSave, {
         subscription: copy,
       }).promise;
+      if (isRefused(response)) {
+        // A copy of a record that serves owner credentials is a new record
+        // of a retired source (legacy_source_retired), among others.
+        actionError.value = migrationRefusal(response) || refusalMessage(response.refused, copy.id, items.value);
+        return null;
+      }
       if (!response.saved) {
         actionError.value = t.subs.copyUnconfirmed;
         return null;
@@ -1204,6 +1457,255 @@ export function useSubscriptions(host: HostContext) {
     }
   }
 
+  // ── plans, migration and staged revisions (design 28 S2, s2-plan 2.6, 2.7, 6) ──
+
+  const planStore = planStoreFor(host);
+  /** Proposing is proxy:admin and the operator's own call; publishing is substore:admin. */
+  const canPropose = computed(() => host.available(BINDINGS.plansPropose));
+  const canPublishPlan = computed(() => host.available(BINDINGS.plansPublish));
+  const canReadPlans = computed(() => host.available(BINDINGS.plansStatus));
+  const canMigrateRecord = computed(() => host.available(BINDINGS.subMigrateRecord));
+  const canDiscardStaged = computed(() => host.available(BINDINGS.subDiscardStaged));
+  const canReadIdentities = computed(() => host.available(BINDINGS.subIdentities));
+  const canBindPreview = computed(() => host.available(BINDINGS.bindPreview));
+  const canBindSelection = computed(() => host.available(BINDINGS.bindSelection));
+
+  /**
+   * Read the plans core lists for each record, joining a read in flight and
+   * skipping a record already read unless `force`. A record whose list could
+   * not be read keeps the reason, and its badge says it does not know.
+   */
+  function loadPlans(ids: readonly string[], force = false): Promise<void> {
+    const bridge = host.bridge;
+    if (!bridge || !canReadPlans.value) return Promise.resolve();
+    const reads = [...new Set(ids)].map((id) => {
+      const running = planStore.inFlight.get(id);
+      if (running) return running;
+      if (!force && planStore.byRecord.value[id]) return Promise.resolve();
+      const read = callMethod<{ plans?: PlanStatus[] }>(bridge, BINDINGS.plansStatus, { subscription_id: id })
+        .promise.then((reply) => {
+          planStore.byRecord.value = { ...planStore.byRecord.value, [id]: reply.plans ?? [] };
+          const rest = { ...planStore.errors.value };
+          delete rest[id];
+          planStore.errors.value = rest;
+        })
+        .catch((cause) => {
+          planStore.errors.value = { ...planStore.errors.value, [id]: safeErrorMessage(cause, t.plans.statusFailed) };
+        })
+        .finally(() => {
+          planStore.inFlight.delete(id);
+        });
+      planStore.inFlight.set(id, read);
+      return read;
+    });
+    return Promise.all(reads).then(() => undefined);
+  }
+
+  /** One plan by its approval, as core lists it now; null when it cannot be read. */
+  async function readPlan(approvalId: string): Promise<PlanStatus | null> {
+    if (!host.bridge || !canReadPlans.value || !approvalId) return null;
+    try {
+      const reply = await callMethod<{ plans?: PlanStatus[] }>(host.bridge, BINDINGS.plansStatus, { approval_id: approvalId }).promise;
+      const row = reply.plans?.[0] ?? null;
+      if (row) {
+        const id = row.subscription_id;
+        const others = (planStore.byRecord.value[id] ?? []).filter((plan) => plan.approval_id !== row.approval_id);
+        planStore.byRecord.value = { ...planStore.byRecord.value, [id]: [row, ...others] };
+      }
+      return row;
+    } catch {
+      return null;
+    }
+  }
+
+  /** vpn-core's identities through the plugin's proxy, read once per host. */
+  function loadIdentities(force = false): Promise<void> {
+    const bridge = host.bridge;
+    if (!bridge || !canReadIdentities.value) return Promise.resolve();
+    if (planStore.identitiesInFlight) return planStore.identitiesInFlight;
+    if (!force && planStore.identities.value) return Promise.resolve();
+    planStore.identitiesError.value = "";
+    planStore.identitiesInFlight = callMethod<IdentitiesReply>(bridge, BINDINGS.subIdentities, {})
+      .promise.then((reply) => {
+        planStore.identities.value = reply.identities ?? [];
+      })
+      .catch((cause) => {
+        planStore.identitiesError.value = safeErrorMessage(cause, t.fleetEditor.identity.error);
+      })
+      .finally(() => {
+        planStore.identitiesInFlight = null;
+      });
+    return planStore.identitiesInFlight;
+  }
+
+  /** What one identity's share of a record would receive, at a named revision when one is given. */
+  async function bindPreview(subscriptionId: string, identityId: string, revision?: string): Promise<BindPreviewReply> {
+    if (!host.bridge || !canBindPreview.value) throw new Error(t.fleetEditor.denied.title);
+    return callMethod<BindPreviewReply>(host.bridge, BINDINGS.bindPreview, {
+      subscription_id: subscriptionId,
+      identity_id: identityId,
+      ...(revision ? { revision } : {}),
+    }).promise;
+  }
+
+  /**
+   * File one batch of binding approvals for an identity over lines it still
+   * needs (bind_selection, operator decision 8). Core answers an unknown
+   * method until the decision is taken; that is said as such, with the
+   * vpn-core page where each line is bound by hand.
+   */
+  async function bindSelection(
+    identityId: string,
+    lineUUIDs: readonly string[],
+  ): Promise<{ ok: true; reply: BindSelectionReply } | { ok: false; unavailable: boolean; message: string }> {
+    if (!host.bridge || !canBindSelection.value) return { ok: false, unavailable: true, message: t.plans.bind.unavailable };
+    try {
+      const reply = await callMethod<BindSelectionReply>(host.bridge, BINDINGS.bindSelection, {
+        identity_id: identityId,
+        line_uuids: [...lineUUIDs],
+      }).promise;
+      return { ok: true, reply };
+    } catch (cause) {
+      if (unknownMethod(cause)) return { ok: false, unavailable: true, message: t.plans.bind.unavailable };
+      return { ok: false, unavailable: false, message: safeErrorMessage(cause, t.plans.bind.failed) };
+    }
+  }
+
+  /** A plan request's failure, with core's stable code kept when it has one. */
+  function planFailure(cause: unknown, fallback: string): PlanOutcome {
+    const message = safeErrorMessage(cause, fallback);
+    const big = planTooLarge(cause instanceof Error ? cause.message : "");
+    if (big) return { kind: "too-large", ...big, message };
+    const code = errorCodeOf(cause);
+    return code ? { kind: "refused", code, message } : { kind: "error", message };
+  }
+
+  /**
+   * Propose a plan; when core answers that no live share in the closure is
+   * fleet-bound, publish instead, under the share-write lock core takes for
+   * it, so a change design 28 calls ordinary costs one click. `publishAs` is
+   * the publish request, or null for a plan that has no publish path (a
+   * share change is always required).
+   */
+  async function proposeOrPublish(
+    request: ProposeRequest,
+    publishAs: { revision: string; expected_revision: string; action?: "promote" | "delete" } | null,
+  ): Promise<PlanOutcome> {
+    const bridge = host.bridge;
+    if (!bridge || !canPropose.value) return { kind: "error", message: t.plans.cannotPropose };
+    let reply: ProposeReply;
+    try {
+      reply = await callMethod<ProposeReply>(bridge, BINDINGS.plansPropose, request).promise;
+    } catch (cause) {
+      return planFailure(cause, t.plans.proposeFailed);
+    }
+    if (reply.required) {
+      void loadPlans(request.records?.length ? [request.subscription_id, ...request.records.map((record) => record.subscription_id)] : [request.subscription_id], true);
+      return { kind: "plan", reply, plan: parsePlan(reply.plan) };
+    }
+    if (!publishAs) return { kind: "error", message: reply.reason || t.plans.proposeFailed };
+    if (!canPublishPlan.value) return { kind: "error", message: t.plans.cannotPublish };
+    try {
+      const published = await callMethod<PublishReply>(bridge, BINDINGS.plansPublish, {
+        subscription_id: request.subscription_id,
+        revision: publishAs.revision,
+        expected_revision: publishAs.expected_revision,
+        ...(publishAs.action === "delete" ? { action: "delete" } : {}),
+      }).promise;
+      await load();
+      return { kind: "published", reply: published };
+    } catch (cause) {
+      return planFailure(cause, t.plans.publishFailed);
+    }
+  }
+
+  /** Publish a record's staged revision: propose, then publish when no plan is needed. */
+  function publishStaged(item: SubscriptionListItem): Promise<PlanOutcome> {
+    const facts = stagedFacts(item);
+    return proposeOrPublish(
+      { subscription_id: item.id, from_revision: facts.live, to_revision: facts.revision },
+      { revision: facts.revision, expected_revision: facts.live },
+    );
+  }
+
+  /**
+   * Delete a fleet-bound record through a plan (s2-plan section 2.6): core
+   * files one when a live share of its closure names an identity, else the
+   * delete applies at once, archiving the record first as every delete does.
+   */
+  function deleteThroughPlan(item: SubscriptionListItem): Promise<PlanOutcome> {
+    const live = item.revision ?? "";
+    return proposeOrPublish(
+      { subscription_id: item.id, from_revision: live, action: "delete" },
+      { revision: live, expected_revision: live, action: "delete" },
+    );
+  }
+
+  /**
+   * Stage the fleet equivalent of a legacy record under the same id. It
+   * writes a staged revision and proposes nothing; the flow collects the
+   * share identities and proposes one plan over every record it staged.
+   */
+  async function migrateRecord(id: string, ifRevision?: string): Promise<MigrateOutcome> {
+    if (!host.bridge || !canMigrateRecord.value) return { kind: "error", message: t.migration.cannotMigrate };
+    try {
+      const reply = await callMethod<MigrateRecordReply | MutationRefused | { saved: false; conflict: SubscriptionSaveConflict }>(
+        host.bridge,
+        BINDINGS.subMigrateRecord,
+        { subscription_id: id, ...(ifRevision ? { if_revision: ifRevision } : {}) },
+      ).promise;
+      if (isRefused(reply)) {
+        const refused = reply.refused;
+        return {
+          kind: "refused",
+          code: refused.code,
+          message: migrationRefusal(reply) || refusalMessage(refused, id, items.value, t.plans.refusal.notStaged),
+          files: refused.files ?? [],
+          collections: refused.collections ?? [],
+        };
+      }
+      if ("conflict" in reply && reply.saved === false) return { kind: "conflict", message: t.migration.changedSinceRead };
+      await load();
+      return { kind: "staged", reply: reply as MigrateRecordReply };
+    } catch (cause) {
+      return { kind: "error", message: safeErrorMessage(cause, t.migration.stageFailed) };
+    }
+  }
+
+  /**
+   * Drop a record's staged revision. The live revision keeps serving; a
+   * plan over the dropped revision goes stale at its decision. A refusal
+   * (staged_revision_mismatch when the list was out of date) is said in the
+   * operator's words.
+   */
+  async function discardStaged(id: string, stagedRevision: string): Promise<boolean> {
+    if (!host.bridge || !canDiscardStaged.value) return false;
+    actionError.value = "";
+    notice.value = "";
+    busyId.value = id;
+    try {
+      const reply = await callMethod<{ subscription_id: string; discarded: string } | MutationRefused>(host.bridge, BINDINGS.subDiscardStaged, {
+        subscription_id: id,
+        staged_revision: stagedRevision,
+      }).promise;
+      if (isRefused(reply)) {
+        actionError.value = migrationRefusal(reply) || refusalMessage(reply.refused, id, items.value, t.plans.refusal.notDiscarded);
+        return false;
+      }
+      const row = items.value.find((entry) => entry.id === id);
+      notice.value = t.plans.discarded(row ? row.display_name || row.name : id, shortRevision(reply.discarded || stagedRevision));
+      await load();
+      void loadPlans([id], true);
+      return true;
+    } catch (cause) {
+      actionError.value = safeErrorMessage(cause, t.plans.discardFailed);
+      return false;
+    } finally {
+      busyId.value = null;
+      await host.resize();
+    }
+  }
+
   function clearMessages(): void {
     clearErrors();
     notice.value = "";
@@ -1261,6 +1763,8 @@ export function useSubscriptions(host: HostContext) {
     loadOperators,
     loadGraphOptions,
     get,
+    getForEdit,
+    readRevisions,
     save,
     remove,
     duplicate,
@@ -1272,6 +1776,31 @@ export function useSubscriptions(host: HostContext) {
     toggleRowPreview,
     clearMessages,
     clearErrors,
+    // design 28 S2: plans, migration, staged revisions
+    deleteNeedsPlan,
+    stagedSave,
+    plansByRecord: planStore.byRecord,
+    planErrors: planStore.errors,
+    identities: planStore.identities,
+    identitiesError: planStore.identitiesError,
+    canPropose,
+    canPublishPlan,
+    canReadPlans,
+    canMigrateRecord,
+    canDiscardStaged,
+    canReadIdentities,
+    canBindPreview,
+    canBindSelection,
+    loadPlans,
+    readPlan,
+    loadIdentities,
+    bindPreview,
+    bindSelection,
+    proposeOrPublish,
+    publishStaged,
+    deleteThroughPlan,
+    migrateRecord,
+    discardStaged,
   };
 }
 

@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "vg6-01.myky5zq.example.net",
+      "53931"
+    ],
+    "name": "US-w7au2y-48",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "obfs": "http",
+      "obfs-host": "www.ysbqjyq.example.com",
+      "obfs-uri": "/llvm5b0o",
+      "password": "JFj2WdWpQ2SEYt",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

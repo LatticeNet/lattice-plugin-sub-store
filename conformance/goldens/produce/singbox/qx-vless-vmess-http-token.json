@@ -1,0 +1,18 @@
+{
+  "outbounds": [
+    {
+      "tag": "SG-syh-07",
+      "type": "vless",
+      "server": "v6-31.yinf.example.com",
+      "server_port": 80,
+      "uuid": "1748603e-89ff-435c-aeb4-2384b76fe9ac",
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "path": "/a7zqz",
+        "host": "cdn.e0fgqdebd.example.com"
+      }
+    }
+  ],
+  "endpoints": []
+}

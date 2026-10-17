@@ -1,0 +1,24 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "detour": "FR-h8s2yv-49_shadowtls",
+      "method": "aes-128-gcm",
+      "password": "fpeZh5oEvSXq18",
+      "tag": "FR-h8s2yv-49",
+      "type": "shadowsocks"
+    },
+    {
+      "password": "gCCUjYsuxncEvIZP",
+      "server": "x7-31.xbezg1w.example.net",
+      "server_port": 26155,
+      "tag": "FR-h8s2yv-49_shadowtls",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.pfq8b.example.net"
+      },
+      "type": "shadowtls",
+      "version": 1
+    }
+  ]
+}

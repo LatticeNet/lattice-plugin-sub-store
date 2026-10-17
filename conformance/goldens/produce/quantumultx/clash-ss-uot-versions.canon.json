@@ -1,0 +1,49 @@
+[
+  {
+    "address": "a8-40.m00wg.example.com:43251",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "DEWleTgrsJ4kcF",
+      "tag": "CA-kaxsse-35",
+      "udp-over-tcp": "sp.v1",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "i1d-13.qx6y2f.example.org:26397",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "SYmxkhN9wKVTwg",
+      "tag": "KR-dbvnq3-06",
+      "udp-over-tcp": "sp.v1",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "fxt-39.ye77foo.example.net:42748",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "vJoieZSjxuSiZ3",
+      "tag": "KR-hrq5ux-65",
+      "udp-over-tcp": "sp.v2",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  },
+  {
+    "address": "ph-04.zkgqvz.example.com:56871",
+    "args": [],
+    "params": {
+      "method": "aes-128-gcm",
+      "password": "H3T4hxz2n0INym",
+      "tag": "GB-blw-94",
+      "udp-relay": "true"
+    },
+    "type": "shadowsocks"
+  }
+]

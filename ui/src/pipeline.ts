@@ -15,6 +15,7 @@ import {
   KIND_COLLECTION,
   KIND_FILE,
   KIND_SUB,
+  SOURCE_FLEET,
   SOURCE_LOCAL,
   SOURCE_REMOTE,
   SOURCE_VPN_CORE,
@@ -34,8 +35,8 @@ export const STAGES: readonly Stage[] = ["source", "combination", "file", "share
  * Records lists every kind (design 28, S1); the three per-kind layers it
  * replaced still land through pageState's legacy views.
  */
-export type ViewId = "overview" | "records" | "shares" | "settings";
-export const VIEW_IDS: readonly ViewId[] = ["overview", "records", "shares", "settings"];
+export type ViewId = "overview" | "records" | "fleet" | "shares" | "settings";
+export const VIEW_IDS: readonly ViewId[] = ["overview", "records", "fleet", "shares", "settings"];
 
 export function stageOfKind(kind: string | undefined): Exclude<Stage, "share"> {
   if (kind === KIND_COLLECTION) return "combination";
@@ -137,8 +138,13 @@ export const USAGE_WARN_RATIO = 0.8;
 
 // ── what a record is ─────────────────────────────────────────────────────────
 
-/** Where a source's nodes come from, in the operator's words. */
+/**
+ * Where a source's nodes come from, in the operator's words. A fleet record
+ * (design 28 S2) reads "Fleet"; the legacy export keeps "This fleet", which
+ * the Records table marks with its owner-credentials badge.
+ */
 export function sourceKindLabel(item: SubscriptionListItem): string {
+  if (item.source === SOURCE_FLEET) return t.fleetEditor.kind;
   if (item.source === SOURCE_VPN_CORE) return t.kinds.fleet;
   if (item.source === SOURCE_VPN_CORE_GRAPH) return t.kinds.relay;
   if (item.source === SOURCE_REMOTE) return t.kinds.provider;

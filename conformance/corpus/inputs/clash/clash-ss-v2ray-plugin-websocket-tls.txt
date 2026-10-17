@@ -1,0 +1,16 @@
+proxies:
+  - name: AU-y2a0-45
+    type: ss
+    server: i0-18.xw46x.example.com
+    port: 21926
+    cipher: aes-128-gcm
+    password: vdGoRW3uHdeb8E
+    udp: true
+    skip-cert-verify: true
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: websocket
+      tls: true
+      host: cdn.br8081pci.example.com
+      path: /uwu5
+      skip-cert-verify: false

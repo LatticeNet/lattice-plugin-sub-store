@@ -56,8 +56,14 @@ type previewResult struct {
 	Stale            bool          `json:"stale"`
 	// Document is set instead of Nodes when the record is a file. A file is a
 	// document, so the question its preview answers is "what will a client
-	// receive", not "which nodes survived the filter".
+	// receive", not "which nodes survived the filter". A fleet-bound
+	// record's preview carries both: the nodes, and the target's document
+	// over placeholder credentials.
 	Document string `json:"document,omitempty"`
+	// PlaceholderCredentials marks a fleet-bound preview: every credential
+	// field in Document is a plan placeholder (LATTICE-SYN-...), because
+	// core binds an identity's credentials only for a share.
+	PlaceholderCredentials bool `json:"placeholder_credentials,omitempty"`
 }
 
 // maxPreviewDocumentBytes bounds what a file preview returns. The reply travels
@@ -107,13 +113,11 @@ func (rt *runtime) previewSubscription(raw string, steps []json.RawMessage, targ
 			return previewResult{}, err
 		}
 	} else {
-		engine := rt.subStoreEngine()
-		run := engine.runCoreScript
-		if containsScriptingOperator(steps) {
-			// User JavaScript never touches the warm runtime.
-			run = engine.runIsolatedScript
-		}
-		out, err := run("preview", "preview.js", previewScript(raw, steps, target, !credentialsAlreadySynthetic))
+		// A chain the Go operators cannot run previews on the bundle's
+		// isolated path, seeded from the lazy bytecode: the warm runtime is
+		// gone from S2 (plan section 1.4), and a preview is an operator
+		// action that may pay one isolate.
+		out, err := rt.subStoreEngine().runIsolatedScript("preview", "preview.js", previewScript(raw, steps, target, !credentialsAlreadySynthetic))
 		if err != nil {
 			return previewResult{}, err
 		}

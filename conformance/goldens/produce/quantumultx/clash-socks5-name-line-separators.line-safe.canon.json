@@ -1,0 +1,13 @@
+[
+  {
+    "address": "zw4-15.hvrtapj.example.org:1080",
+    "args": [],
+    "params": {
+      "password": "tZAxuX2I0b53",
+      "tag": "GB-gev-68",
+      "udp-relay": "true",
+      "username": "vpjxsx0"
+    },
+    "type": "socks5"
+  }
+]

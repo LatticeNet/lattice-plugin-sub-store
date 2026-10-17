@@ -1,0 +1,1 @@
+shadowsocks=i0-18.xw46x.example.com:21926,method=aes-128-gcm,password=vdGoRW3uHdeb8E,obfs=wss,obfs-host=cdn.br8081pci.example.com,obfs-uri=/uwu5,udp-relay=true,tag=AU-y2a0-45

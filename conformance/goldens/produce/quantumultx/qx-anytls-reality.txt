@@ -1,0 +1,1 @@
+anytls=jhw-31.d5kbjv.example.net:443,password=TYa4FLCt6y2Pe1pGcRn4,over-tls=true,tls-host=cdn.b0fugafa.example.org,udp-relay=true,tag=TW-s0kp0-14,reality-base64-pubkey=4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI,reality-hex-shortid=649db3e7

@@ -19,12 +19,9 @@ const fleetShapedNodes = "vless://0cd403ef-ce9b-4c7c-b3e8-472397e616f7@a.example
 	"ss://YWVzLTEyOC1nY206dGVzdA@c.example:8388#three"
 
 func TestEngineNamesWhatTheClientRefused(t *testing.T) {
-	engine := newEmbeddedSubStoreEngine()
-	if err := engine.prewarm(); err != nil {
-		t.Fatal(err)
-	}
+	engine := testEngineWithHeadroom()
 
-	clash, err := engine.convert(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "Clash", Explain: true})
+	clash, err := engine.convertIsolated(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "Clash", Explain: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +40,7 @@ func TestEngineNamesWhatTheClientRefused(t *testing.T) {
 		t.Fatalf("Clash document should hold only the shadowsocks node: %q", clash.Output)
 	}
 
-	meta, err := engine.convert(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "ClashMeta", Explain: true})
+	meta, err := engine.convertIsolated(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "ClashMeta", Explain: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,11 +51,8 @@ func TestEngineNamesWhatTheClientRefused(t *testing.T) {
 
 // Asking the client to take them anyway leaves nothing to explain.
 func TestIncludeUnsupportedLeavesNothingRefused(t *testing.T) {
-	engine := newEmbeddedSubStoreEngine()
-	if err := engine.prewarm(); err != nil {
-		t.Fatal(err)
-	}
-	out, err := engine.convert(subStoreConversionRequest{
+	engine := testEngineWithHeadroom()
+	out, err := engine.convertIsolated(subStoreConversionRequest{
 		Raw: fleetShapedNodes, Target: "Clash", Explain: true,
 		Options: map[string]bool{"include-unsupported-proxy": true},
 	})
@@ -77,18 +71,15 @@ func TestIncludeUnsupportedLeavesNothingRefused(t *testing.T) {
 // must not pay for it. A caller that did not ask gets exactly what it got
 // before, and no counting happens.
 func TestServePathAsksForNoDiagnosis(t *testing.T) {
-	engine := newEmbeddedSubStoreEngine()
-	if err := engine.prewarm(); err != nil {
-		t.Fatal(err)
-	}
-	quiet, err := engine.convert(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "Clash"})
+	engine := testEngineWithHeadroom()
+	quiet, err := engine.convertIsolated(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "Clash"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if quiet.UnsupportedNodeCount != 0 || len(quiet.UnsupportedProtocols) != 0 {
 		t.Fatalf("an unasked-for diagnosis was computed: %d %v", quiet.UnsupportedNodeCount, quiet.UnsupportedProtocols)
 	}
-	loud, err := engine.convert(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "Clash", Explain: true})
+	loud, err := engine.convertIsolated(subStoreConversionRequest{Raw: fleetShapedNodes, Target: "Clash", Explain: true})
 	if err != nil {
 		t.Fatal(err)
 	}

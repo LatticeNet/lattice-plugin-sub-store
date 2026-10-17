@@ -1,0 +1,3 @@
+JP-e7v-93=trojan,v8-21.n91npglc.example.com
+b6-16.idsu.example.net,443,password="UDG9ALCvfGeGG3e5",tls=true,sni="static.mgdrp82.example.com"
+US-akqgj-94=trojan,akg-24.xvw1u.example.com,443,password="7AyRlORj1RLGZiCB",tls=true,sni="www.s7onk.example.com"

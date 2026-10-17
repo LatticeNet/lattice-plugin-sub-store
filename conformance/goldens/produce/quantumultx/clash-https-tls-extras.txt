@@ -1,0 +1,2 @@
+http=yo-32.t7tq.example.org:443,username=vf6vjpt2,password=gGYHIQZCdJix,over-tls=true,tls-alpn=02683208687474702f312e31,tls-cert-sha256=2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac,tls-verification=cdn.o88s8vsqrg.example.net,tls-host=static.yaq2i7izym.example.org,udp-relay=true,tag=AU-qwcrw-85
+http=ek-36.e2k6k0z.example.net:443,username=bfas9x,password=rYehLxWCwT2h,over-tls=true,tls-alpn=042268322208687474702f312e31,tls-verification=false,tls-host=www.wgksq6.example.net,udp-relay=true,tag=SG-yge45-73

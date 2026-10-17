@@ -34,7 +34,7 @@ func shareFleetFixture(n int) string {
 // per-client link the console handed out was broken this way unless the
 // operator had picked "plain".
 func TestRenderServesEachClientItsNativeEncoding(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s", Name: "s", Content: shareFleetFixture(4)}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestRenderServesEachClientItsNativeEncoding(t *testing.T) {
 // render failure (and the 404 decoy) it answered before. ?format=sing-box names
 // a client the same way. An explicit ?target= still wins.
 func TestRenderFormatThatNamesAClientPicksThatTarget(t *testing.T) {
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s", Name: "s", Content: shareFleetFixture(2)}); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestUAClassClashMetaRendersClashMeta(t *testing.T) {
 	if got := subscriptionTarget(subscriptionRecord{}, "clash"); got != "Clash" {
 		t.Fatalf("class clash resolved to %q, want Clash", got)
 	}
-	rt, _ := newWarmKVRuntime(t)
+	rt, _ := newKVRuntime(t)
 	if err := rt.saveSubscription(subscriptionRecord{ID: "s", Name: "s", Content: shareFleetFixture(3)}); err != nil {
 		t.Fatalf("save: %v", err)
 	}

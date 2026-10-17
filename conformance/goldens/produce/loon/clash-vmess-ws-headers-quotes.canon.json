@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "dh-09.j8zxvm8y.example.org",
+      "443",
+      "auto",
+      "306a27fc-af1d-47fe-bc69-c42b06e4e615"
+    ],
+    "name": "GB-vzdsx-11",
+    "params": {
+      "alterId": "0",
+      "host": "img.juflq2qmv.example.net",
+      "over-tls": "true",
+      "path": "/t2og2q7t",
+      "tls-name": "static.lnmdy7bpz4.example.com",
+      "transport": "ws",
+      "udp": "true"
+    },
+    "type": "vmess"
+  }
+]

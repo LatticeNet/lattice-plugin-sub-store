@@ -1,0 +1,27 @@
+proxies:
+  - name: US-vpb-70
+    type: vless
+    server: nd-06.hx8izax.example.net
+    port: 443
+    uuid: fddbb0c3-7ffe-4d9c-b2a0-80b65e0fcd73
+    udp: true
+    tls: true
+    servername: api.koyq8upb.example.com
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1
+  - name: SG-rmd-87
+    type: vless
+    server: mdo-20.bknkc.example.net
+    port: 443
+    uuid: "4ad3b3d8-0629-4a2a-a669-e464fe4e5f29\nj5195"
+    udp: true
+    tls: true
+    servername: static.hvqm8a0.example.org
+    skip-cert-verify: false
+    client-fingerprint: chrome
+    alpn:
+      - h2
+      - http/1.1

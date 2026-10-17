@@ -1,0 +1,40 @@
+[
+  {
+    "fragment": "TW-s0kp0-14",
+    "host": "jhw-31.d5kbjv.example.net",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "packetEncoding",
+        "none"
+      ],
+      [
+        "pbk",
+        "4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI"
+      ],
+      [
+        "security",
+        "reality"
+      ],
+      [
+        "sid",
+        "649db3e7"
+      ],
+      [
+        "sni",
+        "cdn.b0fugafa.example.org"
+      ],
+      [
+        "type",
+        "tcp"
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "anytls",
+    "userinfo": "TYa4FLCt6y2Pe1pGcRn4"
+  }
+]

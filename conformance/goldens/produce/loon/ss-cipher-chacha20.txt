@@ -1,0 +1,2 @@
+AU-myqg-14=shadowsocks,jcb-14.sz5j5zb6.example.com,24641,chacha20,"vR18ccbMVIMuZXh7",udp=true
+JP-cek9e-51=shadowsocks,fl6-16.bnilt.example.com,23198,rc4,"cbwOYIAHHKweWKJS",udp=true

@@ -1,0 +1,1 @@
+GB-vzdsx-11=vmess,dh-09.j8zxvm8y.example.org,443,username=306a27fc-af1d-47fe-bc69-c42b06e4e615,ws=true,ws-path=/t2og2q7t,ws-headers=Host:"img.juflq2qmv.example.net"|X-hvzcyy4b:"jq5m114e"|X-w97h:'ja7jh4f8',vmess-aead=true,tls=true,sni="static.lnmdy7bpz4.example.com",udp-relay=true

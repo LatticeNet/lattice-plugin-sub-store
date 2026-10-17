@@ -1,0 +1,30 @@
+[
+  {
+    "address": "lr-19.afx2.example.org:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "8QsCNMzX7CR5z2hj",
+      "q5xv2": "vneuu",
+      "tag": "p51lwo",
+      "tls-host": "cdn.yg3td9n.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  },
+  {
+    "address": "j6-01.btegk1da.example.net:443",
+    "args": [
+      "",
+      ""
+    ],
+    "params": {
+      "over-tls": "true",
+      "password": "bKNxX9UNTsJT4Ln3",
+      "tag": "bxn3ri==ms29x1",
+      "tls-host": "api.wvhu20wr5.example.org",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

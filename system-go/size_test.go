@@ -14,9 +14,16 @@ import (
 	"github.com/LatticeNet/lattice-sdk/model"
 )
 
-// nativeProducerTargets are the five targets S1 produces natively, by the
-// platform name the plugin and the harness call them.
-var nativeProducerTargets = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta"}
+// nativeProducerTargets are the nine targets with a native producer, by the
+// platform name the plugin and the harness call them: the five S1 serves
+// natively and the four S2 adds (fleetMixTargets).
+var nativeProducerTargets = []string{"URI", "V2Ray", "JSON", "sing-box", "ClashMeta", "Stash", "Shadowrocket", "Surge", "QX"}
+
+// fleetMixTargets are the four S2 producers. The size test feeds them the
+// fleet's protocol mix (perfgen.FleetMix) rather than the perf gate's VLESS
+// Reality nodes, because Surge writes no VLESS and would size an empty
+// document.
+var fleetMixTargets = map[string]bool{"Stash": true, "Shadowrocket": true, "Surge": true, "QX": true}
 
 func nativeProducer(t *testing.T, platform string) producers.Producer {
 	t.Helper()
@@ -54,14 +61,23 @@ func TestEmptyDocumentsMatchBundleBound(t *testing.T) {
 // A native render of 4096 nodes stays inside the response bound the server
 // accepts (model.MaxSubscriptionResponseBytes) and, carried as the JSON body
 // of the render reply, inside the render method's acked stdout budget (S1
-// plan section 5.2). The nodes are the perf gate's VLESS Reality mix.
+// plan section 5.2). The nodes are the perf gate's VLESS Reality mix for the
+// five S1 targets and the fleet's protocol mix for the four S2 adds.
 func TestDocumentSizesAt4096Nodes(t *testing.T) {
 	const count = 4096
-	raw := perfgen.Nodes(count)
+	vless := perfgen.Nodes(count)
+	mix, err := perfgen.FleetMix("../conformance", count)
+	if err != nil {
+		t.Fatal(err)
+	}
 	stdout := ackedRuntimeBudgets()[pluginID+"/subscription/render"].StdoutBytes
 	for _, target := range nativeProducerTargets {
 		t.Run(target, func(t *testing.T) {
 			p := nativeProducer(t, target)
+			raw := vless
+			if fleetMixTargets[target] {
+				raw = mix
+			}
 			nodes := make([]*nodemodel.Node, len(raw))
 			for i, r := range raw {
 				nodes[i] = &nodemodel.Node{}
@@ -75,7 +91,8 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 				t.Fatal(err)
 			}
 			want := count
-			if target == "sing-box" {
+			switch target {
+			case "sing-box":
 				// sing-box has no xhttp transport (singbox.md, row F6), so
 				// the mix's xhttp nodes yield nothing there.
 				for _, n := range nodes {
@@ -83,6 +100,8 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 						want--
 					}
 				}
+			case "Stash", "Shadowrocket", "Surge", "QX":
+				want = fleetMixEntries(target, nodes)
 			}
 			if res.Entries != want || len(res.Dropped) != count-want {
 				t.Errorf("produced %d entries for %d nodes, want %d (dropped %d)", res.Entries, count, want, len(res.Dropped))
@@ -97,9 +116,105 @@ func TestDocumentSizesAt4096Nodes(t *testing.T) {
 			if len(body) > stdout {
 				t.Errorf("render body is %d bytes, over the %d byte render stdout budget", len(body), stdout)
 			}
-			t.Logf("%s at %d nodes: document %d bytes, render body %d bytes (bounds %d and %d)", target, count, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
+			t.Logf("%s at %d nodes: %d entries, document %d bytes, render body %d bytes (bounds %d and %d)", target, count, res.Entries, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
 		})
 	}
+}
+
+// TestS2DocumentSizesWhenEveryNodeIsWritten sizes the worst case the fleet
+// mix hides for the four S2 targets: 4096 nodes that the target writes every
+// one of, the mix's written shapes repeated, so a regression that grows a
+// fully written Surge or Quantumult X document is seen even though the mix
+// leaves Surge 1200 entries and Quantumult X 2604.
+func TestS2DocumentSizesWhenEveryNodeIsWritten(t *testing.T) {
+	const count = 4096
+	raw, err := perfgen.FleetMix("../conformance", count)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mix := make([]*nodemodel.Node, len(raw))
+	for i, r := range raw {
+		mix[i] = &nodemodel.Node{}
+		if err := json.Unmarshal(r, mix[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	stdout := ackedRuntimeBudgets()[pluginID+"/subscription/render"].StdoutBytes
+	for _, target := range nativeProducerTargets {
+		if !fleetMixTargets[target] {
+			continue
+		}
+		t.Run(target, func(t *testing.T) {
+			p := nativeProducer(t, target)
+			var buf bytes.Buffer
+			res, err := p.Produce(&buf, mix, target, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			dropped := map[int]bool{}
+			for _, d := range res.Dropped {
+				dropped[d.Index] = true
+			}
+			var written []*nodemodel.Node
+			for i, n := range mix {
+				if !dropped[i] {
+					written = append(written, n)
+				}
+			}
+			nodes := make([]*nodemodel.Node, count)
+			for i := range nodes {
+				nodes[i] = written[i%len(written)]
+			}
+			buf.Reset()
+			if res, err = p.Produce(&buf, nodes, target, nil); err != nil {
+				t.Fatal(err)
+			}
+			if res.Entries != count {
+				t.Fatalf("produced %d entries for %d written shapes, want %d", res.Entries, count, count)
+			}
+			body, err := json.Marshal(buf.String())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if buf.Len() > model.MaxSubscriptionResponseBytes {
+				t.Errorf("document is %d bytes, over the %d byte response bound", buf.Len(), model.MaxSubscriptionResponseBytes)
+			}
+			if len(body) > stdout {
+				t.Errorf("render body is %d bytes, over the %d byte render stdout budget", len(body), stdout)
+			}
+			t.Logf("%s, every node written: %d entries, document %d bytes, render body %d bytes (bounds %d and %d)", target, res.Entries, buf.Len(), len(body), model.MaxSubscriptionResponseBytes, stdout)
+		})
+	}
+}
+
+// fleetMixEntries counts the fleet mix's nodes a target writes, by the
+// rejections each S2 specification names for the fleet shapes: Stash drops
+// VLESS Reality over gRPC and XHTTP and HTTPUpgrade (stash.md), Shadowrocket
+// keeps every shape (shadowrocket.md), Surge rejects VLESS and trojan over
+// gRPC (surge.md), and Quantumult X rejects gRPC, XHTTP, HTTPUpgrade,
+// Hysteria2 and TUIC (quantumultx.md).
+func fleetMixEntries(target string, nodes []*nodemodel.Node) int {
+	n := 0
+	for _, node := range nodes {
+		f := node.Fields
+		typ, net := f["type"], f["network"]
+		wsOpts, _ := f["ws-opts"].(map[string]any)
+		upgrade := net == "ws" && wsOpts["v2ray-http-upgrade"] == true
+		var drop bool
+		switch target {
+		case "Stash":
+			_, reality := f["reality-opts"]
+			drop = typ == "vless" && reality && net != "tcp" || upgrade
+		case "Surge":
+			drop = typ == "vless" || typ == "trojan" && net == "grpc"
+		case "QX":
+			drop = net == "grpc" || net == "xhttp" || upgrade || typ == "hysteria2" || typ == "tuic"
+		}
+		if !drop {
+			n++
+		}
+	}
+	return n
 }
 
 // A fetch of 4096 nodes envelopes the provider text and the parsed nodes

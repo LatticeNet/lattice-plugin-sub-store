@@ -1,0 +1,91 @@
+[
+  {
+    "name": "TW-d2ruo-18",
+    "password": "ZFzQAdrvmEZ999",
+    "port": 443,
+    "server": "phf-04.oy8whdqj.example.org",
+    "sni": "www.l2jhh3m4g.example.com",
+    "tls": true,
+    "type": "h2-connect",
+    "udp": true,
+    "username": "pxwvdad"
+  },
+  {
+    "name": "KR-h58to-07",
+    "password": "fOgCwuPDij58mK",
+    "port": 443,
+    "server": "gko-29.bahiba.example.net",
+    "sni": "api.x4a7fa3yme.example.com",
+    "tls": true,
+    "type": "naive",
+    "udp": true,
+    "username": "xfjwd"
+  },
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "KR-ud20n-88",
+    "network": "ws",
+    "port": 443,
+    "server": "gq-23.w4ft.example.net",
+    "sni": "cdn.txtpfciw9p.example.net",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "c3b05c53-672f-4a7e-a1a5-509621dd246e",
+    "ws-opts": {
+      "early-data-header-name": "Sec-WebSocket-Protocol",
+      "headers": {
+        "Host": "www.bmo8elw9v.example.com"
+      },
+      "max-early-data": 2048,
+      "path": "/apec/sadz?ed=2048",
+      "v2ray-http-upgrade": true
+    }
+  },
+  {
+    "headers": {
+      "X-xeqg8": "ni4qhkw"
+    },
+    "name": "NL-zep7-46",
+    "password": "LLudeRwOBV80",
+    "port": 8080,
+    "server": "ep-36.ladi.example.org",
+    "type": "http",
+    "udp": true,
+    "username": "zoushga"
+  },
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "http-opts": {
+      "headers": {
+        "Host": [
+          "cdn.bzkynldo.example.com"
+        ]
+      },
+      "method": "GET",
+      "path": [
+        "/g76/zhpwfk7oof"
+      ]
+    },
+    "name": "HK-g5wzd-51",
+    "network": "http",
+    "port": 80,
+    "server": "vl-27.jpxff.example.org",
+    "type": "vmess",
+    "udp": true,
+    "uuid": "daa4605b-ff81-4e52-b134-26d91c376a3e"
+  },
+  {
+    "cipher": "aes-128-gcm",
+    "name": "FR-g8uxz-35",
+    "password": "4hvmdU03O0JArG",
+    "port": 17410,
+    "server": "j3d-04.e29g.example.com",
+    "sni": "j3d-04.e29g.example.com",
+    "tls": true,
+    "type": "ss",
+    "udp": true
+  }
+]

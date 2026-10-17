@@ -1,0 +1,54 @@
+[
+  {
+    "args": [
+      "a8-40.m00wg.example.com",
+      "43251"
+    ],
+    "name": "CA-kaxsse-35",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "DEWleTgrsJ4kcF",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "i1d-13.qx6y2f.example.org",
+      "26397"
+    ],
+    "name": "KR-dbvnq3-06",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "SYmxkhN9wKVTwg",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "fxt-39.ye77foo.example.net",
+      "42748"
+    ],
+    "name": "KR-hrq5ux-65",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "vJoieZSjxuSiZ3",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  },
+  {
+    "args": [
+      "ph-04.zkgqvz.example.com",
+      "56871"
+    ],
+    "name": "GB-blw-94",
+    "params": {
+      "encrypt-method": "aes-128-gcm",
+      "password": "H3T4hxz2n0INym",
+      "udp-relay": "true"
+    },
+    "type": "ss"
+  }
+]

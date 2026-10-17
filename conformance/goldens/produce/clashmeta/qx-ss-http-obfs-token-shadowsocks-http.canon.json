@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "DE-m589t-55",
+      "password": "iiQPgx4YdvOrzD",
+      "plugin": "obfs",
+      "plugin-opts": {
+        "host": "api.bjn3w2ond.example.net",
+        "mode": "http",
+        "path": "/jwnph6w"
+      },
+      "port": 30252,
+      "server": "y97-38.rn04h.example.com",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

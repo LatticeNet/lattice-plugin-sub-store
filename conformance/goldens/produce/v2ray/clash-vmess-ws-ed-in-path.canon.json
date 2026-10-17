@@ -1,0 +1,22 @@
+[
+  {
+    "body": {
+      "add": "qu7-25.n9gs.example.net",
+      "aid": "0",
+      "host": "cdn.j9ba3ha.example.com",
+      "id": "b4c3988d-7906-443f-bb1f-2e7328ad12c2",
+      "net": "ws",
+      "path": "/opfn5a/ei1x8lrp?ed=2048",
+      "port": "443",
+      "ps": "JP-nlrzy-06",
+      "scy": "auto",
+      "sni": "img.l2akn2kb.example.com",
+      "tls": "tls",
+      "type": "",
+      "v": "2"
+    },
+    "fragment": null,
+    "query": [],
+    "scheme": "vmess"
+  }
+]

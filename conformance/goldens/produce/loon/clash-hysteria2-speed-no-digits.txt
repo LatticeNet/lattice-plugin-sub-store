@@ -1,0 +1,1 @@
+HK-c5l-76=Hysteria2,rs-36.i0j0wh.example.net,443,"TpTxv5boO3l0uVdiTAX5",tls-name=cdn.zf18dl.example.net,udp=true,download-bandwidth=0

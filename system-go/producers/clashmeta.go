@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/nodemodel"
-	"gopkg.in/yaml.v3"
 )
 
 // The ClashMeta producer (specs/producers/clashmeta.md): a mihomo proxies:
@@ -28,73 +27,15 @@ type clashMetaProducer struct{}
 func (clashMetaProducer) ID() string { return "clashmeta" }
 
 // EmptyDocument is "proxies:" and a newline, or "proxies: []" and a newline
-// in the pretty form (clashmeta.md, "Empty document"). Neither is the empty
-// string, so the zero-node rule counts Result.Entries.
-func (clashMetaProducer) EmptyDocument(opts Options) []byte {
-	if prettyYAML(opts) {
-		return []byte("proxies: []\n")
-	}
-	return []byte("proxies:\n")
-}
+// in the pretty form (clashmeta.md, "Empty document").
+func (clashMetaProducer) EmptyDocument(opts Options) []byte { return emptyProxies(opts) }
 
-func (c clashMetaProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, target string, opts Options) (Result, error) {
-	ps, dropped := prepare(nodes, target, "clashmeta", opts)
-	res := Result{Dropped: dropped}
-	include := opts.Truthy("include-unsupported-proxy")
-	kept := ps[:0]
-	for i := range ps {
-		p := &ps[i]
-		if !include && !clashMetaAdmits(p.node.Fields) {
-			res.Dropped = append(res.Dropped, Dropped{Index: p.index, Type: typeOf(p.node.Fields), Reason: ReasonUnsupported})
-			continue
-		}
-		clashMetaTransform(p, false)
-		kept = append(kept, *p)
-	}
-	// Only a value outside the model fails to write, which decoded input
-	// never holds; such a node is reported instead of failing the document.
-	failed := func(p prepared) {
-		res.Dropped = append(res.Dropped, Dropped{Index: p.index, Type: typeOf(p.node.Fields), Reason: ReasonFailed})
-	}
-	var out []byte
-	if prettyYAML(opts) {
-		items := make([]*yaml.Node, 0, len(kept))
-		for _, p := range kept {
-			item, err := yamlValue(p.ordered(), 0)
-			if err != nil {
-				failed(p)
-				continue
-			}
-			items = append(items, item)
-		}
-		if res.Entries = len(items); res.Entries > 0 {
-			var err error
-			if out, err = prettyProxies(items); err != nil {
-				return Result{}, err
-			}
-		}
-	} else {
-		out = []byte("proxies:\n")
-		for _, p := range kept {
-			next, err := appendJSON(append(out, "  - "...), p.ordered())
-			if err != nil {
-				failed(p)
-				continue
-			}
-			out = append(next, '\n')
-			res.Entries++
-		}
-	}
-	if res.Entries == 0 {
-		out = c.EmptyDocument(opts)
-	}
-	sortDropped(res.Dropped)
-	dst.Write(out)
-	return res, nil
-}
-
-func prettyYAML(opts Options) bool {
-	return opts.Truthy("prettyYaml") || opts.Truthy("pretty-yaml")
+func (clashMetaProducer) Produce(dst *bytes.Buffer, nodes []*nodemodel.Node, target string, opts Options) (Result, error) {
+	return produceProxies(dst, nodes, target, opts, proxyRules{
+		id:        "clashmeta",
+		admits:    clashMetaAdmits,
+		transform: func(p *prepared) { clashMetaTransform(p, false) },
+	})
 }
 
 // ClashMetaInternal is the ClashMeta producer's internal mode, the pass the

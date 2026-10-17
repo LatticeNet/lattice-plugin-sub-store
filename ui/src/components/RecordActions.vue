@@ -4,7 +4,10 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { KIND_SUB, type SubscriptionListItem } from "../client";
 import { useHost } from "../host";
 import { t } from "../i18n";
-import { actionCapabilities, deletePrompt, ownLiveShares, rowMenuFor, type ActionId } from "../recordActions";
+import { PLAN_FLOW_ACTIONS, actionCapabilities, deletePrompt, ownLiveShares, rowMenuFor, type ActionId } from "../recordActions";
+import { useLensChrome } from "../lensChrome";
+import { deleteNeedsPlan } from "../planFlow";
+import { recordIntent } from "../recordIntent";
 import { useOverlayRegistration } from "../useOverlayRegistration";
 import type { Pipeline } from "../usePipeline";
 import { useSubscriptions } from "../useSubscriptions";
@@ -36,7 +39,23 @@ const emit = defineEmits<{
 const host = useHost();
 const subs = useSubscriptions(host);
 const record = computed(() => props.pipe.item(props.id));
-const actions = computed(() => (record.value ? rowMenuFor(record.value, actionCapabilities(host)) : []));
+const actions = computed(() =>
+  record.value ? rowMenuFor(record.value, actionCapabilities(host), { shares: props.pipe.shareStore.shares.value }) : [],
+);
+const chrome = useLensChrome();
+const intent = recordIntent(host);
+
+/**
+ * The plan flow (design 28 S2) lives on the Records screen, which holds the
+ * staged state, the plan sheet and the editors; this surface hands a plan
+ * verb, and a fleet-bound record's delete, which goes through a plan, over
+ * to it and gives way.
+ */
+function handOver(id: ActionId, recordId: string): void {
+  chrome.openId.value = "";
+  chrome.openLens("records");
+  intent.value = { recordId, action: id };
+}
 
 const open = ref(false);
 const busy = ref(false);
@@ -101,6 +120,11 @@ async function run(id: ActionId): Promise<void> {
   const item = record.value;
   if (!item) return;
   close(id !== "output");
+  // A delete goes through a plan for a fleet-bound record and for one a fleet-bound combination gathers (S2-SR-1).
+  if (PLAN_FLOW_ACTIONS.includes(id) || (id === "delete" && deleteNeedsPlan(item, props.pipe.items.value))) {
+    handOver(id, item.id);
+    return;
+  }
   if (id === "output") {
     sheetFor.value = item;
     return;

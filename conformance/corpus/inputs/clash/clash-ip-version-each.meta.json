@@ -1,0 +1,9 @@
+{
+  "id": "clash-ip-version-each",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ip-version",
+  "description": "trojan nodes with ip-version dual, ipv4, ipv6, ipv4-prefer, ipv6-prefer and an unknown value: Surge writes dual, v4-only, v6-only, prefer-v4, prefer-v6 and the unknown value verbatim."
+}

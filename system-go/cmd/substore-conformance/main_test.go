@@ -41,7 +41,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		`{"id":2,"op":"parse","input":"vless://00000000-0000-4000-8000-000000000000@a.example.com:443#n"}`,
 		`{"id":"three","op":"produce","target":"clashmeta","nodes":[` + node + `],"options":{}}`,
 		``,
-		`{"id":4,"op":"produce","target":"stash","nodes":[` + node + `]}`,
+		`{"id":4,"op":"produce","target":"loon","nodes":[` + node + `]}`,
 		`{"id":5,"op":"produce","target":"uri"}`,
 		`{"id":6,"op":"frobnicate"}`,
 		`{"id":7,"op":`,
@@ -96,7 +96,7 @@ func TestConformanceRunnerSpeaksProtocol(t *testing.T) {
 		reply int
 		says  []string
 	}{
-		{3, []string{`"stash"`, "no native producer"}},
+		{3, []string{`"loon"`, "no native producer"}},
 		{4, []string{"nodes"}},
 		{5, []string{`unknown op "frobnicate"`}},
 		{6, []string{"bad request"}},

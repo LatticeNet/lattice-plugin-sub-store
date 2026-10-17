@@ -25,15 +25,23 @@ import (
 // renders.
 const workerBinaryEnv = "LATTICE_WORKER_BINARY"
 
-// TestWorkerVmRSS records the plugin worker's resident set (S1 plan section
-// 5.2). It starts the built binary under the stdio-json-v2 environment the
-// host gives a worker (main.go, parseRuntimeV2Environment), drives 4096-node
+// Worker resident-set bounds, enforced from S2 (S2 plan section 5; S1 plan
+// decision 15 recorded them first): an idle worker holds no QuickJS runtime
+// now that the warm runtime is gone, and a scriptless native render never
+// reaches the bundle.
+const (
+	maxIdleWorkerVmRSSKiB        = 32 << 10
+	maxWorkerVmRSSAfterRenderKiB = 96 << 10
+)
+
+// TestWorkerVmRSS holds the plugin worker's resident set to the S2 bounds.
+// It starts the built binary under the stdio-json-v2 environment the host
+// gives a worker (main.go, parseRuntimeV2Environment), drives 4096-node
 // sing-box renders through framed stdin with the subscription convert
-// method, which makes no host call, and reads VmRSS and VmHWM from
-// /proc/<pid>/status: at runtime_ready, once the resident set has settled
-// after the background warm-up, and after each render. The numbers are
-// recorded, not enforced, until S2 (section 7); the test fails only when the
-// worker does not answer.
+// method, which makes no host call and answers in Go, and reads VmRSS and
+// VmHWM from /proc/<pid>/status: at runtime_ready, once the resident set has
+// settled, and after each render. VmRSS must stay under 32 MiB idle and
+// under 96 MiB after every render; VmHWM is logged beside it.
 func TestWorkerVmRSS(t *testing.T) {
 	bin := os.Getenv(workerBinaryEnv)
 	if bin == "" {
@@ -94,18 +102,21 @@ func TestWorkerVmRSS(t *testing.T) {
 		}
 		return f
 	}
-	record := func(label string) {
+	record := func(label string, boundKiB int) {
 		t.Helper()
 		rss, hwm := procStatusKiB(t, pid, "VmRSS"), procStatusKiB(t, pid, "VmHWM")
 		t.Logf("VmRSS %7.1f MiB  VmHWM %7.1f MiB  %s", float64(rss)/1024, float64(hwm)/1024, label)
+		if boundKiB > 0 && rss >= boundKiB {
+			t.Errorf("VmRSS is %.1f MiB %s, not under %d MiB", float64(rss)/1024, label, boundKiB>>10)
+		}
 	}
 
 	if f := next(); f.Kind != "runtime_ready" {
 		t.Fatalf("first frame is %q, want runtime_ready", f.Kind)
 	}
-	record("at runtime_ready")
+	record("at runtime_ready", 0)
 	settled := waitForSettledRSS(t, pid, 60*time.Second)
-	record(fmt.Sprintf("idle, once VmRSS settled after the background warm-up (%s)", settled))
+	record(fmt.Sprintf("idle, once VmRSS settled (%s)", settled), maxIdleWorkerVmRSSKiB)
 
 	uris := perfgen.URIs(4096)
 	for i := 1; i <= 3; i++ {
@@ -137,7 +148,7 @@ func TestWorkerVmRSS(t *testing.T) {
 		if err := json.Unmarshal(result.Result, &converted); err != nil || converted.NodeCount == 0 {
 			t.Fatalf("render %d result: %v, %d nodes", i, err, converted.NodeCount)
 		}
-		record(fmt.Sprintf("after render %d of %d nodes to sing-box (%d nodes written, %d bytes, %s)", i, len(uris), converted.NodeCount, len(converted.Content), time.Since(start).Round(time.Millisecond)))
+		record(fmt.Sprintf("after render %d of %d nodes to sing-box (%d nodes written, %d bytes, %s)", i, len(uris), converted.NodeCount, len(converted.Content), time.Since(start).Round(time.Millisecond)), maxWorkerVmRSSAfterRenderKiB)
 	}
 }
 

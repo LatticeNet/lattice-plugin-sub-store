@@ -1,0 +1,25 @@
+proxies:
+  - name: DE-z9c-43
+    type: trojan
+    server: h6-24.etbin6vt.example.net
+    port: 443
+    password: CpuBPWHlwbta01at
+    sni: cdn.ze02y.example.com
+    udp: true
+    skip-cert-verify: true
+    alpn:
+      - h2
+      - http/1.1
+    ip-version: ipv6-prefer
+    no-error-alert: true
+    test-url: "http://ak-39.x32l9wqp.example.com/generate_204"
+    test-timeout: 5
+    test-udp: "vvt-19.h1jbg23.example.org@203.0.113.154"
+    hybrid: true
+    tos: 184
+    allow-other-interface: true
+    interface-name: en0
+    block-quic: "on"
+    underlying-proxy: US-gzux-22
+    tls-fingerprint: a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761
+    tls-pubkey-sha256: c4a1a99af06951f356391ccfaadb5af42ea44105b9e46bba2febf753a6379751

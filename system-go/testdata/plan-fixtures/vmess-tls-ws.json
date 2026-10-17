@@ -1,0 +1,122 @@
+{
+  "name": "vmess-tls-ws",
+  "protocol": "vmess",
+  "share_url": "vmess://eyJhZGQiOiJ2bS5leGFtcGxlLmNvbSIsImFpZCI6IjAiLCJob3N0Ijoidm0uZXhhbXBsZS5jb20iLCJpZCI6IjBmMGUwZDBjLTBiMGEtNDkwOC04NzA2LTA1MDQwMzAyMDEwMCIsIm5ldCI6IndzIiwicGF0aCI6Ii92bSIsInBvcnQiOiI0NDMiLCJwcyI6Im93bmVyIiwic25pIjoidm0uZXhhbXBsZS5jb20iLCJ0bHMiOiJ0bHMiLCJ2IjoiMiJ9",
+  "row": {
+    "line_uuid": "00000009-0000-4000-8000-000000000009",
+    "line_hash_id": "lh-9",
+    "node_id": "node-9",
+    "node_name": "fixture-09",
+    "name": "vmess-tls-ws",
+    "label": "fixture-09 vmess-tls-ws",
+    "node_tags": [
+      "jp",
+      "rack-2"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "vmess",
+    "transport": "ws",
+    "security": "tls",
+    "public_host": "vm.example.com",
+    "public_port": 443,
+    "addresses": [
+      "192.0.2.9"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "vmess",
+      "host": "vm.example.com",
+      "port": 443,
+      "params": {
+        "aid": "0",
+        "host": "vm.example.com",
+        "net": "ws",
+        "path": "/vm",
+        "sni": "vm.example.com",
+        "tls": "tls"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000009"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000009-0000-4000-8000-000000000009",
+        "placeholders": {
+          "uuid": "LATTICE-SYN-00000009-0000-4000-8000-000000000009-uuid-b144ba0c48b8c63a1a0e2b9e37d957d8"
+        },
+        "node": {
+          "addresses": [
+            "192.0.2.9"
+          ],
+          "alterId": 0,
+          "chain": {
+            "role": "single"
+          },
+          "cipher": "auto",
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-9",
+          "name": "fixture-09 vmess-tls-ws",
+          "network": "ws",
+          "node_id": "node-9",
+          "port": 443,
+          "server": "vm.example.com",
+          "sni": "vm.example.com",
+          "tags": [
+            "jp",
+            "rack-2"
+          ],
+          "tls": true,
+          "type": "vmess",
+          "udp": true,
+          "uuid": "LATTICE-SYN-00000009-0000-4000-8000-000000000009-uuid-b144ba0c48b8c63a1a0e2b9e37d957d8",
+          "ws-opts": {
+            "headers": {
+              "Host": "vm.example.com"
+            },
+            "path": "/vm"
+          }
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000009-0000-4000-8000-000000000009"
+      ]
+    }
+  }
+}

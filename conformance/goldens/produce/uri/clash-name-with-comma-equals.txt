@@ -1,0 +1,2 @@
+trojan://8QsCNMzX7CR5z2hj@lr-19.afx2.example.org:443?sni=cdn.yg3td9n.example.org&type=tcp#p51lwo%2Cq5xv2%3Dvneuu
+trojan://bKNxX9UNTsJT4Ln3@j6-01.btegk1da.example.net:443?sni=api.wvhu20wr5.example.org&type=tcp#bxn3ri%3D%3Dms29x1%2C%2C

@@ -1,0 +1,3 @@
+proxies:
+  - {"shadowsocks":{"name":"AU-myqg-14","method":"chacha20","server":"jcb-14.sz5j5zb6.example.com","port":24641,"password":"vR18ccbMVIMuZXh7","tfo":false,"udp_relay":true}}
+  - {"shadowsocks":{"name":"JP-cek9e-51","method":"rc4","server":"fl6-16.bnilt.example.com","port":23198,"password":"cbwOYIAHHKweWKJS","tfo":false,"udp_relay":true}}

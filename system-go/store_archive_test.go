@@ -30,7 +30,7 @@ func (h *keyRecordingHost) call(method string, params any) (json.RawMessage, err
 // holds, with each row's refresh bookkeeping riding in it.
 func TestListReadsOneKey(t *testing.T) {
 	host := &keyRecordingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	for _, rec := range []subscriptionRecord{
 		{ID: "a", Name: "a", Content: "x", Remark: strings.Repeat("r", 400)},
 		{ID: "b", Name: "b", Kind: kindFile, FileType: fileTypeScript, Content: `$content = "x";`},
@@ -75,7 +75,7 @@ func TestListReadsOneKey(t *testing.T) {
 // resolves again.
 func TestDeleteArchivesAndRestoreBringsBackSameID(t *testing.T) {
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "home", Name: "home", Source: subscriptionSourceLocal, Content: scriptNodeHome, Tags: []string{"t"}}); err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestDeleteArchivesAndRestoreBringsBackSameID(t *testing.T) {
 // and refuses a live record.
 func TestPurgeDeletesWithKVDelete(t *testing.T) {
 	host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	if err := rt.saveSubscription(subscriptionRecord{ID: "old", Name: "old", Content: "x"}); err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func TestPurgeDeletesWithKVDelete(t *testing.T) {
 // touches nothing, while reads and refresh bookkeeping keep working.
 func TestWritesOnALegacyStoreAreRefusedWithCode(t *testing.T) {
 	host := &httpKVHost{kvHostCaller: newKVHostCaller(), status: 200, body: []byte(scriptNodeHome)}
-	rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+	rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 	seedLegacyStore(t, host.kvHostCaller, []subscriptionRecord{
 		{ID: "local", Name: "local", Source: subscriptionSourceLocal, Content: scriptNodeHome},
 		{ID: "remote", Name: "remote", Source: subscriptionSourceRemote, URL: "https://provider.invalid/sub"},
@@ -193,7 +193,9 @@ func TestWritesOnALegacyStoreAreRefusedWithCode(t *testing.T) {
 	for method, payload := range writes {
 		puts := host.puts
 		res := callSubscription(t, rt, method, payload)
-		if res.OK || !strings.HasPrefix(res.Error, storeMigrationRequiredCode+":") {
+		// A mutating method answers the refusal as the structured reply from
+		// S2, because the gateway strips every mutation error.
+		if !isRefusedResponse(res) || !strings.HasPrefix(refusalText(res), storeMigrationRequiredCode+":") {
 			t.Errorf("%s on a legacy store = %+v, want the %s refusal", method, res, storeMigrationRequiredCode)
 		}
 		if host.puts != puts {
@@ -246,28 +248,31 @@ func TestHostCallCountsOnALegacyStore(t *testing.T) {
 		ok      bool
 	}{
 		{name: "list", method: "list", payload: map[string]any{}, want: 2, ok: true},
-		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
-		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 3, ok: true},
+		{name: "get a plain sub", method: "get", payload: map[string]any{"subscription_id": "local-a"}, want: 3, ok: true},
+		{name: "get a script file", method: "get", payload: map[string]any{"subscription_id": "scripty"}, want: 4, ok: true},
 		{name: "fetch a remote sub", method: "fetch", payload: map[string]any{"subscription_id": "remote-a"}, want: 6, ok: true},
 		{name: "fetch a vpn-core sub", method: "fetch", payload: map[string]any{"subscription_id": "vpn-a"}, want: 5, ok: true},
 		{name: "fetch a collection of remote subs", method: "fetch", payload: map[string]any{"subscription_id": "coll"}, want: 9, ok: true},
 		{name: "fetch a script file over a remote collection", method: "fetch", payload: map[string]any{"subscription_id": "scripty"}, want: 11, ok: true},
-		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 3, ok: true},
+		// The store reader reads the index before the record (S2).
+		{name: "render a plain local sub", method: "render", payload: map[string]any{"subscription_id": "local-a", "format": "plain"}, want: 4, ok: true},
 		{name: "render a collection from its snapshot", method: "render", payload: map[string]any{
 			"subscription_id": "coll", "format": "plain",
 			"raw": `{"members":[{"sub_name":"remote-a","raw":"` + "vless://11111111-1111-1111-1111-111111111111@a.example:443?security=reality&sni=a.com&fp=chrome&pbk=x#HK-01" + `"}]}`,
-		}, want: 3, ok: true},
-		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 7, ok: true},
+		}, want: 4, ok: true},
+		// S2: a collection's render reads the listing once to know whether it
+		// is fleet-bound (S2 plan section 1.2).
+		{name: "render a collection of remote subs", method: "render", payload: map[string]any{"subscription_id": "coll", "format": "plain"}, want: 8, ok: true},
 		{name: "preview a saved local sub", method: "preview", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 		{name: "export", method: "export", payload: map[string]any{}, want: 4, ok: true},
 		{name: "depends_on", method: "depends_on", payload: map[string]any{}, want: 2, ok: true},
-		{name: "save is refused", method: "save", payload: map[string]any{"subscription": map[string]any{"id": "n", "name": "n"}}, want: 2},
-		{name: "delete is refused", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 2},
+		{name: "save is refused", method: "save", payload: map[string]any{"subscription": map[string]any{"id": "n", "name": "n"}}, want: 2, ok: true},
+		{name: "delete is refused", method: "delete", payload: map[string]any{"subscription_id": "local-a"}, want: 2, ok: true},
 	}
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
 			host := &budgetCountingHost{kvHostCaller: newKVHostCaller()}
-			rt := &runtime{host: host, engine: sharedWarmTestEngine(t)}
+			rt := &runtime{host: host, engine: testEngineWithHeadroom()}
 			seedLegacyStore(t, host.kvHostCaller, budgetStoreRecords())
 			res := callSubscription(t, rt, scenario.method, scenario.payload)
 			if res.OK != scenario.ok {

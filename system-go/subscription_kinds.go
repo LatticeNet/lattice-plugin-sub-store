@@ -103,6 +103,9 @@ func processVocabulary() map[string]bool {
 	for name := range responseOperators {
 		known[name] = true
 	}
+	for _, name := range fleetOperators {
+		known[name] = true
+	}
 	return known
 }
 

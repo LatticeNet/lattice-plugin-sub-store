@@ -17,6 +17,8 @@ import (
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/perfgen"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/producers"
+	"github.com/LatticeNet/lattice-sdk/model"
+	latticeplugin "github.com/LatticeNet/lattice-sdk/plugin"
 )
 
 // The perf gate (S1 plan section 5.2) times design 28's measure: 1000 and
@@ -227,8 +229,8 @@ func TestPipelineAllocsPerNodeBound(t *testing.T) {
 }
 
 // heapChildEnv makes TestHeapInuseAfter4096Render measure in a child test
-// process, where no other test has booted the warm runtime or left its heap
-// behind.
+// process, where no other test has left a bundle runtime's heap or a cached
+// plan behind.
 const heapChildEnv = "SUBSTORE_HEAP_GATE_CHILD"
 
 // maxHeapInuseAfterRender is the heap bound after a native 4096-node render
@@ -258,4 +260,117 @@ func TestHeapInuseAfter4096Render(t *testing.T) {
 		t.Errorf("HeapInuse is %d bytes after the render, not under %d", ms.HeapInuse, maxHeapInuseAfterRender)
 	}
 	goruntime.KeepAlive(buf.Bytes())
+}
+
+// fleetPlanAllocsPerNodeBound bounds the allocations of one serve-path plan
+// computation over 1000 rows with a native rename (BenchmarkFleetPlan1000's
+// op), per row. The first bound was 748 (598.1 measured, plus a quarter);
+// after the lane 7 review's allocation work the op measures 119.1 per row
+// on go1.26.9 (darwin/arm64), and the bound sits about six percent over it,
+// so a regression of a few allocations per row fails the memory job. Raise
+// it only with the reason in the commit.
+const fleetPlanAllocsPerNodeBound = 127
+
+// TestFleetPlanAllocsBound is the deterministic half of the fleet plan gate
+// (S2 plan section 5): the allocation count of BenchmarkFleetPlan1000's op,
+// which the verify job holds while the perf job holds the wall clock.
+func TestFleetPlanAllocsBound(t *testing.T) {
+	if raceEnabled {
+		t.Skip("the race detector allocates on its own account")
+	}
+	const n = 1000
+	rows := make([]model.LineCatalogueRow, 0, n)
+	for i := 1; i <= n; i++ {
+		rows = append(rows, fleetTestRow(i, "vless"))
+	}
+	projected := projectRows(rows)
+	rt := &runtime{engine: testEngineWithHeadroom()}
+	rename, _ := json.Marshal(map[string]any{"type": "Regex Rename Operator", "args": []map[string]string{{"expr": "^tokyo", "now": "osaka"}}})
+	rec := withRevision(subscriptionRecord{ID: "bench", Source: subscriptionSourceFleet, Process: []json.RawMessage{rename}})
+	in := fleetPlanInput{Label: "subscription \"bench\"", Record: rec, CatalogueVersion: fleetTestVersion, Rows: projected, Target: "sing-box"}
+	allocs := testing.AllocsPerRun(5, func() {
+		out, err := rt.buildFleetPlan(in)
+		if err != nil || out.NodeCount != n {
+			t.Fatalf("plan: %d nodes, %v", out.NodeCount, err)
+		}
+	})
+	perNode := allocs / n
+	t.Logf("%.0f allocations per 1000-row fleet plan, %.1f per row (bound %d)", allocs, perNode, fleetPlanAllocsPerNodeBound)
+	if perNode > fleetPlanAllocsPerNodeBound {
+		t.Errorf("%.1f allocations per row, over the bound of %d", perNode, fleetPlanAllocsPerNodeBound)
+	}
+}
+
+// TestFleetRenderStagedHostCalls pins the host calls of a render by staged
+// revision whose leading Structured Filter differs from the snapshot's, on
+// a 4096-line selection whose catalogue version moves once during the read
+// (S2 plan section 5): the index, the record and the staged document, five
+// pages and the same five again after the restart, 13 calls, held to the
+// plan's 25 and to render's signed 143. The collection case reuses the blocks the
+// snapshot holds for its members and reads, for the member the staged
+// revision adds, its record and its pages.
+func TestFleetRenderStagedHostCalls(t *testing.T) {
+	const n = 4096
+	budget := ackedRuntimeBudgets()[pluginID+"/subscription/render"].HostCalls
+	t.Run("sub", func(t *testing.T) {
+		rt, host := newFleetRuntime(t, fleetTestRows(n, "vless"))
+		host.applySelector = true
+		saveFleetRecord(t, rt, subscriptionRecord{ID: "big", Process: []json.RawMessage{structuredKeep("protocol", "vless")}})
+		snap, err := rt.fetchSubscription("big")
+		if err != nil {
+			t.Fatal(err)
+		}
+		staged := stageRecord(t, rt, subscriptionRecord{ID: "big", Source: subscriptionSourceFleet, Process: []json.RawMessage{structuredKeep("country", "JP")}})
+		moved := "lcv1-" + strings.Repeat("2", 64)
+		pages := host.calls
+		// The version moves on the read's last page, the worst case: all
+		// five pages are read again.
+		host.versionAt = func(call int) string {
+			if call-pages >= 5 {
+				return moved
+			}
+			return fleetTestVersion
+		}
+		counter := &fleetCallCounter{inner: host, byKind: map[string]int{}}
+		rt.host = counter
+		out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "big", "raw": snap.Raw, "target": "sing-box", "revision": staged})
+		if !res.OK {
+			t.Fatal(res.Error)
+		}
+		if plan := decodeRenderPlan(t, out.Plan); len(plan.Nodes) != n || plan.Selection.CatalogueVersion != moved {
+			t.Fatalf("plan: %d nodes at %s", len(plan.Nodes), plan.Selection.CatalogueVersion)
+		}
+		rpc := counter.byKind[latticeplugin.HostMethodRPCCall]
+		t.Logf("staged render at %d lines: %d host calls %v (signed %d)", n, counter.total, counter.byKind, budget)
+		if rpc != 10 || counter.total > 25 || counter.total > budget {
+			t.Fatalf("host calls = %d %v, want ten pages (five, then five after the restart) and at most 25 in all", counter.total, counter.byKind)
+		}
+	})
+	t.Run("collection", func(t *testing.T) {
+		rt, host := newFleetRuntime(t, fleetTestRows(1000, "vless"))
+		saveFleetRecord(t, rt, subscriptionRecord{ID: "east"})
+		saveFleetRecord(t, rt, subscriptionRecord{ID: "west"})
+		saveFleetRecord(t, rt, subscriptionRecord{ID: "north"})
+		seedRecords(t, rt, subscriptionRecord{ID: "group", Kind: kindCollection, Members: []string{"east", "west"}})
+		snap, err := rt.fetchSubscription("group")
+		if err != nil {
+			t.Fatal(err)
+		}
+		staged := stageRecord(t, rt, subscriptionRecord{ID: "group", Kind: kindCollection, Members: []string{"east", "west", "north"}})
+		counter := &fleetCallCounter{inner: host, byKind: map[string]int{}}
+		rt.host = counter
+		out, res := renderFleetCall(t, rt, map[string]any{"subscription_id": "group", "raw": snap.Raw, "target": "sing-box", "revision": staged})
+		if !res.OK {
+			t.Fatal(res.Error)
+		}
+		if plan := decodeRenderPlan(t, out.Plan); len(plan.Nodes) != 3000 {
+			t.Fatalf("plan: %d nodes, want the three members' 1000 lines each", len(plan.Nodes))
+		}
+		t.Logf("staged collection render adding one member: %d host calls %v (signed %d)", counter.total, counter.byKind, budget)
+		// The two members the snapshot holds blocks for are reused; the
+		// added member reads its record and its one page.
+		if counter.byKind[latticeplugin.HostMethodRPCCall] != 1 || counter.total > 25 || counter.total > budget {
+			t.Fatalf("host calls = %d %v, want one page for the added member and at most 25 in all", counter.total, counter.byKind)
+		}
+	})
 }

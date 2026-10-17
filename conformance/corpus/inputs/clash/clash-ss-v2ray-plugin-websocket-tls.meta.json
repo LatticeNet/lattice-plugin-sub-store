@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-v2ray-plugin-websocket-tls",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "plugin-skip-cert-verify",
+  "description": "ss with skip-cert-verify true and v2ray-plugin in websocket mode with tls true and its own skip-cert-verify false: Stash and Shadowrocket keep it and set plugin-opts.skip-cert-verify true, Surge rejects the plugin, Quantumult X writes obfs=wss."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clash-test-url-timeout",
+  "family": "clash",
+  "protocol": "trojan",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "test-url",
+  "description": "trojan with test-url and test-timeout: Stash renames them to benchmark-url and benchmark-timeout, Shadowrocket keeps them."
+}

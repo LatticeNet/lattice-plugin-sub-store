@@ -1,0 +1,50 @@
+{
+  "outbounds": [
+    {
+      "tag": "u71m3\rckuc4",
+      "type": "socks",
+      "server": "srs-31.kb0x.example.net",
+      "server_port": 1080,
+      "version": "5",
+      "username": "kr2455a",
+      "password": "32U7DLASEXrO"
+    },
+    {
+      "tag": "afjg\tpn4v",
+      "type": "socks",
+      "server": "ohp-17.kbab9gas.example.org",
+      "server_port": 1080,
+      "version": "5",
+      "username": "lo4o",
+      "password": "EUYEJ2D5V9qp"
+    },
+    {
+      "tag": "kixdbc dovbu1m",
+      "type": "socks",
+      "server": "ihd-09.tffw.example.net",
+      "server_port": 1080,
+      "version": "5",
+      "username": "eaj9zn",
+      "password": "dWhnFHE1Tqtg"
+    },
+    {
+      "tag": "uebuo9b gflcs",
+      "type": "socks",
+      "server": "iz-24.beyj6.example.org",
+      "server_port": 1080,
+      "version": "5",
+      "username": "ar11a",
+      "password": "Y3UwXR74Mibq"
+    },
+    {
+      "tag": "GB-gev-68",
+      "type": "socks",
+      "server": "zw4-15.hvrtapj.example.org",
+      "server_port": 1080,
+      "version": "5",
+      "username": "vpjxsx0",
+      "password": "tZAxuX2I0b53"
+    }
+  ],
+  "endpoints": []
+}

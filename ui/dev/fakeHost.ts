@@ -7,6 +7,9 @@ import { addressForState, pageStateFromAddress, stateRateLimit } from "./console
 import { regexDiagnostics } from "../src/regexRewrite";
 import { parseUserinfo } from "../src/rowStatus";
 import { fixture, fixtureName, type Fixture, type ShareRow, type StoredRecord } from "./fixtures";
+import { S2_INTERFACES, S2_SUBSCRIPTION_METHODS, fleetWithheld, installFleet, s2Manifest } from "./fleetHost";
+import { installPlans, plansWithheld } from "./planHost";
+import type { PlanShare } from "./planFixtures";
 
 /**
  * A stand-in for the dashboard host, for looking at the UI in a browser.
@@ -867,6 +870,12 @@ const HANDLERS: Record<string, (payload: any) => unknown> = {
   "subscription/migrate": () => ({ imported: ["migrated-one"], skipped: { "migrated-two": "no nodes" } }),
 };
 
+// Design 28 S2: the fleet proxies, bind.preview and the fleet records'
+// previews (dev/fleetHost.ts). Inert without `?manifest=s2`.
+installFleet(HANDLERS, records);
+// Lane 6b: plans, migration, staged state (dev/planHost.ts). Inert without `?manifest=s2`.
+if (s2Manifest()) installPlans(HANDLERS, records, active.shares as PlanShare[]);
+
 /** Slight latency so loading states are visible rather than theoretical. */
 function delay<T>(value: T): Promise<T> {
   // `?state=slow` holds rather than delays. Every timed version lost the race:
@@ -942,20 +951,16 @@ export function createFakeHost(): HostContext {
             // section 6), which declares the store split's methods. Without
             // it the handshake is what manifest.json declares today, and the
             // UI keeps every control those methods drive out of reach.
-            ...(s1Manifest() ? ["restore", "purge", "reorder", "migrate_store", "depends_on"] : []),
-          ],
-        },
-        {
-          service: "latticenet.sub-store/engine",
-          methods: [
-            "convert", "transform_response", "save_pipeline", "get_pipeline",
-            "list_pipelines", "delete_pipeline", "run_pipeline",
+            ...(s1Manifest() || s2Manifest() ? ["restore", "purge", "reorder", "migrate_store", "depends_on"] : []),
+            // `?manifest=s2` plays the 0.18 manifest (design 28 S2).
+            ...(s2Manifest() ? S2_SUBSCRIPTION_METHODS : []),
           ],
         },
         {
           service: "latticenet.sub-store/shares",
           methods: ["list"],
         },
+        ...(s2Manifest() ? S2_INTERFACES : []),
       ],
     };
   }, 400);
@@ -1021,6 +1026,8 @@ export function createFakeHost(): HostContext {
     bootError,
     available: (target: MethodBinding) =>
       !WITHHELD[target.method] &&
+      !fleetWithheld(target) &&
+      !plansWithheld(target) &&
       !(SHARES_WITHHELD && target.service === BINDINGS.sharesList.service) &&
       init.value?.interfaces.some(
         (contract: any) =>

@@ -1,0 +1,15 @@
+proxies:
+  - name: JP-e7v-93
+    type: trojan
+    server: "v8-21.n91npglc.example.com\nb6-16.idsu.example.net"
+    port: 443
+    password: UDG9ALCvfGeGG3e5
+    sni: static.mgdrp82.example.com
+    udp: true
+  - name: US-akqgj-94
+    type: trojan
+    server: akg-24.xvw1u.example.com
+    port: 443
+    password: 7AyRlORj1RLGZiCB
+    sni: www.s7onk.example.com
+    udp: true

@@ -1,0 +1,15 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-m589t-55",
+      "type": "shadowsocks",
+      "server": "y97-38.rn04h.example.com",
+      "server_port": 30252,
+      "method": "aes-128-gcm",
+      "password": "iiQPgx4YdvOrzD",
+      "plugin": "obfs-local",
+      "plugin_opts": "obfs-host=api.bjn3w2ond.example.net;obfs=http;path=/jwnph6w"
+    }
+  ],
+  "endpoints": []
+}

@@ -1,0 +1,49 @@
+{
+  "outbounds": [],
+  "endpoints": [
+    {
+      "system": false,
+      "mtu": 1280,
+      "tag": "NL-tq0d-03",
+      "type": "wireguard",
+      "address": [
+        "10.227.226.223/32",
+        "fd00:31aa::b0ca/128"
+      ],
+      "private_key": "Y+Wt0GRfNlWNHFe5v80vIijfjRBuCr5XxeGz/e/VPNg=",
+      "peers": [
+        {
+          "address": "uu7-19.d0sbqss.example.net",
+          "port": 51820,
+          "public_key": "ePWRNDtUrotH+HcUePgptCpN/Ihze9MmvEDKhTgW1tI=",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ]
+        }
+      ]
+    },
+    {
+      "system": false,
+      "mtu": 1280,
+      "tag": "AU-felen7-06",
+      "type": "wireguard",
+      "address": [
+        "10.110.116.207/32",
+        "fd00:ebb3::3964/128"
+      ],
+      "private_key": "uh0ihGhlBbelqjhQGc4/OniZl0yqwWFhsj7nt0TFr54=",
+      "peers": [
+        {
+          "address": "gf-19.ngic4zb.example.com",
+          "port": 51820,
+          "public_key": "N48LagV6tKhzAhdAJICW/WpnxYyJHwml1frxasJaKOc=",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ]
+        }
+      ]
+    }
+  ]
+}

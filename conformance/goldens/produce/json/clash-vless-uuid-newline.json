@@ -1,0 +1,36 @@
+[
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "name": "US-vpb-70",
+    "network": "tcp",
+    "port": 443,
+    "server": "nd-06.hx8izax.example.net",
+    "skip-cert-verify": false,
+    "sni": "api.koyq8upb.example.com",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "fddbb0c3-7ffe-4d9c-b2a0-80b65e0fcd73"
+  },
+  {
+    "alpn": [
+      "h2",
+      "http/1.1"
+    ],
+    "client-fingerprint": "chrome",
+    "name": "SG-rmd-87",
+    "network": "tcp",
+    "port": 443,
+    "server": "mdo-20.bknkc.example.net",
+    "skip-cert-verify": false,
+    "sni": "static.hvqm8a0.example.org",
+    "tls": true,
+    "type": "vless",
+    "udp": true,
+    "uuid": "4ad3b3d8-0629-4a2a-a669-e464fe4e5f29\nj5195"
+  }
+]

@@ -1,0 +1,34 @@
+[
+  {
+    "fragment": "CA-xcr-27",
+    "host": "a6-19.fjayj.example.com",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "cnZzZ25oOm1hVHQ4QmVOUkZ1Mg==",
+    "userinfo_base64": "rvsgnh:maTt8BeNRFu2"
+  },
+  {
+    "fragment": null,
+    "host": "aallvj5k",
+    "path": "",
+    "port": null,
+    "query": [],
+    "scheme": "trojan",
+    "userinfo": null
+  },
+  {
+    "raw": "sjZVxk4t@v2c-16.bilzn1.example.org:443?sni=img.lswhnvv5c.example.org&type=tcp#NL-gtu-03"
+  },
+  {
+    "fragment": "KR-p73c-26",
+    "host": "ovn-21.g5qw.example.net",
+    "path": "",
+    "port": "1080",
+    "query": [],
+    "scheme": "socks",
+    "userinfo": "czBudWgzdXY6bU40NnNUUHBRT0pR",
+    "userinfo_base64": "s0nuh3uv:mN46sTPpQOJQ"
+  }
+]

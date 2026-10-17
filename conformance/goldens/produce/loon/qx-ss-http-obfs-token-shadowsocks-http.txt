@@ -1,0 +1,1 @@
+DE-m589t-55=shadowsocks,y97-38.rn04h.example.com,30252,aes-128-gcm,"iiQPgx4YdvOrzD",obfs-name=http,obfs-host=api.bjn3w2ond.example.net,obfs-uri=/jwnph6w,udp=true

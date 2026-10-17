@@ -1,0 +1,49 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "nu-28.z0ft.example.com",
+      "server_port": 443,
+      "tag": "CA-dh9n-58",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "cdn.lpulwjn8.example.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vmess",
+      "uuid": "05528a2a-c88e-4a32-a5d9-e2174fc51112\nevoeyy"
+    },
+    {
+      "alter_id": 0,
+      "security": "auto",
+      "server": "ymw-37.pzafc5.example.com",
+      "server_port": 443,
+      "tag": "AU-ixoxzh-57",
+      "tls": {
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "enabled": true,
+        "insecure": false,
+        "server_name": "img.sb9upwf.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "type": "vmess",
+      "uuid": "ad377a8c-f905-40ab-9309-188a8b431e5c"
+    }
+  ]
+}

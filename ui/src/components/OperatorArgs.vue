@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useId } from "vue";
 import { X } from "@lucide/vue";
 
+import type { CatalogueRow } from "../fleet";
 import { t } from "../i18n";
 import { parseNumericArg, schemaFor, type OperatorField } from "../operatorSchema";
 import { safeErrorMessage } from "../subStoreModel";
 import CodeEditor from "./CodeEditor.vue";
+import StructuredPredicateField from "./StructuredPredicateField.vue";
 
 /**
  * Renders one operator's arguments from its field schema.
@@ -20,6 +22,18 @@ import CodeEditor from "./CodeEditor.vue";
 const props = defineProps<{
   type: string;
   args: Record<string, unknown>;
+  /**
+   * The record is fleet-bound (design 28 S2). A Script Operator or Script
+   * Filter then offers no link mode: save refuses it until remote programs
+   * are pinned by digest (fleet_script_link_unavailable).
+   */
+  fleetBound?: boolean;
+  /** Catalogue rows for a Structured Filter's typeahead. */
+  sampleRows?: readonly CatalogueRow[];
+  /** The catalogue lists probe as unavailable, so probe fields are refused. */
+  probeUnavailable?: boolean;
+  /** Unique within the page, for a Structured Filter's radio names. */
+  idPrefix?: string;
 }>();
 
 const emit = defineEmits<{
@@ -28,11 +42,34 @@ const emit = defineEmits<{
 
 const schema = computed(() => schemaFor(props.type));
 
+/**
+ * Each field's visible label names its control (aria-labelledby). The label
+ * was a bare span, so a script step's source select and its code editor had
+ * no accessible name, which axe reports as serious once a step is open.
+ */
+const autoId = useId();
+const labelId = (key: string) => `${props.idPrefix ?? autoId}-${key}-label`;
+
 function set(key: string, value: unknown): void {
   const next = { ...props.args };
   if (value === undefined || value === "" || value === null) delete next[key];
   else next[key] = value;
   emit("update:args", next);
+}
+
+/** Script steps whose program can come from a link, which a fleet-bound record refuses. */
+const SCRIPT_TYPES = new Set(["Script Operator", "Script Filter"]);
+
+/** The options a select offers here: no link mode on a fleet-bound record's script step. */
+function optionsOf(field: OperatorField): OperatorField["options"] {
+  if (!props.fleetBound || field.key !== "mode" || !SCRIPT_TYPES.has(props.type)) return field.options;
+  const current = textValue(field);
+  return field.options?.filter((option) => option.value !== "link" || current === "link");
+}
+
+/** The proof line under a fleet-bound record's script source. */
+function linkProof(field: OperatorField): boolean {
+  return Boolean(props.fleetBound && field.key === "mode" && SCRIPT_TYPES.has(props.type));
 }
 
 // ── field accessors ────────────────────────────────────────────────────────
@@ -191,13 +228,14 @@ function setRaw(text: string): void {
       </p>
 
       <div v-for="field in schema.fields" :key="field.key" class="op-field">
-        <span class="op-label">{{ field.label }}</span>
+        <span :id="labelId(field.key)" class="op-label">{{ field.label }}</span>
 
         <input
           v-if="field.kind === 'text'"
           type="text"
           autocomplete="off"
           spellcheck="false"
+          :aria-labelledby="labelId(field.key)"
           :placeholder="field.placeholder"
           :value="textValue(field)"
           @input="set(field.key, ($event.target as HTMLInputElement).value)"
@@ -206,6 +244,7 @@ function setRaw(text: string): void {
         <input
           v-else-if="field.kind === 'number'"
           type="number"
+          :aria-labelledby="labelId(field.key)"
           :value="textValue(field)"
           @input="set(field.key, parseNumericArg(($event.target as HTMLInputElement).value))"
         />
@@ -215,6 +254,7 @@ function setRaw(text: string): void {
           class="code-area"
           rows="3"
           spellcheck="false"
+          :aria-labelledby="labelId(field.key)"
           :placeholder="field.placeholder"
           :value="textValue(field)"
           @input="setLines(field, ($event.target as HTMLTextAreaElement).value)"
@@ -225,19 +265,30 @@ function setRaw(text: string): void {
           :model-value="textValue(field)"
           language="javascript"
           :rows="8"
+          :aria-labelledby="labelId(field.key)"
           @update:model-value="(value: string) => set(field.key, value)"
         />
 
         <select
           v-else-if="field.kind === 'select'"
           class="select"
+          :aria-labelledby="labelId(field.key)"
           :value="textValue(field) || field.default"
           @change="set(field.key, ($event.target as HTMLSelectElement).value)"
         >
-          <option v-for="option in field.options" :key="option.value" :value="option.value">
+          <option v-for="option in optionsOf(field)" :key="option.value" :value="option.value">
             {{ option.label }}
           </option>
         </select>
+
+        <StructuredPredicateField
+          v-else-if="field.kind === 'predicates'"
+          :args="args"
+          :sample-rows="sampleRows"
+          :probe-unavailable="probeUnavailable"
+          :id-prefix="idPrefix ?? 'op'"
+          @update:args="emit('update:args', $event)"
+        />
 
         <label v-else-if="field.kind === 'switch'" class="op-switch">
           <input
@@ -308,6 +359,11 @@ function setRaw(text: string): void {
         </div>
 
         <span v-if="field.hint" class="op-hint">{{ field.hint }}</span>
+        <span
+          v-if="linkProof(field)"
+          :class="['op-hint', { 'op-hint-error': textValue(field) === 'link' }]"
+          data-testid="script-link-proof"
+        >{{ t.fleetEditor.scriptLink }}</span>
       </div>
     </template>
 

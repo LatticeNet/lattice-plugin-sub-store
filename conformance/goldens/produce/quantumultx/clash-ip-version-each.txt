@@ -1,0 +1,6 @@
+trojan=e3p-17.pbyk.example.net:443,password=hrhQq1Eva9c1tZrs,over-tls=true,tls-host=www.zh6dny627.example.com,udp-relay=true,tag=AU-fq4p08-96
+trojan=qfs-27.rx02oc.example.net:443,password=KKzkHAhEuTVXi8Qz,over-tls=true,tls-host=cdn.b3piyy0xi.example.org,udp-relay=true,tag=KR-gbcp-42
+trojan=lg-26.jbwp6.example.net:443,password=Ci559TWRue38r8Hf,over-tls=true,tls-host=www.i7ktit.example.com,udp-relay=true,tag=DE-ch7j-82
+trojan=xgm-38.ef06e0xl.example.net:443,password=j159bHN0pWCL4RaB,over-tls=true,tls-host=static.hui3ck.example.net,udp-relay=true,tag=KR-b3nkw-75
+trojan=mr-38.n1c49sk.example.net:443,password=DV0R4WYjtXVHbrLZ,over-tls=true,tls-host=img.tb6alpmc.example.org,udp-relay=true,tag=FR-r5w-95
+trojan=d9-20.lf905r.example.org:443,password=kKi9ZFYemNrRsNWK,over-tls=true,tls-host=www.acs4lg.example.net,udp-relay=true,tag=FR-b8ah7p-66

@@ -1,0 +1,1 @@
+DE-m589t-55=ss,y97-38.rn04h.example.com,30252,encrypt-method=aes-128-gcm,password="iiQPgx4YdvOrzD",obfs=http,obfs-host=api.bjn3w2ond.example.net,obfs-uri=/jwnph6w,udp-relay=true

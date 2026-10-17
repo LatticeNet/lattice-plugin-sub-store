@@ -1,0 +1,9 @@
+{
+  "id": "clash-snell-v6-obfs",
+  "family": "clash",
+  "protocol": "snell",
+  "transport": "tcp",
+  "security": "none",
+  "quirk": "v6-obfs",
+  "description": "snell version 6 with obfs-opts mode http and a host: Surge rejects obfs on version 6."
+}

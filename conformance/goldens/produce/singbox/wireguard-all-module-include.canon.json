@@ -1,0 +1,49 @@
+{
+  "endpoints": [
+    {
+      "address": [
+        "10.204.0.247/32",
+        "fd00:601a::f2af/128"
+      ],
+      "mtu": 1280,
+      "peers": [
+        {
+          "address": "ui-12.whcl76.example.com",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "public_key": "rr/iy2vq7YrGpRP5YMqEkbk7CtdLCWb9KBcYPk/zJzQ="
+        }
+      ],
+      "private_key": "BndgAhONBpV0/0JGYubMy94uadXTdX1py9r53hNc5Uk=",
+      "system": false,
+      "tag": "NL-t84k-98",
+      "type": "wireguard"
+    },
+    {
+      "address": [
+        "10.68.44.23/32",
+        "fd00:9028::4f98/128"
+      ],
+      "mtu": 1280,
+      "peers": [
+        {
+          "address": "tu-26.e22z.example.net",
+          "allowed_ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "port": 51820,
+          "public_key": "pKIbmZgm+KpRMVidYCZtfYJxj+MINrEmHwlCBt3m45k="
+        }
+      ],
+      "private_key": "4YFpLczP7Ka4Y2e9+me6/7KPMBolBWIHeD0u5BekjmY=",
+      "system": false,
+      "tag": "CA-duts-74",
+      "type": "wireguard"
+    }
+  ],
+  "outbounds": []
+}

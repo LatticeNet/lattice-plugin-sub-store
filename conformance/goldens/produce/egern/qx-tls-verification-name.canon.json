@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "KR-kuqnpj-40",
+        "password": "OAeWydKTNVzsb42M",
+        "port": 443,
+        "server": "i6-13.qt0i4ds.example.org",
+        "sni": "img.obi9ca56z.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

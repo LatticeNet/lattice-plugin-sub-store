@@ -1,0 +1,7 @@
+proxies:
+  - name: HK-xmrnee-58
+    type: snell
+    server: g6-04.jqtky5ed.example.net
+    port: 21090
+    psk: bXYklGFEwVUJ0xQatOc6
+    version: "3"

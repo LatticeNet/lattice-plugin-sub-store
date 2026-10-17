@@ -1,0 +1,3 @@
+proxies:
+  - {"https":{"name":"AU-qwcrw-85","server":"yo-32.t7tq.example.org","port":443,"username":"vf6vjpt2","password":"gGYHIQZCdJix","tfo":false,"sni":"static.yaq2i7izym.example.org","skip_tls_verify":true,"fingerprint_sha256":"2b92203ad37e22a976a8730a2483c611aa61fefd3c3adb7c8922dd6e599fbfac"}}
+  - {"https":{"name":"SG-yge45-73","server":"ek-36.e2k6k0z.example.net","port":443,"username":"bfas9x","password":"rYehLxWCwT2h","tfo":false,"sni":"www.wgksq6.example.net","skip_tls_verify":true}}

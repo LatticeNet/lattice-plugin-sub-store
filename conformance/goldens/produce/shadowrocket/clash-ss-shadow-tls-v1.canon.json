@@ -1,0 +1,19 @@
+{
+  "proxies": [
+    {
+      "cipher": "aes-128-gcm",
+      "name": "FR-h8s2yv-49",
+      "password": "fpeZh5oEvSXq18",
+      "plugin": "shadow-tls",
+      "plugin-opts": {
+        "host": "api.pfq8b.example.net",
+        "password": "gCCUjYsuxncEvIZP",
+        "version": 1
+      },
+      "port": 26155,
+      "server": "x7-31.xbezg1w.example.net",
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

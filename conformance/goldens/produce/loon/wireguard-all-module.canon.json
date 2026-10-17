@@ -1,0 +1,26 @@
+[
+  {
+    "args": [],
+    "name": "NL-tq0d-03",
+    "params": {
+      "interface-ip": "10.227.226.223",
+      "interface-ipv6": "fd00:31aa::b0ca",
+      "mtu": "1280",
+      "peers": "[{public-key=\"ePWRNDtUrotH+HcUePgptCpN/Ihze9MmvEDKhTgW1tI=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=uu7-19.d0sbqss.example.net:51820}]",
+      "private-key": "Y+Wt0GRfNlWNHFe5v80vIijfjRBuCr5XxeGz/e/VPNg="
+    },
+    "type": "wireguard"
+  },
+  {
+    "args": [],
+    "name": "AU-felen7-06",
+    "params": {
+      "interface-ip": "10.110.116.207",
+      "interface-ipv6": "fd00:ebb3::3964",
+      "mtu": "1280",
+      "peers": "[{public-key=\"N48LagV6tKhzAhdAJICW/WpnxYyJHwml1frxasJaKOc=\",allowed-ips=\"0.0.0.0/0,::/0\",endpoint=gf-19.ngic4zb.example.com:51820}]",
+      "private-key": "uh0ihGhlBbelqjhQGc4/OniZl0yqwWFhsj7nt0TFr54="
+    },
+    "type": "wireguard"
+  }
+]

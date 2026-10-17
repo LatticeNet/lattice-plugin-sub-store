@@ -1,0 +1,1 @@
+anytls://TYa4FLCt6y2Pe1pGcRn4@jhw-31.d5kbjv.example.net:443?security=reality&type=tcp&packetEncoding=none&sni=cdn.b0fugafa.example.org&sid=649db3e7&pbk=4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI&udp=1#TW-s0kp0-14

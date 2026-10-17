@@ -1,0 +1,21 @@
+[
+  {
+    "alterId": 0,
+    "cipher": "auto",
+    "name": "JP-nlrzy-06",
+    "network": "ws",
+    "port": 443,
+    "server": "qu7-25.n9gs.example.net",
+    "sni": "img.l2akn2kb.example.com",
+    "tls": true,
+    "type": "vmess",
+    "udp": true,
+    "uuid": "b4c3988d-7906-443f-bb1f-2e7328ad12c2",
+    "ws-opts": {
+      "headers": {
+        "Host": "cdn.j9ba3ha.example.com"
+      },
+      "path": "/opfn5a/ei1x8lrp?ed=2048"
+    }
+  }
+]

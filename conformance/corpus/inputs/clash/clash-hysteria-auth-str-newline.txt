@@ -1,0 +1,16 @@
+proxies:
+  - name: TW-dec7l-96
+    type: hysteria
+    server: o61-17.l7ae9.example.org
+    port: 46960
+    protocol: udp
+    sni: www.m9fxoh65zz.example.net
+    skip-cert-verify: false
+    auth-str: "y09xFPR6\ncBFFO59d"
+  - name: TW-jnnhh-65
+    type: hysteria
+    server: p0z-30.x42x.example.net
+    port: 35854
+    protocol: udp
+    sni: static.ko4t14.example.com
+    skip-cert-verify: false

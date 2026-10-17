@@ -21,7 +21,11 @@ function record(over: Partial<SubscriptionListItem> = {}): SubscriptionListItem 
 }
 
 function caps(over: Partial<ActionCapabilities> = {}): ActionCapabilities {
-  return { ready: true, mutate: true, fetch: true, preview: true, render: true, publish: true, ...over };
+  return {
+    ready: true, mutate: true, fetch: true, preview: true, render: true, publish: true,
+    propose: true, publishPlan: true, migrateRecord: true, discardStaged: true,
+    ...over,
+  };
 }
 
 const idsOf = (record: SubscriptionListItem, c = caps()) => actionsFor(record, c).map((a) => a.id);

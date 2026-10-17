@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "name": "TW-cna4sp-21",
+        "password": "87KwLxH2WIUqKHKx",
+        "port": 443,
+        "server": "z8-36.o0oc23my.example.com",
+        "sni": "api.l0te6v7bhr.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

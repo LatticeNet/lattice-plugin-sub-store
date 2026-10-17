@@ -88,6 +88,7 @@ export function createLensChrome(): LensChrome {
     lenses: reactive({
       overview: report(),
       records: report(),
+      fleet: report(),
       shares: report(),
       settings: report(),
     }),

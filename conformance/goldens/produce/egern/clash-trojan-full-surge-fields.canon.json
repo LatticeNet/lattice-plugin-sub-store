@@ -1,0 +1,20 @@
+{
+  "proxies": [
+    {
+      "trojan": {
+        "block_quic": true,
+        "fingerprint_sha256": "a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761",
+        "ip_version": "v6_prefer",
+        "name": "DE-z9c-43",
+        "password": "CpuBPWHlwbta01at",
+        "port": 443,
+        "prev_hop": "US-gzux-22",
+        "server": "h6-24.etbin6vt.example.net",
+        "skip_tls_verify": true,
+        "sni": "cdn.ze02y.example.com",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

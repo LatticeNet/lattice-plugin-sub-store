@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -72,7 +73,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 
 	operators, err := enabledOperators(rec)
 	if err != nil {
-		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fileError(rec.ID, err)
 	}
 
 	// Plain text has no node list to fill: its operations run over the document
@@ -86,7 +87,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 			Operators: operators,
 		})
 		if err != nil {
-			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fileError(rec.ID, err)
 		}
 		if strings.TrimSpace(out.Body) == "" {
 			return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
@@ -104,7 +105,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 		}
 		nodeRecord, err := rt.getSubscription(source)
 		if err != nil {
-			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fileError(rec.ID, err)
 		}
 		if recordKind(nodeRecord) == kindFile {
 			// A file sourcing a file would let two of them reference each
@@ -112,9 +113,9 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 			// contain a collection.
 			return "", nil, fmt.Errorf("file %q names another file as its node source", rec.ID)
 		}
-		nodes, err = rt.resolveNodesFor(nodeRecord)
+		nodes, err = rt.resolveNodesFor(nodeRecord, legacyWithheld)
 		if err != nil {
-			return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return "", nil, fileError(rec.ID, err)
 		}
 	}
 
@@ -124,7 +125,7 @@ func (rt *runtime) renderFile(rec subscriptionRecord, uaClass string, query map[
 		Operators: operators,
 	})
 	if err != nil {
-		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fileError(rec.ID, err)
 	}
 	if strings.TrimSpace(merged.Output) == "" {
 		return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
@@ -152,7 +153,7 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 	}
 	sourceRecord, err := rt.getSubscription(source)
 	if err != nil {
-		return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return nil, fileError(rec.ID, err)
 	}
 	if recordKind(sourceRecord) == kindFile {
 		return nil, fmt.Errorf("file %q names another file as its node source", rec.ID)
@@ -163,15 +164,15 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 	if kind == kindCollection {
 		gathered, err := rt.collectionMembers(sourceRecord)
 		if err != nil {
-			return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return nil, fileError(rec.ID, err)
 		}
 		for _, member := range gathered {
-			raw, err := rt.renderMemberNodes(member)
+			raw, err := rt.renderMemberNodes(member, legacyWithheld)
 			if err != nil {
 				// A collection's own failure mode decides this: strict refuses so
 				// a client never silently loses nodes, skip-failed keeps serving.
 				if !collectionMemberFailureIsSkippable(sourceRecord, member) {
-					return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+					return nil, fileError(rec.ID, err)
 				}
 				continue
 			}
@@ -181,9 +182,9 @@ func (rt *runtime) resolveScriptArtifacts(rec subscriptionRecord) ([]fileScriptA
 			return nil, fmt.Errorf("file %q: collection %q produced no members", rec.ID, sourceRecord.ID)
 		}
 	} else {
-		raw, err := rt.renderMemberNodes(sourceRecord)
+		raw, err := rt.renderMemberNodes(sourceRecord, legacyWithheld)
 		if err != nil {
-			return nil, fmt.Errorf("file %q: %w", rec.ID, err)
+			return nil, fileError(rec.ID, err)
 		}
 		members = []fileScriptMember{{SubName: memberSubName(sourceRecord), Raw: raw}}
 	}
@@ -209,9 +210,11 @@ func (rt *runtime) scriptArtifactsFor(rec subscriptionRecord, snapshotRaw string
 	}
 	var snap snapshotArtifacts
 	if err := json.Unmarshal([]byte(snapshotRaw), &snap); err != nil || len(snap.Members) == 0 || snap.SourceID == "" {
-		// An unreadable snapshot falls back to live resolution rather than
-		// failing the serve.
-		return rt.resolveScriptArtifacts(rec)
+		// Core hands back only snapshots this plugin wrote, so one that does
+		// not read is an error, never a reason to resolve the node source
+		// live (S2 plan section 1.2): the live path would read a legacy
+		// source's export for whoever called render with a broken raw.
+		return nil, fmt.Errorf("%s: file %q has a snapshot this plugin cannot read; the next refresh replaces it", codeSnapshotMalformed, rec.ID)
 	}
 	kind := snap.SourceKind
 	if kind == "" {
@@ -249,7 +252,7 @@ func (rt *runtime) renderScriptFile(rec subscriptionRecord, query map[string]str
 		Query:     filterQuery(rec, query),
 	})
 	if err != nil {
-		return "", nil, fmt.Errorf("file %q: %w", rec.ID, err)
+		return "", nil, fileError(rec.ID, err)
 	}
 	if strings.TrimSpace(out.Content) == "" {
 		return "", nil, fmt.Errorf("file %q produced no content", rec.ID)
@@ -266,6 +269,10 @@ func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Resp
 	// Preview is a read-only view of an operator-owned document.  It must never
 	// turn into a provider fetch or execute a stored program/transform: those
 	// paths are host-capable and belong to render/publish, not preview.
+	// Every file with a node source is refused before anything is read, a
+	// file over a legacy record included: the export it would read is
+	// withheld outside core's refresh, and the generic refusal reads no
+	// index to say so.
 	if strings.TrimSpace(rec.NodeSource) != "" {
 		return latticeplugin.ErrorResponse(fmt.Errorf("file preview does not expose node-source content"))
 	}
@@ -298,13 +305,13 @@ func previewFileResponse(rt *runtime, rec subscriptionRecord) latticeplugin.Resp
 // A collection runs its members and its own chain; a subscription resolves its
 // source and runs its chain. Either way the caller gets node text it can hand
 // to the config merge.
-func (rt *runtime) resolveNodesFor(rec subscriptionRecord) (string, error) {
+func (rt *runtime) resolveNodesFor(rec subscriptionRecord, authority legacyAuthority) (string, error) {
 	if recordKind(rec) == kindCollection {
 		// URI is the interchange format: it round-trips through a second parse,
 		// which is what handing the result to another stage requires.
-		return rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "")
+		return rt.renderCollection(rec, subscriptionTarget(rec, ""), nil, "", authority)
 	}
-	return rt.renderMemberNodes(rec)
+	return rt.renderMemberNodes(rec, authority)
 }
 
 // fileContentType picks what the core sends back. A config is YAML; plain text
@@ -356,4 +363,44 @@ func downloadFilename(rec subscriptionRecord) string {
 		return cleaned + ".yaml"
 	}
 	return cleaned
+}
+
+// fleetNodesForFile is the refusal every file path gives a fleet record met
+// on its way to nodes (S2 plan section 1.2): a file render carries no plan,
+// so a fleet record's nodes would reach the file's clients with placeholder
+// credentials, served unbound. Fleet-bound files do not exist before S3: the
+// write path refuses to create one, and each live path below refuses at the
+// point it meets the fleet record, at no extra host call.
+//
+// yagni: a file rendered from its snapshot is not checked here, because the
+// fetch that wrote the snapshot refused and the write path keeps a file's
+// node source from becoming fleet-bound; when lane 4's index entry read
+// lands in render, its node source's live fleet_bound flag is checked there
+// at no extra host call.
+func fleetNodesForFile(ids []string, collection string) error {
+	message := fmt.Sprintf("the fleet records %s reach a file only from S3", strings.Join(ids, ", "))
+	refusal := &fleetRuleError{Code: codeFleetFileUnavailable, IDs: ids, Message: message}
+	if collection != "" {
+		refusal.Collections = []string{collection}
+		refusal.Message = fmt.Sprintf("collection %q gathers the fleet records %s, which reach a file only from S3", collection, strings.Join(ids, ", "))
+	}
+	return refusal
+}
+
+// fileError wraps an error a file's node work returned. A fleet refusal is
+// returned unwrapped, its code leading and the file named in it, so core
+// and the UI read fleet_file_unavailable, and owner_credentials_withheld is
+// returned as it is; anything else is prefixed with the file as before.
+func fileError(fileID string, err error) error {
+	if w, ok := asWithheld(err); ok {
+		return w
+	}
+	var refusal *fleetRuleError
+	if errors.As(err, &refusal) && refusal.Code == codeFleetFileUnavailable {
+		named := *refusal
+		named.Files = []string{fileID}
+		named.Message = fmt.Sprintf("file %q: %s", fileID, refusal.Message)
+		return &named
+	}
+	return fmt.Errorf("file %q: %w", fileID, err)
 }

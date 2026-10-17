@@ -1,0 +1,18 @@
+[
+  {
+    "args": [
+      "fm-04.a3i4jy.example.net",
+      "443"
+    ],
+    "name": "CA-bux-89",
+    "params": {
+      "password": "axh3vCkuX5XttJITA3Nw",
+      "port-hopping": "20000-30000;40000",
+      "salamander-password": "Em9uhvQ8uMiwK95e",
+      "skip-cert-verify": "false",
+      "sni": "img.gudkt.example.org",
+      "udp-relay": "true"
+    },
+    "type": "hysteria2"
+  }
+]

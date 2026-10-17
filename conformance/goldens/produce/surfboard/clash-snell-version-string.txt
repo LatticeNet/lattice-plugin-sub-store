@@ -1,0 +1,1 @@
+HK-xmrnee-58=snell,g6-04.jqtky5ed.example.net,21090,version=3,psk="bXYklGFEwVUJ0xQatOc6",udp-relay=true

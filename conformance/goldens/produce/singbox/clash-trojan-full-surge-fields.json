@@ -1,0 +1,25 @@
+{
+  "outbounds": [
+    {
+      "tag": "DE-z9c-43",
+      "type": "trojan",
+      "server": "h6-24.etbin6vt.example.net",
+      "server_port": 443,
+      "password": "CpuBPWHlwbta01at",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.ze02y.example.com",
+        "insecure": true,
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ],
+        "certificate_sha256": [
+          "oIq8rnfZ4VphrrOgUuMeO7NsBqUv273QYgu5UM81p2E="
+        ]
+      },
+      "detour": "US-gzux-22"
+    }
+  ],
+  "endpoints": []
+}

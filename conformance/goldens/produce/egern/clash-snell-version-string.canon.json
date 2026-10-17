@@ -1,0 +1,15 @@
+{
+  "proxies": [
+    {
+      "snell": {
+        "name": "HK-xmrnee-58",
+        "port": 21090,
+        "psk": "bXYklGFEwVUJ0xQatOc6",
+        "server": "g6-04.jqtky5ed.example.net",
+        "tfo": false,
+        "udp_relay": true,
+        "version": 3
+      }
+    }
+  ]
+}

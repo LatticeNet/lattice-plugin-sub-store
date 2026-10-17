@@ -1,0 +1,85 @@
+[
+  {
+    "header": "#!name=mycp548l"
+  },
+  {
+    "header": "#!desc="
+  },
+  {
+    "header": "#!category="
+  },
+  {
+    "comment": "# > WireGuard Proxy NL-t84k-98"
+  },
+  {
+    "comment": "# NL-t84k-98=wireguard,section-name=NL-t84k-98"
+  },
+  {
+    "comment": "# > WireGuard Section NL-t84k-98"
+  },
+  {
+    "section": "[WireGuard NL-t84k-98]"
+  },
+  {
+    "key": "private-key",
+    "section": "[WireGuard NL-t84k-98]",
+    "value": "BndgAhONBpV0/0JGYubMy94uadXTdX1py9r53hNc5Uk="
+  },
+  {
+    "key": "self-ip",
+    "section": "[WireGuard NL-t84k-98]",
+    "value": "10.204.0.247"
+  },
+  {
+    "key": "self-ip-v6",
+    "section": "[WireGuard NL-t84k-98]",
+    "value": "fd00:601a::f2af"
+  },
+  {
+    "key": "mtu",
+    "section": "[WireGuard NL-t84k-98]",
+    "value": "1280"
+  },
+  {
+    "key": "peer",
+    "section": "[WireGuard NL-t84k-98]",
+    "value": "(public-key = rr/iy2vq7YrGpRP5YMqEkbk7CtdLCWb9KBcYPk/zJzQ=, endpoint = ui-12.whcl76.example.com:51820)"
+  },
+  {
+    "comment": "# > WireGuard Proxy CA-duts-74"
+  },
+  {
+    "comment": "# CA-duts-74=wireguard,section-name=CA-duts-74"
+  },
+  {
+    "comment": "# > WireGuard Section CA-duts-74"
+  },
+  {
+    "section": "[WireGuard CA-duts-74]"
+  },
+  {
+    "key": "private-key",
+    "section": "[WireGuard CA-duts-74]",
+    "value": "4YFpLczP7Ka4Y2e9+me6/7KPMBolBWIHeD0u5BekjmY="
+  },
+  {
+    "key": "self-ip",
+    "section": "[WireGuard CA-duts-74]",
+    "value": "10.68.44.23"
+  },
+  {
+    "key": "self-ip-v6",
+    "section": "[WireGuard CA-duts-74]",
+    "value": "fd00:9028::4f98"
+  },
+  {
+    "key": "mtu",
+    "section": "[WireGuard CA-duts-74]",
+    "value": "1280"
+  },
+  {
+    "key": "peer",
+    "section": "[WireGuard CA-duts-74]",
+    "value": "(public-key = pKIbmZgm+KpRMVidYCZtfYJxj+MINrEmHwlCBt3m45k=, endpoint = tu-26.e22z.example.net:51820)"
+  }
+]

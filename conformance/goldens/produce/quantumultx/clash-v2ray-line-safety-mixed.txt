@@ -1,0 +1,5 @@
+socks5=a6-19.fjayj.example.com:1080,username=rvsgnh,password=maTt8BeNRFu2,udp-relay=true,tag=CA-xcr-27
+http=vy-16.vwf90iqg.example.net:8080,username=du3t,password=iHFQpGKJWOaT,udp-relay=true,tag=DE-vx7x6-27
+trojan=v2c-16.bilzn1.example.org:443,password=AALLVj5k
+sjZVxk4t,over-tls=true,tls-host=img.lswhnvv5c.example.org,udp-relay=true,tag=NL-gtu-03
+socks5=ovn-21.g5qw.example.net:1080,username=s0nuh3uv,password=mN46sTPpQOJQ,udp-relay=true,tag=KR-p73c-26

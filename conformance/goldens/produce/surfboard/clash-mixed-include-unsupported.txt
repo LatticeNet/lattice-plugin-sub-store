@@ -1,0 +1,2 @@
+NL-zep7-46=http,ep-36.ladi.example.org,8080,zoushga,LLudeRwOBV80,udp-relay=true
+FR-g8uxz-35=ss,j3d-04.e29g.example.com,17410,encrypt-method=aes-128-gcm,password="4hvmdU03O0JArG",udp-relay=true

@@ -1,0 +1,2 @@
+proxies:
+  - {"trojan":{"name":"DE-z9c-43","server":"h6-24.etbin6vt.example.net","port":443,"password":"CpuBPWHlwbta01at","tfo":false,"udp_relay":true,"sni":"cdn.ze02y.example.com","skip_tls_verify":true,"fingerprint_sha256":"a08abcae77d9e15a61aeb3a052e31e3bb36c06a52fdbbdd0620bb950cf35a761","block_quic":true,"ip_version":"v6_prefer","prev_hop":"US-gzux-22"}}

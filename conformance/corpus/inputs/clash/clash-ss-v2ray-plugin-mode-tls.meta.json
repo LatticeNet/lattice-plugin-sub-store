@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-v2ray-plugin-mode-tls",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "ws",
+  "security": "tls",
+  "quirk": "v2ray-plugin-mode",
+  "description": "ss with v2ray-plugin mode tls, which Shadowrocket's mode list lacks, and one with mode \" GRPC \", which is grpc once trimmed and lower-cased."
+}

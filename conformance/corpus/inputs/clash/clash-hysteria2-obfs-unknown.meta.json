@@ -1,0 +1,9 @@
+{
+  "id": "clash-hysteria2-obfs-unknown",
+  "family": "clash",
+  "protocol": "hysteria2",
+  "transport": "quic",
+  "security": "tls",
+  "quirk": "obfs-unknown",
+  "description": "hysteria2 with obfs xplus and an obfs-password: Surge rejects an obfs other than salamander or gecko."
+}

@@ -1,0 +1,1 @@
+shadowsocks=jcb-14.sz5j5zb6.example.com:24641,method=chacha20,password=vR18ccbMVIMuZXh7,udp-relay=true,tag=AU-myqg-14

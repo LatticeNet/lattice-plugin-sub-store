@@ -40,6 +40,29 @@ type fileScriptMember struct {
 	// unchained says the member has no chain of its own, so nodes are Raw
 	// parsed and nothing more, and a render can parse them again exactly.
 	unchained bool
+	// block names the member a collection snapshot block is built from, and
+	// carries a fleet member's rows (S2 plan section 2.2); never encoded
+	// here, membersEnvelope copies it onto the envelope member.
+	block memberBlock
+}
+
+// memberBlock is what a collection snapshot block says about its member
+// beside the member's text: who it is, and for a fleet member its selection.
+type memberBlock struct {
+	id       string
+	source   string
+	revision string
+	steps    []json.RawMessage
+	// fleet is set for a fleet member, whose block carries rows and no text.
+	fleet *fleetMemberBlock
+}
+
+// fleetMemberBlock is a fleet member's selection as its block stores it.
+type fleetMemberBlock struct {
+	catalogueVersion string
+	selector         *fleetSelectorRecord
+	rows             json.RawMessage
+	count            int
 }
 
 // fileScriptArtifact is what one `produceArtifact({name})` call resolves to.
@@ -188,7 +211,8 @@ func (engine *subStoreEngine) runFileScript(req fileScriptRequest) (fileScriptRe
 	if err != nil {
 		return fileScriptResult{}, err
 	}
-	// A script file is user JavaScript; it never touches the warm runtime.
+	// A script file is user JavaScript, run on an isolated runtime like
+	// every bundle call.
 	out, err := engine.runIsolatedScript("file script", "file-script.js", source)
 	if err != nil {
 		return fileScriptResult{}, err

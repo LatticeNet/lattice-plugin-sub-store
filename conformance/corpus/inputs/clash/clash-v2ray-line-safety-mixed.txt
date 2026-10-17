@@ -1,0 +1,26 @@
+proxies:
+  - name: CA-xcr-27
+    type: socks5
+    server: a6-19.fjayj.example.com
+    port: 1080
+    username: rvsgnh
+    password: maTt8BeNRFu2
+  - name: DE-vx7x6-27
+    type: http
+    server: vy-16.vwf90iqg.example.net
+    port: 8080
+    username: du3t
+    password: iHFQpGKJWOaT
+  - name: NL-gtu-03
+    type: trojan
+    server: v2c-16.bilzn1.example.org
+    port: 443
+    password: "AALLVj5k\nsjZVxk4t"
+    sni: img.lswhnvv5c.example.org
+    udp: true
+  - name: KR-p73c-26
+    type: socks5
+    server: ovn-21.g5qw.example.net
+    port: 1080
+    username: s0nuh3uv
+    password: mN46sTPpQOJQ

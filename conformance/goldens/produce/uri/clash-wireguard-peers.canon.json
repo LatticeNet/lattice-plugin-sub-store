@@ -1,0 +1,66 @@
+[
+  {
+    "fragment": "TW-rpi3w-80",
+    "host": "hw-10.p12brly3.example.com",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.0.0.2/24,fd00::9/64"
+      ],
+      [
+        "mtu",
+        "1280"
+      ],
+      [
+        "peers",
+        "[object Object]"
+      ],
+      [
+        "persistent-keepalive",
+        "25"
+      ],
+      [
+        "publickey",
+        "CODXYTAR+KuJjWCVpewYGiwpDaEyZYzC/neJP9yQ1RU="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "J8bsv9cDEmzg76YzQqclUGNVpVZi5DfTMEYjwC9kI9k="
+  },
+  {
+    "fragment": "GB-edolm-94",
+    "host": "rh-29.l9q4.example.net",
+    "path": "/",
+    "port": "51820",
+    "query": [
+      [
+        "address",
+        "10.0.0.3/24,fd00::3/64"
+      ],
+      [
+        "keepalive",
+        "15"
+      ],
+      [
+        "pre-shared-key",
+        "rIotDO2nUKqzmJoFwqYPwRWnpIvSg6xbpuEhlbZ6FtE="
+      ],
+      [
+        "publickey",
+        "I7z38GVa/xAWrbEcODkvOL1EhiDXcuj8/ydwwspPolA="
+      ],
+      [
+        "udp",
+        "1"
+      ]
+    ],
+    "scheme": "wireguard",
+    "userinfo": "h3KVgXdAiDw4XJXVg2/8m40dRmlk4Jnz5wRRVI4Y0no="
+  }
+]

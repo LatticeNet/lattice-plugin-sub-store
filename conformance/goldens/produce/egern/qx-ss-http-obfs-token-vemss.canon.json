@@ -1,0 +1,18 @@
+{
+  "proxies": [
+    {
+      "shadowsocks": {
+        "method": "aes-128-gcm",
+        "name": "US-w7au2y-48",
+        "obfs": "http",
+        "obfs_host": "www.ysbqjyq.example.com",
+        "obfs_uri": "/llvm5b0o",
+        "password": "JFj2WdWpQ2SEYt",
+        "port": 53931,
+        "server": "vg6-01.myky5zq.example.net",
+        "tfo": false,
+        "udp_relay": true
+      }
+    }
+  ]
+}

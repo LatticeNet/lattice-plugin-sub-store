@@ -1351,7 +1351,9 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
 }
 
 .target-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.target-chip-produces { flex: none; font-family: var(--font-mono); font-size: var(--lt-text-xs); opacity: 0.75; }
+/* No opacity: the chip's muted ink already sets it apart, and 0.75 of it
+   fell below 4.5:1 on the card in both themes (axe color-contrast). */
+.target-chip-produces { flex: none; font-family: var(--font-mono); font-size: var(--lt-text-xs); }
 .target-chip-check { flex: none; }
 
 .sheet-toggle {
@@ -2028,7 +2030,10 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   display: grid;
   gap: var(--space-1);
   max-height: 140px;
-  overflow: auto;
+  /* Long names wrap rather than scroll sideways in a narrow notice; only a long list scrolls, downwards. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
   margin: var(--space-2) 0 0;
   padding: var(--space-2);
   border: 1px solid var(--border);
@@ -2036,6 +2041,11 @@ button.rec-chain-step:focus-visible { outline: none; box-shadow: var(--lt-focus-
   background: var(--card);
   list-style: none;
   font-size: var(--lt-text-xs);
+}
+
+.partial-strip__names:focus-visible {
+  outline: none;
+  box-shadow: var(--lt-focus-ring);
 }
 
 /* A save refused because the record moved underneath it.
@@ -2283,6 +2293,9 @@ button.attention-claim:focus-visible { outline: none; border-radius: var(--radiu
 /* The side panel peek: identity, state, then facts as label and value. */
 .peek { padding: var(--space-4); }
 .peek-state { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+/* The plan box sits above the fetch health; without its own gap the health
+   dot read as part of the plan (the lane 6c design review). */
+.peek > .record-plan { margin-bottom: var(--space-4); }
 .peek-why { margin: var(--space-2) 0 0; color: var(--muted-foreground); font-size: var(--lt-text-sm); overflow-wrap: anywhere; }
 .peek-facts {
   display: grid;

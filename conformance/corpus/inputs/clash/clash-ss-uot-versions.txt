@@ -1,0 +1,36 @@
+proxies:
+  - name: CA-kaxsse-35
+    type: ss
+    server: a8-40.m00wg.example.com
+    port: 43251
+    cipher: aes-128-gcm
+    password: DEWleTgrsJ4kcF
+    udp: true
+    udp-over-tcp: true
+  - name: KR-dbvnq3-06
+    type: ss
+    server: i1d-13.qx6y2f.example.org
+    port: 26397
+    cipher: aes-128-gcm
+    password: SYmxkhN9wKVTwg
+    udp: true
+    udp-over-tcp: true
+    udp-over-tcp-version: 1
+  - name: KR-hrq5ux-65
+    type: ss
+    server: fxt-39.ye77foo.example.net
+    port: 42748
+    cipher: aes-128-gcm
+    password: vJoieZSjxuSiZ3
+    udp: true
+    udp-over-tcp: true
+    udp-over-tcp-version: 2
+  - name: GB-blw-94
+    type: ss
+    server: ph-04.zkgqvz.example.com
+    port: 56871
+    cipher: aes-128-gcm
+    password: H3T4hxz2n0INym
+    udp: true
+    udp-over-tcp: true
+    udp-over-tcp-version: 3

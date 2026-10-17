@@ -1,0 +1,4 @@
+proxies:
+  - {"http":{"name":"NL-zep7-46","server":"ep-36.ladi.example.org","port":8080,"username":"zoushga","password":"LLudeRwOBV80","headers":{"X-xeqg8":"ni4qhkw"},"tfo":false}}
+  - {"vmess":{"name":"HK-g5wzd-51","server":"vl-27.jpxff.example.org","port":80,"user_id":"daa4605b-ff81-4e52-b134-26d91c376a3e","security":"auto","tfo":false,"legacy":false,"udp_relay":true,"transport":{"http1":{"method":"GET","path":"/g76/zhpwfk7oof","headers":{"Host":"cdn.bzkynldo.example.com"}}}}}
+  - {"shadowsocks":{"name":"FR-g8uxz-35","method":"aes-128-gcm","server":"j3d-04.e29g.example.com","port":17410,"password":"4hvmdU03O0JArG","tfo":false,"udp_relay":true}}

@@ -1,0 +1,52 @@
+{
+  "proxies": [
+    {
+      "ip": "10.0.0.2/24",
+      "ipv6": "fd00::9/64",
+      "keepalive": 25,
+      "mtu": 1280,
+      "name": "TW-rpi3w-80",
+      "peers": [
+        {
+          "allowed-ips": [
+            "0.0.0.0/0",
+            "::/0"
+          ],
+          "ip": "10.9.9.9/24",
+          "ipv6": "fd00::2/64",
+          "port": 46216,
+          "pre-shared-key": "G+xCCX5hknJc5zATEzQww8ryuhwNDNiL960DaoOE7cg=",
+          "public-key": "pGtP1CWDI4dGUtsqVOaG9aM1Trw2rUDANzRf/6j0zoc=",
+          "reserved": [
+            1,
+            2,
+            3
+          ],
+          "server": "x0-27.p95u.example.org"
+        }
+      ],
+      "persistent-keepalive": 25,
+      "port": 51820,
+      "private-key": "J8bsv9cDEmzg76YzQqclUGNVpVZi5DfTMEYjwC9kI9k=",
+      "public-key": "CODXYTAR+KuJjWCVpewYGiwpDaEyZYzC/neJP9yQ1RU=",
+      "server": "hw-10.p12brly3.example.com",
+      "type": "wireguard",
+      "udp": true
+    },
+    {
+      "ip": "10.0.0.3/24",
+      "ipv6": "fd00::3/64",
+      "keepalive": 15,
+      "name": "GB-edolm-94",
+      "persistent-keepalive": 15,
+      "port": 51820,
+      "pre-shared-key": "rIotDO2nUKqzmJoFwqYPwRWnpIvSg6xbpuEhlbZ6FtE=",
+      "preshared-key": "rIotDO2nUKqzmJoFwqYPwRWnpIvSg6xbpuEhlbZ6FtE=",
+      "private-key": "h3KVgXdAiDw4XJXVg2/8m40dRmlk4Jnz5wRRVI4Y0no=",
+      "public-key": "I7z38GVa/xAWrbEcODkvOL1EhiDXcuj8/ydwwspPolA=",
+      "server": "rh-29.l9q4.example.net",
+      "type": "wireguard",
+      "udp": true
+    }
+  ]
+}

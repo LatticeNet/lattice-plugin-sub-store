@@ -1,0 +1,16 @@
+[
+  {
+    "address": "v6-31.yinf.example.com:80",
+    "args": [],
+    "params": {
+      "method": "none",
+      "obfs": "vmess-http",
+      "obfs-host": "cdn.e0fgqdebd.example.com",
+      "obfs-uri": "/a7zqz",
+      "password": "1748603e-89ff-435c-aeb4-2384b76fe9ac",
+      "tag": "SG-syh-07",
+      "udp-relay": "true"
+    },
+    "type": "vless"
+  }
+]

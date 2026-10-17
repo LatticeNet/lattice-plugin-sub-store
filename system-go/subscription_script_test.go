@@ -226,8 +226,8 @@ func TestDeletingAScriptFileArchivesItsProgram(t *testing.T) {
 	if err != nil {
 		t.Fatalf("restore: %v", err)
 	}
-	if restored.Content != `$content = "hello";` {
-		t.Fatalf("restore brought back program %q", restored.Content)
+	if restored.Record.Content != `$content = "hello";` {
+		t.Fatalf("restore brought back program %q", restored.Record.Content)
 	}
 }
 

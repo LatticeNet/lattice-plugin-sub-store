@@ -1,0 +1,73 @@
+{
+  "outbounds": [
+    {
+      "tag": "KR-h58to-07",
+      "type": "naive",
+      "server": "gko-29.bahiba.example.net",
+      "server_port": 443,
+      "tls": {
+        "enabled": true,
+        "server_name": "api.x4a7fa3yme.example.com",
+        "insecure": false
+      },
+      "username": "xfjwd",
+      "password": "fOgCwuPDij58mK"
+    },
+    {
+      "tag": "KR-ud20n-88",
+      "type": "vmess",
+      "server": "gq-23.w4ft.example.net",
+      "server_port": 443,
+      "uuid": "c3b05c53-672f-4a7e-a1a5-509621dd246e",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.txtpfciw9p.example.net",
+        "insecure": false
+      },
+      "transport": {
+        "type": "httpupgrade",
+        "headers": {},
+        "path": "/apec/sadz",
+        "host": "www.bmo8elw9v.example.com"
+      }
+    },
+    {
+      "tag": "NL-zep7-46",
+      "type": "http",
+      "server": "ep-36.ladi.example.org",
+      "server_port": 8080,
+      "username": "zoushga",
+      "password": "LLudeRwOBV80",
+      "headers": {
+        "X-xeqg8": "ni4qhkw"
+      }
+    },
+    {
+      "tag": "HK-g5wzd-51",
+      "type": "vmess",
+      "server": "vl-27.jpxff.example.org",
+      "server_port": 80,
+      "uuid": "daa4605b-ff81-4e52-b134-26d91c376a3e",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "http",
+        "headers": {},
+        "method": "GET",
+        "path": "/g76/zhpwfk7oof",
+        "host": "cdn.bzkynldo.example.com"
+      }
+    },
+    {
+      "tag": "FR-g8uxz-35",
+      "type": "shadowsocks",
+      "server": "j3d-04.e29g.example.com",
+      "server_port": 17410,
+      "method": "aes-128-gcm",
+      "password": "4hvmdU03O0JArG"
+    }
+  ],
+  "endpoints": []
+}

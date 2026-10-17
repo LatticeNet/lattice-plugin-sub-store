@@ -1,0 +1,14 @@
+[
+  {
+    "address": "akg-24.xvw1u.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "7AyRlORj1RLGZiCB",
+      "tag": "US-akqgj-94",
+      "tls-host": "www.s7onk.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

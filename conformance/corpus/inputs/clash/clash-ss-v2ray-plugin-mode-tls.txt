@@ -1,0 +1,23 @@
+proxies:
+  - name: GB-w2s6ns-13
+    type: ss
+    server: yb-26.guvu6dx.example.net
+    port: 52675
+    cipher: aes-128-gcm
+    password: xM2QFztFwmcPN3
+    udp: true
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: tls
+      host: static.wctj4onptj.example.org
+  - name: HK-i8vgyu-91
+    type: ss
+    server: yjz-38.bexr4.example.net
+    port: 54104
+    cipher: aes-128-gcm
+    password: pTGrp2fiEDXhD7
+    udp: true
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: " GRPC "
+      host: static.hvzw68jlz.example.com

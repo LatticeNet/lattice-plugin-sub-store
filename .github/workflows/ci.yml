@@ -78,6 +78,41 @@ jobs:
         working-directory: ui
         run: npm test
 
+      - name: read the server commit core-types.ts was generated from
+        id: coretypes
+        run: |
+          commit="$(sed -n 's|^// Source: lattice-server \([0-9a-f]\{40\}\)$|\1|p' ui/src/core-types.ts)"
+          test -n "$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+      - name: check out lattice-server at that commit
+        uses: actions/checkout@v6
+        with:
+          repository: LatticeNet/lattice-server
+          ref: ${{ steps.coretypes.outputs.commit }}
+          path: lattice-server-for-tsgen
+
+      - name: download the server's modules
+        # tsgen reads the SDK's sources from the module cache (go list -m
+        # -f {{.Dir}}), which prints nothing for a module the cache lacks.
+        # The cache this job restores is keyed by the plugin's go.sum, so
+        # once the plugin pins another SDK commit than the server at that
+        # commit, the server's must be downloaded first.
+        working-directory: lattice-server-for-tsgen
+        env:
+          GOWORK: "off"
+        run: go mod download github.com/LatticeNet/lattice-sdk
+
+      - name: regenerate core-types.ts and compare
+        # contract.test.ts runs the server's tools/tsgen at the commit the
+        # file names and requires the committed bytes (S2 plan section 2.8).
+        # The server is its own module, outside the temporary workspace.
+        working-directory: ui
+        env:
+          GOWORK: "off"
+          LATTICE_SERVER_DIR: ${{ github.workspace }}/lattice-server-for-tsgen
+        run: npm test -- contract
+
       - name: typecheck UI
         working-directory: ui
         run: npm run typecheck
@@ -90,10 +125,11 @@ jobs:
 
       - name: validate manifest against reviewed server
         env:
-          # alpha-0.2.2a123 release commit e987e16, the S0 server release whose
-          # checker knows the capability-wave manifest.
+          # alpha-0.2.2a133 release commit c1df2bb, the S2 server release the
+          # manifest's compatibility floor names, so the manifest is judged by
+          # the validator the server that loads it runs.
           # Move ONLY to another released tag's commit.
-          LATTICE_CHECK_REF: v0.2.4-0.20261009034729-e987e1606b03
+          LATTICE_CHECK_REF: v0.2.4-0.20261017144019-c1df2bb351a3
         run: go run "github.com/LatticeNet/lattice-server/cmd/lattice-plugin-manifest-check@${LATTICE_CHECK_REF}" manifest.json
 
       - name: build runtime binaries
@@ -138,7 +174,7 @@ jobs:
 
   conformance:
     # The vendored checker (conformance/oracle/check.mjs, run as it is) judges
-    # the native parser and the five native producers through the runner.
+    # the native parser and the nine native producers through the runner.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -166,14 +202,14 @@ jobs:
       - name: test the end-to-end judge
         run: node --test tools/conformance-end-to-end.test.mjs
 
-      - name: judge parse and the five native targets
+      - name: judge parse and the nine native targets
         # From the golden nodes. Exit 1 is a failed comparison, 2 a run whose
         # numbers differ from conformance/conformance.json (a corpus, golden
         # or allowlist change regenerates it with --conformance in the same
         # commit), 3 a harness error.
         run: >-
           node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance"
-          --targets uri,v2ray,json,singbox,clashmeta
+          --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx
           --conformance "$RUNNER_TEMP/conformance.json" --expect conformance/conformance.json
           --report "$RUNNER_TEMP/conformance-report.json"
 
@@ -184,7 +220,7 @@ jobs:
         # a strict parse run (an empty allowlist) naming those cases.
         run: |
           node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance" \
-            --targets uri,v2ray,json,singbox,clashmeta --end-to-end --no-fail \
+            --targets uri,v2ray,json,singbox,clashmeta,stash,shadowrocket,surge,quantumultx --end-to-end --no-fail \
             --report "$RUNNER_TEMP/end-to-end-report.json"
           printf 'divergences: []\n' > "$RUNNER_TEMP/no-allowlist.yaml"
           node conformance/oracle/check.mjs --candidate "$RUNNER_TEMP/substore-conformance" \
@@ -205,9 +241,10 @@ jobs:
           retention-days: 30
 
   perf:
-    # Wall-clock gates (S1 plan section 5.2) on a fixed runner image, judged
-    # by tools/perfgate against the baseline committed from this job's own
-    # output.
+    # Wall-clock gates (S1 plan section 5.2, S2 plan section 5) on a fixed
+    # runner image, judged by tools/perfgate against its target table and
+    # the baseline committed from this job's own output. No wall-clock
+    # figure is asserted in the verify job.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -219,17 +256,27 @@ jobs:
             system-go/go.mod
             tools/perfgate/go.mod
 
-      - name: run the pipeline, parse and producer benchmarks ten times
+      - name: run the pipeline, parse, producer, fleet and isolated-engine benchmarks ten times
+        # The fleet plan at 1000 and 4096 rows, catalogue validation at 4096
+        # rows, fleet_preview over 10000 lines and the fetch and convert
+        # handlers at 1000 lines (the plugin's share of lattice-server's
+        # 400 ms cache-miss gate) have targets in perfgate; the isolated
+        # first and seeded calls and the config-file merge on the isolated
+        # path are held to the regression rules once the baseline holds
+        # them. perfgate compares ns/op with the baseline's runs on this
+        # run's CPU, and B/op and allocs/op with every CPU's.
+        # pipefail keeps a failing benchmark from passing through tee.
         working-directory: system-go
-        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096' -count 10 -benchmem ./... | tee "$RUNNER_TEMP/bench.txt"
+        shell: bash
+        run: go test -run '^$' -bench 'Pipeline|ParseReality|Produce4096|FleetPlan|ValidateCatalogueRows4096|FleetPreview10000|FleetFetch1000|FleetConvert1000|IsolatedFirstCall|IsolatedSeededCall|MergeConfigIsolated' -count 10 -benchmem -timeout 60m ./... | tee "$RUNNER_TEMP/bench.txt"
 
       - name: judge the medians
         working-directory: tools/perfgate
         run: go run . -baseline "$GITHUB_WORKSPACE/system-go/testdata/bench/ubuntu-24.04.txt" -current "$RUNNER_TEMP/bench.txt"
 
       - name: keep the benchmark output
-        # A deliberate baseline move commits this file, from runs on at least
-        # two runner CPUs, as system-go/testdata/bench/ubuntu-24.04.txt
+        # A deliberate baseline move appends this file, whole and under its
+        # cpu: headers, to system-go/testdata/bench/ubuntu-24.04.txt
         # (README, Conformance numbers).
         if: always()
         uses: actions/upload-artifact@v4
@@ -253,7 +300,7 @@ jobs:
 
       - name: allocation and heap gates
         working-directory: system-go
-        run: go test -count=1 -run '^(TestPipelineAllocsPerNodeBound|TestHeapInuseAfter4096Render)$' -v .
+        run: go test -count=1 -run '^(TestPipelineAllocsPerNodeBound|TestFleetPlanAllocsBound|TestHeapInuseAfter4096Render)$' -v .
 
       - name: build the worker as the release does
         working-directory: system-go
@@ -261,9 +308,12 @@ jobs:
           CGO_ENABLED: "0"
         run: go build -trimpath -buildvcs=false -o "$RUNNER_TEMP/plugin" .
 
-      - name: record the worker's resident set
-        # Recorded, not enforced, until S2.
+      - name: hold the worker's resident set to the S2 bounds
+        # Enforced from S2 (S2 plan section 5): VmRSS under 32 MiB idle and
+        # under 96 MiB after each scriptless 4096-node render; the output is
+        # kept as the record.
         working-directory: system-go
+        shell: bash
         env:
           LATTICE_WORKER_BINARY: ${{ runner.temp }}/plugin
         run: go test -count=1 -run '^TestWorkerVmRSS$' -v . | tee "$RUNNER_TEMP/memory.txt"

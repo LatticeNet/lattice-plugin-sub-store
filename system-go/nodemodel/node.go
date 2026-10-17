@@ -8,7 +8,9 @@
 // accessors below are views over it (design 28's struct family is recorded as
 // a deliberate departure in the S1 plan, section 7 decision 1).
 //
-// Nothing in this package imports package main, the SDK or the script engine.
+// Nothing in this package imports package main or the script engine. The
+// fleet block (lattice.go) reads the SDK's catalogue types, so the row facts
+// a predicate reads keep the SDK's own shapes.
 package nodemodel
 
 import (

@@ -1,0 +1,9 @@
+{
+  "id": "clash-ss-over-tls-no-sni",
+  "family": "clash",
+  "protocol": "ss",
+  "transport": "tcp",
+  "security": "tls",
+  "quirk": "ss-over-tls",
+  "description": "ss with tls true, no plugin and no sni on an IPv4 server, so the normaliser fills no sni: Shadowrocket copies nothing to servername, Quantumult X writes obfs=over-tls without obfs-host."
+}

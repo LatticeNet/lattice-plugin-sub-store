@@ -1,0 +1,1 @@
+hysteria://p0z-30.x42x.example.net:35854?protocol=udp&peer=static.ko4t14.example.com&udp=true#TW-jnnhh-65

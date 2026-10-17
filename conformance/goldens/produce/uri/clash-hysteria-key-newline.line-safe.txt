@@ -1,0 +1,1 @@
+hysteria://vv-08.z7h7pu43.example.org:10990?protocol=udp&peer=cdn.nvziv0e.example.org&udp=true#HK-gzb1-82

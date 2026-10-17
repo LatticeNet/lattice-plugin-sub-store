@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "tag": "AU-myqg-14",
+      "type": "shadowsocks",
+      "server": "jcb-14.sz5j5zb6.example.com",
+      "server_port": 24641,
+      "method": "chacha20",
+      "password": "vR18ccbMVIMuZXh7"
+    },
+    {
+      "tag": "JP-cek9e-51",
+      "type": "shadowsocks",
+      "server": "fl6-16.bnilt.example.com",
+      "server_port": 23198,
+      "method": "rc4",
+      "password": "cbwOYIAHHKweWKJS"
+    }
+  ],
+  "endpoints": []
+}

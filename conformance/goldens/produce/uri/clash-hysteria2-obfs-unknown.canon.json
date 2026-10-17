@@ -1,0 +1,24 @@
+[
+  {
+    "fragment": "DE-q4q-65",
+    "host": "hh-39.vosqj.example.org",
+    "path": "",
+    "port": "443",
+    "query": [
+      [
+        "obfs",
+        "xplus"
+      ],
+      [
+        "obfs-password",
+        "b5LnTsrJt7t8Z97A"
+      ],
+      [
+        "sni",
+        "api.g09qao7vc4.example.net"
+      ]
+    ],
+    "scheme": "hysteria2",
+    "userinfo": "CaRJvNo3wLi7CJWZCiPC"
+  }
+]

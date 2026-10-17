@@ -1,0 +1,5 @@
+u71m3ckuc4=socks5,srs-31.kb0x.example.net,1080,kr2455a,32U7DLASEXrO,udp-relay=true
+afjg	pn4v=socks5,ohp-17.kbab9gas.example.org,1080,lo4o,EUYEJ2D5V9qp,udp-relay=true
+kixdbc dovbu1m=socks5,ihd-09.tffw.example.net,1080,eaj9zn,dWhnFHE1Tqtg,udp-relay=true
+uebuo9b gflcs=socks5,iz-24.beyj6.example.org,1080,ar11a,Y3UwXR74Mibq,udp-relay=true
+GB-gev-68=socks5,zw4-15.hvrtapj.example.org,1080,vpjxsx0,tZAxuX2I0b53,udp-relay=true

@@ -1,0 +1,24 @@
+{
+  "proxies": [
+    {
+      "cipher": "chacha20",
+      "name": "AU-myqg-14",
+      "password": "vR18ccbMVIMuZXh7",
+      "port": 24641,
+      "server": "jcb-14.sz5j5zb6.example.com",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    },
+    {
+      "cipher": "rc4",
+      "name": "JP-cek9e-51",
+      "password": "cbwOYIAHHKweWKJS",
+      "port": 23198,
+      "server": "fl6-16.bnilt.example.com",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

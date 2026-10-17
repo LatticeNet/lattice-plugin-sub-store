@@ -1,0 +1,14 @@
+{
+  "proxies": [
+    {
+      "cipher": "chacha20",
+      "name": "AU-myqg-14",
+      "password": "vR18ccbMVIMuZXh7",
+      "port": 24641,
+      "server": "jcb-14.sz5j5zb6.example.com",
+      "skip-cert-verify": false,
+      "type": "ss",
+      "udp": true
+    }
+  ]
+}

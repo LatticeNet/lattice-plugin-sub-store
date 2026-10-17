@@ -1,0 +1,13 @@
+{
+  "endpoints": [],
+  "outbounds": [
+    {
+      "psk": "3iGcay32vRLGT2gG9NJk",
+      "server": "b2u-40.t3q6mf.example.net",
+      "server_port": 53020,
+      "tag": "SG-m4fp-35",
+      "type": "snell",
+      "version": 6
+    }
+  ]
+}

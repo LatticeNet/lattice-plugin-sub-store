@@ -1,0 +1,15 @@
+[
+  {
+    "address": "z8-36.o0oc23my.example.com:443",
+    "args": [],
+    "params": {
+      "over-tls": "true",
+      "password": "87KwLxH2WIUqKHKx",
+      "server_check_url": "http://hht-15.nja40.example.net/generate_204",
+      "tag": "TW-cna4sp-21",
+      "tls-host": "api.l0te6v7bhr.example.com",
+      "udp-relay": "true"
+    },
+    "type": "trojan"
+  }
+]

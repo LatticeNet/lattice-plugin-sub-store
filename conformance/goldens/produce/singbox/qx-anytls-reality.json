@@ -1,0 +1,26 @@
+{
+  "outbounds": [
+    {
+      "tag": "TW-s0kp0-14",
+      "type": "anytls",
+      "server": "jhw-31.d5kbjv.example.net",
+      "server_port": 443,
+      "password": "TYa4FLCt6y2Pe1pGcRn4",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.b0fugafa.example.org",
+        "insecure": false,
+        "reality": {
+          "enabled": true,
+          "public_key": "4BIhnc1545fL6z3ILV8uLBiP3rg28342ymzNodDUFEI",
+          "short_id": "649db3e7"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    }
+  ],
+  "endpoints": []
+}

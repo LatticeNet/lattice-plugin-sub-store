@@ -96,8 +96,9 @@ const chrome = EditorView.theme({
 /** Semantic colors only. The same discipline as the rest of the plugin. */
 const highlight = HighlightStyle.define([
   { tag: [tags.keyword, tags.operatorKeyword], color: "var(--primary)" },
-  { tag: [tags.string, tags.special(tags.string)], color: "var(--success)" },
-  { tag: [tags.number, tags.bool, tags.null], color: "var(--warning)" },
+  // The text-safe tones: the fill tones read below 4.5:1 on the light surface (axe, on an open script step).
+  { tag: [tags.string, tags.special(tags.string)], color: "var(--success-text)" },
+  { tag: [tags.number, tags.bool, tags.null], color: "var(--warning-text)" },
   { tag: [tags.comment], color: "var(--muted-foreground)", fontStyle: "italic" },
   { tag: [tags.propertyName, tags.definition(tags.propertyName)], color: "var(--foreground)" },
   { tag: [tags.function(tags.variableName), tags.function(tags.propertyName)], color: "var(--primary)" },

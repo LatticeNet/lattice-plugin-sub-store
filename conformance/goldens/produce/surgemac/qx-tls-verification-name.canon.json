@@ -1,0 +1,16 @@
+[
+  {
+    "args": [
+      "i6-13.qt0i4ds.example.org",
+      "443"
+    ],
+    "name": "KR-kuqnpj-40",
+    "params": {
+      "password": "OAeWydKTNVzsb42M",
+      "server-cert-verify-name": "static.ujs3qvbp.example.net",
+      "sni": "img.obi9ca56z.example.net",
+      "tls": "true"
+    },
+    "type": "trojan"
+  }
+]

@@ -1,0 +1,2 @@
+wireguard://BndgAhONBpV0%2F0JGYubMy94uadXTdX1py9r53hNc5Uk%3D@ui-12.whcl76.example.com:51820/?publickey=rr%2Fiy2vq7YrGpRP5YMqEkbk7CtdLCWb9KBcYPk%2FzJzQ%3D&address=10.204.0.247%2F32%2Cfd00%3A601a%3A%3Af2af%2F128&mtu=1280&udp=1#NL-t84k-98
+wireguard://4YFpLczP7Ka4Y2e9%2Bme6%2F7KPMBolBWIHeD0u5BekjmY%3D@tu-26.e22z.example.net:51820/?publickey=pKIbmZgm%2BKpRMVidYCZtfYJxj%2BMINrEmHwlCBt3m45k%3D&address=10.68.44.23%2F32%2Cfd00%3A9028%3A%3A4f98%2F128&mtu=1280&udp=1#CA-duts-74
