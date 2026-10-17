@@ -12,7 +12,8 @@ import (
 )
 
 // Staging (design 28, S2; plan sections 2.7 and 3). A record that is
-// fleet-bound before or after a write is not written live: its new content
+// fleet-bound before or after a write, or that a fleet-bound collection
+// gathers before or after it (S2-SR-1), is not written live: its new content
 // goes to staged-v2-<id> and waits for core's plan, whose apply calls
 // apply_revision with a one-time grant, or for plans.publish when core finds
 // no live share the change could reach. Every record write goes through
@@ -425,8 +426,9 @@ func (r writeResult) landed() bool {
 }
 
 // storeWriteRecord is the one path that writes a record document (plan
-// section 3). It stages when the record is fleet-bound before or after the
-// write and writes live otherwise, a brand-new id included, and runs the
+// section 3). It stages when the record is fleet-bound, or gathered by a
+// fleet-bound collection, before or after the write and writes live
+// otherwise, a brand-new id included, and runs the
 // guards every origin runs: fleet_script_link_unavailable,
 // fleet_to_legacy_refused, legacy_source_retired (save only),
 // fleet_mixed_owner_credentials and fleet_file_unavailable. The live branch

@@ -221,10 +221,9 @@ func TestProxyMethodsDeclareVpncoreRead(t *testing.T) {
 	// subStoreCoreOnlyMethod), so no operator reaches them.
 	coreOnly := map[string]bool{"fetch": true, "apply_revision": true}
 	exempt := map[string]string{
-		"probe":          "answers a byte count, a digest and an error code; the rows stay in the plugin",
-		"save":           "reads one catalogue page for its unavailable list and answers the record it wrote",
-		"publish":        "refuses a fleet-bound record (fleet_publish_unavailable) and sends a provider document to the operator's destination; it answers the destination's status",
-		"migrate_record": "reads the pinned roots' labels and answers line uuids, counts and warnings, no row",
+		"probe":   "answers a byte count, a digest and an error code; the rows stay in the plugin",
+		"save":    "reads one catalogue page for its unavailable list and answers the record it wrote",
+		"publish": "refuses a fleet-bound record (fleet_publish_unavailable) and sends a provider document to the operator's destination; it answers the destination's status",
 	}
 	reach := methodReach(t)
 	declared := map[string][]string{}
@@ -251,7 +250,9 @@ func TestProxyMethodsDeclareVpncoreRead(t *testing.T) {
 			t.Errorf("%s is exempt (%s) but reaches no vpn-core service; drop the exemption", method, exempt[method])
 		}
 	}
-	for _, method := range []string{"fleet_preview", "identities", "graph_options", "preview", "preview_draft", "render"} {
+	// migrate_record's warnings say whether a root is in the catalogue and
+	// whether a name-based step matches a line label (S2-SR-4).
+	for _, method := range []string{"fleet_preview", "identities", "graph_options", "preview", "preview_draft", "render", "migrate_record"} {
 		if !reach[method] || !slices.Contains(declared[method], "vpncore:read") {
 			t.Errorf("%s: reaches %v, scopes %v; it relays vpn-core data and must declare vpncore:read", method, reach[method], declared[method])
 		}

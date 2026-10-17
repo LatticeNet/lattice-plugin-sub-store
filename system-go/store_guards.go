@@ -46,9 +46,45 @@ func (c writeContext) fleetBoundAfter() bool {
 }
 
 // stage is the staging decision of plan section 3: fleet-bound before the
-// write (the entry's live flag) or after it.
+// write (the entry's live flag) or after it, or gathered by a fleet-bound
+// collection before or after it.
 func (c writeContext) stage() bool {
-	return (c.liveEntry() && c.entry.Flags.FleetBound) || c.fleetBoundAfter()
+	return (c.liveEntry() && c.entry.Flags.FleetBound) || c.fleetBoundAfter() || c.gatheredByFleet()
+}
+
+// gatheredByFleet reports whether a collection that is fleet-bound over the
+// union gathers the written record at its live facts or at its new ones
+// (S2-SR-1). A write to a record a fleet-bound collection gathers changes
+// what that collection's identity holders receive, and core serves its
+// provider nodes unvalidated, so the write stages for a plan even though the
+// record is not itself fleet-bound: an edit of a member, a tag that joins or
+// leaves a member tag, a new or restored record under an id a collection
+// already lists, and a record that stops being a sub. Delete reads the same
+// rule through fleetGatherers.
+func (c writeContext) gatheredByFleet() bool {
+	if len(fleetGatherers(c.union.with(c.facts), c.facts.ID)) > 0 {
+		return true
+	}
+	if live, ok := liveFactsOf(c.entry); ok && c.hasEntry {
+		return len(fleetGatherers(c.union.with(live), live.ID)) > 0
+	}
+	return false
+}
+
+// fleetGatherers is every collection in g that gathers id, as an explicit
+// member or as a sub carrying one of its member tags, and is fleet-bound in
+// g, sorted. In the union a collection may hold a live and a staged fact;
+// either one gathering id counts.
+func fleetGatherers(g *storeGraph, id string) []string {
+	bound := g.closure(seedFleet, false)
+	var out []string
+	for _, collection := range g.collections() {
+		if bound[collection.ID] && contains(g.gathered(collection), id) {
+			out = appendUnique(out, collection.ID)
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 // rules runs applyFleetWriteRules and answers the record to store (a

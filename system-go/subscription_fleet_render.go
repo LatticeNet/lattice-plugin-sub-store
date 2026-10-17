@@ -925,9 +925,10 @@ func stagedCollectionMembership(rec subscriptionRecord, idx *indexDocument, memb
 // A block of the snapshot is reused only for a member whose source at the
 // revision it renders at equals the block's: a fleet block when it was
 // built at that revision or its leading run answers that revision's, a
-// provider block by id, never refetched (core folds every provider entry
-// under one plan line and compares it byte for byte at the decision). Every
-// other member reads its record at its revision and the catalogue, or
+// provider block when it was built at that revision, never refetched (core
+// folds every provider entry under one plan line and compares it byte for
+// byte at the decision). Every other member, a provider member at a staged
+// revision included, reads its record at its revision and the catalogue, or
 // resolves its provider source, live. A block that names no member or no
 // source refuses snapshot_predates_s2. A legacy member is withheld.
 func (rt *runtime) renderStagedCollection(o renderOpened, req subscriptionRenderRequest, opts fleetRenderOptions, target string) (fleetRendered, bool, error) {
@@ -978,9 +979,10 @@ func (rt *runtime) renderStagedCollection(o renderOpened, req subscriptionRender
 // order, with the fleet parts' catalogue versions. A block of blocks is
 // reused only for a member whose source at the revision it renders at equals
 // the block's: a fleet block when it was built at that revision or its
-// leading run answers that revision's, a provider block by id. Every other
-// member reads its record at its revision and the catalogue, or resolves its
-// provider source, live. A legacy member is withheld.
+// leading run answers that revision's, a provider block when it was built at
+// that revision. Every other member reads its record at its revision and the
+// catalogue, or resolves its provider source, live. A legacy member is
+// withheld.
 func (rt *runtime) collectionParts(label string, members []stagedMember, blocks map[string]envelopeMember) ([]collectionPart, []string, error) {
 	parts := make([]collectionPart, 0, len(members))
 	var versions []string
@@ -991,7 +993,11 @@ func (rt *runtime) collectionParts(label string, members []stagedMember, blocks 
 			if isVPNCoreSource(member.Source) {
 				return nil, nil, ownerCredentialsWithheldError(member.ID)
 			}
-			if hasBlock {
+			// A provider block holds the member's chain output at the revision
+			// it was fetched at. A member staged since (S2-SR-1 stages every
+			// edit of a member a fleet-bound collection gathers) renders its
+			// staged content, so the plan shows what its holders will receive.
+			if hasBlock && block.Revision == member.Revision {
 				part, err := blockPart(label, block)
 				if err != nil {
 					return nil, nil, err

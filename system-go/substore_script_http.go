@@ -115,11 +115,17 @@ type scriptHTTPCall struct {
 // expired lease.
 type scriptHTTPGateway struct {
 	host hostCaller
+	// withheld marks the refusal withholdScriptHTTP installs over a
+	// fleet-bound render or preview (S2-SR-2): it sends nothing and counts
+	// every request, so the caller can fail the call even when the script
+	// caught the refusal and went on.
+	withheld bool
 
 	mu       sync.Mutex
 	calls    int
 	bytes    int
 	sent     int
+	refused  int
 	recorded []scriptHTTPCall
 }
 
@@ -134,6 +140,12 @@ func newScriptHTTPGateway(host hostCaller) *scriptHTTPGateway {
 // JavaScript exception, which the shim converts into the callback's err
 // argument — the shape every Sub-Store client uses.
 func (g *scriptHTTPGateway) do(requestJSON string) (string, error) {
+	if g.withheld {
+		g.mu.Lock()
+		g.refused++
+		g.mu.Unlock()
+		return "", fmt.Errorf("script http: %s: a fleet-bound record's chain runs without a network until S3", codeFleetScriptNetworkUnavailable)
+	}
 	var req scriptHTTPRequest
 	if err := json.Unmarshal([]byte(requestJSON), &req); err != nil {
 		return "", fmt.Errorf("script http: malformed request")
@@ -298,6 +310,13 @@ func (g *scriptHTTPGateway) record(call scriptHTTPCall) {
 		return
 	}
 	g.recorded = append(g.recorded, call)
+}
+
+// refusedCalls counts the requests a withheld gateway refused.
+func (g *scriptHTTPGateway) refusedCalls() int {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.refused
 }
 
 // diagnostics returns what this invocation's scripts reached.
