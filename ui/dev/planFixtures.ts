@@ -80,9 +80,10 @@ const LOOKUP_SCRIPT = {
 /**
  * The staged revisions the plans fixture starts with beside asia-fleet's
  * and legacy-left's (dev/planHost.ts seeds them): tokyo-scripted gains a
- * pass-through script, osaka-lookup renames its lookup script.
+ * pass-through script, osaka-lookup renames its lookup script, and with
+ * ?member-script=1 paid-extra gains a script that asks for the network.
  */
-export function planStagedRecords(): { id: string; process: unknown[]; minutesAgo: number }[] {
+export function planStagedRecords(memberScript = false): { id: string; process: unknown[]; minutesAgo: number }[] {
   return [
     {
       id: "tokyo-scripted",
@@ -90,6 +91,21 @@ export function planStagedRecords(): { id: string; process: unknown[]; minutesAg
       process: [TOKYO_FILTER, { type: "Script Operator", args: { mode: "script", content: "function operator(proxies) {\n  return proxies;\n}" } }],
     },
     { id: "osaka-lookup", minutesAgo: 15, process: [OSAKA_FILTER, { ...LOOKUP_SCRIPT, customName: "Geo lookup" }] },
+    // ?member-script=1: the provider record fleet-plus-paid gathers gains a
+    // script that asks for the network, so its plan is refused while the
+    // combination renders, naming paid-extra's step (core's provider-member case).
+    ...(memberScript
+      ? [
+          {
+            id: "paid-extra",
+            minutesAgo: 5,
+            process: [
+              { type: "Regex Filter", args: { regex: ["HK|JP"], keep: true } },
+              { type: "Script Filter", customName: "Geo check", args: { mode: "script", content: "async function filter(proxies) {\n  await $substore.http.get({ url: 'https://geo.example/check' });\n  return proxies.map(() => true);\n}" } },
+            ],
+          },
+        ]
+      : []),
   ];
 }
 

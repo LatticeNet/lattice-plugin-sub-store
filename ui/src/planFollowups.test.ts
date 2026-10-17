@@ -17,17 +17,16 @@ import {
   storedSteps,
   type ChainChange,
 } from "./planFlow";
-import { networkSteps, refusedStepIn, scriptNetworkRefusal, SCRIPT_NETWORK_CODE } from "./scriptNetwork";
 import { useRecordEditor } from "./useRecordEditor";
 import { emptyDraft, useSubscriptions } from "./useSubscriptions";
 
 /**
  * The UI follow-ups to the S2 security fixes (design 28 S2, lane 6c): a
  * plan's process chain (S2-SR-2) as core lists it and as the propose step
- * reads it, the fleet_script_network_unavailable refusal in each shape it
- * arrives in, and a provider record a fleet-bound combination gathers
+ * reads it, and a provider record a fleet-bound combination gathers
  * (S2-SR-1): its staged save, its delete, and the editor opening on the
- * staged revision.
+ * staged revision. The fleet_script_network_unavailable refusal has its
+ * own file, scriptNetwork.test.ts.
  */
 
 /** A chain change in core's words, as lattice-server writes it. */
@@ -142,66 +141,6 @@ describe("a plan's process chain", () => {
     expect(storedSteps({ process: [regexA] })).toEqual([regexA]);
     expect(storedSteps({ process: [], operators: [sortOn] })).toEqual([sortOn]);
     expect(storedSteps(null)).toEqual([]);
-  });
-});
-
-describe("the fleet_script_network_unavailable refusal", () => {
-  const plugin = `${SCRIPT_NETWORK_CODE}: subscription "osaka-lookup" is fleet-bound, and a Script or Resolve Domain step asked for the network 1 time(s); a fleet-bound chain runs without a network until S3, so remove the network call or the step`;
-
-  it("reads the plugin's sentence: the record, no step, the sentence without the code", () => {
-    expect(scriptNetworkRefusal(new Error(plugin))).toEqual({
-      record: "osaka-lookup",
-      step: null,
-      message: plugin.slice(SCRIPT_NETWORK_CODE.length + 2),
-    });
-    expect(scriptNetworkRefusal(new Error(`${SCRIPT_NETWORK_CODE}: collection "asia-combination" is fleet-bound, and a Script step asked`))?.record).toBe("asia-combination");
-    expect(scriptNetworkRefusal(new Error(`${SCRIPT_NETWORK_CODE}: the fleet draft is fleet-bound, and a Script step asked`))?.record).toBe("");
-  });
-
-  it("reads core's sentence with the step it names", () => {
-    const refusal = scriptNetworkRefusal(new Error(`${SCRIPT_NETWORK_CODE}: record osaka-lookup: step 2 (Script Operator) asked for the network`));
-    expect(refusal?.record).toBe("osaka-lookup");
-    expect(refusal?.step).toEqual({ position: 2, type: "Script Operator" });
-  });
-
-  it("reads core's typed refusal, as JSON after the code, as bare JSON, as an object and as a reply's refused", () => {
-    const typed = { code: SCRIPT_NETWORK_CODE, record: "osaka-lookup", step: { position: 2, type: "Script Operator" }, message: "the render was refused" };
-    const want = { record: "osaka-lookup", step: { position: 2, type: "Script Operator" }, message: "the render was refused" };
-    expect(scriptNetworkRefusal(new Error(`${SCRIPT_NETWORK_CODE}: ${JSON.stringify(typed)}`))).toEqual(want);
-    expect(scriptNetworkRefusal(JSON.stringify(typed))).toEqual(want);
-    expect(scriptNetworkRefusal(typed)).toEqual(want);
-    expect(scriptNetworkRefusal({ refused: typed })).toEqual(want);
-    expect(scriptNetworkRefusal(Object.assign(new Error("call failed"), { data: typed }))).toEqual(want);
-    expect(scriptNetworkRefusal({ refused: SCRIPT_NETWORK_CODE, entries: [] })).toEqual({ record: "", step: null, message: "" });
-  });
-
-  it("is nothing else: another code, the code inside a sentence, a bind refusal", () => {
-    expect(scriptNetworkRefusal(new Error("fleet_response_chain_unavailable: process step 2 (Response Transformer)"))).toBeNull();
-    expect(scriptNetworkRefusal(new Error(`the plan failed because ${SCRIPT_NETWORK_CODE}: step 2`))).toBeNull();
-    expect(scriptNetworkRefusal({ refused: "no_includable_line", entries: [] })).toBeNull();
-    expect(scriptNetworkRefusal({ code: "plan_required", record: "a" })).toBeNull();
-    expect(scriptNetworkRefusal(undefined)).toBeNull();
-  });
-
-  it("bounds what it shows: a step position out of range, an id that is not one, a long sentence", () => {
-    const refusal = scriptNetworkRefusal({ code: SCRIPT_NETWORK_CODE, record: "two words", step: { position: 0, type: "Script Operator" }, message: "x".repeat(2000) });
-    expect(refusal?.record).toBe("");
-    expect(refusal?.step).toBeNull();
-    expect(refusal!.message.length).toBeLessThanOrEqual(600);
-    expect(scriptNetworkRefusal({ code: SCRIPT_NETWORK_CODE, record: "a", step: { position: 2, type: "<b>Script</b> Operator" } })?.step).toEqual({ position: 2, type: "bScriptb Operator" });
-  });
-
-  it("finds the step in the surface's chain when core names none, and never guesses between several", () => {
-    const filter = { type: "Structured Filter", args: {} };
-    const lookup = { type: "Script Operator", args: { content: "x" } };
-    const resolve = { type: "Resolve Domain Operator" };
-    const off = { type: "Script Filter", disabled: true };
-    const bare = scriptNetworkRefusal(new Error(plugin))!;
-    expect(networkSteps([filter, lookup, off])).toEqual([{ position: 2, type: "Script Operator" }]);
-    expect(refusedStepIn(bare, [filter, lookup, off])).toEqual({ position: 2, type: "Script Operator" });
-    expect(refusedStepIn(bare, [lookup, resolve])).toBeNull();
-    // The step core names wins, typed from the chain when core left the type out.
-    expect(refusedStepIn({ ...bare, step: { position: 1, type: "" } }, [lookup, resolve])).toEqual({ position: 1, type: "Script Operator" });
   });
 });
 

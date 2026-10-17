@@ -273,18 +273,19 @@ for (const viewport of VIEWPORTS) {
         await shot(page, "delete-remove-member-editor", meta());
       });
 
-      test("a plain delete refused as fleet-bound is read from the structured reply", async ({ page }) => {
+      // The store's refusal of a plain delete is read from its structured
+      // reply (planCalls.test.ts, and plan-followups.spec.ts over a stale
+      // list); a fleet-bound record selected alone never reaches the plain
+      // dialog, which would offer a Delete the store refuses (the lane 6c
+      // design review).
+      test("a fleet-bound record's batch delete opens the plan flow, not a Delete the store refuses", async ({ page }) => {
         await openPlans(page, { theme });
         await row(page, "fleet-probe-fast").locator("input[type=checkbox]").first().check();
         await page.locator(".pc-batch-bar").getByRole("button", { name: new RegExp(m.actions.delete) }).click();
-        await page.locator(".lt-dialog-input").fill("Lines that passed a probe today");
-        await page.locator(".lt-dialog").getByRole("button", { name: m.common.delete, exact: true }).click();
-        const notice = page.getByTestId("records-error-notice");
-        await expect(notice).toContainText(m.plans.refusal.notDeleted(m.fleetEditor.refusal.codes.fleet_delete_requires_plan));
-        await settled(page, viewport.width);
-        await shot(page, "delete-refused-requires-plan", meta());
-        await notice.getByTestId("records-delete-plan").click();
+        await expect(page.locator(".lt-dialog")).toHaveCount(0);
         await expect(flow(page)).toHaveAttribute("data-mode", "delete");
+        await settled(page, viewport.width);
+        await shot(page, "delete-batch-plan", meta());
       });
 
       test("discard names both revisions and the plan it stales", async ({ page }) => {

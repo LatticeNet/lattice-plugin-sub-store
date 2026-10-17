@@ -37,18 +37,25 @@
  *     words; tokyo-scripted's staged revision adds a pass-through script
  *     and moves no line.
  *   the script network refusal (S2-SR-2): a fleet render whose chain holds
- *     a step that asks for the network (osaka-lookup) is refused, in each
- *     shape it can arrive in: the plugin's sentence on preview and
- *     preview_draft, core's sentence on bind.preview, and core's typed
- *     refusal as JSON after the code on plans.propose.
+ *     a step that asks for the network (osaka-lookup) is refused as core
+ *     answers it on every path (plans.propose, bind.preview, and the
+ *     preview and preview_draft relays): core's sentence, naming the first
+ *     step that can ask in the record that holds it, with the request id
+ *     the console's client appends (dev/coreRefusal.ts). With
+ *     ?member-script=1, paid-extra's staged revision adds a script that
+ *     asks, so its plan is refused while fleet-plus-paid renders, naming
+ *     paid-extra's step.
  *   get answers a waiting staged revision beside the live record, so the
  *     editor opens on it, as the plugin answers it.
+ *   ?flags=stale: the list leaves a combination's fleet_bound flag out, as
+ *     a list read before it became fleet-bound would, so the UI offers a
+ *     plain delete of a record it gathers and the store refuses it.
  *
  * Never imported by `src/`; the shipped bundle is built from index.html alone.
  */
 import type { MethodBinding } from "../src/client";
 import { chainChanges, type ChainChange } from "../src/planFlow";
-import { SCRIPT_NETWORK_CODE } from "../src/scriptNetwork";
+import { coreRefusalMessage, firstNetworkStep, hostError } from "./coreRefusal";
 import type { FleetRecord } from "./fleetFixtures";
 import { planStagedRecords, type PlanShare } from "./planFixtures";
 import { CATALOGUE_VERSION, catalogueRows } from "./fleetFixtures";
@@ -182,7 +189,7 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
   if (byId("legacy-left")) {
     staged.set("legacy-left", { revision: LEFT_STAGED, at: new Date(Date.now() - 3_600_000).toISOString(), source: "fleet", migrated: true });
   }
-  for (const seed of planStagedRecords()) {
+  for (const seed of planStagedRecords(new URLSearchParams(window.location.search).get("member-script") === "1")) {
     const record = byId(seed.id);
     if (!record) continue;
     staged.set(seed.id, {
@@ -272,6 +279,43 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     if (record.kind === "file") return false;
     return records.some((member) => gathers(record, member) && fleetReach(member.id, seen));
   }
+  /**
+   * Core's refusal of a render that reaches fleet nodes when a step of it
+   * asks for the network (substoreScriptNetworkRefusalFor): the render
+   * fails if any record it reads has a step that asks (networkAskingStep,
+   * the harness's stand-in for the engine), and core names the first step
+   * that can ask, breadth first over the rendered record's chain, then a
+   * combination's members by id and by tag, then a file's node source.
+   * `rendered` "" is a draft; `override` is a chain the caller sent in
+   * place of a subscription's stored one.
+   */
+  function scriptNetworkRefusal(rendered: string, chainAt: (id: string) => readonly unknown[], override?: readonly unknown[]): Error | null {
+    if (!rendered) {
+      const chain = override ?? [];
+      return networkAskingStep(chain) ? hostError(coreRefusalMessage("", "", firstNetworkStep(chain))) : null;
+    }
+    const queue = [rendered];
+    let asked = false;
+    let named: { holder: string; step: { position: number; type: string } } | null = null;
+    for (let at = 0; at < queue.length && at < 64; at += 1) {
+      const id = queue[at]!;
+      const record = byId(id);
+      if (!record) continue;
+      const chain = at === 0 && override && record.kind !== "collection" ? override : chainAt(id);
+      if (networkAskingStep(chain)) asked = true;
+      const step: { position: number; type: string } | null = named ? null : firstNetworkStep(chain);
+      if (step) named = { holder: id, step };
+      const next =
+        record.kind === "collection"
+          ? [...(record.members ?? []), ...records.filter((candidate) => candidate.kind !== "collection" && candidate.kind !== "file" && gathers(record, candidate)).map((candidate) => candidate.id)]
+          : record.kind === "file" && record.node_source
+            ? [record.node_source]
+            : [];
+      for (const member of next) if (!queue.includes(member)) queue.push(member);
+    }
+    if (!asked) return null;
+    return hostError(coreRefusalMessage(rendered, named?.holder ?? rendered, named?.step ?? null));
+  }
   const liveShares = (ids: string[]) => shares.filter((entry) => ids.includes(entry.subscription_id) && !(entry as { archived_at?: string }).archived_at);
   /** The fleet-bound collections that gather a record directly (the plugin's fleetGatherers). */
   function gatherersOf(record: FleetRecord): string[] {
@@ -302,7 +346,10 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
       const flags = { ...((next.flags as Record<string, unknown>) ?? {}) };
       delete flags.fleet_bound;
       delete flags.owner_credentials;
-      if (fleetReach(id)) flags.fleet_bound = true;
+      // ?flags=stale: the list a screen read before a combination became
+      // fleet-bound, so the UI predicts a plain delete the store refuses.
+      const staleFlags = new URLSearchParams(window.location.search).get("flags") === "stale";
+      if (fleetReach(id) && !(staleFlags && byId(id)?.kind === "collection")) flags.fleet_bound = true;
       if (legacyReach(id)) flags.owner_credentials = true;
       next.flags = Object.keys(flags).length ? flags : undefined;
       const entry = staged.get(id);
@@ -513,17 +560,15 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
         );
       }
     }
-    // Core renders what each record of the plan would serve; a fleet render whose script asks for the network is refused (S2-SR-2).
+    // Core renders what each record of the plan would serve, and every
+    // combination that reads it; a fleet render whose script asks for the
+    // network is refused (S2-SR-2), naming the step in the record holding it.
+    const chainAt = (id: string) => stepsAt(id, mode === "promote" && promoted.includes(id) ? "staged" : "live");
     for (const id of mode === "promote" ? promoted : mode === "delete" ? [] : [primary]) {
-      const asking = fleetReach(id) || staged.get(id)?.source === "fleet" ? networkAskingStep(stepsAt(id, mode === "promote" ? "staged" : "live")) : null;
-      if (asking) {
-        const typed = {
-          code: SCRIPT_NETWORK_CODE,
-          record: id,
-          step: asking,
-          message: `the plan's render of record ${id} was refused: step ${asking.position} (${asking.type}) asked for the network, and scripts on fleet renders run without one until isolation lands`,
-        };
-        throw new Error(`${SCRIPT_NETWORK_CODE}: ${JSON.stringify(typed)}`);
+      for (const rendered of closureOf(id)) {
+        if (!(fleetReach(rendered) || staged.get(rendered)?.source === "fleet")) continue;
+        const refusal = scriptNetworkRefusal(rendered, chainAt);
+        if (refusal) throw refusal;
       }
     }
     const closure = mode === "clear" ? [primary] : [...new Set((mode === "delete" ? [primary] : promoted).flatMap((id) => closureOf(id)))];
@@ -780,20 +825,16 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     }
     return probe(payload);
   };
-  /** The plugin's refusal of a fleet render whose script asked for the network (system-go/fleet_script_network.go). */
-  function previewNetwork(payload: { subscription_id?: string; operators?: unknown[]; source?: string }): Error | null {
+  /** A fleet preview the plugin refused, as core relays it (substoreScriptNetworkRelayRefusal). */
+  function previewNetwork(payload: { subscription_id?: string; revision?: string; operators?: unknown[]; source?: string }): Error | null {
     const record = payload.subscription_id ? byId(payload.subscription_id) : undefined;
     const fleet = payload.source === "fleet" || (!!record && (record.source === "fleet" || fleetReach(record.id)));
     if (!fleet) return null;
-    const chain = Array.isArray(payload.operators) ? payload.operators : record?.process ?? [];
-    if (!networkAskingStep(chain)) return null;
-    const label = record ? `${record.kind === "collection" ? "collection" : "subscription"} "${record.id}"` : "the fleet draft";
-    return new Error(
-      `${SCRIPT_NETWORK_CODE}: ${label} is fleet-bound, and a Script or Resolve Domain step asked for the network 1 time(s); a fleet-bound chain runs without a network until S3, so remove the network call or the step`,
-    );
+    const chainAt = (id: string) => stepsAt(id, id === payload.subscription_id && payload.revision && staged.get(id)?.revision === payload.revision ? "staged" : "live");
+    return scriptNetworkRefusal(record?.id ?? "", chainAt, Array.isArray(payload.operators) ? payload.operators : undefined);
   }
   const previewHandler = handlers["subscription/preview"]!;
-  handlers["subscription/preview"] = (payload: { subscription_id?: string; operators?: unknown[]; source?: string }) => {
+  handlers["subscription/preview"] = (payload: { subscription_id?: string; revision?: string; operators?: unknown[]; source?: string }) => {
     if (s2Manifest() && payload.subscription_id && legacyReach(payload.subscription_id)) throw withheld(payload.subscription_id);
     const refusal = s2Manifest() ? previewNetwork(payload) : null;
     if (refusal) throw refusal;
@@ -818,12 +859,8 @@ export function installPlans(handlers: Record<string, Handler>, records: FleetRe
     if (rewrite !== -1) {
       throw new Error(`fleet_response_chain_unavailable: subscription "${payload.subscription_id}": process step ${rewrite + 1} (Response Transformer) does not run on fleet records yet`);
     }
-    const asking = networkAskingStep(chain);
-    if (asking) {
-      throw new Error(
-        `${SCRIPT_NETWORK_CODE}: record ${payload.subscription_id}: step ${asking.position} (${asking.type}) asked for the network; scripts on fleet renders run without one until isolation lands`,
-      );
-    }
+    const refusal = scriptNetworkRefusal(payload.subscription_id, (id) => (id === payload.subscription_id ? chain : stepsAt(id, "live")));
+    if (refusal) throw refusal;
     if (record && chain !== record.process) {
       const before = record.process;
       record.process = chain;

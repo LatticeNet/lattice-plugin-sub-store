@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { LOCALES, TABLES, m, type Locale } from "./messages";
-import { THEMES, VIEWPORTS, flow, menuItem, openMenu, openPlans, row, runAction, settled, shot, type Theme } from "./plans";
+import { THEMES, VIEWPORTS, flow, focusInSheet, menuItem, openMenu, openPlans, row, runAction, settled, shot, type Theme } from "./plans";
 
 /**
  * The plan flow's follow-ups to the S2 security fixes (design 28 S2, lane
@@ -37,6 +37,21 @@ import { THEMES, VIEWPORTS, flow, menuItem, openMenu, openPlans, row, runAction,
  *                        step line it names, Open step into the editor
  *   applied, rejected    a decided plan that changes a step
  *   migrate withheld     ?fleet=denied leaves migrate_record out (S2-SR-4)
+ *
+ * And the fixes the lane 6c reviews asked for:
+ *   second save          a save over a staged record stales its pending
+ *                        plan, says so before it saves, and Publish files a
+ *                        new plan
+ *   member refusal       core's refusal for a provider member's step, read
+ *                        through the fleet-bound combination that rendered
+ *                        (?member-script=1): said on the member, hedged
+ *   notice focus         "Publish staged revision" in the staged notice
+ *                        returns focus to the row's menu button
+ *   batch delete         a record whose delete is a plan never reaches the
+ *                        plain dialog: alone it opens the plan flow, in a
+ *                        batch it is left out, named, and offered after
+ *   fleet refusal        the Fleet view's identity preview says the refused
+ *                        step and opens it in the editor
  */
 
 const PAID = "Paid provider extra";
@@ -150,11 +165,19 @@ for (const viewport of VIEWPORTS) {
       });
 
       test("plain delete refused: the store names the combination that gathers the record", async ({ page }) => {
-        await openPlans(page, { theme });
+        // A list read before the combination became fleet-bound: the UI cannot predict the plan, the store refuses.
+        await openPlans(page, { theme, query: "&flags=stale" });
         await row(page, "paid-extra").locator("input[type=checkbox]").first().check();
         await page.locator(".pc-batch-bar").getByRole("button", { name: new RegExp(m.actions.delete) }).click();
-        // Nothing names it as a member, so the dialog asks for no typed name; the store still refuses.
-        await page.locator(".lt-dialog").getByRole("button", { name: m.common.delete, exact: true }).click();
+        // The combination gathers it by tag: said in the sentence, never "nothing points at it", and its share is named.
+        const dialog = page.locator(".lt-dialog");
+        await expect(dialog.locator(".lt-dialog-title")).toContainText(m.deletion.gatheredByTag(PLUS, 1, 1));
+        await expect(dialog.locator(".lt-dialog-title")).not.toContainText(m.deletion.noDependents(1, "").trim());
+        await expect(dialog).toContainText("/plus-family");
+        await settled(page, viewport.width);
+        await shot(page, "provider-delete-dialog", meta());
+        await dialog.locator(".lt-dialog-input").fill(PAID);
+        await dialog.getByRole("button", { name: m.common.delete, exact: true }).click();
         const notice = page.getByTestId("records-error-notice");
         await expect(notice).toContainText(m.plans.refusal.notDeleted(m.plans.stagedSave.gatheredDelete(PLUS, 1)));
         await textHoldsWidth(notice);
@@ -242,6 +265,11 @@ for (const viewport of VIEWPORTS) {
         await expect(refusal).toHaveAttribute("data-position", "2");
         await expect(refusal.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.step(2, "Script Operator", OSAKA));
         await expect(flow(page).getByTestId("flow-banner")).toHaveCount(0);
+        // Core answers the same until a staged revision changes: Publish waits, and the step is the way forward.
+        await expect(flow(page).getByTestId("flow-propose")).toBeDisabled();
+        await expect(flow(page).getByTestId("flow-propose")).toHaveAttribute("data-variant", "secondary");
+        await expect(flow(page).getByTestId("propose-refusal-blocked")).toHaveText(m.plans.scriptNetwork.proposeBlocked);
+        await expect(refusal.getByTestId("script-network-open-step")).toHaveAttribute("data-variant", "primary");
         await settled(page, viewport.width);
         await shot(page, "propose-network-refusal", meta());
 
@@ -250,8 +278,158 @@ for (const viewport of VIEWPORTS) {
         const step = page.locator('.chain-step[data-step-index="1"]');
         await expect(step.locator(".step-title")).toHaveAttribute("aria-expanded", "true");
         await expect(step.locator(".step-title")).toBeFocused();
+        // The refusal comes with it: said above the editor, flagged on the step, and the bar keeps its number.
+        const carried = page.getByTestId("editor-carried-refusal").getByTestId("script-network-refusal");
+        await expect(carried).toHaveAttribute("data-position", "2");
+        await expect(carried.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.step(2, "Script Operator", m.plans.scriptNetwork.thisRecord));
+        await expect(step.getByTestId("step-network-flag")).toHaveText(m.plans.scriptNetwork.flag);
+        await expect(step.locator(".step-label")).toHaveText(m.chain.stepLabel(2, "Geo lookup"));
         await settled(page, viewport.width);
         await shot(page, "propose-network-open-step", meta());
+        // Once the step changes, the refusal is about a chain that is gone.
+        await step.locator(".step-toggle input").uncheck();
+        await expect(page.getByTestId("editor-carried-refusal")).toHaveCount(0);
+        await expect(step.getByTestId("step-network-flag")).toHaveCount(0);
+      });
+
+      test("member refusal: a provider member's step, read through the combination that rendered, is said on the member", async ({ page }) => {
+        await openPlans(page, { theme, query: "&member-script=1" });
+        await runAction(page, "paid-extra", "publish-staged");
+        await expect(flow(page)).toHaveAttribute("data-step", "propose");
+        // Core rendered fleet-plus-paid and named paid-extra's step; the notice sits under paid-extra's line.
+        const entry = flow(page).getByTestId("propose-record").filter({ hasText: PAID });
+        const refusal = entry.getByTestId("script-network-refusal");
+        await expect(refusal).toHaveAttribute("data-record", "paid-extra");
+        await expect(refusal).toHaveAttribute("data-position", "2");
+        // The combination read other chains, so the step is the first that can ask, not a proven culprit.
+        await expect(refusal).toHaveAttribute("data-certain", "false");
+        await expect(refusal.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.stepCandidate(2, "Script Filter", PAID));
+        await expect(entry.getByTestId("propose-step-flag")).toHaveText(m.plans.scriptNetwork.flagCandidate);
+        await expect(flow(page).getByTestId("script-network-refusal")).toHaveCount(1);
+        await settled(page, viewport.width);
+        await shot(page, "member-network-refusal", meta());
+        await closeUp(refusal, "member-network-refusal", meta());
+
+        await refusal.getByTestId("script-network-open-step").click();
+        await page.locator("#editor-title").waitFor();
+        const step = page.locator('.chain-step[data-step-index="1"]');
+        await expect(step.locator(".step-label")).toHaveText(m.chain.stepLabel(2, "Geo check"));
+        await expect(step.getByTestId("step-network-flag")).toHaveText(m.plans.scriptNetwork.flagCandidate);
+        await expect(step.getByTestId("step-network-flag")).toHaveAttribute("data-certain", "false");
+        await settled(page, viewport.width);
+        await shot(page, "member-network-open-step", meta());
+      });
+
+      test("second save: a save over a staged record stales its pending plan, and Publish files a new one", async ({ page }) => {
+        await openPlans(page, { theme });
+        await stageProviderEdit(page);
+        await runAction(page, "paid-extra", "publish-staged");
+        await expect(flow(page).getByTestId("plan-chip")).toHaveAttribute("data-state", "pending");
+        const first = (await flow(page).locator(".plan-status__id").textContent())!.trim();
+        await page.keyboard.press("Escape");
+        await expect(flow(page)).toHaveCount(0);
+
+        // The editor says the save stales the plan, as Discard and Delete do.
+        await editRecord(page, PAID);
+        await expect(page.getByTestId("editor-staged-plan")).toContainText(first);
+        await settled(page, viewport.width);
+        await shot(page, "second-save-editor", meta());
+        await operationsTab(page);
+        await page.locator(".chain-step").first().locator(".step-toggle input").check();
+        await page.getByRole("button", { name: m.editor.save, exact: true }).click();
+        await expect(page.locator("#editor-title")).toHaveCount(0);
+
+        // The row and the side panel read the old plan as stale, not as the plan the new revision waits on.
+        await expect(row(page, "paid-extra").getByTestId("staged-badge")).toHaveAttribute("data-state", "stale");
+        await page.locator(".row-open", { hasText: PAID }).first().click();
+        const panel = page.locator(".pc-side-panel");
+        await expect(panel.getByTestId("record-plan-state").getByTestId("plan-chip")).toHaveAttribute("data-state", "stale");
+        // The plan box keeps the panel's gap above the fetch health.
+        const gap = await panel.evaluate((root) => {
+          const plan = root.querySelector('[data-testid="record-plan-state"]')!.getBoundingClientRect();
+          const health = root.querySelector(".peek-state")!.getBoundingClientRect();
+          return health.top - plan.bottom;
+        });
+        expect(gap).toBeGreaterThanOrEqual(12);
+        await settled(page, viewport.width);
+        await shot(page, "second-save-panel", meta());
+        await page.keyboard.press("Escape");
+        await expect(panel).toHaveCount(0);
+
+        // Publish files a plan for the revision staged now.
+        await runAction(page, "paid-extra", "publish-staged");
+        await expect(flow(page).getByTestId("plan-chip")).toHaveAttribute("data-state", "pending");
+        const second = (await flow(page).locator(".plan-status__id").textContent())!.trim();
+        expect(second).not.toBe(first);
+        await settled(page, viewport.width);
+        await shot(page, "second-save-new-plan", meta());
+      });
+
+      test("notice focus: Publish from the staged notice returns focus to the row's menu button", async ({ page }) => {
+        await openPlans(page, { theme });
+        await stageProviderEdit(page);
+        await page.getByTestId("records-publish-staged").focus();
+        await page.keyboard.press("Enter");
+        await expect(flow(page)).toBeVisible();
+        await expect.poll(() => focusInSheet(page)).toBe(true);
+        await page.keyboard.press("Escape");
+        await expect(flow(page)).toHaveCount(0);
+        await expect(page.locator('.rec-menu-wrap[data-row-menu="paid-extra"] button').first()).toBeFocused();
+      });
+
+      test("batch delete: a record whose delete is a plan opens the plan flow alone, and is left out of a batch", async ({ page }) => {
+        await openPlans(page, { theme });
+        await row(page, "paid-extra").locator("input[type=checkbox]").first().check();
+        await page.locator(".pc-batch-bar").getByRole("button", { name: new RegExp(m.actions.delete) }).click();
+        await expect(page.locator(".lt-dialog")).toHaveCount(0);
+        await expect(flow(page)).toHaveAttribute("data-mode", "delete");
+        await expect(flow(page).getByTestId("delete-intro")).toHaveText(m.plans.stagedSave.deleteIntroGathered(PLUS, 1));
+        await page.keyboard.press("Escape");
+        await expect(flow(page)).toHaveCount(0);
+
+        await openPlans(page, { theme });
+        await row(page, "paid-extra").locator("input[type=checkbox]").first().check();
+        await row(page, "late-legacy").locator("input[type=checkbox]").first().check();
+        await page.locator(".pc-batch-bar").getByRole("button", { name: new RegExp(m.actions.delete) }).click();
+        const dialog = page.locator(".lt-dialog");
+        await expect(dialog.locator(".lt-dialog-names li")).toHaveText(["Office export (legacy)"]);
+        await expect(dialog.getByTestId("confirm-note")).toHaveText(m.deletion.leftForPlan(PAID, 1));
+        await settled(page, viewport.width);
+        await shot(page, "batch-delete-left-out", meta());
+        await dialog.getByRole("button", { name: m.common.delete, exact: true }).click();
+        const notice = page.getByTestId("records-error-notice");
+        await expect(notice).toContainText(m.deletion.leftForPlanAfter(PAID, 1, PAID));
+        await expect(row(page, "late-legacy")).toHaveCount(0);
+        await textHoldsWidth(notice);
+        await settled(page, viewport.width);
+        await shot(page, "batch-delete-after", meta());
+        await notice.getByTestId("records-delete-plan").click();
+        await expect(flow(page)).toHaveAttribute("data-mode", "delete");
+      });
+
+      test("fleet refusal: the Fleet view says the refused step beside the identity and opens it in the editor", async ({ page }) => {
+        await openPlans(page, { view: "fleet", theme });
+        await page.locator('[data-testid="fleet-record"][data-record="osaka-lookup"]').click();
+        const alice = page.locator('[data-testid="fleet-identity"][data-identity="vu_alice"]');
+        await alice.getByTestId("fleet-identity-toggle").click();
+        const refusal = alice.getByTestId("script-network-refusal");
+        await expect(refusal).toHaveAttribute("data-record", "osaka-lookup");
+        await expect(refusal).toHaveAttribute("data-position", "2");
+        await expect(refusal.getByTestId("script-network-step")).toHaveText(m.plans.scriptNetwork.stepCandidate(2, "Script Operator", OSAKA));
+        await expect(alice.getByTestId("fleet-identity-result")).toHaveText(m.plans.scriptNetwork.title);
+        await expect(alice.getByTestId("fleet-preview-error")).toHaveCount(0);
+        await settled(page, viewport.width);
+        await shot(page, "fleet-network-refusal", meta());
+        await closeUp(refusal, "fleet-network-refusal", meta());
+
+        await refusal.getByTestId("script-network-open-step").click();
+        await page.locator("#editor-title").waitFor();
+        await expect(page.getByTestId("editor-carried-refusal").getByTestId("script-network-refusal")).toHaveAttribute("data-position", "2");
+        const step = page.locator('.chain-step[data-step-index="1"]');
+        await expect(step.locator(".step-title")).toHaveAttribute("aria-expanded", "true");
+        await expect(step.getByTestId("step-network-flag")).toBeVisible();
+        await settled(page, viewport.width);
+        await shot(page, "fleet-network-open-step", meta());
       });
 
       test("applied and rejected: a decided plan that changes a step keeps its step lines", async ({ page }) => {
@@ -261,6 +439,9 @@ for (const viewport of VIEWPORTS) {
           await expect(flow(page).getByTestId("plan-chip")).toContainText(m.plans.state[decided]);
           await expect(flow(page).getByTestId("plan-chain-line")).toHaveText([chainLine(m, "added", 2, "Script Operator")]);
           await expect(flow(page).getByTestId("plan-status")).toContainText(decided === "applied" ? m.plans.view.appliedNote : m.plans.view.rejectedNote);
+          // A decided plan's note is a fact, not advice to read before approving.
+          await expect(flow(page).getByTestId("plan-chain-only")).toHaveAttribute("data-decided", "true");
+          await expect(flow(page).getByTestId("plan-chain-only")).toHaveText(m.plans.chain.onlyChainDecided);
           await settled(page, viewport.width);
           await shot(page, `chain-plan-${decided}`, meta());
         }
@@ -300,6 +481,14 @@ for (const locale of LOCALES.filter((entry) => entry !== "en")) {
         await expect(refusal.getByTestId("script-network-rule")).toHaveText(t.plans.scriptNetwork.rule);
         await settled(page, viewport.width);
         await shot(page, "propose-network-refusal", { width: viewport.width, theme: "light", locale });
+
+        await openPlans(page, { locale, query: "&member-script=1" });
+        await runAction(page, "paid-extra", "publish-staged");
+        const member = flow(page).getByTestId("script-network-refusal");
+        await expect(member.getByTestId("script-network-step")).toHaveText(t.plans.scriptNetwork.stepCandidate(2, "Script Filter", PAID));
+        await expect(flow(page).getByTestId("propose-refusal-blocked")).toHaveText(t.plans.scriptNetwork.proposeBlocked);
+        await settled(page, viewport.width);
+        await shot(page, "member-network-refusal", { width: viewport.width, theme: "light", locale });
 
         await openPlans(page, { locale });
         await stageProviderEdit(page, locale);
