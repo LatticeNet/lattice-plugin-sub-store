@@ -175,6 +175,9 @@ function publish(): void {
     <div v-if="record" class="peek">
       <PcNotice v-if="status" :tone="status.tone">{{ status.text }}</PcNotice>
       <LtManualCopy v-if="manualLink" :value="manualLink" subject="link" />
+      <!-- design 28 S2: the staged revision and its plan, decoy shares, a mixed combination, each with its way out.
+           First, above the fetch health: a green "ok" over "failed: apply_revision" read as the record being fine. -->
+      <RecordPlanState :id="id" :items="pipe.items.value" :shares="pipe.shares.value as PlanShareRow[] | undefined" />
       <div class="peek-state">
         <PcStateDot :tone="health.tone" :label="health.label" :title="health.title" />
         <PcKindChip v-if="record.imported" :label="t.records.migratedTag" :title="t.record.importedTitle" />
@@ -187,8 +190,6 @@ function publish(): void {
       <!-- Why Edit is disabled, in words: a disabled button takes no focus and
            a touch screen has no hover, so its title alone reaches nobody. -->
       <p v-if="!canEdit" id="record-edit-blocked" class="peek-why" data-testid="edit-blocked">{{ t.record.editBlocked }}</p>
-      <!-- design 28 S2: the staged revision and its plan, decoy shares, a mixed combination, each with its way out. -->
-      <RecordPlanState :id="id" :items="pipe.items.value" :shares="pipe.shares.value as PlanShareRow[] | undefined" />
 
       <dl class="peek-facts">
         <template v-if="kind !== KIND_FILE">
