@@ -11,12 +11,12 @@
     "kv:write",
     "subscription:serve"
   ],
-  "version": "0.17.0-alpha.2",
+  "version": "0.18.0-alpha.1",
   "publisher": "latticenet",
   "signature_ed25519": "kaOAnU6u/lyUfeO7VvnFs8lC7RvxcPeBnEOdLyT2N+JlRRj4iRf2L9K9AZZzLV0JoY+IiS5ilXZ08W8BBFMwAg==",
   "bundle": {
     "format": "tar+gzip",
-    "digest_sha256": "b1f769f8d558e9c991099956e884e7e95c7a64e32aef89ebe100a81ca8b1e307"
+    "digest_sha256": "5f37dae07d7f69bf7960ba89aa9ee5bd70e5a676671108c3ce9e547d71f1dcbb"
   },
   "runtime": {
     "protocol": "stdio-json-v2",
@@ -31,7 +31,7 @@
     "bridge_version": "1"
   },
   "compatibility": {
-    "server": "\u003e=0.2.2-alpha.123",
+    "server": "\u003e=0.2.2-alpha.133",
     "dashboard_host": "\u003e=1",
     "runtime_protocol": "\u003e=2"
   },

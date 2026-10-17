@@ -125,10 +125,11 @@ jobs:
 
       - name: validate manifest against reviewed server
         env:
-          # alpha-0.2.2a123 release commit e987e16, the S0 server release whose
-          # checker knows the capability-wave manifest.
+          # alpha-0.2.2a133 release commit c1df2bb, the S2 server release the
+          # manifest's compatibility floor names, so the manifest is judged by
+          # the validator the server that loads it runs.
           # Move ONLY to another released tag's commit.
-          LATTICE_CHECK_REF: v0.2.4-0.20261009034729-e987e1606b03
+          LATTICE_CHECK_REF: v0.2.4-0.20261017144019-c1df2bb351a3
         run: go run "github.com/LatticeNet/lattice-server/cmd/lattice-plugin-manifest-check@${LATTICE_CHECK_REF}" manifest.json
 
       - name: build runtime binaries
