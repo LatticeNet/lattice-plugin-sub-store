@@ -344,8 +344,8 @@ benchmarks, and since S2 the fleet plan, catalogue validation, fleet_preview
 and isolated-engine benchmarks, ten times on ubuntu-24.04, and
 `tools/perfgate` judges the medians against its target table (S1 plan
 section 5.2, S2 plan section 5) and `system-go/testdata/bench/ubuntu-24.04.txt`.
-The label hands out CPUs up to 1.8 times apart (an Intel Xeon 8573C, an AMD
-EPYC 7763 and an AMD EPYC 9V45 so far), so the baseline keeps each run under
+The label hands out CPUs up to 1.8 times apart (an Intel Xeon 8573C and AMD
+EPYC 7763, 9V45 and 9V74 so far), so the baseline keeps each run under
 the `cpu:` header it was taken on, and the 1.5 times ns/op rule compares a
 run with the baseline's runs on the same CPU. A baseline pooled over CPUs let
 a 2.2 times slowdown pass on the fast one. When the baseline holds no run of
