@@ -622,40 +622,59 @@ func (rt *runtime) fleetPreviewResult(plan fleetPlanOutput, source []*nodemodel.
 	return out, nil
 }
 
+// renderCallRequest is render's request payload.
+type renderCallRequest struct {
+	SubscriptionID string `json:"subscription_id"`
+	Format         string `json:"format"`
+	UAClass        string `json:"ua_class"`
+	// UATarget is what the core resolved from the agent; it travels
+	// only when the URL named no target (subscriptionRenderRequest).
+	UATarget string `json:"ua_target"`
+	// Target names the client explicitly — the parity contract with
+	// Sub-Store, whose subscription URLs carry ?target=. An explicit
+	// target outranks both the record's pin and the UA class: the
+	// caller who spells out a client means that client.
+	Target string `json:"target"`
+	// Options are produce() flags under Sub-Store's own names
+	// (include-unsupported-proxy, ...). Booleans only.
+	Options map[string]bool `json:"options"`
+	Raw     string          `json:"raw"`
+	// Only the parameters the core decided to forward reach here, and the
+	// record narrows them again to the names it declared.
+	Query map[string]string `json:"query"`
+	// Explain asks the render to also report what the chosen client
+	// dropped. The console sets it; the path that serves a client does
+	// not, so serving pays nothing for a diagnosis nobody reads.
+	Explain bool `json:"explain"`
+	// Revision names the revision to render (S2 plan section 2.7):
+	// empty or the live one serves, the staged one previews. Core's
+	// previews and plans name it; an older core sends none.
+	Revision string `json:"revision"`
+	// MemberRevisions names, for a collection, the revision each member
+	// renders at; "" names a deleted member.
+	MemberRevisions map[string]string `json:"member_revisions"`
+}
+
+// members maps each of the request's JSON names to its field, for
+// decodeExactMembers; TestRenderCallRequestMembersNameEveryField holds it to
+// the struct's tags, so a misspelt name cannot send every request down the
+// slow path unnoticed.
+func (r *renderCallRequest) members() map[string]any {
+	return map[string]any{
+		"subscription_id": &r.SubscriptionID, "format": &r.Format, "ua_class": &r.UAClass, "ua_target": &r.UATarget,
+		"target": &r.Target, "options": &r.Options, "raw": &r.Raw, "query": &r.Query, "explain": &r.Explain,
+		"revision": &r.Revision, "member_revisions": &r.MemberRevisions,
+	}
+}
+
 // renderCall serves render: the body the core serves for a share.
 func (rt *runtime) renderCall(payload json.RawMessage) response {
-	var req struct {
-		SubscriptionID string `json:"subscription_id"`
-		Format         string `json:"format"`
-		UAClass        string `json:"ua_class"`
-		// UATarget is what the core resolved from the agent; it travels
-		// only when the URL named no target (subscriptionRenderRequest).
-		UATarget string `json:"ua_target"`
-		// Target names the client explicitly — the parity contract with
-		// Sub-Store, whose subscription URLs carry ?target=. An explicit
-		// target outranks both the record's pin and the UA class: the
-		// caller who spells out a client means that client.
-		Target string `json:"target"`
-		// Options are produce() flags under Sub-Store's own names
-		// (include-unsupported-proxy, ...). Booleans only.
-		Options map[string]bool `json:"options"`
-		Raw     string          `json:"raw"`
-		// Only the parameters the core decided to forward reach here, and the
-		// record narrows them again to the names it declared.
-		Query map[string]string `json:"query"`
-		// Explain asks the render to also report what the chosen client
-		// dropped. The console sets it; the path that serves a client does
-		// not, so serving pays nothing for a diagnosis nobody reads.
-		Explain bool `json:"explain"`
-		// Revision names the revision to render (S2 plan section 2.7):
-		// empty or the live one serves, the staged one previews. Core's
-		// previews and plans name it; an older core sends none.
-		Revision string `json:"revision"`
-		// MemberRevisions names, for a collection, the revision each member
-		// renders at; "" names a deleted member.
-		MemberRevisions map[string]string `json:"member_revisions"`
-	}
-	if len(payload) > 0 {
+	var req renderCallRequest
+	if len(payload) > 0 && !decodeExactMembers(payload, req.members()) {
+		// The request carries the snapshot (most of a megabyte for 1000
+		// lines); decodeExactMembers reads a plain one once. Anything else is
+		// decoded here, from zero.
+		req = renderCallRequest{}
 		if err := json.Unmarshal(payload, &req); err != nil {
 			return latticeplugin.ErrorResponse(fmt.Errorf("invalid render payload: %w", err))
 		}
@@ -674,11 +693,28 @@ func (rt *runtime) renderCall(payload json.RawMessage) response {
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
-	body, err := json.Marshal(out)
+	body, err := marshalRenderReply(out)
 	if err != nil {
 		return latticeplugin.ErrorResponse(err)
 	}
 	return latticeplugin.RawResultResponse(body, "")
+}
+
+// renderPlanSlot stands in for a render reply's plan while the rest of it is
+// marshalled.
+var renderPlanSlot = json.RawMessage(`"\u0000plan"`)
+
+// marshalRenderReply is json.Marshal of a render reply. A fleet plan is most
+// of a megabyte that encodeFleetPlan already wrote in canonical form, so it
+// is spliced into json.Marshal's encoding of the rest in place of a slot
+// (marshalSplicing) instead of compacted again; the bytes are json.Marshal's.
+func marshalRenderReply(out renderReply) ([]byte, error) {
+	if len(out.Plan) == 0 {
+		return json.Marshal(out)
+	}
+	slotted := out
+	slotted.Plan = renderPlanSlot
+	return marshalSplicing(slotted, "plan", renderPlanSlot, out.Plan, func() ([]byte, error) { return json.Marshal(out) })
 }
 
 // renderReply is render's reply: the S1 result, the live revision of the

@@ -18,6 +18,7 @@ import (
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/operators"
 	"github.com/LatticeNet/lattice-plugin-sub-store/system-go/parse"
 	"github.com/LatticeNet/lattice-sdk/model"
+	"github.com/LatticeNet/lattice-sdk/strictjson"
 )
 
 // Fleet render (S2 plan sections 1.2 and 2.3). Each selected row becomes a
@@ -263,28 +264,45 @@ type fleetDrop struct {
 }
 
 // fleetRowNodes builds the node of every row that has one, minting its
-// placeholders, and lists the rows without one.
+// placeholders, and lists the rows without one. Placeholders are minted
+// first, in row order, so a line two members select keeps the set first
+// drawn for it; the nodes are then built in parallel (each row's node
+// depends on nothing but the row and its placeholders) and gathered in row
+// order. The result, and the first error in row order, are what building
+// them one after another gives.
 func fleetRowNodes(rows []fleetRow, options *fleetOptions, table *fleetPlaceholders) (nodes []*nodemodel.Node, drops []fleetDrop, err error) {
+	minted := make([]map[string]string, len(rows))
+	mintedRows, mintErr := len(rows), error(nil)
+	for i, row := range rows {
+		if minted[i], mintErr = table.mint(row); mintErr != nil {
+			mintedRows = i
+			break
+		}
+	}
+	built := make([]*nodemodel.Node, mintedRows)
+	reasons := make([]string, mintedRows)
+	errs := make([]error, mintedRows)
+	parallelRange(mintedRows, func(i int) {
+		built[i], reasons[i], errs[i] = fleetRowNode(rows[i], minted[i], options)
+	})
 	nodes = make([]*nodemodel.Node, 0, len(rows))
-	for _, row := range rows {
-		placeholders, err := table.mint(row)
-		if err != nil {
-			return nil, nil, fmt.Errorf("line %s: %w", row.LineUUID, err)
+	for i, row := range rows {
+		if i == mintedRows {
+			return nil, nil, fmt.Errorf("line %s: %w", row.LineUUID, mintErr)
 		}
-		node, drop, err := fleetRowNode(row, placeholders, options)
-		if err != nil {
-			return nil, nil, fmt.Errorf("line %s: %w", row.LineUUID, err)
+		if errs[i] != nil {
+			return nil, nil, fmt.Errorf("line %s: %w", row.LineUUID, errs[i])
 		}
-		if drop != "" {
+		if reasons[i] != "" {
 			protocol := row.Protocol
 			if row.Template != nil {
 				protocol = row.Template.Protocol
 			}
-			drops = append(drops, fleetDrop{LineUUID: row.LineUUID, Protocol: protocol, Reason: drop})
+			drops = append(drops, fleetDrop{LineUUID: row.LineUUID, Protocol: protocol, Reason: reasons[i]})
 			continue
 		}
-		table.lattice[row.LineUUID] = node.Lattice
-		nodes = append(nodes, node)
+		table.lattice[row.LineUUID] = built[i].Lattice
+		nodes = append(nodes, built[i])
 	}
 	return nodes, drops, nil
 }
@@ -414,24 +432,31 @@ func bundleOperatorsWithoutStructured(plan *operators.Plan) []json.RawMessage {
 // node that carries the computation's provider mark and no placeholder came
 // from a provider member and is a provider node. Any other node carries no
 // line and no Lattice block, and core excludes it with no_line.
+//
+// Each node's line is recovered and its block attached first, in order;
+// the nodes are then encoded in parallel, which only reads them (two
+// positions holding one node read the same block, recovered from the same
+// fields), and the first error in order is reported.
 func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.SelectionPlanNode, error) {
-	out := make([]model.SelectionPlanNode, 0, len(nodes))
+	out := make([]model.SelectionPlanNode, len(nodes))
 	for i, n := range nodes {
-		node := model.SelectionPlanNode{}
 		if line, ok := table.recover(n); ok {
 			n.Lattice = table.lattice[line]
-			node.LineUUID = line
-			node.Placeholders = table.fields[line]
+			out[i].LineUUID = line
+			out[i].Placeholders = table.fields[line]
 		} else {
 			n.Lattice = nil
-			node.Provider = table.provider != "" && n.Script[fleetProviderMark] == table.provider
+			out[i].Provider = table.provider != "" && n.Script[fleetProviderMark] == table.provider
 		}
-		encoded, err := n.MarshalPlanNode()
+	}
+	errs := make([]error, len(nodes))
+	parallelRange(len(nodes), func(i int) {
+		out[i].Node, errs[i] = nodes[i].MarshalPlanNode()
+	})
+	for i, err := range errs {
 		if err != nil {
 			return nil, fmt.Errorf("plan node %d: %w", i, err)
 		}
-		node.Node = encoded
-		out = append(out, node)
 	}
 	return out, nil
 }
@@ -441,11 +466,45 @@ func fleetPlanNodes(nodes []*nodemodel.Node, table *fleetPlaceholders) ([]model.
 // a larger plan would pass the SDK's own bound and still be killed by core
 // for exceeding render's stdout budget once the reply's other fields are
 // added.
+//
+// The plan is encoded by appendSelectionPlan, byte for byte what json.Marshal
+// writes, and validated without a scan per node: when every node is
+// canonical (which the plugin's own writer guarantees) by
+// ValidateTrustingWellFormedNodes, otherwise against the encoding
+// (ValidateTrustingEncoding, one pass for the whole plan). A plan that does
+// not encode is judged by Validate, which refuses it with the words it
+// always used.
 func encodeFleetPlan(plan model.SelectionPlan) (json.RawMessage, error) {
-	if err := plan.Validate(); err != nil {
+	hint := 64
+	for _, node := range plan.Nodes {
+		hint += len(node.Node) + 256
+	}
+	if plan.Selection != nil {
+		hint += 40 * len(plan.Selection.LineUUIDs)
+	}
+	// Each node is checked canonical in parallel; a canonical node is well
+	// formed and free of duplicate keys, so a plan of canonical nodes is
+	// validated without scanning its encoding again.
+	canonical := make([]bool, len(plan.Nodes))
+	parallelRange(len(plan.Nodes), func(i int) {
+		canonical[i] = strictjson.CanonicalRaw(plan.Nodes[i].Node)
+	})
+	raw, err := appendSelectionPlanChecked(make([]byte, 0, hint), plan, canonical)
+	if err != nil {
+		if verr := plan.Validate(); verr != nil {
+			err = verr
+		}
 		return nil, err
 	}
-	raw, err := json.Marshal(plan)
+	allCanonical := true
+	for _, ok := range canonical {
+		allCanonical = allCanonical && ok
+	}
+	if allCanonical {
+		err = plan.ValidateTrustingWellFormedNodes()
+	} else {
+		err = plan.ValidateTrustingEncoding(raw)
+	}
 	if err != nil {
 		return nil, err
 	}

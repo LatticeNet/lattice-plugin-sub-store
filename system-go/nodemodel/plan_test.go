@@ -119,6 +119,46 @@ func TestPlanNodeNeverCarriesLatticeKey(t *testing.T) {
 	}
 }
 
+// TestPlanNodeTakesOnlyLatticeKeysFromTheBlock: the block also encodes
+// provenance, which is not a key core carries. A node whose Fields hold a
+// key of that name (a script wrote it) keeps its own value in the plan node,
+// as the encoder before the one-pass write did, on both of the encoder's
+// paths.
+func TestPlanNodeTakesOnlyLatticeKeysFromTheBlock(t *testing.T) {
+	n := planTestNode()
+	n.Fields["provenance"] = "script-prov"
+	n.Lattice.Provenance = "block-prov"
+	encoded, err := n.MarshalPlanNode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := json.Unmarshal(encoded, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got["provenance"] != "script-prov" {
+		t.Fatalf("provenance = %v, want the Fields value: %s", got["provenance"], encoded)
+	}
+	block := map[string]any{"provenance": "block-prov", "node_id": "n-2"}
+	fromMap, err := n.appendPlanNodeFromMap(block)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got = nil
+	if err := json.Unmarshal(fromMap, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got["provenance"] != "script-prov" || got["node_id"] != "n-2" {
+		t.Fatalf("map path: provenance = %v, node_id = %v", got["provenance"], got["node_id"])
+	}
+	// Without a Fields key of that name the block's provenance is not
+	// written at all.
+	delete(n.Fields, "provenance")
+	if encoded, err = n.MarshalPlanNode(); err != nil || strings.Contains(string(encoded), "provenance") {
+		t.Fatalf("plan node carries the block's provenance: %s, %v", encoded, err)
+	}
+}
+
 // TestUnmarshalPlanNodeMovesLatticeFieldsAndStripRemovesThem pins convert's
 // side: the carried Lattice keys move into Lattice, line_uuid stays for
 // StripLattice, protocol tuning fields stay in Fields, and "_lattice" is

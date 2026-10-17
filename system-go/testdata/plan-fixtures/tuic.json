@@ -1,0 +1,117 @@
+{
+  "name": "tuic",
+  "protocol": "tuic",
+  "share_url": "tuic://0f0e0d0c-0b0a-4908-8706-050403020100:owner-share-secret@tu.example.com:443?alpn=h3&congestion_control=bbr&sni=tu.example.com#owner",
+  "row": {
+    "line_uuid": "00000008-0000-4000-8000-000000000008",
+    "line_hash_id": "lh-8",
+    "node_id": "node-8",
+    "node_name": "fixture-08",
+    "name": "tuic",
+    "label": "fixture-08 tuic",
+    "node_tags": [
+      "jp",
+      "rack-1"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "tuic",
+    "transport": "udp",
+    "security": "tls",
+    "public_host": "tu.example.com",
+    "public_port": 443,
+    "addresses": [
+      "192.0.2.8"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "tuic",
+      "host": "tu.example.com",
+      "port": 443,
+      "params": {
+        "alpn": "h3",
+        "congestion_control": "bbr",
+        "sni": "tu.example.com"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000008"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000008-0000-4000-8000-000000000008",
+        "placeholders": {
+          "password": "LATTICE-SYN-00000008-0000-4000-8000-000000000008-password-351cadf4543b98f3bdb5dc1c5379bf45",
+          "uuid": "LATTICE-SYN-00000008-0000-4000-8000-000000000008-uuid-086ec6d0b381b8f163b9b117d6dca8de"
+        },
+        "node": {
+          "addresses": [
+            "192.0.2.8"
+          ],
+          "alpn": [
+            "h3"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "congestion-controller": "bbr",
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-8",
+          "name": "fixture-08 tuic",
+          "node_id": "node-8",
+          "password": "LATTICE-SYN-00000008-0000-4000-8000-000000000008-password-351cadf4543b98f3bdb5dc1c5379bf45",
+          "port": 443,
+          "server": "tu.example.com",
+          "sni": "tu.example.com",
+          "tags": [
+            "jp",
+            "rack-1"
+          ],
+          "tls": true,
+          "type": "tuic",
+          "udp": true,
+          "udp-relay-mode": "native",
+          "uuid": "LATTICE-SYN-00000008-0000-4000-8000-000000000008-uuid-086ec6d0b381b8f163b9b117d6dca8de"
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000008-0000-4000-8000-000000000008"
+      ]
+    }
+  }
+}

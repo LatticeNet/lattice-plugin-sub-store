@@ -98,18 +98,26 @@ func (rt *runtime) convertSubscription(payload json.RawMessage) (subscriptionCon
 	request := nodeConvertRequest{Target: target, Options: req.Options}
 	if len(req.Nodes) > 0 {
 		request.Nodes = make([]*nodemodel.Node, len(req.Nodes))
-		for i, raw := range req.Nodes {
+		errs := make([]error, len(req.Nodes))
+		// Each node decodes on its own, so the nodes decode in parallel;
+		// the first error in order is reported.
+		parallelRange(len(req.Nodes), func(i int) {
 			request.Nodes[i] = &nodemodel.Node{}
 			// A bound plan node: the carried Lattice keys move out of Fields
 			// and are dropped with line_uuid, so no producer writes a line,
 			// a geo, an address or a node id (S2 plan section 2.3). The
 			// decoder's error names a key or a type, never a value: the
 			// node carries a credential.
-			if err := request.Nodes[i].UnmarshalPlanNode(raw); err != nil {
-				return subscriptionConvertResult{}, fmt.Errorf("convert node %d: %w", i, err)
+			if errs[i] = request.Nodes[i].UnmarshalPlanNode(req.Nodes[i]); errs[i] != nil {
+				return
 			}
 			request.Nodes[i].Lattice = nil
 			nodemodel.StripLattice(request.Nodes[i])
+		})
+		for i, err := range errs {
+			if err != nil {
+				return subscriptionConvertResult{}, fmt.Errorf("convert node %d: %w", i, err)
+			}
 		}
 	} else {
 		raw, err := convertInput(req.URIs, req.Raw)

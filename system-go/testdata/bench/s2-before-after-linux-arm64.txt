@@ -1,0 +1,80 @@
+# S2 plan section 5: "before" and "after" pairs for the warm runtime's removal,
+# taken by the same harness on both binaries, one after the other in one
+# container:
+#
+#   before: the 0.17.0-alpha.2 release, bin/linux-arm64/plugin from
+#           lattice-plugin-sub-store-0.17.0-alpha.2.tar.gz, whose SHA-256
+#           b1f769f8d558e9c991099956e884e7e95c7a64e32aef89ebe100a81ca8b1e307
+#           is the signed manifest's bundle digest (the installed artifact)
+#   after:  this branch at 05db0a9, built with CGO_ENABLED=0 -trimpath
+#           -buildvcs=false, as the release builds it
+#
+# Host: golang:1.26.9-bookworm, linux/arm64, 4 vCPUs (colima on an Apple M3),
+# 2026-10-16. The machine was shared with other suites (load average 13 to 34
+# on 8 cores), which moves the latency figures and not the resident set.
+#
+# Harnesses: TestWorkerVmRSS (memory_linux_test.go: idle VmRSS once settled,
+# then three 4096-node sing-box converts through framed stdin) and
+# TestWorkerBundleCallLatency (worker_latency_linux_test.go: four converts of
+# 64 links to Loon, which reach the embedded bundle), both with
+# LATTICE_WORKER_BINARY naming the binary. The before binary fails
+# TestWorkerVmRSS's S2 bounds by design; its figures are the record.
+#
+# The config-file render before and after is the deploy's production
+# measurement (plan section 5); it needs the host's KV and is not taken here.
+
+## Resident set (TestWorkerVmRSS)
+=== 0.17.0-alpha.2 run 1
+=== RUN   TestWorkerVmRSS
+memory_linux_test.go:117: VmRSS     6.9 MiB  VmHWM     6.9 MiB  at runtime_ready
+memory_linux_test.go:119: VmRSS   126.7 MiB  VmHWM   126.7 MiB  idle, once VmRSS settled (settled after 4.2s)
+memory_linux_test.go:151: VmRSS   156.1 MiB  VmHWM   159.3 MiB  after render 1 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 186ms)
+memory_linux_test.go:151: VmRSS   123.5 MiB  VmHWM   159.3 MiB  after render 2 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 263ms)
+memory_linux_test.go:151: VmRSS   127.5 MiB  VmHWM   159.3 MiB  after render 3 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 264ms)
+=== head run 1
+=== RUN   TestWorkerVmRSS
+memory_linux_test.go:117: VmRSS     6.6 MiB  VmHWM     6.6 MiB  at runtime_ready
+memory_linux_test.go:119: VmRSS     6.6 MiB  VmHWM     6.6 MiB  idle, once VmRSS settled (settled after 2s)
+memory_linux_test.go:151: VmRSS    38.9 MiB  VmHWM    51.4 MiB  after render 1 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 191ms)
+memory_linux_test.go:151: VmRSS    42.1 MiB  VmHWM    55.5 MiB  after render 2 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 216ms)
+memory_linux_test.go:151: VmRSS    63.3 MiB  VmHWM    63.3 MiB  after render 3 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 218ms)
+=== 0.17.0-alpha.2 run 2
+=== RUN   TestWorkerVmRSS
+memory_linux_test.go:117: VmRSS     7.0 MiB  VmHWM     7.0 MiB  at runtime_ready
+memory_linux_test.go:119: VmRSS   148.1 MiB  VmHWM   148.1 MiB  idle, once VmRSS settled (settled after 4.4s)
+memory_linux_test.go:151: VmRSS   159.9 MiB  VmHWM   191.6 MiB  after render 1 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 157ms)
+memory_linux_test.go:151: VmRSS   126.7 MiB  VmHWM   191.6 MiB  after render 2 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 166ms)
+memory_linux_test.go:151: VmRSS   130.7 MiB  VmHWM   191.6 MiB  after render 3 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 149ms)
+=== head run 2
+=== RUN   TestWorkerVmRSS
+memory_linux_test.go:117: VmRSS     6.6 MiB  VmHWM     6.6 MiB  at runtime_ready
+memory_linux_test.go:119: VmRSS     6.6 MiB  VmHWM     6.6 MiB  idle, once VmRSS settled (settled after 2s)
+memory_linux_test.go:151: VmRSS    33.7 MiB  VmHWM    52.5 MiB  after render 1 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 132ms)
+memory_linux_test.go:151: VmRSS    37.4 MiB  VmHWM    53.5 MiB  after render 2 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 138ms)
+memory_linux_test.go:151: VmRSS    32.5 MiB  VmHWM    54.4 MiB  after render 3 of 4096 nodes to sing-box (4096 nodes written, 2352483 bytes, 145ms)
+
+## Bundle call latency (TestWorkerBundleCallLatency), two paired runs
+=== plugin017 run 1
+worker_latency_linux_test.go:79: runtime_ready after 12ms
+worker_latency_linux_test.go:105: bundle convert 1 (64 links to Loon): 3.275s
+worker_latency_linux_test.go:105: bundle convert 2 (64 links to Loon): 876ms
+worker_latency_linux_test.go:105: bundle convert 3 (64 links to Loon): 1.065s
+worker_latency_linux_test.go:105: bundle convert 4 (64 links to Loon): 852ms
+=== plugin-head run 1
+worker_latency_linux_test.go:79: runtime_ready after 3ms
+worker_latency_linux_test.go:105: bundle convert 1 (64 links to Loon): 2.622s
+worker_latency_linux_test.go:105: bundle convert 2 (64 links to Loon): 1.278s
+worker_latency_linux_test.go:105: bundle convert 3 (64 links to Loon): 1.213s
+worker_latency_linux_test.go:105: bundle convert 4 (64 links to Loon): 1.317s
+=== plugin017 run 2
+worker_latency_linux_test.go:79: runtime_ready after 4ms
+worker_latency_linux_test.go:105: bundle convert 1 (64 links to Loon): 2.996s
+worker_latency_linux_test.go:105: bundle convert 2 (64 links to Loon): 979ms
+worker_latency_linux_test.go:105: bundle convert 3 (64 links to Loon): 781ms
+worker_latency_linux_test.go:105: bundle convert 4 (64 links to Loon): 784ms
+=== plugin-head run 2
+worker_latency_linux_test.go:79: runtime_ready after 2ms
+worker_latency_linux_test.go:105: bundle convert 1 (64 links to Loon): 4.804s
+worker_latency_linux_test.go:105: bundle convert 2 (64 links to Loon): 1.34s
+worker_latency_linux_test.go:105: bundle convert 3 (64 links to Loon): 888ms
+worker_latency_linux_test.go:105: bundle convert 4 (64 links to Loon): 936ms

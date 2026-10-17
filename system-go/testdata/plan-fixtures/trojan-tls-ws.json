@@ -1,0 +1,119 @@
+{
+  "name": "trojan-tls-ws",
+  "protocol": "trojan",
+  "share_url": "trojan://owner-share-secret@trws.example.com:443?security=tls&sni=trws.example.com&type=ws&host=trws.example.com&path=%2Ftr#owner",
+  "row": {
+    "line_uuid": "00000005-0000-4000-8000-000000000005",
+    "line_hash_id": "lh-5",
+    "node_id": "node-5",
+    "node_name": "fixture-05",
+    "name": "trojan-tls-ws",
+    "label": "fixture-05 trojan-tls-ws",
+    "node_tags": [
+      "jp",
+      "rack-5"
+    ],
+    "group_ids": [
+      "g-asia"
+    ],
+    "geo": {
+      "country": "JP",
+      "region": "Tokyo",
+      "city": "Tokyo",
+      "asn": 2516,
+      "as_org": "KDDI",
+      "provider": "maxmind",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "machine": {
+      "vendor": "acme",
+      "region": "ap-northeast-1"
+    },
+    "protocol": "trojan",
+    "transport": "ws",
+    "security": "tls",
+    "public_host": "trws.example.com",
+    "public_port": 443,
+    "addresses": [
+      "192.0.2.5"
+    ],
+    "managed": true,
+    "status": "ok",
+    "service_state": "running",
+    "chain": {
+      "role": "single"
+    },
+    "probe": null,
+    "template": {
+      "protocol": "trojan",
+      "host": "trws.example.com",
+      "port": 443,
+      "params": {
+        "host": "trws.example.com",
+        "path": "/tr",
+        "security": "tls",
+        "sni": "trws.example.com",
+        "type": "ws"
+      },
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000005"
+    }
+  },
+  "plan": {
+    "kind": "nodes",
+    "nodes": [
+      {
+        "line_uuid": "00000005-0000-4000-8000-000000000005",
+        "placeholders": {
+          "password": "LATTICE-SYN-00000005-0000-4000-8000-000000000005-password-0c4e5e92391f2a0b8b708da8c28f634a"
+        },
+        "node": {
+          "addresses": [
+            "192.0.2.5"
+          ],
+          "chain": {
+            "role": "single"
+          },
+          "geo": {
+            "as_org": "KDDI",
+            "asn": 2516,
+            "city": "Tokyo",
+            "country": "JP",
+            "provider": "maxmind",
+            "region": "Tokyo",
+            "updated_at": "0001-01-01T00:00:00Z"
+          },
+          "groups": [
+            "g-asia"
+          ],
+          "line_hash_id": "lh-5",
+          "name": "fixture-05 trojan-tls-ws",
+          "network": "ws",
+          "node_id": "node-5",
+          "password": "LATTICE-SYN-00000005-0000-4000-8000-000000000005-password-0c4e5e92391f2a0b8b708da8c28f634a",
+          "port": 443,
+          "server": "trws.example.com",
+          "sni": "trws.example.com",
+          "tags": [
+            "jp",
+            "rack-5"
+          ],
+          "tls": true,
+          "type": "trojan",
+          "udp": true,
+          "ws-opts": {
+            "headers": {
+              "Host": "trws.example.com"
+            },
+            "path": "/tr"
+          }
+        }
+      }
+    ],
+    "selection": {
+      "catalogue_version": "lcv1-0000000000000000000000000000000000000000000000000000000000000001",
+      "line_uuids": [
+        "00000005-0000-4000-8000-000000000005"
+      ]
+    }
+  }
+}

@@ -340,15 +340,23 @@ until their harness ids join `routed` in `system-go/producers/producer.go`.
 The pipeline benchmarks time design 28's measure, the nodes through four
 non-script operators to sing-box; the parse of the same nodes' links is a
 benchmark of its own. The `perf` job runs the pipeline, parse and producer
-benchmarks ten times on ubuntu-24.04 and `tools/perfgate` judges the medians
-against the S1 targets and `system-go/testdata/bench/ubuntu-24.04.txt`. That
-baseline is the job's output from two runs that landed on different CPUs (an
-Intel Xeon 8573C and an AMD EPYC 7763, which the label hands out; the second
-is up to 1.57 times slower), so the 1.5 times rule does not trip on the CPU a
-run happens to get. Move it the same way, from at least two CPUs, with the
-reason in the commit. The `memory` job runs the
-allocation and heap gates without the race detector and records the built
-worker's resident set (`TestWorkerVmRSS`), which S2 starts enforcing.
+benchmarks, and since S2 the fleet plan, catalogue validation, fleet_preview
+and isolated-engine benchmarks, ten times on ubuntu-24.04, and
+`tools/perfgate` judges the medians against its target table (S1 plan
+section 5.2, S2 plan section 5) and `system-go/testdata/bench/ubuntu-24.04.txt`.
+The label hands out CPUs up to 1.8 times apart (an Intel Xeon 8573C and AMD
+EPYC 7763, 9V45 and 9V74 so far), so the baseline keeps each run under
+the `cpu:` header it was taken on, and the 1.5 times ns/op rule compares a
+run with the baseline's runs on the same CPU. A baseline pooled over CPUs let
+a 2.2 times slowdown pass on the fast one. When the baseline holds no run of
+the current CPU for a benchmark, the slowest CPU's median stands in, the
+verdict says so and perfgate warns; that comparison is looser, so add the
+CPU's run to the baseline when one appears. B/op and allocs/op do not depend
+on the CPU and are held to 1.2 times their median over every CPU. Move the
+baseline by appending a whole perf run's output, with the reason in the
+commit. The `memory` job runs the
+allocation and heap gates without the race detector and holds the built
+worker's resident set (`TestWorkerVmRSS`) to the S2 bounds.
 
 ## Looking at the UI
 
