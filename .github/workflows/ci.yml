@@ -19,7 +19,7 @@ jobs:
         with:
           # Part of the signed byte contract (README, Local verification).
           # An exact patch version makes setup-go fetch it from go.dev.
-          go-version: '1.26.9'
+          go-version: '1.26.10'
           cache-dependency-path: |
             system-go/go.mod
             tools/pluginpack/go.mod
@@ -181,7 +181,7 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26.9'
+          go-version: '1.26.10'
           cache-dependency-path: system-go/go.mod
 
       - uses: actions/setup-node@v5
@@ -251,7 +251,7 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26.9'
+          go-version: '1.26.10'
           cache-dependency-path: |
             system-go/go.mod
             tools/perfgate/go.mod
@@ -295,7 +295,7 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26.9'
+          go-version: '1.26.10'
           cache-dependency-path: system-go/go.mod
 
       - name: allocation and heap gates
@@ -333,7 +333,7 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26.9'
+          go-version: '1.26.10'
           cache-dependency-path: system-go/go.mod
 
       - name: run every fuzz target for 30s
