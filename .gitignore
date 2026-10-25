@@ -27,3 +27,6 @@ seed.*
 system-go/system-go
 .omc/
 .build/
+
+# Local release and build outputs; releases carry the bundle, not the tree.
+/.release-bundle.tar.gz
